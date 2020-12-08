@@ -50,8 +50,7 @@
 </dl></dd>
 </dl>
 </div>
-
-    <p>
+<p>
       The Internet Domain Name System (<acronym class="acronym">DNS</acronym>)
       consists of the syntax
       to specify the names of entities in the Internet in a hierarchical
@@ -61,12 +60,10 @@
       group of distributed
       hierarchical databases.
     </p>
-
-    <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="doc_scope"></a>Scope of Document</h2></div></div></div>
-
-      <p>
+<p>
         The Berkeley Internet Name Domain
         (<acronym class="acronym">BIND</acronym>) implements a
         domain name server for a number of operating systems. This
@@ -75,14 +72,12 @@
         <acronym class="acronym">BIND</acronym> version 9 software package for
         system administrators.
       </p>
-      <p>This version of the manual corresponds to BIND version 9.11.</p>
-    </div>
-
-    <div class="section">
+<p>This version of the manual corresponds to BIND version 9.11.</p>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="organization"></a>Organization of This Document</h2></div></div></div>
-
-      <p>
+<p>
         In this document, <span class="emphasis"><em>Chapter 1</em></span> introduces
         the basic <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym> concepts. <span class="emphasis"><em>Chapter 2</em></span>
         describes resource requirements for running <acronym class="acronym">BIND</acronym> in various
@@ -107,18 +102,15 @@
         and the Domain Name
         System.
       </p>
-    </div>
-    <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="conventions"></a>Conventions Used in This Document</h2></div></div></div>
-
-      <p>
+<p>
         In this document, we use the following general typographic
         conventions:
       </p>
-
-      <div class="informaltable">
-        <table class="informaltable" border="1">
+<div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col width="3.000in" class="1">
 <col width="2.625in" class="2">
@@ -175,14 +167,11 @@
               </td>
 </tr>
 </tbody>
-</table>
-      </div>
-
-      <p>
+</table></div>
+<p>
         The following conventions are used in descriptions of the
         <acronym class="acronym">BIND</acronym> configuration file:</p>
-<div class="informaltable">
-                  <table class="informaltable" border="1">
+<div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col width="3.000in" class="1">
 <col width="2.625in" class="2">
@@ -237,36 +226,31 @@
                 </td>
 </tr>
 </tbody>
-</table>
-        </div>
+</table></div>
 <p>
       </p>
-    </div>
-    <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="dns_overview"></a>The Domain Name System (<acronym class="acronym">DNS</acronym>)</h2></div></div></div>
-
-      <p>
+<p>
         This document explains the installation
         and upkeep of the <acronym class="acronym">BIND</acronym> (Berkeley Internet
         Name Domain) software package. We
         begin by reviewing the fundamentals of the Domain Name System
         (<acronym class="acronym">DNS</acronym>) as they relate to <acronym class="acronym">BIND</acronym>.
       </p>
-
-      <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="dns_fundamentals"></a>DNS Fundamentals</h3></div></div></div>
-
-        <p>
+<p>
           The Domain Name System (DNS) is a hierarchical, distributed
           database.  It stores information for mapping Internet host names to
           IP
           addresses and vice versa, mail routing information, and other data
           used by Internet applications.
         </p>
-
-        <p>
+<p>
           Clients look up information in the DNS by calling a
           <span class="emphasis"><em>resolver</em></span> library, which sends queries to one or
           more <span class="emphasis"><em>name servers</em></span> and interprets the responses.
@@ -274,13 +258,11 @@
           contains a name server, <span class="command"><strong>named</strong></span>, and a
           resolver library, <span class="command"><strong>liblwres</strong></span>.
         </p>
-
-        </div>
-        <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="domain_names"></a>Domains and Domain Names</h3></div></div></div>
-
-        <p>
+<p>
           The data stored in the DNS is identified by <span class="emphasis"><em>domain names</em></span> that are organized as a tree according to
           organizational or administrative boundaries. Each node of the tree,
           called a <span class="emphasis"><em>domain</em></span>, is given a label. The domain
@@ -291,8 +273,7 @@
           separated by dots. A label need only be unique within its parent
           domain.
         </p>
-
-        <p>
+<p>
           For example, a domain name for a host at the
           company <span class="emphasis"><em>Example, Inc.</em></span> could be
           <code class="literal">ourhost.example.com</code>,
@@ -304,8 +285,7 @@
           <code class="literal">ourhost</code> is the
           name of the host.
         </p>
-
-        <p>
+<p>
           For administrative purposes, the name space is partitioned into
           areas called <span class="emphasis"><em>zones</em></span>, each starting at a node and
           extending down to the "leaf" nodes or to nodes where other zones
@@ -313,32 +293,27 @@
           The data for each zone is stored in a <span class="emphasis"><em>name server</em></span>, which answers queries about the zone using the
           <span class="emphasis"><em>DNS protocol</em></span>.
         </p>
-
-        <p>
+<p>
           The data associated with each domain name is stored in the
           form of <span class="emphasis"><em>resource records</em></span> (<acronym class="acronym">RR</acronym>s).
           Some of the supported resource record types are described in
           <a class="xref" href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them" title="Types of Resource Records and When to Use Them">the section called &#8220;Types of Resource Records and When to Use Them&#8221;</a>.
         </p>
-
-        <p>
+<p>
           For more detailed information about the design of the DNS and
           the DNS protocol, please refer to the standards documents listed in
           <a class="xref" href="Bv9ARM.ch11.html#rfcs" title="Requests for Comments (RFCs)">the section called &#8220;Requests for Comments (RFCs)&#8221;</a>.
         </p>
-      </div>
-
-      <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="zones"></a>Zones</h3></div></div></div>
-
-        <p>
+<p>
           To properly operate a name server, it is important to understand
           the difference between a <span class="emphasis"><em>zone</em></span>
           and a <span class="emphasis"><em>domain</em></span>.
         </p>
-
-        <p>
+<p>
           As stated previously, a zone is a point of delegation in
           the <acronym class="acronym">DNS</acronym> tree. A zone consists of
           those contiguous parts of the domain
@@ -350,8 +325,7 @@
           parent zone, which should be matched by equivalent NS records at
           the root of the delegated zone.
         </p>
-
-        <p>
+<p>
           For instance, consider the <code class="literal">example.com</code>
           domain which includes names
           such as <code class="literal">host.aaa.example.com</code> and
@@ -373,8 +347,7 @@
           gain a complete understanding of this difficult and subtle
           topic.
         </p>
-
-        <p>
+<p>
           Though <acronym class="acronym">BIND</acronym> is called a "domain name
           server",
           it deals primarily in terms of zones. The "primary" and "secondary"
@@ -384,13 +357,11 @@
           be a secondary server for a <span class="emphasis"><em>domain</em></span>, it is
           actually asking for secondary service for some collection of <span class="emphasis"><em>zones</em></span>.
         </p>
-      </div>
-
-      <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="auth_servers"></a>Authoritative Name Servers</h3></div></div></div>
-
-        <p>
+<p>
           Each zone is served by at least
           one <span class="emphasis"><em>authoritative name server</em></span>,
           which contains the complete data for the zone.
@@ -398,19 +369,16 @@
           most zones have two or more authoritative servers, on
           different networks.
         </p>
-
-        <p>
+<p>
           Responses from authoritative servers have the "authoritative
           answer" (AA) bit set in the response packets.  This makes them
           easy to identify when debugging DNS configurations using tools like
           <span class="command"><strong>dig</strong></span> (<a class="xref" href="Bv9ARM.ch03.html#diagnostic_tools" title="Diagnostic Tools">the section called &#8220;Diagnostic Tools&#8221;</a>).
         </p>
-
-        <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="primary_master"></a>The Primary Server</h4></div></div></div>
-
-          <p>
+<p>
             The authoritative server where the main copy of the zone
             data is maintained is called the
             <span class="emphasis"><em>primary</em></span> (or
@@ -422,19 +390,16 @@
             <span class="emphasis"><em>zone file</em></span> or
             <span class="emphasis"><em>master file</em></span>.
           </p>
-
-          <p>
+<p>
             In some cases, however, the zone file may not be edited
             by humans at all, but may instead be the result of
             <span class="emphasis"><em>dynamic update</em></span> operations.
           </p>
-        </div>
-
-        <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="slave_server"></a>Secondary Servers</h4></div></div></div>
-
-          <p>
+<p>
             The other authoritative servers, called the
             <span class="emphasis"><em>secondary</em></span>
             (or <span class="command"><strong>slave</strong></span>) servers, load the zone
@@ -445,7 +410,7 @@
             secondary.  In other words, a secondary server may itself act as a
             primary to a subordinate secondary server.
           </p>
-          <p>
+<p>
             Periodically, the secondary server must send a refresh query to
             determine whether the zone contents have been updated. This
             is done by sending a query for the zone's Start of Authority (SOA) record and
@@ -458,19 +423,17 @@
             <span class="command"><strong>max-retry-time</strong></span>, and
             <span class="command"><strong>min-retry-time</strong></span> options.
           </p>
-          <p>
+<p>
             If the zone data cannot be updated within the time specified
             by the SOA EXPIRE option (up to a hard-coded maximum of
             24 weeks), the secondary zone expires and no longer
             responds to queries.
           </p>
-        </div>
-
-        <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="stealth_server"></a>Stealth Servers</h4></div></div></div>
-
-          <p>
+<p>
             Usually, all of the zone's authoritative servers are listed in
             NS records in the parent zone.  These NS records constitute
             a <span class="emphasis"><em>delegation</em></span> of the zone from the parent.
@@ -480,8 +443,7 @@
             records, but servers that are not present at
             the zone's top level cannot be listed in the parent's delegation.
           </p>
-
-          <p>
+<p>
             A <span class="emphasis"><em>stealth server</em></span> is a server that is
             authoritative for a zone but is not listed in that zone's NS
             records.  Stealth servers can be used for keeping a local copy of
@@ -492,25 +454,19 @@
             are
             inaccessible.
           </p>
-
-          <p>
+<p>
             A configuration where the primary server itself is a
             stealth server is often referred to as a "hidden primary"
             configuration.  One use for this configuration is when the primary
             is behind a firewall and is therefore unable to communicate directly
             with the outside world.
           </p>
-
-        </div>
-
-      </div>
-      <div class="section">
+</div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="cache_servers"></a>Caching Name Servers</h3></div></div></div>
-
-        
-
-        <p>
+<p>
           The resolver libraries provided by most operating systems are
           <span class="emphasis"><em>stub resolvers</em></span>, meaning that they are not
           capable of
@@ -522,26 +478,22 @@
           is called a <span class="emphasis"><em>recursive</em></span> name server; it performs
           <span class="emphasis"><em>recursive lookups</em></span> for local clients.
         </p>
-
-        <p>
+<p>
           To improve performance, recursive servers cache the results of
           the lookups they perform.  Since the processes of recursion and
           caching are intimately connected, the terms
           <span class="emphasis"><em>recursive server</em></span> and
           <span class="emphasis"><em>caching server</em></span> are often used synonymously.
         </p>
-
-        <p>
+<p>
           The length of time for which a record may be retained in
           the cache of a caching name server is controlled by the
           Time-To-Live (TTL) field associated with each resource record.
         </p>
-
-        <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="forwarder"></a>Forwarding</h4></div></div></div>
-
-          <p>
+<p>
             Even a caching name server does not necessarily perform
             the complete recursive lookup itself.  Instead, it can
             <span class="emphasis"><em>forward</em></span> some or all of the queries
@@ -549,8 +501,7 @@
             server,
             commonly referred to as a <span class="emphasis"><em>forwarder</em></span>.
           </p>
-
-          <p>
+<p>
             Forwarders are typically used when an administrator does not
             wish for all the servers at a given site to interact
             directly with the rest of the Internet. For example, a
@@ -560,14 +511,12 @@
             which queries Internet DNS servers on the internal servers'
             behalf.
           </p>
-
-          <p>
+<p>
             Another scenario (largely now superseded by Response Policy
             Zones) is to send queries first to a custom server for RBL
             processing before forwarding them to the wider Internet.
           </p>
-
-          <p>
+<p>
             There may be one or more forwarders in a given setup. The
             order in which the forwarders are listed in
             <code class="filename">named.conf</code> does not determine the
@@ -581,22 +530,18 @@
             queried, even those with slower response times.  This
             permits changes in behavior based on server responsiveness.
           </p>
-        </div>
-
-      </div>
-
-      <div class="section">
+</div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="multi_role"></a>Name Servers in Multiple Roles</h3></div></div></div>
-
-        <p>
+<p>
           The <acronym class="acronym">BIND</acronym> name server can
           simultaneously act as
           a primary for some zones, a secondary for other zones, and a caching
           (recursive) server for a set of local clients.
         </p>
-
-        <p>
+<p>
           However, since the functions of authoritative name service
           and caching/recursive name service are logically separate, it is
           often advantageous to run them on separate server machines.
@@ -611,11 +556,9 @@
           does not need to be reachable from the Internet at large and can
           be placed inside a firewall.
         </p>
-
-      </div>
-    </div>
-
-  </div>
+</div>
+</div>
+</div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
@@ -633,6 +576,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.26 (Extended Support Version)</p>
 </body>
 </html>

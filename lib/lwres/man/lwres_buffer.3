@@ -35,16 +35,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_buffer_init, lwres_buffer_invalidate, lwres_buffer_add, lwres_buffer_subtract, lwres_buffer_clear, lwres_buffer_first, lwres_buffer_forward, lwres_buffer_back, lwres_buffer_getuint8, lwres_buffer_putuint8, lwres_buffer_getuint16, lwres_buffer_putuint16, lwres_buffer_getuint32, lwres_buffer_putuint32, lwres_buffer_putmem, lwres_buffer_getmem \- lightweight resolver buffer management
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/lwbuffer\&.h>
 .fi
 .ft
-.sp
 .HP \w'void\ lwres_buffer_init('u
 .BI "void lwres_buffer_init(lwres_buffer_t\ *" "b" ", void\ *" "base" ", unsigned\ int\ " "length" ");"
 .HP \w'void\ lwres_buffer_invalidate('u
@@ -77,18 +76,18 @@ lwres_buffer_init, lwres_buffer_invalidate, lwres_buffer_add, lwres_buffer_subtr
 .BI "void lwres_buffer_putmem(lwres_buffer_t\ *" "b" ", const\ unsigned\ char\ *" "base" ", unsigned\ int\ " "length" ");"
 .HP \w'void\ lwres_buffer_getmem('u
 .BI "void lwres_buffer_getmem(lwres_buffer_t\ *" "b" ", unsigned\ char\ *" "base" ", unsigned\ int\ " "length" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 These functions provide bounds checked access to a region of memory where data is being read or written\&. They are based on, and similar to, the
 isc_buffer_
 functions in the ISC library\&.
-    .PP
+.PP
 A buffer is a region of memory, together with a set of related subregions\&. The
 \fIused region\fR
 and the
 \fIavailable\fR
 region are disjoint, and their union is the buffer\*(Aqs region\&. The used region extends from the beginning of the buffer region to the last used byte\&. The available region extends from one byte greater than the last used byte to the end of the buffer\*(Aqs region\&. The size of the used region can be changed using various buffer commands\&. Initially, the used region is empty\&.
-    .PP
+.PP
 The used region is further subdivided into two disjoint regions: the
 \fIconsumed region\fR
 and the
@@ -97,11 +96,11 @@ and the
 offset (if any)\&. The
 \fIremaining\fR
 region the current pointer to the end of the used region\&. The size of the consumed region can be changed using various buffer commands\&. Initially, the consumed region is empty\&.
-    .PP
+.PP
 The
 \fIactive region\fR
 is an (optional) subregion of the remaining region\&. It extends from the current offset to an offset in the remaining region\&. Initially, the active region is empty\&. If the current offset advances beyond the chosen offset, the active region will also be empty\&.
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -116,8 +115,7 @@ is an (optional) subregion of the remaining region\&. It extends from the curren
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -131,8 +129,7 @@ is an (optional) subregion of the remaining region\&. It extends from the curren
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -146,8 +143,7 @@ is an (optional) subregion of the remaining region\&. It extends from the curren
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 \fBlwres_buffer_init()\fR
 initializes the
 \fBlwres_buffer_t\fR
@@ -156,12 +152,12 @@ and associates it with the memory region of size
 \fIlength\fR
 bytes starting at location
 \fIbase\&.\fR
-    .PP
+.PP
 \fBlwres_buffer_invalidate()\fR
 marks the buffer
 \fI*b\fR
 as invalid\&. Invalidating a buffer after use is not required, but makes it possible to catch its possible accidental use\&.
-    .PP
+.PP
 The functions
 \fBlwres_buffer_add()\fR
 and
@@ -176,7 +172,7 @@ checks for buffer overflow and
 \fBlwres_buffer_subtract()\fR
 checks for underflow\&. These functions do not allocate or deallocate memory\&. They just change the value of
 \fIused\fR\&.
-    .PP
+.PP
 A buffer is re\-initialised by
 \fBlwres_buffer_clear()\fR\&. The function sets
 \fIused\fR,
@@ -184,14 +180,14 @@ A buffer is re\-initialised by
 and
 \fIactive\fR
 to zero\&.
-    .PP
+.PP
 \fBlwres_buffer_first\fR
 makes the consumed region of buffer
 \fI*p\fR
 empty by setting
 \fIcurrent\fR
 to zero (the start of the buffer)\&.
-    .PP
+.PP
 \fBlwres_buffer_forward()\fR
 increases the consumed region of buffer
 \fI*b\fR
@@ -203,7 +199,7 @@ decreases buffer
 \fIb\fR\*(Aqs consumed region by
 \fIn\fR
 bytes and checks for underflow\&.
-    .PP
+.PP
 \fBlwres_buffer_getuint8()\fR
 reads an unsigned 8\-bit integer from
 \fI*b\fR
@@ -213,7 +209,7 @@ writes the unsigned 8\-bit integer
 \fIval\fR
 to buffer
 \fI*b\fR\&.
-    .PP
+.PP
 \fBlwres_buffer_getuint16()\fR
 and
 \fBlwres_buffer_getuint32()\fR
@@ -228,7 +224,7 @@ writes the unsigned 16\-bit or 32\-bit integer
 \fIval\fR
 to buffer
 \fIb\fR, in network byte order\&.
-    .PP
+.PP
 Arbitrary amounts of data are read or written from a lightweight resolver buffer with
 \fBlwres_buffer_getmem()\fR
 and

@@ -45,12 +45,10 @@
 <dt><span class="section"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
 </div>
-
-      <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="Access_Control_Lists"></a>Access Control Lists</h2></div></div></div>
-
-        <p>
+<p>
           Access Control Lists (ACLs) are address match lists that
           can be set up and nicknamed for future use in
           <span class="command"><strong>allow-notify</strong></span>, <span class="command"><strong>allow-query</strong></span>,
@@ -58,27 +56,26 @@
           <span class="command"><strong>blackhole</strong></span>, <span class="command"><strong>allow-transfer</strong></span>,
           <span class="command"><strong>match-clients</strong></span>, etc.
         </p>
-        <p>
+<p>
           ACLs give users finer control over who can access
           the name server, without cluttering up configuration files with huge
           lists of IP addresses.
         </p>
-        <p>
+<p>
           It is a <span class="emphasis"><em>good idea</em></span> to use ACLs, and to
           control access. Limiting access to the server by
           outside parties can help prevent spoofing and denial of service
           (DoS) attacks against the server.
         </p>
-        <p>
+<p>
           ACLs match clients on the basis of up to three characteristics:
           1) The client's IP address; 2) the TSIG or SIG(0) key that was
           used to sign the request, if any; and 3) an address prefix
           encoded in an EDNS Client-Subnet option, if any.
         </p>
-        <p>
+<p>
           Here is an example of ACLs based on client addresses:
         </p>
-
 <pre class="programlisting">
 // Set up an ACL named "bogusnets" that blocks
 // RFC 1918 space and some reserved space, which is
@@ -107,14 +104,13 @@ zone "example.com" {
   allow-query { any; };
 };
 </pre>
-
-        <p>
+<p>
           This allows authoritative queries for "example.com" from any
           address, but recursive queries only from the networks specified
           in "our-nets", and no queries at all from the networks
           specified in "bogusnets".
         </p>
-        <p>
+<p>
           In addition to network addresses and prefixes, which are
           matched against the source address of the DNS request, ACLs
           may include <code class="option">key</code> elements, which specify the
@@ -123,7 +119,7 @@ zone "example.com" {
           if that prefix matches an EDNS client-subnet option included
           in the request.
         </p>
-        <p>
+<p>
           The EDNS Client-Subnet (ECS) option is used by a recursive
           resolver to inform an authoritative name server of the network
           address block from which the original query was received, enabling
@@ -137,9 +133,9 @@ zone "example.com" {
           in ACLs that are not prefixed with "ecs" are matched only
           against the source address.
         </p>
-        <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-          <p>
+<p>
             (Note: the authoritative ECS implementation in
             <span class="command"><strong>named</strong></span> is based on an early version of the
             specification, and is known to have incompatibilities with
@@ -149,21 +145,21 @@ zone "example.com" {
             the configuration.  It can be used for testing purposes, but is
             not recommended for production use.)
           </p>
-        </div>
-        <p>
+</div>
+<p>
           When <acronym class="acronym">BIND</acronym> 9 is built with GeoIP support,
           ACLs can also be used for geographic access restrictions.
           This is done by specifying an ACL element of the form:
           <span class="command"><strong>geoip [<span class="optional">db <em class="replaceable"><code>database</code></em></span>] <em class="replaceable"><code>field</code></em> <em class="replaceable"><code>value</code></em></strong></span>
         </p>
-        <p>
+<p>
           The <em class="replaceable"><code>field</code></em> parameter indicates which field
           to search for a match.  Available fields are "country",
           "region", "city", "continent", "postal" (postal code),
           "metro" (metro code), "area" (area code), "tz" (timezone),
           "isp", "asnum", and "domain".
         </p>
-        <p>
+<p>
           <em class="replaceable"><code>value</code></em> is the value to search
           for within the database.  A string may be quoted if it
           contains spaces or other special characters.  An "asnum"
@@ -178,7 +174,7 @@ zone "example.com" {
           abbreviation; otherwise, it is treated as the full name of the
           state or province.
         </p>
-        <p>
+<p>
           The <em class="replaceable"><code>database</code></em> field indicates which
           GeoIP database to search for a match.  In most cases this is
           unnecessary, because most search fields can only be found in
@@ -195,7 +191,7 @@ zone "example.com" {
           the legacy GeoIP API, "netspeed" and "org" databases are also
           available.)
         </p>
-        <p>
+<p>
           By default, if a DNS query includes an EDNS Client-Subnet (ECS)
           option which encodes a non-zero address prefix, then GeoIP ACL
           elements are matched against that address prefix.  Otherwise,
@@ -203,10 +199,10 @@ zone "example.com" {
           prevent GeoIP ACLs from matching against ECS options, set
           the <span class="command"><strong>geoip-use-ecs</strong></span> to <code class="literal">no</code>.
         </p>
-        <p>
+<p>
           Some example GeoIP ACLs:
         </p>
-        <pre class="programlisting">geoip country US;
+<pre class="programlisting">geoip country US;
 geoip country JP;
 geoip db country country Canada;
 geoip region WA;
@@ -216,8 +212,7 @@ geoip postal 95062;
 geoip tz "America/Los_Angeles";
 geoip org "Internet Systems Consortium";
 </pre>
-
-        <p>
+<p>
           ACLs use a "first-match" logic rather than "best-match";
           if an address prefix matches an ACL element, then that ACL
           is considered to have matched even if a later element would
@@ -227,7 +222,7 @@ geoip org "Internet Systems Consortium";
           indicates that the query should be accepted, and the second
           element is ignored.
         </p>
-        <p>
+<p>
           When using "nested" ACLs (that is, ACLs included or referenced
           within other ACLs), a negative match of a nested ACL tells
           the containing ACL to continue looking for matches.  This
@@ -237,10 +232,10 @@ geoip org "Internet Systems Consortium";
           it originates from a particular network <span class="emphasis"><em>and</em></span>
           only when it is signed with a particular key, use:
         </p>
-        <pre class="programlisting">
+<pre class="programlisting">
 allow-query { !{ !10/8; any; }; key example; };
 </pre>
-        <p>
+<p>
           Within the nested ACL, any address that is
           <span class="emphasis"><em>not</em></span> in the 10/8 network prefix is
           rejected, which terminates processing of the
@@ -252,14 +247,12 @@ allow-query { !{ !10/8; any; }; key example; };
           only matches when <span class="emphasis"><em>both</em></span> conditions
           are true.
         </p>
-      </div>
-
-      <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="chroot_and_setuid"></a><span class="command"><strong>Chroot</strong></span> and <span class="command"><strong>Setuid</strong></span>
 </h2></div></div></div>
-
-        <p>
+<p>
           On Unix servers, it is possible to run <acronym class="acronym">BIND</acronym>
           in a <span class="emphasis"><em>chrooted</em></span> environment (using
           the <span class="command"><strong>chroot()</strong></span> function) by specifying
@@ -268,25 +261,23 @@ allow-query { !{ !10/8; any; }; key example; };
           <acronym class="acronym">BIND</acronym> in a "sandbox," which limits
           the damage done if a server is compromised.
         </p>
-        <p>
+<p>
           Another useful feature in the Unix version of <acronym class="acronym">BIND</acronym> is the
           ability to run the daemon as an unprivileged user (<code class="option">-u</code> <em class="replaceable"><code>user</code></em>).
           We suggest running as an unprivileged user when using the <span class="command"><strong>chroot</strong></span> feature.
         </p>
-        <p>
+<p>
           Here is an example command line to load <acronym class="acronym">BIND</acronym> in a <span class="command"><strong>chroot</strong></span> sandbox,
           <span class="command"><strong>/var/named</strong></span>, and to run <span class="command"><strong>named</strong></span> <span class="command"><strong>setuid</strong></span> to
           user 202:
         </p>
-        <p>
+<p>
           <strong class="userinput"><code>/usr/local/sbin/named -u 202 -t /var/named</code></strong>
         </p>
-
-        <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="chroot"></a>The <span class="command"><strong>chroot</strong></span> Environment</h3></div></div></div>
-
-          <p>
+<p>
             For a <span class="command"><strong>chroot</strong></span> environment
             to work properly in a particular directory (for example,
             <code class="filename">/var/named</code>), the
@@ -298,7 +289,7 @@ allow-query { !{ !10/8; any; }; key example; };
             options like <span class="command"><strong>directory</strong></span> and
             <span class="command"><strong>pid-file</strong></span> must be adjusted to account for this.
           </p>
-          <p>
+<p>
             Unlike with earlier versions of BIND,
             <span class="command"><strong>named</strong></span> does <span class="emphasis"><em>not</em></span> typically need to be compiled
             statically, nor do shared libraries need to be installed under the new root.
@@ -309,13 +300,11 @@ allow-query { !{ !10/8; any; }; key example; };
             <code class="filename">/dev/log</code>, and
             <code class="filename">/etc/localtime</code>.
           </p>
-        </div>
-
-        <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="setuid"></a>Using the <span class="command"><strong>setuid</strong></span> Function</h3></div></div></div>
-
-          <p>
+<p>
             Prior to running the <span class="command"><strong>named</strong></span> daemon,
             use
             the <span class="command"><strong>touch</strong></span> utility (to change file
@@ -326,7 +315,7 @@ allow-query { !{ !10/8; any; }; key example; };
             where <acronym class="acronym">BIND</acronym>
             should write.
           </p>
-          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
 <p>
             If the <span class="command"><strong>named</strong></span> daemon is running as an
@@ -334,14 +323,12 @@ allow-query { !{ !10/8; any; }; key example; };
             ports if the server is reloaded.
           </p>
 </div>
-        </div>
-      </div>
-
-      <div class="section">
+</div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="dynamic_update_security"></a>Dynamic Update Security</h2></div></div></div>
-
-        <p>
+<p>
           Access to the dynamic
           update facility should be strictly limited.  In earlier versions of
           <acronym class="acronym">BIND</acronym>, the only way to do this was
@@ -361,8 +348,7 @@ allow-query { !{ !10/8; any; }; key example; };
           forwards it to the primary with its own source IP address - causing the
           primary to approve it without question.
         </p>
-
-        <p>
+<p>
           For these reasons, we strongly recommend that updates be
           cryptographically authenticated by means of transaction signatures
           (TSIG).  That is, the <span class="command"><strong>allow-update</strong></span>
@@ -371,8 +357,7 @@ allow-query { !{ !10/8; any; }; key example; };
           prefixes. Alternatively, the <span class="command"><strong>update-policy</strong></span>
           option can be used.
         </p>
-
-        <p>
+<p>
           Some sites choose to keep all dynamically updated DNS data
           in a subdomain and delegate that subdomain to a separate zone. This
           way, the top-level zone containing critical data, such as the IP
@@ -380,9 +365,8 @@ allow-query { !{ !10/8; any; }; key example; };
           of public web and mail servers, need not allow dynamic update at
           all.
         </p>
-
-      </div>
-    </div>
+</div>
+</div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
@@ -400,6 +384,6 @@ allow-query { !{ !10/8; any; }; key example; };
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.26 (Extended Support Version)</p>
 </body>
 </html>

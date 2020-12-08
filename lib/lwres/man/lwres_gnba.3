@@ -35,16 +35,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lwres_gnbaresponse_parse, lwres_gnbaresponse_free, lwres_gnbarequest_free \- lightweight resolver getnamebyaddress message handling
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
 .ft
-.sp
 .HP \w'lwres_result_t\ lwres_gnbarequest_render('u
 .BI "lwres_result_t lwres_gnbarequest_render(lwres_context_t\ *" "ctx" ", lwres_gnbarequest_t\ *" "req" ", lwres_lwpacket_t\ *" "pkt" ", lwres_buffer_t\ *" "b" ");"
 .HP \w'lwres_result_t\ lwres_gnbaresponse_render('u
@@ -57,19 +56,19 @@ lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lw
 .BI "void lwres_gnbaresponse_free(lwres_context_t\ *" "ctx" ", lwres_gnbaresponse_t\ **" "structp" ");"
 .HP \w'void\ lwres_gnbarequest_free('u
 .BI "void lwres_gnbarequest_free(lwres_context_t\ *" "ctx" ", lwres_gnbarequest_t\ **" "structp" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 These are low\-level routines for creating and parsing lightweight resolver address\-to\-name lookup request and response messages\&.
-    .PP
+.PP
 There are four main functions for the getnamebyaddr opcode\&. One render function converts a getnamebyaddr request structure \(em
 \fBlwres_gnbarequest_t\fR
 \(em to the lightweight resolver\*(Aqs canonical format\&. It is complemented by a parse function that converts a packet in this canonical format to a getnamebyaddr request structure\&. Another render function converts the getnamebyaddr response structure \(em
 \fBlwres_gnbaresponse_t\fR
 to the canonical format\&. This is complemented by a parse function which converts a packet in canonical format to a getnamebyaddr response structure\&.
-    .PP
+.PP
 These structures are defined in
 lwres/lwres\&.h\&. They are shown below\&.
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -79,8 +78,7 @@ lwres/lwres\&.h\&. They are shown below\&.
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -93,8 +91,7 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 .if n \{\
 .RS 4
 .\}
@@ -113,8 +110,7 @@ typedef struct {
 .if n \{\
 .RE
 .\}
-.sp
-    .PP
+.PP
 \fBlwres_gnbarequest_render()\fR
 uses resolver context
 \fIctx\fR
@@ -130,7 +126,7 @@ are then appended to the buffer in canonical format\&.
 performs the same task, except it converts a getnamebyaddr response structure
 \fBlwres_gnbaresponse_t\fR
 to the lightweight resolver\*(Aqs canonical format\&.
-    .PP
+.PP
 \fBlwres_gnbarequest_parse()\fR
 uses context
 \fIctx\fR
@@ -150,7 +146,7 @@ offers the same semantics as
 except it yields a
 \fBlwres_gnbaresponse_t\fR
 structure\&.
-    .PP
+.PP
 \fBlwres_gnbaresponse_free()\fR
 and
 \fBlwres_gnbarequest_free()\fR
@@ -162,8 +158,8 @@ or
 \fBlwres_gnbarequest_t\fR
 structures referenced via
 \fIstructp\fR\&. Any memory associated with ancillary buffers and strings for those structures is also discarded\&.
-  .SH "RETURN VALUES"
-    .PP
+.SH "RETURN VALUES"
+.PP
 The getnamebyaddr opcode functions
 \fBlwres_gnbarequest_render()\fR,
 \fBlwres_gnbaresponse_render()\fR
@@ -195,8 +191,8 @@ if
 in the packet header structure
 \fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBlwres_packet\fR(3)\&.
 .SH "AUTHOR"
 .PP

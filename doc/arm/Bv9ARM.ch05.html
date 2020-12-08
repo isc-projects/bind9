@@ -40,24 +40,22 @@
 <dt><span class="section"><a href="Bv9ARM.ch05.html#lwresd">Running a Resolver Daemon</a></span></dt>
 </dl>
 </div>
-
-    <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="lightweight_resolver"></a>The Lightweight Resolver Library</h2></div></div></div>
-
-      <p>
+<p>
         Traditionally, applications have been linked with a stub resolver
         library that sends recursive DNS queries to a local caching name
         server.
       </p>
-      <p>
+<p>
         At first, IPv6 introduced new complexity into the resolution process,
         such as following A6 chains and DNAME records, and simultaneous
         lookup of IPv4 and IPv6 addresses.  Though most of the complexity was
         then removed, these are hard or impossible
         to implement in a traditional stub resolver.
       </p>
-      <p>
+<p>
         <acronym class="acronym">BIND</acronym> 9 therefore can also provide resolution
         services to local clients
         using a combination of a lightweight resolver library and a resolver
@@ -65,20 +63,18 @@
         a simple UDP-based protocol, the "lightweight resolver protocol,"
         that is distinct from and simpler than the full DNS protocol.
       </p>
-    </div>
-    <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="lwresd"></a>Running a Resolver Daemon</h2></div></div></div>
-
-      <p>
+<p>
         To use the lightweight resolver interface, the system must
         run the resolver daemon <span class="command"><strong>lwresd</strong></span> or a
         local
         name server configured with a <span class="command"><strong>lwres</strong></span>
         statement.
       </p>
-
-      <p>
+<p>
         By default, applications using the lightweight resolver library
         make
         UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
@@ -87,8 +83,7 @@
         lines in
         <code class="filename">/etc/resolv.conf</code>.
       </p>
-
-      <p>
+<p>
         The <span class="command"><strong>lwresd</strong></span> daemon is essentially a
         caching-only name server that responds to requests using the
         lightweight
@@ -101,7 +96,7 @@
         autonomously if
         none are specified.
       </p>
-      <p>
+<p>
         The <span class="command"><strong>lwresd</strong></span> daemon may also be
         configured with a
         <code class="filename">named.conf</code>-style configuration file,
@@ -111,14 +106,14 @@
         be configured to act as a lightweight resolver daemon using the
         <span class="command"><strong>lwres</strong></span> statement in <code class="filename">named.conf</code>.
       </p>
-      <p>
+<p>
         The number of client queries that the <span class="command"><strong>lwresd</strong></span>
         daemon serves can be set using the
         <code class="option">lwres-tasks</code> and <code class="option">lwres-clients</code>
         statements in the configuration.
       </p>
-    </div>
-  </div>
+</div>
+</div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
@@ -136,6 +131,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.26 (Extended Support Version)</p>
 </body>
 </html>

@@ -42,30 +42,25 @@
 <dt><span class="section"><a href="Bv9ARM.ch08.html#more_help">Where Can I Get Help?</a></span></dt>
 </dl>
 </div>
-
-      <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="common_problems"></a>Common Problems</h2></div></div></div>
-
-        <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="id-1.9.2.2"></a>It's Not Working; How Can I Figure Out What's Wrong?</h3></div></div></div>
-
-          <p>
+<p>
             The best solution to installation and
             configuration issues is to take preventive measures by setting
             up logging files beforehand. The log files provide a
             source of hints and information that can be used to identify
             what went wrong and fix the problem.
           </p>
-
-        </div>
-      </div>
-      <div class="section">
+</div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="id-1.9.3"></a>Incrementing and Changing the Serial Number</h2></div></div></div>
-
-        <p>
+<p>
           Zone serial numbers are just numbers &#8212; they are not
           date-related.  However, many people set them to a number that
           represents a date, usually of the form YYYYMMDDRR.
@@ -77,32 +72,27 @@
           lower than the serial number on the primary, the secondary
           server attempts to update its copy of the zone.
         </p>
-
-        <p>
+<p>
           Setting the serial number to a lower number on the primary
           server than the one on the secondary server means that the secondary will not perform
           updates to its copy of the zone.
         </p>
-
-        <p>
+<p>
           The solution to this is to add 2147483647 (2^31-1) to the
           number, reload the zone and make sure all secondaries have updated to
           the new zone serial number, then reset it to the desired number
           and reload the zone again.
         </p>
-
-      </div>
-      <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="more_help"></a>Where Can I Get Help?</h2></div></div></div>
-
-        <p>
+<p>
         The BIND-users mailing list, at https://lists.isc.org/mailman/listinfo/bind-users,
         is an excellent resource for peer user support. In addition, <acronym class="acronym">ISC</acronym> maintains a
         Knowledgebase of helpful articles at https://kb.isc.org.
         </p>
-
-        <p>
+<p>
           Internet Systems Consortium
           (<acronym class="acronym">ISC</acronym>) offers annual
           support agreements for <acronym class="acronym">BIND</acronym>9, ISC <acronym class="acronym">DHCP</acronym>, and Kea DHCP.
@@ -110,15 +100,14 @@
           service level agreements (SLAs), premium software features, and increased priority on bug fixes
           and feature requests.
         </p>
-
-        <p>
+<p>
           Please contact
           <a class="link" href="mailto:info@isc.org" target="_top">info@isc.org</a> or visit
           <a class="link" href="https://www.isc.org/contact/" target="_top">https://www.isc.org/contact/</a>
           for more information.
         </p>
-      </div>
-    </div>
+</div>
+</div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
@@ -136,6 +125,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.25 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.26 (Extended Support Version)</p>
 </body>
 </html>

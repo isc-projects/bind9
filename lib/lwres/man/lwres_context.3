@@ -35,16 +35,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_context_initserial, lwres_context_freemem, lwres_context_allocmem, lwres_context_sendrecv \- lightweight resolver context management
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/lwres\&.h>
 .fi
 .ft
-.sp
 .HP \w'lwres_result_t\ lwres_context_create('u
 .BI "lwres_result_t lwres_context_create(lwres_context_t\ **" "contextp" ", void\ *" "arg" ", lwres_malloc_t\ " "malloc_function" ", lwres_free_t\ " "free_function" ");"
 .HP \w'lwres_result_t\ lwres_context_destroy('u
@@ -59,8 +58,8 @@ lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_con
 .BI "void lwres_context_allocmem(lwres_context_t\ *" "ctx" ", size_t\ " "len" ");"
 .HP \w'void\ *\ lwres_context_sendrecv('u
 .BI "void * lwres_context_sendrecv(lwres_context_t\ *" "ctx" ", void\ *" "sendbase" ", int\ " "sendlen" ", void\ *" "recvbase" ", int\ " "recvlen" ", int\ *" "recvd_len" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 \fBlwres_context_create()\fR
 creates a
 \fBlwres_context_t\fR
@@ -73,7 +72,7 @@ pointer\&. This
 \fBlwres_context_t\fR
 pointer must initially be NULL, and is modified to point to the newly created
 \fBlwres_context_t\fR\&.
-    .PP
+.PP
 When the lightweight resolver needs to perform dynamic memory allocation, it will call
 \fImalloc_function\fR
 to allocate memory and
@@ -97,18 +96,18 @@ and
 are NULL,
 \fIarg\fR
 is unused and should be passed as NULL\&.
-    .PP
+.PP
 Once memory for the structure has been allocated, it is initialized using
 \fBlwres_conf_init\fR(3)
 and returned via
 \fI*contextp\fR\&.
-    .PP
+.PP
 \fBlwres_context_destroy()\fR
 destroys a
 \fBlwres_context_t\fR, closing its socket\&.
 \fIcontextp\fR
 is a pointer to a pointer to the context that is to be destroyed\&. The pointer will be set to NULL when the context has been destroyed\&.
-    .PP
+.PP
 The context holds a serial number that is used to identify resolver request packets and associate responses with the corresponding requests\&. This serial number is controlled using
 \fBlwres_context_initserial()\fR
 and
@@ -120,7 +119,7 @@ to
 \fIserial\fR\&.
 \fBlwres_context_nextserial()\fR
 increments the serial number and returns the previous value\&.
-    .PP
+.PP
 Memory for a lightweight resolver context is allocated and freed using
 \fBlwres_context_allocmem()\fR
 and
@@ -135,7 +134,7 @@ frees
 \fIlen\fR
 bytes of space starting at location
 \fImem\fR\&.
-    .PP
+.PP
 \fBlwres_context_sendrecv()\fR
 performs I/O for the context
 \fIctx\fR\&. Data are read and written from the context\*(Aqs socket\&. It writes data from
@@ -143,8 +142,8 @@ performs I/O for the context
 \(em typically a lightweight resolver query packet \(em and waits for a reply which is copied to the receive buffer at
 \fIrecvbase\fR\&. The number of bytes that were written to this receive buffer is returned in
 \fI*recvd_len\fR\&.
-  .SH "RETURN VALUES"
-    .PP
+.SH "RETURN VALUES"
+.PP
 \fBlwres_context_create()\fR
 returns
 \fBLWRES_R_NOMEMORY\fR
@@ -153,11 +152,11 @@ if memory for the
 could not be allocated,
 \fBLWRES_R_SUCCESS\fR
 otherwise\&.
-    .PP
+.PP
 Successful calls to the memory allocator
 \fBlwres_context_allocmem()\fR
 return a pointer to the start of the allocated space\&. It returns NULL if memory could not be allocated\&.
-    .PP
+.PP
 \fBLWRES_R_SUCCESS\fR
 is returned when
 \fBlwres_context_sendrecv()\fR
@@ -168,8 +167,8 @@ is returned if an I/O error occurs and
 is returned if
 \fBlwres_context_sendrecv()\fR
 times out waiting for a response\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBlwres_conf_init\fR(3),
 \fBmalloc\fR(3),
 \fBfree\fR(3)\&.
