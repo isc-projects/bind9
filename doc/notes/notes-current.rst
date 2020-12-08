@@ -54,6 +54,10 @@ Feature Changes
   to distribute incoming queries among multiple threads on systems which
   lack support for load-balanced sockets (except Windows). [GL #2137]
 
+- The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
+  day and the default value of ``stale-answer-ttl`` has been changed from 1
+  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
+
 - When using the ``unixtime`` or ``date`` method to update the SOA
   serial number, ``named`` and ``dnssec-signzone`` silently fell back to
   the ``increment`` method to prevent the new serial number from being

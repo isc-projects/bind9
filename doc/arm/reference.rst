@@ -1512,9 +1512,9 @@ default is used.
    treated as ``unlimited``.
 
 ``stale-answer-ttl``
-   This specifies the TTL to be returned on stale answers. The default is 1
-   second. The minimum allowed is also 1 second; a value of 0 is
-   updated silently to 1 second.
+   This specifies the TTL to be returned on stale answers. The default is 30
+   seconds. The minimum allowed is 1 second; a value of 0 is updated silently
+   to 1 second.
 
    For stale answers to be returned, they must be enabled, either in the
    configuration file using ``stale-answer-enable`` or via
@@ -3322,11 +3322,11 @@ Tuning
 
 ``max-stale-ttl``
    If retaining stale RRsets in cache is enabled, and returning of stale cached
-   answers is also enabled, ``max-stale-ttl`` sets the maximum time
-   for which the server retains records past their normal expiry to
-   return them as stale records, when the servers for those records are
-   not reachable. The default is 12 hours. The minimum allowed is 1
-   second; a value of 0 is updated silently to 1 second.
+   answers is also enabled, ``max-stale-ttl`` sets the maximum time for which
+   the server retains records past their normal expiry to return them as stale
+   records, when the servers for those records are not reachable. The default
+   is 1 day. The minimum allowed is 1 second; a value of 0 is updated silently
+   to 1 second.
 
    For stale answers to be returned, the retaining of them in cache must be
    enabled via the configuration option ``stale-cache-enable``, and returning

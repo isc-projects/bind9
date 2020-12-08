@@ -2,6 +2,12 @@
 			of the DNSKEY signature validity. This is now fixed.
 			[GL #2383]
 
+5560.	[func]		The default value of "max-stale-ttl" has been changed
+			from 12 hours to 1 day and the default value of
+			"stale-answer-ttl" has been changed from 1 second to
+			30 seconds, following RFC 8767 recommendations.
+			[GL #2248]
+
 5456.	[func]		Added "primaries" as a synonym for "masters" in
 			named.conf, and "primary-only" as a synonym for
 			"master-only" in the parameters to "notify", to bring
