@@ -163,8 +163,7 @@ ckstats () {
 #########
 sec_start
 
-# Tests of referrals to "." must be done before the hints are loaded
-#   or with "additional-from-cache no"
+# Tests of referrals to "." must be done before the hints are loaded.
 burst 5 a1.tld3 +norec
 # basic rate limiting
 burst 3 a1.tld2

@@ -113,14 +113,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking named-checkconf dnssec warnings ($n)"
 ret=0
-# dnssec.1: dnssec-enable is obsolete
-$CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1
-grep "'dnssec-enable' is obsolete and should be removed" < checkconf.out$n.1 > /dev/null || ret=1
-# dnssec.2: auto-dnssec warning
-$CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1
+# dnssec.1: auto-dnssec warning
+$CHECKCONF dnssec.1 > checkconf.out$n.2 2>&1
 grep 'auto-dnssec may only be ' < checkconf.out$n.2 > /dev/null || ret=1
-# dnssec.3: should have no warnings
-$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
+# dnssec.2: should have no warnings
+$CHECKCONF dnssec.2 > checkconf.out$n.3 2>&1
 grep '.*' < checkconf.out$n.3 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -457,15 +454,6 @@ echo_i "check that using trust-anchors and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
 grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'geoip-use-ecs no' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-geoip-use-ecs.conf > checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] || ret=1
-grep "'geoip-use-ecs' is obsolete" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

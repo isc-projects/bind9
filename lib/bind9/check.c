@@ -1558,17 +1558,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(options, "geoip-use-ecs", &obj);
-	if (obj != NULL && cfg_obj_asboolean(obj)) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "'geoip-use-ecs yes': "
-			    "ECS can no longer be used in geoip ACLs");
-		if (result == ISC_R_SUCCESS) {
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	obj = NULL;
 	(void)cfg_map_get(options, "max-ixfr-ratio", &obj);
 	if (obj != NULL && cfg_obj_ispercentage(obj)) {
 		uint32_t percent = cfg_obj_aspercentage(obj);

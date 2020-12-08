@@ -2743,9 +2743,11 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
+				continue;
+			}
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
 				continue;
 			}
 			cfg_print_cstr(pctx, clause->name);
@@ -2797,9 +2799,11 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
+				continue;
+			}
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
 				continue;
 			}
 			cfg_print_indent(pctx);

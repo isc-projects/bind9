@@ -1658,16 +1658,6 @@ Boolean Options
    flush any pending zone writes. The default is
    ``flush-zones-on-shutdown no``.
 
-``geoip-use-ecs``
-   This option was part of an experimental implementation of the EDNS
-   CLIENT-SUBNET for authoritative servers, but is now obsolete.
-
-``ipv4only-enable``
-   Create the IPV4ONLY.ARPA zone as described in RFC 8880.  By
-   default the zone is only created if a DNS64 prefix is configured.
-   Control the SOA contact and server values with ``ipv4only-contact``
-   and  ``ipv4only-server`` respectively.
-
 ``root-key-sentinel``
    If ``yes``, respond to root key sentinel probes as described in
    draft-ietf-dnsop-kskroll-sentinel-08. The default is ``yes``.
@@ -1781,9 +1771,6 @@ Boolean Options
    option in its response, then its contents are logged in the ``nsid``
    category at level ``info``. The default is ``no``.
 
-``request-sit``
-   This experimental option is obsolete.
-
 ``require-server-cookie``
    If ``yes``, require a valid server cookie before sending a full response to a UDP
    request from a cookie-aware client. BADCOOKIE is sent if there is a
@@ -1868,9 +1855,6 @@ Boolean Options
    option may further limit the response size as the default for
    ``max-udp-size`` is 1232.
 
-``sit-secret``
-   This experimental option is obsolete.
-
 ``cookie-algorithm``
    This sets the algorithm to be used when generating the server cookie; the options are
    "aes", "sha1", or "sha256". The default is "aes" if supported by
@@ -1923,12 +1907,6 @@ Boolean Options
    decide when it is safe to remove an old one.
 
    The default is ``yes``.
-
-``use-ixfr``
-   *This option is obsolete*. To disable IXFR to a
-   particular server or servers, see the information on the
-   ``provide-ixfr`` option in :ref:`server_statement_definition_and_usage`.
-   See also :ref:`incremental_zone_transfers`.
 
 ``provide-ixfr``
    See the description of ``provide-ixfr`` in :ref:`server_statement_definition_and_usage`.
@@ -2002,9 +1980,6 @@ Boolean Options
    recheck interval is defined by ``dnssec-loadkeys-interval``.
 
    The default setting is ``auto-dnssec off``.
-
-``dnssec-enable``
-   This option is obsolete and has no effect.
 
 .. _dnssec-validation-option:
 
@@ -2369,12 +2344,6 @@ for details on how to specify IP address lists.
    and inherited by zones, this can lead to some zones unintentionally
    forwarding updates.
 
-``allow-v6-synthesis``
-   This option was introduced for the smooth transition from AAAA to A6
-   and from "nibble labels" to binary labels. However, since both A6 and
-   binary labels were then deprecated, this option was also deprecated.
-   It is now ignored with some warning messages.
-
 .. _allow-transfer-access:
 
 ``allow-transfer``
@@ -2534,6 +2503,14 @@ system default range; otherwise, it uses its own defaults:
    use-v4-udp-ports { range 1024 65535; };
    use-v6-udp-ports { range 1024 65535; };
 
+The defaults of the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
+options are:
+
+::
+
+   avoid-v4-udp-ports {};
+   avoid-v6-udp-ports {};
+
 .. note:: Make sure the ranges are sufficiently large for security. A
    desirable size depends on several parameters, but we generally recommend
    it contain at least 16384 ports (14 bits of entropy). Note also that the
@@ -2553,38 +2530,14 @@ system default range; otherwise, it uses its own defaults:
    set of ports that can be safely used in the expected operational
    environment.
 
-The defaults of the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
-options are:
+.. note:: The address specified in the ``query-source`` option is used for both
+   UDP and TCP queries, but the port applies only to UDP queries. TCP
+   queries always use a random unprivileged port.
 
-::
+.. note:: Solaris 2.5.1 and earlier does not support setting the source address
+   for TCP sockets.
 
-   avoid-v4-udp-ports {};
-   avoid-v6-udp-ports {};
-
-.. note:: BIND 9.5.0 introduced the ``use-queryport-pool`` option to support
-   a pool of such random ports, but this option is now obsolete because
-   reusing the same ports in the pool may not be sufficiently secure. For
-   the same reason, it is generally strongly discouraged to specify a
-   particular port for the ``query-source`` or ``query-source-v6`` options;
-   it implicitly disables the use of randomized port numbers.
-
-``use-queryport-pool``
-   This option is obsolete.
-
-``queryport-pool-ports``
-   This option is obsolete.
-
-``queryport-pool-updateinterval``
-   This option is obsolete.
-
-   .. note:: The address specified in the ``query-source`` option is used for both
-      UDP and TCP queries, but the port applies only to UDP queries. TCP
-      queries always use a random unprivileged port.
-
-   .. note:: Solaris 2.5.1 and earlier does not support setting the source address
-      for TCP sockets.
-
-   .. note:: See also ``transfer-source`` and ``notify-source``.
+.. note:: See also ``transfer-source`` and ``notify-source``.
 
 .. _zone_transfers:
 

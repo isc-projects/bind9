@@ -235,20 +235,6 @@ static cfg_type_t cfg_type_portiplist = { "portiplist",	   cfg_parse_tuple,
 					  cfg_print_tuple, cfg_doc_tuple,
 					  &cfg_rep_tuple,  portiplist_fields };
 
-/*
- * Obsolete format for the "pubkey" statement.
- */
-static cfg_tuplefielddef_t pubkey_fields[] = {
-	{ "flags", &cfg_type_uint32, 0 },
-	{ "protocol", &cfg_type_uint32, 0 },
-	{ "algorithm", &cfg_type_uint32, 0 },
-	{ "key", &cfg_type_qstring, 0 },
-	{ NULL, NULL, 0 }
-};
-static cfg_type_t cfg_type_pubkey = { "pubkey",	       cfg_parse_tuple,
-				      cfg_print_tuple, cfg_doc_tuple,
-				      &cfg_rep_tuple,  pubkey_fields };
-
 /*%
  * A list of RR types, used in grant statements.
  * Note that the old parser allows quotes around the RR type names.
@@ -1102,8 +1088,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-policy", &cfg_type_dnssecpolicy, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
-	{ "lwres", &cfg_type_bracketed_text,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
+	{ "lwres", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "masters", &cfg_type_primaries, CFG_CLAUSEFLAG_MULTI },
 	{ "options", &cfg_type_options, 0 },
 	{ "primaries", &cfg_type_primaries, CFG_CLAUSEFLAG_MULTI },
@@ -1165,7 +1150,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "cookie-secret", &cfg_type_sstring, CFG_CLAUSEFLAG_MULTI },
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },
-	{ "deallocate-on-exit", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "deallocate-on-exit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 #ifdef HAVE_DNSTAP
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
@@ -1180,7 +1165,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* ifdef HAVE_DNSTAP */
 	{ "dscp", &cfg_type_uint32, 0 },
 	{ "dump-file", &cfg_type_qstring, 0 },
-	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "fake-iquery", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "files", &cfg_type_size, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_DNSTAP
@@ -1213,11 +1198,11 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "geoip-directory", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP2 */
-	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "geoip-use-ecs", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "has-old-clients", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
-	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "host-statistics-max", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "host-statistics", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "host-statistics-max", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "hostname", &cfg_type_qstringornone, 0 },
 	{ "interface-interval", &cfg_type_duration, 0 },
 	{ "keep-response-order", &cfg_type_bracketed_aml, 0 },
@@ -1229,8 +1214,8 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "max-rsa-exponent-size", &cfg_type_uint32, 0 },
 	{ "memstatistics", &cfg_type_boolean, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
-	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_ANCIENT },
+	{ "multiple-cnames", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "named-xfer", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "notify-rate", &cfg_type_uint32, 0 },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
@@ -1241,17 +1226,17 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "reserved-sockets", &cfg_type_uint32, 0 },
 	{ "secroots-file", &cfg_type_qstring, 0 },
-	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "serial-queries", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "server-id", &cfg_type_serverid, 0 },
 	{ "session-keyalg", &cfg_type_astring, 0 },
 	{ "session-keyfile", &cfg_type_qstringornone, 0 },
 	{ "session-keyname", &cfg_type_astring, 0 },
-	{ "sit-secret", &cfg_type_sstring, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "sit-secret", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "stacksize", &cfg_type_size, 0 },
 	{ "startup-notify-rate", &cfg_type_uint32, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
-	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "statistics-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "tcp-advertised-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-clients", &cfg_type_uint32, 0 },
 	{ "tcp-idle-timeout", &cfg_type_uint32, 0 },
@@ -1266,9 +1251,9 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "transfers-in", &cfg_type_uint32, 0 },
 	{ "transfers-out", &cfg_type_uint32, 0 },
 	{ "transfers-per-ns", &cfg_type_uint32, 0 },
-	{ "treat-cr-as-space", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "use-id-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "use-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "treat-cr-as-space", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "use-id-pool", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "use-ixfr", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
@@ -1920,24 +1905,22 @@ static cfg_type_t cfg_type_dns64 = { "dns64",	    cfg_parse_netprefix_map,
  */
 
 static cfg_clausedef_t view_clauses[] = {
-	{ "acache-cleaning-interval", &cfg_type_uint32,
-	  CFG_CLAUSEFLAG_OBSOLETE },
-	{ "acache-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "additional-from-auth", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "additional-from-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "acache-cleaning-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "acache-enable", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "additional-from-auth", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "additional-from-cache", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "allow-new-zones", &cfg_type_boolean, 0 },
 	{ "allow-query-cache", &cfg_type_bracketed_aml, 0 },
 	{ "allow-query-cache-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion-on", &cfg_type_bracketed_aml, 0 },
-	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
-	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "allow-v6-synthesis", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, 0 },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
-	{ "cleaning-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "cleaning-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
 	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0 },
 	{ "deny-answer-aliases", &cfg_type_denyaliases, 0 },
@@ -1958,8 +1941,9 @@ static cfg_clausedef_t view_clauses[] = {
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef USE_DNSRPS */
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
-	{ "dnssec-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "dnssec-lookaside", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
+	{ "dnssec-enable", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "dnssec-lookaside", NULL,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-must-be-secure", &cfg_type_mustbesecure,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
@@ -1973,7 +1957,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "empty-contact", &cfg_type_astring, 0 },
 	{ "empty-server", &cfg_type_astring, 0 },
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
-	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "fetch-glue", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "fetch-quota-params", &cfg_type_fetchquota, 0 },
 	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
 	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
@@ -1991,7 +1975,7 @@ static cfg_clausedef_t view_clauses[] = {
 #else  /* ifdef HAVE_LMDB */
 	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef HAVE_LMDB */
-	{ "max-acache-size", &cfg_type_sizenodefault, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "max-acache-size", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },
 	{ "max-cache-ttl", &cfg_type_duration, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
@@ -2003,13 +1987,13 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "message-compression", &cfg_type_boolean, 0 },
 	{ "min-cache-ttl", &cfg_type_duration, 0 },
 	{ "min-ncache-ttl", &cfg_type_duration, 0 },
-	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "min-roots", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "minimal-any", &cfg_type_boolean, 0 },
 	{ "minimal-responses", &cfg_type_minimal, 0 },
 	{ "new-zones-directory", &cfg_type_qstring, 0 },
 	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
-	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "nosit-udp-size", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "nta-lifetime", &cfg_type_duration, 0 },
 	{ "nta-recheck", &cfg_type_duration, 0 },
 	{ "nxdomain-redirect", &cfg_type_astring, 0 },
@@ -2023,20 +2007,19 @@ static cfg_clausedef_t view_clauses[] = {
 	 */
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },
-	{ "queryport-pool-ports", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "queryport-pool-updateinterval", &cfg_type_uint32,
-	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "queryport-pool-ports", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "queryport-pool-updateinterval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "request-nsid", &cfg_type_boolean, 0 },
-	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "request-sit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },
 	{ "resolver-nonbackoff-tries", &cfg_type_uint32, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
 	{ "resolver-retry-interval", &cfg_type_uint32, 0 },
 	{ "response-padding", &cfg_type_resppadding, 0 },
 	{ "response-policy", &cfg_type_rpz, 0 },
-	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "rfc2308-type1", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "root-delegation-only", &cfg_type_optional_exclude, 0 },
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
@@ -2050,11 +2033,11 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "suppress-initial-notify", &cfg_type_boolean,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "synth-from-dnssec", &cfg_type_boolean, 0 },
-	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },
+	{ "topology", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "trust-anchor-telemetry", &cfg_type_boolean,
 	  CFG_CLAUSEFLAG_EXPERIMENTAL },
-	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "use-queryport-pool", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "validate-except", &cfg_type_namelist, 0 },
 	{ "v6-bias", &cfg_type_uint32, 0 },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
@@ -2165,14 +2148,14 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
 	{ "key-directory", &cfg_type_qstring,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
-	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "maintain-ixfr-base", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "masterfile-format", &cfg_type_masterformat,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },
 	{ "masterfile-style", &cfg_type_masterstyle,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },
-	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
+	{ "max-ixfr-log-size", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "max-ixfr-ratio", &cfg_type_ixfrratio,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },
 	{ "max-journal-size", &cfg_type_size,
@@ -2272,10 +2255,10 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_HINT | CFG_ZONE_REDIRECT },
 	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
-	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_ANCIENT },
+	{ "ixfr-base", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "ixfr-from-differences", &cfg_type_boolean,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },
-	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_ANCIENT },
+	{ "ixfr-tmp-file", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "journal", &cfg_type_qstring,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },
 	{ "masters", &cfg_type_namesockaddrkeylist,
@@ -2284,7 +2267,7 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "primaries", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },
-	{ "pubkey", &cfg_type_pubkey, CFG_CLAUSEFLAG_ANCIENT },
+	{ "pubkey", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "server-addresses", &cfg_type_bracketed_netaddrlist,
 	  CFG_ZONE_STATICSTUB },
 	{ "server-names", &cfg_type_namelist, CFG_ZONE_STATICSTUB },
@@ -2420,9 +2403,9 @@ static cfg_clausedef_t server_clauses[] = {
 	{ "request-expire", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "request-nsid", &cfg_type_boolean, 0 },
-	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "request-sit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "send-cookie", &cfg_type_boolean, 0 },
-	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "support-ixfr", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "tcp-keepalive", &cfg_type_boolean, 0 },
 	{ "tcp-only", &cfg_type_boolean, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
@@ -3789,11 +3772,14 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 	for (clause = clauses; clause->name != NULL; clause++) {
 		if (((pctx.flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 		    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
-		     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
 		     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 		{
 			continue;
 		}
+		if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
+			continue;
+		}
+
 		if ((clause->flags & zonetype) == 0 ||
 		    strcasecmp(clause->name, "type") == 0) {
 			continue;
