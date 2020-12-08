@@ -2088,7 +2088,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "stale-answer-ttl", &cfg_type_duration, 0 },
 	{ "stale-cache-enable", &cfg_type_boolean, 0 },
 	{ "stale-refresh-time", &cfg_type_duration, 0 },
-	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
+	{ "suppress-initial-notify", &cfg_type_boolean,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "synth-from-dnssec", &cfg_type_boolean, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
@@ -3830,7 +3831,6 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		if (((pctx.flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 		    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
 		     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
-		     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
 		     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 		{
 			continue;
@@ -3863,9 +3863,9 @@ static cfg_type_t cfg_type_sslprotos = {
 static cfg_clausedef_t tls_clauses[] = {
 	{ "key-file", &cfg_type_qstring, 0 },
 	{ "cert-file", &cfg_type_qstring, 0 },
-	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTIMP },
-	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_NOTIMP },
-	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_NOTIMP },
+	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_EXPERIMENTAL },
+	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_EXPERIMENTAL },
+	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ NULL, NULL, 0 }
 };
 

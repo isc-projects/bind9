@@ -2462,16 +2462,6 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					   "should be removed ",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0) {
-			cfg_parser_warning(pctx, 0,
-					   "option '%s' is not implemented",
-					   clause->name);
-		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) {
-			cfg_parser_warning(pctx, 0,
-					   "option '%s' is not implemented",
-					   clause->name);
-		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
 			cfg_parser_warning(pctx, 0,
 					   "option '%s' was not "
@@ -2723,9 +2713,7 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 static struct flagtext {
 	unsigned int flag;
 	const char *text;
-} flagtexts[] = { { CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
-		  { CFG_CLAUSEFLAG_NYI, "not yet implemented" },
-		  { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
+} flagtexts[] = { { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 		  { CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
 		  { CFG_CLAUSEFLAG_TESTONLY, "test only" },
 		  { CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
@@ -2766,7 +2754,6 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
 				continue;
@@ -2821,7 +2808,6 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
 				continue;

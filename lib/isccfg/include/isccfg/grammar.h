@@ -34,10 +34,8 @@
 #define CFG_CLAUSEFLAG_MULTI 0x00000001
 /*% Clause is obsolete (logs a warning, but is not a fatal error) */
 #define CFG_CLAUSEFLAG_OBSOLETE 0x00000002
-/*% Clause is not implemented, and may never be */
-#define CFG_CLAUSEFLAG_NOTIMP 0x00000004
-/*% Clause is not implemented yet */
-#define CFG_CLAUSEFLAG_NYI 0x00000008
+/* obsolete: #define CFG_CLAUSEFLAG_NOTIMP 0x00000004 */
+/* obsolete: #define CFG_CLAUSEFLAG_NYI 0x00000008 */
 /*% Default value has changed since earlier release */
 #define CFG_CLAUSEFLAG_NEWDEFAULT 0x00000010
 /*%
