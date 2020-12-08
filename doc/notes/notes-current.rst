@@ -34,6 +34,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- It is now possible to transition a zone from secure to insecure mode
+  without making it bogus in the process: changing to ``dnssec-policy
+  none;`` also causes CDS and CDNSKEY DELETE records to be published, to
+  signal that the entire DS RRset at the parent must be removed, as
+  described in RFC 8078. [GL #1750]
+
 - The new networking code introduced in BIND 9.16 (netmgr) was
   overhauled in order to make it more stable, testable, and
   maintainable. [GL #2321]
