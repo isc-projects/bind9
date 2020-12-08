@@ -21,7 +21,7 @@
   	    * ) ] [ dscp <integer> ];
   	answer-cookie <boolean>;
   	attach-cache <string>;
-  	auth-nxdomain <boolean>; // default changed
+  	auth-nxdomain <boolean>;
   	auto-dnssec ( allow | maintain | off );
   	automatic-interface-scan <boolean>;
   	avoid-v4-udp-ports { <portrange>; ... };

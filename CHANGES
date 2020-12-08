@@ -1,3 +1,5 @@
+5563.	[cleanup]	Clean up the number of clause flags [GL #1086].
+
 5562.	[placeholder]
 
 5561.	[bug]		KASP incorrectly set signature validity to the value
