@@ -2568,4 +2568,10 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver);
  * \li	#DNS_R_VERIFYFAILURE	any other case
  */
 
+const char *
+dns_zonetype_name(dns_zonetype_t type);
+/*%<
+ * Return the name of the zone type 'type'.
+ */
+
 #endif /* DNS_ZONE_H */
