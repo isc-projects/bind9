@@ -78,6 +78,24 @@ do
 	status=`expr $status + $ret`
 done
 
+for lmdb in lmdb-*.conf
+do
+	n=`expr $n + 1`
+	ret=0
+
+	$FEATURETEST --with-lmdb
+	if [ $? -eq 0 ]; then
+		echo_i "checking that named-checkconf detects no error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? != 0 ]; then echo_i "failed"; ret=1; fi
+	else
+		echo_i "checking that named-checkconf detects error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? == 0 ]; then echo_i "failed"; ret=1; fi
+	fi
+	status=`expr $status + $ret`
+done
+
 n=`expr $n + 1`
 echo_i "checking that ancient options report a fatal error ($n)"
 ret=0
