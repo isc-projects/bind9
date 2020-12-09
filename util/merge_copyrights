@@ -56,6 +56,7 @@ while (<CHANGES>) {
 	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/ |	# imported
+	       doc/notes/ |     # release notes doesn't really need copyright
 	       \.*in$ |         # the generated documentation doesn't really need copyright
 	       grammar\.rst$ |  # -"-
 	       zoneopt\.rst$ |  # -"-
