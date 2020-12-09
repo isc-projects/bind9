@@ -299,7 +299,7 @@ dispatch_free(dns_dispatch_t **dispp);
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, const isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp, isc_socket_t *dup_socket, bool duponly);
+	      isc_socket_t **sockp, isc_socket_t *dup_socket);
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		   isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
@@ -1499,10 +1499,6 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0) {
-		return (ISC_R_SUCCESS);
-	}
-
 	if (disp->recv_pending != 0 && dispsock == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -2413,7 +2409,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, const isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp, isc_socket_t *dup_socket, bool duponly) {
+	      isc_socket_t **sockp, isc_socket_t *dup_socket) {
 	unsigned int i, j;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
 	isc_sockaddr_t localaddr_bound;
@@ -2473,7 +2469,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		/* Allow to reuse address for non-random ports. */
 		result = open_socket(sockmgr, localaddr,
 				     ISC_SOCKET_REUSEADDRESS, &sock, dup_socket,
-				     duponly);
+				     true);
 
 		if (result == ISC_R_SUCCESS) {
 			*sockp = sock;
@@ -2530,10 +2526,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	dns_dispatch_t *disp;
 	isc_socket_t *sock = NULL;
 	int i = 0;
-	bool duponly = ((attributes & DNS_DISPATCHATTR_CANREUSE) == 0);
 
-	/* This is an attribute needed only at creation time */
-	attributes &= ~DNS_DISPATCHATTR_CANREUSE;
 	/*
 	 * dispatch_allocate() checks mgr for us.
 	 */
@@ -2547,7 +2540,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
 		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
-				       dup_socket, duponly);
+				       dup_socket);
 		if (result != ISC_R_SUCCESS) {
 			goto deallocate_dispatch;
 		}
@@ -2803,8 +2796,9 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 	}
 
 	/*
-	 * Try somewhat hard to find an unique ID unless FIXEDID is set
-	 * in which case we use the id passed in via *idp.
+	 * Try somewhat hard to find a unique ID, unless
+	 * DNS_DISPATCHOPT_FIXEDID is set, in which case we
+	 * use the ID passed in via *idp.
 	 */
 	LOCK(&qid->lock);
 	if ((options & DNS_DISPATCHOPT_FIXEDID) != 0) {
@@ -2818,9 +2812,6 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 		bucket = dns_hash(qid, dest, id, localport);
 		if (entry_search(qid, dest, id, localport, bucket) == NULL) {
 			ok = true;
-			break;
-		}
-		if ((disp->attributes & DNS_DISPATCHATTR_FIXEDID) != 0) {
 			break;
 		}
 		id += qid->qid_increment;
@@ -3191,33 +3182,12 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp, unsigned int attributes,
 	REQUIRE(VALID_DISPATCH(disp));
 	/* Exclusive attribute can only be set on creation */
 	REQUIRE((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0);
-	/* Also, a dispatch with randomport specified cannot start listening */
-	REQUIRE((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0 ||
-		(attributes & DNS_DISPATCHATTR_NOLISTEN) == 0);
 
 	/* XXXMLG
 	 * Should check for valid attributes here!
 	 */
 
 	LOCK(&disp->lock);
-
-	if ((mask & DNS_DISPATCHATTR_NOLISTEN) != 0) {
-		if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0 &&
-		    (attributes & DNS_DISPATCHATTR_NOLISTEN) == 0)
-		{
-			disp->attributes &= ~DNS_DISPATCHATTR_NOLISTEN;
-			(void)startrecv(disp, NULL);
-		} else if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) ==
-				   0 &&
-			   (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
-		{
-			disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
-			if (disp->recv_pending != 0) {
-				isc_socket_cancel(disp->socket, disp->task[0],
-						  ISC_SOCKCANCEL_RECV);
-			}
-		}
-	}
 
 	disp->attributes &= ~mask;
 	disp->attributes |= (attributes & mask);

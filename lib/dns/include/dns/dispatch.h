@@ -115,9 +115,6 @@ struct dns_dispatchset {
  * _IPV4, _IPV6
  *	The dispatcher uses an IPv4 or IPv6 socket.
  *
- * _NOLISTEN
- *	The dispatcher should not listen on the socket.
- *
  * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
@@ -130,12 +127,9 @@ struct dns_dispatchset {
 #define DNS_DISPATCHATTR_UDP	   0x00000004U
 #define DNS_DISPATCHATTR_IPV4	   0x00000008U
 #define DNS_DISPATCHATTR_IPV6	   0x00000010U
-#define DNS_DISPATCHATTR_NOLISTEN  0x00000020U
 #define DNS_DISPATCHATTR_MAKEQUERY 0x00000040U
 #define DNS_DISPATCHATTR_CONNECTED 0x00000080U
-#define DNS_DISPATCHATTR_FIXEDID   0x00000100U
 #define DNS_DISPATCHATTR_EXCLUSIVE 0x00000200U
-#define DNS_DISPATCHATTR_CANREUSE  0x00000400U
 /*@}*/
 
 /*

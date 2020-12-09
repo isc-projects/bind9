@@ -707,9 +707,6 @@ ns_interface_destroy(ns_interface_t *ifp) {
 
 	for (int disp = 0; disp < ifp->nudpdispatch; disp++) {
 		if (ifp->udpdispatch[disp] != NULL) {
-			dns_dispatch_changeattributes(
-				ifp->udpdispatch[disp], 0,
-				DNS_DISPATCHATTR_NOLISTEN);
 			dns_dispatch_detach(&(ifp->udpdispatch[disp]));
 		}
 	}
