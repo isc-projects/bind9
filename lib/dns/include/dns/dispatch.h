@@ -122,11 +122,6 @@ struct dns_dispatchset {
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
  *
- * _RANDOMPORT
- *	Previously used to indicate that the port of a dispatch UDP must be
- *	chosen randomly.  This behavior now always applies and the attribute
- *	is obsoleted.
- *
  * _EXCLUSIVE
  *	A separate socket will be used on-demand for each transaction.
  */
@@ -429,15 +424,6 @@ dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
  *\li	ISC_R_NOTIMPLEMENTED
  */
 
-void
-dns_dispatch_cancel(dns_dispatch_t *disp);
-/*%<
- * cancel outstanding clients
- *
- * Requires:
- *\li	disp is valid.
- */
-
 unsigned int
 dns_dispatch_getattributes(dns_dispatch_t *disp);
 /*%<
@@ -471,21 +457,6 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp, unsigned int attributes,
  *
  *\li	attributes are reasonable for the dispatch.  That is, setting the UDP
  *	attribute on a TCP socket isn't reasonable.
- */
-
-void
-dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
-/*%<
- * Inform the dispatcher of a socket receive.  This is used for sockets
- * shared between dispatchers and clients.  If the dispatcher fails to copy
- * or send the event, nothing happens.
- *
- * If the attribute DNS_DISPATCHATTR_NOLISTEN is not set, then
- * the dispatch is already handling a recv; return immediately.
- *
- * Requires:
- *\li 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
- * 	event != NULL
  */
 
 dns_dispatch_t *
@@ -526,18 +497,6 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp);
  *
  * Requires:
  *\li 	dset is valid
- */
-
-void
-dns_dispatch_setdscp(dns_dispatch_t *disp, isc_dscp_t dscp);
-isc_dscp_t
-dns_dispatch_getdscp(dns_dispatch_t *disp);
-/*%<
- * Set/get the DSCP value to be used when sending responses to clients,
- * as defined in the "listen-on" or "listen-on-v6" statements.
- *
- * Requires:
- *\li	disp is valid.
  */
 
 isc_result_t
