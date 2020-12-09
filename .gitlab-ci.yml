@@ -116,9 +116,17 @@ stages:
   image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
   <<: *linux_amd64
 
+.oraclelinux-8fips-amd64: &oraclelinux_8fips_amd64_image
+  image: "oraclelinux-8fips-x86_64"
+  <<: *libvirt_amd64
+
 .oraclelinux-9-amd64: &oraclelinux_9_amd64_image
   image: "$CI_REGISTRY_IMAGE:oraclelinux-9-amd64"
   <<: *linux_amd64
+
+.oraclelinux-9fips-amd64: &oraclelinux_9fips_amd64_image
+  image: "oraclelinux-9fips-x86_64"
+  <<: *libvirt_amd64
 
 # Debian
 
@@ -625,6 +633,58 @@ unit:gcc:oraclelinux9:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:oraclelinux9:amd64
+
+# Jobs for scheduled GCC builds on Oracle Linux 8 & 9 FIPS-aware images with
+# FIPS mode in BIND 9 enabled
+
+gcc:8fips:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode"
+  <<: *oraclelinux_8fips_amd64_image
+  <<: *build_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+
+system:gcc:8fips:amd64:
+  <<: *oraclelinux_8fips_amd64_image
+  <<: *system_test_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:8fips:amd64
+      artifacts: true
+
+unit:gcc:8fips:amd64:
+  <<: *oraclelinux_8fips_amd64_image
+  <<: *unit_test_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:8fips:amd64
+      artifacts: true
+
+gcc:9fips:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode"
+  <<: *oraclelinux_9fips_amd64_image
+  <<: *build_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+
+system:gcc:9fips:amd64:
+  <<: *oraclelinux_9fips_amd64_image
+  <<: *system_test_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:9fips:amd64
+      artifacts: true
+
+unit:gcc:9fips:amd64:
+  <<: *oraclelinux_9fips_amd64_image
+  <<: *unit_test_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:9fips:amd64
       artifacts: true
 
 gcc:tarball:nosphinx:
