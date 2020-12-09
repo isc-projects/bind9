@@ -27,8 +27,10 @@
  */
 isc_result_t
 isc___nm_uverr2result(int uverr, bool dolog, const char *file,
-		      unsigned int line) {
+		      unsigned int line, const char *func) {
 	switch (uverr) {
+	case 0:
+		return (ISC_R_SUCCESS);
 	case UV_ENOTDIR:
 	case UV_ELOOP:
 	case UV_EINVAL: /* XXX sometimes this is not for files */
@@ -79,12 +81,17 @@ isc___nm_uverr2result(int uverr, bool dolog, const char *file,
 		return (ISC_R_ADDRNOTAVAIL);
 	case UV_ECONNREFUSED:
 		return (ISC_R_CONNREFUSED);
+	case UV_ECANCELED:
+		return (ISC_R_CANCELED);
+	case UV_EOF:
+		return (ISC_R_EOF);
 	default:
 		if (dolog) {
-			UNEXPECTED_ERROR(file, line,
-					 "unable to convert libuv "
-					 "error code to isc_result: %d: %s",
-					 uverr, uv_strerror(uverr));
+			UNEXPECTED_ERROR(
+				file, line,
+				"unable to convert libuv "
+				"error code in %s to isc_result: %d: %s",
+				func, uverr, uv_strerror(uverr));
 		}
 		return (ISC_R_UNEXPECTED);
 	}

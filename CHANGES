@@ -1,5 +1,18 @@
-5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
-			[GL #2250]
+5545.	[func]		OS support for load-balanced sockets is no longer
+			required to receive incoming queries in multiple netmgr
+			threads. [GL #2137]
+
+5543.	[bug]		Fix UDP performance issues caused by making netmgr
+			callbacks asynchronous-only. [GL #2320]
+
+5542.	[bug]		Refactor netmgr. [GL #1920] [GL #2034] [GL #2061]
+			[GL #2194] [GL #2221] [GL #2266] [GL #2283] [GL #2318]
+			[GL #2321]
+
+	--- 9.16.10 released ---
+
+5544.	[func]		Restore the default value of "nocookie-udp-size" to 4096
+			bytes. [GL #2250]
 
 5541.	[func]		Adjust the "max-recursion-queries" default from 75 to
 			100. [GL #2305]
@@ -10,14 +23,13 @@
 5539.	[bug]		Tighten handling of missing DNS COOKIE responses over
 			UDP by falling back to TCP. [GL #2275]
 
-5538.	[func]		Add NSEC3 support for zones that manage DNSSEC with
-			the 'dnssec-policy' configuration. A new option
-			'nsec3param' can be used to set the NSEC3 parameters.
-			This now also detects salt collisions, and logs salt
-			generation messages with zone context.
-			[GL #1620]
+5538.	[func]		Add NSEC3 support to KASP. A new option for
+			"dnssec-policy", "nsec3param", can be used to set the
+			desired NSEC3 parameters. NSEC3 salt collisions are
+			automatically prevented during resalting. Salt
+			generation is now logged with zone context. [GL #1620]
 
-5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
+5534.	[bug]		The CNAME synthesized from a DNAME was incorrectly
 			followed when the QTYPE was CNAME or ANY. [GL #2280]
 
 	--- 9.16.9 released ---

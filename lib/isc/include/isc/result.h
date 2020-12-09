@@ -88,9 +88,10 @@
 #define ISC_R_DISCFULL	       67	    /*%< disc full */
 #define ISC_R_DEFAULT	       68	    /*%< default */
 #define ISC_R_IPV4PREFIX       69	    /*%< IPv4 prefix */
+#define ISC_R_TLSERROR	       70	    /*%< TLS error */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 70
+#define ISC_R_NRESULTS 71
 
 ISC_LANG_BEGINDECLS
 
