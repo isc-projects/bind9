@@ -15629,6 +15629,32 @@ dns_zone_gettype(dns_zone_t *zone) {
 	return (zone->type);
 }
 
+const char *
+dns_zonetype_name(dns_zonetype_t type) {
+	switch (type) {
+	case dns_zone_none:
+		return ("none");
+	case dns_zone_master:
+		return ("primary");
+	case dns_zone_slave:
+		return ("secondary");
+	case dns_zone_mirror:
+		return ("mirror");
+	case dns_zone_stub:
+		return ("stub");
+	case dns_zone_staticstub:
+		return ("static-stub");
+	case dns_zone_key:
+		return ("key");
+	case dns_zone_dlz:
+		return ("dlz");
+	case dns_zone_redirect:
+		return ("redirect");
+	default:
+		return ("unknown");
+	}
+}
+
 dns_zonetype_t
 dns_zone_getredirecttype(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));

@@ -7493,36 +7493,12 @@ portset_fromconf(isc_portset_t *portset, const cfg_obj_t *ports,
 
 static isc_result_t
 removed(dns_zone_t *zone, void *uap) {
-	const char *type;
-
 	if (dns_zone_getview(zone) != uap) {
 		return (ISC_R_SUCCESS);
 	}
 
-	switch (dns_zone_gettype(zone)) {
-	case dns_zone_master:
-		type = "primary";
-		break;
-	case dns_zone_slave:
-		type = "secondary";
-		break;
-	case dns_zone_mirror:
-		type = "mirror";
-		break;
-	case dns_zone_stub:
-		type = "stub";
-		break;
-	case dns_zone_staticstub:
-		type = "static-stub";
-		break;
-	case dns_zone_redirect:
-		type = "redirect";
-		break;
-	default:
-		type = "other";
-		break;
-	}
-	dns_zone_log(zone, ISC_LOG_INFO, "(%s) removed", type);
+	dns_zone_log(zone, ISC_LOG_INFO, "(%s) removed",
+		     dns_zonetype_name(dns_zone_gettype(zone)));
 	return (ISC_R_SUCCESS);
 }
 
@@ -10792,7 +10768,16 @@ named_server_retransfercommand(named_server_t *server, isc_lex_t *lex,
 	{
 		dns_zone_forcereload(zone);
 	} else {
-		result = ISC_R_NOTFOUND;
+		(void)putstr(text, "retransfer: inappropriate zone type: ");
+		(void)putstr(text, dns_zonetype_name(type));
+		if (type == dns_zone_redirect) {
+			type = dns_zone_getredirecttype(zone);
+			(void)putstr(text, "(");
+			(void)putstr(text, dns_zonetype_name(type));
+			(void)putstr(text, ")");
+		}
+		(void)putnull(text);
+		result = ISC_R_FAILURE;
 	}
 	dns_zone_detach(&zone);
 	return (result);
@@ -15161,34 +15146,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		zonetype = dns_zone_gettype(zone);
 	}
 
-	switch (zonetype) {
-	case dns_zone_master:
-		type = "primary";
-		break;
-	case dns_zone_slave:
-		type = "secondary";
-		break;
-	case dns_zone_mirror:
-		type = "mirror";
-		break;
-	case dns_zone_stub:
-		type = "stub";
-		break;
-	case dns_zone_staticstub:
-		type = "staticstub";
-		break;
-	case dns_zone_redirect:
-		type = "redirect";
-		break;
-	case dns_zone_key:
-		type = "key";
-		break;
-	case dns_zone_dlz:
-		type = "dlz";
-		break;
-	default:
-		type = "unknown";
-	}
+	type = dns_zonetype_name(zonetype);
 
 	/* Serial number */
 	result = dns_zone_getserial(mayberaw, &serial);
