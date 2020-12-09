@@ -14603,8 +14603,7 @@ again:
 		zone->task, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
-		zone_debuglog(zone, me, 1,
-			      "dns_request_createvia4() failed: %s",
+		zone_debuglog(zone, me, 1, "dns_request_createvia() failed: %s",
 			      dns_result_totext(result));
 		goto skip_master;
 	} else {

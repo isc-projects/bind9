@@ -207,7 +207,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 	       const isc_sockaddr_t *localaddr) {
 	unsigned int attrs;
 	dns_dispatch_t *disp;
-	unsigned buffersize, maxbuffers, maxrequests, buckets, increment;
+	unsigned maxbuffers, maxrequests, buckets, increment;
 	isc_result_t result;
 	isc_sockaddr_t anyaddr;
 
@@ -230,7 +230,6 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		localaddr = &anyaddr;
 	}
 
-	buffersize = 4096;
 	maxbuffers = is_shared ? 1000 : 8;
 	maxrequests = 32768;
 	buckets = is_shared ? 16411 : 3;
@@ -238,8 +237,8 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 	disp = NULL;
 	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, localaddr,
-				     buffersize, maxbuffers, maxrequests,
-				     buckets, increment, attrs, &disp);
+				     maxbuffers, maxrequests, buckets,
+				     increment, attrs, &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}

@@ -139,7 +139,8 @@ struct dns_dispatchset {
 isc_result_t
 dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
 /*%<
- * Creates a new dispatchmgr object.
+ * Creates a new dispatchmgr object, and sets the available ports
+ * to the default range (1024-65535).
  *
  * Requires:
  *\li	"mctx" be a valid memory context.
@@ -215,10 +216,9 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
 isc_result_t
 dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		    unsigned int buffersize, unsigned int maxbuffers,
-		    unsigned int maxrequests, unsigned int buckets,
-		    unsigned int increment, unsigned int attributes,
-		    dns_dispatch_t **dispp);
+		    unsigned int maxbuffers, unsigned int maxrequests,
+		    unsigned int buckets, unsigned int increment,
+		    unsigned int attributes, dns_dispatch_t **dispp);
 /*%<
  * Attach to existing dns_dispatch_t if one is found with dns_dispatchmgr_find,
  * otherwise create a new UDP dispatch.

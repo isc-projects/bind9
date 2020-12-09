@@ -759,7 +759,7 @@ sendquery(struct query *query, isc_task_t *task) {
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, dscp,
 		options, NULL, query->timeout, query->udptimeout,
 		query->udpretries, task, recvresponse, message, &request);
-	CHECK("dns_request_createvia4", result);
+	CHECK("dns_request_createvia", result);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2141,8 +2141,8 @@ main(int argc, char *argv[]) {
 	}
 	dispatchvx = NULL;
 	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     have_src ? &srcaddr : &bind_any, 4096, 100,
-				     100, 17, 19, attrs, &dispatchvx));
+				     have_src ? &srcaddr : &bind_any, 100, 100,
+				     17, 19, attrs, &dispatchvx));
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
 		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,

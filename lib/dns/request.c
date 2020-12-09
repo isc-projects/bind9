@@ -630,8 +630,8 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 	}
 	return (dns_dispatch_getudp(requestmgr->dispatchmgr,
 				    requestmgr->socketmgr, requestmgr->taskmgr,
-				    srcaddr, 4096, 32768, 32768, 16411, 16433,
-				    attrs, dispatchp));
+				    srcaddr, 32768, 32768, 16411, 16433, attrs,
+				    dispatchp));
 }
 
 static isc_result_t

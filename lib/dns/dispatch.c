@@ -139,6 +139,13 @@ struct dns_dispentry {
 #define DNS_DISPATCH_SOCKSQUOTA 3072
 #endif /* ifndef DNS_DISPATCH_SOCKSQUOTA */
 
+/*%
+ * Fixed UDP buffer size.
+ */
+#ifndef DNS_DISPATCH_UDPBUFSIZE
+#define DNS_DISPATCH_UDPBUFSIZE 4096
+#endif /* ifndef DNS_DISPATCH_UDPBUFSIZE */
+
 struct dispsocket {
 	unsigned int magic;
 	isc_socket_t *socket;
@@ -587,7 +594,6 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 	REQUIRE(disp->port_table != NULL);
 
 	portentry = isc_mem_get(disp->mgr->mctx, sizeof(*portentry));
-
 	portentry->port = port;
 	isc_refcount_init(&portentry->refs, 1);
 	ISC_LINK_INIT(portentry, link);
@@ -730,10 +736,6 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 		if (result == ISC_R_SUCCESS) {
 			if (portentry == NULL) {
 				portentry = new_portentry(disp, port);
-				if (portentry == NULL) {
-					result = ISC_R_NOMEMORY;
-					break;
-				}
 			} else {
 				isc_refcount_increment(&portentry->refs);
 			}
@@ -794,7 +796,6 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
 	disp->nsockets--;
 	dispsock->magic = 0;
 	if (dispsock->portentry != NULL) {
-		/* socket_search() tests and dereferences portentry. */
 		LOCK(&qid->lock);
 		deref_portentry(disp, &dispsock->portentry);
 		UNLOCK(&qid->lock);
@@ -833,7 +834,7 @@ deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	}
 
 	INSIST(dispsock->portentry != NULL);
-	/* socket_search() tests and dereferences portentry. */
+
 	LOCK(&qid->lock);
 	deref_portentry(disp, &dispsock->portentry);
 	UNLOCK(&qid->lock);
@@ -890,8 +891,7 @@ entry_search(dns_qid_t *qid, const isc_sockaddr_t *dest, dns_messageid_t id,
 
 static void
 free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
-	unsigned int buffersize;
-	INSIST(buf != NULL && len != 0);
+	REQUIRE(buf != NULL && len != 0);
 
 	switch (disp->socktype) {
 	case isc_sockettype_tcp:
@@ -902,11 +902,10 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 	case isc_sockettype_udp:
 		LOCK(&disp->mgr->buffer_lock);
 		INSIST(disp->mgr->buffers > 0);
-		INSIST(len == disp->mgr->buffersize);
+		INSIST(len == DNS_DISPATCH_UDPBUFSIZE);
 		disp->mgr->buffers--;
-		buffersize = disp->mgr->buffersize;
 		UNLOCK(&disp->mgr->buffer_lock);
-		isc_mem_put(disp->mgr->mctx, buf, buffersize);
+		isc_mem_put(disp->mgr->mctx, buf, len);
 		break;
 	default:
 		INSIST(0);
@@ -916,18 +915,15 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 
 static void *
 allocate_udp_buffer(dns_dispatch_t *disp) {
-	unsigned int buffersize;
-
 	LOCK(&disp->mgr->buffer_lock);
 	if (disp->mgr->buffers >= disp->mgr->maxbuffers) {
 		UNLOCK(&disp->mgr->buffer_lock);
 		return (NULL);
 	}
-	buffersize = disp->mgr->buffersize;
 	disp->mgr->buffers++;
 	UNLOCK(&disp->mgr->buffer_lock);
 
-	return (isc_mem_get(disp->mgr->mctx, buffersize));
+	return (isc_mem_get(disp->mgr->mctx, DNS_DISPATCH_UDPBUFSIZE));
 }
 
 static inline void
@@ -1520,7 +1516,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	 * UDP reads are always maximal.
 	 */
 	case isc_sockettype_udp:
-		region.length = disp->mgr->buffersize;
+		region.length = DNS_DISPATCH_UDPBUFSIZE;
 		region.base = allocate_udp_buffer(disp);
 		if (region.base == NULL) {
 			return (ISC_R_NOMEMORY);
@@ -1699,98 +1695,17 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
  * normally set the ports explicitly, but is provided to fill some minor corner
  * cases.
  */
-static isc_result_t
+static void
 create_default_portset(isc_mem_t *mctx, isc_portset_t **portsetp) {
-	isc_result_t result;
-
-	result = isc_portset_create(mctx, portsetp);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	isc_portset_create(mctx, portsetp);
 	isc_portset_addrange(*portsetp, 1024, 65535);
-
-	return (ISC_R_SUCCESS);
 }
 
-/*
- * Publics.
- */
-
-isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
-	dns_dispatchmgr_t *mgr;
-	isc_result_t result;
-	isc_portset_t *v4portset = NULL;
-	isc_portset_t *v6portset = NULL;
-
-	REQUIRE(mctx != NULL);
-	REQUIRE(mgrp != NULL && *mgrp == NULL);
-
-	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
-	*mgr = (dns_dispatchmgr_t){ 0 };
-
-	isc_mem_attach(mctx, &mgr->mctx);
-
-	isc_mutex_init(&mgr->lock);
-	isc_mutex_init(&mgr->buffer_lock);
-
-	isc_refcount_init(&mgr->irefs, 0);
-
-	ISC_LIST_INIT(mgr->list);
-
-	mgr->magic = DNS_DISPATCHMGR_MAGIC;
-
-	result = create_default_portset(mctx, &v4portset);
-	if (result == ISC_R_SUCCESS) {
-		result = create_default_portset(mctx, &v6portset);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_dispatchmgr_setavailports(mgr, v4portset,
-							       v6portset);
-		}
-	}
-	if (v4portset != NULL) {
-		isc_portset_destroy(mctx, &v4portset);
-	}
-	if (v6portset != NULL) {
-		isc_portset_destroy(mctx, &v6portset);
-	}
-	if (result != ISC_R_SUCCESS) {
-		goto kill_dpool;
-	}
-
-	*mgrp = mgr;
-	return (ISC_R_SUCCESS);
-
-kill_dpool:
-	isc_mutex_destroy(&mgr->buffer_lock);
-	isc_mutex_destroy(&mgr->lock);
-	isc_mem_putanddetach(&mctx, mgr, sizeof(dns_dispatchmgr_t));
-
-	return (result);
-}
-
-void
-dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole) {
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	if (mgr->blackhole != NULL) {
-		dns_acl_detach(&mgr->blackhole);
-	}
-	dns_acl_attach(blackhole, &mgr->blackhole);
-}
-
-dns_acl_t *
-dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	return (mgr->blackhole);
-}
-
-isc_result_t
-dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
-			      isc_portset_t *v6portset) {
-	in_port_t *v4ports, *v6ports, p;
-	unsigned int nv4ports, nv6ports, i4, i6;
-
-	REQUIRE(VALID_DISPATCHMGR(mgr));
+static isc_result_t
+setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
+	      isc_portset_t *v6portset) {
+	in_port_t *v4ports, *v6ports, p = 0;
+	unsigned int nv4ports, nv6ports, i4 = 0, i6 = 0;
 
 	nv4ports = isc_portset_nports(v4portset);
 	nv6ports = isc_portset_nports(v6portset);
@@ -1804,9 +1719,6 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 		v6ports = isc_mem_get(mgr->mctx, sizeof(in_port_t) * nv6ports);
 	}
 
-	p = 0;
-	i4 = 0;
-	i6 = 0;
 	do {
 		if (isc_portset_isset(v4portset, p)) {
 			INSIST(i4 < nv4ports);
@@ -1838,14 +1750,74 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Publics.
+ */
+
+isc_result_t
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
+	dns_dispatchmgr_t *mgr = NULL;
+	isc_portset_t *v4portset = NULL;
+	isc_portset_t *v6portset = NULL;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(mgrp != NULL && *mgrp == NULL);
+
+	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
+	*mgr = (dns_dispatchmgr_t){ .maxbuffers = 20000 };
+
+	isc_mem_attach(mctx, &mgr->mctx);
+
+	isc_mutex_init(&mgr->lock);
+	isc_mutex_init(&mgr->buffer_lock);
+
+	isc_refcount_init(&mgr->irefs, 0);
+
+	ISC_LIST_INIT(mgr->list);
+
+	create_default_portset(mctx, &v4portset);
+	create_default_portset(mctx, &v6portset);
+
+	setavailports(mgr, v4portset, v6portset);
+
+	isc_portset_destroy(mctx, &v4portset);
+	isc_portset_destroy(mctx, &v6portset);
+
+	mgr->magic = DNS_DISPATCHMGR_MAGIC;
+
+	*mgrp = mgr;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	if (mgr->blackhole != NULL) {
+		dns_acl_detach(&mgr->blackhole);
+	}
+	dns_acl_attach(blackhole, &mgr->blackhole);
+}
+
+dns_acl_t *
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	return (mgr->blackhole);
+}
+
+isc_result_t
+dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
+			      isc_portset_t *v6portset) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	return (setavailports(mgr, v4portset, v6portset));
+}
+
 static isc_result_t
-dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr, unsigned int buffersize,
-		       unsigned int maxbuffers, unsigned int maxrequests,
-		       unsigned int buckets, unsigned int increment) {
+dispatchmgr_setudp(dns_dispatchmgr_t *mgr, unsigned int maxbuffers,
+		   unsigned int maxrequests, unsigned int buckets,
+		   unsigned int increment) {
 	isc_result_t result;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
-	REQUIRE(buffersize >= 512 && buffersize < (64 * 1024));
 	REQUIRE(maxbuffers > 0);
 	REQUIRE(buckets < 2097169); /* next prime > 65536 * 32 */
 	REQUIRE(increment > buckets);
@@ -1868,31 +1840,29 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr, unsigned int buffersize,
 		maxbuffers = 8;
 	}
 
+	/* Adjust buffer pool if needed
+	 *
+	 * We only increase maxbuffers to avoid accidental buffer
+	 * shortage.  Ideally we'd separate the manager-wide maximum
+	 * from per-dispatch limits and respect the latter within the
+	 * global limit.  But at this moment that's deemed to be
+	 * overkilling and isn't worth additional implementation
+	 * complexity.
+	 */
 	LOCK(&mgr->buffer_lock);
-
 	if (maxbuffers > mgr->maxbuffers) {
 		mgr->maxbuffers = maxbuffers;
 	}
-
-	/* Create or adjust socket pool */
-	if (mgr->qid != NULL) {
-		UNLOCK(&mgr->buffer_lock);
-		return (ISC_R_SUCCESS);
-	}
-
-	result = qid_allocate(mgr, buckets, increment, &mgr->qid, true);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	mgr->buffersize = buffersize;
-	mgr->maxbuffers = maxbuffers;
 	UNLOCK(&mgr->buffer_lock);
+
+	if (mgr->qid == NULL) {
+		result = qid_allocate(mgr, buckets, increment, &mgr->qid, true);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
+
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	UNLOCK(&mgr->buffer_lock);
-	return (result);
 }
 
 void
@@ -2351,10 +2321,9 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 isc_result_t
 dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		    unsigned int buffersize, unsigned int maxbuffers,
-		    unsigned int maxrequests, unsigned int buckets,
-		    unsigned int increment, unsigned int attributes,
-		    dns_dispatch_t **dispp) {
+		    unsigned int maxbuffers, unsigned int maxrequests,
+		    unsigned int buckets, unsigned int increment,
+		    unsigned int attributes, dns_dispatch_t **dispp) {
 	isc_result_t result;
 	dns_dispatch_t *disp = NULL;
 
@@ -2362,15 +2331,14 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	REQUIRE(sockmgr != NULL);
 	REQUIRE(localaddr != NULL);
 	REQUIRE(taskmgr != NULL);
-	REQUIRE(buffersize >= 512 && buffersize < (64 * 1024));
 	REQUIRE(maxbuffers > 0);
 	REQUIRE(buckets < 2097169); /* next prime > 65536 * 32 */
 	REQUIRE(increment > buckets);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 	REQUIRE((attributes & DNS_DISPATCHATTR_TCP) == 0);
 
-	result = dns_dispatchmgr_setudp(mgr, buffersize, maxbuffers,
-					maxrequests, buckets, increment);
+	result = dispatchmgr_setudp(mgr, maxbuffers, maxrequests, buckets,
+				    increment);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

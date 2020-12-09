@@ -2175,7 +2175,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			}
 			result = dns_dispatch_getudp(
 				res->dispatchmgr, res->socketmgr, res->taskmgr,
-				&addr, 4096, 20000, 32768, 16411, 16433, attrs,
+				&addr, 20000, 32768, 16411, 16433, attrs,
 				&query->dispatch);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_query;
