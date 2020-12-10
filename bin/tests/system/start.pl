@@ -23,7 +23,7 @@ use Getopt::Long;
 use Time::HiRes 'sleep'; # allows sleeping fractional seconds
 
 # Usage:
-#   perl start.pl [--noclean] [--restart] [--port port] test [server [options]]
+#   perl start.pl [--noclean] [--restart] [--port port] [--taskset cpus] test [server [options]]
 #
 #   --noclean       Do not cleanup files in server directory.
 #
@@ -37,6 +37,10 @@ use Time::HiRes 'sleep'; # allows sleeping fractional seconds
 #                   "named" nameservers, this can be overridden by the presence
 #                   of the file "named.port" in the server directory containing
 #                   the number of the query port.)
+#
+#   --taskset cpus  Use taskset to signal which cpus can be used. For example
+#                   cpus=fff0 means all cpus aexcept for 0, 1, 2, and 3 are
+#                   eligible.
 #
 #   test            Name of the test directory.
 #
@@ -57,15 +61,17 @@ use Time::HiRes 'sleep'; # allows sleeping fractional seconds
 #                   the file is ignored). If "options" is already set, then
 #                   "named.args" is ignored.
 
-my $usage = "usage: $0 [--noclean] [--restart] [--port <port>] test-directory [server-directory [server-options]]";
+my $usage = "usage: $0 [--noclean] [--restart] [--port <port>] [--taskset <cpus>] test-directory [server-directory [server-options]]";
 my $clean = 1;
 my $restart = 0;
 my $queryport = 5300;
+my $taskset = "";
 
 GetOptions(
-	'clean!'   => \$clean,
-	'restart!' => \$restart,
-	'port=i'   => \$queryport,
+	'clean!'    => \$clean,
+	'restart!'  => \$restart,
+	'port=i'    => \$queryport,
+	'taskset=s' => \$taskset,
 ) or die "$usage\n";
 
 my( $test, $server_arg, $options_arg ) = @ARGV;
@@ -232,7 +238,11 @@ sub construct_ns_command {
 
 		$command .= "$NAMED -m none -M external ";
 	} else {
-		$command = "$NAMED ";
+		if ($taskset) {
+			$command = "taskset $taskset $NAMED ";
+		} else {
+			$command = "$NAMED ";
+		}
 	}
 
 	my $args_file = $testdir . "/" . $server . "/" . "named.args";

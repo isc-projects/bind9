@@ -90,6 +90,7 @@ TESTS +=			\
 	checkconf		\
 	checknames		\
 	checkzone		\
+	cpu			\
 	database		\
 	dlz			\
 	dlzexternal		\
