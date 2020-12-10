@@ -270,7 +270,7 @@ status=`expr $status + $ret`
 
 echo_i "Shutting down secondary"
 
-(cd ..; $SHELL stop.sh rrsetorder ns2 )
+stop_server rrsetorder ns2
 
 echo_i "Checking for secondary's on disk copy of zone"
 
