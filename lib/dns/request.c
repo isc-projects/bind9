@@ -543,7 +543,6 @@ create_tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-#ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
 	if (srcaddr == NULL) {
 		isc_sockaddr_anyofpf(&bind_any, isc_sockaddr_pf(destaddr));
 		result = isc_socket_bind(sock, &bind_any, 0);
@@ -555,16 +554,13 @@ create_tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-#endif /* ifndef BROKEN_TCP_BIND_BEFORE_CONNECT */
 
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_TCP;
+	attrs = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_MAKEQUERY;
 	if (isc_sockaddr_pf(destaddr) == AF_INET) {
 		attrs |= DNS_DISPATCHATTR_IPV4;
 	} else {
 		attrs |= DNS_DISPATCHATTR_IPV6;
 	}
-	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 	isc_socket_dscp(sock, dscp);
 	result = dns_dispatch_createtcp(

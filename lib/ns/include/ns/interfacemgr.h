@@ -74,23 +74,21 @@ struct ns_interface {
 	isc_sockaddr_t	   addr;       /*%< Address and port. */
 	unsigned int	   flags;      /*%< Interface flags */
 	char		   name[32];   /*%< Null terminated. */
-	dns_dispatch_t *   udpdispatch[MAX_UDP_DISPATCH];
-	/*%< UDP dispatchers. */
-	isc_socket_t *	tcpsocket; /*%< TCP socket. */
-	isc_nmsocket_t *udplistensocket;
-	isc_nmsocket_t *tcplistensocket;
-	isc_nmsocket_t *http_listensocket;
-	isc_nmsocket_t *http_secure_listensocket;
-	isc_dscp_t	dscp;	       /*%< "listen-on" DSCP value */
-	isc_refcount_t	ntcpaccepting; /*%< Number of clients
-					*   ready to accept new
-					*   TCP connections on this
-					*   interface */
-	isc_refcount_t ntcpactive;     /*%< Number of clients
-					*   servicing TCP queries
-					*   (whether accepting or
-					*   connected) */
-	int nudpdispatch;	       /*%< Number of UDP dispatches */
+	isc_socket_t *	   tcpsocket;  /*%< TCP socket. */
+	isc_nmsocket_t *   udplistensocket;
+	isc_nmsocket_t *   tcplistensocket;
+	isc_nmsocket_t *   http_listensocket;
+	isc_nmsocket_t *   http_secure_listensocket;
+	isc_dscp_t	   dscp;	  /*%< "listen-on" DSCP value */
+	isc_refcount_t	   ntcpaccepting; /*%< Number of clients
+					   *   ready to accept new
+					   *   TCP connections on this
+					   *   interface */
+	isc_refcount_t ntcpactive;	  /*%< Number of clients
+					   *   servicing TCP queries
+					   *   (whether accepting or
+					   *   connected) */
+	ns_clientmgr_t *clientmgr;	  /*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;
 };
 
@@ -103,8 +101,8 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
 		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
 		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
-		       unsigned int udpdisp, dns_geoip_databases_t *geoip,
-		       int ncpus, ns_interfacemgr_t **mgrp);
+		       dns_geoip_databases_t *geoip, int ncpus,
+		       ns_interfacemgr_t **mgrp);
 /*%<
  * Create a new interface manager.
  *

@@ -4708,8 +4708,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	/*
 	 * Resolver.
-	 *
-	 * XXXRTH  Hardwired number of tasks.
 	 */
 	CHECK(get_view_querysource_dispatch(
 		maps, AF_INET, &dispatch4, &dscp4,
@@ -4719,7 +4717,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(ISC_LIST_PREV(view, link) == NULL)));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to obtain neither an IPv4 nor"
+				 "unable to obtain either an IPv4 or"
 				 " an IPv6 dispatch");
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
@@ -9898,8 +9896,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(ns_interfacemgr_create(
 			   named_g_mctx, server->sctx, named_g_taskmgr,
 			   named_g_timermgr, named_g_socketmgr, named_g_netmgr,
-			   named_g_dispatchmgr, server->task, named_g_udpdisp,
-			   geoip, named_g_cpus, &server->interfacemgr),
+			   named_g_dispatchmgr, server->task, geoip,
+			   named_g_cpus, &server->interfacemgr),
 		   "creating interface manager");
 
 	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
