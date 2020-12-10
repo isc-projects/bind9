@@ -1048,6 +1048,62 @@ unit:clang:tsan:
     - job: clang:tsan
       artifacts: true
 
+# Jobs for builds with TSAN enabled --disable-atomics
+
+gcc:tsan:noatomics:
+  <<: *base_image
+  <<: *build_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --disable-atomic"
+
+system:gcc:tsan:noatomics:
+  variables:
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *system_test_tsan_job
+  needs:
+    - job: gcc:tsan:noatomics
+      artifacts: true
+
+unit:gcc:tsan:noatomics:
+  variables:
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *unit_test_tsan_job
+  needs:
+    - job: gcc:tsan:noatomics
+      artifacts: true
+
+clang:tsan:noatomics:
+  <<: *base_image
+  <<: *build_job
+  variables:
+    CC: "${CLANG}"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --disable-atomic"
+
+system:clang:tsan:noatomics:
+  variables:
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *system_test_tsan_job
+  needs:
+    - job: clang:tsan:noatomics
+      artifacts: true
+
+unit:clang:tsan:noatomics:
+  variables:
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+  <<: *base_image
+  <<: *unit_test_tsan_job
+  needs:
+    - job: clang:tsan:noatomics
+      artifacts: true
+
 # Jobs for mutex-based atomics on Debian SID (amd64)
 gcc:mutexatomics:
   variables:

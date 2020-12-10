@@ -698,7 +698,7 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, bool nonblock) {
 	return (result);
 }
 
-isc_result_t
+ISC_NO_SANITIZE_THREAD isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int_fast32_t cnt = 0;
 	int_fast32_t max_cnt = rwl_load(spins) * 2 + 10;

@@ -69,7 +69,7 @@ struct dns_tsig_keyring {
 	unsigned int generated;
 	unsigned int maxgenerated;
 	ISC_LIST(dns_tsigkey_t) lru;
-	unsigned int references;
+	isc_refcount_t references;
 };
 
 struct dns_tsigkey {

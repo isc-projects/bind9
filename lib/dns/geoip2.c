@@ -122,7 +122,7 @@ free_state(void *arg) {
 	isc_thread_key_setspecific(state_key, NULL);
 }
 
-static isc_result_t
+ISC_NO_SANITIZE_THREAD static isc_result_t
 state_key_init(void) {
 	isc_result_t result;
 

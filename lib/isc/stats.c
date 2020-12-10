@@ -215,6 +215,11 @@ isc_stats_ncounters(isc_stats_t *stats) {
 	return (stats->ncounters);
 }
 
+/*
+ * Inline the code if we can use atomic operations.
+ */
+#if defined(ISC_PLATFORM_HAVESTDATOMIC) || defined(ISC_STATS_HAVEATOMICQ) || \
+    defined(ISC_STATS_USEMULTIFIELDS)
 static inline void
 incrementcounter(isc_stats_t *stats, int counter) {
 #if ISC_PLATFORM_HAVESTDATOMIC
@@ -235,8 +240,6 @@ incrementcounter(isc_stats_t *stats, int counter) {
 	if (prev == (int32_t)0xffffffff) {
 		isc_atomic_xadd((int32_t *)&stats->counters[counter].hi, 1);
 	}
-#else
-	stats->counters[counter]++;
 #endif
 }
 
@@ -254,8 +257,6 @@ decrementcounter(isc_stats_t *stats, int counter) {
 		(void)isc_atomic_xadd((int32_t *)&stats->counters[counter].hi,
 				      -1);
 	}
-#else
-	stats->counters[counter]--;
 #endif
 }
 
@@ -270,13 +271,8 @@ getcounter(isc_stats_t *stats, const int counter) {
 					  0));
 #else
 	uint64_t curr_value;
-# if ISC_STATS_USEMULTIFIELDS
 	curr_value = ((uint64_t)stats->counters[counter].hi << 32) |
 			stats->counters[counter].lo;
-# else
-	curr_value = stats->counters[counter];
-# endif
-
 	return (curr_value);
 #endif
 }
@@ -297,11 +293,33 @@ setcounter(isc_stats_t *stats,
 			 (uint32_t)((value >> 32) & 0xffffffff));
 	isc_atomic_store((int32_t *)&stats->counters[counter].lo,
 			 (uint32_t)(value & 0xffffffff));
-# else
-	stats->counters[counter] = value;
 # endif
 #endif
 }
+#else
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE void
+incrementcounter(isc_stats_t *stats, int counter) {
+	stats->counters[counter]++;
+}
+
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE void
+decrementcounter(isc_stats_t *stats, int counter) {
+	stats->counters[counter]--;
+}
+
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE uint64_t
+getcounter(isc_stats_t *stats, const int counter) {
+	return (stats->counters[counter]);
+}
+
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE void
+setcounter(isc_stats_t *stats,
+	   const isc_statscounter_t counter,
+	   const uint64_t value)
+{
+	stats->counters[counter] = value;
+}
+#endif
 
 static void
 copy_counters(isc_stats_t *stats, uint64_t *counters) {

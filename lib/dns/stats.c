@@ -104,6 +104,7 @@ dns_stats_attach(dns_stats_t *stats, dns_stats_t **statsp) {
 
 void
 dns_stats_detach(dns_stats_t **statsp) {
+	unsigned int references;
 	dns_stats_t *stats;
 
 	REQUIRE(statsp != NULL && DNS_STATS_VALID(*statsp));
@@ -112,10 +113,10 @@ dns_stats_detach(dns_stats_t **statsp) {
 	*statsp = NULL;
 
 	LOCK(&stats->lock);
-	stats->references--;
+	references = --stats->references;
 	UNLOCK(&stats->lock);
 
-	if (stats->references == 0) {
+	if (references == 0) {
 		isc_stats_detach(&stats->counters);
 		DESTROYLOCK(&stats->lock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));

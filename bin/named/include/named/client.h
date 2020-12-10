@@ -229,8 +229,11 @@ extern _Atomic(unsigned int) ns_client_requests;
 #define ncr_load(x) isc_atomic_xadd((int *)&(x), 0);
 extern unsigned int ns_client_requests;
 #else
-#define ncr_inc(x) ((x)++)
-#define ncr_load(x) (x)
+void ns_client_ncr_inc(void);
+unsigned int ns_client_ncr_load(void);
+#define NS_CLIENT_NEED_NCR_INC
+#define ncr_inc(x) ns_client_ncr_inc()
+#define ncr_load(x) ns_client_ncr_load()
 extern unsigned int ns_client_requests;
 #endif
 

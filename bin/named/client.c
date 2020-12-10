@@ -247,6 +247,18 @@ _Atomic(unsigned int) ns_client_requests;
 unsigned int ns_client_requests;
 #endif
 
+#ifdef NS_CLIENT_NEED_NCR_INC
+ISC_NO_SANITIZE_THREAD void
+ns_client_ncr_inc(void) {
+	ns_client_requests++;
+}
+
+ISC_NO_SANITIZE_THREAD unsigned int
+ns_client_ncr_load(void) {
+	return (ns_client_requests);
+}
+#endif
+
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
 static void client_udprecv(ns_client_t *client);
@@ -699,6 +711,19 @@ exit_check(ns_client_t *client) {
 			if (!ns_g_clienttest && manager != NULL &&
 			    !manager->exiting)
 			{
+				/*
+				 * We are placing client on manager->inactive
+				 * locklessly and it may be picked up by a
+				 * different thread leading to TSAN errors.
+				 * The LOCK/UNLOCK will cause outstanding
+				 * writes to the client structure to be
+				 * flushed.
+				 *
+				 * queue_pop() prevents TSAN errors from
+				 * changes made by ISC_QUEUE_PUSH.
+				 */
+				LOCK(&client->query.fetchlock);
+				UNLOCK(&client->query.fetchlock);
 				ISC_QUEUE_PUSH(manager->inactive, client,
 					       ilink);
 			}
@@ -3861,7 +3886,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
  * the taillock every time ISC_QUEUE_POP is called.
  * Isolate ISC_QUEUE_POP from tsan analysis.
  */
-ISC_NO_SANITIZE_THREAD static ns_client_t *
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE ns_client_t *
 queue_pop(ns_clientmgr_t *manager)
 {
 	ns_client_t *client = NULL;

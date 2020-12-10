@@ -75,7 +75,7 @@
 #define last_cmpxchg(x, e, r) isc_atomic_cmpxchg((int32_t*)x, (*(int32_t*)(e)), (int32_t)(r))
 #else
 #define last_load(x) (*(x))
-static inline bool
+ISC_NO_SANITIZE_THREAD static ISC_NO_SANITIZE_INLINE bool
 last_cmpxchg(isc_stdtime_t *x, isc_stdtime_t *e, isc_stdtime_t r) {
 	if (*x == *e) {
 		*x = r;
