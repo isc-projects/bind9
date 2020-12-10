@@ -1,3 +1,6 @@
+5550.	[func]		Print a warning when falling back to the "increment" SOA
+			serial method. [GL #2058]
+
 5545.	[func]		OS support for load-balanced sockets is no longer
 			required to receive incoming queries in multiple netmgr
 			threads. [GL #2137]
