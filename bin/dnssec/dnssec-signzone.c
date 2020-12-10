@@ -1352,7 +1352,8 @@ setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	uint32_t old_serial, new_serial;
+	uint32_t old_serial, new_serial = 0;
+	dns_updatemethod_t used = dns_updatemethod_none;
 
 	result = dns_db_getoriginnode(gdb, &node);
 	if (result != ISC_R_SUCCESS) {
@@ -1376,16 +1377,20 @@ setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 
 	if (method == dns_updatemethod_date ||
 	    method == dns_updatemethod_unixtime) {
-		new_serial = dns_update_soaserial(old_serial, method);
+		new_serial = dns_update_soaserial(old_serial, method, &used);
 	} else if (serial != 0 || method == dns_updatemethod_none) {
 		/* Set SOA serial to the value provided. */
 		new_serial = serial;
+		used = method;
 	} else {
-		/* Increment SOA serial using RFC 1982 arithmetic */
-		new_serial = (old_serial + 1) & 0xFFFFFFFF;
-		if (new_serial == 0) {
-			new_serial = 1;
-		}
+		new_serial = dns_update_soaserial(old_serial, method, &used);
+	}
+
+	if (method != used) {
+		fprintf(stderr,
+			"%s: warning: Serial number would not advance, "
+			"using increment method instead\n",
+			program);
 	}
 
 	/* If the new serial is not likely to cause a zone transfer

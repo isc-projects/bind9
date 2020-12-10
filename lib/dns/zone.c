@@ -4346,12 +4346,14 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 }
 
 static isc_result_t
-update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
-		  isc_mem_t *mctx, dns_updatemethod_t method) {
+update_soa_serial(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		  dns_diff_t *diff, isc_mem_t *mctx,
+		  dns_updatemethod_t method) {
 	dns_difftuple_t *deltuple = NULL;
 	dns_difftuple_t *addtuple = NULL;
 	uint32_t serial;
 	isc_result_t result;
+	dns_updatemethod_t used = dns_updatemethod_none;
 
 	INSIST(method != dns_updatemethod_none);
 
@@ -4360,7 +4362,12 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
-	serial = dns_update_soaserial(serial, method);
+	serial = dns_update_soaserial(serial, method, &used);
+	if (method != used) {
+		dns_zone_log(zone, ISC_LOG_WARNING,
+			     "update_soa_serial:new serial would be lower than "
+			     "old serial, using increment method instead");
+	}
 	dns_soa_setserial(serial, &addtuple->rdata);
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
 	CHECK(do_one_tuple(&addtuple, db, ver, diff));
@@ -4617,7 +4624,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	result = arg.result;
 	if (changed) {
 		/* Write changes to journal file. */
-		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
+		CHECK(update_soa_serial(zone, db, ver, &diff, zone->mctx,
 					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, NULL, "sync_keyzone"));
 
@@ -7164,7 +7171,7 @@ zone_resigninc(dns_zone_t *zone) {
 	}
 
 	/* Increment SOA serial if we have made changes */
-	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
+	result = update_soa_serial(zone, db, version, zonediff.diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -8872,7 +8879,7 @@ skip_removals:
 		goto failure;
 	}
 
-	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
+	result = update_soa_serial(zone, db, version, zonediff.diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
@@ -9615,7 +9622,7 @@ zone_sign(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
+	result = update_soa_serial(zone, db, version, zonediff.diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
@@ -10624,7 +10631,7 @@ anchors_done:
 done:
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		/* Write changes to journal file. */
-		CHECK(update_soa_serial(kfetch->db, ver, &diff, mctx,
+		CHECK(update_soa_serial(zone, kfetch->db, ver, &diff, mctx,
 					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, NULL, "keyfetch_done"));
 		commit = true;
@@ -10855,7 +10862,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 		}
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
-		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
+		CHECK(update_soa_serial(zone, db, ver, &diff, zone->mctx,
 					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, NULL, "zone_refreshkeys"));
 		commit = true;
@@ -16013,7 +16020,8 @@ nextevent:
 			CHECK(do_one_tuple(&soatuple, zone->rss_db,
 					   zone->rss_newver, &zone->rss_diff));
 		} else {
-			CHECK(update_soa_serial(zone->rss_db, zone->rss_newver,
+			CHECK(update_soa_serial(zone, zone->rss_db,
+						zone->rss_newver,
 						&zone->rss_diff, zone->mctx,
 						zone->updatemethod));
 		}
@@ -19910,7 +19918,7 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
 						  &diff, (newalg || fullsign)));
-			CHECK(update_soa_serial(db, ver, &diff, mctx,
+			CHECK(update_soa_serial(zone, db, ver, &diff, mctx,
 						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
 			CHECK(sign_apex(zone, db, ver, now, &diff, &zonediff));
@@ -20719,7 +20727,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		/* Write changes to journal file. */
-		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
+		CHECK(update_soa_serial(zone, db, newver, &diff, zone->mctx,
 					zone->updatemethod));
 
 		result = dns_update_signatures(&log, zone, db, oldver, newver,
@@ -21004,7 +21012,7 @@ rss_post(dns_zone_t *zone, isc_event_t *event) {
 	 * records.
 	 */
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
-		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
+		CHECK(update_soa_serial(zone, db, newver, &diff, zone->mctx,
 					zone->updatemethod));
 		result = dns_update_signatures(&log, zone, db, oldver, newver,
 					       &diff,
