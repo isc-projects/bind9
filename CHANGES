@@ -1,3 +1,10 @@
+5548.	[bug]		When BIND 9 was compiled with --disable-threads and
+			--with-epoll, it was possible to trigger an assertion
+			failure due to a double lock. [GL !4454]
+
+5547.	[bug]		BIND 9 failed to build with --disable-threads and
+			--with-geoip2. [GL #2324]
+
 5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
 			[GL #2250]
 

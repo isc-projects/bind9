@@ -971,13 +971,17 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	event.data.fd = fd;
 
 	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+#ifdef USE_WATCHER_THREAD
 	if (manager->fds[fd] != NULL) {
 		LOCK(&manager->fds[fd]->lock);
 	}
+#endif
 	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+#ifdef USE_WATCHER_THREAD
 	if (manager->fds[fd] != NULL) {
 		UNLOCK(&manager->fds[fd]->lock);
 	}
+#endif
 	UNLOCK(&manager->fdlock[lockid]);
 	if (ret == -1) {
 		if (errno == EEXIST)

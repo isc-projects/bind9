@@ -165,8 +165,10 @@ state_key_init(void) {
 
 	if (state_mctx == NULL) {
 		result = isc_mem_create(0, 0, &state_mctx);
-		isc_mem_setname(state_mctx, "geoip_state", NULL);
-		isc_mem_setdestroycheck(state_mctx, false);
+		if (result == ISC_R_SUCCESS) {
+			isc_mem_setname(state_mctx, "geoip_state", NULL);
+			isc_mem_setdestroycheck(state_mctx, false);
+		}
 	}
 
 	return (result);
@@ -192,10 +194,14 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 	state = saved_state;
 #endif
 	if (state == NULL) {
+#ifdef ISC_PLATFORM_USETHREADS
 		LOCK(&key_mutex);
+#endif
 		state = (geoip_state_t *) isc_mem_get(state_mctx,
 						      sizeof(geoip_state_t));
+#ifdef ISC_PLATFORM_USETHREADS
 		UNLOCK(&key_mutex);
+#endif
 		if (state == NULL) {
 			return (ISC_R_NOMEMORY);
 		}
@@ -213,9 +219,13 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 		saved_state = state;
 #endif
 
+#ifdef ISC_PLATFORM_USETHREADS
 		LOCK(&key_mutex);
+#endif
 		isc_mem_attach(state_mctx, &state->mctx);
+#ifdef ISC_PLATFORM_USETHREADS
 		UNLOCK(&key_mutex);
+#endif
 	}
 
 	state->db = db;
