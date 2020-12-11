@@ -752,7 +752,7 @@ sendquery(struct query *query, isc_task_t *task) {
 
 	options = 0;
 	if (tcp_mode) {
-		options |= DNS_REQUESTOPT_TCP | DNS_REQUESTOPT_SHARE;
+		options |= DNS_REQUESTOPT_TCP;
 	}
 	request = NULL;
 	result = dns_request_createvia(

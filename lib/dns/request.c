@@ -512,7 +512,7 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 }
 
 static isc_result_t
-create_tcp_dispatch(bool newtcp, bool share, dns_requestmgr_t *requestmgr,
+create_tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 		    const isc_sockaddr_t *srcaddr,
 		    const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
 		    bool *connected, dns_dispatch_t **dispatchp) {
@@ -522,7 +522,7 @@ create_tcp_dispatch(bool newtcp, bool share, dns_requestmgr_t *requestmgr,
 	unsigned int attrs;
 	isc_sockaddr_t bind_any;
 
-	if (!newtcp && share) {
+	if (!newtcp) {
 		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
 					     srcaddr, connected, dispatchp);
 		if (result == ISC_R_SUCCESS) {
@@ -533,20 +533,6 @@ create_tcp_dispatch(bool newtcp, bool share, dns_requestmgr_t *requestmgr,
 				"attached to %s TCP "
 				"connection to %s",
 				*connected ? "existing" : "pending", peer);
-			return (result);
-		}
-	} else if (!newtcp) {
-		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
-					     srcaddr, NULL, dispatchp);
-		if (result == ISC_R_SUCCESS) {
-			char peer[ISC_SOCKADDR_FORMATSIZE];
-
-			*connected = true;
-			isc_sockaddr_format(destaddr, peer, sizeof(peer));
-			req_log(ISC_LOG_DEBUG(1),
-				"attached to existing TCP "
-				"connection to %s",
-				peer);
 			return (result);
 		}
 	}
@@ -635,13 +621,13 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 }
 
 static isc_result_t
-get_dispatch(bool tcp, bool newtcp, bool share, dns_requestmgr_t *requestmgr,
+get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
 	     isc_dscp_t dscp, bool *connected, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (tcp) {
-		result = create_tcp_dispatch(newtcp, share, requestmgr, srcaddr,
+		result = create_tcp_dispatch(newtcp, requestmgr, srcaddr,
 					     destaddr, dscp, connected,
 					     dispatchp);
 	} else {
@@ -686,7 +672,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	dns_messageid_t id;
 	bool tcp = false;
 	bool newtcp = false;
-	bool share = false;
 	isc_region_t r;
 	bool connected = false;
 	unsigned int dispopt = 0;
@@ -752,11 +737,10 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	if ((options & DNS_REQUESTOPT_TCP) != 0 || r.length > 512) {
 		tcp = true;
 	}
-	share = (options & DNS_REQUESTOPT_SHARE);
 
 again:
-	result = get_dispatch(tcp, newtcp, share, requestmgr, srcaddr, destaddr,
-			      dscp, &connected, &request->dispatch);
+	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
+			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -876,7 +860,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_mem_t *mctx;
 	dns_messageid_t id;
 	bool tcp;
-	bool share;
 	bool settsigkey = true;
 	bool connected = false;
 
@@ -939,9 +922,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 use_tcp:
 	tcp = ((options & DNS_REQUESTOPT_TCP) != 0);
-	share = ((options & DNS_REQUESTOPT_SHARE) != 0);
-	result = get_dispatch(tcp, false, share, requestmgr, srcaddr, destaddr,
-			      dscp, &connected, &request->dispatch);
+	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr, dscp,
+			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
