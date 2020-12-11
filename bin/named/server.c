@@ -4486,6 +4486,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "stale-answer-client-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->staleanswerclienttimeout = cfg_obj_asuint32(obj);
+
+	obj = NULL;
 	result = named_config_get(maps, "stale-refresh-time", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	stale_refresh_time = cfg_obj_asduration(obj);

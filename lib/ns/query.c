@@ -133,6 +133,12 @@
 
 #define REDIRECT(c) (((c)->query.attributes & NS_QUERYATTR_REDIRECT) != 0)
 
+/*% Was the query already answered due to stale-answer-client-timeout? */
+#define QUERY_ANSWERED(c) (((c)->query.attributes & NS_QUERYATTR_ANSWERED) != 0)
+
+/*% Does the query only wants to check for stale RRset? */
+#define QUERY_STALEONLY(c) (((c)->query.dboptions & DNS_DBFIND_STALEONLY) != 0)
+
 /*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
 #define NOQNAME(r) (((r)->attributes & DNS_RDATASETATTR_NOQNAME) != 0)
 
@@ -557,8 +563,13 @@ query_send(ns_client_t *client) {
 	}
 
 	inc_stats(client, counter);
-	ns_client_send(client);
-	isc_nmhandle_detach(&client->reqhandle);
+	if (!QUERY_ANSWERED(client)) {
+		ns_client_send(client);
+	}
+
+	if (!QUERY_STALEONLY(client)) {
+		isc_nmhandle_detach(&client->reqhandle);
+	}
 }
 
 static void
@@ -585,7 +596,10 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 	log_queryerror(client, result, line, loglevel);
 
 	ns_client_error(client, result);
-	isc_nmhandle_detach(&client->reqhandle);
+
+	if (!QUERY_STALEONLY(client)) {
+		isc_nmhandle_detach(&client->reqhandle);
+	}
 }
 
 static void
@@ -598,7 +612,10 @@ query_next(ns_client_t *client, isc_result_t result) {
 		inc_stats(client, ns_statscounter_failure);
 	}
 	ns_client_drop(client, result);
-	isc_nmhandle_detach(&client->reqhandle);
+
+	if (!QUERY_STALEONLY(client)) {
+		isc_nmhandle_detach(&client->reqhandle);
+	}
 }
 
 static inline void
@@ -5158,7 +5175,7 @@ qctx_freedata(query_ctx_t *qctx) {
 		dns_db_detach(&qctx->zdb);
 	}
 
-	if (qctx->event != NULL) {
+	if (qctx->event != NULL && !QUERY_STALEONLY(qctx->client)) {
 		free_devent(qctx->client, ISC_EVENT_PTR(&qctx->event),
 			    &qctx->event);
 	}
@@ -5583,6 +5600,7 @@ query_lookup(query_ctx_t *qctx) {
 	unsigned int dboptions;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
+	bool stale_ok;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -5681,10 +5699,10 @@ query_lookup(query_ctx_t *qctx) {
 	 * answer, otherwise "fresh" answers are also treated as stale.
 	 */
 	dbfind_stale = ((dboptions & DNS_DBFIND_STALEOK) != 0);
-	if (dbfind_stale != 0 ||
-	    (((dboptions & DNS_DBFIND_STALEENABLED) != 0) &&
-	     STALE(qctx->rdataset)))
-	{
+	stale_ok = ((dboptions &
+		     (DNS_DBFIND_STALEENABLED | DNS_DBFIND_STALEONLY)) != 0);
+
+	if (dbfind_stale != 0 || (stale_ok && STALE(qctx->rdataset))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		bool success;
 
@@ -5709,6 +5727,12 @@ query_lookup(query_ctx_t *qctx) {
 				      "%s resolver failure, stale answer %s",
 				      namebuf,
 				      success ? "used" : "unavailable");
+		} else if ((dboptions & DNS_DBFIND_STALEONLY) != 0) {
+			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s client timeout, stale answer %s",
+				      namebuf,
+				      success ? "used" : "unavailable");
 		} else {
 			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
@@ -5719,21 +5743,75 @@ query_lookup(query_ctx_t *qctx) {
 		}
 
 		if (!success) {
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-			return (ns_query_done(qctx));
+			/*
+			 * If DNS_DBFIND_STALEONLY is set then it means
+			 * stale-answer-client-timeout was triggered, in
+			 * that case we only want to check if a stale RRset is
+			 * available, if that's the case we promptly answer the
+			 * client with the stale data found. If a stale RRset is
+			 * not available then we must wait for the original
+			 * query to be resumed in order to build a proper
+			 * answer.
+			 */
+			if ((dboptions & DNS_DBFIND_STALEONLY) == 0) {
+				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				return (ns_query_done(qctx));
+			}
+
+			return (result);
 		}
 	}
-	return (query_gotanswer(qctx, result));
+
+	/*
+	 * If DNS_DBFIND_STALEONLY is disabled then we proceed as normal,
+	 * otherwise we only proceed with query_gotanswer if we
+	 * successfully found a stale RRset in cache.
+	 */
+	if (((dboptions & DNS_DBFIND_STALEONLY) == 0) ||
+	    result == ISC_R_SUCCESS || result == DNS_R_GLUE ||
+	    result == DNS_R_ZONECUT)
+	{
+		return (query_gotanswer(qctx, result));
+	}
 
 cleanup:
 	return (result);
 }
 
 /*
- * Event handler to resume processing a query after recursion.
- * If the query has timed out or been canceled or the system
- * is shutting down, clean up and exit; otherwise, call
- * query_resume() to continue the ongoing work.
+ * Create a new query context with the sole intent
+ * of looking up for a stale RRset in cache.
+ * If an entry is found, we mark the original query as
+ * answered, in order to avoid answering the query twice,
+ * when the original fetch finishes.
+ */
+static inline void
+query_lookup_staleonly(ns_client_t *client, dns_fetchevent_t *devent) {
+	query_ctx_t qctx;
+	isc_result_t result;
+
+	qctx_init(client, &devent, client->query.qtype, &qctx);
+	dns_db_attach(client->view->cachedb, &qctx.db);
+	client->query.dboptions |= DNS_DBFIND_STALEONLY;
+	result = query_lookup(&qctx);
+	if (result == ISC_R_SUCCESS) {
+		client->query.attributes |= NS_QUERYATTR_ANSWERED;
+	}
+	if (qctx.node != NULL) {
+		dns_db_detachnode(qctx.db, &qctx.node);
+	}
+	qctx_freedata(&qctx);
+	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
+	qctx_destroy(&qctx);
+	isc_event_free(ISC_EVENT_PTR(&qctx.event));
+}
+
+/*
+ * Event handler to resume processing a query after recursion, or when a
+ * client timeout is triggered. If the query has timed out or been cancelled
+ * or the system is shutting down, clean up and exit. If a client timeout is
+ * triggered, see if we can respond with a stale answer from cache. Otherwise,
+ * call query_resume() to continue the ongoing work.
  */
 static void
 fetch_callback(isc_task_t *task, isc_event_t *event) {
@@ -5748,13 +5826,19 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
+	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE ||
+		event->ev_type == DNS_EVENT_TRYSTALE);
 	client = devent->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
+
+	if (event->ev_type == DNS_EVENT_TRYSTALE) {
+		query_lookup_staleonly(client, devent);
+		return;
+	}
 
 	LOCK(&client->query.fetchlock);
 	if (client->query.fetch != NULL) {
@@ -6074,6 +6158,10 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 	if (!TCP(client)) {
 		peeraddr = &client->peeraddr;
+	}
+
+	if (dns_view_staleanswerenabled(client->view)) {
+		client->query.fetchoptions |= DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	}
 
 	isc_nmhandle_attach(client->handle, &client->fetchhandle);
@@ -7678,7 +7766,9 @@ query_addanswer(query_ctx_t *qctx) {
 		query_filter64(qctx);
 		ns_client_putrdataset(qctx->client, &qctx->rdataset);
 	} else {
-		if (!qctx->is_zone && RECURSIONOK(qctx->client)) {
+		if (!qctx->is_zone && RECURSIONOK(qctx->client) &&
+		    !QUERY_STALEONLY(qctx->client))
+		{
 			query_prefetch(qctx->client, qctx->fname,
 				       qctx->rdataset);
 		}
@@ -7786,7 +7876,7 @@ query_respond(query_ctx_t *qctx) {
 	 * We shouldn't ever fail to add 'rdataset'
 	 * because it's already in the answer.
 	 */
-	INSIST(qctx->rdataset == NULL);
+	INSIST(qctx->rdataset == NULL || QUERY_ANSWERED(qctx->client));
 
 	query_addauth(qctx);
 
@@ -11271,7 +11361,7 @@ ns_query_done(query_ctx_t *qctx) {
 	 * If we're recursing then just return; the query will
 	 * resume when recursion ends.
 	 */
-	if (RECURSING(qctx->client)) {
+	if (RECURSING(qctx->client) && !QUERY_STALEONLY(qctx->client)) {
 		return (qctx->result);
 	}
 
@@ -11282,8 +11372,10 @@ ns_query_done(query_ctx_t *qctx) {
 	 * to the AA bit if the auth-nxdomain config option
 	 * says so, then render and send the response.
 	 */
-	query_setup_sortlist(qctx);
-	query_glueanswer(qctx);
+	if (!QUERY_ANSWERED(qctx->client)) {
+		query_setup_sortlist(qctx);
+		query_glueanswer(qctx);
+	}
 
 	if (qctx->client->message->rcode == dns_rcode_nxdomain &&
 	    qctx->view->auth_nxdomain)

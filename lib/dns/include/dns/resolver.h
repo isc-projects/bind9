@@ -129,9 +129,10 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 		    *   if possible. */
 
 /* Reserved in use by adb.c		0x00400000 */
-#define DNS_FETCHOPT_EDNSVERSIONSET   0x00800000
-#define DNS_FETCHOPT_EDNSVERSIONMASK  0xff000000
-#define DNS_FETCHOPT_EDNSVERSIONSHIFT 24
+#define DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
+#define DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
+#define DNS_FETCHOPT_EDNSVERSIONSHIFT	24
+#define DNS_FETCHOPT_TRYSTALE_ONTIMEOUT 0x01000000
 
 /*
  * Upper bounds of class of query RTT (ms).  Corresponds to

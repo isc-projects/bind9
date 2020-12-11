@@ -173,6 +173,7 @@ struct dns_view {
 	dns_stale_answer_t    staleanswersok;	  /* rndc setting */
 	bool		      staleanswersenable; /* named.conf setting
 						   * */
+	uint32_t	  staleanswerclienttimeout;
 	uint16_t	  nocookieudp;
 	uint16_t	  padding;
 	dns_acl_t *	  pad_acl;
