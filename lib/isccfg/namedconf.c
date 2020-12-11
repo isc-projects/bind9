@@ -2076,6 +2076,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "servfail-ttl", &cfg_type_duration, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
+	{ "stale-answer-client-timeout", &cfg_type_uint32, 0 },
 	{ "stale-answer-ttl", &cfg_type_duration, 0 },
 	{ "stale-cache-enable", &cfg_type_boolean, 0 },
 	{ "stale-refresh-time", &cfg_type_duration, 0 },

@@ -195,9 +195,10 @@ options {\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
-	stale-refresh-time 30; /* 30 seconds */\n\
+	stale-answer-client-timeout 1800; /* in milliseconds */\n\
 	stale-answer-ttl 30; /* 30 seconds */\n\
 	stale-cache-enable true;\n\
+	stale-refresh-time 30; /* 30 seconds */\n\
 	synth-from-dnssec no;\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\

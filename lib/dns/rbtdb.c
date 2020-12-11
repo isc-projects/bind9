@@ -4563,6 +4563,13 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 			 */
 			if ((search->options & DNS_DBFIND_STALEOK) != 0) {
 				header->last_refresh_fail_ts = search->now;
+			} else if ((search->options & DNS_DBFIND_STALEONLY) !=
+				   0) {
+				/*
+				 * We want stale RRset only, so we don't skip
+				 * it.
+				 */
+				return (false);
 			} else if ((search->options &
 				    DNS_DBFIND_STALEENABLED) != 0 &&
 				   search->now <

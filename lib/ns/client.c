@@ -878,7 +878,9 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		}
 	}
 
-	ns_client_send(client);
+	if ((client->query.attributes & NS_QUERYATTR_ANSWERED) == 0) {
+		ns_client_send(client);
+	}
 }
 
 isc_result_t
