@@ -202,10 +202,16 @@ Options
       This format increments the SOA serial number using :rfc:`1982` arithmetic.
 
    **unixtime**
-      This format sets the SOA serial number to the number of seconds since the beginning of the Unix epoch.
+      This format sets the SOA serial number to the number of seconds
+      since the beginning of the Unix epoch, unless the serial
+      number is already greater than or equal to that value, in
+      which case it is simply incremented by one.
 
    **date**
-      This format sets the SOA serial number to today's date, in YYYYMMDDNN format.
+      This format sets the SOA serial number to today's date, in
+      YYYYMMDDNN format, unless the serial number is already greater
+      than or equal to that value, in which case it is simply
+      incremented by one.
 
 ``-o origin``
    This option sets the zone origin. If not specified, the name of the zone file is

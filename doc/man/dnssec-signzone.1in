@@ -203,10 +203,16 @@ This format indicates that the SOA serial number should not be modified.
 This format increments the SOA serial number using \fI\%RFC 1982\fP arithmetic.
 .TP
 \fBunixtime\fP
-This format sets the SOA serial number to the number of seconds since the beginning of the Unix epoch.
+This format sets the SOA serial number to the number of seconds
+since the beginning of the Unix epoch, unless the serial
+number is already greater than or equal to that value, in
+which case it is simply incremented by one.
 .TP
 \fBdate\fP
-This format sets the SOA serial number to today\(aqs date, in YYYYMMDDNN format.
+This format sets the SOA serial number to today\(aqs date, in
+YYYYMMDDNN format, unless the serial number is already greater
+than or equal to that value, in which case it is simply
+incremented by one.
 .UNINDENT
 .TP
 .B \fB\-o origin\fP
