@@ -1,3 +1,5 @@
+5549.	[protocol]	Serve ipv4only.arpa when dns64 is configured. [GL #385]
+
 5548.	[placeholder]
 
 5547.	[placeholder]

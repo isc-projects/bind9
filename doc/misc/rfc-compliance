@@ -90,6 +90,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC6891
   RFC6944
   RFC7043
+  RFC7050 [21]
   RFC7314
   RFC7344 [20]
   RFC7477
@@ -98,6 +99,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC7830 [15]
   RFC7929
   RFC8080
+  RFC8880
 
 No longer supported
 
@@ -182,3 +184,5 @@ to the experimental category by RFC3363.
 [19] RSAMD5 support has been removed. See RFC 6944.
 
 [20] Updating of parent zones is not yet implemented.
+
+[21] RFC 7050 is updated by RFC 8880

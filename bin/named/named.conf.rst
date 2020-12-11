@@ -264,6 +264,9 @@ OPTIONS
   	hostname ( quoted_string | none );
   	inline-signing boolean;
   	interface-interval duration;
+  	ipv4only-contact string;
+  	ipv4only-enable boolean;
+  	ipv4only-server string;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    boolean );
   	keep-response-order { address_match_element; ... };
@@ -640,6 +643,9 @@ VIEW
   	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
   	glue-cache boolean;// deprecated
   	inline-signing boolean;
+  	ipv4only-contact string;
+  	ipv4only-enable boolean;
+  	ipv4only-server string;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    boolean );
   	key string {

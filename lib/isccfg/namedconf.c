@@ -2022,6 +2022,9 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "filter-aaaa-on-v4", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "filter-aaaa-on-v6", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "glue-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
+	{ "ipv4only-enable", &cfg_type_boolean, 0 },
+	{ "ipv4only-contact", &cfg_type_astring, 0 },
+	{ "ipv4only-server", &cfg_type_astring, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB
