@@ -2204,35 +2204,55 @@ epoch_to_yyyymmdd(time_t when) {
 		tm->tm_mday);
 }
 
-uint32_t
-dns_update_soaserial(uint32_t serial, dns_updatemethod_t method) {
+static uint32_t
+dns__update_soaserial(uint32_t serial, dns_updatemethod_t method) {
 	isc_stdtime_t now;
-	uint32_t new_serial;
 
 	switch (method) {
 	case dns_updatemethod_none:
 		return (serial);
 	case dns_updatemethod_unixtime:
 		isc_stdtime_get(&now);
-		if (now != 0 && isc_serial_gt(now, serial)) {
-			return (now);
-		}
-		break;
+		return (now);
 	case dns_updatemethod_date:
 		isc_stdtime_get(&now);
-		new_serial = epoch_to_yyyymmdd((time_t)now) * 100;
-		if (new_serial != 0 && isc_serial_gt(new_serial, serial)) {
-			return (new_serial);
+		return (epoch_to_yyyymmdd((time_t)now) * 100);
+	case dns_updatemethod_increment:
+		/* RFC1982 */
+		serial = (serial + 1) & 0xFFFFFFFF;
+		if (serial == 0) {
+			return (1);
 		}
+		return (serial);
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+uint32_t
+dns_update_soaserial(uint32_t serial, dns_updatemethod_t method,
+		     dns_updatemethod_t *used) {
+	uint32_t new_serial = dns__update_soaserial(serial, method);
+	switch (method) {
+	case dns_updatemethod_none:
 	case dns_updatemethod_increment:
 		break;
+	case dns_updatemethod_unixtime:
+	case dns_updatemethod_date:
+		if (!(new_serial != 0 && isc_serial_gt(new_serial, serial))) {
+			method = dns_updatemethod_increment;
+			new_serial = dns__update_soaserial(serial, method);
+		}
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
-	/* RFC1982 */
-	serial = (serial + 1) & 0xFFFFFFFF;
-	if (serial == 0) {
-		serial = 1;
+	if (used != NULL) {
+		*used = method;
 	}
 
-	return (serial);
+	return (new_serial);
 }

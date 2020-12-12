@@ -1,3 +1,6 @@
+5550.	[func]		Print a warning when falling back to the "increment" SOA
+			serial method. [GL #2058]
+
 5549.	[protocol]	Serve ipv4only.arpa when dns64 is configured. [GL #385]
 
 5548.	[placeholder]
