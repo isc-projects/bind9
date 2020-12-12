@@ -717,7 +717,12 @@ hook_recurse_common(void *arg, void *data, isc_result_t *resultp,
 			asdata->async = true;
 		}
 	} else {
-		/* Resume from the completion of recursion */
+		/*
+		 * Resume from the completion of async event.
+		 * fetchhandle should have been detached so that we can start
+		 * another async event or DNS recursive resolution.
+		 */
+		INSIST(qctx->client->fetchhandle == NULL);
 		asdata->async = false;
 		switch (hookpoint) {
 		case NS_QUERY_GOT_ANSWER_BEGIN:
