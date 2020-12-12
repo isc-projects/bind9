@@ -48,6 +48,13 @@ Feature Changes
   to distribute incoming queries among multiple threads on systems which
   lack support for load-balanced sockets (except Windows). [GL #2137]
 
+- When using the ``unixtime`` or ``date`` method to update the SOA
+  serial number, ``named`` and ``dnssec-signzone`` silently fell back to
+  the ``increment`` method to prevent the new serial number from being
+  smaller than the old serial number (using serial number arithmetics).
+  ``dnsssec-signzone`` now prints a warning message, and ``named`` logs
+  a warning, when such a fallback happens. [GL #2058]
+
 Bug Fixes
 ~~~~~~~~~
 
