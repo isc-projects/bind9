@@ -18,9 +18,7 @@ dnssec-keymgr - Ensures correct DNSKEY coverage based on a defined policy
 Synopsis
 ~~~~~~~~
 
-:program:``dnssec-keymgr`` [**-K**\ *directory*] [**-c**\ *file*] [**-f**]
-[**-k**] [**-q**] [**-v**] [**-z**] [**-g**\ *path*] [**-s**\ *path*]
-[zone...]
+:program:`dnssec-keymgr` [**-K**\ *directory*] [**-c**\ *file*] [**-f**] [**-k**] [**-q**] [**-v**] [**-z**] [**-g**\ *path*] [**-s**\ *path*] [zone...]
 
 Description
 ~~~~~~~~~~~
