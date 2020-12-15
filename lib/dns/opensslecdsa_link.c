@@ -563,17 +563,21 @@ static isc_result_t
 ecdsa_check(EC_KEY *eckey, EC_KEY *pubeckey) {
 	const EC_POINT *pubkey;
 
-	pubkey = EC_KEY_get0_public_key(pubeckey);
-	if (pubkey == NULL) {
+	pubkey = EC_KEY_get0_public_key(eckey);
+	if (pubkey != NULL) {
 		return (ISC_R_SUCCESS);
-	}
-	if (EC_KEY_set_public_key(eckey, pubkey) != 1) {
-		return (ISC_R_SUCCESS);
+	} else if (pubeckey != NULL) {
+		pubkey = EC_KEY_get0_public_key(pubeckey);
+		if (pubkey == NULL) {
+			return (ISC_R_SUCCESS);
+		}
+		if (EC_KEY_set_public_key(eckey, pubkey) != 1) {
+			return (ISC_R_SUCCESS);
+		}
 	}
 	if (EC_KEY_check_key(eckey) == 1) {
 		return (ISC_R_SUCCESS);
 	}
-
 	return (ISC_R_FAILURE);
 }
 
