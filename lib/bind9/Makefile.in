@@ -61,7 +61,7 @@ libbind9.la: ${OBJS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libbind9.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ \
+		${OBJS} ${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ \
 		${LIBS}
 
 timestamp: libbind9.@A@
