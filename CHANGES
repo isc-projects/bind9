@@ -1,3 +1,6 @@
+5568.	[bug]		Fixed a crash in "dnssec-keyfromlabel" when using ECDSA
+			keys. [GL #2178]
+
 5567.	[bug]		Dig now reports unknown dash options while pre-parsing
 			the options.  This prevents '-multi' instead of
 			'+multi' reporting memory usage before ending option
