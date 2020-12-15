@@ -94,9 +94,9 @@ genrandom@EXEEXT@: genrandom.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ genrandom.@O@ @GENRANDOMLIB@ ${LIBS}
 
-mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
+mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCCFGDEPLIBS}
 	export BASEOBJS="mdig.@O@"; \
-	export LIBS0="${DNSLIBS} ${BIND9LIBS}"; \
+	export LIBS0="${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
 dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
