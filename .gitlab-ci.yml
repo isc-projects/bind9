@@ -1520,7 +1520,7 @@ abi-check:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
-    BIND_BASELINE_VERSION: v9_17_7
+    BIND_BASELINE_VERSION: v9_17_8
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
