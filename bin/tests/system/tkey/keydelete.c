@@ -186,9 +186,9 @@ main(int argc, char **argv) {
 	isc_sockaddr_any(&bind_any);
 	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
 		DNS_DISPATCHATTR_IPV4;
-	dispatchv4 = NULL;
-	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &bind_any,
-				     4, 2, 3, 5, attrs, &dispatchv4));
+	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
+					&bind_any, 4, 2, 3, 5, attrs,
+					&dispatchv4));
 	requestmgr = NULL;
 	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 				       dispatchmgr, dispatchv4, NULL,

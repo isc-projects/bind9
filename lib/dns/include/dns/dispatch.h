@@ -118,9 +118,6 @@ struct dns_dispatchset {
  * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
- *
- * _EXCLUSIVE
- *	A separate socket will be used on-demand for each transaction.
  */
 #define DNS_DISPATCHATTR_PRIVATE   0x00000001U
 #define DNS_DISPATCHATTR_TCP	   0x00000002U
@@ -129,7 +126,6 @@ struct dns_dispatchset {
 #define DNS_DISPATCHATTR_IPV6	   0x00000010U
 #define DNS_DISPATCHATTR_MAKEQUERY 0x00000040U
 #define DNS_DISPATCHATTR_CONNECTED 0x00000080U
-#define DNS_DISPATCHATTR_EXCLUSIVE 0x00000200U
 /*@}*/
 
 /*
@@ -214,14 +210,13 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
  */
 
 isc_result_t
-dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-		    isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		    unsigned int maxbuffers, unsigned int maxrequests,
-		    unsigned int buckets, unsigned int increment,
-		    unsigned int attributes, dns_dispatch_t **dispp);
+dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
+		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
+		       unsigned int maxbuffers, unsigned int maxrequests,
+		       unsigned int buckets, unsigned int increment,
+		       unsigned int attributes, dns_dispatch_t **dispp);
 /*%<
- * Attach to existing dns_dispatch_t if one is found with dns_dispatchmgr_find,
- * otherwise create a new UDP dispatch.
+ * Create a new UDP dispatch.
  *
  * Requires:
  *\li	All pointer parameters be valid for their respective types.
@@ -394,7 +389,7 @@ dns_dispatch_getentrysocket(dns_dispentry_t *resp);
 isc_socket_t *
 dns_dispatch_getsocket(dns_dispatch_t *disp);
 /*%<
- * Return the socket associated with this dispatcher.
+ * Return the socket associated with dispatcher or dispatch entry.
  *
  * Requires:
  *\li	disp is valid.
@@ -475,12 +470,6 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
  * Requires:
  *\li 	source is a valid UDP dispatcher
  *\li 	dsetp != NULL, *dsetp == NULL
- */
-
-void
-dns_dispatchset_cancelall(dns_dispatchset_t *dset, isc_task_t *task);
-/*%<
- * Cancel socket operations for the dispatches in 'dset'.
  */
 
 void

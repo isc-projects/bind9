@@ -206,13 +206,12 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 	       bool is_shared, dns_dispatch_t **dispp,
 	       const isc_sockaddr_t *localaddr) {
 	unsigned int attrs;
-	dns_dispatch_t *disp;
+	dns_dispatch_t *disp = NULL;
 	unsigned maxbuffers, maxrequests, buckets, increment;
 	isc_result_t result;
 	isc_sockaddr_t anyaddr;
 
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
+	attrs = DNS_DISPATCHATTR_UDP;
 	switch (family) {
 	case AF_INET:
 		attrs |= DNS_DISPATCHATTR_IPV4;
@@ -235,10 +234,9 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 	buckets = is_shared ? 16411 : 3;
 	increment = is_shared ? 16433 : 5;
 
-	disp = NULL;
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, localaddr,
-				     maxbuffers, maxrequests, buckets,
-				     increment, attrs, &disp);
+	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
+					localaddr, maxbuffers, maxrequests,
+					buckets, increment, attrs, &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}

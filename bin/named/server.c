@@ -161,11 +161,9 @@
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS_PERCPU 32
 #define UDPBUFFERS	       32768
-#define EXCLBUFFERS	       32768
 #else
 #define RESOLVER_NTASKS_PERCPU 8
-#define UDPBUFFERS	       1000
-#define EXCLBUFFERS	       4096
+#define UDPBUFFERS	       4096
 #endif /* TUNE_LARGE */
 
 /* RFC7828 defines timeout as 16-bit value specified in units of 100
@@ -1260,7 +1258,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 			      dns_dispatch_t **dispatchp, isc_dscp_t *dscpp,
 			      bool is_firstview) {
 	isc_result_t result = ISC_R_FAILURE;
-	dns_dispatch_t *disp;
+	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa;
 	unsigned int attrs;
 	const cfg_obj_t *obj = NULL;
@@ -1310,8 +1308,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 	/*
 	 * Try to find a dispatcher that we can share.
 	 */
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
+	attrs = DNS_DISPATCHATTR_UDP;
 	switch (af) {
 	case AF_INET:
 		attrs |= DNS_DISPATCHATTR_IPV4;
@@ -1320,10 +1317,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		attrs |= DNS_DISPATCHATTR_IPV6;
 		break;
 	}
-	if (isc_sockaddr_getport(&sa) == 0) {
-		attrs |= DNS_DISPATCHATTR_EXCLUSIVE;
-		maxdispatchbuffers = EXCLBUFFERS;
-	} else {
+	if (isc_sockaddr_getport(&sa) != 0) {
 		INSIST(obj != NULL);
 		if (is_firstview) {
 			cfg_obj_log(obj, named_g_lctx, ISC_LOG_INFO,
@@ -1333,10 +1327,9 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		}
 	}
 
-	disp = NULL;
-	result = dns_dispatch_getudp(named_g_dispatchmgr, named_g_socketmgr,
-				     named_g_taskmgr, &sa, maxdispatchbuffers,
-				     32768, 16411, 16433, attrs, &disp);
+	result = dns_dispatch_createudp(
+		named_g_dispatchmgr, named_g_socketmgr, named_g_taskmgr, &sa,
+		maxdispatchbuffers, 32768, 16411, 16433, attrs, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_sockaddr_t any;
 		char buf[ISC_SOCKADDR_FORMATSIZE];
@@ -10377,8 +10370,7 @@ named_add_reserved_dispatch(named_server_t *server,
 	dispatch->dispatchgen = server->dispatchgen;
 	dispatch->dispatch = NULL;
 
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
+	attrs = DNS_DISPATCHATTR_UDP;
 	switch (isc_sockaddr_pf(addr)) {
 	case AF_INET:
 		attrs |= DNS_DISPATCHATTR_IPV4;
@@ -10391,10 +10383,10 @@ named_add_reserved_dispatch(named_server_t *server,
 		goto cleanup;
 	}
 
-	result = dns_dispatch_getudp(named_g_dispatchmgr, named_g_socketmgr,
-				     named_g_taskmgr, &dispatch->addr,
-				     UDPBUFFERS, 32768, 16411, 16433, attrs,
-				     &dispatch->dispatch);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_socketmgr,
+					named_g_taskmgr, &dispatch->addr,
+					UDPBUFFERS, 32768, 16411, 16433, attrs,
+					&dispatch->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

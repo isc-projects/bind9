@@ -76,8 +76,8 @@ make_dispatchset(unsigned int ndisps) {
 
 	isc_sockaddr_any(&any);
 	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &any, 6,
-				     1024, 17, 19, attrs, &disp);
+	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr, &any,
+					6, 1024, 17, 19, attrs, &disp);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -241,7 +241,7 @@ startit(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_socket_t *sock = NULL;
 
-	isc_socket_attach(dns_dispatch_getsocket(dispatch), &sock);
+	isc_socket_attach(dns_dispatch_getentrysocket(dispentry), &sock);
 	result = isc_socket_sendto(sock, event->ev_arg, task, senddone, sock,
 				   &local, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -274,8 +274,8 @@ dispatch_getnext(void **state) {
 	ina.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&local, &ina, 0);
 	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &local, 6,
-				     1024, 17, 19, attrs, &dispatch);
+	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr, &local,
+					6, 1024, 17, 19, attrs, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -299,7 +299,7 @@ dispatch_getnext(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_addresponse(dispatch, 0, &local, task, response,
-					  NULL, &id, &dispentry, NULL);
+					  NULL, &id, &dispentry, socketmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));

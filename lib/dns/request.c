@@ -415,13 +415,14 @@ static inline isc_result_t
 req_send(dns_request_t *request, isc_task_t *task,
 	 const isc_sockaddr_t *address) {
 	isc_region_t r;
-	isc_socket_t *sock;
-	isc_socketevent_t *sendevent;
+	isc_socket_t *sock = NULL;
+	isc_socketevent_t *sendevent = NULL;
 	isc_result_t result;
 
 	req_log(ISC_LOG_DEBUG(3), "req_send: request %p", request);
 
 	REQUIRE(VALID_REQUEST(request));
+
 	sock = req_getsocket(request);
 	isc_buffer_usedregion(request->query, &r);
 	/*
@@ -596,8 +597,7 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 		dns_dispatch_attach(disp, dispatchp);
 		return (ISC_R_SUCCESS);
 	}
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
+	attrs = DNS_DISPATCHATTR_UDP;
 	switch (isc_sockaddr_pf(srcaddr)) {
 	case PF_INET:
 		attrs |= DNS_DISPATCHATTR_IPV4;
@@ -610,10 +610,11 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
 	}
-	return (dns_dispatch_getudp(requestmgr->dispatchmgr,
-				    requestmgr->socketmgr, requestmgr->taskmgr,
-				    srcaddr, 32768, 32768, 16411, 16433, attrs,
-				    dispatchp));
+
+	return (dns_dispatch_createudp(requestmgr->dispatchmgr,
+				       requestmgr->socketmgr,
+				       requestmgr->taskmgr, srcaddr, 32768,
+				       32768, 16411, 16433, attrs, dispatchp));
 }
 
 static isc_result_t
@@ -1242,18 +1243,7 @@ dns_request_destroy(dns_request_t **requestp) {
 
 static isc_socket_t *
 req_getsocket(dns_request_t *request) {
-	unsigned int dispattr;
-	isc_socket_t *sock;
-
-	dispattr = dns_dispatch_getattributes(request->dispatch);
-	if ((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
-		INSIST(request->dispentry != NULL);
-		sock = dns_dispatch_getentrysocket(request->dispentry);
-	} else {
-		sock = dns_dispatch_getsocket(request->dispatch);
-	}
-
-	return (sock);
+	return (dns_dispatch_getentrysocket(request->dispentry));
 }
 
 static void
@@ -1460,8 +1450,7 @@ req_destroy(dns_request_t *request) {
  */
 static void
 req_cancel(dns_request_t *request) {
-	isc_socket_t *sock;
-	unsigned int dispattr;
+	isc_socket_t *sock = NULL;
 
 	REQUIRE(VALID_REQUEST(request));
 
@@ -1475,16 +1464,10 @@ req_cancel(dns_request_t *request) {
 	if (request->timer != NULL) {
 		isc_timer_detach(&request->timer);
 	}
-	dispattr = dns_dispatch_getattributes(request->dispatch);
-	sock = NULL;
+
 	if (DNS_REQUEST_CONNECTING(request) || DNS_REQUEST_SENDING(request)) {
-		if ((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
-			if (request->dispentry != NULL) {
-				sock = dns_dispatch_getentrysocket(
-					request->dispentry);
-			}
-		} else {
-			sock = dns_dispatch_getsocket(request->dispatch);
+		if (request->dispentry != NULL) {
+			sock = dns_dispatch_getentrysocket(request->dispentry);
 		}
 		if (DNS_REQUEST_CONNECTING(request) && sock != NULL) {
 			isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_CONNECT);

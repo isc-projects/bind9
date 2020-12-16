@@ -2071,11 +2071,10 @@ main(int argc, char *argv[]) {
 	isc_timermgr_t *timermgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
-	unsigned int attrs;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
+	unsigned int attrs, i;
 	int ns;
-	unsigned int i;
 
 	RUNCHECK(isc_app_start());
 
@@ -2094,7 +2093,6 @@ main(int argc, char *argv[]) {
 	preparse_args(argc, argv);
 
 	isc_mem_create(&mctx);
-
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -2128,7 +2126,6 @@ main(int argc, char *argv[]) {
 			    &socketmgr);
 
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY;
@@ -2139,10 +2136,10 @@ main(int argc, char *argv[]) {
 		isc_sockaddr_any6(&bind_any);
 		attrs |= DNS_DISPATCHATTR_IPV6;
 	}
-	dispatchvx = NULL;
-	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     have_src ? &srcaddr : &bind_any, 100, 100,
-				     17, 19, attrs, &dispatchvx));
+	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
+					have_src ? &srcaddr : &bind_any, 100,
+					100, 17, 19, attrs, &dispatchvx));
+
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
 		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,

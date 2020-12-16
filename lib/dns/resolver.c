@@ -227,7 +227,6 @@ typedef struct query {
 	isc_mem_t *mctx;
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatch;
-	bool exclusivesocket;
 	dns_adbaddrinfo_t *addrinfo;
 	isc_socket_t *tcpsocket;
 	isc_time_t start;
@@ -507,11 +506,9 @@ struct dns_resolver {
 	unsigned int options;
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatchset_t *dispatches4;
-	bool exclusivev4;
 	dns_dispatchset_t *dispatches6;
 	isc_dscp_t querydscp4;
 	isc_dscp_t querydscp6;
-	bool exclusivev6;
 	unsigned int nbuckets;
 	fctxbucket_t *buckets;
 	zonebucket_t *dbuckets;
@@ -1434,7 +1431,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			isc_socket_cancel(query->tcpsocket, NULL,
 					  ISC_SOCKCANCEL_CONNECT);
 		} else if (query->dispentry != NULL) {
-			INSIST(query->exclusivesocket);
 			sock = dns_dispatch_getentrysocket(query->dispentry);
 			if (sock != NULL) {
 				isc_socket_cancel(sock, NULL,
@@ -1446,7 +1442,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		/*
 		 * Cancel the pending send.
 		 */
-		if (query->exclusivesocket && query->dispentry != NULL) {
+		if (query->dispentry != NULL) {
 			sock = dns_dispatch_getentrysocket(query->dispentry);
 		} else {
 			sock = dns_dispatch_getsocket(query->dispatch);
@@ -2074,7 +2070,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * a dispatch for it here.  Otherwise we use the resolver's
 	 * shared dispatch.
 	 */
-	query->dispatchmgr = res->dispatchmgr;
 	if (res->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_netaddr_t dstip;
@@ -2160,7 +2155,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				result = ISC_R_NOTIMPLEMENTED;
 				goto cleanup_query;
 			}
-			result = dns_dispatch_getudp(
+			result = dns_dispatch_createudp(
 				res->dispatchmgr, res->socketmgr, res->taskmgr,
 				&addr, 20000, 32768, 16411, 16433, attrs,
 				&query->dispatch);
@@ -2173,14 +2168,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				dns_dispatch_attach(
 					dns_resolver_dispatchv4(res),
 					&query->dispatch);
-				query->exclusivesocket = res->exclusivev4;
 				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case PF_INET6:
 				dns_dispatch_attach(
 					dns_resolver_dispatchv6(res),
 					&query->dispatch);
-				query->exclusivesocket = res->exclusivev6;
 				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
@@ -2364,11 +2357,7 @@ addr2buf(void *buf, const size_t bufsize, const isc_sockaddr_t *sockaddr) {
 
 static inline isc_socket_t *
 query2sock(const resquery_t *query) {
-	if (query->exclusivesocket) {
-		return (dns_dispatch_getentrysocket(query->dispentry));
-	} else {
-		return (dns_dispatch_getsocket(query->dispatch));
-	}
+	return (dns_dispatch_getentrysocket(query->dispentry));
 }
 
 static inline size_t
@@ -2864,15 +2853,12 @@ resquery_send(resquery_t *query) {
 	 */
 	if (!tcp) {
 		address = &query->addrinfo->sockaddr;
-		if (query->exclusivesocket) {
-			result = isc_socket_connect(sock, address, task,
-						    resquery_udpconnected,
-						    query);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup_message;
-			}
-			query->connects++;
+		result = isc_socket_connect(sock, address, task,
+					    resquery_udpconnected, query);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_message;
 		}
+		query->connects++;
 	}
 	isc_buffer_usedregion(buffer, &r);
 
@@ -3011,17 +2997,16 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 * We are connected.  Create a dispatcher and
 			 * send the query.
 			 */
-			attrs = 0;
-			attrs |= DNS_DISPATCHATTR_TCP;
-			attrs |= DNS_DISPATCHATTR_PRIVATE;
-			attrs |= DNS_DISPATCHATTR_CONNECTED;
+			attrs = DNS_DISPATCHATTR_TCP |
+				DNS_DISPATCHATTR_PRIVATE |
+				DNS_DISPATCHATTR_CONNECTED |
+				DNS_DISPATCHATTR_MAKEQUERY;
 			if (isc_sockaddr_pf(&query->addrinfo->sockaddr) ==
 			    AF_INET) {
 				attrs |= DNS_DISPATCHATTR_IPV4;
 			} else {
 				attrs |= DNS_DISPATCHATTR_IPV6;
 			}
-			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 			result = dns_dispatch_createtcp(
 				query->dispatchmgr, query->tcpsocket,
@@ -8129,17 +8114,15 @@ rctx_dispfail(respctx_t *rctx) {
 		rctx->next_server = true;
 
 		/*
-		 * If this is a network error on an exclusive query
-		 * socket, mark the server as bad so that we won't try
-		 * it for this fetch again.  Also adjust finish and
-		 * no_response so that we penalize this address in SRTT
-		 * adjustment later.
+		 * If this is a network error, mark the server as bad so
+		 * that we won't try it for this fetch again.  Also adjust
+		 * finish and no_response so that we penalize this address
+		 * in SRTT adjustment later.
 		 */
-		if (query->exclusivesocket &&
-		    (devent->result == ISC_R_HOSTUNREACH ||
-		     devent->result == ISC_R_NETUNREACH ||
-		     devent->result == ISC_R_CONNREFUSED ||
-		     devent->result == ISC_R_CANCELED))
+		if (devent->result == ISC_R_HOSTUNREACH ||
+		    devent->result == ISC_R_NETUNREACH ||
+		    devent->result == ISC_R_CONNREFUSED ||
+		    devent->result == ISC_R_CANCELED)
 		{
 			rctx->broken_server = devent->result;
 			rctx->broken_type = badns_unreachable;
@@ -10275,7 +10258,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	unsigned int i, buckets_created = 0, dbuckets_created = 0;
 	isc_task_t *task = NULL;
 	char name[16];
-	unsigned dispattr;
 
 	/*
 	 * Create a resolver.
@@ -10370,15 +10352,11 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	if (dispatchv4 != NULL) {
 		dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
 				       dispatchv4, &res->dispatches4, ndisp);
-		dispattr = dns_dispatch_getattributes(dispatchv4);
-		res->exclusivev4 = (dispattr & DNS_DISPATCHATTR_EXCLUSIVE);
 	}
 
 	if (dispatchv6 != NULL) {
 		dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
 				       dispatchv6, &res->dispatches6, ndisp);
-		dispattr = dns_dispatch_getattributes(dispatchv6);
-		res->exclusivev6 = (dispattr & DNS_DISPATCHATTR_EXCLUSIVE);
 	}
 
 	isc_mutex_init(&res->lock);
@@ -10616,14 +10594,6 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			     fctx != NULL; fctx = ISC_LIST_NEXT(fctx, link))
 			{
 				fctx_shutdown(fctx);
-			}
-			if (res->dispatches4 != NULL && !res->exclusivev4) {
-				dns_dispatchset_cancelall(res->dispatches4,
-							  res->buckets[i].task);
-			}
-			if (res->dispatches6 != NULL && !res->exclusivev6) {
-				dns_dispatchset_cancelall(res->dispatches6,
-							  res->buckets[i].task);
 			}
 			atomic_store(&res->buckets[i].exiting, true);
 			if (ISC_LIST_EMPTY(res->buckets[i].fctxs)) {
