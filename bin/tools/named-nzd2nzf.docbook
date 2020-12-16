@@ -12,7 +12,7 @@
  - information regarding copyright ownership.
 -->
 
-<refentry id="man.named-nzd2nzf">
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" id="man.named-nzd2nzf">
   <refentryinfo>
     <date>May 5, 2016</date>
   </refentryinfo>

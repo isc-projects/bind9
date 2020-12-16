@@ -1,0 +1,74 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.27"><info><title>Notes for BIND 9.11.27</title></info>
+
+  <section xml:id="relnotes-9.11.27-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.27-known"><info><title>Known Issues</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.27-new"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.27-removed"><info><title>Removed Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.27-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.27-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          None.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

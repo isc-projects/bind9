@@ -35,32 +35,31 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 named-nzd2nzf \- Convert an NZD database to NZF text format
-  .SH "SYNOPSIS"
-    .HP \w'\fBnamed\-nzd2nzf\fR\ 'u
-      \fBnamed\-nzd2nzf\fR
-       {filename}
-  .SH "DESCRIPTION"
-    .PP
+.SH "SYNOPSIS"
+.HP \w'\fBnamed\-nzd2nzf\fR\ 'u
+\fBnamed\-nzd2nzf\fR {filename}
+.SH "DESCRIPTION"
+.PP
 \fBnamed\-nzd2nzf\fR
 converts an NZD database to NZF format and prints it to standard output\&. This can be used to review the configuration of zones that were added to
 \fBnamed\fR
 via
 \fBrndc addzone\fR\&. It can also be used to restore the old file format when rolling back from a newer version of BIND to an older version\&.
-  .SH "ARGUMENTS"
-      .PP
+.SH "ARGUMENTS"
+.PP
 filename
 .RS 4
-          The name of the
+The name of the
 \&.nzd
 file whose contents should be printed\&.
-      .RE
-  .SH "SEE ALSO"
-    .PP
+.RE
+.SH "SEE ALSO"
+.PP
 BIND 9 Administrator Reference Manual
-  .SH "AUTHOR"
-    .PP
+.SH "AUTHOR"
+.PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
 .br

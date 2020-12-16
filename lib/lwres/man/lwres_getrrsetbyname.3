@@ -35,31 +35,29 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_getrrsetbyname, lwres_freerrset \- retrieve DNS records
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
-.sp
 .HP \w'int\ lwres_getrrsetbyname('u
 .BI "int lwres_getrrsetbyname(const\ char\ *" "hostname" ", unsigned\ int\ " "rdclass" ", unsigned\ int\ " "rdtype" ", unsigned\ int\ " "flags" ", struct\ rrsetinfo\ **" "res" ");"
 .HP \w'void\ lwres_freerrset('u
 .BI "void lwres_freerrset(struct\ rrsetinfo\ *" "rrset" ");"
-    .PP
+.PP
 The following structures are used:
-    .PP
+.PP
 .nf
 struct  rdatainfo {
         unsigned int            rdi_length;     /* length of data */
         unsigned char           *rdi_data;      /* record data */
 };
 .fi
-.sp
-    .PP
+.PP
 .nf
 struct  rrsetinfo {
         unsigned int            rri_flags;      /* RRSET_VALIDATED\&.\&.\&. */
@@ -74,8 +72,8 @@ struct  rrsetinfo {
 };
 .fi
 .sp
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 \fBlwres_getrrsetbyname()\fR
 gets a set of resource records associated with a
 \fIhostname\fR,
@@ -85,7 +83,7 @@ gets a set of resource records associated with a
 is a pointer a to null\-terminated string\&. The
 \fIflags\fR
 field is currently unused and must be zero\&.
-    .PP
+.PP
 After a successful call to
 \fBlwres_getrrsetbyname()\fR,
 \fI*res\fR
@@ -110,7 +108,7 @@ and
 are in uncompressed DNS wire format\&. Properties of the rdataset are represented in the
 \fBrri_flags\fR
 bitfield\&. If the RRSET_VALIDATED bit is set, the data has been DNSSEC validated and the signatures verified\&.
-    .PP
+.PP
 All of the information returned by
 \fBlwres_getrrsetbyname()\fR
 is dynamically allocated: the
@@ -127,41 +125,41 @@ is a pointer to a
 \fBstruct rrset\fR
 created by a call to
 \fBlwres_getrrsetbyname()\fR\&.
-    .PP
-  .SH "RETURN VALUES"
-    .PP
+.PP
+.SH "RETURN VALUES"
+.PP
 \fBlwres_getrrsetbyname()\fR
 returns zero on success, and one of the following error codes if an error occurred:
-        .PP
+.PP
 \fBERRSET_NONAME\fR
 .RS 4
-            the name does not exist
-        .RE
-        .PP
+the name does not exist
+.RE
+.PP
 \fBERRSET_NODATA\fR
 .RS 4
-            the name exists, but does not have data of the desired type
-        .RE
-        .PP
+the name exists, but does not have data of the desired type
+.RE
+.PP
 \fBERRSET_NOMEMORY\fR
 .RS 4
-            memory could not be allocated
-        .RE
-        .PP
+memory could not be allocated
+.RE
+.PP
 \fBERRSET_INVAL\fR
 .RS 4
-            a parameter is invalid
-        .RE
-        .PP
+a parameter is invalid
+.RE
+.PP
 \fBERRSET_FAIL\fR
 .RS 4
-            other failure
-        .RE
-        .PP
+other failure
+.RE
+.PP
 .RS 4
-        .RE
-  .SH "SEE ALSO"
-    .PP
+.RE
+.SH "SEE ALSO"
+.PP
 \fBlwres\fR(3)\&.
 .SH "AUTHOR"
 .PP

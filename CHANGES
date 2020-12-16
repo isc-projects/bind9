@@ -5,8 +5,10 @@
 5547.	[bug]		BIND 9 failed to build with --disable-threads and
 			--with-geoip2. [GL #2324]
 
-5544.	[func]		Restore the default value of nocookie-udp-size to 4096.
-			[GL #2250]
+	--- 9.11.26 released ---
+
+5544.	[func]		Restore the default value of "nocookie-udp-size" to 4096
+			bytes. [GL #2250]
 
 5541.	[func]		Adjust the "max-recursion-queries" default from 75 to
 			100. [GL #2305]
@@ -17,7 +19,7 @@
 5539.	[bug]		Tighten handling of missing DNS COOKIE responses over
 			UDP by falling back to TCP. [GL #2275]
 
-5534.	[bug]		The synthesised CNAME from a DNAME was incorrectly
+5534.	[bug]		The CNAME synthesized from a DNAME was incorrectly
 			followed when the QTYPE was CNAME or ANY. [GL #2280]
 
 	--- 9.11.25 released ---

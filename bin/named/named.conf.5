@@ -35,23 +35,23 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 named.conf \- configuration file for \fBnamed\fR
-  .SH "SYNOPSIS"
-    .HP \w'\fBnamed\&.conf\fR\ 'u
-      \fBnamed\&.conf\fR
-  .SH "DESCRIPTION"
-    .PP
+.SH "SYNOPSIS"
+.HP \w'\fBnamed\&.conf\fR\ 'u
+\fBnamed\&.conf\fR
+.SH "DESCRIPTION"
+.PP
 named\&.conf
 is the configuration file for
 \fBnamed\fR\&. Statements are enclosed in braces and terminated with a semi\-colon\&. Clauses in the statements are also semi\-colon terminated\&. The usual comment styles are supported:
-    .PP
+.PP
 C style: /* */
-    .PP
+.PP
 C++ style: // to end of line
-    .PP
+.PP
 Unix style: # to end of line
-  .SH "ACL"
+.SH "ACL"
 .sp
 .if n \{\
 .RS 4
@@ -62,8 +62,7 @@ acl \fIstring\fR { \fIaddress_match_element\fR; \&.\&.\&. };
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "CONTROLS"
+.SH "CONTROLS"
 .sp
 .if n \{\
 .RS 4
@@ -84,8 +83,7 @@ controls {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "DLZ"
+.SH "DLZ"
 .sp
 .if n \{\
 .RS 4
@@ -99,8 +97,7 @@ dlz \fIstring\fR {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "DYNDB"
+.SH "DYNDB"
 .sp
 .if n \{\
 .RS 4
@@ -112,8 +109,7 @@ dyndb \fIstring\fR \fIquoted_string\fR {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "KEY"
+.SH "KEY"
 .sp
 .if n \{\
 .RS 4
@@ -127,8 +123,7 @@ key \fIstring\fR {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "LOGGING"
+.SH "LOGGING"
 .sp
 .if n \{\
 .RS 4
@@ -153,8 +148,7 @@ logging {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "LWRES"
+.SH "LWRES"
 .sp
 .if n \{\
 .RS 4
@@ -173,8 +167,7 @@ lwres {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "MANAGED\-KEYS"
+.SH "MANAGED\-KEYS"
 .sp
 .if n \{\
 .RS 4
@@ -186,8 +179,7 @@ managed\-keys { \fIstring\fR \fIstring\fR \fIinteger\fR
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "MASTERS"
+.SH "MASTERS"
 .sp
 .if n \{\
 .RS 4
@@ -201,8 +193,7 @@ masters \fIstring\fR [ port \fIinteger\fR ] [ dscp
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "OPTIONS"
+.SH "OPTIONS"
 .sp
 .if n \{\
 .RS 4
@@ -486,8 +477,7 @@ options {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "SERVER"
+.SH "SERVER"
 .sp
 .if n \{\
 .RS 4
@@ -527,8 +517,7 @@ server \fInetprefix\fR {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "STATISTICS\-CHANNELS"
+.SH "STATISTICS\-CHANNELS"
 .sp
 .if n \{\
 .RS 4
@@ -544,8 +533,7 @@ statistics\-channels {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "TRUSTED\-KEYS"
+.SH "TRUSTED\-KEYS"
 .sp
 .if n \{\
 .RS 4
@@ -557,8 +545,7 @@ trusted\-keys { \fIstring\fR \fIinteger\fR \fIinteger\fR
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "VIEW"
+.SH "VIEW"
 .sp
 .if n \{\
 .RS 4
@@ -917,8 +904,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "ZONE"
+.SH "ZONE"
 .sp
 .if n \{\
 .RS 4
@@ -1020,12 +1006,11 @@ zone \fIstring\fR [ \fIclass\fR ] {
 .if n \{\
 .RE
 .\}
-.sp
-  .SH "FILES"
-    .PP
+.SH "FILES"
+.PP
 /etc/named\&.conf
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBddns-confgen\fR(8),
 \fBnamed\fR(8),
 \fBnamed-checkconf\fR(8),

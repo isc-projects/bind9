@@ -35,20 +35,19 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-  .SH "NAME"
+.SH "NAME"
 lwres_getnameinfo \- lightweight resolver socket address structure to hostname and service name
-  .SH "SYNOPSIS"
+.SH "SYNOPSIS"
 .sp
 .ft B
 .nf
 #include <lwres/netdb\&.h>
 .fi
 .ft
-.sp
 .HP \w'int\ lwres_getnameinfo('u
 .BI "int lwres_getnameinfo(const\ struct\ sockaddr\ *" "sa" ", size_t\ " "salen" ", char\ *" "host" ", size_t\ " "hostlen" ", char\ *" "serv" ", size_t\ " "servlen" ", int\ " "flags" ");"
-  .SH "DESCRIPTION"
-    .PP
+.SH "DESCRIPTION"
+.PP
 This function is equivalent to the
 \fBgetnameinfo\fR(3)
 function defined in RFC2133\&.
@@ -64,7 +63,7 @@ and is returned via
 \fI*host\&.\fR
 The maximum length of the hostname is 1025 bytes:
 \fBNI_MAXHOST\fR\&.
-    .PP
+.PP
 The name of the service associated with the port number in
 \fIsa\fR
 is returned in
@@ -74,49 +73,49 @@ It is
 bytes long\&. The maximum length of the service name is
 \fBNI_MAXSERV\fR
 \- 32 bytes\&.
-    .PP
+.PP
 The
 \fIflags\fR
 argument sets the following bits:
-        .PP
+.PP
 \fBNI_NOFQDN\fR
 .RS 4
-            A fully qualified domain name is not required for local hosts\&. The local part of the fully qualified domain name is returned instead\&.
-        .RE
-        .PP
+A fully qualified domain name is not required for local hosts\&. The local part of the fully qualified domain name is returned instead\&.
+.RE
+.PP
 \fBNI_NUMERICHOST\fR
 .RS 4
-            Return the address in numeric form, as if calling inet_ntop(), instead of a host name\&.
-        .RE
-        .PP
+Return the address in numeric form, as if calling inet_ntop(), instead of a host name\&.
+.RE
+.PP
 \fBNI_NAMEREQD\fR
 .RS 4
-            A name is required\&. If the hostname cannot be found in the DNS and this flag is set, a non\-zero error code is returned\&. If the hostname is not found and the flag is not set, the address is returned in numeric form\&.
-        .RE
-        .PP
+A name is required\&. If the hostname cannot be found in the DNS and this flag is set, a non\-zero error code is returned\&. If the hostname is not found and the flag is not set, the address is returned in numeric form\&.
+.RE
+.PP
 \fBNI_NUMERICSERV\fR
 .RS 4
-            The service name is returned as a digit string representing the port number\&.
-        .RE
-        .PP
+The service name is returned as a digit string representing the port number\&.
+.RE
+.PP
 \fBNI_DGRAM\fR
 .RS 4
-            Specifies that the service being looked up is a datagram service, and causes getservbyport() to be called with a second argument of "udp" instead of its default of "tcp"\&. This is required for the few ports (512\-514) that have different services for UDP and TCP\&.
-        .RE
-  .SH "RETURN VALUES"
-    .PP
+Specifies that the service being looked up is a datagram service, and causes getservbyport() to be called with a second argument of "udp" instead of its default of "tcp"\&. This is required for the few ports (512\-514) that have different services for UDP and TCP\&.
+.RE
+.SH "RETURN VALUES"
+.PP
 \fBlwres_getnameinfo()\fR
 returns 0 on success or a non\-zero error code if an error occurs\&.
-  .SH "SEE ALSO"
-    .PP
+.SH "SEE ALSO"
+.PP
 \fBRFC2133\fR(),
 \fBgetservbyport\fR(3),
 \fBlwres\fR(3),
 \fBlwres_getnameinfo\fR(3),
 \fBlwres_getnamebyaddr\fR(3)\&.
 \fBlwres_net_ntop\fR(3)\&.
-  .SH "BUGS"
-    .PP
+.SH "BUGS"
+.PP
 RFC2133 fails to define what the nonzero return values of
 \fBgetnameinfo\fR(3)
 are\&.
