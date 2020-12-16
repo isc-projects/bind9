@@ -24,6 +24,7 @@ mdig_CPPFLAGS =			\
 
 mdig_LDADD =			\
 	$(LIBBIND9_LIBS)	\
+	$(LIBISCCFG_LIBS)	\
 	$(LIBDNS_LIBS)		\
 	$(LIBISC_LIBS)
 
