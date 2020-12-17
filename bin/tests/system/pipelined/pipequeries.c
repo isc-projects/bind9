@@ -275,9 +275,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
-		DNS_DISPATCHATTR_IPV4;
-
+	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV4;
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
 					have_src ? &srcaddr : &bind_any, 4, 2,
 					3, 5, attrs, &dispatchv4));

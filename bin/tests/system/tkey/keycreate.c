@@ -241,8 +241,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	isc_sockaddr_any(&bind_any);
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
-		DNS_DISPATCHATTR_IPV4;
+	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV4;
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
 					&bind_any, 4, 2, 3, 5, attrs,
 					&dispatchv4));

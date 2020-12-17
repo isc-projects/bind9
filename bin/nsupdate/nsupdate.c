@@ -937,8 +937,7 @@ setup_system(void) {
 	set_source_ports(dispatchmgr);
 
 	if (have_ipv6) {
-		attrs = (DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
-			 DNS_DISPATCHATTR_IPV6);
+		attrs = (DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV6);
 		isc_sockaddr_any6(&bind_any6);
 		result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
 						&bind_any6, 4, 2, 3, 5, attrs,
@@ -947,8 +946,7 @@ setup_system(void) {
 	}
 
 	if (have_ipv4) {
-		attrs = (DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
-			 DNS_DISPATCHATTR_IPV4);
+		attrs = (DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV4);
 		isc_sockaddr_any(&bind_any);
 		result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
 						&bind_any, 4, 2, 3, 5, attrs,

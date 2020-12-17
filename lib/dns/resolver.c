@@ -2999,8 +2999,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 */
 			attrs = DNS_DISPATCHATTR_TCP |
 				DNS_DISPATCHATTR_PRIVATE |
-				DNS_DISPATCHATTR_CONNECTED |
-				DNS_DISPATCHATTR_MAKEQUERY;
+				DNS_DISPATCHATTR_CONNECTED;
 			if (isc_sockaddr_pf(&query->addrinfo->sockaddr) ==
 			    AF_INET) {
 				attrs |= DNS_DISPATCHATTR_IPV4;

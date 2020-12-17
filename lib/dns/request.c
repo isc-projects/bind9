@@ -556,7 +556,7 @@ create_tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 		goto cleanup;
 	}
 
-	attrs = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_MAKEQUERY;
+	attrs = DNS_DISPATCHATTR_TCP;
 	if (isc_sockaddr_pf(destaddr) == AF_INET) {
 		attrs |= DNS_DISPATCHATTR_IPV4;
 	} else {
