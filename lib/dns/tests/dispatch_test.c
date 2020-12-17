@@ -66,7 +66,6 @@ static isc_result_t
 make_dispatchset(unsigned int ndisps) {
 	isc_result_t result;
 	isc_sockaddr_t any;
-	unsigned int attrs;
 	dns_dispatch_t *disp = NULL;
 
 	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
@@ -75,9 +74,8 @@ make_dispatchset(unsigned int ndisps) {
 	}
 
 	isc_sockaddr_any(&any);
-	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr, &any,
-					6, 1024, 17, 19, attrs, &disp);
+					0, &disp);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -258,7 +256,6 @@ dispatch_getnext(void **state) {
 	uint16_t id;
 	struct in_addr ina;
 	unsigned char message[12];
-	unsigned int attrs;
 	unsigned char rbuf[12];
 
 	UNUSED(state);
@@ -273,9 +270,8 @@ dispatch_getnext(void **state) {
 
 	ina.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&local, &ina, 0);
-	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr, &local,
-					6, 1024, 17, 19, attrs, &dispatch);
+					0, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

@@ -70,7 +70,7 @@ static void
 recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result;
-	dns_message_t *query, *response;
+	dns_message_t *query = NULL, *response = NULL;
 	isc_buffer_t outbuf;
 	char output[1024];
 
@@ -86,7 +86,6 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	query = reqev->ev_arg;
 
-	response = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
@@ -207,7 +206,6 @@ main(int argc, char *argv[]) {
 	isc_timermgr_t *timermgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
-	unsigned int attrs;
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_view_t *view = NULL;
 	uint16_t port = PORT;
@@ -275,10 +273,9 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV4;
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-					have_src ? &srcaddr : &bind_any, 4, 2,
-					3, 5, attrs, &dispatchv4));
+					have_src ? &srcaddr : &bind_any, 0,
+					&dispatchv4));
 	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 				       dispatchmgr, dispatchv4, NULL,
 				       &requestmgr));

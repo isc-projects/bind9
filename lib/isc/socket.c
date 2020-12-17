@@ -350,8 +350,8 @@ struct isc_socket {
 	unsigned int listener : 1,	       /* listener socket */
 		connected : 1, connecting : 1, /* connect pending
 						* */
-		bound  : 1,		       /* bound to local addr */
-		dupped : 1, active : 1,	       /* currently active */
+		bound	: 1,		       /* bound to local addr */
+		active	: 1,		       /* currently active */
 		pktdscp : 1;		       /* per packet dscp */
 
 #ifdef ISC_PLATFORM_RECVOVERFLOW
@@ -434,7 +434,7 @@ struct isc__socketthread {
 
 static isc_result_t
 socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
-	      isc_socket_t **socketp, isc_socket_t *dup_socket);
+	      isc_socket_t **socketp);
 static void
 send_recvdone_event(isc_socket_t *, isc_socketevent_t **);
 static void
@@ -1881,7 +1881,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->fd = -1;
 	sock->threadid = -1;
 	sock->dscp = 0; /* TOS/TCLASS is zero until set. */
-	sock->dupped = 0;
 	sock->statsindex = NULL;
 	sock->active = 0;
 
@@ -2123,8 +2122,7 @@ set_ip_disable_pmtud(isc_socket_t *sock) {
 }
 
 static isc_result_t
-opensocket(isc_socketmgr_t *manager, isc_socket_t *sock,
-	   isc_socket_t *dup_socket) {
+opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
@@ -2138,60 +2136,52 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock,
 #endif
 
 again:
-	if (dup_socket == NULL) {
-		switch (sock->type) {
-		case isc_sockettype_udp:
-			sock->fd = socket(sock->pf, SOCK_DGRAM, IPPROTO_UDP);
-			break;
-		case isc_sockettype_tcp:
-			sock->fd = socket(sock->pf, SOCK_STREAM, IPPROTO_TCP);
-			break;
-		case isc_sockettype_unix:
-			sock->fd = socket(sock->pf, SOCK_STREAM, 0);
-			break;
-		case isc_sockettype_raw:
-			errno = EPFNOSUPPORT;
-			/*
-			 * PF_ROUTE is a alias for PF_NETLINK on linux.
-			 */
+	switch (sock->type) {
+	case isc_sockettype_udp:
+		sock->fd = socket(sock->pf, SOCK_DGRAM, IPPROTO_UDP);
+		break;
+	case isc_sockettype_tcp:
+		sock->fd = socket(sock->pf, SOCK_STREAM, IPPROTO_TCP);
+		break;
+	case isc_sockettype_unix:
+		sock->fd = socket(sock->pf, SOCK_STREAM, 0);
+		break;
+	case isc_sockettype_raw:
+		errno = EPFNOSUPPORT;
+		/*
+		 * PF_ROUTE is a alias for PF_NETLINK on linux.
+		 */
 #if defined(PF_ROUTE)
-			if (sock->fd == -1 && sock->pf == PF_ROUTE) {
+		if (sock->fd == -1 && sock->pf == PF_ROUTE) {
 #ifdef NETLINK_ROUTE
-				sock->fd = socket(sock->pf, SOCK_RAW,
-						  NETLINK_ROUTE);
+			sock->fd = socket(sock->pf, SOCK_RAW, NETLINK_ROUTE);
 #else  /* ifdef NETLINK_ROUTE */
-				sock->fd = socket(sock->pf, SOCK_RAW, 0);
+			sock->fd = socket(sock->pf, SOCK_RAW, 0);
 #endif /* ifdef NETLINK_ROUTE */
-				if (sock->fd != -1) {
+			if (sock->fd != -1) {
 #ifdef NETLINK_ROUTE
-					struct sockaddr_nl sa;
-					int n;
+				struct sockaddr_nl sa;
+				int n;
 
-					/*
-					 * Do an implicit bind.
-					 */
-					memset(&sa, 0, sizeof(sa));
-					sa.nl_family = AF_NETLINK;
-					sa.nl_groups = RTMGRP_IPV4_IFADDR |
-						       RTMGRP_IPV6_IFADDR;
-					n = bind(sock->fd,
-						 (struct sockaddr *)&sa,
-						 sizeof(sa));
-					if (n < 0) {
-						close(sock->fd);
-						sock->fd = -1;
-					}
-#endif /* ifdef NETLINK_ROUTE */
-					sock->bound = 1;
+				/*
+				 * Do an implicit bind.
+				 */
+				memset(&sa, 0, sizeof(sa));
+				sa.nl_family = AF_NETLINK;
+				sa.nl_groups = RTMGRP_IPV4_IFADDR |
+					       RTMGRP_IPV6_IFADDR;
+				n = bind(sock->fd, (struct sockaddr *)&sa,
+					 sizeof(sa));
+				if (n < 0) {
+					close(sock->fd);
+					sock->fd = -1;
 				}
+#endif /* ifdef NETLINK_ROUTE */
+				sock->bound = 1;
 			}
-#endif /* if defined(PF_ROUTE) */
-			break;
 		}
-	} else {
-		sock->fd = dup(dup_socket->fd);
-		sock->dupped = 1;
-		sock->bound = dup_socket->bound;
+#endif /* if defined(PF_ROUTE) */
+		break;
 	}
 	if (sock->fd == -1 && errno == EINTR && tries++ < 42) {
 		goto again;
@@ -2266,10 +2256,6 @@ again:
 				  sock->statsindex[STATID_OPENFAIL]);
 			return (ISC_R_UNEXPECTED);
 		}
-	}
-
-	if (dup_socket != NULL) {
-		goto setup_done;
 	}
 
 	result = make_nonblock(sock->fd);
@@ -2410,7 +2396,6 @@ again:
 
 	set_ip_disable_pmtud(sock);
 
-setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
 	if (sock->active == 0) {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
@@ -2421,14 +2406,13 @@ setup_done:
 }
 
 /*
- * Create a 'type' socket or duplicate an existing socket, managed
- * by 'manager'.  Events will be posted to 'task' and when dispatched
- * 'action' will be called with 'arg' as the arg value.  The new
- * socket is returned in 'socketp'.
+ * Create a 'type' socket, managed by 'manager'.  Events will be posted to
+ * 'task' and when dispatched 'action' will be called with 'arg' as the arg
+ * value.  The new socket is returned in 'socketp'.
  */
 static isc_result_t
 socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
-	      isc_socket_t **socketp, isc_socket_t *dup_socket) {
+	      isc_socket_t **socketp) {
 	isc_socket_t *sock = NULL;
 	isc__socketthread_t *thread;
 	isc_result_t result;
@@ -2466,7 +2450,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	sock->pf = pf;
 
-	result = opensocket(manager, sock, dup_socket);
+	result = opensocket(manager, sock);
 	if (result != ISC_R_SUCCESS) {
 		free_socket(&sock);
 		return (result);
@@ -2507,8 +2491,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif /* ifdef USE_SELECT */
 	UNLOCK(&manager->lock);
 
-	socket_log(sock, NULL, CREATION,
-		   dup_socket != NULL ? "dupped" : "created");
+	socket_log(sock, NULL, CREATION, "created");
 
 	return (ISC_R_SUCCESS);
 }
@@ -2520,22 +2503,9 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
  * in 'socketp'.
  */
 isc_result_t
-isc_socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
+isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		  isc_socket_t **socketp) {
-	return (socket_create(manager0, pf, type, socketp, NULL));
-}
-
-/*%
- * Duplicate an existing socket.  The new socket is returned
- * in 'socketp'.
- */
-isc_result_t
-isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(socketp != NULL && *socketp == NULL);
-
-	return (socket_create(sock->manager, sock->pf, sock->type, socketp,
-			      sock));
+	return (socket_create(manager, pf, type, socketp));
 }
 
 isc_result_t
@@ -2551,7 +2521,7 @@ isc_socket_open(isc_socket_t *sock) {
 	REQUIRE(sock->fd == -1);
 	REQUIRE(sock->threadid == -1);
 
-	result = opensocket(sock->manager, sock, NULL);
+	result = opensocket(sock->manager, sock);
 
 	UNLOCK(&sock->lock);
 
@@ -2642,7 +2612,6 @@ isc_socket_close(isc_socket_t *sock) {
 	sock->fd = -1;
 	sock->threadid = -1;
 
-	sock->dupped = 0;
 	memset(sock->name, 0, sizeof(sock->name));
 	sock->tag = NULL;
 	sock->listener = 0;
@@ -4334,7 +4303,6 @@ isc_socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
 	LOCK(&sock->lock);
 
 	INSIST(!sock->bound);
-	INSIST(!sock->dupped);
 
 	if (sock->pf != sockaddr->type.sa.sa_family) {
 		UNLOCK(&sock->lock);
@@ -5078,7 +5046,6 @@ isc_socket_ipv6only(isc_socket_t *sock, bool yes) {
 #endif /* if defined(IPV6_V6ONLY) */
 
 	REQUIRE(VALID_SOCKET(sock));
-	INSIST(!sock->dupped);
 
 #ifdef IPV6_V6ONLY
 	if (sock->pf == AF_INET6) {
@@ -5151,10 +5118,6 @@ isc_socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
 	}
 #endif /* if !defined(IP_TOS) && !defined(IPV6_TCLASS) */
 
-#ifdef notyet
-	REQUIRE(!sock->dupped);
-#endif /* ifdef notyet */
-
 	setdscp(sock, dscp);
 }
 
@@ -5200,8 +5163,7 @@ static void
 init_hasreuseport(void) {
 /*
  * SO_REUSEPORT works very differently on *BSD and on Linux (because why not).
- * We only want to use it on Linux, if it's available. On BSD we want to dup()
- * sockets instead of re-binding them.
+ * We only want to use it on Linux, if it's available.
  */
 #if (defined(SO_REUSEPORT) && defined(__linux__)) || \
 	(defined(SO_REUSEPORT_LB) && defined(__FreeBSD_kernel__))

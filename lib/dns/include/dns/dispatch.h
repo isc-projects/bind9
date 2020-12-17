@@ -207,8 +207,6 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
 isc_result_t
 dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		       unsigned int maxbuffers, unsigned int maxrequests,
-		       unsigned int buckets, unsigned int increment,
 		       unsigned int attributes, dns_dispatch_t **dispp);
 /*%<
  * Create a new UDP dispatch.
@@ -217,16 +215,6 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
  *\li	All pointer parameters be valid for their respective types.
  *
  *\li	dispp != NULL && *disp == NULL
- *
- *\li	512 <= buffersize <= 64k
- *
- *\li	maxbuffers > 0
- *
- *\li	buckets < 2097169
- *
- *\li	increment > buckets
- *
- *\li	(attributes & DNS_DISPATCHATTR_TCP) == 0
  *
  * Returns:
  *\li	ISC_R_SUCCESS	-- success.
@@ -237,24 +225,10 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr, unsigned int buffersize,
-		       unsigned int maxbuffers, unsigned int maxrequests,
-		       unsigned int buckets, unsigned int increment,
-		       unsigned int attributes, dns_dispatch_t **dispp);
+		       const isc_sockaddr_t *destaddr, unsigned int attributes,
+		       dns_dispatch_t **dispp);
 /*%<
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
- *
- * For all dispatches, "buffersize" is the maximum packet size we will
- * accept.
- *
- * "maxbuffers" and "maxrequests" control the number of buffers in the
- * overall system and the number of buffers which can be allocated to
- * requests.
- *
- * "buckets" is the number of buckets to use, and should be prime.
- *
- * "increment" is used in a collision avoidance function, and needs to be
- * a prime > buckets, and not 2.
  *
  * Requires:
  *
@@ -263,19 +237,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
  *\li	sock is a valid.
  *
  *\li	task is a valid task that can be used internally to this dispatcher.
- *
- * \li	512 <= buffersize <= 64k
- *
- *\li	maxbuffers > 0.
- *
- *\li	maxrequests <= maxbuffers.
- *
- *\li	buckets < 2097169 (the next prime after 65536 * 32)
- *
- *\li	increment > buckets (and prime).
- *
- *\li	attributes includes #DNS_DISPATCHATTR_TCP and does not include
- *	#DNS_DISPATCHATTR_UDP.
  *
  * Returns:
  *\li	ISC_R_SUCCESS	-- success.

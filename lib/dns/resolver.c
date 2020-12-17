@@ -2140,15 +2140,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 */
 	} else {
 		if (have_addr) {
-			unsigned int attrs;
-			attrs = DNS_DISPATCHATTR_UDP;
 			switch (isc_sockaddr_pf(&addr)) {
 			case AF_INET:
-				attrs |= DNS_DISPATCHATTR_IPV4;
 				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case AF_INET6:
-				attrs |= DNS_DISPATCHATTR_IPV6;
 				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
@@ -2157,8 +2153,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			}
 			result = dns_dispatch_createudp(
 				res->dispatchmgr, res->socketmgr, res->taskmgr,
-				&addr, 20000, 32768, 16411, 16433, attrs,
-				&query->dispatch);
+				&addr, 0, &query->dispatch);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_query;
 			}
@@ -2941,7 +2936,6 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	bool retry = false;
 	isc_interval_t interval;
 	isc_result_t result;
-	unsigned int attrs;
 	fetchctx_t *fctx;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
@@ -2970,6 +2964,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		isc_socket_detach(&query->tcpsocket);
 		resquery_destroy(&query);
 	} else {
+		int attrs = 0;
+
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
 
@@ -2997,20 +2993,11 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 * We are connected.  Create a dispatcher and
 			 * send the query.
 			 */
-			attrs = DNS_DISPATCHATTR_TCP |
-				DNS_DISPATCHATTR_PRIVATE |
-				DNS_DISPATCHATTR_CONNECTED;
-			if (isc_sockaddr_pf(&query->addrinfo->sockaddr) ==
-			    AF_INET) {
-				attrs |= DNS_DISPATCHATTR_IPV4;
-			} else {
-				attrs |= DNS_DISPATCHATTR_IPV6;
-			}
-
+			attrs = DNS_DISPATCHATTR_CONNECTED;
 			result = dns_dispatch_createtcp(
 				query->dispatchmgr, query->tcpsocket,
-				query->fctx->res->taskmgr, NULL, NULL, 4096, 2,
-				1, 1, 3, attrs, &query->dispatch);
+				query->fctx->res->taskmgr, NULL, NULL, attrs,
+				&query->dispatch);
 
 			/*
 			 * Regardless of whether dns_dispatch_create()

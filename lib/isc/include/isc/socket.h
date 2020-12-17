@@ -225,12 +225,6 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
  *\li	#ISC_R_UNEXPECTED
  */
 
-isc_result_t
-isc_socket_dup(isc_socket_t *sock0, isc_socket_t **socketp);
-/*%<
- * Duplicate an existing socket, reusing its file descriptor.
- */
-
 void
 isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how);
 /*%<

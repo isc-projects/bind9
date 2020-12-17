@@ -2073,7 +2073,7 @@ main(int argc, char *argv[]) {
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
-	unsigned int attrs, i;
+	unsigned int i;
 	int ns;
 
 	RUNCHECK(isc_app_start());
@@ -2128,17 +2128,14 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
-	attrs = DNS_DISPATCHATTR_UDP;
 	if (have_ipv4) {
 		isc_sockaddr_any(&bind_any);
-		attrs |= DNS_DISPATCHATTR_IPV4;
 	} else {
 		isc_sockaddr_any6(&bind_any);
-		attrs |= DNS_DISPATCHATTR_IPV6;
 	}
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-					have_src ? &srcaddr : &bind_any, 100,
-					100, 17, 19, attrs, &dispatchvx));
+					have_src ? &srcaddr : &bind_any, 0,
+					&dispatchvx));
 
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,

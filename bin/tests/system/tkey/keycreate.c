@@ -56,20 +56,20 @@
 static char *ip_address = NULL;
 static int port = 0;
 
-static dst_key_t *ourkey;
-static isc_mem_t *mctx;
-static dns_tsigkey_t *tsigkey, *initialkey;
-static dns_tsig_keyring_t *ring;
+static dst_key_t *ourkey = NULL;
+static isc_mem_t *mctx = NULL;
+static dns_tsigkey_t *tsigkey = NULL, *initialkey = NULL;
+static dns_tsig_keyring_t *ring = NULL;
 static unsigned char noncedata[16];
 static isc_buffer_t nonce;
-static dns_requestmgr_t *requestmgr;
+static dns_requestmgr_t *requestmgr = NULL;
 static const char *ownername_str = ".";
 
 static void
 recvquery(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result;
-	dns_message_t *query, *response;
+	dns_message_t *query = NULL, *response = NULL;
 	char keyname[256];
 	isc_buffer_t keynamebuf;
 	int type;
@@ -134,8 +134,8 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t ownername;
 	isc_buffer_t namestr, keybuf;
 	unsigned char keydata[9];
-	dns_message_t *query;
-	dns_request_t *request;
+	dns_message_t *query = NULL;
+	dns_request_t *request = NULL;
 	static char keystr[] = "0123456789ab";
 
 	isc_event_free(&event);
@@ -166,14 +166,12 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 
 	isc_buffer_usedregion(&keybuf, &r);
 
-	initialkey = NULL;
 	result = dns_tsigkey_create(
 		dns_fixedname_name(&keyname), DNS_TSIG_HMACMD5_NAME,
 		isc_buffer_base(&keybuf), isc_buffer_usedlength(&keybuf), false,
 		NULL, 0, 0, mctx, ring, &initialkey);
 	CHECK("dns_tsigkey_create", result);
 
-	query = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 
 	result = dns_tkey_builddhquery(query, ourkey,
@@ -181,7 +179,6 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 				       DNS_TSIG_HMACMD5_NAME, &nonce, 3600);
 	CHECK("dns_tkey_builddhquery", result);
 
-	request = NULL;
 	result = dns_request_create(requestmgr, query, &address,
 				    DNS_REQUESTOPT_TCP, initialkey, TIMEOUT,
 				    task, recvquery, query, &request);
@@ -196,7 +193,6 @@ main(int argc, char *argv[]) {
 	isc_timermgr_t *timermgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_socket_t *sock = NULL;
-	unsigned int attrs;
 	isc_sockaddr_t bind_any;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
@@ -224,12 +220,9 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	mctx = NULL;
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	log = NULL;
-	logconfig = NULL;
 	isc_log_create(mctx, &log, &logconfig);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -241,32 +234,24 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	isc_sockaddr_any(&bind_any);
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_IPV4;
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-					&bind_any, 4, 2, 3, 5, attrs,
-					&dispatchv4));
-	requestmgr = NULL;
+					&bind_any, 0, &dispatchv4));
 	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 				       dispatchmgr, dispatchv4, NULL,
 				       &requestmgr));
 
-	ring = NULL;
 	RUNCHECK(dns_tsigkeyring_create(mctx, &ring));
-	tctx = NULL;
 	RUNCHECK(dns_tkeyctx_create(mctx, &tctx));
 
-	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 	dns_view_setkeyring(view, ring);
 	dns_tsigkeyring_detach(&ring);
 
-	sock = NULL;
 	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
 				   &sock));
 
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 
-	ourkey = NULL;
 	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
 	result = dst_key_fromnamedfile(ourkeyname, NULL, type, mctx, &ourkey);
 	CHECK("dst_key_fromnamedfile", result);

@@ -218,89 +218,6 @@ udp_sendto_test(void **state) {
 	assert_string_equal(recvbuf, "Hello");
 }
 
-/* Test UDP sendto/recv with duplicated socket */
-static void
-udp_dup_test(void **state) {
-	isc_result_t result;
-	isc_sockaddr_t addr1, addr2;
-	struct in_addr in;
-	char sendbuf[BUFSIZ], recvbuf[BUFSIZ];
-	completion_t completion;
-	isc_region_t r;
-
-	UNUSED(state);
-
-	in.s_addr = inet_addr("127.0.0.1");
-	isc_sockaddr_fromin(&addr1, &in, 0);
-	isc_sockaddr_fromin(&addr2, &in, 0);
-
-	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s1, &addr1, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_socket_getsockname(s1, &addr1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(isc_sockaddr_getport(&addr1) != 0);
-
-	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s2, &addr2, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_socket_getsockname(s2, &addr2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(isc_sockaddr_getport(&addr2) != 0);
-
-	result = isc_socket_dup(s2, &s3);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_create(taskmgr, 0, &test_task);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	snprintf(sendbuf, sizeof(sendbuf), "Hello");
-	r.base = (void *)sendbuf;
-	r.length = strlen(sendbuf) + 1;
-
-	completion_init(&completion);
-	result = isc_socket_sendto(s1, &r, test_task, event_done, &completion,
-				   &addr2, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	waitfor(&completion);
-	assert_true(atomic_load(&completion.done));
-	assert_int_equal(completion.result, ISC_R_SUCCESS);
-
-	snprintf(sendbuf, sizeof(sendbuf), "World");
-	r.base = (void *)sendbuf;
-	r.length = strlen(sendbuf) + 1;
-
-	completion_init(&completion);
-	result = isc_socket_sendto(s1, &r, test_task, event_done, &completion,
-				   &addr2, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	waitfor(&completion);
-	assert_true(atomic_load(&completion.done));
-	assert_int_equal(completion.result, ISC_R_SUCCESS);
-
-	r.base = (void *)recvbuf;
-	r.length = BUFSIZ;
-	completion_init(&completion);
-	result = isc_socket_recv(s2, &r, 1, test_task, event_done, &completion);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	waitfor(&completion);
-	assert_true(atomic_load(&completion.done));
-	assert_int_equal(completion.result, ISC_R_SUCCESS);
-	assert_string_equal(recvbuf, "Hello");
-
-	r.base = (void *)recvbuf;
-	r.length = BUFSIZ;
-	completion_init(&completion);
-	result = isc_socket_recv(s3, &r, 1, test_task, event_done, &completion);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	waitfor(&completion);
-	assert_true(atomic_load(&completion.done));
-	assert_int_equal(completion.result, ISC_R_SUCCESS);
-	assert_string_equal(recvbuf, "World");
-}
-
 /* Test UDP sendto/recv (IPv4) */
 static void
 udp_dscp_v4_test(void **state) {
@@ -786,8 +703,6 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(udp_sendto_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(udp_dup_test, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(tcp_dscp_v4_test, _setup,
 						_teardown),
