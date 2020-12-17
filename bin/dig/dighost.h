@@ -24,6 +24,7 @@
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
@@ -199,6 +200,7 @@ struct dig_query {
 	uint64_t byte_count;
 	isc_timer_t *timer;
 	uint8_t tries;
+	isc_tlsctx_t *tlsctx;
 };
 
 struct dig_server {

@@ -507,9 +507,8 @@ ns_interface_listentcp(ns_interface_t *ifp) {
  * TLS related options.
  */
 static isc_result_t
-ns_interface_listentls(ns_interface_t *ifp, SSL_CTX *sslctx) {
+ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
-	SSL_CTX *ctx = NULL;
 
 	result = isc_nm_listentlsdns(
 		ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr, ns__client_request,
@@ -521,7 +520,7 @@ ns_interface_listentls(ns_interface_t *ifp, SSL_CTX *sslctx) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "creating TLS socket: %s",
 			      isc_result_totext(result));
-		SSL_CTX_free(ctx);
+		isc_tlsctx_free(&sslctx);
 		return (result);
 	}
 

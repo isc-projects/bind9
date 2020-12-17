@@ -17,6 +17,7 @@
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -30,9 +31,11 @@
 #include <isc/stats.h>
 #include <isc/strerr.h>
 #include <isc/thread.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include "netmgr-int.h"
+#include "openssl_shim.h"
 #include "uv-compat.h"
 
 #ifdef NETMGR_TRACE
@@ -213,7 +216,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	isc__nm_winsock_initialize();
 #endif /* WIN32 */
 
-	isc__nm_tls_initialize();
+	isc_tls_initialize();
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (isc_nm_t){ .nworkers = workers };
@@ -276,6 +279,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
 		worker->ievents_prio = isc_queue_new(mgr->mctx, 128);
 		worker->recvbuf = isc_mem_get(mctx, ISC_NETMGR_RECVBUF_SIZE);
+		worker->sendbuf = isc_mem_get(mctx, ISC_NETMGR_SENDBUF_SIZE);
 
 		/*
 		 * We need to do this here and not in nm_thread to avoid a
@@ -346,6 +350,8 @@ nm_destroy(isc_nm_t **mgr0) {
 		isc_mutex_destroy(&worker->lock);
 		isc_condition_destroy(&worker->cond);
 
+		isc_mem_put(mgr->mctx, worker->sendbuf,
+			    ISC_NETMGR_SENDBUF_SIZE);
 		isc_mem_put(mgr->mctx, worker->recvbuf,
 			    ISC_NETMGR_RECVBUF_SIZE);
 		isc_thread_join(worker->thread, NULL);
@@ -367,6 +373,8 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
+
+	isc_tls_destroy();
 
 #ifdef WIN32
 	isc__nm_winsock_destroy();
@@ -708,17 +716,16 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tcpdnsread);
 		NETIEVENT_CASE(tcpdnsstop);
 
-		NETIEVENT_CASE(tlsstartread);
-		NETIEVENT_CASE(tlssend);
-		NETIEVENT_CASE(tlsclose);
-		NETIEVENT_CASE(tlsconnect);
-		NETIEVENT_CASE(tlsdobio);
-
+		NETIEVENT_CASE(tlsdnscycle);
+		NETIEVENT_CASE(tlsdnsaccept);
+		NETIEVENT_CASE(tlsdnslisten);
+		NETIEVENT_CASE(tlsdnsconnect);
 		NETIEVENT_CASE(tlsdnssend);
 		NETIEVENT_CASE(tlsdnscancel);
 		NETIEVENT_CASE(tlsdnsclose);
 		NETIEVENT_CASE(tlsdnsread);
 		NETIEVENT_CASE(tlsdnsstop);
+		NETIEVENT_CASE(tlsdnsshutdown);
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
@@ -769,10 +776,6 @@ NETIEVENT_SOCKET_DEF(tcplisten);
 NETIEVENT_SOCKET_DEF(tcppauseread);
 NETIEVENT_SOCKET_DEF(tcpstartread);
 NETIEVENT_SOCKET_DEF(tcpstop);
-NETIEVENT_SOCKET_DEF(tlsclose);
-NETIEVENT_SOCKET_DEF(tlsconnect);
-NETIEVENT_SOCKET_DEF(tlsdobio);
-NETIEVENT_SOCKET_DEF(tlsstartread);
 NETIEVENT_SOCKET_DEF(udpclose);
 NETIEVENT_SOCKET_DEF(udplisten);
 NETIEVENT_SOCKET_DEF(udpread);
@@ -791,12 +794,16 @@ NETIEVENT_SOCKET_QUOTA_DEF(tcpdnsaccept);
 NETIEVENT_SOCKET_DEF(tlsdnsclose);
 NETIEVENT_SOCKET_DEF(tlsdnsread);
 NETIEVENT_SOCKET_DEF(tlsdnsstop);
+NETIEVENT_SOCKET_DEF(tlsdnslisten);
+NETIEVENT_SOCKET_REQ_DEF(tlsdnsconnect);
 NETIEVENT_SOCKET_REQ_DEF(tlsdnssend);
 NETIEVENT_SOCKET_HANDLE_DEF(tlsdnscancel);
+NETIEVENT_SOCKET_QUOTA_DEF(tlsdnsaccept);
+NETIEVENT_SOCKET_DEF(tlsdnscycle);
+NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
 NETIEVENT_SOCKET_REQ_DEF(tcpsend);
-NETIEVENT_SOCKET_REQ_DEF(tlssend);
 NETIEVENT_SOCKET_REQ_DEF(udpconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_DEF(connectcb);
@@ -1087,9 +1094,6 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tcpdnssocket:
 			isc__nm_tcpdns_close(sock);
 			return;
-		case isc_nm_tlssocket:
-			isc__nm_tls_close(sock);
-			break;
 		case isc_nm_tlsdnssocket:
 			isc__nm_tlsdns_close(sock);
 			return;
@@ -1349,7 +1353,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 #endif
 	UNLOCK(&sock->lock);
 
-	if (sock->type == isc_nm_tcpsocket || sock->type == isc_nm_tlssocket ||
+	if (sock->type == isc_nm_tcpsocket ||
 	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)) ||
 	    (sock->type == isc_nm_tcpdnssocket && atomic_load(&sock->client)) ||
 	    (sock->type == isc_nm_tlsdnssocket && atomic_load(&sock->client)))
@@ -1386,7 +1390,6 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 
 	return (handle->sock->type == isc_nm_tcpsocket ||
 		handle->sock->type == isc_nm_tcpdnssocket ||
-		handle->sock->type == isc_nm_tlssocket ||
 		handle->sock->type == isc_nm_tlsdnssocket);
 }
 
@@ -1664,9 +1667,6 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_send(handle, region, cb, cbarg);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_send(handle, region, cb, cbarg);
-		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_send(handle, region, cb, cbarg);
 		break;
@@ -1696,9 +1696,6 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		break;
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_read(handle, cb, cbarg);
-		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_read(handle, cb, cbarg);
 		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_read(handle, cb, cbarg);
@@ -1742,9 +1739,6 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_pauseread(handle);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_pauseread(handle);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -1760,9 +1754,6 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_resumeread(handle);
-		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_resumeread(handle);
 		break;
 	default:
 		INSIST(0);
@@ -1783,9 +1774,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tcplistener:
 		isc__nm_tcp_stoplistening(sock);
-		break;
-	case isc_nm_tlslistener:
-		isc__nm_tls_stoplistening(sock);
 		break;
 	case isc_nm_tlsdnslistener:
 		isc__nm_tlsdns_stoplistening(sock);
@@ -1975,7 +1963,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 		isc__nm_tcpdns_shutdown(sock);
 		break;
 	case isc_nm_tlsdnssocket:
-		/* dummy now */
+		isc__nm_tlsdns_shutdown(sock);
 		break;
 	case isc_nm_udplistener:
 	case isc_nm_tcplistener:
@@ -2334,10 +2322,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_tcpdnslistener");
 	case isc_nm_tcpdnssocket:
 		return ("isc_nm_tcpdnssocket");
-	case isc_nm_tlssocket:
-		return ("isc_nm_tlssocket");
-	case isc_nm_tlslistener:
-		return ("isc_nm_tlslistener");
 	case isc_nm_tlsdnslistener:
 		return ("isc_nm_tlsdnslistener");
 	case isc_nm_tlsdnssocket:

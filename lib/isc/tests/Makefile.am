@@ -15,7 +15,7 @@ libisctest_la_SOURCES = 	\
 	isctest.h		\
 	uv_wrap.h
 
-check_PROGRAMS =	\
+TESTS =			\
 	aes_test	\
 	buffer_test	\
 	counter_test	\
@@ -47,11 +47,13 @@ check_PROGRAMS =	\
 	tcp_test	\
 	tcp_quota_test	\
 	tcpdns_test	\
+	tlsdns_test	\
 	time_test	\
 	timer_test	\
 	udp_test
 
-TESTS = $(check_PROGRAMS)
+check_PROGRAMS =	\
+	$(TESTS)
 
 hmac_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
@@ -97,6 +99,15 @@ tcpdns_test_CPPFLAGS =	\
 	$(LIBUV_CFLAGS)
 
 tcpdns_test_LDADD =	\
+	$(LDADD)	\
+	$(LIBUV_LIBS)
+
+tlsdns_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)	\
+	$(LIBUV_CFLAGS)
+
+tlsdns_test_LDADD =	\
 	$(LDADD)	\
 	$(LIBUV_LIBS)
 

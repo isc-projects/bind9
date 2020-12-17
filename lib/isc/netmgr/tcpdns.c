@@ -113,16 +113,6 @@ stop_reading(isc_nmsocket_t *sock);
 static isc__nm_uvreq_t *
 get_read_req(isc_nmsocket_t *sock);
 
-/*
- * Regular TCP buffer, should suffice in most cases.
- */
-#define NM_REG_BUF 4096
-/*
- * Two full DNS packets with lengths.
- * netmgr receives 64k at most so there's no risk
- * of overrun.
- */
-#define NM_BIG_BUF (65535 + 2) * 2
 static inline void
 alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 	REQUIRE(len <= NM_BIG_BUF);
@@ -790,7 +780,7 @@ get_read_req(isc_nmsocket_t *sock) {
 		req->handle = isc__nmhandle_get(sock, NULL, NULL);
 	}
 
-	return req;
+	return (req);
 }
 
 static void
@@ -813,25 +803,26 @@ start_sock_timer(isc_nmsocket_t *sock) {
 	if (sock->read_timeout > 0) {
 		int r = uv_timer_start(&sock->timer, readtimeout_cb,
 				       sock->read_timeout, 0);
-		REQUIRE(r == 0);
+		RUNTIME_CHECK(r == 0);
 	}
 }
 
 static void
 stop_sock_timer(isc_nmsocket_t *sock) {
 	int r = uv_timer_stop(&sock->timer);
-	REQUIRE(r == 0);
+	RUNTIME_CHECK(r == 0);
 }
 
 static void
 start_reading(isc_nmsocket_t *sock) {
+	int r;
+
 	if (sock->reading) {
 		return;
 	}
 
-	int r = uv_read_start(&sock->uv_handle.stream, tcpdns_alloc_cb,
-			      read_cb);
-	REQUIRE(r == 0);
+	r = uv_read_start(&sock->uv_handle.stream, tcpdns_alloc_cb, read_cb);
+	RUNTIME_CHECK(r == 0);
 	sock->reading = true;
 
 	start_sock_timer(sock);
@@ -839,12 +830,14 @@ start_reading(isc_nmsocket_t *sock) {
 
 static void
 stop_reading(isc_nmsocket_t *sock) {
+	int r;
+
 	if (!sock->reading) {
 		return;
 	}
 
-	int r = uv_read_stop(&sock->uv_handle.stream);
-	REQUIRE(r == 0);
+	r = uv_read_stop(&sock->uv_handle.stream);
+	RUNTIME_CHECK(r == 0);
 	sock->reading = false;
 
 	stop_sock_timer(sock);
@@ -898,10 +891,11 @@ tcpdns_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	isc__networker_t *worker = NULL;
 
+	UNUSED(size);
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 	REQUIRE(isc__nm_in_netthread());
-	UNUSED(size);
 
 	worker = &sock->mgr->workers[sock->tid];
 	INSIST(!worker->recvbuf_inuse);
@@ -917,9 +911,10 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 		(isc__netievent_tcpdnsread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
+	UNUSED(worker);
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	UNUSED(worker);
 
 	if (inactive(sock)) {
 		sock->reading = true;
@@ -1303,9 +1298,10 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *uvreq = ievent->req;
 
+	UNUSED(worker);
+
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 	REQUIRE(sock->tid == isc_nm_tid());
-	UNUSED(worker);
 
 	result = tcpdns_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
@@ -1316,12 +1312,13 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static isc_result_t
 tcpdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
+	int r;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 
-	int r;
 	uv_buf_t bufs[2] = { { .base = req->tcplen, .len = 2 },
 			     { .base = req->uvbuf.base,
 			       .len = req->uvbuf.len } };
@@ -1342,11 +1339,12 @@ tcpdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 static void
 tcpdns_stop_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	uv_handle_set_data(handle, NULL);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
+
+	uv_handle_set_data(handle, NULL);
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
 					    true)) {
@@ -1364,6 +1362,7 @@ tcpdns_stop_cb(uv_handle_t *handle) {
 static void
 tcpdns_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
 	uv_handle_set_data(handle, NULL);
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1498,10 +1497,10 @@ isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 		(isc__netievent_tcpdnsclose_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
+	UNUSED(worker);
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-
-	UNUSED(worker);
 
 	tcpdns_close_direct(sock);
 }
@@ -1560,19 +1559,22 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 		(isc__netievent_tcpdnscancel_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
+	UNUSED(worker);
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	UNUSED(worker);
 
 	failed_read_cb(sock, ISC_R_EOF);
 }
 
 void
 isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	isc_nmsocket_t *sock = NULL;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	isc_nmsocket_t *sock = handle->sock;
+	sock = handle->sock;
 
 	sock->read_timeout = timeout;
 	if (uv_is_active((uv_handle_t *)&sock->timer)) {
@@ -1582,11 +1584,13 @@ isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 
 void
 isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->type == isc_nm_tcpdnssocket);
 
-	isc_nmsocket_t *sock = handle->sock;
+	sock = handle->sock;
 
 	/*
 	 * We don't want pipelining on this connection. That means
@@ -1603,11 +1607,13 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle) {
 
 void
 isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
+	isc_nmsocket_t *sock = NULL;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->type != isc_nm_tcpdnssocket);
 
-	isc_nmsocket_t *sock = handle->sock;
+	sock = handle->sock;
 
 	atomic_store(&sock->keepalive, value);
 }

@@ -2,13 +2,33 @@ include $(top_srcdir)/Makefile.top
 
 SUBDIRS = system
 
-noinst_PROGRAMS = wire_test
+noinst_PROGRAMS =	\
+	test_client	\
+	test_server	\
+	wire_test
 
-AM_CPPFLAGS +=			\
+test_client_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBISC_CFLAGS)
+
+test_client_LDADD =		\
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)
+
+test_server_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBISC_CFLAGS)
+
+test_server_LDADD =		\
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)
+
+wire_test_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-LDADD =				\
+wire_test_LDADD =		\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)
 

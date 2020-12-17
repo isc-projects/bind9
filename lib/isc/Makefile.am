@@ -87,6 +87,7 @@ libisc_la_HEADERS =			\
 	include/isc/task.h		\
 	include/isc/taskpool.h		\
 	include/isc/timer.h		\
+	include/isc/tls.h		\
 	include/isc/tm.h		\
 	include/isc/types.h		\
 	include/isc/utf8.h		\
@@ -128,7 +129,6 @@ libisc_la_SOURCES =		\
 	netmgr/tcp.c		\
 	netmgr/tcpdns.c		\
 	netmgr/tlsdns.c		\
-	netmgr/tls.c		\
 	netmgr/udp.c		\
 	netmgr/uv-compat.c	\
 	netmgr/uv-compat.h	\
@@ -209,6 +209,7 @@ libisc_la_SOURCES =		\
 	task.c			\
 	taskpool.c		\
 	timer.c			\
+	tls.c			\
 	tm.c			\
 	utf8.c			\
 	pthreads/condition.c	\

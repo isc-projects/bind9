@@ -28,10 +28,9 @@
 #include <stdbool.h>
 
 #include <isc/net.h>
+#include <isc/tls.h>
 
 #include <dns/types.h>
-
-#include <openssl/ssl.h>
 
 /***
  *** Types
@@ -41,11 +40,11 @@ typedef struct ns_listenelt  ns_listenelt_t;
 typedef struct ns_listenlist ns_listenlist_t;
 
 struct ns_listenelt {
-	isc_mem_t *mctx;
-	in_port_t  port;
-	isc_dscp_t dscp; /* -1 = not set, 0..63 */
-	dns_acl_t *acl;
-	SSL_CTX *  sslctx;
+	isc_mem_t *   mctx;
+	in_port_t     port;
+	isc_dscp_t    dscp; /* -1 = not set, 0..63 */
+	dns_acl_t *   acl;
+	isc_tlsctx_t *sslctx;
 	ISC_LINK(ns_listenelt_t) link;
 };
 
