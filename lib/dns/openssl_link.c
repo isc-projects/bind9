@@ -29,6 +29,7 @@
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/thread.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -43,12 +44,6 @@ static isc_mem_t *dst__mctx = NULL;
 #if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-static isc_mutex_t *locks = NULL;
-static int nlocks;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
 
 #if !defined(OPENSSL_NO_ENGINE)
 static ENGINE *e = NULL;
@@ -71,34 +66,6 @@ enable_fips_mode(void) {
 #endif /* HAVE_FIPS_MODE */
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-static void
-lock_callback(int mode, int type, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-	if ((mode & CRYPTO_LOCK) != 0) {
-		LOCK(&locks[type]);
-	} else {
-		UNLOCK(&locks[type]);
-	}
-}
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
-
-#if defined(LIBRESSL_VERSION_NUMBER)
-static unsigned long
-id_callback(void) {
-	return ((unsigned long)isc_thread_self());
-}
-#endif /* if defined(LIBRESSL_VERSION_NUMBER) */
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-static void
-_set_thread_id(CRYPTO_THREADID *id) {
-	CRYPTO_THREADID_set_numeric(id, (unsigned long)isc_thread_self());
-}
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L */
-
 isc_result_t
 dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
@@ -112,19 +79,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 
 	enable_fips_mode();
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_allocate(dst__mctx, sizeof(isc_mutex_t) * nlocks);
-	isc_mutexblock_init(locks, nlocks);
-	CRYPTO_set_locking_callback(lock_callback);
-#if defined(LIBRESSL_VERSION_NUMBER)
-	CRYPTO_set_id_callback(id_callback);
-#elif OPENSSL_VERSION_NUMBER < 0x10100000L
-	CRYPTO_THREADID_set_callback(_set_thread_id);
-#endif /* if defined(LIBRESSL_VERSION_NUMBER) */
-	ERR_load_crypto_strings();
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+	isc_tls_initialize();
 
 #if !defined(OPENSSL_NO_ENGINE)
 #if !defined(CONF_MFLAGS_DEFAULT_SECTION)
@@ -178,13 +133,6 @@ cleanup_rm:
 	}
 	e = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	CRYPTO_set_locking_callback(NULL);
-	isc_mutexblock_destroy(locks, nlocks);
-	isc_mem_free(dst__mctx, locks);
-	locks = NULL;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
 	return (result);
 }
 
@@ -206,25 +154,13 @@ dst__openssl_destroy(void) {
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
 	CRYPTO_cleanup_all_ex_data();
 	ERR_clear_error();
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	ERR_remove_thread_state(NULL);
-#elif defined(LIBRESSL_VERSION_NUMBER)
-	ERR_remove_state(0);
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L */
-	ERR_free_strings();
 
 #ifdef DNS_CRYPTO_LEAKS
 	CRYPTO_mem_leaks_fp(stderr);
 #endif /* ifdef DNS_CRYPTO_LEAKS */
 
-	if (locks != NULL) {
-		CRYPTO_set_locking_callback(NULL);
-		isc_mutexblock_destroy(locks, nlocks);
-		isc_mem_free(dst__mctx, locks);
-		locks = NULL;
-	}
-#endif /* if (OPENSSL_VERSION_NUMBER < 0x10100000L) || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+#endif
+	isc_tls_destroy();
 	isc_mem_detach(&dst__mctx);
 }
 

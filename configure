@@ -16518,7 +16518,7 @@ $as_echo_n "checking for openssl/ssl.h in $ssldir... " >&6; }
 	    if test -f "$ssldir/include/openssl/ssl.h"; then :
 
 		    OPENSSL_CFLAGS="-I$ssldir/include"
-                    OPENSSL_LIBS="-L$ssldir/lib -lcrypto -lssl"
+                    OPENSSL_LIBS="-L$ssldir/lib -lssl -lcrypto"
                     found=true
                     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -16703,7 +16703,7 @@ $as_echo_n "checking for openssl/ssl.h in $ssldir... " >&6; }
 	    if test -f "$ssldir/include/openssl/ssl.h"; then :
 
 		    OPENSSL_CFLAGS="-I$ssldir/include"
-                    OPENSSL_LIBS="-L$ssldir/lib -lcrypto -lssl"
+                    OPENSSL_LIBS="-L$ssldir/lib -lssl -lcrypto"
                     found=true
                     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -16854,16 +16854,17 @@ fi
 CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL >= 1.0.0 or LibreSSL" >&5
-$as_echo_n "checking for OpenSSL >= 1.0.0 or LibreSSL... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0" >&5
+$as_echo_n "checking for OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <openssl/opensslv.h>
 int
 main ()
 {
-#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x1000000fL)
-		       #error OpenSSL >= 1.0.0 or LibreSSL required
+#if (!defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x1000000fL)) || \\
+			   (defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER < 0x02070000fL))
+		       #error OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0 required
 		       #endif
 
   ;
@@ -16884,6 +16885,18 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # Check for functions added in OpenSSL or LibreSSL
 #
+
+for ac_func in OPENSSL_init_ssl OPENSSL_init_crypto
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
 
 for ac_func in CRYPTO_zalloc
 do :
@@ -16927,6 +16940,52 @@ ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
 if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in SSL_read_ex SSL_peek_ex SSL_write_ex
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in BIO_read_ex BIO_write_ex
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in SSL_CTX_up_ref
+do :
+  ac_fn_c_check_func "$LINENO" "SSL_CTX_up_ref" "ac_cv_func_SSL_CTX_up_ref"
+if test "x$ac_cv_func_SSL_CTX_up_ref" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SSL_CTX_UP_REF 1
+_ACEOF
+
+fi
+done
+
+for ac_func in SSL_CTX_set_min_proto_version
+do :
+  ac_fn_c_check_func "$LINENO" "SSL_CTX_set_min_proto_version" "ac_cv_func_SSL_CTX_set_min_proto_version"
+if test "x$ac_cv_func_SSL_CTX_set_min_proto_version" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SSL_CTX_SET_MIN_PROTO_VERSION 1
 _ACEOF
 
 fi
@@ -17135,12 +17194,13 @@ fi
 done
 
 
-for ac_func in TLS_server_method
+for ac_func in TLS_server_method TLS_client_method
 do :
-  ac_fn_c_check_func "$LINENO" "TLS_server_method" "ac_cv_func_TLS_server_method"
-if test "x$ac_cv_func_TLS_server_method" = xyes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_TLS_SERVER_METHOD 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
