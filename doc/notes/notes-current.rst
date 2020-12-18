@@ -58,3 +58,6 @@ Bug Fixes
 
 - When reconfiguring ``named``, removing ``auto-dnssec`` did actually not turn
   off DNSSEC maintenance. This has been fixed. [GL #2341]
+
+- Prevent rbtdb instances being destroyed by multiple threads at the same
+  time. This can trigger assertion failures. [GL #2355]
