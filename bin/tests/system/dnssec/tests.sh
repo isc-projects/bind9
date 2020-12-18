@@ -3813,7 +3813,7 @@ status=$((status+ret))
 echo_i "check that DNAME at apex with NSEC3 is correctly signed (dnssec-signzone) ($n)"
 ret=0
 dig_with_opts txt dname-at-apex-nsec3.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "RRSIG.NSEC3 ${DEFAULT_ALGORITHM_NUMBER} 3 3600" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG.NSEC3 ${DEFAULT_ALGORITHM_NUMBER} 3 600" dig.out.ns3.test$n > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

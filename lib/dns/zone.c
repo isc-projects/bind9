@@ -426,8 +426,9 @@ struct dns_zone {
 	uint32_t sourceserial;
 
 	/*%
-	 * maximum zone ttl
+	 * soa and maximum zone ttl
 	 */
+	dns_ttl_t soattl;
 	dns_ttl_t maxttl;
 
 	/*
@@ -860,9 +861,9 @@ rss_post(dns_zone_t *, isc_event_t *);
 
 static isc_result_t
 zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
-		 unsigned int *soacount, uint32_t *serial, uint32_t *refresh,
-		 uint32_t *retry, uint32_t *expire, uint32_t *minimum,
-		 unsigned int *errors);
+		 unsigned int *soacount, uint32_t *soattl, uint32_t *serial,
+		 uint32_t *refresh, uint32_t *retry, uint32_t *expire,
+		 uint32_t *minimum, unsigned int *errors);
 
 static void
 zone_freedbargs(dns_zone_t *zone);
@@ -886,6 +887,8 @@ static void
 zone_rekey(dns_zone_t *zone);
 static isc_result_t
 zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
+static dns_ttl_t
+zone_nsecttl(dns_zone_t *zone);
 static void
 setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value);
 static void
@@ -1047,6 +1050,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->mastersok = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
+	zone->soattl = 0;
 	zone->maxttl = 0;
 	zone->notify = NULL;
 	zone->notifykeynames = NULL;
@@ -1435,7 +1439,7 @@ dns_zone_getserial(dns_zone_t *zone, uint32_t *serialp) {
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
-		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
+		result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL,
 					  serialp, NULL, NULL, NULL, NULL,
 					  NULL);
 		if (result == ISC_R_SUCCESS && soacount == 0) {
@@ -2517,7 +2521,7 @@ get_raw_serial(dns_zone_t *raw, dns_masterrawheader_t *rawdata) {
 
 	LOCK(&raw->lock);
 	if (raw->db != NULL) {
-		result = zone_get_from_db(raw, raw->db, NULL, &soacount,
+		result = zone_get_from_db(raw, raw->db, NULL, &soacount, NULL,
 					  &rawdata->sourceserial, NULL, NULL,
 					  NULL, NULL, NULL);
 		if (result == ISC_R_SUCCESS && soacount > 0U) {
@@ -4667,9 +4671,9 @@ maybe_send_secure(dns_zone_t *zone) {
 			uint32_t serial;
 			unsigned int soacount;
 
-			result = zone_get_from_db(zone->raw, zone->raw->db,
-						  NULL, &soacount, &serial,
-						  NULL, NULL, NULL, NULL, NULL);
+			result = zone_get_from_db(
+				zone->raw, zone->raw->db, NULL, &soacount, NULL,
+				&serial, NULL, NULL, NULL, NULL, NULL);
 			if (result == ISC_R_SUCCESS && soacount > 0U) {
 				zone_send_secureserial(zone->raw, serial);
 			}
@@ -4706,7 +4710,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	unsigned int soacount = 0;
 	unsigned int nscount = 0;
 	unsigned int errors = 0;
-	uint32_t serial, oldserial, refresh, retry, expire, minimum;
+	uint32_t serial, oldserial, refresh, retry, expire, minimum, soattl;
 	isc_time_t now;
 	bool needdump = false;
 	bool fixjournal = false;
@@ -4847,8 +4851,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * Obtain ns, soa and cname counts for top of zone.
 	 */
 	INSIST(db != NULL);
-	result = zone_get_from_db(zone, db, &nscount, &soacount, &serial,
-				  &refresh, &retry, &expire, &minimum, &errors);
+	result = zone_get_from_db(zone, db, &nscount, &soacount, &soattl,
+				  &serial, &refresh, &retry, &expire, &minimum,
+				  &errors);
 	if (result != ISC_R_SUCCESS && zone->type != dns_zone_key) {
 		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
 			      "could not find NS and/or SOA records");
@@ -4995,9 +5000,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			 * This is checked in zone_replacedb() for slave zones
 			 * as they don't reload from disk.
 			 */
-			result = zone_get_from_db(zone, zone->db, NULL,
-						  &oldsoacount, &oldserial,
-						  NULL, NULL, NULL, NULL, NULL);
+			result = zone_get_from_db(
+				zone, zone->db, NULL, &oldsoacount, NULL,
+				&oldserial, NULL, NULL, NULL, NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			RUNTIME_CHECK(soacount > 0U);
 			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
@@ -5063,6 +5068,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone->retry = RANGE(retry, zone->minretry, zone->maxretry);
 		zone->expire = RANGE(expire, zone->refresh + zone->retry,
 				     DNS_MAX_EXPIRE);
+		zone->soattl = soattl;
 		zone->minimum = minimum;
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
 
@@ -5488,8 +5494,9 @@ invalidate_rdataset:
 
 static isc_result_t
 zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 unsigned int *soacount, uint32_t *serial, uint32_t *refresh,
-		 uint32_t *retry, uint32_t *expire, uint32_t *minimum) {
+		 unsigned int *soacount, uint32_t *soattl, uint32_t *serial,
+		 uint32_t *refresh, uint32_t *retry, uint32_t *expire,
+		 uint32_t *minimum) {
 	isc_result_t result;
 	unsigned int count;
 	dns_rdataset_t rdataset;
@@ -5503,6 +5510,9 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		if (soacount != NULL) {
 			*soacount = 0;
+		}
+		if (soattl != NULL) {
+			*soattl = 0;
 		}
 		if (serial != NULL) {
 			*serial = 0;
@@ -5535,6 +5545,9 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		count++;
 		if (count == 1) {
 			result = dns_rdata_tostruct(&rdata, &soa, NULL);
+			if (soattl != NULL) {
+				*soattl = rdataset.ttl;
+			}
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
 
@@ -5567,6 +5580,9 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		if (soacount != NULL) {
 			*soacount = 0;
 		}
+		if (soattl != NULL) {
+			*soattl = 0;
+		}
 		if (serial != NULL) {
 			*serial = 0;
 		}
@@ -5597,9 +5613,9 @@ invalidate_rdataset:
  */
 static isc_result_t
 zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
-		 unsigned int *soacount, uint32_t *serial, uint32_t *refresh,
-		 uint32_t *retry, uint32_t *expire, uint32_t *minimum,
-		 unsigned int *errors) {
+		 unsigned int *soacount, uint32_t *soattl, uint32_t *serial,
+		 uint32_t *refresh, uint32_t *retry, uint32_t *expire,
+		 uint32_t *minimum, unsigned int *errors) {
 	isc_result_t result;
 	isc_result_t answer = ISC_R_SUCCESS;
 	dns_dbversion_t *version = NULL;
@@ -5615,6 +5631,9 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 	}
 	if (soacount != NULL) {
 		*soacount = 0;
+	}
+	if (soattl != NULL) {
+		*soattl = 0;
 	}
 	if (serial != NULL) {
 		*serial = 0;
@@ -5647,11 +5666,13 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		}
 	}
 
-	if (soacount != NULL || serial != NULL || refresh != NULL ||
-	    retry != NULL || expire != NULL || minimum != NULL)
+	if (soacount != NULL || soattl != NULL || serial != NULL ||
+	    refresh != NULL || retry != NULL || expire != NULL ||
+	    minimum != NULL)
 	{
-		result = zone_load_soa_rr(db, node, version, soacount, serial,
-					  refresh, retry, expire, minimum);
+		result = zone_load_soa_rr(db, node, version, soacount, soattl,
+					  serial, refresh, retry, expire,
+					  minimum);
 		if (result != ISC_R_SUCCESS) {
 			answer = result;
 		}
@@ -7498,9 +7519,9 @@ static isc_result_t
 sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	    dns_dbnode_t *node, dns_dbversion_t *version, bool build_nsec3,
 	    bool build_nsec, dst_key_t *key, isc_stdtime_t inception,
-	    isc_stdtime_t expire, unsigned int minimum, bool is_ksk,
-	    bool is_zsk, bool keyset_kskonly, bool is_bottom_of_zone,
-	    dns_diff_t *diff, int32_t *signatures, isc_mem_t *mctx) {
+	    isc_stdtime_t expire, dns_ttl_t nsecttl, bool is_ksk, bool is_zsk,
+	    bool keyset_kskonly, bool is_bottom_of_zone, dns_diff_t *diff,
+	    int32_t *signatures, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset;
@@ -7551,7 +7572,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	 */
 	if (build_nsec3 && !seen_nsec3 && seen_rr) {
 		bool unsecure = !seen_ds && seen_ns && !seen_soa;
-		CHECK(dns_nsec3_addnsec3s(db, version, name, minimum, unsecure,
+		CHECK(dns_nsec3_addnsec3s(db, version, name, nsecttl, unsecure,
 					  diff));
 		(*signatures)--;
 	}
@@ -7564,7 +7585,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		 * Build a NSEC record except at the origin.
 		 */
 		if (!dns_name_equal(name, dns_db_origin(db))) {
-			CHECK(add_nsec(db, version, name, node, minimum,
+			CHECK(add_nsec(db, version, name, node, nsecttl,
 				       is_bottom_of_zone, diff));
 			/* Count a NSEC generation as a signature generation. */
 			(*signatures)--;
@@ -7658,7 +7679,7 @@ failure:
  */
 static isc_result_t
 updatesecure(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-	     dns_ttl_t minimum, bool update_only, dns_diff_t *diff) {
+	     dns_ttl_t nsecttl, bool update_only, dns_diff_t *diff) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
@@ -7680,7 +7701,7 @@ updatesecure(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		}
 	}
 	CHECK(delete_nsec(db, version, node, name, diff));
-	CHECK(add_nsec(db, version, name, node, minimum, false, diff));
+	CHECK(add_nsec(db, version, name, node, nsecttl, false, diff));
 success:
 	result = ISC_R_SUCCESS;
 failure:
@@ -7692,7 +7713,7 @@ failure:
 
 static isc_result_t
 updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
-		  dns_dbversion_t *version, bool build_nsec3, dns_ttl_t minimum,
+		  dns_dbversion_t *version, bool build_nsec3, dns_ttl_t nsecttl,
 		  dns_diff_t *diff) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -7784,9 +7805,9 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		 */
 		if (build_nsec3) {
 			CHECK(dns_nsec3_addnsec3s(signing->db, version, origin,
-						  minimum, false, diff));
+						  nsecttl, false, diff));
 		}
-		CHECK(updatesecure(signing->db, version, origin, minimum, true,
+		CHECK(updatesecure(signing->db, version, origin, nsecttl, true,
 				   diff));
 	}
 
@@ -8494,7 +8515,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		dns_dbiterator_pause(nsec3chain->dbiterator);
 		result = dns_nsec3_addnsec3(
 			db, version, name, &nsec3chain->nsec3param,
-			zone->minimum, unsecure, &nsec3_diff);
+			zone_nsecttl(zone), unsecure, &nsec3_diff);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_nsec3chain:"
@@ -8753,8 +8774,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 		 */
 		if (!dns_name_equal(name, dns_db_origin(db))) {
 			dns_dbiterator_pause(nsec3chain->dbiterator);
-			CHECK(add_nsec(db, version, name, node, zone->minimum,
-				       delegation, &nsec_diff));
+			CHECK(add_nsec(db, version, name, node,
+				       zone_nsecttl(zone), delegation,
+				       &nsec_diff));
 			signatures--;
 		}
 
@@ -8856,7 +8878,8 @@ skip_removals:
 			}
 
 			result = updatesecure(db, version, &zone->origin,
-					      zone->minimum, true, &nsec_diff);
+					      zone_nsecttl(zone), true,
+					      &nsec_diff);
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_ERROR,
 					   "zone_nsec3chain:updatesecure -> %s",
@@ -8871,8 +8894,8 @@ skip_removals:
 			}
 
 			result = dns_nsec3_addnsec3s(
-				db, version, dns_db_origin(db), zone->minimum,
-				false, &nsec3_diff);
+				db, version, dns_db_origin(db),
+				zone_nsecttl(zone), false, &nsec3_diff);
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_ERROR,
 					   "zone_nsec3chain:"
@@ -8914,8 +8937,8 @@ skip_removals:
 	}
 
 	if (updatensec) {
-		result = updatesecure(db, version, &zone->origin, zone->minimum,
-				      false, &nsec_diff);
+		result = updatesecure(db, version, &zone->origin,
+				      zone_nsecttl(zone), false, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_nsec3chain:updatesecure -> %s",
@@ -9581,7 +9604,7 @@ zone_sign(dns_zone_t *zone) {
 			CHECK(sign_a_node(
 				db, zone, name, node, version, build_nsec3,
 				build_nsec, zone_keys[i], inception, expire,
-				zone->minimum, is_ksk, is_zsk,
+				zone_nsecttl(zone), is_ksk, is_zsk,
 				(both && keyset_kskonly), is_bottom_of_zone,
 				zonediff.diff, &signatures, zone->mctx));
 			/*
@@ -9622,7 +9645,7 @@ zone_sign(dns_zone_t *zone) {
 					 */
 					result = updatesecure(
 						db, version, &zone->origin,
-						zone->minimum, false,
+						zone_nsecttl(zone), false,
 						&post_diff);
 					if (result != ISC_R_SUCCESS) {
 						dnssec_log(zone, ISC_LOG_ERROR,
@@ -9634,7 +9657,7 @@ zone_sign(dns_zone_t *zone) {
 				}
 				result = updatesignwithkey(
 					zone, signing, version, build_nsec3,
-					zone->minimum, &post_diff);
+					zone_nsecttl(zone), &post_diff);
 				if (result != ISC_R_SUCCESS) {
 					dnssec_log(zone, ISC_LOG_ERROR,
 						   "updatesignwithkey -> %s",
@@ -11230,7 +11253,7 @@ again:
 			ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 			if (zone->db != NULL) {
 				result = zone_get_from_db(
-					zone, zone->db, NULL, &soacount,
+					zone, zone->db, NULL, &soacount, NULL,
 					&serial, NULL, NULL, NULL, NULL, NULL);
 			} else {
 				result = DNS_R_NOTLOADED;
@@ -12714,7 +12737,7 @@ stub_finish_zone_update(dns_stub_t *stub, isc_time_t now) {
 	if (zone->db == NULL) {
 		zone_attachdb(zone, stub->db);
 	}
-	result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL,
+	result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL, NULL,
 				  &refresh, &retry, &expire, NULL, NULL);
 	if (result == ISC_R_SUCCESS && soacount > 0U) {
 		zone->refresh = RANGE(refresh, zone->minrefresh,
@@ -13772,8 +13795,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
 		unsigned int dbsoacount;
 		result = zone_get_from_db(zone, zone->db, NULL, &dbsoacount,
-					  &oldserial, NULL, NULL, NULL, NULL,
-					  NULL);
+					  NULL, &oldserial, NULL, NULL, NULL,
+					  NULL, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		RUNTIME_CHECK(dbsoacount > 0U);
 		zone_debuglog(zone, me, 1, "serial: new %u, old %u", serial,
@@ -15083,8 +15106,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			 * lock and succeed in this context.
 			 */
 			result = zone_get_from_db(zone, zone->db, NULL,
-						  &soacount, &oldserial, NULL,
-						  NULL, NULL, NULL, NULL);
+						  &soacount, NULL, &oldserial,
+						  NULL, NULL, NULL, NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			RUNTIME_CHECK(soacount > 0U);
 			if (isc_serial_le(serial, oldserial)) {
@@ -16816,7 +16839,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 	}
 
 	result = zone_get_from_db(zone, db, &nscount, &soacount, NULL, NULL,
-				  NULL, NULL, NULL, NULL);
+				  NULL, NULL, NULL, NULL, NULL);
 	if (result == ISC_R_SUCCESS) {
 		if (soacount != 1) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "has %d SOA records",
@@ -16869,7 +16892,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		/*
 		 * This is checked in zone_postload() for master zones.
 		 */
-		result = zone_get_from_db(zone, zone->db, NULL, &soacount,
+		result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL,
 					  &oldserial, NULL, NULL, NULL, NULL,
 					  NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -17005,7 +17028,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	bool again = false;
 	unsigned int soacount;
 	unsigned int nscount;
-	uint32_t serial, refresh, retry, expire, minimum;
+	uint32_t serial, refresh, retry, expire, minimum, soattl;
 	isc_result_t xfrresult = result;
 	bool free_needed;
 	dns_zone_t *secure = NULL;
@@ -17062,8 +17085,8 @@ again:
 		soacount = 0;
 		INSIST(zone->db != NULL);
 		result = zone_get_from_db(zone, zone->db, &nscount, &soacount,
-					  &serial, &refresh, &retry, &expire,
-					  &minimum, NULL);
+					  &soattl, &serial, &refresh, &retry,
+					  &expire, &minimum, NULL);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 		if (result == ISC_R_SUCCESS) {
 			if (soacount != 1) {
@@ -17093,6 +17116,7 @@ again:
 			zone->expire = RANGE(expire,
 					     zone->refresh + zone->retry,
 					     DNS_MAX_EXPIRE);
+			zone->soattl = soattl;
 			zone->minimum = minimum;
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
 		}
@@ -19815,10 +19839,10 @@ add_chains(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	CHECK(dns_private_chains(db, ver, zone->privatetype, NULL,
 				 &build_nsec3));
 	if (build_nsec3) {
-		CHECK(dns_nsec3_addnsec3sx(db, ver, origin, zone->minimum,
+		CHECK(dns_nsec3_addnsec3sx(db, ver, origin, zone_nsecttl(zone),
 					   false, zone->privatetype, diff));
 	}
-	CHECK(updatesecure(db, ver, origin, zone->minimum, true, diff));
+	CHECK(updatesecure(db, ver, origin, zone_nsecttl(zone), true, diff));
 
 failure:
 	return (result);
@@ -21812,4 +21836,11 @@ done:
 	}
 
 	return (result);
+}
+
+static inline dns_ttl_t
+zone_nsecttl(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (ISC_MIN(zone->minimum, zone->soattl));
 }
