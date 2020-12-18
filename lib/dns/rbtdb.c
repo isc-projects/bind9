@@ -1257,11 +1257,11 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
 		NODE_LOCK(&rbtdb->node_locks[i].lock, isc_rwlocktype_write);
 		rbtdb->node_locks[i].exiting = true;
-		NODE_UNLOCK(&rbtdb->node_locks[i].lock, isc_rwlocktype_write);
 		if (isc_refcount_current(&rbtdb->node_locks[i].references) == 0)
 		{
 			inactive++;
 		}
+		NODE_UNLOCK(&rbtdb->node_locks[i].lock, isc_rwlocktype_write);
 	}
 
 	if (inactive != 0) {
