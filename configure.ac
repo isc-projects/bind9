@@ -65,8 +65,11 @@ AC_CONFIG_MACRO_DIR([m4])
 
 #
 # Enable maintainer mode by default only when building from git repository
+# and not cross compling
 #
-AM_MAINTAINER_MODE([m4_ifset([bind_SRCID],[enable],[disable])])
+AS_IF([test "$cross_compiling" = no],
+      [AM_MAINTAINER_MODE(m4_ifset([bind_SRCID],[enable],[disable]))],
+      [AM_MAINTAINER_MODE([disable])])
 
 # Set the library versions
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
