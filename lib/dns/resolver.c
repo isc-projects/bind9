@@ -228,7 +228,6 @@ typedef struct query {
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatch;
 	dns_adbaddrinfo_t *addrinfo;
-	isc_socket_t *tcpsocket;
 	isc_time_t start;
 	dns_messageid_t id;
 	dns_dispentry_t *dispentry;
@@ -1200,7 +1199,7 @@ resquery_destroy(resquery_t **queryp) {
 	*queryp = NULL;
 	REQUIRE(!ISC_LINK_LINKED(query, link));
 
-	INSIST(query->tcpsocket == NULL);
+	INSIST(query->dispatch == NULL);
 
 	fctx = query->fctx;
 	res = fctx->res;
@@ -1245,13 +1244,13 @@ update_edns_stats(resquery_t *query) {
 static void
 fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		 isc_time_t *finish, bool no_response, bool age_untried) {
-	fetchctx_t *fctx;
-	resquery_t *query;
+	fetchctx_t *fctx = NULL;
+	resquery_t *query = NULL;
 	unsigned int rtt, rttms;
 	unsigned int factor;
-	dns_adbfind_t *find;
+	dns_adbfind_t *find = NULL;
+	isc_socket_t *sock = NULL;
 	dns_adbaddrinfo_t *addrinfo;
-	isc_socket_t *sock;
 	isc_stdtime_t now;
 
 	query = *queryp;
@@ -1423,33 +1422,20 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	 * only needs to worry about managing the connect and send events;
 	 * the dispatcher manages the recv events.
 	 */
-	if (RESQUERY_CONNECTING(query)) {
-		/*
-		 * Cancel the connect.
-		 */
-		if (query->tcpsocket != NULL) {
-			isc_socket_cancel(query->tcpsocket, NULL,
-					  ISC_SOCKCANCEL_CONNECT);
-		} else if (query->dispentry != NULL) {
-			sock = dns_dispatch_getentrysocket(query->dispentry);
-			if (sock != NULL) {
-				isc_socket_cancel(sock, NULL,
-						  ISC_SOCKCANCEL_CONNECT);
-			}
-		}
+	if (query->dispentry != NULL) {
+		sock = dns_dispatch_getentrysocket(query->dispentry);
+	} else {
+		sock = dns_dispatch_getsocket(query->dispatch);
 	}
-	if (RESQUERY_SENDING(query)) {
-		/*
-		 * Cancel the pending send.
-		 */
-		if (query->dispentry != NULL) {
-			sock = dns_dispatch_getentrysocket(query->dispentry);
-		} else {
-			sock = dns_dispatch_getsocket(query->dispatch);
-		}
-		if (sock != NULL) {
-			isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
-		}
+
+	/* Cancel the connect. */
+	if (sock != NULL && RESQUERY_CONNECTING(query)) {
+		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_CONNECT);
+	}
+
+	/* Cancel the pending send. */
+	if (sock != NULL && RESQUERY_SENDING(query)) {
+		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
 	}
 
 	if (query->dispentry != NULL) {
@@ -1829,19 +1815,12 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 	bool destroy_query = false;
 	bool retry = false;
 	isc_result_t result;
-	fetchctx_t *fctx;
+	fetchctx_t *fctx = NULL;
 
 	fctx = query->fctx;
 
 	if (RESQUERY_CANCELED(query)) {
 		if (query->sends == 0 && query->connects == 0) {
-			/*
-			 * This query was canceled while the
-			 * isc_socket_sendto/connect() was in progress.
-			 */
-			if (query->tcpsocket != NULL) {
-				isc_socket_detach(&query->tcpsocket);
-			}
 			destroy_query = true;
 		}
 	} else {
@@ -2007,10 +1986,10 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 static isc_result_t
 fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	   unsigned int options) {
-	dns_resolver_t *res;
-	isc_task_t *task;
+	dns_resolver_t *res = NULL;
+	isc_task_t *task = NULL;
 	isc_result_t result;
-	resquery_t *query;
+	resquery_t *query = NULL;
 	isc_sockaddr_t addr;
 	bool have_addr = false;
 	unsigned int srtt;
@@ -2123,21 +2102,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			query->dscp = dscp;
 		}
 
-		result = isc_socket_create(res->socketmgr, pf,
-					   isc_sockettype_tcp,
-					   &query->tcpsocket);
+		result = dns_dispatch_createtcp(
+			res->dispatchmgr, res->socketmgr, res->taskmgr, &addr,
+			&addrinfo->sockaddr, 0, query->dscp, &query->dispatch);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_query;
 		}
-
-		result = isc_socket_bind(query->tcpsocket, &addr, 0);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_socket;
-		}
-
-		/*
-		 * A dispatch will be created once the connect succeeds.
-		 */
 	} else {
 		if (have_addr) {
 			switch (isc_sockaddr_pf(&addr)) {
@@ -2195,19 +2165,16 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->magic = QUERY_MAGIC;
 
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		isc_socket_t *sock = NULL;
+
 		/*
 		 * Connect to the remote server.
-		 *
-		 * XXXRTH  Should we attach to the socket?
 		 */
-		if (query->dscp != -1) {
-			isc_socket_dscp(query->tcpsocket, query->dscp);
-		}
-		result = isc_socket_connect(query->tcpsocket,
-					    &addrinfo->sockaddr, task,
+		sock = dns_dispatch_getsocket(query->dispatch);
+		result = isc_socket_connect(sock, &addrinfo->sockaddr, task,
 					    resquery_connected, query);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_socket;
+			goto cleanup_dispatch;
 		}
 		query->connects++;
 		QTRACE("connecting via TCP");
@@ -2243,9 +2210,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	}
 
 	return (ISC_R_SUCCESS);
-
-cleanup_socket:
-	isc_socket_detach(&query->tcpsocket);
 
 cleanup_dispatch:
 	if (query->dispatch != NULL) {
@@ -2961,11 +2925,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		 * This query was canceled while the connect() was in
 		 * progress.
 		 */
-		isc_socket_detach(&query->tcpsocket);
 		resquery_destroy(&query);
 	} else {
-		int attrs = 0;
-
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
 
@@ -2989,27 +2950,16 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, result, __LINE__);
 				break;
 			}
+
 			/*
-			 * We are connected.  Create a dispatcher and
+			 * We are connected.  Update the dispatcher and
 			 * send the query.
 			 */
-			attrs = DNS_DISPATCHATTR_CONNECTED;
-			result = dns_dispatch_createtcp(
-				query->dispatchmgr, query->tcpsocket,
-				query->fctx->res->taskmgr, NULL, NULL, attrs,
-				&query->dispatch);
+			dns_dispatch_changeattributes(
+				query->dispatch, DNS_DISPATCHATTR_CONNECTED,
+				DNS_DISPATCHATTR_CONNECTED);
 
-			/*
-			 * Regardless of whether dns_dispatch_create()
-			 * succeeded or not, we don't need our reference
-			 * to the socket anymore.
-			 */
-			isc_socket_detach(&query->tcpsocket);
-
-			if (result == ISC_R_SUCCESS) {
-				result = resquery_send(query);
-			}
-
+			result = resquery_send(query);
 			if (result != ISC_R_SUCCESS) {
 				FCTXTRACE("query canceled: "
 					  "resquery_send() failed; responding");
@@ -3031,10 +2981,6 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				   sevent->result);
 
 			/*
-			 * No route to remote.
-			 */
-			isc_socket_detach(&query->tcpsocket);
-			/*
 			 * Do not query this server again in this fetch context
 			 * if the server is unavailable over TCP.
 			 */
@@ -3049,7 +2995,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				   "unexpected event result; responding",
 				   sevent->result);
 
-			isc_socket_detach(&query->tcpsocket);
+			dns_dispatch_detach(&query->dispatch);
 			fctx_cancelquery(&query, NULL, NULL, false, false);
 			break;
 		}

@@ -223,10 +223,10 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
  */
 
 isc_result_t
-dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, unsigned int attributes,
-		       dns_dispatch_t **dispp);
+		       isc_dscp_t dscp, dns_dispatch_t **dispp);
 /*%<
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *

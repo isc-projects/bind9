@@ -498,9 +498,6 @@ tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
 	     isc_dscp_t dscp, bool *connected, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
-	isc_socket_t *sock = NULL;
-	isc_sockaddr_t src;
-	isc_sockaddr_t bind_any;
 
 	if (!newtcp) {
 		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
@@ -517,31 +514,9 @@ tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 		}
 	}
 
-	result = isc_socket_create(requestmgr->socketmgr,
-				   isc_sockaddr_pf(destaddr),
-				   isc_sockettype_tcp, &sock);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	if (srcaddr == NULL) {
-		isc_sockaddr_anyofpf(&bind_any, isc_sockaddr_pf(destaddr));
-		result = isc_socket_bind(sock, &bind_any, 0);
-	} else {
-		src = *srcaddr;
-		isc_sockaddr_setport(&src, 0);
-		result = isc_socket_bind(sock, &src, 0);
-	}
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	isc_socket_dscp(sock, dscp);
-	result = dns_dispatch_createtcp(requestmgr->dispatchmgr, sock,
-					requestmgr->taskmgr, srcaddr, destaddr,
-					0, dispatchp);
-
-cleanup:
-	isc_socket_detach(&sock);
+	result = dns_dispatch_createtcp(
+		requestmgr->dispatchmgr, requestmgr->socketmgr,
+		requestmgr->taskmgr, srcaddr, destaddr, 0, dscp, dispatchp);
 	return (result);
 }
 
