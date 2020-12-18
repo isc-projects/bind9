@@ -1334,8 +1334,8 @@ get_soa_ttls(void) {
 	result = dns_rdataset_first(&soaset);
 	check_result(result, "dns_rdataset_first");
 	dns_rdataset_current(&soaset, &rdata);
-	zone_soa_min_ttl = dns_soa_getminimum(&rdata);
 	soa_ttl = soaset.ttl;
+	zone_soa_min_ttl = ISC_MIN(dns_soa_getminimum(&rdata), soa_ttl);
 	if (set_maxttl) {
 		zone_soa_min_ttl = ISC_MIN(zone_soa_min_ttl, maxttl);
 		soa_ttl = ISC_MIN(soa_ttl, maxttl);
