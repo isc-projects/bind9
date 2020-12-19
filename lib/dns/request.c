@@ -729,8 +729,8 @@ again:
 
 	request->destaddr = *destaddr;
 	if (tcp && !connected) {
-		result = isc_socket_connect(sock, destaddr, task, req_connected,
-					    request);
+		result = dns_dispatch_connect(request->dispatch, NULL, task,
+					      req_connected, request);
 		if (result != ISC_R_SUCCESS) {
 			goto unlink;
 		}
@@ -912,8 +912,8 @@ use_tcp:
 
 	request->destaddr = *destaddr;
 	if (tcp && !connected) {
-		result = isc_socket_connect(sock, destaddr, task, req_connected,
-					    request);
+		result = dns_dispatch_connect(request->dispatch, NULL, task,
+					      req_connected, request);
 		if (result != ISC_R_SUCCESS) {
 			goto unlink;
 		}

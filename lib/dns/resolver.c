@@ -2165,14 +2165,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->magic = QUERY_MAGIC;
 
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
-		isc_socket_t *sock = NULL;
-
 		/*
 		 * Connect to the remote server.
 		 */
-		sock = dns_dispatch_getsocket(query->dispatch);
-		result = isc_socket_connect(sock, &addrinfo->sockaddr, task,
-					    resquery_connected, query);
+		result = dns_dispatch_connect(query->dispatch, NULL, task,
+					      resquery_connected, query);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_dispatch;
 		}
@@ -2314,11 +2311,6 @@ addr2buf(void *buf, const size_t bufsize, const isc_sockaddr_t *sockaddr) {
 	return (0);
 }
 
-static inline isc_socket_t *
-query2sock(const resquery_t *query) {
-	return (dns_dispatch_getentrysocket(query->dispentry));
-}
-
 static inline size_t
 add_serveraddr(uint8_t *buf, const size_t bufsize, const resquery_t *query) {
 	return (addr2buf(buf, bufsize, &query->addrinfo->sockaddr));
@@ -2371,17 +2363,17 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 
 static isc_result_t
 resquery_send(resquery_t *query) {
-	fetchctx_t *fctx;
+	fetchctx_t *fctx = NULL;
 	isc_result_t result;
 	dns_name_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 	isc_region_t r;
-	dns_resolver_t *res;
+	dns_resolver_t *res = NULL;
 	isc_task_t *task;
 	isc_socket_t *sock;
 	isc_buffer_t tcpbuffer;
-	isc_sockaddr_t *address;
-	isc_buffer_t *buffer;
+	isc_sockaddr_t *address = NULL;
+	isc_buffer_t *buffer = NULL;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_peer_t *peer = NULL;
@@ -2406,7 +2398,6 @@ resquery_send(resquery_t *query) {
 
 	res = fctx->res;
 	task = res->buckets[fctx->bucketnum].task;
-	address = NULL;
 
 	if (tcp) {
 		/*
@@ -2805,21 +2796,19 @@ resquery_send(resquery_t *query) {
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
-	sock = query2sock(query);
-
-	/*
-	 * Send the query!
-	 */
 	if (!tcp) {
-		address = &query->addrinfo->sockaddr;
-		result = isc_socket_connect(sock, address, task,
-					    resquery_udpconnected, query);
+		/* Connect the UDP socket */
+		result = dns_dispatch_connect(NULL, query->dispentry, task,
+					      resquery_udpconnected, query);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_message;
 		}
 		query->connects++;
 	}
+
 	isc_buffer_usedregion(buffer, &r);
+
+	sock = dns_dispatch_getentrysocket(query->dispentry);
 
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
@@ -2841,6 +2830,7 @@ resquery_send(resquery_t *query) {
 		}
 	}
 
+	address = tcp ? NULL : &query->addrinfo->sockaddr;
 	result = isc_socket_sendto2(sock, &r, task, address, NULL,
 				    &query->sendevent, 0);
 	INSIST(result == ISC_R_SUCCESS);
@@ -9848,8 +9838,7 @@ rctx_logpacket(respctx_t *rctx) {
 		dtmsgtype = DNS_DTTYPE_RR;
 	}
 
-	sock = query2sock(rctx->query);
-
+	sock = dns_dispatch_getentrysocket(rctx->query);
 	if (sock != NULL) {
 		result = isc_socket_getsockname(sock, &localaddr);
 		if (result == ISC_R_SUCCESS) {

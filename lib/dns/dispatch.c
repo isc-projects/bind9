@@ -71,22 +71,6 @@ struct dns_dispatchmgr {
 
 	isc_refcount_t irefs;
 
-	/*%
-	 * Locked by qid->lock if qid exists; otherwise, can be used without
-	 * being locked.
-	 *
-	 * Memory footprint considerations: this is a simple implementation of
-	 * available ports, i.e., an ordered array of the actual port numbers.
-	 * This will require about 256KB of memory in the worst case (128KB for
-	 * each of IPv4 and IPv6).  We could reduce it by representing it as a
-	 * more sophisticated way such as a list (or array) of ranges that are
-	 * searched to identify a specific port.  Our decision here is the saved
-	 * memory isn't worth the implementation complexity, considering the
-	 * fact that the whole BIND9 process (which is mainly named) already
-	 * requires a pretty large memory footprint.  We may, however, have to
-	 * revisit the decision when we want to use it as a separate module for
-	 * an environment where memory requirement is severer.
-	 */
 	in_port_t *v4ports;    /*%< available ports for IPv4 */
 	unsigned int nv4ports; /*%< # of available ports for IPv4 */
 	in_port_t *v6ports;    /*%< available ports for IPv4 */
@@ -2589,6 +2573,28 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	if (killit) {
 		isc_task_send(disp->task[0], &disp->ctlevent);
 	}
+}
+
+isc_result_t
+dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
+		     isc_task_t *task, isc_taskaction_t action, void *arg) {
+	isc_socket_t *sock = NULL;
+	isc_sockaddr_t *address = NULL;
+
+	if (resp != NULL) {
+		REQUIRE(VALID_RESPONSE(resp));
+		sock = resp->dispsocket->socket;
+		address = &resp->host;
+	} else if (disp != NULL) {
+		REQUIRE(VALID_DISPATCH(disp));
+		sock = disp->socket;
+		address = &disp->peer;
+	} else {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	return (isc_socket_connect(sock, address, task, action, arg));
 }
 
 /*

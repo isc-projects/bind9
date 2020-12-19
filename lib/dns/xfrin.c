@@ -956,7 +956,6 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		ISC_UNREACHABLE();
 	}
 
-	/* TODO	isc_socket_dscp(xfr->socket, xfr->dscp); */
 	return (ISC_R_SUCCESS);
 
 failure:
@@ -1035,6 +1034,7 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	xfr->handle = handle;
 	sockaddr = isc_nmhandle_peeraddr(handle);
 	isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));
+	/* TODO	set DSCP */
 
 	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
 		dns_name_format(dst_key_name(xfr->tsigkey->key), signerbuf,

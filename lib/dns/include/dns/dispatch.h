@@ -264,6 +264,18 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  *\li	dispp != NULL and *dispp be a valid dispatch.
  */
 
+isc_result_t
+dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
+		     isc_task_t *task, isc_taskaction_t action, void *arg);
+/*%<
+ * Connect the UDP socket in 'resp' or the TCP socket in 'disp' to the
+ * remote server, and run the specified callback.
+ *
+ * Requires:
+ *\li	'resp' is NULL and 'disp' is valid, or
+ *\li	'disp' is NULL and 'resp' is valid.
+ */
+
 void
 dns_dispatch_starttcp(dns_dispatch_t *disp);
 /*%<
