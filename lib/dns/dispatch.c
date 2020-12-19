@@ -35,7 +35,6 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/stats.h>
-#include <dns/tcpmsg.h>
 #include <dns/types.h>
 
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
@@ -133,6 +132,18 @@ struct dispsocket {
 	ISC_LINK(dispsocket_t) blink;
 };
 
+typedef struct tcpmsg {
+	uint16_t size;
+	dns_dispatch_t *disp;
+	isc_buffer_t buffer;
+	isc_task_t *task;
+	isc_taskaction_t action;
+	void *arg;
+	isc_event_t event;
+	isc_result_t result;
+	isc_sockaddr_t address;
+} tcpmsg_t;
+
 /*%
  * Number of tasks for each dispatch that use separate sockets for different
  * transactions.  This must be a power of 2 as it will divide 32 bit numbers
@@ -176,7 +187,7 @@ struct dns_dispatch {
 	unsigned int nsockets;
 	unsigned int requests;	 /*%< how many requests we have */
 	unsigned int tcpbuffers; /*%< allocated buffers */
-	dns_tcpmsg_t tcpmsg;	 /*%< for tcp streams */
+	tcpmsg_t tcpmsg;
 };
 
 #define QID_MAGIC    ISC_MAGIC('Q', 'i', 'd', ' ')
@@ -1123,7 +1134,7 @@ restart:
 static void
 tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatch_t *disp = ev_in->ev_arg;
-	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
+	tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
 	isc_result_t dres;
 	unsigned int flags;
@@ -1206,13 +1217,13 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	}
 
 	dispatch_log(disp, LVL(90), "result %d, length == %d, addr = %p",
-		     tcpmsg->result, tcpmsg->buffer.length,
-		     tcpmsg->buffer.base);
+		     tcpmsg->result, disp->tcpmsg.buffer.length,
+		     disp->tcpmsg.buffer.base);
 
 	/*
 	 * Peek into the buffer to see what we can see.
 	 */
-	dres = dns_message_peekheader(&tcpmsg->buffer, &id, &flags);
+	dres = dns_message_peekheader(&disp->tcpmsg.buffer, &id, &flags);
 	if (dres != ISC_R_SUCCESS) {
 		dispatch_log(disp, LVL(10), "got garbage packet");
 		goto restart;
@@ -1258,7 +1269,10 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 * resp contains the information on the place to send it to.
 	 * Send the event off.
 	 */
-	dns_tcpmsg_keepbuffer(tcpmsg, &rev->buffer);
+	rev->buffer = disp->tcpmsg.buffer;
+	disp->tcpmsg.buffer.base = NULL;
+	disp->tcpmsg.buffer.length = 0;
+
 	disp->tcpbuffers++;
 	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
@@ -1286,6 +1300,115 @@ restart:
 
 	isc_event_free(&ev_in);
 	UNLOCK(&disp->lock);
+}
+
+static void
+recv_tcpmsg(isc_task_t *task, isc_event_t *ev_in) {
+	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
+	tcpmsg_t *tcpmsg = ev_in->ev_arg;
+	isc_event_t *dev = &tcpmsg->event;
+
+	UNUSED(task);
+
+	tcpmsg->address = ev->address;
+
+	if (ev->result != ISC_R_SUCCESS) {
+		tcpmsg->result = ev->result;
+		goto send_and_free;
+	}
+
+	tcpmsg->result = ISC_R_SUCCESS;
+	isc_buffer_add(&tcpmsg->buffer, ev->n);
+
+send_and_free:
+	isc_task_send(tcpmsg->task, &dev);
+	tcpmsg->task = NULL;
+	isc_event_free(&ev_in);
+}
+
+static void
+recv_tcplen(isc_task_t *task, isc_event_t *ev_in) {
+	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
+	tcpmsg_t *tcpmsg = ev_in->ev_arg;
+	isc_event_t *dev = &tcpmsg->event;
+	isc_region_t region;
+	isc_result_t result;
+
+	tcpmsg->address = ev->address;
+
+	if (ev->result != ISC_R_SUCCESS) {
+		tcpmsg->result = ev->result;
+		goto send_and_free;
+	}
+
+	/*
+	 * Success.
+	 */
+	tcpmsg->size = ntohs(tcpmsg->size);
+	if (tcpmsg->size == 0) {
+		tcpmsg->result = ISC_R_UNEXPECTEDEND;
+		goto send_and_free;
+	}
+
+	region.base = isc_mem_get(tcpmsg->disp->mgr->mctx, tcpmsg->size);
+	region.length = tcpmsg->size;
+	if (region.base == NULL) {
+		tcpmsg->result = ISC_R_NOMEMORY;
+		goto send_and_free;
+	}
+
+	isc_buffer_init(&tcpmsg->buffer, region.base, region.length);
+	result = isc_socket_recv(tcpmsg->disp->socket, &region, 0, task,
+				 recv_tcpmsg, tcpmsg);
+	if (result != ISC_R_SUCCESS) {
+		tcpmsg->result = result;
+		goto send_and_free;
+	}
+
+	isc_event_free(&ev_in);
+	return;
+
+send_and_free:
+	isc_task_send(tcpmsg->task, &dev);
+	tcpmsg->task = NULL;
+	isc_event_free(&ev_in);
+	return;
+}
+
+static isc_result_t
+tcp_readmessage(tcpmsg_t *tcpmsg, isc_task_t *task, isc_taskaction_t action,
+		void *arg) {
+	isc_result_t result;
+	isc_region_t region;
+
+	REQUIRE(task != NULL);
+	REQUIRE(tcpmsg->task == NULL); /* not currently in use */
+
+	if (tcpmsg->buffer.base != NULL) {
+		isc_mem_put(tcpmsg->disp->mgr->mctx, tcpmsg->buffer.base,
+			    tcpmsg->buffer.length);
+		tcpmsg->buffer.base = NULL;
+		tcpmsg->buffer.length = 0;
+	}
+
+	tcpmsg->task = task;
+	tcpmsg->action = action;
+	tcpmsg->arg = arg;
+	tcpmsg->result = ISC_R_UNEXPECTED; /* unknown right now */
+
+	ISC_EVENT_INIT(&tcpmsg->event, sizeof(isc_event_t), 0, 0,
+		       DNS_EVENT_TCPMSG, action, arg, tcpmsg, NULL, NULL);
+
+	region.base = (unsigned char *)&tcpmsg->size;
+	region.length = 2; /* uint16_t */
+	result = isc_socket_recv(tcpmsg->disp->socket, &region, 0, tcpmsg->task,
+				 recv_tcplen, tcpmsg);
+
+	if (result != ISC_R_SUCCESS) {
+		tcpmsg->task = NULL;
+	}
+
+	return (result);
 }
 
 /*
@@ -1333,8 +1456,8 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		break;
 
 	case isc_sockettype_tcp:
-		res = dns_tcpmsg_readmessage(&disp->tcpmsg, disp->task[0],
-					     tcp_recv, disp);
+		res = tcp_readmessage(&disp->tcpmsg, disp->task[0], tcp_recv,
+				      disp);
 		if (res != ISC_R_SUCCESS) {
 			disp->shutdown_why = res;
 			disp->shutting_down = 1;
@@ -1732,7 +1855,12 @@ dispatch_free(dns_dispatch_t **dispp) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 
 	if (disp->tcpmsg_valid) {
-		dns_tcpmsg_invalidate(&disp->tcpmsg);
+		if (disp->tcpmsg.buffer.base != NULL) {
+			isc_mem_put(disp->mgr->mctx, disp->tcpmsg.buffer.base,
+				    disp->tcpmsg.buffer.length);
+			disp->tcpmsg.buffer.base = NULL;
+			disp->tcpmsg.buffer.length = 0;
+		}
 		disp->tcpmsg_valid = 0;
 	}
 
@@ -1820,7 +1948,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	isc_task_setname(disp->task[0], "tcpdispatch", disp);
 
-	dns_tcpmsg_init(mgr->mctx, disp->socket, &disp->tcpmsg);
+	disp->tcpmsg = (tcpmsg_t){ .disp = disp, .result = ISC_R_UNEXPECTED };
 	disp->tcpmsg_valid = 1;
 
 	/*

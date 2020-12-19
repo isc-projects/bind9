@@ -126,7 +126,6 @@ libdns_la_HEADERS =			\
 	include/dns/soa.h		\
 	include/dns/ssu.h		\
 	include/dns/stats.h		\
-	include/dns/tcpmsg.h		\
 	include/dns/time.h		\
 	include/dns/timer.h		\
 	include/dns/transport.h		\
@@ -232,7 +231,6 @@ libdns_la_SOURCES =			\
 	ssu.c				\
 	ssu_external.c			\
 	stats.c				\
-	tcpmsg.c			\
 	time.c				\
 	timer.c				\
 	transport.c			\

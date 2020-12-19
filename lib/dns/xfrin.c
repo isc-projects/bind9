@@ -34,7 +34,6 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/soa.h>
-#include <dns/tcpmsg.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
