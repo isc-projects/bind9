@@ -5687,7 +5687,7 @@ Other rule definitions look like this:
 Each rule grants or denies privileges. Rules are checked in the order in
 which they are specified in the ``update-policy`` statement. Once a
 message has successfully matched a rule, the operation is immediately
-granted or denied, and no further rules are examined. There are 13 types
+granted or denied, and no further rules are examined. There are 16 types
 of rules; the rule type is specified by the ``ruletype`` field, and the
 interpretation of other fields varies depending on the rule type.
 
