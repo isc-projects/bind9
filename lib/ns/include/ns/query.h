@@ -116,6 +116,7 @@ struct ns_query {
 #define NS_QUERYATTR_RRL_CHECKED     0x10000
 #define NS_QUERYATTR_REDIRECT	     0x20000
 #define NS_QUERYATTR_ANSWERED	     0x40000
+#define NS_QUERYATTR_STALEOK	     0x80000
 
 typedef struct query_ctx query_ctx_t;
 
