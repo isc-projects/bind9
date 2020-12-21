@@ -21,10 +21,10 @@ libbind9_la_CPPFLAGS =		\
 	$(LIBBIND9_CFLAGS)
 
 libbind9_la_LIBADD =		\
-	$(LIBISC_LIBS)		\
-	$(LIBDNS_LIBS)		\
 	$(LIBNS_LIBS)		\
-	$(LIBISCCFG_LIBS)
+	$(LIBISCCFG_LIBS)	\
+	$(LIBDNS_LIBS)		\
+	$(LIBISC_LIBS)
 
 libbind9_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\

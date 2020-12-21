@@ -5,8 +5,8 @@ AM_CPPFLAGS +=			\
 	$(LIBDNS_CFLAGS)
 
 LDADD =				\
-	$(LIBISC_LIBS)		\
-	$(LIBDNS_LIBS)
+	$(LIBDNS_LIBS)		\
+	$(LIBISC_LIBS)
 
 bin_PROGRAMS =			\
 	arpaname		\
@@ -23,9 +23,10 @@ mdig_CPPFLAGS =			\
 	$(LIBBIND9_CFLAGS)
 
 mdig_LDADD =			\
-	$(LIBISC_LIBS)		\
+	$(LIBBIND9_LIBS)	\
+	$(LIBISCCFG_LIBS)	\
 	$(LIBDNS_LIBS)		\
-	$(LIBBIND9_LIBS)
+	$(LIBISC_LIBS)
 
 if HAVE_DNSTAP
 bin_PROGRAMS +=			\
@@ -37,8 +38,8 @@ dnstap_read_CPPFLAGS =		\
 	-I$(top_builddir)/lib/dns
 
 dnstap_read_LDADD =		\
-	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\
+	$(LIBISC_LIBS)		\
 	$(DNSTAP_LIBS)
 endif
 
@@ -52,7 +53,6 @@ named_nzd2nzf_CFLAGS =		\
 
 named_nzd2nzf_LDADD =		\
 	$(LIBISC_LIBS)		\
-	$(LIBDNS_LIBS)		\
 	$(LMDB_LIBS)
 
 endif
