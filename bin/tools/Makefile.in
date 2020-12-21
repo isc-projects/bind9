@@ -87,16 +87,16 @@ nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS}
 	export BASEOBJS="isc-hmac-fixup.@O@"; \
-	export LIBS0="${ISCLIBS}"; \
+	export LIBS0=""; \
 	${FINALBUILDCMD}
 
 genrandom@EXEEXT@: genrandom.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ genrandom.@O@ @GENRANDOMLIB@ ${LIBS}
 
-mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
+mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCCFGDEPLIBS}
 	export BASEOBJS="mdig.@O@"; \
-	export LIBS0="${DNSLIBS} ${BIND9LIBS}"; \
+	export LIBS0="${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
 dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
@@ -104,9 +104,9 @@ dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export LIBS0="${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-named-nzd2nzf@EXEEXT@: named-nzd2nzf.@O@ ${NZDDEPLIBS}
+named-nzd2nzf@EXEEXT@: named-nzd2nzf.@O@ ${ISCDEPLIBS}
 	export BASEOBJS="named-nzd2nzf.@O@"; \
-	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS}"; \
+	export LIBS0=""; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
