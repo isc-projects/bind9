@@ -124,7 +124,7 @@ PERL=$(command -v "@PERL@")
 # Windows process management leave empty
 PSSUSPEND=
 
-PYTHON=$(command -v "@PYTHON@")
+PYTHON=$(command -v "@PYTHON@" || true)
 PYTEST=@PYTEST@
 
 #
