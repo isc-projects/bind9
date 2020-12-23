@@ -777,7 +777,7 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
  */
 static bool
 keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
-	       dst_key_state_t next_state) {
+	       dst_key_state_t next_state, bool secure_to_insecure) {
 	dst_key_state_t states[2][4] = {
 		/* DNSKEY, ZRRSIG, KRRSIG, DS */
 		{ NA, NA, NA, OMNIPRESENT }, /* DS present */
@@ -792,7 +792,10 @@ keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 	return (keymgr_key_exists_with_state(keyring, key, type, next_state,
 					     states[0], na, false, false) ||
 		keymgr_key_exists_with_state(keyring, key, type, next_state,
-					     states[1], na, false, false));
+					     states[1], na, false, false) ||
+		(secure_to_insecure &&
+		 keymgr_key_exists_with_state(keyring, key, type, next_state,
+					      na, na, false, false)));
 }
 
 /*
@@ -1022,14 +1025,17 @@ keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
  */
 static bool
 keymgr_transition_allowed(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
-			  int type, dst_key_state_t next_state) {
+			  int type, dst_key_state_t next_state,
+			  bool secure_to_insecure) {
 	/* Debug logging. */
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		bool rule1a, rule1b, rule2a, rule2b, rule3a, rule3b;
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key->key, keystr, sizeof(keystr));
-		rule1a = keymgr_have_ds(keyring, key, type, NA);
-		rule1b = keymgr_have_ds(keyring, key, type, next_state);
+		rule1a = keymgr_have_ds(keyring, key, type, NA,
+					secure_to_insecure);
+		rule1b = keymgr_have_ds(keyring, key, type, next_state,
+					secure_to_insecure);
 		rule2a = keymgr_have_dnskey(keyring, key, type, NA);
 		rule2b = keymgr_have_dnskey(keyring, key, type, next_state);
 		rule3a = keymgr_have_rrsig(keyring, key, type, NA);
@@ -1054,8 +1060,9 @@ keymgr_transition_allowed(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * invalid state.  If the rule check passes, also check if
 		 * the next state is also still a valid situation.
 		 */
-		(!keymgr_have_ds(keyring, key, type, NA) ||
-		 keymgr_have_ds(keyring, key, type, next_state)) &&
+		(!keymgr_have_ds(keyring, key, type, NA, secure_to_insecure) ||
+		 keymgr_have_ds(keyring, key, type, next_state,
+				secure_to_insecure)) &&
 		/*
 		 * Rule 2: There must be a DNSKEY at all times.  Again, first
 		 * check the current situation, then assess the next state.
@@ -1246,7 +1253,7 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
  */
 static isc_result_t
 keymgr_update(dns_dnsseckeylist_t *keyring, dns_kasp_t *kasp, isc_stdtime_t now,
-	      isc_stdtime_t *nexttime) {
+	      isc_stdtime_t *nexttime, bool secure_to_insecure) {
 	bool changed;
 
 	/* Repeat until nothing changed. */
@@ -1328,7 +1335,9 @@ transition:
 
 			/* Is the transition DNSSEC safe? */
 			if (!keymgr_transition_allowed(keyring, dkey, i,
-						       next_state)) {
+						       next_state,
+						       secure_to_insecure))
+			{
 				/* No, this would make the zone bogus. */
 				isc_log_write(
 					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
@@ -1677,6 +1686,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	dns_dnsseckey_t *newkey = NULL;
 	isc_dir_t dir;
 	bool dir_open = false;
+	bool secure_to_insecure = false;
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	char keystr[DST_KEY_FORMATSIZE];
 
@@ -1832,8 +1842,14 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		ISC_LIST_APPENDLIST(*keyring, newkeys, link);
 	}
 
+	/*
+	 * If the policy has an empty key list, this means the zone is going
+	 * back to unsigned.
+	 */
+	secure_to_insecure = dns_kasp_keylist_empty(kasp);
+
 	/* Read to update key states. */
-	keymgr_update(keyring, kasp, now, nexttime);
+	keymgr_update(keyring, kasp, now, nexttime, secure_to_insecure);
 
 	/* Store key states and update hints. */
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;

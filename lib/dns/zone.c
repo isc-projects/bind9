@@ -1830,7 +1830,7 @@ dns_zone_isdynamic(dns_zone_t *zone, bool ignore_freeze) {
 	}
 
 	/* Kasp zones are always dynamic. */
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (dns_zone_use_kasp(zone)) {
 		return (true);
 	}
 
@@ -5833,6 +5833,82 @@ dns_zone_getkasp(dns_zone_t *zone) {
 	return (zone->kasp);
 }
 
+static bool
+statefile_exist(dns_zone_t *zone) {
+	isc_result_t ret;
+	dns_dnsseckeylist_t keys;
+	dns_dnsseckey_t *key = NULL;
+	isc_stdtime_t now;
+	isc_time_t timenow;
+	bool found = false;
+
+	TIME_NOW(&timenow);
+	now = isc_time_seconds(&timenow);
+
+	ISC_LIST_INIT(keys);
+
+	ret = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
+					  dns_zone_getkeydirectory(zone), now,
+					  dns_zone_getmctx(zone), &keys);
+	if (ret == ISC_R_SUCCESS) {
+		for (key = ISC_LIST_HEAD(keys); key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			if (dst_key_haskasp(key->key)) {
+				found = true;
+				break;
+			}
+		}
+	}
+
+	/* Clean up keys */
+	while (!ISC_LIST_EMPTY(keys)) {
+		key = ISC_LIST_HEAD(keys);
+		ISC_LIST_UNLINK(keys, key, link);
+		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
+	}
+
+	return (found);
+}
+
+bool
+dns_zone_secure_to_insecure(dns_zone_t *zone, bool reconfig) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	/*
+	 * If checking during reconfig, the zone is not yet updated
+	 * with the new kasp configuration, so only check the key
+	 * files.
+	 */
+	if (reconfig) {
+		return (statefile_exist(zone));
+	}
+
+	if (zone->kasp == NULL) {
+		return (false);
+	}
+	if (strcmp(dns_kasp_getname(zone->kasp), "none") != 0) {
+		return (false);
+	}
+	/*
+	 * "dnssec-policy none", but if there are key state files
+	 * this zone used to be secure but is transitioning back to
+	 * insecure.
+	 */
+	return (statefile_exist(zone));
+}
+
+bool
+dns_zone_use_kasp(dns_zone_t *zone) {
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+
+	if (kasp == NULL) {
+		return (false);
+	} else if (strcmp(dns_kasp_getname(kasp), "none") != 0) {
+		return (true);
+	}
+	return dns_zone_secure_to_insecure(zone, false);
+}
+
 void
 dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option, bool value) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6784,17 +6860,18 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	 isc_stdtime_t expire, bool check_ksk, bool keyset_kskonly) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_stats_t *dnssecsignstats;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[1024]; /* XXX */
 	isc_buffer_t buffer;
 	unsigned int i, j;
+	bool use_kasp = false;
 
-	if (kasp != NULL) {
+	if (dns_zone_use_kasp(zone)) {
 		check_ksk = false;
 		keyset_kskonly = true;
+		use_kasp = true;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -6872,8 +6949,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				}
 			}
 		}
-
-		if (kasp != NULL) {
+		if (use_kasp) {
 			/*
 			 * A dnssec-policy is found. Check what RRsets this
 			 * key should sign.
@@ -7308,7 +7384,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdata_reset(&rdata);
 	}
 
-	if (kasp) {
+	if (dns_zone_use_kasp(zone)) {
 		dns_kasp_key_t *kkey;
 		int zsk_count = 0;
 		bool approved;
@@ -7425,7 +7501,6 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	    bool is_zsk, bool keyset_kskonly, bool is_bottom_of_zone,
 	    dns_diff_t *diff, int32_t *signatures, isc_mem_t *mctx) {
 	isc_result_t result;
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -7521,7 +7596,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		} else if (is_zsk && !dst_key_is_signing(key, DST_BOOL_ZSK,
 							 inception, &when)) {
 			/* Only applies to dnssec-policy. */
-			if (kasp != NULL) {
+			if (dns_zone_use_kasp(zone)) {
 				goto next_rdataset;
 			}
 		}
@@ -9165,6 +9240,7 @@ zone_sign(dns_zone_t *zone) {
 	bool is_bottom_of_zone;
 	bool build_nsec = false;
 	bool build_nsec3 = false;
+	bool use_kasp = false;
 	bool first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
@@ -9221,7 +9297,6 @@ zone_sign(dns_zone_t *zone) {
 	}
 
 	kasp = dns_zone_getkasp(zone);
-
 	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600; /* Allow for clock skew. */
 	soaexpire = now + sigvalidityinterval;
@@ -9258,16 +9333,20 @@ zone_sign(dns_zone_t *zone) {
 	signing = ISC_LIST_HEAD(zone->signing);
 	first = true;
 
-	check_ksk = (kasp != NULL)
-			    ? false
-			    : DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-	keyset_kskonly = (kasp != NULL)
-				 ? true
-				 : DNS_ZONE_OPTION(zone,
-						   DNS_ZONEOPT_DNSKEYKSKONLY);
+	if (dns_zone_use_kasp(zone)) {
+		check_ksk = false;
+		keyset_kskonly = true;
+		use_kasp = true;
+	} else {
+		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
+		keyset_kskonly = DNS_ZONE_OPTION(zone,
+						 DNS_ZONEOPT_DNSKEYKSKONLY);
+	}
+	dnssec_log(zone, ISC_LOG_DEBUG(3), "zone_sign:use kasp -> %s",
+		   use_kasp ? "yes" : "no");
 
 	/* Determine which type of chain to build */
-	if (kasp != NULL) {
+	if (use_kasp) {
 		build_nsec3 = dns_kasp_nsec3(kasp);
 		build_nsec = !build_nsec3;
 	} else {
@@ -9452,7 +9531,7 @@ zone_sign(dns_zone_t *zone) {
 					}
 				}
 			}
-			if (kasp != NULL) {
+			if (use_kasp) {
 				/*
 				 * A dnssec-policy is found. Check what
 				 * RRsets this key can sign.
@@ -16462,7 +16541,7 @@ copy_non_dnssec_records(dns_zone_t *zone, dns_db_t *db, dns_db_t *version,
 			 * Allow DNSSEC records with dnssec-policy.
 			 * WMM: Perhaps add config option for it.
 			 */
-			if (dns_zone_getkasp(zone) == NULL) {
+			if (!dns_zone_use_kasp(zone)) {
 				dns_rdataset_disassociate(&rdataset);
 				continue;
 			}
@@ -19747,7 +19826,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns__zonediff_t zonediff;
 	bool commit = false, newactive = false;
 	bool newalg = false;
-	bool fullsign;
+	bool fullsign, use_kasp;
 	dns_ttl_t ttl = 3600;
 	const char *dir = NULL;
 	isc_mem_t *mctx = NULL;
@@ -19818,9 +19897,10 @@ zone_rekey(dns_zone_t *zone) {
 	 * True when called from "rndc sign".  Indicates the zone should be
 	 * fully signed now.
 	 */
-	kasp = dns_zone_getkasp(zone);
 	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
+	kasp = dns_zone_getkasp(zone);
+	use_kasp = dns_zone_use_kasp(zone);
 	if (kasp != NULL) {
 		LOCK(&kasp->lock);
 	}
@@ -19833,9 +19913,7 @@ zone_rekey(dns_zone_t *zone) {
 			   isc_result_totext(result));
 	}
 
-	if (kasp != NULL &&
-	    (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
-		ttl = dns_kasp_dnskeyttl(kasp);
+	if (use_kasp && (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
 		result = dns_keymgr_run(&zone->origin, zone->rdclass, dir, mctx,
 					&keys, kasp, now, &nexttime);
 		if (result != ISC_R_SUCCESS) {
@@ -19851,6 +19929,16 @@ zone_rekey(dns_zone_t *zone) {
 	}
 
 	if (result == ISC_R_SUCCESS) {
+		bool insecure = dns_zone_secure_to_insecure(zone, false);
+
+		/*
+		 * Only update DNSKEY TTL if we have a policy.
+		 */
+		if (kasp != NULL && strcmp(dns_kasp_getname(kasp), "none") != 0)
+		{
+			ttl = dns_kasp_dnskeyttl(kasp);
+		}
+
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff, mctx,
 					       dnssec_report);
@@ -19874,6 +19962,17 @@ zone_rekey(dns_zone_t *zone) {
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY: %s",
+				   isc_result_totext(result));
+			goto failure;
+		}
+
+		result = dns_dnssec_syncdelete(&cdsset, &cdnskeyset,
+					       &zone->origin, zone->rdclass,
+					       ttl, &diff, mctx, insecure);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:couldn't update CDS/CDNSKEY "
+				   "DELETE records: %s",
 				   isc_result_totext(result));
 			goto failure;
 		}
@@ -20063,7 +20162,7 @@ zone_rekey(dns_zone_t *zone) {
 	/*
 	 * If keymgr provided a next time, use the calculated next rekey time.
 	 */
-	if (kasp != NULL) {
+	if (use_kasp) {
 		isc_time_t timenext;
 		uint32_t nexttime_seconds;
 

@@ -1087,7 +1087,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 bool keyset_kskonly) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
@@ -1095,11 +1094,13 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	unsigned char data[1024]; /* XXX */
 	unsigned int i, j;
 	bool added_sig = false;
+	bool use_kasp = false;
 	isc_mem_t *mctx = diff->mctx;
 
-	if (kasp != NULL) {
+	if (dns_zone_use_kasp(zone)) {
 		check_ksk = false;
 		keyset_kskonly = true;
+		use_kasp = true;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -1174,7 +1175,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			}
 		}
 
-		if (kasp != NULL) {
+		if (use_kasp) {
 			/*
 			 * A dnssec-policy is found. Check what RRsets this
 			 * key should sign.

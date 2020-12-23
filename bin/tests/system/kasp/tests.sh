@@ -172,12 +172,26 @@ set_server() {
 # Set zone name for testing keys.
 set_zone() {
 	ZONE=$1
+	DYNAMIC="no"
 }
+# By default zones are considered static.
+# When testing dynamic zones, call 'set_dynamic' after 'set_zone'.
+set_dynamic() {
+	DYNAMIC="yes"
+}
+
 # Set policy settings (name $1, number of keys $2, dnskey ttl $3) for testing keys.
 set_policy() {
 	POLICY=$1
 	NUM_KEYS=$2
 	DNSKEY_TTL=$3
+	CDS_DELETE="no"
+}
+# By default policies are considered to be secure.
+# If a zone sets its policy to "none", call 'set_cdsdelete' to tell the system
+# test to expect a CDS and CDNSKEY Delete record.
+set_cdsdelete() {
+	CDS_DELETE="yes"
 }
 
 # Set key properties for testing keys.
@@ -946,22 +960,18 @@ check_dnssecstatus() {
 
 	rndccmd $_server dnssec -status $_zone in $_view > rndc.dnssec.status.out.$_zone.$n || log_error "rndc dnssec -status zone ${_zone} failed"
 
-	if [ "$_policy" = "none" ]; then
-		grep "Zone does not have dnssec-policy" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for unsigned zone ${_zone}"
-	else
-		grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for signed zone ${_zone}"
-		if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY1 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY2 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY3 ID) from dnssec status"
-		fi
-		if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-			grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY4 ID) from dnssec status"
-		fi
+	grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for signed zone ${_zone}"
+	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY1 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY2 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY3 ID) from dnssec status"
+	fi
+	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+		grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "missing key $(key_get KEY4 ID) from dnssec status"
 	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
@@ -1043,6 +1053,14 @@ check_cds() {
 
 	dig_with_opts "$ZONE" "@${SERVER}" "CDNSKEY" > "dig.out.$DIR.test$n.cdnskey" || log_error "dig ${ZONE} CDNSKEY failed"
 	grep "status: NOERROR" "dig.out.$DIR.test$n.cdnskey" > /dev/null || log_error "mismatch status in DNS response"
+
+	if [ "$CDS_DELETE" = "no" ]; then
+		grep "CDS.*0 0 0 00" "dig.out.$DIR.test$n.cds" > /dev/null && log_error "unexpected CDS DELETE record in DNS response"
+		grep "CDNSKEY.*0 3 0 AA==" "dig.out.$DIR.test$n.cdnskey" > /dev/null && log_error "unexpected CDNSKEY DELETE record in DNS response"
+	else
+		grep "CDS.*0 0 0 00" "dig.out.$DIR.test$n.cds" > /dev/null || log_error "missing CDS DELETE record in DNS response"
+		grep "CDNSKEY.*0 3 0 AA==" "dig.out.$DIR.test$n.cdnskey" > /dev/null || log_error "missing CDNSKEY DELETE record in DNS response"
+	fi
 
 	if [ "$(key_get KEY1 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DS)" = "omnipresent" ]; then
 		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" || log_error "missing CDS record in response for key $(key_get KEY1 ID)"
@@ -1210,7 +1228,13 @@ _loadkeys_on() {
 
 	nextpart $_dir/named.run > /dev/null
 	rndccmd $_server loadkeys $_zone in $_view > rndc.dnssec.loadkeys.out.$_zone.$n
-	wait_for_log 20 "zone ${_zone}/IN (signed): next key event" $_dir/named.run || return 1
+
+	if [ "${DYNAMIC}" = "yes" ]; then
+		wait_for_log 20 "zone ${_zone}/IN: next key event" $_dir/named.run || return 1
+	else
+		# inline-signing zone adds "(signed)"
+		wait_for_log 20 "zone ${_zone}/IN (signed): next key event" $_dir/named.run || return 1
+	fi
 }
 
 # Tell named that the DS for the key in given zone has been seen in the
@@ -1228,21 +1252,23 @@ rndc_checkds() {
 	_keycmd=""
 	if [ "${_key}" != "-" ]; then
 		_keyid=$(key_get $_key ID)
-		_keycmd="-key ${_keyid}"
+		_keycmd=" -key ${_keyid}"
 	fi
 
 	_whencmd=""
 	if [ "${_when}" != "now" ]; then
-		_whencmd="-when ${_when}"
+		_whencmd=" -when ${_when}"
 	fi
 
 	n=$((n+1))
-	echo_i "calling rndc dnssec -checkds ${_keycmd} ${_whencmd} ${_what} zone ${_zone} ($n)"
+	echo_i "calling rndc dnssec -checkds${_keycmd}${_whencmd} ${_what} zone ${_zone} in ${_view} ($n)"
 	ret=0
 
-	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds (${_keycmd} ${_whencmd} ${_what} zone ${_zone} failed"
+	rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || log_error "rndc dnssec -checkds${_keycmd}${_whencmd} ${_what} zone ${_zone} failed"
 
-	_loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+	if [ "$ret" -eq 0 ]; then
+		 _loadkeys_on $_server $_dir $_zone || log_error "loadkeys zone ${_zone} failed ($n)"
+	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
@@ -1346,6 +1372,7 @@ status=$((status+ret))
 # Zone: dynamic.kasp
 #
 set_zone "dynamic.kasp"
+set_dynamic
 set_policy "default" "1" "3600"
 set_server "ns3" "10.53.0.3"
 # Key properties, timings and states same as above.
@@ -1378,6 +1405,7 @@ status=$((status+ret))
 # Zone: dynamic-inline-signing.kasp
 #
 set_zone "dynamic-inline-signing.kasp"
+set_dynamic
 set_policy "default" "1" "3600"
 set_server "ns3" "10.53.0.3"
 # Key properties, timings and states same as above.
@@ -2937,7 +2965,12 @@ check_next_key_event() {
 	grep "zone ${ZONE}.*: next key event in .* seconds" "${DIR}/named.run" > "keyevent.out.$ZONE.test$n" || log_error "no next key event for zone ${ZONE}"
 
 	# Get the latest next key event.
-	_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n" | tail -1)
+	if [ "${DYNAMIC}" = "yes" ]; then
+		_time=$(awk '{print $9}' < "keyevent.out.$ZONE.test$n" | tail -1)
+	else
+		# inline-signing zone adds "(signed)"
+		_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n" | tail -1)
+	fi
 
 	# The next key event time must within threshold of the
 	# expected time.
@@ -4452,6 +4485,90 @@ dnssec_verify
 _migratenomatch_alglen_ksk=$(key_get KEY1 ID)
 _migratenomatch_alglen_zsk=$(key_get KEY2 ID)
 
+#
+# Testing going insecure.
+#
+
+#
+# Zone step1.going-insecure.kasp
+#
+set_zone "step1.going-insecure.kasp"
+set_policy "migrate" "2" "7200"
+set_server "ns6" "10.53.0.6"
+
+# Policy parameters.
+# Lksk:      0
+# Lzsk:      60 days (5184000 seconds)
+# Iret(KSK): DS TTL (1d) + DprpP (1h) + retire-safety (1h)
+# Iret(KSK): 1d2h (93600 seconds)
+# Iret(ZSK): RRSIG TTL (1d) + Dprp (5m) + Dsgn (9d) + retire-safety (1h)
+# Iret(ZSK): 10d1h5m (867900 seconds)
+Lksk=0
+Lzsk=5184000
+IretKSK=93600
+IretZSK=867900
+
+init_migration_insecure() {
+	key_clear        "KEY1"
+	set_keyrole      "KEY1" "ksk"
+	set_keylifetime  "KEY1" "${Lksk}"
+	set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+	set_keysigning   "KEY1" "yes"
+	set_zonesigning  "KEY1" "no"
+
+	set_keystate "KEY1" "GOAL"         "omnipresent"
+	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+	set_keystate "KEY1" "STATE_DS"     "omnipresent"
+
+	key_clear        "KEY2"
+	set_keyrole      "KEY2" "zsk"
+	set_keylifetime  "KEY2" "${Lzsk}"
+	set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+	set_keysigning   "KEY2" "no"
+	set_zonesigning  "KEY2" "yes"
+
+	set_keystate "KEY2" "GOAL"         "omnipresent"
+	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+
+	key_clear "KEY3"
+	key_clear "KEY4"
+}
+init_migration_insecure
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# We have set the timing metadata to now - 10 days (864000 seconds).
+rollover_predecessor_keytimes -864000
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone step1.going-insecure-dynamic.kasp
+#
+
+set_zone "step1.going-insecure-dynamic.kasp"
+set_dynamic
+set_policy "migrate" "2" "7200"
+set_server "ns6" "10.53.0.6"
+init_migration_insecure
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# We have set the timing metadata to now - 10 days (864000 seconds).
+rollover_predecessor_keytimes -864000
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
 # Reconfig dnssec-policy (triggering algorithm roll and other dnssec-policy
 # changes).
 echo_i "reconfig dnssec-policy to trigger algorithm rollover"
@@ -4500,6 +4617,148 @@ wait_for_done_signing() {
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
+
+#
+# Testing going insecure.
+#
+
+#
+# Zone: step1.going-insecure.kasp
+#
+set_zone "step1.going-insecure.kasp"
+set_policy "none" "2" "7200"
+set_server "ns6" "10.53.0.6"
+# Expect a CDS/CDNSKEY Delete Record.
+set_cdsdelete
+
+# Key goal states should be HIDDEN.
+init_migration_insecure
+set_keystate "KEY1" "GOAL" "hidden"
+set_keystate "KEY2" "GOAL" "hidden"
+# The DS may be removed if we are going insecure.
+set_keystate "KEY1" "STATE_DS" "unretentive"
+
+# Various signing policy checks.
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Tell named that the DS has been removed.
+rndc_checkds "$SERVER" "$DIR" "KEY1" "now" "withdrawn" "$ZONE"
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DS becomes HIDDEN. This happens after the
+# parent propagation delay, retire safety delay, and DS TTL:
+# 1h + 1h + 1d = 26h = 93600 seconds.
+check_next_key_event 93600
+
+#
+# Zone: step2.going-insecure.kasp
+#
+set_zone "step2.going-insecure.kasp"
+set_policy "none" "2" "7200"
+set_server "ns6" "10.53.0.6"
+# Expect a CDS/CDNSKEY Delete Record.
+set_cdsdelete
+
+# The DS is long enough removed from the zone to be considered HIDDEN.
+# This means the DNSKEY and the KSK signatures can be removed.
+set_keystate     "KEY1" "STATE_DS"     "hidden"
+set_keystate     "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY1" "STATE_KRRSIG" "unretentive"
+set_keysigning   "KEY1" "no"
+
+set_keystate     "KEY2" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY2" "STATE_ZRRSIG" "unretentive"
+set_zonesigning  "KEY2" "no"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+
+# Next key event is when the DNSKEY becomes HIDDEN. This happens after the
+# propagation delay, plus DNSKEY TTL:
+# 5m + 2h = 125m =  7500 seconds.
+check_next_key_event 7500
+
+#
+# Zone: step1.going-insecure-dynamic.kasp
+#
+set_zone "step1.going-insecure-dynamic.kasp"
+set_dynamic
+set_policy "none" "2" "7200"
+set_server "ns6" "10.53.0.6"
+# Expect a CDS/CDNSKEY Delete Record.
+set_cdsdelete
+
+# Key goal states should be HIDDEN.
+init_migration_insecure
+set_keystate "KEY1" "GOAL" "hidden"
+set_keystate "KEY2" "GOAL" "hidden"
+# The DS may be removed if we are going insecure.
+set_keystate "KEY1" "STATE_DS" "unretentive"
+
+# Various signing policy checks.
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Tell named that the DS has been removed.
+rndc_checkds "$SERVER" "$DIR" "KEY1" "now" "withdrawn" "$ZONE"
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DS becomes HIDDEN. This happens after the
+# parent propagation delay, retire safety delay, and DS TTL:
+# 1h + 1h + 1d = 26h = 93600 seconds.
+check_next_key_event 93600
+
+#
+# Zone: step2.going-insecure-dynamic.kasp
+#
+set_zone "step2.going-insecure-dynamic.kasp"
+set_dynamic
+set_policy "none" "2" "7200"
+set_server "ns6" "10.53.0.6"
+# Expect a CDS/CDNSKEY Delete Record.
+set_cdsdelete
+
+# The DS is long enough removed from the zone to be considered HIDDEN.
+# This means the DNSKEY and the KSK signatures can be removed.
+set_keystate     "KEY1" "STATE_DS"     "hidden"
+set_keystate     "KEY1" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY1" "STATE_KRRSIG" "unretentive"
+set_keysigning   "KEY1" "no"
+
+set_keystate     "KEY2" "STATE_DNSKEY" "unretentive"
+set_keystate     "KEY2" "STATE_ZRRSIG" "unretentive"
+set_zonesigning  "KEY2" "no"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+
+# Next key event is when the DNSKEY becomes HIDDEN. This happens after the
+# propagation delay, plus DNSKEY TTL:
+# 5m + 2h = 125m =  7500 seconds.
+check_next_key_event 7500
 
 #
 # Testing migration.
