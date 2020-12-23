@@ -2728,10 +2728,13 @@ static void
 report(const char *format, ...) {
 	if (!quiet) {
 		FILE *out = output_stdout ? stderr : stdout;
+		char buf[4096];
 		va_list args;
+
 		va_start(args, format);
-		vfprintf(out, format, args);
+		vsnprintf(buf, sizeof(buf), format, args);
 		va_end(args);
+		fprintf(out, "%s\n", buf);
 	}
 }
 
