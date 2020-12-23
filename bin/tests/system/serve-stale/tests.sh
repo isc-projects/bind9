@@ -19,7 +19,6 @@ stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\
 
 status=0
 n=0
-
 #
 # First test server with serve-stale options set.
 #
@@ -188,7 +187,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 # 2. Disable responses from authoritative server.
 # 3. Sleep for TTL duration so rrset TTL expires (2 sec)
 # 4. Query data.example
-# 5. Check if response come from stale rrset (3 sec TTL)
+# 5. Check if response come from stale rrset (4 sec TTL)
 # 6. Enable responses from authoritative server.
 # 7. Query data.example
 # 8. Check if response come from stale rrset, since the query
@@ -885,7 +884,7 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1))
 
 # Step 8.
 n=$((n+1))
-echo_i "check stale data.example comes from authoritative (stale-refresh-time disabled) ($n)"
+echo_i "check data.example comes from authoritative (stale-refresh-time disabled) ($n)"
 ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -1552,6 +1551,467 @@ grep -F "#!TXT" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 grep -F "#NXDOMAIN" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
+
+########################################################
+# Test for stale-answer-client-timeout (default 1.8s). #
+########################################################
+echo_i "test stale-answer-client-timeout (default 1.8)"
+
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named2.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "restart ns3"
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns3
+start_server --noclean --restart --port ${PORT} serve-stale ns3
+
+n=$((n+1))
+echo_i "check 'rndc serve-stale status' ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
+grep '_default: on (stale-answer-ttl=3 max-stale-ttl=3600 stale-refresh-time=0)' rndc.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache data.example (stale-answer-client-timeout)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache nodata.example (stale-answer-client-timeout)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 2
+
+# We configured a long value of 30 seconds for resolver-query-timeout.
+# That should give us enough time to receive an stale answer from cache
+# after stale-answer-client-timeout timer of 1.8 sec triggers.
+n=$((n+1))
+echo_i "check stale data.example comes from cache (default stale-answer-client-timeout) ($n)"
+nextpart ns3/named.run > /dev/null
+t1=`$PERL -e 'print time()'`
+$DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 data.example TXT > dig.out.test$n
+t2=`$PERL -e 'print time()'`
+wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+# Default stale-answer-client-timeout is 1.8s, we allow some extra time
+# just in case other tests are taking too much cpu.
+[ $((t2 - t1)) -le 10 ] || { echo_i "query took $((t2 - t1))s to resolve.";  ret=1; }
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "sending queries for tests $((n+1))-$((n+2))..."
+$DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 nodata.example TXT > dig.out.test$((n+1)) &
+$DIG -p ${PORT} +tries=1 +timeout=30  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
+wait
+
+# Since nodata.example is cached as NXRRSET and marked as
+# stale at this point, BIND must not return this RRset when
+# stale-answer-client-timeout triggers, instead, it must attempt
+# to refresh the RRset.
+# Since the authoritative server is disabled and we are using
+# resolver-query-timeout value of 10 seconds, we expect this
+# query with a timeout of 3 seconds to time out.
+n=$((n+1))
+echo_i "check query for nodata.example times out (default stale-answer-client-timeout) ($n)"
+grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# For this query we expect BIND to return stale NXRRSET data
+# for nodata.example after resolver-query-timeout expires.
+n=$((n+1))
+echo_i "check stale nodata.example comes from cache after resolver-query-timeout expires (default stale-answer-client-timeout) ($n)"
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+#############################################
+# Test for stale-answer-client-timeout off. #
+#############################################
+echo_i "test stale-answer-client-timeout (off)"
+
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named3.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "running 'rndc reload' ($n)"
+ret=0
+rndc_reload ns3 10.53.0.3
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Send a query, auth server is disabled, we will enable it after
+# a while in order to receive an answer before resolver-query-timeout
+# expires. Since stale-answer-client-timeout is disabled we must receive
+# an answer from authoritative server.
+echo_i "sending query for test $((n+2))"
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+2)) &
+sleep 3
+
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Wait until dig is done.
+wait
+
+n=$((n+1))
+echo_i "check data.example comes from authoritative server (stale-answer-client-timeout off) ($n)"
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+#############################################
+# Test for stale-answer-client-timeout 0.   #
+#############################################
+echo_i "test stale-answer-client-timeout (0)"
+
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named4.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "restart ns3"
+$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns3
+start_server --noclean --restart --port ${PORT} serve-stale ns3
+
+n=$((n+1))
+echo_i "prime cache data.example (stale-answer-client-timeout 0)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache nodata.example (stale-answer-client-timeout 0)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 2
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache (stale-answer-client-timeout 0) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+wait_for_rrset_refresh() {
+	nextpart ns3/named.run | grep 'data.example.*2.*TXT.*"A text record with a 2 second ttl"' > /dev/null && return 0
+	return 1
+}
+
+# This test ensures that after we get stale data due to
+# stale-answer-client-timeout 0, enabling the authoritative server
+# will allow the RRset to be updated.
+n=$((n+1))
+ret=0
+echo_i "check stale data.example was refreshed (stale-answer-client-timeout 0) ($n)"
+retry_quiet 10 wait_for_rrset_refresh || ret=1
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "sending queries for tests $((n+1))-$((n+2))..."
+$DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 nodata.example TXT > dig.out.test$((n+1)) &
+$DIG -p ${PORT} +tries=1 +timeout=30  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
+wait
+
+# Since nodata.example is cached as NXRRSET and marked as
+# stale at this point, BIND must not prompty return this RRset
+# due to stale-answer-client-timeout == 0, instead, it must
+# attempt to refresh the RRset.
+# Since the authoritative server is disabled and we are using
+# resolver-query-timeout value of 10 seconds, we expect this
+# query with a timeout of 3 seconds to time out.
+n=$((n+1))
+echo_i "check query for nodata.example times out (stale-answer-client-timeout 0) ($n)"
+grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# For this query we expect BIND to return stale NXRRSET data
+# for nodata.example after resolver-query-timeout expires.
+n=$((n+1))
+echo_i "check stale nodata.example comes from cache after resolver-query-timeout expires (stale-answer-client-timeout 0) ($n)"
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+####################################################################
+# Test for stale-answer-client-timeout 0 and stale-refresh-time 4. #
+####################################################################
+echo_i "test stale-answer-client-timeout (0) and stale-refresh-time (4)"
+
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named5.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "running 'rndc reload' ($n)"
+ret=0
+rndc_reload ns3 10.53.0.3
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "flush cache, enable responses from authoritative server ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 flushtree example > rndc.out.test$n.1 2>&1 || ret=1
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache data.example (stale-answer-client-timeout 0, stale-refresh-time 4) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 2
+
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# This test ensures that after we get stale data due to
+# stale-answer-client-timeout 0, enabling the authoritative server
+# will allow the RRset to be updated.
+n=$((n+1))
+ret=0
+echo_i "check stale data.example was refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+retry_quiet 10 wait_for_rrset_refresh || ret=1
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 2
+
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow stale-refresh-time to be activated.
+n=$((n+1))
+ret=0
+echo_i "wait until resolver query times out, activating stale-refresh-time"
+wait_for_log 15 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache within stale-refresh-time (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# We give BIND some time to ensure that after we enable authoritative server,
+# this RRset is still not refreshed because it was hit during
+# stale-refresh-time window.
+sleep 1
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example was not refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# After the refresh-time-window, the RRset will be refreshed.
+sleep 4
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+ret=0
+echo_i "check stale data.example was refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
