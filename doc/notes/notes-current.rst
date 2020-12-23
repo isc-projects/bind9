@@ -34,6 +34,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- ``ipv4only.arpa`` is now served when ``dns64`` is configured. [GL #385]
+
 - It is now possible to transition a zone from secure to insecure mode
   without making it bogus in the process: changing to ``dnssec-policy
   none;`` also causes CDS and CDNSKEY DELETE records to be published, to
@@ -49,6 +51,10 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
+
+- Only assign threads to CPUs in the CPU affinity set, so that ``named`` no
+  longer attempts to run threads on CPUs outside the affinity set. Thanks to
+  Ole Bjørn Hessen. [GL #2245]
 
 - When reconfiguring ``named``, removing ``auto-dnssec`` did actually not turn
   off DNSSEC maintenance. This has been fixed. [GL #2341]
