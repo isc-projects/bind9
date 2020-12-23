@@ -1,3 +1,12 @@
+5553.	[bug]		When reconfiguring named, removing "auto-dnssec"
+			did not actually turn off DNSSEC maintenance.
+			This has been fixed. [GL #2341]
+
+5552.	[func]		When switching to "dnssec-policy none;", named
+			now permits a safe transition to insecure mode
+			and publishes the CDS and CDNSKEY DELETE
+			records, as described in RFC 8078. [GL #1750]
+
 5551.	[bug]		Only assign threads to CPUs in the CPU affinity set.
 			Thanks to Ole Bjørn Hessen. [GL #2245]
 

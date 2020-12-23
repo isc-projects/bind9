@@ -253,8 +253,9 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 }
 
 isc_result_t
-cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
-		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp) {
+cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
+		    isc_log_t *logctx, dns_kasplist_t *kasplist,
+		    dns_kasp_t **kaspp) {
 	isc_result_t result;
 	const cfg_obj_t *maps[2];
 	const cfg_obj_t *koptions = NULL;
@@ -267,11 +268,10 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
-	kaspname = (config != NULL)
+	kaspname = (name == NULL)
 			   ? cfg_obj_asstring(cfg_tuple_get(config, "name"))
-			   : "default";
-
-	REQUIRE(strcmp(kaspname, "none") != 0);
+			   : name;
+	INSIST(kaspname != NULL);
 
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
@@ -317,12 +317,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 						    DNS_KASP_RETIRE_SAFETY));
 
 	(void)confget(maps, "keys", &keys);
-	if (keys == NULL) {
-		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	} else {
+	if (keys != NULL) {
 		for (element = cfg_list_first(keys); element != NULL;
 		     element = cfg_list_next(element))
 		{
@@ -332,8 +327,19 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *logctx,
 				goto cleanup;
 			}
 		}
+		INSIST(!(dns_kasp_keylist_empty(kasp)));
+	} else if (strcmp(kaspname, "none") == 0) {
+		/* "dnssec-policy none": key list must be empty */
+		INSIST(strcmp(kaspname, "none") == 0);
+		INSIST(dns_kasp_keylist_empty(kasp));
+	} else {
+		/* No keys clause configured, use the "default". */
+		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		INSIST(!(dns_kasp_keylist_empty(kasp)));
 	}
-	INSIST(!(dns_kasp_keylist_empty(kasp)));
 
 	/* Configuration: NSEC3 */
 	(void)confget(maps, "nsec3param", &nsec3);
