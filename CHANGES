@@ -1,3 +1,8 @@
+5566.	[func]		Add "stale-answer-client-timeout" option, which
+			is the amount of time a recursive resolver waits before
+			attempting to answer the query using stale data from cache.
+			[GL #2247]
+
 5565.	[func]		The SONAMEs for BIND 9 libraries now include the current
 			BIND 9 version number, in an effort to tightly couple
 			internal libraries with a specific release. [GL #2387]
