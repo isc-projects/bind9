@@ -172,7 +172,7 @@ else
         echowarn "R:$systest:UNTESTED"
     fi
     echoend "E:$systest:$(date_with_args)"
-    exit 0
+    exit 77
 fi
 
 # Check for PKCS#11 support
