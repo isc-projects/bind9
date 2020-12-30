@@ -166,11 +166,7 @@ if [ $result -eq 0 ]; then
     : prereqs ok
 else
     echowarn "I:$systest:Prerequisites missing, skipping test."
-    if [ $result -eq 255 ]; then
-        echowarn "R:$systest:SKIPPED";
-    else
-        echowarn "R:$systest:UNTESTED"
-    fi
+    echowarn "R:$systest:SKIPPED";
     echoend "E:$systest:$(date_with_args)"
     exit 77
 fi
