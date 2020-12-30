@@ -157,14 +157,14 @@ echoinfo  "I:$systest:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 if [ x${PERL:+set} = x ]
 then
     echowarn "I:$systest:Perl not available.  Skipping test."
-    echowarn "R:$systest:UNTESTED"
+    echowarn "R:$systest:SKIPPED"
     echoend  "E:$systest:$(date_with_args)"
     exit 0;
 fi
 
 $PERL testsock.pl -p $PORT  || {
     echowarn "I:$systest:Network interface aliases not set up.  Skipping test."
-    echowarn "R:$systest:UNTESTED"
+    echowarn "R:$systest:SKIPPED"
     echoend  "E:$systest:$(date_with_args)"
     exit 0;
 }
@@ -177,7 +177,7 @@ if [ $result -eq 0 ]; then
     : prereqs ok
 else
     echowarn "I:$systest:Prerequisites missing, skipping test."
-    [ $result -eq 255 ] && echowarn "R:$systest:SKIPPED" || echowarn "R:$systest:UNTESTED"
+    echowarn "R:$systest:SKIPPED";
     echoend "E:$systest:$(date_with_args)"
     exit 0
 fi
