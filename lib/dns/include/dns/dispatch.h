@@ -374,7 +374,21 @@ dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
  *
  * Requires:
  *\li	disp is valid.
- *\li	addrp to be non null.
+ *\li	addrp to be non NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOTIMPLEMENTED
+ */
+
+isc_result_t
+dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp);
+/*%<
+ * Return the local address for this dispatch entry.
+ *
+ * Requires:
+ *\li	resp is valid.
+ *\li	addrp to be non NULL.
  *
  * Returns:
  *\li	ISC_R_SUCCESS

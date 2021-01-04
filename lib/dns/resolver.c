@@ -2370,7 +2370,7 @@ resquery_send(resquery_t *query) {
 	isc_region_t r;
 	dns_resolver_t *res = NULL;
 	isc_task_t *task;
-	isc_socket_t *sock;
+	isc_socket_t *sock = NULL;
 	isc_buffer_t tcpbuffer;
 	isc_sockaddr_t *address = NULL;
 	isc_buffer_t *buffer = NULL;
@@ -2849,7 +2849,7 @@ resquery_send(resquery_t *query) {
 		dtmsgtype = DNS_DTTYPE_RQ;
 	}
 
-	result = isc_socket_getsockname(sock, &localaddr);
+	result = dns_dispentry_getlocaladdress(query->dispentry, &localaddr);
 	if (result == ISC_R_SUCCESS) {
 		la = &localaddr;
 	}
@@ -9801,7 +9801,6 @@ rctx_logpacket(respctx_t *rctx) {
 #ifdef HAVE_DNSTAP
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
-	isc_socket_t *sock = NULL;
 	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_dtmsgtype_t dtmsgtype;
@@ -9838,12 +9837,10 @@ rctx_logpacket(respctx_t *rctx) {
 		dtmsgtype = DNS_DTTYPE_RR;
 	}
 
-	sock = dns_dispatch_getentrysocket(rctx->query);
-	if (sock != NULL) {
-		result = isc_socket_getsockname(sock, &localaddr);
-		if (result == ISC_R_SUCCESS) {
-			la = &localaddr;
-		}
+	result = dns_dispentry_getlocaladdress(rctx->query->dispentry,
+					       &localaddr);
+	if (result == ISC_R_SUCCESS) {
+		la = &localaddr;
 	}
 
 	dns_dt_send(fctx->res->view, dtmsgtype, la,

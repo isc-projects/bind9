@@ -2678,6 +2678,23 @@ dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
+isc_result_t
+dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp) {
+	REQUIRE(VALID_RESPONSE(resp));
+	REQUIRE(addrp != NULL);
+
+	if (resp->disp->socktype == isc_sockettype_tcp) {
+		return (isc_socket_getsockname(resp->disp->socket, addrp));
+	}
+
+	if (resp->dispsocket != NULL) {
+		return (isc_socket_getsockname(resp->dispsocket->socket,
+					       addrp));
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
 unsigned int
 dns_dispatch_getattributes(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
