@@ -1,3 +1,6 @@
+5555.	[bug]		server->reload_status was not properly initialised.
+			[GL #2361]
+
 5553.	[bug]		When reconfiguring named, removing "auto-dnssec"
 			did not actually turn off DNSSEC maintenance.
 			This has been fixed. [GL #2341]
