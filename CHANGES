@@ -1,3 +1,7 @@
+5556.	[bug]		dnssec-signzone and dnssec-verify where now
+			printing too many newlines between log messages.
+			[GL #2359]
+
 5555.	[placeholder]
 
 5554.	[bug]		dnssec-signzone and dnssec-verify where missing
