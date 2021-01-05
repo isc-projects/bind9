@@ -1489,8 +1489,6 @@ stress:authoritative:freebsd12:amd64:
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
-  allow_failure: true
 
 stress:recursive:freebsd12:amd64:
   <<: *freebsd_12_amd64_image
@@ -1505,8 +1503,6 @@ stress:recursive:freebsd12:amd64:
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
-  allow_failure: true
 
 # ABI check
 
