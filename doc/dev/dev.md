@@ -221,9 +221,9 @@ in `rbt.c`.  (There are exceptions to this rule, though; for instance,
 different files in `lib/isc`.)
 
 When BIND is built with unit tests, they will be run as part of
-`make` `check`.  But if you want to run *only* the ATF unit tests:
+`make` `check`.  But if you want to run *only* the unit tests:
 
-        $ sh unit/unittest.sh
+        $ make unit
 
 You can also run the unit tests for only one library:
 
