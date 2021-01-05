@@ -9975,7 +9975,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ? ISC_R_NOMEMORY
 						: ISC_R_SUCCESS,
 		   "allocating reload event");
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	atomic_init(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
