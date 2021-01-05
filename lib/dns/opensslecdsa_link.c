@@ -623,39 +623,6 @@ load_privkey_from_privstruct(EC_KEY *eckey, dst_private_t *priv) {
 
 #if !defined(OPENSSL_NO_ENGINE)
 static isc_result_t
-load_pubkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
-	EC_KEY *key;
-	ENGINE *ep;
-	EVP_PKEY *pubkey;
-
-	if (engine == NULL || label == NULL) {
-		return (DST_R_NOENGINE);
-	}
-
-	ep = dst__openssl_getengine(engine);
-	if (ep == NULL) {
-		return (DST_R_NOENGINE);
-	}
-
-	pubkey = ENGINE_load_public_key(ep, label, NULL, NULL);
-	if (pubkey == NULL) {
-		return (dst__openssl_toresult2("ENGINE_load_public_key",
-					       ISC_R_NOTFOUND));
-	}
-
-	key = EVP_PKEY_get1_EC_KEY(pubkey);
-	EVP_PKEY_free(pubkey);
-
-	if (key == NULL) {
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	}
-
-	EC_KEY_set_public_key(eckey, EC_KEY_get0_public_key(key));
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
 load_privkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
 	EC_KEY *key;
 	ENGINE *ep;
@@ -688,15 +655,6 @@ load_privkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
 	return (ISC_R_SUCCESS);
 }
 #else
-static isc_result_t
-load_pubkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
-	UNUSED(eckey);
-	UNUSED(engine);
-	UNUSED(label);
-
-	return (DST_R_NOENGINE);
-}
-
 static isc_result_t
 load_privkey_from_engine(EC_KEY *eckey, const char *engine, const char *label) {
 	UNUSED(eckey);
@@ -846,40 +804,83 @@ static isc_result_t
 opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		       const char *pin) {
 #if !defined(OPENSSL_NO_ENGINE)
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t ret = ISC_R_SUCCESS;
+	ENGINE *e;
 	EC_KEY *eckey = NULL;
 	EC_KEY *pubeckey = NULL;
+	EVP_PKEY *pkey = NULL;
+	EVP_PKEY *pubkey = NULL;
+	int group_nid = 0;
 
 	UNUSED(pin);
 
-	result = dst__key_to_eckey(key, &eckey);
-	if (result != ISC_R_SUCCESS) {
-		goto end;
+	if (engine == NULL || label == NULL) {
+		return (DST_R_NOENGINE);
+	}
+	e = dst__openssl_getengine(engine);
+	if (e == NULL) {
+		return (DST_R_NOENGINE);
 	}
 
-	result = dst__key_to_eckey(key, &pubeckey);
-	if (result != ISC_R_SUCCESS) {
-		goto end;
+	if (key->key_alg == DST_ALG_ECDSA256) {
+		group_nid = NID_X9_62_prime256v1;
+	} else {
+		group_nid = NID_secp384r1;
 	}
 
-	result = load_pubkey_from_engine(pubeckey, engine, label);
-	if (result != ISC_R_SUCCESS) {
-		goto end;
+	/* Load private key. */
+	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
+	if (pkey == NULL) {
+		return (dst__openssl_toresult2("ENGINE_load_private_key",
+					       DST_R_OPENSSLFAILURE));
+	}
+	/* Check base id, group nid */
+	if (EVP_PKEY_base_id(pkey) != EVP_PKEY_EC) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
+	eckey = EVP_PKEY_get1_EC_KEY(pkey);
+	if (eckey == NULL) {
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
+	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) != group_nid) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 
-	result = load_privkey_from_engine(eckey, engine, label);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+	/* Load public key. */
+	pubkey = ENGINE_load_public_key(e, label, NULL, NULL);
+	if (pubkey == NULL) {
+		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
+					       DST_R_OPENSSLFAILURE));
+	}
+	/* Check base id, group nid */
+	if (EVP_PKEY_base_id(pubkey) != EVP_PKEY_EC) {
+		DST_RET(DST_R_INVALIDPUBLICKEY);
+	}
+	pubeckey = EVP_PKEY_get1_EC_KEY(pubkey);
+	if (pubeckey == NULL) {
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
+	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(pubeckey)) != group_nid) {
+		DST_RET(DST_R_INVALIDPUBLICKEY);
 	}
 
 	if (ecdsa_check(eckey, pubeckey) != ISC_R_SUCCESS) {
-		result = DST_R_INVALIDPRIVATEKEY;
-		goto end;
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 
-	result = finalize_eckey(key, eckey, engine, label);
+	key->label = isc_mem_strdup(key->mctx, label);
+	key->engine = isc_mem_strdup(key->mctx, engine);
+	key->key_size = EVP_PKEY_bits(pkey);
+	key->keydata.pkey = pkey;
+	pkey = NULL;
 
-end:
+err:
+	if (pubkey != NULL) {
+		EVP_PKEY_free(pubkey);
+	}
+	if (pkey != NULL) {
+		EVP_PKEY_free(pkey);
+	}
 	if (pubeckey != NULL) {
 		EC_KEY_free(pubeckey);
 	}
@@ -887,7 +888,7 @@ end:
 		EC_KEY_free(eckey);
 	}
 
-	return (result);
+	return (ret);
 #else
 	UNUSED(key);
 	UNUSED(engine);
