@@ -176,9 +176,9 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		DST_RET(ISC_R_NOSPACE);
 	}
 
-	if (!EVP_DigestFinal(evp_md_ctx, digest, &dgstlen)) {
+	if (!EVP_DigestFinal_ex(evp_md_ctx, digest, &dgstlen)) {
 		DST_RET(dst__openssl_toresult3(
-			dctx->category, "EVP_DigestFinal", ISC_R_FAILURE));
+			dctx->category, "EVP_DigestFinal_ex", ISC_R_FAILURE));
 	}
 
 	ecdsasig = ECDSA_do_sign(digest, dgstlen, eckey);
