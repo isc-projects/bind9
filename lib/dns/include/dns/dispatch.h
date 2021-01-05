@@ -276,6 +276,18 @@ dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
  *\li	'disp' is NULL and 'resp' is valid.
  */
 
+void
+dns_dispatch_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp, bool sending,
+		    bool connecting);
+/*%<
+ * Cancel pending sends (if 'sending' is true) and connects (if
+ * 'connecting' is true) in 'resp' or 'disp'.
+ *
+ * Requires:
+ *\li	'resp' is NULL and 'disp' is valid, or
+ *\li	'disp' is NULL and 'resp' is valid.
+ */
+
 isc_result_t
 dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
 		  isc_socketevent_t *sendevent, isc_region_t *r,
@@ -363,21 +375,6 @@ dns_dispatch_removeresponse(dns_dispentry_t **	  resp,
  *
  *\li	May only be called from within the task given as the 'task'
  * 	argument to dns_dispatch_addresponse() when allocating '*resp'.
- */
-
-isc_socket_t *
-dns_dispatch_getentrysocket(dns_dispentry_t *resp);
-
-isc_socket_t *
-dns_dispatch_getsocket(dns_dispatch_t *disp);
-/*%<
- * Return the socket associated with dispatcher or dispatch entry.
- *
- * Requires:
- *\li	disp is valid.
- *
- * Returns:
- *\li	The socket the dispatcher is using.
  */
 
 isc_result_t

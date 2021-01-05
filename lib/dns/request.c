@@ -577,7 +577,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_task_t *tclone = NULL;
-	isc_socket_t *sock = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx;
 	dns_messageid_t id;
@@ -674,9 +673,6 @@ again:
 		goto cleanup;
 	}
 
-	sock = dns_dispatch_getentrysocket(request->dispentry);
-	INSIST(sock != NULL);
-
 	isc_buffer_allocate(mctx, &request->query, r.length + (tcp ? 2 : 0));
 	if (tcp) {
 		isc_buffer_putuint16(request->query, (uint16_t)r.length);
@@ -766,7 +762,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_task_t *tclone = NULL;
-	isc_socket_t *sock = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx;
 	dns_messageid_t id;
@@ -845,8 +840,6 @@ use_tcp:
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	sock = dns_dispatch_getentrysocket(request->dispentry);
-	INSIST(sock != NULL);
 
 	message->id = id;
 	if (settsigkey) {
@@ -863,7 +856,6 @@ use_tcp:
 		dns_message_renderreset(message);
 		dns_dispatch_removeresponse(&request->dispentry, NULL);
 		dns_dispatch_detach(&request->dispatch);
-		sock = NULL;
 		options |= DNS_REQUESTOPT_TCP;
 		settsigkey = false;
 		goto use_tcp;
@@ -1358,8 +1350,6 @@ req_destroy(dns_request_t *request) {
  */
 static void
 req_cancel(dns_request_t *request) {
-	isc_socket_t *sock = NULL;
-
 	REQUIRE(VALID_REQUEST(request));
 
 	req_log(ISC_LOG_DEBUG(3), "req_cancel: request %p", request);
@@ -1373,18 +1363,10 @@ req_cancel(dns_request_t *request) {
 		isc_timer_detach(&request->timer);
 	}
 
-	if (DNS_REQUEST_CONNECTING(request) || DNS_REQUEST_SENDING(request)) {
-		if (request->dispentry != NULL) {
-			sock = dns_dispatch_getentrysocket(request->dispentry);
-		}
-		if (DNS_REQUEST_CONNECTING(request) && sock != NULL) {
-			isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_CONNECT);
-		}
-		if (DNS_REQUEST_SENDING(request) && sock != NULL) {
-			isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
-		}
-	}
 	if (request->dispentry != NULL) {
+		dns_dispatch_cancel(NULL, request->dispentry,
+				    DNS_REQUEST_SENDING(request),
+				    DNS_REQUEST_CONNECTING(request));
 		dns_dispatch_removeresponse(&request->dispentry, NULL);
 	}
 	dns_dispatch_detach(&request->dispatch);

@@ -22,7 +22,6 @@
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/siphash.h>
-#include <isc/socket.h>
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1249,7 +1248,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	unsigned int rtt, rttms;
 	unsigned int factor;
 	dns_adbfind_t *find = NULL;
-	isc_socket_t *sock = NULL;
 	dns_adbaddrinfo_t *addrinfo;
 	isc_stdtime_t now;
 
@@ -1418,26 +1416,14 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	/*
 	 * Check for any outstanding socket events.  If they exist, cancel
-	 * them and let the event handlers finish the cleanup.  The resolver
-	 * only needs to worry about managing the connect and send events;
-	 * the dispatcher manages the recv events.
+	 * them and let the event handlers finish the cleanup.  (XXX:
+	 * Currently the resolver, rather than dispatch, tracks whether
+	 * it's sending or connecting; this will be moved into dispatch
+	 * later.)
 	 */
-	if (query->dispentry != NULL) {
-		sock = dns_dispatch_getentrysocket(query->dispentry);
-	} else {
-		sock = dns_dispatch_getsocket(query->dispatch);
-	}
-
-	/* Cancel the connect. */
-	if (sock != NULL && RESQUERY_CONNECTING(query)) {
-		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_CONNECT);
-	}
-
-	/* Cancel the pending send. */
-	if (sock != NULL && RESQUERY_SENDING(query)) {
-		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
-	}
-
+	dns_dispatch_cancel(query->dispatch, query->dispentry,
+			    RESQUERY_SENDING(query),
+			    RESQUERY_CONNECTING(query));
 	if (query->dispentry != NULL) {
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
 	}

@@ -302,6 +302,10 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t
 open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 	    unsigned int options, isc_socket_t **sockp);
+static isc_socket_t *
+getentrysocket(dns_dispentry_t *resp);
+static isc_socket_t *
+getsocket(dns_dispatch_t *disp);
 
 #define LVL(x) ISC_LOG_DEBUG(x)
 
@@ -2612,7 +2616,7 @@ dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
 	ISC_EVENT_INIT(sendevent, sizeof(isc_socketevent_t), 0, NULL,
 		       ISC_SOCKEVENT_SENDDONE, action, arg, NULL, NULL, NULL);
 
-	sock = dns_dispatch_getentrysocket(resp);
+	sock = getentrysocket(resp);
 
 	if (dscp == -1) {
 		sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
@@ -2631,6 +2635,37 @@ dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
 
 	result = isc_socket_sendto2(sock, r, task, address, NULL, sendevent, 0);
 	return (result);
+}
+
+void
+dns_dispatch_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp, bool sending,
+		    bool connecting) {
+	isc_socket_t *sock = NULL;
+
+	REQUIRE(disp != NULL || resp != NULL);
+
+	if (resp != NULL) {
+		REQUIRE(VALID_RESPONSE(resp));
+		sock = getentrysocket(resp);
+	} else if (disp != NULL) {
+		REQUIRE(VALID_DISPATCH(disp));
+		sock = getsocket(disp);
+	} else {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	if (sock == NULL) {
+		return;
+	}
+
+	if (connecting) {
+		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_CONNECT);
+	}
+
+	if (sending) {
+		isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_SEND);
+	}
 }
 
 /*
@@ -2682,15 +2717,15 @@ unlock:
 	UNLOCK(&qid->lock);
 }
 
-isc_socket_t *
-dns_dispatch_getsocket(dns_dispatch_t *disp) {
+static isc_socket_t *
+getsocket(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	return (disp->socket);
 }
 
-isc_socket_t *
-dns_dispatch_getentrysocket(dns_dispentry_t *resp) {
+static isc_socket_t *
+getentrysocket(dns_dispentry_t *resp) {
 	REQUIRE(VALID_RESPONSE(resp));
 
 	if (resp->disp->socktype == isc_sockettype_tcp) {
