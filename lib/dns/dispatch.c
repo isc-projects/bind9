@@ -163,8 +163,8 @@ struct dns_dispatch {
 	unsigned int attributes;
 	isc_refcount_t refcount;
 	dns_dispatchevent_t *failsafe_ev; /*%< failsafe cancel event */
-	unsigned int shutting_down : 1, shutdown_out : 1, connected : 1,
-		tcpmsg_valid : 1, recv_pending : 1;
+	unsigned int shutting_down : 1, shutdown_out : 1, recv_pending : 1,
+		tcpmsg_valid : 1;
 	isc_result_t shutdown_why;
 	ISC_LIST(dispsocket_t) activesockets;
 	ISC_LIST(dispsocket_t) inactivesockets;
@@ -2595,6 +2595,42 @@ dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	}
 
 	return (isc_socket_connect(sock, address, task, action, arg));
+}
+
+isc_result_t
+dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
+		  isc_socketevent_t *sendevent, isc_region_t *r,
+		  const isc_sockaddr_t *address, isc_dscp_t dscp,
+		  isc_taskaction_t action, void *arg) {
+	isc_result_t result;
+	isc_socket_t *sock = NULL;
+
+	REQUIRE(VALID_RESPONSE(resp));
+	REQUIRE(sendevent != NULL);
+
+	memset(sendevent, 0, sizeof(isc_socketevent_t));
+	ISC_EVENT_INIT(sendevent, sizeof(isc_socketevent_t), 0, NULL,
+		       ISC_SOCKEVENT_SENDDONE, action, arg, NULL, NULL, NULL);
+
+	sock = dns_dispatch_getentrysocket(resp);
+
+	if (dscp == -1) {
+		sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
+		sendevent->dscp = 0;
+	} else {
+		sendevent->attributes |= ISC_SOCKEVENTATTR_DSCP;
+		sendevent->dscp = dscp;
+		if (tcp) {
+			isc_socket_dscp(sock, dscp);
+		}
+	}
+
+	if (tcp) {
+		address = NULL;
+	}
+
+	result = isc_socket_sendto2(sock, r, task, address, NULL, sendevent, 0);
+	return (result);
 }
 
 /*

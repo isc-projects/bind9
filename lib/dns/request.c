@@ -78,6 +78,7 @@ struct dns_request {
 	dns_requestmgr_t *requestmgr;
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
+	isc_socketevent_t sendevent;
 	isc_event_t ctlevent;
 	bool canceling; /* ctlevent outstanding */
 	isc_sockaddr_t destaddr;
@@ -412,40 +413,22 @@ mgr_gethash(dns_requestmgr_t *requestmgr) {
 static inline isc_result_t
 req_send(dns_request_t *request, isc_task_t *task,
 	 const isc_sockaddr_t *address) {
-	isc_region_t r;
-	isc_socket_t *sock = NULL;
-	isc_socketevent_t *sendevent = NULL;
 	isc_result_t result;
+	isc_region_t r;
+	bool tcp;
 
 	req_log(ISC_LOG_DEBUG(3), "req_send: request %p", request);
 
 	REQUIRE(VALID_REQUEST(request));
 
-	sock = dns_dispatch_getentrysocket(request->dispentry);
 	isc_buffer_usedregion(request->query, &r);
 
-	/*
-	 * We could connect the socket when we are using an exclusive dispatch
-	 * as we do in resolver.c, but we prefer implementation simplicity
-	 * at this moment.
-	 */
-	sendevent = isc_socket_socketevent(request->mctx, sock,
-					   ISC_SOCKEVENT_SENDDONE, req_senddone,
-					   request);
-	if (sendevent == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-	if (request->dscp == -1) {
-		sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
-		sendevent->dscp = 0;
-	} else {
-		sendevent->attributes |= ISC_SOCKEVENTATTR_DSCP;
-		sendevent->dscp = request->dscp;
-	}
+	tcp = dns_request_usedtcp(request);
 
 	request->flags |= DNS_REQUEST_F_SENDING;
-	result = isc_socket_sendto2(sock, &r, task, address, NULL, sendevent,
-				    0);
+	result = dns_dispatch_send(request->dispentry, tcp, task,
+				   &request->sendevent, &r, address,
+				   request->dscp, req_senddone, request);
 	INSIST(result == ISC_R_SUCCESS);
 	return (result);
 }

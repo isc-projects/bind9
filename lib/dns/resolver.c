@@ -2369,10 +2369,8 @@ resquery_send(resquery_t *query) {
 	dns_rdataset_t *qrdataset = NULL;
 	isc_region_t r;
 	dns_resolver_t *res = NULL;
-	isc_task_t *task;
-	isc_socket_t *sock = NULL;
+	isc_task_t *task = NULL;
 	isc_buffer_t tcpbuffer;
-	isc_sockaddr_t *address = NULL;
 	isc_buffer_t *buffer = NULL;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
@@ -2808,33 +2806,11 @@ resquery_send(resquery_t *query) {
 
 	isc_buffer_usedregion(buffer, &r);
 
-	sock = dns_dispatch_getentrysocket(query->dispentry);
-
-	/*
-	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
-	 *		prune out these addresses when we get them from the ADB.
-	 */
-	memset(&query->sendevent, 0, sizeof(query->sendevent));
-	ISC_EVENT_INIT(&query->sendevent, sizeof(query->sendevent), 0, NULL,
-		       ISC_SOCKEVENT_SENDDONE, resquery_senddone, query, NULL,
-		       NULL, NULL);
-
-	if (query->dscp == -1) {
-		query->sendevent.attributes &= ~ISC_SOCKEVENTATTR_DSCP;
-		query->sendevent.dscp = 0;
-	} else {
-		query->sendevent.attributes |= ISC_SOCKEVENTATTR_DSCP;
-		query->sendevent.dscp = query->dscp;
-		if (tcp) {
-			isc_socket_dscp(sock, query->dscp);
-		}
-	}
-
-	address = tcp ? NULL : &query->addrinfo->sockaddr;
-	result = isc_socket_sendto2(sock, &r, task, address, NULL,
-				    &query->sendevent, 0);
+	result = dns_dispatch_send(query->dispentry, tcp, task,
+				   &query->sendevent, &r,
+				   &query->addrinfo->sockaddr, query->dscp,
+				   resquery_senddone, query);
 	INSIST(result == ISC_R_SUCCESS);
-
 	query->sends++;
 
 	QTRACE("sent");

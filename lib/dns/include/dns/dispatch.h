@@ -276,6 +276,20 @@ dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
  *\li	'disp' is NULL and 'resp' is valid.
  */
 
+isc_result_t
+dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
+		  isc_socketevent_t *sendevent, isc_region_t *r,
+		  const isc_sockaddr_t *address, isc_dscp_t dscp,
+		  isc_taskaction_t action, void *arg);
+/*%<
+ * Send region 'r' using the socket in 'resp', then run the specified
+ * callback. 'sendevent' must point to enough memory to hold an
+ * isc_socketevent; it will be overwritten.
+ *
+ * Requires:
+ *\li	'resp' is valid.
+ */
+
 void
 dns_dispatch_starttcp(dns_dispatch_t *disp);
 /*%<
