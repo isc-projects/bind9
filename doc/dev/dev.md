@@ -143,7 +143,7 @@ To run the tests, build BIND (be sure to use --with-atf to run unit
 tests), then run `make` `check`.  An easy way to check the results:
 
         $ make check 2>&1 | tee /tmp/check.out
-        $ grep '^R:' /tmp/check.out | sort | uniq -c
+        $ grep -A 10 'Testsuite summary' /tmp/check.out
 
 This will show all of the test results. One or two "R:SKIPPED" is okay; if
 there are a lot of them, then you probably forgot to create the loopback
@@ -152,6 +152,10 @@ the end of `make` `check` only summarizes the system test results, not the
 unit tests, so you can't rely on it to catch everything.)
 
 To run only the system tests, omitting unit tests:
+
+	$ make test
+
+Or:
 
         $ cd bin/tests/system
         $ sh runall.sh
