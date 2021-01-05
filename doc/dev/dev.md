@@ -83,7 +83,7 @@ comments; they must be clearly written and consistent with existing style.
 * Read the diff
 * Read accompanying notes in the ticket
 * Apply the diff to the appropriate branch
-* Run `configure` (using at least `--enable-developer --with-atf`)
+* Run `configure` (using at least `--enable-developer`)
 * Build
 * Read the documentation, if any
 * Read the tests
@@ -139,7 +139,7 @@ interfaces (as root):
         $ sudo sh ifconfig.sh up
         $ cd ../../..
 
-To run the tests, build BIND (be sure to use --with-atf to run unit
+To run the tests, build BIND (be sure to use --with-cmocka to run unit
 tests), then run `make` `check`.  An easy way to check the results:
 
         $ make check 2>&1 | tee /tmp/check.out
