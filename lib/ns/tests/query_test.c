@@ -701,8 +701,8 @@ test_hookasync(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
  * was last used.
  */
 static ns_hookresult_t
-hook_recurse_common(void *arg, void *data, isc_result_t *resultp,
-		    ns_hookpoint_t hookpoint) {
+hook_async_common(void *arg, void *data, isc_result_t *resultp,
+		  ns_hookpoint_t hookpoint) {
 	query_ctx_t *qctx = arg;
 	hookasync_data_t *asdata = data;
 	isc_result_t result;
@@ -717,7 +717,12 @@ hook_recurse_common(void *arg, void *data, isc_result_t *resultp,
 			asdata->async = true;
 		}
 	} else {
-		/* Resume from the completion of recursion */
+		/*
+		 * Resume from the completion of async event.
+		 * fetchhandle should have been detached so that we can start
+		 * another async event or DNS recursive resolution.
+		 */
+		INSIST(qctx->client->fetchhandle == NULL);
 		asdata->async = false;
 		switch (hookpoint) {
 		case NS_QUERY_GOT_ANSWER_BEGIN:
@@ -735,128 +740,121 @@ hook_recurse_common(void *arg, void *data, isc_result_t *resultp,
 }
 
 static ns_hookresult_t
-hook_recurse_query_setup(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_SETUP));
+hook_async_query_setup(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_SETUP));
 }
 
 static ns_hookresult_t
-hook_recurse_query_start_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_START_BEGIN));
+hook_async_query_start_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_START_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_lookup_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_LOOKUP_BEGIN));
+hook_async_query_lookup_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_LOOKUP_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_resume_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_RESUME_BEGIN));
+hook_async_query_resume_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_RESUME_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_got_answer_begin(void *arg, void *data,
-				    isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_GOT_ANSWER_BEGIN));
+hook_async_query_got_answer_begin(void *arg, void *data,
+				  isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_GOT_ANSWER_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_respond_any_begin(void *arg, void *data,
-				     isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_RESPOND_ANY_BEGIN));
-}
-
-static ns_hookresult_t
-hook_recurse_query_addanswer_begin(void *arg, void *data,
+hook_async_query_respond_any_begin(void *arg, void *data,
 				   isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_ADDANSWER_BEGIN));
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_RESPOND_ANY_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_notfound_begin(void *arg, void *data,
+hook_async_query_addanswer_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_ADDANSWER_BEGIN));
+}
+
+static ns_hookresult_t
+hook_async_query_notfound_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_NOTFOUND_BEGIN));
+}
+
+static ns_hookresult_t
+hook_async_query_prep_delegation_begin(void *arg, void *data,
+				       isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_PREP_DELEGATION_BEGIN));
+}
+
+static ns_hookresult_t
+hook_async_query_zone_delegation_begin(void *arg, void *data,
+				       isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_ZONE_DELEGATION_BEGIN));
+}
+
+static ns_hookresult_t
+hook_async_query_delegation_begin(void *arg, void *data,
 				  isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_NOTFOUND_BEGIN));
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_DELEGATION_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_prep_delegation_begin(void *arg, void *data,
-					 isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_PREP_DELEGATION_BEGIN));
+hook_async_query_delegation_recurse_begin(void *arg, void *data,
+					  isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_DELEGATION_RECURSE_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_zone_delegation_begin(void *arg, void *data,
-					 isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_ZONE_DELEGATION_BEGIN));
+hook_async_query_nodata_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_NODATA_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_delegation_begin(void *arg, void *data,
-				    isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_DELEGATION_BEGIN));
+hook_async_query_nxdomain_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_NXDOMAIN_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_delegation_recurse_begin(void *arg, void *data,
-					    isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_DELEGATION_RECURSE_BEGIN));
+hook_async_query_ncache_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_NCACHE_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_nodata_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_NODATA_BEGIN));
+hook_async_query_cname_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_CNAME_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_nxdomain_begin(void *arg, void *data,
-				  isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_NXDOMAIN_BEGIN));
+hook_async_query_dname_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_DNAME_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_ncache_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_NCACHE_BEGIN));
+hook_async_query_respond_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_RESPOND_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_cname_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_CNAME_BEGIN));
+hook_async_query_response_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp,
+				  NS_QUERY_PREP_RESPONSE_BEGIN));
 }
 
 static ns_hookresult_t
-hook_recurse_query_dname_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_DNAME_BEGIN));
-}
-
-static ns_hookresult_t
-hook_recurse_query_respond_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_RESPOND_BEGIN));
-}
-
-static ns_hookresult_t
-hook_recurse_query_response_begin(void *arg, void *data,
-				  isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp,
-				    NS_QUERY_PREP_RESPONSE_BEGIN));
-}
-
-static ns_hookresult_t
-hook_recurse_query_done_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_recurse_common(arg, data, resultp, NS_QUERY_DONE_BEGIN));
+hook_async_query_done_begin(void *arg, void *data, isc_result_t *resultp) {
+	return (hook_async_common(arg, data, resultp, NS_QUERY_DONE_BEGIN));
 }
 
 /*
- * hook on destroying actx.  Can't be used for recursion, but we use this
+ * hook on destroying actx.  Can't be used for async event, but we use this
  * to remember the qctx at that point.
  */
 static ns_hookresult_t
@@ -934,7 +932,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 					   ns_statscounter_servfail);
 
 	/*
-	 * If the query has been canceled, or recursion didn't succeed,
+	 * If the query has been canceled, or async event didn't succeed,
 	 * SERVFAIL will have to be sent.  In this case we need to have
 	 * 'reqhandle' attach to the client's handle as it's detached in
 	 * query_error.
@@ -955,8 +953,8 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	INSIST(result == ISC_R_UNSET);
 
 	/*
-	 * hook-triggered recursion should be happening unless it hits recursion
-	 * quota limit or 'runasync' callback fails.
+	 * hook-triggered async event should be happening unless it hits
+	 * recursion quota limit or 'runasync' callback fails.
 	 */
 	INSIST(asdata.async ==
 	       (test->quota_ok && test->start_result == ISC_R_SUCCESS));
@@ -970,7 +968,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	}
 	INSIST(asdata.canceled == test->do_cancel);
 
-	/* If recursion has started, manually invoke the 'done' event. */
+	/* If async event has started, manually invoke the 'done' event. */
 	if (asdata.async) {
 		qctx->client->now = 0; /* set to sentinel before resume */
 		asdata.rev->ev_action(asdata.rev->ev_sender,
@@ -1035,7 +1033,7 @@ ns__query_hookasync_test(void **state) {
 			NS_TEST_ID("normal case"),
 			NS_QUERY_START_BEGIN,
 			NS_QUERY_START_BEGIN,
-			hook_recurse_query_start_begin,
+			hook_async_query_start_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
@@ -1044,7 +1042,7 @@ ns__query_hookasync_test(void **state) {
 			NS_TEST_ID("quota fail"),
 			NS_QUERY_START_BEGIN,
 			NS_QUERY_START_BEGIN,
-			hook_recurse_query_start_begin,
+			hook_async_query_start_begin,
 			ISC_R_SUCCESS,
 			false,
 			false,
@@ -1053,7 +1051,7 @@ ns__query_hookasync_test(void **state) {
 			NS_TEST_ID("start fail"),
 			NS_QUERY_START_BEGIN,
 			NS_QUERY_START_BEGIN,
-			hook_recurse_query_start_begin,
+			hook_async_query_start_begin,
 			ISC_R_FAILURE,
 			true,
 			false,
@@ -1062,7 +1060,7 @@ ns__query_hookasync_test(void **state) {
 			NS_TEST_ID("query cancel"),
 			NS_QUERY_START_BEGIN,
 			NS_QUERY_START_BEGIN,
-			hook_recurse_query_start_begin,
+			hook_async_query_start_begin,
 			ISC_R_SUCCESS,
 			true,
 			true,
@@ -1072,190 +1070,190 @@ ns__query_hookasync_test(void **state) {
 		 * with the same test logic.
 		 */
 		{
-			NS_TEST_ID("recurse from setup"),
+			NS_TEST_ID("async from setup"),
 			NS_QUERY_SETUP,
 			NS_QUERY_SETUP,
-			hook_recurse_query_setup,
+			hook_async_query_setup,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from lookup"),
+			NS_TEST_ID("async from lookup"),
 			NS_QUERY_LOOKUP_BEGIN,
 			NS_QUERY_LOOKUP_BEGIN,
-			hook_recurse_query_lookup_begin,
+			hook_async_query_lookup_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from resume"),
+			NS_TEST_ID("async from resume"),
 			NS_QUERY_RESUME_BEGIN,
 			NS_QUERY_RESUME_BEGIN,
-			hook_recurse_query_resume_begin,
+			hook_async_query_resume_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from resume restored"),
+			NS_TEST_ID("async from resume restored"),
 			NS_QUERY_RESUME_RESTORED,
 			NS_QUERY_RESUME_BEGIN,
-			hook_recurse_query_resume_begin,
+			hook_async_query_resume_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from gotanswer"),
+			NS_TEST_ID("async from gotanswer"),
 			NS_QUERY_GOT_ANSWER_BEGIN,
 			NS_QUERY_GOT_ANSWER_BEGIN,
-			hook_recurse_query_got_answer_begin,
+			hook_async_query_got_answer_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from respond any"),
+			NS_TEST_ID("async from respond any"),
 			NS_QUERY_RESPOND_ANY_BEGIN,
 			NS_QUERY_RESPOND_ANY_BEGIN,
-			hook_recurse_query_respond_any_begin,
+			hook_async_query_respond_any_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from add answer"),
+			NS_TEST_ID("async from add answer"),
 			NS_QUERY_ADDANSWER_BEGIN,
 			NS_QUERY_ADDANSWER_BEGIN,
-			hook_recurse_query_addanswer_begin,
+			hook_async_query_addanswer_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from notfound"),
+			NS_TEST_ID("async from notfound"),
 			NS_QUERY_NOTFOUND_BEGIN,
 			NS_QUERY_NOTFOUND_BEGIN,
-			hook_recurse_query_notfound_begin,
+			hook_async_query_notfound_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from prep delegation"),
+			NS_TEST_ID("async from prep delegation"),
 			NS_QUERY_PREP_DELEGATION_BEGIN,
 			NS_QUERY_PREP_DELEGATION_BEGIN,
-			hook_recurse_query_prep_delegation_begin,
+			hook_async_query_prep_delegation_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from zone delegation"),
+			NS_TEST_ID("async from zone delegation"),
 			NS_QUERY_ZONE_DELEGATION_BEGIN,
 			NS_QUERY_ZONE_DELEGATION_BEGIN,
-			hook_recurse_query_zone_delegation_begin,
+			hook_async_query_zone_delegation_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from delegation"),
+			NS_TEST_ID("async from delegation"),
 			NS_QUERY_DELEGATION_BEGIN,
 			NS_QUERY_DELEGATION_BEGIN,
-			hook_recurse_query_delegation_begin,
+			hook_async_query_delegation_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from recurse delegation"),
+			NS_TEST_ID("async from async delegation"),
 			NS_QUERY_DELEGATION_RECURSE_BEGIN,
 			NS_QUERY_DELEGATION_RECURSE_BEGIN,
-			hook_recurse_query_delegation_recurse_begin,
+			hook_async_query_delegation_recurse_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from nodata"),
+			NS_TEST_ID("async from nodata"),
 			NS_QUERY_NODATA_BEGIN,
 			NS_QUERY_NODATA_BEGIN,
-			hook_recurse_query_nodata_begin,
+			hook_async_query_nodata_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from nxdomain"),
+			NS_TEST_ID("async from nxdomain"),
 			NS_QUERY_NXDOMAIN_BEGIN,
 			NS_QUERY_NXDOMAIN_BEGIN,
-			hook_recurse_query_nxdomain_begin,
+			hook_async_query_nxdomain_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from ncache"),
+			NS_TEST_ID("async from ncache"),
 			NS_QUERY_NCACHE_BEGIN,
 			NS_QUERY_NCACHE_BEGIN,
-			hook_recurse_query_ncache_begin,
+			hook_async_query_ncache_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from CNAME"),
+			NS_TEST_ID("async from CNAME"),
 			NS_QUERY_CNAME_BEGIN,
 			NS_QUERY_CNAME_BEGIN,
-			hook_recurse_query_cname_begin,
+			hook_async_query_cname_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from DNAME"),
+			NS_TEST_ID("async from DNAME"),
 			NS_QUERY_DNAME_BEGIN,
 			NS_QUERY_DNAME_BEGIN,
-			hook_recurse_query_dname_begin,
+			hook_async_query_dname_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from prep response"),
+			NS_TEST_ID("async from prep response"),
 			NS_QUERY_PREP_RESPONSE_BEGIN,
 			NS_QUERY_PREP_RESPONSE_BEGIN,
-			hook_recurse_query_response_begin,
+			hook_async_query_response_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from respond"),
+			NS_TEST_ID("async from respond"),
 			NS_QUERY_RESPOND_BEGIN,
 			NS_QUERY_RESPOND_BEGIN,
-			hook_recurse_query_respond_begin,
+			hook_async_query_respond_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from done begin"),
+			NS_TEST_ID("async from done begin"),
 			NS_QUERY_DONE_BEGIN,
 			NS_QUERY_DONE_BEGIN,
-			hook_recurse_query_done_begin,
+			hook_async_query_done_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
 		},
 		{
-			NS_TEST_ID("recurse from done send"),
+			NS_TEST_ID("async from done send"),
 			NS_QUERY_DONE_SEND,
 			NS_QUERY_DONE_BEGIN,
-			hook_recurse_query_done_begin,
+			hook_async_query_done_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
@@ -1337,13 +1335,13 @@ test_hookasync_e2e(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 }
 
 static ns_hookresult_t
-hook_recurse_e2e(void *arg, void *data, isc_result_t *resultp) {
+hook_async_e2e(void *arg, void *data, isc_result_t *resultp) {
 	query_ctx_t *qctx = arg;
 	hookasync_e2e_data_t *asdata = data;
 	isc_result_t result;
 
 	if (!asdata->async) {
-		/* Initial call to the hook; start recursion */
+		/* Initial call to the hook; start async event */
 		result = ns_query_hookasync(qctx, test_hookasync_e2e, asdata);
 		if (result != ISC_R_SUCCESS) {
 			*resultp = result;
@@ -1355,7 +1353,7 @@ hook_recurse_e2e(void *arg, void *data, isc_result_t *resultp) {
 		*resultp = ISC_R_UNSET;
 		return (NS_HOOK_RETURN);
 	} else {
-		/* Resume from the completion of recursion */
+		/* Resume from the completion of async event */
 		asdata->async = false;
 		/* Don't touch 'resultp' */
 		return (NS_HOOK_CONTINUE);
@@ -1393,7 +1391,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 		.action_data = &asdata,
 	};
 	const ns_hook_t hook = {
-		.action = hook_recurse_e2e,
+		.action = hook_async_e2e,
 		.action_data = &asdata,
 	};
 	const ns_test_qctx_create_params_t qctx_params = {
@@ -1424,7 +1422,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	 */
 	isc_nmhandle_attach(qctx->client->handle, &qctx->client->reqhandle);
 
-	/* Handle the query.  hook-based recursion will be triggered. */
+	/* Handle the query.  hook-based async event will be triggered. */
 	qctx->client->state = NS_CLIENTSTATE_WORKING;
 	ns__query_start(qctx);
 
@@ -1434,7 +1432,9 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	}
 
 	if (test->start_result == ISC_R_SUCCESS) {
-		/* If recursion has started, manually invoke the done event. */
+		/*
+		 * If async event has started, manually invoke the done event.
+		 */
 		INSIST(asdata.async);
 		asdata.rev->ev_action(asdata.rev->ev_sender,
 				      (isc_event_t *)asdata.rev);
@@ -1478,7 +1478,7 @@ ns__query_hookasync_e2e_test(void **state) {
 			dns_rcode_nxdomain,
 		},
 		{
-			NS_TEST_ID("recurse fail"),
+			NS_TEST_ID("async fail"),
 			"ns.foo",
 			NS_QUERY_DONE_BEGIN,
 			ISC_R_FAILURE,
