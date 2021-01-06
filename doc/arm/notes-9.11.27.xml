@@ -65,7 +65,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Prevent rbtdb instances being destroyed by multiple threads at the same
+          time. This can trigger assertion failures. [GL #2355]
         </para>
       </listitem>
     </itemizedlist>
