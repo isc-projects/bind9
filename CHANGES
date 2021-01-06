@@ -1,3 +1,6 @@
+5558.	[bug]		Asynchronous hook modules could assert due to
+			the fetch handle being detached too late. [GL #2379]
+
 5557.	[bug]		Prevent rbtdb instances being destroyed by multiple
 			threads at the same time. [GL #2355]
 
