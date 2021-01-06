@@ -496,7 +496,7 @@ AS_IF([test "$enable_geoip" = "yes"],
 		   LIBS="$LIBS $MAXMINDDB_LIBS"
 		   AC_SEARCH_LIBS([MMDB_open], [maxminddb],
 				  [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
-				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
+				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_MMDB_open"
 				   AC_MSG_NOTICE([GeoIP2 default database path set to $with_maxminddb/share/GeoIP])
 				   AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_maxminddb])
 				  ],
