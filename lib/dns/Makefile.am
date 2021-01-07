@@ -24,6 +24,8 @@ gen$(BUILD_EXEEXT): gen.c gen-unix.h
 EXTRA_DIST =		\
 	api		\
 	dnstap.proto	\
+	gen.c		\
+	gen-unix.h	\
 	gen-win32.h	\
 	rdata/*
 
