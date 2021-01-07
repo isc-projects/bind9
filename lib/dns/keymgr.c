@@ -770,8 +770,8 @@ static bool
 keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			    int type, dst_key_state_t next_state,
 			    bool match_algorithms, bool must_be_hidden) {
-	dst_key_state_t dnskey_omnipresent[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-						  NA };	       /* (3e) */
+	dst_key_state_t dnskey_chained[4] = { OMNIPRESENT, NA, OMNIPRESENT,
+					      NA };	       /* (3e) */
 	dst_key_state_t ds_hidden[4] = { NA, NA, NA, HIDDEN }; /* (3e) */
 	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
 
@@ -801,18 +801,20 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * least one key with the same algorithm that provides a
 		 * chain of trust (can be this key).
 		 */
-		dnskey_omnipresent[DST_KEY_DS] = NA;
-		if (next_state != NA &&
-		    dst_key_id(dkey->key) == dst_key_id(key->key)) {
-			/* Check next state rather than current state. */
-			dnskey_omnipresent[DST_KEY_DS] = next_state;
-		} else {
-			(void)dst_key_getstate(dkey->key, DST_KEY_DS,
-					       &dnskey_omnipresent[DST_KEY_DS]);
+		if (keymgr_key_match_state(dkey->key, key->key, type,
+					   next_state, dnskey_chained))
+		{
+			/* This DNSKEY and KRRSIG are OMNIPRESENT. */
+			continue;
 		}
-		if (!keymgr_key_exists_with_state(
-			    keyring, key, type, next_state, dnskey_omnipresent,
-			    na, false, match_algorithms))
+
+		/*
+		 * Perhaps another key provides a chain of trust.
+		 */
+		dnskey_chained[DST_KEY_DS] = OMNIPRESENT;
+		if (!keymgr_key_exists_with_state(keyring, key, type,
+						  next_state, dnskey_chained,
+						  na, false, match_algorithms))
 		{
 			/* There is no chain of trust. */
 			return (false);
@@ -836,8 +838,8 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 				dns_dnsseckey_t *key, int type,
 				dst_key_state_t next_state,
 				bool match_algorithms) {
-	dst_key_state_t rrsig_omnipresent[4] = { NA, OMNIPRESENT, NA,
-						 NA };		   /* (3i) */
+	dst_key_state_t rrsig_chained[4] = { OMNIPRESENT, OMNIPRESENT, NA,
+					     NA };		   /* (3i) */
 	dst_key_state_t dnskey_hidden[4] = { HIDDEN, NA, NA, NA }; /* (3i) */
 	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
 
@@ -861,12 +863,11 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 		 * least one key with the same algorithm that has its RRSIG
 		 * records OMNIPRESENT.
 		 */
-		rrsig_omnipresent[DST_KEY_DNSKEY] = NA;
 		(void)dst_key_getstate(dkey->key, DST_KEY_DNSKEY,
-				       &rrsig_omnipresent[DST_KEY_DNSKEY]);
+				       &rrsig_chained[DST_KEY_DNSKEY]);
 		if (!keymgr_key_exists_with_state(keyring, key, type,
-						  next_state, rrsig_omnipresent,
-						  na, false, match_algorithms))
+						  next_state, rrsig_chained, na,
+						  false, match_algorithms))
 		{
 			/* There is no chain of trust. */
 			return (false);
