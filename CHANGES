@@ -1,3 +1,7 @@
+5561.	[bug]		KASP incorrectly set signature validity to the value
+			of the DNSKEY signature validity. This is now fixed.
+			[GL #2383]
+
 5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
 			enabling support for libmaxminddb was not working
 			correctly. This has been fixed. [GL #2366]
