@@ -778,9 +778,6 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
-		char keystr[DST_KEY_FORMATSIZE];
-		dst_key_format(dkey->key, keystr, sizeof(keystr));
-
 		if (match_algorithms &&
 		    (dst_key_alg(dkey->key) != dst_key_alg(key->key))) {
 			continue;
@@ -1082,7 +1079,7 @@ keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 	if (next != RUMOURED) {
 		/*
 		 * Local policy only adds an extra barrier on transitions to
-		 * the RUMOURED and UNRETENTIVE states.
+		 * the RUMOURED state.
 		 */
 		return (true);
 	}
@@ -2094,7 +2091,7 @@ keytime_status(dst_key_t *key, isc_stdtime_t now, isc_buffer_t *buf,
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	isc_result_t ret;
 	isc_stdtime_t when = 0;
-	dst_key_state_t state;
+	dst_key_state_t state = NA;
 
 	isc_buffer_printf(buf, "%s", pre);
 	(void)dst_key_getstate(key, ks, &state);
