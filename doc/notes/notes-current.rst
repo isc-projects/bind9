@@ -65,3 +65,6 @@ Bug Fixes
 
 - Prevent rbtdb instances being destroyed by multiple threads at the same
   time. This can trigger assertion failures. [GL #2355]
+
+- KASP incorrectly set signature validity to the value of the DNSKEY signature
+  validity. This is now fixed. [GL #2383]

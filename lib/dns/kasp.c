@@ -184,7 +184,7 @@ dns_kasp_setsigvalidity_dnskey(dns_kasp_t *kasp, uint32_t value) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(!kasp->frozen);
 
-	kasp->signatures_validity = value;
+	kasp->signatures_validity_dnskey = value;
 }
 
 dns_ttl_t

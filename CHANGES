@@ -1,3 +1,7 @@
+5561.	[bug]		KASP incorrectly set signature validity to the value
+			of the DNSKEY signature validity. This is now fixed.
+			[GL #2383]
+
 5560.	[func]		The default value of "max-stale-ttl" has been changed
 			from 12 hours to 1 day and the default value of
 			"stale-answer-ttl" has been changed from 1 second to
