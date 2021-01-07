@@ -1,3 +1,7 @@
+5577.	[bug]		Fix the "three is a crowd" key rollover bug in
+			dnssec-policy by correctly implementing Equation(2) of
+			the "Flexible and Robust Key Rollover" paper. [GL #2375]
+
 5576.	[experimental]	Initial server-side implementation of DNS-over-HTTPS
 			(DoH). Support for both TLS-encrypted and unencrypted
 			HTTP/2 connections has been added to the network manager
