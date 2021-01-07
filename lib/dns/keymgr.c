@@ -700,39 +700,41 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			continue;
 		}
 
-		if (check_successor &&
-		    keymgr_key_match_state(dkey->key, key->key, type,
-					   next_state, states2))
-		{
-			/* Found a possible successor, look for predecessor. */
-			for (dns_dnsseckey_t *pkey = ISC_LIST_HEAD(*keyring);
-			     pkey != NULL; pkey = ISC_LIST_NEXT(pkey, link))
-			{
-				if (pkey == dkey) {
-					continue;
-				}
-				if (!keymgr_key_match_state(pkey->key, key->key,
-							    type, next_state,
-							    states)) {
-					continue;
-				}
-
-				/*
-				 * Found a possible predecessor, check
-				 * relationship.
-				 */
-				if (keymgr_key_is_successor(pkey->key,
-							    dkey->key)) {
-					return (true);
-				}
-			}
+		if (!keymgr_key_match_state(dkey->key, key->key, type,
+					    next_state, states)) {
+			continue;
 		}
 
-		if (!check_successor &&
-		    keymgr_key_match_state(dkey->key, key->key, type,
-					   next_state, states))
-		{
+		/* Found a match. */
+		if (!check_successor) {
 			return (true);
+		}
+
+		/*
+		 * We have to make sure that the key we are checking, also
+		 * has a successor relationship with another key.
+		 */
+		for (dns_dnsseckey_t *skey = ISC_LIST_HEAD(*keyring);
+		     skey != NULL; skey = ISC_LIST_NEXT(skey, link))
+		{
+			if (skey == dkey) {
+				continue;
+			}
+
+			if (!keymgr_key_match_state(skey->key, key->key, type,
+						    next_state, states2)) {
+				continue;
+			}
+
+			/*
+			 * Found a possible successor, check.
+			 */
+			if (keymgr_key_is_successor(dkey->key, skey->key,
+						    key->key, type, next_state,
+						    keyring))
+			{
+				return (true);
+			}
 		}
 	}
 	/* No match. */
@@ -748,7 +750,7 @@ keymgr_key_has_successor(dns_dnsseckey_t *predecessor,
 	for (dns_dnsseckey_t *successor = ISC_LIST_HEAD(*keyring);
 	     successor != NULL; successor = ISC_LIST_NEXT(successor, link))
 	{
-		if (keymgr_key_is_successor(predecessor->key, successor->key)) {
+		if (keymgr_direct_dep(predecessor->key, successor->key)) {
 			return (true);
 		}
 	}
@@ -1928,11 +1930,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					if (!dst_key_is_unused(dkey->key) &&
 					    (dst_key_goal(dkey->key) ==
 					     OMNIPRESENT) &&
-					    !keymgr_key_is_successor(
-						    dkey->key,
-						    active_key->key) &&
-					    !keymgr_key_is_successor(
-						    active_key->key, dkey->key))
+					    !keymgr_dep(dkey->key, keyring,
+							NULL) &&
+					    !keymgr_dep(active_key->key,
+							keyring, NULL))
 					{
 						/*
 						 * Multiple signing keys match
