@@ -557,21 +557,124 @@ keymgr_key_match_state(dst_key_t *key, dst_key_t *subject, int type,
 }
 
 /*
- * Check if a 'k2' is a successor of 'k1'. This is a simplified version of
- * Equation(2) of "Flexible and Robust Key Rollover" which defines a
- * recursive relation.
- *
+ * Key d directly depends on k if d is the direct predecessor of k.
  */
 static bool
-keymgr_key_is_successor(dst_key_t *k1, dst_key_t *k2) {
-	uint32_t suc = 0, pre = 0;
-	if (dst_key_getnum(k1, DST_NUM_SUCCESSOR, &suc) != ISC_R_SUCCESS) {
+keymgr_direct_dep(dst_key_t *d, dst_key_t *k) {
+	uint32_t s, p;
+
+	if (dst_key_getnum(d, DST_NUM_SUCCESSOR, &s) != ISC_R_SUCCESS) {
 		return (false);
 	}
-	if (dst_key_getnum(k2, DST_NUM_PREDECESSOR, &pre) != ISC_R_SUCCESS) {
+	if (dst_key_getnum(k, DST_NUM_PREDECESSOR, &p) != ISC_R_SUCCESS) {
 		return (false);
 	}
-	return (dst_key_id(k1) == pre && dst_key_id(k2) == suc);
+	return (dst_key_id(d) == p && dst_key_id(k) == s);
+}
+
+/*
+ * Determine which key (if any) has a dependency on k.
+ */
+static bool
+keymgr_dep(dst_key_t *k, dns_dnsseckeylist_t *keyring, uint32_t *dep) {
+	for (dns_dnsseckey_t *d = ISC_LIST_HEAD(*keyring); d != NULL;
+	     d = ISC_LIST_NEXT(d, link))
+	{
+		/*
+		 * Check if k is a direct successor of d, e.g. d depends on k.
+		 */
+		if (keymgr_direct_dep(d->key, k)) {
+			if (dep != NULL) {
+				*dep = dst_key_id(d->key);
+			}
+			return (true);
+		}
+	}
+	return (false);
+}
+
+/*
+ * Check if a 'z' is a successor of 'x'.
+ * This implements Equation(2) of "Flexible and Robust Key Rollover".
+ */
+static bool
+keymgr_key_is_successor(dst_key_t *x, dst_key_t *z, dst_key_t *key, int type,
+			dst_key_state_t next_state,
+			dns_dnsseckeylist_t *keyring) {
+	uint32_t dep_x;
+	uint32_t dep_z;
+
+	/*
+	 * The successor relation requires that the predecessor key must not
+	 * have any other keys relying on it. In other words, there must be
+	 * nothing depending on x.
+	 */
+	if (keymgr_dep(x, keyring, &dep_x)) {
+		return (false);
+	}
+
+	/*
+	 * If there is no keys relying on key z, then z is not a successor.
+	 */
+	if (!keymgr_dep(z, keyring, &dep_z)) {
+		return (false);
+	}
+
+	/*
+	 * x depends on z, thus key z is a direct successor of key x.
+	 */
+	if (dst_key_id(x) == dep_z) {
+		return (true);
+	}
+
+	/*
+	 * It is possible to roll keys faster than the time required to finish
+	 * the rollover procedure. For example, consider the keys x, y, z.
+	 * Key x is currently published and is going to be replaced by y. The
+	 * DNSKEY for x is removed from the zone and at the same moment the
+	 * DNSKEY for y is introduced. Key y is a direct dependency for key x
+	 * and is therefore the successor of x. However, before the new DNSKEY
+	 * has been propagated, key z will replace key y. The DNSKEY for y is
+	 * removed and moves into the same state as key x. Key y now directly
+	 * depends on key z, and key z will be a new successor key for x.
+	 */
+	dst_key_state_t zst[4] = { NA, NA, NA, NA };
+	for (int i = 0; i < 4; i++) {
+		dst_key_state_t state;
+		if (dst_key_getstate(z, i, &state) != ISC_R_SUCCESS) {
+			continue;
+		}
+		zst[i] = state;
+	}
+
+	for (dns_dnsseckey_t *y = ISC_LIST_HEAD(*keyring); y != NULL;
+	     y = ISC_LIST_NEXT(y, link))
+	{
+		if (dst_key_id(y->key) == dst_key_id(z)) {
+			continue;
+		}
+
+		if (dst_key_id(y->key) != dep_z) {
+			continue;
+		}
+		/*
+		 * This is another key y, that depends on key z. It may be
+		 * part of the successor relation if the key states match
+		 * those of key z.
+		 */
+
+		if (keymgr_key_match_state(y->key, key, type, next_state, zst))
+		{
+			/*
+			 * If y is a successor of x, then z is also a
+			 * successor of x.
+			 */
+			return (keymgr_key_is_successor(x, y->key, key, type,
+							next_state, keyring));
+		}
+	}
+
+	return (false);
 }
 
 /*
