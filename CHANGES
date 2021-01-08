@@ -1,3 +1,7 @@
+5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
+			enabling support for libmaxminddb was not working
+			correctly. This has been fixed. [GL #2366]
+
 5557.	[bug]		Prevent rbtdb instances being destroyed by multiple
 			threads at the same time. [GL #2355]
 
