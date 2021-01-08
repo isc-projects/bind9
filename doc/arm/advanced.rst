@@ -646,7 +646,7 @@ crypto hardware and build the key files. Its usage is similar to
 The public keys should be inserted into the zone file by including the
 ``.key`` files using ``$INCLUDE`` statements.
 
-.. _dnssec_signing:
+.. _dnssec_zone_signing:
 
 Signing the Zone
 ~~~~~~~~~~~~~~~~
