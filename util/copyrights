@@ -1142,6 +1142,7 @@
 ./doc/arm/conf.py				PYTHON	2020,2021
 ./doc/arm/configuration.rst			RST	2020,2021
 ./doc/arm/dlz.rst				RST	2020,2021
+./doc/arm/dnssec-guide.rst			RST	2021
 ./doc/arm/dnssec.rst				RST	2020,2021
 ./doc/arm/dyndb.rst				RST	2020,2021
 ./doc/arm/general.rst				RST	2020,2021
@@ -1189,6 +1190,15 @@
 ./doc/dev/results				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019,2020,2021
 ./doc/dev/tests					TXT.BRIEF	2000,2001,2004,2016,2018,2019,2020,2021
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019,2020,2021
+./doc/dnssec-guide/advanced-discussions.rst	RST	2021
+./doc/dnssec-guide/commonly-asked-questions.rst	RST	2021
+./doc/dnssec-guide/getting-started.rst		RST	2021
+./doc/dnssec-guide/introduction.rst		RST	2021
+./doc/dnssec-guide/preface.rst			RST	2021
+./doc/dnssec-guide/recipes.rst			RST	2021
+./doc/dnssec-guide/signing.rst			RST	2021
+./doc/dnssec-guide/troubleshooting.rst		RST	2021
+./doc/dnssec-guide/validation.rst		RST	2021
 ./doc/doxygen/Doxyfile.in			X	2006,2017,2018,2019,2020
 ./doc/doxygen/doxygen-input-filter.in		PERL	2006,2007,2012,2016,2018,2019,2020
 ./doc/doxygen/mainpage				X	2006,2018,2019,2020,2021

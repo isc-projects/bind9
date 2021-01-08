@@ -7,6 +7,7 @@ EXTRA_DIST =					\
 	catz.rst				\
 	configuration.rst			\
 	dlz.rst					\
+	dnssec-guide.rst			\
 	dnssec.rst				\
 	dyndb.rst				\
 	general.rst				\
@@ -23,6 +24,7 @@ EXTRA_DIST =					\
 	requirements.rst			\
 	security.rst				\
 	troubleshooting.rst			\
+	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
 	../misc/controls.grammar.rst		\
 	../misc/delegation-only.zoneopt.rst	\
