@@ -1,3 +1,7 @@
+5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
+			enabling support for libmaxminddb was not working
+			correctly. This has been fixed. [GL #2366]
+
 5558.	[bug]		Asynchronous hook modules could assert due to
 			the fetch handle being detached too late. [GL #2379]
 
