@@ -30,6 +30,7 @@ BIND 9 Administrator Reference Manual
    :maxdepth: 2
 
    notes
+   dnssec-guide
    history
    general
    manpages

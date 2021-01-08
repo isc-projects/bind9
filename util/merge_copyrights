@@ -55,6 +55,7 @@ while (<CHANGES>) {
 	       \.conf$ |        # configuration files
 	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
+	       doc/dnssec-guide/img/ |		# images
 	       doc/(draft|expired|rfc)/ |	# imported
 	       doc/notes/ |     # release notes doesn't really need copyright
 	       \.*in$ |         # the generated documentation doesn't really need copyright
