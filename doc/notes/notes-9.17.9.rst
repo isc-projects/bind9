@@ -11,25 +11,10 @@
 Notes for BIND 9.17.9
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - ``ipv4only.arpa`` is now served when DNS64 is configured. [GL #385]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
