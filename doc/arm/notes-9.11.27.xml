@@ -65,8 +65,10 @@
     <itemizedlist>
       <listitem>
         <para>
-          Prevent rbtdb instances being destroyed by multiple threads at the same
-          time. This can trigger assertion failures. [GL #2355]
+          Multiple threads could attempt to destroy a single RBTDB instance at
+          the same time, resulting in an unpredictable but low-probability
+          assertion failure in <filename>free_rbtdb()</filename>. This has been
+          fixed. [GL #2317]
         </para>
       </listitem>
     </itemizedlist>
