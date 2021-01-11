@@ -34,12 +34,6 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- It is now possible to transition a zone from secure to insecure mode
-  without making it bogus in the process; changing to ``dnssec-policy
-  none;`` also causes CDS and CDNSKEY DELETE records to be published, to
-  signal that the entire DS RRset at the parent must be removed, as
-  described in RFC 8078. [GL #1750]
-
 - The new networking code introduced in BIND 9.16 (netmgr) was
   overhauled in order to make it more stable, testable, and
   maintainable. [GL #2321]
@@ -58,6 +52,12 @@ Feature Changes
   day and the default value of ``stale-answer-ttl`` has been changed from 1
   second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
 
+- It is now possible to transition a zone from secure to insecure mode
+  without making it bogus in the process; changing to ``dnssec-policy
+  none;`` also causes CDS and CDNSKEY DELETE records to be published, to
+  signal that the entire DS RRset at the parent must be removed, as
+  described in RFC 8078. [GL #1750]
+
 - When using the ``unixtime`` or ``date`` method to update the SOA
   serial number, ``named`` and ``dnssec-signzone`` silently fell back to
   the ``increment`` method to prevent the new serial number from being
@@ -75,15 +75,15 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Multiple threads could attempt to destroy a single RBTDB instance at
+  the same time, resulting in an unpredictable but low-probability
+  assertion failure in ``free_rbtdb()``. This has been fixed. [GL #2317]
+
 - ``named`` no longer attempts to assign threads to CPUs outside the CPU
   affinity set. Thanks to Ole Bjørn Hessen. [GL #2245]
 
 - When reconfiguring ``named``, removing ``auto-dnssec`` did not turn
   off DNSSEC maintenance. This has been fixed. [GL #2341]
-
-- Multiple threads could attempt to destroy a single RBTDB instance at
-  the same time, resulting in an unpredictable but low-probability
-  assertion failure in ``free_rbtdb()``. This has been fixed. [GL #2317]
 
 - KASP incorrectly set signature validity to the value of the DNSKEY signature
   validity. This is now fixed. [GL #2383]
