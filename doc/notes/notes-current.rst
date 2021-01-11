@@ -73,3 +73,13 @@ Bug Fixes
 
 - When reconfiguring ``named``, removing ``auto-dnssec`` did not turn
   off DNSSEC maintenance. This has been fixed. [GL #2341]
+
+- The report of intermittent BIND assertion failures triggered in
+  ``lib/dns/resolver.c:dns_name_issubdomain()`` has now been closed
+  without further action. Our initial response to this was to add
+  diagnostic logging instead of terminating ``named``, anticipating that
+  we would receive further useful troubleshooting input. This workaround
+  first appeared in BIND releases 9.17.5 and 9.16.7. However, since
+  those releases were published, there have been no new reports of
+  assertion failures matching this issue, but also no further diagnostic
+  input, so we have closed the issue. [GL #2091]
