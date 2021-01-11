@@ -18,7 +18,7 @@ do
 	echo_i "checking $db ($n)"
 	ret=0
 	case $db in
-	zones/good-gc-msdcs.db)
+	zones/good-gc-msdcs.db|zones/good-spf-exception.db)
 		$CHECKZONE -k fail -i local example $db > test.out.$n 2>&1 || ret=1
 		;;
 	zones/good-dns-sd-reverse.db)
