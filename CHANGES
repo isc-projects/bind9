@@ -2,33 +2,32 @@
 			enabling support for libmaxminddb was not working
 			correctly. This has been fixed. [GL #2366]
 
-5557.	[bug]		Prevent rbtdb instances being destroyed by multiple
-			threads at the same time. [GL #2355]
+5557.	[bug]		Prevent RBTDB instances from being destroyed by multiple
+			threads at the same time. [GL #2317]
 
-5556.	[bug]		dnssec-signzone and dnssec-verify where now
-			printing too many newlines between log messages.
-			[GL #2359]
+5556.	[bug]		Further tweak newline printing in dnssec-signzone and
+			dnssec-verify. [GL #2359]
 
-5555.	[bug]		server->reload_status was not properly initialised.
+5555.	[bug]		server->reload_status was not properly initialized.
 			[GL #2361]
 
-5554.	[bug]		dnssec-signzone and dnssec-verify where missing
-			newlines between log messages. [GL #2359]
+5554.	[bug]		dnssec-signzone and dnssec-verify were missing newlines
+			between log messages. [GL #2359]
 
-5553.	[bug]		When reconfiguring named, removing "auto-dnssec"
-			did not actually turn off DNSSEC maintenance.
-			This has been fixed. [GL #2341]
+5553.	[bug]		When reconfiguring named, removing "auto-dnssec" did not
+			turn off DNSSEC maintenance. [GL #2341]
 
-5552.	[func]		When switching to "dnssec-policy none;", named
-			now permits a safe transition to insecure mode
-			and publishes the CDS and CDNSKEY DELETE
-			records, as described in RFC 8078. [GL #1750]
+5552.	[func]		When switching to "dnssec-policy none;", named now
+			permits a safe transition to insecure mode and publishes
+			the CDS and CDNSKEY DELETE records, as described in RFC
+			8078. [GL #1750]
 
-5551.	[bug]		Only assign threads to CPUs in the CPU affinity set.
-			Thanks to Ole Bjørn Hessen. [GL #2245]
+5551.	[bug]		named no longer attempts to assign threads to CPUs
+			outside the CPU affinity set. Thanks to Ole Bjørn
+			Hessen. [GL #2245]
 
-5550.	[func]		Print a warning when falling back to the "increment" SOA
-			serial method. [GL #2058]
+5550.	[func]		dnssec-signzone and named now log a warning when falling
+			back to the "increment" SOA serial method. [GL #2058]
 
 5545.	[func]		OS support for load-balanced sockets is no longer
 			required to receive incoming queries in multiple netmgr
