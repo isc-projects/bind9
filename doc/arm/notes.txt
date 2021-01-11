@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.26
+Release Notes for BIND Version 9.11.27
 
 Introduction
 
@@ -35,6 +35,14 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.27
+
+Bug Fixes
+
+  • Multiple threads could attempt to destroy a single RBTDB instance at
+    the same time, resulting in an unpredictable but low-probability
+    assertion failure in free_rbtdb(). This has been fixed. [GL #2317]
 
 Notes for BIND 9.11.26
 
