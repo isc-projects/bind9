@@ -11,62 +11,14 @@
 
 <section xml:id="relnotes-9.11.27"><info><title>Notes for BIND 9.11.27</title></info>
 
-  <section xml:id="relnotes-9.11.27-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.27-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.27-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.27-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.27-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.27-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-          Prevent rbtdb instances being destroyed by multiple threads at the same
-          time. This can trigger assertion failures. [GL #2355]
+          Multiple threads could attempt to destroy a single RBTDB instance at
+          the same time, resulting in an unpredictable but low-probability
+          assertion failure in <filename>free_rbtdb()</filename>. This has been
+          fixed. [GL #2317]
         </para>
       </listitem>
     </itemizedlist>
