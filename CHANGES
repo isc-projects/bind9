@@ -9,7 +9,7 @@
 			Thanks to Jinmei Tatuya at Infoblox. [GL #2379]
 
 5557.	[bug]		Prevent RBTDB instances from being destroyed by multiple
-			threads at the same time. [GL #2355]
+			threads at the same time. [GL #2317]
 
 5556.	[bug]		Further tweak newline printing in dnssec-signzone and
 			dnssec-verify. [GL #2359]
