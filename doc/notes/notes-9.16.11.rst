@@ -11,26 +11,6 @@
 Notes for BIND 9.16.11
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -48,10 +28,6 @@ Feature Changes
   to distribute incoming queries among multiple threads on systems which
   lack support for load-balanced sockets (except Windows). [GL #2137]
 
-- The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
-  day and the default value of ``stale-answer-ttl`` has been changed from 1
-  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
-
 - It is now possible to transition a zone from secure to insecure mode
   without making it bogus in the process; changing to ``dnssec-policy
   none;`` also causes CDS and CDNSKEY DELETE records to be published, to
@@ -64,13 +40,6 @@ Feature Changes
   smaller than the old serial number (using serial number arithmetics).
   ``dnssec-signzone`` now prints a warning message, and ``named`` logs a
   warning, when such a fallback happens. [GL #2058]
-
-- As part of an ongoing effort to use RFC 8499 terminology,
-  ``primaries`` can now be used as a synonym for ``masters`` in
-  ``named.conf``. Similarly, ``notify primary-only`` can now be used as
-  a synonym for ``notify master-only``. The output of ``rndc
-  zonestatus`` now uses ``primary`` and ``secondary`` terminology.
-  [GL #1948]
 
 Bug Fixes
 ~~~~~~~~~
@@ -94,6 +63,3 @@ Bug Fixes
   those releases were published, there have been no new reports of
   assertion failures matching this issue, but also no further diagnostic
   input, so we have closed the issue. [GL #2091]
-
-- KASP incorrectly set signature validity to the value of the DNSKEY signature
-  validity. This is now fixed. [GL #2383]
