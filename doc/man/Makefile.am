@@ -75,6 +75,7 @@ MANPAGES_RST =				\
 
 man_MANS =				\
 	arpaname.1			\
+	ddns-confgen.8			\
 	delv.1				\
 	dig.1				\
 	dnstap-read.1			\

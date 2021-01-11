@@ -32,7 +32,7 @@
 
 project = u'BIND 9'
 # pylint: disable=redefined-builtin
-copyright = u'2020, Internet Systems Consortium'
+copyright = u'2021, Internet Systems Consortium'
 author = u'Internet Systems Consortium'
 
 # -- General configuration ---------------------------------------------------
@@ -60,6 +60,7 @@ master_doc = 'index'
 # pylint: disable=line-too-long
 man_pages = [
     ('arpaname', 'arpaname', 'translate IP addresses to the corresponding ARPA names', author, 1),
+    ('ddns-confgen', 'ddns-confgen', 'ddns key generation tool', author, 8),
     ('delv', 'delv', 'DNS lookup and validation utility', author, 1),
     ('dig', 'dig', 'DNS lookup utility', author, 1),
     ('dnssec-cds', 'dnssec-cds', 'change DS records for a child zone based on CDS/CDNSKEY', author, 1),
