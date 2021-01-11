@@ -32,7 +32,7 @@
 
 project = u'BIND 9'
 # pylint: disable=redefined-builtin
-copyright = u'2020, Internet Systems Consortium'
+copyright = u'2021, Internet Systems Consortium'
 author = u'Internet Systems Consortium'
 
 # -- General configuration ---------------------------------------------------
