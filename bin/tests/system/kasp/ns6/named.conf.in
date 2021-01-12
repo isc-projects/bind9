@@ -38,7 +38,7 @@ controls {
 
 /* These are zones that migrate to dnssec-policy. */
 zone "migrate.kasp" {
-	type master;
+	type primary;
 	file "migrate.kasp.db";
 	auto-dnssec maintain;
 	allow-update { any; };
@@ -47,7 +47,7 @@ zone "migrate.kasp" {
 };
 
 zone "migrate-nomatch-algnum.kasp" {
-	type master;
+	type primary;
 	file "migrate-nomatch-algnum.kasp.db";
 	auto-dnssec maintain;
 	allow-update { any; };
@@ -56,7 +56,7 @@ zone "migrate-nomatch-algnum.kasp" {
 };
 
 zone "migrate-nomatch-alglen.kasp" {
-	type master;
+	type primary;
 	file "migrate-nomatch-alglen.kasp.db";
 	auto-dnssec maintain;
 	allow-update { any; };
@@ -80,13 +80,13 @@ zone "step1.going-insecure-dynamic.kasp" {
 
 /* These are alorithm rollover test zones. */
 zone "step1.algorithm-roll.kasp" {
-	type master;
+	type primary;
 	file "step1.algorithm-roll.kasp.db";
 	dnssec-policy "rsasha1";
 };
 
 zone "step1.csk-algorithm-roll.kasp" {
-	type master;
+	type primary;
 	file "step1.csk-algorithm-roll.kasp.db";
 	dnssec-policy "csk-algoroll";
 };

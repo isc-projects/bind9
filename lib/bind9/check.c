@@ -1657,36 +1657,138 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	return (result);
 }
 
+/*
+ * Check "primaries" style list.
+ */
 static isc_result_t
-get_masters_def(const cfg_obj_t *cctx, const char *name,
-		const cfg_obj_t **ret) {
-	isc_result_t result;
-	const cfg_obj_t *masters = NULL;
+bind9_check_primarylist(const cfg_obj_t *cctx, const char *list,
+			isc_log_t *logctx, isc_symtab_t *symtab,
+			isc_mem_t *mctx) {
+	isc_symvalue_t symvalue;
+	isc_result_t result, tresult;
+	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt;
 
-	result = cfg_map_get(cctx, "masters", &masters);
+	result = cfg_map_get(cctx, list, &obj);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_R_SUCCESS);
+	}
+
+	elt = cfg_list_first(obj);
+	while (elt != NULL) {
+		char *tmp;
+		const char *name;
+
+		obj = cfg_listelt_value(elt);
+		name = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+
+		tmp = isc_mem_strdup(mctx, name);
+		symvalue.as_cpointer = obj;
+		tresult = isc_symtab_define(symtab, tmp, 1, symvalue,
+					    isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			const char *file = NULL;
+			unsigned int line;
+
+			RUNTIME_CHECK(
+				isc_symtab_lookup(symtab, tmp, 1, &symvalue) ==
+				ISC_R_SUCCESS);
+			file = cfg_obj_file(symvalue.as_cpointer);
+			line = cfg_obj_line(symvalue.as_cpointer);
+
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "primaries list '%s' is duplicated: "
+				    "also defined at %s:%u",
+				    name, file, line);
+			isc_mem_free(mctx, tmp);
+			result = tresult;
+			break;
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, tmp);
+			result = tresult;
+			break;
+		}
+
+		elt = cfg_list_next(elt);
+	}
+	return (result);
+}
+
+/*
+ * Check primaries lists for duplicates.
+ */
+static isc_result_t
+bind9_check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx,
+			 isc_mem_t *mctx) {
+	isc_result_t result, tresult;
+	isc_symtab_t *symtab = NULL;
+
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	for (elt = cfg_list_first(masters); elt != NULL;
-	     elt = cfg_list_next(elt)) {
-		const cfg_obj_t *list;
+	tresult = bind9_check_primarylist(cctx, "primaries", logctx, symtab,
+					  mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	tresult = bind9_check_primarylist(cctx, "masters", logctx, symtab,
+					  mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	isc_symtab_destroy(&symtab);
+	return (result);
+}
+
+static isc_result_t
+get_primaries(const cfg_obj_t *cctx, const char *list, const char *name,
+	      const cfg_obj_t **ret) {
+	isc_result_t result;
+	const cfg_obj_t *obj = NULL;
+	const cfg_listelt_t *elt = NULL;
+
+	result = cfg_map_get(cctx, list, &obj);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	elt = cfg_list_first(obj);
+	while (elt != NULL) {
 		const char *listname;
 
-		list = cfg_listelt_value(elt);
-		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
+		obj = cfg_listelt_value(elt);
+		listname = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
 
 		if (strcasecmp(listname, name) == 0) {
-			*ret = list;
+			*ret = obj;
 			return (ISC_R_SUCCESS);
 		}
+
+		elt = cfg_list_next(elt);
 	}
+
 	return (ISC_R_NOTFOUND);
 }
 
 static isc_result_t
-validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
-		 uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx) {
+get_primaries_def(const cfg_obj_t *cctx, const char *name,
+		  const cfg_obj_t **ret) {
+	isc_result_t result;
+
+	result = get_primaries(cctx, "primaries", name, ret);
+	if (result != ISC_R_SUCCESS) {
+		result = get_primaries(cctx, "masters", name, ret);
+	}
+	return (result);
+}
+
+static isc_result_t
+validate_primaries(const cfg_obj_t *obj, const cfg_obj_t *config,
+		   uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	uint32_t count = 0;
@@ -1713,8 +1815,8 @@ resume:
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
 
-		addr = cfg_tuple_get(cfg_listelt_value(element), "masterselemen"
-								 "t");
+		addr = cfg_tuple_get(cfg_listelt_value(element),
+				     "primarieselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (cfg_obj_issockaddr(addr)) {
@@ -1736,13 +1838,13 @@ resume:
 		if (tresult == ISC_R_EXISTS) {
 			continue;
 		}
-		tresult = get_masters_def(config, listname, &obj);
+		tresult = get_primaries_def(config, listname, &obj);
 		if (tresult != ISC_R_SUCCESS) {
 			if (result == ISC_R_SUCCESS) {
 				result = tresult;
 			}
 			cfg_obj_log(addr, logctx, ISC_LOG_ERROR,
-				    "unable to find masters list '%s'",
+				    "unable to find primaries list '%s'",
 				    listname);
 			continue;
 		}
@@ -2423,9 +2525,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (cfg_obj_isboolean(obj)) {
 				donotify = cfg_obj_asboolean(obj);
 			} else {
-				const char *notifystr = cfg_obj_asstring(obj);
+				const char *str = cfg_obj_asstring(obj);
 				if (ztype != CFG_ZONE_MASTER &&
-				    strcasecmp(notifystr, "master-only") == 0) {
+				    (strcasecmp(str, "master-only") == 0 ||
+				     strcasecmp(str, "primary-only") == 0))
+				{
 					donotify = false;
 				}
 			}
@@ -2447,8 +2551,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 		if (tresult == ISC_R_SUCCESS && donotify) {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count, logctx,
-						   mctx);
+			tresult = validate_primaries(obj, config, &count,
+						     logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
@@ -2457,7 +2561,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Slave, mirror, and stub zones must have a "masters" field, with one
+	 * Slave, mirror, and stub zones must have a "primaries" field, with one
 	 * exception: when mirroring the root zone, a default, built-in master
 	 * server list is used in the absence of one explicitly specified.
 	 */
@@ -2466,22 +2570,39 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	     !dns_name_equal(zname, dns_rootname)))
 	{
 		obj = NULL;
-		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
+		(void)cfg_map_get(zoptions, "primaries", &obj);
+		if (obj == NULL) {
+			/* If "primaries" was unset, check for "masters" */
+			(void)cfg_map_get(zoptions, "masters", &obj);
+		} else {
+			const cfg_obj_t *obj2 = NULL;
+
+			/* ...bug if it was set, "masters" must not be. */
+			(void)cfg_map_get(zoptions, "masters", &obj2);
+			if (obj2 != NULL) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "'primaries' and 'masters' cannot "
+					    "both be used in the same zone");
+				result = ISC_R_FAILURE;
+			}
+		}
+		if (obj == NULL) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
-				    "zone '%s': missing 'masters' entry",
+				    "zone '%s': missing 'primaries' entry",
 				    znamestr);
 			result = ISC_R_FAILURE;
 		} else {
 			uint32_t count;
-			tresult = validate_masters(obj, config, &count, logctx,
-						   mctx);
+			tresult = validate_primaries(obj, config, &count,
+						     logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
 			}
 			if (tresult == ISC_R_SUCCESS && count == 0) {
 				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
-					    "zone '%s': empty 'masters' entry",
+					    "zone '%s': "
+					    "empty 'primaries' entry",
 					    znamestr);
 				result = ISC_R_FAILURE;
 			}
@@ -4751,6 +4872,10 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	}
 
 	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS) {
+		result = ISC_R_FAILURE;
+	}
+
+	if (bind9_check_primarylists(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 

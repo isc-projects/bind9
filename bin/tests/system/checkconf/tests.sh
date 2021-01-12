@@ -182,8 +182,8 @@ EOF
     [ $? -eq 1 ] || { echo_i "options + view $field failed" ; ret=1; }
     cat > badzero.conf << EOF
 zone dummy {
-    type slave;
-    masters { 0.0.0.0; };
+    type secondary;
+    primaries { 0.0.0.0; };
     $field 0;
 };
 EOF
@@ -194,7 +194,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking options allowed in inline-signing slaves ($n)"
+echo_i "checking options allowed in inline-signing secondaries ($n)"
 ret=0
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1
 l=`grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l`
@@ -209,7 +209,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check file + inline-signing for slave zones ($n)"
+echo_i "check file + inline-signing for secondary zones ($n)"
 $CHECKCONF inline-no.conf > checkconf.out$n.1 2>&1
 l=`grep "missing 'file' entry" < checkconf.out$n.1 | wc -l`
 [ $l -eq 0 ] || ret=1

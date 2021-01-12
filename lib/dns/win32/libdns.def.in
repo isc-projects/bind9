@@ -1329,8 +1329,6 @@ dns_zone_setkasp
 dns_zone_setkeydirectory
 dns_zone_setkeyopt
 dns_zone_setkeyvalidityinterval
-dns_zone_setmasters
-dns_zone_setmasterswithkeys
 dns_zone_setmaxrecords
 dns_zone_setmaxrefreshtime
 dns_zone_setmaxretrytime
@@ -1350,6 +1348,8 @@ dns_zone_setnotifytype
 dns_zone_setnsec3param
 dns_zone_setoption
 dns_zone_setorigin
+dns_zone_setprimaries
+dns_zone_setprimarieswithkeys
 dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl

@@ -184,7 +184,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	const char *zname;
 	const char *zfile = NULL;
 	const cfg_obj_t *maps[4];
-	const cfg_obj_t *mastersobj = NULL;
+	const cfg_obj_t *primariesobj = NULL;
 	const cfg_obj_t *inviewobj = NULL;
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *classobj = NULL;
@@ -278,8 +278,12 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	 * Is the redirect zone configured as a slave?
 	 */
 	if (strcasecmp(cfg_obj_asstring(typeobj), "redirect") == 0) {
-		cfg_map_get(zoptions, "masters", &mastersobj);
-		if (mastersobj != NULL) {
+		cfg_map_get(zoptions, "primaries", &primariesobj);
+		if (primariesobj == NULL) {
+			cfg_map_get(zoptions, "masters", &primariesobj);
+		}
+
+		if (primariesobj != NULL) {
 			return (ISC_R_SUCCESS);
 		}
 	}

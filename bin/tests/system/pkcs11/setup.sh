@@ -81,7 +81,7 @@ for algbits in rsasha256:2048 rsasha512:2048 ecdsap256sha256:256 ecdsap384sha384
 
 	cat >> ns1/named.conf <<EOF
 zone "$alg.example." {
-	type master;
+	type primary;
 	file "$alg.example.db.signed";
 	allow-update { any; };
 };

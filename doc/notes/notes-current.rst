@@ -61,6 +61,13 @@ Feature Changes
   ``dnsssec-signzone`` now prints a warning message, and ``named`` logs
   a warning, when such a fallback happens. [GL #2058]
 
+- As part of an ongoing effort to use RFC 8499 terminology,
+  ``primaries`` can now be used as a synonym for ``masters`` in
+  ``named.conf``. Similarly, ``notify primary-only`` can now be used as
+  a synonym for ``notify master-only``. The output of ``rndc
+  zonestatus`` now uses ``primary`` and ``secondary`` terminology.
+  [GL #1948]
+
 Bug Fixes
 ~~~~~~~~~
 

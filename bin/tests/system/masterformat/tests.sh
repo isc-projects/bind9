@@ -94,7 +94,7 @@ rndccmd() {
 
 status=0
 
-echo_i "checking that master files in raw format loaded ($n)"
+echo_i "checking that files in raw format loaded ($n)"
 ret=0
 set -- 1 2 3
 for zone in example example-explicit example-compat; do
@@ -149,14 +149,14 @@ do
 	sleep 1
 done
 
-echo_i "checking that slave was saved in raw format by default ($n)"
+echo_i "checking that secondary was saved in raw format by default ($n)"
 ret=0
 israw ns2/transfer.db.raw || ret=1
 n=$((n+1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that slave was saved in text format when configured ($n)"
+echo_i "checking that secondary was saved in text format when configured ($n)"
 ret=0
 israw ns2/transfer.db.txt && ret=1
 isfull ns2/transfer.db.txt && ret=1
@@ -164,14 +164,14 @@ n=$((n+1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that slave was saved in 'full' style when configured ($n)"
+echo_i "checking that secondary was saved in 'full' style when configured ($n)"
 ret=0
 isfull ns2/transfer.db.full > /dev/null 2>&1 || ret=1
 n=$((n+1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that slave formerly in text format is now raw ($n)"
+echo_i "checking that secondary formerly in text format is now raw ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
     ret=0

@@ -472,7 +472,7 @@ typedef enum {
 	DNS_ZONEFLG_DIFFONRELOAD = 0x00000800U, /*%< generate a journal diff on
 						 * reload */
 	DNS_ZONEFLG_NOMASTERS = 0x00001000U,	/*%< an attempt to refresh a
-						 * zone with no masters
+						 * zone with no primaries
 						 * occurred */
 	DNS_ZONEFLG_LOADING = 0x00002000U,    /*%< load from disk in progress*/
 	DNS_ZONEFLG_HAVETIMERS = 0x00004000U, /*%< timer values have been set
@@ -1294,7 +1294,7 @@ zone_free(dns_zone_t *zone) {
 		dns_catz_catzs_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
-	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0) ==
+	RUNTIME_CHECK(dns_zone_setprimarieswithkeys(zone, NULL, NULL, 0) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0) == ISC_R_SUCCESS);
 	zone->check_names = dns_severity_ignore;
@@ -6306,17 +6306,17 @@ unlock:
 }
 
 isc_result_t
-dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
-		    uint32_t count) {
+dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *masters,
+		      uint32_t count) {
 	isc_result_t result;
 
-	result = dns_zone_setmasterswithkeys(zone, masters, NULL, count);
+	result = dns_zone_setprimarieswithkeys(zone, masters, NULL, count);
 	return (result);
 }
 
 isc_result_t
-dns_zone_setmasterswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
-			    dns_name_t **keynames, uint32_t count) {
+dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
+			      dns_name_t **keynames, uint32_t count) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
@@ -6332,9 +6332,9 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 
 	LOCK_ZONE(zone);
 	/*
-	 * The refresh code assumes that 'masters' wouldn't change under it.
+	 * The refresh code assumes that 'primaries' wouldn't change under it.
 	 * If it will change then kill off any current refresh in progress
-	 * and update the masters info.  If it won't change then we can just
+	 * and update the primaries info.  If it won't change then we can just
 	 * unlock and exit.
 	 */
 	if (count != zone->masterscnt ||
@@ -6377,7 +6377,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	}
 
 	/*
-	 * Now set up the masters and masterkey lists
+	 * Now set up the primaries and primary key lists
 	 */
 	result = set_addrkeylist(count, masters, &newaddrs, NULL, &newdscps,
 				 keynames, &newnames, zone->mctx);
@@ -11027,7 +11027,8 @@ zone_maintenance(dns_zone_t *zone) {
 	}
 
 	/*
-	 * Slaves send notifies before backing up to disk, masters after.
+	 * Secondaries send notifies before backing up to disk,
+	 * primaries after.
 	 */
 	if ((zone->type == dns_zone_slave || zone->type == dns_zone_mirror) &&
 	    (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
@@ -11288,7 +11289,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOMASTERS);
 		if ((oldflags & DNS_ZONEFLG_NOMASTERS) == 0) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "cannot refresh: no masters");
+				     "cannot refresh: no primaries");
 		}
 		goto unlock;
 	}
@@ -13298,7 +13299,7 @@ next_master:
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
 		{
 			/*
-			 * Did we get a good answer from all the masters?
+			 * Did we get a good answer from all the primaries?
 			 */
 			for (j = 0; j < zone->masterscnt; j++) {
 				if (!zone->mastersok[j]) {
@@ -13820,7 +13821,7 @@ next_master:
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
 		{
 			/*
-			 * Did we get a good answer from all the masters?
+			 * Did we get a good answer from all the primaries?
 			 */
 			for (j = 0; j < zone->masterscnt; j++) {
 				if (!zone->mastersok[j]) {
@@ -17706,7 +17707,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		break;
 	}
 
-	/* These should not occur if the masters/zone are valid. */
+	/* These should not occur if the primaries/zone are valid. */
 	case dns_rcode_notzone:
 	case dns_rcode_notauth: {
 		char rcode[128];

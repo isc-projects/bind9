@@ -247,7 +247,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check expire option returned from master zone ($n)"
+echo_i "check expire option returned from primary zone ($n)"
 ret=0
 $DIG @10.53.0.1 -p ${PORT} +expire soa expire-test > dig.out.expire
 grep EXPIRE: dig.out.expire > /dev/null || ret=1
@@ -255,7 +255,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check expire option returned from slave zone ($n)"
+echo_i "check expire option returned from secondary zone ($n)"
 ret=0
 $DIG @10.53.0.2 -p ${PORT} +expire soa expire-test > dig.out.expire
 grep EXPIRE: dig.out.expire > /dev/null || ret=1
