@@ -34,6 +34,13 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- The SONAMEs for BIND 9 libraries now include the current BIND 9
+  version number, in an effort to tightly couple internal libraries with
+  a specific release. This change makes the BIND 9 release process both
+  simpler and more consistent while also unequivocally preventing BIND 9
+  binaries from silently loading wrong versions of shared libraries (or
+  multiple versions of the same shared library) at startup. [GL #2387]
+
 - The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
   day and the default value of ``stale-answer-ttl`` has been changed from 1
   second to 30 seconds, following RFC 8767 recommendations. [GL #2248]

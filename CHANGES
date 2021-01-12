@@ -1,3 +1,7 @@
+5565.	[func]		The SONAMEs for BIND 9 libraries now include the current
+			BIND 9 version number, in an effort to tightly couple
+			internal libraries with a specific release. [GL #2387]
+
 5561.	[bug]		KASP incorrectly set signature validity to the value
 			of the DNSKEY signature validity. This is now fixed.
 			[GL #2383]
