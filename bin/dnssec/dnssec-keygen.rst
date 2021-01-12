@@ -100,7 +100,7 @@ Options
    This option indicates that the DNS record containing the key should have the
    specified class. If not specified, class IN is used.
 
-``-d`` bits
+``-d bits``
    This option specifies the key size in bits. For the algorithms RSASHA1, NSEC3RSASA1, RSASHA256, and
    RSASHA512 the key size must be between 1024 and 4096 bits; DH size is between 128
    and 4096 bits. This option is ignored for algorithms ECDSAP256SHA256,
