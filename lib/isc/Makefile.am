@@ -229,7 +229,7 @@ libisc_la_CPPFLAGS =		\
 
 libisc_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
-	$(libisc_VERSION_INFO)
+	-release "$(PACKAGE_VERSION)"
 
 libisc_la_LIBADD =		\
 	$(LIBUV_LIBS)		\
@@ -255,5 +255,3 @@ endif HAVE_LIBXML2
 if HAVE_CMOCKA
 SUBDIRS = tests
 endif
-
-EXTRA_DIST = api
