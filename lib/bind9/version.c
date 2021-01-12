@@ -14,7 +14,3 @@
 #include <bind9/version.h>
 
 const char bind9_version[] = VERSION;
-
-const unsigned int bind9_libinterface = LIBINTERFACE;
-const unsigned int bind9_librevision = LIBREVISION;
-const unsigned int bind9_libage = LIBAGE;

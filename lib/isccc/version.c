@@ -14,7 +14,3 @@
 #include <isccc/version.h>
 
 const char isccc_version[] = VERSION;
-
-const unsigned int isccc_libinterface = LIBINTERFACE;
-const unsigned int isccc_librevision = LIBREVISION;
-const unsigned int isccc_libage = LIBAGE;

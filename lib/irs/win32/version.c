@@ -14,7 +14,3 @@
 #include <irs/version.h>
 
 LIBIRS_EXTERNAL_DATA const char irs_version[] = VERSION;
-
-LIBIRS_EXTERNAL_DATA const unsigned int irs_libinterface = LIBINTERFACE;
-LIBIRS_EXTERNAL_DATA const unsigned int irs_librevision = LIBREVISION;
-LIBIRS_EXTERNAL_DATA const unsigned int irs_libage = LIBAGE;

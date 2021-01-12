@@ -2467,18 +2467,7 @@ sub setupproject {
 sub makeversion {
     # List of directories with version files
 
-    my @dirlist = ("isc", "dns", "ns", "isccc", "isccfg", "bind9", "irs");
-    my %LibMacros = (
-        "bind9"   => "LIBBIND9_EXPORTS",
-        "dns"     => "LIBDNS_EXPORTS",
-        "irs"     => "LIBIRS_EXPORTS",
-        "isc"     => "LIBISC_EXPORTS",
-        "isccc"   => "LIBISCCC_EXPORTS",
-        "isccfg"  => "LIBISCCFG_EXPORTS",
-        "ns"      => "LIBNS_EXPORTS");
-    my @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
     my $Version;
-    my %ApiVersions;
     my $Mapapi;
     my $versionfile = "versions.h";
     my $versionpath = "..\\$versionfile";
@@ -2553,30 +2542,6 @@ sub makeversion {
     print O
         "#define MAJOR \"$Versions{'MAJORVER'}.$Versions{'MINORVER'}\"\n\n";
     print O "#define MAPAPI \"$Mapapi\"\n\n";
-
-    my $dir;
-    my $apifile;
-    foreach $dir (@dirlist) {
-        $apifile = "..\\lib\\$dir\\api";
-        open A, $apifile || die $!;
-        while (<A>) {
-            chomp;
-            ($data) = split(/\#/);
-            if ($data) {
-                ($name, $value) = split(/=/, $data);
-                $name =~ s/\s+//;
-                $value =~ s/\s+//;
-                $ApiVersions{$name} = $value;
-            }
-        }
-        close A;
-
-        print O "\n#ifdef $LibMacros{$dir}\n";
-        foreach $name (@VersionNames) {
-            print O "#define $name\t$ApiVersions{$name}\n";
-        }
-        print O "#endif\n\n";
-    }
 
     print O "#endif /* VERSIONS_H */\n";
     close O;

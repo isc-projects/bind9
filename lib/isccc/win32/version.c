@@ -14,7 +14,3 @@
 #include <isccc/version.h>
 
 LIBISCCC_EXTERNAL_DATA const char isccc_version[] = VERSION;
-
-LIBISCCC_EXTERNAL_DATA const unsigned int isccc_libinterface = LIBINTERFACE;
-LIBISCCC_EXTERNAL_DATA const unsigned int isccc_librevision = LIBREVISION;
-LIBISCCC_EXTERNAL_DATA const unsigned int isccc_libage = LIBAGE;

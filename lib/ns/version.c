@@ -14,7 +14,3 @@
 #include <ns/version.h>
 
 const char ns_version[] = VERSION;
-
-const unsigned int ns_libinterface = LIBINTERFACE;
-const unsigned int ns_librevision = LIBREVISION;
-const unsigned int ns_libage = LIBAGE;

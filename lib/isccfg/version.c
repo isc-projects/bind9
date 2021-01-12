@@ -14,7 +14,3 @@
 #include <isccfg/version.h>
 
 const char cfg_version[] = VERSION;
-
-const unsigned int cfg_libinterface = LIBINTERFACE;
-const unsigned int cfg_librevision = LIBREVISION;
-const unsigned int cfg_libage = LIBAGE;

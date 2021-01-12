@@ -16,7 +16,3 @@
 LIBDNS_EXTERNAL_DATA const char dns_version[] = VERSION;
 LIBDNS_EXTERNAL_DATA const char dns_major[] = MAJOR;
 LIBDNS_EXTERNAL_DATA const char dns_mapapi[] = MAPAPI;
-
-LIBDNS_EXTERNAL_DATA const unsigned int dns_libinterface = LIBINTERFACE;
-LIBDNS_EXTERNAL_DATA const unsigned int dns_librevision = LIBREVISION;
-LIBDNS_EXTERNAL_DATA const unsigned int dns_libage = LIBAGE;
