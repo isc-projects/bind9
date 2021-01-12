@@ -70,7 +70,7 @@ them to upgrade their broken DNS servers.
 Incrementing and Changing the Serial Number
 -------------------------------------------
 
-Zone serial numbers are just numbers — they are not date related. However, many
+Zone serial numbers are just numbers — they are not date-related. However, many
 people set them to a number that represents a date, usually of the
 form YYYYMMDDRR. Occasionally they will make a mistake and set the serial number to a
 date in the future, then try to correct it by setting it to the

@@ -154,7 +154,7 @@ and we suggest reading :rfc:`1033`, :rfc:`1034`, and :rfc:`1035` to gain a compl
 understanding of this difficult and subtle topic.
 
 Though BIND 9 is called a "domain name server," it deals primarily in
-terms of zones. The primary and secondary declarations in the ``named.conf``
+terms of zones. The ``primary`` and ``secondary`` declarations in the ``named.conf``
 file specify zones, not domains. When BIND asks some other site if it is
 willing to be a secondary server for a *domain*, it is actually asking
 for secondary service for some collection of *zones*.
@@ -188,7 +188,7 @@ file which is edited by humans. This file is called the *zone file* or
 In some cases, however, the master file may not be edited by humans at
 all, but may instead be the result of *dynamic update* operations.
 
-.. _slave_server:
+.. _secondary_server:
 
 Secondary Servers
 ^^^^^^^^^^^^^^^^^
