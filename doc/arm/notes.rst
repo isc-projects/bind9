@@ -18,7 +18,7 @@ Introduction
 
 BIND 9.16 is a stable branch of BIND. This document summarizes
 significant changes since the last production release on that branch.
-Please see the file CHANGES for a more detailed list of changes and bug
+Please see the CHANGES file for a more detailed list of changes and bug
 fixes.
 
 Note on Version Numbering
@@ -33,7 +33,7 @@ proceed in the unstable 9.17 branch.
 Supported Platforms
 -------------------
 
-To build on UNIX-like systems, BIND requires support for POSIX.1c
+To build on Unix-like systems, BIND requires support for POSIX.1c
 threads (IEEE Std 1003.1c-1995), the Advanced Sockets API for IPv6
 (:rfc:`3542`), and standard atomic operations provided by the C
 compiler.
@@ -95,7 +95,7 @@ https://www.isc.org/contact/.
 End of Life
 -----------
 
-The end of life date for BIND 9.16 has not yet been determined. At some
+The end-of-life date for BIND 9.16 has not yet been determined. At some
 point in the future, BIND 9.16 will be designated as an Extended Support
 Version (ESV). Until then, the current ESV is BIND 9.11, which will be
 supported until at least December 2021.  See
