@@ -7074,45 +7074,20 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  */
 static bool
 query_usestale(query_ctx_t *qctx) {
-	bool staleanswersok = false;
-	dns_ttl_t stale_ttl = 0;
-	isc_result_t result;
-
 	qctx_clean(qctx);
 	qctx_freedata(qctx);
 
-	/*
-	 * Stale answers only make sense if stale_ttl > 0 but we want rndc to
-	 * be able to control returning stale answers if they are configured.
-	 */
-	dns_db_attach(qctx->client->view->cachedb, &qctx->db);
-	result = dns_db_getservestalettl(qctx->db, &stale_ttl);
-	if (result == ISC_R_SUCCESS && stale_ttl > 0) {
-		switch (qctx->client->view->staleanswersok) {
-		case dns_stale_answer_yes:
-			staleanswersok = true;
-			break;
-		case dns_stale_answer_conf:
-			staleanswersok = qctx->client->view->staleanswersenable;
-			break;
-		case dns_stale_answer_no:
-			staleanswersok = false;
-			break;
-		}
-	} else {
-		staleanswersok = false;
-	}
-
-	if (staleanswersok) {
+	if (dns_view_staleanswerenabled(qctx->client->view)) {
+		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
 		if (qctx->client->query.fetch != NULL) {
 			dns_resolver_destroyfetch(&qctx->client->query.fetch);
 		}
-	} else {
-		dns_db_detach(&qctx->db);
+
+		return (true);
 	}
 
-	return (staleanswersok);
+	return (false);
 }
 
 /*%
