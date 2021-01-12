@@ -36,25 +36,25 @@ Description
 
 ``dnstap-read`` reads ``dnstap`` data from a specified file and prints
 it in a human-readable format. By default, ``dnstap`` data is printed in
-a short summary format, but if the ``-y`` option is specified, then a
-longer and more detailed YAML format is used instead.
+a short summary format, but if the ``-y`` option is specified, a
+longer and more detailed YAML format is used.
 
 Options
 ~~~~~~~
 
-**-m**
-   Trace memory allocations; used for debugging memory leaks.
+``-m``
+   This indicates trace memory allocations, and is used for debugging memory leaks.
 
-**-p**
-   After printing the ``dnstap`` data, print the text form of the DNS
-   message that was encapsulated in the ``dnstap`` frame.
+``-p``
+   This option prints the text form of the DNS
+   message that was encapsulated in the ``dnstap`` frame, after printing the ``dnstap`` data.
 
-**-x**
-   After printing the ``dnstap`` data, print a hex dump of the wire form
-   of the DNS message that was encapsulated in the ``dnstap`` frame.
+``-x``
+   This option prints a hex dump of the wire form
+   of the DNS message that was encapsulated in the ``dnstap`` frame, after printing the ``dnstap`` data.
 
-**-y**
-   Print ``dnstap`` data in a detailed YAML format.
+``-y``
+   This prints ``dnstap`` data in a detailed YAML format.
 
 See Also
 ~~~~~~~~
