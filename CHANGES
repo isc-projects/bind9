@@ -1,3 +1,5 @@
+5562.	[placeholder]
+
 5561.	[bug]		KASP incorrectly set signature validity to the value
 			of the DNSKEY signature validity. This is now fixed.
 			[GL #2383]
