@@ -751,9 +751,10 @@ view <string> [ <class> ] {
                 key-directory <quoted_string>;
                 masterfile-format ( map | raw | text );
                 masterfile-style ( full | relative );
-                masters [ port <integer> ] [ dscp <integer> ] { ( <primaries>
-                    | <ipv4_address> [ port <integer> ] | <ipv6_address> [
-                    port <integer> ] ) [ key <string> ]; ... };
+                masters [ port <integer> ] [ dscp <integer> ] { (
+                    <primaries> | <ipv4_address> [ port <integer> ] |
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
+                    ... };
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
                 max-refresh-time <integer>;
