@@ -900,7 +900,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-geoip"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
