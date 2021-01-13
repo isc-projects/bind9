@@ -1127,12 +1127,12 @@ unit:gcc:mutexatomics:
     - job: gcc:mutexatomics
       artifacts: true
 
-# Jobs for builds without atomics
+# Jobs for builds without atomics and threads
 
 gcc:noatomics:
   variables:
     CC: gcc
-    EXTRA_CONFIGURE: "--disable-atomic"
+    EXTRA_CONFIGURE: "--disable-atomic --disable-threads"
   <<: *base_image
   <<: *build_job
 
