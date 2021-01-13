@@ -1110,29 +1110,6 @@ unit:clang:tsan:noatomics:
     - job: clang:tsan:noatomics
       artifacts: true
 
-# Jobs for mutex-based atomics on Debian SID (amd64)
-gcc:mutexatomics:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *base_image
-  <<: *build_job
-
-system:gcc:mutexatomics:
-  <<: *base_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:mutexatomics
-      artifacts: true
-
-unit:gcc:mutexatomics:
-  <<: *base_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:mutexatomics
-      artifacts: true
-
 # Jobs for builds without atomics and threads
 
 gcc:noatomics:
