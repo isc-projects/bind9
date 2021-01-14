@@ -5103,6 +5103,26 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	CALL_HOOK_NORETURN(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
+/*
+ * Make 'dst' and exact copy of 'src', with exception of the
+ * option field, which is reset to zero.
+ * This function also attaches dst's view and db to the src's
+ * view and cachedb.
+ */
+static void
+qctx_copy(const query_ctx_t *qctx, query_ctx_t *dst) {
+	REQUIRE(qctx != NULL);
+	REQUIRE(dst != NULL);
+
+	memmove(dst, qctx, sizeof(*dst));
+	dst->view = NULL;
+	dst->db = NULL;
+	dst->options = 0;
+	dns_view_attach(qctx->view, &dst->view);
+	dns_db_attach(qctx->view->cachedb, &dst->db);
+	CCTRACE(ISC_LOG_DEBUG(3), "qctx_copy");
+}
+
 /*%
  * Clean up and disassociate the rdataset and node pointers in qctx.
  */
@@ -5538,6 +5558,66 @@ cleanup:
 }
 
 /*
+ * Allocate buffers in 'qctx' used to store query results.
+ *
+ * 'buffer' must be a pointer to an object whose lifetime
+ * doesn't expire while 'qctx' is in use.
+ */
+static isc_result_t
+qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
+	REQUIRE(qctx != NULL);
+	REQUIRE(qctx->client != NULL);
+	REQUIRE(buffer != NULL);
+
+	qctx->dbuf = ns_client_getnamebuf(qctx->client);
+	if (ISC_UNLIKELY(qctx->dbuf == NULL)) {
+		CCTRACE(ISC_LOG_ERROR,
+			"qctx_prepare_buffers: ns_client_getnamebuf "
+			"failed");
+		return (ISC_R_NOMEMORY);
+	}
+
+	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, buffer);
+	if (ISC_UNLIKELY(qctx->fname == NULL)) {
+		CCTRACE(ISC_LOG_ERROR,
+			"qctx_prepare_buffers: ns_client_newname failed");
+
+		return (ISC_R_NOMEMORY);
+	}
+
+	qctx->rdataset = ns_client_newrdataset(qctx->client);
+	if (ISC_UNLIKELY(qctx->rdataset == NULL)) {
+		CCTRACE(ISC_LOG_ERROR,
+			"qctx_prepare_buffers: ns_client_newrdataset failed");
+		goto error;
+	}
+
+	if ((WANTDNSSEC(qctx->client) || qctx->findcoveringnsec) &&
+	    (!qctx->is_zone || dns_db_issecure(qctx->db)))
+	{
+		qctx->sigrdataset = ns_client_newrdataset(qctx->client);
+		if (qctx->sigrdataset == NULL) {
+			CCTRACE(ISC_LOG_ERROR,
+				"qctx_prepare_buffers: "
+				"ns_client_newrdataset failed (2)");
+			goto error;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+
+error:
+	if (qctx->fname != NULL) {
+		ns_client_releasename(qctx->client, &qctx->fname);
+	}
+	if (qctx->rdataset != NULL) {
+		ns_client_putrdataset(qctx->client, &qctx->rdataset);
+	}
+
+	return (ISC_R_NOMEMORY);
+}
+
+/*
  * Setup a new query context for resolving a query.
  *
  * This function is only called if both these conditions are met:
@@ -5549,71 +5629,40 @@ cleanup:
  * after answering a client with stale data.
  */
 static void
-query_refresh_rrset(query_ctx_t *qctx) {
-	isc_buffer_t b;
-	query_ctx_t new_qctx;
+query_refresh_rrset(query_ctx_t *orig_qctx) {
+	isc_buffer_t buffer;
+	query_ctx_t qctx;
 
-	memset(&new_qctx, 0, sizeof(new_qctx));
+	REQUIRE(orig_qctx != NULL);
+	REQUIRE(orig_qctx->client != NULL);
 
-	dns_view_attach(qctx->view, &new_qctx.view);
-
-	new_qctx.qtype = new_qctx.type = qctx->qtype;
-	new_qctx.dns64 = qctx->dns64;
-	new_qctx.dns64_exclude = qctx->dns64_exclude;
-	new_qctx.client = qctx->client;
-	new_qctx.client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
+	qctx_copy(orig_qctx, &qctx);
+	qctx.client->query.dboptions &= ~(DNS_DBFIND_STALEONLY |
+					  DNS_DBFIND_STALEOK |
+					  DNS_DBFIND_STALEENABLED);
 
 	/*
-	 * If it's a SIG query, we'll iterate the node.
+	 * We'll need some resources...
 	 */
-	if (qctx->qtype == dns_rdatatype_rrsig ||
-	    qctx->qtype == dns_rdatatype_sig) {
-		new_qctx.type = dns_rdatatype_any;
+	if (qctx_prepare_buffers(&qctx, &buffer) != ISC_R_SUCCESS) {
+		dns_db_detach(&qctx.db);
+		qctx_destroy(&qctx);
+		return;
 	}
 
-	new_qctx.dbuf = ns_client_getnamebuf(qctx->client);
-	if (ISC_UNLIKELY(new_qctx.dbuf == NULL)) {
-		CCTRACE(ISC_LOG_ERROR,
-			"query_refresh_rrset: ns_client_getnamebuf "
-			"failed");
-		goto done;
+	/*
+	 * Pretend we didn't find anything in cache.
+	 */
+	(void)query_gotanswer(&qctx, ISC_R_NOTFOUND);
+
+	if (qctx.fname != NULL) {
+		ns_client_releasename(qctx.client, &qctx.fname);
+	}
+	if (qctx.rdataset != NULL) {
+		ns_client_putrdataset(qctx.client, &qctx.rdataset);
 	}
 
-	new_qctx.fname = ns_client_newname(new_qctx.client, new_qctx.dbuf, &b);
-	new_qctx.rdataset = ns_client_newrdataset(qctx->client);
-
-	if (ISC_UNLIKELY(new_qctx.fname == NULL || new_qctx.rdataset == NULL)) {
-		CCTRACE(ISC_LOG_ERROR,
-			"query_refresh_rrset: ns_client_newname failed");
-
-		goto done;
-	}
-
-	if ((WANTDNSSEC(qctx->client) || qctx->findcoveringnsec) &&
-	    (!qctx->is_zone || dns_db_issecure(qctx->db)))
-	{
-		new_qctx.sigrdataset = ns_client_newrdataset(qctx->client);
-		if (new_qctx.sigrdataset == NULL) {
-			CCTRACE(ISC_LOG_ERROR, "query_refresh_rrset: "
-					       "ns_client_newrdataset failed ");
-			goto done;
-		}
-	}
-
-	new_qctx.options = qctx->options;
-	new_qctx.result = ISC_R_SUCCESS;
-	new_qctx.findcoveringnsec = qctx->view->synthfromdnssec;
-
-	(void)query_gotanswer(&new_qctx, ISC_R_NOTFOUND);
-
-done:
-	if (new_qctx.fname != NULL) {
-		ns_client_releasename(new_qctx.client, &new_qctx.fname);
-	}
-	if (new_qctx.rdataset != NULL) {
-		ns_client_putrdataset(new_qctx.client, &new_qctx.rdataset);
-	}
-	qctx_destroy(&new_qctx);
+	qctx_destroy(&qctx);
 }
 
 /*%
@@ -5623,8 +5672,8 @@ done:
  */
 static isc_result_t
 query_lookup(query_ctx_t *qctx) {
-	isc_buffer_t b;
-	isc_result_t result;
+	isc_buffer_t buffer;
+	isc_result_t result = ISC_R_UNSET;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
@@ -5644,35 +5693,10 @@ query_lookup(query_ctx_t *qctx) {
 	/*
 	 * We'll need some resources...
 	 */
-	qctx->dbuf = ns_client_getnamebuf(qctx->client);
-	if (ISC_UNLIKELY(qctx->dbuf == NULL)) {
-		CCTRACE(ISC_LOG_ERROR, "query_lookup: ns_client_getnamebuf "
-				       "failed (2)");
-		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
+	result = qctx_prepare_buffers(qctx, &buffer);
+	if (result != ISC_R_SUCCESS) {
+		QUERY_ERROR(qctx, result);
 		return (ns_query_done(qctx));
-	}
-
-	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-	qctx->rdataset = ns_client_newrdataset(qctx->client);
-
-	if (ISC_UNLIKELY(qctx->fname == NULL || qctx->rdataset == NULL)) {
-		CCTRACE(ISC_LOG_ERROR, "query_lookup: ns_client_newname failed "
-				       "(2)");
-		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-		return (ns_query_done(qctx));
-	}
-
-	if ((WANTDNSSEC(qctx->client) || qctx->findcoveringnsec) &&
-	    (!qctx->is_zone || dns_db_issecure(qctx->db)))
-	{
-		qctx->sigrdataset = ns_client_newrdataset(qctx->client);
-		if (qctx->sigrdataset == NULL) {
-			CCTRACE(ISC_LOG_ERROR, "query_lookup: "
-					       "ns_client_newrdataset failed "
-					       "(2)");
-			QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-			return (ns_query_done(qctx));
-		}
 	}
 
 	/*
@@ -5730,6 +5754,35 @@ query_lookup(query_ctx_t *qctx) {
 
 	if (!qctx->is_zone) {
 		dns_cache_updatestats(qctx->view->cache, result);
+	}
+
+	/*
+	 * Special case handling, when stale-answer-client-timeout >= 0 and
+	 * stale answers are enabled, we do not want to return a stale NXRRSET
+	 * entry in cache during the initial lookup or a subsequent lookup when
+	 * stale-answer-client-timeout triggers, instead, BIND must attempt to
+	 * refresh the RRset.
+	 * It is fine to return such entry if resolver-query-timeout has
+	 * triggered, in that case DNS_DBFIND_STALEONLY will not be set during
+	 * the lookup.
+	 */
+	if (result == DNS_R_NCACHENXRRSET &&
+	    ((dboptions & DNS_DBFIND_STALEONLY) != 0) && STALE(qctx->rdataset))
+	{
+		if (qctx->node != NULL) {
+			dns_db_detachnode(qctx->db, &qctx->node);
+		}
+		qctx_freedata(qctx);
+		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
+			/*
+			 * stale-answer-client-timeout is zero and we found a
+			 * stale NXRRSET entry in cache during the first lookup.
+			 * BIND must attempt to refresh the RRset instead of
+			 * using it in this case.
+			 */
+			query_refresh_rrset(qctx);
+		}
+		return (result);
 	}
 
 	/*
