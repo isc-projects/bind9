@@ -89,9 +89,8 @@ typedef struct dns_clientresevent {
 
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		  isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		  unsigned int options, dns_client_t **clientp,
-		  const isc_sockaddr_t *localaddr4,
+		  isc_nm_t *nm, isc_timermgr_t *timermgr, unsigned int options,
+		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6);
 /*%<
  * Create a DNS client object with minimal internal resources, such as
@@ -113,7 +112,7 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
  *
  *\li	'taskmgr' is a valid task manager.
  *
- *\li	'socketmgr' is a valid socket manager.
+ *\li	'nm' is a valid network manager.
  *
  *\li	'timermgr' is a valid timer manager.
  *

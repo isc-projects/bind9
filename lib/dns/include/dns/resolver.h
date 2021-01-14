@@ -163,11 +163,10 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    unsigned int ntasks, unsigned int ndisp,
-		    isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		    unsigned int options, dns_dispatchmgr_t *dispatchmgr,
-		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
-		    dns_resolver_t **resp);
+		    unsigned int ntasks, unsigned int ndisp, isc_nm_t *nm,
+		    isc_timermgr_t *timermgr, unsigned int options,
+		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
+		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
 
 /*%<
  * Create a resolver.
@@ -185,7 +184,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
  *
  *\li	'ntasks' > 0.
  *
- *\li	'socketmgr' is a valid socket manager.
+ *\li	'nm' is a valid network manager.
  *
  *\li	'timermgr' is a valid timer manager.
  *
@@ -412,9 +411,6 @@ dns_resolver_dispatchv4(dns_resolver_t *resolver);
 
 dns_dispatch_t *
 dns_resolver_dispatchv6(dns_resolver_t *resolver);
-
-isc_socketmgr_t *
-dns_resolver_socketmgr(dns_resolver_t *resolver);
 
 isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver);

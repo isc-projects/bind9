@@ -31,6 +31,7 @@
 #include <isc/log.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/portset.h>
@@ -38,11 +39,9 @@
 #include <isc/random.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -131,8 +130,6 @@ static isc_log_t *glctx = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
-static isc_socketmgr_t *socketmgr = NULL;
-static isc_timermgr_t *timermgr = NULL;
 static dns_dispatch_t *dispatchv4 = NULL;
 static dns_dispatch_t *dispatchv6 = NULL;
 static dns_message_t *updatemsg = NULL;
@@ -917,11 +914,12 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, &dispatchmgr);
-	check_result(result, "dns_dispatchmgr_create");
+	result = isc_managers_create(gmctx, 1, 0, 0, &netmgr, &taskmgr, NULL,
+				     NULL);
+	check_result(result, "isc_managers_create");
 
-	isc_managers_create(gmctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
+	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
+	check_result(result, "dns_dispatchmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
@@ -937,21 +935,20 @@ setup_system(void) {
 
 	if (have_ipv6) {
 		isc_sockaddr_any6(&bind_any6);
-		result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
+		result = dns_dispatch_createudp(dispatchmgr, taskmgr,
 						&bind_any6, 0, &dispatchv6);
 		check_result(result, "dns_dispatch_createudp (v6)");
 	}
 
 	if (have_ipv4) {
 		isc_sockaddr_any(&bind_any);
-		result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-						&bind_any, 0, &dispatchv4);
+		result = dns_dispatch_createudp(dispatchmgr, taskmgr, &bind_any,
+						0, &dispatchv4);
 		check_result(result, "dns_dispatch_createudp (v4)");
 	}
 
-	result = dns_requestmgr_create(gmctx, timermgr, socketmgr, taskmgr,
-				       dispatchmgr, dispatchv4, dispatchv6,
-				       &requestmgr);
+	result = dns_requestmgr_create(gmctx, taskmgr, dispatchmgr, dispatchv4,
+				       dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
 	if (keystr != NULL) {
@@ -3322,7 +3319,7 @@ cleanup(void) {
 	}
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	ddebug("Destroying event");
 	isc_event_free(&global_event);

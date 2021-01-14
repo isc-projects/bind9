@@ -24,15 +24,14 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
@@ -2068,8 +2067,6 @@ main(int argc, char *argv[]) {
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
@@ -2122,25 +2119,22 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
-
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	if (have_ipv4) {
 		isc_sockaddr_any(&bind_any);
 	} else {
 		isc_sockaddr_any6(&bind_any);
 	}
-	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
+	RUNCHECK(dns_dispatch_createudp(dispatchmgr, taskmgr,
 					have_src ? &srcaddr : &bind_any, 0,
 					&dispatchvx));
 
 	RUNCHECK(dns_requestmgr_create(
-		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
-		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,
-		&requestmgr));
+		mctx, taskmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
+		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
@@ -2186,7 +2180,7 @@ main(int argc, char *argv[]) {
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	dst_lib_destroy();
 

@@ -91,7 +91,7 @@ isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
 	/*
 	 * If we have a taskmgr to clean up, then we must also have a netmgr.
 	 */
-	REQUIRE(taskmgrp != NULL || netmgrp == NULL);
+	REQUIRE(taskmgrp == NULL || netmgrp != NULL);
 
 	/*
 	 * The sequence of operations here is important:

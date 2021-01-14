@@ -482,7 +482,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 
 #if 0
 #ifndef ISC_ALLOW_MAPPED
-	isc_socket_ipv6only(ifp->tcpsocket,true);
+	isc_socket_ipv6only(ifp->tcpsocket, true);
 #endif /* ifndef ISC_ALLOW_MAPPED */
 
 	if (ifp->dscp != -1) {

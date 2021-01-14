@@ -53,8 +53,7 @@ typedef struct dns_requestevent {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
-		      isc_socketmgr_t *socketmgr, isc_taskmgr_t *taskmgr,
+dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		      dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp);
@@ -64,8 +63,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
  * Requires:
  *
  *\li	'mctx' is a valid memory context.
- *
- *\li	'timermgr' is a valid timer manager.
  *
  *\li	'socketmgr' is a valid socket manager.
  *

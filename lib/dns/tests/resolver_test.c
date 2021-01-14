@@ -50,15 +50,15 @@ _setup(void **state) {
 	result = dns_test_begin(NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(dt_mctx, netmgr, &dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_makeview("view", &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_sockaddr_any(&local);
-	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr, &local,
-					0, &dispatch);
+	result = dns_dispatch_createudp(dispatchmgr, taskmgr, &local, 0,
+					&dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	return (0);
@@ -80,8 +80,8 @@ static void
 mkres(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
-	result = dns_resolver_create(view, taskmgr, 1, 1, socketmgr, timermgr,
-				     0, dispatchmgr, dispatch, NULL, resolverp);
+	result = dns_resolver_create(view, taskmgr, 1, 1, netmgr, timermgr, 0,
+				     dispatchmgr, dispatch, NULL, resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 

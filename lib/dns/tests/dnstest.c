@@ -34,6 +34,7 @@
 #include <isc/lex.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/socket.h>
@@ -96,10 +97,12 @@ cleanup_managers(void) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
 	}
+
 	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
 			     taskmgr == NULL ? NULL : &taskmgr,
 			     timermgr == NULL ? NULL : &timermgr,
 			     socketmgr == NULL ? NULL : &socketmgr);
+
 	if (app_running) {
 		isc_app_finish();
 	}

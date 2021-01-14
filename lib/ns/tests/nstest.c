@@ -233,7 +233,7 @@ create_managers(void) {
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));
 
-	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, socketmgr,
 				     netmgr, dispatchmgr, maintask, NULL, ncpus,

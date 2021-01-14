@@ -450,6 +450,16 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  *	full range of socket-related stats counter numbers.
  */
 
+isc_result_t
+isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
+/*%<
+ * Check whether the specified address is available on the local system
+ * by opening a socket and immediately closing it.
+ *
+ * Requires:
+ *\li	'addr' is not NULL.
+ */
+
 void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,

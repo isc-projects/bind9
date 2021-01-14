@@ -1315,8 +1315,8 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		}
 	}
 
-	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_socketmgr,
-					named_g_taskmgr, &sa, attrs, &disp);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_taskmgr,
+					&sa, attrs, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_sockaddr_t any;
 		char buf[ISC_SOCKADDR_FORMATSIZE];
@@ -4716,7 +4716,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
 		view, named_g_taskmgr, RESOLVER_NTASKS_PERCPU * named_g_cpus,
-		ndisp, named_g_socketmgr, named_g_timermgr, resopts,
+		ndisp, named_g_netmgr, named_g_timermgr, resopts,
 		named_g_dispatchmgr, dispatch4, dispatch6));
 
 	if (dscp4 == -1) {
@@ -9862,7 +9862,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
+					  &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
@@ -10357,8 +10358,8 @@ named_add_reserved_dispatch(named_server_t *server,
 	dispatch->dispatchgen = server->dispatchgen;
 	dispatch->dispatch = NULL;
 
-	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_socketmgr,
-					named_g_taskmgr, &dispatch->addr, attrs,
+	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_taskmgr,
+					&dispatch->addr, attrs,
 					&dispatch->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;

@@ -27,9 +27,9 @@
 #include <isc/commandline.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -58,13 +58,11 @@ isc_mem_t *ctxs_mctx = NULL;
 isc_appctx_t *ctxs_actx = NULL;
 isc_nm_t *ctxs_netmgr = NULL;
 isc_taskmgr_t *ctxs_taskmgr = NULL;
-isc_socketmgr_t *ctxs_socketmgr = NULL;
 isc_timermgr_t *ctxs_timermgr = NULL;
 
 static void
 ctxs_destroy(void) {
-	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr,
-			     &ctxs_socketmgr);
+	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr, NULL);
 
 	if (ctxs_actx != NULL) {
 		isc_appctx_destroy(&ctxs_actx);
@@ -87,7 +85,7 @@ ctxs_init(void) {
 	}
 
 	isc_managers_create(ctxs_mctx, 1, 0, 0, &ctxs_netmgr, &ctxs_taskmgr,
-			    &ctxs_timermgr, &ctxs_socketmgr);
+			    &ctxs_timermgr, NULL);
 
 	result = isc_app_ctxstart(ctxs_actx);
 	if (result != ISC_R_SUCCESS) {
@@ -102,7 +100,7 @@ fail:
 	return (result);
 }
 
-static char *algname;
+static char *algname = NULL;
 
 static isc_result_t
 printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
@@ -281,9 +279,9 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	dns_fixedname_t qname0;
 	unsigned int namelen;
-	dns_name_t *qname, *name;
+	dns_name_t *qname = NULL, *name = NULL;
 	dns_rdatatype_t type = dns_rdatatype_a;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset = NULL;
 	dns_namelist_t namelist;
 	unsigned int clientopt, resopt = 0;
 	bool is_sep = false;
@@ -406,7 +404,7 @@ main(int argc, char *argv[]) {
 
 	clientopt = 0;
 	result = dns_client_create(ctxs_mctx, ctxs_actx, ctxs_taskmgr,
-				   ctxs_socketmgr, ctxs_timermgr, clientopt,
+				   ctxs_netmgr, ctxs_timermgr, clientopt,
 				   &client, addr4, addr6);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,

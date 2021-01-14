@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#include <isc/netmgr.h>
+
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
 
@@ -50,6 +52,7 @@
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
+#include <isc/netmgr.h>
 #include <isc/socket.h>
 #include <isc/types.h>
 
@@ -76,12 +79,9 @@ ISC_LANG_BEGINDECLS
 
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t); /*%< standard event common */
-	isc_result_t	   result;	       /*%< result code */
-	int32_t		   id;		       /*%< message id */
-	isc_sockaddr_t	   addr;	       /*%< address recv'd from */
-	struct in6_pktinfo pktinfo;	       /*%< reply info for v6 */
-	isc_buffer_t	   buffer;	       /*%< data buffer */
-	uint32_t	   attributes;	       /*%< mirrored from socket.h */
+	isc_result_t result;		       /*%< result code */
+	isc_region_t region;		       /*%< data region */
+	isc_buffer_t buffer;		       /*%< data buffer */
 };
 
 /*%
@@ -128,14 +128,16 @@ struct dns_dispatchset {
 #define DNS_DISPATCHOPT_FIXEDID 0x00000001U
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm, dns_dispatchmgr_t **mgrp);
 /*%<
  * Creates a new dispatchmgr object, and sets the available ports
  * to the default range (1024-65535).
  *
  * Requires:
- *\li	"mctx" be a valid memory context.
+ *\li	'mctx' be a valid memory context.
  *
+ *\li	'nm' is a valid network manager.
+
  *\li	mgrp != NULL && *mgrp == NULL
  *
  * Returns:
@@ -205,9 +207,9 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
  */
 
 isc_result_t
-dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		       unsigned int attributes, dns_dispatch_t **dispp);
+dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
+		       const isc_sockaddr_t *localaddr, unsigned int attributes,
+		       dns_dispatch_t **dispp);
 /*%<
  * Create a new UDP dispatch.
  *
@@ -223,8 +225,8 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
  */
 
 isc_result_t
-dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
+dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
+		       const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, unsigned int attributes,
 		       isc_dscp_t dscp, dns_dispatch_t **dispp);
 /*%<
@@ -265,15 +267,13 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  */
 
 isc_result_t
-dns_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp,
-		     isc_task_t *task, isc_taskaction_t action, void *arg);
+dns_dispatch_connect(dns_dispentry_t *resp);
 /*%<
- * Connect the UDP socket in 'resp' or the TCP socket in 'disp' to the
- * remote server, and run the specified callback.
+ * Connect to the remote server configured in 'resp' and run the
+ * connect callback that was set up via dns_dispatch_addresponse().
  *
  * Requires:
- *\li	'resp' is NULL and 'disp' is valid, or
- *\li	'disp' is NULL and 'resp' is valid.
+ *\li	'resp' is valid.
  */
 
 void
@@ -288,27 +288,14 @@ dns_dispatch_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp, bool sending,
  *\li	'disp' is NULL and 'resp' is valid.
  */
 
-isc_result_t
-dns_dispatch_send(dns_dispentry_t *resp, bool tcp, isc_task_t *task,
-		  isc_socketevent_t *sendevent, isc_region_t *r,
-		  const isc_sockaddr_t *address, isc_dscp_t dscp,
-		  isc_taskaction_t action, void *arg);
+void
+dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp);
 /*%<
  * Send region 'r' using the socket in 'resp', then run the specified
- * callback. 'sendevent' must point to enough memory to hold an
- * isc_socketevent; it will be overwritten.
+ * callback.
  *
  * Requires:
  *\li	'resp' is valid.
- */
-
-void
-dns_dispatch_starttcp(dns_dispatch_t *disp);
-/*%<
- * Start processing of a TCP dispatch once the socket connects.
- *
- * Requires:
- *\li	'disp' is valid.
  */
 
 isc_result_t
@@ -322,18 +309,29 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
-			 const isc_sockaddr_t *dest, isc_task_t *task,
-			 isc_taskaction_t action, void *arg, uint16_t *idp,
-			 dns_dispentry_t **resp, isc_socketmgr_t *sockmgr);
+			 unsigned int timeout, const isc_sockaddr_t *dest,
+			 isc_task_t *task, isc_nm_cb_t connected,
+			 isc_nm_cb_t sent, isc_taskaction_t action,
+			 isc_taskaction_t timeout_action, void *arg,
+			 dns_messageid_t *idp, dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *
  * "*idp" is filled in with the assigned message ID, and *resp is filled in
  * to contain the magic token used to request event flow stop.
  *
- * Arranges for the given task to get a callback for response packets.  When
- * the event is delivered, it must be returned using dns_dispatch_freeevent()
- * or through dns_dispatch_removeresponse() for another to be delivered.
+ * The 'connected' and 'sent' callbacks are run to inform the caller when
+ * the connection and send functions are complete.
+ *
+ * The specified 'task' is sent the 'action' callback for response packets.
+ * (Later, this should be updated to a network manager callback function,
+ * but for now we still use isc_task for this.) When the event is delivered,
+ * it must be returned using dns_dispatch_freeevent() or through
+ * dns_dispatch_removeresponse() for another to be delivered.
+ *
+ * On timeout, 'timeout_action' will be sent to the task.
+ *
+ * All three callback functions are sent 'arg' as a parameter.
  *
  * Requires:
  *\li	"idp" be non-NULL.
@@ -343,10 +341,6 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
  *\li	"dest" be non-NULL and valid.
  *
  *\li	"resp" be non-NULL and *resp be NULL
- *
- *\li	"sockmgr" be NULL or a valid socket manager.  If 'disp' has
- *	the DNS_DISPATCHATTR_EXCLUSIVE attribute, this must not be NULL,
- *	which also means dns_dispatch_addresponse() cannot be used.
  *
  * Ensures:
  *
@@ -452,9 +446,9 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
  */
 
 isc_result_t
-dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
-		       isc_taskmgr_t *taskmgr, dns_dispatch_t *source,
-		       dns_dispatchset_t **dsetp, int n);
+dns_dispatchset_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		       dns_dispatch_t *source, dns_dispatchset_t **dsetp,
+		       int n);
 /*%<
  * Given a valid dispatch 'source', create a dispatch set containing
  * 'n' UDP dispatches, with the remainder filled out by clones of the

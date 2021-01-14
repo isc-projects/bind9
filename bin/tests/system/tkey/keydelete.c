@@ -22,9 +22,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
@@ -134,9 +132,6 @@ main(int argc, char **argv) {
 	char *keyname = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
-	isc_socket_t *sock = NULL;
 	isc_sockaddr_t bind_any;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
@@ -171,26 +166,21 @@ main(int argc, char **argv) {
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&bind_any);
-	RUNCHECK(dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-					&bind_any, 0, &dispatchv4));
-	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
-				       dispatchmgr, dispatchv4, NULL,
-				       &requestmgr));
+	RUNCHECK(dns_dispatch_createudp(dispatchmgr, taskmgr, &bind_any, 0,
+					&dispatchv4));
+	RUNCHECK(dns_requestmgr_create(mctx, taskmgr, dispatchmgr, dispatchv4,
+				       NULL, &requestmgr));
 
 	RUNCHECK(dns_tsigkeyring_create(mctx, &ring));
 	RUNCHECK(dns_tkeyctx_create(mctx, &tctx));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 	dns_view_setkeyring(view, ring);
-
-	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
-				   &sock));
 
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 
@@ -211,8 +201,7 @@ main(int argc, char **argv) {
 	dns_dispatchmgr_destroy(&dispatchmgr);
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
-	isc_socket_detach(&sock);
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	dns_tsigkeyring_detach(&ring);
 

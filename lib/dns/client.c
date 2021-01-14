@@ -86,7 +86,7 @@ struct dns_client {
 	isc_appctx_t *actx;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
-	isc_socketmgr_t *socketmgr;
+	isc_nm_t *nm;
 	isc_timermgr_t *timermgr;
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatchv4;
@@ -202,8 +202,8 @@ cleanup:
 
 static isc_result_t
 getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
-	       isc_socketmgr_t *socketmgr, isc_taskmgr_t *taskmgr,
-	       dns_dispatch_t **dispp, const isc_sockaddr_t *localaddr) {
+	       isc_taskmgr_t *taskmgr, dns_dispatch_t **dispp,
+	       const isc_sockaddr_t *localaddr) {
 	dns_dispatch_t *disp = NULL;
 	isc_result_t result;
 	isc_sockaddr_t anyaddr;
@@ -213,8 +213,8 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		localaddr = &anyaddr;
 	}
 
-	result = dns_dispatch_createudp(dispatchmgr, socketmgr, taskmgr,
-					localaddr, 0, &disp);
+	result = dns_dispatch_createudp(dispatchmgr, taskmgr, localaddr, 0,
+					&disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}
@@ -224,10 +224,9 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 static isc_result_t
 createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
-	   unsigned int ntasks, isc_socketmgr_t *socketmgr,
-	   isc_timermgr_t *timermgr, dns_dispatchmgr_t *dispatchmgr,
-	   dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
-	   dns_view_t **viewp) {
+	   unsigned int ntasks, isc_nm_t *nm, isc_timermgr_t *timermgr,
+	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
+	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
@@ -243,8 +242,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 		return (result);
 	}
 
-	result = dns_view_createresolver(view, taskmgr, ntasks, 1, socketmgr,
-					 timermgr, 0, dispatchmgr, dispatchv4,
+	result = dns_view_createresolver(view, taskmgr, ntasks, 1, nm, timermgr,
+					 0, dispatchmgr, dispatchv4,
 					 dispatchv6);
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&view);
@@ -264,9 +263,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		  isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		  unsigned int options, dns_client_t **clientp,
-		  const isc_sockaddr_t *localaddr4,
+		  isc_nm_t *nm, isc_timermgr_t *timermgr, unsigned int options,
+		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
 	dns_client_t *client = NULL;
@@ -278,27 +276,24 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	REQUIRE(mctx != NULL);
 	REQUIRE(taskmgr != NULL);
 	REQUIRE(timermgr != NULL);
-	REQUIRE(socketmgr != NULL);
+	REQUIRE(nm != NULL);
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
 	UNUSED(options);
 
 	client = isc_mem_get(mctx, sizeof(*client));
+	*client = (dns_client_t){
+		.actx = actx, .taskmgr = taskmgr, .timermgr = timermgr, .nm = nm
+	};
 
 	isc_mutex_init(&client->lock);
 
-	client->actx = actx;
-	client->taskmgr = taskmgr;
-	client->socketmgr = socketmgr;
-	client->timermgr = timermgr;
-
-	client->task = NULL;
 	result = isc_task_create(client->taskmgr, 0, &client->task);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
 	}
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, nm, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
 	}
@@ -311,8 +306,8 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	 */
 	client->dispatchv4 = NULL;
 	if (localaddr4 != NULL || localaddr6 == NULL) {
-		result = getudpdispatch(AF_INET, dispatchmgr, socketmgr,
-					taskmgr, &dispatchv4, localaddr4);
+		result = getudpdispatch(AF_INET, dispatchmgr, taskmgr,
+					&dispatchv4, localaddr4);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv4 = dispatchv4;
 		}
@@ -320,8 +315,8 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	client->dispatchv6 = NULL;
 	if (localaddr6 != NULL || localaddr4 == NULL) {
-		result = getudpdispatch(AF_INET6, dispatchmgr, socketmgr,
-					taskmgr, &dispatchv6, localaddr6);
+		result = getudpdispatch(AF_INET6, dispatchmgr, taskmgr,
+					&dispatchv6, localaddr6);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv6 = dispatchv6;
 		}
@@ -337,8 +332,8 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	/* Create the default view for class IN */
 	result = createview(mctx, dns_rdataclass_in, taskmgr, RESOLVER_NTASKS,
-			    socketmgr, timermgr, dispatchmgr, dispatchv4,
-			    dispatchv6, &view);
+			    nm, timermgr, dispatchmgr, dispatchv4, dispatchv6,
+			    &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
 	}
@@ -350,12 +345,10 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	ISC_LIST_INIT(client->resctxs);
 
-	client->mctx = NULL;
 	isc_mem_attach(mctx, &client->mctx);
 
 	client->find_timeout = DEF_FIND_TIMEOUT;
 	client->find_udpretries = DEF_FIND_UDPRETRIES;
-	client->attributes = 0;
 
 	client->magic = DNS_CLIENT_MAGIC;
 
