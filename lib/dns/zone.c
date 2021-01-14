@@ -259,6 +259,7 @@ struct dns_zone {
 	isc_sockaddr_t *masters;
 	isc_dscp_t *masterdscps;
 	dns_name_t **masterkeynames;
+	dns_name_t **mastertlsnames;
 	bool *mastersok;
 	unsigned int masterscnt;
 	unsigned int curmaster;
@@ -266,6 +267,7 @@ struct dns_zone {
 	dns_notifytype_t notifytype;
 	isc_sockaddr_t *notify;
 	dns_name_t **notifykeynames;
+	dns_name_t **notifytlsnames;
 	isc_dscp_t *notifydscp;
 	unsigned int notifycnt;
 	isc_sockaddr_t notifyfrom;
@@ -284,8 +286,9 @@ struct dns_zone {
 	isc_dscp_t xfrsource6dscp;
 	isc_dscp_t altxfrsource4dscp;
 	isc_dscp_t altxfrsource6dscp;
-	dns_xfrin_ctx_t *xfr;	/* task locked */
-	dns_tsigkey_t *tsigkey; /* key used for xfr */
+	dns_xfrin_ctx_t *xfr;	    /* task locked */
+	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
+	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
 	dns_acl_t *update_acl;
 	dns_acl_t *forward_acl;
@@ -595,6 +598,7 @@ struct dns_notify {
 	dns_name_t ns;
 	isc_sockaddr_t dst;
 	dns_tsigkey_t *key;
+	dns_transport_t *transport;
 	isc_dscp_t dscp;
 	ISC_LINK(dns_notify_t) link;
 	isc_event_t *event;
@@ -1047,12 +1051,14 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->masters = NULL;
 	zone->masterdscps = NULL;
 	zone->masterkeynames = NULL;
+	zone->mastertlsnames = NULL;
 	zone->mastersok = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->maxttl = 0;
 	zone->notify = NULL;
 	zone->notifykeynames = NULL;
+	zone->notifytlsnames = NULL;
 	zone->notifydscp = NULL;
 	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
@@ -1091,6 +1097,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->altxfrsource6dscp = -1;
 	zone->xfr = NULL;
 	zone->tsigkey = NULL;
+	zone->transport = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->ssutable = NULL;
@@ -1301,9 +1308,10 @@ zone_free(dns_zone_t *zone) {
 		dns_catz_catzs_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
-	RUNTIME_CHECK(dns_zone_setprimarieswithkeys(zone, NULL, NULL, 0) ==
+	RUNTIME_CHECK(dns_zone_setprimaries(zone, NULL, NULL, NULL, 0) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0) ==
+		      ISC_R_SUCCESS);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL) {
 		dns_acl_detach(&zone->update_acl);
@@ -6148,8 +6156,8 @@ same_addrs(isc_sockaddr_t const *oldlist, isc_sockaddr_t const *newlist,
 }
 
 static bool
-same_keynames(dns_name_t *const *oldlist, dns_name_t *const *newlist,
-	      uint32_t count) {
+same_names(dns_name_t *const *oldlist, dns_name_t *const *newlist,
+	   uint32_t count) {
 	unsigned int i;
 
 	if (oldlist == NULL && newlist == NULL) {
@@ -6173,16 +6181,20 @@ same_keynames(dns_name_t *const *oldlist, dns_name_t *const *newlist,
 }
 
 static void
-clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		     dns_name_t ***keynamesp, unsigned int *countp,
-		     isc_mem_t *mctx) {
+clear_primarieslist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
+		    dns_name_t ***keynamesp, dns_name_t ***tlsnamesp,
+		    unsigned int *countp, isc_mem_t *mctx) {
 	unsigned int count;
 	isc_sockaddr_t *addrs;
 	isc_dscp_t *dscps;
 	dns_name_t **keynames;
+	dns_name_t **tlsnames;
 
-	REQUIRE(countp != NULL && addrsp != NULL && dscpsp != NULL &&
-		keynamesp != NULL);
+	REQUIRE(countp != NULL);
+	REQUIRE(addrsp != NULL);
+	REQUIRE(dscpsp != NULL);
+	REQUIRE(keynamesp != NULL);
+	REQUIRE(tlsnamesp != NULL);
 
 	count = *countp;
 	*countp = 0;
@@ -6192,6 +6204,8 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 	*dscpsp = NULL;
 	keynames = *keynamesp;
 	*keynamesp = NULL;
+	tlsnames = *tlsnamesp;
+	*tlsnamesp = NULL;
 
 	if (addrs != NULL) {
 		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
@@ -6213,21 +6227,37 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 		}
 		isc_mem_put(mctx, keynames, count * sizeof(dns_name_t *));
 	}
+
+	if (tlsnames != NULL) {
+		unsigned int i;
+		for (i = 0; i < count; i++) {
+			if (tlsnames[i] != NULL) {
+				dns_name_free(tlsnames[i], mctx);
+				isc_mem_put(mctx, tlsnames[i],
+					    sizeof(dns_name_t));
+				tlsnames[i] = NULL;
+			}
+		}
+		isc_mem_put(mctx, tlsnames, count * sizeof(dns_name_t *));
+	}
 }
 
 static isc_result_t
-set_addrkeylist(unsigned int count, const isc_sockaddr_t *addrs,
-		isc_sockaddr_t **newaddrsp, const isc_dscp_t *dscp,
-		isc_dscp_t **newdscpp, dns_name_t **names,
-		dns_name_t ***newnamesp, isc_mem_t *mctx) {
+set_primarieslist(unsigned int count, const isc_sockaddr_t *addrs,
+		  isc_sockaddr_t **newaddrsp, const isc_dscp_t *dscp,
+		  isc_dscp_t **newdscpp, dns_name_t **keynames,
+		  dns_name_t ***newkeynamesp, dns_name_t **tlsnames,
+		  dns_name_t ***newtlsnamesp, isc_mem_t *mctx) {
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscp = NULL;
-	dns_name_t **newnames = NULL;
+	dns_name_t **newkeynames = NULL;
+	dns_name_t **newtlsnames = NULL;
 	unsigned int i;
 
 	REQUIRE(newaddrsp != NULL && *newaddrsp == NULL);
 	REQUIRE(newdscpp != NULL && *newdscpp == NULL);
-	REQUIRE(newnamesp != NULL && *newnamesp == NULL);
+	REQUIRE(newkeynamesp != NULL && *newkeynamesp == NULL);
+	REQUIRE(newtlsnamesp != NULL && *newtlsnamesp == NULL);
 
 	newaddrs = isc_mem_get(mctx, count * sizeof(*newaddrs));
 	memmove(newaddrs, addrs, count * sizeof(*newaddrs));
@@ -6239,26 +6269,40 @@ set_addrkeylist(unsigned int count, const isc_sockaddr_t *addrs,
 		newdscp = NULL;
 	}
 
-	if (names != NULL) {
-		newnames = isc_mem_get(mctx, count * sizeof(*newnames));
+	if (keynames != NULL) {
+		newkeynames = isc_mem_get(mctx, count * sizeof(*newkeynames));
 		for (i = 0; i < count; i++) {
-			newnames[i] = NULL;
+			newkeynames[i] = NULL;
 		}
 		for (i = 0; i < count; i++) {
-			if (names[i] != NULL) {
-				newnames[i] = isc_mem_get(mctx,
-							  sizeof(dns_name_t));
-				dns_name_init(newnames[i], NULL);
-				dns_name_dup(names[i], mctx, newnames[i]);
+			if (keynames[i] != NULL) {
+				newkeynames[i] =
+					isc_mem_get(mctx, sizeof(dns_name_t));
+				dns_name_init(newkeynames[i], NULL);
+				dns_name_dup(keynames[i], mctx, newkeynames[i]);
 			}
 		}
-	} else {
-		newnames = NULL;
+	}
+
+	if (tlsnames != NULL) {
+		newtlsnames = isc_mem_get(mctx, count * sizeof(*newtlsnames));
+		for (i = 0; i < count; i++) {
+			newtlsnames[i] = NULL;
+		}
+		for (i = 0; i < count; i++) {
+			if (tlsnames[i] != NULL) {
+				newtlsnames[i] =
+					isc_mem_get(mctx, sizeof(dns_name_t));
+				dns_name_init(newtlsnames[i], NULL);
+				dns_name_dup(tlsnames[i], mctx, newtlsnames[i]);
+			}
+		}
 	}
 
 	*newdscpp = newdscp;
 	*newaddrsp = newaddrs;
-	*newnamesp = newnames;
+	*newkeynamesp = newkeynames;
+	*newtlsnamesp = newtlsnames;
 	return (ISC_R_SUCCESS);
 }
 
@@ -6281,26 +6325,13 @@ dns_zone_getnotifysrc6dscp(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
-		       uint32_t count) {
-	return (dns_zone_setalsonotifydscpkeys(zone, notify, NULL, NULL,
-					       count));
-}
-
-isc_result_t
-dns_zone_setalsonotifywithkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
-			       dns_name_t **keynames, uint32_t count) {
-	return (dns_zone_setalsonotifydscpkeys(zone, notify, NULL, keynames,
-					       count));
-}
-
-isc_result_t
-dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
-			       const isc_dscp_t *dscps, dns_name_t **keynames,
-			       uint32_t count) {
+		       const isc_dscp_t *dscps, dns_name_t **keynames,
+		       dns_name_t **tlsnames, uint32_t count) {
 	isc_result_t result;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
-	dns_name_t **newnames = NULL;
+	dns_name_t **newkeynames = NULL;
+	dns_name_t **newtlsnames = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(count == 0 || notify != NULL);
@@ -6312,14 +6343,15 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 
 	if (count == zone->notifycnt &&
 	    same_addrs(zone->notify, notify, count) &&
-	    same_keynames(zone->notifykeynames, keynames, count))
+	    same_names(zone->notifykeynames, keynames, count) &&
+	    same_names(zone->notifytlsnames, tlsnames, count))
 	{
 		goto unlock;
 	}
 
-	clear_addresskeylist(&zone->notify, &zone->notifydscp,
-			     &zone->notifykeynames, &zone->notifycnt,
-			     zone->mctx);
+	clear_primarieslist(&zone->notify, &zone->notifydscp,
+			    &zone->notifykeynames, &zone->notifytlsnames,
+			    &zone->notifycnt, zone->mctx);
 
 	if (count == 0) {
 		goto unlock;
@@ -6328,8 +6360,9 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	/*
 	 * Set up the notify and notifykey lists
 	 */
-	result = set_addrkeylist(count, notify, &newaddrs, dscps, &newdscps,
-				 keynames, &newnames, zone->mctx);
+	result = set_primarieslist(count, notify, &newaddrs, dscps, &newdscps,
+				   keynames, &newkeynames, tlsnames,
+				   &newtlsnames, zone->mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
 	}
@@ -6339,7 +6372,8 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	 */
 	zone->notify = newaddrs;
 	zone->notifydscp = newdscps;
-	zone->notifykeynames = newnames;
+	zone->notifykeynames = newkeynames;
+	zone->notifytlsnames = newtlsnames;
 	zone->notifycnt = count;
 unlock:
 	UNLOCK_ZONE(zone);
@@ -6348,26 +6382,19 @@ unlock:
 
 isc_result_t
 dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *masters,
+		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count) {
-	isc_result_t result;
-
-	result = dns_zone_setprimarieswithkeys(zone, masters, NULL, count);
-	return (result);
-}
-
-isc_result_t
-dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
-			      dns_name_t **keynames, uint32_t count) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
-	dns_name_t **newnames = NULL;
+	dns_name_t **newkeynames = NULL;
+	dns_name_t **newtlsnames = NULL;
 	bool *newok;
 	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(count == 0 || masters != NULL);
-	if (keynames != NULL) {
+	if (keynames != NULL || tlsnames != NULL) {
 		REQUIRE(count != 0);
 	}
 
@@ -6380,7 +6407,8 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	 */
 	if (count != zone->masterscnt ||
 	    !same_addrs(zone->masters, masters, count) ||
-	    !same_keynames(zone->masterkeynames, keynames, count))
+	    !same_names(zone->masterkeynames, keynames, count) ||
+	    !same_names(zone->mastertlsnames, tlsnames, count))
 	{
 		if (zone->request != NULL) {
 			dns_request_cancel(zone->request);
@@ -6398,9 +6426,9 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof(bool));
 		zone->mastersok = NULL;
 	}
-	clear_addresskeylist(&zone->masters, &zone->masterdscps,
-			     &zone->masterkeynames, &zone->masterscnt,
-			     zone->mctx);
+	clear_primarieslist(&zone->masters, &zone->masterdscps,
+			    &zone->masterkeynames, &zone->mastertlsnames,
+			    &zone->masterscnt, zone->mctx);
 	/*
 	 * If count == 0, don't allocate any space for masters, mastersok or
 	 * keynames so internally, those pointers are NULL if count == 0
@@ -6420,8 +6448,9 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	/*
 	 * Now set up the primaries and primary key lists
 	 */
-	result = set_addrkeylist(count, masters, &newaddrs, NULL, &newdscps,
-				 keynames, &newnames, zone->mctx);
+	result = set_primarieslist(count, masters, &newaddrs, NULL, &newdscps,
+				   keynames, &newkeynames, tlsnames,
+				   &newtlsnames, zone->mctx);
 	INSIST(newdscps == NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
@@ -6435,7 +6464,8 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	zone->mastersok = newok;
 	zone->masters = newaddrs;
 	zone->masterdscps = newdscps;
-	zone->masterkeynames = newnames;
+	zone->masterkeynames = newkeynames;
+	zone->mastertlsnames = newtlsnames;
 	zone->masterscnt = count;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
 
@@ -11897,7 +11927,8 @@ dns_zone_setmaxrecords(dns_zone_t *zone, uint32_t val) {
 
 static bool
 notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
-		isc_sockaddr_t *addr, dns_tsigkey_t *key) {
+		isc_sockaddr_t *addr, dns_tsigkey_t *key,
+		dns_transport_t *transport) {
 	dns_notify_t *notify;
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
@@ -11914,7 +11945,7 @@ notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
 			goto requeue;
 		}
 		if (addr != NULL && isc_sockaddr_equal(addr, &notify->dst) &&
-		    notify->key == key)
+		    notify->key == key && notify->transport == transport)
 		{
 			goto requeue;
 		}
@@ -12032,6 +12063,9 @@ notify_destroy(dns_notify_t *notify, bool locked) {
 	if (notify->key != NULL) {
 		dns_tsigkey_detach(&notify->key);
 	}
+	if (notify->transport != NULL) {
+		dns_transport_detach(&notify->transport);
+	}
 	mctx = notify->mctx;
 	isc_mem_put(notify->mctx, notify, sizeof(*notify));
 	isc_mem_detach(&mctx);
@@ -12044,15 +12078,11 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	REQUIRE(notifyp != NULL && *notifyp == NULL);
 
 	notify = isc_mem_get(mctx, sizeof(*notify));
+	*notify = (dns_notify_t){
+		.flags = flags,
+	};
 
-	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
-	notify->flags = flags;
-	notify->zone = NULL;
-	notify->find = NULL;
-	notify->request = NULL;
-	notify->key = NULL;
-	notify->event = NULL;
 	isc_sockaddr_any(&notify->dst);
 	dns_name_init(&notify->ns, NULL);
 	ISC_LINK_INIT(notify, link);
@@ -12332,7 +12362,7 @@ notify_send(dns_notify_t *notify) {
 	{
 		dst = ai->sockaddr;
 		if (notify_isqueued(notify->zone, notify->flags, NULL, &dst,
-				    NULL)) {
+				    NULL, NULL)) {
 			continue;
 		}
 		if (notify_isself(notify->zone, &dst)) {
@@ -12485,19 +12515,36 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	LOCK_ZONE(zone);
 	for (i = 0; i < zone->notifycnt; i++) {
 		dns_tsigkey_t *key = NULL;
+		dns_transport_t *transport = NULL;
 		dns_notify_t *notify = NULL;
+		dns_view_t *view = dns_zone_getview(zone);
 
 		if ((zone->notifykeynames != NULL) &&
 		    (zone->notifykeynames[i] != NULL)) {
-			dns_view_t *view = dns_zone_getview(zone);
 			dns_name_t *keyname = zone->notifykeynames[i];
 			(void)dns_view_gettsig(view, keyname, &key);
 		}
 
+		if ((zone->notifytlsnames != NULL) &&
+		    (zone->notifytlsnames[i] != NULL)) {
+			dns_name_t *tlsname = zone->notifytlsnames[i];
+			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
+						    tlsname, &transport);
+
+			dns_zone_logc(
+				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+				"got TLS configuration for zone transfer");
+		}
+
+		/* TODO: glue the transport to the notify */
+
 		dst = zone->notify[i];
-		if (notify_isqueued(zone, flags, NULL, &dst, key)) {
+		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
 				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
 			}
 			continue;
 		}
@@ -12506,6 +12553,9 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		if (result != ISC_R_SUCCESS) {
 			if (key != NULL) {
 				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
 			}
 			continue;
 		}
@@ -12518,6 +12568,12 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		if (key != NULL) {
 			notify->key = key;
 			key = NULL;
+		}
+
+		INSIST(notify->transport == NULL);
+		if (transport != NULL) {
+			notify->transport = transport;
+			transport = NULL;
 		}
 
 		ISC_LIST_APPEND(zone->notifies, notify, link);
@@ -12574,7 +12630,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		}
 
 		LOCK_ZONE(zone);
-		isqueued = notify_isqueued(zone, flags, &ns.name, NULL, NULL);
+		isqueued = notify_isqueued(zone, flags, &ns.name, NULL, NULL,
+					   NULL);
 		UNLOCK_ZONE(zone);
 		if (isqueued) {
 			result = dns_rdataset_next(&nsrdset);
@@ -13973,12 +14030,14 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *dummy = NULL;
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
+	dns_transport_t *transport = NULL;
 	uint32_t options;
 	bool cancel = true;
 	int timeout;
 	bool have_xfrsource, have_xfrdscp, reqnsid, reqexpire;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
 	isc_dscp_t dscp = -1;
+	bool do_queue_xfrin = false;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -13998,11 +14057,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	}
 
 again:
-	result = create_query(zone, dns_rdatatype_soa, &zone->origin, &message);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 
@@ -14034,6 +14088,23 @@ again:
 			isc_netaddr_format(&masterip, addrbuf, sizeof(addrbuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "unable to find TSIG key for %s", addrbuf);
+			goto skip_master;
+		}
+	}
+
+	if ((zone->mastertlsnames != NULL) &&
+	    (zone->mastertlsnames[zone->curmaster] != NULL))
+	{
+		dns_view_t *view = dns_zone_getview(zone);
+		dns_name_t *tlsname = zone->mastertlsnames[zone->curmaster];
+		result = dns_view_gettransport(view, DNS_TRANSPORT_TLS, tlsname,
+					       &transport);
+		if (result != ISC_R_SUCCESS) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(tlsname, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "unable to find TLS configuration: %s",
+				     namebuf);
 			goto skip_master;
 		}
 	}
@@ -14116,6 +14187,24 @@ again:
 		goto cleanup;
 	}
 
+	/*
+	 * FIXME(OS): This is a bit hackish, but it enforces the SOA query to go
+	 * through the XFR channel instead of doing dns_request that doesn't
+	 * have DoT support yet.
+	 */
+	if (transport != NULL) {
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
+		do_queue_xfrin = true;
+		cancel = false;
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	result = create_query(zone, dns_rdatatype_soa, &zone->origin, &message);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid, reqexpire);
 		if (result != ISC_R_SUCCESS) {
@@ -14148,8 +14237,10 @@ again:
 		}
 	}
 	cancel = false;
-
 cleanup:
+	if (transport != NULL) {
+		dns_transport_detach(&transport);
+	}
 	if (key != NULL) {
 		dns_tsigkey_detach(&key);
 	}
@@ -14164,6 +14255,9 @@ cleanup:
 	}
 	isc_event_free(&event);
 	UNLOCK_ZONE(zone);
+	if (do_queue_xfrin) {
+		queue_xfrin(zone);
+	}
 	dns_zone_idetach(&zone);
 	return;
 
@@ -14171,7 +14265,9 @@ skip_master:
 	if (key != NULL) {
 		dns_tsigkey_detach(&key);
 	}
-	dns_message_detach(&message);
+	if (message != NULL) {
+		dns_message_detach(&message);
+	}
 	/*
 	 * Skip to next failed / untried master.
 	 */
@@ -14315,6 +14411,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (key == NULL) {
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 	}
+
+	/* FIXME(OS): Do we need the transport here too? Most probably yes */
 
 	reqnsid = zone->view->requestnsid;
 	if (zone->view->peers != NULL) {
@@ -17230,6 +17328,10 @@ again:
 		dns_tsigkey_detach(&zone->tsigkey);
 	}
 
+	if (zone->transport != NULL) {
+		dns_transport_detach(&zone->transport);
+	}
+
 	/*
 	 * Handle any deferred journal compaction.
 	 */
@@ -17587,6 +17689,26 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(result));
 	}
 
+	if ((zone->mastertlsnames != NULL) &&
+	    (zone->mastertlsnames[zone->curmaster] != NULL))
+	{
+		dns_view_t *view = dns_zone_getview(zone);
+		dns_name_t *tlsname = zone->mastertlsnames[zone->curmaster];
+		result = dns_view_gettransport(view, DNS_TRANSPORT_TLS, tlsname,
+					       &zone->transport);
+
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+			      "got TLS configuration for zone transfer: %s",
+			      isc_result_totext(result));
+	}
+
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		dns_zone_logc(
+			zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+			"could not get TLS configuration for zone transfer: %s",
+			isc_result_totext(result));
+	}
+
 	if (zone->masterdscps != NULL) {
 		dscp = zone->masterdscps[zone->curmaster];
 	}
@@ -17617,8 +17739,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	}
 
 	CHECK(dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr, dscp,
-			       zone->tsigkey, zone->mctx, zone->zmgr->netmgr,
-			       zone_xfrdone, &zone->xfr));
+			       zone->tsigkey, zone->transport, zone->mctx,
+			       zone->zmgr->netmgr, zone_xfrdone, &zone->xfr));
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&masteraddr) == PF_INET) {

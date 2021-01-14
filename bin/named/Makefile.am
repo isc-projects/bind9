@@ -59,6 +59,7 @@ named_SOURCES =				\
 	server.c			\
 	statschannel.c			\
 	tkeyconf.c			\
+	transportconf.c			\
 	tsigconf.c			\
 	zoneconf.c			\
 	unix/dlz_dlopen_driver.c	\
@@ -77,6 +78,7 @@ named_SOURCES =				\
 	include/named/smf_globals.h	\
 	include/named/statschannel.h	\
 	include/named/tkeyconf.h	\
+	include/named/transportconf.h	\
 	include/named/tsigconf.h	\
 	include/named/types.h		\
 	include/named/zoneconf.h	\

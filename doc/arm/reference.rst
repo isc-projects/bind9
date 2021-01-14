@@ -30,7 +30,7 @@ file documentation:
         A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
 
     ``primaries_list``
-        A named list of one or more ``ip_addr`` with optional ``key_id`` and/or ``ip_port``. A ``primaries_list`` may include other ``primaries_list``.
+        A named list of one or more ``ip_addr`` with optional ``tls_id``, ``key_id`` and/or ``ip_port``. A ``primaries_list`` may include other ``primaries_list``.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example. ``my.test.domain``.
@@ -65,6 +65,9 @@ file documentation:
 
     ``key_list``
         A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
+
+    ``tls_id``
+        A string representing a TLS configuration object, including a key and certificate.
 
     ``number``
         A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
@@ -285,6 +288,9 @@ The following statements are supported:
 
     ``statistics-channels``
         Declares communication channels to get access to ``named`` statistics.
+
+    ``tls``
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file`` and ``hostname``.
 
     ``trust-anchors``
         Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
@@ -2446,12 +2452,13 @@ Multiple ``listen-on`` statements are allowed. For example:
 
    listen-on { 5.6.7.8; };
    listen-on port 1234 { !1.2.3.4; 1.2/16; };
-   listen-on port 8853 tls example-tls { 4.3.2.1; };
+   listen-on port 8853 tls ephemeral { 4.3.2.1; };
 
 enables the name server to listen for standard DNS queries on port 53 of the
 IP address 5.6.7.8 and on port 1234 of an address on the machine in net 1.2
 that is not 1.2.3.4, and to listen for DNS-over-TLS connections on port
-8853 of the IP address 4.3.2.1.
+8853 of the IP address 4.3.2.1, using an ephemeral TLS key and certificate
+created for the currently running ``named`` process.
 
 If no ``listen-on`` is specified, the server listens for standard DNS
 on port 53 of all IPv4 interfaces.
@@ -2472,9 +2479,10 @@ Multiple ``listen-on-v6`` options can be used. For example:
 enables the name server to listen for standard DNS queries on port 53 of
 any IPv6 addresses and on port 1234 of IPv6 addresses that are not in the
 prefix 2001:db8::/32, and for DNS-over-TLS connections on port 8853 of
-the address 2001:db8::100.
+the address 2001:db8::100, using a TLS key and certificate specified in
+the a ``tls`` statement with the name ``example-tls``.
 
-To instruct the server not to listen on any IPv6 address, use:
+To instruct the server not to listen on any IPv6 addresses, use:
 
 ::
 
@@ -4578,6 +4586,43 @@ statistics), http://127.0.0.1:8888/json/v1/net (network status and
 socket statistics), http://127.0.0.1:8888/json/v1/mem (memory manager
 statistics), http://127.0.0.1:8888/json/v1/tasks (task manager
 statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
+
+.. _tls:
+
+``tls`` Statement Grammar
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: ../misc/tls.grammar.rst
+
+``tls`` Statement Definition and Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``tls`` statement is used to configure a TLS connection; this
+configuration can then be referenced by a ``listen-on`` or ``listen-on-v6``
+statement to cause ``named`` to listen for incoming requests via TLS,
+or in the ``primaries`` statement for a zone of type ``secondary`` to
+cause zone transfer requests to be sent via TLS.
+
+``tls`` can only be set at the top level of ``named.conf``.
+
+The following options can be specified in a ``tls`` statement:
+
+  ``key-file``
+    Path to a file containing the private TLS key to be used for
+    the connection.
+
+  ``cert-file``
+    Path to a file containing the TLS certificate to be used for
+    the connection.
+
+  ``ca-file``
+    Path to a file containing trusted TLS certificates.
+
+  ``hostname``
+    The hostname associated with the certificate.
+
+The built-in ``ephemeral`` TLS connection object represents a temporary
+key and certificate created for the current ``named`` session only.
 
 .. _trust_anchors:
 

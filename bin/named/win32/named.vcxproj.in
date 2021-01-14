@@ -138,6 +138,7 @@ perl -e "print \";\";" &gt;&gt; xsl.c
     <ClCompile Include="..\server.c" />
     <ClCompile Include="..\statschannel.c" />
     <ClCompile Include="..\tkeyconf.c" />
+    <ClCompile Include="..\transportconf.c" />
     <ClCompile Include="..\tsigconf.c" />
     <ClCompile Include="..\xsl.c" />
     <ClCompile Include="..\zoneconf.c" />
@@ -159,6 +160,7 @@ perl -e "print \";\";" &gt;&gt; xsl.c
     <ClInclude Include="..\include\named\server.h" />
     <ClInclude Include="..\include\named\statschannel.h" />
     <ClInclude Include="..\include\named\tkeyconf.h" />
+    <ClInclude Include="..\include\named\transportconf.h" />
     <ClInclude Include="..\include\named\tsigconf.h" />
     <ClInclude Include="..\include\named\types.h" />
     <ClInclude Include="..\xsl_p.h" />

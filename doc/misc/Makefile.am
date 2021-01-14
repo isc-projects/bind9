@@ -34,6 +34,7 @@ OPTIONS_FILES =				\
 	options.grammar.rst		\
 	server.grammar.rst		\
 	statistics-channels.grammar.rst	\
+	tls.grammar.rst			\
 	trust-anchors.grammar.rst	\
 	managed-keys.grammar.rst	\
 	trusted-keys.grammar.rst
@@ -161,6 +162,9 @@ server.grammar.rst: options.active
 
 statistics-channels.grammar.rst: options.active
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active statistics-channels > $@
+
+tls.grammar.rst: options.active
+	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active tls > $@
 
 trust-anchors.grammar.rst: options.active
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active trust-anchors > $@

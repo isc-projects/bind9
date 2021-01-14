@@ -56,6 +56,7 @@
 #include <dns/rrl.h>
 #include <dns/stats.h>
 #include <dns/time.h>
+#include <dns/transport.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -152,6 +153,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	atomic_init(&view->attributes,
 		    (DNS_VIEWATTR_RESSHUTDOWN | DNS_VIEWATTR_ADBSHUTDOWN |
 		     DNS_VIEWATTR_REQSHUTDOWN));
+	view->transports = NULL;
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
@@ -396,6 +398,9 @@ destroy(dns_view_t *view) {
 				(void)remove(template);
 			}
 		}
+	}
+	if (view->transports != NULL) {
+		dns_transport_list_detach(&view->transports);
 	}
 	if (view->statickeys != NULL) {
 		dns_tsigkeyring_detach(&view->statickeys);
@@ -882,6 +887,16 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 	REQUIRE(dns_db_iszone(hints));
 
 	dns_db_attach(hints, &view->hints);
+}
+
+void
+dns_view_settransports(dns_view_t *view, dns_transport_list_t *list) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(list != NULL);
+	if (view->transports != NULL) {
+		dns_transport_list_detach(&view->transports);
+	}
+	dns_transport_list_attach(list, &view->transports);
 }
 
 void
@@ -1587,6 +1602,22 @@ dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
 					  view->dynamickeys);
 	}
 	return (result);
+}
+
+isc_result_t
+dns_view_gettransport(dns_view_t *view, const dns_transport_type_t type,
+		      const dns_name_t *name, dns_transport_t **transportp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(transportp != NULL && *transportp == NULL);
+
+	dns_transport_t *transport = dns_transport_find(type, name,
+							view->transports);
+	if (transport == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	*transportp = transport;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

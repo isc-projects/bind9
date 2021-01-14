@@ -129,6 +129,7 @@ libdns_la_HEADERS =			\
 	include/dns/tcpmsg.h		\
 	include/dns/time.h		\
 	include/dns/timer.h		\
+	include/dns/transport.h		\
 	include/dns/tkey.h		\
 	include/dns/tsec.h		\
 	include/dns/tsig.h		\
@@ -232,6 +233,7 @@ libdns_la_SOURCES =			\
 	tcpmsg.c			\
 	time.c				\
 	timer.c				\
+	transport.c			\
 	tkey.c				\
 	tsec.c				\
 	tsig.c				\

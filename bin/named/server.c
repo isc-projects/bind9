@@ -123,6 +123,7 @@
 #include <named/server.h>
 #include <named/statschannel.h>
 #include <named/tkeyconf.h>
+#include <named/transportconf.h>
 #include <named/tsigconf.h>
 #include <named/zoneconf.h>
 #ifdef HAVE_LIBSCF
@@ -3988,6 +3989,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	uint32_t max_stale_ttl = 0;
 	uint32_t stale_refresh_time = 0;
 	dns_tsig_keyring_t *ring = NULL;
+	dns_transport_list_t *transports = NULL;
 	dns_view_t *pview = NULL; /* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
@@ -4972,6 +4974,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				      view->name);
 		}
 	}
+
+	/*
+	 * Configure the view's transports (DoT/DoH)
+	 */
+	CHECK(named_transports_fromconfig(config, vconfig, view->mctx,
+					  &transports));
+	dns_view_settransports(view, transports);
+	dns_transport_list_detach(&transports);
 
 	/*
 	 * Configure the view's TSIG keys.

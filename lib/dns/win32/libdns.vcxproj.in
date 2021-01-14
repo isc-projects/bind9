@@ -209,6 +209,7 @@
     <ClCompile Include="..\time.c" />
     <ClCompile Include="..\timer.c" />
     <ClCompile Include="..\tkey.c" />
+    <ClCompile Include="..\transport.c" />
     <ClCompile Include="..\tsec.c" />
     <ClCompile Include="..\tsig.c" />
     <ClCompile Include="..\ttl.c" />
@@ -315,6 +316,7 @@
     <ClInclude Include="..\include\dns\time.h" />
     <ClInclude Include="..\include\dns\timer.h" />
     <ClInclude Include="..\include\dns\tkey.h" />
+    <ClInclude Include="..\include\dns\transport.h" />
     <ClInclude Include="..\include\dns\tsec.h" />
     <ClInclude Include="..\include\dns\tsig.h" />
     <ClInclude Include="..\include\dns\ttl.h" />

@@ -608,10 +608,76 @@ named_config_getprimariesdef(const cfg_obj_t *cctx, const char *name,
 	return (result);
 }
 
+static isc_result_t
+named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
+		     dns_name_t **namep) {
+	REQUIRE(namep != NULL && *namep == NULL);
+
+	const char *objstr;
+	isc_result_t result;
+	isc_buffer_t b;
+	dns_fixedname_t fname;
+
+	if (!cfg_obj_isstring(obj)) {
+		*namep = NULL;
+		return (ISC_R_SUCCESS);
+	}
+
+	*namep = isc_mem_get(mctx, sizeof(**namep));
+	dns_name_init(*namep, NULL);
+
+	objstr = cfg_obj_asstring(obj);
+	isc_buffer_constinit(&b, objstr, strlen(objstr));
+	isc_buffer_add(&b, strlen(objstr));
+	dns_fixedname_init(&fname);
+	result = dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
+				   0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, *namep, sizeof(*namep));
+		*namep = NULL;
+		return (result);
+	}
+	dns_name_dup(dns_fixedname_name(&fname), mctx, *namep);
+
+	return (ISC_R_SUCCESS);
+}
+
+#define grow_array(mctx, array, newlen, oldlen)                    \
+	if (newlen >= oldlen) {                                    \
+		size_t newsize = (newlen + 16) * sizeof(array[0]); \
+		size_t oldsize = oldlen * sizeof(array[0]);        \
+		void *tmp = isc_mem_get(mctx, newsize);            \
+		memset(tmp, 0, newsize);                           \
+		if (oldlen != 0) {                                 \
+			memmove(tmp, array, oldsize);              \
+			isc_mem_put(mctx, array, oldsize);         \
+		}                                                  \
+		array = tmp;                                       \
+		oldlen = newlen + 16;                              \
+	}
+
+#define shrink_array(mctx, array, newlen, oldlen)           \
+	if (newlen < oldlen) {                              \
+		void *tmp = NULL;                           \
+		size_t newsize = newlen * sizeof(array[0]); \
+		size_t oldsize = oldlen * sizeof(array[0]); \
+		if (newlen != 0) {                          \
+			tmp = isc_mem_get(mctx, newsize);   \
+			memset(tmp, 0, newsize);            \
+			memmove(tmp, array, newsize);       \
+		} else {                                    \
+			tmp = NULL;                         \
+		}                                           \
+		isc_mem_put(mctx, array, oldsize);          \
+		array = tmp;                                \
+		oldlen = newlen;                            \
+	}
+
 isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
-	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
+	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, tlscount = 0,
+		 i = 0;
 	uint32_t listcount = 0, l = 0, j;
 	uint32_t stackcount = 0, pushed = 0;
 	isc_result_t result;
@@ -619,12 +685,14 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	const cfg_obj_t *addrlist;
 	const cfg_obj_t *portobj;
 	const cfg_obj_t *dscpobj;
-	in_port_t port;
+	in_port_t port = (in_port_t)0;
+	in_port_t def_port;
+	in_port_t def_tlsport;
 	isc_dscp_t dscp = -1;
-	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	isc_dscp_t *dscps = NULL;
 	dns_name_t **keys = NULL;
+	dns_name_t **tlss = NULL;
 	struct {
 		const char *name;
 	} *lists = NULL;
@@ -638,6 +706,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	REQUIRE(ipkl->count == 0);
 	REQUIRE(ipkl->addrs == NULL);
 	REQUIRE(ipkl->keys == NULL);
+	REQUIRE(ipkl->tlss == NULL);
 	REQUIRE(ipkl->dscps == NULL);
 	REQUIRE(ipkl->labels == NULL);
 	REQUIRE(ipkl->allocated == 0);
@@ -645,7 +714,12 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	/*
 	 * Get system defaults.
 	 */
-	result = named_config_getport(config, "port", &port);
+	result = named_config_getport(config, "port", &def_port);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = named_config_getport(config, "tls-port", &def_tlsport);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -689,33 +763,20 @@ resume:
 	for (; element != NULL; element = cfg_list_next(element)) {
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
-		const char *keystr;
-		isc_buffer_t b;
+		const cfg_obj_t *tls;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
 				     "primarieselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
+		tls = cfg_tuple_get(cfg_listelt_value(element), "tls");
 
 		if (!cfg_obj_issockaddr(addr)) {
 			const char *listname = cfg_obj_asstring(addr);
 			isc_result_t tresult;
 
 			/* Grow lists? */
-			if (listcount == l) {
-				void *tmp;
-				uint32_t newlen = listcount + 16;
-				size_t newsize, oldsize;
+			grow_array(mctx, lists, l, listcount);
 
-				newsize = newlen * sizeof(*lists);
-				oldsize = listcount * sizeof(*lists);
-				tmp = isc_mem_get(mctx, newsize);
-				if (listcount != 0) {
-					memmove(tmp, lists, oldsize);
-					isc_mem_put(mctx, lists, oldsize);
-				}
-				lists = tmp;
-				listcount = newlen;
-			}
 			/* Seen? */
 			for (j = 0; j < l; j++) {
 				if (strcasecmp(lists[j].name, listname) == 0) {
@@ -741,21 +802,7 @@ resume:
 			}
 			lists[l++].name = listname;
 			/* Grow stack? */
-			if (stackcount == pushed) {
-				void *tmp;
-				uint32_t newlen = stackcount + 16;
-				size_t newsize, oldsize;
-
-				newsize = newlen * sizeof(*stack);
-				oldsize = stackcount * sizeof(*stack);
-				tmp = isc_mem_get(mctx, newsize);
-				if (stackcount != 0) {
-					memmove(tmp, stack, oldsize);
-					isc_mem_put(mctx, stack, oldsize);
-				}
-				stack = tmp;
-				stackcount = newlen;
-			}
+			grow_array(mctx, stack, pushed, stackcount);
 			/*
 			 * We want to resume processing this list on the
 			 * next element.
@@ -767,68 +814,44 @@ resume:
 			goto newlist;
 		}
 
-		if (i == addrcount) {
-			void *tmp;
-			uint32_t newlen = addrcount + 16;
-			size_t newsize, oldsize;
-
-			newsize = newlen * sizeof(isc_sockaddr_t);
-			oldsize = addrcount * sizeof(isc_sockaddr_t);
-			tmp = isc_mem_get(mctx, newsize);
-			if (addrcount != 0) {
-				memmove(tmp, addrs, oldsize);
-				isc_mem_put(mctx, addrs, oldsize);
-			}
-			addrs = tmp;
-			addrcount = newlen;
-
-			newsize = newlen * sizeof(isc_dscp_t);
-			oldsize = dscpcount * sizeof(isc_dscp_t);
-			tmp = isc_mem_get(mctx, newsize);
-			if (dscpcount != 0) {
-				memmove(tmp, dscps, oldsize);
-				isc_mem_put(mctx, dscps, oldsize);
-			}
-			dscps = tmp;
-			dscpcount = newlen;
-
-			newsize = newlen * sizeof(dns_name_t *);
-			oldsize = keycount * sizeof(dns_name_t *);
-			tmp = isc_mem_get(mctx, newsize);
-			if (keycount != 0) {
-				memmove(tmp, keys, oldsize);
-				isc_mem_put(mctx, keys, oldsize);
-			}
-			keys = tmp;
-			keycount = newlen;
-		}
+		grow_array(mctx, addrs, i, addrcount);
+		grow_array(mctx, dscps, i, dscpcount);
+		grow_array(mctx, keys, i, keycount);
+		grow_array(mctx, tlss, i, tlscount);
 
 		addrs[i] = *cfg_obj_assockaddr(addr);
-		if (isc_sockaddr_getport(&addrs[i]) == 0) {
-			isc_sockaddr_setport(&addrs[i], port);
-		}
 		dscps[i] = cfg_obj_getdscp(addr);
 		if (dscps[i] == -1) {
 			dscps[i] = dscp;
 		}
-		keys[i] = NULL;
-		i++; /* Increment here so that cleanup on error works. */
-		if (!cfg_obj_isstring(key)) {
-			continue;
-		}
-		keys[i - 1] = isc_mem_get(mctx, sizeof(dns_name_t));
-		dns_name_init(keys[i - 1], NULL);
 
-		keystr = cfg_obj_asstring(key);
-		isc_buffer_constinit(&b, keystr, strlen(keystr));
-		isc_buffer_add(&b, strlen(keystr));
-		dns_fixedname_init(&fname);
-		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
-					   dns_rootname, 0, NULL);
+		result = named_config_getname(mctx, key, &keys[i]);
 		if (result != ISC_R_SUCCESS) {
+			i++; /* Increment here so that cleanup on error works.
+			      */
 			goto cleanup;
 		}
-		dns_name_dup(dns_fixedname_name(&fname), mctx, keys[i - 1]);
+
+		result = named_config_getname(mctx, tls, &tlss[i]);
+		if (result != ISC_R_SUCCESS) {
+			i++; /* Increment here so that cleanup on error works.
+			      */
+			goto cleanup;
+		}
+
+		/* Set the default port or tls-port */
+		if (port == 0) {
+			if (tlss[i] != NULL) {
+				port = def_tlsport;
+			} else {
+				port = def_port;
+			}
+		}
+
+		if (isc_sockaddr_getport(&addrs[i]) == 0) {
+			isc_sockaddr_setport(&addrs[i], port);
+		}
+		i++;
 	}
 	if (pushed != 0) {
 		pushed--;
@@ -837,61 +860,28 @@ resume:
 		dscp = stack[pushed].dscp;
 		goto resume;
 	}
-	if (i < addrcount) {
-		void *tmp;
-		size_t newsize, oldsize;
 
-		newsize = i * sizeof(isc_sockaddr_t);
-		oldsize = addrcount * sizeof(isc_sockaddr_t);
-		if (i != 0) {
-			tmp = isc_mem_get(mctx, newsize);
-			memmove(tmp, addrs, newsize);
-		} else {
-			tmp = NULL;
-		}
-		isc_mem_put(mctx, addrs, oldsize);
-		addrs = tmp;
-		addrcount = i;
-
-		newsize = i * sizeof(isc_dscp_t);
-		oldsize = dscpcount * sizeof(isc_dscp_t);
-		if (i != 0) {
-			tmp = isc_mem_get(mctx, newsize);
-			memmove(tmp, dscps, newsize);
-		} else {
-			tmp = NULL;
-		}
-		isc_mem_put(mctx, dscps, oldsize);
-		dscps = tmp;
-		dscpcount = i;
-
-		newsize = i * sizeof(dns_name_t *);
-		oldsize = keycount * sizeof(dns_name_t *);
-		if (i != 0) {
-			tmp = isc_mem_get(mctx, newsize);
-			memmove(tmp, keys, newsize);
-		} else {
-			tmp = NULL;
-		}
-		isc_mem_put(mctx, keys, oldsize);
-		keys = tmp;
-		keycount = i;
-	}
+	shrink_array(mctx, addrs, i, addrcount);
+	shrink_array(mctx, dscps, i, dscpcount);
+	shrink_array(mctx, keys, i, keycount);
+	shrink_array(mctx, tlss, i, tlscount);
 
 	if (lists != NULL) {
-		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
+		isc_mem_put(mctx, lists, listcount * sizeof(lists[0]));
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
 	}
 
 	INSIST(dscpcount == addrcount);
 	INSIST(keycount == addrcount);
+	INSIST(tlscount == addrcount);
 	INSIST(keycount == dscpcount);
 
 	ipkl->addrs = addrs;
 	ipkl->dscps = dscps;
 	ipkl->keys = keys;
+	ipkl->tlss = tlss;
 	ipkl->count = addrcount;
 	ipkl->allocated = addrcount;
 
@@ -899,10 +889,10 @@ resume:
 
 cleanup:
 	if (addrs != NULL) {
-		isc_mem_put(mctx, addrs, addrcount * sizeof(isc_sockaddr_t));
+		isc_mem_put(mctx, addrs, addrcount * sizeof(addrs[0]));
 	}
 	if (dscps != NULL) {
-		isc_mem_put(mctx, dscps, dscpcount * sizeof(isc_dscp_t));
+		isc_mem_put(mctx, dscps, dscpcount * sizeof(dscps[0]));
 	}
 	if (keys != NULL) {
 		for (j = 0; j < i; j++) {
@@ -912,15 +902,27 @@ cleanup:
 			if (dns_name_dynamic(keys[j])) {
 				dns_name_free(keys[j], mctx);
 			}
-			isc_mem_put(mctx, keys[j], sizeof(dns_name_t));
+			isc_mem_put(mctx, keys[j], sizeof(*keys[j]));
 		}
-		isc_mem_put(mctx, keys, keycount * sizeof(dns_name_t *));
+		isc_mem_put(mctx, keys, keycount * sizeof(keys[0]));
+	}
+	if (tlss != NULL) {
+		for (j = 0; j < i; j++) {
+			if (tlss[j] == NULL) {
+				continue;
+			}
+			if (dns_name_dynamic(tlss[j])) {
+				dns_name_free(tlss[j], mctx);
+			}
+			isc_mem_put(mctx, tlss[j], sizeof(*tlss[j]));
+		}
+		isc_mem_put(mctx, tlss, tlscount * sizeof(tlss[0]));
 	}
 	if (lists != NULL) {
-		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
+		isc_mem_put(mctx, lists, listcount * sizeof(lists[0]));
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
 	}
 	return (result);
 }

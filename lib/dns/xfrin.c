@@ -35,6 +35,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/tcpmsg.h>
+#include <dns/transport.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
@@ -160,6 +161,10 @@ struct dns_xfrin_ctx {
 	isc_buffer_t *lasttsig; /*%< The last TSIG */
 	dst_context_t *tsigctx; /*%< TSIG verification context */
 	unsigned int sincetsig; /*%< recvd since the last TSIG */
+
+	dns_transport_t *transport;
+	isc_tlsctx_t *tlsctx;
+
 	dns_xfrindone_t done;
 
 	/*%
@@ -190,7 +195,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
-	     dns_tsigkey_t *tsigkey, dns_xfrin_ctx_t **xfrp);
+	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
+	     dns_xfrin_ctx_t **xfrp);
 
 static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr);
@@ -652,8 +658,9 @@ isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *masteraddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
-		 dns_tsigkey_t *tsigkey, isc_mem_t *mctx, isc_nm_t *netmgr,
-		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp) {
+		 dns_tsigkey_t *tsigkey, dns_transport_t *transport,
+		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
+		 dns_xfrin_ctx_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
@@ -661,6 +668,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 	REQUIRE(done != NULL);
+	REQUIRE(isc_sockaddr_getport(masteraddr) != 0);
 
 	(void)dns_zone_getdb(zone, &db);
 
@@ -669,7 +677,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	}
 
 	xfrin_create(mctx, zone, db, netmgr, zonename, dns_zone_getclass(zone),
-		     xfrtype, masteraddr, sourceaddr, dscp, tsigkey, &xfr);
+		     xfrtype, masteraddr, sourceaddr, dscp, tsigkey, transport,
+		     &xfr);
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
@@ -809,7 +818,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
-	     dns_tsigkey_t *tsigkey, dns_xfrin_ctx_t **xfrp) {
+	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
+	     dns_xfrin_ctx_t **xfrp) {
 	dns_xfrin_ctx_t *xfr = NULL;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -845,6 +855,10 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 		dns_tsigkey_attach(tsigkey, &xfr->tsigkey);
 	}
 
+	if (transport != NULL) {
+		dns_transport_attach(transport, &xfr->transport);
+	}
+
 	dns_name_dup(zonename, mctx, &xfr->name);
 
 	INSIST(isc_sockaddr_pf(masteraddr) == isc_sockaddr_pf(sourceaddr));
@@ -865,20 +879,45 @@ static isc_result_t
 xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	dns_xfrin_ctx_t *connect_xfr = NULL;
-	/*
-	 * XXX: timeout hard-coded to 30 seconds; this needs to be
-	 * configurable.
-	 */
+	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
+
 	(void)isc_refcount_increment0(&xfr->connects);
 	dns_xfrin_attach(xfr, &connect_xfr);
-	CHECK(isc_nm_tcpdnsconnect(xfr->netmgr,
-				   (isc_nmiface_t *)&xfr->sourceaddr,
-				   (isc_nmiface_t *)&xfr->masteraddr,
-				   xfrin_connect_done, connect_xfr, 30000, 0));
+
+	if (xfr->transport != NULL) {
+		transport_type = dns_transport_get_type(xfr->transport);
+	}
+
+	/*
+	 * XXX: timeouts are hard-coded to 30 seconds; this needs to be
+	 * configurable.
+	 */
+	switch (transport_type) {
+	case DNS_TRANSPORT_TCP:
+		CHECK(isc_nm_tcpdnsconnect(
+			xfr->netmgr, (isc_nmiface_t *)&xfr->sourceaddr,
+			(isc_nmiface_t *)&xfr->masteraddr, xfrin_connect_done,
+			connect_xfr, 30000, 0));
+		break;
+	case DNS_TRANSPORT_TLS:
+		CHECK(isc_tlsctx_createclient(&xfr->tlsctx));
+		CHECK(isc_nm_tlsdnsconnect(
+			xfr->netmgr, (isc_nmiface_t *)&xfr->sourceaddr,
+			(isc_nmiface_t *)&xfr->masteraddr, xfrin_connect_done,
+			connect_xfr, 30000, 0, xfr->tlsctx));
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
 	/* TODO	isc_socket_dscp(xfr->socket, xfr->dscp); */
 	return (ISC_R_SUCCESS);
 
 failure:
+	if (xfr->tlsctx != NULL) {
+		isc_tlsctx_free(&xfr->tlsctx);
+	}
 	isc_refcount_decrement0(&xfr->connects);
 	dns_xfrin_detach(&connect_xfr);
 	return (result);
@@ -924,6 +963,10 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	isc_refcount_decrement0(&xfr->connects);
+
+	if (xfr->tlsctx != NULL) {
+		isc_tlsctx_free(&xfr->tlsctx);
+	}
 
 	if (xfr->shuttingdown) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -1497,6 +1540,10 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
 	}
 	if (xfr->sendhandle != NULL) {
 		isc_nmhandle_detach(&xfr->sendhandle);
+	}
+
+	if (xfr->transport != NULL) {
+		dns_transport_detach(&xfr->transport);
 	}
 
 	if (xfr->tsigkey != NULL) {

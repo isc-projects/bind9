@@ -70,7 +70,8 @@ managed-keys { <string> ( static-key
 masters <string> [ port <integer> ] [ dscp
     <integer> ] { ( <primaries> | <ipv4_address>
     [ port <integer> ] | <ipv6_address> [ port
-    <integer> ] ) [ key <string> ]; ... }; // may occur multiple times
+    <integer> ] ) [ key <string> ] [ tls
+    <string> ]; ... }; // may occur multiple times
 
 options {
         allow-new-zones <boolean>;
@@ -86,7 +87,7 @@ options {
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-            <integer> ] ) [ key <string> ]; ... };
+            <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
@@ -104,8 +105,9 @@ options {
         catalog-zones { zone <string> [ default-masters [ port <integer> ]
             [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port
             <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
-            <string> ]; ... } ] [ zone-directory <quoted_string> ] [
-            in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
+            <string> ] [ tls <string> ]; ... } ] [ zone-directory
+            <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval
+            <duration> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -379,7 +381,8 @@ plugin ( query ) <string> [ { <unspecified-text>
 primaries <string> [ port <integer> ] [ dscp
     <integer> ] { ( <primaries> | <ipv4_address>
     [ port <integer> ] | <ipv6_address> [ port
-    <integer> ] ) [ key <string> ]; ... }; // may occur multiple times
+    <integer> ] ) [ key <string> ] [ tls
+    <string> ]; ... }; // may occur multiple times
 
 server <netprefix> {
         bogus <boolean>;
@@ -422,9 +425,11 @@ statistics-channels {
 }; // may occur multiple times
 
 tls <string> {
+        ca-file <quoted_string>;
         cert-file <quoted_string>;
         ciphers <string>; // experimental
         dh-param <quoted_string>; // experimental
+        hostname <quoted_string>;
         key-file <quoted_string>;
         protocols <sslprotos>; // experimental
 }; // may occur multiple times
@@ -452,7 +457,7 @@ view <string> [ <class> ] {
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-            <integer> ] ) [ key <string> ]; ... };
+            <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
@@ -464,8 +469,9 @@ view <string> [ <class> ] {
         catalog-zones { zone <string> [ default-masters [ port <integer> ]
             [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port
             <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
-            <string> ]; ... } ] [ zone-directory <quoted_string> ] [
-            in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
+            <string> ] [ tls <string> ]; ... } ] [ zone-directory
+            <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval
+            <duration> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -729,8 +735,8 @@ view <string> [ <class> ] {
                 allow-update-forwarding { <address_match_element>; ... };
                 also-notify [ port <integer> ] [ dscp <integer> ] { (
                     <primaries> | <ipv4_address> [ port <integer> ] |
-                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
-                    ... };
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ] [
+                    tls <string> ]; ... };
                 alt-transfer-source ( <ipv4_address> | * ) [ port (
                     <integer> | * ) ] [ dscp <integer> ];
                 alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
@@ -770,8 +776,8 @@ view <string> [ <class> ] {
                 masterfile-style ( full | relative );
                 masters [ port <integer> ] [ dscp <integer> ] { (
                     <primaries> | <ipv4_address> [ port <integer> ] |
-                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
-                    ... };
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ] [
+                    tls <string> ]; ... };
                 max-ixfr-ratio ( unlimited | <percentage> );
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
@@ -794,8 +800,8 @@ view <string> [ <class> ] {
                 notify-to-soa <boolean>;
                 primaries [ port <integer> ] [ dscp <integer> ] { (
                     <primaries> | <ipv4_address> [ port <integer> ] |
-                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
-                    ... };
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ] [
+                    tls <string> ]; ... };
                 request-expire <boolean>;
                 request-ixfr <boolean>;
                 serial-update-method ( date | increment | unixtime );
@@ -835,7 +841,7 @@ zone <string> [ <class> ] {
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-            <integer> ] ) [ key <string> ]; ... };
+            <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
@@ -873,7 +879,7 @@ zone <string> [ <class> ] {
         masterfile-style ( full | relative );
         masters [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-            <integer> ] ) [ key <string> ]; ... };
+            <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
         max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
@@ -896,7 +902,7 @@ zone <string> [ <class> ] {
         notify-to-soa <boolean>;
         primaries [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-            <integer> ] ) [ key <string> ]; ... };
+            <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
         request-expire <boolean>;
         request-ixfr <boolean>;
         serial-update-method ( date | increment | unixtime );

@@ -59,6 +59,9 @@
     <ClCompile Include="..\tkeyconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\transportconf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\tsigconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -109,6 +112,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\tkeyconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\named\transportconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\tsigconf.h">

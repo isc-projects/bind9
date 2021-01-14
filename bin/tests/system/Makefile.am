@@ -151,6 +151,7 @@ TESTS +=			\
 	views			\
 	wildcard		\
 	xferquota		\
+	xot			\
 	zonechecks
 
 # eddsa test is broken

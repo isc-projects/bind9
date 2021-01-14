@@ -1302,13 +1302,14 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			RETERR(named_config_getipandkeylist(config, obj, mctx,
 							    &ipkl));
-			result = dns_zone_setalsonotifydscpkeys(
-				zone, ipkl.addrs, ipkl.dscps, ipkl.keys,
-				ipkl.count);
+			result = dns_zone_setalsonotify(zone, ipkl.addrs,
+							ipkl.dscps, ipkl.keys,
+							ipkl.tlss, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
 			RETERR(result);
 		} else {
-			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
+			RETERR(dns_zone_setalsonotify(zone, NULL, NULL, NULL,
+						      NULL, 0));
 		}
 
 		obj = NULL;
@@ -1910,13 +1911,15 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			RETERR(named_config_getipandkeylist(config, obj, mctx,
 							    &ipkl));
-			result = dns_zone_setprimarieswithkeys(
-				mayberaw, ipkl.addrs, ipkl.keys, ipkl.count);
+			result = dns_zone_setprimaries(mayberaw, ipkl.addrs,
+						       ipkl.keys, ipkl.tlss,
+						       ipkl.count);
 			count = ipkl.count;
 			dns_ipkeylist_clear(mctx, &ipkl);
 			RETERR(result);
 		} else {
-			result = dns_zone_setprimaries(mayberaw, NULL, 0);
+			result = dns_zone_setprimaries(mayberaw, NULL, NULL,
+						       NULL, 0);
 		}
 		RETERR(result);
 
