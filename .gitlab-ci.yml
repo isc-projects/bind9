@@ -214,12 +214,13 @@ stages:
     ${CONFIGURE} \
     --disable-maintainer-mode \
     --enable-developer \
+    --enable-option-checking=fatal \
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
     --prefix="${BIND_INSTALL_PATH}" \
     $EXTRA_CONFIGURE \
-    || cat config.log
+    || (test -s config.log && cat config.log; exit 1)
 
 .check_readline_setup: &check_readline_setup |
     if [[ -n "${WITHOUT_READLINE}" ]]; then \
