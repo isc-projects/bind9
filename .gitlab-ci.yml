@@ -217,13 +217,14 @@ stages:
     --enable-developer \
     --with-libtool \
     --disable-static \
+    --enable-option-checking=fatal \
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
     --prefix="${BIND_INSTALL_PATH}" \
     --without-make-clean \
     $EXTRA_CONFIGURE \
-    || cat config.log
+    || (test -s config.log && cat config.log; exit 1)
 
 .build: &build_job
   <<: *default_triggering_rules
