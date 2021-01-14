@@ -796,7 +796,7 @@ fi
 
 n=`expr $n + 1`
 ret=0
-echo_i "check TSIG key algorithms ($n)"
+echo_i "check TSIG key algorithms (nsupdate -k) ($n)"
 for alg in md5 sha1 sha224 sha256 sha384 sha512; do
     $NSUPDATE -k ns1/${alg}.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
@@ -807,6 +807,26 @@ done
 sleep 2
 for alg in md5 sha1 sha224 sha256 sha384 sha512; do
     $DIG $DIGOPTS +short @10.53.0.1 ${alg}.keytests.nil | grep 10.10.10.3 > /dev/null 2>&1 || ret=1
+done
+if [ $ret -ne 0 ]; then
+    echo_i "failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo_i "check TSIG key algorithms (nsupdate -y) ($n)"
+for alg in md5 sha1 sha224 sha256 sha384 sha512; do
+    secret=$(sed -n 's/.*secret "\(.*\)";.*/\1/p' ns1/${alg}.key)
+    $NSUPDATE -y "hmac-${alg}:${alg}-key:$secret" <<END > /dev/null || ret=1
+server 10.53.0.1 ${PORT}
+update add ${alg}.keytests.nil. 600 A 10.10.10.50
+send
+END
+done
+sleep 2
+for alg in md5 sha1 sha224 sha256 sha384 sha512; do
+    $DIG $DIGOPTS +short @10.53.0.1 ${alg}.keytests.nil | grep 10.10.10.50 > /dev/null 2>&1 || ret=1
 done
 if [ $ret -ne 0 ]; then
     echo_i "failed"
