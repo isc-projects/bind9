@@ -16,6 +16,7 @@ RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 DIG="$DIG +time=11"
 
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
+stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
 
 status=0
 n=0
@@ -986,7 +987,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=$stale_answer_ttl max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1063,7 +1064,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: on (rndc) (stale-answer-ttl=$stale_answer_ttl max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1082,7 +1083,7 @@ echo_i "check data.example (max-stale-ttl default) ($n)"
 ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*1.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*30.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1091,7 +1092,7 @@ echo_i "check othertype.example (max-stale-ttl default) ($n)"
 ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
+grep "example\..*30.*IN.*CAA.*0.*issue" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1100,7 +1101,7 @@ echo_i "check nodata.example (max-stale-ttl default) ($n)"
 ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*30.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1109,7 +1110,7 @@ echo_i "check nxdomain.example (max-stale-ttl default) ($n)"
 ret=0
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*1.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+grep "example\..*30.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1206,7 +1207,7 @@ n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep "_default: off (stale-answer-ttl=1 max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
+grep "_default: off (stale-answer-ttl=$stale_answer_ttl max-stale-ttl=$max_stale_ttl stale-refresh-time=30)" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
