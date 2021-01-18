@@ -51,15 +51,21 @@ target_branch = danger.gitlab.mr.target_branch
 #
 #     * The length of the subject line exceeds 72 characters.
 #
-#     * There is no log message present (i.e. commit only has a subject) and the
-#       subject line does not contain any of the following strings: "fixup! ",
-#       " CHANGES ", " release note".
+#     * There is no log message present (i.e. commit only has a subject) and
+#       the subject line does not contain any of the following strings:
+#       "fixup!", " CHANGES ", " release note".
 #
 #     * Any line of the log message is longer than 72 characters.  This rule is
-#       not evaluated for lines starting with four spaces, which allows long
-#       lines to be included in the commit log message by prefixing them with
-#       four spaces (useful for pasting compiler warnings, static analyzer
-#       messages, log lines, etc.)
+#       not evaluated for:
+#
+#         - lines starting with four spaces, which allows long lines to be
+#           included in the commit log message by prefixing them with four
+#           spaces (useful for pasting compiler warnings, static analyzer
+#           messages, log lines, etc.),
+#
+#         - lines which contain references (i.e. those starting with "[1]",
+#           "[2]", etc.) which allows e.g. long URLs to be included in the
+#           commit log message.
 
 fixup_error_logged = False
 for commit in danger.git.commits:
@@ -86,7 +92,9 @@ for commit in danger.git.commits:
             ' release note' not in subject):
         warn(f'Please write a log message for commit {commit.sha}.')
     for line in message_lines[2:]:
-        if len(line) > 72 and not line.startswith('    '):
+        if (len(line) > 72 and
+                not line.startswith('    ') and
+                not re.match(r'\[[0-9]+\]', line)):
             warn(
                 f'Line too long in log message for commit {commit.sha}: '
                 f'```{line}``` ({len(line)} > 72 characters).'
