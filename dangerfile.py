@@ -49,7 +49,8 @@ target_branch = danger.gitlab.mr.target_branch
 #
 # - WARN if any of the following is true for any commit on the MR branch:
 #
-#     * The length of the subject line exceeds 72 characters.
+#     * The length of the subject line for a non-merge commit exceeds 72
+#       characters.
 #
 #     * There is no log message present (i.e. commit only has a subject) and
 #       the subject line does not contain any of the following strings:
@@ -77,7 +78,7 @@ for commit in danger.git.commits:
         fail('Fixup commits are still present in this merge request. '
              'Please squash them before merging.')
         fixup_error_logged = True
-    if len(subject) > 72:
+    if len(subject) > 72 and not subject.startswith('Merge branch '):
         warn(
             f'Subject line for commit {commit.sha} is too long: '
             f'```{subject}``` ({len(subject)} > 72 characters).'
