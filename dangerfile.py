@@ -43,6 +43,8 @@ target_branch = danger.gitlab.mr.target_branch
 #
 #     * The subject line starts with "fixup!" or "Apply suggestion".
 #
+#     * The subject line contains a trailing dot.
+#
 #     * There is no empty line between the subject line and the log message.
 #
 # - WARN if any of the following is true for any commit on the MR branch:
@@ -70,6 +72,8 @@ for commit in danger.git.commits:
             f'Subject line for commit {commit.sha} is too long: '
             f'```{subject}``` ({len(subject)} > 72 characters).'
         )
+    if subject[-1] == '.':
+        fail(f'Trailing dot found in the subject of commit {commit.sha}.')
     if len(message_lines) > 1 and message_lines[1]:
         fail(f'No empty line after subject for commit {commit.sha}.')
     if (len(message_lines) < 3 and
