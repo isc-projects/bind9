@@ -2179,11 +2179,9 @@ named_zone_inlinesigning(dns_zone_t *zone, const cfg_obj_t *zconfig,
 	{
 		if (strcmp(cfg_obj_asstring(signing), "none") != 0) {
 			inline_signing = true;
-			dns_zone_log(
-				zone, ISC_LOG_DEBUG(1), "inline-signing: %s",
-				inline_signing
-					? "implicitly through dnssec-policy"
-					: "no");
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "inline-signing: "
+				     "implicitly through dnssec-policy");
 		} else {
 			inline_signing = dns_zone_secure_to_insecure(zone,
 								     true);
