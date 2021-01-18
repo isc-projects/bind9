@@ -72,9 +72,9 @@ Options
    When applicable, this option specifies the hardware to use for cryptographic
    operations, such as a secure key store used for signing.
 
-   When BIND is built with OpenSSL PKCS#11 support, this defaults to the
-   string ``pkcs11``, which identifies an OpenSSL engine that can drive a
-   cryptographic accelerator or hardware service module. When BIND is
+   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
+   engine identifier that drives the cryptographic accelerator or
+   hardware service module (usually ``pkcs11``). When BIND is
    built with native PKCS#11 cryptography (``--enable-native-pkcs11``), it
    defaults to the path of the PKCS#11 provider library specified via
    ``--with-pkcs11``.
