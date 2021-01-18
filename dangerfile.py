@@ -25,6 +25,9 @@ def added_lines(target_branch, paths):
             added_lines.append(line)
     return added_lines
 
+def lines_containing(lines, string):
+    return [l for l in lines if bytes(string, 'utf-8') in l]
+
 issue_or_mr_id_regex = re.compile(br'\[(GL [#!]|RT #)[0-9]+\]')
 release_notes_regex = re.compile(r'doc/(arm|notes)/notes-.*\.(rst|xml)')
 
@@ -197,3 +200,21 @@ if release_notes_changed:
     identifiers_found = filter(issue_or_mr_id_regex.search, notes_added_lines)
     if notes_added_lines and not any(identifiers_found):
         warn('No valid issue/MR identifiers found in added release notes.')
+else:
+    notes_added_lines = []
+
+###############################################################################
+# CVE IDENTIFIERS
+###############################################################################
+#
+# FAIL if the merge request adds a CHANGES entry of type [security] and a CVE
+# identifier is missing from either the added CHANGES entry or the added
+# release note.
+
+if lines_containing(changes_added_lines, '[security]'):
+    if not lines_containing(changes_added_lines, '(CVE-20'):
+        fail('This merge request fixes a security issue. '
+             'Please add a CHANGES entry which includes a CVE identifier.')
+    if not lines_containing(notes_added_lines, 'CVE-20'):
+        fail('This merge request fixes a security issue. '
+             'Please add a release note which includes a CVE identifier.')
