@@ -149,11 +149,14 @@ elif 'LGTM (Merge OK)' not in mr_labels:
 #   the MR did not forget about adding a CHANGES entry.)
 #
 # * The merge request updates the CHANGES file, but it has the "No CHANGES"
-#   label set.  (This attempts to ensure the the "No CHANGES" label is used in
+#   label set.  (This attempts to ensure that the "No CHANGES" label is used in
 #   a sane way.)
 #
-# * The merge request adds a new CHANGES entry that does not contain any
-#   GitLab/RT issue/MR identifiers.
+# * The merge request adds any placeholder entries to the CHANGES file, but it
+#   does not target the "main" branch.
+#
+# * The merge request adds a new CHANGES entry that is not a placeholder and
+#   does not contain any GitLab/RT issue/MR identifiers.
 
 changes_modified = 'CHANGES' in modified_files
 no_changes_label_set = 'No CHANGES' in mr_labels
@@ -165,9 +168,15 @@ if changes_modified and no_changes_label_set:
          'Revert `CHANGES` modifications or unset the *No Changes* label.')
 
 changes_added_lines = added_lines(target_branch, ['CHANGES'])
+placeholders_added = lines_containing(changes_added_lines, '[placeholder]')
 identifiers_found = filter(issue_or_mr_id_regex.search, changes_added_lines)
-if changes_added_lines and not any(identifiers_found):
-    fail('No valid issue/MR identifiers found in added `CHANGES` entries.')
+if changes_added_lines:
+    if placeholders_added:
+        if target_branch != 'main':
+            fail('This MR adds at least one placeholder entry to `CHANGES`. '
+                 'It should be targeting the `main` branch.')
+    elif not any(identifiers_found):
+        fail('No valid issue/MR identifiers found in added `CHANGES` entries.')
 
 ###############################################################################
 # RELEASE NOTES
