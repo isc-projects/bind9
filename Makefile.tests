@@ -3,8 +3,9 @@
 
 AM_CPPFLAGS +=					\
 	$(CMOCKA_CFLAGS)			\
-	-DTESTS_DIR=\"$(abs_srcdir)\"		\
-	-DNAMED_PLUGINDIR=\"$(libdir)/named\"
+	-DNAMED_PLUGINDIR=\"$(libdir)/named\"	\
+	-DSKIPPED_TEST_EXIT_CODE=77		\
+	-DTESTS_DIR=\"$(abs_srcdir)\"
 
 LDADD =			\
 	$(CMOCKA_LIBS)
