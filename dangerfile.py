@@ -238,3 +238,18 @@ if lines_containing(changes_added_lines, '[security]'):
     if not lines_containing(notes_added_lines, 'CVE-20'):
         fail('This merge request fixes a security issue. '
              'Please add a release note which includes a CVE identifier.')
+
+###############################################################################
+# PAIRWISE TESTING
+###############################################################################
+#
+# FAIL if the merge request adds any new ./configure switch without an
+# associated annotation used for pairwise testing.
+
+configure_added_lines = added_lines(target_branch, ['configure.ac'])
+switches_added = (lines_containing(configure_added_lines, 'AC_ARG_ENABLE') +
+                  lines_containing(configure_added_lines, 'AC_ARG_WITH'))
+annotations_added = lines_containing(configure_added_lines, '# [pairwise: ')
+if len(switches_added) > len(annotations_added):
+    fail('This merge request adds at least one new `./configure` switch that '
+         'is not annotated for pairwise testing purposes.')
