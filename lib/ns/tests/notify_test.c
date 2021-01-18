@@ -162,9 +162,9 @@ main(void) {
 
 int
 main(void) {
-	printf("1..0 # Skip cmocka not available\n");
+	printf("1..0 # Skipped: cmocka not available\n");
 
-	return (0);
+	return (SKIPPED_TEST_EXIT_CODE);
 }
 
 #endif /* HAVE_CMOCKA */
