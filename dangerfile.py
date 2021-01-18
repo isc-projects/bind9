@@ -61,12 +61,16 @@ target_branch = danger.gitlab.mr.target_branch
 #       four spaces (useful for pasting compiler warnings, static analyzer
 #       messages, log lines, etc.)
 
+fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
     subject = message_lines[0]
-    if subject.startswith('fixup!') or subject.startswith('Apply suggestion'):
+    if (not fixup_error_logged and
+            (subject.startswith('fixup!') or
+             subject.startswith('Apply suggestion'))):
         fail('Fixup commits are still present in this merge request. '
              'Please squash them before merging.')
+        fixup_error_logged = True
     if len(subject) > 72:
         warn(
             f'Subject line for commit {commit.sha} is too long: '
