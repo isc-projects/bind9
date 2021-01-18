@@ -191,15 +191,26 @@ if changes_added_lines:
 #       Notes" label set.  (This ensures that merge requests updating release
 #       notes can be easily found using the "Release Notes" label.)
 #
-# - WARN if this merge request updates release notes, but no GitLab/RT issue/MR
-#   identifiers are found in the lines added to the release notes by this MR.
+# - WARN if any of the following is true:
+#
+#     * This merge request does not update release notes and has the "Customer"
+#       label set.  (Except for trivial changes, all merge requests which may
+#       be of interest to customers should include a release note.)
+#
+#     * This merge request updates release notes, but no GitLab/RT issue/MR
+#       identifiers are found in the lines added to the release notes by this
+#       MR.
 
 release_notes_regex = re.compile(r'doc/(arm|notes)/notes-.*\.(rst|xml)')
 release_notes_changed = list(filter(release_notes_regex.match, modified_files))
 release_notes_label_set = 'Release Notes' in mr_labels
-if not release_notes_changed and release_notes_label_set:
-    fail('This merge request has the *Release Notes* label set. '
-         'Add a release note or unset the *Release Notes* label.')
+if not release_notes_changed:
+    if release_notes_label_set:
+        fail('This merge request has the *Release Notes* label set. '
+             'Add a release note or unset the *Release Notes* label.')
+    elif 'Customer' in mr_labels:
+        warn('This merge request has the *Customer* label set. '
+             'Add a release note unless the changes introduced are trivial.')
 if release_notes_changed and not release_notes_label_set:
     fail('This merge request modifies release notes. '
          'Revert release note modifications or set the *Release Notes* label.')
