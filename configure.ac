@@ -5176,7 +5176,8 @@ AS_IF([test "$pic_mode" = "no"],
 
 AS_CASE([$with_dlopen],
 	[auto|yes],[
-	  AC_SEARCH_LIBS([dlopen],[dl])
+	  # -fsanitize=thread hijacks dlopen and dlclose so use dlsym.
+	  AC_SEARCH_LIBS([dlsym],[dl])
 	  AC_CHECK_FUNCS([dlopen dlclose dlsym],
 			 [with_dlopen="yes"],
 			 [with_dlopen="no"])
