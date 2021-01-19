@@ -165,7 +165,7 @@ OPTIONS
   	    * ) ] [ dscp integer ];
   	answer-cookie boolean;
   	attach-cache string;
-  	auth-nxdomain boolean; // default changed
+  	auth-nxdomain boolean;
   	auto-dnssec ( allow | maintain | off );
   	automatic-interface-scan boolean;
   	avoid-v4-udp-ports { portrange; ... };
@@ -519,7 +519,10 @@ TLS
 
   tls string {
   	cert-file quoted_string;
+  	ciphers string; // experimental
+  	dh-param quoted_string; // experimental
   	key-file quoted_string;
+  	protocols sslprotos; // experimental
   };
 
 TRUST-ANCHORS
@@ -568,7 +571,7 @@ VIEW
   	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
   	    * ) ] [ dscp integer ];
   	attach-cache string;
-  	auth-nxdomain boolean; // default changed
+  	auth-nxdomain boolean;
   	auto-dnssec ( allow | maintain | off );
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]

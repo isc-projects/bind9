@@ -34,12 +34,9 @@
 #define CFG_CLAUSEFLAG_MULTI 0x00000001
 /*% Clause is obsolete (logs a warning, but is not a fatal error) */
 #define CFG_CLAUSEFLAG_OBSOLETE 0x00000002
-/*% Clause is not implemented, and may never be */
-#define CFG_CLAUSEFLAG_NOTIMP 0x00000004
-/*% Clause is not implemented yet */
-#define CFG_CLAUSEFLAG_NYI 0x00000008
-/*% Default value has changed since earlier release */
-#define CFG_CLAUSEFLAG_NEWDEFAULT 0x00000010
+/* obsolete: #define CFG_CLAUSEFLAG_NOTIMP 0x00000004 */
+/* obsolete: #define CFG_CLAUSEFLAG_NYI 0x00000008 */
+/* obsolete: #define CFG_CLAUSEFLAG_NEWDEFAULT 0x00000010 */
 /*%
  * Clause needs to be interpreted during parsing
  * by calling a callback function, like the
@@ -52,9 +49,7 @@
 #define CFG_CLAUSEFLAG_NOTCONFIGURED 0x00000080
 /*% A option for a experimental feature. */
 #define CFG_CLAUSEFLAG_EXPERIMENTAL 0x00000100
-/*% A configuration option that is ineffective due to
- * compile time options, but is harmless. */
-#define CFG_CLAUSEFLAG_NOOP 0x00000200
+/* obsolete: #define CFG_CLAUSEFLAG_NOOP 0x00000200 */
 /*% Clause will be obsolete in a future release (logs a warning) */
 #define CFG_CLAUSEFLAG_DEPRECATED 0x00000400
 /*% Clause has been obsolete so long that it's now a fatal error */

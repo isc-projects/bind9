@@ -76,7 +76,7 @@
 typedef struct cache_cleaner cache_cleaner_t;
 
 typedef enum {
-	cleaner_s_idle, /*%< Waiting for cleaning-interval to expire. */
+	cleaner_s_idle, /*%< Waiting for cleaning interval to expire. */
 	cleaner_s_busy, /*%< Currently cleaning. */
 	cleaner_s_done	/*%< Freed enough memory after being overmem. */
 } cleaner_state_t;

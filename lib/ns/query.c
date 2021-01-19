@@ -6691,7 +6691,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 			/*
 			 * Handle referral to ".", including when recursion
 			 * is off or not requested and the hints have not
-			 * been loaded or we have "additional-from-cache no".
+			 * been loaded.
 			 */
 			constname = dns_rootname;
 			resp_result = DNS_R_DELEGATION;

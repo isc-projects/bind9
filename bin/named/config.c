@@ -131,7 +131,6 @@ options {\n\
 #	treat-cr-as-space <obsolete>;\n\
 	trust-anchor-telemetry yes;\n\
 #	use-id-pool <obsolete>;\n\
-#	use-ixfr <obsolete>;\n\
 \n\
 	/* view */\n\
 	allow-new-zones no;\n\
@@ -141,7 +140,6 @@ options {\n\
 	allow-recursion { localnets; localhost; };\n\
 	allow-recursion-on { any; };\n\
 	allow-update-forwarding {none;};\n\
-#	allow-v6-synthesis <obsolete>;\n\
 	auth-nxdomain false;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\

@@ -78,6 +78,24 @@ do
 	status=`expr $status + $ret`
 done
 
+for lmdb in lmdb-*.conf
+do
+	n=`expr $n + 1`
+	ret=0
+
+	$FEATURETEST --with-lmdb
+	if [ $? -eq 0 ]; then
+		echo_i "checking that named-checkconf detects no error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? != 0 ]; then echo_i "failed"; ret=1; fi
+	else
+		echo_i "checking that named-checkconf detects error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? == 0 ]; then echo_i "failed"; ret=1; fi
+	fi
+	status=`expr $status + $ret`
+done
+
 n=`expr $n + 1`
 echo_i "checking that ancient options report a fatal error ($n)"
 ret=0
@@ -113,14 +131,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking named-checkconf dnssec warnings ($n)"
 ret=0
-# dnssec.1: dnssec-enable is obsolete
-$CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1
-grep "'dnssec-enable' is obsolete and should be removed" < checkconf.out$n.1 > /dev/null || ret=1
-# dnssec.2: auto-dnssec warning
-$CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1
+# dnssec.1: auto-dnssec warning
+$CHECKCONF dnssec.1 > checkconf.out$n.2 2>&1
 grep 'auto-dnssec may only be ' < checkconf.out$n.2 > /dev/null || ret=1
-# dnssec.3: should have no warnings
-$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
+# dnssec.2: should have no warnings
+$CHECKCONF dnssec.2 > checkconf.out$n.3 2>&1
 grep '.*' < checkconf.out$n.3 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -404,30 +419,6 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside auto;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-auto.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.isc.org;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
 echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
@@ -481,15 +472,6 @@ echo_i "check that using trust-anchors and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
 grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'geoip-use-ecs no' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-geoip-use-ecs.conf > checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] || ret=1
-grep "'geoip-use-ecs' is obsolete" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

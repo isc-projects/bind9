@@ -2448,6 +2448,13 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					 clause->name);
 			CHECK(ISC_R_FAILURE);
 		}
+		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
+			cfg_parser_error(pctx, 0,
+					 "option '%s' was not "
+					 "enabled at compile time",
+					 clause->name);
+			CHECK(ISC_R_FAILURE);
+		}
 
 		/* Issue warnings if appropriate */
 		if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0 &&
@@ -2462,37 +2469,12 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					   "should be removed ",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0) {
+		if ((clause->flags & CFG_CLAUSEFLAG_EXPERIMENTAL) != 0) {
 			cfg_parser_warning(pctx, 0,
-					   "option '%s' is not implemented",
+					   "option '%s' is experimental and "
+					   "subject to change in the future",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) {
-			cfg_parser_warning(pctx, 0,
-					   "option '%s' is not implemented",
-					   clause->name);
-		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
-			cfg_parser_warning(pctx, 0,
-					   "option '%s' was not "
-					   "enabled at compile time "
-					   "(ignored)",
-					   clause->name);
-		}
-
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
-			cfg_parser_error(pctx, 0,
-					 "option '%s' was not "
-					 "enabled at compile time",
-					 clause->name);
-			CHECK(ISC_R_FAILURE);
-		}
-
-		/*
-		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
-		 * set here - we need to log the *lack* of such an option,
-		 * not its presence.
-		 */
 
 		/* See if the clause already has a value; if not create one. */
 		result = isc_symtab_lookup(obj->value.map.symtab, clause->name,
@@ -2723,15 +2705,11 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 static struct flagtext {
 	unsigned int flag;
 	const char *text;
-} flagtexts[] = { { CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
-		  { CFG_CLAUSEFLAG_NYI, "not yet implemented" },
-		  { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
-		  { CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
+} flagtexts[] = { { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 		  { CFG_CLAUSEFLAG_TESTONLY, "test only" },
 		  { CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
 		  { CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
 		  { CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
-		  { CFG_CLAUSEFLAG_NOOP, "non-operational" },
 		  { CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
 		  { CFG_CLAUSEFLAG_ANCIENT, "ancient" },
 		  { 0, NULL } };
@@ -2765,10 +2743,11 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
+				continue;
+			}
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
 				continue;
 			}
 			cfg_print_cstr(pctx, clause->name);
@@ -2820,10 +2799,11 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
 			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
 			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
-			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
 			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
 			{
+				continue;
+			}
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
 				continue;
 			}
 			cfg_print_indent(pctx);

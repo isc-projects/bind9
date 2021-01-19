@@ -93,7 +93,7 @@ options {
             * ) ] [ dscp <integer> ];
         answer-cookie <boolean>;
         attach-cache <string>;
-        auth-nxdomain <boolean>; // default changed
+        auth-nxdomain <boolean>;
         auto-dnssec ( allow | maintain | off );
         automatic-interface-scan <boolean>;
         avoid-v4-udp-ports { <portrange>; ... };
@@ -422,10 +422,10 @@ statistics-channels {
 
 tls <string> {
         cert-file <quoted_string>;
-        ciphers <string>; // not implemented
-        dh-param <quoted_string>; // not implemented
+        ciphers <string>; // experimental
+        dh-param <quoted_string>; // experimental
         key-file <quoted_string>;
-        protocols <sslprotos>; // not implemented
+        protocols <sslprotos>; // experimental
 }; // may occur multiple times
 
 trust-anchors { <string> ( static-key |
@@ -457,7 +457,7 @@ view <string> [ <class> ] {
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ] [ dscp <integer> ];
         attach-cache <string>;
-        auth-nxdomain <boolean>; // default changed
+        auth-nxdomain <boolean>;
         auto-dnssec ( allow | maintain | off );
         cache-file <quoted_string>;
         catalog-zones { zone <string> [ default-masters [ port <integer> ]
