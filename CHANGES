@@ -1,3 +1,7 @@
+5564.	[cleanup]	Refactored the network manager TLSDNS module to use
+			libuv and libssl directly, rather than opening a
+			TLS/TCP socket stack. [GL #2235]
+
 5563.	[cleanup]	Changed several obsolete configuration options to
 			ancient, making them into fatal errors. Also cleaned
 			up the number of clause flags in the configuration
