@@ -47,16 +47,6 @@
 #include "dst_internal.h"
 
 /*
- * If we're using our own SPNEGO implementation (see configure.in),
- * pull it in now.  Otherwise, we just use whatever GSSAPI supplies.
- */
-#if defined(GSSAPI) && defined(USE_ISC_SPNEGO)
-#include "spnego.h"
-#define	gss_accept_sec_context	gss_accept_sec_context_spnego
-#define	gss_init_sec_context	gss_init_sec_context_spnego
-#endif
-
-/*
  * Solaris8 apparently needs an explicit OID set, and Solaris10 needs
  * one for anything but Kerberos.  Supplying an explicit OID set
  * doesn't appear to hurt anything in other implementations, so we
@@ -74,17 +64,12 @@ static unsigned char krb5_mech_oid_bytes[] = {
 	0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02
 };
 
-#ifndef USE_ISC_SPNEGO
-static unsigned char spnego_mech_oid_bytes[] = {
-	0x2b, 0x06, 0x01, 0x05, 0x05, 0x02
-};
-#endif
+static unsigned char spnego_mech_oid_bytes[] = { 0x2b, 0x06, 0x01,
+						 0x05, 0x05, 0x02 };
 
 static gss_OID_desc mech_oid_set_array[] = {
 	{ sizeof(krb5_mech_oid_bytes), krb5_mech_oid_bytes },
-#ifndef USE_ISC_SPNEGO
 	{ sizeof(spnego_mech_oid_bytes), spnego_mech_oid_bytes },
-#endif
 };
 
 static gss_OID_set_desc mech_oid_set = {

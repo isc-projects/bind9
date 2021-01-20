@@ -488,8 +488,7 @@ my @substdefd = ("CRYPTO",
                  "PK11_LIB_LOCATION",
                  "USE_GSSAPI",
                  "USE_PKCS11",
-                 "USE_PYTHON",
-                 "USE_ISC_SPNEGO");
+                 "USE_PYTHON");
 
 # conditions
 
@@ -520,7 +519,6 @@ my @allcond = (@substcond, "NOTYET", "NOLONGER");
 my @enablelist = ("developer",
                   "fixed-rrset",
                   "intrinsics",
-                  "isc-spnego",
                   "native-pkcs11",
                   "openssl-hash",
                   "filter-aaaa",
@@ -581,7 +579,6 @@ my @help = (
 "  enable-intrinsics     enable intrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
-"  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
 "  enable-filter-aaaa    enable filtering of AAAA records [default=yes]\n",
 "  enable-fixed-rrset    enable fixed rrset ordering [default=no]\n",
 "  enable-developer      enable developer build settings [default=no]\n",
@@ -631,7 +628,6 @@ my $enable_intrinsics = "yes";
 my $enable_native_pkcs11 = "no";
 my $enable_openssl_hash = "auto";
 my $enable_filter_aaaa = "yes";
-my $enable_isc_spnego = "yes";
 my $enable_fixed_rrset = "no";
 my $enable_developer = "no";
 my $enable_querytrace = "no";
@@ -853,10 +849,6 @@ sub myenable {
             $enable_openssl_hash = "yes";
         } elsif ($val =~ /^no$/i) {
             $enable_openssl_hash = "no";
-        }
-    } elsif ($key =~ /^isc-spnego$/i) {
-        if ($val =~ /^no$/i) {
-            $enable_isc_spnego = "no";
         }
     } elsif ($key =~ /^filter-aaaa$/i) {
         if ($val =~ /^no$/i) {
@@ -1158,11 +1150,6 @@ if ($verbose) {
         print "openssl-hash: enabled\n";
     } else {
         print "openssl-hash: disabled\n";
-    }
-    if ($enable_isc_spnego eq "yes") {
-        print "isc-spnego: enabled\n";
-    } else {
-        print "isc-spnego: disabled\n";
     }
     if ($enable_filter_aaaa eq "yes") {
         print "filter-aaaa: enabled\n";
@@ -1718,7 +1705,7 @@ if ($use_openssl eq "yes") {
             die "find more than one OpenSSL libcrypto-*.dll DLL candidate\n";
         }
         $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
-    }   
+    }
 
     $configcond{"OPENSSL"} = 1;
     $configdefd{"CRYPTO"} = "OPENSSL";
@@ -2398,16 +2385,6 @@ if ($use_gssapi eq "no") {
     my $wshelp_dll = File::Spec->catfile($gssapi_path, "bin",
                                          "wshelp${bits}.dll");
     $configdll{"WSHELP_DLL"} = "$wshelp_dll";
-}
-
-# enable-isc-spnego
-if ($use_gssapi ne "yes") {
-    $enable_isc_spnego = "no";
-} elsif ($enable_isc_spnego eq "yes") {
-    if ($use_gssapi eq "no") {
-        die "No GSSAPI for SPNEGO\n";
-    }
-    $configdefd{"USE_ISC_SPNEGO"} = "USE_ISC_SPNEGO";
 }
 
 # with-geoip
@@ -3680,7 +3657,6 @@ exit 0;
 #  --enable-symtable incompatible with DLLs (or libtool)
 #  --enable-ipv6 included without a way to disable it
 #  --enable-atomic supported (renamed to intrinsic)
-#  --enable-isc-spnego supported (part of GSSAPI)
 #  --enable-fixed-rrset supported
 #  --enable-querytrace supported
 #  --disable-rpz-nsip supported
