@@ -18,7 +18,7 @@ case $(uname) in
 	Linux*)
 		;;
 	*)
-		echo_i "cpu test only runs on Linux, skipping test"
+		echo_i "cpu test only runs on Linux"
 		exit 255
 		;;
 esac
@@ -27,4 +27,9 @@ esac
 TASKSET=$(command -v "taskset" || true)
 if ! test -x "$TASKSET" ; then
 	exit 255
+fi
+
+if ! $TASKSET fff0 true > /dev/null 2>&1; then
+        echo_i "taskset failed"
+        exit 255
 fi
