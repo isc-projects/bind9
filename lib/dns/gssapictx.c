@@ -60,24 +60,24 @@
 #include ISC_PLATFORM_KRB5HEADER
 #endif
 
-static unsigned char krb5_mech_oid_bytes[] = {
-	0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02
+#ifndef GSS_KRB5_MECHANISM
+static unsigned char krb5_mech_oid_bytes[] = { 0x2a, 0x86, 0x48, 0x86, 0xf7,
+					       0x12, 0x01, 0x02, 0x02 };
+static gss_OID_desc __gss_krb5_mechanism_oid_desc = {
+	sizeof(krb5_mech_oid_bytes), krb5_mech_oid_bytes
 };
+#define GSS_KRB5_MECHANISM (&__gss_krb5_mechanism_oid_desc)
+#endif /* ifndef GSS_KRB5_MECHANISM */
 
+#ifndef GSS_SPNEGO_MECHANISM
 static unsigned char spnego_mech_oid_bytes[] = { 0x2b, 0x06, 0x01,
 						 0x05, 0x05, 0x02 };
-
-static gss_OID_desc mech_oid_set_array[] = {
-	{ sizeof(krb5_mech_oid_bytes), krb5_mech_oid_bytes },
-	{ sizeof(spnego_mech_oid_bytes), spnego_mech_oid_bytes },
+static gss_OID_desc __gss_spnego_mechanism_oid_desc = {
+	sizeof(spnego_mech_oid_bytes), spnego_mech_oid_bytes
 };
-
-static gss_OID_set_desc mech_oid_set = {
-	sizeof(mech_oid_set_array) / sizeof(*mech_oid_set_array),
-	mech_oid_set_array
-};
-
-#endif
+#define GSS_SPNEGO_MECHANISM (&__gss_spnego_mechanism_oid_desc)
+#endif /* ifndef GSS_SPNEGO_MECHANISM */
+#endif /* ifdef GSSAPI */
 
 #define REGION_TO_GBUFFER(r, gb) \
 	do { \
@@ -229,7 +229,40 @@ check_config(const char *gss_name) {
 	}
 	krb5_free_context(krb5_ctx);
 }
-#endif
+
+static OM_uint32
+mech_oid_set_create(OM_uint32 *minor, gss_OID_set *mech_oid_set) {
+	OM_uint32 gret;
+
+	gret = gss_create_empty_oid_set(minor, mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		return (gret);
+	}
+
+	gret = gss_add_oid_set_member(minor, GSS_KRB5_MECHANISM, mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		goto release;
+	}
+
+	gret = gss_add_oid_set_member(minor, GSS_SPNEGO_MECHANISM,
+				      mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		goto release;
+	}
+
+release:
+	REQUIRE(gss_release_oid_set(minor, mech_oid_set) == GSS_S_COMPLETE);
+
+	return (gret);
+}
+
+static void
+mech_oid_set_release(gss_OID_set *mech_oid_set) {
+	OM_uint32 minor;
+
+	REQUIRE(gss_release_oid_set(&minor, mech_oid_set) == GSS_S_COMPLETE);
+}
+#endif /* ifdef GSSAPI */
 
 isc_result_t
 dst_gssapi_acquirecred(dns_name_t *name, bool initiate,
@@ -245,6 +278,7 @@ dst_gssapi_acquirecred(dns_name_t *name, bool initiate,
 	OM_uint32 lifetime;
 	gss_cred_usage_t usage;
 	char buf[1024];
+	gss_OID_set mech_oid_set = NULL;
 
 	REQUIRE(cred != NULL && *cred == NULL);
 
@@ -287,8 +321,15 @@ dst_gssapi_acquirecred(dns_name_t *name, bool initiate,
 	else
 		usage = GSS_C_ACCEPT;
 
-	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE,
-				&mech_oid_set, usage, cred, NULL, &lifetime);
+	gret = mech_oid_set_create(&minor, &mech_oid_set);
+	if (gret != GSS_S_COMPLETE) {
+		gss_log(3, "failed to create OID_set: %s",
+			gss_error_tostring(gret, minor, buf, sizeof(buf)));
+		return (ISC_R_FAILURE);
+	}
+
+	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE, mech_oid_set,
+				usage, (gss_cred_id_t *)cred, NULL, &lifetime);
 
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "failed to acquire %s credentials for %s: %s",
@@ -309,6 +350,8 @@ dst_gssapi_acquirecred(dns_name_t *name, bool initiate,
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	mech_oid_set_release(&mech_oid_set);
+
 	if (gname != NULL) {
 		gret = gss_release_name(&minor, &gname);
 		if (gret != GSS_S_COMPLETE)
