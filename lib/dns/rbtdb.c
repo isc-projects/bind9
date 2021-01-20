@@ -274,7 +274,8 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 #define RDATASET_ATTR_ZEROTTL	     0x0800
 #define RDATASET_ATTR_CASEFULLYLOWER 0x1000
 /*%< Ancient - awaiting cleanup. */
-#define RDATASET_ATTR_ANCIENT 0x2000
+#define RDATASET_ATTR_ANCIENT	   0x2000
+#define RDATASET_ATTR_STALE_WINDOW 0x4000
 
 /*
  * XXX
@@ -304,6 +305,9 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 #define STALE(header)                                                          \
 	((atomic_load_acquire(&(header)->attributes) & RDATASET_ATTR_STALE) != \
 	 0)
+#define STALE_WINDOW(header)                           \
+	((atomic_load_acquire(&(header)->attributes) & \
+	  RDATASET_ATTR_STALE_WINDOW) != 0)
 #define RESIGN(header)                                 \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  RDATASET_ATTR_RESIGN) != 0)
@@ -3149,6 +3153,9 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	}
 	if (STALE(header)) {
+		if (STALE_WINDOW(header)) {
+			rdataset->attributes |= DNS_RDATASETATTR_STALE_WINDOW;
+		}
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
 		rdataset->stale_ttl =
 			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
@@ -4552,6 +4559,8 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		 * skip this record.  We skip the records with ZEROTTL
 		 * (these records should not be cached anyway).
 		 */
+
+		RDATASET_ATTR_CLR(header, RDATASET_ATTR_STALE_WINDOW);
 		if (!ZEROTTL(header) && KEEPSTALE(search->rbtdb) &&
 		    stale > search->now) {
 			mark_header_stale(search->rbtdb, header);
@@ -4563,13 +4572,6 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 			 */
 			if ((search->options & DNS_DBFIND_STALEOK) != 0) {
 				header->last_refresh_fail_ts = search->now;
-			} else if ((search->options & DNS_DBFIND_STALEONLY) !=
-				   0) {
-				/*
-				 * We want stale RRset only, so we don't skip
-				 * it.
-				 */
-				return (false);
 			} else if ((search->options &
 				    DNS_DBFIND_STALEENABLED) != 0 &&
 				   search->now <
@@ -4581,6 +4583,15 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 				 * refresh failure time + 'stale-refresh-time',
 				 * then don't skip this stale entry but use it
 				 * instead.
+				 */
+				RDATASET_ATTR_SET(header,
+						  RDATASET_ATTR_STALE_WINDOW);
+				return (false);
+			} else if ((search->options & DNS_DBFIND_STALEONLY) !=
+				   0) {
+				/*
+				 * We want stale RRset only, so we don't skip
+				 * it.
 				 */
 				return (false);
 			}
