@@ -145,6 +145,9 @@
 /*% Does the rdataset 'r' contain a stale answer? */
 #define STALE(r) (((r)->attributes & DNS_RDATASETATTR_STALE) != 0)
 
+/*% Does the rdataset 'r' is stale and within stale-refresh-time? */
+#define STALE_WINDOW(r) (((r)->attributes & DNS_RDATASETATTR_STALE_WINDOW) != 0)
+
 #ifdef WANT_QUERYTRACE
 static inline void
 client_trace(ns_client_t *client, int level, const char *message) {
@@ -5745,8 +5748,10 @@ query_lookup(query_ctx_t *qctx) {
 	unsigned int dboptions;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
-	bool stale_ok;
-	bool stale_used = false;
+	bool stale_only = false;
+	bool stale_found = false;
+	bool refresh_rrset = false;
+	bool stale_refresh_window = false;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -5775,14 +5780,10 @@ query_lookup(query_ctx_t *qctx) {
 
 	if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
 		/*
-		 * If DNS_GETDB_STALEFIRST is set, it means that stale
-		 * data may be returned as part of this lookup.
-		 * An attempt to refresh the RRset will still take
-		 * place if either an active RRset isn't available or
-		 * a stale one was found.
-		 * This is the expected behavior when
-		 * stale-answer-client-timeout value is zero and stale
-		 * answers are enabled.
+		 * If DNS_GETDB_STALEFIRST is set, it means that a stale
+		 * RRset may be returned as part of this lookup. An attempt
+		 * to refresh the RRset will still take place if an
+		 * active RRset is not available.
 		 */
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEONLY;
 	}
@@ -5822,51 +5823,44 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * Special case handling, when stale-answer-client-timeout >= 0 and
-	 * stale answers are enabled, we do not want to return a stale NXRRSET
-	 * entry in cache during the initial lookup or a subsequent lookup when
-	 * stale-answer-client-timeout triggers, instead, BIND must attempt to
-	 * refresh the RRset.
-	 * It is fine to return such entry if resolver-query-timeout has
-	 * triggered, in that case DNS_DBFIND_STALEONLY will not be set during
-	 * the lookup.
-	 */
-	if (result == DNS_R_NCACHENXRRSET &&
-	    ((dboptions & DNS_DBFIND_STALEONLY) != 0) && STALE(qctx->rdataset))
-	{
-		if (qctx->node != NULL) {
-			dns_db_detachnode(qctx->db, &qctx->node);
-		}
-		qctx_freedata(qctx);
-		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
-			/*
-			 * stale-answer-client-timeout is zero and we found a
-			 * stale NXRRSET entry in cache during the first lookup.
-			 * BIND must attempt to refresh the RRset instead of
-			 * using it in this case.
-			 */
-			query_refresh_rrset(qctx);
-		}
-		return (result);
-	}
-
-	/*
 	 * If DNS_DBFIND_STALEOK is set this means we are dealing with a
 	 * lookup following a failed lookup and it is okay to serve a stale
-	 * answer. This will start a time window in rbtdb, tracking the last
-	 * time the RRset lookup failed.
-	 *
-	 * A stale answer may also be served if this is a normal lookup,
-	 * the view has enabled serve-stale (DNS_DBFIND_STALE_ENABLED is set),
-	 * and the request is within the stale-refresh-time window. If this
-	 * is the case we have to make sure that the lookup found a stale
-	 * answer, otherwise "fresh" answers are also treated as stale.
+	 * answer. This will (re)start the 'stale-refresh-time' window in
+	 * rbtdb, tracking the last time the RRset lookup failed.
 	 */
 	dbfind_stale = ((dboptions & DNS_DBFIND_STALEOK) != 0);
-	stale_ok = ((dboptions &
-		     (DNS_DBFIND_STALEENABLED | DNS_DBFIND_STALEONLY)) != 0);
 
-	if (dbfind_stale || (stale_ok && STALE(qctx->rdataset))) {
+	/*
+	 * If DNS_DBFIND_STALEENABLED is set, this may be a normal lookup, but
+	 * we are allowed to immediately respond with a stale answer if the
+	 * request is within the 'stale-refresh-time' window.
+	 */
+	stale_refresh_window = (STALE_WINDOW(qctx->rdataset) &&
+				(dboptions & DNS_DBFIND_STALEENABLED) != 0);
+
+	/*
+	 * If DNS_DBFIND_STALEONLY is set, a stale positive answer is requested.
+	 * This can happen if 'stale-answer-client-timeout' is enabled.
+	 *
+	 * If 'stale-answer-client-timeout' is set to 0, and a stale positive
+	 * answer is found, send it to the client, and try to refresh the
+	 * RRset. If a stale negative answer is found, continue with recursion
+	 * (perhaps the query will be resolved eventually and the answer from
+	 * the authoritative is returned to the client, or the query will
+	 * timeout, in that case DNS_DBFIND_STALEOK may be set, and a stale
+	 * negative answer is returned (or SERVFAIL).
+	 *
+	 * If 'stale-answer-client-timeout' is non-zero, and a stale positive
+	 * answer is found, send it to the client. Don't try to refresh the
+	 * RRset because a fetch is already in progress. If a stale negative
+	 * answer is found, then abort the lookup and the client has to wait
+	 * until recursion is finished.
+	 */
+	stale_only = ((dboptions & DNS_DBFIND_STALEONLY) != 0);
+
+	if (dbfind_stale ||
+	    (STALE(qctx->rdataset) && (stale_only || stale_refresh_window)))
+	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 
 		inc_stats(qctx->client, ns_statscounter_trystale);
@@ -5876,106 +5870,132 @@ query_lookup(query_ctx_t *qctx) {
 		    STALE(qctx->rdataset))
 		{
 			qctx->rdataset->ttl = qctx->view->staleanswerttl;
-			stale_used = true;
+			stale_found = true;
 		} else {
-			stale_used = false;
+			stale_found = false;
 		}
 
 		dns_name_format(qctx->client->query.qname, namebuf,
 				sizeof(namebuf));
+
 		if (dbfind_stale) {
 			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "%s resolver failure, stale answer %s",
 				      namebuf,
-				      stale_used ? "used" : "unavailable");
-		} else if ((qctx->options & DNS_GETDB_STALEFIRST) != 0 &&
-			   stale_used) {
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s stale answer used, an attempt to "
-				      "refresh the RRset will still be made",
-				      namebuf);
-		} else if ((dboptions & DNS_DBFIND_STALEONLY) != 0) {
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s client timeout, stale answer %s",
-				      namebuf,
-				      stale_used ? "used" : "unavailable");
-		} else {
+				      stale_found ? "used" : "unavailable");
+			if (!stale_found) {
+				/*
+				 * Resolver failure, no stale data, nothing
+				 * more we can do, return SERVFAIL.
+				 */
+				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				return (ns_query_done(qctx));
+			}
+
+			stale_only = false;
+		} else if (stale_refresh_window) {
+			/*
+			 * A recent lookup failed, so during this time window
+			 * we are allowed to return stale data immediately.
+			 */
 			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "%s query within stale refresh time, "
 				      "stale answer %s",
 				      namebuf,
-				      stale_used ? "used" : "unavailable");
-		}
+				      stale_found ? "used" : "unavailable");
 
-		if (!stale_used &&
-		    ((qctx->options & DNS_GETDB_STALEFIRST) == 0)) {
-			/*
-			 * At this point, we know that stale data was not
-			 * available. A fetch may still be in progress to
-			 * add the data in cache, but if DNS_DBFIND_STALEONLY
-			 * is set, that means the client timeout was triggered.
-			 * But no answer was found, so we need to wait for the
-			 * original query to be resumed. If no client timeout
-			 * is active, then we have completed the fetch, or it
-			 * timed out, and we are done with the query.
-			 */
-			if ((dboptions & DNS_DBFIND_STALEONLY) == 0) {
+			if (!stale_found) {
+				/*
+				 * During the stale refresh window explicitly
+				 * do not try to refresh the data, because a
+				 * recent lookup failed.
+				 */
 				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 				return (ns_query_done(qctx));
 			}
 
-			return (result);
+			stale_only = false;
+		} else if ((dboptions & DNS_DBFIND_STALEONLY) != 0) {
+			if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
+				if (stale_found && result == ISC_R_SUCCESS) {
+					/*
+					 * Immediately return the stale answer,
+					 * start a resolver fetch to refresh
+					 * the data in cache.
+					 */
+					isc_log_write(
+						ns_lctx,
+						NS_LOGCATEGORY_SERVE_STALE,
+						NS_LOGMODULE_QUERY,
+						ISC_LOG_INFO,
+						"%s stale answer used, an "
+						"attempt to refresh the RRset "
+						"will still be made",
+						namebuf);
+					refresh_rrset = true;
+				} else {
+					/*
+					 * We have nothing useful in cache to
+					 * return immediately.
+					 */
+					qctx_clean(qctx);
+					qctx_freedata(qctx);
+					dns_db_attach(
+						qctx->client->view->cachedb,
+						&qctx->db);
+					qctx->client->query.dboptions &=
+						~DNS_DBFIND_STALEONLY;
+					qctx->options &= ~DNS_GETDB_STALEFIRST;
+					if (qctx->client->query.fetch != NULL) {
+						dns_resolver_destroyfetch(
+							&qctx->client->query
+								 .fetch);
+					}
+					return query_lookup(qctx);
+				}
+			} else {
+				/*
+				 * The 'stale-answer-client-timeout' triggered,
+				 * return the stale answer if available,
+				 * otherwise wait until the resolver finishes.
+				 */
+				isc_log_write(
+					ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+					NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					"%s client timeout, stale answer %s",
+					namebuf,
+					stale_found ? "used" : "unavailable");
+				if (!stale_found || result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
 		}
 	} else {
+		stale_only = false;
+	}
+
+	if (!stale_only) {
 		/*
-		 * If we are here then either no stale RRset was found
-		 * or this is a regular query whose expected result is an
-		 * active RRset, ensure this flag won't affect further
-		 * database operations by disabling it.
+		 * The DNS_DBFIND_STALEONLY option may be set, but if we
+		 * didn't have stale data in cache, or we responded with
+		 * a stale answer because of 'stale-refresh-time', this is
+		 * actually not a 'stale-only' lookup. Clear the flag to
+		 * allow the client to be detach the handle.
 		 */
 		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
 	}
 
-	/*
-	 * If DNS_DBFIND_STALEONLY is disabled then we proceed as normal,
-	 * otherwise we only proceed with query_gotanswer if we
-	 * successfully found a stale RRset in cache, since this is an
-	 * attempt to find stale data after stale-answer-client-timeout
-	 * timer has expired. If no stale data was found then we must allow
-	 * a running fetch to complete in order to properly update the RRset.
-	 *
-	 * We must also ensure that if DNS_GETDB_STALEFIRST is set we won't
-	 * skip a call to query_gotanswer if we failed to find stale data,
-	 * since this means stale-answer-client-timeout is zero and we only
-	 * want to return stale data if any is available, otherwise we want
-	 * to resolve the query using the standard resolution process.
-	 */
-	if (result != ISC_R_SUCCESS &&
-	    ((dboptions & DNS_DBFIND_STALEONLY) != 0) &&
-	    ((qctx->options & DNS_GETDB_STALEFIRST) == 0))
-	{
-		goto cleanup;
-	}
-
 	result = query_gotanswer(qctx, result);
-	stale_ok = (qctx->options & DNS_GETDB_STALEFIRST) != 0;
 
-	qctx->client->query.dboptions &= ~DNS_DBFIND_STALEOK;
-
-	if (stale_used && stale_ok) {
+	if (refresh_rrset) {
 		/*
-		 * If we reached this point then it means that we've
-		 * found a stale RRset entry in cache and BIND is
-		 * configured to allow queries to be answered with
-		 * stale data if no active RRset is available,
-		 * i.e. "stale-anwer-client-timeout 0".
-		 * We still need to refresh the RRset, a call to
-		 * query_refresh_rrset() is made to create a new query context
-		 * for that purpose.
+		 * If we reached this point then it means that we have found a
+		 * stale RRset entry in cache and BIND is configured to allow
+		 * queries to be answered with stale data if no active RRset
+		 * is available, i.e. "stale-anwer-client-timeout 0". But, we
+		 * still need to refresh the RRset.
 		 */
 		query_refresh_rrset(qctx);
 	}
