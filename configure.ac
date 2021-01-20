@@ -993,8 +993,8 @@ case "$use_gssapi" in
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
-    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
-    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
+    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi krb5`
+    gssapi_libs=`$KRB5_CONFIG --libs gssapi krb5`
     saved_cppflags="$CPPFLAGS"
     CPPFLAGS="$gssapi_cflags $CPPFLAGS"
     AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
