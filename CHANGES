@@ -1,3 +1,8 @@
+5567.	[bug]		Dig now reports unknown dash options while pre-parsing
+			the options.  This prevents '-multi' instead of
+			'+multi' reporting memory usage before ending option
+			parsing on 'Invalid option: -lti'. [GL #2403]
+
 5566.	[func]		Add "stale-answer-client-timeout" option, which
 			is the amount of time a recursive resolver waits before
 			attempting to answer the query using stale data from cache.
