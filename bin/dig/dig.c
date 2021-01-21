@@ -2341,16 +2341,20 @@ preparse_args(int argc, char **argv) {
 			continue;
 		}
 		/* Look for dash value option. */
-		if (strpbrk(option, dash_opts) != &option[0] ||
-		    strlen(option) > 1U) {
-			/* Error or value in option. */
+		if (strpbrk(option, dash_opts) != &option[0]) {
+			goto invalid_option;
+		}
+		if (strlen(option) > 1U) {
+			/* value in option. */
 			continue;
 		}
 		/* Dash value is next argument so we need to skip it. */
 		rc--, rv++;
 		/* Handle missing argument */
 		if (rc == 0) {
-			break;
+		invalid_option:
+			fprintf(stderr, "Invalid option: -%s\n", option);
+			usage();
 		}
 	}
 }
