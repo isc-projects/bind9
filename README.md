@@ -381,6 +381,10 @@ BIND 9.11.25 is a maintenance release.
 
 BIND 9.11.26 is a maintenance release.
 
+#### BIND 9.11.27
+
+BIND 9.11.27 is a maintenance release.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,

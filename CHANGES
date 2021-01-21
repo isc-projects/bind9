@@ -1,13 +1,15 @@
+	--- 9.11.27 released ---
+
 5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
 			enabling support for libmaxminddb was not working
 			correctly. This has been fixed. [GL #2366]
 
-5557.	[bug]		Prevent rbtdb instances being destroyed by multiple
-			threads at the same time. [GL #2355]
+5557.	[bug]		Prevent RBTDB instances from being destroyed by multiple
+			threads at the same time. [GL #2317]
 
-5548.	[bug]		When BIND 9 was compiled with --disable-threads and
-			--with-epoll, it was possible to trigger an assertion
-			failure due to a double lock. [GL !4454]
+5548.	[bug]		named exited with an assertion failure upon startup when
+			compiled with --disable-threads and --with-epoll.
+			[GL !4454]
 
 5547.	[bug]		BIND 9 failed to build with --disable-threads and
 			--with-geoip2. [GL #2324]
