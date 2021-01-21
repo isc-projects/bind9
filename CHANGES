@@ -1,3 +1,8 @@
+5567.	[bug]		Dig now reports unknown dash options while pre-parsing
+			the options.  This prevents '-multi' instead of
+			'+multi' reporting memory usage before ending option
+			parsing on 'Invalid option: -lti'. [GL #2403]
+
 5565.	[func]		The SONAMEs for BIND 9 libraries now include the current
 			BIND 9 version number, in an effort to tightly couple
 			internal libraries with a specific release. [GL #2387]
