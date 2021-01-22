@@ -548,8 +548,8 @@ grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# keep track of time so we can access these rrset later,
-# when we expect them to become ancient.
+# Keep track of time so we can access these RRset later, when we expect them
+# to become ancient.
 t1=`$PERL -e 'print time()'`
 
 n=$((n+1))
@@ -644,16 +644,16 @@ grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-# retrieve max-stale-ttl value,
+# Retrieve max-stale-ttl value.
 interval_to_ancient=`grep 'max-stale-ttl' ns1/named2.conf.in  | awk '{ print $2 }' | tr -d ';'`
-# we add 2 seconds to it since this is the ttl value of the records being tested.
+# We add 2 seconds to it since this is the ttl value of the records being
+# tested.
 interval_to_ancient=$((interval_to_ancient + 2))
 t2=`$PERL -e 'print time()'`
 elapsed=$((t2 - t1))
 
-# if elapsed time so far is less than max-stale-ttl + 2 seconds,
-# then we sleep enough to ensure that we'll ask for ancient rrsets
-# in the next queries.
+# If elapsed time so far is less than max-stale-ttl + 2 seconds, then we sleep
+# enough to ensure that we'll ask for ancient RRsets in the next queries.
 if [ $elapsed -lt $interval_to_ancient ]; then
     sleep $((interval_to_ancient - elapsed))
 fi
@@ -1040,8 +1040,8 @@ $RNDCCMD 10.53.0.3 stats > /dev/null 2>&1
 [ -f ns3/named.stats ] || ret=1
 cp ns3/named.stats ns3/named.stats.$n
 # Check first 10 lines of Cache DB statistics. After last queries, we expect
-# one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one
-# stale NXDOMAIN.
+# one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one stale
+# NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns3/named.stats.$n > ns3/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
@@ -1260,8 +1260,8 @@ $RNDCCMD 10.53.0.4 stats > /dev/null 2>&1
 [ -f ns4/named.stats ] || ret=1
 cp ns4/named.stats ns4/named.stats.$n
 # Check first 10 lines of Cache DB statistics. After last queries, we expect
-# one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one
-# stale NXDOMAIN.
+# one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one stale
+# NXDOMAIN.
 grep -A 10 "++ Cache DB RRsets ++" ns4/named.stats.$n > ns4/named.stats.$n.cachedb || ret=1
 grep "1 TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
@@ -1282,9 +1282,9 @@ status=$((status+ret))
 echo_i "stop ns4"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns4
 
-# Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
-# Since max-stale-ttl defaults to a week, we need to adjust the date by
-# one week and five minutes.
+# Load the cache as if it was five minutes (RBTDB_VIRTUAL) older. Since
+# max-stale-ttl defaults to a week, we need to adjust the date by one week and
+# five minutes.
 LASTWEEK=`TZ=UTC perl -e 'my $now = time();
         my $oneWeekAgo = $now - 604800;
         my $fiveMinutesAgo = $oneWeekAgo - 300;
@@ -1641,21 +1641,19 @@ $DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 nodata.example TXT > dig.out.tes
 $DIG -p ${PORT} +tries=1 +timeout=30  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
 wait
 
-# Since nodata.example is cached as NXRRSET and marked as
-# stale at this point, BIND must not return this RRset when
-# stale-answer-client-timeout triggers, instead, it must attempt
-# to refresh the RRset.
-# Since the authoritative server is disabled and we are using
-# resolver-query-timeout value of 10 seconds, we expect this
-# query with a timeout of 3 seconds to time out.
+# Since nodata.example is cached as NXRRSET and marked as stale at this point,
+# BIND must not return this RRset when stale-answer-client-timeout triggers,
+# instead, it must attempt to refresh the RRset. Since the authoritative
+# server is disabled and we are using resolver-query-timeout value of 10
+# seconds, we expect this query with a timeout of 3 seconds to time out.
 n=$((n+1))
 echo_i "check query for nodata.example times out (default stale-answer-client-timeout) ($n)"
 grep "connection timed out" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# For this query we expect BIND to return stale NXRRSET data
-# for nodata.example after resolver-query-timeout expires.
+# For this query we expect BIND to return stale NXRRSET data for
+# nodata.example after resolver-query-timeout expires.
 n=$((n+1))
 echo_i "check stale nodata.example comes from cache after resolver-query-timeout expires (default stale-answer-client-timeout) ($n)"
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -1683,10 +1681,10 @@ rndc_reload ns3 10.53.0.3
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# Send a query, auth server is disabled, we will enable it after
-# a while in order to receive an answer before resolver-query-timeout
-# expires. Since stale-answer-client-timeout is disabled we must receive
-# an answer from authoritative server.
+# Send a query, auth server is disabled, we will enable it after a while in
+# order to receive an answer before resolver-query-timeout expires. Since
+# stale-answer-client-timeout is disabled we must receive an answer from
+# authoritative server.
 echo_i "sending query for test $((n+2))"
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+2)) &
 sleep 3
@@ -1784,8 +1782,8 @@ wait_for_rrset_refresh() {
 }
 
 # This test ensures that after we get stale data due to
-# stale-answer-client-timeout 0, enabling the authoritative server
-# will allow the RRset to be updated.
+# stale-answer-client-timeout 0, enabling the authoritative server will allow
+# the RRset to be updated.
 n=$((n+1))
 ret=0
 echo_i "check stale data.example was refreshed (stale-answer-client-timeout 0) ($n)"
@@ -1811,21 +1809,20 @@ $DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 nodata.example TXT > dig.out.tes
 $DIG -p ${PORT} +tries=1 +timeout=30  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
 wait
 
-# Since nodata.example is cached as NXRRSET and marked as
-# stale at this point, BIND must not prompty return this RRset
-# due to stale-answer-client-timeout == 0, instead, it must
-# attempt to refresh the RRset.
-# Since the authoritative server is disabled and we are using
-# resolver-query-timeout value of 10 seconds, we expect this
-# query with a timeout of 3 seconds to time out.
+# Since nodata.example is cached as NXRRSET and marked as stale at this point,
+# BIND must not prompty return this RRset due to
+# stale-answer-client-timeout == 0, instead, it must attempt to refresh the
+# RRset. Since the authoritative server is disabled and we are using
+# resolver-query-timeout value of 10 seconds, we expect this query with a
+# timeout of 3 seconds to time out.
 n=$((n+1))
 echo_i "check query for nodata.example times out (stale-answer-client-timeout 0) ($n)"
 grep "connection timed out" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# For this query we expect BIND to return stale NXRRSET data
-# for nodata.example after resolver-query-timeout expires.
+# For this query we expect BIND to return stale NXRRSET data for
+# nodata.example after resolver-query-timeout expires.
 n=$((n+1))
 echo_i "check stale nodata.example comes from cache after resolver-query-timeout expires (stale-answer-client-timeout 0) ($n)"
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -1907,8 +1904,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 # This test ensures that after we get stale data due to
-# stale-answer-client-timeout 0, enabling the authoritative server
-# will allow the RRset to be updated.
+# stale-answer-client-timeout 0, enabling the authoritative server will allow
+# the RRset to be updated.
 n=$((n+1))
 ret=0
 echo_i "check stale data.example was refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
