@@ -1,3 +1,9 @@
+5582.	[bug]		BIND 9 failed to build when static OpenSSL libraries
+			were used and the *.pc files for libssl and/or libcrypto
+			were unavailable. This has been fixed by ensuring the
+			correct linking order for libssl and libcrypto is always
+			used. [GL #2402]
+
 5581.	[bug]		Fix memory leak happening when inline-signed zones
 			were added to the configuration followed by a
 			reconfiguration of named. [GL #2041]
