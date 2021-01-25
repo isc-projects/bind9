@@ -252,6 +252,13 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnsclose,
 	netievent_tcpdnsstop,
 
+	netievent_tlsclose,
+	netievent_tlssend,
+	netievent_tlsstartread,
+	netievent_tlsconnect,
+	netievent_tlsdobio,
+	netievent_tlscancel,
+
 	netievent_tlsdnsaccept,
 	netievent_tlsdnsconnect,
 	netievent_tlsdnssend,
@@ -642,6 +649,8 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tcplistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tcpdnssocket,
+	isc_nm_tlslistener,
+	isc_nm_tlssocket,
 	isc_nm_tlsdnslistener,
 	isc_nm_tlsdnssocket
 } isc_nmsocket_type;
@@ -669,6 +678,11 @@ enum {
 	STATID_RECVFAIL = 9,
 	STATID_ACTIVE = 10
 };
+
+typedef struct isc_nmsocket_tls_send_req {
+	isc_nmsocket_t *tlssock;
+	isc_region_t data;
+} isc_nmsocket_tls_send_req_t;
 
 struct isc_nmsocket {
 	/*% Unlocked, RO */
@@ -704,6 +718,27 @@ struct isc_nmsocket {
 		/* List of active send requests. */
 		isc__nm_uvreq_t *pending_req;
 	} tls;
+
+	/*% TLS stuff */
+	struct tlsstream {
+		bool server;
+		BIO *app_bio;
+		SSL *ssl;
+		SSL_CTX *ctx;
+		BIO *ssl_bio;
+		isc_nmsocket_t *tlslistener;
+		enum {
+			TLS_INIT,
+			TLS_HANDSHAKE,
+			TLS_IO,
+			TLS_ERROR,
+			TLS_CLOSING,
+			TLS_CLOSED
+		} state;
+		size_t nsending;
+		/* List of active send requests. */
+		ISC_LIST(isc__nm_uvreq_t) sends;
+	} tlsstream;
 
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
@@ -1221,6 +1256,28 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
+isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsstartread(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlscancel(isc__networker_t *worker, isc__netievent_t *ev0);
+
+/*%<
+ * Callback handlers for asynchronouse TLS events.
+ */
+
+void
 isc__nm_async_tcpdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -1291,6 +1348,10 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_cancelread(isc_nmhandle_t *handle);
+
 /*%<
  * Back-end implementation of isc_nm_send() for TLSDNS handles.
  */
@@ -1343,6 +1404,38 @@ isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
 /*%<
  * Stop reading on a connected TLSDNS handle.
  */
+
+void
+isc__nm_tls_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+		 void *cbarg);
+
+void
+isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_close(isc_nmsocket_t *sock);
+/*%<
+ * Close a TLS socket.
+ */
+
+void
+isc__nm_tls_pauseread(isc_nmhandle_t *handle);
+/*%<
+ * Pause reading on this handle, while still remembering the callback.
+ */
+
+void
+isc__nm_tls_resumeread(isc_nmhandle_t *handle);
+/*%<
+ * Resume reading from the handle.
+ *
+ */
+
+void
+isc__nm_tls_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
@@ -1444,6 +1537,12 @@ NETIEVENT_SOCKET_TYPE(tcpclose);
 NETIEVENT_SOCKET_TYPE(tcplisten);
 NETIEVENT_SOCKET_TYPE(tcppauseread);
 NETIEVENT_SOCKET_TYPE(tcpstop);
+NETIEVENT_SOCKET_TYPE(tlsclose);
+/* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
+					  */
+NETIEVENT_SOCKET_TYPE(tlsdobio);
+NETIEVENT_SOCKET_TYPE(tlsstartread);
+NETIEVENT_SOCKET_HANDLE_TYPE(tlscancel);
 NETIEVENT_SOCKET_TYPE(udpclose);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpread);
@@ -1473,6 +1572,7 @@ NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
 NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
 NETIEVENT_SOCKET_TYPE(tcpstartread);
+NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 NETIEVENT_SOCKET_REQ_TYPE(udpconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
@@ -1498,6 +1598,11 @@ NETIEVENT_SOCKET_DECL(tcplisten);
 NETIEVENT_SOCKET_DECL(tcppauseread);
 NETIEVENT_SOCKET_DECL(tcpstartread);
 NETIEVENT_SOCKET_DECL(tcpstop);
+NETIEVENT_SOCKET_DECL(tlsclose);
+NETIEVENT_SOCKET_DECL(tlsconnect);
+NETIEVENT_SOCKET_DECL(tlsdobio);
+NETIEVENT_SOCKET_DECL(tlsstartread);
+NETIEVENT_SOCKET_HANDLE_DECL(tlscancel);
 NETIEVENT_SOCKET_DECL(udpclose);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpread);
@@ -1526,6 +1631,7 @@ NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);
+NETIEVENT_SOCKET_REQ_DECL(tlssend);
 NETIEVENT_SOCKET_REQ_DECL(udpconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);

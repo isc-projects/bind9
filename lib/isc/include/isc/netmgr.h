@@ -474,6 +474,17 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  */
 
 isc_result_t
+isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		 isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
+
+isc_result_t
+isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		  unsigned int timeout, size_t extrahandlesize);
+
+isc_result_t
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);

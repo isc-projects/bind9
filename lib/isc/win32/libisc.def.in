@@ -449,6 +449,7 @@ isc_nm_closedown
 isc_nm_destroy
 isc_nm_detach
 isc_nm_listentcpdns
+isc_nm_listentls
 isc_nm_listentlsdns
 isc_nm_listentcp
 isc_nm_listenudp
@@ -467,6 +468,7 @@ isc_nm_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
+isc_nm_tlsconnect
 isc_nm_tlsdnsconnect
 isc_nm_udpconnect
 isc_nmsocket_close

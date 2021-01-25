@@ -608,7 +608,7 @@
     <ClCompile Include="..\timer.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\tls.c">
+    <ClCompile Include="..\tlsstream.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\tm.c">
