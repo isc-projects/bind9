@@ -14,7 +14,3 @@
 #include <isc/version.h>
 
 const char isc_version[] = VERSION;
-
-const unsigned int isc_libinterface = LIBINTERFACE;
-const unsigned int isc_librevision = LIBREVISION;
-const unsigned int isc_libage = LIBAGE;

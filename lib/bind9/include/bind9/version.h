@@ -14,7 +14,3 @@
 #include <isc/platform.h>
 
 LIBBIND9_EXTERNAL_DATA extern const char bind9_version[];
-
-LIBBIND9_EXTERNAL_DATA extern const unsigned int bind9_libinterface;
-LIBBIND9_EXTERNAL_DATA extern const unsigned int bind9_librevision;
-LIBBIND9_EXTERNAL_DATA extern const unsigned int bind9_libage;

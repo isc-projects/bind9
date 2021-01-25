@@ -14,7 +14,3 @@
 #include <isc/platform.h>
 
 LIBISC_EXTERNAL_DATA extern const char isc_version[];
-
-LIBISC_EXTERNAL_DATA extern const unsigned int isc_libinterface;
-LIBISC_EXTERNAL_DATA extern const unsigned int isc_librevision;
-LIBISC_EXTERNAL_DATA extern const unsigned int isc_libage;

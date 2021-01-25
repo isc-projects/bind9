@@ -14,7 +14,3 @@
 #include <bind9/version.h>
 
 LIBBIND9_EXTERNAL_DATA const char bind9_version[] = VERSION;
-
-LIBBIND9_EXTERNAL_DATA const unsigned int bind9_libinterface = LIBINTERFACE;
-LIBBIND9_EXTERNAL_DATA const unsigned int bind9_librevision = LIBREVISION;
-LIBBIND9_EXTERNAL_DATA const unsigned int bind9_libage = LIBAGE;

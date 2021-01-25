@@ -14,7 +14,3 @@
 #include <irs/version.h>
 
 const char irs_version[] = VERSION;
-
-const unsigned int irs_libinterface = LIBINTERFACE;
-const unsigned int irs_librevision = LIBREVISION;
-const unsigned int irs_libage = LIBAGE;

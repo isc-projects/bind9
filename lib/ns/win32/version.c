@@ -18,7 +18,3 @@
 LIBNS_EXTERNAL_DATA const char ns_version[] = VERSION;
 LIBNS_EXTERNAL_DATA const char ns_major[] = MAJOR;
 LIBNS_EXTERNAL_DATA const char ns_mapapi[] = MAPAPI;
-
-LIBNS_EXTERNAL_DATA const unsigned int ns_libinterface = LIBINTERFACE;
-LIBNS_EXTERNAL_DATA const unsigned int ns_librevision = LIBREVISION;
-LIBNS_EXTERNAL_DATA const unsigned int ns_libage = LIBAGE;

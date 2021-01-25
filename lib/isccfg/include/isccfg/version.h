@@ -14,7 +14,3 @@
 #include <isc/platform.h>
 
 LIBISCCFG_EXTERNAL_DATA extern const char cfg_version[];
-
-LIBISCCFG_EXTERNAL_DATA extern const unsigned int cfg_libinterface;
-LIBISCCFG_EXTERNAL_DATA extern const unsigned int cfg_librevision;
-LIBISCCFG_EXTERNAL_DATA extern const unsigned int cfg_libage;

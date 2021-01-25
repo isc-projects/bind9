@@ -14,7 +14,3 @@
 #include <isc/platform.h>
 
 LIBNS_EXTERNAL_DATA extern const char ns_version[];
-
-LIBNS_EXTERNAL_DATA extern const unsigned int ns_libinterface;
-LIBNS_EXTERNAL_DATA extern const unsigned int ns_librevision;
-LIBNS_EXTERNAL_DATA extern const unsigned int ns_libage;

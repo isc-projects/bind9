@@ -2398,29 +2398,8 @@ BIND9_CONFIGARGS="`echo $BIND9_CONFIGARGS | sed 's/^ //'`"
 BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
 AC_SUBST(BIND9_CONFIGARGS)
 
-AC_SUBST_FILE(LIBISC_API)
-LIBISC_API="$srcdir/lib/isc/api"
-
-AC_SUBST_FILE(LIBISCCC_API)
-LIBISCCC_API="$srcdir/lib/isccc/api"
-
-AC_SUBST_FILE(LIBISCCFG_API)
-LIBISCCFG_API="$srcdir/lib/isccfg/api"
-
-AC_SUBST_FILE(LIBDNS_API)
-LIBDNS_API="$srcdir/lib/dns/api"
-
 AC_SUBST_FILE(LIBDNS_MAPAPI)
 LIBDNS_MAPAPI="$srcdir/lib/dns/mapapi"
-
-AC_SUBST_FILE(LIBBIND9_API)
-LIBBIND9_API="$srcdir/lib/bind9/api"
-
-AC_SUBST_FILE(LIBIRS_API)
-LIBIRS_API="$srcdir/lib/irs/api"
-
-AC_SUBST_FILE(LIBNS_API)
-LIBNS_API="$srcdir/lib/ns/api"
 
 #
 # Configure any DLZ drivers.
