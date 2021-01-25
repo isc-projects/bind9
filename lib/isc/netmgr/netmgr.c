@@ -2527,13 +2527,6 @@ void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	/*
-	 * This is always called via callback (from accept or connect), and
-	 * caller must attach to the handle, so the references always need to be
-	 * at least 2.
-	 */
-	REQUIRE(isc_refcount_current(&handle->references) >= 2);
-
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
 		isc__nm_udp_read(handle, cb, cbarg);
