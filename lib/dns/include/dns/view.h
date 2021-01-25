@@ -173,6 +173,7 @@ struct dns_view {
 	dns_stale_answer_t    staleanswersok;	  /* rndc setting */
 	bool		      staleanswersenable; /* named.conf setting
 						   * */
+	uint32_t	  staleanswerclienttimeout;
 	uint16_t	  nocookieudp;
 	uint16_t	  padding;
 	dns_acl_t *	  pad_acl;
@@ -1338,6 +1339,15 @@ dns_view_setviewrevert(dns_view_t *view);
 /*%<
  * Revert dns_zone_setview() calls previously made for all zones in this
  * view.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+bool
+dns_view_staleanswerenabled(dns_view_t *view);
+/*%<
+ * Check if stale answers are enabled for this view.
  *
  * Requires:
  *\li	'view' to be valid.

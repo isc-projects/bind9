@@ -307,7 +307,9 @@ struct fetchctx {
 	dns_rdataset_t nameservers;
 	atomic_uint_fast32_t attributes;
 	isc_timer_t *timer;
+	isc_timer_t *timer_try_stale;
 	isc_time_t expires;
+	isc_time_t expires_try_stale;
 	isc_interval_t interval;
 	dns_message_t *qmessage;
 	ISC_LIST(resquery_t) queries;
@@ -1135,6 +1137,16 @@ fctx_starttimer(fetchctx_t *fctx) {
 				NULL, true));
 }
 
+static inline isc_result_t
+fctx_starttimer_trystale(fetchctx_t *fctx) {
+	/*
+	 * Start the stale-answer-client-timeout timer for fctx.
+	 */
+
+	return (isc_timer_reset(fctx->timer_try_stale, isc_timertype_once,
+				&fctx->expires_try_stale, NULL, true));
+}
+
 static inline void
 fctx_stoptimer(fetchctx_t *fctx) {
 	isc_result_t result;
@@ -1150,6 +1162,22 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
 				 isc_result_totext(result));
+	}
+}
+
+static inline void
+fctx_stoptimer_trystale(fetchctx_t *fctx) {
+	isc_result_t result;
+
+	if (fctx->timer_try_stale != NULL) {
+		result = isc_timer_reset(fctx->timer_try_stale,
+					 isc_timertype_inactive, NULL, NULL,
+					 true);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_timer_reset(): %s",
+					 isc_result_totext(result));
+		}
 	}
 }
 
@@ -1537,6 +1565,7 @@ fctx_stopqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
 	FCTXTRACE("stopqueries");
 	fctx_cancelqueries(fctx, no_response, age_untried);
 	fctx_stoptimer(fctx);
+	fctx_stoptimer_trystale(fctx);
 }
 
 static inline void
@@ -1697,6 +1726,16 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 	     event = next_event) {
 		next_event = ISC_LIST_NEXT(event, ev_link);
 		ISC_LIST_UNLINK(fctx->events, event, ev_link);
+		if (event->ev_type == DNS_EVENT_TRYSTALE) {
+			/*
+			 * Not applicable to TRY STALE events, this function is
+			 * called when the fetch has either completed or timed
+			 * out due to resolver-query-timeout being reached.
+			 */
+			isc_task_detach((isc_task_t **)&event->ev_sender);
+			isc_event_free((isc_event_t **)&event);
+			continue;
+		}
 		task = event->ev_sender;
 		event->ev_sender = fctx;
 		event->vresult = fctx->vresult;
@@ -4182,7 +4221,13 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	 */
 	if (fctx->minimized && !fctx->forwarding) {
 		unsigned int options = fctx->options;
-		options &= ~DNS_FETCHOPT_QMINIMIZE;
+		/*
+		 * Also clear DNS_FETCHOPT_TRYSTALE_ONTIMEOUT here, otherwise
+		 * every query minimization step will activate the try-stale
+		 * timer again.
+		 */
+		options &= ~(DNS_FETCHOPT_QMINIMIZE |
+			     DNS_FETCHOPT_TRYSTALE_ONTIMEOUT);
 
 		/*
 		 * Is another QNAME minimization fetch still running?
@@ -4222,6 +4267,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		fctx_increference(fctx);
 		task = res->buckets[bucketnum].task;
 		fctx_stoptimer(fctx);
+		fctx_stoptimer_trystale(fctx);
 		result = dns_resolver_createfetch(
 			fctx->res, &fctx->qminname, fctx->qmintype,
 			&fctx->domain, &fctx->nameservers, NULL, NULL, 0,
@@ -4247,6 +4293,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	}
 
 	fctx_increference(fctx);
+
 	result = fctx_query(fctx, addrinfo, fctx->options);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
@@ -4504,6 +4551,9 @@ fctx_destroy(fetchctx_t *fctx) {
 	isc_counter_detach(&fctx->qc);
 	fcount_decr(fctx);
 	isc_timer_detach(&fctx->timer);
+	if (fctx->timer_try_stale != NULL) {
+		isc_timer_detach(&fctx->timer_try_stale);
+	}
 	dns_message_detach(&fctx->qmessage);
 	if (dns_name_countlabels(&fctx->domain) > 0) {
 		dns_name_free(&fctx->domain, fctx->mctx);
@@ -4575,6 +4625,57 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 			fctx_try(fctx, true, false);
 		}
 	}
+
+	isc_event_free(&event);
+}
+
+/*
+ * Fetch event handlers called if stale answers are enabled
+ * (stale-answer-enabled) and the fetch took more than
+ * stale-answer-client-timeout to complete.
+ */
+static void
+fctx_timeout_try_stale(isc_task_t *task, isc_event_t *event) {
+	fetchctx_t *fctx = event->ev_arg;
+	dns_fetchevent_t *dns_event, *next_event;
+	isc_task_t *sender_task;
+	unsigned int count = 0;
+
+	REQUIRE(VALID_FCTX(fctx));
+
+	UNUSED(task);
+
+	FCTXTRACE("timeout_try_stale");
+
+	if (event->ev_type != ISC_TIMEREVENT_LIFE) {
+		return;
+	}
+
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+
+	/*
+	 * Trigger events of type DNS_EVENT_TRYSTALE.
+	 */
+	for (dns_event = ISC_LIST_HEAD(fctx->events); dns_event != NULL;
+	     dns_event = next_event)
+	{
+		next_event = ISC_LIST_NEXT(dns_event, ev_link);
+
+		if (dns_event->ev_type != DNS_EVENT_TRYSTALE) {
+			continue;
+		}
+
+		ISC_LIST_UNLINK(fctx->events, dns_event, ev_link);
+		sender_task = dns_event->ev_sender;
+		dns_event->ev_sender = fctx;
+		dns_event->vresult = ISC_R_TIMEDOUT;
+		dns_event->result = ISC_R_TIMEDOUT;
+
+		isc_task_sendanddetach(&sender_task, ISC_EVENT_PTR(&dns_event));
+		count++;
+	}
+
+	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 
 	isc_event_free(&event);
 }
@@ -4760,6 +4861,9 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * All is well.  Start working on the fetch.
 		 */
 		result = fctx_starttimer(fctx);
+		if (result == ISC_R_SUCCESS && fctx->timer_try_stale != NULL) {
+			result = fctx_starttimer_trystale(fctx);
+		}
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
 		} else {
@@ -4827,6 +4931,34 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, const isc_sockaddr_t *client,
 }
 
 static inline void
+fctx_add_event(fetchctx_t *fctx, isc_task_t *task, const isc_sockaddr_t *client,
+	       dns_messageid_t id, isc_taskaction_t action, void *arg,
+	       dns_fetch_t *fetch, isc_eventtype_t event_type) {
+	isc_task_t *tclone;
+	dns_fetchevent_t *event;
+	/*
+	 * We store the task we're going to send this event to in the
+	 * sender field.  We'll make the fetch the sender when we actually
+	 * send the event.
+	 */
+	tclone = NULL;
+	isc_task_attach(task, &tclone);
+	event = (dns_fetchevent_t *)isc_event_allocate(fctx->res->mctx, tclone,
+						       event_type, action, arg,
+						       sizeof(*event));
+	event->result = DNS_R_SERVFAIL;
+	event->qtype = fctx->type;
+	event->db = NULL;
+	event->node = NULL;
+	event->rdataset = NULL;
+	event->sigrdataset = NULL;
+	event->fetch = fetch;
+	event->client = client;
+	event->id = id;
+	ISC_LIST_APPEND(fctx->events, event, ev_link);
+}
+
+static inline void
 log_ns_ttl(fetchctx_t *fctx, const char *where) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char domainbuf[DNS_NAME_FORMATSIZE];
@@ -4850,9 +4982,11 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	isc_result_t iresult;
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
-	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
+	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	isc_mem_t *mctx;
+	size_t p;
+	bool try_stale;
 
 	/*
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
@@ -4879,8 +5013,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	 */
 	dns_name_format(name, buf, sizeof(buf));
 	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
-	strlcat(buf, "/", sizeof(buf));
-	strlcat(buf, typebuf, sizeof(buf));
+	p = strlcat(buf, "/", sizeof(buf));
+	strlcat(buf + p, typebuf, sizeof(buf));
 	fctx->info = isc_mem_strdup(mctx, buf);
 
 	FCTXTRACE("create");
@@ -5077,6 +5211,29 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		goto cleanup_qmessage;
 	}
 
+	try_stale = ((options & DNS_FETCHOPT_TRYSTALE_ONTIMEOUT) != 0);
+	if (try_stale) {
+		INSIST(res->view->staleanswerclienttimeout <=
+		       (res->query_timeout - 1000));
+		/*
+		 * Compute an expiration time after which stale data will
+		 * attempted to be served, if stale answers are enabled and
+		 * target RRset is available in cache.
+		 */
+		isc_interval_set(
+			&interval, res->view->staleanswerclienttimeout / 1000,
+			res->view->staleanswerclienttimeout % 1000 * 1000000);
+		iresult = isc_time_nowplusinterval(&fctx->expires_try_stale,
+						   &interval);
+		if (iresult != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_time_nowplusinterval: %s",
+					 isc_result_totext(iresult));
+			result = ISC_R_UNEXPECTED;
+			goto cleanup_qmessage;
+		}
+	}
+
 	/*
 	 * Default retry interval initialization.  We set the interval now
 	 * mostly so it won't be uninitialized.  It will be set to the
@@ -5085,10 +5242,11 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	isc_interval_set(&fctx->interval, 2, 0);
 
 	/*
-	 * Create an inactive timer.  It will be made active when the fetch
-	 * is actually started.
+	 * Create an inactive timer for resolver-query-timeout. It
+	 * will be made active when the fetch is actually started.
 	 */
 	fctx->timer = NULL;
+
 	iresult = isc_timer_create(res->timermgr, isc_timertype_inactive, NULL,
 				   NULL, res->buckets[bucketnum].task,
 				   fctx_timeout, fctx, &fctx->timer);
@@ -5097,6 +5255,26 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
+	}
+
+	/*
+	 * If stale answers are enabled, then create an inactive timer
+	 * for stale-answer-client-timeout. It will be made active when
+	 * the fetch is actually started.
+	 */
+	fctx->timer_try_stale = NULL;
+	if (try_stale) {
+		iresult = isc_timer_create(
+			res->timermgr, isc_timertype_inactive, NULL, NULL,
+			res->buckets[bucketnum].task, fctx_timeout_try_stale,
+			fctx, &fctx->timer_try_stale);
+		if (iresult != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_timer_create: %s",
+					 isc_result_totext(iresult));
+			result = ISC_R_UNEXPECTED;
+			goto cleanup_qmessage;
+		}
 	}
 
 	/*
@@ -5143,6 +5321,7 @@ cleanup_mctx:
 	dns_adb_detach(&fctx->adb);
 	dns_db_detach(&fctx->cache);
 	isc_timer_detach(&fctx->timer);
+	isc_timer_detach(&fctx->timer_try_stale);
 
 cleanup_qmessage:
 	dns_message_detach(&fctx->qmessage);
@@ -5356,6 +5535,23 @@ clone_results(fetchctx_t *fctx) {
 	for (event = ISC_LIST_NEXT(hevent, ev_link); event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link))
 	{
+		if (event->ev_type == DNS_EVENT_TRYSTALE) {
+			/*
+			 * We don't need to clone resulting data to this
+			 * type of event, as its associated callback is only
+			 * called when stale-answer-client-timeout triggers,
+			 * and the logic in there doesn't expect any result
+			 * as input, as it will itself lookup for stale data
+			 * in cache to use as result, if any is available.
+			 *
+			 * Also, if we reached this point, then the whole fetch
+			 * context is done, it will cancel timers, process
+			 * associated callbacks of type DNS_EVENT_FETCHDONE, and
+			 * silently remove/free events of type
+			 * DNS_EVENT_TRYSTALE.
+			 */
+			continue;
+		}
 		name = dns_fixedname_name(&event->foundname);
 		dns_name_copynf(hname, name);
 		event->result = hevent->result;
@@ -6125,6 +6321,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	    (!need_validation)) {
 		have_answer = true;
 		event = ISC_LIST_HEAD(fctx->events);
+
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
@@ -10814,6 +11011,14 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	result = fctx_join(fctx, task, client, id, action, arg, rdataset,
 			   sigrdataset, fetch);
+
+	if (result == ISC_R_SUCCESS &&
+	    ((options & DNS_FETCHOPT_TRYSTALE_ONTIMEOUT) != 0))
+	{
+		fctx_add_event(fctx, task, client, id, action, arg, fetch,
+			       DNS_EVENT_TRYSTALE);
+	}
+
 	if (new_fctx) {
 		if (result == ISC_R_SUCCESS) {
 			/*

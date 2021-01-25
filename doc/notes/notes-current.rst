@@ -26,6 +26,23 @@ New Features
 
 - None.
 
+- A new option, ```stale-answer-client-timeout``, has been added to
+  improve ``named``'s behavior with respect to serving stale data. The option
+  defines the amount of time ``named`` waits before attempting
+  to answer the query with a stale RRset from cache. If a stale answer
+  is found, ``named`` continues the ongoing fetches, attempting to
+  refresh the RRset in cache until the ``resolver-query-timeout`` interval is
+  reached.
+
+  The default value is ``1800`` (in milliseconds) and the maximum value is
+  bounded to ``resolver-query-timeout`` minus one second. A value of
+  ``0`` immediately returns a cached RRset if available, and still
+  attempts a refresh of the data in cache.
+
+  The option can be disabled by setting the value to ``off`` or
+  ``disabled``. It also has no effect if ``stale-answer-enable`` is
+  disabled.
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
