@@ -6578,7 +6578,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	}
 
 	if (zone != NULL &&
-	    !named_zone_reusable(zone, zconfig, vconfig, config)) {
+	    !named_zone_reusable(zone, zconfig, vconfig, config, aclconf))
+	{
 		dns_zone_detach(&zone);
 	}
 
@@ -6658,8 +6659,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			      strcasecmp(ztypestr, "slave") == 0));
 
 	if (zone_maybe_inline) {
-		inline_signing = named_zone_inlinesigning(zone, zconfig,
-							  vconfig, config);
+		inline_signing = named_zone_inlinesigning(
+			zone, zconfig, vconfig, config, aclconf);
 	}
 	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);
