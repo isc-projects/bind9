@@ -39,7 +39,7 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	elt->acl = acl;
 	elt->sslctx = NULL;
 	if (tls) {
-		result = isc_nm_tls_create_server_ctx(key, cert, &elt->sslctx);
+		result = isc_tlsctx_createserver(key, cert, &elt->sslctx);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -54,8 +54,7 @@ ns_listenelt_destroy(ns_listenelt_t *elt) {
 		dns_acl_detach(&elt->acl);
 	}
 	if (elt->sslctx != NULL) {
-		SSL_CTX_free(elt->sslctx);
-		elt->sslctx = NULL;
+		isc_tlsctx_free(&elt->sslctx);
 	}
 	isc_mem_put(elt->mctx, elt, sizeof(*elt));
 }

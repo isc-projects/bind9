@@ -2828,10 +2828,13 @@ start_tcp(dig_query_t *query) {
 		REQUIRE(query != NULL);
 
 		if (query->lookup->tls_mode) {
+			result = isc_tlsctx_createclient(&query->tlsctx);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			result = isc_nm_tlsdnsconnect(
 				netmgr, (isc_nmiface_t *)&localaddr,
 				(isc_nmiface_t *)&query->sockaddr,
-				tcp_connected, query, local_timeout, 0);
+				tcp_connected, query, local_timeout, 0,
+				query->tlsctx);
 			check_result(result, "isc_nm_tcpdnsconnect");
 		} else {
 			result = isc_nm_tcpdnsconnect(
@@ -3240,6 +3243,10 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
 
+	if (query->tlsctx != NULL) {
+		isc_tlsctx_free(&query->tlsctx);
+	}
+
 	if (eresult == ISC_R_CANCELED) {
 		debug("in cancel handler");
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
@@ -3306,10 +3313,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	launch_next_query(query);
 	query_detach(&query);
-	if (l->tls_mode) {
-		/* FIXME: This is a accounting bug in TLSDNS */
-		isc_nmhandle_detach(&handle);
-	}
 	lookup_detach(&l);
 	UNLOCK_LOOKUP;
 }

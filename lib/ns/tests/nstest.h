@@ -62,6 +62,15 @@ extern bool app_running;
 extern int ncpus;
 extern bool debug_mem_record;
 
+#ifdef NETMGR_TRACE
+#define FLARG                                              \
+	, const char *file __attribute__((unused)),        \
+		unsigned int line __attribute__((unused)), \
+		const char *func __attribute__((unused))
+#else
+#define FLARG
+#endif
+
 isc_result_t
 ns_test_begin(FILE *logfile, bool create_managers);
 

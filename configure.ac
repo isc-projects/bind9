@@ -623,11 +623,12 @@ AX_SAVE_FLAGS([openssl])
 CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
 
-AC_MSG_CHECKING([for OpenSSL >= 1.0.0 or LibreSSL])
+AC_MSG_CHECKING([for OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0])
 AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM([[#include <openssl/opensslv.h>]],
-		     [[#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x1000000fL)
-		       #error OpenSSL >= 1.0.0 or LibreSSL required
+		     [[#if (!defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x1000000fL)) || \\
+			   (defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER < 0x02070000fL))
+		       #error OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0 required
 		       #endif
 		      ]])],
     [AC_MSG_RESULT([yes])],
@@ -637,10 +638,15 @@ AC_COMPILE_IFELSE(
 # Check for functions added in OpenSSL or LibreSSL
 #
 
+AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto])
 AC_CHECK_FUNCS([CRYPTO_zalloc])
 AC_CHECK_FUNCS([EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free])
 AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset])
 AC_CHECK_FUNCS([HMAC_CTX_new HMAC_CTX_free HMAC_CTX_reset HMAC_CTX_get_md])
+AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
+AC_CHECK_FUNCS([BIO_read_ex BIO_write_ex])
+AC_CHECK_FUNCS([SSL_CTX_up_ref])
+AC_CHECK_FUNCS([SSL_CTX_set_min_proto_version])
 
 #
 # Check for algorithm support in OpenSSL
@@ -706,7 +712,7 @@ AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb], [:],
 #
 AC_CHECK_FUNCS([DH_get0_key ECDSA_SIG_get0 RSA_set0_key])
 
-AC_CHECK_FUNCS([TLS_server_method])
+AC_CHECK_FUNCS([TLS_server_method TLS_client_method])
 
 #
 # Check whether FIPS mode is available and whether we should enable it

@@ -78,7 +78,7 @@ atomic_uint_fast32_t client_refs[32];
 atomic_uintptr_t client_addrs[32];
 
 void
-isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
+isc__nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp FLARG) {
 	ns_client_t *client = (ns_client_t *)source;
 	int i;
 
@@ -97,7 +97,7 @@ isc_nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp) {
 }
 
 void
-isc_nmhandle_detach(isc_nmhandle_t **handlep) {
+isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	isc_nmhandle_t *handle = *handlep;
 	ns_client_t *client = (ns_client_t *)handle;
 	int i;

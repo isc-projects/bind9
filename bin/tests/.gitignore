@@ -8,3 +8,6 @@ dlopen
 keycreate
 keydelete
 gssapi_krb
+/wire_test
+/test_client
+/test_server
