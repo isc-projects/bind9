@@ -1297,10 +1297,10 @@ release:
   )
   test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
   tar --extract --gzip --file=cov-analysis-linux64.tgz
-  test -d cov-analysis-linux64-2019.03
+  test -d cov-analysis-linux64-2020.09
 
 .coverity_build: &coverity_build |
-  cov-analysis-linux64-2019.03/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
+  cov-analysis-linux64-2020.09/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
   tar --create --gzip --file=cov-int.tar.gz cov-int/
   curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME \
        --form token=$COVERITY_SCAN_TOKEN \
@@ -1336,7 +1336,7 @@ coverity:
       - $COVERITY_SCAN_PROJECT_NAME
       - $COVERITY_SCAN_TOKEN
   cache:
-    key: cov-analysis-linux64-2019.03
+    key: cov-analysis-linux64-2020.09
     paths:
       - cov-analysis-linux64.md5
       - cov-analysis-linux64.tgz
