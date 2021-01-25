@@ -81,6 +81,10 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
  * of a matching family (AF_INET or AF_INET6) may be configured.
  *
  * On success, attach '*target' to the new dns_acl_t object.
+ *
+ * Require:
+ *	'ctx' to be non NULL.
+ *	'*target' to be NULL or a valid dns_acl_t.
  */
 
 ISC_LANG_ENDDECLS
