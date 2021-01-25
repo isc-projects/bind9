@@ -71,17 +71,6 @@ AS_IF([test "$cross_compiling" = no],
       [AM_MAINTAINER_MODE(m4_ifset([bind_SRCID],[enable],[disable]))],
       [AM_MAINTAINER_MODE([disable])])
 
-# Set the library versions
-# https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-
-AX_BIND9_LIB_VERSION([bind9])
-AX_BIND9_LIB_VERSION([dns])
-AX_BIND9_LIB_VERSION([irs])
-AX_BIND9_LIB_VERSION([isc])
-AX_BIND9_LIB_VERSION([isccc])
-AX_BIND9_LIB_VERSION([isccfg])
-AX_BIND9_LIB_VERSION([ns])
-
 #
 # Enable system extensions to C and POSIX
 #

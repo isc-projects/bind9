@@ -28,6 +28,4 @@ libbind9_la_LIBADD =		\
 
 libbind9_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
-	$(libbind9_VERSION_INFO)
-
-EXTRA_DIST = api
+	-release "$(PACKAGE_VERSION)"

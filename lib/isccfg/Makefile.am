@@ -32,10 +32,8 @@ libisccfg_la_LIBADD =	\
 
 libisccfg_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
-	$(libisccfg_VERSION_INFO)
+	-release "$(PACKAGE_VERSION)"
 
 if HAVE_CMOCKA
 SUBDIRS = tests
 endif
-
-EXTRA_DIST = api
