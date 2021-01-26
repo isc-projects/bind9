@@ -68,3 +68,6 @@ Bug Fixes
 
 - KASP incorrectly set signature validity to the value of the DNSKEY signature
   validity. This is now fixed. [GL #2383]
+
+- Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA key.
+  This has been fixed. [GL #2178]
