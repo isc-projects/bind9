@@ -155,7 +155,7 @@ zone "some-keys.kasp" {
 zone "legacy-keys.kasp" {
 	type primary;
 	file "legacy-keys.kasp.db";
-	dnssec-policy "rsasha1";
+	dnssec-policy "migrate-to-dnssec-policy";
 };
 
 /*
