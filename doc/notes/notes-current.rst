@@ -14,7 +14,17 @@ Notes for BIND 9.16.12
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- When ``tkey-gssapi-keytab`` or ``tkey-gssapi-credential`` was
+  configured, a specially crafted GSS-TSIG query could cause a buffer
+  overflow in the ISC implementation of SPNEGO (a protocol enabling
+  negotiation of the security mechanism to use for GSSAPI
+  authentication). This flaw could be exploited to crash ``named``.
+  Theoretically, it also enabled remote code execution, but achieving
+  the latter is very difficult in real-world conditions.
+  (CVE-2020-8625)
+
+  This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
+  Trend Micro Zero Day Initiative. [GL #2354]
 
 Known Issues
 ~~~~~~~~~~~~
