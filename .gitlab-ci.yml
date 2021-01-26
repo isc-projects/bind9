@@ -222,6 +222,7 @@ stages:
     --with-libtool \
     --disable-static \
     --enable-option-checking=fatal \
+    --enable-dnstap \
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
@@ -569,7 +570,6 @@ gcc:alpine3.13:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap"
   <<: *alpine_3_13_amd64_image
   <<: *build_job
 
@@ -593,7 +593,7 @@ gcc:centos7:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
@@ -666,7 +666,7 @@ gcc:buster:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
     LDFLAGS: "--coverage"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
 
@@ -702,7 +702,7 @@ scan-build:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2"
   script:
     - *configure
     - *scan_build
@@ -722,7 +722,7 @@ gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --without-lmdb"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -753,7 +753,7 @@ gcc:out-of-tree:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     CONFIGURE: ../configure
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --with-lmdb"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-lmdb"
     SKIP_MAKE_DEPEND: 1
     RUN_MAKE_INSTALL: 1
     OOT_BUILD_WORKSPACE: workspace
@@ -765,7 +765,7 @@ gcc:out-of-tree:
 gcc:tarball:
   variables:
     CC: gcc
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2"
     RUN_MAKE_INSTALL: 1
   <<: *base_image
   <<: *build_job
@@ -862,7 +862,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-geoip"
+    EXTRA_CONFIGURE: "--disable-geoip --disable-dnstap"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
@@ -1143,7 +1143,6 @@ unit:clang:freebsd11:amd64:
 clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-dnstap"
     USER: gitlab-runner
   <<: *freebsd_12_amd64_image
   <<: *build_job
@@ -1171,6 +1170,7 @@ clang:openbsd:amd64:
   variables:
     CC: clang
     USER: gitlab-runner
+    EXTRA_CONFIGURE: "--disable-dnstap"
   <<: *openbsd_amd64_image
   <<: *build_job
 
@@ -1329,7 +1329,7 @@ coverity:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2"
   script:
     - *coverity_cache_prep
     - *configure
