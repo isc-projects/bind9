@@ -81,6 +81,7 @@ options {\n\
 	listen-on-v6 {any;};\n\
 #	lock-file \"" NAMED_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	match-mapped-addresses no;\n\
+	max-ixfr-ratio 100%;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
 	max-udp-size 1232;\n\
 	memstatistics-file \"named.memstats\";\n\

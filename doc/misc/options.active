@@ -215,6 +215,7 @@ options {
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -545,6 +546,7 @@ view <string> [ <class> ] {
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <duration>;
         max-clients-per-query <integer>;
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
@@ -755,6 +757,7 @@ view <string> [ <class> ] {
                     <primaries> | <ipv4_address> [ port <integer> ] |
                     <ipv6_address> [ port <integer> ] ) [ key <string> ];
                     ... };
+                max-ixfr-ratio ( unlimited | <percentage> );
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
                 max-refresh-time <integer>;
@@ -856,6 +859,7 @@ zone <string> [ <class> ] {
         masters [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
+        max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
         max-refresh-time <integer>;

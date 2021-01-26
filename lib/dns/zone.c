@@ -407,6 +407,7 @@ struct dns_zone {
 	 * whether ixfr is requested
 	 */
 	bool requestixfr;
+	uint32_t ixfr_ratio;
 
 	/*%
 	 * whether EDNS EXPIRE is requested
@@ -1128,6 +1129,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sourceserial = 0;
 	zone->sourceserialset = false;
 	zone->requestixfr = true;
+	zone->ixfr_ratio = 100;
 	zone->requestexpire = true;
 	ISC_LIST_INIT(zone->rss_events);
 	ISC_LIST_INIT(zone->rss_post);
@@ -15741,7 +15743,7 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		return (DNS_R_UNCHANGED);
 	}
 
-	CHECK(dns_journal_iter_init(journal, start, end));
+	CHECK(dns_journal_iter_init(journal, start, end, NULL));
 	for (result = dns_journal_first_rr(journal); result == ISC_R_SUCCESS;
 	     result = dns_journal_next_rr(journal))
 	{
@@ -20559,6 +20561,18 @@ bool
 dns_zone_getrequestixfr(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (zone->requestixfr);
+}
+
+void
+dns_zone_setixfrratio(dns_zone_t *zone, uint32_t ratio) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->ixfr_ratio = ratio;
+}
+
+uint32_t
+dns_zone_getixfrratio(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->ixfr_ratio);
 }
 
 void

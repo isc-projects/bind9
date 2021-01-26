@@ -1221,6 +1221,7 @@ dns_zone_getgluecachestats
 dns_zone_getidlein
 dns_zone_getidleout
 dns_zone_getincludes
+dns_zone_getixfrratio
 dns_zone_getjournal
 dns_zone_getjournalsize
 dns_zone_getkasp
@@ -1323,6 +1324,7 @@ dns_zone_setforwardacl
 dns_zone_setidlein
 dns_zone_setidleout
 dns_zone_setisself
+dns_zone_setixfrratio
 dns_zone_setjournal
 dns_zone_setjournalsize
 dns_zone_setkasp

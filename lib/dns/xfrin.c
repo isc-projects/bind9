@@ -1529,10 +1529,10 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
 		  "%" PRIu64 " bytes, "
-		  "%u.%03u secs (%u bytes/sec)",
+		  "%u.%03u secs (%u bytes/sec) (serial %u)",
 		  xfr->nmsg, xfr->nrecs, xfr->nbytes,
 		  (unsigned int)(msecs / 1000), (unsigned int)(msecs % 1000),
-		  (unsigned int)persec);
+		  (unsigned int)persec, xfr->end_serial);
 
 	if (xfr->socket != NULL) {
 		isc_socket_detach(&xfr->socket);

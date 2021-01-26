@@ -1568,6 +1568,24 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(options, "max-ixfr-ratio", &obj);
+	if (obj != NULL && cfg_obj_ispercentage(obj)) {
+		uint32_t percent = cfg_obj_aspercentage(obj);
+		if (percent == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'ixfr-max-ratio' must be a nonzero "
+				    "percentage or 'unlimited')");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		} else if (percent > 100) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "'ixfr-max-ratio %d%%' exceeds 100%%",
+				    percent);
+		}
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(options, "check-names", &obj);
 	if (obj != NULL && !cfg_obj_islist(obj)) {
 		obj = NULL;

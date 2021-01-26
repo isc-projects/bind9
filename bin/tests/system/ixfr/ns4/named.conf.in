@@ -37,6 +37,7 @@ view "primary" {
 		type secondary;
 		file "mytest.db";
 		primaries { 10.53.0.3; };
+		max-ixfr-ratio unlimited;
 	};
 	zone "sub.test" IN {
 		type secondary;

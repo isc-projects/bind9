@@ -2338,6 +2338,25 @@ dns_zone_setrequestixfr(dns_zone_t *zone, bool flag);
  * \li	'zone' to be valid.
  */
 
+uint32_t
+dns_zone_getixfrratio(dns_zone_t *zone);
+/*%
+ * Returns the zone's current IXFR ratio.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setixfrratio(dns_zone_t *zone, uint32_t ratio);
+/*%
+ * Sets the ratio of IXFR size to zone size above which we use an AXFR
+ * response, expressed as a percentage. Cannot exceed 100.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
 void
 dns_zone_setserialupdatemethod(dns_zone_t *zone, dns_updatemethod_t method);
 /*%

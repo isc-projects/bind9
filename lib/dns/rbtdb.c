@@ -441,11 +441,11 @@ typedef struct rbtdb_version {
 	unsigned char salt[DNS_NSEC3_SALTSIZE];
 
 	/*
-	 * records and bytes are covered by rwlock.
+	 * records and xfrsize are covered by rwlock.
 	 */
 	isc_rwlock_t rwlock;
 	uint64_t records;
-	uint64_t bytes;
+	uint64_t xfrsize;
 
 	isc_rwlock_t glue_rwlock;
 	size_t glue_table_bits;
@@ -1396,7 +1396,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 			RWLOCK(&rbtdb->current_version->rwlock,
 			       isc_rwlocktype_read);
 			version->records = rbtdb->current_version->records;
-			version->bytes = rbtdb->current_version->bytes;
+			version->xfrsize = rbtdb->current_version->xfrsize;
 			RWUNLOCK(&rbtdb->current_version->rwlock,
 				 isc_rwlocktype_read);
 			rbtdb->next_serial++;
@@ -6067,18 +6067,18 @@ recordsize(rdatasetheader_t *header, unsigned int namelen) {
 }
 
 static void
-update_recordsandbytes(bool add, rbtdb_version_t *rbtversion,
-		       rdatasetheader_t *header, unsigned int namelen) {
+update_recordsandxfrsize(bool add, rbtdb_version_t *rbtversion,
+			 rdatasetheader_t *header, unsigned int namelen) {
 	unsigned char *hdr = (unsigned char *)header;
 	size_t hdrsize = sizeof(*header);
 
 	RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 	if (add) {
 		rbtversion->records += dns_rdataslab_count(hdr, hdrsize);
-		rbtversion->bytes += recordsize(header, namelen);
+		rbtversion->xfrsize += recordsize(header, namelen);
 	} else {
 		rbtversion->records -= dns_rdataslab_count(hdr, hdrsize);
-		rbtversion->bytes -= recordsize(header, namelen);
+		rbtversion->xfrsize -= recordsize(header, namelen);
 	}
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
@@ -6491,9 +6491,9 @@ find_header:
 			}
 			newheader->next = topheader->next;
 			if (rbtversion != NULL && !header_nx) {
-				update_recordsandbytes(false, rbtversion,
-						       header,
-						       nodename->length);
+				update_recordsandxfrsize(false, rbtversion,
+							 header,
+							 nodename->length);
 			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, header);
 		} else {
@@ -6544,9 +6544,9 @@ find_header:
 				}
 			}
 			if (rbtversion != NULL && !header_nx) {
-				update_recordsandbytes(false, rbtversion,
-						       header,
-						       nodename->length);
+				update_recordsandxfrsize(false, rbtversion,
+							 header,
+							 nodename->length);
 			}
 		}
 	} else {
@@ -6623,8 +6623,8 @@ find_header:
 	}
 
 	if (rbtversion != NULL && !newheader_nx) {
-		update_recordsandbytes(true, rbtversion, newheader,
-				       nodename->length);
+		update_recordsandxfrsize(true, rbtversion, newheader,
+					 nodename->length);
 	}
 
 	/*
@@ -7118,8 +7118,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * to additional info.  We need to clear these fields
 			 * to avoid having duplicated references.
 			 */
-			update_recordsandbytes(true, rbtversion, newheader,
-					       nodename->length);
+			update_recordsandxfrsize(true, rbtversion, newheader,
+						 nodename->length);
 		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * This subtraction would remove all of the rdata;
@@ -7155,8 +7155,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * topheader.
 		 */
 		INSIST(rbtversion->serial >= topheader->serial);
-		update_recordsandbytes(false, rbtversion, header,
-				       nodename->length);
+		update_recordsandxfrsize(false, rbtversion, header,
+					 nodename->length);
 		if (topheader_prev != NULL) {
 			topheader_prev->next = newheader;
 		} else {
@@ -7520,8 +7520,8 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize, void *arg,
 			}
 		}
 
-		update_recordsandbytes(true, rbtdb->current_version, header,
-				       rbtnode->fullnamelen);
+		update_recordsandxfrsize(true, rbtdb->current_version, header,
+					 rbtnode->fullnamelen);
 	}
 
 	/* We're done deserializing; clear fullnamelen */
@@ -8142,7 +8142,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 
 static isc_result_t
 getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
-	uint64_t *bytes) {
+	uint64_t *xfrsize) {
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result = ISC_R_SUCCESS;
 	rbtdb_version_t *rbtversion = version;
@@ -8162,8 +8162,8 @@ getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 		*records = rbtversion->records;
 	}
 
-	if (bytes != NULL) {
-		*bytes = rbtversion->bytes;
+	if (xfrsize != NULL) {
+		*xfrsize = rbtversion->xfrsize;
 	}
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_read);
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
@@ -8805,7 +8805,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	}
 
 	rbtdb->current_version->records = 0;
-	rbtdb->current_version->bytes = 0;
+	rbtdb->current_version->xfrsize = 0;
 	rbtdb->future_version = NULL;
 	ISC_LIST_INIT(rbtdb->open_versions);
 	/*

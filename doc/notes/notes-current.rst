@@ -24,7 +24,18 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- When a secondary server receives a large incremental zone
+  transfer (IXFR), it can have a negative impact on query
+  performance while the incremental changes are applied to
+  the zone. To address this, ``named`` can now
+  limit the size of IXFR responses it sends in response to zone
+  transfer requests. If an IXFR response would be larger than an
+  AXFR of the entire zone, it will send an AXFR resonse instead.
+
+  This behavior is controlled by the ``max-ixfr-ratio``
+  option - a percentage value representing the ratio of IXFR size
+  to the size of a full zone transfer. This value cannot exceed
+  100%, which is also the default. [GL #1515]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
