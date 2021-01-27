@@ -1,3 +1,6 @@
+5572.	[bug]		Address potential double free in generatexml.
+			[GL #2420]
+
 5571.	[bug]		If a zone had a non-builtin named allow-update acl
 			named failed to start. [GL #2413]
 
