@@ -349,11 +349,38 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    default is to add a question section. The query type and query name
    are ignored when this is set.
 
+``+[no]https[=value]``
+   This option indicates whether to use DNS-over-HTTPS (DoH) when querying
+   name servers.  When this option is in use, the port number defaults to 443.
+   The HTTP POST request mode is used when sending the query.
+
+   If ``value`` is specified, it will be used as the HTTP endpoint in the
+   query URI; the default is ``/dns-query``. So, for example, ``dig
+   @example.com +https`` will use the URI ``https://example.com/dns-query``.
+
+``+[no]https-get[=value]``
+   Similar to ``+https``, except that the HTTP GET request mode is used
+   when sending the query.
+
+``+[no]https-post[=value]``
+   Same as ``+https``.
+
+``+[no]http-plain[=value]``
+   Similar to ``+https``, except that HTTP queries will be sent over a
+   non-encrypted channel. When this option is in use, the port number
+   defaults to 80 and the HTTP request mode is POST.
+
+``+[no]http-plain-get[=value]``
+   Similar to ``+http-plain``, except that the HTTP request mode is GET.
+
+``+[no]http-plain-post[=value]``
+   Same as ``+http-plain``.
+
 ``+[no]identify``
-   This option shows [or does not show] the IP address and port number that supplied
-   the answer, when the ``+short`` option is enabled. If short form
-   answers are requested, the default is not to show the source address
-   and port number of the server that provided the answer.
+   This option shows [or does not show] the IP address and port number that
+   supplied the answer, when the ``+short`` option is enabled. If short
+   form answers are requested, the default is not to show the source
+   address and port number of the server that provided the answer.
 
 ``+[no]idnin``
    This option processes [or does not process] IDN domain names on input. This requires
@@ -519,8 +546,9 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    5 seconds. An attempt to set ``T`` to less than 1 is silently set to 1.
 
 ``+[no]tls``
-   This option indicates whether to use DNS over TLS (DoT) when querying
-   name servers.
+   This option indicates whether to use DNS-over-TLS (DoT) when querying
+   name servers. When this option is in use, the port number defaults
+   to 853.
 
 ``+[no]topdown``
    This feature is related to ``dig +sigchase``, which is obsolete and

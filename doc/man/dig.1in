@@ -361,11 +361,38 @@ This option sends a query with a DNS header without a question section. The
 default is to add a question section. The query type and query name
 are ignored when this is set.
 .TP
+.B \fB+[no]https[=value]\fP
+This option indicates whether to use DNS\-over\-HTTPS (DoH) when querying
+name servers.  When this option is in use, the port number defaults to 443.
+The HTTP POST request mode is used when sending the query.
+.sp
+If \fBvalue\fP is specified, it will be used as the HTTP endpoint in the
+query URI; the default is \fB/dns\-query\fP\&. So, for example, \fBdig
+@example.com +https\fP will use the URI \fBhttps://example.com/dns\-query\fP\&.
+.TP
+.B \fB+[no]https\-get[=value]\fP
+Similar to \fB+https\fP, except that the HTTP GET request mode is used
+when sending the query.
+.TP
+.B \fB+[no]https\-post[=value]\fP
+Same as \fB+https\fP\&.
+.TP
+.B \fB+[no]http\-plain[=value]\fP
+Similar to \fB+https\fP, except that HTTP queries will be sent over a
+non\-encrypted channel. When this option is in use, the port number
+defaults to 80 and the HTTP request mode is POST.
+.TP
+.B \fB+[no]http\-plain\-get[=value]\fP
+Similar to \fB+http\-plain\fP, except that the HTTP request mode is GET.
+.TP
+.B \fB+[no]http\-plain\-post[=value]\fP
+Same as \fB+http\-plain\fP\&.
+.TP
 .B \fB+[no]identify\fP
-This option shows [or does not show] the IP address and port number that supplied
-the answer, when the \fB+short\fP option is enabled. If short form
-answers are requested, the default is not to show the source address
-and port number of the server that provided the answer.
+This option shows [or does not show] the IP address and port number that
+supplied the answer, when the \fB+short\fP option is enabled. If short
+form answers are requested, the default is not to show the source
+address and port number of the server that provided the answer.
 .TP
 .B \fB+[no]idnin\fP
 This option processes [or does not process] IDN domain names on input. This requires
@@ -531,8 +558,9 @@ This option sets the timeout for a query to \fBT\fP seconds. The default timeout
 5 seconds. An attempt to set \fBT\fP to less than 1 is silently set to 1.
 .TP
 .B \fB+[no]tls\fP
-This option indicates whether to use DNS over TLS (DoT) when querying
-name servers.
+This option indicates whether to use DNS\-over\-TLS (DoT) when querying
+name servers. When this option is in use, the port number defaults
+to 853.
 .TP
 .B \fB+[no]topdown\fP
 This feature is related to \fBdig +sigchase\fP, which is obsolete and

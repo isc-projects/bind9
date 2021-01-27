@@ -228,6 +228,10 @@ help(void) {
 	       "SERVFAIL)\n"
 	       "                 +[no]header-only    (Send query without a "
 	       "question section)\n"
+	       "                 +[no]https[=###]    (DNS over HTTPS mode) "
+	       "[/]\n"
+	       "                 +[no]https-get      (Use GET instead of "
+	       "default POST method\n"
 	       "                 +[no]identify       (ID responders in short "
 	       "answers)\n"
 #ifdef HAVE_LIBIDN2
@@ -348,12 +352,18 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		}
 		if (query->lookup->tls_mode) {
 			proto = "TLS";
+		} else if (query->lookup->https_mode) {
+			if (query->lookup->http_plain) {
+				proto = "HTTP";
+			} else {
+				proto = "HTTPS";
+			}
 		} else if (query->lookup->tcp_mode) {
 			proto = "TCP";
 		} else {
 			proto = "UDP";
 		}
-		printf(";; SERVER: %s(%s) (%s)\n", fromtext, query->servname,
+		printf(";; SERVER: %s(%s) (%s)\n", fromtext, query->userarg,
 		       proto);
 		time(&tnow);
 		(void)localtime_r(&tnow, &tmnow);
@@ -1066,6 +1076,17 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0))   \
 			goto invalid_option;                             \
 	} while (0)
+#define FULLCHECK6(A, B, C, D, E, F)                                     \
+	do {                                                             \
+		size_t _l = strlen(cmd);                                 \
+		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
+		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0) && \
+		    (_l >= sizeof(C) || strncasecmp(cmd, C, _l) != 0) && \
+		    (_l >= sizeof(D) || strncasecmp(cmd, D, _l) != 0) && \
+		    (_l >= sizeof(E) || strncasecmp(cmd, E, _l) != 0) && \
+		    (_l >= sizeof(F) || strncasecmp(cmd, F, _l) != 0))   \
+			goto invalid_option;                             \
+	} while (0)
 
 	switch (cmd[0]) {
 	case 'a':
@@ -1412,8 +1433,78 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		lookup->servfail_stops = state;
 		break;
 	case 'h':
-		FULLCHECK("header-only");
-		lookup->header_only = state;
+		switch (cmd[1]) {
+		case 'e': /* header-only */
+			FULLCHECK("header-only");
+			lookup->header_only = state;
+			break;
+		case 't':
+			FULLCHECK6("https", "https-get", "https-post",
+				   "http-plain", "http-plain-get",
+				   "http-plain-post");
+			if (lookup->https_path != NULL) {
+				isc_mem_free(mctx, lookup->https_path);
+				lookup->https_path = NULL;
+			}
+			if (!state) {
+				lookup->https_mode = false;
+				break;
+			}
+			lookup->https_mode = true;
+			if (cmd[4] == '-') {
+				lookup->http_plain = true;
+				switch (cmd[10]) {
+				case '\0':
+					FULLCHECK("http-plain");
+					break;
+				case '-':
+					switch (cmd[6]) {
+					case 'p':
+						FULLCHECK("https-plain-post");
+						break;
+					case 'g':
+						FULLCHECK("https-plain-get");
+						lookup->https_get = true;
+						break;
+					}
+					break;
+				default:
+					goto invalid_option;
+				}
+			} else {
+				switch (cmd[5]) {
+				case '\0':
+					FULLCHECK("https");
+					break;
+				case '-':
+					switch (cmd[6]) {
+					case 'p':
+						FULLCHECK("https-post");
+						break;
+					case 'g':
+						FULLCHECK("https-get");
+						lookup->https_get = true;
+						break;
+					}
+					break;
+				default:
+					goto invalid_option;
+				}
+			}
+			if (!lookup->tcp_mode_set) {
+				lookup->tcp_mode = state;
+			}
+			if (value == NULL) {
+				lookup->https_path = isc_mem_strdup(
+					mctx, DEFAULT_HTTPS_PATH);
+			} else {
+				lookup->https_path = isc_mem_strdup(mctx,
+								    value);
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 'i':
 		switch (cmd[1]) {
