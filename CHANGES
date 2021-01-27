@@ -1,3 +1,6 @@
+5569.	[bug]		Emit useful error message when 'rndc retransfer' is
+			applied to a zone of inappropriate type. [GL #2342]
+
 5568.	[bug]		Fixed a crash in "dnssec-keyfromlabel" when using ECDSA
 			keys. [GL #2178]
 
