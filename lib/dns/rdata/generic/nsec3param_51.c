@@ -238,6 +238,7 @@ tostruct_nsec3param(ARGS_TOSTRUCT) {
 	nsec3param->iterations = uint16_consume_fromregion(&region);
 
 	nsec3param->salt_length = uint8_consume_fromregion(&region);
+	INSIST(nsec3param->salt_length == region.length);
 	nsec3param->salt = mem_maybedup(mctx, region.base,
 					nsec3param->salt_length);
 	if (nsec3param->salt == NULL) {
