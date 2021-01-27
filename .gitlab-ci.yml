@@ -425,9 +425,11 @@ misc:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
     - perl util/check-changes CHANGES
+    - sh util/check-line-length.sh CHANGES
     - test ! -f CHANGES.SE || sh util/tabify-changes < CHANGES.SE > CHANGES.tmp
     - test ! -f CHANGES.SE || diff -urNap CHANGES.SE CHANGES.tmp
     - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
+    - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
     - rm CHANGES.tmp
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
