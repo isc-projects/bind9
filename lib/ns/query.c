@@ -7269,7 +7269,15 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 			/*
 			 * If serve-stale is enabled, query_usestale() already
 			 * set up 'qctx' for looking up a stale response.
+			 *
+			 * We only need to check if the query timed out or
+			 * something else has gone wrong. If the query timed
+			 * out, we will start the stale-refresh-time window.
 			 */
+			if (qctx->resuming && result == ISC_R_TIMEDOUT) {
+				qctx->client->query.dboptions |=
+					DNS_DBFIND_STALESTART;
+			}
 			return (query_lookup(qctx));
 		}
 

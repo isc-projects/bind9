@@ -4538,11 +4538,12 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 			mark_header_stale(search->rbtdb, header);
 			*header_prev = header;
 			/*
-			 * If DNS_DBFIND_STALEOK is set then it means we failed
-			 * to resolve the name during recursion, in this case we
-			 * mark the time in which the refresh failed.
+			 * If DNS_DBFIND_STALESTART is set then it means we
+			 * failed to resolve the name during recursion, in
+			 * this case we mark the time in which the refresh
+			 * failed.
 			 */
-			if ((search->options & DNS_DBFIND_STALEOK) != 0) {
+			if ((search->options & DNS_DBFIND_STALESTART) != 0) {
 				atomic_store_release(
 					&header->last_refresh_fail_ts,
 					search->now);
