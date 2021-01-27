@@ -2,7 +2,7 @@
 			named failed to start. [GL #2413]
 
 5570.	[bug]		Improve the performance of dnssec-verify by reducing
-			the number of repeated calls to dns_dnssec_keyfromrdata().
+			the number of repeated calls to dns_dnssec_keyfromrdata.
 			[GL #2073]
 
 5569.	[bug]		Emit useful error message when 'rndc retransfer' is
