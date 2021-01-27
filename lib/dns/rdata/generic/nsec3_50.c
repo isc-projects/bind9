@@ -302,6 +302,7 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 	nsec3->iterations = uint16_consume_fromregion(&region);
 
 	nsec3->salt_length = uint8_consume_fromregion(&region);
+	INSIST(nsec3->salt_length <= region.length);
 	nsec3->salt = mem_maybedup(mctx, region.base, nsec3->salt_length);
 	if (nsec3->salt == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -309,6 +310,7 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, nsec3->salt_length);
 
 	nsec3->next_length = uint8_consume_fromregion(&region);
+	INSIST(nsec3->next_length <= region.length);
 	nsec3->next = mem_maybedup(mctx, region.base, nsec3->next_length);
 	if (nsec3->next == NULL) {
 		goto cleanup;
