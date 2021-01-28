@@ -1,3 +1,9 @@
+5579.	[func]		When serve-stale is enabled and stale data is available,
+			named now returns stale answers upon encountering any
+			unexpected error in the query resolution process.
+			However, the "stale-refresh-time" window is still only
+			started upon a timeout. [GL #2434]
+
 5578.	[protocol]	Make "check-names" accept A records below "_spf",
 			"_spf_rate" and "_spf_verify" labels in order to cater
 			for the "exists" SPF mechanism specified in RFC 7208
