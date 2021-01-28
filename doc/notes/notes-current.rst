@@ -24,9 +24,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
-- A new option, ```stale-answer-client-timeout``, has been added to
+- A new option, ``stale-answer-client-timeout``, has been added to
   improve ``named``'s behavior with respect to serving stale data. The option
   defines the amount of time ``named`` waits before attempting
   to answer the query with a stale RRset from cache. If a stale answer
@@ -41,7 +39,13 @@ New Features
 
   The option can be disabled by setting the value to ``off`` or
   ``disabled``. It also has no effect if ``stale-answer-enable`` is
-  disabled.
+  disabled. [GL #2247]
+
+- Also return stale data if an error occurred and we are not resuming a
+  query (and serve-stale is enabled). This may happen for example if
+  ``fetches-per-server`` or ``fetches-per-zone` limits are reached. In this
+  case, we will try to answer DNS requests with stale data, but not start
+  the ``stale-refresh-time`` window. [GL #2434]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
