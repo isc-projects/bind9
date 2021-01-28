@@ -176,7 +176,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 
 parse_acl:
 	result = cfg_acl_fromconfig(aclobj, config, named_g_lctx, actx,
-				    dns_zone_getmctx(zone), 0, &acl);
+				    named_g_mctx, 0, &acl);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -2068,7 +2068,8 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 
 bool
 named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
-		    const cfg_obj_t *vconfig, const cfg_obj_t *config) {
+		    const cfg_obj_t *vconfig, const cfg_obj_t *config,
+		    cfg_aclconfctx_t *actx) {
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *obj = NULL;
 	const char *cfilename;
@@ -2103,7 +2104,7 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 	}
 
 	inline_signing = named_zone_inlinesigning(zone, zconfig, vconfig,
-						  config);
+						  config, actx);
 	if (!inline_signing && has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was inline-signing");
@@ -2141,7 +2142,8 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 
 bool
 named_zone_inlinesigning(dns_zone_t *zone, const cfg_obj_t *zconfig,
-			 const cfg_obj_t *vconfig, const cfg_obj_t *config) {
+			 const cfg_obj_t *vconfig, const cfg_obj_t *config,
+			 cfg_aclconfctx_t *actx) {
 	isc_result_t res;
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *voptions = NULL;
@@ -2181,7 +2183,6 @@ named_zone_inlinesigning(dns_zone_t *zone, const cfg_obj_t *zconfig,
 		}
 		if (res == ISC_R_SUCCESS) {
 			dns_acl_t *acl = NULL;
-			cfg_aclconfctx_t *actx = NULL;
 			res = cfg_acl_fromconfig(
 				allowupdate, config, named_g_lctx, actx,
 				dns_zone_getmctx(zone), 0, &acl);

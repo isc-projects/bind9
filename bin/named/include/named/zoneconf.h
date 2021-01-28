@@ -44,7 +44,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 bool
 named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
-		    const cfg_obj_t *vconfig, const cfg_obj_t *config);
+		    const cfg_obj_t *vconfig, const cfg_obj_t *config,
+		    cfg_aclconfctx_t *actx);
 /*%<
  * If 'zone' can be safely reconfigured according to the configuration
  * data in 'zconfig', return true.  If the configuration data is so
@@ -54,7 +55,8 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 
 bool
 named_zone_inlinesigning(dns_zone_t *zone, const cfg_obj_t *zconfig,
-			 const cfg_obj_t *vconfig, const cfg_obj_t *config);
+			 const cfg_obj_t *vconfig, const cfg_obj_t *config,
+			 cfg_aclconfctx_t *actx);
 /*%<
  * Determine if zone uses inline-signing. This is true if inline-signing
  * is set to yes, or if there is a dnssec-policy on a non-dynamic zone.

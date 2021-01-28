@@ -80,3 +80,6 @@ Bug Fixes
 
 - Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA key.
   This has been fixed. [GL #2178]
+
+- Named ``allow-update`` acls where broken in BIND 9.17.9 and BIND 9.16.11
+  preventing ``named`` starting. [GL #2413]
