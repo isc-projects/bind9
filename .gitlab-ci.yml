@@ -553,6 +553,7 @@ docs:
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
+    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
   needs:
     - job: autoreconf
       artifacts: true
