@@ -1415,6 +1415,7 @@ dns_zonemgr_shutdown
 dns_zonemgr_unreachable
 dns_zonemgr_unreachableadd
 dns_zonemgr_unreachabledel
+dns_zonetype_name
 dns_zoneverify_dnssec
 dns_zt_apply
 dns_zt_asyncload
