@@ -2475,6 +2475,7 @@
 ./util/check-cocci				X	2018,2019,2020,2021
 ./util/check-includes.pl			PERL	2000,2001,2004,2007,2012,2016,2017,2018,2019,2020,2021
 ./util/check-instincludes.sh			SH	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
+./util/check-line-length.sh			SH	2021
 ./util/check-make-install.in			SH	2020
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004,2007,2012,2016,2018,2019,2020,2021
 ./util/check-sources.pl				PERL	2000,2001,2004,2007,2012,2013,2016,2018,2019,2020,2021
