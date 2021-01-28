@@ -535,6 +535,7 @@ docs:
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} doc V=1
     - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
+    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
   needs:
     - job: autoreconf
       artifacts: true
