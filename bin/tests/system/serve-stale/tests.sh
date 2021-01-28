@@ -2010,5 +2010,104 @@ grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+####################################################################
+# Test if fetch-limits quota is reached, stale data is served.     #
+####################################################################
+echo_i "test stale data with fetch-limits"
+
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named6.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "running 'rndc reload' ($n)"
+ret=0
+rndc_reload ns3 10.53.0.3
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Disable responses from authoritative server.
+n=$((n+1))
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Hit the fetch-limits.
+burst() {
+	num=${1}
+	rm -f burst.input.$$
+	while [ $num -gt 0 ]; do
+		num=`expr $num - 1`
+		echo "${num}.data.example A" >> burst.input.$$
+	done
+	$PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
+	rm -f burst.input.$$
+}
+
+wait_for_fetchlimits() {
+	burst 20
+	$DIG -p ${PORT} @10.53.0.3 data.example A > dig.out.test$n
+	grep "status: SERVFAIL" dig.out.test$n > /dev/null || return 1
+}
+
+n=$((n+1))
+echo_i "hit fetch limits ($n)"
+ret=0
+retry_quiet 10 wait_for_fetchlimits || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 2
+
+# Turn on serve-stale.
+n=$((n+1))
+echo_i "running 'rndc serve-stale on' ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 serve-stale on || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check 'rndc serve-stale status' ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=3600 stale-refresh-time=4)' rndc.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Expect stale data now.
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache (fetch-limits) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# The previous query should not have started the stale-refresh-time window.
+n=$((n+1))
+ret=0
+echo_i "check stale data.example comes from cache again (fetch-limits) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

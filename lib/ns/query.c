@@ -7441,6 +7441,14 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  */
 static bool
 query_usestale(query_ctx_t *qctx) {
+	if ((qctx->client->query.dboptions & DNS_DBFIND_STALEOK) != 0) {
+		/*
+		 * Query was already using stale, if that didn't work the
+		 * last time, it won't work this time either.
+		 */
+		return (false);
+	}
+
 	qctx_clean(qctx);
 	qctx_freedata(qctx);
 
@@ -7548,11 +7556,19 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 			 "query_gotanswer: unexpected error: %s",
 			 isc_result_totext(result));
 		CCTRACE(ISC_LOG_ERROR, errmsg);
-		if (qctx->resuming && query_usestale(qctx)) {
+		if (query_usestale(qctx)) {
 			/*
 			 * If serve-stale is enabled, query_usestale() already
 			 * set up 'qctx' for looking up a stale response.
+			 *
+			 * We only need to check if the query timed out or
+			 * something else has gone wrong. If the query timed
+			 * out, we will start the stale-refresh-time window.
 			 */
+			if (qctx->resuming && result == ISC_R_TIMEDOUT) {
+				qctx->client->query.dboptions |=
+					DNS_DBFIND_STALESTART;
+			}
 			return (query_lookup(qctx));
 		}
 
