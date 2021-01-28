@@ -2407,12 +2407,12 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	TRY0(xmlTextWriterEndElement(writer)); /* /statistics */
 	TRY0(xmlTextWriterEndDocument(writer));
 
-	xmlFreeTextWriter(writer);
-
 	xmlDocDumpFormatMemoryEnc(doc, buf, buflen, "UTF-8", 0);
 	if (*buf == NULL) {
 		goto error;
 	}
+
+	xmlFreeTextWriter(writer);
 	xmlFreeDoc(doc);
 	return (ISC_R_SUCCESS);
 
