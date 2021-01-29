@@ -237,6 +237,7 @@ parse_options(int argc, char **argv) {
 								rp->ai_addr) ==
 				      ISC_R_SUCCESS);
 		}
+		freeaddrinfo(result);
 	}
 
 	{
@@ -255,6 +256,7 @@ parse_options(int argc, char **argv) {
 					      &sockaddr_remote, rp->ai_addr) ==
 				      ISC_R_SUCCESS);
 		}
+		freeaddrinfo(result);
 	}
 
 	isc_sockaddr_format(&sockaddr_local, buf, sizeof(buf));
