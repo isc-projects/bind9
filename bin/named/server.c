@@ -4400,6 +4400,23 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "stale-answer-client-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isstring(obj)) {
+		/*
+		 * The only string values available for this option
+		 * are "disabled" and "off".
+		 * We use (uint32_t) -1 to represent disabled since
+		 * a value of zero means that stale data can be used
+		 * to promptly answer the query, while an attempt to
+		 * refresh the RRset will still be made in background.
+		 */
+		view->staleanswerclienttimeout = (uint32_t)-1;
+	} else {
+		view->staleanswerclienttimeout = cfg_obj_asuint32(obj);
+	}
+
+	obj = NULL;
 	result = named_config_get(maps, "stale-refresh-time", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	stale_refresh_time = cfg_obj_asduration(obj);
@@ -4687,6 +4704,27 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	INSIST(result == ISC_R_SUCCESS);
 	query_timeout = cfg_obj_asuint32(obj);
 	dns_resolver_settimeout(view->resolver, query_timeout);
+
+	/*
+	 * Adjust stale-answer-client-timeout upper bound
+	 * to be resolver-query-timeout - 1s.
+	 * This assignment is safe as dns_resolver_settimeout()
+	 * ensures that resolver->querytimeout value will be in the
+	 * [MINIMUM_QUERY_TIMEOUT, MAXIMUM_QUERY_TIMEOUT] range and
+	 * MINIMUM_QUERY_TIMEOUT is > 1000 (in ms).
+	 */
+	if (view->staleanswerclienttimeout != (uint32_t)-1 &&
+	    view->staleanswerclienttimeout >
+		    (dns_resolver_gettimeout(view->resolver) - 1000))
+	{
+		view->staleanswerclienttimeout =
+			dns_resolver_gettimeout(view->resolver) - 1000;
+		isc_log_write(
+			named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			"stale-answer-client-timeout adjusted to %" PRIu32,
+			view->staleanswerclienttimeout);
+	}
 
 	/* Specify whether to use 0-TTL for negative response for SOA query */
 	dns_resolver_setzeronosoattl(view->resolver, zero_no_soattl);

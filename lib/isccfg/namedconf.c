@@ -1948,6 +1948,28 @@ static cfg_type_t cfg_type_dns64 = { "dns64",	    cfg_parse_netprefix_map,
 				     cfg_print_map, cfg_doc_map,
 				     &cfg_rep_map,  dns64_clausesets };
 
+static const char *staleanswerclienttimeout_enums[] = { "disabled", "off",
+							NULL };
+static isc_result_t
+parse_staleanswerclienttimeout(cfg_parser_t *pctx, const cfg_type_t *type,
+			       cfg_obj_t **ret) {
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_uint32, ret));
+}
+
+static void
+doc_staleanswerclienttimeout(cfg_printer_t *pctx, const cfg_type_t *type) {
+	cfg_doc_enum_or_other(pctx, type, &cfg_type_uint32);
+}
+
+static cfg_type_t cfg_type_staleanswerclienttimeout = {
+	"staleanswerclienttimeout",
+	parse_staleanswerclienttimeout,
+	cfg_print_ustring,
+	doc_staleanswerclienttimeout,
+	&cfg_rep_string,
+	staleanswerclienttimeout_enums
+};
+
 /*%
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -2076,6 +2098,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "servfail-ttl", &cfg_type_duration, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
+	{ "stale-answer-client-timeout", &cfg_type_staleanswerclienttimeout,
+	  0 },
 	{ "stale-answer-ttl", &cfg_type_duration, 0 },
 	{ "stale-cache-enable", &cfg_type_boolean, 0 },
 	{ "stale-refresh-time", &cfg_type_duration, 0 },

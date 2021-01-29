@@ -411,6 +411,7 @@ OPTIONS
   	sig-validity-interval integer [ integer ];
   	sortlist { address_match_element; ... };
   	stacksize ( default | unlimited | sizeval );
+  	stale-answer-client-timeout ( disabled | off | integer );
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
   	stale-cache-enable boolean;
@@ -796,6 +797,7 @@ VIEW
   	sig-signing-type integer;
   	sig-validity-interval integer [ integer ];
   	sortlist { address_match_element; ... };
+  	stale-answer-client-timeout ( disabled | off | integer );
   	stale-answer-enable boolean;
   	stale-answer-ttl duration;
   	stale-cache-enable boolean;
