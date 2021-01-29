@@ -2189,6 +2189,7 @@
 ./bin/tests/system/rrsetorder/setup.sh		SH	2018,2019,2020,2021
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012,2014,2015,2016,2018,2019,2020,2021
+./bin/tests/system/rsabigexponent/README.md	TXT.BRIEF	2021
 ./bin/tests/system/rsabigexponent/bigkey.c	C	2012,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/rsabigexponent/clean.sh	SH	2012,2014,2016,2018,2019,2020,2021
 ./bin/tests/system/rsabigexponent/conf/bad01.conf	CONF-C	2012,2016,2018,2019,2020,2021
