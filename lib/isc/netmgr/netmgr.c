@@ -38,10 +38,15 @@
 #include "openssl_shim.h"
 #include "uv-compat.h"
 
-#ifdef NETMGR_TRACE
+#if NETMGR_TRACE
+#if HAVE_BACKTRACE
 #include <execinfo.h>
-
-#endif
+#else /* HAVE_BACKTRACE */
+#define backtrace(buffer, size) 0
+#define backtrace_symbols_fd(buffer, size, fd) \
+	fprintf(stderr, "<not available>");
+#endif /* HAVE_BACKTRACE */
+#endif /* NETMGR_TRACE */
 
 /*%
  * How many isc_nmhandles and isc_nm_uvreqs will we be
@@ -908,8 +913,9 @@ isc___nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target FLARG) {
 		rsock = sock;
 	}
 
-	NETMGR_TRACE_LOG("isc__nmsocket_attach():%p->references = %lu\n", rsock,
-			 isc_refcount_current(&rsock->references) + 1);
+	NETMGR_TRACE_LOG("isc__nmsocket_attach():%p->references = %" PRIuFAST32
+			 "\n",
+			 rsock, isc_refcount_current(&rsock->references) + 1);
 
 	isc_refcount_increment0(&rsock->references);
 
@@ -927,8 +933,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nmsocket_active(sock));
 
-	NETMGR_TRACE_LOG("nmsocket_cleanup():%p->references = %lu\n", sock,
-			 isc_refcount_current(&sock->references));
+	NETMGR_TRACE_LOG("nmsocket_cleanup():%p->references = %" PRIuFAST32
+			 "\n",
+			 sock, isc_refcount_current(&sock->references));
 
 	atomic_store(&sock->destroying, true);
 
@@ -1076,7 +1083,8 @@ void
 isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	REQUIRE(sock->parent == NULL);
 
-	NETMGR_TRACE_LOG("isc___nmsocket_prep_destroy():%p->references = %lu\n",
+	NETMGR_TRACE_LOG("isc___nmsocket_prep_destroy():%p->references = "
+			 "%" PRIuFAST32 "\n",
 			 sock, isc_refcount_current(&sock->references));
 
 	/*
@@ -1149,8 +1157,9 @@ isc___nmsocket_detach(isc_nmsocket_t **sockp FLARG) {
 		rsock = sock;
 	}
 
-	NETMGR_TRACE_LOG("isc__nmsocket_detach():%p->references = %lu\n", rsock,
-			 isc_refcount_current(&rsock->references) - 1);
+	NETMGR_TRACE_LOG("isc__nmsocket_detach():%p->references = %" PRIuFAST32
+			 "\n",
+			 rsock, isc_refcount_current(&rsock->references) - 1);
 
 	if (isc_refcount_decrement(&rsock->references) == 1) {
 		isc___nmsocket_prep_destroy(rsock FLARG_PASS);
@@ -1191,7 +1200,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 				  .inactivereqs = isc_astack_new(
 					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
 
-#ifdef NETMGR_TRACE
+#if NETMGR_TRACE
 	sock->backtrace_size = backtrace(sock->backtrace, TRACE_SIZE);
 	ISC_LINK_INIT(sock, active_link);
 	ISC_LIST_INIT(sock->active_handles);
@@ -1249,8 +1258,9 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 
 	memset(&sock->tlsstream, 0, sizeof(sock->tlsstream));
 
-	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %lu\n", sock,
-			 isc_refcount_current(&sock->references));
+	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
+			 "\n",
+			 sock, isc_refcount_current(&sock->references));
 
 	atomic_init(&sock->active, true);
 	atomic_init(&sock->sequential, false);
@@ -1332,12 +1342,13 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		INSIST(VALID_NMHANDLE(handle));
 	}
 
-	NETMGR_TRACE_LOG("isc__nmhandle_get():handle %p->references = %lu\n",
-			 handle, isc_refcount_current(&handle->references));
+	NETMGR_TRACE_LOG(
+		"isc__nmhandle_get():handle %p->references = %" PRIuFAST32 "\n",
+		handle, isc_refcount_current(&handle->references));
 
 	isc___nmsocket_attach(sock, &handle->sock FLARG_PASS);
 
-#ifdef NETMGR_TRACE
+#if NETMGR_TRACE
 	handle->backtrace_size = backtrace(handle->backtrace, TRACE_SIZE);
 #endif
 
@@ -1415,7 +1426,8 @@ isc__nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **handlep FLARG) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(handlep != NULL && *handlep == NULL);
 
-	NETMGR_TRACE_LOG("isc__nmhandle_attach():handle %p->references = %lu\n",
+	NETMGR_TRACE_LOG("isc__nmhandle_attach():handle %p->references = "
+			 "%" PRIuFAST32 "\n",
 			 handle, isc_refcount_current(&handle->references) + 1);
 
 	isc_refcount_increment(&handle->references);
@@ -1519,7 +1531,8 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	handle = *handlep;
 	*handlep = NULL;
 
-	NETMGR_TRACE_LOG("isc__nmhandle_detach():%p->references = %lu\n",
+	NETMGR_TRACE_LOG("isc__nmhandle_detach():%p->references = %" PRIuFAST32
+			 "\n",
 			 handle, isc_refcount_current(&handle->references) - 1);
 
 	if (isc_refcount_decrement(&handle->references) > 1) {
@@ -2831,7 +2844,7 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 
 static void
 nmhandle_dump(isc_nmhandle_t *handle) {
-	fprintf(stderr, "Active handle %p, refs %lu\n", handle,
+	fprintf(stderr, "Active handle %p, refs %" PRIuFAST32 "\n", handle,
 		isc_refcount_current(&handle->references));
 	fprintf(stderr, "Created by:\n");
 	backtrace_symbols_fd(handle->backtrace, handle->backtrace_size,
@@ -2845,17 +2858,18 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 
 	LOCK(&sock->lock);
 	fprintf(stderr, "\n=================\n");
-	fprintf(stderr, "Active %s socket %p, type %s, refs %lu\n",
-		sock->client ? "client" : "server", sock,
+	fprintf(stderr, "Active %s socket %p, type %s, refs %" PRIuFAST32 "\n",
+		atomic_load(&sock->client) ? "client" : "server", sock,
 		nmsocket_type_totext(sock->type),
 		isc_refcount_current(&sock->references));
 	fprintf(stderr,
 		"Parent %p, listener %p, server %p, statichandle = %p\n",
 		sock->parent, sock->listener, sock->server, sock->statichandle);
-	fprintf(stderr, "Flags:%s%s%s%s%s\n", sock->active ? " active" : "",
-		sock->closing ? " closing" : "",
-		sock->destroying ? " destroying" : "",
-		sock->connecting ? " connecting" : "",
+	fprintf(stderr, "Flags:%s%s%s%s%s\n",
+		atomic_load(&sock->active) ? " active" : "",
+		atomic_load(&sock->closing) ? " closing" : "",
+		atomic_load(&sock->destroying) ? " destroying" : "",
+		atomic_load(&sock->connecting) ? " connecting" : "",
 		sock->accepting ? " accepting" : "");
 	fprintf(stderr, "Created by:\n");
 	backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
