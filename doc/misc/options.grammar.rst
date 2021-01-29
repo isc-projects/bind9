@@ -14,7 +14,7 @@
   	allow-update-forwarding { <address_match_element>; ... };
   	also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> |
   	    <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
-  	    <integer> ] ) [ key <string> ]; ... };
+  	    <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
   	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
   	    ] [ dscp <integer> ];
   	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
@@ -32,8 +32,9 @@
   	catalog-zones { zone <string> [ default-masters [ port <integer> ]
   	    [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port
   	    <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
-  	    <string> ]; ... } ] [ zone-directory <quoted_string> ] [
-  	    in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
+  	    <string> ] [ tls <string> ]; ... } ] [ zone-directory
+  	    <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval
+  	    <duration> ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity <boolean>;
   	check-mx ( fail | warn | ignore );

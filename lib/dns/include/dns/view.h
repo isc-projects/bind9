@@ -73,6 +73,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
 #include <dns/rrl.h>
+#include <dns/transport.h>
 #include <dns/types.h>
 #include <dns/zt.h>
 
@@ -111,6 +112,7 @@ struct dns_view {
 	bool	     cacheshared;
 
 	/* Configurable data. */
+	dns_transport_list_t *transports;
 	dns_tsig_keyring_t *  statickeys;
 	dns_tsig_keyring_t *  dynamickeys;
 	dns_peerlist_t *      peers;
@@ -453,6 +455,9 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints);
  *
  * \li    	The hints database of 'view' is 'hints'.
  */
+
+void
+dns_view_settransports(dns_view_t *view, dns_transport_list_t *list);
 
 void
 dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
@@ -816,6 +821,10 @@ dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_allloaded_t callback,
  *
  *\li	'view' is valid.
  */
+
+isc_result_t
+dns_view_gettransport(dns_view_t *view, const dns_transport_type_t type,
+		      const dns_name_t *name, dns_transport_t **transportp);
 
 isc_result_t
 dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,

@@ -1,3 +1,10 @@
+5574.	[func]		Incoming zone transfers can now use TLS.
+			Addresses in a "primaries" list take an optional
+			"tls" argument, specifying either a previously
+			configured "tls" block or "ephemeral"; SOA queries
+			and zone transfer requests will then be sent via
+			TLS. [GL #2392]
+
 5573.	[func]		Also return stale data if an error occurred and we are
 			not resuming. Only start the stale-refresh-time window
 			if we timed out. [GL #2434]

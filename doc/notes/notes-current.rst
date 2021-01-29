@@ -47,6 +47,11 @@ New Features
   case, we will try to answer DNS requests with stale data, but not start
   the ``stale-refresh-time`` window. [GL #2434]
 
+- ``named`` now supports XFR-over-TLS (XoT) for incoming as well as
+  outgoing zone transfers.  Addresses in a ``primaries`` list can take
+  an optional ``tls`` option which specifies either a previously configured
+  ``tls`` statement or ``ephemeral``. [GL #2392]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

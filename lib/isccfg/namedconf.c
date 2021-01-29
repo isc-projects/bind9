@@ -193,6 +193,7 @@ static cfg_type_t cfg_type_primaries = { "primaries",	  cfg_parse_tuple,
 static cfg_tuplefielddef_t namesockaddrkey_fields[] = {
 	{ "primarieselement", &cfg_type_primarieselement, 0 },
 	{ "key", &cfg_type_optional_keyref, 0 },
+	{ "tls", &cfg_type_optional_tls, 0 },
 	{ NULL, NULL, 0 },
 };
 
@@ -3832,6 +3833,10 @@ static cfg_type_t cfg_type_sslprotos = {
 static cfg_clausedef_t tls_clauses[] = {
 	{ "key-file", &cfg_type_qstring, 0 },
 	{ "cert-file", &cfg_type_qstring, 0 },
+	{ "ca-file", &cfg_type_qstring, 0 },
+	{ "hostname", &cfg_type_qstring, 0 },
+	/* { "trusted-cert-file", &cfg_type_qstring, *
+	   CFG_CLAUSEFLAG_EXPERIMENTAL}, */
 	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },

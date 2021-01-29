@@ -236,6 +236,9 @@
     <ClCompile Include="..\tkey.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\transport.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\tsec.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -581,6 +584,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\tkey.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\transport.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\tsec.h">
