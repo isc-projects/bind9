@@ -205,7 +205,7 @@ typedef struct rdatasetheader {
 	rbtdb_rdatatype_t type;
 	atomic_uint_least16_t attributes;
 	dns_trust_t trust;
-	isc_stdtime_t last_refresh_fail_ts;
+	atomic_uint_fast32_t last_refresh_fail_ts;
 	struct noqname *noqname;
 	struct noqname *closest;
 	unsigned int is_mmapped	      : 1;
@@ -1487,6 +1487,7 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	h->next_is_relative = 0;
 	h->node_is_relative = 0;
 	atomic_init(&h->attributes, 0);
+	atomic_init(&h->last_refresh_fail_ts, 0);
 
 #ifndef ISC_MUTEX_ATOMICS
 	STATIC_ASSERT((sizeof(h->attributes) == 2),
@@ -4571,11 +4572,14 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 			 * failed.
 			 */
 			if ((search->options & DNS_DBFIND_STALESTART) != 0) {
-				header->last_refresh_fail_ts = search->now;
+				atomic_store_release(
+					&header->last_refresh_fail_ts,
+					search->now);
 			} else if ((search->options &
 				    DNS_DBFIND_STALEENABLED) != 0 &&
 				   search->now <
-					   (header->last_refresh_fail_ts +
+					   (atomic_load_acquire(
+						    &header->last_refresh_fail_ts) +
 					    search->rbtdb->serve_stale_refresh))
 			{
 				/*
