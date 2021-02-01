@@ -10005,7 +10005,7 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((rcode == dns_rcode_formerr) &&
+	if ((rcode == dns_rcode_formerr) && rctx->opt == NULL &&
 	    (rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0)
 	{
 		/*
