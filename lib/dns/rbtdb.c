@@ -1319,7 +1319,6 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 static inline rbtdb_version_t *
 allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 		 unsigned int references, bool writer) {
-	isc_result_t result;
 	rbtdb_version_t *version;
 	size_t size;
 
@@ -1327,13 +1326,7 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 	version->serial = serial;
 
 	isc_refcount_init(&version->references, references);
-
-	result = isc_rwlock_init(&version->glue_rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		isc_refcount_destroy(&version->references);
-		isc_mem_put(mctx, version, sizeof(*version));
-		return (NULL);
-	}
+	isc_rwlock_init(&version->glue_rwlock, 0, 0);
 
 	version->glue_table_bits = RBTDB_GLUE_TABLE_INIT_BITS;
 	version->glue_table_nodecount = 0U;
@@ -1354,7 +1347,7 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 
 static isc_result_t
 newversion(dns_db_t *db, dns_dbversion_t **versionp) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	rbtdb_version_t *version;
 
@@ -1366,48 +1359,31 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	RUNTIME_CHECK(rbtdb->next_serial != 0); /* XXX Error? */
 	version = allocate_version(rbtdb->common.mctx, rbtdb->next_serial, 1,
 				   true);
-	if (version != NULL) {
-		version->rbtdb = rbtdb;
-		version->commit_ok = true;
-		version->secure = rbtdb->current_version->secure;
-		version->havensec3 = rbtdb->current_version->havensec3;
-		if (version->havensec3) {
-			version->flags = rbtdb->current_version->flags;
-			version->iterations =
-				rbtdb->current_version->iterations;
-			version->hash = rbtdb->current_version->hash;
-			version->salt_length =
-				rbtdb->current_version->salt_length;
-			memmove(version->salt, rbtdb->current_version->salt,
-				version->salt_length);
-		} else {
-			version->flags = 0;
-			version->iterations = 0;
-			version->hash = 0;
-			version->salt_length = 0;
-			memset(version->salt, 0, sizeof(version->salt));
-		}
-		result = isc_rwlock_init(&version->rwlock, 0, 0);
-		if (result != ISC_R_SUCCESS) {
-			free_gluetable(version);
-			isc_rwlock_destroy(&version->glue_rwlock);
-			isc_refcount_destroy(&version->references);
-			isc_mem_put(rbtdb->common.mctx, version,
-				    sizeof(*version));
-			version = NULL;
-		} else {
-			RWLOCK(&rbtdb->current_version->rwlock,
-			       isc_rwlocktype_read);
-			version->records = rbtdb->current_version->records;
-			version->xfrsize = rbtdb->current_version->xfrsize;
-			RWUNLOCK(&rbtdb->current_version->rwlock,
-				 isc_rwlocktype_read);
-			rbtdb->next_serial++;
-			rbtdb->future_version = version;
-		}
+	version->rbtdb = rbtdb;
+	version->commit_ok = true;
+	version->secure = rbtdb->current_version->secure;
+	version->havensec3 = rbtdb->current_version->havensec3;
+	if (version->havensec3) {
+		version->flags = rbtdb->current_version->flags;
+		version->iterations = rbtdb->current_version->iterations;
+		version->hash = rbtdb->current_version->hash;
+		version->salt_length = rbtdb->current_version->salt_length;
+		memmove(version->salt, rbtdb->current_version->salt,
+			version->salt_length);
 	} else {
-		result = ISC_R_NOMEMORY;
+		version->flags = 0;
+		version->iterations = 0;
+		version->hash = 0;
+		version->salt_length = 0;
+		memset(version->salt, 0, sizeof(version->salt));
 	}
+	isc_rwlock_init(&version->rwlock, 0, 0);
+	RWLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_read);
+	version->records = rbtdb->current_version->records;
+	version->xfrsize = rbtdb->current_version->xfrsize;
+	RWUNLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_read);
+	rbtdb->next_serial++;
+	rbtdb->future_version = version;
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	if (version == NULL) {
@@ -8598,15 +8574,9 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	ISC_LIST_INIT(rbtdb->common.update_listeners);
 
-	result = RBTDB_INITLOCK(&rbtdb->lock);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rbtdb;
-	}
+	RBTDB_INITLOCK(&rbtdb->lock);
 
-	result = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_lock;
-	}
+	isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
 
 	/*
 	 * Initialize node_lock_count in a generic way to support future
@@ -8676,18 +8646,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->active = rbtdb->node_lock_count;
 
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
-		result = NODE_INITLOCK(&rbtdb->node_locks[i].lock);
-		if (result == ISC_R_SUCCESS) {
-			isc_refcount_init(&rbtdb->node_locks[i].references, 0);
-		}
-		if (result != ISC_R_SUCCESS) {
-			while (i-- > 0) {
-				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
-				isc_refcount_destroy(
-					&rbtdb->node_locks[i].references);
-			}
-			goto cleanup_deadnodes;
-		}
+		NODE_INITLOCK(&rbtdb->node_locks[i].lock);
+		isc_refcount_init(&rbtdb->node_locks[i].references, 0);
 		rbtdb->node_locks[i].exiting = false;
 	}
 
@@ -8799,11 +8759,6 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->least_serial = 1;
 	rbtdb->next_serial = 2;
 	rbtdb->current_version = allocate_version(mctx, 1, 1, false);
-	if (rbtdb->current_version == NULL) {
-		isc_refcount_decrementz(&rbtdb->references);
-		free_rbtdb(rbtdb, false, NULL);
-		return (ISC_R_NOMEMORY);
-	}
 	rbtdb->current_version->rbtdb = rbtdb;
 	rbtdb->current_version->secure = dns_db_insecure;
 	rbtdb->current_version->havensec3 = false;
@@ -8813,19 +8768,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->current_version->salt_length = 0;
 	memset(rbtdb->current_version->salt, 0,
 	       sizeof(rbtdb->current_version->salt));
-	result = isc_rwlock_init(&rbtdb->current_version->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		free_gluetable(rbtdb->current_version);
-		isc_rwlock_destroy(&rbtdb->current_version->glue_rwlock);
-		isc_refcount_destroy(&rbtdb->current_version->references);
-		isc_mem_put(mctx, rbtdb->current_version,
-			    sizeof(*rbtdb->current_version));
-		rbtdb->current_version = NULL;
-		isc_refcount_decrementz(&rbtdb->references);
-		free_rbtdb(rbtdb, false, NULL);
-		return (result);
-	}
-
+	isc_rwlock_init(&rbtdb->current_version->rwlock, 0, 0);
 	rbtdb->current_version->records = 0;
 	rbtdb->current_version->xfrsize = 0;
 	rbtdb->future_version = NULL;
@@ -8842,10 +8785,6 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	*dbp = (dns_db_t *)rbtdb;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_deadnodes:
-	isc_mem_put(mctx, rbtdb->deadnodes,
-		    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
 
 cleanup_heaps:
 	if (rbtdb->heaps != NULL) {
@@ -8873,11 +8812,7 @@ cleanup_node_locks:
 
 cleanup_tree_lock:
 	isc_rwlock_destroy(&rbtdb->tree_lock);
-
-cleanup_lock:
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
-
-cleanup_rbtdb:
 	isc_mem_put(mctx, rbtdb, sizeof(*rbtdb));
 	return (result);
 }
