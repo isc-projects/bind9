@@ -1,3 +1,9 @@
+5579.	[bug]		If an invalid key name (e.g. "a..b") is
+			specified in an primaries list in named.conf
+			the wrong size is passed to isc_mem_put
+			resulting in the returned memory being put
+			on the wrong freed list. [GL #2460]
+
 5578.	[protocol]	Make "check-names" accept A records below "_spf",
 			"_spf_rate" and "_spf_verify" labels in order to cater
 			for the "exists" SPF mechanism specified in RFC 7208
