@@ -529,10 +529,11 @@ keymgr_desiredstate(dns_dnsseckey_t *key, dst_key_state_t state) {
  */
 static bool
 keymgr_key_match_state(dst_key_t *key, dst_key_t *subject, int type,
-		       dst_key_state_t next_state, dst_key_state_t states[4]) {
+		       dst_key_state_t next_state,
+		       dst_key_state_t states[NUM_KEYSTATES]) {
 	REQUIRE(key != NULL);
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < NUM_KEYSTATES; i++) {
 		dst_key_state_t state;
 		if (states[i] == NA) {
 			continue;
@@ -638,8 +639,8 @@ keymgr_key_is_successor(dst_key_t *x, dst_key_t *z, dst_key_t *key, int type,
 	 * removed and moves into the same state as key x. Key y now directly
 	 * depends on key z, and key z will be a new successor key for x.
 	 */
-	dst_key_state_t zst[4] = { NA, NA, NA, NA };
-	for (int i = 0; i < 4; i++) {
+	dst_key_state_t zst[NUM_KEYSTATES] = { NA, NA, NA, NA };
+	for (int i = 0; i < NUM_KEYSTATES; i++) {
 		dst_key_state_t state;
 		if (dst_key_getstate(z, i, &state) != ISC_R_SUCCESS) {
 			continue;
@@ -689,9 +690,9 @@ keymgr_key_is_successor(dst_key_t *x, dst_key_t *z, dst_key_t *key, int type,
 static bool
 keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			     int type, dst_key_state_t next_state,
-			     dst_key_state_t states[4],
-			     dst_key_state_t states2[4], bool check_successor,
-			     bool match_algorithms) {
+			     dst_key_state_t states[NUM_KEYSTATES],
+			     dst_key_state_t states2[NUM_KEYSTATES],
+			     bool check_successor, bool match_algorithms) {
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
@@ -770,10 +771,12 @@ static bool
 keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			    int type, dst_key_state_t next_state,
 			    bool match_algorithms, bool must_be_hidden) {
-	dst_key_state_t dnskey_chained[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					      NA };	       /* (3e) */
-	dst_key_state_t ds_hidden[4] = { NA, NA, NA, HIDDEN }; /* (3e) */
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* (3e) */
+	dst_key_state_t dnskey_chained[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+							  OMNIPRESENT, NA };
+	dst_key_state_t ds_hidden[NUM_KEYSTATES] = { NA, NA, NA, HIDDEN };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
@@ -835,10 +838,12 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 				dns_dnsseckey_t *key, int type,
 				dst_key_state_t next_state,
 				bool match_algorithms) {
-	dst_key_state_t rrsig_chained[4] = { OMNIPRESENT, OMNIPRESENT, NA,
-					     NA };		   /* (3i) */
-	dst_key_state_t dnskey_hidden[4] = { HIDDEN, NA, NA, NA }; /* (3i) */
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* (3i) */
+	dst_key_state_t rrsig_chained[NUM_KEYSTATES] = { OMNIPRESENT,
+							 OMNIPRESENT, NA, NA };
+	dst_key_state_t dnskey_hidden[NUM_KEYSTATES] = { HIDDEN, NA, NA, NA };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
@@ -881,12 +886,14 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 static bool
 keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 	       dst_key_state_t next_state, bool secure_to_insecure) {
-	dst_key_state_t states[2][4] = {
+	/* (3a) */
+	dst_key_state_t states[2][NUM_KEYSTATES] = {
 		/* DNSKEY, ZRRSIG, KRRSIG, DS */
 		{ NA, NA, NA, OMNIPRESENT }, /* DS present */
 		{ NA, NA, NA, RUMOURED }     /* DS introducing */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	/*
 	 * Equation (3a):
@@ -909,7 +916,7 @@ keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 static bool
 keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		   dst_key_state_t next_state) {
-	dst_key_state_t states[9][4] = {
+	dst_key_state_t states[9][NUM_KEYSTATES] = {
 		/* DNSKEY,     ZRRSIG, KRRSIG,      DS */
 		{ OMNIPRESENT, NA, OMNIPRESENT, OMNIPRESENT }, /* (3b) */
 
@@ -923,7 +930,8 @@ keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		{ OMNIPRESENT, NA, RUMOURED, OMNIPRESENT },    /* (3d)s */
 		{ RUMOURED, NA, OMNIPRESENT, OMNIPRESENT },    /* (3d)s */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	return (
 		/*
@@ -1000,7 +1008,7 @@ keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 static bool
 keymgr_have_rrsig(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		  dst_key_state_t next_state) {
-	dst_key_state_t states[11][4] = {
+	dst_key_state_t states[11][NUM_KEYSTATES] = {
 		/* DNSKEY,     ZRRSIG,      KRRSIG, DS */
 		{ OMNIPRESENT, OMNIPRESENT, NA, NA }, /* (3f) */
 		{ UNRETENTIVE, OMNIPRESENT, NA, NA }, /* (3g)p */
@@ -1008,7 +1016,8 @@ keymgr_have_rrsig(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		{ OMNIPRESENT, UNRETENTIVE, NA, NA }, /* (3h)p */
 		{ OMNIPRESENT, RUMOURED, NA, NA },    /* (3h)s */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	return (
 		/*
@@ -1066,15 +1075,20 @@ static bool
 keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		       int type, dst_key_state_t next) {
 	dst_key_state_t dnskeystate = HIDDEN;
-	dst_key_state_t ksk_present[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					   OMNIPRESENT };
-	dst_key_state_t ds_rumoured[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					   RUMOURED };
-	dst_key_state_t ds_retired[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					  UNRETENTIVE };
-	dst_key_state_t ksk_rumoured[4] = { RUMOURED, NA, NA, OMNIPRESENT };
-	dst_key_state_t ksk_retired[4] = { UNRETENTIVE, NA, NA, OMNIPRESENT };
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	dst_key_state_t ksk_present[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						       OMNIPRESENT,
+						       OMNIPRESENT };
+	dst_key_state_t ds_rumoured[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						       OMNIPRESENT, RUMOURED };
+	dst_key_state_t ds_retired[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						      OMNIPRESENT,
+						      UNRETENTIVE };
+	dst_key_state_t ksk_rumoured[NUM_KEYSTATES] = { RUMOURED, NA, NA,
+							OMNIPRESENT };
+	dst_key_state_t ksk_retired[NUM_KEYSTATES] = { UNRETENTIVE, NA, NA,
+						       OMNIPRESENT };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	if (next != RUMOURED) {
 		/*
