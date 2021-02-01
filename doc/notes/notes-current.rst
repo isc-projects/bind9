@@ -49,12 +49,20 @@ Feature Changes
 
 - DNS over HTTPS support can be disabled at the compile time via the new
   configuration option ``--disable-doh``.  This allows BIND 9 to be
-  compiled without libnghttp2 library. [GL #2478]
+  compiled without libnghttp2 library. :gl:`#2478`
 
 - Memory allocation has been substantially refactored, and is now based on
   the memory allocation API provided by the `jemalloc` library on platforms
   where it is available. This library is now recommended for building BIND 9.
   :gl:`#2433`
+
+- Previously, named accepted FORMERR responses both with and without
+  an OPT record, as an indication that a given server did not support
+  EDNS. To implement full compliance with RFC 6891, only FORMERR
+  responses without an OPT record are now accepted. This intentionally
+  breaks communication with servers that do not support EDNS and
+  that incorrectly echo back the query message with the RCODE field
+  set to FORMERR and the QR bit set to 1. :gl:`#2249`
 
 Bug Fixes
 ~~~~~~~~~
