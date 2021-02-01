@@ -635,7 +635,7 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
 				   0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, *namep, sizeof(*namep));
+		isc_mem_put(mctx, *namep, sizeof(**namep));
 		*namep = NULL;
 		return (result);
 	}
