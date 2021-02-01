@@ -10562,23 +10562,10 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 
 #if USE_ALGLOCK
-	result = isc_rwlock_init(&res->alglock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_spillattimer;
-	}
+	isc_rwlock_init(&res->alglock, 0, 0);
 #endif /* if USE_ALGLOCK */
 #if USE_MBSLOCK
-	result = isc_rwlock_init(&res->mbslock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-#if USE_ALGLOCK
-	{
-		goto cleanup_alglock;
-	}
-#else  /* if USE_ALGLOCK */
-	{
-		goto cleanup_spillattimer;
-	}
-#endif /* if USE_ALGLOCK */
+	isc_rwlock_init(&res->mbslock, 0, 0);
 #endif /* if USE_MBSLOCK */
 
 	res->magic = RES_MAGIC;
@@ -10586,16 +10573,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
-
-#if USE_ALGLOCK && USE_MBSLOCK
-cleanup_alglock:
-	isc_rwlock_destroy(&res->alglock);
-#endif /* if USE_ALGLOCK && USE_MBSLOCK */
-
-#if USE_ALGLOCK || USE_MBSLOCK
-cleanup_spillattimer:
-	isc_timer_detach(&res->spillattimer);
-#endif /* if USE_ALGLOCK || USE_MBSLOCK */
 
 cleanup_primelock:
 	isc_mutex_destroy(&res->primelock);

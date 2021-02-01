@@ -105,7 +105,7 @@ main(int argc, char *argv[]) {
 	}
 	printf("%u workers\n", nworkers);
 
-	RUNTIME_CHECK(isc_rwlock_init(&lock, 5, 10) == ISC_R_SUCCESS);
+	isc_rwlock_init(&lock, 5, 10);
 
 	for (i = 0; i < nworkers; i++) {
 		snprintf(name, sizeof(name), "%02u", i);

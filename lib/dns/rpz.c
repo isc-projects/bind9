@@ -1452,18 +1452,14 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr, size_t rps_cstr_size,
 		  isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		  isc_timermgr_t *timermgr) {
 	dns_rpz_zones_t *zones;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(rpzsp != NULL && *rpzsp == NULL);
 
 	zones = isc_mem_get(mctx, sizeof(*zones));
 	memset(zones, 0, sizeof(*zones));
 
-	result = isc_rwlock_init(&zones->search_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rwlock;
-	}
-
+	isc_rwlock_init(&zones->search_lock, 0, 0);
 	isc_mutex_init(&zones->maint_lock);
 	isc_refcount_init(&zones->refs, 1);
 	isc_refcount_init(&zones->irefs, 1);
@@ -1506,12 +1502,8 @@ cleanup_rbt:
 	isc_refcount_destroy(&zones->irefs);
 	isc_refcount_decrementz(&zones->refs);
 	isc_refcount_destroy(&zones->refs);
-
 	isc_mutex_destroy(&zones->maint_lock);
-
 	isc_rwlock_destroy(&zones->search_lock);
-
-cleanup_rwlock:
 	isc_mem_put(mctx, zones, sizeof(*zones));
 
 	return (result);

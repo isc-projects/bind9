@@ -31,14 +31,13 @@
 #include <errno.h>
 #include <pthread.h>
 
-isc_result_t
+void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota) {
 	UNUSED(read_quota);
 	UNUSED(write_quota);
 	REQUIRE(pthread_rwlock_init(&rwl->rwlock, NULL) == 0);
 	atomic_init(&rwl->downgrade, false);
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -189,7 +188,7 @@ print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 #endif			/* ISC_RWLOCK_TRACE */
 
-isc_result_t
+void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota) {
 	REQUIRE(rwl != NULL);
@@ -221,8 +220,6 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	isc_condition_init(&rwl->writeable);
 
 	rwl->magic = RWLOCK_MAGIC;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

@@ -981,14 +981,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	zone->mctx = NULL;
 	isc_mem_attach(mctx, &zone->mctx);
-
 	isc_mutex_init(&zone->lock);
-
-	result = ZONEDB_INITLOCK(&zone->dblock);
-	if (result != ISC_R_SUCCESS) {
-		goto free_mutex;
-	}
-
+	ZONEDB_INITLOCK(&zone->dblock);
 	/* XXX MPA check that all elements are initialised */
 #ifdef DNS_ZONE_CHECKLOCK
 	zone->locked = false;
@@ -1164,12 +1158,8 @@ free_refs:
 	isc_refcount_decrement0(&zone->erefs);
 	isc_refcount_destroy(&zone->erefs);
 	isc_refcount_destroy(&zone->irefs);
-
 	ZONEDB_DESTROYLOCK(&zone->dblock);
-
-free_mutex:
 	isc_mutex_destroy(&zone->lock);
-
 	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
 	return (result);
 }
@@ -17894,19 +17884,13 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	memset(zmgr->unreachable, 0, sizeof(zmgr->unreachable));
-	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto free_mem;
-	}
+	isc_rwlock_init(&zmgr->rwlock, 0, 0);
 
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 
 	/* Unreachable lock. */
-	result = isc_rwlock_init(&zmgr->urlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto free_rwlock;
-	}
+	isc_rwlock_init(&zmgr->urlock, 0, 0);
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
@@ -17973,9 +17957,7 @@ free_task:
 	isc_task_detach(&zmgr->task);
 free_urlock:
 	isc_rwlock_destroy(&zmgr->urlock);
-free_rwlock:
 	isc_rwlock_destroy(&zmgr->rwlock);
-free_mem:
 	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
 	return (result);
