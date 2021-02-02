@@ -8,9 +8,6 @@ variables:
   CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
-  # VirtualBox driver needs to set build_dir to "/builds" in gitlab-runner.toml
-  KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
-
   GIT_DEPTH: 1
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 6
@@ -343,13 +340,6 @@ stages:
     expire_in: "1 day"
     untracked: true
     when: on_failure
-
-.kyua_report: &kyua_report_html |
-  kyua --logfile /dev/null report-html \
-       --force \
-       --results-file "$KYUA_RESULT" \
-       --results-filter "" \
-       --output kyua_html
 
 .windows_system_test: &windows_system_test_job
   stage: system
