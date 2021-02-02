@@ -1843,19 +1843,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				}
 
 				/*
-				 * This is possibly an active key created
-				 * outside dnssec-policy.  Initialize goal,
-				 * if not set.
-				 */
-				dst_key_state_t goal;
-				if (dst_key_getstate(dkey->key, DST_KEY_GOAL,
-						     &goal) != ISC_R_SUCCESS) {
-					dst_key_setstate(dkey->key,
-							 DST_KEY_GOAL,
-							 OMNIPRESENT);
-				}
-
-				/*
 				 * Save the matched key only if it is active
 				 * or desires to be active.
 				 */
