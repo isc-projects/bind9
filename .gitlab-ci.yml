@@ -371,6 +371,7 @@ stages:
   <<: *unit_test_common
   after_script:
     - *kyua_report_html
+    - for f in tsan.* ; do test -f "$f" && python3 util/parse_tsan.py "$f" ; done
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
