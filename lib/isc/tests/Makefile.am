@@ -20,6 +20,7 @@ TESTS =			\
 	buffer_test	\
 	counter_test	\
 	crc64_test	\
+	doh_test	\
 	errno_test	\
 	file_test	\
 	hash_test	\
@@ -44,13 +45,12 @@ TESTS =			\
 	symtab_test	\
 	task_test	\
 	taskpool_test	\
-	tcp_test	\
 	tcp_quota_test	\
+	tcp_test	\
 	tcpdns_test	\
-	tlsdns_test	\
-	doh_test	\
 	time_test	\
 	timer_test	\
+	tlsdns_test	\
 	udp_test
 
 check_PROGRAMS =	\

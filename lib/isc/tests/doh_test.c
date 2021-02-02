@@ -10,6 +10,7 @@
  */
 
 #if HAVE_CMOCKA
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -30,6 +31,7 @@
 #include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/os.h>
+#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
@@ -42,7 +44,6 @@
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
 #include "isctest.h"
-#include "tls_test_cert_key.h"
 
 #define MAX_NM 2
 
@@ -68,15 +69,10 @@ static unsigned int workers = 1;
 
 static bool reuse_supported = true;
 
-static atomic_bool POST = true;
+static atomic_bool POST = ATOMIC_VAR_INIT(true);
 
-static atomic_bool use_TLS = false;
+static atomic_bool use_TLS = ATOMIC_VAR_INIT(false);
 static SSL_CTX *server_ssl_ctx = NULL;
-
-static SSL_CTX *
-create_server_ssl_ctx(const char *key, const size_t key_size,
-		      const char *key_pass, const char *cert,
-		      const size_t cert_size);
 
 #define NSENDS	100
 #define NWRITES 10
@@ -183,21 +179,12 @@ _setup(void **state) {
 
 	signal(SIGPIPE, SIG_IGN);
 
-	server_ssl_ctx = create_server_ssl_ctx(
-		(const char *)TLS_test_key, sizeof(TLS_test_key), NULL,
-		(const char *)TLS_test_cert, sizeof(TLS_test_cert));
-
 	return (0);
 }
 
 static int
 _teardown(void **state) {
 	UNUSED(state);
-
-	if (server_ssl_ctx) {
-		SSL_CTX_free(server_ssl_ctx);
-		server_ssl_ctx = NULL;
-	}
 
 	isc_test_end();
 
@@ -256,6 +243,9 @@ nm_setup(void **state) {
 		assert_non_null(nm[i]);
 	}
 
+	server_ssl_ctx = NULL;
+	isc_tlsctx_createserver(NULL, NULL, &server_ssl_ctx);
+
 	*state = nm;
 
 	return (0);
@@ -270,6 +260,10 @@ nm_teardown(void **state) {
 		assert_null(nm[i]);
 	}
 	isc_mem_put(test_mctx, nm, MAX_NM * sizeof(nm[0]));
+
+	if (server_ssl_ctx) {
+		isc_tlsctx_free(&server_ssl_ctx);
+	}
 
 	return (0);
 }
@@ -299,136 +293,6 @@ sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 	snprintf(outbuf, outbuf_len, "%s://%s%s%s:%u%s",
 		 https ? "https" : "http", family == AF_INET ? "" : "[", saddr,
 		 family == AF_INET ? "" : "]", port, append ? append : "");
-}
-
-/* SSL utils */
-static bool
-ssl_ctx_add_privatekey(SSL_CTX *ctx, const void *key,
-		       const unsigned int key_size, const char *pass) {
-	BIO *key_bio = BIO_new_mem_buf(key, key_size);
-	bool res = false;
-	if (key_bio) {
-		RSA *rsa = PEM_read_bio_RSAPrivateKey(
-			key_bio, 0, 0, (void *)((uintptr_t)pass));
-		if (rsa) {
-			res = (1 == SSL_CTX_use_RSAPrivateKey(ctx, rsa))
-				      ? true
-				      : false;
-		}
-		RSA_free(rsa);
-		BIO_free_all(key_bio);
-	} else {
-		return false;
-	}
-
-	res = SSL_CTX_check_private_key(ctx) == 1 ? true : false;
-
-	return res;
-}
-
-static bool
-ssl_ctx_add_cert_chain(SSL_CTX *ctx, const void *cert,
-		       const unsigned int size) {
-	BIO *chain_bio = NULL;
-	STACK_OF(X509_INFO) *chain_stack = NULL;
-	size_t count = 0;
-	X509_INFO *ci = NULL;
-	bool res = true;
-
-	chain_bio = BIO_new_mem_buf(cert, size);
-	if (chain_bio == NULL) {
-		res = false;
-		goto exit;
-	}
-
-	/* read info into BIO */
-	chain_stack = PEM_X509_INFO_read_bio(chain_bio, NULL, NULL, NULL);
-	if (chain_stack == NULL) {
-		res = false;
-		goto exit;
-	}
-
-	count = sk_X509_INFO_num(chain_stack);
-	/* add certs */
-	for (size_t i = count; i > 0; i--) {
-		/* get the cert */
-		ci = sk_X509_INFO_value(chain_stack, i - 1);
-		if (ci == NULL) {
-			res = false;
-			goto exit;
-		}
-
-		/* add the cert */
-		if (SSL_CTX_add_extra_chain_cert(ctx, ci->x509) != 1) {
-			res = false;
-			goto exit;
-		}
-
-		/* use the first cert in chain by default */
-		if (i == 1) {
-			if (SSL_CTX_use_certificate(ctx, ci->x509) != 1) {
-				res = false;
-				goto exit;
-			}
-		}
-	}
-exit:
-	if (chain_stack) {
-		while ((ci = sk_X509_INFO_pop(chain_stack)) != NULL) {
-			X509_INFO_free(ci);
-		}
-		sk_X509_INFO_free(chain_stack);
-	}
-	if (chain_bio) {
-		BIO_free_all(chain_bio);
-	}
-	return res;
-}
-
-static SSL_CTX *
-create_server_ssl_ctx(const char *key, const size_t key_size,
-		      const char *key_pass, const char *cert,
-		      const size_t cert_size) {
-	SSL_CTX *ssl_ctx;
-	EC_KEY *ecdh;
-
-	ssl_ctx = SSL_CTX_new(SSLv23_server_method());
-	if (!ssl_ctx) {
-		fprintf(stderr, "Could not create SSL/TLS context: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		SSL_CTX_free(ssl_ctx);
-		return NULL;
-	}
-	/* >= TLSv1.2 */
-	SSL_CTX_set_options(
-		ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
-				 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 |
-				 SSL_OP_NO_COMPRESSION |
-				 SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
-
-	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-	if (!ecdh) {
-		fprintf(stderr, "EC_KEY_new_by_curv_name failed: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		SSL_CTX_free(ssl_ctx);
-		return NULL;
-	}
-	SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
-	EC_KEY_free(ecdh);
-
-	if (ssl_ctx_add_cert_chain(ssl_ctx, cert, cert_size) != true) {
-		fprintf(stderr, "Could not read certificate file\n");
-		SSL_CTX_free(ssl_ctx);
-		return NULL;
-	}
-
-	if (ssl_ctx_add_privatekey(ssl_ctx, key, key_size, key_pass) != true) {
-		fprintf(stderr, "Could not read private key\n");
-		SSL_CTX_free(ssl_ctx);
-		return NULL;
-	}
-
-	return ssl_ctx;
 }
 
 static void
@@ -510,6 +374,27 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			assert_int_equal(tcp_buffer_length, 0);
 		}
 	}
+}
+
+static void
+mock_doh_uv_tcp_bind(void **state) {
+	isc_nm_t **nm = (isc_nm_t **)*state;
+	isc_nm_t *listen_nm = nm[0];
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_sockaddr_t tcp_connect_addr;
+
+	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
+
+	WILL_RETURN(uv_tcp_bind, UV_EADDRINUSE);
+
+	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
+				   0, NULL, NULL, &listen_sock);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+	assert_null(listen_sock);
+
+	RESET_RETURN;
 }
 
 static void
@@ -900,11 +785,6 @@ doh_recv_send(void **state) {
 	isc_thread_t threads[32] = { 0 };
 	isc_sockaddr_t tcp_connect_addr;
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
-
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
@@ -980,11 +860,6 @@ doh_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 	isc_sockaddr_t tcp_connect_addr;
-
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
 
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
@@ -1067,11 +942,6 @@ doh_half_recv_send(void **state) {
 	isc_thread_t threads[32] = { 0 };
 	isc_sockaddr_t tcp_connect_addr;
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
-
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
@@ -1152,11 +1022,6 @@ doh_half_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 	isc_sockaddr_t tcp_connect_addr;
-
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
 
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
@@ -1727,6 +1592,7 @@ doh_base64_to_base64url(void **state) {
 		assert_true(res_len == 0);
 	}
 }
+
 /*
 static char wikipedia_org_A[] = { 0xae, 0x35, 0x01, 0x00, 0x00, 0x01, 0x00,
 				  0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x77,
@@ -1789,7 +1655,28 @@ doh_cloudflare_GET(void **state) {
 */
 int
 main(void) {
-	const struct CMUnitTest tests[] = {
+	const struct CMUnitTest tests_short[] = {
+		cmocka_unit_test_setup_teardown(mock_doh_uv_tcp_bind, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_parse_GET_query_string,
+						NULL, NULL),
+		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_noop_GET, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_noresponse_POST, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_noresponse_GET, nm_setup,
+						nm_teardown),
+	};
+
+	const struct CMUnitTest tests_long[] = {
+		cmocka_unit_test_setup_teardown(mock_doh_uv_tcp_bind, nm_setup,
+						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_parse_GET_query_string,
 						NULL, NULL),
 		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
@@ -1859,7 +1746,16 @@ main(void) {
 		nm_teardown)*/
 	};
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	UNUSED(tests_long);
+	return (cmocka_run_group_tests(tests_short, _setup, _teardown));
+#else
+	if (getenv("CI") != NULL || !reuse_supported) {
+		return (cmocka_run_group_tests(tests_short, _setup, _teardown));
+	} else {
+		return (cmocka_run_group_tests(tests_long, _setup, _teardown));
+	}
+#endif
 }
 
 #else /* HAVE_CMOCKA */

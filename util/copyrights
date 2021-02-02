@@ -1988,7 +1988,6 @@
 ./lib/isc/tests/testdata/file/keep		X	2014,2018,2019,2020,2021
 ./lib/isc/tests/time_test.c			C	2014,2015,2016,2018,2019,2020,2021
 ./lib/isc/tests/timer_test.c			C	2018,2019,2020,2021
-./lib/isc/tests/tls_test_cert_key.h		C	2021
 ./lib/isc/tests/tlsdns_test.c			C	2021
 ./lib/isc/tests/udp_test.c			C	2020,2021
 ./lib/isc/tests/uv_wrap.h			C	2020,2021

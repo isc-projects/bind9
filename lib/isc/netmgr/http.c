@@ -790,6 +790,10 @@ http2_do_bio(isc_nm_http2_session_t *session) {
 		 * this situation.
 		 */
 		sz = nghttp2_session_mem_send(session->ngsession, &data);
+		if (sz == 0) {
+			/* No data returned */
+			return;
+		}
 		INSIST(session->r.base == NULL);
 		session->r.base = isc_mem_get(session->mctx, sz);
 		session->r.length = sz;
