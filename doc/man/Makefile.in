@@ -152,6 +152,7 @@ SPHINXBUILD = @SPHINX_BUILD@
 SPHINXBUILDDIR = ${builddir}/_build
 
 common_SPHINXOPTS =		\
+	-W			\
 	-a			\
 	-v			\
 	-c "${abs_srcdir}"
