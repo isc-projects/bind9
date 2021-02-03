@@ -99,6 +99,7 @@ TESTS +=			\
 	dsdigest		\
 	dyndb			\
 	ecdsa			\
+	eddsa			\
 	ednscompliance		\
 	emptyzones		\
 	filter-aaaa		\
@@ -153,9 +154,6 @@ TESTS +=			\
 	xferquota		\
 	xot			\
 	zonechecks
-
-# eddsa test is broken
-# TESTS += eddsa
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
