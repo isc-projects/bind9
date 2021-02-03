@@ -108,7 +108,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "testing AXFR fallback after IXFR failure ($n)"
+echo_i "testing AXFR fallback after IXFR failure (not exact error) ($n)"
 ret=0
 
 # Provide a broken IXFR response and a working fallback AXFR response
@@ -139,6 +139,66 @@ $RNDCCMD 10.53.0.1 refresh nil | sed 's/^/ns1 /' | cat_i
 sleep 2
 
 $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'fallback AXFR' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "testing AXFR fallback after IXFR failure (bad SOA owner) ($n)"
+ret=0
+
+# Prepare for checking the logs later on.
+nextpart ns1/named.run >/dev/null
+
+# Provide a broken IXFR response and a working fallback AXFR response.
+sendcmd <<EOF
+/SOA/
+nil.      	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+/IXFR/
+nil.      	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+nil.      	300	SOA	ns.nil. root.nil. 3 300 300 604800 300
+bad-owner.    	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+test.nil.	300	TXT	"serial 4, malformed IXFR"
+nil.      	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+/AXFR/
+nil.      	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+/AXFR/
+nil.      	300	NS	ns.nil.
+test.nil.      	300	TXT	"serial 4, fallback AXFR"
+/AXFR/
+nil.      	300	SOA	ns.nil. root.nil. 4 300 300 604800 300
+EOF
+$RNDCCMD 10.53.0.1 refresh nil | sed 's/^/ns1 /' | cat_i
+
+# A broken server would accept the malformed IXFR and apply its contents to the
+# zone.  A fixed one would reject the IXFR and fall back to AXFR.  Both IXFR and
+# AXFR above bring the nil. zone up to serial 4, but we cannot reliably query
+# for the SOA record to check whether the transfer was finished because a broken
+# server would send back SERVFAIL responses to SOA queries after accepting the
+# malformed IXFR.  Instead, check transfer progress by querying for a TXT record
+# at test.nil. which is present in both IXFR and AXFR (with different contents).
+_wait_until_transfer_is_finished() {
+	$DIG $DIGOPTS +tries=1 +time=1 @10.53.0.1 test.nil. TXT > dig.out.test$n.1 &&
+	grep -q -F "serial 4" dig.out.test$n.1
+}
+if ! retry_quiet 10 _wait_until_transfer_is_finished; then
+	echo_i "timed out waiting for version 4 of zone nil. to be transferred"
+	ret=1
+fi
+
+# At this point a broken server would be serving a zone with no SOA records.
+# Try crashing it by triggering a SOA refresh query.
+$RNDCCMD 10.53.0.1 refresh nil | sed 's/^/ns1 /' | cat_i
+
+# Do not wait until the zone refresh completes - even if a crash has not
+# happened by now, a broken server would never serve the record which is only
+# present in the fallback AXFR, so checking for that is enough to verify if a
+# server is broken or not; if it is, it is bound to crash shortly anyway.
+$DIG $DIGOPTS test.nil. TXT @10.53.0.1 > dig.out.test$n.2 || ret=1
+grep -q -F "serial 4, fallback AXFR" dig.out.test$n.2 || ret=1
+
+# Ensure the expected error is logged.
+nextpart ns1/named.run | grep -q -F "SOA name mismatch" || ret=1
+
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
