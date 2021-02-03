@@ -1,3 +1,10 @@
+5615.	[security]	Insufficient IXFR checks could result in named serving a
+			zone without an SOA record at the apex, leading to a
+			RUNTIME_CHECK assertion failure when the zone was
+			subsequently refreshed. This has been fixed by adding an
+			owner name check for all SOA records which are included
+			in a zone transfer. (CVE-2021-25214) [GL #2467]
+
 5614.	[bug]		Ensure all resources are properly cleaned up when a call
 			to gss_accept_sec_context() fails. [GL #2620]
 
