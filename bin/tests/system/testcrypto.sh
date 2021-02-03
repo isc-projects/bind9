@@ -49,7 +49,7 @@ while test "$#" -gt 0; do
                 msg="EDDSA cryptography"
                 ;;
         ed448|ED448)
-                alg="-a ED25519"
+                alg="-a ED448"
                 msg="EDDSA cryptography"
                 ;;
         *)
