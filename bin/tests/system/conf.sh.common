@@ -668,6 +668,8 @@ copy_setports() {
     atsign="@"
     sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
         -e "s/${atsign}TLSPORT${atsign}/${TLSPORT}/g" \
+		-e "s/${atsign}HTTPPORT${atsign}/${HTTPSPORT}/g" \
+        -e "s/${atsign}HTTPSPORT${atsign}/${HTTPSPORT}/g" \
         -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
         -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
         -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \

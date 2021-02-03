@@ -66,6 +66,7 @@ ns_interfacemgr_shutdown
 ns_lib_init
 ns_lib_shutdown
 ns_listenelt_create
+ns_listenelt_create_http
 ns_listenelt_destroy
 ns_listenlist_attach
 ns_listenlist_create

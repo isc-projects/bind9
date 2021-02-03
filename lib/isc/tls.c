@@ -127,8 +127,10 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 #if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
 #else
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
-					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+	SSL_CTX_set_options(
+		ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 |
+			     SSL_OP_NO_TLSv1_1 | SSL_OP_NO_COMPRESSION |
+			     SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
 #endif
 
 	*ctxp = ctx;

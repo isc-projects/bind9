@@ -30,6 +30,7 @@
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/rwlock.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/thread.h>
@@ -155,6 +156,8 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define isc__nmsocket_prep_destroy(sock) isc___nmsocket_prep_destroy(sock)
 #endif
 
+typedef struct isc_nm_http2_session isc_nm_http2_session_t;
+
 /*
  * Single network event loop worker.
  */
@@ -207,6 +210,8 @@ struct isc_nmhandle {
 	isc_nmsocket_t *sock;
 	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
+	isc_nm_http2_session_t *httpsession;
+
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
@@ -252,6 +257,13 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnsclose,
 	netievent_tcpdnsstop,
 
+	netievent_tlsclose,
+	netievent_tlssend,
+	netievent_tlsstartread,
+	netievent_tlsconnect,
+	netievent_tlsdobio,
+	netievent_tlscancel,
+
 	netievent_tlsdnsaccept,
 	netievent_tlsdnsconnect,
 	netievent_tlsdnssend,
@@ -261,6 +273,10 @@ typedef enum isc__netievent_type {
 	netievent_tlsdnsstop,
 	netievent_tlsdnscycle,
 	netievent_tlsdnsshutdown,
+
+	netievent_httpstop,
+	netievent_httpsend,
+	netievent_httpclose,
 
 	netievent_close,
 	netievent_shutdown,
@@ -286,10 +302,21 @@ typedef enum isc__netievent_type {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
+	isc_nm_http_cb_t http;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
+
+typedef struct isc_nm_http2_server_handler isc_nm_http2_server_handler_t;
+
+struct isc_nm_http2_server_handler {
+	char *path;
+	isc_nm_http_cb_t cb;
+	void *cbarg;
+	size_t extrahandlesize;
+	LINK(isc_nm_http2_server_handler_t) link;
+};
 
 /*
  * Wrapper around uv_req_t with 'our' fields in it.  req->data should
@@ -642,8 +669,12 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tcplistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tcpdnssocket,
+	isc_nm_tlslistener,
+	isc_nm_tlssocket,
 	isc_nm_tlsdnslistener,
-	isc_nm_tlsdnssocket
+	isc_nm_tlsdnssocket,
+	isc_nm_httplistener,
+	isc_nm_httpstream
 } isc_nmsocket_type;
 
 /*%
@@ -670,12 +701,74 @@ enum {
 	STATID_ACTIVE = 10
 };
 
+typedef struct isc_nmsocket_tls_send_req {
+	isc_nmsocket_t *tlssock;
+	isc_region_t data;
+} isc_nmsocket_tls_send_req_t;
+
+typedef enum isc_doh_request_type {
+	ISC_HTTP_REQ_GET,
+	ISC_HTTP_REQ_POST,
+	ISC_HTTP_REQ_UNSUPPORTED
+} isc_http2_request_type_t;
+
+typedef enum isc_http2_scheme_type {
+	ISC_HTTP_SCHEME_HTTP,
+	ISC_HTTP_SCHEME_HTTP_SECURE,
+	ISC_HTTP_SCHEME_UNSUPPORTED
+} isc_http2_scheme_type_t;
+
+typedef struct isc_nm_http_doh_cbarg {
+	isc_nm_recv_cb_t cb;
+	void *cbarg;
+	LINK(struct isc_nm_http_doh_cbarg) link;
+} isc_nm_http_doh_cbarg_t;
+
+typedef struct isc_nmsocket_h2 {
+	isc_nmsocket_t *psock; /* owner of the structure */
+	char *request_path;
+	char *query_data;
+	size_t query_data_len;
+	bool query_too_large;
+	isc_nm_http2_server_handler_t *handler;
+
+	uint8_t *buf;
+	size_t bufsize;
+	size_t bufpos;
+
+	int32_t stream_id;
+	isc_nm_http2_session_t *session;
+
+	isc_nmsocket_t *httpserver;
+
+	isc_http2_request_type_t request_type;
+	isc_http2_scheme_type_t request_scheme;
+	size_t content_length;
+	bool content_type_verified;
+	bool accept_type_verified;
+
+	isc_nm_http_cb_t handler_cb;
+	void *handler_cbarg;
+	LINK(struct isc_nmsocket_h2) link;
+
+	ISC_LIST(isc_nm_http2_server_handler_t) handlers;
+	ISC_LIST(isc_nm_http_doh_cbarg_t) handlers_cbargs;
+	isc_rwlock_t handlers_lock;
+
+	char response_content_length_str[128];
+
+	struct isc_nmsocket_h2_connect_data {
+		char *uri;
+		bool post;
+	} connect;
+} isc_nmsocket_h2_t;
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
 	int tid;
 	isc_nmsocket_type type;
 	isc_nm_t *mgr;
+
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
 	/*% Listener socket this connection was accepted on */
@@ -705,6 +798,28 @@ struct isc_nmsocket {
 		isc__nm_uvreq_t *pending_req;
 	} tls;
 
+	/*% TLS stuff */
+	struct tlsstream {
+		bool server;
+		BIO *app_bio;
+		SSL *ssl;
+		SSL_CTX *ctx;
+		BIO *ssl_bio;
+		isc_nmsocket_t *tlslistener;
+		enum {
+			TLS_INIT,
+			TLS_HANDSHAKE,
+			TLS_IO,
+			TLS_ERROR,
+			TLS_CLOSING,
+			TLS_CLOSED
+		} state;
+		size_t nsending;
+		/* List of active send requests. */
+		ISC_LIST(isc__nm_uvreq_t) sends;
+	} tlsstream;
+
+	isc_nmsocket_h2_t h2;
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the
@@ -906,6 +1021,7 @@ struct isc_nmsocket {
 	void *accept_cbarg;
 
 	atomic_int_fast32_t active_child_connections;
+
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
@@ -1070,8 +1186,8 @@ isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
-isc__nm_udp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg);
+isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Back-end implementation of isc_nm_send() for UDP handles.
  */
@@ -1132,8 +1248,8 @@ isc__nm_async_udpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
-isc__nm_tcp_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
-		 void *cbarg);
+isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Back-end implementation of isc_nm_send() for TCP handles.
  */
@@ -1221,6 +1337,28 @@ isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
+isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsstartread(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_tlscancel(isc__networker_t *worker, isc__netievent_t *ev0);
+
+/*%<
+ * Callback handlers for asynchronouse TLS events.
+ */
+
+void
 isc__nm_async_tcpdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -1291,6 +1429,14 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_cancelread(isc_nmhandle_t *handle);
+
 /*%<
  * Back-end implementation of isc_nm_send() for TLSDNS handles.
  */
@@ -1343,6 +1489,71 @@ isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
 /*%<
  * Stop reading on a connected TLSDNS handle.
  */
+
+void
+isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_close(isc_nmsocket_t *sock);
+/*%<
+ * Close a TLS socket.
+ */
+
+void
+isc__nm_tls_pauseread(isc_nmhandle_t *handle);
+/*%<
+ * Pause reading on this handle, while still remembering the callback.
+ */
+
+void
+isc__nm_tls_resumeread(isc_nmhandle_t *handle);
+/*%<
+ * Resume reading from the handle.
+ *
+ */
+
+void
+isc__nm_tls_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_clear_handlers(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_clear_session(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		  isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_http_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+bool
+isc__nm_parse_doh_query_string(const char *query_string, const char **start,
+			       size_t *len);
+
+char *
+isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
+			    const size_t base64url_len, size_t *res_len);
+
+char *
+isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
+			    const size_t base64_len, size_t *res_len);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
@@ -1444,6 +1655,12 @@ NETIEVENT_SOCKET_TYPE(tcpclose);
 NETIEVENT_SOCKET_TYPE(tcplisten);
 NETIEVENT_SOCKET_TYPE(tcppauseread);
 NETIEVENT_SOCKET_TYPE(tcpstop);
+NETIEVENT_SOCKET_TYPE(tlsclose);
+/* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
+					  */
+NETIEVENT_SOCKET_TYPE(tlsdobio);
+NETIEVENT_SOCKET_TYPE(tlsstartread);
+NETIEVENT_SOCKET_HANDLE_TYPE(tlscancel);
 NETIEVENT_SOCKET_TYPE(udpclose);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpread);
@@ -1470,9 +1687,14 @@ NETIEVENT_SOCKET_HANDLE_TYPE(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
 NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 
+NETIEVENT_SOCKET_TYPE(httpstop);
+NETIEVENT_SOCKET_REQ_TYPE(httpsend);
+NETIEVENT_SOCKET_TYPE(httpclose);
+
 NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
 NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
 NETIEVENT_SOCKET_TYPE(tcpstartread);
+NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 NETIEVENT_SOCKET_REQ_TYPE(udpconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
@@ -1498,6 +1720,11 @@ NETIEVENT_SOCKET_DECL(tcplisten);
 NETIEVENT_SOCKET_DECL(tcppauseread);
 NETIEVENT_SOCKET_DECL(tcpstartread);
 NETIEVENT_SOCKET_DECL(tcpstop);
+NETIEVENT_SOCKET_DECL(tlsclose);
+NETIEVENT_SOCKET_DECL(tlsconnect);
+NETIEVENT_SOCKET_DECL(tlsdobio);
+NETIEVENT_SOCKET_DECL(tlsstartread);
+NETIEVENT_SOCKET_HANDLE_DECL(tlscancel);
 NETIEVENT_SOCKET_DECL(udpclose);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpread);
@@ -1524,8 +1751,13 @@ NETIEVENT_SOCKET_HANDLE_DECL(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
 NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
+NETIEVENT_SOCKET_DECL(httpstop);
+NETIEVENT_SOCKET_REQ_DECL(httpsend);
+NETIEVENT_SOCKET_DECL(httpclose);
+
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);
+NETIEVENT_SOCKET_REQ_DECL(tlssend);
 NETIEVENT_SOCKET_REQ_DECL(udpconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);

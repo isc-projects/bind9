@@ -221,6 +221,7 @@ my @substinc = ("GSSAPI_INC",
                 "IDN_INC",
                 "LIBXML2_INC",
                 "LIBUV_INC",
+                "NGHTTP2_INC",
                 "OPENSSL_INC",
                 "READLINE_INC",
                 "ZLIB_INC");
@@ -235,6 +236,7 @@ my @substlib = ("GSSAPI_LIB",
                 "KRB5_LIB",
                 "LIBXML2_LIB",
                 "LIBUV_LIB",
+                "NGHTTP2_LIB",
                 "OPENSSL_LIBCRYPTO",
                 "OPENSSL_LIBSSL",
                 "READLINE_LIB",
@@ -253,6 +255,7 @@ my @substdll = ("COMERR_DLL",
                 "K5SPRT_DLL",
                 "LIBXML2_DLL",
                 "LIBUV_DLL",
+                "NGHTTP2_DLL",
                 "OPENSSL_DLLCRYPTO",
                 "OPENSSL_DLLSSL",
                 "WSHELP_DLL",
@@ -341,6 +344,7 @@ my @withlist = ("aes",
                 "idn",
                 "openssl",
                 "libxml2",
+                "nghttp2",
                 "pkcs11",
                 "pssuspend",
                 "python",
@@ -389,6 +393,7 @@ my @help = (
 "  with-samples          build with sample programs\n",
 "  with-openssl[=PATH]   build with OpenSSL yes|path (mandatory)\n",
 "  with-libuv[=PATH]     build with libuv yes|path (mandatory)\n",
+"  with-nghttp2[=PATH]   build with nghttp2 yes|path (mandatory)\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
@@ -431,6 +436,8 @@ my $use_stests = "no";
 my $use_samples = "no";
 my $use_libuv = "auto";
 my $libuv_path = "../../";
+my $nghttp2_path = "../../";
+my $use_nghttp2 = "auto";
 my $use_openssl = "auto";
 my $openssl_path = "../../";
 my $use_pkcs11 = "no";
@@ -758,6 +765,13 @@ sub mywith {
             $use_libuv = "yes";
             $libuv_path = $val;
         }
+    } elsif ($key =~ /^nghttp2$/i) {
+        if ($val =~ /^no$/i) {
+            die "nghttp2 is required\n";
+        } elsif ($val !~ /^yes$/i) {
+            $use_nghttp2 = "yes";
+            $nghttp2_path = $val;
+        }
     } elsif ($key =~ /^pkcs11$/i) {
         if ($val =~ /^yes$/i) {
             $use_pkcs11 = "yes";
@@ -949,6 +963,7 @@ if ($verbose) {
         print "querytrace: disabled\n";
     }
     print "libuv-path: $libuv_path\n";
+    print "nghttp2-path: $nghttp2_path\n";
     print "openssl-path: $openssl_path\n";
     if ($use_tests eq "yes") {
         print "tests: enabled\n";
@@ -1325,6 +1340,63 @@ if ($use_libuv eq "yes") {
     # $configdefh{"HAVE_UV_HANDLE_SET_DATA"} = 1;
     # $configdefh{"HAVE_UV_HANDLE_GET_DATA"} = 1;
     # $configdefh{"HAVE_UV_IMPORT"} = 1;
+}
+
+# with-nghttp2
+if ($use_nghttp2 eq "auto") {
+    if ($verbose) {
+        print "checking for an nghttp2 built directory at sibling root\n";
+    }
+    opendir DIR, $nghttp2_path || die "No Directory: $!\n";
+    my @dirlist = grep (/^nghttp2-[0-9]+\.[0-9]+\.[0-9]+$/i, readdir(DIR));
+    closedir(DIR);
+
+    # Make sure we have something
+    if (scalar(@dirlist) == 0) {
+        die "can't find an nghttp2 at sibling root\n";
+    }
+    # Now see if we have a directory or just a file.
+    # Make sure we are case insensitive
+    my $file;
+    foreach $file (sort {uc($b) cmp uc($a)} @dirlist) {
+        if (-f File::Spec->catfile($nghttp2_path,
+                                   $file,
+                                   "include", "nghttp2", "nghttp2.h")) {
+            $nghttp2_path = File::Spec->catdir($nghttp2_path, $file);
+            $use_nghttp2 = "yes";
+            last;
+        }
+    }
+
+    # If we have one use it otherwise report the error
+    if ($use_nghttp2 eq "auto") {
+        die "can't find an nghttp2 built directory at sibling root\n";
+    }
+}
+
+if ($use_nghttp2 eq "yes") {
+    $nghttp2_path = File::Spec->rel2abs($nghttp2_path);
+    if ($verbose) {
+        print "checking for nghttp2 directory at \"$nghttp2_path\"\n";
+    }
+    if (!-f File::Spec->catfile($nghttp2_path,
+                                "include", "nghttp2", "nghttp2.h")) {
+        die "can't find nghttp2 nghttp2.h include\n";
+    }
+    my $nghttp2_inc = File::Spec->catdir($nghttp2_path, "include");
+    my $nghttp2_bindir = File::Spec->catdir($nghttp2_path, "bin");
+    my $nghttp2_libdir = File::Spec->catdir($nghttp2_path, "lib");
+    my $nghttp2_dll = File::Spec->catfile($nghttp2_bindir, "nghttp2.dll");
+    my $nghttp2_lib = File::Spec->catfile($nghttp2_libdir, "nghttp2.lib");
+    if (!-f $nghttp2_lib) {
+       die "can't find nghttp2.lib library\n";
+    }
+    if (!-f $nghttp2_dll) {
+       die "can't find nghttp2.dll library\n";
+    }
+    $configinc{"NGHTTP2_INC"} = "$nghttp2_inc";
+    $configlib{"NGHTTP2_LIB"} = "$nghttp2_lib";
+    $configdll{"NGHTTP2_DLL"} = "$nghttp2_dll";
 }
 
 # with-openssl
@@ -2433,6 +2505,7 @@ sub makeinstallfile {
     print LOUT "libdns.dll-BCFT\n";
     print LOUT "libirs.dll-BCFT\n";
     print LOUT "libns.dll-BCFT\n";
+    print LOUT "nghttp2.dll-BCFT\n";
     print LOUT "uv.dll-BCFT\n";
     if ($use_openssl eq "yes") {
         my $v;

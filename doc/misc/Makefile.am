@@ -37,7 +37,8 @@ OPTIONS_FILES =				\
 	tls.grammar.rst			\
 	trust-anchors.grammar.rst	\
 	managed-keys.grammar.rst	\
-	trusted-keys.grammar.rst
+	trusted-keys.grammar.rst	\
+	http.grammar.rst
 
 EXTRA_DIST =			\
 	$(OPTIONS_FILES)	\
@@ -174,5 +175,8 @@ managed-keys.grammar.rst: options.active
 
 trusted-keys.grammar.rst: options.active
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active trusted-keys > $@
+
+http.grammar.rst: options.active
+	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active http > $@
 
 endif

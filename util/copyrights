@@ -1887,6 +1887,7 @@
 ./lib/isc/include/isc/tls.h			C	2021
 ./lib/isc/include/isc/tm.h			C	2014,2016,2018,2019,2020,2021
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014,2016,2017,2018,2019,2020,2021
+./lib/isc/include/isc/url.h			C	2021
 ./lib/isc/include/isc/utf8.h			C	2020,2021
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2015,2016,2017,2018,2019,2020,2021
 ./lib/isc/include/pk11/constants.h		C	2014,2016,2017,2018,2019,2020,2021
@@ -1904,11 +1905,13 @@
 ./lib/isc/mem_p.h				C	2018,2019,2020,2021
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2016,2018,2019,2020,2021
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2012,2014,2015,2016,2017,2018,2019,2020,2021
+./lib/isc/netmgr/http.c				C	2021
 ./lib/isc/netmgr/netmgr-int.h			C	2019,2020,2021
 ./lib/isc/netmgr/netmgr.c			C	2019,2020,2021
 ./lib/isc/netmgr/tcp.c				C	2019,2020,2021
 ./lib/isc/netmgr/tcpdns.c			C	2019,2020,2021
 ./lib/isc/netmgr/tlsdns.c			C	2020,2021
+./lib/isc/netmgr/tlsstream.c			C	2019,2020,2021
 ./lib/isc/netmgr/udp.c				C	2019,2020,2021
 ./lib/isc/netmgr/uv-compat.c			C	2020,2021
 ./lib/isc/netmgr/uv-compat.h			C	2019,2020,2021
@@ -1952,6 +1955,7 @@
 ./lib/isc/tests/buffer_test.c			C	2014,2015,2016,2017,2018,2019,2020,2021
 ./lib/isc/tests/counter_test.c			C	2014,2016,2018,2019,2020,2021
 ./lib/isc/tests/crc64_test.c			C	2018,2019,2020,2021
+./lib/isc/tests/doh_test.c			C	2020,2021
 ./lib/isc/tests/errno_test.c			C	2016,2018,2019,2020,2021
 ./lib/isc/tests/file_test.c			C	2014,2016,2017,2018,2019,2020,2021
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
@@ -2018,6 +2022,7 @@
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005,2007,2016,2018,2019,2020,2021
 ./lib/isc/unix/syslog.c				C	2001,2004,2005,2007,2016,2018,2019,2020,2021
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2014,2015,2016,2017,2018,2019,2020,2021
+./lib/isc/url.c					C	2021
 ./lib/isc/utf8.c				C	2020,2021
 ./lib/isc/win32/DLLMain.c			C	2001,2004,2007,2016,2018,2019,2020,2021
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007,2016,2018,2019,2020,2021

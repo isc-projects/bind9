@@ -260,6 +260,9 @@
     <ClInclude Include="..\include\isc\types.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\url.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\utf8.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -608,10 +611,13 @@
     <ClCompile Include="..\timer.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\tls.c">
+    <ClCompile Include="..\tlsstream.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\tm.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\url.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\utf8.c">

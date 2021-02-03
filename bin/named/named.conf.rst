@@ -86,6 +86,15 @@ DYNDB
   dyndb string quoted_string {
       unspecified-text };
 
+HTTP
+^^^^
+
+::
+
+  http string {
+  	endpoints { quoted_string; ... };
+  };
+
 KEY
 ^^^
 
@@ -264,6 +273,8 @@ OPTIONS
   	glue-cache boolean;// deprecated
   	heartbeat-interval integer;
   	hostname ( quoted_string | none );
+  	http-port integer;
+  	https-port integer;
   	inline-signing boolean;
   	interface-interval duration;
   	ipv4only-contact string;
@@ -275,10 +286,12 @@ OPTIONS
   	key-directory quoted_string;
   	lame-ttl duration;
   	listen-on [ port integer ] [ dscp
-  	    integer ] [ tls string ] {
+  	    integer ] [ tls string ] [ http
+  	    string ] {
   	    address_match_element; ... };
   	listen-on-v6 [ port integer ] [ dscp
-  	    integer ] [ tls string ] {
+  	    integer ] [ tls string ] [ http
+  	    string ] {
   	    address_match_element; ... };
   	lmdb-mapsize sizeval;
   	lock-file ( quoted_string | none );

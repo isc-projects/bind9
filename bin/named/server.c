@@ -398,13 +398,19 @@ static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
-ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
-			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			uint16_t family, ns_listenelt_t **target);
+listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
+	       const char *cert, in_port_t port, isc_mem_t *mctx,
+	       ns_listenelt_t **target);
+
 static isc_result_t
-ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 uint16_t family, ns_listenlist_t **target);
+listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
+		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		     ns_listenelt_t **target);
+
+static isc_result_t
+listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
+		      cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		      ns_listenlist_t **target);
 
 static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view,
@@ -8573,6 +8579,16 @@ load_configuration(const char *filename, named_server_t *server,
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
+	obj = NULL;
+	result = named_config_get(maps, "http-port", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_httpport = (in_port_t)cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "https-port", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_httpsport = (in_port_t)cfg_obj_asuint32(obj);
+
 	/*
 	 * If bind.keys exists, load it.  If "dnssec-validation auto"
 	 * is turned on, the root key found there will be used as a
@@ -8989,7 +9005,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		if (clistenon != NULL) {
 			/* check return code? */
-			(void)ns_listenlist_fromconfig(
+			(void)listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
 				named_g_mctx, AF_INET, &listenon);
 		} else {
@@ -9017,7 +9033,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		if (clistenon != NULL) {
 			/* check return code? */
-			(void)ns_listenlist_fromconfig(
+			(void)listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
 				named_g_mctx, AF_INET6, &listenon);
 		} else {
@@ -10985,9 +11001,9 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 }
 
 static isc_result_t
-ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 uint16_t family, ns_listenlist_t **target) {
+listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
+		      cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		      ns_listenlist_t **target) {
 	isc_result_t result;
 	const cfg_listelt_t *element;
 	ns_listenlist_t *dlist = NULL;
@@ -11004,8 +11020,8 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 	{
 		ns_listenelt_t *delt = NULL;
 		const cfg_obj_t *listener = cfg_listelt_value(element);
-		result = ns_listenelt_fromconfig(listener, config, actx, mctx,
-						 family, &delt);
+		result = listenelt_fromconfig(listener, config, actx, mctx,
+					      family, &delt);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -11019,66 +11035,114 @@ cleanup:
 	return (result);
 }
 
+static const cfg_obj_t *
+find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
+	isc_result_t result;
+	const cfg_obj_t *maplist = NULL;
+	const cfg_listelt_t *elt = NULL;
+
+	REQUIRE(config != NULL);
+	REQUIRE(name != NULL);
+
+	result = cfg_map_get(config, listname, &maplist);
+	if (result != ISC_R_SUCCESS) {
+		return (NULL);
+	}
+
+	for (elt = cfg_list_first(maplist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		const cfg_obj_t *map = cfg_listelt_value(elt);
+		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(map)), name) ==
+		    0) {
+			return (map);
+		}
+	}
+
+	return (NULL);
+}
+
 /*
  * Create a listen list from the corresponding configuration
  * data structure.
  */
 static isc_result_t
-ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
-			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			uint16_t family, ns_listenelt_t **target) {
+listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
+		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		     ns_listenelt_t **target) {
 	isc_result_t result;
-	const cfg_obj_t *tlsobj, *portobj, *dscpobj;
-	in_port_t port;
+	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
+	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
+	const cfg_obj_t *http_server = NULL;
+	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL;
-	bool tls = false;
+	bool do_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
+
 	REQUIRE(target != NULL && *target == NULL);
 
 	/* XXXWPK TODO be more verbose on failures. */
 	tlsobj = cfg_tuple_get(listener, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
-		if (!strcmp(cfg_obj_asstring(tlsobj), "ephemeral")) {
-			tls = true;
-		} else {
-			const cfg_obj_t *tlsconfigs = NULL;
-			const cfg_listelt_t *element;
-			(void)cfg_map_get(config, "tls", &tlsconfigs);
-			for (element = cfg_list_first(tlsconfigs);
-			     element != NULL; element = cfg_list_next(element))
-			{
-				cfg_obj_t *tconfig = cfg_listelt_value(element);
-				const cfg_obj_t *name =
-					cfg_map_getname(tconfig);
-				if (!strcmp(cfg_obj_asstring(name),
-					    cfg_obj_asstring(tlsobj))) {
-					tls = true;
-					const cfg_obj_t *keyo = NULL,
-							*certo = NULL;
-					(void)cfg_map_get(tconfig, "key-file",
-							  &keyo);
-					if (keyo == NULL) {
-						return (ISC_R_FAILURE);
-					}
-					(void)cfg_map_get(tconfig, "cert-file",
-							  &certo);
-					if (certo == NULL) {
-						return (ISC_R_FAILURE);
-					}
-					key = cfg_obj_asstring(keyo);
-					cert = cfg_obj_asstring(certo);
-					break;
-				}
+		const char *tlsname = cfg_obj_asstring(tlsobj);
+
+		if (strcmp(tlsname, "ephemeral") != 0) {
+			const cfg_obj_t *keyobj = NULL, *certobj = NULL;
+			const cfg_obj_t *tlsmap = NULL;
+
+			tlsmap = find_maplist(config, "tls", tlsname);
+			if (tlsmap == NULL) {
+				return (ISC_R_FAILURE);
 			}
+
+			CHECK(cfg_map_get(tlsmap, "key-file", &keyobj));
+			key = cfg_obj_asstring(keyobj);
+
+			CHECK(cfg_map_get(tlsmap, "cert-file", &certobj));
+			cert = cfg_obj_asstring(certobj);
 		}
-		if (!tls) {
+
+		do_tls = true;
+	}
+
+	httpobj = cfg_tuple_get(listener, "http");
+	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
+		const char *httpname = cfg_obj_asstring(httpobj);
+
+		http_server = find_maplist(config, "http", httpname);
+		if (http_server == NULL) {
+			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
+				    "http '%s' is not defined",
+				    cfg_obj_asstring(httpobj));
 			return (ISC_R_FAILURE);
 		}
+
+		http = true;
 	}
+
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		if (tls) {
+		if (http && do_tls) {
+			if (named_g_httpsport != 0) {
+				port = named_g_httpsport;
+			} else {
+				result = named_config_getport(
+					config, "https-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		} else if (http && !do_tls) {
+			if (named_g_httpport != 0) {
+				port = named_g_port;
+			} else {
+				result = named_config_getport(
+					config, "http-port", &port);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		} else if (do_tls) {
 			if (named_g_tlsport != 0) {
 				port = named_g_tlsport;
 			} else {
@@ -11103,6 +11167,7 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
 			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port value '%u' is out of range",
+
 				    cfg_obj_asuint32(portobj));
 			return (ISC_R_RANGE);
 		}
@@ -11122,10 +11187,13 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, NULL, tls, key, cert,
-				     &delt);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+	if (http) {
+		INSIST(http_server != NULL);
+		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
+				     &delt));
+	} else {
+		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls, key,
+					  cert, &delt));
 	}
 
 	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"), config,
@@ -11136,7 +11204,55 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		return (result);
 	}
 	*target = delt;
-	return (ISC_R_SUCCESS);
+
+cleanup:
+	return (result);
+}
+
+static isc_result_t
+listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
+	       const char *cert, in_port_t port, isc_mem_t *mctx,
+	       ns_listenelt_t **target) {
+	isc_result_t result = ISC_R_SUCCESS;
+	ns_listenelt_t *delt = NULL;
+	char **endpoints = NULL;
+	const cfg_obj_t *eplist = NULL;
+	const cfg_listelt_t *elt = NULL;
+	size_t len, i = 0;
+
+	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE((key == NULL) == (cert == NULL));
+
+	if (port == 0) {
+		port = tls ? named_g_httpsport : named_g_httpport;
+	}
+
+	CHECK(cfg_map_get(http, "endpoints", &eplist));
+	len = cfg_list_length(eplist, false);
+	endpoints = isc_mem_allocate(mctx, sizeof(endpoints[0]) * len);
+
+	for (elt = cfg_list_first(eplist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		const cfg_obj_t *ep = cfg_listelt_value(elt);
+		const char *path = cfg_obj_asstring(ep);
+		endpoints[i++] = isc_mem_strdup(mctx, path);
+	}
+
+	INSIST(i == len);
+
+	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
+					  key, cert, endpoints, len, &delt);
+	if (result != ISC_R_SUCCESS) {
+		if (delt != NULL) {
+			ns_listenelt_destroy(delt);
+		}
+		return (result);
+	}
+
+	*target = delt;
+
+cleanup:
+	return (result);
 }
 
 isc_result_t

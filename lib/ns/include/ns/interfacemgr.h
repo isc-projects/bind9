@@ -80,6 +80,8 @@ struct ns_interface {
 	isc_socket_t *	tcpsocket; /*%< TCP socket. */
 	isc_nmsocket_t *udplistensocket;
 	isc_nmsocket_t *tcplistensocket;
+	isc_nmsocket_t *http_listensocket;
+	isc_nmsocket_t *http_secure_listensocket;
 	isc_dscp_t	dscp;	       /*%< "listen-on" DSCP value */
 	isc_refcount_t	ntcpaccepting; /*%< Number of clients
 					*   ready to accept new

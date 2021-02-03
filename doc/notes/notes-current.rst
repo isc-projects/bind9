@@ -52,6 +52,13 @@ New Features
   an optional ``tls`` option which specifies either a previously configured
   ``tls`` statement or ``ephemeral``. [GL #2392]
 
+- ``named`` now supports DNS-over-HTTPS (DoH). Both TLS-encrypted and
+  unencrypted HTTP/2 connections are supported (the latter may be used to
+  offload encryption to other software).
+
+  Note that there is no client-side support for HTTPS as yet; this will be
+  added to ``dig`` in a future release. [GL #1144]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

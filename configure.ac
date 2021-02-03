@@ -124,7 +124,7 @@ AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
 #
 # Set the default CFLAGS and CPPFLAGS
 #
-STD_CFLAGS="-Wall -Wextra -Wwrite-strings -Wcast-qual -Wpointer-arith -Wno-missing-field-initializers -Wformat -Wshadow"
+STD_CFLAGS="-Wall -Wextra -Wwrite-strings -Wpointer-arith -Wno-missing-field-initializers -Wformat -Wshadow"
 
 # These should be always errors
 STD_CFLAGS="$STD_CFLAGS -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=format-security -Werror=parentheses -Werror=implicit -Werror=strict-prototypes"
@@ -573,6 +573,15 @@ LIBS="$LIBS $LIBUV_LIBS"
 # for now
 AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error])
 AX_RESTORE_FLAGS([libuv])
+
+# libnghttp2
+AC_MSG_CHECKING([for libnghttp2])
+PKG_CHECK_MODULES([LIBNGHTTP2], [libnghttp2 >= 1.6.0], [],
+		  [AC_MSG_ERROR([libnghttp2 not found])])
+AX_SAVE_FLAGS([libnghttp2])
+
+CFLAGS="$CFLAGS $LIBNGHTTP2_CFLAGS"
+LIBS="$LIBS $LIBNGHTTP2_LIBS"
 
 #
 # flockfile is usually provided by pthreads

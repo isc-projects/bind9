@@ -115,6 +115,10 @@ for queries. If \fBvalue\fP is of the form \fB<portnum>\fP or
 \fBportnum\fP; if not not specified, the default is port 53. If
 \fBvalue\fP is of the form \fBtls=<portnum>\fP, the server will
 listen for TLS queries on \fBportnum\fP; the default is 853.
+If \fBvalue\fP is of the form \fBhttps=<portnum>\fP, the server will
+listen for HTTPS queries on \fBportnum\fP; the default is 443.
+If \fBvalue\fP is of the form \fBhttp=<portnum>\fP, the server will
+listen for HTTP queries on \fBportnum\fP; the default is 80.
 .TP
 .B \fB\-s\fP
 This option writes memory usage statistics to \fBstdout\fP on exit.
