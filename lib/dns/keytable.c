@@ -156,11 +156,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 		goto cleanup_keytable;
 	}
 
-	result = isc_rwlock_init(&keytable->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rbt;
-	}
-
+	isc_rwlock_init(&keytable->rwlock, 0, 0);
 	isc_refcount_init(&keytable->references, 1);
 
 	keytable->mctx = NULL;
@@ -169,9 +165,6 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	*keytablep = keytable;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_rbt:
-	dns_rbt_destroy(&keytable->table);
 
 cleanup_keytable:
 	isc_mem_putanddetach(&mctx, keytable, sizeof(*keytable));
@@ -338,7 +331,6 @@ static dns_keynode_t *
 new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
 	    bool initial) {
 	dns_keynode_t *knode = NULL;
-	isc_result_t result;
 
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(!initial || managed);
@@ -348,8 +340,7 @@ new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
 
 	dns_rdataset_init(&knode->dsset);
 	isc_refcount_init(&knode->refcount, 1);
-	result = isc_rwlock_init(&knode->rwlock, 0, 0);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_rwlock_init(&knode->rwlock, 0, 0);
 
 	/*
 	 * If a DS was supplied, initialize an rdatalist.

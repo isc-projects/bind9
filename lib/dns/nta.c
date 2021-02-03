@@ -123,10 +123,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		goto cleanup_task;
 	}
 
-	result = isc_rwlock_init(&ntatable->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rbt;
-	}
+	isc_rwlock_init(&ntatable->rwlock, 0, 0);
 
 	ntatable->shuttingdown = false;
 	ntatable->timermgr = timermgr;
@@ -139,9 +136,6 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	*ntatablep = ntatable;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_rbt:
-	dns_rbt_destroy(&ntatable->table);
 
 cleanup_task:
 	isc_task_detach(&ntatable->task);
