@@ -92,3 +92,7 @@ Bug Fixes
 
 - Named ``allow-update`` acls where broken in BIND 9.17.9 and BIND 9.16.11
   preventing ``named`` starting. [GL #2413]
+
+- When migrating to ``dnssec-policy``, BIND considered keys with the "Inactive"
+  and/or "Delete" timing metadata as possible active keys. This has been fixed.
+  [GL #2406]

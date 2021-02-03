@@ -25,7 +25,9 @@ rm -f ns*/managed-keys.bind
 rm -f ns*/*.mkeys
 rm -f ns*/zones ns*/*.db.infile
 rm -f ns*/*.zsk1 ns*/*.zsk2
+rm -f ns3/legacy-keys.*
 rm -f *.created published.test* retired.test*
 rm -f rndc.dnssec.*.out.*
 rm -f python.out.*
 rm -f *-supported.file
+rm -f created.key-* unused.key-*

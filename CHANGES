@@ -1,3 +1,7 @@
+5575.	[bug]		When migrating to dnssec-policy, BIND considered keys
+			with the "Inactive" and/or "Delete" timing metadata as
+			possible active keys. This has been fixed. [GL #2406]
+
 5574.	[func]		Incoming zone transfers can now use TLS.
 			Addresses in a "primaries" list take an optional
 			"tls" argument, specifying either a previously
