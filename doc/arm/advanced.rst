@@ -416,7 +416,8 @@ email, etc.)
 
 ``tsig-keygen`` can also be run as ``ddns-confgen``, in which case its
 output includes additional configuration text for setting up dynamic DNS
-in ``named``. See :ref:`man_tsig-keygen` for details.
+in ``named``. See :ref:`tsig-keygen, ddns-confgen - TSIG key generation
+tool <man_tsig-keygen_ddns-confgen>` for details.
 
 Loading a New Key
 ~~~~~~~~~~~~~~~~~
