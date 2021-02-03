@@ -46,4 +46,5 @@ Manual Pages
 .. include:: ../../bin/confgen/rndc-confgen.rst
 .. include:: ../../bin/rndc/rndc.conf.rst
 .. include:: ../../bin/rndc/rndc.rst
+.. _man_tsig-keygen_ddns-confgen:
 .. include:: ../../bin/confgen/tsig-keygen.rst

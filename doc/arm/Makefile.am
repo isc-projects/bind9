@@ -48,7 +48,7 @@ EXTRA_DIST =					\
 	../notes/*.rst
 
 html-local:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b html -d $(SPHINXBUILDDIR)/doctrees $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/html
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b html -d $(SPHINXBUILDDIR)/.doctrees/html $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/html
 
 install-html-local:
 	$(INSTALL) -d $(DESTDIR)/$(docdir) $(DESTDIR)/$(docdir)/_static
@@ -56,7 +56,7 @@ install-html-local:
 	cp -R $(SPHINXBUILDDIR)/html/_static/ $(DESTDIR)/$(docdir)/_static/
 
 singlehtml:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b singlehtml -d $(SPHINXBUILDDIR)/doctrees $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/singlehtml
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b singlehtml -d $(SPHINXBUILDDIR)/.doctrees/singlehtml $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/singlehtml
 
 install-singlehtml: singlehtml
 	$(INSTALL) -d $(DESTDIR)/$(docdir) $(DESTDIR)/$(docdir)/_static
@@ -64,7 +64,7 @@ install-singlehtml: singlehtml
 	cp -R $(SPHINXBUILDDIR)/singlehtml/_static/* $(DESTDIR)/$(docdir)/_static/
 
 epub:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b epub -A today=$(RELEASE_DATE) -d $(SPHINXBUILDDIR)/doctrees $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/epub
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b epub -A today=$(RELEASE_DATE) -d $(SPHINXBUILDDIR)/.doctrees/epub $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/epub
 
 install-epub:
 	$(INSTALL) -d $(DESTDIR)/$(docdir)
@@ -72,7 +72,7 @@ install-epub:
 
 if HAVE_XELATEX
 pdf-local:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b latex -d $(SPHINXBUILDDIR)/doctrees $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/latex
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b latex -d $(SPHINXBUILDDIR)/.doctrees/latex $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/latex
 	$(MAKE) -C $(SPHINXBUILDDIR)/latex all-pdf
 
 install-pdf-local:

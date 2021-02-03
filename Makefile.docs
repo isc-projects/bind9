@@ -10,6 +10,7 @@ AM_V_SPHINX_0 = @echo "  SPHINX   $@";
 SPHINXBUILDDIR = $(builddir)/_build
 
 common_SPHINXOPTS =			\
+	-W				\
 	-c $(srcdir)			\
 	-a				\
 	$(SPHINX_V)

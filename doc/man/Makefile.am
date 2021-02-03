@@ -169,7 +169,7 @@ if HAVE_SPHINX_BUILD
 manpages.stamp: $(MANPAGES_RST)
 	@rm -f manpages.tmp
 	@touch manpages.tmp
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b man -d $(SPHINXBUILDDIR)/doctrees $(man_SPHINXOPTS) $(SPHINXBUILDDIR)/man
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b man -d $(SPHINXBUILDDIR)/.doctrees/man $(man_SPHINXOPTS) $(SPHINXBUILDDIR)/man
 	for f in $(SPHINXBUILDDIR)/man/*; do \
 	  cp -a "$$f" "$(srcdir)/$$(basename $$f)in"; \
 	done

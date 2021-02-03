@@ -21,8 +21,6 @@
 
 .. highlight: console
 
-.. _man_tsig-keygen:
-
 tsig-keygen, ddns-confgen - TSIG key generation tool
 ----------------------------------------------------
 
