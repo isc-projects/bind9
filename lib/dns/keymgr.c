@@ -529,10 +529,11 @@ keymgr_desiredstate(dns_dnsseckey_t *key, dst_key_state_t state) {
  */
 static bool
 keymgr_key_match_state(dst_key_t *key, dst_key_t *subject, int type,
-		       dst_key_state_t next_state, dst_key_state_t states[4]) {
+		       dst_key_state_t next_state,
+		       dst_key_state_t states[NUM_KEYSTATES]) {
 	REQUIRE(key != NULL);
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < NUM_KEYSTATES; i++) {
 		dst_key_state_t state;
 		if (states[i] == NA) {
 			continue;
@@ -557,21 +558,124 @@ keymgr_key_match_state(dst_key_t *key, dst_key_t *subject, int type,
 }
 
 /*
- * Check if a 'k2' is a successor of 'k1'. This is a simplified version of
- * Equation(2) of "Flexible and Robust Key Rollover" which defines a
- * recursive relation.
- *
+ * Key d directly depends on k if d is the direct predecessor of k.
  */
 static bool
-keymgr_key_is_successor(dst_key_t *k1, dst_key_t *k2) {
-	uint32_t suc = 0, pre = 0;
-	if (dst_key_getnum(k1, DST_NUM_SUCCESSOR, &suc) != ISC_R_SUCCESS) {
+keymgr_direct_dep(dst_key_t *d, dst_key_t *k) {
+	uint32_t s, p;
+
+	if (dst_key_getnum(d, DST_NUM_SUCCESSOR, &s) != ISC_R_SUCCESS) {
 		return (false);
 	}
-	if (dst_key_getnum(k2, DST_NUM_PREDECESSOR, &pre) != ISC_R_SUCCESS) {
+	if (dst_key_getnum(k, DST_NUM_PREDECESSOR, &p) != ISC_R_SUCCESS) {
 		return (false);
 	}
-	return (dst_key_id(k1) == pre && dst_key_id(k2) == suc);
+	return (dst_key_id(d) == p && dst_key_id(k) == s);
+}
+
+/*
+ * Determine which key (if any) has a dependency on k.
+ */
+static bool
+keymgr_dep(dst_key_t *k, dns_dnsseckeylist_t *keyring, uint32_t *dep) {
+	for (dns_dnsseckey_t *d = ISC_LIST_HEAD(*keyring); d != NULL;
+	     d = ISC_LIST_NEXT(d, link))
+	{
+		/*
+		 * Check if k is a direct successor of d, e.g. d depends on k.
+		 */
+		if (keymgr_direct_dep(d->key, k)) {
+			if (dep != NULL) {
+				*dep = dst_key_id(d->key);
+			}
+			return (true);
+		}
+	}
+	return (false);
+}
+
+/*
+ * Check if a 'z' is a successor of 'x'.
+ * This implements Equation(2) of "Flexible and Robust Key Rollover".
+ */
+static bool
+keymgr_key_is_successor(dst_key_t *x, dst_key_t *z, dst_key_t *key, int type,
+			dst_key_state_t next_state,
+			dns_dnsseckeylist_t *keyring) {
+	uint32_t dep_x;
+	uint32_t dep_z;
+
+	/*
+	 * The successor relation requires that the predecessor key must not
+	 * have any other keys relying on it. In other words, there must be
+	 * nothing depending on x.
+	 */
+	if (keymgr_dep(x, keyring, &dep_x)) {
+		return (false);
+	}
+
+	/*
+	 * If there is no keys relying on key z, then z is not a successor.
+	 */
+	if (!keymgr_dep(z, keyring, &dep_z)) {
+		return (false);
+	}
+
+	/*
+	 * x depends on z, thus key z is a direct successor of key x.
+	 */
+	if (dst_key_id(x) == dep_z) {
+		return (true);
+	}
+
+	/*
+	 * It is possible to roll keys faster than the time required to finish
+	 * the rollover procedure. For example, consider the keys x, y, z.
+	 * Key x is currently published and is going to be replaced by y. The
+	 * DNSKEY for x is removed from the zone and at the same moment the
+	 * DNSKEY for y is introduced. Key y is a direct dependency for key x
+	 * and is therefore the successor of x. However, before the new DNSKEY
+	 * has been propagated, key z will replace key y. The DNSKEY for y is
+	 * removed and moves into the same state as key x. Key y now directly
+	 * depends on key z, and key z will be a new successor key for x.
+	 */
+	dst_key_state_t zst[NUM_KEYSTATES] = { NA, NA, NA, NA };
+	for (int i = 0; i < NUM_KEYSTATES; i++) {
+		dst_key_state_t state;
+		if (dst_key_getstate(z, i, &state) != ISC_R_SUCCESS) {
+			continue;
+		}
+		zst[i] = state;
+	}
+
+	for (dns_dnsseckey_t *y = ISC_LIST_HEAD(*keyring); y != NULL;
+	     y = ISC_LIST_NEXT(y, link))
+	{
+		if (dst_key_id(y->key) == dst_key_id(z)) {
+			continue;
+		}
+
+		if (dst_key_id(y->key) != dep_z) {
+			continue;
+		}
+		/*
+		 * This is another key y, that depends on key z. It may be
+		 * part of the successor relation if the key states match
+		 * those of key z.
+		 */
+
+		if (keymgr_key_match_state(y->key, key, type, next_state, zst))
+		{
+			/*
+			 * If y is a successor of x, then z is also a
+			 * successor of x.
+			 */
+			return (keymgr_key_is_successor(x, y->key, key, type,
+							next_state, keyring));
+		}
+	}
+
+	return (false);
 }
 
 /*
@@ -586,9 +690,9 @@ keymgr_key_is_successor(dst_key_t *k1, dst_key_t *k2) {
 static bool
 keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			     int type, dst_key_state_t next_state,
-			     dst_key_state_t states[4],
-			     dst_key_state_t states2[4], bool check_successor,
-			     bool match_algorithms) {
+			     dst_key_state_t states[NUM_KEYSTATES],
+			     dst_key_state_t states2[NUM_KEYSTATES],
+			     bool check_successor, bool match_algorithms) {
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
@@ -597,39 +701,41 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			continue;
 		}
 
-		if (check_successor &&
-		    keymgr_key_match_state(dkey->key, key->key, type,
-					   next_state, states2))
-		{
-			/* Found a possible successor, look for predecessor. */
-			for (dns_dnsseckey_t *pkey = ISC_LIST_HEAD(*keyring);
-			     pkey != NULL; pkey = ISC_LIST_NEXT(pkey, link))
-			{
-				if (pkey == dkey) {
-					continue;
-				}
-				if (!keymgr_key_match_state(pkey->key, key->key,
-							    type, next_state,
-							    states)) {
-					continue;
-				}
-
-				/*
-				 * Found a possible predecessor, check
-				 * relationship.
-				 */
-				if (keymgr_key_is_successor(pkey->key,
-							    dkey->key)) {
-					return (true);
-				}
-			}
+		if (!keymgr_key_match_state(dkey->key, key->key, type,
+					    next_state, states)) {
+			continue;
 		}
 
-		if (!check_successor &&
-		    keymgr_key_match_state(dkey->key, key->key, type,
-					   next_state, states))
-		{
+		/* Found a match. */
+		if (!check_successor) {
 			return (true);
+		}
+
+		/*
+		 * We have to make sure that the key we are checking, also
+		 * has a successor relationship with another key.
+		 */
+		for (dns_dnsseckey_t *skey = ISC_LIST_HEAD(*keyring);
+		     skey != NULL; skey = ISC_LIST_NEXT(skey, link))
+		{
+			if (skey == dkey) {
+				continue;
+			}
+
+			if (!keymgr_key_match_state(skey->key, key->key, type,
+						    next_state, states2)) {
+				continue;
+			}
+
+			/*
+			 * Found a possible successor, check.
+			 */
+			if (keymgr_key_is_successor(dkey->key, skey->key,
+						    key->key, type, next_state,
+						    keyring))
+			{
+				return (true);
+			}
 		}
 	}
 	/* No match. */
@@ -645,7 +751,7 @@ keymgr_key_has_successor(dns_dnsseckey_t *predecessor,
 	for (dns_dnsseckey_t *successor = ISC_LIST_HEAD(*keyring);
 	     successor != NULL; successor = ISC_LIST_NEXT(successor, link))
 	{
-		if (keymgr_key_is_successor(predecessor->key, successor->key)) {
+		if (keymgr_direct_dep(predecessor->key, successor->key)) {
 			return (true);
 		}
 	}
@@ -665,17 +771,16 @@ static bool
 keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			    int type, dst_key_state_t next_state,
 			    bool match_algorithms, bool must_be_hidden) {
-	dst_key_state_t dnskey_omnipresent[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-						  NA };	       /* (3e) */
-	dst_key_state_t ds_hidden[4] = { NA, NA, NA, HIDDEN }; /* (3e) */
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* (3e) */
+	dst_key_state_t dnskey_chained[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+							  OMNIPRESENT, NA };
+	dst_key_state_t ds_hidden[NUM_KEYSTATES] = { NA, NA, NA, HIDDEN };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
-		char keystr[DST_KEY_FORMATSIZE];
-		dst_key_format(dkey->key, keystr, sizeof(keystr));
-
 		if (match_algorithms &&
 		    (dst_key_alg(dkey->key) != dst_key_alg(key->key))) {
 			continue;
@@ -696,18 +801,20 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * least one key with the same algorithm that provides a
 		 * chain of trust (can be this key).
 		 */
-		dnskey_omnipresent[DST_KEY_DS] = NA;
-		if (next_state != NA &&
-		    dst_key_id(dkey->key) == dst_key_id(key->key)) {
-			/* Check next state rather than current state. */
-			dnskey_omnipresent[DST_KEY_DS] = next_state;
-		} else {
-			(void)dst_key_getstate(dkey->key, DST_KEY_DS,
-					       &dnskey_omnipresent[DST_KEY_DS]);
+		if (keymgr_key_match_state(dkey->key, key->key, type,
+					   next_state, dnskey_chained))
+		{
+			/* This DNSKEY and KRRSIG are OMNIPRESENT. */
+			continue;
 		}
-		if (!keymgr_key_exists_with_state(
-			    keyring, key, type, next_state, dnskey_omnipresent,
-			    na, false, match_algorithms))
+
+		/*
+		 * Perhaps another key provides a chain of trust.
+		 */
+		dnskey_chained[DST_KEY_DS] = OMNIPRESENT;
+		if (!keymgr_key_exists_with_state(keyring, key, type,
+						  next_state, dnskey_chained,
+						  na, false, match_algorithms))
 		{
 			/* There is no chain of trust. */
 			return (false);
@@ -731,10 +838,12 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 				dns_dnsseckey_t *key, int type,
 				dst_key_state_t next_state,
 				bool match_algorithms) {
-	dst_key_state_t rrsig_omnipresent[4] = { NA, OMNIPRESENT, NA,
-						 NA };		   /* (3i) */
-	dst_key_state_t dnskey_hidden[4] = { HIDDEN, NA, NA, NA }; /* (3i) */
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* (3i) */
+	dst_key_state_t rrsig_chained[NUM_KEYSTATES] = { OMNIPRESENT,
+							 OMNIPRESENT, NA, NA };
+	dst_key_state_t dnskey_hidden[NUM_KEYSTATES] = { HIDDEN, NA, NA, NA };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
@@ -756,12 +865,11 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 		 * least one key with the same algorithm that has its RRSIG
 		 * records OMNIPRESENT.
 		 */
-		rrsig_omnipresent[DST_KEY_DNSKEY] = NA;
 		(void)dst_key_getstate(dkey->key, DST_KEY_DNSKEY,
-				       &rrsig_omnipresent[DST_KEY_DNSKEY]);
+				       &rrsig_chained[DST_KEY_DNSKEY]);
 		if (!keymgr_key_exists_with_state(keyring, key, type,
-						  next_state, rrsig_omnipresent,
-						  na, false, match_algorithms))
+						  next_state, rrsig_chained, na,
+						  false, match_algorithms))
 		{
 			/* There is no chain of trust. */
 			return (false);
@@ -778,12 +886,14 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 static bool
 keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 	       dst_key_state_t next_state, bool secure_to_insecure) {
-	dst_key_state_t states[2][4] = {
+	/* (3a) */
+	dst_key_state_t states[2][NUM_KEYSTATES] = {
 		/* DNSKEY, ZRRSIG, KRRSIG, DS */
 		{ NA, NA, NA, OMNIPRESENT }, /* DS present */
 		{ NA, NA, NA, RUMOURED }     /* DS introducing */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	/*
 	 * Equation (3a):
@@ -806,7 +916,7 @@ keymgr_have_ds(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 static bool
 keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		   dst_key_state_t next_state) {
-	dst_key_state_t states[9][4] = {
+	dst_key_state_t states[9][NUM_KEYSTATES] = {
 		/* DNSKEY,     ZRRSIG, KRRSIG,      DS */
 		{ OMNIPRESENT, NA, OMNIPRESENT, OMNIPRESENT }, /* (3b) */
 
@@ -820,7 +930,8 @@ keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		{ OMNIPRESENT, NA, RUMOURED, OMNIPRESENT },    /* (3d)s */
 		{ RUMOURED, NA, OMNIPRESENT, OMNIPRESENT },    /* (3d)s */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	return (
 		/*
@@ -897,7 +1008,7 @@ keymgr_have_dnskey(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 static bool
 keymgr_have_rrsig(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		  dst_key_state_t next_state) {
-	dst_key_state_t states[11][4] = {
+	dst_key_state_t states[11][NUM_KEYSTATES] = {
 		/* DNSKEY,     ZRRSIG,      KRRSIG, DS */
 		{ OMNIPRESENT, OMNIPRESENT, NA, NA }, /* (3f) */
 		{ UNRETENTIVE, OMNIPRESENT, NA, NA }, /* (3g)p */
@@ -905,7 +1016,8 @@ keymgr_have_rrsig(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key, int type,
 		{ OMNIPRESENT, UNRETENTIVE, NA, NA }, /* (3h)p */
 		{ OMNIPRESENT, RUMOURED, NA, NA },    /* (3h)s */
 	};
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	return (
 		/*
@@ -963,20 +1075,25 @@ static bool
 keymgr_policy_approval(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		       int type, dst_key_state_t next) {
 	dst_key_state_t dnskeystate = HIDDEN;
-	dst_key_state_t ksk_present[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					   OMNIPRESENT };
-	dst_key_state_t ds_rumoured[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					   RUMOURED };
-	dst_key_state_t ds_retired[4] = { OMNIPRESENT, NA, OMNIPRESENT,
-					  UNRETENTIVE };
-	dst_key_state_t ksk_rumoured[4] = { RUMOURED, NA, NA, OMNIPRESENT };
-	dst_key_state_t ksk_retired[4] = { UNRETENTIVE, NA, NA, OMNIPRESENT };
-	dst_key_state_t na[4] = { NA, NA, NA, NA }; /* successor n/a */
+	dst_key_state_t ksk_present[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						       OMNIPRESENT,
+						       OMNIPRESENT };
+	dst_key_state_t ds_rumoured[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						       OMNIPRESENT, RUMOURED };
+	dst_key_state_t ds_retired[NUM_KEYSTATES] = { OMNIPRESENT, NA,
+						      OMNIPRESENT,
+						      UNRETENTIVE };
+	dst_key_state_t ksk_rumoured[NUM_KEYSTATES] = { RUMOURED, NA, NA,
+							OMNIPRESENT };
+	dst_key_state_t ksk_retired[NUM_KEYSTATES] = { UNRETENTIVE, NA, NA,
+						       OMNIPRESENT };
+	/* successor n/a */
+	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
 	if (next != RUMOURED) {
 		/*
 		 * Local policy only adds an extra barrier on transitions to
-		 * the RUMOURED and UNRETENTIVE states.
+		 * the RUMOURED state.
 		 */
 		return (true);
 	}
@@ -1825,11 +1942,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					if (!dst_key_is_unused(dkey->key) &&
 					    (dst_key_goal(dkey->key) ==
 					     OMNIPRESENT) &&
-					    !keymgr_key_is_successor(
-						    dkey->key,
-						    active_key->key) &&
-					    !keymgr_key_is_successor(
-						    active_key->key, dkey->key))
+					    !keymgr_dep(dkey->key, keyring,
+							NULL) &&
+					    !keymgr_dep(active_key->key,
+							keyring, NULL))
 					{
 						/*
 						 * Multiple signing keys match
@@ -1989,7 +2105,7 @@ keytime_status(dst_key_t *key, isc_stdtime_t now, isc_buffer_t *buf,
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	isc_result_t ret;
 	isc_stdtime_t when = 0;
-	dst_key_state_t state;
+	dst_key_state_t state = NA;
 
 	isc_buffer_printf(buf, "%s", pre);
 	(void)dst_key_getstate(key, ks, &state);
