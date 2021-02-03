@@ -11106,18 +11106,11 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		const char *httpname = cfg_obj_asstring(httpobj);
 
 		if (!do_tls && !no_tls) {
-			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
-				    "http must specify a 'tls' "
-				    "statement, 'tls ephemeral', or "
-				    "'tls none'");
 			return (ISC_R_FAILURE);
 		}
 
 		http_server = find_maplist(config, "http", httpname);
 		if (http_server == NULL) {
-			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
-				    "http '%s' is not defined",
-				    cfg_obj_asstring(httpobj));
 			return (ISC_R_FAILURE);
 		}
 
@@ -11169,10 +11162,6 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		}
 	} else {
 		if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
-			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
-				    "port value '%u' is out of range",
-
-				    cfg_obj_asuint32(portobj));
 			return (ISC_R_RANGE);
 		}
 		port = (in_port_t)cfg_obj_asuint32(portobj);
@@ -11183,9 +11172,6 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = named_g_dscp;
 	} else {
 		if (cfg_obj_asuint32(dscpobj) > 63) {
-			cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
-				    "dscp value '%u' is out of range",
-				    cfg_obj_asuint32(dscpobj));
 			return (ISC_R_RANGE);
 		}
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);

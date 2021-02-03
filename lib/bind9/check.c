@@ -896,9 +896,146 @@ kasp_name_allowed(const cfg_listelt_t *element) {
 	return (true);
 }
 
+static const cfg_obj_t *
+find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
+	isc_result_t result;
+	const cfg_obj_t *maplist = NULL;
+	const cfg_listelt_t *elt = NULL;
+
+	REQUIRE(config != NULL);
+	REQUIRE(name != NULL);
+
+	result = cfg_map_get(config, listname, &maplist);
+	if (result != ISC_R_SUCCESS) {
+		return (NULL);
+	}
+
+	for (elt = cfg_list_first(maplist); elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		const cfg_obj_t *map = cfg_listelt_value(elt);
+		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(map)), name) ==
+		    0) {
+			return (map);
+		}
+	}
+
+	return (NULL);
+}
+
 static isc_result_t
-check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
-	      optlevel_t optlevel) {
+check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
+	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx) {
+	isc_result_t tresult, result = ISC_R_SUCCESS;
+	const cfg_obj_t *ltup = NULL;
+	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
+	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
+	const cfg_obj_t *http_server = NULL;
+	bool do_tls = false, no_tls = false;
+	dns_acl_t *acl = NULL;
+
+	ltup = cfg_tuple_get(listener, "tuple");
+	RUNTIME_CHECK(ltup != NULL);
+
+	tlsobj = cfg_tuple_get(ltup, "tls");
+	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
+		const char *tlsname = cfg_obj_asstring(tlsobj);
+
+		if (strcasecmp(tlsname, "none") == 0) {
+			no_tls = true;
+		} else if (strcasecmp(tlsname, "ephemeral") == 0) {
+			do_tls = true;
+		} else {
+			const cfg_obj_t *tlsmap = NULL;
+
+			do_tls = true;
+
+			tlsmap = find_maplist(config, "tls", tlsname);
+			if (tlsmap == NULL) {
+				cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+					    "tls '%s' is not defined",
+					    cfg_obj_asstring(tlsobj));
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	httpobj = cfg_tuple_get(ltup, "http");
+	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
+		const char *httpname = cfg_obj_asstring(httpobj);
+
+		if (!do_tls && !no_tls) {
+			cfg_obj_log(httpobj, logctx, ISC_LOG_ERROR,
+				    "http must specify a 'tls' "
+				    "statement, 'tls ephemeral', or "
+				    "'tls none'");
+			result = ISC_R_FAILURE;
+		}
+
+		http_server = find_maplist(config, "http", httpname);
+		if (http_server == NULL) {
+			cfg_obj_log(httpobj, logctx, ISC_LOG_ERROR,
+				    "http '%s' is not defined",
+				    cfg_obj_asstring(httpobj));
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	portobj = cfg_tuple_get(ltup, "port");
+	if (cfg_obj_isuint32(portobj) &&
+	    cfg_obj_asuint32(portobj) >= UINT16_MAX) {
+		cfg_obj_log(portobj, logctx, ISC_LOG_ERROR,
+			    "port value '%u' is out of range",
+
+			    cfg_obj_asuint32(portobj));
+		if (result == ISC_R_SUCCESS) {
+			result = ISC_R_RANGE;
+		}
+	}
+
+	dscpobj = cfg_tuple_get(ltup, "dscp");
+	if (cfg_obj_isuint32(dscpobj) && cfg_obj_asuint32(dscpobj) > 63) {
+		cfg_obj_log(dscpobj, logctx, ISC_LOG_ERROR,
+			    "dscp value '%u' is out of range",
+			    cfg_obj_asuint32(dscpobj));
+		if (result == ISC_R_SUCCESS) {
+			result = ISC_R_RANGE;
+		}
+	}
+
+	tresult = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"), config,
+				     logctx, actx, mctx, 0, &acl);
+	if (result == ISC_R_SUCCESS) {
+		result = tresult;
+	}
+
+	if (acl != NULL) {
+		dns_acl_detach(&acl);
+	}
+
+	return (result);
+}
+
+static isc_result_t
+check_listeners(const cfg_obj_t *list, const cfg_obj_t *config,
+		cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx) {
+	isc_result_t tresult, result = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt = NULL;
+
+	for (elt = cfg_list_first(list); elt != NULL; elt = cfg_list_next(elt))
+	{
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		tresult = check_listener(obj, config, actx, logctx, mctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	return (result);
+}
+
+static isc_result_t
+check_options(const cfg_obj_t *options, const cfg_obj_t *config,
+	      isc_log_t *logctx, isc_mem_t *mctx, optlevel_t optlevel) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
@@ -911,6 +1048,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	uint32_t lifetime = 3600;
 	bool has_dnssecpolicy = false;
 	const char *ccalg = "siphash24";
+	cfg_aclconfctx_t *actx = NULL;
 
 	/*
 	 * { "name", scale, value }
@@ -1664,6 +1802,32 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    "'stale-refresh-time' should either be 0 "
 				    "or otherwise 30 seconds or higher");
 		}
+	}
+
+	cfg_aclconfctx_create(mctx, &actx);
+
+	obj = NULL;
+	(void)cfg_map_get(options, "listen-on", &obj);
+	if (obj != NULL) {
+		INSIST(config != NULL);
+		tresult = check_listeners(obj, config, actx, logctx, mctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(options, "listen-on-v6", &obj);
+	if (obj != NULL) {
+		INSIST(config != NULL);
+		tresult = check_listeners(obj, config, actx, logctx, mctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	if (actx != NULL) {
+		cfg_aclconfctx_detach(&actx);
 	}
 
 	return (result);
@@ -3043,7 +3207,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check various options.
 	 */
-	tresult = check_options(zoptions, logctx, mctx, optlevel_zone);
+	tresult = check_options(zoptions, config, logctx, mctx, optlevel_zone);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -4529,9 +4693,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check options.
 	 */
 	if (voptions != NULL) {
-		tresult = check_options(voptions, logctx, mctx, optlevel_view);
+		tresult = check_options(voptions, NULL, logctx, mctx,
+					optlevel_view);
 	} else {
-		tresult = check_options(config, logctx, mctx, optlevel_config);
+		tresult = check_options(config, config, logctx, mctx,
+					optlevel_config);
 	}
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -4870,7 +5036,7 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 	(void)cfg_map_get(config, "options", &options);
 
-	if (options != NULL && check_options(options, logctx, mctx,
+	if (options != NULL && check_options(options, config, logctx, mctx,
 					     optlevel_options) != ISC_R_SUCCESS)
 	{
 		result = ISC_R_FAILURE;
