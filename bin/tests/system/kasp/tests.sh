@@ -588,7 +588,17 @@ key_unused() {
 	[ -s "$STATE_FILE" ] || ret=1
 	[ "$ret" -eq 0 ] || return
 
-	# Check timing metadata.
+	# Treat keys that have been removed from the zone as unused.
+	_check_removed=1
+	grep "; Created:" "$KEY_FILE" > created.key-${KEY_ID}.test${n} || _check_removed=0
+	grep "; Delete:" "$KEY_FILE" > unused.key-${KEY_ID}.test${n} || _check_removed=0
+	if [ "$_check_removed" -eq 1 ]; then
+		_created=$(awk '{print $3}' < created.key-${KEY_ID}.test${n})
+		_removed=$(awk '{print $3}' < unused.key-${KEY_ID}.test${n})
+		[ "$_removed" -le "$_created" ] && return
+	fi
+
+	# If no timing metadata is set, this key is unused.
 	grep "; Publish:" "$KEY_FILE" > /dev/null && log_error "unexpected publish comment in $KEY_FILE"
 	grep "; Activate:" "$KEY_FILE" > /dev/null && log_error "unexpected active comment in $KEY_FILE"
 	grep "; Inactive:" "$KEY_FILE" > /dev/null && log_error "unexpected retired comment in $KEY_FILE"
@@ -601,13 +611,11 @@ key_unused() {
 	grep "Revoke:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected revoked in $PRIVATE_FILE"
 	grep "Delete:" "$PRIVATE_FILE" > /dev/null && log_error "unexpected removed in $PRIVATE_FILE"
 
-	if [ "$_legacy" = "no" ]; then
-		grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
-		grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
-		grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
-		grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
-		grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
-	fi
+	grep "Published: " "$STATE_FILE" > /dev/null && log_error "unexpected publish in $STATE_FILE"
+	grep "Active: " "$STATE_FILE" > /dev/null && log_error "unexpected active in $STATE_FILE"
+	grep "Retired: " "$STATE_FILE" > /dev/null && log_error "unexpected retired in $STATE_FILE"
+	grep "Revoked: " "$STATE_FILE" > /dev/null && log_error "unexpected revoked in $STATE_FILE"
+	grep "Removed: " "$STATE_FILE" > /dev/null && log_error "unexpected removed in $STATE_FILE"
 }
 
 # Test: dnssec-verify zone $1.
@@ -1904,22 +1912,6 @@ check_subdomain
 dnssec_verify
 
 #
-# Zone: legacy-keys.kasp.
-#
-set_zone "legacy-keys.kasp"
-set_policy "rsasha1" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
 # Zone: pregenerated.kasp.
 #
 # There are more pregenerated keys than needed, hence the number of keys is
@@ -2407,6 +2399,102 @@ check_apex
 check_subdomain
 dnssec_verify
 check_rrsig_refresh
+
+#
+# Zone: legacy-keys.kasp.
+#
+set_zone "legacy-keys.kasp"
+# This zone has two active keys and two old keys left in key directory, so
+# expect 4 key files.
+set_policy "migrate-to-dnssec-policy" "4" "1234"
+set_server "ns3" "10.53.0.3"
+
+# Key properties.
+key_clear        "KEY1"
+set_keyrole      "KEY1" "ksk"
+set_keylifetime  "KEY1" "16070400"
+set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "no"
+
+key_clear        "KEY2"
+set_keyrole      "KEY2" "zsk"
+set_keylifetime  "KEY2" "16070400"
+set_keyalgorithm "KEY2" "5" "RSASHA1" "2048"
+set_keysigning   "KEY2" "no"
+set_zonesigning  "KEY2" "yes"
+# KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
+# ZSK: DNSKEY, RRSIG (zsk) published.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS"     "hidden"
+
+set_keystate "KEY2" "GOAL"         "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+# Two keys only.
+key_clear "KEY3"
+key_clear "KEY4"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# Make sure the correct legacy keys were used (and not the removed predecessor
+# keys).
+n=$((n+1))
+echo_i "check correct keys were used when migrating zone ${ZONE} to dnssec-policy ($n)"
+ret=0
+kskfile=$(cat ns3/legacy-keys.kasp.ksk)
+basefile=$(key_get KEY1 BASEFILE)
+echo_i "filename: $basefile (expect $kskfile)"
+test "$DIR/$kskfile" = "$basefile" || ret=1
+zskfile=$(cat ns3/legacy-keys.kasp.zsk)
+basefile=$(key_get KEY2 BASEFILE)
+echo_i "filename: $basefile (expect $zskfile)"
+test "$DIR/$zskfile" = "$basefile" || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# KSK times.
+created=$(key_get KEY1 CREATED)
+keyfile=$(key_get KEY1 BASEFILE)
+grep "; Publish:" "${keyfile}.key" > published.test${n}.key1
+published=$(awk '{print $3}' < published.test${n}.key1)
+set_keytime "KEY1" "PUBLISHED" "${published}"
+set_keytime "KEY1" "ACTIVE"    "${published}"
+published=$(key_get KEY1 PUBLISHED)
+# The DS can be published if the DNSKEY and RRSIG records are OMNIPRESENT.
+#  This happens after max-zone-ttl (1d) plus publish-safety (1h) plus
+# zone-propagation-delay (300s) = 86400 + 3600 + 300 = 90300.
+set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 90300
+# Key lifetime is 6 months, 315360000 seconds.
+set_addkeytime "KEY1" "RETIRED"     "${published}" 16070400
+# The key is removed after the retire time plus DS TTL (1d), parent
+# propagation delay (1h), and retire safety (1h) = 86400 + 3600 + 3600 = 93600.
+retired=$(key_get KEY1 RETIRED)
+set_addkeytime "KEY1" "REMOVED"     "${retired}"   93600
+
+# ZSK times.
+created=$(key_get KEY2 CREATED)
+keyfile=$(key_get KEY2 BASEFILE)
+grep "; Publish:" "${keyfile}.key" > published.test${n}.key2
+published=$(awk '{print $3}' < published.test${n}.key2)
+set_keytime "KEY2" "PUBLISHED" "${published}"
+set_keytime "KEY2" "ACTIVE"    "${published}"
+published=$(key_get KEY2 PUBLISHED)
+# Key lifetime is 6 months, 315360000 seconds.
+set_addkeytime "KEY2" "RETIRED"     "${published}" 16070400
+# The key is removed after the retire time plus max zone ttl (1d), zone
+# propagation delay (300s), retire safety (1h), and sign delay (signature
+# validity minus refresh, 9d) = 86400 + 300 + 3600 + 777600 = 867900.
+retired=$(key_get KEY2 RETIRED)
+set_addkeytime "KEY2" "REMOVED"   "${retired}"   867900
+
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
 
 #
 # Test dnssec-policy inheritance.

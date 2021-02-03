@@ -1407,10 +1407,11 @@ static void
 keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	bool ksk, zsk;
 	isc_result_t ret;
-	isc_stdtime_t active = 0, pub = 0, syncpub = 0;
+	isc_stdtime_t active = 0, pub = 0, syncpub = 0, retire = 0, remove = 0;
 	dst_key_state_t dnskey_state = HIDDEN;
 	dst_key_state_t ds_state = HIDDEN;
 	dst_key_state_t zrrsig_state = HIDDEN;
+	dst_key_state_t goal_state = HIDDEN;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->key != NULL);
@@ -1437,6 +1438,7 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		} else {
 			dnskey_state = RUMOURED;
 		}
+		goal_state = OMNIPRESENT;
 	}
 	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &pub);
 	if (pub <= now && ret == ISC_R_SUCCESS) {
@@ -1447,6 +1449,7 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		} else {
 			zrrsig_state = RUMOURED;
 		}
+		goal_state = OMNIPRESENT;
 	}
 	ret = dst_key_gettime(key->key, DST_TIME_SYNCPUBLISH, &syncpub);
 	if (syncpub <= now && ret == ISC_R_SUCCESS) {
@@ -1457,6 +1460,38 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		} else {
 			ds_state = RUMOURED;
 		}
+		goal_state = OMNIPRESENT;
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
+	if (retire <= now && ret == ISC_R_SUCCESS) {
+		dns_ttl_t zone_ttl = dns_kasp_zonemaxttl(kasp);
+		zone_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((retire + zone_ttl) <= now) {
+			zrrsig_state = HIDDEN;
+		} else {
+			zrrsig_state = UNRETENTIVE;
+		}
+		ds_state = UNRETENTIVE;
+		goal_state = HIDDEN;
+	}
+	ret = dst_key_gettime(key->key, DST_TIME_DELETE, &remove);
+	if (remove <= now && ret == ISC_R_SUCCESS) {
+		dns_ttl_t key_ttl = dst_key_getttl(key->key);
+		key_ttl += dns_kasp_zonepropagationdelay(kasp);
+		if ((remove + key_ttl) <= now) {
+			dnskey_state = HIDDEN;
+		} else {
+			dnskey_state = UNRETENTIVE;
+		}
+		zrrsig_state = HIDDEN;
+		ds_state = HIDDEN;
+		goal_state = HIDDEN;
+	}
+
+	/* Set goal if not already set. */
+	if (dst_key_getstate(key->key, DST_KEY_GOAL, &goal_state) !=
+	    ISC_R_SUCCESS) {
+		dst_key_setstate(key->key, DST_KEY_GOAL, goal_state);
 	}
 
 	/* Set key states for all keys that do not have them. */
@@ -1805,19 +1840,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 								  now);
 					}
 					continue;
-				}
-
-				/*
-				 * This is possibly an active key created
-				 * outside dnssec-policy.  Initialize goal,
-				 * if not set.
-				 */
-				dst_key_state_t goal;
-				if (dst_key_getstate(dkey->key, DST_KEY_GOAL,
-						     &goal) != ISC_R_SUCCESS) {
-					dst_key_setstate(dkey->key,
-							 DST_KEY_GOAL,
-							 OMNIPRESENT);
 				}
 
 				/*
