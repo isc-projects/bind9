@@ -182,7 +182,7 @@ man:: ootsetup $(man1_MANS) $(man5_MANS) $(man8_MANS) @DNSTAP_MANS@ @NZD_MANS@ @
 doc:: @HTMLTARGET@ @PDFTARGET@
 
 html dirhtml:
-	$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) "$(SPHINXBUILDDIR)"/$@
+	$(SPHINXBUILD) -b $@ -d "$(SPHINXBUILDDIR)"/.doctrees/$@ $(ALLSPHINXOPTS) "$(SPHINXBUILDDIR)"/$@
 
 # copy in out-of-tree files in case sphinx-build isn't available
 .NOTPARALLEL:
@@ -192,7 +192,7 @@ ootsetup: $(MANPAGES_IN)
 	done
 
 $(MANPAGES_IN): $(MANPAGES_RST)
-	$(SPHINXBUILD) -b man $(man_SPHINXOPTS) "$(SPHINXBUILDDIR)"/man
+	$(SPHINXBUILD) -b man -d "$(SPHINXBUILDDIR)"/.doctrees/$@ $(man_SPHINXOPTS) "$(SPHINXBUILDDIR)"/man
 	-for man in $(MANPAGES_IN); do \
 	  [ -e "$(SPHINXBUILDDIR)"/man/"$$(basename $$man in)" ] && \
 	    cp -f "$(SPHINXBUILDDIR)"/man/"$$(basename $$man in)" "$$man"; \
