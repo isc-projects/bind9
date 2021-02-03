@@ -1,3 +1,16 @@
+5583.	[func]		Changes to DoH configuration syntax:
+			- When "http" is specified in "listen-on" or
+			  "listen-on-v6" statements, "tls" must also now
+			  be specified. If an unencrypted connection is
+			  desired (for example, when running behind a
+			  reverse proxy), use "tls none".
+			- "http default" can how be specified in "listen-on"
+			  and "listen-on-v6" statements to use the default
+			  HTTP endpoint, "/dns-query". It is no longer
+			  necessary to include an "http" statement in
+			  named.conf unless overriding this value.
+			[GL #2472]
+
 5582.	[bug]		BIND 9 failed to build when static OpenSSL libraries
 			were used and the *.pc files for libssl and/or libcrypto
 			were unavailable. This has been fixed by ensuring the
