@@ -1,3 +1,8 @@
+5578.	[protocol]	Make "check-names" accept A records below "_spf",
+			"_spf_rate" and "_spf_verify" labels in order to cater
+			for the "exists" SPF mechanism specified in RFC 7208
+			section 5.7. and appendix D. [GL #2377]
+
 5577.	[bug]		Fix the "three is a crowd" key rollover bug in
 			dnssec-policy by correctly implementing Equation(2) of
 			the "Flexible and Robust Key Rollover" paper. [GL #2375]

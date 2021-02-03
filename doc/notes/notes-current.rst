@@ -80,6 +80,11 @@ Feature Changes
   zonestatus`` now uses ``primary`` and ``secondary`` terminology.
   [GL #1948]
 
+- When ``check-names`` is in effect, A records below an ``_spf``, ``_spf_rate``
+  and ``_spf_verify`` labels (which are employed by the ``exists`` SPF
+  mechanism defined inr:rfc:`7208` section 5.7/appendix D1) are no longer 
+  reported as warnings/errors.  [GL #2377]
+
 Bug Fixes
 ~~~~~~~~~
 
