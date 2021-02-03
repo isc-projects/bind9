@@ -550,11 +550,12 @@
 ./bin/tests/system/eddsa/ns2/Xexample.com.+015+03613.private	X	2017,2018,2019,2020,2021
 ./bin/tests/system/eddsa/ns2/Xexample.com.+015+35217.key	X	2017,2018,2019,2020,2021
 ./bin/tests/system/eddsa/ns2/Xexample.com.+015+35217.private	X	2017,2018,2019,2020,2021
-./bin/tests/system/eddsa/ns2/Xexample.com.+016+09713.key	X	2019,2020,2021
-./bin/tests/system/eddsa/ns2/Xexample.com.+016+09713.private	X	2019,2020,2021
-./bin/tests/system/eddsa/ns2/Xexample.com.+016+38353.key	X	2019,2020,2021
-./bin/tests/system/eddsa/ns2/Xexample.com.+016+38353.private	X	2019,2020,2021
 ./bin/tests/system/eddsa/ns2/sign.sh		SH	2017,2018,2019,2020,2021
+./bin/tests/system/eddsa/ns3/Xexample.com.+016+09713.key	X	2021
+./bin/tests/system/eddsa/ns3/Xexample.com.+016+09713.private	X	2021
+./bin/tests/system/eddsa/ns3/Xexample.com.+016+38353.key	X	2021
+./bin/tests/system/eddsa/ns3/Xexample.com.+016+38353.private	X	2021
+./bin/tests/system/eddsa/ns3/sign.sh		SH	2021
 ./bin/tests/system/eddsa/prereq.sh		SH	2017,2018,2019,2020,2021
 ./bin/tests/system/eddsa/setup.sh		SH	2017,2018,2019,2020,2021
 ./bin/tests/system/eddsa/tests.sh		SH	2017,2018,2019,2020,2021
