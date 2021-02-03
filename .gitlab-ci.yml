@@ -534,6 +534,7 @@ docs:
     - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
+    - qpdf --check doc/arm/Bv9ARM.pdf
   needs:
     - job: autoreconf
       artifacts: true
