@@ -15,7 +15,13 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          A malformed incoming IXFR transfer could trigger an assertion failure
+          in <command>named</command>, causing it to quit abnormally.
+          (CVE-2021-25214)
+        </para>
+        <para>
+          ISC would like to thank Greg Kuechle of SaskTel for bringing this
+          vulnerability to our attention. [GL #2467]
         </para>
       </listitem>
     </itemizedlist>
