@@ -1348,7 +1348,6 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 
 static isc_result_t
 newversion(dns_db_t *db, dns_dbversion_t **versionp) {
-	isc_result_t result = ISC_R_SUCCESS;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	rbtdb_version_t *version;
 
@@ -1386,10 +1385,6 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	rbtdb->next_serial++;
 	rbtdb->future_version = version;
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-
-	if (version == NULL) {
-		return (result);
-	}
 
 	*versionp = version;
 
