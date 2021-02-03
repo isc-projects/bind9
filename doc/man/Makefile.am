@@ -147,6 +147,8 @@ man_SUBST =							\
 .NOTPARALLEL: man
 man: Makefile $(man_MANS)
 
+doc-local: man
+
 clean-local::
 	-rm -rf $(SPHINXBUILDDIR)
 
