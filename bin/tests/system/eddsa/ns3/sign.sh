@@ -19,13 +19,12 @@ zonefile=example.com.db
 starttime=20150729220000
 endtime=20150819220000
 
-echo_i "ns2/sign.sh"
+echo_i "ns3/sign.sh"
 
 cp $infile $zonefile
 
-if [ -f ../ed25519-supported.file ]; then
-
-	for i in Xexample.com.+015+03613 Xexample.com.+015+35217
+if [ -f ../ed448-supported.file ]; then
+	for i in Xexample.com.+016+09713 Xexample.com.+016+38353
 	do
 		cp "$i.key" "$(echo $i.key | sed s/X/K/)"
 		cp "$i.private" "$(echo $i.private | sed s/X/K/)"
