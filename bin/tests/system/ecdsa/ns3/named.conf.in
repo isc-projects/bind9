@@ -9,26 +9,26 @@
  * information regarding copyright ownership.
  */
 
-// NS1
+// NS2
 
 controls { /* empty */ };
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	port 5300;
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
-	recursion no;
+	recursion yes;
 	notify yes;
 	dnssec-validation yes;
 };
 
 zone "." {
-	type primary;
-	file "root.db.signed";
+	type hint;
+	file "../../common/root.hint";
 };
 
 include "trusted.conf";
