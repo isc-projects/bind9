@@ -58,8 +58,8 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, const char *key, const char *cert,
-			 char **endpoints, size_t nendpoints,
+			 dns_acl_t *acl, bool tls, const char *key,
+			 const char *cert, char **endpoints, size_t nendpoints,
 			 ns_listenelt_t **target) {
 	isc_result_t result;
 
@@ -67,8 +67,8 @@ ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
 	REQUIRE(endpoints != NULL && *endpoints != NULL);
 	REQUIRE(nendpoints > 0);
 
-	result = ns_listenelt_create(mctx, http_port, dscp, acl, key != NULL,
-				     key, cert, target);
+	result = ns_listenelt_create(mctx, http_port, dscp, acl, tls, key, cert,
+				     target);
 	if (result == ISC_R_SUCCESS) {
 		(*target)->is_http = true;
 		(*target)->http_endpoints = endpoints;

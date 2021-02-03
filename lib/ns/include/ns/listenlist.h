@@ -71,8 +71,8 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, const char *key, const char *cert,
-			 char **endpoints, size_t nendpoints,
+			 dns_acl_t *acl, bool tls, const char *key,
+			 const char *cert, char **endpoints, size_t nendpoints,
 			 ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element for HTTP(S).

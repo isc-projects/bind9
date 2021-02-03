@@ -398,8 +398,9 @@ static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, const char *key, const char *cert,
-	       in_port_t port, isc_mem_t *mctx, ns_listenelt_t **target);
+listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
+	       const char *cert, in_port_t port, isc_mem_t *mctx,
+	       ns_listenelt_t **target);
 
 static isc_result_t
 listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
@@ -11108,10 +11109,6 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
 		const char *httpname = cfg_obj_asstring(httpobj);
 
-		if (do_tls && key == NULL) {
-			return (ISC_R_FAILURE);
-		}
-
 		http_server = find_maplist(config, "http", httpname);
 		if (http_server == NULL) {
 			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
@@ -11192,7 +11189,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 	if (http) {
 		INSIST(http_server != NULL);
-		CHECK(listenelt_http(http_server, key, cert, port, mctx,
+		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
 				     &delt));
 	} else {
 		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls, key,
@@ -11212,12 +11209,10 @@ cleanup:
 	return (result);
 }
 
-/*
- * Create a listen list for HTTP/HTTPS
- */
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, const char *key, const char *cert,
-	       in_port_t port, isc_mem_t *mctx, ns_listenelt_t **target) {
+listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
+	       const char *cert, in_port_t port, isc_mem_t *mctx,
+	       ns_listenelt_t **target) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_listenelt_t *delt = NULL;
 	char **endpoints = NULL;
@@ -11229,7 +11224,7 @@ listenelt_http(const cfg_obj_t *http, const char *key, const char *cert,
 	REQUIRE((key == NULL) == (cert == NULL));
 
 	if (port == 0) {
-		port = (key != NULL) ? named_g_httpsport : named_g_httpport;
+		port = tls ? named_g_httpsport : named_g_httpport;
 	}
 
 	CHECK(cfg_map_get(http, "endpoints", &eplist));
@@ -11245,8 +11240,8 @@ listenelt_http(const cfg_obj_t *http, const char *key, const char *cert,
 
 	INSIST(i == len);
 
-	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, key,
-					  cert, endpoints, len, &delt);
+	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
+					  key, cert, endpoints, len, &delt);
 	if (result != ISC_R_SUCCESS) {
 		if (delt != NULL) {
 			ns_listenelt_destroy(delt);
