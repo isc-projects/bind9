@@ -4298,6 +4298,14 @@ dnssec_verify
 check_next_key_event 15440400
 
 #
+# Test #2375: Scheduled rollovers are happening faster than they can finish
+#
+set_zone "step1.three-is-a-crowd.kasp"
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# TODO (GL #2471).
+
+#
 # Testing algorithm rollover.
 #
 Lksk=0

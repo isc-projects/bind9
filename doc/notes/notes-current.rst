@@ -103,3 +103,11 @@ Bug Fixes
 - When migrating to ``dnssec-policy``, BIND considered keys with the "Inactive"
   and/or "Delete" timing metadata as possible active keys. This has been fixed.
   [GL #2406]
+
+- Fix the "three is a crowd" key rollover bug in ``dnssec-policy``. When keys
+  rolled faster than the time required to finish the rollover procedure, the
+  successor relation equation failed because it assumed only two keys were
+  taking part in a rollover. This could lead to premature removal of
+  predecessor keys. BIND 9 now implements a recursive successor relation, as
+  described in the paper "Flexible and Robust Key Rollover" (Equation (2)).
+  [GL #2375]
