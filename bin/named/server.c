@@ -8995,10 +8995,9 @@ load_configuration(const char *filename, named_server_t *server,
 			(void)cfg_map_get(options, "listen-on", &clistenon);
 		}
 		if (clistenon != NULL) {
-			/* check return code? */
-			(void)listenlist_fromconfig(
+			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET, &listenon);
+				named_g_mctx, AF_INET, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
@@ -9023,10 +9022,9 @@ load_configuration(const char *filename, named_server_t *server,
 			(void)cfg_map_get(options, "listen-on-v6", &clistenon);
 		}
 		if (clistenon != NULL) {
-			/* check return code? */
-			(void)listenlist_fromconfig(
+			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET6, &listenon);
+				named_g_mctx, AF_INET6, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
@@ -11067,19 +11065,24 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL;
-	bool do_tls = false, http = false;
+	bool do_tls = false, no_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	/* XXXWPK TODO be more verbose on failures. */
 	tlsobj = cfg_tuple_get(listener, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
 		const char *tlsname = cfg_obj_asstring(tlsobj);
 
-		if (strcmp(tlsname, "ephemeral") != 0) {
+		if (strcasecmp(tlsname, "none") == 0) {
+			no_tls = true;
+		} else if (strcasecmp(tlsname, "ephemeral") == 0) {
+			do_tls = true;
+		} else {
 			const cfg_obj_t *keyobj = NULL, *certobj = NULL;
 			const cfg_obj_t *tlsmap = NULL;
+
+			do_tls = true;
 
 			tlsmap = find_maplist(config, "tls", tlsname);
 			if (tlsmap == NULL) {
@@ -11092,13 +11095,19 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			CHECK(cfg_map_get(tlsmap, "cert-file", &certobj));
 			cert = cfg_obj_asstring(certobj);
 		}
-
-		do_tls = true;
 	}
 
 	httpobj = cfg_tuple_get(listener, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
 		const char *httpname = cfg_obj_asstring(httpobj);
+
+		if (!do_tls && !no_tls) {
+			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
+				    "http must specify a 'tls' "
+				    "statement, 'tls ephemeral', or "
+				    "'tls none'");
+			return (ISC_R_FAILURE);
+		}
 
 		http_server = find_maplist(config, "http", httpname);
 		if (http_server == NULL) {

@@ -2472,9 +2472,10 @@ referenced ``tls`` statement.
 
 If an HTTP configuration is specified, ``named`` will listen for
 DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
-referenced ``http`` statement. Normally, ``http`` and ``tls``
-configurations will be used together, but ``tls`` may be omitted if
-encryption is being handled by external software.
+referenced ``http`` statement. ``http`` and ``tls`` configurations must be
+used together. If an unencrypted connection is desired (for example, when
+load-sharing servers behind a reverse proxy), ``tls none`` may be
+used.
 
 If a port number is not specified, the default is 53 for standard DNS, 853
 for DNS-over-TLS, and 443 for DNS-over-HTTPS.
@@ -2506,7 +2507,7 @@ Multiple ``listen-on-v6`` options can be used. For example:
    listen-on-v6 port 1234 { !2001:db8::/32; any; };
    listen-on port 8853 tls example-tls { 2001:db8::100; };
    listen-on port 8453 tls example-tls http myserver { 2001:db8::100; };
-   listen-on port 8000 http myserver { 2001:db8::100; };
+   listen-on port 8000 tls none http myserver { 2001:db8::100; };
 
 The first two lines instruct the name server to listen for standard DNS
 queries on port 53 of any IPv6 addresses, and on port 1234 of IPv6
@@ -2516,8 +2517,8 @@ instructs the server to listen for for DNS-over-TLS connections on port
 in the a ``tls`` statement with the name ``example-tls``. The fourth
 instructs the server to listen for DNS-over-HTTPS connections, again using
 ``example-tls``, on the HTTP endpoint specified in ``http myserver``. The
-fifth line, in which the ``tls`` parameter is omitted, instructs the server
-to listen for *unencrypted* DNS queries over HTTP.
+fifth line, in which the ``tls`` parameter is set to ``none``, instructs
+the server to listen for *unencrypted* DNS queries over HTTP.
 
 To instruct the server not to listen on any IPv6 addresses, use:
 
@@ -4658,8 +4659,10 @@ The following options can be specified in a ``tls`` statement:
   ``hostname``
     The hostname associated with the certificate.
 
-The built-in ``ephemeral`` TLS connection object represents a temporary
-key and certificate created for the current ``named`` session only.
+There are two built-in TLS connection configurations: ``ephemeral``,
+uses a temporary key and certificate created for the current ``named``
+session only, and ``none``, which can be used when setting up an HTTP
+listener with no encryption.
 
 .. _http:
 
