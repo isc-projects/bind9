@@ -76,6 +76,15 @@ doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
+static isc_result_t
+cfg_parse_kv_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+
+static void
+cfg_print_kv_tuple(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+static void
+cfg_doc_kv_tuple(cfg_printer_t *pctx, const cfg_type_t *type);
+
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
@@ -91,7 +100,6 @@ static cfg_type_t cfg_type_dnssecpolicy;
 static cfg_type_t cfg_type_dnstap;
 static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
-static cfg_type_t cfg_type_plugin;
 static cfg_type_t cfg_type_http_description;
 static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_ixfrratio;
@@ -110,12 +118,12 @@ static cfg_type_t cfg_type_optional_allow;
 static cfg_type_t cfg_type_optional_class;
 static cfg_type_t cfg_type_optional_dscp;
 static cfg_type_t cfg_type_optional_facility;
-static cfg_type_t cfg_type_optional_http;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
 static cfg_type_t cfg_type_optional_uint32;
 static cfg_type_t cfg_type_optional_tls;
 static cfg_type_t cfg_type_options;
+static cfg_type_t cfg_type_plugin;
 static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_printtime;
 static cfg_type_t cfg_type_qminmethod;
@@ -150,11 +158,20 @@ static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
 
 /*% listen-on */
 
-static cfg_tuplefielddef_t listenon_fields[] = {
+static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
-	{ "tls", &cfg_type_optional_tls, 0 },
-	{ "http", &cfg_type_optional_http, 0 },
+	{ "dscp", &cfg_type_uint32, 0 },
+	{ "tls", &cfg_type_astring, 0 },
+	{ "http", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_listen_tuple = {
+	"listenon tuple", cfg_parse_kv_tuple, cfg_print_kv_tuple,
+	cfg_doc_kv_tuple, &cfg_rep_tuple,     listenon_tuple_fields
+};
+
+static cfg_tuplefielddef_t listenon_fields[] = {
+	{ "tuple", &cfg_type_listen_tuple, 0 },
 	{ "acl", &cfg_type_bracketed_aml, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -3842,8 +3859,6 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "cert-file", &cfg_type_qstring, 0 },
 	{ "ca-file", &cfg_type_qstring, 0 },
 	{ "hostname", &cfg_type_qstring, 0 },
-	/* { "trusted-cert-file", &cfg_type_qstring, *
-	   CFG_CLAUSEFLAG_EXPERIMENTAL}, */
 	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
@@ -3881,10 +3896,4 @@ static cfg_clausedef_t *http_description_clausesets[] = {
 static cfg_type_t cfg_type_http_description = {
 	"http_desc", cfg_parse_named_map, cfg_print_map,
 	cfg_doc_map, &cfg_rep_map,	  http_description_clausesets
-};
-
-static keyword_type_t http_kw = { "http", &cfg_type_astring };
-static cfg_type_t cfg_type_optional_http = {
-	"http_optional",       parse_optional_keyvalue, print_keyvalue,
-	doc_optional_keyvalue, &cfg_rep_string,		&http_kw
 };

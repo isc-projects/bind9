@@ -11059,6 +11059,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
 		     ns_listenelt_t **target) {
 	isc_result_t result;
+	const cfg_obj_t *ltup = NULL;
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
 	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
 	const cfg_obj_t *http_server = NULL;
@@ -11070,7 +11071,10 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	tlsobj = cfg_tuple_get(listener, "tls");
+	ltup = cfg_tuple_get(listener, "tuple");
+	RUNTIME_CHECK(ltup != NULL);
+
+	tlsobj = cfg_tuple_get(ltup, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
 		const char *tlsname = cfg_obj_asstring(tlsobj);
 
@@ -11097,7 +11101,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		}
 	}
 
-	httpobj = cfg_tuple_get(listener, "http");
+	httpobj = cfg_tuple_get(ltup, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
 		const char *httpname = cfg_obj_asstring(httpobj);
 
@@ -11120,7 +11124,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		http = true;
 	}
 
-	portobj = cfg_tuple_get(listener, "port");
+	portobj = cfg_tuple_get(ltup, "port");
 	if (!cfg_obj_isuint32(portobj)) {
 		if (http && do_tls) {
 			if (named_g_httpsport != 0) {
@@ -11174,7 +11178,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		port = (in_port_t)cfg_obj_asuint32(portobj);
 	}
 
-	dscpobj = cfg_tuple_get(listener, "dscp");
+	dscpobj = cfg_tuple_get(ltup, "dscp");
 	if (!cfg_obj_isuint32(dscpobj)) {
 		dscp = named_g_dscp;
 	} else {
