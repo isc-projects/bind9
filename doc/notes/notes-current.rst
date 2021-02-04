@@ -119,3 +119,7 @@ Bug Fixes
   of predecessor keys. BIND 9 now implements a recursive successor
   relation, as described in the paper "Flexible and Robust Key Rollover"
   (Equation (2)). [GL #2375]
+
+- Performance of the DNSSEC verification code (used by
+  ``dnssec-signzone``, ``dnssec-verify``, and mirror zones) has been
+  improved. [GL #2073]
