@@ -36,15 +36,6 @@ typedef void (*isc_mem_water_t)(void *, int);
 #define ISC_MEM_TRACKLINES 1
 #endif /* ifndef ISC_MEM_TRACKLINES */
 
-/*%
- * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
- * name so that the leaking pool can be more readily identified in
- * case of a memory leak.
- */
-#ifndef ISC_MEMPOOL_NAMES
-#define ISC_MEMPOOL_NAMES 1
-#endif /* ifndef ISC_MEMPOOL_NAMES */
-
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 

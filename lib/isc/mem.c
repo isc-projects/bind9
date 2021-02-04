@@ -177,9 +177,7 @@ struct isc_mempool {
 	/*%< Stats only. */
 	atomic_size_t gets; /*%< # of requests to this pool */
 			    /*%< Debugging only. */
-#if ISC_MEMPOOL_NAMES
-	char name[16]; /*%< printed name in stats reports */
-#endif		       /* if ISC_MEMPOOL_NAMES */
+	char name[16];	    /*%< printed name in stats reports */
 };
 
 /*
@@ -226,7 +224,6 @@ increment_malloced(isc_mem_t *ctx, size_t size) {
 static inline size_t
 decrement_malloced(isc_mem_t *ctx, size_t size) {
 	size_t malloced = atomic_fetch_sub_release(&ctx->malloced, size) - size;
-	INSIST(size >= 0);
 
 	return (malloced);
 }
@@ -885,12 +882,8 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	while (pool != NULL) {
 		fprintf(out,
 			"%15s %10zu %10zu %10zu %10zu %10zu %10zu %10zu %s\n",
-#if ISC_MEMPOOL_NAMES
-			pool->name,
-#else  /* if ISC_MEMPOOL_NAMES */
-			"(not tracked)",
-#endif /* if ISC_MEMPOOL_NAMES */
-			pool->size, atomic_load_relaxed(&pool->maxalloc),
+			pool->name, pool->size,
+			atomic_load_relaxed(&pool->maxalloc),
 			atomic_load_relaxed(&pool->allocated),
 			atomic_load_relaxed(&pool->freecount),
 			atomic_load_relaxed(&pool->freemax),
@@ -1129,7 +1122,7 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	oldwater = ctx->water;
 	oldwater_arg = ctx->water_arg;
 	if (water == NULL) {
-		callwater = atomic_load(&ctx->hi_called);
+		callwater = atomic_load_acquire(&ctx->hi_called);
 		ctx->water = NULL;
 		ctx->water_arg = NULL;
 		atomic_store_release(&ctx->hi_water, 0);
@@ -1231,17 +1224,11 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(name != NULL);
 
-#if ISC_MEMPOOL_NAMES
 	MPCTXLOCK(mpctx);
 
 	strlcpy(mpctx->name, name, sizeof(mpctx->name));
 
 	MPCTXUNLOCK(mpctx);
-
-#else  /* if ISC_MEMPOOL_NAMES */
-	UNUSED(mpctx);
-	UNUSED(name);
-#endif /* if ISC_MEMPOOL_NAMES */
 }
 
 void
@@ -1256,14 +1243,12 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 
 	mpctx = *mpctxp;
 	*mpctxp = NULL;
-#if ISC_MEMPOOL_NAMES
 	if (atomic_load_acquire(&mpctx->allocated) > 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mempool_destroy(): mempool %s "
 				 "leaked memory",
 				 mpctx->name);
 	}
-#endif /* if ISC_MEMPOOL_NAMES */
 	REQUIRE(atomic_load_acquire(&mpctx->allocated) == 0);
 
 	mctx = mpctx->mctx;
@@ -1415,26 +1400,14 @@ void
 isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	MPCTXLOCK(mpctx);
-
-	mpctx->freemax = limit;
-
-	MPCTXUNLOCK(mpctx);
+	atomic_store_release(&mpctx->freemax, limit);
 }
 
 unsigned int
 isc_mempool_getfreemax(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	unsigned int freemax;
-
-	MPCTXLOCK(mpctx);
-
-	freemax = mpctx->freemax;
-
-	MPCTXUNLOCK(mpctx);
-
-	return (freemax);
+	return (atomic_load_acquire(&mpctx->freemax));
 }
 
 unsigned int
@@ -1484,6 +1457,7 @@ isc_mempool_getfillcount(isc_mempool_t *mpctx) {
 /*
  * Requires contextslock to be held by caller.
  */
+#if ISC_MEM_TRACKLINES
 static void
 print_contexts(FILE *file) {
 	isc_mem_t *ctx;
@@ -1497,6 +1471,7 @@ print_contexts(FILE *file) {
 	}
 	fflush(file);
 }
+#endif
 
 void
 isc_mem_checkdestroyed(FILE *file) {
