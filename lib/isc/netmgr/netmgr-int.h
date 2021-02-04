@@ -34,6 +34,7 @@
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/thread.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include "uv-compat.h"
@@ -156,8 +157,6 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define isc__nmsocket_prep_destroy(sock) isc___nmsocket_prep_destroy(sock)
 #endif
 
-typedef struct isc_nm_http2_session isc_nm_http2_session_t;
-
 /*
  * Single network event loop worker.
  */
@@ -195,6 +194,7 @@ typedef struct isc__networker {
 	 atomic_load(&(t)->references) > 0)
 
 typedef void (*isc__nm_closecb)(isc_nmhandle_t *);
+typedef struct isc_nm_http_session isc_nm_http_session_t;
 
 struct isc_nmhandle {
 	int magic;
@@ -210,7 +210,7 @@ struct isc_nmhandle {
 	isc_nmsocket_t *sock;
 	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
-	isc_nm_http2_session_t *httpsession;
+	isc_nm_http_session_t *httpsession;
 
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
@@ -302,20 +302,18 @@ typedef enum isc__netievent_type {
 
 typedef union {
 	isc_nm_recv_cb_t recv;
-	isc_nm_http_cb_t http;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
 	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
 
-typedef struct isc_nm_http2_server_handler isc_nm_http2_server_handler_t;
-
-struct isc_nm_http2_server_handler {
+typedef struct isc_nm_httphandler isc_nm_httphandler_t;
+struct isc_nm_httphandler {
 	char *path;
-	isc_nm_http_cb_t cb;
+	isc_nm_recv_cb_t cb;
 	void *cbarg;
 	size_t extrahandlesize;
-	LINK(isc_nm_http2_server_handler_t) link;
+	LINK(isc_nm_httphandler_t) link;
 };
 
 /*
@@ -674,7 +672,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tlsdnslistener,
 	isc_nm_tlsdnssocket,
 	isc_nm_httplistener,
-	isc_nm_httpstream
+	isc_nm_httpsocket
 } isc_nmsocket_type;
 
 /*%
@@ -704,25 +702,29 @@ enum {
 typedef struct isc_nmsocket_tls_send_req {
 	isc_nmsocket_t *tlssock;
 	isc_region_t data;
+	isc_nm_cb_t cb;
+	void *cbarg;
+	isc_nmhandle_t *handle;
+	bool finish;
 } isc_nmsocket_tls_send_req_t;
 
-typedef enum isc_doh_request_type {
+typedef enum isc_http_request_type {
 	ISC_HTTP_REQ_GET,
 	ISC_HTTP_REQ_POST,
 	ISC_HTTP_REQ_UNSUPPORTED
-} isc_http2_request_type_t;
+} isc_http_request_type_t;
 
-typedef enum isc_http2_scheme_type {
+typedef enum isc_http_scheme_type {
 	ISC_HTTP_SCHEME_HTTP,
 	ISC_HTTP_SCHEME_HTTP_SECURE,
 	ISC_HTTP_SCHEME_UNSUPPORTED
-} isc_http2_scheme_type_t;
+} isc_http_scheme_type_t;
 
-typedef struct isc_nm_http_doh_cbarg {
+typedef struct isc_nm_httpcbarg {
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
-	LINK(struct isc_nm_http_doh_cbarg) link;
-} isc_nm_http_doh_cbarg_t;
+	LINK(struct isc_nm_httpcbarg) link;
+} isc_nm_httpcbarg_t;
 
 typedef struct isc_nmsocket_h2 {
 	isc_nmsocket_t *psock; /* owner of the structure */
@@ -730,38 +732,43 @@ typedef struct isc_nmsocket_h2 {
 	char *query_data;
 	size_t query_data_len;
 	bool query_too_large;
-	isc_nm_http2_server_handler_t *handler;
+	isc_nm_httphandler_t *handler;
 
 	uint8_t *buf;
 	size_t bufsize;
 	size_t bufpos;
 
 	int32_t stream_id;
-	isc_nm_http2_session_t *session;
+	isc_nm_http_session_t *session;
 
 	isc_nmsocket_t *httpserver;
 
-	isc_http2_request_type_t request_type;
-	isc_http2_scheme_type_t request_scheme;
+	isc_http_request_type_t request_type;
+	isc_http_scheme_type_t request_scheme;
+
 	size_t content_length;
+	char clenbuf[128];
+
 	bool content_type_verified;
 	bool accept_type_verified;
 
-	isc_nm_http_cb_t handler_cb;
-	void *handler_cbarg;
+	isc_nm_recv_cb_t cb;
+	void *cbarg;
 	LINK(struct isc_nmsocket_h2) link;
 
-	ISC_LIST(isc_nm_http2_server_handler_t) handlers;
-	ISC_LIST(isc_nm_http_doh_cbarg_t) handlers_cbargs;
-	isc_rwlock_t handlers_lock;
+	ISC_LIST(isc_nm_httphandler_t) handlers;
+	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
+	isc_rwlock_t lock;
 
-	char response_content_length_str[128];
-
-	struct isc_nmsocket_h2_connect_data {
+	struct {
 		char *uri;
 		bool post;
+		isc_tlsctx_t *tlsctx;
+		isc_nmiface_t local_interface;
+		void *cstream;
 	} connect;
 } isc_nmsocket_h2_t;
+
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
@@ -778,8 +785,8 @@ struct isc_nmsocket {
 
 	/*% TLS stuff */
 	struct tls {
-		SSL *ssl;
-		SSL_CTX *ctx;
+		isc_tls_t *tls;
+		isc_tlsctx_t *ctx;
 		BIO *app_rbio;
 		BIO *app_wbio;
 		BIO *ssl_rbio;
@@ -802,21 +809,22 @@ struct isc_nmsocket {
 	struct tlsstream {
 		bool server;
 		BIO *app_bio;
-		SSL *ssl;
-		SSL_CTX *ctx;
+		isc_tls_t *tls;
+		isc_tlsctx_t *ctx;
 		BIO *ssl_bio;
 		isc_nmsocket_t *tlslistener;
+		isc_nmiface_t server_iface;
+		isc_nmiface_t local_iface;
+		bool connect_from_networker;
+		atomic_bool result_updated;
 		enum {
 			TLS_INIT,
 			TLS_HANDSHAKE,
 			TLS_IO,
-			TLS_ERROR,
 			TLS_CLOSING,
 			TLS_CLOSED
-		} state;
+		} state; /*%< The order of these is significant */
 		size_t nsending;
-		/* List of active send requests. */
-		ISC_LIST(isc__nm_uvreq_t) sends;
 	} tlsstream;
 
 	isc_nmsocket_h2_t h2;
@@ -1149,11 +1157,15 @@ isc__nmsocket_clearcb(isc_nmsocket_t *sock);
 void
 isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		  isc_result_t eresult);
+
+void
+isc__nm_connectcb_force_async(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+			      isc_result_t eresult);
+
 void
 isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Issue a connect callback on the socket, used to call the callback
-
  */
 
 void
@@ -1519,17 +1531,40 @@ void
 isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
 
 void
+isc__nm_tls_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the read timeout and reset the timer for the socket
+ * associated with 'handle', and the TCP socket it wraps
+ * around.
+ */
+
+void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
 
 void
-isc__nm_http_clear_handlers(isc_nmsocket_t *sock);
+isc__nm_http_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+/*%<
+ * Set the read timeout and reset the timer for the socket
+ * associated with 'handle', and the TLS/TCP socket it wraps
+ * around.
+ */
 
 void
-isc__nm_http_clear_session(isc_nmsocket_t *sock);
+isc__nm_http_initsocket(isc_nmsocket_t *sock);
+
+void
+isc__nm_http_cleanup_data(isc_nmsocket_t *sock);
+
+isc_result_t
+isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
+		     isc_nm_recv_cb_t reply_cb, void *cbarg);
 
 void
 isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		  isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 
 void
 isc__nm_http_close(isc_nmsocket_t *sock);
@@ -1544,8 +1579,8 @@ void
 isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 bool
-isc__nm_parse_doh_query_string(const char *query_string, const char **start,
-			       size_t *len);
+isc__nm_parse_httpquery(const char *query_string, const char **start,
+			size_t *len);
 
 char *
 isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
@@ -1554,6 +1589,12 @@ isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
 char *
 isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
 			    const size_t base64_len, size_t *res_len);
+
+void
+isc__nm_httpsession_attach(isc_nm_http_session_t *source,
+			   isc_nm_http_session_t **targetp);
+void
+isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)

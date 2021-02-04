@@ -64,7 +64,7 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 
 		create_name(dohid, &dohname);
 
-		transport = dns_transport_new(&dohname, DNS_TRANSPORT_DOH,
+		transport = dns_transport_new(&dohname, DNS_TRANSPORT_HTTP,
 					      list);
 
 		parse_transport_option(doh, transport, "key-file",

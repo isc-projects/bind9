@@ -1004,33 +1004,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_condition_destroy(&sock->cond);
 	isc_condition_destroy(&sock->scond);
 	isc__nm_tls_cleanup_data(sock);
-
-	if (sock->type == isc_nm_httplistener) {
-		isc__nm_http_clear_handlers(sock);
-		isc_rwlock_destroy(&sock->h2.handlers_lock);
-	}
-
-	if (sock->h2.request_path != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->h2.request_path);
-		sock->h2.request_path = NULL;
-	}
-
-	if (sock->h2.query_data != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->h2.query_data);
-		sock->h2.query_data = NULL;
-	}
-
-	if (sock->h2.connect.uri != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->h2.connect.uri);
-		sock->h2.query_data = NULL;
-	}
-
-	if (sock->h2.buf != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->h2.buf);
-		sock->h2.buf = NULL;
-	}
-
-	isc__nm_http_clear_session(sock);
+	isc__nm_http_cleanup_data(sock);
 #ifdef NETMGR_TRACE
 	LOCK(&sock->mgr->lock);
 	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
@@ -1145,7 +1119,7 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tlsdnssocket:
 			isc__nm_tlsdns_close(sock);
 			return;
-		case isc_nm_httpstream:
+		case isc_nm_httpsocket:
 			isc__nm_http_close(sock);
 			return;
 		default:
@@ -1255,7 +1229,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	case isc_nm_tcpdnslistener:
 	case isc_nm_tlsdnssocket:
 	case isc_nm_tlsdnslistener:
-	case isc_nm_httpstream:
+	case isc_nm_httpsocket:
 	case isc_nm_httplistener:
 		if (family == AF_INET) {
 			sock->statsindex = tcp4statsindex;
@@ -1274,7 +1248,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_refcount_init(&sock->references, 1);
 
 	memset(&sock->tlsstream, 0, sizeof(sock->tlsstream));
-	ISC_LIST_INIT(sock->tlsstream.sends);
 
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %lu\n", sock,
 			 isc_refcount_current(&sock->references));
@@ -1286,27 +1259,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 
 	atomic_store(&sock->active_child_connections, 0);
 
-	if (type == isc_nm_httplistener) {
-		ISC_LIST_INIT(sock->h2.handlers);
-		ISC_LIST_INIT(sock->h2.handlers_cbargs);
-		isc_rwlock_init(&sock->h2.handlers_lock, 0, 1);
-	}
-
-	sock->h2.session = NULL;
-	sock->h2.httpserver = NULL;
-	sock->h2.query_data = NULL;
-	sock->h2.query_data_len = 0;
-	sock->h2.query_too_large = false;
-	sock->h2.request_path = NULL;
-	sock->h2.request_type = ISC_HTTP_REQ_UNSUPPORTED;
-	sock->h2.request_scheme = ISC_HTTP_SCHEME_UNSUPPORTED;
-	sock->h2.content_length = 0;
-	sock->h2.content_type_verified = false;
-	sock->h2.accept_type_verified = false;
-	sock->h2.handler_cb = NULL;
-	sock->h2.handler_cbarg = NULL;
-	sock->h2.connect.uri = NULL;
-	sock->h2.buf = NULL;
+	isc__nm_http_initsocket(sock);
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -1449,8 +1402,9 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		sock->statichandle = handle;
 	}
 
-	if (sock->type == isc_nm_httpstream) {
-		handle->httpsession = sock->h2.session;
+	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
+		isc__nm_httpsession_attach(sock->h2.session,
+					   &handle->httpsession);
 	}
 
 	return (handle);
@@ -1582,6 +1536,10 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 		handle->doreset(handle->opaque);
 	}
 
+	if (sock->type == isc_nm_httpsocket && handle->httpsession != NULL) {
+		isc__nm_httpsession_detach(&handle->httpsession);
+	}
+
 	nmhandle_deactivate(sock, handle);
 
 	/*
@@ -1641,6 +1599,12 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_settimeout(handle, timeout);
+		break;
+	case isc_nm_tlssocket:
+		isc__nm_tls_settimeout(handle, timeout);
+		break;
+	case isc_nm_httpsocket:
+		isc__nm_http_settimeout(handle, timeout);
 		break;
 	default:
 		INSIST(0);
@@ -1758,7 +1722,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_send(handle, region, cb, cbarg);
 		break;
-	case isc_nm_httpstream:
+	case isc_nm_httpsocket:
 		isc__nm_http_send(handle, region, cb, cbarg);
 		break;
 	default:
@@ -1793,6 +1757,9 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_read(handle, cb, cbarg);
+		break;
+	case isc_nm_httpsocket:
+		isc__nm_http_read(handle, cb, cbarg);
 		break;
 	default:
 		INSIST(0);
@@ -1893,25 +1860,36 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	}
 }
 
-void
-isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-		  isc_result_t eresult) {
+static void
+nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq, isc_result_t eresult,
+	     bool force_async) {
+	isc__netievent_connectcb_t *ievent = NULL;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	if (eresult == ISC_R_SUCCESS) {
-		isc__netievent_connectcb_t ievent = { .sock = sock,
-						      .req = uvreq,
-						      .result = eresult };
-		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
-	} else {
-		isc__netievent_connectcb_t *ievent =
-			isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
-							eresult);
+	ievent = isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
+						 eresult);
+	if (force_async) {
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
+	} else {
+		isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
+					     (isc__netievent_t *)ievent);
 	}
+}
+
+void
+isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+		  isc_result_t eresult) {
+	nm_connectcb(sock, uvreq, eresult, false);
+}
+
+void
+isc__nm_connectcb_force_async(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+			      isc_result_t eresult) {
+	nm_connectcb(sock, uvreq, eresult, true);
 }
 
 void
@@ -2460,8 +2438,8 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_tlsdnssocket");
 	case isc_nm_httplistener:
 		return ("isc_nm_httplistener");
-	case isc_nm_httpstream:
-		return ("isc_nm_httpstream");
+	case isc_nm_httpsocket:
+		return ("isc_nm_httpsocket");
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

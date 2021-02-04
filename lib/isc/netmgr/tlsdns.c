@@ -338,8 +338,8 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	}
 
 	sock->tls.state = TLS_STATE_NONE;
-	sock->tls.ssl = SSL_new(sock->tls.ctx);
-	RUNTIME_CHECK(sock->tls.ssl != NULL);
+	sock->tls.tls = isc_tls_create(sock->tls.ctx);
+	RUNTIME_CHECK(sock->tls.tls != NULL);
 
 	/*
 	 *
@@ -359,13 +359,13 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	 * may be necessary to increment the number of references available
 	 * using BIO_up_ref(3) before calling the set0 functions.
 	 */
-	SSL_set0_rbio(sock->tls.ssl, sock->tls.ssl_rbio);
-	SSL_set0_wbio(sock->tls.ssl, sock->tls.ssl_wbio);
+	SSL_set0_rbio(sock->tls.tls, sock->tls.ssl_rbio);
+	SSL_set0_wbio(sock->tls.tls, sock->tls.ssl_wbio);
 #else
-	SSL_set_bio(sock->tls.ssl, sock->tls.ssl_rbio, sock->tls.ssl_wbio);
+	SSL_set_bio(sock->tls.tls, sock->tls.ssl_rbio, sock->tls.ssl_wbio);
 #endif
 
-	SSL_set_connect_state(sock->tls.ssl);
+	SSL_set_connect_state(sock->tls.tls);
 
 	result = isc_sockaddr_fromsockaddr(&sock->peer, (struct sockaddr *)&ss);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -782,7 +782,7 @@ isc__nm_async_tlsdnsshutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	rv = SSL_shutdown(sock->tls.ssl);
+	rv = SSL_shutdown(sock->tls.tls);
 
 	if (rv == 1) {
 		sock->tls.state = TLS_STATE_NONE;
@@ -802,7 +802,7 @@ isc__nm_async_tlsdnsshutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	err = SSL_get_error(sock->tls.ssl, rv);
+	err = SSL_get_error(sock->tls.tls, rv);
 
 	switch (err) {
 	case SSL_ERROR_WANT_READ:
@@ -1167,9 +1167,9 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 		size_t len;
 
 		for (;;) {
-			(void)SSL_peek(sock->tls.ssl, &(char){ '\0' }, 0);
+			(void)SSL_peek(sock->tls.tls, &(char){ '\0' }, 0);
 
-			int pending = SSL_pending(sock->tls.ssl);
+			int pending = SSL_pending(sock->tls.tls);
 			if (pending > TLS_BUF_SIZE) {
 				pending = TLS_BUF_SIZE;
 			}
@@ -1179,7 +1179,7 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 			}
 
 			len = 0;
-			rv = SSL_read_ex(sock->tls.ssl,
+			rv = SSL_read_ex(sock->tls.tls,
 					 sock->buf + sock->buf_len,
 					 sock->buf_size - sock->buf_len, &len);
 			if (rv != 1) {
@@ -1196,11 +1196,11 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 
 			process_sock_buffer(sock);
 		}
-	} else if (!SSL_is_init_finished(sock->tls.ssl)) {
-		if (SSL_is_server(sock->tls.ssl)) {
-			rv = SSL_accept(sock->tls.ssl);
+	} else if (!SSL_is_init_finished(sock->tls.tls)) {
+		if (SSL_is_server(sock->tls.tls)) {
+			rv = SSL_accept(sock->tls.tls);
 		} else {
-			rv = SSL_connect(sock->tls.ssl);
+			rv = SSL_connect(sock->tls.tls);
 		}
 
 	} else {
@@ -1208,13 +1208,13 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 	}
 
 	if (rv <= 0) {
-		err = SSL_get_error(sock->tls.ssl, rv);
+		err = SSL_get_error(sock->tls.tls, rv);
 	}
 
 	switch (err) {
 	case SSL_ERROR_WANT_READ:
 		if (sock->tls.state == TLS_STATE_NONE &&
-		    !SSL_is_init_finished(sock->tls.ssl)) {
+		    !SSL_is_init_finished(sock->tls.tls)) {
 			sock->tls.state = TLS_STATE_HANDSHAKE;
 			start_reading(sock);
 		}
@@ -1237,11 +1237,11 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 
 	/* Stop state after handshake */
 	if (sock->tls.state == TLS_STATE_HANDSHAKE &&
-	    SSL_is_init_finished(sock->tls.ssl))
+	    SSL_is_init_finished(sock->tls.tls))
 	{
 		sock->tls.state = TLS_STATE_IO;
 
-		if (SSL_is_server(sock->tls.ssl)) {
+		if (SSL_is_server(sock->tls.tls)) {
 			REQUIRE(sock->recv_handle != NULL);
 			result = sock->accept_cb(sock->recv_handle,
 						 ISC_R_SUCCESS,
@@ -1656,18 +1656,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	csock->tls.state = TLS_STATE_NONE;
 
-	csock->tls.ssl = SSL_new(ssock->tls.ctx);
-
-	if (csock->tls.ssl == NULL) {
-		char errbuf[256];
-		unsigned long err = ERR_get_error();
-
-		ERR_error_string_n(err, errbuf, sizeof(errbuf));
-		fprintf(stderr, "%s:SSL_new(%p) -> %s\n", __func__,
-			ssock->tls.ctx, errbuf);
-	}
-
-	RUNTIME_CHECK(csock->tls.ssl != NULL);
+	csock->tls.tls = isc_tls_create(ssock->tls.ctx);
+	RUNTIME_CHECK(csock->tls.tls != NULL);
 
 	r = BIO_new_bio_pair(&csock->tls.ssl_wbio, TLS_BUF_SIZE,
 			     &csock->tls.app_rbio, TLS_BUF_SIZE);
@@ -1684,13 +1674,13 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	 * may be necessary to increment the number of references available
 	 * using BIO_up_ref(3) before calling the set0 functions.
 	 */
-	SSL_set0_rbio(csock->tls.ssl, csock->tls.ssl_rbio);
-	SSL_set0_wbio(csock->tls.ssl, csock->tls.ssl_wbio);
+	SSL_set0_rbio(csock->tls.tls, csock->tls.ssl_rbio);
+	SSL_set0_wbio(csock->tls.tls, csock->tls.ssl_wbio);
 #else
-	SSL_set_bio(csock->tls.ssl, csock->tls.ssl_rbio, csock->tls.ssl_wbio);
+	SSL_set_bio(csock->tls.tls, csock->tls.ssl_rbio, csock->tls.ssl_wbio);
 #endif
 
-	SSL_set_accept_state(csock->tls.ssl);
+	SSL_set_accept_state(csock->tls.tls);
 
 	/* FIXME: Set SSL_MODE_RELEASE_BUFFERS */
 
@@ -1823,7 +1813,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 
 	/* Writes won't succeed until handshake end */
-	if (!SSL_is_init_finished(sock->tls.ssl)) {
+	if (!SSL_is_init_finished(sock->tls.tls)) {
 		goto requeue;
 	}
 
@@ -1837,7 +1827,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	memmove(worker->sendbuf + sizeof(uint16_t), req->uvbuf.base,
 		req->uvbuf.len);
 
-	rv = SSL_write_ex(sock->tls.ssl, worker->sendbuf, sendlen, &bytes);
+	rv = SSL_write_ex(sock->tls.tls, worker->sendbuf, sendlen, &bytes);
 	if (rv > 0) {
 		/* SSL_write_ex() doesn't do partial writes */
 		INSIST(sendlen == bytes);
@@ -1848,7 +1838,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 
 	/* Nothing was written, maybe enqueue? */
-	err = SSL_get_error(sock->tls.ssl, rv);
+	err = SSL_get_error(sock->tls.tls, rv);
 
 	switch (err) {
 	case SSL_ERROR_WANT_WRITE:
@@ -1921,9 +1911,8 @@ tlsdns_close_cb(uv_handle_t *handle) {
 
 	atomic_store(&sock->connected, false);
 
-	if (sock->tls.ssl) {
-		SSL_free(sock->tls.ssl);
-		sock->tls.ssl = NULL;
+	if (sock->tls.tls != NULL) {
+		isc_tls_free(&sock->tls.tls);
 	}
 
 	BIO_free_all(sock->tls.app_rbio);
