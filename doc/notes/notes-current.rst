@@ -81,9 +81,9 @@ Feature Changes
 
 - The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
   day and the default value of ``stale-answer-ttl`` has been changed from 1
-  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
+  second to 30 seconds, following :rfc:`8767` recommendations. [GL #2248]
 
-- As part of an ongoing effort to use RFC 8499 terminology,
+- As part of an ongoing effort to use :rfc:`8499` terminology,
   ``primaries`` can now be used as a synonym for ``masters`` in
   ``named.conf``. Similarly, ``notify primary-only`` can now be used as
   a synonym for ``notify master-only``. The output of ``rndc
