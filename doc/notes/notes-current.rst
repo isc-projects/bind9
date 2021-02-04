@@ -127,6 +127,10 @@ Bug Fixes
   relation, as described in the paper "Flexible and Robust Key Rollover"
   (Equation (2)). [GL #2375]
 
+- Performance of the DNSSEC verification code (used by
+  ``dnssec-signzone``, ``dnssec-verify``, and mirror zones) has been
+  improved. [GL #2073]
+
 - If an outgoing packet would exceed max-udp-size, it would be dropped instead
   of sending a proper response back.  Rollback setting the IP_DONTFRAG on the
   UDP sockets that we enabled during the DNS Flag Day 2020 to fix this issue.
