@@ -31,7 +31,7 @@ Feature Changes
   programs that interact with the network and process arbitrary user
   input. [GL #1933]
 
-- As part of an ongoing effort to use RFC 8499 terminology,
+- As part of an ongoing effort to use :rfc:`8499` terminology,
   ``primaries`` can now be used as a synonym for ``masters`` in
   ``named.conf``. Similarly, ``notify primary-only`` can now be used as
   a synonym for ``notify master-only``. The output of ``rndc

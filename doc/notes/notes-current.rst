@@ -88,7 +88,7 @@ Feature Changes
 
 - The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
   day, and the default value of ``stale-answer-ttl`` has been changed from 1
-  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
+  second to 30 seconds, following :rfc:`8767` recommendations. [GL #2248]
 
 - When ``check-names`` is in effect, A records below an ``_spf``, ``_spf_rate``
   and ``_spf_verify`` labels (which are employed by the ``exists`` SPF
