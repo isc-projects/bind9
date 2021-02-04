@@ -32,7 +32,7 @@ Feature Changes
   without making it bogus in the process; changing to ``dnssec-policy
   none;`` also causes CDS and CDNSKEY DELETE records to be published, to
   signal that the entire DS RRset at the parent must be removed, as
-  described in RFC 8078. [GL #1750]
+  described in :rfc:`8078`. [GL #1750]
 
 - When using the ``unixtime`` or ``date`` method to update the SOA
   serial number, ``named`` and ``dnssec-signzone`` silently fell back to
