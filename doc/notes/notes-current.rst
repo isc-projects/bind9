@@ -24,6 +24,21 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- Support for DNS-over-HTTPS (DoH) was added to ``named``. Because of
+  this, the ``nghttp2`` HTTP/2 library is now required for building the
+  development branch of BIND 9. Both TLS-encrypted and unencrypted
+  HTTP/2 connections are supported (the latter may be used to offload
+  encryption to other software).
+
+  Note that there is no client-side support for HTTPS as yet; this will
+  be added to ``dig`` in a future release. [GL #1144]
+
+- ``named`` now supports XFR-over-TLS (XoT) for incoming as well as
+  outgoing zone transfers. Addresses in a ``primaries`` list can now be
+  accompanied by an optional ``tls`` keyword, followed by either the
+  name of a previously configured ``tls`` statement or ``ephemeral``.
+  [GL #2392]
+
 - A new option, ``stale-answer-client-timeout``, has been added to
   improve ``named``'s behavior with respect to serving stale data. The
   option defines the amount of time ``named`` waits before attempting to
@@ -41,28 +56,6 @@ New Features
   ``stale-answer-client-timeout`` to ``off`` or ``disabled``. The new
   option has no effect if ``stale-answer-enable`` is disabled.
   [GL #2247]
-
-- When serve-stale is enabled and stale data is available, ``named`` now
-  returns stale answers upon encountering any unexpected error in the
-  query resolution process. This may happen, for example, if the
-  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
-  this case, ``named`` attempts to answer DNS requests with stale data,
-  but does not start the ``stale-refresh-time`` window. [GL #2434]
-
-- ``named`` now supports XFR-over-TLS (XoT) for incoming as well as
-  outgoing zone transfers. Addresses in a ``primaries`` list can now be
-  accompanied by an optional ``tls`` keyword, followed by either the
-  name of a previously configured ``tls`` statement or ``ephemeral``.
-  [GL #2392]
-
-- Support for DNS-over-HTTPS (DoH) was added to ``named``. Because of
-  this, the ``nghttp2`` HTTP/2 library is now required for building the
-  development branch of BIND 9. Both TLS-encrypted and unencrypted
-  HTTP/2 connections are supported (the latter may be used to offload
-  encryption to other software).
-
-  Note that there is no client-side support for HTTPS as yet; this will
-  be added to ``dig`` in a future release. [GL #1144]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -82,17 +75,24 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- When serve-stale is enabled and stale data is available, ``named`` now
+  returns stale answers upon encountering any unexpected error in the
+  query resolution process. This may happen, for example, if the
+  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
+  this case, ``named`` attempts to answer DNS requests with stale data,
+  but does not start the ``stale-refresh-time`` window. [GL #2434]
+
+- The default value of ``max-stale-ttl`` has been changed from 12 hours
+  to 1 day and the default value of ``stale-answer-ttl`` has been
+  changed from 1 second to 30 seconds, following :rfc:`8767`
+  recommendations. [GL #2248]
+
 - The SONAMEs for BIND 9 libraries now include the current BIND 9
   version number, in an effort to tightly couple internal libraries with
   a specific release. This change makes the BIND 9 release process both
   simpler and more consistent while also unequivocally preventing BIND 9
   binaries from silently loading wrong versions of shared libraries (or
   multiple versions of the same shared library) at startup. [GL #2387]
-
-- The default value of ``max-stale-ttl`` has been changed from 12 hours
-  to 1 day and the default value of ``stale-answer-ttl`` has been
-  changed from 1 second to 30 seconds, following :rfc:`8767`
-  recommendations. [GL #2248]
 
 - When ``check-names`` is in effect, A records below an ``_spf``,
   ``_spf_rate``, or ``_spf_verify`` label (which are employed by the
@@ -102,14 +102,14 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- KASP incorrectly set signature validity to the value of the DNSKEY
-  signature validity. This has been fixed. [GL #2383]
+- ``named`` failed to start when its configuration included a zone with
+  a non-builtin ``allow-update`` ACL attached. [GL #2413]
 
 - Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA
   key. This has been fixed. [GL #2178]
 
-- ``named`` failed to start when its configuration included a zone with
-  a non-builtin ``allow-update`` ACL attached. [GL #2413]
+- KASP incorrectly set signature validity to the value of the DNSKEY
+  signature validity. This has been fixed. [GL #2383]
 
 - When migrating to KASP, BIND 9 considered keys with the ``Inactive``
   and/or ``Delete`` timing metadata to be possible active keys. This has
