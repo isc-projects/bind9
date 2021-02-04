@@ -13,7 +13,7 @@
 In general, this version of BIND will build and run on any POSIX-compliant
 system with a C11-compliant C compiler, BSD-style sockets with RFC-compliant
 IPv6 support, POSIX-compliant threads, the `libuv` asynchronous I/O library,
-and the OpenSSL cryptography library.
+the OpenSSL cryptography library, and the `nghttp2` HTTP/2 library.
 
 The following C11 features are used in BIND 9:
 

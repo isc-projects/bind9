@@ -36,13 +36,13 @@
 			on the wrong freed list. [GL #2460]
 
 5578.	[protocol]	Make "check-names" accept A records below "_spf",
-			"_spf_rate" and "_spf_verify" labels in order to cater
+			"_spf_rate", and "_spf_verify" labels in order to cater
 			for the "exists" SPF mechanism specified in RFC 7208
-			section 5.7. and appendix D. [GL #2377]
+			section 5.7 and appendix D.1. [GL #2377]
 
-5577.	[bug]		Fix the "three is a crowd" key rollover bug in
-			dnssec-policy by correctly implementing Equation(2) of
-			the "Flexible and Robust Key Rollover" paper. [GL #2375]
+5577.	[bug]		Fix the "three is a crowd" key rollover bug in KASP by
+			correctly implementing Equation (2) of the "Flexible and
+			Robust Key Rollover" paper. [GL #2375]
 
 5576.	[experimental]	Initial server-side implementation of DNS-over-HTTPS
 			(DoH). Support for both TLS-encrypted and unencrypted
@@ -51,44 +51,46 @@
 			client-side support for DNS-over-HTTPS; this will be
 			added to dig in a future release.) [GL #1144]
 
-5575.	[bug]		When migrating to dnssec-policy, BIND considered keys
-			with the "Inactive" and/or "Delete" timing metadata as
+5575.	[bug]		When migrating to KASP, BIND 9 considered keys with the
+			"Inactive" and/or "Delete" timing metadata to be
 			possible active keys. This has been fixed. [GL #2406]
 
-5574.	[func]		Incoming zone transfers can now use TLS.
-			Addresses in a "primaries" list take an optional
-			"tls" argument, specifying either a previously
-			configured "tls" block or "ephemeral"; SOA queries
-			and zone transfer requests will then be sent via
-			TLS. [GL #2392]
+5574.	[func]		Incoming zone transfers can now use TLS. Addresses in a
+			"primaries" list take an optional "tls" argument,
+			specifying either a previously configured "tls" block or
+			"ephemeral"; SOA queries and zone transfer requests are
+			then sent via TLS. [GL #2392]
 
-5573.	[func]		Also return stale data if an error occurred and we are
-			not resuming. Only start the stale-refresh-time window
-			if we timed out. [GL #2434]
+5573.	[func]		When serve-stale is enabled and stale data is available,
+			named now returns stale answers upon encountering any
+			unexpected error in the query resolution process.
+			However, the "stale-refresh-time" window is still only
+			started upon a timeout. [GL #2434]
 
-5572.	[bug]		Address potential double free in generatexml.
+5572.	[bug]		Address potential double free in generatexml().
 			[GL #2420]
 
-5571.	[bug]		If a zone had a non-builtin named allow-update acl
-			named failed to start. [GL #2413]
+5571.	[bug]		named failed to start when its configuration included a
+			zone with a non-builtin "allow-update" ACL attached.
+			[GL #2413]
 
-5570.	[bug]		Improve the performance of dnssec-verify by reducing
-			the number of repeated calls to dns_dnssec_keyfromrdata.
-			[GL #2073]
+5570.	[bug]		Improve performance of the DNSSEC verification code by
+			reducing the number of repeated calls to
+			dns_dnssec_keyfromrdata(). [GL #2073]
 
-5569.	[bug]		Emit useful error message when 'rndc retransfer' is
+5569.	[bug]		Emit useful error message when "rndc retransfer" is
 			applied to a zone of inappropriate type. [GL #2342]
 
 5568.	[bug]		Fixed a crash in "dnssec-keyfromlabel" when using ECDSA
 			keys. [GL #2178]
 
 5567.	[bug]		Dig now reports unknown dash options while pre-parsing
-			the options.  This prevents '-multi' instead of
-			'+multi' reporting memory usage before ending option
-			parsing on 'Invalid option: -lti'. [GL #2403]
+			the options. This prevents "-multi" instead of "+multi"
+			from reporting memory usage before ending option parsing
+			with "Invalid option: -lti". [GL #2403]
 
-5566.	[func]		Add "stale-answer-client-timeout" option, which
-			is the amount of time a recursive resolver waits before
+5566.	[func]		Add "stale-answer-client-timeout" option, which is the
+			amount of time a recursive resolver waits before
 			attempting to answer the query using stale data from
 			cache. [GL #2247]
 
@@ -96,26 +98,25 @@
 			BIND 9 version number, in an effort to tightly couple
 			internal libraries with a specific release. [GL #2387]
 
-5564.	[cleanup]	Refactored the network manager TLSDNS module to use
-			libuv and libssl directly, rather than opening a
-			TLS/TCP socket stack. [GL #2235]
+5564.	[cleanup]	Network manager's TLSDNS module was refactored to use
+			libuv and libssl directly instead of a stack of TCP/TLS
+			sockets. [GL #2335]
 
 5563.	[cleanup]	Changed several obsolete configuration options to
-			ancient, making them into fatal errors. Also cleaned
-			up the number of clause flags in the configuration
-			parser. [GL #1086]
+			ancient, making them fatal errors. Also cleaned up the
+			number of clause flags in the configuration parser.
+			[GL #1086]
 
 5562.	[placeholder]
 
-5561.	[bug]		KASP incorrectly set signature validity to the value
-			of the DNSKEY signature validity. This is now fixed.
+5561.	[bug]		KASP incorrectly set signature validity to the value of
+			the DNSKEY signature validity. This is now fixed.
 			[GL #2383]
 
 5560.	[func]		The default value of "max-stale-ttl" has been changed
 			from 12 hours to 1 day and the default value of
-			"stale-answer-ttl" has been changed from 1 second to
-			30 seconds, following RFC 8767 recommendations.
-			[GL #2248]
+			"stale-answer-ttl" has been changed from 1 second to 30
+			seconds, following RFC 8767 recommendations. [GL #2248]
 
 	--- 9.17.9 released ---
 
