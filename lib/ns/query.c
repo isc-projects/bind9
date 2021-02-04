@@ -7146,7 +7146,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  * return true; otherwise, return false.
  */
 static bool
-query_usestale(query_ctx_t *qctx) {
+query_usestale(query_ctx_t *qctx, isc_result_t result) {
 	if ((qctx->client->query.dboptions & DNS_DBFIND_STALEOK) != 0) {
 		/*
 		 * Query was already using stale, if that didn't work the
@@ -7165,6 +7165,13 @@ query_usestale(query_ctx_t *qctx) {
 			dns_resolver_destroyfetch(&qctx->client->query.fetch);
 		}
 
+		/*
+		 * Start the stale-refresh-time window in case there was a
+		 * resolver query timeout.
+		 */
+		if (qctx->resuming && result == ISC_R_TIMEDOUT) {
+			qctx->client->query.dboptions |= DNS_DBFIND_STALESTART;
+		}
 		return (true);
 	}
 
@@ -7265,19 +7272,11 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 			 "query_gotanswer: unexpected error: %s",
 			 isc_result_totext(result));
 		CCTRACE(ISC_LOG_ERROR, errmsg);
-		if (query_usestale(qctx)) {
+		if (query_usestale(qctx, result)) {
 			/*
 			 * If serve-stale is enabled, query_usestale() already
 			 * set up 'qctx' for looking up a stale response.
-			 *
-			 * We only need to check if the query timed out or
-			 * something else has gone wrong. If the query timed
-			 * out, we will start the stale-refresh-time window.
 			 */
-			if (qctx->resuming && result == ISC_R_TIMEDOUT) {
-				qctx->client->query.dboptions |=
-					DNS_DBFIND_STALESTART;
-			}
 			return (query_lookup(qctx));
 		}
 
@@ -8236,6 +8235,13 @@ query_notfound(query_ctx_t *qctx) {
 					qctx->client->query.attributes |=
 						NS_QUERYATTR_DNS64EXCLUDE;
 				}
+			} else if (query_usestale(qctx, result)) {
+				/*
+				 * If serve-stale is enabled, query_usestale()
+				 * already set up 'qctx' for looking up a
+				 * stale response.
+				 */
+				return (query_lookup(qctx));
 			} else {
 				QUERY_ERROR(qctx, result);
 			}
@@ -8540,6 +8546,12 @@ query_delegation_recurse(query_ctx_t *qctx) {
 			qctx->client->query.attributes |=
 				NS_QUERYATTR_DNS64EXCLUDE;
 		}
+	} else if (query_usestale(qctx, result)) {
+		/*
+		 * If serve-stale is enabled, query_usestale() already set up
+		 * 'qctx' for looking up a stale response.
+		 */
+		return (query_lookup(qctx));
 	} else {
 		QUERY_ERROR(qctx, result);
 	}
@@ -9933,6 +9945,10 @@ query_zerottl_refetch(query_ctx_t *qctx) {
 				NS_QUERYATTR_DNS64EXCLUDE;
 		}
 	} else {
+		/*
+		 * There was a zero ttl from the cache, don't fallback to
+		 * serve-stale lookup.
+		 */
 		QUERY_ERROR(qctx, result);
 	}
 
