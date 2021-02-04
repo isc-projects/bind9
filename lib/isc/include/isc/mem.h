@@ -134,52 +134,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  * \endcode
  */
 
-/*% memory and memory pool methods */
-typedef struct isc_memmethods {
-	void *(*memget)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
-	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
-				size_t size _ISC_MEM_FLARG);
-	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void *(*memreallocate)(isc_mem_t *mctx, void *ptr,
-			       size_t size _ISC_MEM_FLARG);
-	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
-	char *(*memstrndup)(isc_mem_t *mctx, const char *s,
-			    size_t size _ISC_MEM_FLARG);
-	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
-} isc_memmethods_t;
-
-/*%
- * This structure is actually just the common prefix of a memory context
- * implementation's version of an isc_mem_t.
- * \brief
- * Direct use of this structure by clients is forbidden.  mctx implementations
- * may change the structure.  'magic' must be ISCAPI_MCTX_MAGIC for any of the
- * isc_mem_ routines to work.  mctx implementations must maintain all mctx
- * invariants.
- */
-struct isc_mem {
-	unsigned int	  impmagic;
-	unsigned int	  magic;
-	isc_memmethods_t *methods;
-};
-
-#define ISCAPI_MCTX_MAGIC    ISC_MAGIC('A', 'm', 'c', 'x')
-#define ISCAPI_MCTX_VALID(m) ((m) != NULL && (m)->magic == ISCAPI_MCTX_MAGIC)
-
-/*%
- * This is the common prefix of a memory pool context.  The same note as
- * that for the mem structure applies.
- */
-struct isc_mempool {
-	unsigned int impmagic;
-	unsigned int magic;
-};
-
-#define ISCAPI_MPOOL_MAGIC ISC_MAGIC('A', 'm', 'p', 'l')
-#define ISCAPI_MPOOL_VALID(mp) \
-	((mp) != NULL && (mp)->magic == ISCAPI_MPOOL_MAGIC)
-
 /*%
  * These functions are actually implemented in isc__mem_<function>
  * (two underscores). The single-underscore macros are used to pass
