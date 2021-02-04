@@ -26,11 +26,6 @@ Security Fixes
   This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
   Trend Micro Zero Day Initiative. [GL #2354]
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -63,11 +58,6 @@ New Features
   ``stale-answer-client-timeout`` to ``off`` or ``disabled``. The new
   option has no effect if ``stale-answer-enable`` is disabled.
   [GL #2247]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
