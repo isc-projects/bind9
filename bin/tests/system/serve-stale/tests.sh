@@ -2016,6 +2016,9 @@ status=$((status+ret))
 ####################################################################
 echo_i "test stale data with fetch-limits"
 
+# We update the named configuration to enable fetch-limits. The fetch-limits
+# are set to 1, which is ridiciously low, but that is because for this test we
+# want to reach the fetch-limits.
 n=$((n+1))
 echo_i "updating ns3/named.conf ($n)"
 ret=0
@@ -2030,38 +2033,14 @@ rndc_reload ns3 10.53.0.3
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# Disable responses from authoritative server.
+# Disable responses from authoritative server. If we can't resolve the example
+# zone, fetch limits will be reached.
 n=$((n+1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
-
-# Hit the fetch-limits.
-burst() {
-	num=${1}
-	rm -f burst.input.$$
-	while [ $num -gt 0 ]; do
-		num=`expr $num - 1`
-		echo "${num}.data.example A" >> burst.input.$$
-	done
-	$PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
-	rm -f burst.input.$$
-}
-
-wait_for_fetchlimits() {
-	burst 20
-	$DIG -p ${PORT} @10.53.0.3 data.example A > dig.out.test$n
-	grep "status: SERVFAIL" dig.out.test$n > /dev/null || return 1
-}
-
-n=$((n+1))
-echo_i "hit fetch limits ($n)"
-ret=0
-retry_quiet 10 wait_for_fetchlimits || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2084,7 +2063,38 @@ grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=3600 stale-refresh-t
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-# Expect stale data now.
+# Hit the fetch-limits. We burst the name server with a small batch of queries.
+# Only 2 queries are required to hit the fetch-limits. The first query will
+# start to resolve, the second one hit the fetch-limits.
+burst() {
+	num=${1}
+	rm -f burst.input.$$
+	while [ $num -gt 0 ]; do
+		num=`expr $num - 1`
+		echo "fetch${num}.example A" >> burst.input.$$
+	done
+	$PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
+	rm -f burst.input.$$
+}
+
+wait_for_fetchlimits() {
+	burst 2
+	# We expect a query for nx.example to fail because fetch-limits for
+	# the domain 'example.' (and everything below) has been reached.
+	$DIG -p ${PORT} +tries=1 +timeout=1 @10.53.0.3 nx.example > dig.out.test$n
+	grep "status: SERVFAIL" dig.out.test$n > /dev/null || return 1
+}
+
+n=$((n+1))
+echo_i "hit fetch limits ($n)"
+ret=0
+retry_quiet 10 wait_for_fetchlimits || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Expect stale data now (because fetch-limits for the domain 'example.' (and
+# everything below) has been reached. But we have a stale RRset for
+# 'data.example/TXT' that can be used.
 n=$((n+1))
 ret=0
 echo_i "check stale data.example comes from cache (fetch-limits) ($n)"
