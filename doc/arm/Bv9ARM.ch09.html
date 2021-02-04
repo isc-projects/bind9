@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.27</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.28</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.28">Notes for BIND 9.11.28</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.27">Notes for BIND 9.11.27</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.26">Notes for BIND 9.11.26</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.25">Notes for BIND 9.11.25</a></span></dt>
@@ -76,7 +77,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.27</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.28</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -129,6 +130,30 @@
     license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
     https://www.isc.org/mission/contact/</a>.
   </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.28"></a>Notes for BIND 9.11.28</h3></div></div></div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.28-security"></a>Security Fixes</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p>
+          When <span class="command"><strong>tkey-gssapi-keytab</strong></span> or
+          <span class="command"><strong>tkey-gssapi-credential</strong></span> was configured, a specially
+          crafted GSS-TSIG query could cause a buffer overflow in the ISC
+          implementation of SPNEGO (a protocol enabling negotiation of the
+          security mechanism to use for GSSAPI authentication). This flaw could
+          be exploited to crash <span class="command"><strong>named</strong></span>. Theoretically, it also
+          enabled remote code execution, but achieving the latter is very
+          difficult in real-world conditions. (CVE-2020-8625)
+        </p>
+<p>
+          This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
+          Trend Micro Zero Day Initiative. [GL #2354]
+        </p>
+</li></ul></div>
+</div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -2094,6 +2119,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.27 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.28 (Extended Support Version)</p>
 </body>
 </html>

@@ -1,3 +1,5 @@
+	--- 9.11.28 released ---
+
 5562.	[security]	Fix off-by-one bug in ISC SPNEGO implementation.
 			(CVE-2020-8625) [GL #2354]
 
