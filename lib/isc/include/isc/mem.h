@@ -37,21 +37,6 @@ typedef void (*isc_mem_water_t)(void *, int);
 #endif /* ifndef ISC_MEM_TRACKLINES */
 
 /*%
- * Define ISC_MEM_CHECKOVERRUN=1 to turn on checks for using memory outside
- * the requested space.  This will increase the size of each allocation.
- *
- * If we are performing a Coverity static analysis then ISC_MEM_CHECKOVERRUN
- * can hide bugs that would otherwise discovered so force to zero.
- */
-#ifdef __COVERITY__
-#undef ISC_MEM_CHECKOVERRUN
-#define ISC_MEM_CHECKOVERRUN 0
-#endif /* ifdef __COVERITY__ */
-#ifndef ISC_MEM_CHECKOVERRUN
-#define ISC_MEM_CHECKOVERRUN 1
-#endif /* ifndef ISC_MEM_CHECKOVERRUN */
-
-/*%
  * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
  * name so that the leaking pool can be more readily identified in
  * case of a memory leak.
@@ -106,31 +91,18 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #define _ISC_MEM_FLARG
 #endif /* if ISC_MEM_TRACKLINES */
 
-/*!
- * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
- * implementation in preference to the system one.  The internal malloc()
- * is very space-efficient, and quite fast on uniprocessor systems.  It
- * performs poorly on multiprocessor machines.
- * JT: we can overcome the performance issue on multiprocessor machines
- * by carefully separating memory contexts.
- */
-
-#ifndef ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEM_USE_INTERNAL_MALLOC 1
-#endif /* ifndef ISC_MEM_USE_INTERNAL_MALLOC */
-
 /*
  * Flags for isc_mem_create() calls.
  */
-#define ISC_MEMFLAG_RESERVED 0x00000001 /* reserved, obsoleted, don't use */
-#define ISC_MEMFLAG_INTERNAL 0x00000002 /* use internal malloc */
+#define ISC_MEMFLAG_RESERVED1 0x00000001 /* reserved, obsoleted, don't use */
+#define ISC_MEMFLAG_RESERVED2 0x00000002 /* reserved, obsoleted, don't use */
 #define ISC_MEMFLAG_FILL \
 	0x00000004 /* fill with pattern after alloc and frees */
 
 #if !ISC_MEM_USE_INTERNAL_MALLOC
 #define ISC_MEMFLAG_DEFAULT 0
 #else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
-#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_INTERNAL | ISC_MEMFLAG_FILL
+#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_FILL
 #endif /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*%

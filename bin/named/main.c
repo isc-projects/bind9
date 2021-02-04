@@ -440,8 +440,7 @@ static struct flag_def {
 			{ "size", ISC_MEM_DEBUGSIZE, false },
 			{ "mctx", ISC_MEM_DEBUGCTX, false },
 			{ NULL, 0, false } },
-  mem_context_flags[] = { { "external", ISC_MEMFLAG_INTERNAL, true },
-			  { "fill", ISC_MEMFLAG_FILL, false },
+  mem_context_flags[] = { { "fill", ISC_MEMFLAG_FILL, false },
 			  { "nofill", ISC_MEMFLAG_FILL, true },
 			  { NULL, 0, false } };
 
