@@ -123,6 +123,10 @@ Bug Fixes
   relation, as described in the paper "Flexible and Robust Key Rollover"
   (Equation (2)). [GL #2375]
 
+- Performance of the DNSSEC verification code (used by
+  ``dnssec-signzone``, ``dnssec-verify``, and mirror zones) has been
+  improved. [GL #2073]
+
 - If an invalid key name (e.g. "a..b") was specified in a ``primaries``
   list in ``named.conf``, the wrong size was passed to ``isc_mem_put()``,
   which resulted in the returned memory being put on the wrong freed
