@@ -34,35 +34,35 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- When a secondary server receives a large incremental zone
-  transfer (IXFR), it can have a negative impact on query
-  performance while the incremental changes are applied to
-  the zone. To address this, ``named`` can now
-  limit the size of IXFR responses it sends in response to zone
-  transfer requests. If an IXFR response would be larger than an
-  AXFR of the entire zone, it will send an AXFR resonse instead.
+- When a secondary server receives a large incremental zone transfer
+  (IXFR), it can have a negative impact on query performance while the
+  incremental changes are applied to the zone. To address this,
+  ``named`` can now limit the size of IXFR responses it sends in
+  response to zone transfer requests. If an IXFR response would be
+  larger than an AXFR of the entire zone, it will send an AXFR response
+  instead.
 
-  This behavior is controlled by the ``max-ixfr-ratio``
-  option - a percentage value representing the ratio of IXFR size
-  to the size of a full zone transfer. This value cannot exceed
-  100%, which is also the default. [GL #1515]
+  This behavior is controlled by the ``max-ixfr-ratio`` option - a
+  percentage value representing the ratio of IXFR size to the size of a
+  full zone transfer. The default is ``100%``. [GL #1515]
 
-- A new option, ```stale-answer-client-timeout``, has been added to
-  improve ``named``'s behavior with respect to serving stale data. The option
-  defines the amount of time ``named`` waits before attempting
-  to answer the query with a stale RRset from cache. If a stale answer
-  is found, ``named`` continues the ongoing fetches, attempting to
-  refresh the RRset in cache until the ``resolver-query-timeout`` interval is
+- A new option, ``stale-answer-client-timeout``, has been added to
+  improve ``named``'s behavior with respect to serving stale data. The
+  option defines the amount of time ``named`` waits before attempting to
+  answer the query with a stale RRset from cache. If a stale answer is
+  found, ``named`` continues the ongoing fetches, attempting to refresh
+  the RRset in cache until the ``resolver-query-timeout`` interval is
   reached.
 
-  The default value is ``1800`` (in milliseconds) and the maximum value is
-  bounded to ``resolver-query-timeout`` minus one second. A value of
-  ``0`` immediately returns a cached RRset if available, and still
-  attempts a refresh of the data in cache.
+  The default value is ``1800`` (in milliseconds) and the maximum value
+  is limited to ``resolver-query-timeout`` minus one second. A value of
+  ``0`` causes any available cached RRset to immediately be returned
+  while still triggering a refresh of the data in cache.
 
-  The option can be disabled by setting the value to ``off`` or
-  ``disabled``. It also has no effect if ``stale-answer-enable`` is
-  disabled.
+  This new behavior can be disabled by setting
+  ``stale-answer-client-timeout`` to ``off`` or ``disabled``. The new
+  option has no effect if ``stale-answer-enable`` is disabled.
+  [GL #2247]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -79,9 +79,10 @@ Feature Changes
   binaries from silently loading wrong versions of shared libraries (or
   multiple versions of the same shared library) at startup. [GL #2387]
 
-- The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
-  day and the default value of ``stale-answer-ttl`` has been changed from 1
-  second to 30 seconds, following :rfc:`8767` recommendations. [GL #2248]
+- The default value of ``max-stale-ttl`` has been changed from 12 hours
+  to 1 day and the default value of ``stale-answer-ttl`` has been
+  changed from 1 second to 30 seconds, following :rfc:`8767`
+  recommendations. [GL #2248]
 
 - As part of an ongoing effort to use :rfc:`8499` terminology,
   ``primaries`` can now be used as a synonym for ``masters`` in
@@ -90,31 +91,31 @@ Feature Changes
   zonestatus`` now uses ``primary`` and ``secondary`` terminology.
   [GL #1948]
 
-- When ``check-names`` is in effect, A records below an ``_spf``, ``_spf_rate``
-  and ``_spf_verify`` labels (which are employed by the ``exists`` SPF
-  mechanism defined inr:rfc:`7208` section 5.7/appendix D1) are no longer 
-  reported as warnings/errors.  [GL #2377]
+- When ``check-names`` is in effect, A records below an ``_spf``,
+  ``_spf_rate``, or ``_spf_verify`` label (which are employed by the
+  ``exists`` SPF mechanism defined in :rfc:`7208` section 5.7/appendix
+  D.1) are no longer reported as warnings/errors. [GL #2377]
 
 Bug Fixes
 ~~~~~~~~~
 
-- KASP incorrectly set signature validity to the value of the DNSKEY signature
-  validity. This is now fixed. [GL #2383]
+- KASP incorrectly set signature validity to the value of the DNSKEY
+  signature validity. This has been fixed. [GL #2383]
 
-- Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA key.
-  This has been fixed. [GL #2178]
+- Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA
+  key. This has been fixed. [GL #2178]
 
-- Named ``allow-update`` acls where broken in BIND 9.17.9 and BIND 9.16.11
-  preventing ``named`` starting. [GL #2413]
+- ``named`` failed to start when its configuration included a zone with
+  a non-builtin ``allow-update`` ACL attached. [GL #2413]
 
-- When migrating to ``dnssec-policy``, BIND considered keys with the "Inactive"
-  and/or "Delete" timing metadata as possible active keys. This has been fixed.
-  [GL #2406]
+- When migrating to KASP, BIND 9 considered keys with the ``Inactive``
+  and/or ``Delete`` timing metadata to be possible active keys. This has
+  been fixed. [GL #2406]
 
-- Fix the "three is a crowd" key rollover bug in ``dnssec-policy``. When keys
-  rolled faster than the time required to finish the rollover procedure, the
-  successor relation equation failed because it assumed only two keys were
-  taking part in a rollover. This could lead to premature removal of
-  predecessor keys. BIND 9 now implements a recursive successor relation, as
-  described in the paper "Flexible and Robust Key Rollover" (Equation (2)).
-  [GL #2375]
+- Fix the "three is a crowd" key rollover bug in KASP. When keys rolled
+  faster than the time required to finish the rollover procedure, the
+  successor relation equation failed because it assumed only two keys
+  were taking part in a rollover. This could lead to premature removal
+  of predecessor keys. BIND 9 now implements a recursive successor
+  relation, as described in the paper "Flexible and Robust Key Rollover"
+  (Equation (2)). [GL #2375]
