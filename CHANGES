@@ -1,3 +1,5 @@
+	--- 9.17.10 released ---
+
 5578.	[protocol]	Make "check-names" accept A records below "_spf",
 			"_spf_rate", and "_spf_verify" labels in order to cater
 			for the "exists" SPF mechanism specified in RFC 7208
