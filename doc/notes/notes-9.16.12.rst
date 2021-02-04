@@ -26,11 +26,6 @@ Security Fixes
   This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
   Trend Micro Zero Day Initiative. [GL #2354]
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -63,18 +58,6 @@ New Features
   ``stale-answer-client-timeout`` to ``off`` or ``disabled``. The new
   option has no effect if ``stale-answer-enable`` is disabled.
   [GL #2247]
-
-- When serve-stale is enabled and stale data is available, ``named`` now
-  returns stale answers upon encountering any unexpected error in the
-  query resolution process. This may happen, for example, if the
-  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
-  this case, ``named`` attempts to answer DNS requests with stale data,
-  but does not start the ``stale-refresh-time`` window. [GL #2434]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -130,8 +113,3 @@ Bug Fixes
 - Performance of the DNSSEC verification code (used by
   ``dnssec-signzone``, ``dnssec-verify``, and mirror zones) has been
   improved. [GL #2073]
-
-- If an outgoing packet would exceed max-udp-size, it would be dropped instead
-  of sending a proper response back.  Rollback setting the IP_DONTFRAG on the
-  UDP sockets that we enabled during the DNS Flag Day 2020 to fix this issue.
-  [GL #2487]
