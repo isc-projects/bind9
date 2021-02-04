@@ -15,7 +15,18 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          When <command>tkey-gssapi-keytab</command> or
+          <command>tkey-gssapi-credential</command> was configured, a specially
+          crafted GSS-TSIG query could cause a buffer overflow in the ISC
+          implementation of SPNEGO (a protocol enabling negotiation of the
+          security mechanism to use for GSSAPI authentication). This flaw could
+          be exploited to crash <command>named</command>. Theoretically, it also
+          enabled remote code execution, but achieving the latter is very
+          difficult in real-world conditions. (CVE-2020-8625)
+        </para>
+        <para>
+          This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
+          Trend Micro Zero Day Initiative. [GL #2354]
         </para>
       </listitem>
     </itemizedlist>
