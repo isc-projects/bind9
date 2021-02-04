@@ -250,6 +250,19 @@ isc_mem_total(isc_mem_t *mctx);
  * not yet used.
  */
 
+size_t
+isc_mem_malloced(isc_mem_t *ctx);
+/*%<
+ * Get an estimate of the amount of memory allocated in 'mctx', in bytes.
+ */
+
+size_t
+isc_mem_maxmalloced(isc_mem_t *ctx);
+/*%<
+ * Get an estimate of the largest amount of memory that has been
+ * allocated in 'mctx' at any time.
+ */
+
 bool
 isc_mem_isovermem(isc_mem_t *mctx);
 /*%<
@@ -265,13 +278,13 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  * Set high and low water marks for this memory context.
  *
  * When the memory usage of 'mctx' exceeds 'hiwater',
- * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs to
- * call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the state
- * change.  'water' may be called multiple times.
+ * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs
+ *to call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the
+ *state change.  'water' may be called multiple times.
  *
- * When the usage drops below 'lowater', 'water' will again be called, this
- * time with #ISC_MEM_LOWATER.  'water' need to calls isc_mem_waterack() with
- * #ISC_MEM_LOWATER to acknowledge the change.
+ * When the usage drops below 'lowater', 'water' will again be called,
+ *this time with #ISC_MEM_LOWATER.  'water' need to calls
+ *isc_mem_waterack() with #ISC_MEM_LOWATER to acknowledge the change.
  *
  *	static void
  *	water(void *arg, int mark) {
@@ -396,7 +409,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp);
 void
 isc_mempool_setname(isc_mempool_t *mpctx, const char *name);
 /*%<
- * Associate a name with a memory pool.  At most 15 characters may be used.
+ * Associate a name with a memory pool.  At most 15 characters may be
+ *used.
  *
  * Requires:
  *\li	mpctx is a valid pool.
@@ -408,15 +422,15 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
 /*%<
  * Associate a lock with this memory pool.
  *
- * This lock is used when getting or putting items using this memory pool,
- * and it is also used to set or get internal state via the isc_mempool_get*()
- * and isc_mempool_set*() set of functions.
+ * This lock is used when getting or putting items using this memory
+ *pool, and it is also used to set or get internal state via the
+ *isc_mempool_get*() and isc_mempool_set*() set of functions.
  *
- * Multiple pools can each share a single lock.  For instance, if "manager"
- * type object contained pools for various sizes of events, and each of
- * these pools used a common lock.  Note that this lock must NEVER be used
- * by other than mempool routines once it is given to a pool, since that can
- * easily cause double locking.
+ * Multiple pools can each share a single lock.  For instance, if
+ *"manager" type object contained pools for various sizes of events, and
+ *each of these pools used a common lock.  Note that this lock must
+ *NEVER be used by other than mempool routines once it is given to a
+ *pool, since that can easily cause double locking.
  *
  * Requires:
  *
@@ -426,19 +440,19 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
  *
  *\li	No previous lock is assigned to this pool.
  *
- *\li	The lock is initialized before calling this function via the normal
- *	means of doing that.
+ *\li	The lock is initialized before calling this function via the
+ *normal means of doing that.
  */
 
 /*
  * The following functions get/set various parameters.  Note that due to
- * the unlocked nature of pools these are potentially random values unless
- * the imposed externally provided locking protocols are followed.
+ * the unlocked nature of pools these are potentially random values
+ *unless the imposed externally provided locking protocols are followed.
  *
- * Also note that the quota limits will not always take immediate effect.
- * For instance, setting "maxalloc" to a number smaller than the currently
- * allocated count is permitted.  New allocations will be refused until
- * the count drops below this threshold.
+ * Also note that the quota limits will not always take immediate
+ *effect. For instance, setting "maxalloc" to a number smaller than the
+ *currently allocated count is permitted.  New allocations will be
+ *refused until the count drops below this threshold.
  *
  * All functions require (in addition to other requirements):
  *	mpctx is a valid memory pool
@@ -486,8 +500,8 @@ isc_mempool_getallocated(isc_mempool_t *mpctx);
 unsigned int
 isc_mempool_getfillcount(isc_mempool_t *mpctx);
 /*%<
- * Returns the number of items allocated as a block from the parent memory
- * context when the free list is empty.
+ * Returns the number of items allocated as a block from the parent
+ * memory context when the free list is empty.
  */
 
 void

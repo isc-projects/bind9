@@ -370,7 +370,9 @@ isc_mem_detach
 isc_mem_getname
 isc_mem_inuse
 isc_mem_isovermem
+isc_mem_malloced
 isc_mem_maxinuse
+isc_mem_maxmalloced
 isc_mem_references
 @IF NOTYET
 isc_mem_renderjson
