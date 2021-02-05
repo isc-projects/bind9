@@ -22,6 +22,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -372,17 +373,22 @@ isc_mem_traceflag_test(void **state) {
 #define NUM_ITEMS 1024 /* 768 */
 #define ITEM_SIZE 65534
 
+static atomic_size_t mem_size;
+
 static isc_threadresult_t
 mem_thread(isc_threadarg_t arg) {
+	isc_mem_t *mctx = (isc_mem_t *)arg;
 	void *items[NUM_ITEMS];
-	size_t size = *((size_t *)arg);
+	size_t size = atomic_load(&mem_size);
+	while (!atomic_compare_exchange_weak(&mem_size, &size, size / 2))
+		;
 
 	for (int i = 0; i < ITERS; i++) {
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			items[j] = isc_mem_get(test_mctx, size);
+			items[j] = isc_mem_get(mctx, size);
 		}
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			isc_mem_put(test_mctx, items[j], size);
+			isc_mem_put(mctx, items[j], size);
 		}
 	}
 
@@ -396,16 +402,16 @@ isc_mem_benchmark(void **state) {
 	isc_time_t ts1, ts2;
 	double t;
 	isc_result_t result;
-	size_t size = ITEM_SIZE;
 
 	UNUSED(state);
+
+	atomic_init(&mem_size, ITEM_SIZE);
 
 	result = isc_time_now(&ts1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (int i = 0; i < nthreads; i++) {
-		isc_thread_create(mem_thread, &size, &threads[i]);
-		size = size / 2;
+		isc_thread_create(mem_thread, test_mctx, &threads[i]);
 	}
 	for (int i = 0; i < nthreads; i++) {
 		isc_thread_join(threads[i], NULL);
@@ -446,7 +452,6 @@ isc_mempool_benchmark(void **state) {
 	isc_time_t ts1, ts2;
 	double t;
 	isc_result_t result;
-	size_t size = ITEM_SIZE;
 	isc_mempool_t *mp = NULL;
 	isc_mutex_t mplock;
 
@@ -466,7 +471,6 @@ isc_mempool_benchmark(void **state) {
 
 	for (int i = 0; i < nthreads; i++) {
 		isc_thread_create(mempool_thread, mp, &threads[i]);
-		size = size / 2;
 	}
 	for (int i = 0; i < nthreads; i++) {
 		isc_thread_join(threads[i], NULL);
