@@ -339,9 +339,6 @@ static inline void *
 mem_get(isc_mem_t *ctx, size_t size) {
 	char *ret;
 
-#if ISC_MEM_CHECKOVERRUN
-	size += 1;
-#endif /* if ISC_MEM_CHECKOVERRUN */
 	ret = default_memalloc(size);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
@@ -349,14 +346,6 @@ mem_get(isc_mem_t *ctx, size_t size) {
 			memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 		}
 	}
-#if ISC_MEM_CHECKOVERRUN
-	else
-	{
-		if (ISC_LIKELY(ret != NULL)) {
-			ret[size - 1] = 0xbe;
-		}
-	}
-#endif /* if ISC_MEM_CHECKOVERRUN */
 
 	return (ret);
 }
@@ -367,10 +356,6 @@ mem_get(isc_mem_t *ctx, size_t size) {
 /* coverity[+free : arg-1] */
 static inline void
 mem_put(isc_mem_t *ctx, void *mem, size_t size) {
-#if ISC_MEM_CHECKOVERRUN
-	INSIST(((unsigned char *)mem)[size] == 0xbe);
-	size += 1;
-#endif /* if ISC_MEM_CHECKOVERRUN */
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
