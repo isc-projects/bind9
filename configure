@@ -17511,6 +17511,10 @@ int main() {
 	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
 	if (ec256 == NULL || ec384 == NULL)
 		return (2);
+	if (ec256 != NULL)
+		EC_KEY_free(ec256);
+	if (ec384 != NULL)
+		EC_KEY_free(ec384);
 	return (0);
 }
 
@@ -17657,8 +17661,10 @@ int main() {
 	EVP_PKEY_CTX *ctx;
 
 	ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
-	if (ctx == NULL)
+	if (ctx == NULL) {
 		return (2);
+	}
+	EVP_PKEY_CTX_free(ctx);
 	return (0);
 }
 
@@ -17715,8 +17721,10 @@ int main() {
 	EVP_PKEY_CTX *ctx;
 
 	ctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);
-	if (ctx == NULL)
+	if (ctx == NULL) {
 		return (2);
+	}
+	EVP_PKEY_CTX_free(ctx);
 	return (0);
 }
 
