@@ -1524,15 +1524,6 @@ main(int argc, char *argv[]) {
 	pk11_result_register();
 #endif /* if USE_PKCS11 */
 
-#if !ISC_MEM_DEFAULTFILL
-	/*
-	 * Update the default flags to remove ISC_MEMFLAG_FILL
-	 * before we parse the command line. If disabled here,
-	 * it can be turned back on with -M fill.
-	 */
-	isc_mem_defaultflags &= ~ISC_MEMFLAG_FILL;
-#endif /* if !ISC_MEM_DEFAULTFILL */
-
 	parse_command_line(argc, argv);
 
 #ifdef ENABLE_AFL

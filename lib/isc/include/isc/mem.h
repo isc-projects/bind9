@@ -33,7 +33,7 @@ typedef void (*isc_mem_water_t)(void *, int);
  * allocation and freeing by file and line number.
  */
 #ifndef ISC_MEM_TRACKLINES
-#define ISC_MEM_TRACKLINES 1
+#define ISC_MEM_TRACKLINES 0
 #endif /* ifndef ISC_MEM_TRACKLINES */
 
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
@@ -90,10 +90,14 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #define ISC_MEMFLAG_FILL \
 	0x00000004 /* fill with pattern after alloc and frees */
 
-#if !ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEMFLAG_DEFAULT 0
-#else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
+/*%
+ * Define ISC_MEM_DEFAULTFILL=1 to turn filling the memory with pattern
+ * after alloc and free.
+ */
+#if ISC_MEM_DEFAULTFILL
 #define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_FILL
+#else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
+#define ISC_MEMFLAG_DEFAULT 0
 #endif /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*%
