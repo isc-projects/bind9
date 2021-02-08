@@ -37,7 +37,7 @@ New Features
   to the size of a full zone transfer. This value cannot exceed
   100%, which is also the default. [GL #1515]
 
-- A new option, ```stale-answer-client-timeout``, has been added to
+- A new option, ``stale-answer-client-timeout``, has been added to
   improve ``named``'s behavior with respect to serving stale data. The option
   defines the amount of time ``named`` waits before attempting
   to answer the query with a stale RRset from cache. If a stale answer
@@ -52,7 +52,14 @@ New Features
 
   The option can be disabled by setting the value to ``off`` or
   ``disabled``. It also has no effect if ``stale-answer-enable`` is
-  disabled.
+  disabled. [GL #2247]
+
+- When serve-stale is enabled and stale data is available, ``named`` now
+  returns stale answers upon encountering any unexpected error in the
+  query resolution process. This may happen, for example, if the
+  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
+  this case, ``named`` attempts to answer DNS requests with stale data,
+  but does not start the ``stale-refresh-time`` window. [GL #2434]
 
 Removed Features
 ~~~~~~~~~~~~~~~~
