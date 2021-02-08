@@ -66,7 +66,7 @@ static dns_dbimplementation_t rbtimp;
 
 static void
 initialize(void) {
-	RUNTIME_CHECK(isc_rwlock_init(&implock, 0, 0) == ISC_R_SUCCESS);
+	isc_rwlock_init(&implock, 0, 0);
 
 	rbtimp.name = "rbt";
 	rbtimp.create = dns_rbtdb_create;

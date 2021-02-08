@@ -78,7 +78,7 @@ struct isc_rwlock {
 
 #endif /* USE_PTHREAD_RWLOCK */
 
-isc_result_t
+void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota);
 

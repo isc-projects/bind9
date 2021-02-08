@@ -62,11 +62,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto clean1;
 	}
 
-	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto clean3;
-	}
-
+	isc_rwlock_init(&dbtable->tree_lock, 0, 0);
 	dbtable->default_db = NULL;
 	dbtable->mctx = NULL;
 	isc_mem_attach(mctx, &dbtable->mctx);
@@ -77,9 +73,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	*dbtablep = dbtable;
 
 	return (ISC_R_SUCCESS);
-
-clean3:
-	dns_rbt_destroy(&dbtable->rbt);
 
 clean1:
 	isc_mem_putanddetach(&mctx, dbtable, sizeof(*dbtable));
