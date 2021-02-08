@@ -135,7 +135,7 @@ dnssec-policy "nsec3" {
     publish-safety PT3600S;
     retire-safety PT3600S;
     share-keys no;
-    purge-keys-after P14D;
+    purge-keys P90D;
 
     keys {
 	ksk key-directory P5Y ECDSAP256SHA256;
