@@ -59,6 +59,7 @@ struct dns_dnsseckey {
 	bool		hint_remove; /*% metadata says *don't* publish */
 	bool		is_active;   /*% key is already active */
 	bool		first_sign;  /*% key is newly becoming active */
+	bool		purge;	     /*% remove key files */
 	unsigned int	prepublish;  /*% how long until active? */
 	dns_keysource_t source;	     /*% how the key was found */
 	bool		ksk;	     /*% this is a key-signing key */

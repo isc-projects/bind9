@@ -1290,6 +1290,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->hint_remove = false;
 	dk->first_sign = false;
 	dk->is_active = false;
+	dk->purge = false;
 	dk->prepublish = 0;
 	dk->source = dns_keysource_unknown;
 	dk->index = 0;
