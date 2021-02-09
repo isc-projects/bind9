@@ -56,7 +56,6 @@ Makefile
 Makefile.in
 ans.run
 gen.dSYM/
-kyua.log
 named.memstats
 named.run
 timestamp
