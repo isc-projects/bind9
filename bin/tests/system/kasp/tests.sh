@@ -856,7 +856,7 @@ status=$((status+ret))
 next_key_event_threshold=$((next_key_event_threshold+i))
 
 check_numkeys() {
-	_numkeys=$(get_keyids "$1" "$2" | wc -l)
+	_numkeys=$(get_keyids "$DIR" "$ZONE" | wc -l)
 	test "$_numkeys" -eq "$NUM_KEYS" || return 1
 	return 0
 }
@@ -873,9 +873,9 @@ check_keys() {
 	ret=0
 
 	echo_i "check number of keys for zone ${ZONE} in dir ${DIR} ($n)"
-	retry_quiet 10 check_numkeys "$DIR" "$ZONE" "$NUM_KEYS" || ret=1
+	retry_quiet 10 check_numkeys || ret=1
 	if [ $ret -ne 0 ]; then
-		_numkeys=$(get_keyids "$1" "$2" | wc -l)
+		_numkeys=$(get_keyids "$DIR" "$ZONE" | wc -l)
 		log_error "bad number of key files ($_numkeys) for zone $ZONE (expected $NUM_KEYS)"
 		status=$((status+ret))
 	fi

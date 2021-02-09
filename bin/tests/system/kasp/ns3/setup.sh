@@ -748,7 +748,7 @@ setup step5.ksk-doubleksk.autosign
 # Tsbm(N+1) = now - 50h - 2h = now - 52h
 # Tact(N+1) = Tret(N)
 # Tret(N+1) = now + 1390h - 2h = now + 1388h
-# Trem(N+1) = now + 60d + 2h = now + 1442h
+# Trem(N+1) = now + 60d - 2h = now + 1442h
 TactN="now-1492h"
 TretN="now-52h"
 TremN="now-2h"
