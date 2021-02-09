@@ -116,3 +116,8 @@ Bug Fixes
   predecessor keys. BIND 9 now implements a recursive successor relation, as
   described in the paper "Flexible and Robust Key Rollover" (Equation (2)).
   [GL #2375]
+
+- If an invalid key name (e.g. "a..b") was specified in a primaries
+  list in named.conf, the wrong size was passed to ``isc_mem_put()``,
+  which resulted in the returned memory being put on the wrong freed
+  list. This has been fixed. [GL #2460]
