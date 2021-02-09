@@ -48,6 +48,16 @@
 #define ISC_NONSTRING
 #endif /* __GNUC__ */
 
+#if HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR && HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
+#define ISC_CONSTRUCTOR(priority) __attribute__((constructor(priority)))
+#define ISC_DESTRUCTOR(priority)  __attribute__((destructor(priority)))
+#elif WIN32
+#define ISC_CONSTRUCTOR(priority)
+#define ISC_DESTRUCTOR(priority)
+#else
+#error Either __attribute__((constructor|destructor))__ or DllMain support needed to compile BIND 9.
+#endif
+
 /*%
  * The opposite: silent warnings about stored values which are never read.
  */

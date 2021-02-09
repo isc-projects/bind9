@@ -2628,6 +2628,12 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 sinclude(contrib/dlz/config.dlz.in)
 AC_MSG_CHECKING(contributed DLZ drivers)
 
+#
+# Support for constructor and destructor attributes
+#
+AX_GCC_FUNC_ATTRIBUTE([constructor])
+AX_GCC_FUNC_ATTRIBUTE([destructor])
+
 if test -n "$CONTRIB_DLZ"
 then
 	AC_MSG_RESULT(yes)

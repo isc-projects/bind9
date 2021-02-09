@@ -23704,6 +23704,110 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking contributed DLZ drivers" >&5
 $as_echo_n "checking contributed DLZ drivers... " >&6; }
 
+#
+# Support for constructor and destructor attributes
+#
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __attribute__((constructor))" >&5
+$as_echo_n "checking for __attribute__((constructor))... " >&6; }
+if ${ax_cv_have_func_attribute_constructor+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+                    int foo( void ) __attribute__((constructor));
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+                                      if test -s conftest.err; then :
+  ax_cv_have_func_attribute_constructor=no
+else
+  ax_cv_have_func_attribute_constructor=yes
+fi
+else
+  ax_cv_have_func_attribute_constructor=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_func_attribute_constructor" >&5
+$as_echo "$ax_cv_have_func_attribute_constructor" >&6; }
+
+    if test yes = $ax_cv_have_func_attribute_constructor; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR 1
+_ACEOF
+
+fi
+
+
+
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __attribute__((destructor))" >&5
+$as_echo_n "checking for __attribute__((destructor))... " >&6; }
+if ${ax_cv_have_func_attribute_destructor+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+                    int foo( void ) __attribute__((destructor));
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+                                      if test -s conftest.err; then :
+  ax_cv_have_func_attribute_destructor=no
+else
+  ax_cv_have_func_attribute_destructor=yes
+fi
+else
+  ax_cv_have_func_attribute_destructor=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_func_attribute_destructor" >&5
+$as_echo "$ax_cv_have_func_attribute_destructor" >&6; }
+
+    if test yes = $ax_cv_have_func_attribute_destructor; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_FUNC_ATTRIBUTE_DESTRUCTOR 1
+_ACEOF
+
+fi
+
+
+
+
 if test -n "$CONTRIB_DLZ"
 then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5

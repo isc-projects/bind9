@@ -214,8 +214,13 @@ nm_setup(void **state) {
 	int tlsdns_listen_sock = -1;
 	isc_nm_t **nm = NULL;
 
-	isc_tlsctx_createserver(NULL, NULL, &tlsdns_listen_ctx);
-	isc_tlsctx_createclient(&tlsdns_connect_ctx);
+	if (isc_tlsctx_createserver(NULL, NULL, &tlsdns_listen_ctx) !=
+	    ISC_R_SUCCESS) {
+		return (-1);
+	}
+	if (isc_tlsctx_createclient(&tlsdns_connect_ctx) != ISC_R_SUCCESS) {
+		return (-1);
+	}
 
 	tlsdns_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	tlsdns_listen_sock = setup_ephemeral_port(&tlsdns_listen_addr,
