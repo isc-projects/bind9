@@ -243,6 +243,7 @@ stages:
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
     - test -z "${RUN_MAKE_INSTALL}" || sh util/check-make-install
+    - if [[ "${CFLAGS}" == *"-fsanitize=address"* ]]; then ( ! grep -F AddressSanitizer config.log ); fi
   needs:
     - job: autoreconf
       artifacts: true
