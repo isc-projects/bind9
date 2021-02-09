@@ -219,7 +219,7 @@ struct dst_func {
  * Initializers
  */
 isc_result_t
-dst__openssl_init(isc_mem_t *, const char *engine);
+dst__openssl_init(const char *engine);
 #define dst__pkcs11_init pk11_initialize
 
 isc_result_t

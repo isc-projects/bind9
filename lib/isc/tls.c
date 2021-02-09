@@ -9,8 +9,10 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
+#include <openssl/rand.h>
 
 #include <isc/atomic.h>
 #include <isc/log.h>
@@ -24,10 +26,12 @@
 #include "openssl_shim.h"
 
 static isc_once_t init_once = ISC_ONCE_INIT;
+static isc_once_t shut_once = ISC_ONCE_INIT;
 static atomic_bool init_done = ATOMIC_VAR_INIT(false);
+static atomic_bool shut_done = ATOMIC_VAR_INIT(false);
+static isc_mem_t *isc__tls_mctx = NULL;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-static isc_mem_t *isc__tls_mctx = NULL;
 static isc_mutex_t *locks = NULL;
 static int nlocks;
 
@@ -48,22 +52,82 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 }
 #endif
 
+#if 0
+static void *
+isc__tls_malloc(size_t size, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+
+	return (isc_mem_allocate(isc__tls_mctx, size));
+}
+
+static void *
+isc__tls_realloc(void *ptr, size_t size, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+
+	return (isc__mem_reallocate(isc__tls_mctx, ptr, size));
+}
+
+static void
+isc__tls_free(void *ptr, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+
+	if (ptr == NULL) {
+		return;
+	}
+
+	isc__mem_free(isc__tls_mctx, ptr);
+}
+#endif
+
 static void
 isc__tls_initialize(void) {
 	REQUIRE(!atomic_load(&init_done));
-	RUNTIME_CHECK(OPENSSL_init_ssl(0, NULL) == 1);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	isc_mem_create(&isc__tls_mctx);
+	/* isc_mem_setdestroycheck(isc__tls_mctx, false); */
 
+	/* REQUIRE(CRYPTO_set_mem_functions(isc__tls_malloc, isc__tls_realloc,
+	 * isc__tls_free) == 1); */
+
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	RUNTIME_CHECK(OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN |
+					       OPENSSL_INIT_LOAD_CONFIG,
+				       NULL) == 1);
+#else
 	nlocks = CRYPTO_num_locks();
 	locks = isc_mem_get(isc__tls_mctx, nlocks * sizeof(locks[0]));
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
+
+	CRYPTO_malloc_init();
 	ERR_load_crypto_strings();
+	SSL_load_error_strings();
+	SSL_library_init();
+
+#if !defined(OPENSSL_NO_ENGINE)
+	ENGINE_load_builtin_engines();
 #endif
-	atomic_store(&init_done, true);
+	OpenSSL_add_all_algorithms();
+	OPENSSL_load_builtin_modules();
+
+	CONF_modules_load_file(NULL, NULL,
+			       CONF_MFLAGS_DEFAULT_SECTION |
+				       CONF_MFLAGS_IGNORE_MISSING_FILE);
+#endif
+
+	/* Protect ourselves against unseeded PRNG */
+	if (RAND_status() != 1) {
+		FATAL_ERROR(__FILE__, __LINE__,
+			    "OpenSSL pseudorandom number generator "
+			    "cannot be initialized (see the `PRNG not "
+			    "seeded' message in the OpenSSL FAQ)");
+	}
+
+	atomic_compare_exchange_strong(&init_done, &(bool){ false }, true);
 }
 
 void
@@ -73,14 +137,27 @@ isc_tls_initialize(void) {
 	REQUIRE(atomic_load(&init_done));
 }
 
-void
-isc_tls_destroy(void) {
+static void
+isc__tls_destroy(void) {
 	REQUIRE(atomic_load(&init_done));
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+	REQUIRE(!atomic_load(&shut_done));
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+	CONF_modules_unload(1);
+	OBJ_cleanup();
+	EVP_cleanup();
+#if !defined(OPENSSL_NO_ENGINE)
+	ENGINE_cleanup();
+#endif
+	CRYPTO_cleanup_all_ex_data();
+	ERR_remove_thread_state(NULL);
+	RAND_cleanup();
 	ERR_free_strings();
 
-	ERR_remove_thread_state(NULL);
 	CRYPTO_set_locking_callback(NULL);
+
+	/* REQUIRE(CRYPTO_set_mem_functions(OPENSSL_malloc, OPENSSL_realloc,
+	 * OPENSSL_free) == 1); */
 
 	if (locks != NULL) {
 		INSIST(isc__tls_mctx != NULL);
@@ -88,11 +165,17 @@ isc_tls_destroy(void) {
 		isc_mem_put(isc__tls_mctx, locks, nlocks * sizeof(locks[0]));
 		locks = NULL;
 	}
-
-	if (isc__tls_mctx != NULL) {
-		isc_mem_detach(&isc__tls_mctx);
-	}
 #endif
+	isc_mem_detach(&isc__tls_mctx);
+
+	atomic_compare_exchange_strong(&shut_done, &(bool){ false }, true);
+}
+
+void
+isc_tls_destroy(void) {
+	isc_result_t result = isc_once_do(&shut_once, isc__tls_destroy);
+	REQUIRE(result == ISC_R_SUCCESS);
+	REQUIRE(atomic_load(&shut_done));
 }
 
 void
@@ -114,6 +197,8 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 	const SSL_METHOD *method = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+
+	isc_tls_initialize();
 
 	method = TLS_client_method();
 	if (method == NULL) {
@@ -160,6 +245,8 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 	const SSL_METHOD *method = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+
+	isc_tls_initialize();
 
 	if (ephemeral) {
 		INSIST(keyfile == NULL);
