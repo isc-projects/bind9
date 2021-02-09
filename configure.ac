@@ -1581,6 +1581,12 @@ test -z "$with_dlz_stub" && with_dlz_stub=no
 AC_CHECK_HEADERS([glob.h])
 
 #
+# Support for constructor and destructor attributes
+#
+AX_GCC_FUNC_ATTRIBUTE([constructor])
+AX_GCC_FUNC_ATTRIBUTE([destructor])
+
+#
 # Files to configure.  These are listed here because we used to
 # specify them as arguments to AC_OUTPUT.
 #

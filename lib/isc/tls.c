@@ -24,12 +24,12 @@
 #include <isc/util.h>
 
 #include "openssl_shim.h"
+#include "tls_p.h"
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
 static atomic_bool init_done = ATOMIC_VAR_INIT(false);
 static atomic_bool shut_done = ATOMIC_VAR_INIT(false);
-static isc_mem_t *isc__tls_mctx = NULL;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static isc_mutex_t *locks = NULL;
@@ -52,45 +52,9 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 }
 #endif
 
-#if 0
-static void *
-isc__tls_malloc(size_t size, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-
-	return (isc_mem_allocate(isc__tls_mctx, size));
-}
-
-static void *
-isc__tls_realloc(void *ptr, size_t size, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-
-	return (isc__mem_reallocate(isc__tls_mctx, ptr, size));
-}
-
 static void
-isc__tls_free(void *ptr, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-
-	if (ptr == NULL) {
-		return;
-	}
-
-	isc__mem_free(isc__tls_mctx, ptr);
-}
-#endif
-
-static void
-isc__tls_initialize(void) {
+tls_initialize(void) {
 	REQUIRE(!atomic_load(&init_done));
-
-	isc_mem_create(&isc__tls_mctx);
-	/* isc_mem_setdestroycheck(isc__tls_mctx, false); */
-
-	/* REQUIRE(CRYPTO_set_mem_functions(isc__tls_malloc, isc__tls_realloc,
-	 * isc__tls_free) == 1); */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	RUNTIME_CHECK(OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN |
@@ -98,7 +62,20 @@ isc__tls_initialize(void) {
 				       NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_get(isc__tls_mctx, nlocks * sizeof(locks[0]));
+	/*
+	 * We can't use isc_mem API here, because it's called too
+	 * early and when the isc_mem_debugging flags are changed
+	 * later and ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX flags are
+	 * added, neither isc_mem_put() nor isc_mem_free() can be used
+	 * to free up the memory allocated here because the flags were
+	 * not set when calling isc_mem_get() or isc_mem_allocate()
+	 * here.
+	 *
+	 * Actually, since this is a single allocation at library load
+	 * and deallocation at library unload, using the standard
+	 * allocator without the tracking is fine for this purpose.
+	 */
+	locks = calloc(nlocks, sizeof(locks[0]));
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
@@ -127,20 +104,22 @@ isc__tls_initialize(void) {
 			    "seeded' message in the OpenSSL FAQ)");
 	}
 
-	atomic_compare_exchange_strong(&init_done, &(bool){ false }, true);
+	REQUIRE(atomic_compare_exchange_strong(&init_done, &(bool){ false },
+					       true));
 }
 
 void
-isc_tls_initialize(void) {
-	isc_result_t result = isc_once_do(&init_once, isc__tls_initialize);
+isc__tls_initialize(void) {
+	isc_result_t result = isc_once_do(&init_once, tls_initialize);
 	REQUIRE(result == ISC_R_SUCCESS);
 	REQUIRE(atomic_load(&init_done));
 }
 
 static void
-isc__tls_destroy(void) {
+tls_shutdown(void) {
 	REQUIRE(atomic_load(&init_done));
 	REQUIRE(!atomic_load(&shut_done));
+
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
 	CONF_modules_unload(1);
@@ -156,24 +135,20 @@ isc__tls_destroy(void) {
 
 	CRYPTO_set_locking_callback(NULL);
 
-	/* REQUIRE(CRYPTO_set_mem_functions(OPENSSL_malloc, OPENSSL_realloc,
-	 * OPENSSL_free) == 1); */
-
 	if (locks != NULL) {
-		INSIST(isc__tls_mctx != NULL);
 		isc_mutexblock_destroy(locks, nlocks);
-		isc_mem_put(isc__tls_mctx, locks, nlocks * sizeof(locks[0]));
+		free(locks);
 		locks = NULL;
 	}
 #endif
-	isc_mem_detach(&isc__tls_mctx);
 
-	atomic_compare_exchange_strong(&shut_done, &(bool){ false }, true);
+	REQUIRE(atomic_compare_exchange_strong(&shut_done, &(bool){ false },
+					       true));
 }
 
 void
-isc_tls_destroy(void) {
-	isc_result_t result = isc_once_do(&shut_once, isc__tls_destroy);
+isc__tls_shutdown(void) {
+	isc_result_t result = isc_once_do(&shut_once, tls_shutdown);
 	REQUIRE(result == ISC_R_SUCCESS);
 	REQUIRE(atomic_load(&shut_done));
 }
@@ -197,8 +172,6 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 	const SSL_METHOD *method = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
-
-	isc_tls_initialize();
 
 	method = TLS_client_method();
 	if (method == NULL) {
@@ -247,8 +220,6 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 	const SSL_METHOD *method = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
-
-	isc_tls_initialize();
 
 	if (ephemeral) {
 		INSIST(keyfile == NULL);
@@ -365,6 +336,7 @@ ssl_error:
 	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
+
 	if (ctx != NULL) {
 		SSL_CTX_free(ctx);
 	}

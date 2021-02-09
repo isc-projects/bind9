@@ -68,8 +68,6 @@ isc_result_t
 dst__openssl_init(const char *engine) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	isc_tls_initialize();
-
 	enable_fips_mode();
 
 #if !defined(OPENSSL_NO_ENGINE)
@@ -110,7 +108,6 @@ dst__openssl_destroy(void) {
 	}
 	e = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
-	isc_tls_destroy();
 }
 
 static isc_result_t
