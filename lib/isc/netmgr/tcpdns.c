@@ -999,7 +999,7 @@ processbuffer(isc_nmsocket_t *sock) {
 
 	len += 2;
 	sock->buf_len -= len;
-	if (len > 0) {
+	if (sock->buf_len > 0) {
 		memmove(sock->buf, sock->buf + len, sock->buf_len);
 	}
 
