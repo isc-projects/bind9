@@ -3435,6 +3435,22 @@ dnssec_verify
 check_next_key_event 1627200
 
 #
+# Zone: step6.zsk-prepub.autosign.
+#
+set_zone "step6.zsk-prepub.autosign"
+set_policy "zsk-prepub" "2" "3600"
+set_server "ns3" "10.53.0.3"
+# ZSK (KEY2) DNSKEY is purged.
+key_clear "KEY2"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+#
 # Testing KSK Double-KSK rollover.
 #
 
@@ -3678,6 +3694,22 @@ dnssec_verify
 # ksk-doubleksk this is: 60d - 1d3h - 1d - 2d2h - 2h =
 # 5184000 - 97200 - 180000 - 7200 = 4813200 seconds.
 check_next_key_event 4899600
+
+#
+# Zone: step6.ksk-doubleksk.autosign.
+#
+set_zone "step6.ksk-doubleksk.autosign"
+set_policy "ksk-doubleksk" "2" "7200"
+set_server "ns3" "10.53.0.3"
+# KSK (KEY1) DNSKEY is purged.
+key_clear "KEY1"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
 
 #
 # Testing CSK key rollover (1).
@@ -4010,6 +4042,22 @@ dnssec_verify
 check_next_key_event 13795200
 
 #
+# Zone: step8.csk-roll.autosign.
+#
+set_zone "step8.csk-roll.autosign"
+set_policy "csk-roll" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# The old CSK (KEY1) is purged.
+key_clear "KEY1"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+#
 # Testing CSK key rollover (2).
 #
 
@@ -4297,6 +4345,21 @@ dnssec_verify
 # Lcsk:        186d (16070400 seconds)
 # Time passed: 175h (630000 seconds)
 check_next_key_event 15440400
+
+#
+# Zone: step7.csk-roll2.autosign.
+#
+set_zone "step7.csk-roll2.autosign"
+set_policy "csk-roll2" "2" "3600"
+set_server "ns3" "10.53.0.3"
+# The old CSK (KEY1) could have been purged, but purge-keys is disabled.
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
 
 #
 # Test #2375: Scheduled rollovers are happening faster than they can finish
