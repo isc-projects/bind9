@@ -1023,7 +1023,7 @@ system:gcc:tsan:
 
 unit:gcc:tsan:
   variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt
   <<: *base_image
   <<: *unit_test_tsan_job
   needs:
@@ -1050,7 +1050,7 @@ system:clang:tsan:
 
 unit:clang:tsan:
   variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt
   <<: *base_image
   <<: *unit_test_tsan_job
   needs:
