@@ -2101,6 +2101,9 @@ isc__nm_closesocket(uv_os_sock_t sock) {
 #define setsockopt_on(socket, level, name) \
 	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
 
+#define setsockopt_off(socket, level, name) \
+	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
+
 isc_result_t
 isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
 	/*
@@ -2226,14 +2229,22 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 	 */
 	if (sa_family == AF_INET6) {
 #if defined(IPV6_DONTFRAG)
-		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_DONTFRAG) == -1) {
+		if (setsockopt_off(fd, IPPROTO_IPV6, IPV6_DONTFRAG) == -1) {
 			return (ISC_R_FAILURE);
 		} else {
 			return (ISC_R_SUCCESS);
 		}
-#elif defined(IPV6_MTU_DISCOVER)
+#elif defined(IPV6_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
 		if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
-			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+			       &(int){ IP_PMTUDISC_OMIT }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IPV6_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
+		if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DONT }, sizeof(int)) == -1)
 		{
 			return (ISC_R_FAILURE);
 		} else {
@@ -2244,14 +2255,22 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 #endif
 	} else if (sa_family == AF_INET) {
 #if defined(IP_DONTFRAG)
-		if (setsockopt_on(fd, IPPROTO_IP, IP_DONTFRAG) == -1) {
+		if (setsockopt_off(fd, IPPROTO_IP, IP_DONTFRAG) == -1) {
 			return (ISC_R_FAILURE);
 		} else {
 			return (ISC_R_SUCCESS);
 		}
-#elif defined(IP_MTU_DISCOVER)
+#elif defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
 		if (setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
-			       &(int){ IP_PMTUDISC_DO }, sizeof(int)) == -1)
+			       &(int){ IP_PMTUDISC_OMIT }, sizeof(int)) == -1)
+		{
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#elif defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
+		if (setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
+			       &(int){ IP_PMTUDISC_DONT }, sizeof(int)) == -1)
 		{
 			return (ISC_R_FAILURE);
 		} else {
