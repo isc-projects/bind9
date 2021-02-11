@@ -25,10 +25,15 @@ libdighost_la_SOURCES = \
 
 bin_PROGRAMS = dig host nslookup
 
+nslookup_CPPFLAGS =		\
+	$(AM_CPPFLAGS)
+
 nslookup_LDADD =		\
 	$(LDADD)
 
 if HAVE_READLINE
+nslookup_CPPFLAGS +=		\
+	$(READLINE_CFLAGS)
 nslookup_LDADD +=		\
 	$(READLINE_LIBS)
 endif HAVE_READLINE

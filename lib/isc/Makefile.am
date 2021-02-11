@@ -66,7 +66,6 @@ libisc_la_HEADERS =			\
 	include/isc/radix.h		\
 	include/isc/random.h		\
 	include/isc/ratelimiter.h	\
-	include/isc/readline.h		\
 	include/isc/refcount.h		\
 	include/isc/regex.h		\
 	include/isc/region.h		\
