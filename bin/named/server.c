@@ -20,6 +20,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef HAVE_DNSTAP
+#include <fstrm.h>
+#endif
+
 #include <isc/aes.h>
 #include <isc/app.h>
 #include <isc/base64.h>

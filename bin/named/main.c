@@ -18,6 +18,10 @@
 #include <string.h>
 #include <uv.h>
 
+#ifdef HAVE_DNSTAP
+#include <protobuf-c/protobuf-c.h>
+#endif
+
 #include <isc/app.h>
 #include <isc/backtrace.h>
 #include <isc/commandline.h>
