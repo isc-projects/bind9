@@ -2901,7 +2901,7 @@ failed_gssrequest(void) {
 
 static void
 start_gssrequest(dns_name_t *master) {
-	gss_ctx_id_t context;
+	dns_gss_ctx_id_t context;
 	isc_buffer_t buf;
 	isc_result_t result;
 	uint32_t val = 0;
@@ -3046,7 +3046,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	nsu_gssinfo_t *reqinfo;
 	dns_message_t *tsigquery = NULL;
 	isc_sockaddr_t *addr;
-	gss_ctx_id_t context;
+	dns_gss_ctx_id_t context;
 	isc_buffer_t buf;
 	dns_name_t *servname;
 	dns_fixedname_t fname;

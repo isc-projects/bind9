@@ -14,13 +14,11 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#if HAVE_GSSAPI
 #if HAVE_GSSAPI_GSSAPI_H
 #include <gssapi/gssapi.h>
 #elif HAVE_GSSAPI_H
 #include <gssapi.h>
 #endif
-#endif /* HAVE_GSSAPI */
 
 #include <isc/buffer.h>
 #include <isc/md.h>
@@ -515,7 +513,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	isc_stdtime_t now;
 	isc_region_t intoken;
 	isc_buffer_t *outtoken = NULL;
-	gss_ctx_id_t gss_ctx = NULL;
+	dns_gss_ctx_id_t gss_ctx = NULL;
 
 	/*
 	 * You have to define either a gss credential (principal) to
@@ -1117,7 +1115,7 @@ failure:
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       uint32_t lifetime, gss_ctx_id_t *context, bool win2k,
+		       uint32_t lifetime, dns_gss_ctx_id_t *context, bool win2k,
 		       isc_mem_t *mctx, char **err_message) {
 	dns_rdata_tkey_t tkey;
 	isc_result_t result;
@@ -1350,7 +1348,7 @@ failure:
 
 isc_result_t
 dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			    const dns_name_t *gname, gss_ctx_id_t *context,
+			    const dns_name_t *gname, dns_gss_ctx_id_t *context,
 			    isc_buffer_t *outtoken, dns_tsigkey_t **outkey,
 			    dns_tsig_keyring_t *ring, char **err_message) {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
@@ -1487,7 +1485,7 @@ failure:
 
 isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
-		      const dns_name_t *server, gss_ctx_id_t *context,
+		      const dns_name_t *server, dns_gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
 		      bool win2k, char **err_message) {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;

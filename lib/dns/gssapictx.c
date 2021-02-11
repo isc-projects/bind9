@@ -270,7 +270,7 @@ mech_oid_set_release(gss_OID_set *mech_oid_set) {
 
 isc_result_t
 dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
-		       gss_cred_id_t *cred) {
+		       dns_gss_cred_id_t *cred) {
 	isc_result_t result;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
@@ -332,7 +332,7 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 	}
 
 	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE, mech_oid_set,
-				usage, cred, NULL, &lifetime);
+				usage, (gss_cred_id_t *)cred, NULL, &lifetime);
 
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "failed to acquire %s credentials for %s: %s",
@@ -526,13 +526,13 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 }
 
 isc_result_t
-dst_gssapi_releasecred(gss_cred_id_t *cred) {
+dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
 	OM_uint32 gret, minor;
 	char buf[1024];
 
 	REQUIRE(cred != NULL && *cred != NULL);
 
-	gret = gss_release_cred(&minor, cred);
+	gret = gss_release_cred(&minor, (gss_cred_id_t *)cred);
 	if (gret != GSS_S_COMPLETE) {
 		/* Log the error, but still free the credential's memory */
 		gss_log(3, "failed releasing credential: %s",
@@ -567,7 +567,7 @@ gss_err_message(isc_mem_t *mctx, uint32_t major, uint32_t minor,
 
 isc_result_t
 dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
-		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
+		   isc_buffer_t *outtoken, dns_gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message) {
 	isc_region_t r;
 	isc_buffer_t namebuf;
@@ -607,10 +607,10 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	 */
 	flags = GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG;
 
-	gret = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, gssctx, gname,
-				    GSS_SPNEGO_MECHANISM, flags, 0, NULL,
-				    gintokenp, NULL, &gouttoken, &ret_flags,
-				    NULL);
+	gret = gss_init_sec_context(
+		&minor, GSS_C_NO_CREDENTIAL, (gss_ctx_id_t *)gssctx, gname,
+		GSS_SPNEGO_MECHANISM, flags, 0, NULL, gintokenp, NULL,
+		&gouttoken, &ret_flags, NULL);
 
 	if (gret != GSS_S_COMPLETE && gret != GSS_S_CONTINUE_NEEDED) {
 		gss_err_message(mctx, gret, minor, err_message);
@@ -653,9 +653,9 @@ out:
 }
 
 isc_result_t
-dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
+dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
-		     gss_ctx_id_t *ctxout, dns_name_t *principal,
+		     dns_gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx) {
 	isc_region_t r;
 	isc_buffer_t namebuf;
@@ -809,7 +809,7 @@ out:
 }
 
 isc_result_t
-dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
+dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
 	OM_uint32 gret, minor;
 	char buf[1024];
 
@@ -818,7 +818,8 @@ dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
 	REQUIRE(gssctx != NULL && *gssctx != NULL);
 
 	/* Delete the context from the GSS provider */
-	gret = gss_delete_sec_context(&minor, gssctx, GSS_C_NO_BUFFER);
+	gret = gss_delete_sec_context(&minor, (gss_ctx_id_t *)gssctx,
+				      GSS_C_NO_BUFFER);
 	if (gret != GSS_S_COMPLETE) {
 		/* Log the error, but still free the context's memory */
 		gss_log(3, "Failure deleting security context %s",
@@ -859,7 +860,7 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 
 isc_result_t
 dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
-		       gss_cred_id_t *cred) {
+		       dns_gss_cred_id_t *cred) {
 	REQUIRE(cred != NULL && *cred == NULL);
 
 	UNUSED(name);
@@ -894,7 +895,7 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 }
 
 isc_result_t
-dst_gssapi_releasecred(gss_cred_id_t *cred) {
+dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
 	UNUSED(cred);
 
 	return (ISC_R_NOTIMPLEMENTED);
@@ -902,7 +903,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 
 isc_result_t
 dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
-		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
+		   isc_buffer_t *outtoken, dns_gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message) {
 	UNUSED(name);
 	UNUSED(intoken);
@@ -915,9 +916,9 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 }
 
 isc_result_t
-dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
+dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
-		     gss_ctx_id_t *ctxout, dns_name_t *principal,
+		     dns_gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx) {
 	UNUSED(cred);
 	UNUSED(gssapi_keytab);
@@ -931,7 +932,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred, const char *gssapi_keytab,
 }
 
 isc_result_t
-dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx) {
+dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
 	UNUSED(mctx);
 	UNUSED(gssctx);
 	return (ISC_R_NOTIMPLEMENTED);
