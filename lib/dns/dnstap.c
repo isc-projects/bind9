@@ -47,11 +47,10 @@
 #error DNSTAP not configured.
 #endif /* HAVE_DNSTAP */
 
+#include <fstrm.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-#include <protobuf-c/protobuf-c.h>
 
 #include <isc/buffer.h>
 #include <isc/file.h>

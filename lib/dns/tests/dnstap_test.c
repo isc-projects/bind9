@@ -37,6 +37,8 @@
 
 #ifdef HAVE_DNSTAP
 
+#include <fstrm.h>
+
 #include <protobuf-c/protobuf-c.h>
 
 #define TAPFILE "testdata/dnstap/dnstap.file"
