@@ -1,3 +1,7 @@
+5581.	[bug]		Fix memory leak happening when inline-signed zones
+			were added to the configuration followed by a
+			reconfiguration of named. [GL #2041]
+
 5580.	[test]		The system test framework no longer differentiates
 			between SKIPPED and UNTESTED system test results. Any
 			system test which is not run is now marked as SKIPPED.
