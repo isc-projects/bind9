@@ -1603,6 +1603,9 @@ dns_zone_setviewcommit(dns_zone_t *zone) {
 	if (zone->prev_view != NULL) {
 		dns_view_weakdetach(&zone->prev_view);
 	}
+	if (inline_secure(zone)) {
+		dns_zone_setviewcommit(zone->raw);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -1614,6 +1617,9 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 	if (zone->prev_view != NULL) {
 		dns_zone_setview_helper(zone, zone->prev_view);
 		dns_view_weakdetach(&zone->prev_view);
+	}
+	if (inline_secure(zone)) {
+		dns_zone_setviewrevert(zone->raw);
 	}
 	UNLOCK_ZONE(zone);
 }
