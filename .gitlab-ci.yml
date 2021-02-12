@@ -498,8 +498,6 @@ flake8:
   script:
     - *configure
     - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
-  only:
-    - merge_requests
 
 pylint:
   <<: *default_triggering_rules
@@ -512,8 +510,6 @@ pylint:
     - *configure
     - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
-  only:
-    - merge_requests
 
 tarball-create:
   stage: precheck
