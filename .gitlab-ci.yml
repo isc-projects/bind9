@@ -222,13 +222,14 @@ stages:
     --with-libtool \
     --with-geoip2=auto \
     --disable-static \
+    --enable-option-checking=fatal \
     --with-cmocka \
     --with-libxml2 \
     --with-libjson \
     --prefix="${BIND_INSTALL_PATH}" \
     --without-make-clean \
     $EXTRA_CONFIGURE \
-    || cat config.log
+    || (test -s config.log && cat config.log; exit 1)
 
 .build: &build_job
   <<: *default_triggering_rules
@@ -900,7 +901,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-geoip"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
@@ -1007,7 +1008,7 @@ gcc:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
+    EXTRA_CONFIGURE: "--with-libidn2"
 
 system:gcc:tsan:
   variables:
@@ -1034,7 +1035,7 @@ clang:tsan:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
+    EXTRA_CONFIGURE: "--with-libidn2"
 
 system:clang:tsan:
   variables:
@@ -1063,7 +1064,7 @@ gcc:tsan:noatomics:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --disable-atomic"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-atomic"
 
 system:gcc:tsan:noatomics:
   variables:
@@ -1090,7 +1091,7 @@ clang:tsan:noatomics:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --disable-atomic"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-atomic"
 
 system:clang:tsan:noatomics:
   variables:
@@ -1108,29 +1109,6 @@ unit:clang:tsan:noatomics:
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan:noatomics
-      artifacts: true
-
-# Jobs for mutex-based atomics on Debian SID (amd64)
-gcc:mutexatomics:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-mutex-atomics"
-  <<: *base_image
-  <<: *build_job
-
-system:gcc:mutexatomics:
-  <<: *base_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:mutexatomics
-      artifacts: true
-
-unit:gcc:mutexatomics:
-  <<: *base_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:mutexatomics
       artifacts: true
 
 # Jobs for builds without atomics and threads
