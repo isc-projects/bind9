@@ -12,20 +12,36 @@
 include "../../common/rndc.key";
 
 controls {
-	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
+tls local {
+	key-file "key.pem";
+	cert-file "cert.pem";
+};
+
+http local {
+	endpoints { "/dns-query"; };
 };
 
 options {
+	query-source address 10.53.0.2;
+	notify-source 10.53.0.2;
+	transfer-source 10.53.0.2;
 	port @PORT@;
 	tls-port @TLSPORT@;
+	https-port @HTTPSPORT@;
+	http-port @HTTPPORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.2; };
+	listen-on tls local { 10.53.0.2; };             // DoT
+	listen-on tls local http local { 10.53.0.2; };  // DoH
+	listen-on tls none http local { 10.53.0.2; };   // unencrypted DoH
 	listen-on-v6 { none; };
-	listen-on tls ephemeral { 10.53.0.1; };
 	recursion no;
-	notify explicit;
-	also-notify { 10.53.0.2 port @PORT@; };
-	statistics-file "named.stats";
+	notify no;
+	ixfr-from-differences yes;
+	check-integrity no;
 	dnssec-validation yes;
 };
 
@@ -35,7 +51,8 @@ zone "." {
 };
 
 zone "example" {
-	type primary;
+	type secondary;
+	primaries { 10.53.0.1 tls ephemeral; };
 	file "example.db";
 	allow-transfer { any; };
 };
