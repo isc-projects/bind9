@@ -972,7 +972,8 @@ check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
 		}
 
 		http_server = find_maplist(config, "http", httpname);
-		if (http_server == NULL) {
+		if (http_server == NULL && strcasecmp(httpname, "default") != 0)
+		{
 			cfg_obj_log(httpobj, logctx, ISC_LOG_ERROR,
 				    "http '%s' is not defined",
 				    cfg_obj_asstring(httpobj));

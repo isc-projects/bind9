@@ -2468,17 +2468,24 @@ DNS queries on port 53 of all IPv6 interfaces.
 
 If a TLS configuration is specified, ``named`` will listen for DNS-over-TLS
 (DoT) connections, using the key and certificate specified in the
-referenced ``tls`` statement.
+referenced ``tls`` statement. If the name ``ephemeral`` is used,
+an ephemeral key and certificate created for the currently running
+``named`` process will be used.
 
 If an HTTP configuration is specified, ``named`` will listen for
 DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
-referenced ``http`` statement. ``http`` and ``tls`` configurations must be
-used together. If an unencrypted connection is desired (for example, when
-load-sharing servers behind a reverse proxy), ``tls none`` may be
-used.
+referenced ``http`` statement.  If the name ``default`` is used, then
+``named`` will listen for connections at the default endpoint,
+``/dns-query``.
+
+Use of an ``http`` specification requires ``tls`` to be specified
+as well.  If an unencrypted connection is desired (for example,
+on load-sharing servers behind a reverse proxy), ``tls none`` may be used.
 
 If a port number is not specified, the default is 53 for standard DNS, 853
-for DNS-over-TLS, and 443 for DNS-over-HTTPS.
+for DNS over TLS, 443 for DNS over HTTPS, and 80 for DNS over unenecrypted
+HTTP.  These defaults may be overridden using the ``port``, ``tls-port``,
+``https-port`` and ``http-port`` options.
 
 Multiple ``listen-on`` statements are allowed. For example:
 
@@ -2493,11 +2500,10 @@ The first two lines instruct the name server to listen for standard DNS
 queries on port 53 of the IP address 5.6.7.8 and on port 1234 of an address
 on the machine in net 1.2 that is not 1.2.3.4. The third line instructs the
 server to listen for DNS-over-TLS connections on port 8853 of the IP
-address 4.3.2.1 using an ephemeral TLS key and certificate created for the
-currently running ``named`` process. The fourth line enables DNS-over-HTTPS
-connections on port 8453 of address 8.7.6.5, using the same ephemeral
-key and certificate, and the HTTP endpoint or endpoints configured in
-an ``http`` statement with the name ``myserver``.
+address 4.3.2.1 using the ephemeral key and certifcate.  The fourth line
+enables DNS-over-HTTPS connections on port 8453 of address 8.7.6.5, using
+the ephemeral key and certificate, and the HTTP endpoint or endpoints
+configured in an ``http`` statement with the name ``myserver``.
 
 Multiple ``listen-on-v6`` options can be used. For example:
 
@@ -2506,7 +2512,7 @@ Multiple ``listen-on-v6`` options can be used. For example:
    listen-on-v6 { any; };
    listen-on-v6 port 1234 { !2001:db8::/32; any; };
    listen-on port 8853 tls example-tls { 2001:db8::100; };
-   listen-on port 8453 tls example-tls http myserver { 2001:db8::100; };
+   listen-on port 8453 tls example-tls http default { 2001:db8::100; };
    listen-on port 8000 tls none http myserver { 2001:db8::100; };
 
 The first two lines instruct the name server to listen for standard DNS
@@ -2516,9 +2522,10 @@ instructs the server to listen for for DNS-over-TLS connections on port
 8853 of the address 2001:db8::100, using a TLS key and certificate specified
 in the a ``tls`` statement with the name ``example-tls``. The fourth
 instructs the server to listen for DNS-over-HTTPS connections, again using
-``example-tls``, on the HTTP endpoint specified in ``http myserver``. The
-fifth line, in which the ``tls`` parameter is set to ``none``, instructs
-the server to listen for *unencrypted* DNS queries over HTTP.
+``example-tls``, on the default HTTP endpoint. The fifth line, in which
+the ``tls`` parameter is set to ``none``, instructs the server to listen
+for *unencrypted* DNS queries over HTTP at the endpoint specified in
+``myserver``..
 
 To instruct the server not to listen on any IPv6 addresses, use:
 

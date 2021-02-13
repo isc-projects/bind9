@@ -11090,6 +11090,9 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 			tlsmap = find_maplist(config, "tls", tlsname);
 			if (tlsmap == NULL) {
+				cfg_obj_log(tlsobj, named_g_lctx, ISC_LOG_ERROR,
+					    "tls '%s' is not defined",
+					    cfg_obj_asstring(tlsobj));
 				return (ISC_R_FAILURE);
 			}
 
@@ -11110,7 +11113,11 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		}
 
 		http_server = find_maplist(config, "http", httpname);
-		if (http_server == NULL) {
+		if (http_server == NULL && strcasecmp(httpname, "default") != 0)
+		{
+			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
+				    "http '%s' is not defined",
+				    cfg_obj_asstring(httpobj));
 			return (ISC_R_FAILURE);
 		}
 
@@ -11178,7 +11185,6 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	}
 
 	if (http) {
-		INSIST(http_server != NULL);
 		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
 				     &delt));
 	} else {
@@ -11208,7 +11214,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	char **endpoints = NULL;
 	const cfg_obj_t *eplist = NULL;
 	const cfg_listelt_t *elt = NULL;
-	size_t len, i = 0;
+	size_t len = 1, i = 0;
 
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE((key == NULL) == (cert == NULL));
@@ -11217,15 +11223,26 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 		port = tls ? named_g_httpsport : named_g_httpport;
 	}
 
-	CHECK(cfg_map_get(http, "endpoints", &eplist));
-	len = cfg_list_length(eplist, false);
+	/*
+	 * If "default" was used, we set up the default endpoint
+	 * of "/dns-query".
+	 */
+	if (http != NULL) {
+		CHECK(cfg_map_get(http, "endpoints", &eplist));
+		len = cfg_list_length(eplist, false);
+	}
+
 	endpoints = isc_mem_allocate(mctx, sizeof(endpoints[0]) * len);
 
-	for (elt = cfg_list_first(eplist); elt != NULL;
-	     elt = cfg_list_next(elt)) {
-		const cfg_obj_t *ep = cfg_listelt_value(elt);
-		const char *path = cfg_obj_asstring(ep);
-		endpoints[i++] = isc_mem_strdup(mctx, path);
+	if (http != NULL) {
+		for (elt = cfg_list_first(eplist); elt != NULL;
+		     elt = cfg_list_next(elt)) {
+			const cfg_obj_t *ep = cfg_listelt_value(elt);
+			const char *path = cfg_obj_asstring(ep);
+			endpoints[i++] = isc_mem_strdup(mctx, path);
+		}
+	} else {
+		endpoints[i++] = isc_mem_strdup(mctx, "/dns-query");
 	}
 
 	INSIST(i == len);
