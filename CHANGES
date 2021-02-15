@@ -1,3 +1,8 @@
+5580.	[test]		The system test framework no longer differentiates
+			between SKIPPED and UNTESTED system test results. Any
+			system test which is not run is now marked as SKIPPED.
+			[GL !4517]
+
 5579.	[bug]		If an invalid key name (e.g. "a..b") is
 			specified in an primaries list in named.conf
 			the wrong size is passed to isc_mem_put
