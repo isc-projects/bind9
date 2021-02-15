@@ -246,9 +246,9 @@ else
         ( cd $systest && $SHELL clean.sh "$@" )
         if test -d ../../../.git; then
             git status -su --ignored $systest 2>/dev/null | \
-            sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+            sed -n -e 's|^?? \(.*\)|I:'${systest}':file \1 not removed|p' \
+            -e 's|^!! \(.*/named.run\)$|I:'${systest}':file \1 not removed|p' \
+            -e 's|^!! \(.*/named.memstats\)$|I:'${systest}':file \1 not removed|p'
         fi
     fi
 fi
