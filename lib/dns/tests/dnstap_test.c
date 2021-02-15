@@ -382,7 +382,8 @@ main(void) {
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 #else  /* if HAVE_DNSTAP */
-	print_message("1..0 # Skip dnstap not enabled\n");
+	print_message("1..0 # Skipped: dnstap not enabled\n");
+	return (SKIPPED_TEST_EXIT_CODE);
 #endif /* HAVE_DNSTAP */
 }
 
