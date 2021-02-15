@@ -296,6 +296,7 @@ stages:
   script:
     - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
+    - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" bin/tests/system/systests.output ); fi
 
 .system_test: &system_test_job
   <<: *system_test_common
