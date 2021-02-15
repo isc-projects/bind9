@@ -7789,7 +7789,6 @@ configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
 	isc_result_t result2;
 	dns_view_t *pview = NULL;
 	dns_zone_t *zone = NULL;
-	dns_zone_t *raw = NULL;
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 	origin = dns_fixedname_initname(&fixorigin);
@@ -7811,22 +7810,10 @@ configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
 		return;
 	}
 
-	dns_zone_getraw(zone, &raw);
-
 	if (result == ISC_R_SUCCESS) {
 		dns_zone_setviewcommit(zone);
-		if (raw != NULL) {
-			dns_zone_setviewcommit(raw);
-		}
 	} else {
 		dns_zone_setviewrevert(zone);
-		if (raw != NULL) {
-			dns_zone_setviewrevert(raw);
-		}
-	}
-
-	if (raw != NULL) {
-		dns_zone_detach(&raw);
 	}
 
 	dns_zone_detach(&zone);
