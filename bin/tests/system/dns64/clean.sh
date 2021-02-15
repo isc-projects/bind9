@@ -14,3 +14,12 @@ rm -f */named.run
 rm -f checkconf.out*
 rm -f dig.out.*
 rm -f ns*/named.lock
+rm -f ns1/Ksigned.+005+*.key
+rm -f ns1/Ksigned.+005+*.private
+rm -f ns1/Ksigned.+005+*.key
+rm -f ns1/Ksigned.+005+*.private
+rm -f ns1/dsset-signed.
+rm -f ns1/named.conf
+rm -f ns1/signed.db
+rm -f ns1/signed.db.signed
+rm -f ns2/named.conf
