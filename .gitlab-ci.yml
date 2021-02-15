@@ -311,6 +311,7 @@ stages:
   script:
     - cd bin/tests/system
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
+    - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" *.log ); fi
   after_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - test -d bind-* && cd bind-*
