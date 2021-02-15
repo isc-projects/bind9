@@ -15,3 +15,4 @@ rm -f ns*/named.run
 rm -f ns*/rpz*.txt
 rm -rf __pycache__
 rm -f *.status
+rm -rf .cache
