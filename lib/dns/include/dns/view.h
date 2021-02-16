@@ -253,7 +253,6 @@ struct dns_view {
 #define DNS_VIEWATTR_REQSHUTDOWN 0x04
 
 #ifdef HAVE_LMDB
-#include <lmdb.h>
 #define DNS_LMDB_COMMON_FLAGS (MDB_CREATE | MDB_NOSUBDIR | MDB_NOLOCK)
 #ifndef __OpenBSD__
 #define DNS_LMDB_FLAGS (DNS_LMDB_COMMON_FLAGS)

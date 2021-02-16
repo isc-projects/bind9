@@ -96,7 +96,7 @@ struct dst_key {
 	char *label;		    /*%< engine label (HSM) */
 	union {
 		void *generic;
-		gss_ctx_id_t gssctx;
+		dns_gss_ctx_id_t gssctx;
 		DH *dh;
 #if USE_OPENSSL
 		EVP_PKEY *pkey;

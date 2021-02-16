@@ -15,6 +15,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef HAVE_DNSTAP
+#include <fstrm.h>
+#endif
+
 #include <isc/aes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>

@@ -18,32 +18,12 @@ AM_LDFLAGS +=					\
 	-Wl,-flat_namespace
 endif HOST_MACOS
 
-if HAVE_GSSAPI
-AM_CPPFLAGS +=					\
-	$(GSSAPI_CFLAGS)
-endif
-
 LIBISC_CFLAGS =						\
 	-I$(top_srcdir)/include				\
 	-I$(top_srcdir)/lib/isc/unix/include		\
 	-I$(top_srcdir)/lib/isc/pthreads/include	\
 	-I$(top_srcdir)/lib/isc/include			\
 	-I$(top_builddir)/lib/isc/include
-
-if HAVE_JSON_C
-LIBISC_CFLAGS +=					\
-	$(JSON_C_CFLAGS)
-endif HAVE_JSON_C
-
-if HAVE_LIBXML2
-LIBISC_CFLAGS +=					\
-	$(LIBXML2_CFLAGS)
-endif HAVE_LIBXML2
-
-if HAVE_READLINE
-LIBISC_CFLAGS +=					\
-	$(READLINE_CFLAGS)
-endif HAVE_READLINE
 
 LIBISC_LIBS = $(top_builddir)/lib/isc/libisc.la
 
@@ -53,16 +33,6 @@ LIBDNS_CFLAGS = \
 
 LIBDNS_LIBS = \
 	$(top_builddir)/lib/dns/libdns.la
-
-if HAVE_DNSTAP
-LIBDNS_CFLAGS +=					\
-	$(DNSTAP_CFLAGS)
-endif HAVE_DNSTAP
-
-if HAVE_LMDB
-LIBDNS_CFLAGS +=					\
-	$(LMDB_CFLAGS)
-endif HAVE_LMDB
 
 LIBNS_CFLAGS = \
 	-I$(top_srcdir)/lib/ns/include
