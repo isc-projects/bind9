@@ -20,6 +20,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef HAVE_DNSTAP
+#include <fstrm.h>
+#endif
+
 #include <isc/aes.h>
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -132,6 +136,8 @@
 #endif /* ifdef HAVE_LIBSCF */
 
 #ifdef HAVE_LMDB
+#include <lmdb.h>
+
 #include <dns/lmdb.h>
 #define count_newzones	   count_newzones_db
 #define configure_newzones configure_newzones_db

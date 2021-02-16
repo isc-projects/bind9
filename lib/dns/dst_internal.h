@@ -53,6 +53,24 @@
 
 #include <dst/dst.h>
 
+#ifdef GSSAPI
+#ifdef WIN32
+/*
+ * MSVC does not like macros in #include lines.
+ */
+#include <gssapi/gssapi.h>
+#include <gssapi/gssapi_krb5.h>
+#else /* ifdef WIN32 */
+#include ISC_PLATFORM_GSSAPIHEADER
+#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
+#include ISC_PLATFORM_GSSAPI_KRB5_HEADER
+#endif /* ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER */
+#endif /* ifdef WIN32 */
+#ifndef GSS_SPNEGO_MECHANISM
+#define GSS_SPNEGO_MECHANISM ((void *)0)
+#endif /* ifndef GSS_SPNEGO_MECHANISM */
+#endif /* ifdef GSSAPI */
+
 ISC_LANG_BEGINDECLS
 
 #define KEY_MAGIC ISC_MAGIC('D', 'S', 'T', 'K')
@@ -96,7 +114,7 @@ struct dst_key {
 	char *label;		    /*%< engine label (HSM) */
 	union {
 		void *generic;
-		gss_ctx_id_t gssctx;
+		dns_gss_ctx_id_t gssctx;
 		DH *dh;
 #if USE_OPENSSL
 		EVP_PKEY *pkey;

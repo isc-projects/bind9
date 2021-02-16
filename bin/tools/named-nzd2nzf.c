@@ -13,6 +13,7 @@
 #error This program requires the LMDB library.
 #endif /* ifndef HAVE_LMDB */
 
+#include <lmdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 
