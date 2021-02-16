@@ -32,6 +32,25 @@
 
 #define DEFAULT_CACHE_CONTROL "no-cache, no-store"
 
+/*
+ * If server during request processing surpasses any of the limits
+ * below, it will just reset the stream without returning any error
+ * codes in a response.  Ideally, these parameters should be
+ * configurable both globally and per every HTTP endpoint description
+ * in the configuration file, but for now it should be enough.
+ */
+
+/*
+ * 128K should be enough to encode 64K of data into base64url inside GET
+ * request and have extra space for other headers
+ */
+#define MAX_ALLOWED_DATA_IN_HEADERS (MAX_DNS_MESSAGE_SIZE * 2)
+
+#define MAX_ALLOWED_DATA_IN_POST \
+	(MAX_DNS_MESSAGE_SIZE + MAX_DNS_MESSAGE_SIZE / 2)
+
+#define MAX_STREAMS_PER_SESSION (NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+
 #define HEADER_MATCH(header, name, namelen)   \
 	(((namelen) == sizeof(header) - 1) && \
 	 (strncasecmp((header), (const char *)(name), (namelen)) == 0))
@@ -92,6 +111,7 @@ struct isc_nm_http_session {
 
 	ISC_LIST(http_cstream_t) cstreams;
 	ISC_LIST(isc_nmsocket_h2_t) sstreams;
+	size_t nsstreams;
 
 	isc_nmhandle_t *handle;
 	isc_nmsocket_t *serversocket;
@@ -619,10 +639,8 @@ initialize_nghttp2_client_session(isc_nm_http_session_t *session) {
 	RUNTIME_CHECK(nghttp2_option_new(&option) == 0);
 
 #if NGHTTP2_VERSION_NUM >= (0x010c00)
-	/* 128K should be enough for headers to allow more space for base64len
-	 * encoded GET requests */
 	nghttp2_option_set_max_send_header_block_length(
-		option, MAX_DNS_MESSAGE_SIZE * 2);
+		option, MAX_ALLOWED_DATA_IN_HEADERS);
 #endif
 
 	nghttp2_session_callbacks_set_on_data_chunk_recv_callback(
@@ -1207,6 +1225,12 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	    frame->headers.cat != NGHTTP2_HCAT_REQUEST)
 	{
 		return (0);
+	} else if (frame->hd.length > MAX_ALLOWED_DATA_IN_HEADERS) {
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+	}
+
+	if (session->nsstreams >= MAX_STREAMS_PER_SESSION) {
+		return (NGHTTP2_ERR_CALLBACK_FAILURE);
 	}
 
 	socket = isc_mem_get(session->mctx, sizeof(isc_nmsocket_t));
@@ -1217,7 +1241,9 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
 		.psock = socket,
 		.stream_id = frame->hd.stream_id,
+		.headers_error_code = ISC_HTTP_ERROR_SUCCESS
 	};
+	session->nsstreams++;
 	isc__nm_httpsession_attach(session, &socket->h2.session);
 	socket->tid = session->handle->sock->tid;
 	ISC_LINK_INIT(&socket->h2, link);
@@ -1291,8 +1317,7 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		}
 
 		if (isc__nm_parse_httpquery((const char *)qstr, &dns_value,
-					    &dns_value_len))
-		{
+					    &dns_value_len)) {
 			const size_t decoded_size = dns_value_len / 4 * 3;
 			if (decoded_size <= MAX_DNS_MESSAGE_SIZE) {
 				if (socket->h2.query_data != NULL) {
@@ -1370,13 +1395,14 @@ static isc_http_error_responses_t
 server_handle_content_type_header(isc_nmsocket_t *socket, const uint8_t *value,
 				  const size_t valuelen) {
 	const char type_dns_message[] = DNS_MEDIA_TYPE;
+	isc_http_error_responses_t resp = ISC_HTTP_ERROR_SUCCESS;
 
-	if (HEADER_MATCH(type_dns_message, value, valuelen)) {
-		socket->h2.content_type_verified = true;
-	} else {
-		return (ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE);
+	UNUSED(socket);
+
+	if (!HEADER_MATCH(type_dns_message, value, valuelen)) {
+		resp = ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE;
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return (resp);
 }
 
 static isc_http_error_responses_t
@@ -1384,25 +1410,24 @@ server_handle_accept_header(isc_nmsocket_t *socket, const uint8_t *value,
 			    const size_t valuelen) {
 	const char type_accept_all[] = "*/*";
 	const char type_dns_message[] = DNS_MEDIA_TYPE;
+	isc_http_error_responses_t resp = ISC_HTTP_ERROR_SUCCESS;
 
-	if (HEADER_MATCH(type_dns_message, value, valuelen) ||
-	    HEADER_MATCH(type_accept_all, value, valuelen))
+	UNUSED(socket);
+
+	if (!(HEADER_MATCH(type_dns_message, value, valuelen) ||
+	      HEADER_MATCH(type_accept_all, value, valuelen)))
 	{
-		socket->h2.accept_type_verified = true;
-	} else {
-		return (ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE);
+		resp = ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE;
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return (resp);
 }
 
-static int
-server_on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
-			  const uint8_t *name, size_t namelen,
-			  const uint8_t *value, size_t valuelen, uint8_t flags,
-			  void *user_data) {
-	isc_result_t result;
-	isc_nmsocket_t *socket = NULL;
+static isc_http_error_responses_t
+server_handle_header(isc_nmsocket_t *socket, const uint8_t *name,
+		     size_t namelen, const uint8_t *value,
+		     const size_t valuelen) {
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
+	bool was_error;
 	const char path[] = ":path";
 	const char method[] = ":method";
 	const char scheme[] = ":scheme";
@@ -1410,54 +1435,74 @@ server_on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
 	const char content_length[] = "Content-Length";
 	const char content_type[] = "Content-Type";
 
+	was_error = socket->h2.headers_error_code != ISC_HTTP_ERROR_SUCCESS;
+	/*
+	 * process Content-Length even when there was an error,
+	 * to drop the connection earlier if required.
+	 */
+	if (HEADER_MATCH(content_length, name, namelen)) {
+		code = server_handle_content_length_header(socket, value,
+							   valuelen);
+	} else if (!was_error && HEADER_MATCH(path, name, namelen)) {
+		code = server_handle_path_header(socket, value, valuelen);
+	} else if (!was_error && HEADER_MATCH(method, name, namelen)) {
+		code = server_handle_method_header(socket, value, valuelen);
+	} else if (!was_error && HEADER_MATCH(scheme, name, namelen)) {
+		code = server_handle_scheme_header(socket, value, valuelen);
+	} else if (!was_error && HEADER_MATCH(content_type, name, namelen)) {
+		code = server_handle_content_type_header(socket, value,
+							 valuelen);
+	} else if (!was_error &&
+		   HEADER_MATCH(accept, (const char *)name, namelen)) {
+		code = server_handle_accept_header(socket, value, valuelen);
+	}
+
+	return (code);
+}
+
+static int
+server_on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
+			  const uint8_t *name, size_t namelen,
+			  const uint8_t *value, size_t valuelen, uint8_t flags,
+			  void *user_data) {
+	isc_nmsocket_t *socket = NULL;
+	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
+
 	UNUSED(flags);
 	UNUSED(user_data);
+
+	socket = nghttp2_session_get_stream_user_data(session,
+						      frame->hd.stream_id);
+	if (socket == NULL) {
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+	}
+
+	socket->h2.headers_data_processed += (namelen + valuelen);
 
 	switch (frame->hd.type) {
 	case NGHTTP2_HEADERS:
 		if (frame->headers.cat != NGHTTP2_HCAT_REQUEST) {
 			break;
 		}
-
-		socket = nghttp2_session_get_stream_user_data(
-			session, frame->hd.stream_id);
-		if (socket == NULL) {
-			break;
-		}
-
-		if (HEADER_MATCH(path, name, namelen)) {
-			code = server_handle_path_header(socket, value,
-							 valuelen);
-		} else if (HEADER_MATCH(method, name, namelen)) {
-			code = server_handle_method_header(socket, value,
-							   valuelen);
-		} else if (HEADER_MATCH(scheme, name, namelen)) {
-			code = server_handle_scheme_header(socket, value,
-							   valuelen);
-		} else if (HEADER_MATCH(content_length, name, namelen)) {
-			code = server_handle_content_length_header(
-				socket, value, valuelen);
-		} else if (HEADER_MATCH(content_type, name, namelen)) {
-			code = server_handle_content_type_header(socket, value,
-								 valuelen);
-		} else if (HEADER_MATCH(accept, (const char *)name, namelen)) {
-			code = server_handle_accept_header(socket, value,
-							   valuelen);
-		}
+		code = server_handle_header(socket, name, namelen, value,
+					    valuelen);
 		break;
+	}
+
+	INSIST(socket != NULL);
+
+	if (socket->h2.headers_data_processed > MAX_ALLOWED_DATA_IN_HEADERS) {
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+	} else if (socket->h2.content_length > MAX_ALLOWED_DATA_IN_POST) {
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 	}
 
 	if (code == ISC_HTTP_ERROR_SUCCESS) {
 		return (0);
+	} else {
+		socket->h2.headers_error_code = code;
 	}
 
-	INSIST(socket != NULL);
-	result = server_send_error_response(code, session, socket);
-	if (result != ISC_R_SUCCESS) {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
-	}
-
-	failed_httpstream_read_cb(socket, ISC_R_CANCELED, socket->h2.session);
 	return (0);
 }
 
@@ -1511,6 +1556,11 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 		tag, MAKE_NV2(":status", #code) \
 	}
 
+/*
+ * Here we use roughly the same error codes that Unbound uses.
+ * (https://blog.nlnetlabs.nl/dns-over-https-in-unbound/)
+ */
+
 static struct http_error_responses {
 	const isc_http_error_responses_t type;
 	const nghttp2_nv header;
@@ -1537,8 +1587,7 @@ server_send_error_response(const isc_http_error_responses_t error,
 		if (error_responses[i].type == error) {
 			return (server_send_response(
 				ngsession, socket->h2.stream_id,
-				&error_responses[i].header,
-				sizeof(error_responses[i].header), socket));
+				&error_responses[i].header, 1, socket));
 		}
 	}
 
@@ -1555,39 +1604,13 @@ server_on_request_recv(nghttp2_session *ngsession,
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
 	isc_region_t data;
 
-	/*
-	 * Sanity checks. Here we use the same error codes that
-	 * Unbound uses.
-	 * (https://blog.nlnetlabs.nl/dns-over-https-in-unbound/)
-	 */
+	code = socket->h2.headers_error_code;
+	if (code != ISC_HTTP_ERROR_SUCCESS) {
+		goto error;
+	}
+
 	if (!socket->h2.request_path || !socket->h2.cb) {
 		code = ISC_HTTP_ERROR_NOT_FOUND;
-	} else if ((socket->h2.request_type == ISC_HTTP_REQ_POST &&
-		    !socket->h2.content_type_verified) ||
-		   !socket->h2.accept_type_verified)
-	{
-		code = ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE;
-	} else if (socket->h2.request_type == ISC_HTTP_REQ_UNSUPPORTED) {
-		code = ISC_HTTP_ERROR_NOT_IMPLEMENTED;
-	} else if (socket->h2.request_scheme == ISC_HTTP_SCHEME_UNSUPPORTED) {
-		/*
-		 * TODO: additional checks if we have enabled encryption
-		 * on the socket or not
-		 */
-		code = ISC_HTTP_ERROR_BAD_REQUEST;
-	} else if (socket->h2.content_length > MAX_DNS_MESSAGE_SIZE ||
-		   socket->h2.query_too_large)
-	{
-		code = ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE;
-	} else if (socket->h2.request_type == ISC_HTTP_REQ_GET &&
-		   (socket->h2.content_length > 0 ||
-		    socket->h2.query_data_len == 0))
-	{
-		code = ISC_HTTP_ERROR_BAD_REQUEST;
-	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
-		   socket->h2.content_length == 0)
-	{
-		code = ISC_HTTP_ERROR_BAD_REQUEST;
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
 		   socket->h2.bufsize > socket->h2.content_length)
 	{
@@ -1863,7 +1886,8 @@ initialize_nghttp2_server_session(isc_nm_http_session_t *session) {
 static int
 server_send_connection_header(isc_nm_http_session_t *session) {
 	nghttp2_settings_entry iv[1] = {
-		{ NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100 }
+		{ NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,
+		  MAX_STREAMS_PER_SESSION }
 	};
 	int rv;
 
@@ -2114,6 +2138,7 @@ http_close_direct(isc_nmsocket_t *sock) {
 
 	if (ISC_LINK_LINKED(&sock->h2, link)) {
 		ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
+		session->nsstreams--;
 	}
 
 	sessions_empty = ISC_LIST_EMPTY(session->sstreams);
@@ -2497,7 +2522,7 @@ isc__nm_parse_httpquery(const char *query_string, const char **start,
 		return (false);
 	}
 
-	state = (isc_httpparser_state_t) { .str = query_string };
+	state = (isc_httpparser_state_t){ .str = query_string };
 	if (!rule_query_string(&state)) {
 		return (false);
 	}

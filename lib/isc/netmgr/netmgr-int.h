@@ -749,8 +749,8 @@ typedef struct isc_nmsocket_h2 {
 	size_t content_length;
 	char clenbuf[128];
 
-	bool content_type_verified;
-	bool accept_type_verified;
+	int headers_error_code;
+	size_t headers_data_processed;
 
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
