@@ -1189,11 +1189,9 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	return;
 
 cleanup:
-	if (listener != NULL) {
-		isc_refcount_decrement(&listener->refs);
-		listener->exiting = true;
-		free_listener(listener);
-	}
+	isc_refcount_decrement(&listener->refs);
+	listener->exiting = true;
+	free_listener(listener);
 
 	if (control != NULL) {
 		cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
