@@ -100,6 +100,7 @@
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif /* ifdef HAVE_ZLIB */
+#include <nghttp2/nghttp2.h>
 /*
  * Include header files for database drivers here.
  */
@@ -492,6 +493,7 @@ printversion(bool verbose) {
 	cfg_obj_t *config = NULL;
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
+	nghttp2_info *nginfo = NULL;
 
 	printf("%s%s <id:%s>\n", PACKAGE_STRING, PACKAGE_DESCRIPTION,
 	       PACKAGE_SRCID);
@@ -533,6 +535,9 @@ printversion(bool verbose) {
 	printf("compiled with libuv version: %d.%d.%d\n", UV_VERSION_MAJOR,
 	       UV_VERSION_MINOR, UV_VERSION_PATCH);
 	printf("linked to libuv version: %s\n", uv_version_string());
+	printf("compiled with libnghttp2 version: %s\n", NGHTTP2_VERSION);
+	nginfo = nghttp2_version(1);
+	printf("linked to libnghttp2 version: %s\n", nginfo->version_str);
 #ifdef HAVE_LIBXML2
 	printf("compiled with libxml2 version: %s\n", LIBXML_DOTTED_VERSION);
 	printf("linked to libxml2 version: %s\n", xmlParserVersion);
