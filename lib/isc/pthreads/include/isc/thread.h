@@ -23,6 +23,13 @@
 #include <isc/lang.h>
 #include <isc/result.h>
 
+#if defined(HAVE_THREAD_LOCAL)
+#include <threads.h>
+extern thread_local size_t isc_tid_v;
+#elif defined(HAVE___THREAD)
+extern __thread size_t isc_tid_v;
+#endif /* if defined(HAVE_THREAD_LOCAL) */
+
 ISC_LANG_BEGINDECLS
 
 typedef pthread_t isc_thread_t;
@@ -56,7 +63,6 @@ isc_thread_setaffinity(int cpu);
 
 #if defined(HAVE_TLS)
 #if defined(HAVE_THREAD_LOCAL)
-#include <threads.h>
 #define ISC_THREAD_LOCAL static thread_local
 #elif defined(HAVE___THREAD)
 #define ISC_THREAD_LOCAL static __thread
