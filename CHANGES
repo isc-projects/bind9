@@ -1,3 +1,7 @@
+5608.	[bug]		Dig now honors +retry=0 and +tries=1 when queries
+			are sent over TCP (+tcp) and the remote server closes
+			the connection prematurely. [GL #2490]
+
 5607.	[bug]		Rekey after 'rndc dnssec -checkds' or 'rndc dnssec
 			-rollover' command is received, because such a command
 			may influence the next key event. [GL #2488]
