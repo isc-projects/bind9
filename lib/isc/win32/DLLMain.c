@@ -18,6 +18,7 @@
 
 #include "mem_p.h"
 #include "tls_p.h"
+#include "trampoline_p.h"
 
 /*
  * Called when we enter the DLL
@@ -32,6 +33,7 @@ __declspec(dllexport) BOOL WINAPI
 	case DLL_PROCESS_ATTACH:
 		isc__mem_initialize();
 		isc__tls_initialize();
+		isc__trampoline_initialize();
 		break;
 
 	/*
@@ -39,6 +41,7 @@ __declspec(dllexport) BOOL WINAPI
 	 * termination or a call to FreeLibrary.
 	 */
 	case DLL_PROCESS_DETACH:
+		isc__trampoline_shutdown();
 		isc__tls_shutdown();
 		isc__mem_shutdown();
 		break;

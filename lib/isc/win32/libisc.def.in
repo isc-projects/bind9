@@ -715,6 +715,10 @@ isc__tls_shutdown
 isc_tlsctx_createclient
 isc_tlsctx_createserver
 isc_tlsctx_free
+isc__trampoline_initialize
+isc__trampoline_shutdown
+isc__trampoline_get
+isc__trampoline_run
 isc_tm_timegm
 isc_tm_strptime
 isc_url_parse
@@ -796,6 +800,7 @@ isc_commandline_reset		DATA
 isc_dscp_check_value		DATA
 isc_hashctx			DATA
 isc_mem_debugging		DATA
+isc_tid_v			DATA
 @IF PKCS11
 pk11_verbose_init		DATA
 @END PKCS11

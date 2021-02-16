@@ -17,6 +17,8 @@
 #include <isc/lang.h>
 #include <isc/result.h>
 
+extern thread_local size_t isc_tid_v;
+
 /*
  * Inlines to help with wait return checking
  */

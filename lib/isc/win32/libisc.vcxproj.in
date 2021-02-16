@@ -378,6 +378,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\entropy_private.h" />
     <ClInclude Include="..\fsaccess_common_p.h" />
     <ClInclude Include="..\openssl_shim.h" />
+    <ClInclude Include="..\trampoline_p.h" />
     <ClInclude Include="syslog.h" />
     <ClInclude Include="unistd.h" />
     <ClInclude Include="..\..\versions.h" />
@@ -449,6 +450,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\task.c" />
     <ClCompile Include="..\taskpool.c" />
     <ClCompile Include="..\timer.c" />
+    <ClCompile Include="..\trampoline.c" />
     <ClCompile Include="..\tls.c" />
     <ClCompile Include="..\tm.c" />
     <ClCompile Include="..\url.c" />

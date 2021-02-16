@@ -213,6 +213,8 @@ libisc_la_SOURCES =		\
 	taskpool.c		\
 	timer.c			\
 	tls.c			\
+	trampoline.c		\
+	trampoline_p.h		\
 	tm.c			\
 	utf8.c			\
 	pthreads/condition.c	\
