@@ -26,7 +26,7 @@
 
 struct isc__trampoline {
 	int tid; /* const */
-	isc_thread_t self;
+	uintptr_t self;
 	isc_threadfunc_t start;
 	isc_threadarg_t arg;
 };

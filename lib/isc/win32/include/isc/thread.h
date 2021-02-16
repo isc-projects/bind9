@@ -12,6 +12,7 @@
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
 
+#include <inttypes.h>
 #include <windows.h>
 
 #include <isc/lang.h>
@@ -68,7 +69,7 @@ typedef DWORD  isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t(WINAPI *isc_threadfunc_t)(isc_threadarg_t);
 
-#define isc_thread_self (unsigned long)GetCurrentThreadId
+#define isc_thread_self (uintptr_t) GetCurrentThreadId
 
 ISC_LANG_BEGINDECLS
 
