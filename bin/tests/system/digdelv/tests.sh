@@ -859,6 +859,25 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
+  echo_i "checking +tries=1 won't retry twice upon TCP EOF ($n)"
+  ret=0
+  echo "no_response no_response" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking +retry=0 won't retry twice upon TCP EOF ($n)"
+  ret=0
+  dig_with_opts @10.53.0.5 example AXFR +retry=0 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
   echo_i "check that dig +expandaaaa works ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +expandaaaa AAAA ns2.example > dig.out.test$n 2>&1 || ret=1
