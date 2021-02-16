@@ -77,7 +77,7 @@ Feature Changes
   multiple versions of the same shared library) at startup. [GL #2387]
 
 - The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
-  day and the default value of ``stale-answer-ttl`` has been changed from 1
+  day, and the default value of ``stale-answer-ttl`` has been changed from 1
   second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
 
 - As part of an ongoing effort to use RFC 8499 terminology,
@@ -101,14 +101,14 @@ Bug Fixes
 - Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA key.
   This has been fixed. [GL #2178]
 
-- Named ``allow-update`` acls where broken in BIND 9.17.9 and BIND 9.16.11
-  preventing ``named`` starting. [GL #2413]
+- The use of named ACLs in ``allow-update`` was broken in BIND 9.17.9 and
+  BIND 9.16.11, preventing ``named`` from starting. [GL #2413]
 
 - When migrating to ``dnssec-policy``, BIND considered keys with the "Inactive"
   and/or "Delete" timing metadata as possible active keys. This has been fixed.
   [GL #2406]
 
-- Fix the "three is a crowd" key rollover bug in ``dnssec-policy``. When keys
+- Fixed the "three is a crowd" key rollover bug in ``dnssec-policy``. When keys
   rolled faster than the time required to finish the rollover procedure, the
   successor relation equation failed because it assumed only two keys were
   taking part in a rollover. This could lead to premature removal of
