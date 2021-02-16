@@ -52,6 +52,6 @@ isc_thread_setname(isc_thread_t thread, const char *name);
 isc_result_t
 isc_thread_setaffinity(int cpu);
 
-#define isc_thread_self (unsigned long)pthread_self
+#define isc_thread_self (uintptr_t) pthread_self
 
 ISC_LANG_ENDDECLS

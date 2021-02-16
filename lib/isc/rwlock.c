@@ -175,7 +175,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 static void
 print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
-		"rwlock %p thread %lu %s(%s): "
+		"rwlock %p thread %" PRIuPTR " %s(%s): "
 		"write_requests=%u, write_completions=%u, "
 		"cnt_and_flag=0x%x, readers_waiting=%u, "
 		"write_granted=%u, write_quota=%u\n",

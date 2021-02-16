@@ -161,18 +161,17 @@ client_trace(ns_client_t *client, int level, const char *message) {
 					     sizeof(tbuf));
 			isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, level,
-				      "query client=%p thread=0x%lx "
+				      "query client=%p thread=0x%" PRIxPTR
 				      "(%s/%s): %s",
-				      client, (unsigned long)isc_thread_self(),
-				      qbuf, tbuf, message);
+				      client, isc_thread_self(), qbuf, tbuf,
+				      message);
 		}
 	} else {
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_QUERY, level,
-			      "query client=%p thread=0x%lx "
+			      "query client=%p thread=0x%" PRIxPTR
 			      "(<unknown-query>): %s",
-			      client, (unsigned long)isc_thread_self(),
-			      message);
+			      client, isc_thread_self(), message);
 	}
 }
 #define CTRACE(l, m)  client_trace(client, l, m)
