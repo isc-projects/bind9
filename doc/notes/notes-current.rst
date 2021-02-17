@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.16.12
+Notes for BIND 9.16.13
 ----------------------
 
 Security Fixes
@@ -23,36 +23,6 @@ Known Issues
 
 New Features
 ~~~~~~~~~~~~
-
-- When a secondary server receives a large incremental zone
-  transfer (IXFR), it can have a negative impact on query
-  performance while the incremental changes are applied to
-  the zone. To address this, ``named`` can now
-  limit the size of IXFR responses it sends in response to zone
-  transfer requests. If an IXFR response would be larger than an
-  AXFR of the entire zone, it will send an AXFR resonse instead.
-
-  This behavior is controlled by the ``max-ixfr-ratio``
-  option - a percentage value representing the ratio of IXFR size
-  to the size of a full zone transfer. This value cannot exceed
-  100%, which is also the default. [GL #1515]
-
-- A new option, ``stale-answer-client-timeout``, has been added to
-  improve ``named``'s behavior with respect to serving stale data. The option
-  defines the amount of time ``named`` waits before attempting
-  to answer the query with a stale RRset from cache. If a stale answer
-  is found, ``named`` continues the ongoing fetches, attempting to
-  refresh the RRset in cache until the ``resolver-query-timeout`` interval is
-  reached.
-
-  The default value is ``1800`` (in milliseconds) and the maximum value is
-  bounded to ``resolver-query-timeout`` minus one second. A value of
-  ``0`` immediately returns a cached RRset if available, and still
-  attempts a refresh of the data in cache.
-
-  The option can be disabled by setting the value to ``off`` or
-  ``disabled``. It also has no effect if ``stale-answer-enable`` is
-  disabled. [GL #2247]
 
 - When serve-stale is enabled and stale data is available, ``named`` now
   returns stale answers upon encountering any unexpected error in the
@@ -69,52 +39,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The SONAMEs for BIND 9 libraries now include the current BIND 9
-  version number, in an effort to tightly couple internal libraries with
-  a specific release. This change makes the BIND 9 release process both
-  simpler and more consistent while also unequivocally preventing BIND 9
-  binaries from silently loading wrong versions of shared libraries (or
-  multiple versions of the same shared library) at startup. [GL #2387]
-
-- The default value of ``max-stale-ttl`` has been changed from 12 hours to 1
-  day, and the default value of ``stale-answer-ttl`` has been changed from 1
-  second to 30 seconds, following RFC 8767 recommendations. [GL #2248]
-
-- As part of an ongoing effort to use RFC 8499 terminology,
-  ``primaries`` can now be used as a synonym for ``masters`` in
-  ``named.conf``. Similarly, ``notify primary-only`` can now be used as
-  a synonym for ``notify master-only``. The output of ``rndc
-  zonestatus`` now uses ``primary`` and ``secondary`` terminology.
-  [GL #1948]
-
-- When ``check-names`` is in effect, A records below an ``_spf``, ``_spf_rate``
-  and ``_spf_verify`` labels (which are employed by the ``exists`` SPF
-  mechanism defined inr:rfc:`7208` section 5.7/appendix D1) are no longer 
-  reported as warnings/errors.  [GL #2377]
+- None.
 
 Bug Fixes
 ~~~~~~~~~
-
-- KASP incorrectly set signature validity to the value of the DNSKEY signature
-  validity. This is now fixed. [GL #2383]
-
-- Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA key.
-  This has been fixed. [GL #2178]
-
-- The use of named ACLs in ``allow-update`` was broken in BIND 9.17.9 and
-  BIND 9.16.11, preventing ``named`` from starting. [GL #2413]
-
-- When migrating to ``dnssec-policy``, BIND considered keys with the "Inactive"
-  and/or "Delete" timing metadata as possible active keys. This has been fixed.
-  [GL #2406]
-
-- Fixed the "three is a crowd" key rollover bug in ``dnssec-policy``. When keys
-  rolled faster than the time required to finish the rollover procedure, the
-  successor relation equation failed because it assumed only two keys were
-  taking part in a rollover. This could lead to premature removal of
-  predecessor keys. BIND 9 now implements a recursive successor relation, as
-  described in the paper "Flexible and Robust Key Rollover" (Equation (2)).
-  [GL #2375]
 
 - If an outgoing packet would exceed max-udp-size, it would be dropped instead
   of sending a proper response back.  Rollback setting the IP_DONTFRAG on the
