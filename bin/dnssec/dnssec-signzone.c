@@ -176,8 +176,9 @@ static bool remove_orphansigs = false;
 static bool remove_inactkeysigs = false;
 static bool output_dnssec_only = false;
 static bool output_stdout = false;
-bool set_maxttl = false;
+static bool set_maxttl = false;
 static dns_ttl_t maxttl = 0;
+static bool no_max_check = false;
 
 #define INCSTAT(counter)            \
 	if (printstats) {           \
@@ -3437,6 +3438,12 @@ main(int argc, char *argv[]) {
 
 		case 'H':
 			set_iter = true;
+			/* too-many is NOT DOCUMENTED */
+			if (strcmp(isc_commandline_argument, "too-many") == 0) {
+				nsec3iter = 151;
+				no_max_check = true;
+				break;
+			}
 			nsec3iter = strtoul(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0') {
 				fatal("iterations must be numeric");
@@ -3874,9 +3881,14 @@ main(int argc, char *argv[]) {
 		}
 
 		if (nsec3iter > dns_nsec3_maxiterations()) {
-			fatal("NSEC3 iterations too big for weakest DNSKEY "
-			      "strength. Maximum iterations allowed %u.",
-			      dns_nsec3_maxiterations());
+			if (no_max_check) {
+				fprintf(stderr,
+					"Ignoring max iterations check.\n");
+			} else {
+				fatal("NSEC3 iterations too big. Maximum "
+				      "iterations allowed %u.",
+				      dns_nsec3_maxiterations());
+			}
 		}
 	} else {
 		hashlist_init(&hashlist, 0, 0); /* silence clang */
