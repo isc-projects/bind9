@@ -34,7 +34,6 @@
 #include "../dst_internal.h"
 #include "dnstest.h"
 
-#if USE_OPENSSL
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -87,21 +86,15 @@ dh_computesecret(void **state) {
 
 	dst_key_free(&key);
 }
-#endif /* USE_OPENSSL */
 
 int
 main(void) {
-#if USE_OPENSSL
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(dh_computesecret, _setup,
 						_teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
-#else  /* if USE_OPENSSL */
-	print_message("1..0 # Skipped: dh test broken with PKCS11");
-	return (SKIPPED_TEST_EXIT_CODE);
-#endif /* if USE_OPENSSL */
 }
 
 #else /* HAVE_CMOCKA */
