@@ -1,3 +1,6 @@
+5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
+			[GL #2487]
+
 5583.	[func]		Changes to DoH configuration syntax:
 			- When "http" is specified in "listen-on" or
 			  "listen-on-v6" statements, "tls" must also now
