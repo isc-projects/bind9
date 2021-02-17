@@ -4314,5 +4314,56 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+# Check that the validating resolver will fallback to insecure if the answer
+# contains NSEC3 records with high iteration count.
+echo_i "checking fallback to insecure when NSEC3 iterations is too high (nxdomain) ($n)"
+ret=0
+dig_with_opts @10.53.0.2 does-not-exist.too-many-iterations > dig.out.ns2.test$n || ret=1
+dig_with_opts @10.53.0.4 does-not-exist.too-many-iterations > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 6" dig.out.ns4.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking fallback to insecure when NSEC3 iterations is too high (nodata) ($n)"
+ret=0
+dig_with_opts @10.53.0.2 a.too-many-iterations txt > dig.out.ns2.test$n || ret=1
+dig_with_opts @10.53.0.4 a.too-many-iterations txt > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 4" dig.out.ns4.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking fallback to insecure when NSEC3 iterations is too high (wildcard) ($n)"
+ret=0
+dig_with_opts @10.53.0.2 wild.a.too-many-iterations > dig.out.ns2.test$n || ret=1
+dig_with_opts @10.53.0.4 wild.a.too-many-iterations > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+grep 'wild\.a\.too-many-iterations\..*A.10\.0\.0\.3' dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 2, AUTHORITY: 4" dig.out.ns4.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking fallback to insecure when NSEC3 iterations is too high (wildcard nodata) ($n)"
+ret=0
+dig_with_opts @10.53.0.2 type100 wild.a.too-many-iterations > dig.out.ns2.test$n || ret=1
+dig_with_opts @10.53.0.4 type100 wild.a.too-many-iterations > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 8" dig.out.ns4.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
