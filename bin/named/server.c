@@ -8995,10 +8995,9 @@ load_configuration(const char *filename, named_server_t *server,
 			(void)cfg_map_get(options, "listen-on", &clistenon);
 		}
 		if (clistenon != NULL) {
-			/* check return code? */
-			(void)listenlist_fromconfig(
+			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET, &listenon);
+				named_g_mctx, AF_INET, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
@@ -9023,10 +9022,9 @@ load_configuration(const char *filename, named_server_t *server,
 			(void)cfg_map_get(options, "listen-on-v6", &clistenon);
 		}
 		if (clistenon != NULL) {
-			/* check return code? */
-			(void)listenlist_fromconfig(
+			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET6, &listenon);
+				named_g_mctx, AF_INET6, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
@@ -11061,28 +11059,40 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
 		     ns_listenelt_t **target) {
 	isc_result_t result;
+	const cfg_obj_t *ltup = NULL;
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
 	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
 	const cfg_obj_t *http_server = NULL;
 	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL;
-	bool do_tls = false, http = false;
+	bool do_tls = false, no_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	/* XXXWPK TODO be more verbose on failures. */
-	tlsobj = cfg_tuple_get(listener, "tls");
+	ltup = cfg_tuple_get(listener, "tuple");
+	RUNTIME_CHECK(ltup != NULL);
+
+	tlsobj = cfg_tuple_get(ltup, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
 		const char *tlsname = cfg_obj_asstring(tlsobj);
 
-		if (strcmp(tlsname, "ephemeral") != 0) {
+		if (strcasecmp(tlsname, "none") == 0) {
+			no_tls = true;
+		} else if (strcasecmp(tlsname, "ephemeral") == 0) {
+			do_tls = true;
+		} else {
 			const cfg_obj_t *keyobj = NULL, *certobj = NULL;
 			const cfg_obj_t *tlsmap = NULL;
 
+			do_tls = true;
+
 			tlsmap = find_maplist(config, "tls", tlsname);
 			if (tlsmap == NULL) {
+				cfg_obj_log(tlsobj, named_g_lctx, ISC_LOG_ERROR,
+					    "tls '%s' is not defined",
+					    cfg_obj_asstring(tlsobj));
 				return (ISC_R_FAILURE);
 			}
 
@@ -11092,16 +11102,19 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			CHECK(cfg_map_get(tlsmap, "cert-file", &certobj));
 			cert = cfg_obj_asstring(certobj);
 		}
-
-		do_tls = true;
 	}
 
-	httpobj = cfg_tuple_get(listener, "http");
+	httpobj = cfg_tuple_get(ltup, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
 		const char *httpname = cfg_obj_asstring(httpobj);
 
+		if (!do_tls && !no_tls) {
+			return (ISC_R_FAILURE);
+		}
+
 		http_server = find_maplist(config, "http", httpname);
-		if (http_server == NULL) {
+		if (http_server == NULL && strcasecmp(httpname, "default") != 0)
+		{
 			cfg_obj_log(httpobj, named_g_lctx, ISC_LOG_ERROR,
 				    "http '%s' is not defined",
 				    cfg_obj_asstring(httpobj));
@@ -11111,7 +11124,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		http = true;
 	}
 
-	portobj = cfg_tuple_get(listener, "port");
+	portobj = cfg_tuple_get(ltup, "port");
 	if (!cfg_obj_isuint32(portobj)) {
 		if (http && do_tls) {
 			if (named_g_httpsport != 0) {
@@ -11156,30 +11169,22 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		}
 	} else {
 		if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
-			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
-				    "port value '%u' is out of range",
-
-				    cfg_obj_asuint32(portobj));
 			return (ISC_R_RANGE);
 		}
 		port = (in_port_t)cfg_obj_asuint32(portobj);
 	}
 
-	dscpobj = cfg_tuple_get(listener, "dscp");
+	dscpobj = cfg_tuple_get(ltup, "dscp");
 	if (!cfg_obj_isuint32(dscpobj)) {
 		dscp = named_g_dscp;
 	} else {
 		if (cfg_obj_asuint32(dscpobj) > 63) {
-			cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
-				    "dscp value '%u' is out of range",
-				    cfg_obj_asuint32(dscpobj));
 			return (ISC_R_RANGE);
 		}
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
 	if (http) {
-		INSIST(http_server != NULL);
 		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
 				     &delt));
 	} else {
@@ -11209,7 +11214,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	char **endpoints = NULL;
 	const cfg_obj_t *eplist = NULL;
 	const cfg_listelt_t *elt = NULL;
-	size_t len, i = 0;
+	size_t len = 1, i = 0;
 
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE((key == NULL) == (cert == NULL));
@@ -11218,15 +11223,26 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 		port = tls ? named_g_httpsport : named_g_httpport;
 	}
 
-	CHECK(cfg_map_get(http, "endpoints", &eplist));
-	len = cfg_list_length(eplist, false);
+	/*
+	 * If "default" was used, we set up the default endpoint
+	 * of "/dns-query".
+	 */
+	if (http != NULL) {
+		CHECK(cfg_map_get(http, "endpoints", &eplist));
+		len = cfg_list_length(eplist, false);
+	}
+
 	endpoints = isc_mem_allocate(mctx, sizeof(endpoints[0]) * len);
 
-	for (elt = cfg_list_first(eplist); elt != NULL;
-	     elt = cfg_list_next(elt)) {
-		const cfg_obj_t *ep = cfg_listelt_value(elt);
-		const char *path = cfg_obj_asstring(ep);
-		endpoints[i++] = isc_mem_strdup(mctx, path);
+	if (http != NULL) {
+		for (elt = cfg_list_first(eplist); elt != NULL;
+		     elt = cfg_list_next(elt)) {
+			const cfg_obj_t *ep = cfg_listelt_value(elt);
+			const char *path = cfg_obj_asstring(ep);
+			endpoints[i++] = isc_mem_strdup(mctx, path);
+		}
+	} else {
+		endpoints[i++] = isc_mem_strdup(mctx, "/dns-query");
 	}
 
 	INSIST(i == len);
