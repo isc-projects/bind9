@@ -1,3 +1,8 @@
+	--- 9.11.28 released ---
+
+5562.	[security]	Fix off-by-one bug in ISC SPNEGO implementation.
+			(CVE-2020-8625) [GL #2354]
+
 	--- 9.11.27 released ---
 
 5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
