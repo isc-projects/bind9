@@ -115,3 +115,8 @@ Bug Fixes
   predecessor keys. BIND 9 now implements a recursive successor relation, as
   described in the paper "Flexible and Robust Key Rollover" (Equation (2)).
   [GL #2375]
+
+- If an outgoing packet would exceed max-udp-size, it would be dropped instead
+  of sending a proper response back.  Rollback setting the IP_DONTFRAG on the
+  UDP sockets that we enabled during the DNS Flag Day 2020 to fix this issue.
+  [GL #2487]

@@ -1,3 +1,6 @@
+5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
+			[GL #2487]
+
 5582.	[bug]		BIND 9 failed to build when static OpenSSL libraries
 			were used and the *.pc files for libssl and/or libcrypto
 			were unavailable. This has been fixed by ensuring the
