@@ -92,7 +92,7 @@ if [ "${srcdir}" != "${builddir}" ]; then
         cp -a "${srcdir}/common" "${builddir}"
     fi
     # Some tests require additional files to work for out-of-tree test runs.
-    for file in ckdnsrps.sh digcomp.pl ditch.pl packet.pl start.pl stop.pl; do
+    for file in ckdnsrps.sh digcomp.pl ditch.pl packet.pl start.pl stop.pl testcrypto.sh; do
         if [ ! -r "${file}" ]; then
             cp -a "${srcdir}/${file}" "${builddir}"
         fi
@@ -294,10 +294,10 @@ fi
 
 print_outstanding_files() {
     if test -d ${srcdir}/../../../.git; then
-        git status -su --ignored "${systest}" 2>/dev/null | \
-        sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+        git status -su --ignored "${systest}/" 2>/dev/null | \
+        sed -n -e 's|^?? \(.*\)|I:'${systest}':file \1 not removed|p' \
+            -e 's|^!! \(.*/named.run\)$|I:'${systest}':file \1 not removed|p' \
+            -e 's|^!! \(.*/named.memstats\)$|I:'${systest}':file \1 not removed|p'
     fi
 }
 
