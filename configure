@@ -21931,6 +21931,10 @@ esac
 
 
 
+
+$as_echo "#define SKIPPED_TEST_EXIT_CODE 0" >>confdefs.h
+
+
 #
 # Check for kyua execution engine if CMocka was requested
 # and bail out if execution engine was not found

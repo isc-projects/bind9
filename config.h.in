@@ -546,6 +546,9 @@
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
 
+/* Exit code for skipped tests */
+#undef SKIPPED_TEST_EXIT_CODE
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

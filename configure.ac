@@ -2234,6 +2234,8 @@ AS_CASE([$with_cmocka],
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
 
+AC_DEFINE([SKIPPED_TEST_EXIT_CODE], [0], [Exit code for skipped tests])
+
 #
 # Check for kyua execution engine if CMocka was requested
 # and bail out if execution engine was not found

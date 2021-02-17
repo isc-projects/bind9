@@ -8,6 +8,11 @@
 			were added to the configuration followed by a
 			reconfiguration of named. [GL #2041]
 
+5580.	[test]		The system test framework no longer differentiates
+			between SKIPPED and UNTESTED system test results. Any
+			system test which is not run is now marked as SKIPPED.
+			[GL !4517]
+
 5579.	[func]		When serve-stale is enabled and stale data is available,
 			named now returns stale answers upon encountering any
 			unexpected error in the query resolution process.
