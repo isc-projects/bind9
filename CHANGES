@@ -1,3 +1,6 @@
+5586.	[bug]		An invalid direction field in a LOC record resulted in
+			an INSIST failure. [GL #2499]
+
 5585.	[func]		Implementations of memory contexts and memory pools were
 			refactored to reduce lock contention for shared memory
 			contexts by replacing mutexes with atomic operations.
