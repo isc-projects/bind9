@@ -781,7 +781,7 @@ LIBDEF_F(su2str)
 /**
  * default path to dnsrpzd
  */
-const char *librpz_dnsrpzd_path;
+LIBDEF(const char *, librpz_dnsrpzd_path)
 
 #undef LIBDEF
 
