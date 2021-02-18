@@ -362,16 +362,20 @@ isc_md_get_block_size
 isc_md_type_get_size
 isc_md_type_get_block_size
 isc_md
+isc__mem_checkdestroyed
+isc__mem_initialize
+isc__mem_shutdown
 isc_mem_attach
 isc_mem_checkdestroyed
 isc_mem_create
 isc_mem_destroy
 isc_mem_detach
 isc_mem_getname
-isc_mem_gettag
 isc_mem_inuse
 isc_mem_isovermem
+isc_mem_malloced
 isc_mem_maxinuse
+isc_mem_maxmalloced
 isc_mem_references
 @IF NOTYET
 isc_mem_renderjson
@@ -706,8 +710,8 @@ isc_timermgr_create
 isc_timermgr_createinctx
 isc_timermgr_destroy
 isc_timermgr_poke
-isc_tls_initialize
-isc_tls_destroy
+isc__tls_initialize
+isc__tls_shutdown
 isc_tlsctx_createclient
 isc_tlsctx_createserver
 isc_tlsctx_free

@@ -236,7 +236,7 @@ sub construct_ns_command {
 			$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
 		}
 
-		$command .= "$NAMED -m none -M external ";
+		$command .= "$NAMED -m none ";
 	} else {
 		if ($taskset) {
 			$command = "taskset $taskset $NAMED ";

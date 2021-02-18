@@ -1,3 +1,11 @@
+5585.	[func]		Implementations of memory contexts and memory pools were
+			refactored to reduce lock contention for shared memory
+			contexts by replacing mutexes with atomic operations.
+			The internal memory allocator was simplified so that it
+			is only a thin wrapper around the system allocator.
+			Since this change makes the "-M external" named option
+			redundant, the latter was removed. [GL #2433]
+
 5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
 			[GL #2487]
 

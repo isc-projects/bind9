@@ -896,7 +896,7 @@ unit:gcc:focal:amd64:
 gcc:asan:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *base_image
@@ -923,7 +923,7 @@ unit:gcc:asan:
 clang:asan:
   variables:
     CC: ${CLANG}
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *base_image
@@ -954,7 +954,7 @@ gcc:tsan:
   <<: *build_job
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
 
@@ -981,7 +981,7 @@ clang:tsan:
   <<: *build_job
   variables:
     CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
 
@@ -1008,7 +1008,7 @@ unit:clang:tsan:
 gcc:mutexatomics:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-mutex-atomics"
   <<: *base_image
   <<: *build_job

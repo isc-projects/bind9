@@ -19,6 +19,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
+#include <isc/hp.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/socket.h>
@@ -84,6 +85,8 @@ create_managers(unsigned int workers) {
 	if (p != NULL) {
 		workers = atoi(p);
 	}
+
+	isc_hp_init(ISC_MAX(ISC_MIN(workers, 256), 128));
 
 	netmgr = isc_nm_start(test_mctx, workers);
 	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));

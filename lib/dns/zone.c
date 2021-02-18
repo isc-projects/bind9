@@ -18358,7 +18358,7 @@ mctxinit(void **target, void *arg) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "zonemgr-pool", NULL);
+	isc_mem_setname(mctx, "zonemgr-pool");
 
 	*target = mctx;
 	return (ISC_R_SUCCESS);

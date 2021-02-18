@@ -440,8 +440,7 @@ static struct flag_def {
 			{ "size", ISC_MEM_DEBUGSIZE, false },
 			{ "mctx", ISC_MEM_DEBUGCTX, false },
 			{ NULL, 0, false } },
-  mem_context_flags[] = { { "external", ISC_MEMFLAG_INTERNAL, true },
-			  { "fill", ISC_MEMFLAG_FILL, false },
+  mem_context_flags[] = { { "fill", ISC_MEMFLAG_FILL, false },
 			  { "nofill", ISC_MEMFLAG_FILL, true },
 			  { NULL, 0, false } };
 
@@ -1525,15 +1524,6 @@ main(int argc, char *argv[]) {
 	pk11_result_register();
 #endif /* if USE_PKCS11 */
 
-#if !ISC_MEM_DEFAULTFILL
-	/*
-	 * Update the default flags to remove ISC_MEMFLAG_FILL
-	 * before we parse the command line. If disabled here,
-	 * it can be turned back on with -M fill.
-	 */
-	isc_mem_defaultflags &= ~ISC_MEMFLAG_FILL;
-#endif /* if !ISC_MEM_DEFAULTFILL */
-
 	parse_command_line(argc, argv);
 
 #ifdef ENABLE_AFL
@@ -1564,7 +1554,7 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_mem_create(&named_g_mctx);
-	isc_mem_setname(named_g_mctx, "main", NULL);
+	isc_mem_setname(named_g_mctx, "main");
 
 	setup();
 

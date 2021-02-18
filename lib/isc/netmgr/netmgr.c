@@ -216,8 +216,6 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	isc__nm_winsock_initialize();
 #endif /* WIN32 */
 
-	isc_tls_initialize();
-
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (isc_nm_t){ .nworkers = workers };
 
@@ -373,8 +371,6 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
-
-	isc_tls_destroy();
 
 #ifdef WIN32
 	isc__nm_winsock_destroy();

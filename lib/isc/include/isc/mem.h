@@ -33,32 +33,8 @@ typedef void (*isc_mem_water_t)(void *, int);
  * allocation and freeing by file and line number.
  */
 #ifndef ISC_MEM_TRACKLINES
-#define ISC_MEM_TRACKLINES 1
+#define ISC_MEM_TRACKLINES 0
 #endif /* ifndef ISC_MEM_TRACKLINES */
-
-/*%
- * Define ISC_MEM_CHECKOVERRUN=1 to turn on checks for using memory outside
- * the requested space.  This will increase the size of each allocation.
- *
- * If we are performing a Coverity static analysis then ISC_MEM_CHECKOVERRUN
- * can hide bugs that would otherwise discovered so force to zero.
- */
-#ifdef __COVERITY__
-#undef ISC_MEM_CHECKOVERRUN
-#define ISC_MEM_CHECKOVERRUN 0
-#endif /* ifdef __COVERITY__ */
-#ifndef ISC_MEM_CHECKOVERRUN
-#define ISC_MEM_CHECKOVERRUN 1
-#endif /* ifndef ISC_MEM_CHECKOVERRUN */
-
-/*%
- * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
- * name so that the leaking pool can be more readily identified in
- * case of a memory leak.
- */
-#ifndef ISC_MEMPOOL_NAMES
-#define ISC_MEMPOOL_NAMES 1
-#endif /* ifndef ISC_MEMPOOL_NAMES */
 
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
@@ -106,31 +82,22 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #define _ISC_MEM_FLARG
 #endif /* if ISC_MEM_TRACKLINES */
 
-/*!
- * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
- * implementation in preference to the system one.  The internal malloc()
- * is very space-efficient, and quite fast on uniprocessor systems.  It
- * performs poorly on multiprocessor machines.
- * JT: we can overcome the performance issue on multiprocessor machines
- * by carefully separating memory contexts.
- */
-
-#ifndef ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEM_USE_INTERNAL_MALLOC 1
-#endif /* ifndef ISC_MEM_USE_INTERNAL_MALLOC */
-
 /*
  * Flags for isc_mem_create() calls.
  */
-#define ISC_MEMFLAG_RESERVED 0x00000001 /* reserved, obsoleted, don't use */
-#define ISC_MEMFLAG_INTERNAL 0x00000002 /* use internal malloc */
+#define ISC_MEMFLAG_RESERVED1 0x00000001 /* reserved, obsoleted, don't use */
+#define ISC_MEMFLAG_RESERVED2 0x00000002 /* reserved, obsoleted, don't use */
 #define ISC_MEMFLAG_FILL \
 	0x00000004 /* fill with pattern after alloc and frees */
 
-#if !ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEMFLAG_DEFAULT 0
+/*%
+ * Define ISC_MEM_DEFAULTFILL=1 to turn filling the memory with pattern
+ * after alloc and free.
+ */
+#if ISC_MEM_DEFAULTFILL
+#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_FILL
 #else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
-#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_INTERNAL | ISC_MEMFLAG_FILL
+#define ISC_MEMFLAG_DEFAULT 0
 #endif /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*%
@@ -161,52 +128,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  * isc_mem_detach(&mctx);
  * \endcode
  */
-
-/*% memory and memory pool methods */
-typedef struct isc_memmethods {
-	void *(*memget)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
-	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
-				size_t size _ISC_MEM_FLARG);
-	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void *(*memreallocate)(isc_mem_t *mctx, void *ptr,
-			       size_t size _ISC_MEM_FLARG);
-	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
-	char *(*memstrndup)(isc_mem_t *mctx, const char *s,
-			    size_t size _ISC_MEM_FLARG);
-	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
-} isc_memmethods_t;
-
-/*%
- * This structure is actually just the common prefix of a memory context
- * implementation's version of an isc_mem_t.
- * \brief
- * Direct use of this structure by clients is forbidden.  mctx implementations
- * may change the structure.  'magic' must be ISCAPI_MCTX_MAGIC for any of the
- * isc_mem_ routines to work.  mctx implementations must maintain all mctx
- * invariants.
- */
-struct isc_mem {
-	unsigned int	  impmagic;
-	unsigned int	  magic;
-	isc_memmethods_t *methods;
-};
-
-#define ISCAPI_MCTX_MAGIC    ISC_MAGIC('A', 'm', 'c', 'x')
-#define ISCAPI_MCTX_VALID(m) ((m) != NULL && (m)->magic == ISCAPI_MCTX_MAGIC)
-
-/*%
- * This is the common prefix of a memory pool context.  The same note as
- * that for the mem structure applies.
- */
-struct isc_mempool {
-	unsigned int impmagic;
-	unsigned int magic;
-};
-
-#define ISCAPI_MPOOL_MAGIC ISC_MAGIC('A', 'm', 'p', 'l')
-#define ISCAPI_MPOOL_VALID(mp) \
-	((mp) != NULL && (mp)->magic == ISCAPI_MPOOL_MAGIC)
 
 /*%
  * These functions are actually implemented in isc__mem_<function>
@@ -324,6 +245,19 @@ isc_mem_total(isc_mem_t *mctx);
  * not yet used.
  */
 
+size_t
+isc_mem_malloced(isc_mem_t *ctx);
+/*%<
+ * Get an estimate of the amount of memory allocated in 'mctx', in bytes.
+ */
+
+size_t
+isc_mem_maxmalloced(isc_mem_t *ctx);
+/*%<
+ * Get an estimate of the largest amount of memory that has been
+ * allocated in 'mctx' at any time.
+ */
+
 bool
 isc_mem_isovermem(isc_mem_t *mctx);
 /*%<
@@ -339,13 +273,13 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  * Set high and low water marks for this memory context.
  *
  * When the memory usage of 'mctx' exceeds 'hiwater',
- * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs to
- * call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the state
- * change.  'water' may be called multiple times.
+ * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs
+ *to call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the
+ *state change.  'water' may be called multiple times.
  *
- * When the usage drops below 'lowater', 'water' will again be called, this
- * time with #ISC_MEM_LOWATER.  'water' need to calls isc_mem_waterack() with
- * #ISC_MEM_LOWATER to acknowledge the change.
+ * When the usage drops below 'lowater', 'water' will again be called,
+ *this time with #ISC_MEM_LOWATER.  'water' need to calls
+ *isc_mem_waterack() with #ISC_MEM_LOWATER to acknowledge the change.
  *
  *	static void
  *	water(void *arg, int mark) {
@@ -390,15 +324,13 @@ isc_mem_references(isc_mem_t *ctx);
  */
 
 void
-isc_mem_setname(isc_mem_t *ctx, const char *name, void *tag);
+isc_mem_setname(isc_mem_t *ctx, const char *name);
 /*%<
  * Name 'ctx'.
  *
  * Notes:
  *
  *\li	Only the first 15 characters of 'name' will be copied.
- *
- *\li	'tag' is for debugging purposes only.
  *
  * Requires:
  *
@@ -417,21 +349,6 @@ isc_mem_getname(isc_mem_t *ctx);
  *\li	A non-NULL pointer to a null-terminated string.
  * 	If the ctx has not been named, the string is
  * 	empty.
- */
-
-void *
-isc_mem_gettag(isc_mem_t *ctx);
-/*%<
- * Get the tag value for  'task', as previously set using isc_mem_setname().
- *
- * Requires:
- *\li	'ctx' is a valid ctx.
- *
- * Notes:
- *\li	This function is for debugging purposes only.
- *
- * Requires:
- *\li	'ctx' is a valid task.
  */
 
 #ifdef HAVE_LIBXML2
@@ -487,7 +404,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp);
 void
 isc_mempool_setname(isc_mempool_t *mpctx, const char *name);
 /*%<
- * Associate a name with a memory pool.  At most 15 characters may be used.
+ * Associate a name with a memory pool.  At most 15 characters may be
+ *used.
  *
  * Requires:
  *\li	mpctx is a valid pool.
@@ -499,15 +417,15 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
 /*%<
  * Associate a lock with this memory pool.
  *
- * This lock is used when getting or putting items using this memory pool,
- * and it is also used to set or get internal state via the isc_mempool_get*()
- * and isc_mempool_set*() set of functions.
+ * This lock is used when getting or putting items using this memory
+ *pool, and it is also used to set or get internal state via the
+ *isc_mempool_get*() and isc_mempool_set*() set of functions.
  *
- * Multiple pools can each share a single lock.  For instance, if "manager"
- * type object contained pools for various sizes of events, and each of
- * these pools used a common lock.  Note that this lock must NEVER be used
- * by other than mempool routines once it is given to a pool, since that can
- * easily cause double locking.
+ * Multiple pools can each share a single lock.  For instance, if
+ *"manager" type object contained pools for various sizes of events, and
+ *each of these pools used a common lock.  Note that this lock must
+ *NEVER be used by other than mempool routines once it is given to a
+ *pool, since that can easily cause double locking.
  *
  * Requires:
  *
@@ -517,19 +435,19 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
  *
  *\li	No previous lock is assigned to this pool.
  *
- *\li	The lock is initialized before calling this function via the normal
- *	means of doing that.
+ *\li	The lock is initialized before calling this function via the
+ *normal means of doing that.
  */
 
 /*
  * The following functions get/set various parameters.  Note that due to
- * the unlocked nature of pools these are potentially random values unless
- * the imposed externally provided locking protocols are followed.
+ * the unlocked nature of pools these are potentially random values
+ *unless the imposed externally provided locking protocols are followed.
  *
- * Also note that the quota limits will not always take immediate effect.
- * For instance, setting "maxalloc" to a number smaller than the currently
- * allocated count is permitted.  New allocations will be refused until
- * the count drops below this threshold.
+ * Also note that the quota limits will not always take immediate
+ *effect. For instance, setting "maxalloc" to a number smaller than the
+ *currently allocated count is permitted.  New allocations will be
+ *refused until the count drops below this threshold.
  *
  * All functions require (in addition to other requirements):
  *	mpctx is a valid memory pool
@@ -577,8 +495,8 @@ isc_mempool_getallocated(isc_mempool_t *mpctx);
 unsigned int
 isc_mempool_getfillcount(isc_mempool_t *mpctx);
 /*%<
- * Returns the number of items allocated as a block from the parent memory
- * context when the free list is empty.
+ * Returns the number of items allocated as a block from the parent
+ * memory context when the free list is empty.
  */
 
 void
