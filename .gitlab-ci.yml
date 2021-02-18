@@ -327,7 +327,7 @@ stages:
        --force \
        --results-file "$KYUA_RESULT" \
        --results-filter "" \
-       --output kyua_html
+       --output kyua_html > /dev/null
 
 .windows_system_test: &windows_system_test_job
   stage: system
