@@ -5952,13 +5952,13 @@ query_lookup_staleonly(ns_client_t *client) {
 
 	qctx_init(client, NULL, client->query.qtype, &qctx);
 	dns_db_attach(client->view->cachedb, &qctx.db);
+	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 	client->query.dboptions |= DNS_DBFIND_STALEONLY;
 	(void)query_lookup(&qctx);
 	if (qctx.node != NULL) {
 		dns_db_detachnode(qctx.db, &qctx.node);
 	}
 	qctx_freedata(&qctx);
-	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
 	qctx_destroy(&qctx);
 }
 
