@@ -16,6 +16,7 @@ rm -f ns5/*.jnl ns5/*.db
 rm -f */named.memstats
 rm -f */named.conf
 rm -f */named.run
+rm -f */named.run.prev
 rm -f */ans.run
 rm -f dig.out.test* dig.out1.test* dig.out2.test* dig.out3.test*
 rm -f ns3/large.db
