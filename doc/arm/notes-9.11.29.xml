@@ -65,7 +65,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          An invalid direction field (not one of 'N'/'S' or 'E'/'W')
+          in a LOC record triggered an INSIST failure. [GL #2499]
         </para>
       </listitem>
     </itemizedlist>
