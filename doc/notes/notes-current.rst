@@ -59,3 +59,8 @@ Bug Fixes
 
 - An invalid direction field (not one of 'N'/'S' or 'E'/'W') in a LOC record
   triggered an INSIST failure. [GL #2499]
+
+- Previously, a BIND server could experience an unexpected server termination
+  (crash) if the return of stale cached answers was enabled and
+  ``stale-answer-client-timeout`` was applied to a client query in process.
+  This has been fixed. [GL #2503]

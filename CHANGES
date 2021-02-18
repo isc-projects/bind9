@@ -1,3 +1,7 @@
+5591.	[bug]		Fix a crash happening when "stale-answer-client-timeout"
+			is triggered and there is no (stale) data for it in the
+			cache. [GL #2503]
+
 5590.	[bug]		Process NSEC3PARAM queue when loading a dynamic zone.
 			This will immediately create NSEC3 records for zones
 			that use "dnssec-policy" and "nsec3param". [GL #2498]
