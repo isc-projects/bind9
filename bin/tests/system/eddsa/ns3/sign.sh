@@ -9,9 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-set -e
-
-. ../../conf.sh
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
 zone=example.com.
 infile=example.com.db.in
