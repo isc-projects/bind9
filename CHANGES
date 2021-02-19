@@ -1,3 +1,7 @@
+5587.	[bug]		A standalone libtool script no longer needs to be
+			present in PATH in order to build BIND 9 from a source
+			tarball prepared using "make dist". [GL #2504]
+
 5586.	[bug]		An invalid direction field in a LOC record resulted in
 			an INSIST failure. [GL #2499]
 
