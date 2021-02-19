@@ -29,7 +29,7 @@ named-journalprint - print zone journal in human-readable form
 Synopsis
 ~~~~~~~~
 
-:program:`named-journalprint` {journal}
+:program:`named-journalprint` [**-x**] {journal}
 
 Description
 ~~~~~~~~~~~
@@ -49,6 +49,9 @@ file.
 into a human-readable text format. Each line begins with ``add`` or ``del``,
 to indicate whether the record was added or deleted, and continues with
 the resource record in master-file format.
+
+The ``-x`` option causes additional information about the transaction
+header to be printed before each group of changes.
 
 See Also
 ~~~~~~~~

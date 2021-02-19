@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 
+#include <isc/commandline.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -22,6 +23,14 @@
 #include <dns/log.h>
 #include <dns/result.h>
 #include <dns/types.h>
+
+const char *progname = NULL;
+
+static void
+usage(void) {
+	fprintf(stderr, "Usage: %s [-x] journal\n", progname);
+	exit(1);
+}
 
 /*
  * Setup logging to use stderr.
@@ -57,18 +66,32 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_log_t *lctx = NULL;
+	uint32_t flags = 0U;
+	char ch;
 
-	if (argc != 2) {
-		printf("usage: %s journal\n", argv[0]);
-		return (1);
+	progname = argv[0];
+	while ((ch = isc_commandline_parse(argc, argv, "x")) != -1) {
+		switch (ch) {
+		case 'x':
+			flags |= DNS_JOURNAL_PRINTXHDR;
+			break;
+		default:
+			usage();
+		}
 	}
 
-	file = argv[1];
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+
+	if (argc != 1) {
+		usage();
+	}
+	file = argv[0];
 
 	isc_mem_create(&mctx);
 	RUNTIME_CHECK(setup_logging(mctx, stderr, &lctx) == ISC_R_SUCCESS);
 
-	result = dns_journal_print(mctx, file, stdout);
+	result = dns_journal_print(mctx, flags, file, stdout);
 	if (result == DNS_R_NOJOURNAL) {
 		fprintf(stderr, "%s\n", dns_result_totext(result));
 	}

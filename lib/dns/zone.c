@@ -503,7 +503,10 @@ typedef enum {
 	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 0x80000000U, /*%< need to send out
 						      * notify due to the zone
 						      * just being loaded for
-						      * the first time.  */
+						      * the first time. */
+	DNS_ZONEFLG_FIXJOURNAL = 0x100000000U,	     /*%< journal file had
+						      * recoverable error,
+						      * needs rewriting */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;
 
@@ -890,6 +893,8 @@ static isc_result_t
 zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
 static void
 setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value);
+static void
+zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -4743,6 +4748,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	uint32_t serial, oldserial, refresh, retry, expire, minimum;
 	isc_time_t now;
 	bool needdump = false;
+	bool fixjournal = false;
 	bool hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	bool nomaster = false;
 	bool had_db = false;
@@ -4844,9 +4850,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 		result = dns_journal_rollforward(zone->mctx, db, options,
 						 zone->journal);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
-		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
-		    result != ISC_R_RANGE)
+		if (result != ISC_R_SUCCESS && result != DNS_R_RECOVERABLE &&
+		    result != ISC_R_NOTFOUND && result != DNS_R_UPTODATE &&
+		    result != DNS_R_NOJOURNAL && result != ISC_R_RANGE)
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 				      ISC_LOG_ERROR,
@@ -4867,6 +4873,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			      dns_result_totext(result));
 		if (result == ISC_R_SUCCESS) {
 			needdump = true;
+		} else if (result == DNS_R_RECOVERABLE) {
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
+				      "retried using old journal format");
+			needdump = true;
+			fixjournal = true;
 		}
 	}
 
@@ -5192,7 +5204,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_key) {
 			zone_needdump(zone, 30);
 		} else {
-			zone_needdump(zone, DNS_DUMP_DELAY);
+			if (fixjournal) {
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
+				zone_journal_compact(zone, zone->db, 0);
+				zone_needdump(zone, 0);
+			} else {
+				zone_needdump(zone, DNS_DUMP_DELAY);
+			}
 		}
 	}
 
@@ -11435,6 +11453,7 @@ zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial) {
 	int32_t journalsize;
 	dns_dbversion_t *ver = NULL;
 	uint64_t dbsize;
+	uint32_t options = 0;
 
 	INSIST(LOCKED_ZONE(zone));
 	if (inline_raw(zone)) {
@@ -11456,9 +11475,16 @@ zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial) {
 			journalsize = (int32_t)dbsize * 2;
 		}
 	}
-	zone_debuglog(zone, "zone_journal_compact", 1, "target journal size %d",
-		      journalsize);
-	result = dns_journal_compact(zone->mctx, zone->journal, serial,
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIXJOURNAL)) {
+		options |= DNS_JOURNAL_COMPACTALL;
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
+		zone_debuglog(zone, "zone_journal_compact", 1,
+			      "repair full journal");
+	} else {
+		zone_debuglog(zone, "zone_journal_compact", 1,
+			      "target journal size %d", journalsize);
+	}
+	result = dns_journal_compact(zone->mctx, zone->journal, serial, options,
 				     journalsize);
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -11486,6 +11512,7 @@ dns_zone_flush(dns_zone_t *zone) {
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FLUSH);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
 	    zone->masterfile != NULL) {
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 		result = ISC_R_ALREADYRUNNING;
 		dumping = was_dumping(zone);
 	} else {
