@@ -242,7 +242,7 @@ loc_getcoordinate(isc_lex_t *lexer, unsigned long *dp, unsigned long *mp,
 	 * Direction.
 	 */
 	RETERR(get_direction(lexer, &token, directions, &direction));
-	if (direction == -1) {
+	if (direction == 0) {
 		RETERR(DNS_R_SYNTAX);
 	}
 done:

@@ -1,3 +1,6 @@
+5586.	[bug]		An invalid direction field in a LOC record resulted in
+			an INSIST failure. [GL #2499]
+
 5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
 			[GL #2487]
 
