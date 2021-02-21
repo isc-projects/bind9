@@ -980,7 +980,8 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 		}
 		break;
 	case dns_dtmode_unix:
-		return (ISC_R_NOTIMPLEMENTED);
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
