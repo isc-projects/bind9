@@ -111,6 +111,7 @@ TESTS +=			\
 	inline			\
 	integrity		\
 	hooks			\
+	journal			\
 	keepalive		\
 	legacy			\
 	limits			\
