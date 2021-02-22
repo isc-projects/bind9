@@ -1412,7 +1412,6 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	qctx->client->sendcb = send_noop;
 
 	/* Load a zone.  it should have ns.foo/A */
-	qctx->client->view->checknames = true;
 	result = ns_test_serve_zone("foo", "testdata/query/foo.db",
 				    qctx->client->view);
 	INSIST(result == ISC_R_SUCCESS);
