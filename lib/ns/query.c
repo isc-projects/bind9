@@ -5972,6 +5972,15 @@ query_lookup(query_ctx_t *qctx) {
 				}
 			}
 		}
+	} else if (stale_only && result != ISC_R_SUCCESS) {
+		/*
+		 * This is a staleonly lookup and no stale answer was found
+		 * in cache. Treat as we don't have an answer and wait for
+		 * the resolver fetch to finish.
+		 */
+		if ((qctx->options & DNS_GETDB_STALEFIRST) == 0) {
+			return (result);
+		}
 	} else {
 		stale_only = false;
 	}
