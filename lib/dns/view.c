@@ -201,6 +201,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->transfer_format = dns_one_answer;
 	view->cacheacl = NULL;
 	view->cacheonacl = NULL;
+	view->checknames = false;
 	view->queryacl = NULL;
 	view->queryonacl = NULL;
 	view->recursionacl = NULL;
