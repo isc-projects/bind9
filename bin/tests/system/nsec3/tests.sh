@@ -175,8 +175,21 @@ echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
+# Zone: nsec3-dynamic.kasp.
+set_zone_policy "nsec3-dynamic.kasp" "nsec3"
+set_nsec3param "0" "5" "8"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+dnssec_verify
+
 # Zone: nsec3-change.kasp.
 set_zone_policy "nsec3-change.kasp" "nsec3"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+dnssec_verify
+
+# Zone: nsec3-dynamic-change.kasp.
+set_zone_policy "nsec3-dynamic-change.kasp" "nsec3"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
@@ -227,8 +240,21 @@ echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
+# Zone: nsec3-dyamic.kasp. (same)
+set_zone_policy "nsec3-dynamic.kasp" "nsec3"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+dnssec_verify
+
 # Zone: nsec3-change.kasp. (reconfigured)
 set_zone_policy "nsec3-change.kasp" "nsec3-other"
+set_nsec3param "1" "11" "0"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+dnssec_verify
+
+# Zone: nsec3-dynamic-change.kasp. (reconfigured)
+set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other"
 set_nsec3param "1" "11" "0"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
