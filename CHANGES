@@ -1,3 +1,7 @@
+5588.	[func]		Add "purge-keys" option to "dnssec-policy". This sets
+			the time how long key files should be retained after
+			they have become obsolete. [GL #2408]
+
 5587.	[bug]		A standalone libtool script no longer needs to be
 			present in PATH in order to build BIND 9 from a source
 			tarball prepared using "make dist". [GL #2504]

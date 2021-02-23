@@ -315,6 +315,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 						     DNS_KASP_PUBLISH_SAFETY));
 	dns_kasp_setretiresafety(kasp, get_duration(maps, "retire-safety",
 						    DNS_KASP_RETIRE_SAFETY));
+	dns_kasp_setpurgekeys(
+		kasp, get_duration(maps, "purge-keys", DNS_KASP_PURGE_KEYS));
 
 	(void)confget(maps, "keys", &keys);
 	if (keys != NULL) {
