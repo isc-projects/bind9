@@ -1,3 +1,9 @@
+5593.	[bug]		Journal files written by older versions of named
+			can now be read when loading zones so that journal
+			incompatibility will not cause problems on upgrade.
+			Outdated journals will be updated to the new format
+			after loading. [GL #2505]
+
 5592.	[bug]		Add globally available thread_id (isc_tid_v) that's
 			incremented for each new thread, but the old thread
 			ids are reused, so the maximum thread_id always
