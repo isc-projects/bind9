@@ -160,7 +160,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (result != ISC_R_SUCCESS && inst != NULL) {
+	if (result != ISC_R_SUCCESS) {
 		plugin_destroy((void **)&inst);
 	}
 
