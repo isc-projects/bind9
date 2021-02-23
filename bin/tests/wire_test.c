@@ -258,9 +258,7 @@ main(int argc, char *argv[]) {
 		process_message(input);
 	}
 
-	if (input != NULL) {
-		isc_buffer_free(&input);
-	}
+	isc_buffer_free(&input);
 
 	if (printmemstats) {
 		isc_mem_stats(mctx, stdout);
