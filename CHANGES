@@ -1,3 +1,5 @@
+5589.	[placeholder]
+
 5588.	[func]		Add "purge-keys" option to "dnssec-policy". This sets
 			the time how long key files should be retained after
 			they have become obsolete. [GL #2408]
