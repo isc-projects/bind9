@@ -31,6 +31,11 @@ New Features
   this case, ``named`` attempts to answer DNS requests with stale data,
   but does not start the ``stale-refresh-time`` window. [GL #2434]
 
+- A new option, ``purge-keys``, has been added to ``dnssec-policy``. It sets
+  the time how long key files should be retained after they have become
+  obsolete (due to a key rollover). Default is 90 days, and the feature can
+  be disabled by setting it to 0. [GL #2408]
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

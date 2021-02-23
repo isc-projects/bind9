@@ -4881,6 +4881,15 @@ The following options can be specified in a ``dnssec-policy`` statement:
     bits.  If it is omitted, as shown in the example for the second and
     third keys, an appropriate default size for the algorithm is used.
 
+  ``purge-keys``
+    This is the time after when DNSSEC keys that have been deleted from
+    the zone can be removed from disk. If a key still determined to have
+    presence (for example in some resolver cache), ``named`` will not
+    remove the key files.
+
+    The default is ``P90D`` (90 days). Set this option to ``0`` to never
+    purge deleted keys.
+
   ``publish-safety``
     This is a margin that is added to the pre-publication interval in
     rollover timing calculations, to give some extra time to cover
