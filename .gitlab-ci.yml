@@ -238,6 +238,18 @@ stages:
       grep "^#define HAVE_READLINE_READLINE" config.h; \
     fi
 
+# Move the out-of-tree workspace to CI project dir to save it for use in
+# dependent jobs.
+.save_out_of_tree_workspace: &save_out_of_tree_workspace
+  - test -n "${OUT_OF_TREE_WORKSPACE}" && mv "${OUT_OF_TREE_WORKSPACE}" "${CI_PROJECT_DIR}"
+
+# Move the artifacts from the out-of-tree build job to their original
+# location (the out-of-tree workspace) and then continue work in the
+# out-of-tree workspace.
+.retrieve_out_of_tree_workspace: &retrieve_out_of_tree_workspace
+  - test -n "${OUT_OF_TREE_WORKSPACE}" && mv "$(basename "${OUT_OF_TREE_WORKSPACE}")" "${OUT_OF_TREE_WORKSPACE}"
+  - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -253,7 +265,7 @@ stages:
     - if [[ "${CFLAGS}" == *"-fsanitize=address"* ]]; then ( ! grep -F AddressSanitizer config.log ); fi
     - if test -z "${OUT_OF_TREE_WORKSPACE}" && test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
   after_script:
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && mv "${OUT_OF_TREE_WORKSPACE}" "${CI_PROJECT_DIR}"
+    - *save_out_of_tree_workspace
   needs:
     - job: autoreconf
       artifacts: true
@@ -304,10 +316,7 @@ stages:
   stage: system
   before_script:
     - *setup_softhsm
-    # Move the artifacts from the out-of-tree build job to their original location (the out-of-tree workspace).
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && mv "$(basename "${OUT_OF_TREE_WORKSPACE}")" "${OUT_OF_TREE_WORKSPACE}"
-    # Continue work in the out-of-tree workspace.
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - *retrieve_out_of_tree_workspace
     - *setup_interfaces
   script:
     - cd bin/tests/system
@@ -317,7 +326,7 @@ stages:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - test -d bind-* && cd bind-*
     - cat bin/tests/system/test-suite.log
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && mv "${OUT_OF_TREE_WORKSPACE}" "${CI_PROJECT_DIR}"
+    - *save_out_of_tree_workspace
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -370,8 +379,11 @@ stages:
   before_script:
     - if [ -n "$TCP_CONNECTIONTIMEOUT" ]; then sudo sysctl 'net.inet.tcp.keepinittime=1'; fi
     - *setup_softhsm
+    - *retrieve_out_of_tree_workspace
   script:
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
+  after_script:
+    - *save_out_of_tree_workspace
 
 .unit_test: &unit_test_job
   <<: *unit_test_common
@@ -770,6 +782,19 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
+  only:
+    - schedules
+    - tags
+    - web
+
+unit:gcc:out-of-tree:
+  variables:
+    OUT_OF_TREE_WORKSPACE: /tmp/out_of_tree_workspace
+  needs:
+    - job: gcc:out-of-tree
+      artifacts: true
+  <<: *base_image
+  <<: *unit_test_job
   only:
     - schedules
     - tags
