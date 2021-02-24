@@ -3,7 +3,13 @@
 ret=0
 for spatch in cocci/*.spatch; do
     patch="$(dirname "$spatch")/$(basename "$spatch" .spatch).patch"
-    spatch --sp-file="$spatch" --use-gitgrep --dir . --very-quiet > "$patch";
+    : > "$patch"
+    echo "Applying semantic patch $spatch..."
+    spatch --jobs "${TEST_PARALLEL_JOBS:-1}" --sp-file "$spatch" --use-gitgrep --dir "." --very-quiet --include-headers "$@" >> "$patch" 2> cocci.stderr
+    cat cocci.stderr
+    if grep -q -e "parse error" cocci.stderr; then
+        ret=1
+    fi
     if [ "$(< "$patch" wc -l)" -gt "0" ]; then
 	cat "$patch"
 	ret=1
@@ -11,5 +17,7 @@ for spatch in cocci/*.spatch; do
 	rm "$patch"
     fi
 done
+
+rm -f cocci.stderr
 
 exit $ret
