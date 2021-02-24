@@ -11,6 +11,8 @@
 
 # shellcheck source=conf.sh
 . ../conf.sh
+# shellcheck source=kasp.sh
+. ../kasp.sh
 
 # Log errors and increment $ret.
 log_error() {
@@ -28,11 +30,6 @@ rndccmd() {
     "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
-# Set server key-directory ($1) and address ($2) for testing nsec3.
-set_server() {
-	DIR=$1
-	SERVER=$2
-}
 # Set zone name ($1) and policy ($2) for testing nsec3.
 set_zone_policy() {
 	ZONE=$1
@@ -76,18 +73,6 @@ wait_for_zone_is_signed() {
 		retry_quiet 10 _wait_for_nsec || log_error "wait for ${ZONE} to be signed failed"
 	fi
 
-	test "$ret" -eq 0 || echo_i "failed"
-	status=$((status+ret))
-}
-
-# Test: dnssec-verify zone $1.
-dnssec_verify()
-{
-	n=$((n+1))
-	echo_i "dnssec-verify zone ${ZONE} ($n)"
-	ret=0
-	dig_with_opts "$ZONE" "@${SERVER}" AXFR > dig.out.test$n.axfr || log_error "dig ${ZONE} AXFR failed"
-	$VERIFY -z -o "$ZONE" dig.out.test$n.axfr > /dev/null || log_error "dnssec verify zone $ZONE failed"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
