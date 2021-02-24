@@ -198,7 +198,7 @@ endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
 
 if HAVE_PYTHON
-TESTS += kasp tcp pipelined
+TESTS += kasp keymgr2kasp tcp pipelined
 
 if HAVE_PYMOD_DNS
 TESTS += qmin cookie timeouts
