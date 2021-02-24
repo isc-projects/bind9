@@ -30,10 +30,6 @@ __declspec(dllexport) BOOL WINAPI
 	 * LoadLibrary.
 	 */
 	case DLL_PROCESS_ATTACH:
-		/*
-		 * Disable DllMain() invocation on Thread creation/destruction
-		 */
-		DisableThreadLibraryCalls(hinstDLL);
 		isc__mem_initialize();
 		isc__tls_initialize();
 		break;
@@ -49,12 +45,6 @@ __declspec(dllexport) BOOL WINAPI
 
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
-		/*
-		 * Calling DllMain when attaching/detaching process has been
-		 * disabled.
-		 */
-		INSIST(0);
-		ISC_UNREACHABLE();
 		break;
 
 	default:
