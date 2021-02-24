@@ -4882,11 +4882,31 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	}
 
 	/*
+	 * Process any queued NSEC3PARAM change requests. Only for dynamic
+	 * zones, an inline-signing zone will perform this action when
+	 * receiving the secure db (receive_secure_db).
+	 */
+	is_dynamic = dns_zone_isdynamic(zone, true);
+	if (is_dynamic) {
+		isc_event_t *setnsec3param_event;
+		dns_zone_t *dummy;
+
+		while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
+			setnsec3param_event =
+				ISC_LIST_HEAD(zone->setnsec3param_queue);
+			ISC_LIST_UNLINK(zone->setnsec3param_queue,
+					setnsec3param_event, ev_link);
+			dummy = NULL;
+			zone_iattach(zone, &dummy);
+			isc_task_send(zone->task, &setnsec3param_event);
+		}
+	}
+
+	/*
 	 * Check to make sure the journal is up to date, and remove the
 	 * journal file if it isn't, as we wouldn't be able to apply
 	 * updates otherwise.
 	 */
-	is_dynamic = dns_zone_isdynamic(zone, true);
 	if (zone->journal != NULL && is_dynamic &&
 	    !DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS))
 	{
