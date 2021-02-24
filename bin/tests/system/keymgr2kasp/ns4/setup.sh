@@ -12,7 +12,7 @@
 # shellcheck source=conf.sh
 . ../../conf.sh
 
-echo_i "ns7/setup.sh"
+echo_i "ns4/setup.sh"
 
 private_type_record() {
 	_zone=$1
@@ -40,8 +40,8 @@ echo "$zone" >> zones
 # rollover for the ZSK (P3M), but not long enough to initiate a KSK rollover (P1Y).
 ksktimes="-P -186d -A -186d -P sync -186d"
 zsktimes="-P -186d -A -186d"
-KSK=$($KEYGEN -a $algo -L 21600 -b 2048 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $algo -L 21600 -b 1024        $zsktimes $zone 2> keygen.out.$zone.2)
+KSK=$($KEYGEN -a $algo -L 300 -b 2048 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $algo -L 300 -b 1024        $zsktimes $zone 2> keygen.out.$zone.2)
 
 echo_i "setting up zone $zone (external)"
 view="ext"

@@ -16,7 +16,7 @@ $TTL 300
 			3600    ; minimum (1 hour)
 			)
 
-			NS	ns7
-ns7			A	10.53.0.7
+			NS	ns4
+ns4			A	10.53.0.4
 
 view			TXT	"external"

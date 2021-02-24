@@ -91,6 +91,7 @@ ixfr \
 journal \
 kasp \
 keepalive \
+keymgr2kasp \
 legacy \
 limits \
 masterfile \
