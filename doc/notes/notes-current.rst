@@ -54,5 +54,8 @@ Bug Fixes
   UDP sockets that we enabled during the DNS Flag Day 2020 to fix this issue.
   [GL #2487]
 
+- NSEC3 records were not immediately created when signing a dynamic zone with
+  ``dnssec-policy`` and ``nsec3param``. This has been fixed [GL #2498].
+
 - An invalid direction field (not one of 'N'/'S' or 'E'/'W') in a LOC record
   triggered an INSIST failure. [GL #2499]
