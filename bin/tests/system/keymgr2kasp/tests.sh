@@ -77,19 +77,20 @@ rollover_predecessor_keytimes() {
 Lksk=0
 Lzsk=0
 
-#
-# Testing good migration.
-#
-set_zone "migrate.kasp"
-set_policy "none" "2" "7200"
-set_server "ns3" "10.53.0.3"
 
-init_migration_match() {
+#################################################
+# Test state before switching to dnssec-policy. #
+#################################################
+
+# Set expected key properties for migration tests.
+# $1 $2: Algorithm number and string.
+# $3 $4: KSK and ZSK size.
+init_migration_keys() {
 	key_clear        "KEY1"
 	key_set          "KEY1" "LEGACY" "yes"
 	set_keyrole      "KEY1" "ksk"
 	set_keylifetime  "KEY1" "0"
-	set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+	set_keyalgorithm "KEY1" "$1" "$2" "$3"
 	set_keysigning   "KEY1" "yes"
 	set_zonesigning  "KEY1" "no"
 
@@ -97,35 +98,47 @@ init_migration_match() {
 	key_set          "KEY2" "LEGACY" "yes"
 	set_keyrole      "KEY2" "zsk"
 	set_keylifetime  "KEY2" "5184000"
-	set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+	set_keyalgorithm "KEY2" "$1" "$2" "$4"
 	set_keysigning   "KEY2" "no"
 	set_zonesigning  "KEY2" "yes"
 
 	key_clear        "KEY3"
 	key_clear        "KEY4"
-
-	set_keystate "KEY1" "GOAL"         "omnipresent"
-	set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-	set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-	set_keystate "KEY1" "STATE_DS"     "rumoured"
-
-	set_keystate "KEY2" "GOAL"         "omnipresent"
-	set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
-	set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
 }
-init_migration_match
+
+# Set expected key states for migration tests.
+# $1: Goal
+# $2: States
+init_migration_states() {
+	set_keystate "KEY1" "GOAL"         "$1"
+	set_keystate "KEY1" "STATE_DNSKEY" "$2"
+	set_keystate "KEY1" "STATE_KRRSIG" "$2"
+	set_keystate "KEY1" "STATE_DS"     "$2"
+
+	set_keystate "KEY2" "GOAL"         "$1"
+	set_keystate "KEY2" "STATE_DNSKEY" "$2"
+	set_keystate "KEY2" "STATE_ZRRSIG" "$2"
+}
+
+#
+# Testing a good migration.
+#
+set_zone "migrate.kasp"
+set_policy "none" "2" "7200"
+set_server "ns3" "10.53.0.3"
+
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "rumoured"
 
 # Make sure the zone is signed with legacy keys.
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-
 # These keys are immediately published and activated.
 rollover_predecessor_keytimes 0
 check_keytimes
 check_apex
 check_subdomain
 dnssec_verify
-
 # Remember legacy key tags.
 _migrate_ksk=$(key_get KEY1 ID)
 _migrate_zsk=$(key_get KEY2 ID)
@@ -137,34 +150,8 @@ set_zone "migrate-nomatch-algnum.kasp"
 set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
-init_migration_nomatch_algnum() {
-	key_clear        "KEY1"
-	key_set          "KEY1" "LEGACY" "yes"
-	set_keyrole      "KEY1" "ksk"
-	set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
-	set_keysigning   "KEY1" "yes"
-	set_zonesigning  "KEY1" "no"
-
-	key_clear        "KEY2"
-	key_set          "KEY2" "LEGACY" "yes"
-	set_keyrole      "KEY2" "zsk"
-	set_keyalgorithm "KEY2" "5" "RSASHA1" "1024"
-	set_keysigning   "KEY2" "no"
-	set_zonesigning  "KEY2" "yes"
-
-	key_clear        "KEY3"
-	key_clear        "KEY4"
-
-	set_keystate "KEY1" "GOAL"         "omnipresent"
-	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
-	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
-	set_keystate "KEY1" "STATE_DS"     "omnipresent"
-
-	set_keystate "KEY2" "GOAL"         "omnipresent"
-	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
-	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
-}
-init_migration_nomatch_algnum
+init_migration_keys "5" "RSASHA1" "2048" "1024"
+init_migration_states "omnipresent" "omnipresent"
 
 # Make sure the zone is signed with legacy keys.
 check_keys
@@ -179,10 +166,10 @@ set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
 set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 # The ZSK is immediately published and activated.
-# -P: now-12h
+# -P: now-3900s
 # -A: now-12h
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED"   "${created}" -43200
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
 check_keytimes
 check_apex
@@ -200,34 +187,8 @@ set_zone "migrate-nomatch-alglen.kasp"
 set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
-init_migration_nomatch_alglen() {
-	key_clear        "KEY1"
-	key_set          "KEY1" "LEGACY" "yes"
-	set_keyrole      "KEY1" "ksk"
-	set_keyalgorithm "KEY1" "5" "RSASHA1" "1024"
-	set_keysigning   "KEY1" "yes"
-	set_zonesigning  "KEY1" "no"
-
-	key_clear        "KEY2"
-	key_set          "KEY2" "LEGACY" "yes"
-	set_keyrole      "KEY2" "zsk"
-	set_keyalgorithm "KEY2" "5" "RSASHA1" "1024"
-	set_keysigning   "KEY2" "no"
-	set_zonesigning  "KEY2" "yes"
-
-	key_clear        "KEY3"
-	key_clear        "KEY4"
-
-	set_keystate "KEY1" "GOAL"         "omnipresent"
-	set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
-	set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
-	set_keystate "KEY1" "STATE_DS"     "omnipresent"
-
-	set_keystate "KEY2" "GOAL"         "omnipresent"
-	set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
-	set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
-}
-init_migration_nomatch_alglen
+init_migration_keys "5" "RSASHA1" "1024" "1024"
+init_migration_states "omnipresent" "omnipresent"
 
 # Make sure the zone is signed with legacy keys.
 check_keys
@@ -243,10 +204,10 @@ set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
 set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
 # - The ZSK is immediately published and activated.
-#   P: now-12h
+#   P: now-3900s
 #   A: now-12h
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED"   "${created}" -43200
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
 check_keytimes
 check_apex
@@ -257,7 +218,10 @@ dnssec_verify
 _migratenomatch_alglen_ksk=$(key_get KEY1 ID)
 _migratenomatch_alglen_zsk=$(key_get KEY2 ID)
 
-# Reconfig.
+
+#############
+# Reconfig. #
+#############
 echo_i "reconfig (migration to dnssec-policy)"
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
@@ -290,7 +254,6 @@ _wait_for_done_signing() {
 
 	return 0
 }
-
 wait_for_done_signing() {
 	n=$((n+1))
 	echo_i "wait for zone ${ZONE} is done signing ($n)"
@@ -304,6 +267,11 @@ wait_for_done_signing() {
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
+
+
+################################################
+# Test state after switching to dnssec-policy. #
+################################################
 
 # Policy parameters.
 # ZSK now has lifetime of 60 days (5184000 seconds).
@@ -320,7 +288,8 @@ set_server "ns3" "10.53.0.3"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
 # However, because the zsk has a lifetime, kasp will set the retired time.
-init_migration_match
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "rumoured"
 key_set     "KEY1" "LEGACY"  "no"
 key_set     "KEY2" "LEGACY"  "no"
 
@@ -331,6 +300,7 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
 rollover_predecessor_keytimes 0
+
 # - Key now has lifetime of 60 days (5184000 seconds).
 #   The key is removed after Iret = TTLsig + Dprp + Dsgn + retire-safety.
 #   TTLsig:        1d (86400 seconds)
@@ -355,16 +325,19 @@ echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys
 ret=0
 [ $_migrate_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
 [ $_migrate_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+#
 # Test migration to dnssec-policy, existing keys do not match key algorithm.
+#
 set_zone "migrate-nomatch-algnum.kasp"
 set_policy "migrate-nomatch-algnum" "4" "300"
 set_server "ns3" "10.53.0.3"
-
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
-init_migration_nomatch_algnum
+init_migration_keys "5" "RSASHA1" "2048" "1024"
+init_migration_states "omnipresent" "omnipresent"
 
 key_set      "KEY1" "LEGACY"  "no"
 set_keystate "KEY1" "GOAL"    "hidden"
@@ -420,7 +393,7 @@ retired=$(awk '{print $3}' < retired.test${n}.ksk)
 set_keytime    "KEY1" "RETIRED" "${retired}"
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 # - ZSK must be retired since it no longer matches the policy.
-#   P: now-12h
+#   P: now-3900s
 #   A: now-12h
 # - The key is removed after the retire interval:
 #   IretZSK = TTLsig + Dprp + Dsgn + retire-safety.
@@ -432,7 +405,7 @@ set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 IretZSK=824400
 Lzsk=5184000
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED"   "${created}" -43200
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
 keyfile=$(key_get KEY2 BASEFILE)
 grep "; Inactive:" "${keyfile}.key" > retired.test${n}.zsk
@@ -471,16 +444,20 @@ echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing key
 ret=0
 [ $_migratenomatch_algnum_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
 [ $_migratenomatch_algnum_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+#
 # Test migration to dnssec-policy, existing keys do not match key length.
+#
 set_zone "migrate-nomatch-alglen.kasp"
 set_policy "migrate-nomatch-alglen" "4" "300"
 set_server "ns3" "10.53.0.3"
 
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
-init_migration_nomatch_alglen
+init_migration_keys "5" "RSASHA1" "1024" "1024"
+init_migration_states "omnipresent" "omnipresent"
 
 key_set      "KEY1" "LEGACY"  "no"
 set_keystate "KEY1" "GOAL"    "hidden"
@@ -537,7 +514,7 @@ retired=$(awk '{print $3}' < retired.test${n}.ksk)
 set_keytime    "KEY1" "RETIRED" "${retired}"
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 # - ZSK must be retired since it no longer matches the policy.
-#   P: now-12h
+#   P: now-3900s
 #   A: now-12h
 # - The key is removed after the retire interval:
 #   IretZSK = TTLsig + Dprp + Dsgn + retire-safety.
@@ -549,7 +526,7 @@ set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 IretZSK=824400
 Lzsk=5184000
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED"   "${created}" -43200
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
 set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
 keyfile=$(key_get KEY2 BASEFILE)
 grep "; Inactive:" "${keyfile}.key" > retired.test${n}.zsk
@@ -590,9 +567,9 @@ ret=0
 [ $_migratenomatch_alglen_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
 status=$((status+ret))
 
-#
-# Testing good migration with views.
-#
+######################################
+# Testing good migration with views. #
+######################################
 init_view_migration() {
 	key_clear        "KEY1"
 	key_set          "KEY1" "LEGACY" "yes"
@@ -813,6 +790,7 @@ ret=0
 [ $_migrate_ext8_zsk = $_migrate_int8_zsk ] || log_error "mismatch zsk tag"
 [ $_migrate_ext8_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
 [ $_migrate_ext8_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "exit status: $status"

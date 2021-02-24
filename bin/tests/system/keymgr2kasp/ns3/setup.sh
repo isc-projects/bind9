@@ -60,7 +60,7 @@ Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
 Tkey="now-3900s" # DNSKEY TTL + propagation delay
 Tsig="now-12h"   # Zone's maximum TTL + propagation delay
 ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
-zsktimes="-P ${Tsig} -A ${Tsig}"
+zsktimes="-P ${Tkey} -A ${Tsig}"
 KSK=$($KEYGEN -a RSASHA1 -b 2048 -L 300 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a RSASHA1 -b 1024 -L 300        $zsktimes $zone 2> keygen.out.$zone.2)
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
@@ -78,7 +78,7 @@ Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
 Tkey="now-3900s" # DNSKEY TTL + propagation delay
 Tsig="now-12h"   # Zone's maximum TTL + propagation delay
 ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
-zsktimes="-P ${Tsig} -A ${Tsig}"
+zsktimes="-P ${Tkey} -A ${Tsig}"
 KSK=$($KEYGEN -a RSASHA1 -b 1024 -L 300 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
 ZSK=$($KEYGEN -a RSASHA1 -b 1024 -L 300        $zsktimes $zone 2> keygen.out.$zone.2)
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
