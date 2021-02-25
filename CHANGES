@@ -1,3 +1,7 @@
+5590.	[bug]		Process NSEC3PARAM queue when loading a dynamic zone.
+			This will immediately create NSEC3 records for zones
+			that use "dnssec-policy" and "nsec3param". [GL #2498]
+
 5589.	[placeholder]
 
 5588.	[func]		Add "purge-keys" option to "dnssec-policy". This sets
