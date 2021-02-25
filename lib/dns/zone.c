@@ -17156,9 +17156,16 @@ again:
 			if (soacount != 1) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transferred zone "
-					     "has %d SOA record%s",
-					     soacount,
-					     (soacount != 0) ? "s" : "");
+					     "has %d SOA records",
+					     soacount);
+				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HAVETIMERS))
+				{
+					zone->refresh = DNS_ZONE_DEFAULTREFRESH;
+					zone->retry = DNS_ZONE_DEFAULTRETRY;
+				}
+				DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
+				zone_unload(zone);
+				goto next_master;
 			}
 			if (nscount == 0) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
