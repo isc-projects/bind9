@@ -85,3 +85,37 @@ cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone 5 "$KSK" >> "$infile"
 private_type_record $zone 5 "$ZSK" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+#
+# Set up zones to test time metadata correctly sets state.
+#
+
+# Key states expected to be rumoured after migration.
+setup rumoured.kasp
+echo "$zone" >> zones
+Tds="now-2h"
+Tkey="now-300s"
+Tsig="now-11h"
+ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
+zsktimes="-P ${Tkey} -A ${Tsig}"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300        $zsktimes $zone 2> keygen.out.$zone.2)
+cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Key states expected to be omnipresent after migration.
+setup omnipresent.kasp
+echo "$zone" >> zones
+Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
+Tkey="now-3900s" # DNSKEY TTL + propagation delay
+Tsig="now-12h"   # Zone's maximum TTL + propagation delay
+ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
+zsktimes="-P ${Tkey} -A ${Tsig}"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300        $zsktimes $zone 2> keygen.out.$zone.2)
+cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1

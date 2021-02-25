@@ -89,7 +89,7 @@ init_migration_keys() {
 	key_clear        "KEY1"
 	key_set          "KEY1" "LEGACY" "yes"
 	set_keyrole      "KEY1" "ksk"
-	set_keylifetime  "KEY1" "0"
+	set_keylifetime  "KEY1" "none"
 	set_keyalgorithm "KEY1" "$1" "$2" "$3"
 	set_keysigning   "KEY1" "yes"
 	set_zonesigning  "KEY1" "no"
@@ -97,7 +97,7 @@ init_migration_keys() {
 	key_clear        "KEY2"
 	key_set          "KEY2" "LEGACY" "yes"
 	set_keyrole      "KEY2" "zsk"
-	set_keylifetime  "KEY2" "5184000"
+	set_keylifetime  "KEY2" "none"
 	set_keyalgorithm "KEY2" "$1" "$2" "$4"
 	set_keysigning   "KEY2" "no"
 	set_zonesigning  "KEY2" "yes"
@@ -142,6 +142,46 @@ dnssec_verify
 # Remember legacy key tags.
 _migrate_ksk=$(key_get KEY1 ID)
 _migrate_zsk=$(key_get KEY2 ID)
+
+#
+# Testing key states derived from key timing metadata (rumoured).
+#
+set_zone "rumoured.kasp"
+set_policy "none" "2" "300"
+set_server "ns3" "10.53.0.3"
+
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "rumoured"
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+# Remember legacy key tags.
+_rumoured_ksk=$(key_get KEY1 ID)
+_rumoured_zsk=$(key_get KEY2 ID)
+
+#
+# Testing key states derived from key timing metadata (omnipresent).
+#
+set_zone "omnipresent.kasp"
+set_policy "none" "2" "300"
+set_server "ns3" "10.53.0.3"
+
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "omnipresent"
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+# Remember legacy key tags.
+_omnipresent_ksk=$(key_get KEY1 ID)
+_omnipresent_zsk=$(key_get KEY2 ID)
 
 #
 # Testing migration with unmatched existing keys (different algorithm).
@@ -290,8 +330,10 @@ set_server "ns3" "10.53.0.3"
 # However, because the zsk has a lifetime, kasp will set the retired time.
 init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
 init_migration_states "omnipresent" "rumoured"
-key_set     "KEY1" "LEGACY"  "no"
-key_set     "KEY2" "LEGACY"  "no"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
+set_keylifetime "KEY1" "${Lksk}"
+set_keylifetime "KEY2" "${Lzsk}"
 
 # Various signing policy checks.
 check_keys
@@ -337,13 +379,9 @@ set_server "ns3" "10.53.0.3"
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
 init_migration_keys "5" "RSASHA1" "2048" "1024"
-init_migration_states "omnipresent" "omnipresent"
-
-key_set      "KEY1" "LEGACY"  "no"
-set_keystate "KEY1" "GOAL"    "hidden"
-
-key_set      "KEY2" "LEGACY"  "no"
-set_keystate "KEY2" "GOAL"    "hidden"
+init_migration_states "hidden" "omnipresent"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
 
 set_keyrole      "KEY3" "ksk"
 set_keylifetime  "KEY3" "0"
@@ -457,13 +495,9 @@ set_server "ns3" "10.53.0.3"
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
 init_migration_keys "5" "RSASHA1" "1024" "1024"
-init_migration_states "omnipresent" "omnipresent"
-
-key_set      "KEY1" "LEGACY"  "no"
-set_keystate "KEY1" "GOAL"    "hidden"
-
-key_set      "KEY2" "LEGACY"  "no"
-set_keystate "KEY2" "GOAL"    "hidden"
+init_migration_states "hidden" "omnipresent"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
 
 set_keyrole      "KEY3" "ksk"
 set_keylifetime  "KEY3" "0"
@@ -565,7 +599,125 @@ echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing key
 ret=0
 [ $_migratenomatch_alglen_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
 [ $_migratenomatch_alglen_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
+
+########################################################
+# Testing key states derived from key timing metadata. #
+########################################################
+
+# Policy parameters.
+# KSK has lifetime of 60 days (5184000 seconds).
+# The KSK is removed after Iret = DprpP + TTLds + retire-safety =
+# 4h = 14400 seconds.
+Lksk=5184000
+IretKSK=14400
+# ZSK has lifetime of 60 days (5184000 seconds).
+# The ZSK is removed after Iret = TTLsig + Dprp + Dsgn + retire-safety =
+# 181h = 651600 seconds.
+Lzsk=5184000
+IretZSK=651600
+
+#
+# Testing rumoured state.
+#
+set_zone "rumoured.kasp"
+set_policy "timing-metadata" "2" "300"
+set_server "ns3" "10.53.0.3"
+
+# Key properties, timings and metadata should be the same as legacy keys above.
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "rumoured"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
+set_keylifetime "KEY1" "${Lksk}"
+set_keylifetime "KEY2" "${Lzsk}"
+
+# Various signing policy checks.
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# Set expected key times:
+#
+# Tds="now-2h"    (7200)
+# Tkey="now-300s" (300)
+# Tsig="now-11h"  (39600)
+created=$(key_get KEY1 CREATED)
+set_addkeytime      "KEY1" "PUBLISHED"   "${created}" -300
+set_addkeytime      "KEY1" "ACTIVE"      "${created}" -300
+set_addkeytime      "KEY1" "SYNCPUBLISH" "${created}"  -7200
+set_retired_removed "KEY1" "${Lksk}" "${IretKSK}"
+created=$(key_get KEY2 CREATED)
+set_addkeytime      "KEY2" "PUBLISHED"   "${created}"  -300
+set_addkeytime      "KEY2" "ACTIVE"      "${created}"  -39600
+set_retired_removed "KEY2" "${Lzsk}" "${IretZSK}"
+
+# Continue signing policy checks.
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys ($n)"
+ret=0
+[ $_rumoured_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_rumoured_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# Testing omnipresent state.
+#
+set_zone "omnipresent.kasp"
+set_policy "timing-metadata" "2" "300"
+set_server "ns3" "10.53.0.3"
+
+# Key properties, timings and metadata should be the same as legacy keys above.
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "omnipresent"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
+set_keylifetime "KEY1" "${Lksk}"
+set_keylifetime "KEY2" "${Lzsk}"
+
+# Various signing policy checks.
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# Set expected key times:
+#
+# Tds="now-3h"     (10800)
+# Tkey="now-3900s" (3900)
+# Tsig="now-12h"   (43200)
+created=$(key_get KEY1 CREATED)
+set_addkeytime      "KEY1" "PUBLISHED"   "${created}" -3900
+set_addkeytime      "KEY1" "ACTIVE"      "${created}" -3900
+set_addkeytime      "KEY1" "SYNCPUBLISH" "${created}"  -10800
+set_retired_removed "KEY1" "${Lksk}" "${IretKSK}"
+created=$(key_get KEY2 CREATED)
+set_addkeytime      "KEY2" "PUBLISHED"   "${created}"  -3900
+set_addkeytime      "KEY2" "ACTIVE"      "${created}"  -43200
+set_retired_removed "KEY2" "${Lzsk}" "${IretZSK}"
+
+# Continue signing policy checks.
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy uses the same keys ($n)"
+ret=0
+[ $_omnipresent_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_omnipresent_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 
 ######################################
 # Testing good migration with views. #
@@ -685,9 +837,8 @@ echo_i "${time_passed} seconds passed between start of tests and reconfig"
 set_zone "view-rsasha256.kasp"
 set_policy "rsasha256" "3" "300"
 set_server "ns4" "10.53.0.4"
-init_migration_match
-set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
-set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
+init_migration_keys "8" "RSASHA256" "2048" "1024"
+init_migration_states "omnipresent" "rumoured"
 # Key properties, timings and metadata should be the same as legacy keys above.
 # However, because the keys have a lifetime, kasp will set the retired time.
 key_set          "KEY1" "LEGACY" "no"

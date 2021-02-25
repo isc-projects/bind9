@@ -43,6 +43,24 @@ zone "migrate.kasp" {
 	update-check-ksk yes;
 };
 
+zone "rumoured.kasp" {
+	type primary;
+	file "rumoured.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
+zone "omnipresent.kasp" {
+	type primary;
+	file "omnipresent.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly yes;
+	update-check-ksk yes;
+};
+
 zone "migrate-nomatch-algnum.kasp" {
 	type primary;
 	file "migrate-nomatch-algnum.kasp.db";
