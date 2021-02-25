@@ -191,7 +191,6 @@ options {
         glue-cache <boolean>;
         heartbeat-interval <integer>;
         hostname ( <quoted_string> | none );
-        inline-signing <boolean>;
         interface-interval <duration>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );
@@ -520,7 +519,6 @@ view <string> [ <class> ] {
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         glue-cache <boolean>;
-        inline-signing <boolean>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );
         key <string> {
