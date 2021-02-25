@@ -770,6 +770,9 @@ isc__mem_shutdown(void) {
 static void
 mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+#if __SANITIZE_ADDRESS__
+	REQUIRE((flags & ISC_MEMFLAG_INTERNAL) == 0);
+#endif
 
 	isc__mem_t *ctx;
 
