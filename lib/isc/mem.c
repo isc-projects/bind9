@@ -1306,15 +1306,15 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 	element *item;
 	unsigned int i;
-	size_t allocated = atomic_load_acquire(&mpctx->allocated);
+	size_t allocated = atomic_fetch_add_release(&mpctx->allocated, 1);
 	size_t maxalloc = atomic_load_acquire(&mpctx->maxalloc);
 
 	/*
 	 * Don't let the caller go over quota
 	 */
 	if (ISC_UNLIKELY(allocated >= maxalloc)) {
-		item = NULL;
-		goto out;
+		atomic_fetch_sub_release(&mpctx->allocated, 1);
+		return (NULL);
 	}
 
 	MPCTXLOCK(mpctx);
@@ -1339,6 +1339,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	 */
 	item = mpctx->items;
 	if (ISC_UNLIKELY(item == NULL)) {
+		atomic_fetch_sub_release(&mpctx->allocated, 1);
 		goto out;
 	}
 
@@ -1346,12 +1347,11 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 	INSIST(atomic_fetch_sub_release(&mpctx->freecount, 1) > 0);
 	atomic_fetch_add_relaxed(&mpctx->gets, 1);
-	atomic_fetch_add_relaxed(&mpctx->allocated, 1);
+
+	ADD_TRACE(mpctx->mctx, item, mpctx->size, file, line);
 
 out:
 	MPCTXUNLOCK(mpctx);
-
-	ADD_TRACE(mpctx->mctx, item, mpctx->size, file, line);
 
 	return (item);
 }
