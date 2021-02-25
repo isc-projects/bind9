@@ -5972,6 +5972,15 @@ query_lookup(query_ctx_t *qctx) {
 				}
 			}
 		}
+	} else if (stale_only && result != ISC_R_SUCCESS) {
+		/*
+		 * This is a staleonly lookup and no stale answer was found
+		 * in cache. Treat as we don't have an answer and wait for
+		 * the resolver fetch to finish.
+		 */
+		if ((qctx->options & DNS_GETDB_STALEFIRST) == 0) {
+			return (result);
+		}
 	} else {
 		stale_only = false;
 	}
@@ -6017,13 +6026,13 @@ query_lookup_staleonly(ns_client_t *client) {
 
 	qctx_init(client, NULL, client->query.qtype, &qctx);
 	dns_db_attach(client->view->cachedb, &qctx.db);
+	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 	client->query.dboptions |= DNS_DBFIND_STALEONLY;
 	(void)query_lookup(&qctx);
 	if (qctx.node != NULL) {
 		dns_db_detachnode(qctx.db, &qctx.node);
 	}
 	qctx_freedata(&qctx);
-	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
 	qctx_destroy(&qctx);
 }
 
