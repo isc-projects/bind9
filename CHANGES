@@ -37,6 +37,11 @@
 			  function.
 			[GL #2654] [GL #2638] [GL #2401]
 
+5633.	[doc]		Inline-signing was incorrectly described as being
+			inherited from the options / view levels and was
+			incorrectly accepted at those levels without effect.
+			This has been corrected. [GL #2536]
+
 	--- 9.16.16 released ---
 
 5637.	[func]		Change the default value of the "max-ixfr-ratio" option
