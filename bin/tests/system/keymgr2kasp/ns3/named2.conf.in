@@ -42,6 +42,20 @@ zone "migrate.kasp" {
 	dnssec-policy "migrate";
 };
 
+zone "rumoured.kasp" {
+	type primary;
+	file "rumoured.kasp.db";
+	allow-update { any; };
+	dnssec-policy "timing-metadata";
+};
+
+zone "omnipresent.kasp" {
+	type primary;
+	file "omnipresent.kasp.db";
+	allow-update { any; };
+	dnssec-policy "timing-metadata";
+};
+
 zone "migrate-nomatch-algnum.kasp" {
 	type primary;
 	file "migrate-nomatch-algnum.kasp.db";

@@ -18,6 +18,27 @@ dnssec-policy "migrate" {
 	};
 };
 
+dnssec-policy "timing-metadata" {
+	dnskey-ttl 300;
+
+	signatures-refresh P1W;
+	signatures-validity P2W;
+	signatures-validity-dnskey P2W;
+
+	keys {
+		ksk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
+	};
+
+	// Together 12h
+	zone-propagation-delay 3600;
+	max-zone-ttl 11h;
+
+	// Together 3h
+	parent-propagation-delay pt1h;
+	parent-ds-ttl 7200;
+};
+
 /*
  * This policy tests migration from existing keys with 1024 bits RSASHA1 keys
  * to ECDSAP256SHA256 keys.
