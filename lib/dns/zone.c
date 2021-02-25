@@ -4969,7 +4969,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				zone, zone->db, NULL, &oldsoacount, NULL,
 				&oldserial, NULL, NULL, NULL, NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			RUNTIME_CHECK(soacount > 0U);
+			RUNTIME_CHECK(oldsoacount > 0U);
 			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
 			    !isc_serial_gt(serial, oldserial))
 			{
