@@ -2747,9 +2747,11 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 #ifdef GSSAPI
 	if (usegsstsig) {
 		dns_name_init(&tmpzonename, NULL);
-		dns_name_dup(zname, gmctx, &tmpzonename);
+		result = dns_name_dup(zname, gmctx, &tmpzonename);
+		check_result(result, "dns_name_dup");
 		dns_name_init(&restart_master, NULL);
-		dns_name_dup(&master, gmctx, &restart_master);
+		result = dns_name_dup(&master, gmctx, &restart_master);
+		check_result(result, "dns_name_dup");
 		start_gssrequest(&master);
 	} else {
 		send_update(zname, &master_servers[master_inuse]);
