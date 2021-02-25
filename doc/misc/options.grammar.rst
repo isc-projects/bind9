@@ -121,7 +121,6 @@
   	hostname ( <quoted_string> | none );
   	http-port <integer>;
   	https-port <integer>;
-  	inline-signing <boolean>;
   	interface-interval <duration>;
   	ipv4only-contact <string>;
   	ipv4only-enable <boolean>;
