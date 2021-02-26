@@ -361,6 +361,9 @@
     <ClInclude Include="..\openssl_shim.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\trampoline_p.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="errno2result.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
@@ -624,6 +627,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\tls.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\trampoline.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\tm.c">

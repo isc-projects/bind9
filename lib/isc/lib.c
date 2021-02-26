@@ -19,6 +19,7 @@
 
 #include "mem_p.h"
 #include "tls_p.h"
+#include "trampoline_p.h"
 
 /***
  *** Functions
@@ -38,10 +39,23 @@ void
 isc__initialize(void) {
 	isc__mem_initialize();
 	isc__tls_initialize();
+	isc__trampoline_initialize();
 }
 
 void
 isc__shutdown(void) {
+	isc__trampoline_shutdown();
 	isc__tls_shutdown();
 	isc__mem_shutdown();
+}
+
+/*
+ * This is a workaround for situation when libisc is statically linked.  Under
+ * normal situation, the linker throws out all symbols from compilation unit
+ * when no symbols are used in the final binary.  This empty function must be
+ * called at least once from different compilation unit (mem.c in this case).
+ */
+void
+isc_enable_constructors() {
+	/* do nothing */
 }

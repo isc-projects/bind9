@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LIB_H
-#define ISC_LIB_H 1
+#pragma once
 
 /*! \file isc/lib.h */
 
@@ -28,6 +27,10 @@ isc_lib_register(void);
  * function very early in main().
  */
 
-ISC_LANG_ENDDECLS
+extern void
+isc_enable_constructors(void);
+/*!<
+ * \bried Enable constructor linkage in non-libtool static builds
+ */
 
-#endif /* ISC_LIB_H */
+ISC_LANG_ENDDECLS
