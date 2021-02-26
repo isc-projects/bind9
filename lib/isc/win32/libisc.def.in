@@ -190,6 +190,7 @@ isc_dir_init
 isc_dir_open
 isc_dir_read
 isc_dir_reset
+isc_enable_constructors
 isc_entropy_get
 isc_errno_toresult
 isc_error_fatal

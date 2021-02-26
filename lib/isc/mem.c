@@ -21,6 +21,7 @@
 
 #include <isc/bind9.h>
 #include <isc/hash.h>
+#include <isc/lib.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -775,6 +776,8 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 #endif
 
 	isc__mem_t *ctx;
+
+	isc_enable_constructors();
 
 	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0,
 		      "wrong alignment size");

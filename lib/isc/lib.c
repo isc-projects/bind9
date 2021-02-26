@@ -48,3 +48,14 @@ isc__shutdown(void) {
 	isc__tls_shutdown();
 	isc__mem_shutdown();
 }
+
+/*
+ * This is a workaround for situation when libisc is statically linked.  Under
+ * normal situation, the linker throws out all symbols from compilation unit
+ * when no symbols are used in the final binary.  This empty function must be
+ * called at least once from different compilation unit (mem.c in this case).
+ */
+void
+isc_enable_constructors() {
+	/* do nothing */
+}
