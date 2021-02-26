@@ -37,6 +37,10 @@
 			However, the "stale-refresh-time" window is still only
 			started upon a timeout. [GL #2434]
 
+5564.	[cleanup]	Refactored the network manager TLSDNS module to use
+			libuv and libssl directly, rather than opening a
+			TLS/TCP socket stack. [GL #2235]
+
 	--- 9.16.12 released ---
 
 5578.	[protocol]	Make "check-names" accept A records below "_spf",
