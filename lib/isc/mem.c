@@ -1294,18 +1294,50 @@ void
 isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(lock != NULL);
-
 	REQUIRE(mpctx->lock == NULL);
 
 	mpctx->lock = lock;
 }
 
+#if __SANITIZE_ADDRESS__
 void *
 isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	element *item;
+	size_t allocated = atomic_fetch_add_release(&mpctx->allocated, 1);
+	size_t maxalloc = atomic_load_acquire(&mpctx->maxalloc);
+
+	/*
+	 * Don't let the caller go over quota.
+	 */
+	if (ISC_UNLIKELY(allocated >= maxalloc)) {
+		atomic_fetch_sub_release(&mpctx->allocated, 1);
+		return (NULL);
+	}
+
+	atomic_fetch_add_relaxed(&mpctx->gets, 1);
+
+	return (isc__mem_get(mpctx->mctx, mpctx->size FLARG_PASS));
+}
+
+void
+isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
+	REQUIRE(VALID_MEMPOOL(mpctx));
+	REQUIRE(mem != NULL);
+
+	INSIST(atomic_fetch_sub_release(&mpctx->allocated, 1) > 0);
+
+	isc__mem_put(mpctx->mctx, mem, mpctx->size FLARG_PASS);
+}
+
+#else /* __SANITIZE_ADDRESS__ */
+void *
+isc__mempool_get(isc_mempool_t *mpctx FLARG) {
+	element *item = NULL;
 	unsigned int i;
+
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
 	size_t allocated = atomic_fetch_add_release(&mpctx->allocated, 1);
 	size_t maxalloc = atomic_load_acquire(&mpctx->maxalloc);
 
@@ -1359,11 +1391,12 @@ out:
 /* coverity[+free : arg-1] */
 void
 isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
+	element *item = NULL;
+
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mem != NULL);
 
 	isc_mem_t *mctx = mpctx->mctx;
-	element *item;
 	size_t freecount = atomic_load_acquire(&mpctx->freecount);
 	size_t freemax = atomic_load_acquire(&mpctx->freemax);
 
@@ -1392,6 +1425,8 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 
 	MPCTXUNLOCK(mpctx);
 }
+
+#endif /* __SANITIZE_ADDRESS__ */
 
 /*
  * Quotas
