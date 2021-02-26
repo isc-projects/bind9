@@ -22,8 +22,8 @@
 typedef struct isc_condition_thread isc_condition_thread_t;
 
 struct isc_condition_thread {
-	unsigned long th;
-	HANDLE	      handle[2];
+	uintptr_t th;
+	HANDLE	  handle[2];
 	ISC_LINK(isc_condition_thread_t) link;
 };
 

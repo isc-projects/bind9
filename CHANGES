@@ -1,3 +1,10 @@
+5592.	[bug]		Add globally available thread_id (isc_tid_v) that's
+			incremented for each new thread, but the old thread
+			ids are reused, so the maximum thread_id always
+			correspond to the maximum number of threads running
+			at the time. This fixes the hazard pointer tables
+			overflow on machines with many cores. [GL #2396]
+
 5591.	[bug]		Fix a crash happening when "stale-answer-client-timeout"
 			is triggered and there is no (stale) data for it in the
 			cache. [GL #2503]
