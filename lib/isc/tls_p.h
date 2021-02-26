@@ -11,24 +11,8 @@
 
 #pragma once
 
-#include <stdio.h>
-
-#include <isc/mem.h>
-
-/*! \file */
+void
+isc__tls_initialize(void);
 
 void
-isc__mem_printactive(isc_mem_t *mctx, FILE *file);
-/*%<
- * For use by unit tests, prints active memory blocks for
- * a single memory context.
- */
-
-void
-isc__mem_checkdestroyed(void);
-
-void
-isc__mem_initialize(void);
-
-void
-isc__mem_shutdown(void);
+isc__tls_shutdown(void);

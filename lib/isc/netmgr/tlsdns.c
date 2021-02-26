@@ -398,6 +398,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
+	REQUIRE(sslctx != NULL);
 
 	sa_family = peer->addr.type.sa.sa_family;
 
@@ -1147,7 +1148,7 @@ processbuffer(isc_nmsocket_t *sock) {
 
 	len += 2;
 	sock->buf_len -= len;
-	if (len > 0) {
+	if (sock->buf_len > 0) {
 		memmove(sock->buf, sock->buf + len, sock->buf_len);
 	}
 
@@ -1656,6 +1657,16 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	csock->tls.state = TLS_STATE_NONE;
 
 	csock->tls.ssl = SSL_new(ssock->tls.ctx);
+
+	if (csock->tls.ssl == NULL) {
+		char errbuf[256];
+		unsigned long err = ERR_get_error();
+
+		ERR_error_string_n(err, errbuf, sizeof(errbuf));
+		fprintf(stderr, "%s:SSL_new(%p) -> %s\n", __func__,
+			ssock->tls.ctx, errbuf);
+	}
+
 	RUNTIME_CHECK(csock->tls.ssl != NULL);
 
 	r = BIO_new_bio_pair(&csock->tls.ssl_wbio, TLS_BUF_SIZE,

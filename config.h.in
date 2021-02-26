@@ -171,6 +171,12 @@
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
 
+/* Define to 1 if the system has the `constructor' function attribute */
+#undef HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR
+
+/* Define to 1 if the system has the `destructor' function attribute */
+#undef HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
+
 /* Build with GeoIP2 support */
 #undef HAVE_GEOIP2
 

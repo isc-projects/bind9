@@ -20,12 +20,6 @@
 typedef struct ssl_ctx_st isc_tlsctx_t;
 
 void
-isc_tls_initialize(void);
-
-void
-isc_tls_destroy(void);
-
-void
 isc_tlsctx_free(isc_tlsctx_t **ctpx);
 /*%
  * Free the TLS client/server context.

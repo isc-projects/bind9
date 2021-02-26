@@ -372,6 +372,9 @@ isc_md_get_block_size
 isc_md_type_get_size
 isc_md_type_get_block_size
 isc_md
+isc__mem_checkdestroyed
+isc__mem_initialize
+isc__mem_shutdown
 isc_mem_attach
 isc_mem_checkdestroyed
 isc_mem_create
@@ -709,8 +712,8 @@ isc_timermgr_create
 isc_timermgr_createinctx
 isc_timermgr_destroy
 isc_timermgr_poke
-isc_tls_initialize
-isc_tls_destroy
+isc__tls_initialize
+isc__tls_shutdown
 isc_tlsctx_createclient
 isc_tlsctx_createserver
 isc_tlsctx_free
