@@ -770,6 +770,9 @@ isc__mem_shutdown(void) {
 static void
 mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+#if __SANITIZE_ADDRESS__
+	REQUIRE((flags & ISC_MEMFLAG_INTERNAL) == 0);
+#endif
 
 	isc__mem_t *ctx;
 
@@ -1755,6 +1758,63 @@ isc_mempool_associatelock(isc_mempool_t *mpctx0, isc_mutex_t *lock) {
 	mpctx->lock = lock;
 }
 
+#if __SANITIZE_ADDRESS__
+void *
+isc__mempool_get(isc_mempool_t *mpctx0 FLARG) {
+	void *item = NULL;
+
+	REQUIRE(VALID_MEMPOOL(mpctx0));
+
+	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
+	isc_mem_t *mctx = (isc_mem_t *)mpctx->mctx;
+
+	if (mpctx->lock != NULL) {
+		LOCK(mpctx->lock);
+	}
+
+	/*
+	 * Don't let the caller go over quota
+	 */
+	if (ISC_UNLIKELY(mpctx->allocated >= mpctx->maxalloc)) {
+		goto out;
+	}
+
+	item = isc__mem_get(mctx, mpctx->size FLARG_PASS);
+	mpctx->gets++;
+	mpctx->allocated++;
+
+out:
+	if (mpctx->lock != NULL) {
+		UNLOCK(mpctx->lock);
+	}
+
+	return (item);
+}
+
+void
+isc__mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
+	REQUIRE(VALID_MEMPOOL(mpctx0));
+
+	isc__mempool_t *mpctx = (isc__mempool_t *)mpctx0;
+	isc_mem_t *mctx = (isc_mem_t *)mpctx->mctx;
+
+	REQUIRE(mem != NULL);
+
+	if (mpctx->lock != NULL) {
+		LOCK(mpctx->lock);
+	}
+
+	INSIST(mpctx->allocated > 0);
+	mpctx->allocated--;
+
+	isc__mem_put(mctx, mem, mpctx->size FLARG_PASS);
+
+	if (mpctx->lock != NULL) {
+		UNLOCK(mpctx->lock);
+	}
+}
+
+#else /* __SANITIZE_ADDRESS__ */
 void *
 isc__mempool_get(isc_mempool_t *mpctx0 FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx0));
@@ -1889,6 +1949,8 @@ isc__mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 		UNLOCK(mpctx->lock);
 	}
 }
+
+#endif /* __SANITIZE_ADDRESS__ */
 
 /*
  * Quotas
