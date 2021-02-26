@@ -14,45 +14,48 @@
 5594.	[bug]		Building with --enable-dnsrps --enable-dnsrps-dl failed.
 			[GL #2298]
 
-5593.	[bug]		Journal files written by older versions of named
-			can now be read when loading zones so that journal
-			incompatibility will not cause problems on upgrade.
-			Outdated journals will be updated to the new format
-			after loading. [GL #2505]
+5593.	[bug]		Journal files written by older versions of named can now
+			be read when loading zones, so that journal
+			incompatibility does not cause problems on upgrade.
+			Outdated journals are updated to the new format after
+			loading. [GL #2505]
 
-5592.	[bug]		Add globally available thread_id (isc_tid_v) that's
-			incremented for each new thread, but the old thread
-			ids are reused, so the maximum thread_id always
-			correspond to the maximum number of threads running
-			at the time. This fixes the hazard pointer tables
-			overflow on machines with many cores. [GL #2396]
+5592.	[bug]		Prevent hazard pointer table overflows on machines with
+			many cores, by allowing the thread IDs (serving as
+			indices into hazard pointer tables) of finished threads
+			to be reused by those created later. [GL #2396]
 
-5591.	[bug]		Fix a crash happening when "stale-answer-client-timeout"
-			is triggered and there is no (stale) data for it in the
-			cache. [GL #2503]
+5591.	[bug]		Fix a crash that occurred when
+			"stale-answer-client-timeout" was triggered without any
+			(stale) data available in the cache to answer the query.
+			[GL #2503]
 
-5590.	[bug]		Process NSEC3PARAM queue when loading a dynamic zone.
-			This will immediately create NSEC3 records for zones
-			that use "dnssec-policy" and "nsec3param". [GL #2498]
+5590.	[bug]		NSEC3 records were not immediately created for dynamic
+			zones using NSEC3 with "dnssec-policy", resulting in
+			such zones going bogus. Add code to process the
+			NSEC3PARAM queue at zone load time so that NSEC3 records
+			for such zones are created immediately. [GL #2498]
 
-5588.	[func]		Add "purge-keys" option to "dnssec-policy". This sets
-			the time how long key files should be retained after
-			they have become obsolete. [GL #2408]
+5588.	[func]		Add a new "purge-keys" option for "dnssec-policy". This
+			option determines the period of time for which key files
+			are retained after they become obsolete. [GL #2408]
 
 5586.	[bug]		An invalid direction field in a LOC record resulted in
-			an INSIST failure. [GL #2499]
+			an INSIST failure when a zone file containing such a
+			record was loaded. [GL #2499]
 
-5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
-			[GL #2487]
+5584.	[bug]		No longer set the IP_DONTFRAG option on UDP sockets, to
+			prevent dropping outgoing packets exceeding
+			"max-udp-size". [GL #2466]
 
 5582.	[bug]		BIND 9 failed to build when static OpenSSL libraries
-			were used and the *.pc files for libssl and/or libcrypto
-			were unavailable. This has been fixed by ensuring the
-			correct linking order for libssl and libcrypto is always
-			used. [GL #2402]
+			were used and the pkg-config files for libssl and/or
+			libcrypto were unavailable. This has been fixed by
+			ensuring that the correct linking order for libssl and
+			libcrypto is always used. [GL #2402]
 
-5581.	[bug]		Fix memory leak happening when inline-signed zones
-			were added to the configuration followed by a
+5581.	[bug]		Fix a memory leak that occurred when inline-signed zones
+			were added to the configuration, followed by a
 			reconfiguration of named. [GL #2041]
 
 5580.	[test]		The system test framework no longer differentiates
@@ -60,15 +63,15 @@
 			system test which is not run is now marked as SKIPPED.
 			[GL !4517]
 
-5579.	[func]		When serve-stale is enabled and stale data is available,
+5573.	[func]		When serve-stale is enabled and stale data is available,
 			named now returns stale answers upon encountering any
 			unexpected error in the query resolution process.
 			However, the "stale-refresh-time" window is still only
 			started upon a timeout. [GL #2434]
 
-5564.	[cleanup]	Refactored the network manager TLSDNS module to use
-			libuv and libssl directly, rather than opening a
-			TLS/TCP socket stack. [GL #2235]
+5564.	[cleanup]	Network manager's TLSDNS module was refactored to use
+			libuv and libssl directly instead of a stack of TCP/TLS
+			sockets. [GL #2335]
 
 	--- 9.16.12 released ---
 
