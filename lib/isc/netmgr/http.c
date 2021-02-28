@@ -102,9 +102,10 @@ struct isc_nm_http_session {
 	isc_refcount_t references;
 	isc_mem_t *mctx;
 
-	bool sending;
+	size_t sending;
 	bool reading;
 	bool closed;
+	bool closing;
 
 	nghttp2_session *ngsession;
 	bool client;
@@ -117,7 +118,6 @@ struct isc_nm_http_session {
 	isc_nmsocket_t *serversocket;
 	isc_nmiface_t server_iface;
 
-	isc_region_t r;
 	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
 	size_t bufsize;
 
@@ -136,8 +136,22 @@ typedef enum isc_http_error_responses {
 	ISC_HTTP_ERROR_MAX
 } isc_http_error_responses_t;
 
+typedef struct isc_http_send_req {
+	isc_nm_http_session_t *session;
+	isc_nmhandle_t *transphandle;
+	isc_nmhandle_t *httphandle;
+	isc_region_t data;
+	isc_nm_cb_t cb;
+	void *cbarg;
+} isc_http_send_req_t;
+
+static bool
+http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
+		   isc_nm_cb_t cb, void *cbarg);
+
 static void
-http_do_bio(isc_nm_http_session_t *session);
+http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
+	    isc_nm_cb_t send_cb, void *send_cbarg);
 
 static void
 failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
@@ -155,6 +169,12 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region);
 
 static void
 finish_http_session(isc_nm_http_session_t *session);
+
+static bool
+http_session_active(isc_nm_http_session_t *session) {
+	REQUIRE(VALID_HTTP2_SESSION(session));
+	return (!session->closed && !session->closing);
+}
 
 static bool
 inactive(isc_nmsocket_t *sock) {
@@ -246,12 +266,13 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp) {
 
 	finish_http_session(session);
 
-	if (session->r.base) {
-		isc_mem_put(session->mctx, session->r.base, session->r.length);
-	}
-
 	INSIST(ISC_LIST_EMPTY(session->sstreams));
 	INSIST(ISC_LIST_EMPTY(session->cstreams));
+
+	if (session->ngsession != NULL) {
+		nghttp2_session_del(session->ngsession);
+		session->ngsession = NULL;
+	}
 
 	/* We need an acquire memory barrier here */
 	(void)isc_refcount_current(&session->references);
@@ -266,12 +287,22 @@ find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
 	http_cstream_t *cstream = NULL;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
+	if (ISC_LIST_EMPTY(session->cstreams)) {
+		return (NULL);
+	}
+
 	for (cstream = ISC_LIST_HEAD(session->cstreams); cstream != NULL;
 	     cstream = ISC_LIST_NEXT(cstream, link))
 	{
 		if (cstream->stream_id == stream_id) {
 			break;
 		}
+	}
+
+	/* LRU-like behaviour */
+	if (cstream && ISC_LIST_HEAD(session->cstreams) != cstream) {
+		ISC_LIST_UNLINK(session->cstreams, cstream, link);
+		ISC_LIST_PREPEND(session->cstreams, cstream, link);
 	}
 
 	return (cstream);
@@ -368,42 +399,41 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 
 static void
 finish_http_session(isc_nm_http_session_t *session) {
+	if (session->closed) {
+		return;
+	}
 	if (session->handle != NULL) {
-		isc_nm_pauseread(session->handle);
+		if (!session->closed) {
+			session->closed = true;
+			isc_nm_cancelread(session->handle);
+		}
+		if (!ISC_LIST_EMPTY(session->cstreams)) {
+			http_cstream_t *cstream =
+				ISC_LIST_HEAD(session->cstreams);
+			while (cstream != NULL) {
+				http_cstream_t *next = ISC_LIST_NEXT(cstream,
+								     link);
+				ISC_LIST_DEQUEUE(session->cstreams, cstream,
+						 link);
+				cstream->read_cb(
+					session->handle, ISC_R_UNEXPECTED,
+					&(isc_region_t){ cstream->rbuf,
+							 cstream->rbufsize },
+					cstream->read_cbarg);
+				put_http_cstream(session->mctx, cstream);
+				cstream = next;
+			}
+		}
 		isc_nmhandle_detach(&session->handle);
 	}
 
-	if (session->ngsession != NULL) {
-		nghttp2_session_del(session->ngsession);
-		session->ngsession = NULL;
-	}
-
-	if (!ISC_LIST_EMPTY(session->cstreams)) {
-		http_cstream_t *cstream = ISC_LIST_HEAD(session->cstreams);
-		while (cstream != NULL) {
-			http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
-			cstream->read_cb(session->handle, ISC_R_UNEXPECTED,
-					 &(isc_region_t){ cstream->rbuf,
-							  cstream->rbufsize },
-					 cstream->read_cbarg);
-			put_http_cstream(session->mctx, cstream);
-			cstream = next;
-		}
-	}
 	INSIST(ISC_LIST_EMPTY(session->cstreams));
 
 	/* detach from server socket */
 	if (session->serversocket != NULL) {
 		isc__nmsocket_detach(&session->serversocket);
 	}
-
-	/*
-	 * There might be leftover callbacks waiting to be received
-	 */
-	if (session->sending) {
-		session->closed = true;
-	}
+	session->closed = true;
 }
 
 static int
@@ -498,10 +528,6 @@ on_client_stream_close_callback(int32_t stream_id,
 			if (rv != 0) {
 				return (rv);
 			}
-			if (session->handle->sock->h2.session->reading) {
-				isc_nm_cancelread(session->handle->sock->h2
-							  .session->handle);
-			}
 		}
 	} else {
 		return (NGHTTP2_ERR_CALLBACK_FAILURE);
@@ -517,11 +543,13 @@ on_server_stream_close_callback(int32_t stream_id,
 		session->ngsession, stream_id);
 	int rv = 0;
 
+	ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
 	if (ISC_LIST_EMPTY(session->sstreams)) {
 		rv = nghttp2_session_terminate_session(session->ngsession,
 						       NGHTTP2_NO_ERROR);
 	}
-	isc__nmsocket_prep_destroy(sock);
+	session->nsstreams--;
+	isc__nmsocket_detach(&sock);
 	return (rv);
 }
 
@@ -536,11 +564,6 @@ on_stream_close_callback(nghttp2_session *ngsession, int32_t stream_id,
 
 	UNUSED(error_code);
 
-	/*
-	 * NOTE: calling isc_nm_cancelread() or isc__nmsocket_prep_destroy()
-	 * on a socket will lead to an indirect call to detach the session,
-	 * which will, in turn, perform required stream cleanup.
-	 */
 	if (session->client) {
 		rv = on_client_stream_close_callback(stream_id, session);
 	} else {
@@ -789,7 +812,6 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
 	}
 
 	stream->stream_id = stream_id;
-	http_do_bio(session);
 
 	return (ISC_R_SUCCESS);
 }
@@ -829,34 +851,95 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	}
 
 	/* We might have something to receive or send, do IO */
-	http_do_bio(session);
+	http_do_bio(session, NULL, NULL, NULL);
 }
 
 static void
 http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
-	isc_nm_http_session_t *session = (isc_nm_http_session_t *)arg;
+	isc_http_send_req_t *req = (isc_http_send_req_t *)arg;
+	isc_nm_http_session_t *session = req->session;
+	isc_nmhandle_t *transphandle = req->transphandle;
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
+	REQUIRE(VALID_NMHANDLE(handle));
 
-	UNUSED(handle);
-
-	session->sending = false;
-	isc_mem_put(session->mctx, session->r.base, session->r.length);
-	session->r.base = NULL;
-	if (result == ISC_R_SUCCESS) {
-		http_do_bio(session);
+	if (http_session_active(session)) {
+		INSIST(session->handle == handle);
 	}
+
+	if (req->cb) {
+		req->cb(req->httphandle, result, req->cbarg);
+		isc_nmhandle_detach(&req->httphandle);
+	}
+
+	isc_mem_put(session->mctx, req->data.base, req->data.length);
+	isc_mem_put(session->mctx, req, sizeof(*req));
+
+	http_do_bio(session, NULL, NULL, NULL);
+	session->sending--;
+	isc_nmhandle_detach(&transphandle);
+	isc__nm_httpsession_detach(&session);
+}
+
+static bool
+http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
+		   isc_nm_cb_t cb, void *cbarg) {
+	isc_http_send_req_t *send = NULL;
+	const uint8_t *data = NULL;
+	size_t pending;
+
+	if (!http_session_active(session) ||
+	    !nghttp2_session_want_write(session->ngsession))
+	{
+		return (false);
+	}
+
+	pending = nghttp2_session_mem_send(session->ngsession, &data);
+	if (pending == 0) {
+		/* No data returned */
+		return (false);
+	}
+
+	send = isc_mem_get(session->mctx, sizeof(*send));
+	*send = (isc_http_send_req_t){
+		.data.base = isc_mem_get(session->mctx, pending),
+		.data.length = pending,
+	};
+	memmove(send->data.base, data, pending);
+	isc_nmhandle_attach(session->handle, &send->transphandle);
+	isc__nm_httpsession_attach(session, &send->session);
+
+	if (cb != NULL) {
+		INSIST(VALID_NMHANDLE(httphandle));
+		send->cb = cb;
+		send->cbarg = cbarg;
+		isc_nmhandle_attach(httphandle, &send->httphandle);
+	}
+
+	session->sending++;
+	isc_nm_send(session->handle, &send->data, http_writecb, send);
+	return (true);
 }
 
 static void
-http_do_bio(isc_nm_http_session_t *session) {
+http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
+	    isc_nm_cb_t send_cb, void *send_cbarg) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
-	if (session->closed ||
-	    (nghttp2_session_want_read(session->ngsession) == 0 &&
-	     nghttp2_session_want_write(session->ngsession) == 0))
+	if (session->closed) {
+		return;
+	} else if (session->closing) {
+		/*
+		 * There might be leftover callbacks waiting to be received
+		 */
+		if (session->sending == 0) {
+			finish_http_session(session);
+		}
+		return;
+	} else if ((nghttp2_session_want_read(session->ngsession) == 0 &&
+		    nghttp2_session_want_write(session->ngsession) == 0))
 	{
-		finish_http_session(session);
+		session->closing = true;
 		return;
 	}
 
@@ -879,7 +962,8 @@ http_do_bio(isc_nm_http_session_t *session) {
 				session->bufsize -= readlen;
 			}
 
-			http_do_bio(session);
+			http_do_bio(session, send_httphandle, send_cb,
+				    send_cbarg);
 			return;
 		} else {
 			/* Resume reading, it's idempotent, wait for more */
@@ -890,34 +974,15 @@ http_do_bio(isc_nm_http_session_t *session) {
 		isc_nm_pauseread(session->handle);
 	}
 
-	if (!session->sending &&
-	    nghttp2_session_want_write(session->ngsession) != 0) {
-		const uint8_t *data = NULL;
-		size_t sz;
-
-		/*
-		 * XXXWPK TODO
-		 * This function may produce a very small byte string.  If
-		 * that is the case, and application disables Nagle
-		 * algorithm (``TCP_NODELAY``), then writing this small
-		 * chunk leads to a very small packet, and it is very
-		 * inefficient.  An application should be responsible to
-		 * buffer up small chunks of data as necessary to avoid
-		 * this situation.
-		 */
-		sz = nghttp2_session_mem_send(session->ngsession, &data);
-		if (sz == 0) {
-			/* No data returned */
-			return;
-		}
-		INSIST(session->r.base == NULL);
-		session->r.base = isc_mem_get(session->mctx, sz);
-		session->r.length = sz;
-		memmove(session->r.base, data, sz);
-		session->sending = true;
-		isc_nm_send(session->handle, &session->r, http_writecb,
-			    session);
-		return;
+	if (send_cb != NULL) {
+		INSIST(VALID_NMHANDLE(send_httphandle));
+		(void)http_send_outgoing(session, send_httphandle, send_cb,
+					 send_cbarg);
+	} else {
+		INSIST(send_httphandle == NULL);
+		INSIST(send_cb == NULL);
+		INSIST(send_cbarg == NULL);
+		(void)http_send_outgoing(session, NULL, NULL, NULL);
 	}
 
 	return;
@@ -1030,7 +1095,7 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	}
 
 	http_call_connect_cb(http_sock, result);
-	http_do_bio(session);
+	http_do_bio(session, NULL, NULL, NULL);
 	isc__nmsocket_detach(&http_sock);
 	return;
 
@@ -1167,17 +1232,14 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 
 	cstream->sending = true;
 	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_APPEND(session->cstreams, cstream, link);
+		ISC_LIST_PREPEND(session->cstreams, cstream, link);
 	}
-	if (cstream->reading) {
-		sock->h2.connect.cstream = NULL;
-		result = client_submit_request(session, cstream);
-		if (result != ISC_R_SUCCESS) {
-			ISC_LIST_UNLINK(session->cstreams, cstream, link);
-			goto error;
-		}
 
-		http_do_bio(session);
+	sock->h2.connect.cstream = NULL;
+	result = client_submit_request(session, cstream);
+	if (result != ISC_R_SUCCESS) {
+		ISC_LIST_UNLINK(session->cstreams, cstream, link);
+		goto error;
 	}
 
 error:
@@ -1200,11 +1262,16 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	sock = handle->sock;
 
 	isc__nm_http_read(handle, cb, cbarg);
+	if (!http_session_active(handle->sock->h2.session)) {
+		/* the callback was called by isc__nm_http_read() */
+		return (ISC_R_CANCELED);
+	}
 	result = client_send(handle, region);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
 
+	http_do_bio(sock->h2.session, NULL, NULL, NULL);
 	return (ISC_R_SUCCESS);
 
 error:
@@ -1387,6 +1454,8 @@ server_handle_content_length_header(isc_nmsocket_t *socket,
 	socket->h2.content_length = strtoul(tmp, NULL, 10);
 	if (socket->h2.content_length > MAX_DNS_MESSAGE_SIZE) {
 		return (ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE);
+	} else if (socket->h2.content_length == 0) {
+		return (ISC_HTTP_ERROR_BAD_REQUEST);
 	}
 	return (ISC_HTTP_ERROR_SUCCESS);
 }
@@ -1712,7 +1781,7 @@ client_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 		return;
 	}
 
-	cb(handle, result, cbarg);
+	http_do_bio(sock->h2.session, handle, cb, cbarg);
 	isc__nm_uvreq_put(&req, sock);
 }
 
@@ -1723,7 +1792,7 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nm_cb_t cb = req->cb.send;
 	void *cbarg = req->cbarg;
-	if (inactive(sock) || handle->httpsession->closed) {
+	if (inactive(sock) || !http_session_active(handle->httpsession)) {
 		failed_send_cb(sock, req, ISC_R_CANCELED);
 		return;
 	}
@@ -1752,8 +1821,11 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 				      sock->h2.stream_id, hdrs,
 				      sizeof(hdrs) / sizeof(nghttp2_nv), sock);
 
-	http_do_bio(handle->httpsession);
-	cb(handle, result, cbarg);
+	if (result == ISC_R_SUCCESS) {
+		http_do_bio(handle->httpsession, handle, cb, cbarg);
+	} else {
+		cb(handle, result, cbarg);
+	}
 	isc__nm_uvreq_put(&req, sock);
 }
 
@@ -1793,6 +1865,10 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	session = handle->sock->h2.session;
+	if (!http_session_active(session)) {
+		cb(handle, ISC_R_CANCELED, NULL, cbarg);
+		return;
+	}
 
 	result = get_http_cstream(handle->sock, &cstream);
 	if (result != ISC_R_SUCCESS) {
@@ -1805,7 +1881,7 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	cstream->reading = true;
 
 	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_APPEND(session->cstreams, cstream, link);
+		ISC_LIST_PREPEND(session->cstreams, cstream, link);
 	}
 
 	if (cstream->sending) {
@@ -1815,7 +1891,7 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 			return;
 		}
 
-		http_do_bio(session);
+		http_do_bio(session, NULL, NULL, NULL);
 	}
 }
 
@@ -1950,7 +2026,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	server_send_connection_header(session);
 
 	/* TODO H2 */
-	http_do_bio(session);
+	http_do_bio(session, NULL, NULL, NULL);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1981,7 +2057,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
 		return (result);
 	}
 
-	sock->outer->h2.httpserver = sock;
+	isc__nmsocket_attach(sock, &sock->outer->h2.httpserver);
 
 	sock->nchildren = sock->outer->nchildren;
 	sock->result = ISC_R_DEFAULT;
@@ -2114,7 +2190,6 @@ isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	atomic_store(&sock->closing, false);
 	atomic_store(&sock->closed, true);
 	if (sock->outer != NULL) {
-		sock->outer->h2.httpserver = NULL;
 		isc_nm_stoplistening(sock->outer);
 		isc_nmsocket_close(&sock->outer);
 	}
@@ -2122,44 +2197,15 @@ isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 http_close_direct(isc_nmsocket_t *sock) {
-	bool sessions_empty;
 	isc_nm_http_session_t *session = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
 
 	atomic_store(&sock->closed, true);
-
-	if (atomic_load(&sock->client)) {
-		return;
-	}
-	INSIST(VALID_HTTP2_SESSION(sock->h2.session));
-
 	session = sock->h2.session;
 
-	if (ISC_LINK_LINKED(&sock->h2, link)) {
-		ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
-		session->nsstreams--;
-	}
-
-	sessions_empty = ISC_LIST_EMPTY(session->sstreams);
-	if (!sessions_empty) {
-		http_do_bio(session);
-	} else if (session->reading) {
-		session->reading = false;
-		if (session->handle != NULL) {
-			isc_nm_cancelread(session->handle);
-		}
-	}
-
-	/*
-	 * If session is closed then the only reference to the
-	 * socket is the one created when handling the netievent.
-	 */
-	if (!session->closed) {
-		INSIST(session->handle != NULL);
-		isc__nmsocket_detach(&sock);
-	} else {
-		INSIST(isc_refcount_current(&sock->references) == 1);
+	if (session != NULL && session->handle) {
+		http_do_bio(session, NULL, NULL, NULL);
 	}
 }
 
@@ -2239,7 +2285,6 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 		}
 	} else {
 		isc_nmsocket_h2_t *h2data = NULL; /* stream socket */
-		session->closed = true;
 		for (h2data = ISC_LIST_HEAD(session->sstreams); h2data != NULL;
 		     h2data = ISC_LIST_NEXT(h2data, link))
 		{
@@ -2410,6 +2455,13 @@ isc__nm_http_initsocket(isc_nmsocket_t *sock) {
 
 void
 isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
+	if ((sock->type == isc_nm_tcplistener ||
+	     sock->type == isc_nm_tlslistener) &&
+	    sock->h2.httpserver != NULL)
+	{
+		isc__nmsocket_detach(&sock->h2.httpserver);
+	}
+
 	if (sock->type == isc_nm_httplistener ||
 	    sock->type == isc_nm_httpsocket) {
 		if (sock->type == isc_nm_httplistener) {

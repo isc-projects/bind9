@@ -27,13 +27,27 @@
 #include <isc/netaddr.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
+#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-typedef enum { UDP, TCP, DOT, DOH } protocol_t;
+#define DEFAULT_DOH_PATH "/dns-query"
 
-static const char *protocols[] = { "udp", "tcp", "dot", "doh" };
+typedef enum {
+	UDP,
+	TCP,
+	DOT,
+	HTTPS_POST,
+	HTTPS_GET,
+	HTTP_POST,
+	HTTP_GET
+} protocol_t;
+
+static const char *protocols[] = { "udp",	    "tcp",
+				   "dot",	    "https-post",
+				   "https-get",	    "http-plain-post",
+				   "http-plain-get" };
 
 static isc_mem_t *mctx = NULL;
 static isc_nm_t *netmgr = NULL;
@@ -49,6 +63,8 @@ static int timeout;
 static uint8_t messagebuf[2 * 65536];
 static isc_region_t message = { .length = 0, .base = messagebuf };
 static int out = -1;
+
+static isc_tlsctx_t *tls_ctx = NULL;
 
 static isc_result_t
 parse_port(const char *input) {
@@ -304,6 +320,9 @@ teardown(void) {
 
 	isc_nm_destroy(&netmgr);
 	isc_mem_destroy(&mctx);
+	if (tls_ctx) {
+		isc_tlsctx_free(&tls_ctx);
+	}
 }
 
 static void
@@ -375,6 +394,33 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 }
 
 static void
+sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
+		size_t outbuf_len, const char *append) {
+	uint16_t sa_port;
+	char saddr[INET6_ADDRSTRLEN] = { 0 };
+	int sa_family;
+
+	if (sa == NULL || outbuf == NULL || outbuf_len == 0) {
+		return;
+	}
+
+	sa_family = ((struct sockaddr *)&sa->type.sa)->sa_family;
+
+	sa_port = ntohs(sa_family == AF_INET ? sa->type.sin.sin_port
+					     : sa->type.sin6.sin6_port);
+	inet_ntop(sa_family,
+		  sa_family == AF_INET
+			  ? (struct sockaddr *)&sa->type.sin.sin_addr
+			  : (struct sockaddr *)&sa->type.sin6.sin6_addr,
+		  saddr, sizeof(saddr));
+
+	snprintf(outbuf, outbuf_len, "%s://%s%s%s:%u%s",
+		 https ? "https" : "http", sa_family == AF_INET ? "" : "[",
+		 saddr, sa_family == AF_INET ? "" : "]", sa_port,
+		 append ? append : "");
+}
+
+static void
 run(void) {
 	isc_result_t result;
 
@@ -392,19 +438,33 @@ run(void) {
 					      connect_cb, NULL, timeout, 0);
 		break;
 	case DOT: {
-		isc_tlsctx_t *tlsdns_ctx = NULL;
-		isc_tlsctx_createclient(&tlsdns_ctx);
+		isc_tlsctx_createclient(&tls_ctx);
 
 		result = isc_nm_tlsdnsconnect(
 			netmgr, (isc_nmiface_t *)&sockaddr_local,
 			(isc_nmiface_t *)&sockaddr_remote, connect_cb, NULL,
-			timeout, 0, tlsdns_ctx);
+			timeout, 0, tls_ctx);
 		break;
 	}
-	case DOH:
-		INSIST(0);
-		ISC_UNREACHABLE();
-		break;
+	case HTTP_GET:
+	case HTTPS_GET:
+	case HTTPS_POST:
+	case HTTP_POST: {
+		bool is_https = (protocol == HTTPS_POST ||
+				 protocol == HTTPS_GET);
+		bool is_post = (protocol == HTTPS_POST ||
+				protocol == HTTP_POST);
+		char req_url[256];
+		sockaddr_to_url(&sockaddr_remote, is_https, req_url,
+				sizeof(req_url), DEFAULT_DOH_PATH);
+		if (is_https) {
+			isc_tlsctx_createclient(&tls_ctx);
+		}
+		result = isc_nm_httpconnect(
+			netmgr, (isc_nmiface_t *)&sockaddr_local,
+			(isc_nmiface_t *)&sockaddr_remote, req_url, is_post,
+			connect_cb, NULL, tls_ctx, timeout, 0);
+	} break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

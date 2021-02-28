@@ -25,9 +25,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-typedef enum { UDP, TCP, DOT, DOH } protocol_t;
+#define DEFAULT_DOH_PATH "/dns-query"
 
-static const char *protocols[] = { "udp", "tcp", "dot", "doh" };
+typedef enum { UDP, TCP, DOT, HTTPS, HTTP } protocol_t;
+
+static const char *protocols[] = { "udp", "tcp", "dot", "https", "http-plain" };
 
 static isc_mem_t *mctx = NULL;
 static isc_nm_t *netmgr = NULL;
@@ -37,6 +39,8 @@ static in_port_t port;
 static isc_netaddr_t netaddr;
 static isc_sockaddr_t sockaddr __attribute__((unused));
 static int workers;
+
+static isc_tlsctx_t *tls_ctx = NULL;
 
 static void
 read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
@@ -191,6 +195,9 @@ static void
 teardown(void) {
 	isc_nm_destroy(&netmgr);
 	isc_mem_destroy(&mctx);
+	if (tls_ctx) {
+		isc_tlsctx_free(&tls_ctx);
+	}
 }
 
 static void
@@ -267,18 +274,26 @@ run(void) {
 					     0, NULL, &sock);
 		break;
 	case DOT: {
-		isc_tlsctx_t *tlsdns_ctx = NULL;
-		isc_tlsctx_createserver(NULL, NULL, &tlsdns_ctx);
+		isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 
 		result = isc_nm_listentlsdns(netmgr, (isc_nmiface_t *)&sockaddr,
 					     read_cb, NULL, accept_cb, NULL, 0,
-					     0, NULL, tlsdns_ctx, &sock);
+					     0, NULL, tls_ctx, &sock);
 		break;
 	}
-	case DOH:
-		INSIST(0);
-		ISC_UNREACHABLE();
-		break;
+	case HTTPS:
+	case HTTP: {
+		bool is_https = protocol == HTTPS;
+		if (is_https) {
+			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
+		}
+		result = isc_nm_listenhttp(netmgr, (isc_nmiface_t *)&sockaddr,
+					   0, NULL, tls_ctx, &sock);
+		if (result == ISC_R_SUCCESS) {
+			result = isc_nm_http_endpoint(sock, DEFAULT_DOH_PATH,
+						      read_cb, NULL, 0);
+		}
+	} break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
