@@ -1687,6 +1687,12 @@ isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms);
  * the minimum value must be at least 1000 (1 second).
  */
 
+isc_result_t
+isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
+/*%<
+ * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
+ */
+
 /*
  * typedef all the netievent types
  */

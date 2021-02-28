@@ -2407,6 +2407,20 @@ isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms) {
 #endif
 }
 
+isc_result_t
+isc__nm_socket_tcp_nodelay(uv_os_sock_t fd) {
+#ifdef TCP_NODELAY
+	if (setsockopt_on(fd, IPPROTO_TCP, TCP_NODELAY) == -1) {
+		return (ISC_R_FAILURE);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+#else
+	UNUSED(fd);
+	return (ISC_R_SUCCESS);
+#endif
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

@@ -410,6 +410,7 @@ tls_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	REQUIRE(VALID_NMSOCK(tlssock));
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(tlssock->tid == isc_nm_tid());
+
 	if (result != ISC_R_SUCCESS) {
 		tls_failed_read_cb(tlssock, tlssock->statichandle, result);
 		return;

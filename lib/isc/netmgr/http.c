@@ -170,6 +170,9 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region);
 static void
 finish_http_session(isc_nm_http_session_t *session);
 
+static void
+http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle);
+
 static bool
 http_session_active(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
@@ -867,7 +870,7 @@ http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		INSIST(session->handle == handle);
 	}
 
-	if (req->cb) {
+	if (req->cb != NULL) {
 		req->cb(req->httphandle, result, req->cbarg);
 		isc_nmhandle_detach(&req->httphandle);
 	}
@@ -1094,6 +1097,7 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		goto error;
 	}
 
+	http_transpost_tcp_nodelay(handle);
 	http_call_connect_cb(http_sock, result);
 	http_do_bio(session, NULL, NULL, NULL);
 	isc__nmsocket_detach(&http_sock);
@@ -1678,7 +1682,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 		goto error;
 	}
 
-	if (!socket->h2.request_path || !socket->h2.cb) {
+	if (socket->h2.request_path == NULL || socket->h2.cb == NULL) {
 		code = ISC_HTTP_ERROR_NOT_FOUND;
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
 		   socket->h2.bufsize > socket->h2.content_length)
@@ -1975,6 +1979,31 @@ server_send_connection_header(isc_nm_http_session_t *session) {
 	return (0);
 }
 
+/*
+ * It is advisable to disable Nagle's algorithm for HTTP/2
+ * connections because multiple HTTP/2 streams could be multiplexed
+ * over one transport connection. Thus, delays when delivering small
+ * packets could bring down performance for the whole session.
+ * HTTP/2 is meant to be used this way.
+ */
+static void
+http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
+#ifndef _WIN32
+	isc_nmsocket_t *tcpsock = NULL;
+	uv_os_fd_t tcp_fd = (uv_os_fd_t)-1;
+
+	if (transphandle->sock->type == isc_nm_tlssocket) {
+		tcpsock = transphandle->sock->outerhandle->sock;
+	} else {
+		tcpsock = transphandle->sock;
+	}
+
+	(void)uv_fileno((uv_handle_t *)&tcpsock->uv_handle.tcp, &tcp_fd);
+	RUNTIME_CHECK(tcp_fd != (uv_os_fd_t)-1);
+	(void)isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd);
+#endif
+}
+
 static isc_result_t
 httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *httplistensock = (isc_nmsocket_t *)cbarg;
@@ -1983,6 +2012,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
+
 	if (handle->sock->type == isc_nm_tlssocket) {
 		REQUIRE(VALID_NMSOCK(handle->sock->listener));
 		listener = handle->sock->listener;
@@ -2015,6 +2045,8 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	    !atomic_load(&httplistensock->listening)) {
 		return (ISC_R_CANCELED);
 	}
+
+	http_transpost_tcp_nodelay(handle);
 
 	new_session(httplistensock->mgr->mctx, NULL, &session);
 	initialize_nghttp2_server_session(session);
@@ -2249,7 +2281,7 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	REQUIRE(VALID_NMSOCK(sock));
 	INSIST(sock->type == isc_nm_httpsocket);
 
-	if (!sock->h2.request_path) {
+	if (sock->h2.request_path == NULL) {
 		return;
 	}
 
@@ -2378,7 +2410,7 @@ isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
 
 	INSIST(i == len);
 
-	if (res_len) {
+	if (res_len != NULL) {
 		*res_len = len;
 	}
 
