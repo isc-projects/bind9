@@ -5,6 +5,10 @@
 			configuration included the "tkey-gssapi-credential"
 			option. This has been fixed. [GL #2634]
 
+5616.	[security]	named crashed when a DNAME record placed in the ANSWER
+			section during DNAME chasing turned out to be the final
+			answer to a client query. (CVE-2021-25215) [GL #2540]
+
 5615.	[security]	Insufficient IXFR checks could result in named serving a
 			zone without an SOA record at the apex, leading to a
 			RUNTIME_CHECK assertion failure when the zone was
