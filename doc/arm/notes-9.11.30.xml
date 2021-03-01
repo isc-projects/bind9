@@ -24,6 +24,19 @@
           vulnerability to our attention. [GL #2467]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          <command>named</command> crashed when a DNAME record placed in the
+          ANSWER section during DNAME chasing turned out to be the final answer
+          to a client query. (CVE-2021-25215)
+        </para>
+        <para>
+          ISC would like to thank <link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://github.com/sivakesava1">Siva Kakarla</link> for
+          bringing this vulnerability to our attention. [GL #2540]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
