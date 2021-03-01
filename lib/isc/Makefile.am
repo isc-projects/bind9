@@ -222,6 +222,7 @@ libisc_la_SOURCES =		\
 	pthreads/thread.c	\
 	entropy_private.h	\
 	fsaccess_common_p.h	\
+	lib_p.h			\
 	mem_p.h			\
 	task_p.h		\
 	tls_p.h
