@@ -20,6 +20,15 @@ Security Fixes
   ISC would like to thank Greg Kuechle of SaskTel for bringing this
   vulnerability to our attention. [GL #2467]
 
+- ``named`` crashed when a DNAME record placed in the ANSWER section
+  during DNAME chasing turned out to be the final answer to a client
+  query. (CVE-2021-25215)
+
+  ISC would like to thank `Siva Kakarla`_ for bringing this
+  vulnerability to our attention. [GL #2540]
+
+.. _Siva Kakarla: https://github.com/sivakesava1
+
 Known Issues
 ~~~~~~~~~~~~
 
