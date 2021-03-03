@@ -74,6 +74,7 @@ man_pages = [
     ('dnssec-verify', 'dnssec-verify', 'DNSSEC zone verification tool', author, 1),
     ('dnstap-read', 'dnstap-read', 'print dnstap data in human-readable form', author, 1),
     ('filter-aaaa', 'filter-aaaa', 'filter AAAA in DNS responses when A is present', author, 8),
+    ('filter-a', 'filter-a', 'filter A in DNS responses when AAAA is present', author, 8),
     ('host', 'host', 'DNS lookup utility', author, 1),
     ('mdig', 'mdig', 'DNS pipelined lookup utility', author, 1),
     ('named-checkconf', 'named-checkconf', 'named configuration file syntax checking tool', author, 1),
