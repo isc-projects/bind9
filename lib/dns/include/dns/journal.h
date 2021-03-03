@@ -53,6 +53,7 @@
 
 /*% Rewrite whole journal file instead of compacting */
 #define DNS_JOURNAL_COMPACTALL 0x0001
+#define DNS_JOURNAL_VERSION1   0x0002
 
 /***
  *** Types

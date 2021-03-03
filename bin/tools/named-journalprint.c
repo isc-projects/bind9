@@ -28,7 +28,7 @@ const char *progname = NULL;
 
 static void
 usage(void) {
-	fprintf(stderr, "Usage: %s [-x] journal\n", progname);
+	fprintf(stderr, "Usage: %s [-dux] journal\n", progname);
 	exit(1);
 }
 
@@ -68,10 +68,18 @@ main(int argc, char **argv) {
 	isc_log_t *lctx = NULL;
 	uint32_t flags = 0U;
 	char ch;
+	bool downgrade = false;
+	bool upgrade = false;
 
 	progname = argv[0];
-	while ((ch = isc_commandline_parse(argc, argv, "x")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "dux")) != -1) {
 		switch (ch) {
+		case 'd':
+			downgrade = true;
+			break;
+		case 'u':
+			upgrade = true;
+			break;
 		case 'x':
 			flags |= DNS_JOURNAL_PRINTXHDR;
 			break;
@@ -91,9 +99,17 @@ main(int argc, char **argv) {
 	isc_mem_create(&mctx);
 	RUNTIME_CHECK(setup_logging(mctx, stderr, &lctx) == ISC_R_SUCCESS);
 
-	result = dns_journal_print(mctx, flags, file, stdout);
-	if (result == DNS_R_NOJOURNAL) {
-		fprintf(stderr, "%s\n", dns_result_totext(result));
+	if (upgrade) {
+		flags = DNS_JOURNAL_COMPACTALL;
+		result = dns_journal_compact(mctx, file, 0, flags, 0);
+	} else if (downgrade) {
+		flags = DNS_JOURNAL_COMPACTALL | DNS_JOURNAL_VERSION1;
+		result = dns_journal_compact(mctx, file, 0, flags, 0);
+	} else {
+		result = dns_journal_print(mctx, flags, file, stdout);
+		if (result == DNS_R_NOJOURNAL) {
+			fprintf(stderr, "%s\n", dns_result_totext(result));
+		}
 	}
 	isc_log_destroy(&lctx);
 	isc_mem_detach(&mctx);

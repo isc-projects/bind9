@@ -520,13 +520,20 @@ journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr) {
 static isc_result_t
 journal_write_xhdr(dns_journal_t *j, uint32_t size, uint32_t count,
 		   uint32_t serial0, uint32_t serial1) {
-	journal_rawxhdr_t raw;
-
-	encode_uint32(size, raw.size);
-	encode_uint32(count, raw.count);
-	encode_uint32(serial0, raw.serial0);
-	encode_uint32(serial1, raw.serial1);
-	return (journal_write(j, &raw, sizeof(raw)));
+	if (j->header_ver1) {
+		journal_rawxhdr_ver1_t raw;
+		encode_uint32(size, raw.size);
+		encode_uint32(serial0, raw.serial0);
+		encode_uint32(serial1, raw.serial1);
+		return (journal_write(j, &raw, sizeof(raw)));
+	} else {
+		journal_rawxhdr_t raw;
+		encode_uint32(size, raw.size);
+		encode_uint32(count, raw.count);
+		encode_uint32(serial0, raw.serial0);
+		encode_uint32(serial1, raw.serial1);
+		return (journal_write(j, &raw, sizeof(raw)));
+	}
 }
 
 /*
@@ -547,7 +554,7 @@ journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr) {
 }
 
 static isc_result_t
-journal_file_create(isc_mem_t *mctx, const char *filename) {
+journal_file_create(isc_mem_t *mctx, bool downgrade, const char *filename) {
 	FILE *fp = NULL;
 	isc_result_t result;
 	journal_header_t header;
@@ -566,7 +573,11 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	header = initial_journal_header;
+	if (downgrade) {
+		header = journal_header_ver1;
+	} else {
+		header = initial_journal_header;
+	}
 	header.index_size = index_size;
 	journal_header_encode(&header, &rawheader);
 
@@ -603,7 +614,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 static isc_result_t
 journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
-	     dns_journal_t **journalp) {
+	     bool downgrade, dns_journal_t **journalp) {
 	FILE *fp = NULL;
 	isc_result_t result;
 	journal_rawheader_t rawheader;
@@ -624,7 +635,7 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 				      "journal file %s does not exist, "
 				      "creating it",
 				      j->filename);
-			CHECK(journal_file_create(mctx, filename));
+			CHECK(journal_file_create(mctx, downgrade, filename));
 			/*
 			 * Retry.
 			 */
@@ -758,7 +769,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 	create = ((mode & DNS_JOURNAL_CREATE) != 0);
 	writable = ((mode & (DNS_JOURNAL_WRITE | DNS_JOURNAL_CREATE)) != 0);
 
-	result = journal_open(mctx, filename, writable, create, journalp);
+	result = journal_open(mctx, filename, writable, create, false,
+			      journalp);
 	if (result == ISC_R_NOTFOUND) {
 		namelen = strlen(filename);
 		if (namelen > 4U && strcmp(filename + namelen - 4, ".jnl") == 0)
@@ -771,7 +783,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 		if (result >= sizeof(backup)) {
 			return (ISC_R_NOSPACE);
 		}
-		result = journal_open(mctx, backup, writable, writable,
+		result = journal_open(mctx, backup, writable, writable, false,
 				      journalp);
 	}
 	return (result);
@@ -1620,6 +1632,10 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 		return (result);
 	}
 
+	if (printxhdr) {
+		fprintf(file, "Journal format = %sHeader version = %d\n",
+			j->header.format + 1, j->header_ver1 ? 1 : 2);
+	}
 	if (j->header.serialset) {
 		fprintf(file, "Source serial = %u\n", j->header.sourceserial);
 	}
@@ -2385,6 +2401,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	char backup[PATH_MAX];
 	bool is_backup = false;
 	bool rewrite = false;
+	bool downgrade = false;
 
 	REQUIRE(filename != NULL);
 
@@ -2401,10 +2418,10 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			  filename);
 	RUNTIME_CHECK(result < sizeof(backup));
 
-	result = journal_open(mctx, filename, false, false, &j1);
+	result = journal_open(mctx, filename, false, false, false, &j1);
 	if (result == ISC_R_NOTFOUND) {
 		is_backup = true;
-		result = journal_open(mctx, backup, false, false, &j1);
+		result = journal_open(mctx, backup, false, false, false, &j1);
 	}
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -2415,6 +2432,9 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	 * file (for example, to upversion it).
 	 */
 	if ((flags & DNS_JOURNAL_COMPACTALL) != 0) {
+		if ((flags & DNS_JOURNAL_VERSION1) != 0) {
+			downgrade = true;
+		}
 		rewrite = true;
 		serial = dns_journal_first_serial(j1);
 	} else if (JOURNAL_EMPTY(&j1->header)) {
@@ -2449,7 +2469,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(journal_open(mctx, newname, true, true, &j2));
+	CHECK(journal_open(mctx, newname, true, true, downgrade, &j2));
 	CHECK(journal_seek(j2, indexend));
 
 	/*
