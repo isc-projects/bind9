@@ -344,6 +344,7 @@ struct dns_journal {
 	struct {
 		/* These define the part of the journal we iterate over. */
 		journal_pos_t bpos; /*%< Position before first, */
+		journal_pos_t cpos; /*%< before current, */
 		journal_pos_t epos; /*%< and after last transaction */
 		/* The rest is iterator state. */
 		uint32_t current_serial; /*%< Current SOA serial */
@@ -482,6 +483,8 @@ journal_fsync(dns_journal_t *j) {
 static isc_result_t
 journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr) {
 	isc_result_t result;
+
+	j->it.cpos.offset = j->offset;
 
 	switch (j->xhdr_version) {
 	case XHDR_VERSION1: {
@@ -1635,6 +1638,15 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 	if (printxhdr) {
 		fprintf(file, "Journal format = %sHeader version = %d\n",
 			j->header.format + 1, j->header_ver1 ? 1 : 2);
+		fprintf(file, "Index (size = %u):\n", j->header.index_size);
+		for (uint32_t i = 0; i < j->header.index_size; i++) {
+			if (j->index[i].offset == 0) {
+				fputc('\n', file);
+				break;
+			}
+			fprintf(file, "%lld", (long long)j->index[i].offset);
+			fputc((i + 1) % 8 == 0 ? '\n' : ' ', file);
+		}
 	}
 	if (j->header.serialset) {
 		fprintf(file, "Source serial = %u\n", j->header.sourceserial);
@@ -1660,16 +1672,20 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 		dns_name_t *name = NULL;
 		dns_rdata_t *rdata = NULL;
 		dns_difftuple_t *tuple = NULL;
+		static uint32_t i = 0;
+		bool print = false;
 		uint32_t ttl;
 
 		dns_journal_current_rr(j, &name, &ttl, &rdata);
 
 		if (rdata->type == dns_rdatatype_soa) {
 			n_soa++;
-		}
-
-		if (n_soa == 3) {
-			n_soa = 1;
+			if (n_soa == 3) {
+				n_soa = 1;
+			}
+			if (n_soa == 1) {
+				print = printxhdr;
+			}
 		}
 		if (n_soa == 0) {
 			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -1679,13 +1695,21 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 			FAIL(ISC_R_UNEXPECTED);
 		}
 
-		if (printxhdr && n_soa == 1) {
+		if (print) {
 			fprintf(file,
-				"Transaction: version %d size %u rrcount %u "
-				"startserial %u endserial %u\n",
-				j->xhdr_version, j->curxhdr.size,
-				j->curxhdr.count, j->curxhdr.serial0,
-				j->curxhdr.serial1);
+				"Transaction: version %d offset %lld size %u "
+				"rrcount %u start %u end %u\n",
+				j->xhdr_version, (long long)j->it.cpos.offset,
+				j->curxhdr.size, j->curxhdr.count,
+				j->curxhdr.serial0, j->curxhdr.serial1);
+			if (j->it.cpos.offset > j->index[i].offset) {
+				fprintf(file,
+					"ERROR: Offset mismatch, "
+					"expected %lld\n",
+					(long long)j->index[i].offset);
+			} else if (j->it.cpos.offset == j->index[i].offset) {
+				i++;
+			}
 		}
 		CHECK(dns_difftuple_create(
 			diff.mctx, n_soa == 1 ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
