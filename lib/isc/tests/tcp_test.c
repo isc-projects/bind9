@@ -287,7 +287,7 @@ tcp_connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	while (tcp_buffer_length >= sizeof(magic)) {
 		atomic_fetch_add(&creads, 1);
 
-		magic = *(uint64_t *)tcp_buffer_storage;
+		memmove(&magic, tcp_buffer_storage, sizeof(magic));
 		assert_true(magic == stop_magic || magic == send_magic);
 
 		tcp_buffer_length -= sizeof(magic);
@@ -957,7 +957,7 @@ tcp_listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	tcp_buffer_length += region->length;
 
 	while (tcp_buffer_length >= sizeof(magic)) {
-		magic = *(uint64_t *)tcp_buffer_storage;
+		memmove(&magic, tcp_buffer_storage, sizeof(magic));
 		assert_true(magic == stop_magic || magic == send_magic);
 
 		tcp_buffer_length -= sizeof(magic);
