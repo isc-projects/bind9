@@ -704,7 +704,7 @@ https_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		return;
 	}
 
-	if (readlen < region->length) {
+	if ((size_t)readlen < region->length) {
 		INSIST(session->bufsize == 0);
 		INSIST(region->length - readlen < MAX_DNS_MESSAGE_SIZE);
 		memmove(session->buf, region->base, region->length - readlen);
