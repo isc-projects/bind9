@@ -48,6 +48,13 @@
 #define DNS_JOURNAL_SIZE_MAX INT32_MAX
 #define DNS_JOURNAL_SIZE_MIN 4096
 
+/*% Print transaction header data */
+#define DNS_JOURNAL_PRINTXHDR 0x0001
+
+/*% Rewrite whole journal file instead of compacting */
+#define DNS_JOURNAL_COMPACTALL 0x0001
+#define DNS_JOURNAL_VERSION1   0x0002
+
 /***
  *** Types
  ***/
@@ -258,12 +265,18 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
  *\li	DNS_R_NOJOURNAL when journal does not exist.
  *\li	ISC_R_NOTFOUND when current serial in not in journal.
  *\li	ISC_R_RANGE when current serial in not in journals range.
- *\li	ISC_R_SUCCESS journal has been applied successfully to database.
+ *\li	DNS_R_UPTODATE when the database was already up to date.
+ *\li	ISC_R_SUCCESS journal has been applied successfully to the
+ *      database without any issues.
+ *\li	DNS_R_RECOVERABLE if successful or up to date, but the journal
+ *      was found to contain at least one outdated transaction header.
+ *
  *	others
  */
 
 isc_result_t
-dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
+dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
+		  FILE *file);
 /* For debugging not general use */
 
 isc_result_t
@@ -286,7 +299,7 @@ dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
 
 isc_result_t
 dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
-		    uint32_t target_size);
+		    uint32_t flags, uint32_t target_size);
 /*%<
  * Attempt to compact the journal if it is greater that 'target_size'.
  * Changes from 'serial' onwards will be preserved.  If the journal

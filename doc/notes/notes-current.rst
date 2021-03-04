@@ -64,3 +64,20 @@ Bug Fixes
   (crash) if the return of stale cached answers was enabled and
   ``stale-answer-client-timeout`` was applied to a client query in process.
   This has been fixed. [GL #2503]
+
+- Zone journal (``.jnl``) files created by versions of ``named`` prior
+  to 9.16.12 were no longer compatible; this could cause problems when
+  upgrading if journal files were not synchronized first.  This has been
+  corrected: older journal files can now be read when starting up.  When
+  an old-style journal file is detected, it is updated to the new
+  format immediately after loading.
+
+  Note that journals created by the current version of ``named`` are not
+  usable by versions prior to 9.16.12. Before downgrading to a prior
+  release, users are advised to ensure that all dynamic zones have been
+  synchronized using ``rndc sync -clean``.
+
+  A journal file's format can be changed manually by running
+  ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
+  (upgrade). Note that this *must not* be done while ``named`` is
+  running.  [GL #2505]
