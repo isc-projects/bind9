@@ -285,7 +285,7 @@ udp_listen_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	assert_int_equal(region->length, sizeof(send_magic));
 	atomic_fetch_add(&sreads, 1);
-	magic = *(uint64_t *)region->base;
+	memmove(&magic, region->base, sizeof(magic));
 
 	assert_true(magic == stop_magic || magic == send_magic);
 	isc_nm_send(handle, region, udp_listen_send_cb, NULL);
@@ -552,7 +552,7 @@ udp_connect_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	atomic_fetch_add(&creads, 1);
 
-	magic = *(uint64_t *)region->base;
+	memmove(&magic, region->base, sizeof(magic));
 
 	assert_true(magic == stop_magic || magic == send_magic);
 
