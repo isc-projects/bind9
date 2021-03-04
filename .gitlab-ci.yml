@@ -22,7 +22,7 @@ variables:
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
-  TSAN_OPTIONS_COMMON: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-11/bin/llvm-symbolizer"
+  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-11/bin/llvm-symbolizer"
 
   TARBALL_EXTENSION: xz
 
@@ -334,7 +334,6 @@ stages:
 
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
-  allow_failure: true
   after_script:
     - cat bin/tests/system/test-suite.log
     - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
