@@ -67,7 +67,7 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	isc_log_t *lctx = NULL;
 	uint32_t flags = 0U;
-	char ch;
+	int ch;
 	bool downgrade = false;
 	bool upgrade = false;
 
