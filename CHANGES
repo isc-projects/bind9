@@ -1,3 +1,10 @@
+5595.	[cleanup]	Public header files for BIND 9 libraries no longer
+			directly include third-party library headers. This
+			prevents the need to include paths to third-party header
+			files in CFLAGS whenever BIND 9 public header files are
+			used, which could cause build-time issues on hosts with
+			older versions of BIND 9 installed. [GL #2357]
+
 5594.	[bug]		Building with --enable-dnsrps --enable-dnsrps-dl failed.
 			[GL #2298]
 
