@@ -18,14 +18,14 @@ typedef enum {
 	DNS_TRANSPORT_UDP = 1,
 	DNS_TRANSPORT_TCP = 2,
 	DNS_TRANSPORT_TLS = 3,
-	DNS_TRANSPORT_DOH = 4,
+	DNS_TRANSPORT_HTTP = 4,
 	DNS_TRANSPORT_COUNT = 5,
 } dns_transport_type_t;
 
 typedef enum {
-	DNS_DOH_GET = 0,
-	DNS_DOH_POST = 1,
-} dns_doh_mode_t;
+	DNS_HTTP_GET = 0,
+	DNS_HTTP_POST = 1,
+} dns_http_mode_t;
 
 typedef struct dns_transport	  dns_transport_t;
 typedef struct dns_transport_list dns_transport_list_t;
@@ -50,11 +50,11 @@ char *
 dns_transport_get_hostname(dns_transport_t *transport);
 char *
 dns_transport_get_endpoint(dns_transport_t *transport);
-dns_doh_mode_t
+dns_http_mode_t
 dns_transport_get_mode(dns_transport_t *transport);
 /*%<
  * Getter functions: return the type, cert file, key file, CA file,
- * hostname, DoH endpoint, or DoH mode (GET or POST) for 'transport'.
+ * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
  */
 
 void
@@ -68,16 +68,16 @@ dns_transport_set_hostname(dns_transport_t *transport, const char *hostname);
 void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint);
 void
-dns_transport_set_mode(dns_transport_t *transport, dns_doh_mode_t mode);
+dns_transport_set_mode(dns_transport_t *transport, dns_http_mode_t mode);
 /*%<
  * Setter functions: set the type, cert file, key file, CA file,
- * hostname, DoH endpoint, or DoH mode (GET or POST) for 'transport'.
+ * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
  *
  * Requires:
  *\li	'transport' is valid.
- *\li	'transport' is of type DNS_TRANSPORT_TLS or DNS_TRANSPORT_DOH
+ *\li	'transport' is of type DNS_TRANSPORT_TLS or DNS_TRANSPORT_HTTP
  *	(for certfile, keyfile, cafile, or hostname).
- *\li	'transport' is of type DNS_TRANSPORT_DOH (for endpoint or mode).
+ *\li	'transport' is of type DNS_TRANSPORT_HTTP (for endpoint or mode).
  */
 
 void

@@ -1,3 +1,7 @@
+5596.	[func]		Client-side support for DNS-over-HTTPS (DoH) has
+			been added to dig. "dig +https" can now query
+			a server via HTTP/2. [GL #1641]
+
 5595.	[cleanup]	Public header files for BIND 9 libraries no longer
 			directly include third-party library headers. This
 			prevents the need to include paths to third-party header

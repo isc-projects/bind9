@@ -95,6 +95,7 @@ TESTS +=			\
 	dlz			\
 	dlzexternal		\
 	dns64			\
+	doth			\
 	dscp			\
 	dsdigest		\
 	dyndb			\
@@ -153,7 +154,6 @@ TESTS +=			\
 	views			\
 	wildcard		\
 	xferquota		\
-	xot			\
 	zonechecks
 
 # The "stress" test is not run by default since it creates enough
@@ -176,7 +176,6 @@ TESTS +=		\
 	nsupdate	\
 	resolver	\
 	statistics	\
-	dot		\
 	upforwd		\
 	zero
 

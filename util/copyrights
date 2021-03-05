@@ -368,9 +368,12 @@
 ./bin/tests/system/dnstap/setup.sh		SH	2018,2019,2020,2021
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017,2018,2019,2020,2021
-./bin/tests/system/dot/clean.sh			SH	2020,2021
-./bin/tests/system/dot/setup.sh			SH	2020,2021
-./bin/tests/system/dot/tests.sh			SH	2020,2021
+./bin/tests/system/doth/clean.sh		SH	2020,2021
+./bin/tests/system/doth/dig1.good		X	2021
+./bin/tests/system/doth/ns2/cert.pem		X	2021
+./bin/tests/system/doth/ns2/key.pem		X	2021
+./bin/tests/system/doth/setup.sh		SH	2021
+./bin/tests/system/doth/tests.sh		SH	2021
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014,2018,2019,2020,2021
 ./bin/tests/system/dscp/ns2/named.args		X	2013,2014,2018,2019,2020,2021
@@ -987,10 +990,6 @@
 ./bin/tests/system/xferquota/setup.pl		PERL	2000,2001,2004,2007,2011,2012,2016,2018,2019,2020,2021
 ./bin/tests/system/xferquota/setup.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
 ./bin/tests/system/xferquota/tests.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
-./bin/tests/system/xot/clean.sh			SH	2021
-./bin/tests/system/xot/dig1.good		X	2021
-./bin/tests/system/xot/setup.sh			SH	2021
-./bin/tests/system/xot/tests.sh			SH	2021
 ./bin/tests/system/zero/ans5/ans.pl		PERL	2016,2018,2019,2020,2021
 ./bin/tests/system/zero/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/zero/setup.sh		SH	2013,2014,2016,2018,2019,2020,2021

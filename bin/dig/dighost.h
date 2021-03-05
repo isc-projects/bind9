@@ -76,6 +76,9 @@
 #define DEFAULT_EDNS_VERSION 0
 #define DEFAULT_EDNS_BUFSIZE 1232
 
+#define DEFAULT_HTTPS_PATH  "/dns-query"
+#define DEFAULT_HTTPS_QUERY "?dns="
+
 /*%
  * Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away
@@ -168,6 +171,12 @@ struct dig_lookup {
 	int rrcomments;
 	unsigned int eoferr;
 	uint16_t qid;
+	struct {
+		bool http_plain;
+		bool https_mode;
+		bool https_get;
+		char *https_path;
+	};
 };
 
 /*% The dig_query structure */

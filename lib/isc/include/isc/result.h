@@ -89,9 +89,10 @@
 #define ISC_R_DEFAULT	       68	    /*%< default */
 #define ISC_R_IPV4PREFIX       69	    /*%< IPv4 prefix */
 #define ISC_R_TLSERROR	       70	    /*%< TLS error */
+#define ISC_R_HTTP2ALPNERROR   71	    /*%< ALPN for HTTP/2 failed */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 71
+#define ISC_R_NRESULTS 72
 
 ISC_LANG_BEGINDECLS
 

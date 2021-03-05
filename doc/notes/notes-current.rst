@@ -24,7 +24,8 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- ``dig`` has been extended to support DNS-over-HTTPS (DoH) queries,
+  using ``dig +https`` and related options. [GL #1641]
 
 - A new option, ``purge-keys``, has been added to ``dnssec-policy``. It sets
   the time how long key files should be retained after they have become

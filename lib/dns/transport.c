@@ -50,7 +50,7 @@ struct dns_transport {
 	} tls;
 	struct {
 		char *endpoint;
-		dns_doh_mode_t mode;
+		dns_http_mode_t mode;
 	} doh;
 };
 
@@ -124,7 +124,7 @@ dns_transport_get_endpoint(dns_transport_t *transport) {
 	return (transport->doh.endpoint);
 }
 
-dns_doh_mode_t
+dns_http_mode_t
 dns_transport_get_mode(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
@@ -150,7 +150,7 @@ void
 dns_transport_set_certfile(dns_transport_t *transport, const char *certfile) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
-		transport->type == DNS_TRANSPORT_DOH);
+		transport->type == DNS_TRANSPORT_HTTP);
 
 	if (certfile != NULL) {
 		transport->tls.certfile = isc_mem_strdup(transport->mctx,
@@ -162,7 +162,7 @@ void
 dns_transport_set_keyfile(dns_transport_t *transport, const char *keyfile) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
-		transport->type == DNS_TRANSPORT_DOH);
+		transport->type == DNS_TRANSPORT_HTTP);
 
 	if (keyfile != NULL) {
 		transport->tls.keyfile = isc_mem_strdup(transport->mctx,
@@ -174,7 +174,7 @@ void
 dns_transport_set_cafile(dns_transport_t *transport, const char *cafile) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
-		transport->type == DNS_TRANSPORT_DOH);
+		transport->type == DNS_TRANSPORT_HTTP);
 
 	if (cafile != NULL) {
 		transport->tls.cafile = isc_mem_strdup(transport->mctx, cafile);
@@ -185,7 +185,7 @@ void
 dns_transport_set_hostname(dns_transport_t *transport, const char *hostname) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
-		transport->type == DNS_TRANSPORT_DOH);
+		transport->type == DNS_TRANSPORT_HTTP);
 
 	if (hostname != NULL) {
 		transport->tls.hostname = isc_mem_strdup(transport->mctx,
@@ -196,7 +196,7 @@ dns_transport_set_hostname(dns_transport_t *transport, const char *hostname) {
 void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint) {
 	REQUIRE(VALID_TRANSPORT(transport));
-	REQUIRE(transport->type == DNS_TRANSPORT_DOH);
+	REQUIRE(transport->type == DNS_TRANSPORT_HTTP);
 
 	if (endpoint != NULL) {
 		transport->doh.endpoint = isc_mem_strdup(transport->mctx,
@@ -205,9 +205,9 @@ dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint) {
 }
 
 void
-dns_transport_set_mode(dns_transport_t *transport, dns_doh_mode_t mode) {
+dns_transport_set_mode(dns_transport_t *transport, dns_http_mode_t mode) {
 	REQUIRE(VALID_TRANSPORT(transport));
-	REQUIRE(transport->type == DNS_TRANSPORT_DOH);
+	REQUIRE(transport->type == DNS_TRANSPORT_HTTP);
 
 	transport->doh.mode = mode;
 }

@@ -556,9 +556,9 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 
 	if (result == ISC_R_SUCCESS) {
 		for (i = 0; i < neps; i++) {
-			result = isc_nm_http_add_doh_endpoint(
-				sock, eps[i], ns__client_request, ifp,
-				sizeof(ns_client_t));
+			result = isc_nm_http_endpoint(sock, eps[i],
+						      ns__client_request, ifp,
+						      sizeof(ns_client_t));
 		}
 	}
 
