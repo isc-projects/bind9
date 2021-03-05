@@ -474,17 +474,18 @@ typedef enum {
 						* up-to-date */
 	DNS_ZONEFLG_NEEDNOTIFY = 0x00000400U,  /*%< need to send out notify
 						* messages */
-	DNS_ZONEFLG_DIFFONRELOAD = 0x00000800U, /*%< generate a journal diff on
-						 * reload */
-	DNS_ZONEFLG_NOMASTERS = 0x00001000U,	/*%< an attempt to refresh a
-						 * zone with no primaries
-						 * occurred */
-	DNS_ZONEFLG_LOADING = 0x00002000U,    /*%< load from disk in progress*/
-	DNS_ZONEFLG_HAVETIMERS = 0x00004000U, /*%< timer values have been set
-					       * from SOA (if not set, we
-					       * are still using
-					       * default timer values) */
-	DNS_ZONEFLG_FORCEXFER = 0x00008000U,  /*%< Force a zone xfer */
+	DNS_ZONEFLG_FIXJOURNAL = 0x00000800U,  /*%< journal file had
+						* recoverable error,
+						* needs rewriting */
+	DNS_ZONEFLG_NOMASTERS = 0x00001000U,   /*%< an attempt to refresh a
+						* zone with no primaries
+						* occurred */
+	DNS_ZONEFLG_LOADING = 0x00002000U,     /*%< load from disk in progress*/
+	DNS_ZONEFLG_HAVETIMERS = 0x00004000U,  /*%< timer values have been set
+						* from SOA (if not set, we
+						* are still using
+						* default timer values) */
+	DNS_ZONEFLG_FORCEXFER = 0x00008000U,   /*%< Force a zone xfer */
 	DNS_ZONEFLG_NOREFRESH = 0x00010000U,
 	DNS_ZONEFLG_DIALNOTIFY = 0x00020000U,
 	DNS_ZONEFLG_DIALREFRESH = 0x00040000U,
@@ -504,9 +505,11 @@ typedef enum {
 						      * notify due to the zone
 						      * just being loaded for
 						      * the first time. */
-	DNS_ZONEFLG_FIXJOURNAL = 0x100000000U,	     /*%< journal file had
-						      * recoverable error,
-						      * needs rewriting */
+	/*
+	 * DO NOT add any new zone flags here until all platforms
+	 * support 64-bit enum values. Currently they fail on
+	 * Windows.
+	 */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;
 
