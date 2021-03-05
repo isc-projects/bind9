@@ -2404,6 +2404,16 @@ dns_zone_loadandthaw(dns_zone_t *zone) {
 	if (inline_raw(zone)) {
 		result = zone_load(zone->secure, DNS_ZONELOADFLAG_THAW, false);
 	} else {
+		/*
+		 * When thawing a zone, we don't know what changes
+		 * have been made. If we do DNSSEC maintenance on this
+		 * zone, schedule a full sign for this zone.
+		 */
+		if (zone->type == dns_zone_master &&
+		    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
+		{
+			DNS_ZONEKEY_SETOPTION(zone, DNS_ZONEKEY_FULLSIGN);
+		}
 		result = zone_load(zone, DNS_ZONELOADFLAG_THAW, false);
 	}
 
