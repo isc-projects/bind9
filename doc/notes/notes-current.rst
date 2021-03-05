@@ -24,13 +24,6 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- When serve-stale is enabled and stale data is available, ``named`` now
-  returns stale answers upon encountering any unexpected error in the
-  query resolution process. This may happen, for example, if the
-  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
-  this case, ``named`` attempts to answer DNS requests with stale data,
-  but does not start the ``stale-refresh-time`` window. [GL #2434]
-
 - A new ``purge-keys`` option has been added to ``dnssec-policy``. It
   sets the period of time that key files are retained after becoming
   obsolete due to a key rollover; the default is 90 days. This feature
@@ -44,27 +37,15 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- When serve-stale is enabled and stale data is available, ``named`` now
+  returns stale answers upon encountering any unexpected error in the
+  query resolution process. This may happen, for example, if the
+  ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
+  this case, ``named`` attempts to answer DNS requests with stale data,
+  but does not start the ``stale-refresh-time`` window. [GL #2434]
 
 Bug Fixes
 ~~~~~~~~~
-
-- If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
-  instead of sending back a proper response. To prevent this problem,
-  the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
-  been happening since BIND 9.16.11. [GL #2466]
-
-- NSEC3 records were not immediately created when signing a dynamic zone
-  using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
-  [GL #2498]
-
-- An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
-  a LOC record resulted in an INSIST failure when a zone file containing
-  such a record was loaded. [GL #2499]
-
-- ``named`` crashed when it was allowed to serve stale answers and
-  ``stale-answer-client-timeout`` was triggered without any (stale) data
-  available in the cache to answer the query. [GL #2503]
 
 - Zone journal (``.jnl``) files created by versions of ``named`` prior
   to 9.16.12 were no longer compatible; this could cause problems when
@@ -82,3 +63,20 @@ Bug Fixes
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
   (upgrade). Note that this *must not* be done while ``named`` is
   running. [GL #2505]
+
+- ``named`` crashed when it was allowed to serve stale answers and
+  ``stale-answer-client-timeout`` was triggered without any (stale) data
+  available in the cache to answer the query. [GL #2503]
+
+- If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
+  instead of sending back a proper response. To prevent this problem,
+  the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
+  been happening since BIND 9.16.11. [GL #2466]
+
+- NSEC3 records were not immediately created when signing a dynamic zone
+  using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
+  [GL #2498]
+
+- An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
+  a LOC record resulted in an INSIST failure when a zone file containing
+  such a record was loaded. [GL #2499]
