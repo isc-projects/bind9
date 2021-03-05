@@ -45,29 +45,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- If an invalid key name (e.g. ``a..b``) was specified in a
-  ``primaries`` list in ``named.conf``, the wrong size was passed to
-  ``isc_mem_put()``, which resulted in the returned memory being put on
-  the wrong free list and prevented ``named`` from starting up. This has
-  been fixed. [GL #2460]
-
-- If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
-  instead of sending back a proper response. To prevent this problem,
-  the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
-  been happening since BIND 9.17.6. [GL #2466]
-
-- NSEC3 records were not immediately created when signing a dynamic zone
-  using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
-  [GL #2498]
-
-- An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
-  a LOC record resulted in an INSIST failure when a zone file containing
-  such a record was loaded. [GL #2499]
-
-- ``named`` crashed when it was allowed to serve stale answers and
-  ``stale-answer-client-timeout`` was triggered without any (stale) data
-  available in the cache to answer the query. [GL #2503]
-
 - Zone journal (``.jnl``) files created by versions of ``named`` prior
   to 9.16.12 were no longer compatible; this could cause problems when
   upgrading if journal files were not synchronized first. This has been
@@ -84,3 +61,26 @@ Bug Fixes
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
   (upgrade). Note that this *must not* be done while ``named`` is
   running. [GL #2505]
+
+- ``named`` crashed when it was allowed to serve stale answers and
+  ``stale-answer-client-timeout`` was triggered without any (stale) data
+  available in the cache to answer the query. [GL #2503]
+
+- If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
+  instead of sending back a proper response. To prevent this problem,
+  the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
+  been happening since BIND 9.17.6. [GL #2466]
+
+- NSEC3 records were not immediately created when signing a dynamic zone
+  using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
+  [GL #2498]
+
+- An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
+  a LOC record resulted in an INSIST failure when a zone file containing
+  such a record was loaded. [GL #2499]
+
+- If an invalid key name (e.g. ``a..b``) was specified in a
+  ``primaries`` list in ``named.conf``, the wrong size was passed to
+  ``isc_mem_put()``, which resulted in the returned memory being put on
+  the wrong free list and prevented ``named`` from starting up. This has
+  been fixed. [GL #2460]
