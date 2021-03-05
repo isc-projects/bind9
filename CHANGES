@@ -1,3 +1,8 @@
+5601.	[bug]		Dynamic zones with dnssec-policy could not be thawed
+			because KASP zones were always considered dynamic;
+			previously, dynamic KASP zones did not check whether
+			updates were disabled. This has been fixed. [GL #2523]
+
 5597.	[bug]		When serve-stale was enabled and starting the recursive
 			resolution process for a query failed, a named instance
 			could crash if it was configured as both a recursive and
