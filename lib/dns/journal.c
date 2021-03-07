@@ -1714,7 +1714,7 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 			name, ttl, rdata, &tuple));
 		dns_diff_append(&diff, &tuple);
 
-		if (++n_put != 0 || printxhdr) {
+		if (++n_put > 100 || printxhdr) {
 			result = dns_diff_print(&diff, file);
 			dns_diff_clear(&diff);
 			n_put = 0;
@@ -1728,7 +1728,7 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 	}
 	CHECK(result);
 
-	if (!printxhdr && n_put != 0) {
+	if (n_put != 0) {
 		result = dns_diff_print(&diff, file);
 		dns_diff_clear(&diff);
 	}
