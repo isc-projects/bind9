@@ -302,8 +302,24 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		    uint32_t flags, uint32_t target_size);
 /*%<
  * Attempt to compact the journal if it is greater that 'target_size'.
- * Changes from 'serial' onwards will be preserved.  If the journal
- * exists and is non-empty 'serial' must exist in the journal.
+ * Changes from 'serial' onwards will be preserved. Changes prior than
+ * that may be dropped in order to get the journal below `target_size`.
+ *
+ * If 'flags' includes DNS_JOURNAL_COMPACTALL, the entire journal is copied.
+ * In this case, `serial` is ignored. This flag is used when upgrading or
+ * downgrading the format version of the journal. If 'flags' also includes
+ * DNS_JOURNAL_VERSION1, then the journal is copied out in the original
+ * format used prior to BIND 9.16.12; otherwise it is copied in the
+ * current format.
+ *
+ * If _COMPACTALL is not in use, and the journal file exists and is
+ * non-empty, then 'serial' must exist in the journal.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_RANGE	serial is outside the range existing in the journal
+ *
+ * Other errors may be returned from file operations.
  */
 
 bool
@@ -314,7 +330,7 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial);
  * Get and set source serial.
  *
  * Returns:
- *	 true if sourceserial has previously been set.
+ *      true if sourceserial has previously been set.
  */
 
 ISC_LANG_ENDDECLS
