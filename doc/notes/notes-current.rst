@@ -88,3 +88,9 @@ Bug Fixes
   ``isc_mem_put()``, which resulted in the returned memory being put on
   the wrong free list and prevented ``named`` from starting up. This has
   been fixed. [GL #2460]
+
+- ``libtool`` was inadvertently introduced as a build-time requirement
+  when the build system was revamped in BIND 9.17.2. This unnecessarily
+  prevented hosts without that tool from building BIND 9 from source
+  tarballs. A standalone ``libtool`` script no longer needs to be
+  present in ``PATH`` to build BIND 9 from a source tarball. [GL #2504]
