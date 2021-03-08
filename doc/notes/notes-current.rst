@@ -75,6 +75,10 @@ Bug Fixes
   using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
   [GL #2498]
 
+- A memory leak occurred when ``named`` was reconfigured after adding an
+  inline-signed zone with ``auto-dnssec maintain`` enabled. This has
+  been fixed. [GL #2041]
+
 - An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
   a LOC record resulted in an INSIST failure when a zone file containing
   such a record was loaded. [GL #2499]
