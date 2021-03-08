@@ -86,6 +86,7 @@ include-multiplecfg
 inline
 integrity
 ixfr
+journal
 keepalive
 limits
 masterfile
