@@ -907,7 +907,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 			/* XHDR_VERSION1 -> XHDR_VERSION2 */
 			isc_log_write(
 				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
-				"%s: XHDR_VERSION1 -> XHDR_VERSION2 at %u\n",
+				"%s: XHDR_VERSION1 -> XHDR_VERSION2 at %u",
 				j->filename, pos->serial);
 			j->xhdr_version = XHDR_VERSION2;
 			result = journal_next(j, pos, true);
@@ -921,7 +921,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 			/* XHDR_VERSION2 -> XHDR_VERSION1 */
 			isc_log_write(
 				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
-				"%s: XHDR_VERSION2 -> XHDR_VERSION1 at %u\n",
+				"%s: XHDR_VERSION2 -> XHDR_VERSION1 at %u",
 				j->filename, pos->serial);
 			j->xhdr_version = XHDR_VERSION1;
 			result = journal_next(j, pos, true);
@@ -1636,6 +1636,8 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 	if (printxhdr) {
 		fprintf(file, "Journal format = %sHeader version = %d\n",
 			j->header.format + 1, j->header_ver1 ? 1 : 2);
+		fprintf(file, "Start serial = %u\n", j->header.begin.serial);
+		fprintf(file, "End serial = %u\n", j->header.end.serial);
 		fprintf(file, "Index (size = %u):\n", j->header.index_size);
 		for (uint32_t i = 0; i < j->header.index_size; i++) {
 			if (j->index[i].offset == 0) {
