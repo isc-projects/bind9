@@ -1,4 +1,4 @@
-- name: 'Lock down mirror repository'
+name: 'Lock down mirror repository'
 
 on:
   issues:
