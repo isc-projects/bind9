@@ -11,16 +11,6 @@
 Notes for BIND 9.16.13
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -28,11 +18,6 @@ New Features
   sets the period of time that key files are retained after becoming
   obsolete due to a key rollover; the default is 90 days. This feature
   can be disabled by setting ``purge-keys`` to 0. [GL #2408]
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
