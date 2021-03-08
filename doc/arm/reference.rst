@@ -1121,10 +1121,13 @@ default is used.
    used instead of the new format.)
 
 ``max-ixfr-ratio``
-   This sets the size threshold (expressed as a percentage of the size of the full
-   zone) beyond which ``named`` chooses to use an AXFR response rather than
-   IXFR when answering zone transfer requests.  See
+   This sets the size threshold (expressed as a percentage of the size
+   of the full zone) beyond which ``named`` chooses to use an AXFR
+   response rather than IXFR when answering zone transfer requests. See
    :ref:`incremental_zone_transfers`.
+
+   The minimum value is ``1%``. The keyword ``unlimited`` disables ratio
+   checking and allows IXFRs of any size. The default is ``100%``.
 
 ``new-zones-directory``
    This specifies the directory in which to store the configuration
