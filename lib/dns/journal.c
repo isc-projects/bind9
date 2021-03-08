@@ -751,9 +751,7 @@ failure:
 		isc_mem_put(j->mctx, j->index,
 			    j->header.index_size * sizeof(journal_pos_t));
 	}
-	if (j->filename != NULL) {
-		isc_mem_free(j->mctx, j->filename);
-	}
+	isc_mem_free(j->mctx, j->filename);
 	if (j->fp != NULL) {
 		(void)isc_stdio_close(j->fp);
 	}
