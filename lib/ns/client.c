@@ -2051,6 +2051,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
+		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		return;
 	}
@@ -2580,6 +2581,7 @@ allow:
 	return (ISC_R_SUCCESS);
 
 deny:
+	ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 	return (DNS_R_REFUSED);
 }
 
