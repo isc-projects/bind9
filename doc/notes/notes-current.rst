@@ -40,7 +40,16 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- To prevent users from inadvertently configuring unencrypted
+  DNS-over-HTTPS (DoH) in BIND 9, ``listen-on`` and ``listen-on-v6``
+  statements using the ``http`` parameter must now also specify the
+  ``tls`` parameter. ``tls none`` can be used to explicitly allow
+  unencrypted HTTP connections. [GL #2472]
+
+- ``http default`` can now be specified in ``listen-on`` and
+  ``listen-on-v6`` statements to use the default HTTP endpoint of
+  ``/dns-query``. It is no longer necessary to include an ``http``
+  statement in ``named.conf`` unless overriding this value. [GL #2472]
 
 Bug Fixes
 ~~~~~~~~~
