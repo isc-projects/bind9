@@ -1,3 +1,5 @@
+	--- 9.11.29 released ---
+
 5586.	[bug]		An invalid direction field in a LOC record resulted in
 			an INSIST failure when a zone file containing such a
 			record was loaded. [GL #2499]

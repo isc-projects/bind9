@@ -390,6 +390,10 @@ BIND 9.11.27 is a maintenance release.
 BIND 9.11.28 is a maintenance release, and also addresses the security
 vulnerability disclosed in CVE-2020-8625.
 
+#### BIND 9.11.29
+
+BIND 9.11.29 is a maintenance release.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
