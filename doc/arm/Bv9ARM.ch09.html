@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.28</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.29</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.29">Notes for BIND 9.11.29</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.28">Notes for BIND 9.11.28</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.27">Notes for BIND 9.11.27</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.26">Notes for BIND 9.11.26</a></span></dt>
@@ -77,7 +78,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.28</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.29</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -130,6 +131,20 @@
     license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
     https://www.isc.org/mission/contact/</a>.
   </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.29"></a>Notes for BIND 9.11.29</h3></div></div></div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.29-bugs"></a>Bug Fixes</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+          An invalid direction field (not one of <span class="command"><strong>N</strong></span>,
+          <span class="command"><strong>S</strong></span>, <span class="command"><strong>E</strong></span>, <span class="command"><strong>W</strong></span>) in a
+          LOC record resulted in an INSIST failure when a zone file containing
+          such a record was loaded. [GL #2499]
+        </p></li></ul></div>
+</div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -2119,6 +2134,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.28 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.29 (Extended Support Version)</p>
 </body>
 </html>
