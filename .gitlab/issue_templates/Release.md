@@ -71,7 +71,7 @@
  - [ ] ***(Support)*** Publish links to downloads on ISC website.
  - [ ] ***(Support)*** Write release email to *bind-announce*.
  - [ ] ***(Support)*** Write email to *bind-users* (if a major release).
- - [ ] ***(Support)*** Send eligible customers updated links to the Subscription Edition.
+ - [ ] ***(Support)*** Send eligible customers updated links to the Subscription Edition (update the -S edition delivery tickets, even if those links were provided earlier via an ASN ticket).
  - [ ] ***(Support)*** Update tickets in case of waiting support customers.
  - [ ] ***(QA)*** Build and test any outstanding private packages.
  - [ ] ***(QA)*** Build public packages (`*.deb`, RPMs).

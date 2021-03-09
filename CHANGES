@@ -19,9 +19,9 @@
 			authoritative server. This problem was introduced by
 			change 5573 and has now been fixed. [GL #2565]
 
-5596.	[func]		Client-side support for DNS-over-HTTPS (DoH) has
-			been added to dig. "dig +https" can now query
-			a server via HTTP/2. [GL #1641]
+5596.	[func]		Client-side support for DNS-over-HTTPS (DoH) has been
+			added to dig. "dig +https" can now query a server via
+			HTTP/2. [GL #1641]
 
 5595.	[cleanup]	Public header files for BIND 9 libraries no longer
 			directly include third-party library headers. This
@@ -33,72 +33,75 @@
 5594.	[bug]		Building with --enable-dnsrps --enable-dnsrps-dl failed.
 			[GL #2298]
 
-5593.	[bug]		Journal files written by older versions of named
-			can now be read when loading zones so that journal
-			incompatibility will not cause problems on upgrade.
-			Outdated journals will be updated to the new format
-			after loading. [GL #2505]
+5593.	[bug]		Journal files written by older versions of named can now
+			be read when loading zones, so that journal
+			incompatibility does not cause problems on upgrade.
+			Outdated journals are updated to the new format after
+			loading. [GL #2505]
 
-5592.	[bug]		Add globally available thread_id (isc_tid_v) that's
-			incremented for each new thread, but the old thread
-			ids are reused, so the maximum thread_id always
-			correspond to the maximum number of threads running
-			at the time. This fixes the hazard pointer tables
-			overflow on machines with many cores. [GL #2396]
+5592.	[bug]		Prevent hazard pointer table overflows on machines with
+			many cores, by allowing the thread IDs (serving as
+			indices into hazard pointer tables) of finished threads
+			to be reused by those created later. [GL #2396]
 
-5591.	[bug]		Fix a crash happening when "stale-answer-client-timeout"
-			is triggered and there is no (stale) data for it in the
-			cache. [GL #2503]
+5591.	[bug]		Fix a crash that occurred when
+			"stale-answer-client-timeout" was triggered without any
+			(stale) data available in the cache to answer the query.
+			[GL #2503]
 
-5590.	[bug]		Process NSEC3PARAM queue when loading a dynamic zone.
-			This will immediately create NSEC3 records for zones
-			that use "dnssec-policy" and "nsec3param". [GL #2498]
+5590.	[bug]		NSEC3 records were not immediately created for dynamic
+			zones using NSEC3 with "dnssec-policy", resulting in
+			such zones going bogus. Add code to process the
+			NSEC3PARAM queue at zone load time so that NSEC3 records
+			for such zones are created immediately. [GL #2498]
 
 5589.	[placeholder]
 
-5588.	[func]		Add "purge-keys" option to "dnssec-policy". This sets
-			the time how long key files should be retained after
-			they have become obsolete. [GL #2408]
+5588.	[func]		Add a new "purge-keys" option for "dnssec-policy". This
+			option determines the period of time for which key files
+			are retained after they become obsolete. [GL #2408]
 
 5587.	[bug]		A standalone libtool script no longer needs to be
-			present in PATH in order to build BIND 9 from a source
-			tarball prepared using "make dist". [GL #2504]
+			present in PATH to build BIND 9 from a source tarball
+			prepared using "make dist". [GL #2504]
 
 5586.	[bug]		An invalid direction field in a LOC record resulted in
-			an INSIST failure. [GL #2499]
+			an INSIST failure when a zone file containing such a
+			record was loaded. [GL #2499]
 
-5585.	[func]		Implementations of memory contexts and memory pools were
+5585.	[func]		Memory contexts and memory pool implementations were
 			refactored to reduce lock contention for shared memory
 			contexts by replacing mutexes with atomic operations.
 			The internal memory allocator was simplified so that it
-			is only a thin wrapper around the system allocator.
-			Since this change makes the "-M external" named option
-			redundant, the latter was removed. [GL #2433]
+			is only a thin wrapper around the system allocator. This
+			change made the "-M external" named option redundant and
+			it was therefore removed. [GL #2433]
 
-5584.	[bug]		Rollback setting IP_DONTFRAG option on the UDP sockets.
-			[GL #2487]
+5584.	[bug]		No longer set the IP_DONTFRAG option on UDP sockets, to
+			prevent dropping outgoing packets exceeding
+			"max-udp-size". [GL #2466]
 
-5583.	[func]		Changes to DoH configuration syntax:
+5583.	[func]		Changes to DNS-over-HTTPS (DoH) configuration syntax:
 			- When "http" is specified in "listen-on" or
-			  "listen-on-v6" statements, "tls" must also now
-			  be specified. If an unencrypted connection is
-			  desired (for example, when running behind a
-			  reverse proxy), use "tls none".
-			- "http default" can how be specified in "listen-on"
-			  and "listen-on-v6" statements to use the default
-			  HTTP endpoint, "/dns-query". It is no longer
-			  necessary to include an "http" statement in
-			  named.conf unless overriding this value.
+			  "listen-on-v6" statements, "tls" must also now be
+			  specified. If an unencrypted connection is desired
+			  (for example, when running behind a reverse proxy),
+			  use "tls none".
+			- "http default" can now be specified in "listen-on" and
+			  "listen-on-v6" statements to use the default HTTP
+			  endpoint of "/dns-query". It is no longer necessary to
+			  include an "http" statement in named.conf unless
+			  overriding this value.
 			[GL #2472]
 
 5582.	[bug]		BIND 9 failed to build when static OpenSSL libraries
-			were used and the *.pc files for libssl and/or libcrypto
-			were unavailable. This has been fixed by ensuring the
-			correct linking order for libssl and libcrypto is always
-			used. [GL #2402]
+			were used and the pkg-config files for libssl and/or
+			libcrypto were unavailable. This has been fixed by
+			ensuring that the correct linking order for libssl and
+			libcrypto is always used. [GL #2402]
 
-5581.	[bug]		Fix memory leak happening when inline-signed zones
-			were added to the configuration followed by a
+5581.	[bug]		Fix a memory leak that occurred when inline-signed zones
+			were added to the configuration, followed by a
 			reconfiguration of named. [GL #2041]
 
 5580.	[test]		The system test framework no longer differentiates
@@ -106,11 +109,11 @@
 			system test which is not run is now marked as SKIPPED.
 			[GL !4517]
 
-5579.	[bug]		If an invalid key name (e.g. "a..b") is
-			specified in an primaries list in named.conf
-			the wrong size is passed to isc_mem_put
-			resulting in the returned memory being put
-			on the wrong freed list. [GL #2460]
+5579.	[bug]		If an invalid key name (e.g. "a..b") was specified in a
+			primaries list in named.conf, the wrong size was passed
+			to isc_mem_put(), resulting in the returned memory being
+			put on the wrong free list. This prevented named from
+			starting up. [GL #2460]
 
 	--- 9.17.10 released ---
 
