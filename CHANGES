@@ -9,6 +9,8 @@
 			previously, dynamic KASP zones did not check whether
 			updates were disabled. This has been fixed. [GL #2523]
 
+	--- 9.16.13 released ---
+
 5597.	[bug]		When serve-stale was enabled and starting the recursive
 			resolution process for a query failed, a named instance
 			could crash if it was configured as both a recursive and
