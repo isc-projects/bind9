@@ -11,62 +11,14 @@
 
 <section xml:id="relnotes-9.11.29"><info><title>Notes for BIND 9.11.29</title></info>
 
-  <section xml:id="relnotes-9.11.29-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.29-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.29-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.29-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.29-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.29-bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-          An invalid direction field (not one of 'N'/'S' or 'E'/'W')
-          in a LOC record triggered an INSIST failure. [GL #2499]
+          An invalid direction field (not one of <command>N</command>,
+          <command>S</command>, <command>E</command>, <command>W</command>) in a
+          LOC record resulted in an INSIST failure when a zone file containing
+          such a record was loaded. [GL #2499]
         </para>
       </listitem>
     </itemizedlist>
