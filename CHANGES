@@ -1,3 +1,9 @@
+5597.	[bug]		When serve-stale was enabled and starting the recursive
+			resolution process for a query failed, a named instance
+			could crash if it was configured as both a recursive and
+			authoritative server. This problem was introduced by
+			change 5573 and has now been fixed. [GL #2565]
+
 5595.	[cleanup]	Public header files for BIND 9 libraries no longer
 			directly include third-party library headers. This
 			prevents the need to include paths to third-party header
