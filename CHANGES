@@ -1,3 +1,9 @@
+5597.	[bug]		When serve-stale was enabled and starting the recursive
+			resolution process for a query failed, a named instance
+			could crash if it was configured as both a recursive and
+			authoritative server. This problem was introduced by
+			change 5573 and has now been fixed. [GL #2565]
+
 5596.	[func]		Client-side support for DNS-over-HTTPS (DoH) has
 			been added to dig. "dig +https" can now query
 			a server via HTTP/2. [GL #1641]
