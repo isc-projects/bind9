@@ -60,7 +60,7 @@ static uv_buf_t stop_msg = { .base = (char *)&stop_magic,
 			     .len = sizeof(stop_magic) };
 
 static atomic_bool do_send = ATOMIC_VAR_INIT(false);
-static unsigned int workers = 1;
+static unsigned int workers = 0;
 
 static atomic_int_fast64_t nsends;
 static int_fast64_t esends; /* expected sends */
@@ -172,9 +172,11 @@ static bool skip_long_tests = false;
 
 static int
 _setup(void **state __attribute__((unused))) {
-	char *p;
+	char *p = NULL;
 
-	workers = isc_os_ncpus();
+	if (workers == 0) {
+		workers = isc_os_ncpus();
+	}
 	p = getenv("ISC_TASK_WORKERS");
 	if (p != NULL) {
 		workers = atoi(p);

@@ -65,7 +65,7 @@ static atomic_uint_fast64_t creads;
 
 static atomic_bool was_error;
 
-static unsigned int workers = 1;
+static unsigned int workers = 0;
 
 static bool reuse_supported = true;
 
@@ -227,9 +227,18 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 
 static int
 _setup(void **state) {
+	char *p = NULL;
+
 	UNUSED(state);
 
-	workers = isc_os_ncpus();
+	if (workers == 0) {
+		workers = isc_os_ncpus();
+	}
+	p = getenv("ISC_TASK_WORKERS");
+	if (p != NULL) {
+		workers = atoi(p);
+	}
+	INSIST(workers != 0);
 
 	if (isc_test_begin(NULL, false, workers) != ISC_R_SUCCESS) {
 		return (-1);
@@ -587,17 +596,25 @@ static isc_threadresult_t
 doh_connect_thread(isc_threadarg_t arg) {
 	isc_nm_t *connect_nm = (isc_nm_t *)arg;
 	char req_url[256];
+	isc_result_t result;
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
 			sizeof(req_url), DOH_PATH);
 
 	while (atomic_load(&nsends) > 0) {
-		(void)connect_send_request(
+		result = connect_send_request(
 			connect_nm, req_url, atomic_load(&POST),
 			&(isc_region_t){ .base = (uint8_t *)send_msg.base,
 					 .length = send_msg.len },
 			doh_receive_send_reply_cb, NULL, atomic_load(&use_TLS),
 			30000);
+		/* protection against "too many open files" */
+#ifndef _WIN32
+		if (result != ISC_R_SUCCESS) {
+			INSIST(result == ISC_R_TOOMANYOPENFILES);
+			usleep(1000 * workers);
+		}
+#endif
 	}
 
 	return ((isc_threadresult_t)0);
