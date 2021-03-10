@@ -80,3 +80,9 @@ Bug Fixes
   state. (Other zone journal files were not affected.) This has been
   fixed. If a corrupt journal file is detected, ``named`` can now recover
   from it. [GL #2600]
+
+- When dumping the cache to file, TTLs were being increased with
+  ``max-stale-ttl``. Also the comment above stale RRsets could have nonsensical
+  values if the RRset was still marked a stale but the ``max-stale-ttl`` has
+  passed (and is actually an RRset awaiting cleanup). Both issues have now
+  been fixed. [GL #389] [GL #2289]
