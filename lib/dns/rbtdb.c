@@ -3124,13 +3124,18 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	if (PREFETCH(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	}
-	if (STALE(header)) {
+	if (STALE(header) && !ANCIENT(header)) {
+		dns_ttl_t stale = header->rdh_ttl + rbtdb->serve_stale_ttl;
+		if (stale > now) {
+			stale = stale - now;
+		} else {
+			stale = 0;
+		}
 		if (STALE_WINDOW(header)) {
 			rdataset->attributes |= DNS_RDATASETATTR_STALE_WINDOW;
 		}
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
-		rdataset->stale_ttl =
-			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
+		rdataset->stale_ttl = stale;
 		rdataset->ttl = 0;
 	} else if (IS_CACHE(rbtdb) && !ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;

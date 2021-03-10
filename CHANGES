@@ -1,3 +1,10 @@
+5618.	[bug]		When introducing change 5149, "rndc dumpdb" started
+			to print a line above a stale RRset, indicating how
+			long the data will be retained. Also, TTLs were
+			increased with 'max-stale-ttl'. This could lead to
+			nonsensical values and both issues have been fixed.
+			[GL #389] [GL #2289]
+
 5614.	[bug]		Ensure all resources are properly cleaned up when a call
 			to gss_accept_sec_context() fails. [GL #2620]
 

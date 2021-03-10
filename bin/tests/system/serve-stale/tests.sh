@@ -108,9 +108,10 @@ sleep 2
 
 echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
-$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
-$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 longttl.example TXT > dig.out.test$((n+2)) &
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+3)) &
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+4)) &
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+5))
 
 wait
 
@@ -133,6 +134,15 @@ awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
 # Also make sure the not expired data does not have a stale comment.
 awk '/; answer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
     grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check non-stale longttl.example ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "longttl\.example\..*59[0-9].*IN.*TXT.*A text record with a 600 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

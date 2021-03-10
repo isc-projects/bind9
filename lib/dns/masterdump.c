@@ -1111,8 +1111,7 @@ again:
 				fprintf(f,
 					"; stale (will be retained for %u more "
 					"seconds)\n",
-					(rds->stale_ttl -
-					 ctx->serve_stale_ttl));
+					rds->stale_ttl);
 			} else if (ANCIENT(rds)) {
 				isc_buffer_t b;
 				char buf[sizeof("YYYYMMDDHHMMSS")];
@@ -1591,14 +1590,8 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	dctx->do_date = dns_db_iscache(dctx->db);
 	if (dctx->do_date) {
-		/*
-		 * Adjust the date backwards by the serve-stale TTL, if any.
-		 * This is so the TTL will be loaded correctly when next
-		 * started.
-		 */
 		(void)dns_db_getservestalettl(dctx->db,
 					      &dctx->tctx.serve_stale_ttl);
-		dctx->now -= dctx->tctx.serve_stale_ttl;
 	}
 
 	if (dctx->format == dns_masterformat_text &&
