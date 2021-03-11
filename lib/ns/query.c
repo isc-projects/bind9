@@ -7168,6 +7168,7 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 
 	if (dns_view_staleanswerenabled(qctx->client->view)) {
 		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
+		qctx->version = NULL;
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
 		if (qctx->client->query.fetch != NULL) {
 			dns_resolver_destroyfetch(&qctx->client->query.fetch);
