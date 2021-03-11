@@ -326,7 +326,7 @@ teardown(void) {
 }
 
 static void
-yield(void) {
+waitforsignal(void) {
 	sigset_t sset;
 	int sig;
 
@@ -471,7 +471,7 @@ run(void) {
 	}
 	REQUIRE(result == ISC_R_SUCCESS);
 
-	yield();
+	waitforsignal();
 
 	isc_nm_closedown(netmgr);
 }
