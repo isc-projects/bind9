@@ -2032,9 +2032,9 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 ####################################################################
-# Test if fetch-limits quota is reached, stale data is served.     #
-####################################################################
-echo_i "test stale data with fetch-limits"
+# Test serve-stale's interaction with fetch limits (cache only) #
+#################################################################
+echo_i "test serve-stale's interaction with fetch-limits (cache only)"
 
 # We update the named configuration to enable fetch-limits. The fetch-limits
 # are set to 1, which is ridiciously low, but that is because for this test we
@@ -2137,6 +2137,77 @@ wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run 
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+########################################################################
+# Test serve-stale's interaction with fetch limits (dual-mode) #
+########################################################################
+echo_i "test serve-stale's interaction with fetch limits (dual-mode)"
+
+# Update named configuration so that ns3 becomes a recursive resolver which is
+# also a secondary server for the root zone.
+n=$((n+1))
+echo_i "updating ns3/named.conf ($n)"
+ret=0
+copy_setports ns3/named7.conf.in ns3/named.conf
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "running 'rndc reload' ($n)"
+ret=0
+rndc_reload ns3 10.53.0.3
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Flush the cache to ensure the example/NS RRset cached during previous tests
+# does not override the authoritative delegation found in the root zone.
+n=$((n+1))
+echo_i "flush cache ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 flush > rndc.out.test$n 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Query name server with low fetch limits. The authoritative server (ans2) is
+# not responding. Sending queries for multiple names in the 'example' zone
+# in parallel causes the fetch limit for that zone (set to 1) to be
+# reached. This should not trigger a crash.
+echo_i "sending queries for tests $((n+1))-$((n+4))..."
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
+$DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4))
+
+wait
+
+# Expect SERVFAIL for the entries not in cache.
+n=$((n+1))
+echo_i "check stale data.example (fetch-limits dual-mode) ($n)"
+ret=0
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check stale othertype.example (fetch-limits dual-mode) ($n)"
+ret=0
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check stale nodata.example (fetch-limits dual-mode) ($n)"
+ret=0
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check stale nxdomain.example (fetch-limits dual-mode) ($n)"
+ret=0
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
