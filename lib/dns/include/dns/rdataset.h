@@ -95,7 +95,7 @@ typedef struct dns_rdatasetmethods {
  * rdataset implementations may change any of the fields.
  */
 struct dns_rdataset {
-	unsigned int	       magic; /* XXX ? */
+	unsigned int	       magic;
 	dns_rdatasetmethods_t *methods;
 	ISC_LINK(dns_rdataset_t) link;
 
@@ -107,11 +107,7 @@ struct dns_rdataset {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t	 type;
 	dns_ttl_t	 ttl;
-	/*
-	 * Stale ttl is used to see how long this RRset can still be used
-	 * to serve to clients, after the TTL has expired.
-	 */
-	dns_ttl_t	stale_ttl;
+
 	dns_trust_t	trust;
 	dns_rdatatype_t covers;
 
@@ -133,6 +129,13 @@ struct dns_rdataset {
 	 * Only valid if DNS_RDATASETATTR_RESIGN is set in attributes.
 	 */
 	isc_stdtime_t resign;
+
+	/*
+	 * When a cache rdataset's TTL has expired but it hasn't been
+	 * cleaned up yet, it will have this value set so that the time
+	 * it expired can be printed by dns_master_dump*().
+	 */
+	isc_stdtime_t expired;
 
 	/*@{*/
 	/*%
