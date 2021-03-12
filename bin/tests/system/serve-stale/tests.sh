@@ -106,6 +106,19 @@ status=$((status+ret))
 
 sleep 2
 
+# Run rndc dumpdb, test whether the stale data has correct comment printed.
+# The max-stale-ttl is 3600 seconds, so the comment should say the data is
+# stale for somewhere between 3500-3599 seconds.
+echo_i "check rndc dump stale data.example ($n)"
+rndc_dumpdb ns1 || ret=1
+awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
+    grep "; stale (will be retained for 3[56].. more seconds) data\.example.*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
+# Also make sure the not expired data does not have a stale comment.
+awk '/; answer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
+    grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 longttl.example TXT > dig.out.test$((n+2)) &
@@ -121,19 +134,6 @@ ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*4.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
-
-# Run rndc dumpdb, test whether the stale data has correct comment printed.
-# The max-stale-ttl is 3600 seconds, so the comment should say the data is
-# stale for somewhere between 3500-3599 seconds.
-echo_i "check rndc dump stale data.example ($n)"
-rndc_dumpdb ns1 || ret=1
-awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
-    grep "; stale (will be retained for 35.. more seconds) data\.example.*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
-# Also make sure the not expired data does not have a stale comment.
-awk '/; answer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
-    grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
