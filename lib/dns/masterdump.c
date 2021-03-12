@@ -1108,10 +1108,7 @@ again:
 		} else {
 			isc_result_t result;
 			if (STALE(rds)) {
-				fprintf(f,
-					"; stale (will be retained for %u more "
-					"seconds)\n",
-					rds->stale_ttl);
+				fprintf(f, "; stale\n");
 			} else if (ANCIENT(rds)) {
 				isc_buffer_t b;
 				char buf[sizeof("YYYYMMDDHHMMSS")];
