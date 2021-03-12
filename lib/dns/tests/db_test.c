@@ -248,7 +248,6 @@ dns_dbfind_staleok_test(void **state) {
 				count++;
 				assert_in_range(count, 0, 49); /* loop sanity */
 				assert_int_equal(result, ISC_R_SUCCESS);
-				assert_int_equal(rdataset.ttl, 0);
 				assert_int_equal(rdataset.attributes &
 							 DNS_RDATASETATTR_STALE,
 						 DNS_RDATASETATTR_STALE);
