@@ -1,3 +1,6 @@
+5639.	[bug]		Check that the first and last SOA record of an AXFR
+			are consistent. [GL #2528]
+
 5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
 			only referenced once in 'named.conf'. [GL #2603]
 
