@@ -143,10 +143,6 @@ stages:
 
 # Ubuntu
 
-.ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
-  <<: *linux_amd64
-
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
@@ -644,6 +640,7 @@ gcc:stretch:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
+    EXTRA_CONFIGURE: "--without-cmocka"
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
@@ -840,30 +837,6 @@ unit:gcc:tumbleweed:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:tumbleweed:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
-
-gcc:xenial:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-geoip"
-  <<: *ubuntu_xenial_amd64_image
-  <<: *build_job
-
-system:gcc:xenial:amd64:
-  <<: *ubuntu_xenial_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:xenial:amd64
-      artifacts: true
-
-unit:gcc:xenial:amd64:
-  <<: *ubuntu_xenial_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:xenial:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
