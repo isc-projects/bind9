@@ -1,3 +1,6 @@
+5639.	[bug]		Check that the first and last SOA record of an AXFR
+			are consistent. [GL #2528]
+
 5638.	[bug]		Improvements related to network manager/task manager
 			integration:
 			- added isc_managers_create() and _destroy() functions
