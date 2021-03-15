@@ -1,3 +1,6 @@
+5598.	[port]		Cast (char) to (unsigned char) when calling ctype
+			tests. [GL #2567]
+
 5597.	[bug]		When serve-stale was enabled and starting the recursive
 			resolution process for a query failed, a named instance
 			could crash if it was configured as both a recursive and

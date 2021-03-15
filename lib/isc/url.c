@@ -191,15 +191,17 @@ typedef enum {
 	((c) == '-' || (c) == '_' || (c) == '.' || (c) == '!' || (c) == '~' || \
 	 (c) == '*' || (c) == '\'' || (c) == '(' || (c) == ')')
 #define IS_USERINFO_CHAR(c)                                                    \
-	(isalnum(c) || IS_MARK(c) || (c) == '%' || (c) == ';' || (c) == ':' || \
-	 (c) == '&' || (c) == '=' || (c) == '+' || (c) == '$' || (c) == ',')
+	(isalnum((unsigned char)c) || IS_MARK(c) || (c) == '%' ||              \
+	 (c) == ';' || (c) == ':' || (c) == '&' || (c) == '=' || (c) == '+' || \
+	 (c) == '$' || (c) == ',')
 
 #if HTTP_PARSER_STRICT
 #define IS_URL_CHAR(c)	(BIT_AT(normal_url_char, (unsigned char)c))
-#define IS_HOST_CHAR(c) (isalnum(c) || (c) == '.' || (c) == '-')
+#define IS_HOST_CHAR(c) (isalnum((unsigned char)c) || (c) == '.' || (c) == '-')
 #else
-#define IS_URL_CHAR(c)	(BIT_AT(normal_url_char, (unsigned char)c) || ((c)&0x80))
-#define IS_HOST_CHAR(c) (isalnum(c) || (c) == '.' || (c) == '-' || (c) == '_')
+#define IS_URL_CHAR(c) (BIT_AT(normal_url_char, (unsigned char)c) || ((c)&0x80))
+#define IS_HOST_CHAR(c) \
+	(isalnum((unsigned char)c) || (c) == '.' || (c) == '-' || (c) == '_')
 #endif
 
 /*
@@ -237,14 +239,14 @@ parse_url_char(state_t s, const char ch) {
 			return (s_req_path);
 		}
 
-		if (isalpha(ch)) {
+		if (isalpha((unsigned char)ch)) {
 			return (s_req_schema);
 		}
 
 		break;
 
 	case s_req_schema:
-		if (isalpha(ch)) {
+		if (isalpha((unsigned char)ch)) {
 			return (s);
 		}
 
@@ -410,7 +412,7 @@ http_parse_host_char(host_state_t s, const char ch) {
 
 		/* FALLTHROUGH */
 	case s_http_host_v6_start:
-		if (isxdigit(ch) || ch == ':' || ch == '.') {
+		if (isxdigit((unsigned char)ch) || ch == ':' || ch == '.') {
 			return (s_http_host_v6);
 		}
 
@@ -427,8 +429,8 @@ http_parse_host_char(host_state_t s, const char ch) {
 		/* FALLTHROUGH */
 	case s_http_host_v6_zone_start:
 		/* RFC 6874 Zone ID consists of 1*( unreserved / pct-encoded) */
-		if (isalnum(ch) || ch == '%' || ch == '.' || ch == '-' ||
-		    ch == '_' || ch == '~')
+		if (isalnum((unsigned char)ch) || ch == '%' || ch == '.' ||
+		    ch == '-' || ch == '_' || ch == '~')
 		{
 			return (s_http_host_v6_zone);
 		}
@@ -436,7 +438,7 @@ http_parse_host_char(host_state_t s, const char ch) {
 
 	case s_http_host_port:
 	case s_http_host_port_start:
-		if (isdigit(ch)) {
+		if (isdigit((unsigned char)ch)) {
 			return (s_http_host_port);
 		}
 

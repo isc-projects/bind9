@@ -2585,9 +2585,9 @@ typedef struct isc_httpparser_state {
 } isc_httpparser_state_t;
 
 #define MATCH(ch)      (st->str[0] == (ch))
-#define MATCH_ALPHA()  isalpha(st->str[0])
-#define MATCH_ALNUM()  isalnum(st->str[0])
-#define MATCH_XDIGIT() isxdigit(st->str[0])
+#define MATCH_ALPHA()  isalpha((unsigned char)(st->str[0]))
+#define MATCH_ALNUM()  isalnum((unsigned char)(st->str[0]))
+#define MATCH_XDIGIT() isxdigit((unsigned char)(st->str[0]))
 #define ADVANCE()      st->str++
 #define GETP()	       (st->str)
 
