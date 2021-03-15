@@ -14308,6 +14308,9 @@ cleanup:
 	return;
 
 skip_master:
+	if (transport != NULL) {
+		dns_transport_detach(&transport);
+	}
 	if (key != NULL) {
 		dns_tsigkey_detach(&key);
 	}

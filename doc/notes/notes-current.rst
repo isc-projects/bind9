@@ -82,3 +82,6 @@ Bug Fixes
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
   (upgrade). Note that this *must not* be done while ``named`` is
   running.  [GL #2505]
+
+- Fix a crash when transferring a zone over TLS, after "named" previously
+  skipped a master. [GL #2562]

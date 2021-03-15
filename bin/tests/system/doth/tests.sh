@@ -37,7 +37,7 @@ echo_i "testing XoT server functionality (using dig) ($n)"
 ret=0
 dig_with_tls_opts example. -b 10.53.0.3 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
 grep "^;" dig.out.ns1.test$n | cat_i
-digcomp dig1.good dig.out.ns1.test$n || ret=1
+digcomp example.axfr.good dig.out.ns1.test$n || ret=1
 if test $ret != 0 ; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -46,7 +46,7 @@ echo_i "testing incoming XoT functionality (from secondary) ($n)"
 ret=0
 if retry_quiet 10 wait_for_tls_xfer; then
 	grep "^;" "dig.out.ns2.test$n" | cat_i
-	digcomp dig1.good "dig.out.ns2.test$n" || ret=1
+	digcomp example.axfr.good "dig.out.ns2.test$n" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	ret=1
