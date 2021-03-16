@@ -736,7 +736,7 @@ keys. The following is an example of such a clause:
 
    dnssec-policy standard {
        dnskey-ttl 600;
-       key {
+       keys {
            ksk lifetime 365d algorithm ecdsap256sha256;
            zsk lifetime 60d algorithm ecdsap256sha256;
        };
