@@ -1583,32 +1583,322 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 	handle->dofree = dofree;
 }
 
-void
-isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	switch (handle->sock->type) {
+static void
+isc__nmsocket_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+	REQUIRE(VALID_NMSOCK(sock));
+	switch (sock->type) {
 	case isc_nm_udpsocket:
-		isc__nm_udp_settimeout(handle, timeout);
-		break;
+		isc__nm_udp_failed_read_cb(sock, result);
+		return;
 	case isc_nm_tcpsocket:
-		isc__nm_tcp_settimeout(handle, timeout);
+		isc__nm_tcp_failed_read_cb(sock, result);
+		return;
+	case isc_nm_tcpdnssocket:
+		isc__nm_tcpdns_failed_read_cb(sock, result);
+		return;
+	case isc_nm_tlsdnssocket:
+		isc__nm_tlsdns_failed_read_cb(sock, result);
+		return;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+static void
+isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->reading);
+
+	isc__nmsocket_failed_read_cb(sock, ISC_R_TIMEDOUT);
+}
+
+void
+isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	if (sock->read_timeout == 0) {
+		return;
+	}
+
+	int r = uv_timer_start(&sock->timer, isc__nmsocket_readtimeout_cb,
+			       sock->read_timeout, 0);
+	RUNTIME_CHECK(r == 0);
+}
+
+void
+isc__nmsocket_timer_start(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	if (uv_is_active((uv_handle_t *)&sock->timer)) {
+		return;
+	}
+
+	isc__nmsocket_timer_restart(sock);
+}
+
+void
+isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	if (!uv_is_active((uv_handle_t *)&sock->timer)) {
+		return;
+	}
+
+	int r = uv_timer_stop(&sock->timer);
+	RUNTIME_CHECK(r == 0);
+}
+
+isc__nm_uvreq_t *
+isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
+	isc__nm_uvreq_t *req = NULL;
+
+	req = isc__nm_uvreq_get(sock->mgr, sock);
+	req->cb.recv = sock->recv_cb;
+	req->cbarg = sock->recv_cbarg;
+
+	if (atomic_load(&sock->client)) {
+		isc_nmhandle_attach(sock->statichandle, &req->handle);
+	} else {
+		req->handle = isc__nmhandle_get(sock, sockaddr, NULL);
+	}
+
+	return req;
+}
+
+/*%<
+ * Allocator for read operations. Limited to size 2^16.
+ *
+ * Note this doesn't actually allocate anything, it just assigns the
+ * worker's receive buffer to a socket, and marks it as "in use".
+ */
+void
+isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	isc__networker_t *worker = NULL;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(isc__nm_in_netthread());
+
+	switch (sock->type) {
+	case isc_nm_udpsocket:
+		REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
+		size = ISC_NETMGR_RECVBUF_SIZE;
 		break;
 	case isc_nm_tcpdnssocket:
-		isc__nm_tcpdns_settimeout(handle, timeout);
 		break;
 	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_settimeout(handle, timeout);
-		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_settimeout(handle, timeout);
-		break;
-	case isc_nm_httpsocket:
-		isc__nm_http_settimeout(handle, timeout);
+		/*
+		 * We need to limit the individual chunks to be read, so the
+		 * BIO_write() will always succeed and the consumed before the
+		 * next readcb is called.
+		 */
+		if (size >= ISC_NETMGR_TLSBUF_SIZE) {
+			size = ISC_NETMGR_TLSBUF_SIZE;
+		}
 		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
+	}
+
+	worker = &sock->mgr->workers[sock->tid];
+	INSIST(!worker->recvbuf_inuse);
+
+	buf->base = worker->recvbuf;
+	buf->len = size;
+	worker->recvbuf_inuse = true;
+}
+
+void
+isc__nm_start_reading(isc_nmsocket_t *sock) {
+	int r;
+
+	if (sock->reading) {
+		return;
+	}
+
+	switch (sock->type) {
+	case isc_nm_udpsocket:
+		r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
+				      isc__nm_udp_read_cb);
+		break;
+	case isc_nm_tcpdnssocket:
+		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
+				  isc__nm_tcpdns_read_cb);
+		break;
+	case isc_nm_tlsdnssocket:
+		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
+				  isc__nm_tlsdns_read_cb);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+	RUNTIME_CHECK(r == 0);
+	sock->reading = true;
+}
+
+void
+isc__nm_stop_reading(isc_nmsocket_t *sock) {
+	int r;
+
+	if (!sock->reading) {
+		return;
+	}
+
+	switch (sock->type) {
+	case isc_nm_udpsocket:
+		r = uv_udp_recv_stop(&sock->uv_handle.udp);
+		break;
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		r = uv_read_stop(&sock->uv_handle.stream);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+	RUNTIME_CHECK(r == 0);
+	sock->reading = false;
+}
+
+bool
+isc__nm_inactive(isc_nmsocket_t *sock) {
+	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
+		atomic_load(&sock->mgr->closing) ||
+		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
+}
+
+static isc_result_t
+processbuffer(isc_nmsocket_t *sock) {
+	switch (sock->type) {
+	case isc_nm_tcpdnssocket:
+		return (isc__nm_tcpdns_processbuffer(sock));
+	case isc_nm_tlsdnssocket:
+		return (isc__nm_tcpdns_processbuffer(sock));
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+}
+
+/*
+ * Process a DNS message.
+ *
+ * If we only have an incomplete DNS message, we don't touch any
+ * timers. If we do have a full message, reset the timer.
+ *
+ * Stop reading if this is a client socket, or if the server socket
+ * has been set to sequential mode, or the number of queries we are
+ * processing simultaneously has reached the clients-per-connection
+ * limit. In this case we'll be called again by resume_processing()
+ * later.
+ */
+void
+isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
+	for (;;) {
+		int_fast32_t ah = atomic_load(&sock->ah);
+		isc_result_t result = processbuffer(sock);
+		switch (result) {
+		case ISC_R_NOMORE:
+			/*
+			 * Don't reset the timer until we have a
+			 * full DNS message.
+			 */
+			isc__nm_start_reading(sock);
+			/*
+			 * Start the timer only if there are no externally used
+			 * active handles, there's always one active handle
+			 * attached internally to sock->recv_handle in
+			 * accept_connection()
+			 */
+			if (ah == 1) {
+				isc__nmsocket_timer_start(sock);
+			}
+			return;
+		case ISC_R_CANCELED:
+			isc__nmsocket_timer_stop(sock);
+			isc__nm_stop_reading(sock);
+			return;
+		case ISC_R_SUCCESS:
+			/*
+			 * Stop the timer on the successful message read, this
+			 * also allows to restart the timer when we have no more
+			 * data.
+			 */
+			isc__nmsocket_timer_stop(sock);
+
+			if (atomic_load(&sock->client) ||
+			    atomic_load(&sock->sequential) ||
+			    ah >= STREAM_CLIENTS_PER_CONN)
+			{
+				isc__nm_stop_reading(sock);
+				return;
+			}
+			break;
+		default:
+			INSIST(0);
+		}
+	}
+}
+
+void
+isc__nm_resume_processing(void *arg) {
+	isc_nmsocket_t *sock = (isc_nmsocket_t *)arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(!atomic_load(&sock->client));
+
+	if (isc__nm_inactive(sock)) {
+		return;
+	}
+
+	isc__nm_process_sock_buffer(sock);
+}
+
+void
+isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	switch (handle->sock->type) {
+	case isc_nm_httpsocket:
+		isc__nm_http_cleartimeout(handle);
+		return;
+	case isc_nm_tlssocket:
+		isc__nm_tls_cleartimeout(handle);
+		return;
+	default:
+		handle->sock->read_timeout = 0;
+
+		if (uv_is_active((uv_handle_t *)&handle->sock->timer)) {
+			isc__nmsocket_timer_stop(handle->sock);
+		}
+	}
+}
+
+void
+isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	switch (handle->sock->type) {
+	case isc_nm_httpsocket:
+		isc__nm_http_settimeout(handle, timeout);
+		return;
+	case isc_nm_tlssocket:
+		isc__nm_tls_settimeout(handle, timeout);
+		return;
+	default:
+		handle->sock->read_timeout = timeout;
+		if (uv_is_active((uv_handle_t *)&handle->sock->timer)) {
+			isc__nmsocket_timer_restart(handle->sock);
+		}
 	}
 }
 
@@ -1956,22 +2246,23 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 void
 isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-	       isc_result_t eresult) {
+	       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	if (eresult == ISC_R_SUCCESS) {
+	if (!async) {
 		isc__netievent_sendcb_t ievent = { .sock = sock,
 						   .req = uvreq,
 						   .result = eresult };
 		isc__nm_async_sendcb(NULL, (isc__netievent_t *)&ievent);
-	} else {
-		isc__netievent_sendcb_t *ievent = isc__nm_get_netievent_sendcb(
-			sock->mgr, sock, uvreq, eresult);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-				       (isc__netievent_t *)ievent);
+		return;
 	}
+
+	isc__netievent_sendcb_t *ievent =
+		isc__nm_get_netievent_sendcb(sock->mgr, sock, uvreq, eresult);
+	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			       (isc__netievent_t *)ievent);
 }
 
 void

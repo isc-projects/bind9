@@ -769,6 +769,12 @@ typedef struct isc_nmsocket_h2 {
 	} connect;
 } isc_nmsocket_h2_t;
 
+typedef void (*isc_nm_closehandlecb_t)(void *arg);
+/*%<
+ * Opaque callback function, used for isc_nmhandle 'reset' and 'free'
+ * callbacks.
+ */
+
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
@@ -1015,7 +1021,7 @@ struct isc_nmsocket {
 	 * as the argument whenever a handle's references drop
 	 * to zero, after its reset callback has been called.
 	 */
-	isc_nm_opaquecb_t closehandle_cb;
+	isc_nm_closehandlecb_t closehandle_cb;
 
 	isc_nmhandle_t *recv_handle;
 	isc_nm_recv_cb_t recv_cb;
@@ -1155,6 +1161,16 @@ isc__nmsocket_clearcb(isc_nmsocket_t *sock);
  */
 
 void
+isc__nmsocket_timer_stop(isc_nmsocket_t *sock);
+void
+isc__nmsocket_timer_start(isc_nmsocket_t *sock);
+void
+isc__nmsocket_timer_restart(isc_nmsocket_t *sock);
+/*%<
+ * Start/stop/restart the read timeout on the socket
+ */
+
+void
 isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		  isc_result_t eresult);
 
@@ -1182,7 +1198,7 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
 isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-	       isc_result_t eresult);
+	       isc_result_t eresult, bool async);
 void
 isc__nm_async_sendcb(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
@@ -1238,7 +1254,7 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock);
 void
 isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
 /*%<
- * Set the recv timeout for the UDP socket associated with 'handle'.
+ * Set or clear the recv timeout for the UDP socket associated with 'handle'.
  */
 
 void
@@ -1532,6 +1548,8 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock);
 
 void
 isc__nm_tls_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+void
+isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
 /*%<
  * Set the read timeout and reset the timer for the socket
  * associated with 'handle', and the TCP socket it wraps
@@ -1543,6 +1561,8 @@ isc__nm_http_stoplistening(isc_nmsocket_t *sock);
 
 void
 isc__nm_http_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+void
+isc__nm_http_cleartimeout(isc_nmhandle_t *handle);
 /*%<
  * Set the read timeout and reset the timer for the socket
  * associated with 'handle', and the TLS/TCP socket it wraps
@@ -1821,3 +1841,12 @@ NETIEVENT_DECL(pause);
 NETIEVENT_DECL(resume);
 NETIEVENT_DECL(shutdown);
 NETIEVENT_DECL(stop);
+
+void
+isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+void
+isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+void
+isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+void
+isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);

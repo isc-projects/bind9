@@ -1764,7 +1764,7 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult);
+		isc__nm_sendcb(sock, req, eresult, true);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
@@ -2534,6 +2534,22 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 			sock->h2.connect.uri = NULL;
 		}
 		isc__nm_httpsession_detach(&sock->h2.session);
+	}
+}
+
+void
+isc__nm_http_cleartimeout(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_httpsocket);
+
+	sock = handle->sock;
+	if (sock->h2.session != NULL && sock->h2.session->handle) {
+		INSIST(VALID_HTTP2_SESSION(sock->h2.session));
+		INSIST(VALID_NMHANDLE(sock->h2.session->handle));
+		isc_nmhandle_cleartimeout(sock->h2.session->handle);
 	}
 }
 
