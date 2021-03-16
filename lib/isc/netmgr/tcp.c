@@ -87,9 +87,6 @@ static void
 stop_tcp_child(isc_nmsocket_t *sock);
 
 static void
-start_sock_timer(isc_nmsocket_t *sock);
-
-static void
 start_reading(isc_nmsocket_t *sock);
 
 static void
@@ -716,6 +713,11 @@ destroy:
 	}
 }
 
+void
+isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+	failed_read_cb(sock, result);
+}
+
 static void
 failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	       isc_result_t eresult) {
@@ -723,7 +725,7 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult);
+		isc__nm_sendcb(sock, req, eresult, true);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
@@ -742,35 +744,6 @@ get_read_req(isc_nmsocket_t *sock) {
 }
 
 static void
-readtimeout_cb(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
-
-	/*
-	 * Timeout; stop reading and process whatever we have.
-	 */
-	failed_read_cb(sock, ISC_R_TIMEDOUT);
-}
-
-static void
-start_sock_timer(isc_nmsocket_t *sock) {
-	if (sock->read_timeout > 0) {
-		int r = uv_timer_start(&sock->timer, readtimeout_cb,
-				       sock->read_timeout, 0);
-		REQUIRE(r == 0);
-	}
-}
-
-static void
-stop_sock_timer(isc_nmsocket_t *sock) {
-	int r = uv_timer_stop(&sock->timer);
-	REQUIRE(r == 0);
-}
-
-static void
 start_reading(isc_nmsocket_t *sock) {
 	if (sock->reading) {
 		return;
@@ -779,8 +752,6 @@ start_reading(isc_nmsocket_t *sock) {
 	int r = uv_read_start(&sock->uv_handle.stream, tcp_alloc_cb, read_cb);
 	REQUIRE(r == 0);
 	sock->reading = true;
-
-	start_sock_timer(sock);
 }
 
 static void
@@ -793,7 +764,7 @@ stop_reading(isc_nmsocket_t *sock) {
 	REQUIRE(r == 0);
 	sock->reading = false;
 
-	stop_sock_timer(sock);
+	isc__nmsocket_timer_stop(sock);
 }
 
 void
@@ -876,6 +847,7 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	start_reading(sock);
+	isc__nmsocket_timer_start(sock);
 }
 
 void
@@ -994,7 +966,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	/* The readcb could have paused the reading */
 	if (sock->reading) {
 		/* The timer will be updated */
-		start_sock_timer(sock);
+		isc__nmsocket_timer_restart(sock);
 	}
 
 free:
@@ -1196,7 +1168,7 @@ tcp_send_cb(uv_write_t *req, int status) {
 		return;
 	}
 
-	isc__nm_sendcb(sock, uvreq, ISC_R_SUCCESS);
+	isc__nm_sendcb(sock, uvreq, ISC_R_SUCCESS, false);
 }
 
 /*
@@ -1474,20 +1446,6 @@ isc__nm_async_tcpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	uv_timer_stop(&sock->timer);
 
 	failed_read_cb(sock, ISC_R_EOF);
-}
-
-void
-isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	sock = handle->sock;
-
-	sock->read_timeout = timeout;
-	if (uv_is_active((uv_handle_t *)&sock->timer)) {
-		start_sock_timer(sock);
-	}
 }
 
 int_fast32_t

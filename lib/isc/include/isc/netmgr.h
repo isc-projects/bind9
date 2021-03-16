@@ -162,9 +162,11 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 
 void
 isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+void
+isc_nmhandle_cleartimeout(isc_nmhandle_t *handle);
 /*%<
- * Set the read/recv timeout for the socket connected to 'handle'
- * to 'timeout', and reset the timer.
+ * Set/clear the read/recv timeout for the socket connected to 'handle'
+ * to 'timeout', and reset the timer, in miliseconds.
  *
  * When this is called on a 'wrapper' socket handle (for example,
  * a TCPDNS socket wrapping a TCP connection), the timer is set for

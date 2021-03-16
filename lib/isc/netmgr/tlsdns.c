@@ -101,9 +101,6 @@ static void
 stop_reading(isc_nmsocket_t *sock);
 
 static void
-start_sock_timer(isc_nmsocket_t *sock);
-
-static void
 process_sock_buffer(isc_nmsocket_t *sock);
 
 static isc__nm_uvreq_t *
@@ -372,7 +369,8 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 
 	sock->tls.pending_req = req;
 
-	start_reading(sock);
+	process_sock_buffer(sock);
+
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
@@ -861,6 +859,7 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 
+	isc__nmsocket_timer_stop(sock);
 	stop_reading(sock);
 
 	if (sock->tls.pending_req) {
@@ -890,6 +889,11 @@ destroy:
 	}
 }
 
+void
+isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+	failed_read_cb(sock, result);
+}
+
 static void
 failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	       isc_result_t eresult) {
@@ -897,7 +901,7 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult);
+		isc__nm_sendcb(sock, req, eresult, true);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
@@ -921,36 +925,6 @@ get_read_req(isc_nmsocket_t *sock) {
 }
 
 static void
-readtimeout_cb(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
-
-	/*
-	 * Timeout; stop reading and process whatever we have.
-	 */
-
-	failed_read_cb(sock, ISC_R_TIMEDOUT);
-}
-
-static void
-start_sock_timer(isc_nmsocket_t *sock) {
-	if (sock->read_timeout > 0) {
-		int r = uv_timer_start(&sock->timer, readtimeout_cb,
-				       sock->read_timeout, 0);
-		RUNTIME_CHECK(r == 0);
-	}
-}
-
-static void
-stop_sock_timer(isc_nmsocket_t *sock) {
-	int r = uv_timer_stop(&sock->timer);
-	RUNTIME_CHECK(r == 0);
-}
-
-static void
 start_reading(isc_nmsocket_t *sock) {
 	int r;
 
@@ -961,8 +935,6 @@ start_reading(isc_nmsocket_t *sock) {
 	r = uv_read_start(&sock->uv_handle.stream, tlsdns_alloc_cb, read_cb);
 	RUNTIME_CHECK(r == 0);
 	sock->reading = true;
-
-	start_sock_timer(sock);
 }
 
 static void
@@ -976,8 +948,6 @@ stop_reading(isc_nmsocket_t *sock) {
 	r = uv_read_stop(&sock->uv_handle.stream);
 	RUNTIME_CHECK(r == 0);
 	sock->reading = false;
-
-	stop_sock_timer(sock);
 }
 
 void
@@ -1069,7 +1039,6 @@ isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
-		stop_reading(sock);
 		failed_read_cb(sock, result);
 	}
 }
@@ -1216,7 +1185,7 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 		if (sock->tls.state == TLS_STATE_NONE &&
 		    !SSL_is_init_finished(sock->tls.ssl)) {
 			sock->tls.state = TLS_STATE_HANDSHAKE;
-			start_reading(sock);
+			process_sock_buffer(sock);
 		}
 		/* else continue reading */
 		break;
@@ -1269,9 +1238,8 @@ static void
 tls_error(isc_nmsocket_t *sock, isc_result_t result) {
 	switch (sock->tls.state) {
 	case TLS_STATE_HANDSHAKE:
-		stop_reading(sock);
-		break;
 	case TLS_STATE_IO:
+		isc__nmsocket_timer_stop(sock);
 		stop_reading(sock);
 		break;
 	case TLS_STATE_ERROR:
@@ -1719,7 +1687,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	isc_nmhandle_detach(&handle);
 
-	start_reading(csock);
+	process_sock_buffer(csock);
 
 	/*
 	 * sock is now attached to the handle.
@@ -1842,7 +1810,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		/* SSL_write_ex() doesn't do partial writes */
 		INSIST(sendlen == bytes);
 
-		isc__nm_sendcb(sock, req, ISC_R_SUCCESS);
+		isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
 		async_tlsdns_cycle(sock);
 		return (ISC_R_SUCCESS);
 	}
@@ -2012,6 +1980,7 @@ tlsdns_close_direct(isc_nmsocket_t *sock) {
 		isc_nmhandle_detach(&sock->recv_handle);
 	}
 
+	isc__nmsocket_timer_stop(sock);
 	stop_reading(sock);
 	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 }
@@ -2124,21 +2093,6 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc__nm_tlsdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	sock = handle->sock;
-
-	sock->read_timeout = timeout;
-	if (uv_is_active((uv_handle_t *)&sock->timer)) {
-		start_sock_timer(sock);
-	}
-}
-
-void
 isc_nm_tlsdns_sequential(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
 
@@ -2157,6 +2111,7 @@ isc_nm_tlsdns_sequential(isc_nmhandle_t *handle) {
 	 * is released.
 	 */
 
+	isc__nmsocket_timer_stop(sock);
 	stop_reading(sock);
 	atomic_store(&sock->sequential, true);
 }
@@ -2174,33 +2129,47 @@ isc_nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	atomic_store(&sock->keepalive, value);
 }
 
+/*
+ * Process a DNS message.
+ *
+ * If we only have an incomplete DNS message, we don't touch any
+ * timers. If we do have a full message, reset the timer.
+ *
+ * Stop reading if this is a client socket, or if the server socket
+ * has been set to sequential mode, or the number of queries we are
+ * processing simultaneously has reached the clients-per-connection
+ * limit. In this event we'll be called again by resume_processing()
+ * later.
+ */
 static void
 process_sock_buffer(isc_nmsocket_t *sock) {
-	/*
-	 * 1. When process_buffer receives incomplete DNS message,
-	 *    we don't touch any timers
-	 *
-	 * 2. When we receive at least one full DNS message, we stop the timers
-	 *    until resume_processing calls this function again and restarts the
-	 *    reading and the timers
-	 */
-
-	/*
-	 * Process a DNS messages.  Stop if this is client socket, or the server
-	 * socket has been set to sequential mode or the number of queries we
-	 * are processing simultaneously have reached the clients-per-connection
-	 * limit.
-	 */
 	for (;;) {
+		int_fast32_t ah = atomic_load(&sock->ah);
 		isc_result_t result = processbuffer(sock);
 		switch (result) {
 		case ISC_R_NOMORE:
+			/*
+			 * Don't reset the timer until we have a
+			 * full DNS message.
+			 */
 			start_reading(sock);
+			/* Start the timer if there are no active handles */
+			if (ah == 1) {
+				isc__nmsocket_timer_start(sock);
+			}
 			return;
 		case ISC_R_CANCELED:
+			isc__nmsocket_timer_stop(sock);
 			stop_reading(sock);
 			return;
 		case ISC_R_SUCCESS:
+			/*
+			 * Stop the timer on the successful message read, this
+			 * also allows to restart the timer when we have no more
+			 * data.
+			 */
+			isc__nmsocket_timer_stop(sock);
+
 			if (atomic_load(&sock->client) ||
 			    atomic_load(&sock->sequential) ||
 			    atomic_load(&sock->ah) >= TLSDNS_CLIENTS_PER_CONN)
@@ -2226,11 +2195,6 @@ resume_processing(void *arg) {
 
 	if (inactive(sock)) {
 		return;
-	}
-
-	if (atomic_load(&sock->ah) == 0) {
-		/* Nothing is active; sockets can timeout now */
-		start_sock_timer(sock);
 	}
 
 	process_sock_buffer(sock);

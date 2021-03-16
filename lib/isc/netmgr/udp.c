@@ -596,7 +596,7 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
 	}
 
-	isc__nm_sendcb(sock, uvreq, result);
+	isc__nm_sendcb(sock, uvreq, result, false);
 }
 
 /*
@@ -900,6 +900,11 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	}
 }
 
+void
+isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+	failed_read_cb(sock, result);
+}
+
 static void
 failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	       isc_result_t eresult) {
@@ -907,7 +912,7 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult);
+		isc__nm_sendcb(sock, req, eresult, true);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
@@ -928,20 +933,6 @@ get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	}
 
 	return req;
-}
-
-static void
-readtimeout_cb(uv_timer_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
-
-	/*
-	 * Timeout; stop reading and process whatever we have.
-	 */
-	failed_read_cb(sock, ISC_R_TIMEDOUT);
 }
 
 /*
@@ -966,21 +957,7 @@ isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	start_reading(sock);
-}
-
-static void
-start_sock_timer(isc_nmsocket_t *sock) {
-	if (sock->read_timeout > 0) {
-		int r = uv_timer_start(&sock->timer, readtimeout_cb,
-				       sock->read_timeout, 0);
-		REQUIRE(r == 0);
-	}
-}
-
-static void
-stop_sock_timer(isc_nmsocket_t *sock) {
-	int r = uv_timer_stop(&sock->timer);
-	REQUIRE(r == 0);
+	isc__nmsocket_timer_start(sock);
 }
 
 static void
@@ -993,8 +970,6 @@ start_reading(isc_nmsocket_t *sock) {
 				  udp_read_cb);
 	REQUIRE(r == 0);
 	sock->reading = true;
-
-	start_sock_timer(sock);
 }
 
 static void
@@ -1007,7 +982,7 @@ stop_reading(isc_nmsocket_t *sock) {
 	REQUIRE(r == 0);
 	sock->reading = false;
 
-	stop_sock_timer(sock);
+	isc__nmsocket_timer_stop(sock);
 }
 
 void
@@ -1262,17 +1237,4 @@ isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(atomic_load(&sock->client));
 
 	failed_read_cb(sock, ISC_R_EOF);
-}
-
-void
-isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	isc_nmsocket_t *sock = handle->sock;
-
-	sock->read_timeout = timeout;
-	if (uv_is_active((uv_handle_t *)&sock->timer)) {
-		start_sock_timer(sock);
-	}
 }
