@@ -369,7 +369,7 @@
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017,2018,2019,2020,2021
 ./bin/tests/system/doth/clean.sh		SH	2020,2021
-./bin/tests/system/doth/dig1.good		X	2021
+./bin/tests/system/doth/example.axfr.good	X	2021
 ./bin/tests/system/doth/ns2/cert.pem		X	2021
 ./bin/tests/system/doth/ns2/key.pem		X	2021
 ./bin/tests/system/doth/setup.sh		SH	2021

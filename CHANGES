@@ -1,3 +1,6 @@
+5599.	[bug]		Fix a crash when transferring a zone over TLS,
+			after "named" previously skipped a master. [GL #2562]
+
 5598.	[port]		Cast (char) to (unsigned char) when calling ctype
 			tests. [GL #2567]
 
