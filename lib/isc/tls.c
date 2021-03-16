@@ -311,8 +311,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		EVP_PKEY_free(pkey);
 		BN_free(bn);
 	} else {
-		rv = SSL_CTX_use_certificate_file(ctx, certfile,
-						  SSL_FILETYPE_PEM);
+		rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
 		if (rv != 1) {
 			goto ssl_error;
 		}

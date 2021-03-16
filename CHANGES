@@ -1,3 +1,7 @@
+5600.	[bug]		Load a certificate chain file so that the full chain is
+			sent to DNS-over-TLS (DoT) and DNS-over-HTTPS (DoH)
+			clients that require full chain verification. [GL #2514]
+
 5599.	[bug]		Fix a crash when transferring a zone over TLS,
 			after "named" previously skipped a master. [GL #2562]
 
