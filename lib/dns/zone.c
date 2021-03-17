@@ -19947,7 +19947,12 @@ zone_rekey(dns_zone_t *zone) {
 	}
 
 	if (result == ISC_R_SUCCESS) {
-		bool insecure = dns_zone_secure_to_insecure(zone, false);
+		/*
+		 * Publish CDS/CDNSKEY DELETE records if the zone is
+		 * transitioning from secure to insecure.
+		 */
+		bool cds_delete = dns_zone_secure_to_insecure(zone, false);
+		isc_stdtime_t when;
 
 		/*
 		 * Only update DNSKEY TTL if we have a policy.
@@ -19984,9 +19989,36 @@ zone_rekey(dns_zone_t *zone) {
 			goto failure;
 		}
 
+		if (cds_delete) {
+			/*
+			 * Only publish CDS/CDNSKEY DELETE records if there is
+			 * a KSK that can be used to verify the RRset. This
+			 * means there must be a key with the KSK role that is
+			 * published and is used for signing.
+			 */
+			cds_delete = false;
+			for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
+			     key = ISC_LIST_NEXT(key, link)) {
+				dst_key_t *dstk = key->key;
+				bool ksk = false;
+				(void)dst_key_getbool(dstk, DST_BOOL_KSK, &ksk);
+				if (!ksk) {
+					continue;
+				}
+
+				if (dst_key_haskasp(dstk) &&
+				    dst_key_is_published(dstk, now, &when) &&
+				    dst_key_is_signing(dstk, DST_BOOL_KSK, now,
+						       &when))
+				{
+					cds_delete = true;
+					break;
+				}
+			}
+		}
 		result = dns_dnssec_syncdelete(&cdsset, &cdnskeyset,
 					       &zone->origin, zone->rdclass,
-					       ttl, &diff, mctx, insecure);
+					       ttl, &diff, mctx, cds_delete);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY "
