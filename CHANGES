@@ -1,3 +1,8 @@
+5601.	[bug]		Dynamic zones with dnssec-policy could not be thawed
+			because KASP zones were always considered dynamic;
+			previously, dynamic KASP zones did not check whether
+			updates were disabled. This has been fixed. [GL #2523]
+
 5600.	[bug]		Load a certificate chain file so that the full chain is
 			sent to DNS-over-TLS (DoT) and DNS-over-HTTPS (DoH)
 			clients that require full chain verification. [GL #2514]

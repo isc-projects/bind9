@@ -83,5 +83,8 @@ Bug Fixes
   (upgrade). Note that this *must not* be done while ``named`` is
   running.  [GL #2505]
 
+- Dynamic zones with ``dnssec-policy`` that were frozen could not be thawed.
+  This has been fixed. [GL #2523]
+
 - Fix a crash when transferring a zone over TLS, after "named" previously
   skipped a master. [GL #2562]
