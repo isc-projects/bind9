@@ -20524,6 +20524,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	unsigned char buffer[DNS_DS_BUFFERSIZE];
 	unsigned char algorithms[256];
 	unsigned int i;
+	bool empty = false;
 
 	enum { notexpected = 0, expected = 1, found = 2 };
 
@@ -20559,14 +20560,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
 				     dns_rdatatype_none, 0, &dnskey, NULL);
 	if (result == ISC_R_NOTFOUND) {
-		if (dns_rdataset_isassociated(&cds)) {
-			result = DNS_R_BADCDS;
-		} else {
-			result = DNS_R_BADCDNSKEY;
-		}
-		goto failure;
-	}
-	if (result != ISC_R_SUCCESS) {
+		empty = true;
+	} else if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
 
@@ -20596,6 +20591,12 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 				delete = true;
 				continue;
 			}
+
+			if (empty) {
+				result = DNS_R_BADCDS;
+				goto failure;
+			}
+
 			CHECK(dns_rdata_tostruct(&crdata, &structcds, NULL));
 			if (algorithms[structcds.algorithm] == 0) {
 				algorithms[structcds.algorithm] = expected;
@@ -20663,6 +20664,12 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 				delete = true;
 				continue;
 			}
+
+			if (empty) {
+				result = DNS_R_BADCDNSKEY;
+				goto failure;
+			}
+
 			CHECK(dns_rdata_tostruct(&crdata, &structcdnskey,
 						 NULL));
 			if (algorithms[structcdnskey.algorithm] == 0) {
