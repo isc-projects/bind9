@@ -1,3 +1,8 @@
+5606.	[bug]		CDS/CDNSKEY DELETE records were not removed when a zone
+			transitioned from secure to insecure. "named-checkzone"
+			should not complain if such records exist in an
+			unsigned zone. [GL #2517]
+
 5605.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
 			time reporting. [GL #2592]
 
