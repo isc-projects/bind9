@@ -201,7 +201,7 @@ if HAVE_PYTHON
 TESTS += kasp tcp pipelined
 
 if HAVE_PYMOD_DNS
-TESTS += qmin cookie
+TESTS += qmin cookie timeouts
 
 if HAVE_PERLMOD_NET_DNS
 TESTS += dnssec
