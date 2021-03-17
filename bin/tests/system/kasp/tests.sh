@@ -1358,22 +1358,29 @@ cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
 rndccmd 10.53.0.3 reload "$ZONE" > /dev/null || log_error "rndc reload zone ${ZONE} failed"
 
 update_is_signed() {
-	dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || return 1
-	grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || return 1
-	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" "dig.out.$DIR.test$n.a" > /dev/null || return 1
-	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.a" | wc -l)
-	test "$lines" -eq 1 || return 1
-	get_keys_which_signed A "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" > /dev/null || return 1
+	ip_a=$1
+	ip_d=$2
 
-	dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n".d || return 1
-	grep "status: NOERROR" "dig.out.$DIR.test$n".d > /dev/null || return 1
-	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" "dig.out.$DIR.test$n".d > /dev/null || return 1
-	lines=$(get_keys_which_signed A "dig.out.$DIR.test$n".d | wc -l)
-	test "$lines" -eq 1 || return 1
-	get_keys_which_signed A "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" > /dev/null || return 1
+	if [ "$ip_a" != "-" ]; then
+		dig_with_opts "a.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n.a" || return 1
+		grep "status: NOERROR" "dig.out.$DIR.test$n.a" > /dev/null || return 1
+		grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_a}" "dig.out.$DIR.test$n.a" > /dev/null || return 1
+		lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.a" | wc -l)
+		test "$lines" -eq 1 || return 1
+		get_keys_which_signed A "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" > /dev/null || return 1
+	fi
+
+	if [ "$ip_d" != "-" ]; then
+		dig_with_opts "d.${ZONE}" "@${SERVER}" A > "dig.out.$DIR.test$n".d || return 1
+		grep "status: NOERROR" "dig.out.$DIR.test$n".d > /dev/null || return 1
+		grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_d}" "dig.out.$DIR.test$n".d > /dev/null || return 1
+		lines=$(get_keys_which_signed A "dig.out.$DIR.test$n".d | wc -l)
+		test "$lines" -eq 1 || return 1
+		get_keys_which_signed A "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" > /dev/null || return 1
+	fi
 }
 
-retry_quiet 10 update_is_signed || ret=1
+retry_quiet 10 update_is_signed "10.0.0.11" "10.0.0.44" || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -1401,12 +1408,42 @@ ret=0
 echo zone ${ZONE}
 echo server 10.53.0.3 "$PORT"
 echo update del "a.${ZONE}" 300 A 10.0.0.1
-echo update add "a.${ZONE}" 300 A 10.0.0.11
+echo update add "a.${ZONE}" 300 A 10.0.0.101
 echo update add "d.${ZONE}" 300 A 10.0.0.4
 echo send
 ) | $NSUPDATE
 
-retry_quiet 10 update_is_signed || ret=1
+retry_quiet 10 update_is_signed "10.0.0.101" "10.0.0.4" || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update zone with nsupdate (reverting the above change).
+n=$((n+1))
+echo_i "nsupdate zone and check that new record is signed for zone ${ZONE} ($n)"
+ret=0
+(
+echo zone ${ZONE}
+echo server 10.53.0.3 "$PORT"
+echo update add "a.${ZONE}" 300 A 10.0.0.1
+echo update del "a.${ZONE}" 300 A 10.0.0.101
+echo update del "d.${ZONE}" 300 A 10.0.0.4
+echo send
+) | $NSUPDATE
+
+retry_quiet 10 update_is_signed "10.0.0.1" "-" || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update zone with freeze/thaw.
+n=$((n+1))
+echo_i "modify zone file and check that new record is signed for zone ${ZONE} ($n)"
+ret=0
+rndccmd 10.53.0.3 freeze "$ZONE" > /dev/null || log_error "rndc freeze zone ${ZONE} failed"
+sleep 1
+echo "d.${ZONE}. 300 A 10.0.0.44" >> "${DIR}/${ZONE}.db"
+rndccmd 10.53.0.3 thaw "$ZONE" > /dev/null || log_error "rndc thaw zone ${ZONE} failed"
+
+retry_quiet 10 update_is_signed "10.0.0.1" "10.0.0.44" || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 

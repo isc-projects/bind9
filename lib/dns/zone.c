@@ -1806,11 +1806,6 @@ dns_zone_isdynamic(dns_zone_t *zone, bool ignore_freeze) {
 		return (true);
 	}
 
-	/* Kasp zones are always dynamic. */
-	if (dns_zone_use_kasp(zone)) {
-		return (true);
-	}
-
 	/* If !ignore_freeze, we need check whether updates are disabled.  */
 	if (zone->type == dns_zone_master &&
 	    (!zone->update_disabled || ignore_freeze) &&
@@ -2059,8 +2054,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 	is_dynamic = dns_zone_isdynamic(zone, false);
 	if (zone->db != NULL && is_dynamic) {
 		/*
-		 * This is a slave, stub, dynamically updated, or kasp enabled
-		 * zone being reloaded.  Do nothing - the database we already
+		 * This is a slave, stub, or dynamically updated zone being
+		 * reloaded.  Do nothing - the database we already
 		 * have is guaranteed to be up-to-date.
 		 */
 		if (zone->type == dns_zone_master && !hasraw) {
@@ -2372,6 +2367,16 @@ dns_zone_loadandthaw(dns_zone_t *zone) {
 	if (inline_raw(zone)) {
 		result = zone_load(zone->secure, DNS_ZONELOADFLAG_THAW, false);
 	} else {
+		/*
+		 * When thawing a zone, we don't know what changes
+		 * have been made. If we do DNSSEC maintenance on this
+		 * zone, schedule a full sign for this zone.
+		 */
+		if (zone->type == dns_zone_master &&
+		    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
+		{
+			DNS_ZONEKEY_SETOPTION(zone, DNS_ZONEKEY_FULLSIGN);
+		}
 		result = zone_load(zone, DNS_ZONELOADFLAG_THAW, false);
 	}
 
