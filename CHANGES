@@ -1,3 +1,6 @@
+5602.	[bug]		Fix the TCPDNS and TLSDNS timers, so TCP initial
+			and idle timers work correctly. [GL #2573]
+
 5601.	[bug]		Dynamic zones with dnssec-policy could not be thawed
 			because KASP zones were always considered dynamic;
 			previously, dynamic KASP zones did not check whether
