@@ -9,10 +9,12 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/bn.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
+#include <openssl/rsa.h>
 
 #include <isc/atomic.h>
 #include <isc/log.h>
@@ -276,11 +278,19 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		rsa = NULL;
 		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
 
+#if OPENSSL_VERSION_NUMBER < 0x10101000L
 		X509_gmtime_adj(X509_get_notBefore(cert), 0);
+#else
+		X509_gmtime_adj(X509_getm_notBefore(cert), 0);
+#endif
 		/*
 		 * We set the vailidy for 10 years.
 		 */
+#if OPENSSL_VERSION_NUMBER < 0x10101000L
 		X509_gmtime_adj(X509_get_notAfter(cert), 3650 * 24 * 3600);
+#else
+		X509_gmtime_adj(X509_getm_notAfter(cert), 3650 * 24 * 3600);
+#endif
 
 		X509_set_pubkey(cert, pkey);
 
