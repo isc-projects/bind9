@@ -39,6 +39,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- When calling ``rndc dnssec -rollover`` or ``rndc checkds -checkds``,
+  ``named`` now updates the keys immediately, avoiding unnecessary rollover
+  delays. [#2488]
+
 - Dynamic zones with ``dnssec-policy`` that were frozen could not be thawed.
   This has been fixed. [GL #2523]
 
