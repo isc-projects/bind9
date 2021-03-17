@@ -46,6 +46,10 @@ Bug Fixes
 - Dynamic zones with ``dnssec-policy`` that were frozen could not be thawed.
   This has been fixed. [GL #2523]
 
+- CDS/CDNSKEY DELETE records are now removed when a zone transitioned from
+  secure to insecure. "named-checkzone" no longer complains if such records
+  exist in an unsigned zone. [GL #2517]
+
 - It was discovered that the TCP idle and initial timeouts were incorrectly
   applied in the BIND 9.16 and 9.17 branches. Only the ``tcp-initial-timeout``
   was applied on the whole connection, even if the connection were still active,
