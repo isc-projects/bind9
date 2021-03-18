@@ -162,9 +162,11 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 
 void
 isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+void
+isc_nmhandle_cleartimeout(isc_nmhandle_t *handle);
 /*%<
- * Set the read/recv timeout for the socket connected to 'handle'
- * to 'timeout', and reset the timer.
+ * Set/clear the read/recv timeout for the socket connected to 'handle'
+ * to 'timeout' (in milliseconds), and reset the timer.
  *
  * When this is called on a 'wrapper' socket handle (for example,
  * a TCPDNS socket wrapping a TCP connection), the timer is set for
@@ -431,10 +433,10 @@ void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised);
 /*%<
- * Sets the initial, idle, and keepalive timeout values to use for
- * TCP connections, and the timeout value to advertise in responses using
+ * Sets the initial, idle, and keepalive timeout values (in milliseconds) to use
+ * for TCP connections, and the timeout value to advertise in responses using
  * the EDNS TCP Keepalive option (which should ordinarily be the same
- * as 'keepalive'), in tenths of seconds.
+ * as 'keepalive').
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.
@@ -445,7 +447,7 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 		   uint32_t *keepalive, uint32_t *advertised);
 /*%<
  * Gets the initial, idle, keepalive, or advertised timeout values,
- * in tenths of seconds.
+ * in milliseconds.
  *
  * Any integer pointer parameter not set to NULL will be updated to
  * contain the corresponding timeout value.

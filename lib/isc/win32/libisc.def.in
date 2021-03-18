@@ -440,6 +440,7 @@ isc_netaddr_unspec
 isc_netscope_pton
 isc__nmhandle_attach
 isc__nmhandle_detach
+isc_nmhandle_cleartimeout
 isc_nmhandle_getdata
 isc_nmhandle_getextra
 isc_nmhandle_is_stream
