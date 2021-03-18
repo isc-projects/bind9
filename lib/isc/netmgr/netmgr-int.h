@@ -806,7 +806,7 @@ struct isc_nmsocket {
 			TLS_STATE_ERROR,
 			TLS_STATE_CLOSING
 		} state;
-		uv_buf_t senddata;
+		isc_region_t senddata;
 		bool cycle;
 		isc_result_t pending_error;
 		/* List of active send requests. */
