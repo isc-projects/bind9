@@ -1449,7 +1449,7 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family);
 isc_result_t
 isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms);
 /*%<
- * Set the connection timeout in miliseconds, on non-Linux platforms,
+ * Set the connection timeout in milliseconds, on non-Linux platforms,
  * the minimum value must be at least 1000 (1 second).
  */
 
