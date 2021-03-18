@@ -509,10 +509,10 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised) {
 	REQUIRE(VALID_NM(mgr));
 
-	atomic_store(&mgr->init, init * 100);
-	atomic_store(&mgr->idle, idle * 100);
-	atomic_store(&mgr->keepalive, keepalive * 100);
-	atomic_store(&mgr->advertised, advertised * 100);
+	atomic_store(&mgr->init, init);
+	atomic_store(&mgr->idle, idle);
+	atomic_store(&mgr->keepalive, keepalive);
+	atomic_store(&mgr->advertised, advertised);
 }
 
 void
@@ -521,19 +521,19 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 	REQUIRE(VALID_NM(mgr));
 
 	if (initial != NULL) {
-		*initial = atomic_load(&mgr->init) / 100;
+		*initial = atomic_load(&mgr->init);
 	}
 
 	if (idle != NULL) {
-		*idle = atomic_load(&mgr->idle) / 100;
+		*idle = atomic_load(&mgr->idle);
 	}
 
 	if (keepalive != NULL) {
-		*keepalive = atomic_load(&mgr->keepalive) / 100;
+		*keepalive = atomic_load(&mgr->keepalive);
 	}
 
 	if (advertised != NULL) {
-		*advertised = atomic_load(&mgr->advertised) / 100;
+		*advertised = atomic_load(&mgr->advertised);
 	}
 }
 
