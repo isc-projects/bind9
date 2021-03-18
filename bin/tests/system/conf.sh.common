@@ -129,6 +129,7 @@ statistics \
 statschannel \
 stub \
 synthfromdnssec \
+timeouts \
 tcp \
 tools \
 tsig \

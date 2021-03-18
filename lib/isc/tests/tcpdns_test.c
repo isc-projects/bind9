@@ -242,7 +242,6 @@ nm_setup(void **state) {
 	for (size_t i = 0; i < MAX_NM; i++) {
 		nm[i] = isc_nm_start(test_mctx, nworkers);
 		assert_non_null(nm[i]);
-		isc_nm_settimeouts(nm[i], 1000, 1000, 1000, 1000);
 	}
 
 	*state = nm;

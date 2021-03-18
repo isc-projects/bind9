@@ -84,3 +84,11 @@ Bug Fixes
 
 - Dynamic zones with ``dnssec-policy`` that were frozen could not be thawed.
   This has been fixed. [GL #2523]
+
+- It was discovered that the TCP idle and initial timeouts were incorrectly
+  applied in the BIND 9.16 and 9.17 branches. Only the ``tcp-initial-timeout``
+  was applied on the whole connection, even if the connection were still active,
+  which could cause a large zone transfer to be sent back to the client. The
+  default setting for ``tcp-initial-timeout`` was 30 seconds, which meant that
+  any TCP connection taking more than 30 seconds was abruptly terminated. This
+  has been fixed [GL #2573].
