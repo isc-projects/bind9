@@ -1063,12 +1063,12 @@ static void
 free_senddata(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tls.senddata.base != NULL);
-	REQUIRE(sock->tls.senddata.len > 0);
+	REQUIRE(sock->tls.senddata.length > 0);
 
 	isc_mem_put(sock->mgr->mctx, sock->tls.senddata.base,
-		    sock->tls.senddata.len);
+		    sock->tls.senddata.length);
 	sock->tls.senddata.base = NULL;
-	sock->tls.senddata.len = 0;
+	sock->tls.senddata.length = 0;
 }
 
 static void
@@ -1105,7 +1105,7 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		int err;
 
 		if (sock->tls.senddata.base != NULL ||
-		    sock->tls.senddata.len > 0) {
+		    sock->tls.senddata.length > 0) {
 			break;
 		}
 
@@ -1114,42 +1114,43 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		}
 
 		sock->tls.senddata.base = isc_mem_get(sock->mgr->mctx, pending);
-		sock->tls.senddata.len = pending;
+		sock->tls.senddata.length = pending;
 
-		rv = BIO_read_ex(sock->tls.app_rbio, sock->tls.senddata.base,
-				 pending, &bytes);
+		req = isc__nm_uvreq_get(sock->mgr, sock);
+		req->uvbuf.base = (char *)sock->tls.senddata.base;
+		req->uvbuf.len = sock->tls.senddata.length;
+
+		rv = BIO_read_ex(sock->tls.app_rbio, req->uvbuf.base,
+				 req->uvbuf.len, &bytes);
 
 		RUNTIME_CHECK(rv == 1);
 		INSIST((size_t)pending == bytes);
 
-		err = uv_try_write(&sock->uv_handle.stream, &sock->tls.senddata,
-				   1);
+		err = uv_try_write(&sock->uv_handle.stream, &req->uvbuf, 1);
 
 		if (err == pending) {
 			/* Wrote everything, restart */
+			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock);
 			continue;
 		}
 
 		if (err > 0) {
 			/* Partial write, send rest asynchronously */
-			memmove(sock->tls.senddata.base,
-				sock->tls.senddata.base + err, pending - err);
-			sock->tls.senddata.len = pending - err;
+			memmove(req->uvbuf.base, req->uvbuf.base + err,
+				req->uvbuf.len - err);
+			req->uvbuf.len = req->uvbuf.len - err;
 		} else if (err == UV_ENOSYS || err == UV_EAGAIN) {
 			/* uv_try_write is not supported, send asynchronously */
 		} else {
 			result = isc__nm_uverr2result(err);
+			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock);
 			break;
 		}
 
-		req = isc__nm_uvreq_get(sock->mgr, sock);
-		req->uvbuf.base = (char *)sock->tls.senddata.base;
-		req->uvbuf.len = sock->tls.senddata.len;
-
 		err = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
-			       &sock->tls.senddata, 1, tls_write_cb);
+			       &req->uvbuf, 1, tls_write_cb);
 
 		INSIST(err == 0);
 
