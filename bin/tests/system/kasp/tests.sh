@@ -473,17 +473,24 @@ dnssec_verify
 
 basefile=$(key_get KEY1 BASEFILE)
 
+_wait_for_metadata() {
+	_expr=$1
+	_file=$2
+	grep "$_expr" $_file > /dev/null || return 1
+	return 0
+}
+
 n=$((n+1))
 echo_i "checkds publish correctly sets DSPublish for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20190102121314" "published" "$ZONE"
-grep "DSPublish: 20190102121314" "${basefile}.state" > /dev/null || log_error "DSPublish not set in ${basefile}"
+retry_quiet 3 _wait_for_metadata "DSPublish: 20190102121314" "${basefile}.state" || log_error "bad DSPublish in ${basefile}.state"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checkds withdraw correctly sets DSRemoved for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20200102121314" "withdrawn" "$ZONE"
-grep "DSRemoved: 20200102121314" "${basefile}.state" > /dev/null || log_error "DSRemoved not set in ${basefile}"
+retry_quiet 3 _wait_for_metadata "DSRemoved: 20200102121314" "${basefile}.state" || log_error "bad DSRemoved in ${basefile}.state"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -551,8 +558,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checkds withdrawn does not set DSRemoved for zone $ZONE (multiple KSK) ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20190102121314" "withdrawn" "$ZONE"
-grep "DSRemoved:" "${basefile1}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile1}"
-grep "DSRemoved:" "${basefile2}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile2}"
+grep "DSRemoved:" "${basefile1}.state" > /dev/null && log_error "DSRemoved incorrectly set in ${basefile1}"
+grep "DSRemoved:" "${basefile2}.state" > /dev/null && log_error "DSRemoved incorrectly set in ${basefile2}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -575,7 +582,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checkds published -key correctly sets DSPublish for key $(key_get KEY1 ID) zone $ZONE (multiple KSK) ($n)"
 rndc_checkds "$SERVER" "$DIR" KEY1 "20190102121314" "published" "$ZONE"
-grep "DSPublish: 20190102121314" "${basefile1}.state" > /dev/null || log_error "DSPublish not set in ${basefile1}"
+retry_quiet 3 _wait_for_metadata "DSPublish: 20190102121314" "${basefile1}.state" || log_error "bad DSPublish in ${basefile1}.state"
 grep "DSPublish:" "${basefile2}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile2}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -583,8 +590,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checkds withdrawn -key correctly sets DSRemoved for key $(key_get KEY2 ID) zone $ZONE (multiple KSK) ($n)"
 rndc_checkds "$SERVER" "$DIR" KEY2 "20200102121314" "withdrawn" "$ZONE"
-grep "DSRemoved: 20200102121314" "${basefile2}.state" > /dev/null || log_error "DSRemoved not set in ${basefile2}"
 grep "DSRemoved:" "${basefile1}.state" > /dev/null && log_error "DSPublish incorrectly set in ${basefile1}"
+retry_quiet 3 _wait_for_metadata "DSRemoved: 20200102121314" "${basefile2}.state" || log_error "bad DSRemoved in ${basefile2}.state"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -623,14 +630,14 @@ basefile=$(key_get KEY1 BASEFILE)
 n=$((n+1))
 echo_i "checkds publish correctly sets DSPublish for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20190102121314" "published" "$ZONE"
-grep "DSPublish: 20190102121314" "${basefile}.state" > /dev/null || log_error "DSPublish not set in ${basefile}"
+retry_quiet 3 _wait_for_metadata "DSPublish: 20190102121314" "${basefile}.state" || log_error "bad DSPublish in ${basefile}.state"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checkds withdraw correctly sets DSRemoved for zone $ZONE ($n)"
 rndc_checkds "$SERVER" "$DIR" "-" "20200102121314" "withdrawn" "$ZONE"
-grep "DSRemoved: 20200102121314" "${basefile}.state" > /dev/null || log_error "DSRemoved not set in ${basefile}"
+retry_quiet 3 _wait_for_metadata "DSRemoved: 20200102121314" "${basefile}.state" || log_error "bad DSRemoved in ${basefile}.state"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -2023,13 +2030,10 @@ check_apex
 check_subdomain
 dnssec_verify
 
-check_next_key_event() {
+_check_next_key_event() {
 	_expect=$1
 
-	n=$((n+1))
-	echo_i "check next key event for zone ${ZONE} ($n)"
-	ret=0
-	grep "zone ${ZONE}.*: next key event in .* seconds" "${DIR}/named.run" > "keyevent.out.$ZONE.test$n" || log_error "no next key event for zone ${ZONE}"
+	grep "zone ${ZONE}.*: next key event in .* seconds" "${DIR}/named.run" > "keyevent.out.$ZONE.test$n" || return 1
 
 	# Get the latest next key event.
 	if [ "${DYNAMIC}" = "yes" ]; then
@@ -2044,11 +2048,21 @@ check_next_key_event() {
 	_expectmin=$((_expect-next_key_event_threshold))
 	_expectmax=$((_expect+next_key_event_threshold))
 
-	test $_expectmin -le "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
-	test $_expectmax -ge "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
+	test $_expectmin -le "$_time" || return 1
+	test $_expectmax -ge "$_time" || return 1
 
+	return 0
+}
+
+check_next_key_event() {
+	n=$((n+1))
+	echo_i "check next key event for zone ${ZONE} ($n)"
+	ret=0
+
+	retry_quiet 3 _check_next_key_event $1 || log_error "bad next key event time for zone ${ZONE} (expect ${_expect})"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
+
 }
 
 # Next key event is when the DNSKEY RRset becomes OMNIPRESENT: DNSKEY TTL plus
