@@ -1583,8 +1583,86 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 	handle->dofree = dofree;
 }
 
-static void
-isc__nmsocket_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+void
+isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
+	REQUIRE(len <= NM_BIG_BUF);
+
+	if (sock->buf == NULL) {
+		/* We don't have the buffer at all */
+		size_t alloc_len = len < NM_REG_BUF ? NM_REG_BUF : NM_BIG_BUF;
+		sock->buf = isc_mem_allocate(sock->mgr->mctx, alloc_len);
+		sock->buf_size = alloc_len;
+	} else {
+		/* We have the buffer but it's too small */
+		sock->buf = isc_mem_reallocate(sock->mgr->mctx, sock->buf,
+					       NM_BIG_BUF);
+		sock->buf_size = NM_BIG_BUF;
+	}
+}
+
+void
+isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+		       isc_result_t eresult) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_UVREQ(req));
+
+	if (req->cb.send != NULL) {
+		isc__nm_sendcb(sock, req, eresult, true);
+	} else {
+		isc__nm_uvreq_put(&req, sock);
+	}
+}
+
+void
+isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
+	REQUIRE(sock->accepting);
+	REQUIRE(sock->server);
+
+	/*
+	 * Detach the quota early to make room for other connections;
+	 * otherwise it'd be detached later asynchronously, and clog
+	 * the quota unnecessarily.
+	 */
+	if (sock->quota != NULL) {
+		isc_quota_detach(&sock->quota);
+	}
+
+	isc__nmsocket_detach(&sock->server);
+
+	sock->accepting = false;
+
+	switch (eresult) {
+	case ISC_R_NOTCONNECTED:
+		/* IGNORE: The client disconnected before we could accept */
+		break;
+	default:
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "Accepting TCP connection failed: %s",
+			      isc_result_totext(eresult));
+	}
+}
+
+void
+isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+			  isc_result_t eresult) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_UVREQ(req));
+	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(atomic_load(&sock->connecting));
+	REQUIRE(req->cb.connect != NULL);
+
+	atomic_store(&sock->connecting, false);
+
+	isc__nmsocket_clearcb(sock);
+
+	isc__nm_connectcb(sock, req, eresult);
+
+	isc__nmsocket_prep_destroy(sock);
+}
+
+void
+isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
 	switch (sock->type) {
 	case isc_nm_udpsocket:
@@ -1613,7 +1691,7 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->reading);
 
-	isc__nmsocket_failed_read_cb(sock, ISC_R_TIMEDOUT);
+	isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT);
 }
 
 void

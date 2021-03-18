@@ -41,6 +41,8 @@
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
+#define ISC_NETMGR_TLSBUF_SIZE 65536
+
 #if !defined(WIN32)
 /*
  * New versions of libuv support recvmmsg on unices.
@@ -1850,3 +1852,49 @@ void
 isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 void
 isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+
+isc_result_t
+isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock);
+isc_result_t
+isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock);
+
+isc__nm_uvreq_t *
+isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr);
+
+void
+isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
+
+void
+isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
+		    const struct sockaddr *addr, unsigned flags);
+void
+isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+void
+isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+
+void
+isc__nm_start_reading(isc_nmsocket_t *sock);
+void
+isc__nm_stop_reading(isc_nmsocket_t *sock);
+void
+isc__nm_process_sock_buffer(isc_nmsocket_t *sock);
+void
+isc__nm_resume_processing(void *arg);
+bool
+isc__nm_inactive(isc_nmsocket_t *sock);
+
+void
+isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);
+
+void
+isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+		       isc_result_t eresult);
+void
+isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
+void
+isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+			  isc_result_t eresult);
+void
+isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+
+#define STREAM_CLIENTS_PER_CONN 23
