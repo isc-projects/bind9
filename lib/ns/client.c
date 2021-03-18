@@ -2509,7 +2509,7 @@ cleanup_reclock:
 	isc_mutex_destroy(&manager->reclock);
 	isc_mutex_destroy(&manager->lock);
 
-	isc_mem_put(manager->mctx, manager, sizeof(*manager));
+	isc_mem_put(mctx, manager, sizeof(*manager));
 
 	return (result);
 }
