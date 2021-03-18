@@ -276,6 +276,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	return;
 
 error:
+	sock->tls.pending_req = NULL;
 	isc__nm_failed_connect_cb(sock, req, result);
 }
 

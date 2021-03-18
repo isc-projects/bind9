@@ -1857,7 +1857,7 @@ processbuffer(isc_nmsocket_t *sock) {
 	case isc_nm_tcpdnssocket:
 		return (isc__nm_tcpdns_processbuffer(sock));
 	case isc_nm_tlsdnssocket:
-		return (isc__nm_tcpdns_processbuffer(sock));
+		return (isc__nm_tlsdns_processbuffer(sock));
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
