@@ -1,3 +1,6 @@
+5603.	[bug]		Fix a memory leak that occurred when named failed to
+			bind a UDP socket to a network interface. [GL #2575]
+
 5602.	[bug]		Fix the TCPDNS and TLSDNS timers, so TCP initial
 			and idle timers work correctly. [GL #2573]
 

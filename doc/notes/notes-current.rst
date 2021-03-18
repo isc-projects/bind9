@@ -49,6 +49,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Previously, a memory leak could occur when``named`` failed to bind a UDP
+  socket to a network interface, caused by an interface shutdown routine that
+  was missing in the error handling block. This has been fixed. [GL #2575]
+
 - If an outgoing packet would exceed max-udp-size, it would be dropped instead
   of sending a proper response back.  Rollback setting the IP_DONTFRAG on the
   UDP sockets that we enabled during the DNS Flag Day 2020 to fix this issue.
