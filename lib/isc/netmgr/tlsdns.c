@@ -1079,12 +1079,12 @@ tls_write_cb(uv_write_t *req, int status) {
 
 	free_senddata(sock);
 
+	isc__nm_uvreq_put(&uvreq, sock);
+
 	if (status != 0) {
 		tls_error(sock, isc__nm_uverr2result(status));
 		return;
 	}
-
-	isc__nm_uvreq_put(&uvreq, sock);
 
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
