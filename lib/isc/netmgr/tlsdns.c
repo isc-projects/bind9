@@ -760,7 +760,7 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	if (sock->tls.pending_req) {
+	if (sock->tls.pending_req != NULL) {
 		isc__nm_uvreq_t *req = sock->tls.pending_req;
 		sock->tls.pending_req = NULL;
 		isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED);
@@ -1835,14 +1835,14 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (atomic_load(&sock->connecting) || sock->accepting) {
-		return;
-	}
-
-	if (sock->tls.pending_req) {
+	if (sock->tls.pending_req != NULL) {
 		isc__nm_uvreq_t *req = sock->tls.pending_req;
 		sock->tls.pending_req = NULL;
 		isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED);
+	}
+
+	if (atomic_load(&sock->connecting) || sock->accepting) {
+		return;
 	}
 
 	if (sock->statichandle) {
