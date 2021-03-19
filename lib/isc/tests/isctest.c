@@ -85,8 +85,9 @@ create_managers(unsigned int workers) {
 	if (p != NULL) {
 		workers = atoi(p);
 	}
+	INSIST(workers != 0);
 
-	isc_hp_init(ISC_MAX(ISC_MIN(workers, 256), 128));
+	isc_hp_init(4 * workers);
 
 	netmgr = isc_nm_start(test_mctx, workers);
 	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));

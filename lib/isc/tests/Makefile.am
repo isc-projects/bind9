@@ -9,7 +9,7 @@ LDADD +=			\
 	$(LIBISC_LIBS)
 
 check_LTLIBRARIES = libisctest.la
-libisctest_la_SOURCES = 	\
+libisctest_la_SOURCES =		\
 	../unix/socket_p.h	\
 	isctest.c		\
 	isctest.h		\
@@ -31,6 +31,7 @@ TESTS =			\
 	md_test		\
 	mem_test	\
 	netaddr_test	\
+	netmgr_test	\
 	parse_test	\
 	pool_test	\
 	quota_test	\
@@ -45,13 +46,8 @@ TESTS =			\
 	symtab_test	\
 	task_test	\
 	taskpool_test	\
-	tcp_quota_test	\
-	tcp_test	\
-	tcpdns_test	\
 	time_test	\
-	timer_test	\
-	tlsdns_test	\
-	udp_test
+	timer_test
 
 check_PROGRAMS =	\
 	$(TESTS)
@@ -86,48 +82,12 @@ random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
 
-tcp_test_CPPFLAGS =	\
+netmgr_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
 	$(LIBUV_CFLAGS)	\
 	$(OPENSSL_CFLAGS)
 
-tcp_test_LDADD =	\
-	$(LDADD)	\
-	$(LIBUV_LIBS)
-
-tcp_quota_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)		\
-	$(LIBUV_CFLAGS)		\
-	$(OPENSSL_CFLAGS)
-
-tcp_quota_test_LDADD =	\
-	$(LDADD)	\
-	$(LIBUV_LIBS)
-
-tcpdns_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)	\
-	$(LIBUV_CFLAGS)	\
-	$(OPENSSL_CFLAGS)
-
-tcpdns_test_LDADD =	\
-	$(LDADD)	\
-	$(LIBUV_LIBS)
-
-tlsdns_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)	\
-	$(LIBUV_CFLAGS)	\
-	$(OPENSSL_CFLAGS)
-
-tlsdns_test_LDADD =	\
-	$(LDADD)	\
-	$(LIBUV_LIBS)
-
-udp_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)	\
-	$(LIBUV_CFLAGS)	\
-	$(OPENSSL_CFLAGS)
-
-udp_test_LDADD =	\
+netmgr_test_LDADD =	\
 	$(LDADD)	\
 	$(LIBUV_LIBS)
 

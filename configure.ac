@@ -1350,10 +1350,10 @@ AC_ARG_WITH([cmocka],
 
 AS_CASE([$with_cmocka],
 	[no],[],
-	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.1.3],
 				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])
 				     with_cmocka=yes],[with_cmocka=no])],
-	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.1.3],
 				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])],
 	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to CMocka library])]
        )
