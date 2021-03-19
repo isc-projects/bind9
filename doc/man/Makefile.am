@@ -17,6 +17,7 @@ MANPAGES_RST =				\
 	dnssec-verify.rst		\
 	dnstap-read.rst			\
 	filter-aaaa.rst			\
+	filter-a.rst			\
 	host.rst			\
 	index.rst			\
 	mdig.rst			\
@@ -62,6 +63,7 @@ MANPAGES_RST =				\
 	../../bin/pkcs11/pkcs11-list.rst \
 	../../bin/pkcs11/pkcs11-tokens.rst \
 	../../bin/plugins/filter-aaaa.rst \
+	../../bin/plugins/filter-a.rst \
 	../../bin/rndc/rndc.conf.rst \
 	../../bin/rndc/rndc.rst \
 	../../bin/tools/arpaname.rst \
@@ -96,6 +98,7 @@ man_MANS =				\
 	dnssec-signzone.1		\
 	dnssec-verify.1			\
 	filter-aaaa.8			\
+	filter-a.8			\
 	named-checkconf.1		\
 	named-checkzone.1		\
 	named-journalprint.1		\
