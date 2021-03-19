@@ -1045,8 +1045,7 @@ tls_error(isc_nmsocket_t *sock, isc_result_t result) {
 	switch (sock->tls.state) {
 	case TLS_STATE_HANDSHAKE:
 	case TLS_STATE_IO:
-		isc__nmsocket_timer_stop(sock);
-		isc__nm_stop_reading(sock);
+		isc__nm_tlsdns_failed_read_cb(sock, result);
 		break;
 	case TLS_STATE_ERROR:
 		return;
@@ -1768,6 +1767,8 @@ tlsdns_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
+
+	REQUIRE(sock->tls.pending_req == NULL);
 
 	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
