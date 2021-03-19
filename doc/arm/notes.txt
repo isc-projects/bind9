@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.28
+Release Notes for BIND Version 9.11.29
 
 Introduction
 
@@ -35,6 +35,14 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.29
+
+Bug Fixes
+
+  • An invalid direction field (not one of N, S, E, W) in a LOC record
+    resulted in an INSIST failure when a zone file containing such a
+    record was loaded. [GL #2499]
 
 Notes for BIND 9.11.28
 
