@@ -660,27 +660,8 @@ check_numkeys() {
 	return 0
 }
 
-# Check keys for a configured zone. This verifies:
-# 1. The right number of keys exist in the key pool ($1).
-# 2. The right number of keys is active. Checks KEY1, KEY2, KEY3, and KEY4.
-#
-# It is expected that KEY1, KEY2, KEY3, and KEY4 arrays are set correctly.
-# Found key identifiers are stored in the right key array.
-check_keys() {
-	n=$((n+1))
-	echo_i "check keys are created for zone ${ZONE} ($n)"
+_check_keys() {
 	ret=0
-
-	echo_i "check number of keys for zone ${ZONE} in dir ${DIR} ($n)"
-	retry_quiet 10 check_numkeys || ret=1
-	if [ $ret -ne 0 ]; then
-		_numkeys=$(get_keyids "$DIR" "$ZONE" | wc -l)
-		_log_error "bad number of key files ($_numkeys) for zone $ZONE (expected $NUM_KEYS)"
-		status=$((status+ret))
-	fi
-
-	# Temporarily don't log errors because we are searching multiple files.
-	disable_logerror
 
 	# Clear key ids.
 	key_set KEY1 ID "no"
@@ -693,6 +674,7 @@ check_keys() {
 	for _id in $_ids; do
 		# There are three key files with the same algorithm.
 		# Check them until a match is found.
+		ret=0
 		echo_i "check key id $_id"
 
 		if [ "no" = "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
@@ -721,9 +703,38 @@ check_keys() {
 		test "$ret" -eq 0 && continue
 
 		# If ret is still non-zero, none of the files matched.
-		test "$ret" -eq 0 || echo_i "failed"
-		status=$((status+ret))
+		echo_i "failed"
+		return 1
 	done
+
+	return 0
+}
+
+# Check keys for a configured zone. This verifies:
+# 1. The right number of keys exist in the key pool ($1).
+# 2. The right number of keys is active. Checks KEY1, KEY2, KEY3, and KEY4.
+#
+# It is expected that KEY1, KEY2, KEY3, and KEY4 arrays are set correctly.
+# Found key identifiers are stored in the right key array.
+check_keys() {
+	n=$((n+1))
+	echo_i "check keys are created for zone ${ZONE} ($n)"
+	ret=0
+
+	echo_i "check number of keys for zone ${ZONE} in dir ${DIR} ($n)"
+	retry_quiet 10 check_numkeys || ret=1
+	if [ $ret -ne 0 ]; then
+		_numkeys=$(get_keyids "$DIR" "$ZONE" | wc -l)
+		_log_error "bad number of key files ($_numkeys) for zone $ZONE (expected $NUM_KEYS)"
+		status=$((status+ret))
+	fi
+
+	# Temporarily don't log errors because we are searching multiple files.
+	disable_logerror
+
+	retry_quiet 3 _check_keys || ret=1
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
 
 	# Turn error logs on again.
 	enable_logerror
