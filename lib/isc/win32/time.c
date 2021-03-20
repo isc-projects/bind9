@@ -125,6 +125,15 @@ isc_time_now(isc_time_t *t) {
 }
 
 isc_result_t
+isc_time_now_hires(isc_time_t *t) {
+	REQUIRE(t != NULL);
+
+	GetSystemTimePreciseAsFileTime(&t->absolute);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	ULARGE_INTEGER i1;
 

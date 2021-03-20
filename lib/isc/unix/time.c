@@ -33,6 +33,10 @@
 #define NS_PER_US 1000	     /*%< Nanoseconds per microsecond. */
 #define NS_PER_MS 1000000    /*%< Nanoseconds per millisecond. */
 
+#if defined(CLOCK_REALTIME)
+#define CLOCKSOURCE_HIRES CLOCK_REALTIME
+#endif /* #if defined(CLOCK_REALTIME) */
+
 #if defined(CLOCK_REALTIME_COARSE)
 #define CLOCKSOURCE CLOCK_REALTIME_COARSE
 #elif defined(CLOCK_REALTIME_FAST)
@@ -40,6 +44,10 @@
 #else /* if defined(CLOCK_REALTIME_COARSE) */
 #define CLOCKSOURCE CLOCK_REALTIME
 #endif /* if defined(CLOCK_REALTIME_COARSE) */
+
+#if !defined(CLOCKSOURCE_HIRES)
+#define CLOCKSOURCE_HIRES CLOCKSOURCE
+#endif /* #ifndef CLOCKSOURCE_HIRES */
 
 /*%
  *** Intervals
@@ -106,14 +114,14 @@ isc_time_isepoch(const isc_time_t *t) {
 	return (false);
 }
 
-isc_result_t
-isc_time_now(isc_time_t *t) {
+static inline isc_result_t
+time_now(isc_time_t *t, clockid_t clock) {
 	struct timespec ts;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 
-	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
+	if (clock_gettime(clock, &ts) == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
@@ -136,6 +144,16 @@ isc_time_now(isc_time_t *t) {
 	t->nanoseconds = ts.tv_nsec;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_time_now_hires(isc_time_t *t) {
+	return time_now(t, CLOCKSOURCE_HIRES);
+}
+
+isc_result_t
+isc_time_now(isc_time_t *t) {
+	return time_now(t, CLOCKSOURCE);
 }
 
 isc_result_t
