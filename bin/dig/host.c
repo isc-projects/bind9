@@ -151,7 +151,11 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	if (!short_form) {
 		char fromtext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(from, fromtext, sizeof(fromtext));
-		TIME_NOW(&now);
+		if (query->lookup->use_usec) {
+			TIME_NOW_HIRES(&now);
+		} else {
+			TIME_NOW(&now);
+		}
 		diff = (int)isc_time_microdiff(&now, &query->time_sent);
 		printf("Received %u bytes from %s in %d ms\n", bytes, fromtext,
 		       diff / 1000);

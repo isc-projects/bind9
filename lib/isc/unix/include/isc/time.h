@@ -151,6 +151,26 @@ isc_time_now(isc_time_t *t);
  */
 
 isc_result_t
+isc_time_now_hires(isc_time_t *t);
+/*%<
+ * Set 't' to the current absolute time. Uses higher resolution clocks
+ * recommended when microsecond accuracy is required.
+ *
+ * Requires:
+ *
+ *\li	't' is a valid pointer.
+ *
+ * Returns:
+ *
+ *\li	Success
+ *\li	Unexpected error
+ *		Getting the time from the system failed.
+ *\li	Out of range
+ *		The time from the system is too large to be represented
+ *		in the current definition of isc_time_t.
+ */
+
+isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i);
 /*%<
  * Set *t to the current absolute time + i.

@@ -2866,7 +2866,11 @@ send_udp(dig_query_t *query) {
 
 	isc_buffer_usedregion(&query->sendbuf, &r);
 	debug("sending a request");
-	TIME_NOW(&query->time_sent);
+	if (query->lookup->use_usec) {
+		TIME_NOW_HIRES(&query->time_sent);
+	} else {
+		TIME_NOW(&query->time_sent);
+	}
 
 	isc_nmhandle_attach(query->handle, &query->sendhandle);
 
@@ -3172,7 +3176,12 @@ launch_next_query(dig_query_t *query) {
 	if (!query->first_soa_rcvd) {
 		dig_query_t *sendquery = NULL;
 		debug("sending a request in launch_next_query");
-		TIME_NOW(&query->time_sent);
+		if (query->lookup->use_usec) {
+			TIME_NOW_HIRES(&query->time_sent);
+		} else {
+			TIME_NOW(&query->time_sent);
+		}
+
 		query_attach(query, &sendquery);
 		isc_buffer_usedregion(&query->sendbuf, &r);
 		if (keep != NULL) {
@@ -3584,7 +3593,11 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		goto detach_query;
 	}
 
-	TIME_NOW(&query->time_recv);
+	if (query->lookup->use_usec) {
+		TIME_NOW_HIRES(&query->time_recv);
+	} else {
+		TIME_NOW(&query->time_recv);
+	}
 
 	if (eresult == ISC_R_TIMEDOUT && !l->tcp_mode && l->retries > 1) {
 		dig_query_t *newq = NULL;

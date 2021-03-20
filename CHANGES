@@ -1,3 +1,6 @@
+5604.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
+			time reporting. [GL #2592]
+
 5603.	[experimental]	A "filter-a.so" plugin, which is similar to the
 			"filter-aaaa.so" plugin but which omits A records
 			instead of AAAA records, has been added. Thanks to
