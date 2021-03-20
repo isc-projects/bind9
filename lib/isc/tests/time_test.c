@@ -128,7 +128,7 @@ isc_time_formatISO8601us_test(void **state) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
-	result = isc_time_now(&t);
+	result = isc_time_now_hires(&t);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.ssssssZ */
@@ -236,7 +236,7 @@ isc_time_formatISO8601Lus_test(void **state) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
-	result = isc_time_now(&t);
+	result = isc_time_now_hires(&t);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.ssssss */
