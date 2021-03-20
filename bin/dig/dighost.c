@@ -2935,7 +2935,11 @@ send_udp(dig_query_t *query) {
 	}
 	isc_buffer_usedregion(&query->sendbuf, &r);
 	debug("sending a request");
-	TIME_NOW(&query->time_sent);
+	if (query->lookup->use_usec) {
+		TIME_NOW_HIRES(&query->time_sent);
+	} else {
+		TIME_NOW(&query->time_sent);
+	}
 	INSIST(query->sock != NULL);
 	query->waiting_senddone = true;
 	sevent = isc_socket_socketevent(
@@ -3217,7 +3221,11 @@ launch_next_query(dig_query_t *query, bool include_question) {
 	debug("recvcount=%d", recvcount);
 	if (!query->first_soa_rcvd) {
 		debug("sending a request in launch_next_query");
-		TIME_NOW(&query->time_sent);
+		if (query->lookup->use_usec) {
+			TIME_NOW_HIRES(&query->time_sent);
+		} else {
+			TIME_NOW(&query->time_sent);
+		}
 		query->waiting_senddone = true;
 		isc_buffer_clear(&query->tmpsendbuf);
 		isc_buffer_putuint16(&query->tmpsendbuf,
@@ -3623,7 +3631,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(recvcount >= 0);
 
 	query = event->ev_arg;
-	TIME_NOW(&query->time_recv);
+	if (query->lookup->use_usec) {
+		TIME_NOW_HIRES(&query->time_recv);
+	} else {
+		TIME_NOW(&query->time_recv);
+	}
 
 	l = query->lookup;
 
