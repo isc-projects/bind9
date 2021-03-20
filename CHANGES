@@ -1,10 +1,12 @@
-5604.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
+5605.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
 			time reporting. [GL #2592]
 
-5603.	[experimental]	A "filter-a.so" plugin, which is similar to the
+5604.	[experimental]	A "filter-a.so" plugin, which is similar to the
 			"filter-aaaa.so" plugin but which omits A records
 			instead of AAAA records, has been added. Thanks to
 			'@treysis' (GitLab). [GL #2585]
+
+5603.	[placeholder]
 
 5602.	[bug]		Fix the TCPDNS and TLSDNS timers, so TCP initial
 			and idle timers work correctly. [GL #2573]
