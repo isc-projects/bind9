@@ -1,3 +1,6 @@
+5605.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
+			time reporting. [GL #2592]
+
 5603.	[bug]		Fix a memory leak that occurred when named failed to
 			bind a UDP socket to a network interface. [GL #2575]
 

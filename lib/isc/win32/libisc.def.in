@@ -697,6 +697,7 @@ isc_time_isepoch
 isc_time_microdiff
 isc_time_nanoseconds
 isc_time_now
+isc_time_now_hires
 isc_time_nowplusinterval
 isc_time_parsehttptimestamp
 isc_time_secondsastimet

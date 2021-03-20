@@ -340,6 +340,8 @@ mock_assert(const int result, const char *const expression,
  * Time
  */
 #define TIME_NOW(tp) RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
+#define TIME_NOW_HIRES(tp) \
+	RUNTIME_CHECK(isc_time_now_hires((tp)) == ISC_R_SUCCESS)
 
 /*%
  * Alignment
