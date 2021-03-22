@@ -80,7 +80,6 @@ man_MANS =				\
 	ddns-confgen.8			\
 	delv.1				\
 	dig.1				\
-	dnstap-read.1			\
 	host.1				\
 	mdig.1				\
 	named-rrchecker.1		\
@@ -108,6 +107,11 @@ man_MANS =				\
 	rndc-confgen.8			\
 	rndc.8				\
 	tsig-keygen.8
+
+if HAVE_DNSTAP
+man_MANS += 				\
+	dnstap-read.1
+endif HAVE_DNSTAP
 
 if HAVE_PKCS11
 man_MANS +=				\
