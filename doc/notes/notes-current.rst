@@ -43,6 +43,9 @@ Feature Changes
   changed from ``1800`` (ms) to ``off``. The default value may be
   changed again in future releases as this feature matures. [GL #2608]
 
+- Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
+  the minimum of the SOA MINIMUM value and the SOA TTL. [GL #2347].
+
 Bug Fixes
 ~~~~~~~~~
 
