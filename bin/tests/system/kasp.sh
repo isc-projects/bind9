@@ -1037,25 +1037,6 @@ check_cdslog() {
 	status=$((status+ret))
 }
 
-#
-# Utility to call after 'rndc dnssec -checkds|-rollover'.
-#
-_loadkeys_on() {
-	_server=$1
-	_dir=$2
-	_zone=$3
-
-	nextpart $_dir/named.run > /dev/null
-	_rndccmd $_server loadkeys $_zone in $_view > rndc.dnssec.loadkeys.out.$_zone.$n
-
-	if [ "${DYNAMIC}" = "yes" ]; then
-		wait_for_log 20 "zone ${_zone}/IN: next key event" $_dir/named.run || return 1
-	else
-		# inline-signing zone adds "(signed)"
-		wait_for_log 20 "zone ${_zone}/IN (signed): next key event" $_dir/named.run || return 1
-	fi
-}
-
 # Tell named that the DS for the key in given zone has been seen in the
 # parent (this does not actually has to be true, we just issue the command
 # to make named believe it can continue with the rollover).
@@ -1085,10 +1066,6 @@ rndc_checkds() {
 
 	_rndccmd $_server dnssec -checkds $_keycmd $_whencmd $_what $_zone in $_view > rndc.dnssec.checkds.out.$_zone.$n || _log_error "rndc dnssec -checkds${_keycmd}${_whencmd} ${_what} zone ${_zone} failed"
 
-	if [ "$ret" -eq 0 ]; then
-		 _loadkeys_on $_server $_dir $_zone || _log_error "loadkeys zone ${_zone} failed ($n)"
-	fi
-
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
@@ -1112,8 +1089,6 @@ rndc_rollover() {
 	ret=0
 
 	_rndccmd $_server dnssec -rollover -key $_keyid $_whencmd $_zone in $_view > rndc.dnssec.rollover.out.$_zone.$n || _log_error "rndc dnssec -rollover (key ${_keyid} when ${_when}) zone ${_zone} failed"
-
-	_loadkeys_on $_server $_dir $_zone || _log_error "loadkeys zone ${_zone} failed ($n)"
 
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))

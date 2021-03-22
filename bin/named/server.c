@@ -15122,6 +15122,12 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 		switch (result) {
 		case ISC_R_SUCCESS:
+			/*
+			 * Rekey after checkds command because the next key
+			 * event may have changed.
+			 */
+			dns_zone_rekey(zone, false);
+
 			if (use_keyid) {
 				char tagbuf[6];
 				snprintf(tagbuf, sizeof(tagbuf), "%u", keyid);
@@ -15166,6 +15172,12 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 		switch (result) {
 		case ISC_R_SUCCESS:
+			/*
+			 * Rekey after rollover command because the next key
+			 * event may have changed.
+			 */
+			dns_zone_rekey(zone, false);
+
 			if (use_keyid) {
 				char tagbuf[6];
 				snprintf(tagbuf, sizeof(tagbuf), "%u", keyid);
