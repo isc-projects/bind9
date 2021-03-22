@@ -531,6 +531,7 @@
 ./bin/tests/system/journal/ns1/unchanged.ver2.jnl.saved	X	2021
 ./bin/tests/system/journal/setup.sh		SH	2021
 ./bin/tests/system/journal/tests.sh		SH	2021
+./bin/tests/system/kasp.sh			SH	2021
 ./bin/tests/system/kasp/README			TXT.BRIEF	2019,2020,2021
 ./bin/tests/system/kasp/clean.sh		SH	2019,2020,2021
 ./bin/tests/system/kasp/ns2/setup.sh		SH	2019,2020,2021
@@ -538,13 +539,18 @@
 ./bin/tests/system/kasp/ns4/setup.sh		SH	2019,2020,2021
 ./bin/tests/system/kasp/ns5/setup.sh		SH	2019,2020,2021
 ./bin/tests/system/kasp/ns6/setup.sh		SH	2020,2021
-./bin/tests/system/kasp/ns7/setup.sh		SH	2020,2021
 ./bin/tests/system/kasp/setup.sh		SH	2019,2020,2021
 ./bin/tests/system/kasp/tests.sh		SH	2019,2020,2021
 ./bin/tests/system/keepalive/clean.sh		SH	2017,2018,2019,2020,2021
 ./bin/tests/system/keepalive/expected		X	2017,2018,2019,2020,2021
 ./bin/tests/system/keepalive/setup.sh		SH	2017,2018,2019,2020,2021
 ./bin/tests/system/keepalive/tests.sh		SH	2017,2018,2019,2020,2021
+./bin/tests/system/keymgr2kasp/README		TXT.BRIEF	2021
+./bin/tests/system/keymgr2kasp/clean.sh		SH	2021
+./bin/tests/system/keymgr2kasp/ns3/setup.sh	SH	2021
+./bin/tests/system/keymgr2kasp/ns4/setup.sh	SH	2021
+./bin/tests/system/keymgr2kasp/setup.sh		SH	2021
+./bin/tests/system/keymgr2kasp/tests.sh		SH	2021
 ./bin/tests/system/legacy/build.sh		SH	2014,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/legacy/clean.sh		SH	2014,2016,2018,2019,2020,2021
 ./bin/tests/system/legacy/ns1/trusted.conf	X	2014,2018,2019
