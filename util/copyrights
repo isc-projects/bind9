@@ -1252,6 +1252,7 @@
 ./doc/man/mdig.rst				RST	2020,2021
 ./doc/man/named-checkconf.rst			RST	2020,2021
 ./doc/man/named-checkzone.rst			RST	2020,2021
+./doc/man/named-compilezone.rst			RST	2021
 ./doc/man/named-journalprint.rst		RST	2020,2021
 ./doc/man/named-nzd2nzf.rst			RST	2020,2021
 ./doc/man/named-rrchecker.rst			RST	2020,2021

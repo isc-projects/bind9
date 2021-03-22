@@ -23,6 +23,7 @@ MANPAGES_RST =				\
 	mdig.rst			\
 	named-checkconf.rst		\
 	named-checkzone.rst		\
+	named-compilezone.rst		\
 	named-journalprint.rst		\
 	named-nzd2nzf.rst		\
 	named-rrchecker.rst		\
@@ -80,7 +81,6 @@ man_MANS =				\
 	ddns-confgen.8			\
 	delv.1				\
 	dig.1				\
-	dnstap-read.1			\
 	host.1				\
 	mdig.1				\
 	named-rrchecker.1		\
@@ -101,13 +101,23 @@ man_MANS =				\
 	filter-a.8			\
 	named-checkconf.1		\
 	named-checkzone.1		\
+	named-compilezone.1		\
 	named-journalprint.1		\
-	named-nzd2nzf.1			\
 	named.8				\
 	nsec3hash.1			\
 	rndc-confgen.8			\
 	rndc.8				\
 	tsig-keygen.8
+
+if HAVE_DNSTAP
+man_MANS += 				\
+	dnstap-read.1
+endif HAVE_DNSTAP
+
+if HAVE_LMDB
+man_MANS +=				\
+	named-nzd2nzf.1
+endif HAVE_LMDB
 
 if HAVE_PKCS11
 man_MANS +=				\
