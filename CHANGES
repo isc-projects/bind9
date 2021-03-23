@@ -1,3 +1,6 @@
+5622.	[cleanup]	Remove lib/samples, since export versions of libraries
+			are no longer maintained. [GL !4835]
+
 5621.	[bug]		Due to a backporting mistake in change 5609, named
 			binaries built against a Kerberos/GSSAPI library whose
 			header files did not define the GSS_SPNEGO_MECHANISM
