@@ -68,7 +68,6 @@ KEYCREATE=$TOP_BUILDDIR/bin/tests/system/tkey/keycreate
 KEYDELETE=$TOP_BUILDDIR/bin/tests/system/tkey/keydelete
 MAKEJOURNAL=$TOP_BUILDDIR/bin/tests/system/makejournal
 PIPEQUERIES=$TOP_BUILDDIR/bin/tests/system/pipelined/pipequeries
-SAMPLEUPDATE=$TOP_BUILDDIR/lib/samples/sample-update
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
