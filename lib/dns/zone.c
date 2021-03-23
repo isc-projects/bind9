@@ -5455,43 +5455,42 @@ invalidate_rdataset:
 	return (result);
 }
 
+#define SET_IF_NOT_NULL(obj, val) \
+	if (obj != NULL) {        \
+		*obj = val;       \
+	}
+
+#define SET_SOA_VALUES(soattl_v, serial_v, refresh_v, retry_v, expire_v, \
+		       minimum_v)                                        \
+	{                                                                \
+		SET_IF_NOT_NULL(soattl, soattl_v);                       \
+		SET_IF_NOT_NULL(serial, serial_v);                       \
+		SET_IF_NOT_NULL(refresh, refresh_v);                     \
+		SET_IF_NOT_NULL(retry, retry_v);                         \
+		SET_IF_NOT_NULL(expire, expire_v);                       \
+		SET_IF_NOT_NULL(minimum, minimum_v);                     \
+	}
+
+#define CLR_SOA_VALUES()                          \
+	{                                         \
+		SET_SOA_VALUES(0, 0, 0, 0, 0, 0); \
+	}
+
 static isc_result_t
 zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 unsigned int *soacount, uint32_t *soattl, uint32_t *serial,
 		 uint32_t *refresh, uint32_t *retry, uint32_t *expire,
 		 uint32_t *minimum) {
 	isc_result_t result;
-	unsigned int count;
+	unsigned int count = 0;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_soa_t soa;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
 				     dns_rdatatype_none, 0, &rdataset, NULL);
 	if (result == ISC_R_NOTFOUND) {
 		INSIST(!dns_rdataset_isassociated(&rdataset));
-		if (soacount != NULL) {
-			*soacount = 0;
-		}
-		if (soattl != NULL) {
-			*soattl = 0;
-		}
-		if (serial != NULL) {
-			*serial = 0;
-		}
-		if (refresh != NULL) {
-			*refresh = 0;
-		}
-		if (retry != NULL) {
-			*retry = 0;
-		}
-		if (expire != NULL) {
-			*expire = 0;
-		}
-		if (minimum != NULL) {
-			*minimum = 0;
-		}
 		result = ISC_R_SUCCESS;
 		goto invalidate_rdataset;
 	}
@@ -5500,17 +5499,16 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		goto invalidate_rdataset;
 	}
 
-	count = 0;
 	result = dns_rdataset_first(&rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdata_init(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		count++;
 		if (count == 1) {
+			dns_rdata_soa_t soa;
 			result = dns_rdata_tostruct(&rdata, &soa, NULL);
-			if (soattl != NULL) {
-				*soattl = rdataset.ttl;
-			}
+			SET_SOA_VALUES(rdataset.ttl, soa.serial, soa.refresh,
+				       soa.retry, soa.expire, soa.minimum);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
 
@@ -5519,53 +5517,14 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 	dns_rdataset_disassociate(&rdataset);
 
-	if (soacount != NULL) {
-		*soacount = count;
-	}
-
-	if (count > 0) {
-		if (serial != NULL) {
-			*serial = soa.serial;
-		}
-		if (refresh != NULL) {
-			*refresh = soa.refresh;
-		}
-		if (retry != NULL) {
-			*retry = soa.retry;
-		}
-		if (expire != NULL) {
-			*expire = soa.expire;
-		}
-		if (minimum != NULL) {
-			*minimum = soa.minimum;
-		}
-	} else {
-		if (soacount != NULL) {
-			*soacount = 0;
-		}
-		if (soattl != NULL) {
-			*soattl = 0;
-		}
-		if (serial != NULL) {
-			*serial = 0;
-		}
-		if (refresh != NULL) {
-			*refresh = 0;
-		}
-		if (retry != NULL) {
-			*retry = 0;
-		}
-		if (expire != NULL) {
-			*expire = 0;
-		}
-		if (minimum != NULL) {
-			*minimum = 0;
-		}
-	}
-
 	result = ISC_R_SUCCESS;
 
 invalidate_rdataset:
+	SET_IF_NOT_NULL(soacount, count);
+	if (count == 0) {
+		CLR_SOA_VALUES();
+	}
+
 	dns_rdataset_invalidate(&rdataset);
 
 	return (result);
@@ -5589,30 +5548,10 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 
 	dns_db_currentversion(db, &version);
 
-	if (nscount != NULL) {
-		*nscount = 0;
-	}
-	if (soacount != NULL) {
-		*soacount = 0;
-	}
-	if (soattl != NULL) {
-		*soattl = 0;
-	}
-	if (serial != NULL) {
-		*serial = 0;
-	}
-	if (refresh != NULL) {
-		*refresh = 0;
-	}
-	if (retry != NULL) {
-		*retry = 0;
-	}
-	if (expire != NULL) {
-		*expire = 0;
-	}
-	if (errors != NULL) {
-		*errors = 0;
-	}
+	SET_IF_NOT_NULL(nscount, 0);
+	SET_IF_NOT_NULL(soacount, 0);
+	SET_IF_NOT_NULL(errors, 0);
+	CLR_SOA_VALUES();
 
 	node = NULL;
 	result = dns_db_findnode(db, &zone->origin, false, &node);
