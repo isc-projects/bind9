@@ -1,5 +1,3 @@
-Makefile-postinstall
-nsprobe
 process
 resolve
 sample-async
