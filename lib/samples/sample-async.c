@@ -343,10 +343,10 @@ main(int argc, char *argv[]) {
 
 	isc_app_ctxstart(query_actx);
 
-	result = dns_client_createx(mctx, query_actx, taskmgr, socketmgr,
-				    timermgr, 0, &client, NULL, NULL);
+	result = dns_client_create(mctx, query_actx, taskmgr, socketmgr,
+				   timermgr, 0, &client, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_createx failed: %u\n", result);
+		fprintf(stderr, "dns_client_create failed: %u\n", result);
 		exit(1);
 	}
 

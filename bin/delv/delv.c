@@ -1781,8 +1781,8 @@ main(int argc, char *argv[]) {
 #endif /* ifndef WIN32 */
 
 	/* Create client */
-	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr, 0,
-				    &client, srcaddr4, srcaddr6);
+	result = dns_client_create(mctx, actx, taskmgr, socketmgr, timermgr, 0,
+				   &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			 isc_result_totext(result));
@@ -1802,7 +1802,7 @@ main(int argc, char *argv[]) {
 	CHECK(convert_name(&qfn, &query_name, qname));
 
 	/* Set up resolution options */
-	resopt = DNS_CLIENTRESOPT_ALLOWRUN | DNS_CLIENTRESOPT_NOCDFLAG;
+	resopt = DNS_CLIENTRESOPT_NOCDFLAG;
 	if (no_sigs) {
 		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
 	}

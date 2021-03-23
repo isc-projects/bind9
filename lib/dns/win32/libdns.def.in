@@ -135,7 +135,7 @@ dns_cert_totext
 dns_client_addtrustedkey
 dns_client_cancelresolve
 dns_client_clearservers
-dns_client_createx
+dns_client_create
 dns_client_destroy
 dns_client_destroyrestrans
 dns_client_freeresanswer

@@ -105,8 +105,6 @@ struct dns_client {
 #define DEF_FIND_TIMEOUT    5
 #define DEF_FIND_UDPRETRIES 3
 
-#define DNS_CLIENTATTR_OWNCTX 0x01
-
 /*%
  * Internal state for a single name resolution procedure
  */
@@ -292,13 +290,13 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 }
 
 isc_result_t
-dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		   isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		   unsigned int options, dns_client_t **clientp,
-		   const isc_sockaddr_t *localaddr4,
-		   const isc_sockaddr_t *localaddr6) {
-	dns_client_t *client;
+dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
+		  isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
+		  unsigned int options, dns_client_t **clientp,
+		  const isc_sockaddr_t *localaddr4,
+		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
+	dns_client_t *client = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_dispatch_t *dispatchv6 = NULL;
@@ -433,19 +431,6 @@ destroyclient(dns_client_t *client) {
 	dns_dispatchmgr_destroy(&client->dispatchmgr);
 
 	isc_task_detach(&client->task);
-
-	/*
-	 * If the client has created its own running environments,
-	 * destroy them.
-	 */
-	if ((client->attributes & DNS_CLIENTATTR_OWNCTX) != 0) {
-		isc_taskmgr_destroy(&client->taskmgr);
-		isc_timermgr_destroy(&client->timermgr);
-		isc_socketmgr_destroy(&client->socketmgr);
-
-		isc_app_ctxfinish(client->actx);
-		isc_appctx_destroy(&client->actx);
-	}
 
 	isc_mutex_destroy(&client->lock);
 	client->magic = 0;
@@ -1042,35 +1027,22 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   unsigned int options, dns_namelist_t *namelist) {
 	isc_result_t result;
-	isc_appctx_t *actx;
 	resarg_t *resarg;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
+	REQUIRE(client->actx != NULL);
 	REQUIRE(namelist != NULL && ISC_LIST_EMPTY(*namelist));
-
-	if ((client->attributes & DNS_CLIENTATTR_OWNCTX) == 0 &&
-	    (options & DNS_CLIENTRESOPT_ALLOWRUN) == 0)
-	{
-		/*
-		 * If the client is run under application's control, we need
-		 * to create a new running (sub)environment for this
-		 * particular resolution.
-		 */
-		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
-	} else {
-		actx = client->actx;
-	}
 
 	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
 
 	isc_mutex_init(&resarg->lock);
+	*resarg = (resarg_t){
+		.actx = client->actx,
+		.client = client,
+		.result = DNS_R_SERVFAIL,
+		.namelist = namelist,
+	};
 
-	resarg->actx = actx;
-	resarg->client = client;
-	resarg->result = DNS_R_SERVFAIL;
-	resarg->namelist = namelist;
-	resarg->trans = NULL;
-	resarg->canceled = false;
 	result = dns_client_startresolve(client, name, rdclass, type, options,
 					 client->task, resolve_done, resarg,
 					 &resarg->trans);
@@ -1084,7 +1056,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	 * Start internal event loop.  It blocks until the entire process
 	 * is completed.
 	 */
-	result = isc_app_ctxrun(actx);
+	result = isc_app_ctxrun(client->actx);
 
 	LOCK(&resarg->lock);
 	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {
