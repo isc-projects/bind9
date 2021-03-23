@@ -73,7 +73,7 @@ ISC_LANG_BEGINDECLS
 /*%< Do not return DNSSEC data (e.g. RRSIGS) with response. */
 #define DNS_CLIENTRESOPT_NODNSSEC 0x01
 /*%< Allow running external context. */
-#define DNS_CLIENTRESOPT_ALLOWRUN 0x02
+#define DNS_CLIENTRESOPT_RESERVED 0x02
 /*%< Don't validate responses. */
 #define DNS_CLIENTRESOPT_NOVALIDATE 0x04
 /*%< Don't set the CD flag on upstream queries. */
@@ -85,7 +85,7 @@ ISC_LANG_BEGINDECLS
  * Optional flags for dns_client_(start)request.
  */
 /*%< Allow running external context. */
-#define DNS_CLIENTREQOPT_ALLOWRUN 0x01
+#define DNS_CLIENTREQOPT_RESERVED 0x01
 /*%< Use TCP transport. */
 #define DNS_CLIENTREQOPT_TCP 0x02
 
@@ -93,7 +93,7 @@ ISC_LANG_BEGINDECLS
  * Optional flags for dns_client_(start)update.
  */
 /*%< Allow running external context. */
-#define DNS_CLIENTUPDOPT_ALLOWRUN 0x01
+#define DNS_CLIENTUPDOPT_RESERVED 0x01
 /*%< Use TCP transport. */
 #define DNS_CLIENTUPDOPT_TCP 0x02
 
@@ -133,11 +133,11 @@ typedef struct dns_clientreqevent {
 } dns_clientreqevent_t; /* too long? */
 
 isc_result_t
-dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		   isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		   unsigned int options, dns_client_t **clientp,
-		   const isc_sockaddr_t *localaddr4,
-		   const isc_sockaddr_t *localaddr6);
+dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
+		  isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
+		  unsigned int options, dns_client_t **clientp,
+		  const isc_sockaddr_t *localaddr4,
+		  const isc_sockaddr_t *localaddr6);
 /*%<
  * Create a DNS client object with minimal internal resources, such as
  * a default view for the IN class and IPv4/IPv6 dispatches for the view.
@@ -267,11 +267,8 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  * error. Otherwise, it returns the result code of the entire resolution
  * process, either success or failure.
  *
- * It is typically expected that the client object passed to
- * dns_client_resolve() was created via dns_client_create() and has its own
- * managers and contexts.  However, if the DNS_CLIENTRESOPT_ALLOWRUN flag is
- * set in 'options', this function performs the synchronous service even if
- * it does not have its own manager and context structures.
+ * It is expected that the client object passed to dns_client_resolve() was
+ * created via dns_client_create() and has external managers and contexts.
  *
  * dns_client_startresolve() is an asynchronous version of dns_client_resolve()
  * and does not block.  When name resolution is completed, 'action' will be
@@ -407,11 +404,8 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
  * 'rmessage' will contain the response message.  The caller must provide a
  * valid initialized message.
  *
- * It is usually expected that the client object passed to
- * dns_client_request() was created via dns_client_create() and has its own
- * managers and contexts.  However, if the DNS_CLIENTREQOPT_ALLOWRUN flag is
- * set in 'options', this function performs the synchronous service even if
- * it does not have its own manager and context structures.
+ * It is expected that the client object passed to dns_client_request() was
+ * created via dns_client_create() and has external managers and contexts.
  *
  * dns_client_startrequest() is an asynchronous version of dns_client_request()
  * and does not block.  When the transaction is completed, 'action' will be
