@@ -305,9 +305,6 @@
     <ProjectReference Include="..\..\..\lib\samples\win32\gai.vcxproj">
       <Project>{D42B8670-8DF6-4D90-90F7-DB5FB845AFAE}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\lib\samples\win32\nsprobe.vcxproj">
-      <Project>{CB2A29F6-E73B-40AB-8AC4-2C1AAE7280BD}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\lib\samples\win32\resolve.vcxproj">
       <Project>{F66D8B7E-721D-4602-99AD-820D19AD1313}</Project>
     </ProjectReference>

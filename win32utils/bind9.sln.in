@@ -29,8 +29,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "async", "..\lib\samples\win
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gai", "..\lib\samples\win32\gai.vcxproj", "{D42B8670-8DF6-4D90-90F7-DB5FB845AFAE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nsprobe", "..\lib\samples\win32\nsprobe.vcxproj", "{CB2A29F6-E73B-40AB-8AC4-2C1AAE7280BD}"
-EndProject
 @END SAMPLES
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "named", "..\bin\named\win32\named.vcxproj", "{723C65DA-A96C-4BA3-A34E-44F11CA346F9}"
 EndProject
