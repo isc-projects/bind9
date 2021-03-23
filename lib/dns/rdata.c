@@ -2132,6 +2132,15 @@ dns_rdatatype_atparent(dns_rdatatype_t type) {
 }
 
 bool
+dns_rdatatype_followadditional(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) &
+	     DNS_RDATATYPEATTR_FOLLOWADDITIONAL) != 0) {
+		return (true);
+	}
+	return (false);
+}
+
+bool
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
 	if (rdclass == dns_rdataclass_reserved0 ||
 	    rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any)
