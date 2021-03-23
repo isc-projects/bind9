@@ -9,4 +9,5 @@ named.run
 /test.output.*
 /systests.output
 /random.data
+/resolve
 parallel.mk

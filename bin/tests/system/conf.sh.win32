@@ -58,7 +58,6 @@ NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
 PK11DEL="$TOP/Build/$VSCONF/pkcs11-destroy@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
 PK11GEN="$TOP/Build/$VSCONF/pkcs11-keygen@EXEEXT@ -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
 PK11LIST="$TOP/Build/$VSCONF/pkcs11-list@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-RESOLVE=$TOP/lib/samples/resolve
 REVOKE=$TOP/Build/$VSCONF/dnssec-revoke@EXEEXT@
 RNDC=$TOP/Build/$VSCONF/rndc@EXEEXT@
 RNDCCONFGEN=$TOP/Build/$VSCONF/rndc-confgen@EXEEXT@
@@ -77,6 +76,7 @@ KEYCREATE=$TOP/Build/$VSCONF/keycreate@EXEEXT@
 KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
 MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
+RESOLVE=$TOP/Build/$VSCONF/resolve@EXEEXT@
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=NUL

@@ -126,6 +126,8 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\system\\win32\\keydelete.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\pipequeries.vcxproj",
                    "..\\bin\\tests\\system\\win32\\pipequeries.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\resolve.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\resolve.vcxproj.filters",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj",
@@ -171,10 +173,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\lib\\isccfg\\win32\\libisccfg.vcxproj",
                    "..\\lib\\isccfg\\win32\\libisccfg.vcxproj.filters",
                    "..\\lib\\ns\\win32\\libns.vcxproj",
-                   "..\\lib\\samples\\win32\\resolve.vcxproj",
-                   "..\\lib\\samples\\win32\\resolve.vcxproj.filters",
-                   "..\\lib\\samples\\win32\\gai.vcxproj",
-                   "..\\lib\\samples\\win32\\gai.vcxproj.filters",
                    "..\\lib\\win32\\bindevt\\bindevt.vcxproj",
                    "..\\lib\\win32\\bindevt\\bindevt.vcxproj.filters",
                    "bind9.sln");
@@ -321,7 +319,6 @@ my @substcond = ("ATOMIC",
                  "OPENSSL",
                  "PKCS11",
                  "PYTHON",
-                 "SAMPLES",
                  "STESTS",
                  "TESTS",
                  "XTESTS",
@@ -355,7 +352,6 @@ my @withlist = ("aes",
                 "pssuspend",
                 "python",
                 "readline",
-                "samples",
                 "system-tests",
                 "tests",
                 "tuning",
@@ -396,7 +392,6 @@ my @help = (
 "  with-tests            build with test suite\n",
 "  with-extra-tests      build with extra test suite\n",
 "  with-system-tests     build with system test suite\n",
-"  with-samples          build with sample programs\n",
 "  with-openssl[=PATH]   build with OpenSSL yes|path (mandatory)\n",
 "  with-libuv[=PATH]     build with libuv yes|path (mandatory)\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
@@ -439,7 +434,6 @@ my $enable_rpz_nsdname = "yes";
 my $use_tests = "no";
 my $use_xtests = "no";
 my $use_stests = "no";
-my $use_samples = "no";
 my $use_libuv = "auto";
 my $libuv_path = "..\\..\\";
 my $use_openssl = "auto";
@@ -678,7 +672,6 @@ if ($enable_developer eq "yes") {
     $use_tests = "yes";
     $use_xtests = "yes";
     $use_stests = "yes";
-    $use_samples = "yes";
 }
 
 # parse with/without
@@ -700,10 +693,6 @@ sub mywith {
         if ($val =~ /^yes$/i) {
             $use_tests = "yes";
             $use_stests = "yes";
-        }
-    } elsif ($key =~ /^samples$/i) {
-        if ($val =~ /^yes$/i) {
-            $use_samples = "yes";
         }
     } elsif ($key =~ /^openssl$/i) {
         if ($val =~ /^no$/i) {
@@ -916,9 +905,6 @@ if ($verbose) {
     }
     if ($use_stests eq "yes") {
         print "system tests: enabled\n";
-    }
-    if ($use_samples eq "yes") {
-        print "sample programs: enabled\n";
     }
     if ($use_pkcs11 eq "no") {
         print "pkcs11: disabled\n";
@@ -1212,11 +1198,6 @@ if ($use_xtests eq "yes") {
 # with-system-tests
 if ($use_stests eq "yes") {
     $configcond{"STESTS"} = 1;
-}
-
-# with-samples
-if ($use_samples eq "yes") {
-    $configcond{"SAMPLES"} = 1;
 }
 
 # with-libuv

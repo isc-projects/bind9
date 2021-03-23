@@ -2889,8 +2889,6 @@ AC_CONFIG_FILES([
 	lib/ns/include/Makefile
 	lib/ns/include/ns/Makefile
 	lib/ns/tests/Makefile
-	lib/samples/Makefile
-	lib/samples/Makefile-postinstall
 	make/Makefile
 	make/mkdep
 	unit/unittest.sh
