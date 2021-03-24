@@ -92,7 +92,7 @@ if [ "${srcdir}" != "${builddir}" ]; then
         cp -a "${srcdir}/common" "${builddir}"
     fi
     # Some tests require additional files to work for out-of-tree test runs.
-    for file in ckdnsrps.sh digcomp.pl ditch.pl packet.pl start.pl stop.pl testcrypto.sh; do
+    for file in ckdnsrps.sh digcomp.pl ditch.pl kasp.sh packet.pl start.pl stop.pl testcrypto.sh; do
         if [ ! -r "${file}" ]; then
             cp -a "${srcdir}/${file}" "${builddir}"
         fi
