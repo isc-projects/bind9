@@ -359,8 +359,8 @@ AC_C_VOLATILE
 # Check for yield support on ARM processors
 #
 AS_CASE([$host],
-	[arm*],
-	[AC_MSG_CHECKING([for yield instruction support])
+	[arm*|aarch64*],
+	[AC_MSG_CHECKING([for ARM yield instruction support])
 	 AC_COMPILE_IFELSE(
 	     [AC_LANG_PROGRAM([[]],
 			     [[__asm__ __volatile__ ("yield")]])],

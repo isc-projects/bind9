@@ -1,3 +1,6 @@
+6097.	[port]		Improve support for yield / pause instructions in spin
+			loops on AArch64 platforms. [GL !7469]
+
 6096.	[bug]		Fix RPZ reference counting error on shutdown in
 			dns__rpz_timer_cb(). [GL #3866]
 
