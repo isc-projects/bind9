@@ -696,7 +696,7 @@ dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 
 	isc_mem_attach(mctx, &env->mctx);
 	isc_refcount_init(&env->references, 1);
-	isc_rwlock_init(&env->rwlock, 0, 0);
+	isc_rwlock_init(&env->rwlock);
 
 	result = dns_acl_create(mctx, 0, &env->localhost);
 	if (result != ISC_R_SUCCESS) {

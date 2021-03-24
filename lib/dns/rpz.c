@@ -1481,7 +1481,7 @@ dns_rpz_new_zones(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, char *rps_cstr,
 		.magic = DNS_RPZ_ZONES_MAGIC,
 	};
 
-	isc_rwlock_init(&rpzs->search_lock, 0, 0);
+	isc_rwlock_init(&rpzs->search_lock);
 	isc_mutex_init(&rpzs->maint_lock);
 	isc_refcount_init(&rpzs->references, 1);
 

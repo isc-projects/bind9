@@ -198,6 +198,20 @@
 #define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write)
 #define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write)
 
+#define UPGRADELOCK(lock, locktype)                                         \
+	{                                                                   \
+		if (locktype == isc_rwlocktype_read) {                      \
+			if (isc_rwlock_tryupgrade(lock) == ISC_R_SUCCESS) { \
+				locktype = isc_rwlocktype_write;            \
+			} else {                                            \
+				RWUNLOCK(lock, locktype);                   \
+				locktype = isc_rwlocktype_write;            \
+				RWLOCK(lock, locktype);                     \
+			}                                                   \
+		}                                                           \
+		INSIST(locktype == isc_rwlocktype_write);                   \
+	}
+
 /*
  * List Macros.
  */

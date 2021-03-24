@@ -133,7 +133,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	isc_mutex_init(&view->lock);
 
-	isc_rwlock_init(&view->sfd_lock, 0, 0);
+	isc_rwlock_init(&view->sfd_lock);
 
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);

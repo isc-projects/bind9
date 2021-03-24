@@ -264,7 +264,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	ISC_LIST_INIT(lctx->messages);
 
 	isc_mutex_init(&lctx->lock);
-	isc_rwlock_init(&lctx->lcfg_rwl, 0, 0);
+	isc_rwlock_init(&lctx->lcfg_rwl);
 
 	/*
 	 * Normally setting the magic number is the last step done

@@ -3778,7 +3778,7 @@ main(int argc, char *argv[]) {
 	 * of keys rather early.
 	 */
 	ISC_LIST_INIT(keylist);
-	isc_rwlock_init(&keylist_lock, 0, 0);
+	isc_rwlock_init(&keylist_lock);
 
 	/*
 	 * Fill keylist with:

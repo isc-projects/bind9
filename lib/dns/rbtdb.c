@@ -104,7 +104,7 @@ typedef uint32_t rbtdb_rdatatype_t;
 	RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_soa)
 #define RBTDB_RDATATYPE_NCACHEANY RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
-#define RBTDB_INITLOCK(l)    isc_rwlock_init((l), 0, 0)
+#define RBTDB_INITLOCK(l)    isc_rwlock_init((l))
 #define RBTDB_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define RBTDB_LOCK(l, t)     RWLOCK((l), (t))
 #define RBTDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
@@ -117,7 +117,7 @@ typedef uint32_t rbtdb_rdatatype_t;
 
 typedef isc_rwlock_t nodelock_t;
 
-#define NODE_INITLOCK(l)    isc_rwlock_init((l), 0, 0)
+#define NODE_INITLOCK(l)    isc_rwlock_init((l))
 #define NODE_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define NODE_LOCK(l, t, tp)                                      \
 	{                                                        \
@@ -161,7 +161,7 @@ typedef isc_rwlock_t nodelock_t;
 
 typedef isc_rwlock_t treelock_t;
 
-#define TREE_INITLOCK(l)    isc_rwlock_init(l, 0, 0)
+#define TREE_INITLOCK(l)    isc_rwlock_init(l)
 #define TREE_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define TREE_LOCK(l, t, tp)                                      \
 	{                                                        \
@@ -1294,7 +1294,7 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 	version->serial = serial;
 
 	isc_refcount_init(&version->references, references);
-	isc_rwlock_init(&version->glue_rwlock, 0, 0);
+	isc_rwlock_init(&version->glue_rwlock);
 
 	version->glue_table_bits = ISC_HASH_MIN_BITS;
 	version->glue_table_nodecount = 0U;
@@ -1343,7 +1343,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 		version->salt_length = 0;
 		memset(version->salt, 0, sizeof(version->salt));
 	}
-	isc_rwlock_init(&version->rwlock, 0, 0);
+	isc_rwlock_init(&version->rwlock);
 	RWLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_read);
 	version->records = rbtdb->current_version->records;
 	version->xfrsize = rbtdb->current_version->xfrsize;
@@ -2207,7 +2207,7 @@ prune_tree(void *arg) {
 		node = parent;
 	} while (node != NULL);
 	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
-	RWUNLOCK(&rbtdb->tree_lock, tlocktype);
+	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 
 	detach((dns_db_t **)&rbtdb);
 }
@@ -8431,7 +8431,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->current_version->salt_length = 0;
 	memset(rbtdb->current_version->salt, 0,
 	       sizeof(rbtdb->current_version->salt));
-	isc_rwlock_init(&rbtdb->current_version->rwlock, 0, 0);
+	isc_rwlock_init(&rbtdb->current_version->rwlock);
 	rbtdb->current_version->records = 0;
 	rbtdb->current_version->xfrsize = 0;
 	rbtdb->future_version = NULL;

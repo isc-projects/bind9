@@ -1186,7 +1186,7 @@ isc_tlsctx_cache_create(isc_mem_t *mctx, isc_tlsctx_cache_t **cachep) {
 	isc_mem_attach(mctx, &nc->mctx);
 
 	isc_ht_init(&nc->data, mctx, 5, ISC_HT_CASE_SENSITIVE);
-	isc_rwlock_init(&nc->rwlock, 0, 0);
+	isc_rwlock_init(&nc->rwlock);
 
 	*cachep = nc;
 }

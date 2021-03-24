@@ -158,7 +158,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 		goto cleanup_keytable;
 	}
 
-	isc_rwlock_init(&keytable->rwlock, 0, 0);
+	isc_rwlock_init(&keytable->rwlock);
 	isc_refcount_init(&keytable->references, 1);
 
 	keytable->mctx = NULL;
@@ -342,7 +342,7 @@ new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
 
 	dns_rdataset_init(&knode->dsset);
 	isc_refcount_init(&knode->refcount, 1);
-	isc_rwlock_init(&knode->rwlock, 0, 0);
+	isc_rwlock_init(&knode->rwlock);
 
 	/*
 	 * If a DS was supplied, initialize an rdatalist.
