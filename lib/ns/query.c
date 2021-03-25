@@ -560,7 +560,7 @@ query_send(ns_client_t *client) {
 	inc_stats(client, counter);
 	ns_client_send(client);
 
-	if (!QUERY_STALEONLY(&client->query)) {
+	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
 	}
 }
@@ -590,7 +590,7 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 
 	ns_client_error(client, result);
 
-	if (!QUERY_STALEONLY(&client->query)) {
+	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
 	}
 }
@@ -606,7 +606,7 @@ query_next(ns_client_t *client, isc_result_t result) {
 	}
 	ns_client_drop(client, result);
 
-	if (!QUERY_STALEONLY(&client->query)) {
+	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
 	}
 }
@@ -5177,7 +5177,7 @@ qctx_freedata(query_ctx_t *qctx) {
 		dns_db_detach(&qctx->zdb);
 	}
 
-	if (qctx->event != NULL && !QUERY_STALEONLY(&qctx->client->query)) {
+	if (qctx->event != NULL && !qctx->client->nodetach) {
 		free_devent(qctx->client, ISC_EVENT_PTR(&qctx->event),
 			    &qctx->event);
 	}
@@ -5720,6 +5720,7 @@ query_lookup(query_ctx_t *qctx) {
 		 * active RRset is not available.
 		 */
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEONLY;
+		qctx->client->nodetach = true;
 	}
 
 	dboptions = qctx->client->query.dboptions;
@@ -5881,6 +5882,7 @@ query_lookup(query_ctx_t *qctx) {
 						&qctx->db);
 					qctx->client->query.dboptions &=
 						~DNS_DBFIND_STALEONLY;
+					qctx->client->nodetach = false;
 					qctx->options &= ~DNS_GETDB_STALEFIRST;
 					if (qctx->client->query.fetch != NULL) {
 						dns_resolver_destroyfetch(
@@ -5927,7 +5929,7 @@ query_lookup(query_ctx_t *qctx) {
 		 * actually not a 'stale-only' lookup. Clear the flag to
 		 * allow the client to be detach the handle.
 		 */
-		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
+		qctx->client->nodetach = false;
 	}
 
 	result = query_gotanswer(qctx, result);
@@ -5962,6 +5964,7 @@ query_lookup_staleonly(ns_client_t *client) {
 	dns_db_attach(client->view->cachedb, &qctx.db);
 	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 	client->query.dboptions |= DNS_DBFIND_STALEONLY;
+	client->nodetach = true;
 	(void)query_lookup(&qctx);
 	if (qctx.node != NULL) {
 		dns_db_detachnode(qctx.db, &qctx.node);
@@ -6003,9 +6006,10 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		query_lookup_staleonly(client);
 		isc_event_free(ISC_EVENT_PTR(&event));
 		return;
-	} else {
-		client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
 	}
+
+	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
+	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
 	if (client->query.fetch != NULL) {
@@ -11244,7 +11248,7 @@ isc_result_t
 ns_query_done(query_ctx_t *qctx) {
 	isc_result_t result;
 	const dns_namelist_t *secs = qctx->client->message->sections;
-	bool query_stale_only;
+	bool nodetach;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "ns_query_done");
 
@@ -11356,10 +11360,9 @@ ns_query_done(query_ctx_t *qctx) {
 	 * Client may have been detached after query_send(), so
 	 * we test and store the flag state here, for safety.
 	 */
-	query_stale_only = QUERY_STALEONLY(&qctx->client->query);
+	nodetach = qctx->client->nodetach;
 	query_send(qctx->client);
-
-	if (!query_stale_only) {
+	if (!nodetach) {
 		qctx->detach_client = true;
 	}
 	return (qctx->result);
