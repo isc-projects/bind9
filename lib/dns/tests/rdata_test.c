@@ -48,6 +48,12 @@ struct compare_ok {
 };
 typedef struct compare_ok compare_ok_t;
 
+struct textvsunknown {
+	const char *text1;
+	const char *text2;
+};
+typedef struct textvsunknown textvsunknown_t;
+
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -782,6 +788,64 @@ check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
 	}
 	if (compare_ok != NULL) {
 		check_compare_ok(compare_ok, rdclass, type);
+	}
+}
+
+/*
+ * Check presentation vs unknown format of the record.
+ */
+static void
+check_textvsunknown_single(const textvsunknown_t *textvsunknown,
+			   dns_rdataclass_t rdclass, dns_rdatatype_t type) {
+	dns_rdata_t rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
+	unsigned char buf1[1024], buf2[1024];
+	isc_result_t result;
+
+	result = dns_test_rdatafromstring(&rdata1, rdclass, type, buf1,
+					  sizeof(buf1), textvsunknown->text1,
+					  false);
+	if (debug && result != ISC_R_SUCCESS) {
+		fprintf(stdout, "# '%s'\n", textvsunknown->text1);
+		fprintf(stdout, "# result=%s\n", dns_result_totext(result));
+	}
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_test_rdatafromstring(&rdata2, rdclass, type, buf2,
+					  sizeof(buf2), textvsunknown->text2,
+					  false);
+	if (debug && result != ISC_R_SUCCESS) {
+		fprintf(stdout, "# '%s'\n", textvsunknown->text2);
+		fprintf(stdout, "# result=%s\n", dns_result_totext(result));
+	}
+	assert_int_equal(result, ISC_R_SUCCESS);
+	if (debug && rdata1.length != rdata2.length) {
+		fprintf(stdout, "# '%s'\n", textvsunknown->text1);
+		fprintf(stdout, "# rdata1.length (%u) != rdata2.length (%u)\n",
+			rdata1.length, rdata2.length);
+	}
+	assert_int_equal(rdata1.length, rdata2.length);
+	if (debug && memcmp(rdata1.data, rdata2.data, rdata1.length) != 0) {
+		unsigned int i;
+		fprintf(stdout, "# '%s'\n", textvsunknown->text1);
+		for (i = 0; i < rdata1.length; i++) {
+			if (rdata1.data[i] != rdata2.data[i]) {
+				fprintf(stderr, "# %u: %02x != %02x\n", i,
+					rdata1.data[i], rdata2.data[i]);
+			}
+		}
+	}
+	assert_memory_equal(rdata1.data, rdata2.data, rdata1.length);
+}
+
+static void
+check_textvsunknown(const textvsunknown_t *textvsunknown,
+		    dns_rdataclass_t rdclass, dns_rdatatype_t type) {
+	size_t i;
+
+	/*
+	 * Check all entries in the supplied array.
+	 */
+	for (i = 0; textvsunknown[i].text1 != NULL; i++) {
+		check_textvsunknown_single(&textvsunknown[i], rdclass, type);
 	}
 }
 
@@ -2642,6 +2706,58 @@ https_svcb(void **state) {
 				5, 'h', '1', '\\', 'h', '2', 2, 'h', '3'),
 		WIRE_SENTINEL()
 	};
+	/* Test vectors from RFCXXXX */
+	textvsunknown_t textvsunknown[] = {
+		/* AliasForm */
+		{ "0 foo.example.com", "\\# 19 ( 00 00 03 66 6f 6f 07 65 78 61 "
+				       "6d 70 6c 65 03 63 6f 6d 00)" },
+		/* ServiceForm */
+		{ "1 .", "\\# 3 ( 00 01 00)" },
+		/* Port example */
+		{ "16 foo.example.com port=53",
+		  "\\# 25 ( 00 10 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f "
+		  "6d 00 00 03 00 02 00 35 )" },
+		/* Unregistered keys with unquoted value. */
+		{ "1 foo.example.com key667=hello",
+		  "\\# 28 ( 00 01 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f "
+		  "6d 00 02 9b 00 05 68 65 6c 6c 6f )" },
+		/*
+		 * Quoted decimal-escaped character.
+		 * 1 foo.example.com key667="hello\210qoo"
+		 */
+		{ "1 foo.example.com key667=\"hello\\210qoo\"",
+		  "\\# 32 ( 00 01 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f "
+		  "6d 00 02 9b 00 09 68 65 6c 6c 6f d2 71 6f 6f )" },
+		/*
+		 * IPv6 hints example, quoted.
+		 * 1 foo.example.com ipv6hint="2001:db8::1,2001:db8::53:1"
+		 */
+		{ "1 foo.example.com ipv6hint=\"2001:db8::1,2001:db8::53:1\"",
+		  "\\# 55 ( 00 01 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f "
+		  "6d 00 00 06 00 20 20 01 0d b8 00 00 00 00 00 00 00 00 00 00 "
+		  "00 01 20 01 0d b8 00 00 00 00 00 00 00 00 00 53 00 01 )" },
+		/* SvcParamValues and mandatory out of order. */
+		{ "16 foo.example.org alpn=h2,h3-19 mandatory=ipv4hint,alpn "
+		  "ipv4hint=192.0.2.1",
+		  "\\# 48 ( 00 10 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 6f 72 "
+		  "67 00 00 00 00 04 00 01 00 04 00 01 00 09 02 68 32 05 68 33 "
+		  "2d 31 39 00 04 00 04 c0 00 02 01 )" },
+		/*
+		 * Quoted ALPN with escaped comma and backslash.
+		 * 16 foo.example.org alpn="f\\\\oo\\,bar,h2"
+		 */
+		{ "16 foo.example.org alpn=\"f\\\\\\\\oo\\\\,bar,h2\"",
+		  "\\# 35 ( 00 10 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 6f 72 "
+		  "67 00 00 01 00 0c 08 66 5c 6f 6f 2c 62 61 72 02 68 32 )" },
+		/*
+		 * Unquoted ALPN with escaped comma and backslash.
+		 * 16 foo.example.org alpn=f\\\092oo\092,bar,h2
+		 */
+		{ "16 foo.example.org alpn=f\\\\\\092oo\\092,bar,h2",
+		  "\\# 35 ( 00 10 03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 6f 72 "
+		  "67 00 00 01 00 0c 08 66 5c 6f 6f 2c 62 61 72 02 68 32 )" },
+		{ NULL, NULL }
+	};
 
 	UNUSED(state);
 
@@ -2649,6 +2765,11 @@ https_svcb(void **state) {
 		    dns_rdatatype_svcb, sizeof(dns_rdata_in_svcb_t));
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_https, sizeof(dns_rdata_in_https_t));
+
+	check_textvsunknown(textvsunknown, dns_rdataclass_in,
+			    dns_rdatatype_svcb);
+	check_textvsunknown(textvsunknown, dns_rdataclass_in,
+			    dns_rdatatype_https);
 }
 
 /*
