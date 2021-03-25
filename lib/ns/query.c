@@ -5786,7 +5786,6 @@ query_lookup(query_ctx_t *qctx) {
 		 * active RRset is not available.
 		 */
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEONLY;
-		qctx->client->nodetach = true;
 	}
 
 	dboptions = qctx->client->query.dboptions;
@@ -5891,7 +5890,6 @@ query_lookup(query_ctx_t *qctx) {
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 			return (ns_query_done(qctx));
 		}
-		qctx->client->nodetach = false;
 	} else if (stale_refresh_window) {
 		/*
 		 * A recent lookup failed, so during this time window we are
@@ -5911,15 +5909,7 @@ query_lookup(query_ctx_t *qctx) {
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 			return (ns_query_done(qctx));
 		}
-		qctx->client->nodetach = false;
 	} else if (stale_only) {
-		/*
-		 * This is a staleonly lookup: if there wass no stale answer
-		 * in cache, treat as we don't have an answer and wait for the
-		 * resolver fetch to finish.
-		 */
-		qctx->client->nodetach = !stale_found;
-
 		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
 			if (!stale_found || result != ISC_R_SUCCESS) {
 				/*
@@ -5952,6 +5942,7 @@ query_lookup(query_ctx_t *qctx) {
 					"refresh the RRset will still be made",
 					namebuf);
 				refresh_rrset = STALE(qctx->rdataset);
+				qctx->client->nodetach = refresh_rrset;
 			}
 		} else {
 			/*
