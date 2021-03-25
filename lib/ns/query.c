@@ -5679,6 +5679,7 @@ query_lookup(query_ctx_t *qctx) {
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
+	char namebuf[DNS_NAME_FORMATSIZE];
 	unsigned int dboptions;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
@@ -5796,7 +5797,8 @@ query_lookup(query_ctx_t *qctx) {
 	if (dbfind_stale ||
 	    (STALE(qctx->rdataset) && (stale_only || stale_refresh_window)))
 	{
-		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(qctx->client->query.qname, namebuf,
+				sizeof(namebuf));
 
 		inc_stats(qctx->client, ns_statscounter_trystale);
 
@@ -5809,127 +5811,98 @@ query_lookup(query_ctx_t *qctx) {
 		} else {
 			stale_found = false;
 		}
+	}
 
-		dns_name_format(qctx->client->query.qname, namebuf,
-				sizeof(namebuf));
-
-		if (dbfind_stale) {
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s resolver failure, stale answer %s",
-				      namebuf,
-				      stale_found ? "used" : "unavailable");
-			if (!stale_found) {
-				/*
-				 * Resolver failure, no stale data, nothing
-				 * more we can do, return SERVFAIL.
-				 */
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-				return (ns_query_done(qctx));
-			}
-
-			stale_only = false;
-		} else if (stale_refresh_window) {
+	if (dbfind_stale) {
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "%s resolver failure, stale answer %s", namebuf,
+			      stale_found ? "used" : "unavailable");
+		if (!stale_found) {
 			/*
-			 * A recent lookup failed, so during this time window
-			 * we are allowed to return stale data immediately.
+			 * Resolver failure, no stale data, nothing more we
+			 * can do, return SERVFAIL.
 			 */
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s query within stale refresh time, "
-				      "stale answer %s",
-				      namebuf,
-				      stale_found ? "used" : "unavailable");
+			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			return (ns_query_done(qctx));
+		}
+		qctx->client->nodetach = false;
+	} else if (stale_refresh_window) {
+		/*
+		 * A recent lookup failed, so during this time window we are
+		 * allowed to return stale data immediately.
+		 */
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "%s query within stale refresh time, stale "
+			      "answer %s",
+			      namebuf, stale_found ? "used" : "unavailable");
 
-			if (!stale_found) {
+		if (!stale_found) {
+			/*
+			 * During the stale refresh window explicitly do not try
+			 * to refresh the data, because a recent lookup failed.
+			 */
+			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			return (ns_query_done(qctx));
+		}
+		qctx->client->nodetach = false;
+	} else if (stale_only) {
+		/*
+		 * This is a staleonly lookup: if there wass no stale answer
+		 * in cache, treat as we don't have an answer and wait for the
+		 * resolver fetch to finish.
+		 */
+		qctx->client->nodetach = !stale_found;
+
+		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
+			if (!stale_found || result != ISC_R_SUCCESS) {
 				/*
-				 * During the stale refresh window explicitly
-				 * do not try to refresh the data, because a
-				 * recent lookup failed.
+				 * We have nothing useful in cache to return
+				 * immediately.
 				 */
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-				return (ns_query_done(qctx));
-			}
-
-			stale_only = false;
-		} else if ((dboptions & DNS_DBFIND_STALEONLY) != 0) {
-			if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
-				if (stale_found && result == ISC_R_SUCCESS) {
-					/*
-					 * Immediately return the stale answer,
-					 * start a resolver fetch to refresh
-					 * the data in cache.
-					 */
-					isc_log_write(
-						ns_lctx,
-						NS_LOGCATEGORY_SERVE_STALE,
-						NS_LOGMODULE_QUERY,
-						ISC_LOG_INFO,
-						"%s stale answer used, an "
-						"attempt to refresh the RRset "
-						"will still be made",
-						namebuf);
-					refresh_rrset = true;
-				} else {
-					/*
-					 * We have nothing useful in cache to
-					 * return immediately.
-					 */
-					qctx_clean(qctx);
-					qctx_freedata(qctx);
-					dns_db_attach(
-						qctx->client->view->cachedb,
-						&qctx->db);
-					qctx->client->query.dboptions &=
-						~DNS_DBFIND_STALEONLY;
-					qctx->client->nodetach = false;
-					qctx->options &= ~DNS_GETDB_STALEFIRST;
-					if (qctx->client->query.fetch != NULL) {
-						dns_resolver_destroyfetch(
-							&qctx->client->query
-								 .fetch);
-					}
-					return query_lookup(qctx);
+				qctx_clean(qctx);
+				qctx_freedata(qctx);
+				dns_db_attach(qctx->client->view->cachedb,
+					      &qctx->db);
+				qctx->client->query.dboptions &=
+					~DNS_DBFIND_STALEONLY;
+				qctx->options &= ~DNS_GETDB_STALEFIRST;
+				if (qctx->client->query.fetch != NULL) {
+					dns_resolver_destroyfetch(
+						&qctx->client->query.fetch);
 				}
+				return query_lookup(qctx);
 			} else {
+				INSIST(stale_found);
+				INSIST(result == ISC_R_SUCCESS);
 				/*
-				 * The 'stale-answer-client-timeout' triggered,
-				 * return the stale answer if available,
-				 * otherwise wait until the resolver finishes.
+				 * Immediately return the stale answer, start a
+				 * resolver fetch to refresh the data in cache.
 				 */
 				isc_log_write(
 					ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 					NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-					"%s client timeout, stale answer %s",
-					namebuf,
-					stale_found ? "used" : "unavailable");
-				if (!stale_found || result != ISC_R_SUCCESS) {
-					return (result);
-				}
+					"%s stale answer used, an attempt to "
+					"refresh the RRset will still be made",
+					namebuf);
+				refresh_rrset = STALE(qctx->rdataset);
+			}
+		} else {
+			/*
+			 * The 'stale-answer-client-timeout' triggered, return
+			 * the stale answer if available, otherwise wait until
+			 * the resolver finishes.
+			 */
+			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s client timeout, stale answer %s",
+				      namebuf,
+				      stale_found ? "used" : "unavailable");
+			if (!stale_found || result != ISC_R_SUCCESS) {
+				return (result);
 			}
 		}
-	} else if (stale_only && result != ISC_R_SUCCESS) {
-		/*
-		 * This is a staleonly lookup and no stale answer was found
-		 * in cache. Treat as we don't have an answer and wait for
-		 * the resolver fetch to finish.
-		 */
-		if ((qctx->options & DNS_GETDB_STALEFIRST) == 0) {
-			return (result);
-		}
-	} else {
-		stale_only = false;
-	}
-
-	if (!stale_only) {
-		/*
-		 * The DNS_DBFIND_STALEONLY option may be set, but if we
-		 * didn't have stale data in cache, or we responded with
-		 * a stale answer because of 'stale-refresh-time', this is
-		 * actually not a 'stale-only' lookup. Clear the flag to
-		 * allow the client to be detach the handle.
-		 */
-		qctx->client->nodetach = false;
 	}
 
 	result = query_gotanswer(qctx, result);
