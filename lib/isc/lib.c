@@ -17,9 +17,14 @@
 #include <isc/tls.h>
 #include <isc/util.h>
 
+#include "config.h"
 #include "mem_p.h"
 #include "tls_p.h"
 #include "trampoline_p.h"
+
+#ifndef ISC_CONSTRUCTOR
+#error Either __attribute__((constructor|destructor))__ or DllMain support needed to compile BIND 9.
+#endif
 
 /***
  *** Functions
