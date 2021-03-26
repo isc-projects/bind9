@@ -54,8 +54,6 @@
 #elif WIN32
 #define ISC_CONSTRUCTOR(priority)
 #define ISC_DESTRUCTOR(priority)
-#else
-#error Either __attribute__((constructor|destructor))__ or DllMain support needed to compile BIND 9.
 #endif
 
 /*%
