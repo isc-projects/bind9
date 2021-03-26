@@ -5849,22 +5849,16 @@ query_lookup(query_ctx_t *qctx) {
 				(dboptions & DNS_DBFIND_STALEENABLED) != 0);
 
 	/*
-	 * If DNS_DBFIND_STALEONLY is set, a stale positive answer is requested.
+	 * If DNS_DBFIND_STALEONLY is set, a stale answer is requested.
 	 * This can happen if 'stale-answer-client-timeout' is enabled.
 	 *
-	 * If 'stale-answer-client-timeout' is set to 0, and a stale positive
+	 * If 'stale-answer-client-timeout' is set to 0, and a stale
 	 * answer is found, send it to the client, and try to refresh the
-	 * RRset. If a stale negative answer is found, continue with recursion
-	 * (perhaps the query will be resolved eventually and the answer from
-	 * the authoritative is returned to the client, or the query will
-	 * timeout, in that case DNS_DBFIND_STALEOK may be set, and a stale
-	 * negative answer is returned (or SERVFAIL).
+	 * RRset.
 	 *
-	 * If 'stale-answer-client-timeout' is non-zero, and a stale positive
+	 * If 'stale-answer-client-timeout' is non-zero, and a stale
 	 * answer is found, send it to the client. Don't try to refresh the
-	 * RRset because a fetch is already in progress. If a stale negative
-	 * answer is found, then abort the lookup and the client has to wait
-	 * until recursion is finished.
+	 * RRset because a fetch is already in progress.
 	 */
 	stale_only = ((dboptions & DNS_DBFIND_STALEONLY) != 0);
 
@@ -5922,7 +5916,7 @@ query_lookup(query_ctx_t *qctx) {
 		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
 
 		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
-			if (!stale_found || result != ISC_R_SUCCESS) {
+			if (!stale_found) {
 				/*
 				 * We have nothing useful in cache to return
 				 * immediately.
@@ -5940,8 +5934,6 @@ query_lookup(query_ctx_t *qctx) {
 				}
 				return query_lookup(qctx);
 			} else {
-				INSIST(stale_found);
-				INSIST(result == ISC_R_SUCCESS);
 				/*
 				 * Immediately return the stale answer, start a
 				 * resolver fetch to refresh the data in cache.
@@ -5966,7 +5958,7 @@ query_lookup(query_ctx_t *qctx) {
 				      "%s client timeout, stale answer %s",
 				      namebuf,
 				      stale_found ? "used" : "unavailable");
-			if (!stale_found || result != ISC_R_SUCCESS) {
+			if (!stale_found) {
 				return (result);
 			}
 		}
