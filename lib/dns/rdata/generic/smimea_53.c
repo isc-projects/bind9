@@ -18,23 +18,22 @@ static inline isc_result_t
 fromtext_smimea(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
-	return (generic_fromtext_tlsa(rdclass, type, lexer, origin, options,
-				      target, callbacks));
+	return (generic_fromtext_tlsa(CALL_FROMTEXT));
 }
 
 static inline isc_result_t
 totext_smimea(ARGS_TOTEXT) {
+	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 
-	return (generic_totext_tlsa(rdata, tctx, target));
+	return (generic_totext_tlsa(CALL_TOTEXT));
 }
 
 static inline isc_result_t
 fromwire_smimea(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
-	return (generic_fromwire_tlsa(rdclass, type, source, dctx, options,
-				      target));
+	return (generic_fromwire_tlsa(CALL_FROMWIRE));
 }
 
 static inline isc_result_t
@@ -70,7 +69,7 @@ static inline isc_result_t
 fromstruct_smimea(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_smimea);
 
-	return (generic_fromstruct_tlsa(rdclass, type, source, target));
+	return (generic_fromstruct_tlsa(CALL_FROMSTRUCT));
 }
 
 static inline isc_result_t
@@ -85,7 +84,7 @@ tostruct_smimea(ARGS_TOSTRUCT) {
 	smimea->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&smimea->common, link);
 
-	return (generic_tostruct_tlsa(rdata, target, mctx));
+	return (generic_tostruct_tlsa(CALL_TOSTRUCT));
 }
 
 static inline void
