@@ -6103,6 +6103,13 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
+	/*
+	 * We are resuming from recursion. Reset any attributes, options
+	 * that a stale-only lookup may have set.
+	 */
+	if (client->view->cachedb != NULL && client->view->recursion) {
+		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
+	}
 	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
 	client->nodetach = false;
 
