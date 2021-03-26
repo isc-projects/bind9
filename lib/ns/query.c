@@ -135,6 +135,9 @@
 /*% Was the query already answered due to stale-answer-client-timeout? */
 #define QUERY_ANSWERED(q) (((q)->attributes & NS_QUERYATTR_ANSWERED) != 0)
 
+/*% Does the query allow stale data in the response? */
+#define QUERY_STALEOK(q) (((q)->attributes & NS_QUERYATTR_STALEOK) != 0)
+
 /*% Does the query only wants to check for stale RRset? */
 #define QUERY_STALEONLY(q) (((q)->dboptions & DNS_DBFIND_STALEONLY) != 0)
 
@@ -486,6 +489,9 @@ query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata);
 
 static void
 query_addauth(query_ctx_t *qctx);
+
+static void
+query_clear_staleonly(ns_client_t *client);
 
 /*
  * Increment query statistics counters.
@@ -2176,6 +2182,10 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_REQUIRED) != 0) {
 			mrdataset->attributes |= DNS_RDATASETATTR_REQUIRED;
+		}
+		if ((rdataset->attributes & DNS_RDATASETATTR_STALE_ADDED) != 0)
+		{
+			mrdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
 		}
 		return;
 	} else if (result == DNS_R_NXDOMAIN) {
@@ -5793,9 +5803,7 @@ query_lookup(query_ctx_t *qctx) {
 	 */
 	stale_only = ((dboptions & DNS_DBFIND_STALEONLY) != 0);
 
-	if (dbfind_stale ||
-	    (STALE(qctx->rdataset) && (stale_only || stale_refresh_window)))
-	{
+	if (dbfind_stale || stale_refresh_window || stale_only) {
 		dns_name_format(qctx->client->query.qname, namebuf,
 				sizeof(namebuf));
 
@@ -5845,6 +5853,9 @@ query_lookup(query_ctx_t *qctx) {
 			return (ns_query_done(qctx));
 		}
 	} else if (stale_only) {
+		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
+		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
+
 		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
 			if (!stale_found || result != ISC_R_SUCCESS) {
 				/*
@@ -5896,6 +5907,15 @@ query_lookup(query_ctx_t *qctx) {
 		}
 	}
 
+	if (stale_timeout && stale_found) {
+		/*
+		 * Mark RRsets that we are adding to the client message on a
+		 * lookup during 'stale-answer-client-timeout', so we can
+		 * clean it up if needed when we resume from recursion.
+		 */
+		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
+		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
+	}
 	result = query_gotanswer(qctx, result);
 
 	if (refresh_rrset) {
@@ -5911,6 +5931,60 @@ query_lookup(query_ctx_t *qctx) {
 
 cleanup:
 	return (result);
+}
+
+/*
+ * Clear all rdatasets from the message that are in the given section and
+ * that have the 'attr' attribute set.
+ */
+static void
+message_clearrdataset(dns_message_t *msg, unsigned int attr) {
+	unsigned int i;
+	dns_name_t *name, *next_name;
+	dns_rdataset_t *rds, *next_rds;
+
+	/*
+	 * Clean up name lists by calling the rdataset disassociate function.
+	 */
+	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
+		name = ISC_LIST_HEAD(msg->sections[i]);
+		while (name != NULL) {
+			next_name = ISC_LIST_NEXT(name, link);
+
+			rds = ISC_LIST_HEAD(name->list);
+			while (rds != NULL) {
+				next_rds = ISC_LIST_NEXT(rds, link);
+				if ((rds->attributes & attr) != attr) {
+					rds = next_rds;
+					continue;
+				}
+				ISC_LIST_UNLINK(name->list, rds, link);
+				INSIST(dns_rdataset_isassociated(rds));
+				dns_rdataset_disassociate(rds);
+				isc_mempool_put(msg->rdspool, rds);
+				rds = next_rds;
+			}
+
+			if (ISC_LIST_EMPTY(name->list)) {
+				ISC_LIST_UNLINK(msg->sections[i], name, link);
+				if (dns_name_dynamic(name)) {
+					dns_name_free(name, msg->mctx);
+				}
+				isc_mempool_put(msg->namepool, name);
+			}
+
+			name = next_name;
+		}
+	}
+}
+
+/*
+ * Clear any rdatasets from the client's message that were added on a
+ * stale-only lookup.
+ */
+static void
+query_clear_staleonly(ns_client_t *client) {
+	message_clearrdataset(client->message, DNS_RDATASETATTR_STALE_ADDED);
 }
 
 /*
@@ -7636,6 +7710,21 @@ query_addanswer(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_ADDANSWER_BEGIN, qctx);
 
+	/*
+	 * On normal lookups, clear any rdatasets that were added on a
+	 * staleonly lookup.
+	 */
+	if (QUERY_STALEOK(&qctx->client->query) &&
+	    !QUERY_STALEONLY(&qctx->client->query))
+	{
+		query_clear_staleonly(qctx->client);
+		/*
+		 * We can clear the attribute to prevent redundant clearing
+		 * in subsequent lookups.
+		 */
+		qctx->client->query.attributes &= ~DNS_RDATASETATTR_STALE_ADDED;
+	}
+
 	if (qctx->dns64) {
 		result = query_dns64(qctx);
 		qctx->noqname = NULL;
@@ -7779,7 +7868,7 @@ query_respond(query_ctx_t *qctx) {
 	 * We shouldn't ever fail to add 'rdataset'
 	 * because it's already in the answer.
 	 */
-	INSIST(qctx->rdataset == NULL || QUERY_ANSWERED(&qctx->client->query));
+	INSIST(qctx->rdataset == NULL);
 
 	query_addauth(qctx);
 
@@ -11295,10 +11384,8 @@ ns_query_done(query_ctx_t *qctx) {
 	 * to the AA bit if the auth-nxdomain config option
 	 * says so, then render and send the response.
 	 */
-	if (!QUERY_ANSWERED(qctx->client)) {
-		query_setup_sortlist(qctx);
-		query_glueanswer(qctx);
-	}
+	query_setup_sortlist(qctx);
+	query_glueanswer(qctx);
 
 	if (qctx->client->message->rcode == dns_rcode_nxdomain &&
 	    qctx->view->auth_nxdomain)
