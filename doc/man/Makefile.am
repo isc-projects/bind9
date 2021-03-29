@@ -128,7 +128,13 @@ man_MANS +=				\
 endif HAVE_PKCS11
 
 MANPAGES_IN =				\
-	$(man_MANS:=in)
+	$(man_MANS:=in)			\
+	dnstap-read.1in			\
+	named-nzd2nzf.1in		\
+	pkcs11-destroy.1in		\
+	pkcs11-keygen.1in		\
+	pkcs11-list.1in			\
+	pkcs11-tokens.1in
 
 EXTRA_DIST =				\
 	conf.py				\
