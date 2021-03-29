@@ -987,15 +987,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 
 	sock->pquota = NULL;
 
-	if (sock->timer_initialized) {
-		sock->timer_initialized = false;
-		/* We might be in timer callback */
-		if (!uv_is_closing((uv_handle_t *)&sock->timer)) {
-			uv_timer_stop(&sock->timer);
-			uv_close((uv_handle_t *)&sock->timer, NULL);
-		}
-	}
-
 	isc_astack_destroy(sock->inactivehandles);
 
 	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
@@ -1397,11 +1388,16 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 #endif
 	UNLOCK(&sock->lock);
 
-	if (sock->type == isc_nm_tcpsocket || sock->type == isc_nm_tlssocket ||
-	    (sock->type == isc_nm_udpsocket && atomic_load(&sock->client)) ||
-	    (sock->type == isc_nm_tcpdnssocket && atomic_load(&sock->client)) ||
-	    (sock->type == isc_nm_tlsdnssocket && atomic_load(&sock->client)))
-	{
+	switch (sock->type) {
+	case isc_nm_udpsocket:
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		if (!atomic_load(&sock->client)) {
+			break;
+		}
+		/* fallthrough */
+	case isc_nm_tcpsocket:
+	case isc_nm_tlssocket:
 		INSIST(sock->statichandle == NULL);
 
 		/*
@@ -1411,6 +1407,9 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		 * handle and socket would never be freed.
 		 */
 		sock->statichandle = handle;
+		break;
+	default:
+		break;
 	}
 
 	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
@@ -1704,7 +1703,19 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->reading);
 
-	isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT);
+	if (atomic_load(&sock->client)) {
+		if (sock->recv_cb != NULL) {
+			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
+			isc__nm_readcb(sock, req, ISC_R_TIMEDOUT);
+		}
+
+		if (!isc__nmsocket_timer_running(sock)) {
+			isc__nmsocket_clearcb(sock);
+			isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		}
+	} else {
+		isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT);
+	}
 }
 
 void
@@ -1720,11 +1731,18 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	RUNTIME_CHECK(r == 0);
 }
 
+bool
+isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	return (uv_is_active((uv_handle_t *)&sock->timer));
+}
+
 void
 isc__nmsocket_timer_start(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (uv_is_active((uv_handle_t *)&sock->timer)) {
+	if (isc__nmsocket_timer_running(sock)) {
 		return;
 	}
 
@@ -1735,9 +1753,7 @@ void
 isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (!uv_is_active((uv_handle_t *)&sock->timer)) {
-		return;
-	}
+	/* uv_timer_stop() is idempotent, no need to check if running */
 
 	int r = uv_timer_stop(&sock->timer);
 	RUNTIME_CHECK(r == 0);
@@ -1751,13 +1767,21 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	req->cb.recv = sock->recv_cb;
 	req->cbarg = sock->recv_cbarg;
 
-	if (atomic_load(&sock->client)) {
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+	case isc_nm_tlssocket:
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
-	} else {
-		req->handle = isc__nmhandle_get(sock, sockaddr, NULL);
+		break;
+	default:
+		if (atomic_load(&sock->client)) {
+			isc_nmhandle_attach(sock->statichandle, &req->handle);
+		} else {
+			req->handle = isc__nmhandle_get(sock, sockaddr, NULL);
+		}
+		break;
 	}
 
-	return req;
+	return (req);
 }
 
 /*%<
@@ -1987,9 +2011,7 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 		return;
 	default:
 		handle->sock->read_timeout = timeout;
-		if (uv_is_active((uv_handle_t *)&handle->sock->timer)) {
-			isc__nmsocket_timer_restart(handle->sock);
-		}
+		isc__nmsocket_timer_restart(handle->sock);
 	}
 }
 

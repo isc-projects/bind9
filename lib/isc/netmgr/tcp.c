@@ -92,9 +92,6 @@ start_reading(isc_nmsocket_t *sock);
 static void
 stop_reading(isc_nmsocket_t *sock);
 
-static isc__nm_uvreq_t *
-get_read_req(isc_nmsocket_t *sock);
-
 static void
 tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
 
@@ -701,7 +698,7 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	sock->recv_read = false;
 
 	if (sock->recv_cb != NULL) {
-		isc__nm_uvreq_t *req = get_read_req(sock);
+		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 		isc__nmsocket_clearcb(sock);
 		isc__nm_readcb(sock, req, result);
 	}
@@ -732,18 +729,6 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
-}
-
-static isc__nm_uvreq_t *
-get_read_req(isc_nmsocket_t *sock) {
-	isc__nm_uvreq_t *req = NULL;
-
-	req = isc__nm_uvreq_get(sock->mgr, sock);
-	req->cb.recv = sock->recv_cb;
-	req->cbarg = sock->recv_cbarg;
-	isc_nmhandle_attach(sock->statichandle, &req->handle);
-
-	return req;
 }
 
 static void
@@ -947,7 +932,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 		goto free;
 	}
 
-	req = get_read_req(sock);
+	req = isc__nm_get_read_req(sock, NULL);
 
 	/*
 	 * The callback will be called synchronously because the
@@ -1459,5 +1444,5 @@ isc__nm_tcp_listener_nactive(isc_nmsocket_t *listener) {
 
 	nactive = atomic_load(&listener->active_child_connections);
 	INSIST(nactive >= 0);
-	return nactive;
+	return (nactive);
 }

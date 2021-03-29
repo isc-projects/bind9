@@ -854,8 +854,6 @@ struct isc_nmsocket {
 	 * TCP read/connect timeout timers.
 	 */
 	uv_timer_t timer;
-	bool timer_initialized;
-	bool timer_running;
 	uint64_t read_timeout;
 	uint64_t connect_timeout;
 
@@ -1167,8 +1165,10 @@ void
 isc__nmsocket_timer_start(isc_nmsocket_t *sock);
 void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock);
+bool
+isc__nmsocket_timer_running(isc_nmsocket_t *sock);
 /*%<
- * Start/stop/restart the read timeout on the socket
+ * Start/stop/restart/check the timeout on the socket
  */
 
 void
