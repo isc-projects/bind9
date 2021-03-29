@@ -1692,14 +1692,13 @@ _query_detach(dig_query_t **queryp, const char *file, unsigned int line) {
 		query_detach(&lookup->current_query);
 	}
 
-	if (ISC_LINK_LINKED(query, link)) {
-		ISC_LIST_UNLINK(lookup->q, query, link);
-	}
-
 	debug("%s:%u:query_detach(%p) = %" PRIuFAST32, file, line, query,
 	      isc_refcount_current(&query->references) - 1);
 
 	if (isc_refcount_decrement(&query->references) == 1) {
+		if (ISC_LINK_LINKED(query, link)) {
+			ISC_LIST_UNLINK(lookup->q, query, link);
+		}
 		destroy_query(query, file, line);
 	}
 }
