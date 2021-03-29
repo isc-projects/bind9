@@ -4562,11 +4562,11 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 				RDATASET_ATTR_SET(header,
 						  RDATASET_ATTR_STALE_WINDOW);
 				return (false);
-			} else if ((search->options & DNS_DBFIND_STALEONLY) !=
-				   0) {
+			} else if ((search->options &
+				    DNS_DBFIND_STALETIMEOUT) != 0) {
 				/*
-				 * We want stale RRset only, so we don't skip
-				 * it.
+				 * We want stale RRset due to timeout, so we
+				 * don't skip it.
 				 */
 				return (false);
 			}
