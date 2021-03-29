@@ -138,8 +138,8 @@
 /*% Does the query allow stale data in the response? */
 #define QUERY_STALEOK(q) (((q)->attributes & NS_QUERYATTR_STALEOK) != 0)
 
-/*% Does the query only wants to check for stale RRset? */
-#define QUERY_STALEONLY(q) (((q)->dboptions & DNS_DBFIND_STALEONLY) != 0)
+/*% Does the query wants to check for stale RRset due to a timeout? */
+#define QUERY_STALETIMEOUT(q) (((q)->dboptions & DNS_DBFIND_STALETIMEOUT) != 0)
 
 /*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
 #define NOQNAME(r) (((r)->attributes & DNS_RDATASETATTR_NOQNAME) != 0)
@@ -491,7 +491,7 @@ static void
 query_addauth(query_ctx_t *qctx);
 
 static void
-query_clear_staleonly(ns_client_t *client);
+query_clear_stale(ns_client_t *client);
 
 /*
  * Increment query statistics counters.
@@ -5649,7 +5649,7 @@ query_refresh_rrset(query_ctx_t *orig_qctx) {
 	REQUIRE(orig_qctx->client != NULL);
 
 	qctx_copy(orig_qctx, &qctx);
-	qctx.client->query.dboptions &= ~(DNS_DBFIND_STALEONLY |
+	qctx.client->query.dboptions &= ~(DNS_DBFIND_STALETIMEOUT |
 					  DNS_DBFIND_STALEOK |
 					  DNS_DBFIND_STALEENABLED);
 
@@ -5693,7 +5693,7 @@ query_lookup(query_ctx_t *qctx) {
 	unsigned int dboptions;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
-	bool stale_only = false;
+	bool stale_timeout = false;
 	bool stale_found = false;
 	bool refresh_rrset = false;
 	bool stale_refresh_window = false;
@@ -5730,7 +5730,7 @@ query_lookup(query_ctx_t *qctx) {
 		 * to refresh the RRset will still take place if an
 		 * active RRset is not available.
 		 */
-		qctx->client->query.dboptions |= DNS_DBFIND_STALEONLY;
+		qctx->client->query.dboptions |= DNS_DBFIND_STALETIMEOUT;
 	}
 
 	dboptions = qctx->client->query.dboptions;
@@ -5784,7 +5784,7 @@ query_lookup(query_ctx_t *qctx) {
 				(dboptions & DNS_DBFIND_STALEENABLED) != 0);
 
 	/*
-	 * If DNS_DBFIND_STALEONLY is set, a stale answer is requested.
+	 * If DNS_DBFIND_STALETIMEOUT is set, a stale answer is requested.
 	 * This can happen if 'stale-answer-client-timeout' is enabled.
 	 *
 	 * If 'stale-answer-client-timeout' is set to 0, and a stale
@@ -5795,9 +5795,9 @@ query_lookup(query_ctx_t *qctx) {
 	 * answer is found, send it to the client. Don't try to refresh the
 	 * RRset because a fetch is already in progress.
 	 */
-	stale_only = ((dboptions & DNS_DBFIND_STALEONLY) != 0);
+	stale_timeout = ((dboptions & DNS_DBFIND_STALETIMEOUT) != 0);
 
-	if (dbfind_stale || stale_refresh_window || stale_only) {
+	if (dbfind_stale || stale_refresh_window || stale_timeout) {
 		dns_name_format(qctx->client->query.qname, namebuf,
 				sizeof(namebuf));
 
@@ -5846,7 +5846,7 @@ query_lookup(query_ctx_t *qctx) {
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 			return (ns_query_done(qctx));
 		}
-	} else if (stale_only) {
+	} else if (stale_timeout) {
 		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
 		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
 
@@ -5861,7 +5861,7 @@ query_lookup(query_ctx_t *qctx) {
 				dns_db_attach(qctx->client->view->cachedb,
 					      &qctx->db);
 				qctx->client->query.dboptions &=
-					~DNS_DBFIND_STALEONLY;
+					~DNS_DBFIND_STALETIMEOUT;
 				qctx->options &= ~DNS_GETDB_STALEFIRST;
 				if (qctx->client->query.fetch != NULL) {
 					dns_resolver_destroyfetch(
@@ -5971,29 +5971,28 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 }
 
 /*
- * Clear any rdatasets from the client's message that were added on a
- * stale-only lookup.
+ * Clear any rdatasets from the client's message that were added on a lookup
+ * due to a client timeout.
  */
 static void
-query_clear_staleonly(ns_client_t *client) {
+query_clear_stale(ns_client_t *client) {
 	message_clearrdataset(client->message, DNS_RDATASETATTR_STALE_ADDED);
 }
 
 /*
- * Create a new query context with the sole intent
- * of looking up for a stale RRset in cache.
- * If an entry is found, we mark the original query as
- * answered, in order to avoid answering the query twice,
- * when the original fetch finishes.
+ * Create a new query context with the sole intent of looking up for a stale
+ * RRset in cache. If an entry is found, we mark the original query as
+ * answered, in order to avoid answering the query twice, when the original
+ * fetch finishes.
  */
 static inline void
-query_lookup_staleonly(ns_client_t *client) {
+query_lookup_stale(ns_client_t *client) {
 	query_ctx_t qctx;
 
 	qctx_init(client, NULL, client->query.qtype, &qctx);
 	dns_db_attach(client->view->cachedb, &qctx.db);
 	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
-	client->query.dboptions |= DNS_DBFIND_STALEONLY;
+	client->query.dboptions |= DNS_DBFIND_STALETIMEOUT;
 	client->nodetach = true;
 	(void)query_lookup(&qctx);
 	if (qctx.node != NULL) {
@@ -6033,19 +6032,19 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
 
 	if (event->ev_type == DNS_EVENT_TRYSTALE) {
-		query_lookup_staleonly(client);
+		query_lookup_stale(client);
 		isc_event_free(ISC_EVENT_PTR(&event));
 		return;
 	}
 
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
-	 * that a stale-only lookup may have set.
+	 * that a lookup due to stale-answer-client-timeout may have set.
 	 */
 	if (client->view->cachedb != NULL && client->view->recursion) {
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
-	client->query.dboptions &= ~DNS_DBFIND_STALEONLY;
+	client->query.dboptions &= ~DNS_DBFIND_STALETIMEOUT;
 	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
@@ -7711,12 +7710,12 @@ query_addanswer(query_ctx_t *qctx) {
 
 	/*
 	 * On normal lookups, clear any rdatasets that were added on a
-	 * staleonly lookup.
+	 * lookup due to stale-answer-client-timeout.
 	 */
 	if (QUERY_STALEOK(&qctx->client->query) &&
-	    !QUERY_STALEONLY(&qctx->client->query))
+	    !QUERY_STALETIMEOUT(&qctx->client->query))
 	{
-		query_clear_staleonly(qctx->client);
+		query_clear_stale(qctx->client);
 		/*
 		 * We can clear the attribute to prevent redundant clearing
 		 * in subsequent lookups.
@@ -7758,7 +7757,7 @@ query_addanswer(query_ctx_t *qctx) {
 		ns_client_putrdataset(qctx->client, &qctx->rdataset);
 	} else {
 		if (!qctx->is_zone && RECURSIONOK(qctx->client) &&
-		    !QUERY_STALEONLY(&qctx->client->query))
+		    !QUERY_STALETIMEOUT(&qctx->client->query))
 		{
 			query_prefetch(qctx->client, qctx->fname,
 				       qctx->rdataset);
@@ -11370,7 +11369,7 @@ ns_query_done(query_ctx_t *qctx) {
 	 * resume when recursion ends.
 	 */
 	if (RECURSING(qctx->client) &&
-	    (!QUERY_STALEONLY(&qctx->client->query) ||
+	    (!QUERY_STALETIMEOUT(&qctx->client->query) ||
 	     ((qctx->options & DNS_GETDB_STALEFIRST) != 0)))
 	{
 		return (qctx->result);
