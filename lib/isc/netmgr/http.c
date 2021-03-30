@@ -1058,7 +1058,7 @@ http_call_connect_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	req->handle = isc__nmhandle_get(sock, &sock->peer, &sock->iface->addr);
 
 	isc__nmsocket_clearcb(sock);
-	isc__nm_connectcb_force_async(sock, req, result);
+	isc__nm_connectcb(sock, req, result, true);
 }
 
 static void

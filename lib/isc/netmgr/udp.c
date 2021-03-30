@@ -699,7 +699,7 @@ isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 		 * The callback has to be called after the socket has been
 		 * initialized
 		 */
-		isc__nm_connectcb(sock, req, ISC_R_SUCCESS);
+		isc__nm_connectcb(sock, req, ISC_R_SUCCESS, true);
 	}
 
 	/*

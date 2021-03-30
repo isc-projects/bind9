@@ -1173,11 +1173,7 @@ isc__nmsocket_timer_running(isc_nmsocket_t *sock);
 
 void
 isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-		  isc_result_t eresult);
-
-void
-isc__nm_connectcb_force_async(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-			      isc_result_t eresult);
+		  isc_result_t eresult, bool async);
 
 void
 isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -1895,5 +1891,8 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 			  isc_result_t eresult);
 void
 isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+
+void
+isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
 
 #define STREAM_CLIENTS_PER_CONN 23

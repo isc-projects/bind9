@@ -137,6 +137,9 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 
+	uv_handle_set_data((uv_handle_t *)&sock->timer, &req->uv_req.connect);
+	isc__nmsocket_timer_start(sock);
+
 	atomic_store(&sock->connected, true);
 
 done:
@@ -193,20 +196,31 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(atomic_load(&sock->connecting));
+
+	isc__nmsocket_timer_stop(sock);
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
-	if (!isc__nmsocket_active(sock)) {
+	if (!atomic_load(&sock->connecting)) {
+		/*
+		 * The connect was cancelled from timeout; just clean up
+		 * the req.
+		 */
+		isc__nm_uvreq_put(&req, sock);
+		return;
+	} else if (!isc__nmsocket_active(sock)) {
+		/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
 		result = ISC_R_CANCELED;
 		goto error;
-	}
-
-	if (status != 0) {
+	} else if (status == UV_ETIMEDOUT) {
+		/* Timeout status code here indicates hard error */
+		result = ISC_R_CANCELED;
+		goto error;
+	} else if (status != 0) {
 		result = isc__nm_uverr2result(status);
 		goto error;
 	}
@@ -224,7 +238,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	result = isc_sockaddr_fromsockaddr(&sock->peer, (struct sockaddr *)&ss);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc__nm_connectcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_connectcb(sock, req, ISC_R_SUCCESS, false);
 
 	return;
 
@@ -267,7 +281,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->fd = fd;
 	atomic_init(&sock->client, true);
 
-	result = isc__nm_socket_connectiontimeout(fd, timeout);
+	result = isc__nm_socket_connectiontimeout(fd, 120 * 1000); /* 2 mins */
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	req = isc__nm_uvreq_get(mgr, sock);
@@ -1167,11 +1181,7 @@ tcpdns_stop_cb(uv_handle_t *handle) {
 }
 
 static void
-tcpdns_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-
-	uv_handle_set_data(handle, NULL);
-
+tcpdns_close_sock(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
@@ -1194,12 +1204,25 @@ tcpdns_close_cb(uv_handle_t *handle) {
 }
 
 static void
-timer_close_cb(uv_handle_t *handle) {
+tcpdns_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
 	uv_handle_set_data(handle, NULL);
+
+	tcpdns_close_sock(sock);
+}
+
+static void
+timer_close_cb(uv_handle_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data(timer);
+	uv_handle_set_data(timer, NULL);
+
+	REQUIRE(VALID_NMSOCK(sock));
 
 	if (sock->parent) {
 		uv_close(&sock->uv_handle.handle, tcpdns_stop_cb);
+	} else if (uv_is_closing(&sock->uv_handle.handle)) {
+		tcpdns_close_sock(sock);
 	} else {
 		uv_close(&sock->uv_handle.handle, tcpdns_close_cb);
 	}
@@ -1271,6 +1294,7 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
+
 	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 }
 
@@ -1313,6 +1337,19 @@ isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 	tcpdns_close_direct(sock);
 }
 
+static void
+tcpdns_close_connect_cb(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(sock->tid == isc_nm_tid());
+
+	isc__nmsocket_prep_destroy(sock);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1327,7 +1364,14 @@ isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (atomic_load(&sock->connecting) || sock->accepting) {
+	if (sock->accepting) {
+		return;
+	}
+
+	if (atomic_load(&sock->connecting)) {
+		isc_nmsocket_t *tsock = NULL;
+		isc__nmsocket_attach(sock, &tsock);
+		uv_close(&sock->uv_handle.handle, tcpdns_close_connect_cb);
 		return;
 	}
 
