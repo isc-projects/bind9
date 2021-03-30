@@ -3967,8 +3967,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	rpzs = client->view->rpzs;
 	st = client->query.rpz_st;
 
-	if (rpzs == NULL ||
-	    (st != NULL && (st->state & DNS_RPZ_REWRITTEN) != 0)) {
+	if (rpzs == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	if (st != NULL && (st->state & DNS_RPZ_REWRITTEN) != 0) {
+		return (DNS_R_DISALLOWED);
+	}
+	if (RECURSING(client)) {
 		return (DNS_R_DISALLOWED);
 	}
 
@@ -7131,6 +7136,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 	switch (rresult) {
 	case ISC_R_SUCCESS:
 		break;
+	case ISC_R_NOTFOUND:
 	case DNS_R_DISALLOWED:
 		return (result);
 	case DNS_R_DELEGATION:
@@ -7138,6 +7144,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		 * recursing for NS names or addresses,
 		 * so save the main query state
 		 */
+		INSIST(!RECURSING(qctx->client));
 		qctx->rpz_st->q.qtype = qctx->qtype;
 		qctx->rpz_st->q.is_zone = qctx->is_zone;
 		qctx->rpz_st->q.authoritative = qctx->authoritative;
@@ -7539,15 +7546,30 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 		return (ns_query_done(qctx));
 	}
 
-	if (!RECURSING(qctx->client) &&
-	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
-	{
+	if (!dns_name_equal(qctx->client->query.qname, dns_rootname)) {
 		result = query_checkrpz(qctx, result);
+		if (result == ISC_R_NOTFOUND) {
+			/*
+			 * RPZ not configured for this view.
+			 */
+			goto root_key_sentinel;
+		}
+		if (RECURSING(qctx->client) && result == DNS_R_DISALLOWED) {
+			/*
+			 * We are recursing, and thus RPZ processing is not
+			 * allowed at the moment. This could happen on a
+			 * "stale-answer-client-timeout" lookup. In this case,
+			 * bail out and wait for recursion to complete, as we
+			 * we can't perform the RPZ rewrite rules.
+			 */
+			return (result);
+		}
 		if (result == ISC_R_COMPLETE) {
 			return (ns_query_done(qctx));
 		}
 	}
 
+root_key_sentinel:
 	/*
 	 * If required, handle special "root-key-sentinel-is-ta-<keyid>" and
 	 * "root-key-sentinel-not-ta-<keyid>" labels by returning SERVFAIL.
