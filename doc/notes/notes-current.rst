@@ -74,3 +74,9 @@ Bug Fixes
   recursion for a client query completed when ``named`` was about to look for
   a stale answer, an assertion could fail in ``query_respond()``, resulting in
   a crash. This has been fixed. [GL #2594]
+
+- After upgrading to the previous release, journal files for trust anchor
+  databases (e.g., ``managed-keys.bind.jnl``) could be left in a corrupt
+  state. (Other zone journal files were not affected.) This has been
+  fixed. If a corrupt journal file is detected, ``named`` can now recover
+  from it. [GL #2600]

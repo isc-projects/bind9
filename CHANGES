@@ -1,3 +1,9 @@
+5613.	[bug]		It was possible to write an invalid transaction header
+			in the journal file for a managed-keys database after
+			upgrading. This has been fixed. Invalid headers in
+			existing journal files are detected and named is able
+			to recover from them. [GL #2600]
+
 5612.	[bug]		Continued refactoring of the network manager:
 			- allow recovery from read and connect timeout events
 			- ensure that calls to isc_nm_*connect() always
