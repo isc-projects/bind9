@@ -789,6 +789,7 @@ gcc:tarball:
   only:
     - schedules
     - tags
+    - web
 
 system:gcc:tarball:
   <<: *base_image
@@ -802,6 +803,7 @@ system:gcc:tarball:
   only:
     - schedules
     - tags
+    - web
 
 unit:gcc:tarball:
   <<: *base_image
@@ -814,6 +816,7 @@ unit:gcc:tarball:
   only:
     - schedules
     - tags
+    - web
 
 # Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
 
