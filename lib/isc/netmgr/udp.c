@@ -617,7 +617,6 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
-		isc__nm_closesocket(sock->fd);
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
 		goto done;
 	}
@@ -702,7 +701,7 @@ isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&sock->active, false);
 		isc__nm_udp_close(sock);
-		isc__nm_uvreq_put(&req, sock);
+		isc__nm_connectcb(sock, req, result, true);
 	} else {
 		/*
 		 * The callback has to be called after the socket has been
@@ -717,7 +716,7 @@ isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__nmsocket_detach(&sock);
 }
 
-isc_result_t
+void
 isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize) {
@@ -726,22 +725,12 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc__netievent_udpconnect_t *event = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
-	uv_os_sock_t fd;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
 
 	sa_family = peer->addr.type.sa.sa_family;
-
-	/*
-	 * The socket() call can fail spuriously on FreeBSD 12, so we
-	 * need to handle the failure early and gracefully.
-	 */
-	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &fd);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
 
 	sock = isc_mem_get(mgr->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(sock, mgr, isc_nm_udpsocket, local);
@@ -751,9 +740,26 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->read_timeout = timeout;
 	sock->extrahandlesize = extrahandlesize;
 	sock->peer = peer->addr;
-	sock->fd = fd;
 	sock->result = ISC_R_DEFAULT;
 	atomic_init(&sock->client, true);
+
+	req = isc__nm_uvreq_get(mgr, sock);
+	req->cb.connect = cb;
+	req->cbarg = cbarg;
+	req->peer = peer->addr;
+	req->local = local->addr;
+
+	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &sock->fd);
+	if (result != ISC_R_SUCCESS) {
+		if (isc__nm_in_netthread()) {
+			sock->tid = isc_nm_tid();
+		}
+		isc__nmsocket_clearcb(sock);
+		isc__nm_connectcb(sock, req, result, true);
+		atomic_store(&sock->closed, true);
+		isc__nmsocket_detach(&sock);
+		return;
+	}
 
 	result = isc__nm_socket_reuse(sock->fd);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS ||
@@ -766,12 +772,6 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	(void)isc__nm_socket_incoming_cpu(sock->fd);
 
 	(void)isc__nm_socket_dontfrag(sock->fd, sa_family);
-
-	req = isc__nm_uvreq_get(mgr, sock);
-	req->cb.connect = cb;
-	req->cbarg = cbarg;
-	req->peer = peer->addr;
-	req->local = local->addr;
 
 	event = isc__nm_get_netievent_udpconnect(mgr, sock, req);
 
@@ -788,17 +788,12 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 				       (isc__netievent_t *)event);
 	}
 	LOCK(&sock->lock);
-	result = sock->result;
 	while (sock->result == ISC_R_DEFAULT) {
 		WAIT(&sock->cond, &sock->lock);
-		result = sock->result;
 	}
 	atomic_store(&sock->active, true);
 	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
-	ENSURE(result != ISC_R_DEFAULT);
-
-	return (result);
 }
 
 void

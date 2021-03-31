@@ -574,7 +574,6 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 static void
 rndc_startconnect(isc_sockaddr_t *addr) {
-	isc_result_t result;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t *local = NULL;
 
@@ -600,10 +599,8 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 	}
 
 	atomic_fetch_add_relaxed(&connects, 1);
-	DO("create connection",
-	   isc_nm_tcpconnect(netmgr, (isc_nmiface_t *)local,
-			     (isc_nmiface_t *)addr, rndc_connected, &rndc_ccmsg,
-			     10000, 0));
+	isc_nm_tcpconnect(netmgr, (isc_nmiface_t *)local, (isc_nmiface_t *)addr,
+			  rndc_connected, &rndc_ccmsg, 10000, 0);
 }
 
 static void

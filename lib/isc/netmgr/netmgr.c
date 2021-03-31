@@ -1871,7 +1871,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	}
 
 	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->recvbuf_inuse);
+	INSIST(!worker->recvbuf_inuse || sock->type == isc_nm_udpsocket);
 
 	buf->base = worker->recvbuf;
 	buf->len = size;
@@ -2335,12 +2335,13 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 						      .req = uvreq,
 						      .result = eresult };
 		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
-		return;
+	} else {
+		isc__netievent_connectcb_t *ievent =
+			isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
+							eresult);
+		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				       (isc__netievent_t *)ievent);
 	}
-	isc__netievent_connectcb_t *ievent = isc__nm_get_netievent_connectcb(
-		sock->mgr, sock, uvreq, eresult);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
 }
 
 void

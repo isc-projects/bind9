@@ -207,7 +207,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * can then be freed automatically when the handle is destroyed.
  */
 
-isc_result_t
+void
 isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
@@ -318,7 +318,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  *
  */
 
-isc_result_t
+void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
@@ -481,16 +481,16 @@ isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
 		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		 isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
 
-isc_result_t
+void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
 		  unsigned int timeout, size_t extrahandlesize);
 
-isc_result_t
+void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);
-isc_result_t
+void
 isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize, isc_tlsctx_t *sslctx);
@@ -508,7 +508,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  * 'cb'.
  */
 
-isc_result_t
+void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t *ctx, unsigned int timeout,
