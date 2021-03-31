@@ -1,3 +1,7 @@
+5657.	[cleanup]	Removed support for builtin atomics in old versions
+			of clang (<< 3.6.0) and gcc (<< 4.7.0), and atomics
+			emulated with mutex. [GL #2606]
+
 5656.	[bug]		Ensure that large responses work correctly over
 			DoH, and that zone transfer requests over DoH are
 			explicitly rejected. [GL !5148]
