@@ -945,6 +945,29 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 			  ? sizeof(journal_rawxhdr_t)
 			  : sizeof(journal_rawxhdr_ver1_t);
 
+	/*
+	 * Handle <size, serial0, serial1, 0> transaction header.
+	 */
+	if (j->header_ver1 && j->xhdr_version == XHDR_VERSION1) {
+		uint32_t value;
+
+		CHECK(journal_read(j, &value, sizeof(value)));
+		if (value != 0L) {
+			CHECK(journal_seek(j, pos->offset + 12));
+		} else {
+			j->recovered = true;
+			hdrsize += 4;
+		}
+	} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
+		   xhdr.count == pos->serial && xhdr.serial1 == 0U &&
+		   isc_serial_ge(xhdr.serial0, xhdr.count))
+	{
+		xhdr.serial1 = xhdr.serial0;
+		xhdr.serial0 = xhdr.count;
+		xhdr.count = 0;
+		j->recovered = true;
+	}
+
 	if ((isc_offset_t)(pos->offset + hdrsize + xhdr.size) < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: offset too large", j->filename);
@@ -954,6 +977,9 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 	pos->offset += hdrsize + xhdr.size;
 	pos->serial = xhdr.serial1;
 	return (ISC_R_SUCCESS);
+
+failure:
+	return (result);
 }
 
 /*
@@ -1976,6 +2002,30 @@ read_one_rr(dns_journal_t *j, bool retry) {
 				      xhdr.serial0);
 			FAIL(ISC_R_UNEXPECTED);
 		}
+
+		/*
+		 * Handle <size, serial0, serial1, 0> transaction header.
+		 */
+		if (j->header_ver1 && j->xhdr_version == XHDR_VERSION1) {
+			uint32_t value;
+
+			CHECK(journal_read(j, &value, sizeof(value)));
+			if (value != 0L) {
+				CHECK(journal_seek(j, save.offset + 12));
+			} else {
+				j->recovered = true;
+			}
+		} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
+			   xhdr.count == j->it.current_serial &&
+			   xhdr.serial1 == 0U &&
+			   isc_serial_ge(xhdr.serial0, xhdr.count))
+		{
+			xhdr.serial1 = xhdr.serial0;
+			xhdr.serial0 = xhdr.count;
+			xhdr.count = 0;
+			j->recovered = true;
+		}
+
 		j->it.xsize = xhdr.size;
 		j->it.xpos = 0;
 	}
@@ -2389,7 +2439,7 @@ failure:
 }
 
 static uint32_t
-rrcount(char *buf, unsigned int size) {
+rrcount(unsigned char *buf, unsigned int size) {
 	isc_buffer_t b;
 	uint32_t rrsize, count = 0;
 
@@ -2405,6 +2455,28 @@ rrcount(char *buf, unsigned int size) {
 	return (count);
 }
 
+static bool
+check_delta(unsigned char *buf, size_t size) {
+	isc_buffer_t b;
+	uint32_t rrsize;
+
+	isc_buffer_init(&b, buf, size);
+	isc_buffer_add(&b, size);
+	while (isc_buffer_remaininglength(&b) > 0) {
+		if (isc_buffer_remaininglength(&b) < 4) {
+			return (false);
+		}
+		rrsize = isc_buffer_getuint32(&b);
+		/* "." + type + class + ttl + rdlen => 11U */
+		if (rrsize < 11U || isc_buffer_remaininglength(&b) < rrsize) {
+			return (false);
+		}
+		isc_buffer_forward(&b, rrsize);
+	}
+
+	return (true);
+}
+
 isc_result_t
 dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		    uint32_t flags, uint32_t target_size) {
@@ -2416,7 +2488,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	journal_rawheader_t rawheader;
 	unsigned int len;
 	size_t namelen;
-	char *buf = NULL;
+	unsigned char *buf = NULL;
 	unsigned int size = 0;
 	isc_result_t result;
 	unsigned int indexend;
@@ -2573,22 +2645,22 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			}
 			CHECK(result);
 
+			size = xhdr.size;
+			buf = isc_mem_get(mctx, size);
+			result = journal_read(j1, buf, size);
+
 			/*
 			 * If we're repairing an outdated journal, the
 			 * xhdr format may be wrong.
 			 */
-			if (rewrite &&
-			    (xhdr.serial0 != serial ||
-			     isc_serial_le(xhdr.serial1, xhdr.serial0)))
-			{
-				if (j1->xhdr_version == XHDR_VERSION2 &&
-				    xhdr.count == serial) {
+			if (rewrite && (result != ISC_R_SUCCESS ||
+					!check_delta(buf, size))) {
+				if (j1->xhdr_version == XHDR_VERSION2) {
 					/* XHDR_VERSION2 -> XHDR_VERSION1 */
 					j1->xhdr_version = XHDR_VERSION1;
 					CHECK(journal_seek(j1, offset));
 					CHECK(journal_read_xhdr(j1, &xhdr));
-				} else if (j1->xhdr_version == XHDR_VERSION1 &&
-					   xhdr.serial1 == serial) {
+				} else if (j1->xhdr_version == XHDR_VERSION1) {
 					/* XHDR_VERSION1 -> XHDR_VERSION2 */
 					j1->xhdr_version = XHDR_VERSION2;
 					CHECK(journal_seek(j1, offset));
@@ -2596,16 +2668,47 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 				}
 
 				/* Check again */
-				if (xhdr.serial0 != serial ||
-				    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+				isc_mem_put(mctx, buf, size);
+				size = xhdr.size;
+				buf = isc_mem_get(mctx, size);
+				CHECK(journal_read(j1, buf, size));
+
+				if (!check_delta(buf, size)) {
 					CHECK(ISC_R_UNEXPECTED);
 				}
+			} else {
+				CHECK(result);
 			}
 
-			size = xhdr.size;
-			buf = isc_mem_get(mctx, size);
-			CHECK(journal_read(j1, buf, size));
+			/*
+			 * Recover from incorrectly written transaction header.
+			 * The incorrect header was written as size, serial0,
+			 * serial1, and 0.  XHDR_VERSION2 is expecting size,
+			 * count, serial0, and serial1.
+			 */
+			if (j1->xhdr_version == XHDR_VERSION2 &&
+			    xhdr.count == serial && xhdr.serial1 == 0U &&
+			    isc_serial_ge(xhdr.serial0, xhdr.count))
+			{
+				xhdr.serial1 = xhdr.serial0;
+				xhdr.serial0 = xhdr.count;
+				xhdr.count = 0;
+			}
 
+			/*
+			 * Check that xhdr is consistent.
+			 */
+			if (xhdr.serial0 != serial ||
+			    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+				CHECK(ISC_R_UNEXPECTED);
+			}
+
+			/*
+			 * Extract record count from the transaction.  This
+			 * is needed when converting from XHDR_VERSION1 to
+			 * XHDR_VERSION2, and when recovering from an
+			 * incorrectly written XHDR_VERSION2.
+			 */
 			count = rrcount(buf, size);
 			CHECK(journal_write_xhdr(j2, xhdr.size, count,
 						 xhdr.serial0, xhdr.serial1));
