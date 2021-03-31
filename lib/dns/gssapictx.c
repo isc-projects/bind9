@@ -73,7 +73,6 @@ static gss_OID_desc __gss_spnego_mechanism_oid_desc = {
 };
 #define GSS_SPNEGO_MECHANISM (&__gss_spnego_mechanism_oid_desc)
 #endif /* ifndef GSS_SPNEGO_MECHANISM */
-#endif /* ifdef GSSAPI */
 
 #define REGION_TO_GBUFFER(r, gb)          \
 	do {                              \
@@ -94,7 +93,6 @@ static gss_OID_desc __gss_spnego_mechanism_oid_desc = {
 			goto out;            \
 	} while (0)
 
-#ifdef GSSAPI
 static inline void
 name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		gss_buffer_desc *gbuffer) {
@@ -176,9 +174,7 @@ log_cred(const dns_gss_cred_id_t cred) {
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
 }
-#endif /* ifdef GSSAPI */
 
-#ifdef GSSAPI
 /*
  * check for the most common configuration errors.
  *
@@ -265,12 +261,10 @@ mech_oid_set_release(gss_OID_set *mech_oid_set) {
 
 	REQUIRE(gss_release_oid_set(&minor, mech_oid_set) == GSS_S_COMPLETE);
 }
-#endif /* ifdef GSSAPI */
 
 isc_result_t
 dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 		       dns_gss_cred_id_t *cred) {
-#ifdef GSSAPI
 	isc_result_t result;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
@@ -366,22 +360,12 @@ cleanup:
 	}
 
 	return (result);
-#else  /* ifdef GSSAPI */
-	REQUIRE(cred != NULL && *cred == NULL);
-
-	UNUSED(name);
-	UNUSED(initiate);
-	UNUSED(cred);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 bool
 dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 				    const dns_name_t *name,
 				    const dns_name_t *realm, bool subdomain) {
-#ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
@@ -453,20 +437,12 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	}
 
 	return (true);
-#else  /* ifdef GSSAPI */
-	UNUSED(signer);
-	UNUSED(name);
-	UNUSED(realm);
-	UNUSED(subdomain);
-	return (false);
-#endif /* ifdef GSSAPI */
 }
 
 bool
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
 				  const dns_name_t *realm, bool subdomain) {
-#ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
@@ -541,18 +517,10 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	}
 
 	return (true);
-#else  /* ifdef GSSAPI */
-	UNUSED(signer);
-	UNUSED(name);
-	UNUSED(realm);
-	UNUSED(subdomain);
-	return (false);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
 dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
-#ifdef GSSAPI
 	OM_uint32 gret, minor;
 	char buf[1024];
 
@@ -567,14 +535,8 @@ dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
 	*cred = NULL;
 
 	return (ISC_R_SUCCESS);
-#else  /* ifdef GSSAPI */
-	UNUSED(cred);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
-#ifdef GSSAPI
 /*
  * Format a gssapi error message info into a char ** on the given memory
  * context. This is used to return gssapi error messages back up the
@@ -596,13 +558,11 @@ gss_err_message(isc_mem_t *mctx, uint32_t major, uint32_t minor,
 		(*err_message) = isc_mem_strdup(mctx, estr);
 	}
 }
-#endif /* ifdef GSSAPI */
 
 isc_result_t
 dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, dns_gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message) {
-#ifdef GSSAPI
 	isc_region_t r;
 	isc_buffer_t namebuf;
 	gss_name_t gname;
@@ -684,16 +644,6 @@ out:
 	}
 	(void)gss_release_name(&minor, &gname);
 	return (result);
-#else  /* ifdef GSSAPI */
-	UNUSED(name);
-	UNUSED(intoken);
-	UNUSED(outtoken);
-	UNUSED(gssctx);
-	UNUSED(mctx);
-	UNUSED(err_message);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
@@ -701,7 +651,6 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
 		     dns_gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx) {
-#ifdef GSSAPI
 	isc_region_t r;
 	isc_buffer_t namebuf;
 	gss_buffer_desc gnamebuf = GSS_C_EMPTY_BUFFER, gintoken,
@@ -851,22 +800,10 @@ out:
 	}
 
 	return (result);
-#else  /* ifdef GSSAPI */
-	UNUSED(cred);
-	UNUSED(gssapi_keytab);
-	UNUSED(intoken);
-	UNUSED(outtoken);
-	UNUSED(ctxout);
-	UNUSED(principal);
-	UNUSED(mctx);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 isc_result_t
 dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
-#ifdef GSSAPI
 	OM_uint32 gret, minor;
 	char buf[1024];
 
@@ -883,16 +820,10 @@ dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
 	return (ISC_R_SUCCESS);
-#else  /* ifdef GSSAPI */
-	UNUSED(mctx);
-	UNUSED(gssctx);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef GSSAPI */
 }
 
 char *
 gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
-#ifdef GSSAPI
 	gss_buffer_desc msg_minor = GSS_C_EMPTY_BUFFER,
 			msg_major = GSS_C_EMPTY_BUFFER;
 	OM_uint32 msg_ctx, minor_stat;
@@ -917,13 +848,96 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 		(void)gss_release_buffer(&minor_stat, &msg_minor);
 	}
 	return (buf);
+}
+
 #else  /* ifdef GSSAPI */
+
+isc_result_t
+dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
+		       dns_gss_cred_id_t *cred) {
+	REQUIRE(cred != NULL && *cred == NULL);
+
+	UNUSED(name);
+	UNUSED(initiate);
+	UNUSED(cred);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+bool
+dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
+				    const dns_name_t *name,
+				    const dns_name_t *realm, bool subdomain) {
+	UNUSED(signer);
+	UNUSED(name);
+	UNUSED(realm);
+	UNUSED(subdomain);
+	return (false);
+}
+
+bool
+dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
+				  const dns_name_t *name,
+				  const dns_name_t *realm, bool subdomain) {
+	UNUSED(signer);
+	UNUSED(name);
+	UNUSED(realm);
+	UNUSED(subdomain);
+	return (false);
+}
+
+isc_result_t
+dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
+	UNUSED(cred);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
+		   isc_buffer_t *outtoken, dns_gss_ctx_id_t *gssctx,
+		   isc_mem_t *mctx, char **err_message) {
+	UNUSED(name);
+	UNUSED(intoken);
+	UNUSED(outtoken);
+	UNUSED(gssctx);
+	UNUSED(mctx);
+	UNUSED(err_message);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
+		     isc_region_t *intoken, isc_buffer_t **outtoken,
+		     dns_gss_ctx_id_t *ctxout, dns_name_t *principal,
+		     isc_mem_t *mctx) {
+	UNUSED(cred);
+	UNUSED(gssapi_keytab);
+	UNUSED(intoken);
+	UNUSED(outtoken);
+	UNUSED(ctxout);
+	UNUSED(principal);
+	UNUSED(mctx);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
+	UNUSED(mctx);
+	UNUSED(gssctx);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+char *
+gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.", major,
 		 minor);
 
 	return (buf);
-#endif /* ifdef GSSAPI */
 }
+#endif /* ifdef GSSAPI */
 
 void
 gss_log(int level, const char *fmt, ...) {
