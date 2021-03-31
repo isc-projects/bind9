@@ -95,13 +95,6 @@ stop_reading(isc_nmsocket_t *sock);
 static void
 tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
 
-static bool
-inactive(isc_nmsocket_t *sock) {
-	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
-		atomic_load(&sock->mgr->closing) ||
-		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
-}
-
 static void
 failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 	REQUIRE(sock->accepting);
@@ -158,6 +151,12 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
 	RUNTIME_CHECK(r == 0);
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+
+	if (isc__nm_closing(sock)) {
+		result = ISC_R_CANCELED;
+		goto error;
+	}
 
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r != 0) {
@@ -193,7 +192,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 done:
 	result = isc__nm_uverr2result(r);
-
+error:
 	LOCK(&sock->lock);
 	sock->result = result;
 	SIGNAL(&sock->cond);
@@ -263,7 +262,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		 */
 		isc__nm_uvreq_put(&req, sock);
 		return;
-	} else if (!isc__nmsocket_active(sock)) {
+	} else if (isc__nmsocket_closing(sock)) {
 		/* Socket was closed midflight by isc__nm_tcp_shutdown() */
 		result = ISC_R_CANCELED;
 		goto error;
@@ -608,7 +607,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
 
-	if (inactive(ssock)) {
+	if (isc__nmsocket_closing(ssock)) {
 		result = ISC_R_CANCELED;
 		goto done;
 	}
@@ -826,7 +825,7 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	UNUSED(worker);
 
-	if (inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
 		failed_read_cb(sock, ISC_R_CANCELED);
 		return;
@@ -914,7 +913,7 @@ read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
-	if (inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		failed_read_cb(sock, ISC_R_CANCELED);
 		goto free;
 	}
@@ -1013,7 +1012,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
 
-	if (inactive(ssock)) {
+	if (isc__nmsocket_closing(ssock)) {
 		if (quota != NULL) {
 			isc_quota_detach(&quota);
 		}
@@ -1187,7 +1186,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	int r;
 
-	if (inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -1417,7 +1416,7 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (sock->statichandle) {
+	if (sock->statichandle != NULL) {
 		failed_read_cb(sock, ISC_R_CANCELED);
 		return;
 	}

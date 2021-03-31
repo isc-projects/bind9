@@ -1134,6 +1134,13 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG);
  * if there are no remaining references or active handles.
  */
 
+void
+isc__nmsocket_shutdown(isc_nmsocket_t *sock);
+/*%<
+ * Initiate the socket shutdown which actively calls the active
+ * callbacks.
+ */
+
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
@@ -1876,7 +1883,9 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock);
 void
 isc__nm_resume_processing(void *arg);
 bool
-isc__nm_inactive(isc_nmsocket_t *sock);
+isc__nmsocket_closing(isc_nmsocket_t *sock);
+bool
+isc__nm_closing(isc_nmsocket_t *sock);
 
 void
 isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);

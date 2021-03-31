@@ -523,7 +523,7 @@ isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	UNUSED(worker);
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		isc__nm_failed_send_cb(sock, uvreq, ISC_R_CANCELED);
 		return;
 	}
@@ -567,7 +567,7 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_udpsocket);
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -868,7 +868,7 @@ isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
 		return;
@@ -1084,7 +1084,7 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	 * sock->statichandle would be NULL, in that case, nobody is
 	 * interested in the callback.
 	 */
-	if (sock->statichandle) {
+	if (sock->statichandle != NULL) {
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
 		return;
 	}

@@ -1521,7 +1521,7 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	}
 }
 
-static void
+void
 isc__nmsocket_shutdown(isc_nmsocket_t *sock);
 
 static void
@@ -1670,6 +1670,7 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(req->cb.connect != NULL);
 
 	isc__nmsocket_timer_stop(sock);
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	atomic_store(&sock->connecting, false);
 
@@ -1930,7 +1931,12 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 }
 
 bool
-isc__nm_inactive(isc_nmsocket_t *sock) {
+isc__nm_closing(isc_nmsocket_t *sock) {
+	return (atomic_load(&sock->mgr->closing));
+}
+
+bool
+isc__nmsocket_closing(isc_nmsocket_t *sock) {
 	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
 		atomic_load(&sock->mgr->closing) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
@@ -2017,7 +2023,7 @@ isc__nm_resume_processing(void *arg) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(!atomic_load(&sock->client));
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		return;
 	}
 
@@ -2461,7 +2467,7 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 	nmhandle_detach_cb(&ievent->handle FLARG_PASS);
 }
 
-static void
+void
 isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	switch (sock->type) {
