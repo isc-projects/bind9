@@ -191,7 +191,7 @@ _setup(void **state __attribute__((unused))) {
 
 	signal(SIGPIPE, SIG_IGN);
 
-	if (getenv("CI_ENABLE_ALL_TESTS") != NULL) {
+	if (getenv("CI") == NULL || getenv("CI_ENABLE_ALL_TESTS") != NULL) {
 		esends = NSENDS * workers;
 	} else {
 		esends = workers;
