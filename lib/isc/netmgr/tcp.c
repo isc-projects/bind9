@@ -64,9 +64,6 @@ static void
 tcp_connection_cb(uv_stream_t *server, int status);
 
 static void
-read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-
-static void
 tcp_close_cb(uv_handle_t *uvhandle);
 
 static isc_result_t
@@ -85,15 +82,6 @@ static void
 stop_tcp_parent(isc_nmsocket_t *sock);
 static void
 stop_tcp_child(isc_nmsocket_t *sock);
-
-static void
-start_reading(isc_nmsocket_t *sock);
-
-static void
-stop_reading(isc_nmsocket_t *sock);
-
-static void
-tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
 
 static void
 failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
@@ -687,7 +675,8 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->statichandle != NULL);
 
-	stop_reading(sock);
+	isc__nmsocket_timer_stop(sock);
+	isc__nm_stop_reading(sock);
 
 	if (!sock->recv_read) {
 		goto destroy;
@@ -728,30 +717,6 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	}
 }
 
-static void
-start_reading(isc_nmsocket_t *sock) {
-	if (sock->reading) {
-		return;
-	}
-
-	int r = uv_read_start(&sock->uv_handle.stream, tcp_alloc_cb, read_cb);
-	REQUIRE(r == 0);
-	sock->reading = true;
-}
-
-static void
-stop_reading(isc_nmsocket_t *sock) {
-	if (!sock->reading) {
-		return;
-	}
-
-	int r = uv_read_stop(&sock->uv_handle.stream);
-	REQUIRE(r == 0);
-	sock->reading = false;
-
-	isc__nmsocket_timer_stop(sock);
-}
-
 void
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -789,32 +754,6 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	return;
 }
 
-/*%<
- * Allocator for TCP read operations. Limited to size 2^16.
- *
- * Note this doesn't actually allocate anything, it just assigns the
- * worker's receive buffer to a socket, and marks it as "in use".
- */
-static void
-tcp_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	isc__networker_t *worker = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(isc__nm_in_netthread());
-	if (size > 65536) {
-		size = 65536;
-	}
-
-	worker = &sock->mgr->workers[sock->tid];
-	INSIST(!worker->recvbuf_inuse);
-
-	buf->base = worker->recvbuf;
-	buf->len = size;
-	worker->recvbuf_inuse = true;
-}
-
 void
 isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpstartread_t *ievent =
@@ -831,7 +770,7 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	start_reading(sock);
+	isc__nm_start_reading(sock);
 	isc__nmsocket_timer_start(sock);
 }
 
@@ -868,7 +807,8 @@ isc__nm_async_tcppauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	UNUSED(worker);
 
-	stop_reading(sock);
+	isc__nmsocket_timer_stop(sock);
+	isc__nm_stop_reading(sock);
 }
 
 void
@@ -903,8 +843,8 @@ isc__nm_tcp_resumeread(isc_nmhandle_t *handle) {
 				     (isc__netievent_t *)ievent);
 }
 
-static void
-read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
+void
+isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)stream);
 	isc__nm_uvreq_t *req = NULL;
 
@@ -1142,10 +1082,10 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 static void
 tcp_send_cb(uv_write_t *req, int status) {
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
-	isc_nmsocket_t *sock = uvreq->sock;
-
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+
+	isc_nmsocket_t *sock = uvreq->sock;
 
 	if (status < 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
@@ -1336,7 +1276,10 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		isc_quota_detach(&sock->quota);
 	}
 
-	stop_reading(sock);
+	isc__nmsocket_timer_stop(sock);
+	isc__nm_stop_reading(sock);
+
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 }
 

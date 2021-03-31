@@ -1852,6 +1852,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 		REQUIRE(size <= ISC_NETMGR_RECVBUF_SIZE);
 		size = ISC_NETMGR_RECVBUF_SIZE;
 		break;
+	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 		break;
 	case isc_nm_tlsdnssocket:
@@ -1890,6 +1891,10 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 				      isc__nm_udp_read_cb);
 		break;
+	case isc_nm_tcpsocket:
+		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
+				  isc__nm_tcp_read_cb);
+		break;
 	case isc_nm_tcpdnssocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcpdns_read_cb);
@@ -1918,6 +1923,7 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 	case isc_nm_udpsocket:
 		r = uv_udp_recv_stop(&sock->uv_handle.udp);
 		break;
+	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
 		r = uv_read_stop(&sock->uv_handle.stream);
