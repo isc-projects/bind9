@@ -1101,7 +1101,6 @@ isc_result_t
 dns_journal_begin_transaction(dns_journal_t *j) {
 	uint32_t offset;
 	isc_result_t result;
-	journal_rawxhdr_t hdr;
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_WRITE ||
@@ -1128,8 +1127,7 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 	 * space.  It will be filled in when the transaction is
 	 * finished.
 	 */
-	memset(&hdr, 0, sizeof(hdr));
-	CHECK(journal_write(j, &hdr, sizeof(hdr)));
+	CHECK(journal_write_xhdr(j, 0, 0, 0, 0));
 	j->x.pos[1].offset = j->offset;
 
 	j->state = JOURNAL_STATE_TRANSACTION;
