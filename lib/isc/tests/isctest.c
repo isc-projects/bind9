@@ -80,14 +80,13 @@ create_managers(unsigned int workers) {
 	if (workers == 0) {
 		workers = isc_os_ncpus();
 	}
-
 	p = getenv("ISC_TASK_WORKERS");
 	if (p != NULL) {
 		workers = atoi(p);
 	}
 	INSIST(workers != 0);
 
-	isc_hp_init(4 * workers);
+	isc_hp_init(6 * workers);
 
 	netmgr = isc_nm_start(test_mctx, workers);
 	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));

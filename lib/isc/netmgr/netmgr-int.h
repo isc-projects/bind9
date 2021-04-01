@@ -816,23 +816,22 @@ struct isc_nmsocket {
 	/*% TLS stuff */
 	struct tlsstream {
 		bool server;
-		BIO *app_bio;
+		BIO *bio_in;
+		BIO *bio_out;
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
-		BIO *ssl_bio;
 		isc_nmsocket_t *tlslistener;
 		isc_nmiface_t server_iface;
 		isc_nmiface_t local_iface;
-		bool connect_from_networker;
 		atomic_bool result_updated;
 		enum {
 			TLS_INIT,
 			TLS_HANDSHAKE,
 			TLS_IO,
-			TLS_CLOSING,
 			TLS_CLOSED
 		} state; /*%< The order of these is significant */
 		size_t nsending;
+		bool reading;
 	} tlsstream;
 
 	isc_nmsocket_h2_t h2;
