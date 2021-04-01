@@ -4,8 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-dyndb_LTLIBRARIES = sample.la
-dyndbdir = $(abs_builddir)
+check_LTLIBRARIES = sample.la
 
 sample_la_SOURCES =	\
 	db.c		\
@@ -23,4 +22,4 @@ sample_la_SOURCES =	\
 	util.h		\
 	zone.h
 
-sample_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+sample_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -rpath $(abs_builddir)

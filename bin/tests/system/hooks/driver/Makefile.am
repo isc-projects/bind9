@@ -6,8 +6,7 @@ AM_CPPFLAGS +=			\
 	$(LIBNS_CFLAGS)		\
 	$(LIBISCCFG_CFLAGS)
 
-hooks_LTLIBRARIES = test-async.la
-hooksdir = $(abs_builddir)
+check_LTLIBRARIES = test-async.la
 
 test_async_la_SOURCES = test-async.c
-test_async_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+test_async_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -rpath $(abs_builddir)
