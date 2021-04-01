@@ -1,3 +1,6 @@
+5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
+			implementation. [GL #2607]
+
 	--- 9.11.29 released ---
 
 5586.	[bug]		An invalid direction field in a LOC record resulted in

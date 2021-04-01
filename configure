@@ -732,7 +732,6 @@ ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
-USE_ISC_SPNEGO
 ISC_EXTRA_SRCS
 ISC_EXTRA_OBJS
 LWRES_PLATFORM_NEEDVSNPRINTF
@@ -979,6 +978,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1061,7 +1061,6 @@ with_kame
 enable_tcp_fastopen
 enable_getifaddrs
 with_readline
-enable_isc_spnego
 enable_chroot
 enable_linux_caps
 with_rlimtype
@@ -1153,6 +1152,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1405,6 +1405,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1542,7 +1551,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1695,6 +1704,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1756,7 +1766,6 @@ Optional Features:
   --enable-ipv6           use IPv6 [default=autodetect]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
-  --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps    disable linux capabilities
   --enable-atomic         enable machine specific atomic operations
@@ -5443,7 +5452,7 @@ esac
 fi
 
 : ${AR=ar}
-: ${AR_FLAGS=cru}
+: ${AR_FLAGS=cr}
 
 
 
@@ -7206,8 +7215,8 @@ int forced_loaded() { return 2;}
 _LT_EOF
       echo "$LTCC $LTCFLAGS -c -o conftest.o conftest.c" >&5
       $LTCC $LTCFLAGS -c -o conftest.o conftest.c 2>&5
-      echo "$AR cru libconftest.a conftest.o" >&5
-      $AR cru libconftest.a conftest.o 2>&5
+      echo "$AR cr libconftest.a conftest.o" >&5
+      $AR cr libconftest.a conftest.o 2>&5
       echo "$RANLIB libconftest.a" >&5
       $RANLIB libconftest.a 2>&5
       cat > conftest.c << _LT_EOF
@@ -7239,11 +7248,11 @@ $as_echo "$lt_cv_ld_force_load" >&6; }
       # to the OS version, if on x86, and 10.4, the deployment
       # target defaults to 10.4. Don't you love it?
       case ${MACOSX_DEPLOYMENT_TARGET-10.0},$host in
-	10.0,*86*-darwin8*|10.0,*-darwin[91]*)
+	10.0,*86*-darwin8*|10.0,*-darwin[912]*)
 	  _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup' ;;
 	10.[012][,.]*)
 	  _lt_dar_allow_undefined='$wl-flat_namespace $wl-undefined ${wl}suppress' ;;
-	10.*)
+	10.*|11.*)
 	  _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup' ;;
       esac
     ;;
@@ -8334,6 +8343,12 @@ lt_prog_compiler_static=
       ecc*)
 	lt_prog_compiler_wl='-Wl,'
 	lt_prog_compiler_pic='-KPIC'
+	lt_prog_compiler_static='-static'
+        ;;
+      # flang / f18. f95 an alias for gfortran or flang on Debian
+      flang* | f18* | f95*)
+	lt_prog_compiler_wl='-Wl,'
+	lt_prog_compiler_pic='-fPIC'
 	lt_prog_compiler_static='-static'
         ;;
       # icc used to be incompatible with GCC.
@@ -14728,8 +14743,8 @@ case $with_geoip2 in #(
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
-$as_echo_n "checking for MAXMINDDB... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
+$as_echo_n "checking for libmaxminddb... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14769,7 +14784,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14787,7 +14802,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -14828,8 +14843,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
-$as_echo_n "checking for MAXMINDDB... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
+$as_echo_n "checking for libmaxminddb... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14869,7 +14884,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14896,7 +14911,7 @@ Alternatively, you may set the environment variables MAXMINDDB_CFLAGS
 and MAXMINDDB_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -15458,8 +15473,8 @@ fi
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
-    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
-    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
+    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi krb5`
+    gssapi_libs=`$KRB5_CONFIG --libs gssapi krb5`
     saved_cppflags="$CPPFLAGS"
     CPPFLAGS="$gssapi_cflags $CPPFLAGS"
     for ac_header in gssapi.h gssapi/gssapi.h
@@ -18437,8 +18452,8 @@ case $with_libxml2 in #(
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
-$as_echo_n "checking for LIBXML2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
+$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -18478,7 +18493,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18496,7 +18511,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -18509,8 +18524,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
-$as_echo_n "checking for LIBXML2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
+$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -18550,7 +18565,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18577,7 +18592,7 @@ Alternatively, you may set the environment variables LIBXML2_CFLAGS
 and LIBXML2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -21054,34 +21069,6 @@ if test "x$ac_cv_func_strerror" = xyes; then :
   $as_echo "#define HAVE_STRERROR 1" >>confdefs.h
 
 fi
-
-#
-# Use our own SPNEGO implementation?
-#
-# [pairwise: --enable-isc-spnego, --disable-isc-spnego]
-# Check whether --enable-isc-spnego was given.
-if test "${enable_isc_spnego+set}" = set; then :
-  enableval=$enable_isc_spnego;
-fi
-
-
-if test -n "$USE_GSSAPI"
-then
-	case "$enable_isc_spnego" in
-		yes|'')
-			USE_ISC_SPNEGO='-DUSE_ISC_SPNEGO'
-			DST_EXTRA_OBJS="$DST_EXTRA_OBJS spnego.$O"
-			DST_EXTRA_SRCS="$DST_EXTRA_SRCS spnego.c"
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using SPNEGO from lib/dns" >&5
-$as_echo "using SPNEGO from lib/dns" >&6; }
-			;;
-		no)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using SPNEGO from GSSAPI library" >&5
-$as_echo "using SPNEGO from GSSAPI library" >&6; }
-			;;
-	esac
-fi
-
 
 
 
@@ -23824,8 +23811,8 @@ case $with_cmocka in #(
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CMOCKA" >&5
-$as_echo_n "checking for CMOCKA... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
+$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
@@ -23865,7 +23852,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -23892,7 +23879,7 @@ Alternatively, you may set the environment variables CMOCKA_CFLAGS
 and CMOCKA_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
