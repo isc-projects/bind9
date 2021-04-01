@@ -597,6 +597,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	isc__networker_t *worker = NULL;
 	int uv_bind_flags = UV_UDP_REUSEADDR;
 	isc_result_t result = ISC_R_DEFAULT;
+	int tries = 3;
 	int r;
 
 	REQUIRE(isc__nm_in_netthread());
@@ -642,7 +643,15 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			    &(int){ ISC_SEND_BUFFER_SIZE });
 #endif
 
-	r = isc_uv_udp_connect(&sock->uv_handle.udp, &req->peer.type.sa);
+	/*
+	 * On FreeBSD the UDP connect() call sometimes results in a
+	 * spurious transient EADDRINUSE. Try a few more times before
+	 * giving up.
+	 */
+	do {
+		r = isc_uv_udp_connect(&sock->uv_handle.udp,
+				       &req->peer.type.sa);
+	} while (r == UV_EADDRINUSE && --tries > 0);
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr,
 				 sock->statsindex[STATID_CONNECTFAIL]);
