@@ -993,8 +993,8 @@ case "$use_gssapi" in
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
-    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
-    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
+    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi krb5`
+    gssapi_libs=`$KRB5_CONFIG --libs gssapi krb5`
     saved_cppflags="$CPPFLAGS"
     CPPFLAGS="$gssapi_cflags $CPPFLAGS"
     AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
@@ -1734,31 +1734,6 @@ then
 	AC_CHECK_HEADERS(readline/readline.h)
 	AC_CHECK_HEADERS(readline/history.h)
 fi
-
-#
-# Use our own SPNEGO implementation?
-#
-# [pairwise: --enable-isc-spnego, --disable-isc-spnego]
-AC_ARG_ENABLE(isc-spnego,
-	      AS_HELP_STRING([--disable-isc-spnego],
-			     [use SPNEGO from GSSAPI library]))
-
-if test -n "$USE_GSSAPI"
-then
-	case "$enable_isc_spnego" in
-		yes|'')
-			USE_ISC_SPNEGO='-DUSE_ISC_SPNEGO'
-			DST_EXTRA_OBJS="$DST_EXTRA_OBJS spnego.$O"
-			DST_EXTRA_SRCS="$DST_EXTRA_SRCS spnego.c"
-			AC_MSG_RESULT(using SPNEGO from lib/dns)
-			;;
-		no)
-			AC_MSG_RESULT(using SPNEGO from GSSAPI library)
-			;;
-	esac
-fi
-
-AC_SUBST(USE_ISC_SPNEGO)
 
 AC_SUBST(DST_EXTRA_OBJS)
 AC_SUBST(DST_EXTRA_SRCS)

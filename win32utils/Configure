@@ -315,8 +315,7 @@ my %configdefd;
 
 my @substdefd = ("PK11_LIB_LOCATION",
                  "USE_GSSAPI",
-                 "USE_PYTHON",
-                 "USE_ISC_SPNEGO");
+                 "USE_PYTHON");
 
 # conditions
 
@@ -345,7 +344,6 @@ my @allcond = (@substcond, "NOTYET", "NOLONGER");
 my @enablelist = ("developer",
                   "fixed-rrset",
                   "intrinsics",
-                  "isc-spnego",
                   "native-pkcs11",
                   "openssl-hash",
                   "querytrace");
@@ -399,7 +397,6 @@ my @help = (
 "  enable-intrinsics     enable intrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
-"  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
 "  enable-fixed-rrset    enable fixed rrset ordering [default=no]\n",
 "  enable-developer      enable developer build settings [default=no]\n",
 "  enable-querytrace     enable very verbose query trace [default=no]\n",
@@ -442,7 +439,6 @@ my $enable_intrinsics = "yes";
 my $cryptolib = "";
 my $enable_native_pkcs11 = "no";
 my $enable_crypto_rand = "yes";
-my $enable_isc_spnego = "yes";
 my $enable_fixed_rrset = "no";
 my $enable_developer = "no";
 my $enable_querytrace = "no";
@@ -652,10 +648,6 @@ sub myenable {
     } elsif ($key =~ /^native-pkcs11$/i) {
         if ($val =~ /^yes$/i) {
             $enable_native_pkcs11 = "yes";
-        }
-    } elsif ($key =~ /^isc-spnego$/i) {
-        if ($val =~ /^no$/i) {
-            $enable_isc_spnego = "no";
         }
     } elsif ($key =~ /^fixed-rrset$/i) {
         if ($val =~ /^yes$/i) {
@@ -907,11 +899,6 @@ if ($verbose) {
         print "native-pkcs11: disabled\n";
     }
     print "openssl-hash: enabled\n";
-    if ($enable_isc_spnego eq "yes") {
-        print "isc-spnego: enabled\n";
-    } else {
-        print "isc-spnego: disabled\n";
-    }
     if ($enable_fixed_rrset eq "yes") {
         print "fixed-rrset: enabled\n";
     } else {
@@ -1709,16 +1696,6 @@ if ($use_gssapi eq "no") {
     my $wshelp_dll = File::Spec->catfile($gssapi_path, "bin",
                                          "wshelp${bits}.dll");
     $configdll{"WSHELP_DLL"} = "$wshelp_dll";
-}
-
-# enable-isc-spnego
-if ($use_gssapi ne "yes") {
-    $enable_isc_spnego = "no";
-} elsif ($enable_isc_spnego eq "yes") {
-    if ($use_gssapi eq "no") {
-        die "No GSSAPI for SPNEGO\n";
-    }
-    $configdefd{"USE_ISC_SPNEGO"} = "USE_ISC_SPNEGO";
 }
 
 # disable-auto-validation
@@ -2796,7 +2773,6 @@ exit 0;
 #  --enable-symtable incompatible with DLLs (or libtool)
 #  --enable-ipv6 included without a way to disable it
 #  --enable-atomic supported (renamed to intrinsic)
-#  --enable-isc-spnego supported (part of GSSAPI)
 #  --enable-fixed-rrset supported
 #  --enable-querytrace supported
 #  --enable-full-report supported by verbose
