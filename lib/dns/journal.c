@@ -1318,7 +1318,8 @@ dns_journal_commit(dns_journal_t *j) {
 	if (j->state == JOURNAL_STATE_TRANSACTION) {
 		isc_offset_t offset;
 		offset = (j->x.pos[1].offset - j->x.pos[0].offset) -
-			 sizeof(journal_rawxhdr_t);
+			 (j->header_ver1 ? sizeof(journal_rawxhdr_ver1_t)
+					 : sizeof(journal_rawxhdr_t));
 		/*
 		 * Update the transaction header.
 		 */
