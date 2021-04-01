@@ -423,6 +423,34 @@ AC_COMPILE_IFELSE(
 AX_GCC_FUNC_ATTRIBUTE([noreturn])
 
 #
+# check for GCC malloc attribute
+#
+AX_GCC_FUNC_ATTRIBUTE([malloc])
+
+AC_MSG_CHECKING([for extended malloc attributes])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[
+       #include <stddef.h>
+       #include <stdlib.h>
+	   __attribute__ ((malloc, malloc (free, 1))
+	   void * xmalloc(size_t sz) { return malloc(sz); }
+     ]],
+     [[
+       void *p = xmalloc(8);
+	   free(p);
+     ]])],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE([HAVE_MALLOC_EXT_ATTR], [1], [define if extended attributes for malloc are available])
+  ],
+  [AC_MSG_RESULT(no)])
+
+#
+# check for GCC returns_nonnull attribute
+#
+AX_GCC_FUNC_ATTRIBUTE([returns_nonnull])
+
+#
 # check if we have kqueue
 #
 # [pairwise: --enable-kqueue, --disable-kqueue]
