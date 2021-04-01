@@ -34,7 +34,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The GSSAPI no longer uses the ISC implementation of the SPNEGO
+  mechanism and instead relies on the SPNEGO implementation from the
+  system Kerberos library. All major Kerberos libraries contain the
+  SPNEGO mechanism implementation. This change was implemented in BIND
+  9.17.2, but it was not included in the release notes at the time.
+  [GL #2607]
 
 Bug Fixes
 ~~~~~~~~~

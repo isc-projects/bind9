@@ -1,3 +1,6 @@
+5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
+			implementation. [GL #2607]
+
 5608.	[bug]		Dig now honors +retry=0 and +tries=1 when queries
 			are sent over TCP (+tcp) and the remote server closes
 			the connection prematurely. [GL #2490]
