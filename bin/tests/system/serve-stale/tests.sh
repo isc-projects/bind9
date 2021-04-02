@@ -1574,10 +1574,10 @@ grep -F "#NXDOMAIN" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-########################################################
-# Test for stale-answer-client-timeout (default 1.8s). #
-########################################################
-echo_i "test stale-answer-client-timeout (default 1.8)"
+################################################
+# Test for stale-answer-client-timeout (1.8s). #
+################################################
+echo_i "test stale-answer-client-timeout (1.8)"
 
 n=$((n+1))
 echo_i "updating ns3/named.conf ($n)"

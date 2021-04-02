@@ -36,7 +36,6 @@ options {
 	stale-answer-enable no;
 	stale-cache-enable yes;
 	stale-answer-ttl 3;
-	stale-answer-client-timeout disabled;
 	stale-refresh-time 4;
 	resolver-query-timeout 10;
 	fetches-per-zone 1 fail;
