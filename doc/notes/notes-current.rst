@@ -64,4 +64,9 @@ Bug Fixes
   which could cause a large zone transfer to be sent back to the client. The
   default setting for ``tcp-initial-timeout`` was 30 seconds, which meant that
   any TCP connection taking more than 30 seconds was abruptly terminated. This
-  has been fixed [GL #2573].
+  has been fixed. [GL #2573]
+
+- When ``stale-answer-client-timeout`` was set to a positive value and
+  recursion for a client query completed when ``named`` was about to look for
+  a stale answer, an assertion could fail in ``query_respond()``, resulting in
+  a crash. This has been fixed. [GL #2594]

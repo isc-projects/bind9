@@ -1,3 +1,8 @@
+5610.	[bug]		Prevent a crash which could happen when a lookup
+			triggered by "stale-answer-client-timeout" was attempted
+			right after recursion for a client query finished.
+			[GL #2594]
+
 5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
 			implementation. [GL #2607]
 

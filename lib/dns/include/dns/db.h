@@ -259,12 +259,12 @@ struct dns_dbonupdatelistener {
 #define DNS_DBFIND_STALEENABLED 0x0800
 
 /*
- * DNS_DBFIND_STALEONLY: This flag is used when we want stale data from the
+ * DNS_DBFIND_STALETIMEOUT: This flag is used when we want stale data from the
  * database, but not due to a failure in resolution, it also doesn't require
- * stale-refresh-time window timer to be active. As long as there is a stale
- * RRset available, it should be returned.
+ * stale-refresh-time window timer to be active. As long as there is stale
+ * data available, it should be returned.
  */
-#define DNS_DBFIND_STALEONLY 0x1000
+#define DNS_DBFIND_STALETIMEOUT 0x1000
 
 /*
  * DNS_DBFIND_STALESTART: This flag is used to activate stale-refresh-time
