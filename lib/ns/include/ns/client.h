@@ -178,6 +178,7 @@ struct ns_client {
 	ns_clientmgr_t * manager;
 	ns_clientstate_t state;
 	int		 nupdates;
+	bool		 nodetach;
 	bool		 shuttingdown;
 	unsigned int	 attributes;
 	isc_task_t *	 task;
