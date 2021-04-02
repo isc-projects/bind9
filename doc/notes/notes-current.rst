@@ -41,6 +41,10 @@ Feature Changes
   9.17.2, but it was not included in the release notes at the time.
   [GL #2607]
 
+- The default value for the ``stale-answer-client-timeout`` option was
+  changed from ``1800`` (ms) to ``off``. The default value may be
+  changed again in future releases as this feature matures. [GL #2608]
+
 Bug Fixes
 ~~~~~~~~~
 
