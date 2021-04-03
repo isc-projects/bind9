@@ -330,26 +330,26 @@ static int
 nm_teardown(void **state __attribute__((unused))) {
 	UNUSED(state);
 
-	WAIT_FOR_EQ(active_cconnects, 0);
-	WAIT_FOR_EQ(active_csends, 0);
-	WAIT_FOR_EQ(active_csends, 0);
-	WAIT_FOR_EQ(active_ssends, 0);
-	WAIT_FOR_EQ(active_sreads, 0);
-
 	isc_nm_destroy(&connect_nm);
 	assert_null(connect_nm);
 
 	isc_nm_destroy(&listen_nm);
 	assert_null(listen_nm);
 
+	isc_tlsctx_free(&tcp_connect_tlsctx);
+	isc_tlsctx_free(&tcp_listen_tlsctx);
+
+	WAIT_FOR_EQ(active_cconnects, 0);
+	WAIT_FOR_EQ(active_csends, 0);
+	WAIT_FOR_EQ(active_csends, 0);
+	WAIT_FOR_EQ(active_ssends, 0);
+	WAIT_FOR_EQ(active_sreads, 0);
+
 	isc_refcount_destroy(&active_cconnects);
 	isc_refcount_destroy(&active_csends);
 	isc_refcount_destroy(&active_creads);
 	isc_refcount_destroy(&active_ssends);
 	isc_refcount_destroy(&active_sreads);
-
-	isc_tlsctx_free(&tcp_connect_tlsctx);
-	isc_tlsctx_free(&tcp_listen_tlsctx);
 
 	return (0);
 }
