@@ -328,7 +328,6 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	isc_result_t result = ISC_R_SUCCESS;
 	int pending, tls_status = SSL_ERROR_NONE;
 	int rv = 0;
-	bool sent_shutdown = false, received_shutdown = false;
 	size_t len = 0;
 	int saved_errno = 0;
 
@@ -375,7 +374,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		} else if (send_data != NULL) {
 			INSIST(received_data == NULL);
 			INSIST(sock->tlsstream.state > TLS_HANDSHAKE);
-			received_shutdown =
+			bool received_shutdown =
 				((SSL_get_shutdown(sock->tlsstream.tls) &
 				  SSL_RECEIVED_SHUTDOWN) != 0);
 			rv = SSL_write_ex(sock->tlsstream.tls,
@@ -445,11 +444,6 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	switch (tls_status) {
 	case SSL_ERROR_NONE:
 	case SSL_ERROR_ZERO_RETURN:
-		if (sent_shutdown && received_shutdown) {
-			/* clean shutdown */
-			isc_nm_cancelread(sock->outerhandle);
-			isc__nm_tls_close(sock);
-		};
 		return;
 	case SSL_ERROR_WANT_WRITE:
 		if (sock->tlsstream.nsending == 0) {
