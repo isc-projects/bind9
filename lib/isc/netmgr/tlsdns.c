@@ -196,6 +196,8 @@ isc__nm_async_tlsdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = tlsdns_connect_direct(sock, req);
 	if (result != ISC_R_SUCCESS) {
+		INSIST(atomic_compare_exchange_strong(&sock->connecting,
+						      &(bool){ true }, false));
 		isc__nmsocket_clearcb(sock);
 		isc__nm_connectcb(sock, req, result, true);
 		atomic_store(&sock->active, false);
@@ -219,19 +221,16 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
+	if (!atomic_load(&sock->connecting)) {
+		return;
+	}
+
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	if (!atomic_load(&sock->connecting)) {
-		/*
-		 * The connect was cancelled from timeout; just clean up
-		 * the req.
-		 */
-		isc__nm_uvreq_put(&req, sock);
-		return;
-	} else if (isc__nmsocket_closing(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		/* Socket was closed midflight by isc__nm_tlsdns_shutdown() */
 		result = ISC_R_CANCELED;
 		goto error;
@@ -300,7 +299,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	return;
 
 error:
-	isc__nm_failed_connect_cb(sock, req, result);
+	isc__nm_failed_connect_cb(sock, req, result, false);
 }
 
 void
@@ -328,6 +327,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->result = ISC_R_DEFAULT;
 	sock->tls.ctx = sslctx;
 	atomic_init(&sock->client, true);
+	atomic_init(&sock->connecting, true);
 
 	req = isc__nm_uvreq_get(mgr, sock);
 	req->cb.connect = cb;
@@ -338,14 +338,11 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &sock->fd);
 	if (result != ISC_R_SUCCESS) {
-		if (isc__nm_in_netthread()) {
-			sock->tid = isc_nm_tid();
-		}
-		isc__nmsocket_clearcb(sock);
-		isc__nm_connectcb(sock, req, result, true);
-		atomic_store(&sock->closed, true);
-		isc__nmsocket_detach(&sock);
-		return;
+		goto failure;
+	}
+
+	if (isc__nm_closing(sock)) {
+		goto failure;
 	}
 
 	/* 2 minute timeout */
@@ -373,6 +370,18 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	atomic_store(&sock->active, true);
 	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
+	return;
+failure:
+	if (isc__nm_in_netthread()) {
+		sock->tid = isc_nm_tid();
+	}
+
+	INSIST(atomic_compare_exchange_strong(&sock->connecting,
+					      &(bool){ true }, false));
+	isc__nmsocket_clearcb(sock);
+	isc__nm_connectcb(sock, req, result, true);
+	atomic_store(&sock->closed, true);
+	isc__nmsocket_detach(&sock);
 }
 
 static uv_os_sock_t
@@ -774,7 +783,8 @@ isc__nm_async_tlsdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			      bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 
@@ -784,7 +794,7 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	if (sock->tls.pending_req != NULL) {
 		isc__nm_uvreq_t *req = sock->tls.pending_req;
 		sock->tls.pending_req = NULL;
-		isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED);
+		isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED, async);
 	}
 
 	if (!sock->recv_read) {
@@ -860,13 +870,13 @@ isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
-		isc__nm_failed_read_cb(sock, result);
+		isc__nm_failed_read_cb(sock, result, false);
 	}
 }
 
@@ -1062,8 +1072,8 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 			isc__nmsocket_timer_stop(sock);
 			uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
-			atomic_store(&sock->connecting, false);
-
+			INSIST(atomic_compare_exchange_strong(
+				&sock->connecting, &(bool){ true }, false));
 			isc__nm_connectcb(sock, req, ISC_R_SUCCESS, true);
 		}
 		async_tlsdns_cycle(sock);
@@ -1080,9 +1090,10 @@ tls_error(isc_nmsocket_t *sock, isc_result_t result) {
 		if (atomic_load(&sock->connecting)) {
 			isc__nm_uvreq_t *req = sock->tls.pending_req;
 			sock->tls.pending_req = NULL;
-			isc__nm_failed_connect_cb(sock, req, result);
+
+			isc__nm_failed_connect_cb(sock, req, result, false);
 		} else {
-			isc__nm_tlsdns_failed_read_cb(sock, result);
+			isc__nm_tlsdns_failed_read_cb(sock, result, false);
 		}
 		break;
 	case TLS_STATE_ERROR:
@@ -1299,7 +1310,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, true);
 		goto free;
 	}
 
@@ -1309,7 +1320,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 					 sock->statsindex[STATID_RECVFAIL]);
 		}
 
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread));
+		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
 
 		goto free;
 	}
@@ -1324,13 +1335,13 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	rv = BIO_write_ex(sock->tls.app_wbio, buf->base, (size_t)nread, &len);
 
 	if (rv <= 0 || (size_t)nread != len) {
-		isc__nm_failed_read_cb(sock, ISC_R_TLSERROR);
+		isc__nm_failed_read_cb(sock, ISC_R_TLSERROR, true);
 		goto free;
 	}
 
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
-		isc__nm_failed_read_cb(sock, result);
+		isc__nm_failed_read_cb(sock, result, true);
 	}
 free:
 	async_tlsdns_cycle(sock);
@@ -1924,7 +1935,8 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 			isc__nm_uvreq_t *req = sock->tls.pending_req;
 			sock->tls.pending_req = NULL;
 
-			isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED);
+			isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED,
+						  false);
 			return;
 		}
 
@@ -1936,7 +1948,7 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 	}
 
 	if (sock->statichandle != NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -1976,7 +1988,7 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	isc__nm_failed_read_cb(sock, ISC_R_EOF);
+	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }
 
 void

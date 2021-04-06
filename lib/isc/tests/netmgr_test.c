@@ -99,7 +99,8 @@ static bool skip_long_tests = false;
 #define T_ADVERTISED 120 * 1000
 #define T_CONNECT    30 * 1000
 
-#define WAIT_REPEATS 100
+/* Wait for 1 second (1000 * 1000 microseconds) */
+#define WAIT_REPEATS 1000
 #define T_WAIT	     1000 /* In microseconds */
 
 #define WAIT_FOR(v, op, val)                                \
@@ -198,11 +199,22 @@ _setup(void **state __attribute__((unused))) {
 		skip_long_tests = true;
 	}
 
+	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
+	    ISC_R_SUCCESS) {
+		return (-1);
+	}
+	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {
+		return (-1);
+	}
+
 	return (0);
 }
 
 static int
 _teardown(void **state __attribute__((unused))) {
+	isc_tlsctx_free(&tcp_connect_tlsctx);
+	isc_tlsctx_free(&tcp_listen_tlsctx);
+
 	isc_test_end();
 
 	return (0);
@@ -279,14 +291,6 @@ nm_setup(void **state __attribute__((unused))) {
 	isc__nm_closesocket(tcp_listen_sock);
 	tcp_listen_sock = -1;
 
-	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
-	    ISC_R_SUCCESS) {
-		return (-1);
-	}
-	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {
-		return (-1);
-	}
-
 	atomic_store(&do_send, true);
 	atomic_store(&nsends, esends);
 
@@ -335,9 +339,6 @@ nm_teardown(void **state __attribute__((unused))) {
 
 	isc_nm_destroy(&listen_nm);
 	assert_null(listen_nm);
-
-	isc_tlsctx_free(&tcp_connect_tlsctx);
-	isc_tlsctx_free(&tcp_listen_tlsctx);
 
 	WAIT_FOR_EQ(active_cconnects, 0);
 	WAIT_FOR_EQ(active_csends, 0);
@@ -575,7 +576,8 @@ connect_thread(isc_threadarg_t arg) {
 	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
 
 	while (atomic_load(&do_send)) {
-		uint_fast32_t active = isc_refcount_current(&active_cconnects);
+		uint_fast32_t active =
+			isc_refcount_increment0(&active_cconnects);
 		if (active > workers) {
 			/*
 			 * If we have more active connections than workers,
@@ -594,7 +596,6 @@ connect_thread(isc_threadarg_t arg) {
 
 static void
 udp_connect(isc_nm_t *nm) {
-	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
@@ -1054,7 +1055,6 @@ tcp_listener_init_quota(size_t nthreads);
 
 static void
 tcp_connect(isc_nm_t *nm) {
-	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpconnect(nm, (isc_nmiface_t *)&tcp_connect_addr,
 			  (isc_nmiface_t *)&tcp_listen_addr, connect_connect_cb,
 			  NULL, 1, 0);
@@ -1466,7 +1466,6 @@ tcp_half_recv_half_send_quota(void **state) {
 
 static void
 tcpdns_connect(isc_nm_t *nm) {
-	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(nm, (isc_nmiface_t *)&tcp_connect_addr,
 			     (isc_nmiface_t *)&tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0);
@@ -1824,7 +1823,6 @@ tcpdns_half_recv_half_send(void **state __attribute__((unused))) {
 
 static void
 tlsdns_connect(isc_nm_t *nm) {
-	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(nm, (isc_nmiface_t *)&tcp_connect_addr,
 			     (isc_nmiface_t *)&tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,

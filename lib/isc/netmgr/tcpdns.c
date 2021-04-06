@@ -104,7 +104,6 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
 	RUNTIME_CHECK(r == 0);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	if (isc__nm_closing(sock)) {
 		result = ISC_R_CANCELED;
@@ -206,19 +205,16 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
+	if (!atomic_load(&sock->connecting)) {
+		return;
+	}
+
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	if (!atomic_load(&sock->connecting)) {
-		/*
-		 * The connect was cancelled from timeout; just clean up
-		 * the req.
-		 */
-		isc__nm_uvreq_put(&req, sock);
-		return;
-	} else if (isc__nmsocket_closing(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
 		result = ISC_R_CANCELED;
 		goto error;
@@ -249,7 +245,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	return;
 
 error:
-	isc__nm_failed_connect_cb(sock, req, result);
+	isc__nm_failed_connect_cb(sock, req, result, false);
 }
 
 void
@@ -720,7 +716,7 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -823,7 +819,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, true);
 		goto free;
 	}
 
@@ -833,7 +829,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 					 sock->statsindex[STATID_RECVFAIL]);
 		}
 
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread));
+		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
 		goto free;
 	}
 
@@ -1381,7 +1377,7 @@ isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock) {
 	}
 
 	if (sock->statichandle != NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -1421,7 +1417,7 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	isc__nm_failed_read_cb(sock, ISC_R_EOF);
+	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }
 
 void

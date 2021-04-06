@@ -1662,26 +1662,26 @@ isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 
 void
 isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-			  isc_result_t eresult) {
+			  isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(atomic_load(&sock->connecting));
 	REQUIRE(req->cb.connect != NULL);
 
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
-	atomic_store(&sock->connecting, false);
+	INSIST(atomic_compare_exchange_strong(&sock->connecting,
+					      &(bool){ true }, false));
 
 	isc__nmsocket_clearcb(sock);
-	isc__nm_connectcb(sock, req, eresult, true);
+	isc__nm_connectcb(sock, req, eresult, async);
 
 	isc__nmsocket_prep_destroy(sock);
 }
 
 void
-isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	switch (sock->type) {
 	case isc_nm_udpsocket:
@@ -1694,7 +1694,7 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 		isc__nm_tcpdns_failed_read_cb(sock, result);
 		return;
 	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_failed_read_cb(sock, result);
+		isc__nm_tlsdns_failed_read_cb(sock, result, async);
 		return;
 	default:
 		INSIST(0);
@@ -1711,20 +1711,27 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->connecting));
-	REQUIRE(atomic_load(&sock->client));
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
 	isc__nmsocket_timer_stop(sock);
 
+	if (sock->tls.pending_req != NULL) {
+		REQUIRE(req == sock->tls.pending_req);
+		sock->tls.pending_req = NULL;
+	}
+
 	/* Call the connect callback directly */
+
 	req->cb.connect(req->handle, ISC_R_TIMEDOUT, req->cbarg);
 
 	/* Timer is not running, cleanup and shutdown everything */
 	if (!isc__nmsocket_timer_running(sock)) {
+		INSIST(atomic_compare_exchange_strong(&sock->connecting,
+						      &(bool){ true }, false));
+		isc__nm_uvreq_put(&req, sock);
 		isc__nmsocket_clearcb(sock);
 		isc__nmsocket_shutdown(sock);
-		atomic_store(&sock->connecting, false);
 	}
 }
 
@@ -1746,10 +1753,10 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 		if (!isc__nmsocket_timer_running(sock)) {
 			isc__nmsocket_clearcb(sock);
-			isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		}
 	} else {
-		isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT);
+		isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT, false);
 	}
 }
 

@@ -383,7 +383,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 *   we can free the buffer and bail.
 	 */
 	if (addr == NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_EOF);
+		isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 		goto free;
 	}
 
@@ -391,12 +391,13 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 * - If the socket is no longer active.
 	 */
 	if (!isc__nmsocket_active(sock)) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto free;
 	}
 
 	if (nrecv < 0) {
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nrecv));
+		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nrecv),
+				       false);
 		goto free;
 	}
 
@@ -874,7 +875,7 @@ isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -1089,7 +1090,7 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	 * interested in the callback.
 	 */
 	if (sock->statichandle != NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -1133,5 +1134,5 @@ isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->client));
 
-	isc__nm_failed_read_cb(sock, ISC_R_EOF);
+	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }

@@ -1853,7 +1853,8 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 void
 isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 void
-isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			      bool async);
 
 isc_result_t
 isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock);
@@ -1899,9 +1900,9 @@ void
 isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
 void
 isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-			  isc_result_t eresult);
+			  isc_result_t eresult, bool async);
 void
-isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async);
 
 void
 isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);

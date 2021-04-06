@@ -139,7 +139,6 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
 	RUNTIME_CHECK(r == 0);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r != 0) {
@@ -232,6 +231,10 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
+	if (!atomic_load(&sock->connecting)) {
+		return;
+	}
+
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
@@ -257,8 +260,6 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		goto error;
 	}
 
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
-
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
 			       &(int){ sizeof(ss) });
@@ -277,7 +278,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	return;
 
 error:
-	isc__nm_failed_connect_cb(sock, req, result);
+	isc__nm_failed_connect_cb(sock, req, result, false);
 }
 
 void
