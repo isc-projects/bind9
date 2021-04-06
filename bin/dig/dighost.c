@@ -1541,11 +1541,12 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
 	void *ptr;
 
+	REQUIRE(lookup != NULL);
+	REQUIRE(ISC_LIST_EMPTY(lookup->q));
+
 	debug("destroy_lookup");
 
 	isc_refcount_destroy(&lookup->references);
-
-	REQUIRE(ISC_LIST_EMPTY(lookup->q));
 
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
@@ -2897,10 +2898,14 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		query_detach(&query);
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
+		dig_lookup_t *l = query->lookup;
+
 		if (eresult != ISC_R_CANCELED) {
 			debug("udp setup failed: %s",
 			      isc_result_totext(eresult));
 		}
+
+		lookup_detach(&l);
 		query_detach(&query);
 		return;
 	}
