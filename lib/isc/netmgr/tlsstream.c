@@ -9,6 +9,7 @@
  * information regarding copyright ownership.
  */
 
+#include <errno.h>
 #include <libgen.h>
 #include <unistd.h>
 #include <uv.h>
@@ -329,6 +330,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	int rv = 0;
 	bool sent_shutdown = false, received_shutdown = false;
 	size_t len = 0;
+	int saved_errno = 0;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -359,6 +361,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					  received_data->length, &len);
 			if (rv <= 0 || len != received_data->length) {
 				result = ISC_R_TLSERROR;
+				saved_errno = errno;
 				goto error;
 			}
 
@@ -410,6 +413,28 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		}
 	}
 	tls_status = SSL_get_error(sock->tlsstream.tls, rv);
+	saved_errno = errno;
+
+	/* See "BUGS" section at:
+	 * https://www.openssl.org/docs/man1.1.1/man3/SSL_get_error.html
+	 *
+	 * It is mentioned there that when TLS status equals
+	 * SSL_ERROR_SYSCALL AND errno == 0 it means that underlying
+	 * transport layer returned EOF prematurely.  However, we are
+	 * managing the transport ourselves, so we should just resume
+	 * reading from the TCP socket.
+	 *
+	 * It seems that this case has been handled properly on modern
+	 * versions of OpenSSL. That being said, the situation goes in
+	 * line with the manual: it is briefly mentioned there that
+	 * SSL_ERROR_SYSCALL might be returned not only in a case of
+	 * low-level errors (like system call failures).
+	 */
+	if (tls_status == SSL_ERROR_SYSCALL && saved_errno == 0 &&
+	    received_data == NULL && send_data == NULL && finish == false)
+	{
+		tls_status = SSL_ERROR_WANT_READ;
+	}
 
 	pending = tls_process_outgoing(sock, finish, send_data);
 	if (pending > 0) {
@@ -451,8 +476,12 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 
 error:
 	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      ISC_LOG_ERROR, "SSL error in BIO: %d %s", tls_status,
-		      isc_result_totext(result));
+		      ISC_LOG_NOTICE,
+		      "SSL error in BIO: %d %s (errno: %d). Arguments: "
+		      "received_data: %p, "
+		      "send_data: %p, finish: %s",
+		      tls_status, isc_result_totext(result), saved_errno,
+		      received_data, send_data, finish ? "true" : "false");
 	tls_failed_read_cb(sock, result);
 }
 
