@@ -75,6 +75,8 @@ static bool reuse_supported = true;
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
 
+static atomic_bool was_error = ATOMIC_VAR_INIT(false);
+
 #define NSENDS	100
 #define NWRITES 10
 
@@ -243,6 +245,8 @@ nm_setup(void **state) {
 	atomic_store(&ctimeouts, 0);
 	atomic_store(&cconnects, 0);
 
+	atomic_store(&was_error, false);
+
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 	isc_nonce_buf(&stop_magic, sizeof(stop_magic));
 	if (send_magic == stop_magic) {
@@ -392,6 +396,7 @@ tls_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	if (eresult != ISC_R_SUCCESS) {
 		uint_fast64_t sends = atomic_load(&nsends);
 		atomic_store(&slowdown, true);
+		atomic_store(&was_error, true);
 
 		/* We failed to connect; try again */
 		while (sends > 0) {
@@ -526,6 +531,9 @@ tls_recv_one(void **state) {
 			  tls_connect_connect_cb, NULL, client_tlsctx, 1000, 0);
 
 	while (atomic_load(&nsends) > 0) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
@@ -533,6 +541,9 @@ tls_recv_one(void **state) {
 	       atomic_load(&sreads) != 1 || atomic_load(&creads) != 0 ||
 	       atomic_load(&csends) != 1)
 	{
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
@@ -581,12 +592,18 @@ tls_recv_two(void **state) {
 			  0);
 
 	while (atomic_load(&nsends) > 0) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
 	while (atomic_load(&sreads) < 2 || atomic_load(&ssends) < 1 ||
 	       atomic_load(&csends) < 2 || atomic_load(&creads) < 1)
 	{
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
