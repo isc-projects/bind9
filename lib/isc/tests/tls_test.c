@@ -70,12 +70,18 @@ static atomic_bool slowdown = ATOMIC_VAR_INIT(false);
 
 static unsigned int workers = 0;
 
-static bool reuse_supported = true;
-
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
 
 static atomic_bool was_error = ATOMIC_VAR_INIT(false);
+
+static bool skip_long_tests = false;
+
+#define SKIP_IN_CI             \
+	if (skip_long_tests) { \
+		skip();        \
+		return;        \
+	}
 
 #define NSENDS	100
 #define NWRITES 10
@@ -149,9 +155,6 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 		close(fd);
 		return (-1);
 	}
-	if (result == ISC_R_NOTIMPLEMENTED) {
-		reuse_supported = false;
-	}
 
 #if IPV6_RECVERR
 #define setsockopt_on(socket, level, name) \
@@ -188,6 +191,10 @@ _setup(void **state) {
 	}
 
 	signal(SIGPIPE, SIG_IGN);
+
+	if (getenv("CI") != NULL && getenv("CI_ENABLE_ALL_TESTS") == NULL) {
+		skip_long_tests = true;
+	}
 
 	return (0);
 }
@@ -637,10 +644,7 @@ tls_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -683,10 +687,7 @@ tls_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -734,10 +735,7 @@ tls_half_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -785,10 +783,7 @@ tls_half_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
