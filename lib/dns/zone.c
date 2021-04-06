@@ -19806,22 +19806,20 @@ zone_rekey(dns_zone_t *zone) {
 			   isc_result_totext(result));
 	}
 
-	if (kasp != NULL &&
-	    (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
-		result = dns_keymgr_run(&zone->origin, zone->rdclass, dir, mctx,
-					&keys, kasp, now, &nexttime);
-		if (result != ISC_R_SUCCESS) {
-			if (kasp != NULL) {
-				UNLOCK(&kasp->lock);
-			}
-			dnssec_log(zone, ISC_LOG_ERROR,
-				   "zone_rekey:dns_dnssec_keymgr failed: %s",
-				   isc_result_totext(result));
-			goto failure;
-		}
-	}
-
 	if (kasp != NULL) {
+		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
+			result = dns_keymgr_run(&zone->origin, zone->rdclass,
+						dir, mctx, &keys, kasp, now,
+						&nexttime);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_rekey:dns_dnssec_keymgr "
+					   "failed: %s",
+					   isc_result_totext(result));
+				UNLOCK(&kasp->lock);
+				goto failure;
+			}
+		}
 		UNLOCK(&kasp->lock);
 	}
 
@@ -20178,6 +20176,10 @@ failure:
 		 * Something went wrong; try again in ten minutes or
 		 * after a key refresh interval, whichever is shorter.
 		 */
+		dnssec_log(zone, ISC_LOG_DEBUG(3),
+			   "zone_rekey failure: %s (retry in %u seconds)",
+			   isc_result_totext(result),
+			   ISC_MIN(zone->refreshkeyinterval, 600));
 		isc_interval_set(&ival, ISC_MIN(zone->refreshkeyinterval, 600),
 				 0);
 		isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
