@@ -522,6 +522,7 @@ tarball-create:
   only:
     - schedules
     - tags
+    - web
 
 # Jobs for doc builds on Debian Sid (amd64)
 
