@@ -16,7 +16,8 @@ BUILT_SOURCES =				\
 	$(nodist_libdns_la_SOURCES)
 
 CLEANFILES =				\
-	$(nodist_libdns_la_SOURCES)
+	$(nodist_libdns_la_SOURCES)	\
+	gen$(BUILD_EXEEXT)
 
 gen$(BUILD_EXEEXT): gen.c gen-unix.h
 	$(CC_FOR_BUILD) -g -I. $(GEN_NEED_OPTARG) $(srcdir)/gen.c -o $@
