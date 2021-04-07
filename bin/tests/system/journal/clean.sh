@@ -7,8 +7,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+rm -f */*.db */*.jnl
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
-rm -f */named.conf
-rm -f */*.db */*.jnl
 rm -f dig.out*
+rm -f journalprint.out.*
+rm -f ns1/managed-keys.bind
