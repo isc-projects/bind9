@@ -5162,16 +5162,14 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	result = ISC_R_SUCCESS;
 
 	if (needdump) {
-		if (zone->type == dns_zone_key) {
+		if (fixjournal) {
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
+			zone_journal_compact(zone, zone->db, 0);
+			zone_needdump(zone, 0);
+		} else if (zone->type == dns_zone_key) {
 			zone_needdump(zone, 30);
 		} else {
-			if (fixjournal) {
-				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
-				zone_journal_compact(zone, zone->db, 0);
-				zone_needdump(zone, 0);
-			} else {
-				zone_needdump(zone, DNS_DUMP_DELAY);
-			}
+			zone_needdump(zone, DNS_DUMP_DELAY);
 		}
 	}
 

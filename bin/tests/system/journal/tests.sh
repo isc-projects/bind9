@@ -151,6 +151,15 @@ c2=$(cat -v ns1/*.jnl | grep -c "BIND LOG V9.2")
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check upgrade of managed-keys.bind.jnl succeeded($n)"
+ret=0
+$JOURNALPRINT ns1/managed-keys.bind.jnl > journalprint.out.test$n
+lines=$(awk '$1 == "add" && $5 == "SOA" && $8 == "3297" { print }' journalprint.out.test$n | wc -l)
+test $lines -eq 1 || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check journal downgrade/upgrade ($n)"
 ret=0
 cp ns1/changed.db.jnl ns1/temp.jnl
