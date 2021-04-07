@@ -104,7 +104,11 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
 	RUNTIME_CHECK(r == 0);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+
+	if (isc__nm_closing(sock)) {
+		result = ISC_R_CANCELED;
+		goto error;
+	}
 
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r != 0) {
@@ -137,11 +141,14 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
 
+	uv_handle_set_data((uv_handle_t *)&sock->timer, &req->uv_req.connect);
+	isc__nmsocket_timer_start(sock);
+
 	atomic_store(&sock->connected, true);
 
 done:
 	result = isc__nm_uverr2result(r);
-
+error:
 	LOCK(&sock->lock);
 	sock->result = result;
 	SIGNAL(&sock->cond);
@@ -172,9 +179,10 @@ isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = tcpdns_connect_direct(sock, req);
 	if (result != ISC_R_SUCCESS) {
+		isc__nmsocket_clearcb(sock);
+		isc__nm_connectcb(sock, req, result, true);
 		atomic_store(&sock->active, false);
 		isc__nm_tcpdns_close(sock);
-		isc__nm_uvreq_put(&req, sock);
 	}
 
 	/*
@@ -193,20 +201,28 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(atomic_load(&sock->connecting));
+
+	isc__nmsocket_timer_stop(sock);
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+
+	if (!atomic_load(&sock->connecting)) {
+		return;
+	}
 
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
-	if (!isc__nmsocket_active(sock)) {
+	if (isc__nmsocket_closing(sock)) {
+		/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
 		result = ISC_R_CANCELED;
 		goto error;
-	}
-
-	if (status != 0) {
+	} else if (status == UV_ETIMEDOUT) {
+		/* Timeout status code here indicates hard error */
+		result = ISC_R_CANCELED;
+		goto error;
+	} else if (status != 0) {
 		result = isc__nm_uverr2result(status);
 		goto error;
 	}
@@ -224,15 +240,15 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	result = isc_sockaddr_fromsockaddr(&sock->peer, (struct sockaddr *)&ss);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc__nm_connectcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_connectcb(sock, req, ISC_R_SUCCESS, false);
 
 	return;
 
 error:
-	isc__nm_failed_connect_cb(sock, req, result);
+	isc__nm_failed_connect_cb(sock, req, result, false);
 }
 
-isc_result_t
+void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize) {
@@ -241,7 +257,6 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	isc__netievent_tcpdnsconnect_t *ievent = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
-	uv_os_sock_t fd;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
@@ -249,26 +264,13 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 	sa_family = peer->addr.type.sa.sa_family;
 
-	/*
-	 * The socket() call can fail spuriously on FreeBSD 12, so we need to
-	 * handle the failure early and gracefully.
-	 */
-	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &fd);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_tcpdnssocket, local);
 
 	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
 	sock->result = ISC_R_DEFAULT;
-	sock->fd = fd;
 	atomic_init(&sock->client, true);
-
-	result = isc__nm_socket_connectiontimeout(fd, timeout);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	req = isc__nm_uvreq_get(mgr, sock);
 	req->cb.connect = cb;
@@ -276,6 +278,22 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	req->peer = peer->addr;
 	req->local = local->addr;
 	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface->addr);
+
+	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &sock->fd);
+	if (result != ISC_R_SUCCESS) {
+		if (isc__nm_in_netthread()) {
+			sock->tid = isc_nm_tid();
+		}
+		isc__nmsocket_clearcb(sock);
+		isc__nm_connectcb(sock, req, result, true);
+		atomic_store(&sock->closed, true);
+		isc__nmsocket_detach(&sock);
+		return;
+	}
+
+	/* 2 minute timeout */
+	result = isc__nm_socket_connectiontimeout(sock->fd, 120 * 1000);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	ievent = isc__nm_get_netievent_tcpdnsconnect(mgr, sock, req);
 
@@ -291,18 +309,14 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		isc__nm_enqueue_ievent(&mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	}
+
 	LOCK(&sock->lock);
-	result = sock->result;
-	while (result == ISC_R_DEFAULT) {
+	while (sock->result == ISC_R_DEFAULT) {
 		WAIT(&sock->cond, &sock->lock);
-		result = sock->result;
 	}
 	atomic_store(&sock->active, true);
 	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
-	INSIST(result != ISC_R_DEFAULT);
-
-	return (result);
 }
 
 static uv_os_sock_t
@@ -546,7 +560,7 @@ tcpdns_connection_cb(uv_stream_t *server, int status) {
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
 
-	if (isc__nm_inactive(ssock)) {
+	if (isc__nmsocket_closing(ssock)) {
 		result = ISC_R_CANCELED;
 		goto done;
 	}
@@ -700,9 +714,9 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -727,7 +741,7 @@ isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -804,8 +818,8 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
-	if (isc__nm_inactive(sock)) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+	if (isc__nmsocket_closing(sock)) {
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, true);
 		goto free;
 	}
 
@@ -815,7 +829,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 					 sock->statsindex[STATID_RECVFAIL]);
 		}
 
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread));
+		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
 		goto free;
 	}
 
@@ -903,7 +917,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
 
-	if (isc__nm_inactive(ssock)) {
+	if (isc__nmsocket_closing(ssock)) {
 		if (quota != NULL) {
 			isc_quota_detach(&quota);
 		}
@@ -1097,7 +1111,7 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	UNUSED(worker);
 
-	if (isc__nm_inactive(sock)) {
+	if (isc__nmsocket_closing(sock)) {
 		result = ISC_R_CANCELED;
 		goto fail;
 	}
@@ -1167,11 +1181,7 @@ tcpdns_stop_cb(uv_handle_t *handle) {
 }
 
 static void
-tcpdns_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-
-	uv_handle_set_data(handle, NULL);
-
+tcpdns_close_sock(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
@@ -1194,12 +1204,25 @@ tcpdns_close_cb(uv_handle_t *handle) {
 }
 
 static void
-timer_close_cb(uv_handle_t *handle) {
+tcpdns_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
 	uv_handle_set_data(handle, NULL);
+
+	tcpdns_close_sock(sock);
+}
+
+static void
+timer_close_cb(uv_handle_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data(timer);
+	uv_handle_set_data(timer, NULL);
+
+	REQUIRE(VALID_NMSOCK(sock));
 
 	if (sock->parent) {
 		uv_close(&sock->uv_handle.handle, tcpdns_stop_cb);
+	} else if (uv_is_closing(&sock->uv_handle.handle)) {
+		tcpdns_close_sock(sock);
 	} else {
 		uv_close(&sock->uv_handle.handle, tcpdns_close_cb);
 	}
@@ -1271,6 +1294,8 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
+
+	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
 }
 
@@ -1313,6 +1338,19 @@ isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 	tcpdns_close_direct(sock);
 }
 
+static void
+tcpdns_close_connect_cb(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	REQUIRE(isc__nm_in_netthread());
+	REQUIRE(sock->tid == isc_nm_tid());
+
+	isc__nmsocket_prep_destroy(sock);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1327,12 +1365,19 @@ isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (atomic_load(&sock->connecting) || sock->accepting) {
+	if (sock->accepting) {
 		return;
 	}
 
-	if (sock->statichandle) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED);
+	if (atomic_load(&sock->connecting)) {
+		isc_nmsocket_t *tsock = NULL;
+		isc__nmsocket_attach(sock, &tsock);
+		uv_close(&sock->uv_handle.handle, tcpdns_close_connect_cb);
+		return;
+	}
+
+	if (sock->statichandle != NULL) {
+		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
 
@@ -1372,7 +1417,7 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	isc__nm_failed_read_cb(sock, ISC_R_EOF);
+	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }
 
 void

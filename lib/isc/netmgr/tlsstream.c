@@ -835,13 +835,12 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	}
 }
 
-isc_result_t
+void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, SSL_CTX *ctx,
 		  unsigned int timeout, size_t extrahandlesize) {
 	isc_nmsocket_t *nsock = NULL, *tsock = NULL;
 	isc__netievent_tlsconnect_t *ievent = NULL;
-	isc_result_t result = ISC_R_DEFAULT;
 #if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
 	fprintf(stderr, "TLS: isc_nm_tlsconnect(): in net thread: %s\n",
 		isc__nm_in_netthread() ? "yes" : "no");
@@ -880,20 +879,14 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	}
 
 	LOCK(&nsock->lock);
-	result = nsock->result;
-	while (result == ISC_R_DEFAULT) {
+	while (nsock->result == ISC_R_DEFAULT) {
 		WAIT(&nsock->cond, &nsock->lock);
-		result = nsock->result;
 	}
 	atomic_store(&nsock->active, true);
 	BROADCAST(&nsock->scond);
 	UNLOCK(&nsock->lock);
 	INSIST(VALID_NMSOCK(nsock));
 	isc__nmsocket_detach(&tsock);
-
-	INSIST(result != ISC_R_DEFAULT);
-
-	return (result);
 }
 
 static void
@@ -936,6 +929,11 @@ isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	UNUSED(worker);
 
+	if (isc__nm_closing(tlssock)) {
+		result = ISC_R_CANCELED;
+		goto error;
+	}
+
 	/*
 	 * We need to initialize SSL now to reference SSL_CTX properly.
 	 */
@@ -948,20 +946,11 @@ isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	tlssock->tid = isc_nm_tid();
 	tlssock->tlsstream.state = TLS_INIT;
 
-	result = isc_nm_tcpconnect(worker->mgr, (isc_nmiface_t *)&ievent->local,
-				   (isc_nmiface_t *)&ievent->peer,
-				   tcp_connected, tlssock,
-				   tlssock->connect_timeout, 0);
+	isc_nm_tcpconnect(worker->mgr, (isc_nmiface_t *)&ievent->local,
+			  (isc_nmiface_t *)&ievent->peer, tcp_connected,
+			  tlssock, tlssock->connect_timeout, 0);
 
-	/*
-	 * Sometimes on Linux, socket creation might fail if there are
-	 * already too many socket descriptors. In such a case the
-	 * connect callback is not going to be called.
-	 */
-	if (result != ISC_R_SUCCESS) {
-		goto error;
-	}
-	update_result(tlssock, result);
+	update_result(tlssock, ISC_R_SUCCESS);
 	return;
 
 error:

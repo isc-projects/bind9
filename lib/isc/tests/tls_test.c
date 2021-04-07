@@ -66,12 +66,22 @@ static atomic_uint_fast64_t csends;
 static atomic_uint_fast64_t creads;
 static atomic_uint_fast64_t ctimeouts;
 
-static unsigned int workers = 0;
+static atomic_bool slowdown = ATOMIC_VAR_INIT(false);
 
-static bool reuse_supported = true;
+static unsigned int workers = 0;
 
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
+
+static atomic_bool was_error = ATOMIC_VAR_INIT(false);
+
+static bool skip_long_tests = false;
+
+#define SKIP_IN_CI             \
+	if (skip_long_tests) { \
+		skip();        \
+		return;        \
+	}
 
 #define NSENDS	100
 #define NWRITES 10
@@ -145,9 +155,6 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 		close(fd);
 		return (-1);
 	}
-	if (result == ISC_R_NOTIMPLEMENTED) {
-		reuse_supported = false;
-	}
 
 #if IPV6_RECVERR
 #define setsockopt_on(socket, level, name) \
@@ -184,6 +191,10 @@ _setup(void **state) {
 	}
 
 	signal(SIGPIPE, SIG_IGN);
+
+	if (getenv("CI") != NULL && getenv("CI_ENABLE_ALL_TESTS") == NULL) {
+		skip_long_tests = true;
+	}
 
 	return (0);
 }
@@ -240,6 +251,8 @@ nm_setup(void **state) {
 	atomic_store(&ssends, 0);
 	atomic_store(&ctimeouts, 0);
 	atomic_store(&cconnects, 0);
+
+	atomic_store(&was_error, false);
 
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 	isc_nonce_buf(&stop_magic, sizeof(stop_magic));
@@ -389,6 +402,8 @@ tls_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	if (eresult != ISC_R_SUCCESS) {
 		uint_fast64_t sends = atomic_load(&nsends);
+		atomic_store(&slowdown, true);
+		atomic_store(&was_error, true);
 
 		/* We failed to connect; try again */
 		while (sends > 0) {
@@ -431,10 +446,9 @@ tls_noop(void **state) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
-	(void)isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
-				(isc_nmiface_t *)&tls_listen_addr,
-				noop_connect_cb, NULL, client_tlsctx, 1, 0);
-
+	isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
+			  (isc_nmiface_t *)&tls_listen_addr, noop_connect_cb,
+			  NULL, client_tlsctx, 1, 0);
 	isc_nm_closedown(connect_nm);
 
 	assert_int_equal(0, atomic_load(&cconnects));
@@ -462,10 +476,9 @@ tls_noresponse(void **state) {
 				  server_tlsctx, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	(void)isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
-				(isc_nmiface_t *)&tls_listen_addr,
-				noop_connect_cb, NULL, client_tlsctx, 1, 0);
-
+	isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
+			  (isc_nmiface_t *)&tls_listen_addr, noop_connect_cb,
+			  NULL, client_tlsctx, 1, 0);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -479,21 +492,23 @@ static isc_threadresult_t
 tls_connect_thread(isc_threadarg_t arg) {
 	isc_nm_t *connect_nm = (isc_nm_t *)arg;
 	isc_sockaddr_t tls_connect_addr;
-	isc_result_t result;
 
 	tls_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tls_connect_addr, &in6addr_loopback, 0);
 
 	while (atomic_load(&nsends) > 0) {
-		result = isc_nm_tlsconnect(
+		/*
+		 * We need to back off and slow down if we start getting
+		 * errors, to prevent a thundering herd problem.
+		 */
+		if (atomic_load(&slowdown)) {
+			usleep(1000 * workers);
+			atomic_store(&slowdown, false);
+		}
+		isc_nm_tlsconnect(
 			connect_nm, (isc_nmiface_t *)&tls_connect_addr,
 			(isc_nmiface_t *)&tls_listen_addr,
 			tls_connect_connect_cb, NULL, client_tlsctx, 1, 0);
-		/* protection against "too many open files" */
-		if (result != ISC_R_SUCCESS) {
-			atomic_fetch_sub(&nsends, 1);
-			usleep(1000 * workers);
-		}
 	}
 
 	return ((isc_threadresult_t)0);
@@ -518,12 +533,14 @@ tls_recv_one(void **state) {
 				  server_tlsctx, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	(void)isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
-				(isc_nmiface_t *)&tls_listen_addr,
-				tls_connect_connect_cb, NULL, client_tlsctx,
-				1000, 0);
+	isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
+			  (isc_nmiface_t *)&tls_listen_addr,
+			  tls_connect_connect_cb, NULL, client_tlsctx, 1000, 0);
 
 	while (atomic_load(&nsends) > 0) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
@@ -531,6 +548,9 @@ tls_recv_one(void **state) {
 	       atomic_load(&sreads) != 1 || atomic_load(&creads) != 0 ||
 	       atomic_load(&csends) != 1)
 	{
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
@@ -573,19 +593,24 @@ tls_recv_two(void **state) {
 				  server_tlsctx, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_nm_tlsconnect(
-		connect_nm, (isc_nmiface_t *)&tls_connect_addr,
-		(isc_nmiface_t *)&tls_listen_addr, tls_connect_connect_cb, NULL,
-		client_tlsctx, 100000, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_nm_tlsconnect(connect_nm, (isc_nmiface_t *)&tls_connect_addr,
+			  (isc_nmiface_t *)&tls_listen_addr,
+			  tls_connect_connect_cb, NULL, client_tlsctx, 100000,
+			  0);
 
 	while (atomic_load(&nsends) > 0) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
 	while (atomic_load(&sreads) < 2 || atomic_load(&ssends) < 1 ||
 	       atomic_load(&csends) < 2 || atomic_load(&creads) < 1)
 	{
+		if (atomic_load(&was_error)) {
+			break;
+		}
 		isc_thread_yield();
 	}
 
@@ -619,10 +644,7 @@ tls_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -665,10 +687,7 @@ tls_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -716,10 +735,7 @@ tls_half_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,
@@ -767,10 +783,7 @@ tls_half_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	if (!reuse_supported) {
-		skip();
-		return;
-	}
+	SKIP_IN_CI;
 
 	result = isc_nm_listentls(listen_nm, (isc_nmiface_t *)&tls_listen_addr,
 				  tls_listen_accept_cb, NULL, 0, 0, NULL,

@@ -1058,7 +1058,7 @@ http_call_connect_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	req->handle = isc__nmhandle_get(sock, &sock->peer, &sock->iface->addr);
 
 	isc__nmsocket_clearcb(sock);
-	isc__nm_connectcb_force_async(sock, req, result);
+	isc__nm_connectcb(sock, req, result, true);
 }
 
 static void
@@ -1147,12 +1147,11 @@ error:
 	isc__nmsocket_detach(&http_sock);
 }
 
-isc_result_t
+void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t *tlsctx, unsigned int timeout,
 		   size_t extrahandlesize) {
-	isc_result_t result;
 	isc_nmiface_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 
@@ -1176,12 +1175,34 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	sock->result = ISC_R_DEFAULT;
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
+	atomic_init(&sock->client, true);
+
+	if (isc__nm_closing(sock)) {
+		isc__nm_uvreq_t *req = isc__nm_uvreq_get(mgr, sock);
+
+		req->cb.connect = cb;
+		req->cbarg = cbarg;
+		req->peer = peer->addr;
+		req->local = local->addr;
+		req->handle = isc__nmhandle_get(sock, &req->peer,
+						&sock->iface->addr);
+
+		if (isc__nm_in_netthread()) {
+			sock->tid = isc_nm_tid();
+		}
+
+		isc__nmsocket_clearcb(sock);
+		isc__nm_connectcb(sock, req, ISC_R_CANCELED, true);
+		isc__nmsocket_prep_destroy(sock);
+		isc__nmsocket_detach(&sock);
+		return;
+	}
+
 	sock->h2 = (isc_nmsocket_h2_t){ .connect.uri = isc_mem_strdup(mgr->mctx,
 								      uri),
 					.connect.post = post,
 					.connect.tlsctx = tlsctx };
 	ISC_LINK_INIT(&sock->h2, link);
-	atomic_init(&sock->client, true);
 
 	/*
 	 * We need to prevent the interface object data from going out of
@@ -1193,16 +1214,12 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	}
 
 	if (tlsctx != NULL) {
-		result = isc_nm_tlsconnect(mgr, local, peer,
-					   transport_connect_cb, sock, tlsctx,
-					   timeout, 0);
+		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
+				  tlsctx, timeout, 0);
 	} else {
-		result = isc_nm_tcpconnect(mgr, local, peer,
-					   transport_connect_cb, sock, timeout,
-					   0);
+		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
+				  timeout, 0);
 	}
-
-	return (result);
 }
 
 static isc_result_t

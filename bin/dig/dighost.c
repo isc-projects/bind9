@@ -1541,11 +1541,12 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
 	void *ptr;
 
+	REQUIRE(lookup != NULL);
+	REQUIRE(ISC_LIST_EMPTY(lookup->q));
+
 	debug("destroy_lookup");
 
 	isc_refcount_destroy(&lookup->references);
-
-	REQUIRE(ISC_LIST_EMPTY(lookup->q));
 
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
@@ -2794,12 +2795,11 @@ start_tcp(dig_query_t *query) {
 		if (query->lookup->tls_mode) {
 			result = isc_tlsctx_createclient(&query->tlsctx);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			result = isc_nm_tlsdnsconnect(
-				netmgr, (isc_nmiface_t *)&localaddr,
-				(isc_nmiface_t *)&query->sockaddr,
-				tcp_connected, query, local_timeout, 0,
-				query->tlsctx);
-			check_result(result, "isc_nm_tlsdnsconnect");
+			isc_nm_tlsdnsconnect(netmgr,
+					     (isc_nmiface_t *)&localaddr,
+					     (isc_nmiface_t *)&query->sockaddr,
+					     tcp_connected, query,
+					     local_timeout, 0, query->tlsctx);
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
 			snprintf(uri, sizeof(uri), "https://%s:%u%s",
@@ -2814,18 +2814,16 @@ start_tcp(dig_query_t *query) {
 					query->tlsctx);
 			}
 
-			result = isc_nm_httpconnect(
-				netmgr, (isc_nmiface_t *)&localaddr,
-				(isc_nmiface_t *)&query->sockaddr, uri,
-				!query->lookup->https_get, tcp_connected, query,
-				query->tlsctx, local_timeout, 0);
-			check_result(result, "isc_nm_httpconnect");
+			isc_nm_httpconnect(netmgr, (isc_nmiface_t *)&localaddr,
+					   (isc_nmiface_t *)&query->sockaddr,
+					   uri, !query->lookup->https_get,
+					   tcp_connected, query, query->tlsctx,
+					   local_timeout, 0);
 		} else {
-			result = isc_nm_tcpdnsconnect(
+			isc_nm_tcpdnsconnect(
 				netmgr, (isc_nmiface_t *)&localaddr,
 				(isc_nmiface_t *)&query->sockaddr,
 				tcp_connected, query, local_timeout, 0);
-			check_result(result, "isc_nm_tcpdnsconnect");
 		}
 
 		/* XXX: set DSCP */
@@ -2900,13 +2898,15 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		query_detach(&query);
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
+		dig_lookup_t *l = query->lookup;
+
 		if (eresult != ISC_R_CANCELED) {
 			debug("udp setup failed: %s",
 			      isc_result_totext(eresult));
 		}
-		if (query->tries == 0) {
-			query_detach(&query);
-		}
+
+		lookup_detach(&l);
+		query_detach(&query);
 		return;
 	}
 
@@ -2993,24 +2993,9 @@ start_udp(dig_query_t *query) {
 		}
 	}
 
-	query->tries = 3;
-	do {
-		int local_timeout = timeout * 1000;
-		if (local_timeout == 0) {
-			local_timeout = UDP_TIMEOUT * 1000;
-		}
-
-		/*
-		 * On FreeBSD the UDP connect() call sometimes results
-		 * in a spurious transient EADDRINUSE. Try a few more times
-		 * before giving up.
-		 */
-		debug("isc_nm_udpconnect(): %d tries left", --query->tries);
-		result = isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
-					   (isc_nmiface_t *)&query->sockaddr,
-					   udp_ready, query, local_timeout, 0);
-	} while (result != ISC_R_SUCCESS && query->tries > 0);
-	check_result(result, "isc_nm_udpconnect");
+	isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
+			  (isc_nmiface_t *)&query->sockaddr, udp_ready, query,
+			  (timeout ? timeout : UDP_TIMEOUT) * 1000, 0);
 }
 
 /*%

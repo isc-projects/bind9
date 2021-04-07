@@ -854,8 +854,6 @@ struct isc_nmsocket {
 	 * TCP read/connect timeout timers.
 	 */
 	uv_timer_t timer;
-	bool timer_initialized;
-	bool timer_running;
 	uint64_t read_timeout;
 	uint64_t connect_timeout;
 
@@ -1136,6 +1134,13 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG);
  * if there are no remaining references or active handles.
  */
 
+void
+isc__nmsocket_shutdown(isc_nmsocket_t *sock);
+/*%<
+ * Initiate the socket shutdown which actively calls the active
+ * callbacks.
+ */
+
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
@@ -1167,17 +1172,15 @@ void
 isc__nmsocket_timer_start(isc_nmsocket_t *sock);
 void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock);
+bool
+isc__nmsocket_timer_running(isc_nmsocket_t *sock);
 /*%<
- * Start/stop/restart the read timeout on the socket
+ * Start/stop/restart/check the timeout on the socket
  */
 
 void
 isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-		  isc_result_t eresult);
-
-void
-isc__nm_connectcb_force_async(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-			      isc_result_t eresult);
+		  isc_result_t eresult, bool async);
 
 void
 isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -1850,7 +1853,8 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 void
 isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 void
-isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			      bool async);
 
 isc_result_t
 isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock);
@@ -1867,6 +1871,8 @@ void
 isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		    const struct sockaddr *addr, unsigned flags);
 void
+isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+void
 isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 void
 isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
@@ -1880,7 +1886,9 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock);
 void
 isc__nm_resume_processing(void *arg);
 bool
-isc__nm_inactive(isc_nmsocket_t *sock);
+isc__nmsocket_closing(isc_nmsocket_t *sock);
+bool
+isc__nm_closing(isc_nmsocket_t *sock);
 
 void
 isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);
@@ -1892,8 +1900,11 @@ void
 isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
 void
 isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-			  isc_result_t eresult);
+			  isc_result_t eresult, bool async);
 void
-isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async);
+
+void
+isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
 
 #define STREAM_CLIENTS_PER_CONN 23

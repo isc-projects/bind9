@@ -111,7 +111,9 @@ __wrap_uv_udp_bind(uv_udp_t *handle, const struct sockaddr *addr,
 	return (atomic_load(&__state_uv_udp_bind));
 }
 
-static atomic_int __state_uv_udp_connect = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_connect
+	__attribute__((unused)) = ATOMIC_VAR_INIT(0);
+
 #if HAVE_UV_UDP_CONNECT
 int
 __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
@@ -122,7 +124,9 @@ __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 }
 #endif /* HAVE_UV_UDP_CONNECT */
 
-static atomic_int __state_uv_udp_getpeername = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_getpeername
+	__attribute__((unused)) = ATOMIC_VAR_INIT(0);
+
 #if HAVE_UV_UDP_CONNECT
 int
 __wrap_uv_udp_getpeername(const uv_udp_t *handle, struct sockaddr *name,

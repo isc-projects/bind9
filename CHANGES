@@ -1,3 +1,10 @@
+5612.	[bug]		Continued refactoring of the network manager:
+			- allow recovery from read and connect timeout events
+			- ensure that calls to isc_nm_*connect() always
+			  return the connection status via a callback
+			  function.
+			[GL #2401]
+
 5611.	[func]		Set "stale-answer-client-timeout" to "off" by default.
 			[GL #2608]
 

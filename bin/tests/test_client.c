@@ -235,8 +235,6 @@ parse_options(int argc, char **argv) {
 		}
 	}
 
-	INSIST(optind < argc);
-
 	{
 		struct addrinfo hints = {
 			.ai_family = family,
@@ -281,7 +279,7 @@ parse_options(int argc, char **argv) {
 
 	isc_sockaddr_format(&sockaddr_remote, buf, sizeof(buf));
 
-	printf("to %s, %d workers\n", buf, workers);
+	printf(" to %s, %d workers\n", buf, workers);
 }
 
 static void
@@ -378,15 +376,15 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
 
 	REQUIRE(handle != NULL);
-	REQUIRE(eresult == ISC_R_SUCCESS);
 	UNUSED(cbarg);
+
+	fprintf(stderr, "ECHO_CLIENT:%s:%s\n", __func__,
+		isc_result_totext(eresult));
 
 	if (eresult != ISC_R_SUCCESS) {
 		kill(getpid(), SIGTERM);
 		return;
 	}
-
-	fprintf(stderr, "ECHO_CLIENT:%s\n", __func__);
 
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, read_cb, readhandle);
@@ -422,28 +420,23 @@ sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 
 static void
 run(void) {
-	isc_result_t result;
-
 	switch (protocol) {
 	case UDP:
-		result = isc_nm_udpconnect(netmgr,
-					   (isc_nmiface_t *)&sockaddr_local,
-					   (isc_nmiface_t *)&sockaddr_remote,
-					   connect_cb, NULL, timeout, 0);
+		isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
+				  (isc_nmiface_t *)&sockaddr_remote, connect_cb,
+				  NULL, timeout, 0);
 		break;
 	case TCP:
-		result = isc_nm_tcpdnsconnect(netmgr,
-					      (isc_nmiface_t *)&sockaddr_local,
-					      (isc_nmiface_t *)&sockaddr_remote,
-					      connect_cb, NULL, timeout, 0);
+		isc_nm_tcpdnsconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
+				     (isc_nmiface_t *)&sockaddr_remote,
+				     connect_cb, NULL, timeout, 0);
 		break;
 	case DOT: {
 		isc_tlsctx_createclient(&tls_ctx);
 
-		result = isc_nm_tlsdnsconnect(
-			netmgr, (isc_nmiface_t *)&sockaddr_local,
-			(isc_nmiface_t *)&sockaddr_remote, connect_cb, NULL,
-			timeout, 0, tls_ctx);
+		isc_nm_tlsdnsconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
+				     (isc_nmiface_t *)&sockaddr_remote,
+				     connect_cb, NULL, timeout, 0, tls_ctx);
 		break;
 	}
 	case HTTP_GET:
@@ -460,16 +453,15 @@ run(void) {
 		if (is_https) {
 			isc_tlsctx_createclient(&tls_ctx);
 		}
-		result = isc_nm_httpconnect(
-			netmgr, (isc_nmiface_t *)&sockaddr_local,
-			(isc_nmiface_t *)&sockaddr_remote, req_url, is_post,
-			connect_cb, NULL, tls_ctx, timeout, 0);
+		isc_nm_httpconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
+				   (isc_nmiface_t *)&sockaddr_remote, req_url,
+				   is_post, connect_cb, NULL, tls_ctx, timeout,
+				   0);
 	} break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
-	REQUIRE(result == ISC_R_SUCCESS);
 
 	waitforsignal();
 
