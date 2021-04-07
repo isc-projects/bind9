@@ -1057,7 +1057,7 @@ static void
 tcp_connect(isc_nm_t *nm) {
 	isc_nm_tcpconnect(nm, (isc_nmiface_t *)&tcp_connect_addr,
 			  (isc_nmiface_t *)&tcp_listen_addr, connect_connect_cb,
-			  NULL, 1, 0);
+			  NULL, T_CONNECT, 0);
 }
 
 static void
@@ -1077,7 +1077,7 @@ tcp_noop(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
 			  (isc_nmiface_t *)&tcp_listen_addr, noop_connect_cb,
-			  NULL, 1, 0);
+			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
@@ -1100,7 +1100,7 @@ tcp_noresponse(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
 			  (isc_nmiface_t *)&tcp_listen_addr, connect_connect_cb,
-			  NULL, 1, 0);
+			  NULL, T_CONNECT, 0);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_EQ(csends, 1);
