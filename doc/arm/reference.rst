@@ -1856,18 +1856,21 @@ Boolean Options
    log category.
 
 ``stale-answer-client-timeout``
-   This option defines the amount of time ``named`` waits before attempting to
-   answer the query with a stale RRset from cache. If a stale answer is found,
-   ``named`` continues the ongoing fetches, attempting to refresh the RRset in
-   cache until the ``resolver-query-timeout`` interval is reached.
+   This option defines the amount of time (in milliseconds) that ``named``
+   waits before attempting to answer the query with a stale RRset from cache.
+   If a stale answer is found, ``named`` continues the ongoing fetches,
+   attempting to refresh the RRset in cache until the
+   ``resolver-query-timeout`` interval is reached.
 
-   The default value is ``1800`` (in milliseconds) and the maximum value is
-   bounded to ``resolver-query-timeout`` minus one second. A value of ``0``
-   immediately returns a cached RRset if available, and still attempts a refresh
-   of the data in cache.
+   This option is off by default, which is equivalent to setting it to
+   ``off`` or ``disabled``. It also has no effect if ``stale-answer-enable``
+   is disabled.
 
-   The option can be disabled by setting the value to ``off`` or ``disabled``.
-   It also has no effect if ``stale-answer-enable`` is disabled.
+   The maximum value for this option is ``resolver-query-timeout`` minus
+   one second. The minimum value, ``0``, causes a cached RRset to be
+   immediately returned if it is available while still attempting to
+   refresh the data in cache. :rfc:`8767` recommends a value of ``1800``
+   (milliseconds).
 
 ``stale-cache-enable``
    If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
