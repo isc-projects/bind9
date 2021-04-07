@@ -1,3 +1,6 @@
+5611.	[func]		Set "stale-answer-client-timeout" to "off" by default.
+			[GL #2608]
+
 5610.	[bug]		Prevent a crash which could happen when a lookup
 			triggered by "stale-answer-client-timeout" was attempted
 			right after recursion for a client query finished.

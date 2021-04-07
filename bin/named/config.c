@@ -195,7 +195,7 @@ options {\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
-	stale-answer-client-timeout 1800; /* in milliseconds */\n\
+	stale-answer-client-timeout off;\n\
 	stale-answer-ttl 30; /* 30 seconds */\n\
 	stale-cache-enable true;\n\
 	stale-refresh-time 30; /* 30 seconds */\n\
