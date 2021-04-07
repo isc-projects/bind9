@@ -515,6 +515,7 @@ tarball-create:
   only:
     - schedules
     - tags
+    - web
 
 # Jobs for doc builds on Debian 10 "buster" (amd64)
 
