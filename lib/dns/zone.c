@@ -10187,6 +10187,7 @@ zone_maintenance(dns_zone_t *zone) {
 	isc_time_t now;
 	isc_result_t result;
 	bool dumping, load_pending, viewok, start_refresh;
+	bool need_notify;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -10268,11 +10269,16 @@ zone_maintenance(dns_zone_t *zone) {
 	/*
 	 * Slaves send notifies before backing up to disk, masters after.
 	 */
-	if (zone->type == dns_zone_slave &&
-	    (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-	     DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
-	    isc_time_compare(&now, &zone->notifytime) >= 0)
+	LOCK_ZONE(zone);
+	need_notify = zone->type == dns_zone_slave &&
+		      (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+		       DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
+		      (isc_time_compare(&now, &zone->notifytime) >= 0);
+	UNLOCK_ZONE(zone);
+
+	if (need_notify) {
 		zone_notify(zone, &now);
+	}
 
 	/*
 	 * Do we need to consolidate the backing store?
