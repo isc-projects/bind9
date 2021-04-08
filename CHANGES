@@ -1,3 +1,6 @@
+5614.	[bug]		Ensure all resources are properly cleaned up when a call
+			to gss_accept_sec_context() fails. [GL #2620]
+
 5613.	[bug]		It was possible to write an invalid transaction header
 			in the journal file for a managed-keys database after
 			upgrading. This has been fixed. Invalid headers in
