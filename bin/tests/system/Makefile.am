@@ -241,7 +241,4 @@ AM_LOG_FLAGS = -r
 
 $(TESTS): run.sh
 
-clean-local:
-	-rm -f get_ports.state get_ports.lock
-
 test-local: check

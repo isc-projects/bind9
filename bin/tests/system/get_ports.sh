@@ -12,60 +12,15 @@
 # This script is a 'port' broker.  It keeps track of ports given to the
 # individual system subtests, so every test is given a unique port range.
 
-lockfile=get_ports.lock
-statefile=get_ports.state
+total_tests=$(find . -maxdepth 1 -mindepth 1 -type d | wc -l)
+ports_per_test=20
 
 port_min=5001
-port_max=32767
-
-get_random() (
-    # shellcheck disable=SC2005,SC2046
-    echo $(dd if=/dev/urandom bs=1 count=2 2>/dev/null | od -tu2 -An) | sed -e 's/^0*//'
-)
-
-get_port() {
-    tries=10
-    port=0
-    while [ "${tries}" -gt 0 ]; do
-	if ( set -o noclobber; echo "$$" > "${lockfile}" ) 2> /dev/null; then
-	    trap 'rm -f "${lockfile}"; exit $?' INT TERM EXIT
-
-	    port=$(cat "${statefile}" 2>/dev/null)
-
-	    if [ -z "${port}" ]; then
-		if [ "$1" -gt 0 ]; then
-		    port="$1"
-		else
-		    port_range=$((port_max-port_min))
-		    port_random=$(get_random)
-		    port=$((port_random%port_range+port_min))
-		fi
-	    fi
-
-	    if [ "$((port+1))" -gt "${port_max}" ]; then
-		port="${port_min}"
-	    fi
-
-	    echo $((port+1)) > get_ports.state
-
-	    # clean up after yourself, and release your trap
-	    rm -f "${lockfile}"
-	    trap - INT TERM EXIT
-
-	    # we have our port
-	    break
-	fi
-	sleep 1
-	tries=$((tries-1))
-    done
-    if [ "$port" -eq 0 ]; then
-	exit 1
-    fi
-    echo "$port"
-}
+port_max=$((32767 - (total_tests * ports_per_test)))
 
 baseport=0
-while getopts "p:-:" OPT; do
+test_index=0
+while getopts "p:t:-:" OPT; do
     if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
 	OPT="${OPTARG%%=*}"
 	OPTARG="${OPTARG#$OPT}"
@@ -75,24 +30,36 @@ while getopts "p:-:" OPT; do
     # shellcheck disable=SC2214
     case "$OPT" in
 	p | port) baseport=$OPTARG ;;
+	t | test)
+		test_index=$(find . -maxdepth 1 -mindepth 1 -type d | sort | grep -F -x -n "./${OPTARG}" | cut -d: -f1)
+		if [ -z "${test_index}" ]; then
+			echo "Test '${OPTARG}' not found" >&2
+			exit 1
+		fi
+		;;
 	-) break ;;
 	*) echo "invalid option" >&2; exit 1 ;;
     esac
 done
 
-echo "export PORT=$(get_port "$baseport")"
-echo "export TLSPORT=$(get_port)"
-echo "export HTTPPORT=$(get_port)"
-echo "export HTTPSPORT=$(get_port)"
-echo "export EXTRAPORT1=$(get_port)"
-echo "export EXTRAPORT2=$(get_port)"
-echo "export EXTRAPORT3=$(get_port)"
-echo "export EXTRAPORT4=$(get_port)"
-echo "export EXTRAPORT5=$(get_port)"
-echo "export EXTRAPORT6=$(get_port)"
-echo "export EXTRAPORT7=$(get_port)"
-echo "export EXTRAPORT8=$(get_port)"
-echo "export CONTROLPORT=$(get_port)"
+port_pool_size=$((port_max - port_min))
+if [ "${baseport}" -eq 0 ]; then
+	baseport="$((($(date +%s) / 3600 % port_pool_size) + port_min + (test_index * ports_per_test)))"
+fi
+
+echo "export PORT=$((baseport))"
+echo "export TLSPORT=$((baseport + 1))"
+echo "export HTTPPORT=$((baseport + 2))"
+echo "export HTTPSPORT=$((baseport + 3))"
+echo "export EXTRAPORT1=$((baseport + 4))"
+echo "export EXTRAPORT2=$((baseport + 5))"
+echo "export EXTRAPORT3=$((baseport + 6))"
+echo "export EXTRAPORT4=$((baseport + 7))"
+echo "export EXTRAPORT5=$((baseport + 8))"
+echo "export EXTRAPORT6=$((baseport + 9))"
+echo "export EXTRAPORT7=$((baseport + 10))"
+echo "export EXTRAPORT8=$((baseport + 11))"
+echo "export CONTROLPORT=$((baseport + 12))"
 
 # Local Variables:
 # sh-basic-offset: 4

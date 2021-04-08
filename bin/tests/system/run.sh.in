@@ -110,12 +110,8 @@ if [ ! -d "${systest}" ]; then
 fi
 
 
-# Get the first 10 ports in the set (it is assumed that each test has access
-# to ten or more ports): the query port, the control port and eight extra
-# ports.  Since the lowest numbered port (specified in the command line)
-# will usually be a multiple of 10, the names are chosen so that if this is
-# true, the last digit of EXTRAPORTn is "n".
-eval "$(${srcdir}/get_ports.sh -p "$baseport")"
+# Determine which ports to use for this system test.
+eval "$(cd "${srcdir}" && ./get_ports.sh -p "$baseport" -t "$systest")"
 
 restart=false
 

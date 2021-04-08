@@ -13,8 +13,6 @@ named.run
 parallel.mk
 /*.log
 /*.trs
-/get_ports.state
-/get_ports.lock
 /run.sh
 /run.log
 /start.sh
