@@ -14594,8 +14594,8 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
 	dns_kasp_t *kasp = NULL;
-	dns_dnsseckeylist_t keys;
-	dns_dnsseckey_t *key;
+	dns_dnsseckeylist_t keys, dnskeys;
+	dns_dnsseckey_t *key, *key_next = NULL;
 	char *ptr, *zonetext = NULL;
 	const char *msg = NULL;
 	/* variables for -checkds */
@@ -14612,6 +14612,11 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	isc_stdtime_t now, when;
 	isc_time_t timenow, timewhen;
 	const char *dir;
+	dns_name_t *origin;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_rdataset_t keyset;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
@@ -14630,7 +14635,9 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	now = isc_time_seconds(&timenow);
 	when = now;
 
+	ISC_LIST_INIT(dnskeys);
 	ISC_LIST_INIT(keys);
+	dns_rdataset_init(&keyset);
 
 	if (strcasecmp(ptr, "-status") == 0) {
 		status = true;
@@ -14743,12 +14750,45 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 	/* Get DNSSEC keys. */
 	dir = dns_zone_getkeydirectory(zone);
+	origin = dns_zone_getorigin(zone);
+	CHECK(dns_zone_getdb(zone, &db));
+	CHECK(dns_db_findnode(db, origin, false, &node));
+	dns_db_currentversion(db, &version);
+	/* Get keys from private key files. */
 	LOCK(&kasp->lock);
-	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), dir, now,
+	result = dns_dnssec_findmatchingkeys(origin, dir, now,
 					     dns_zone_getmctx(zone), &keys);
 	UNLOCK(&kasp->lock);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
+	}
+	/* Get public keys (dnskeys). */
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
+				     dns_rdatatype_none, 0, &keyset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		CHECK(dns_dnssec_keylistfromrdataset(
+			origin, dir, dns_zone_getmctx(zone), &keyset, NULL,
+			NULL, false, false, &dnskeys));
+	} else if (result != ISC_R_NOTFOUND) {
+		CHECK(result);
+	}
+	/* Add new 'dnskeys' to 'keys'. */
+	for (dns_dnsseckey_t *k1 = ISC_LIST_HEAD(dnskeys); k1 != NULL;
+	     k1 = key_next) {
+		dns_dnsseckey_t *k2 = NULL;
+		key_next = ISC_LIST_NEXT(k1, link);
+
+		for (k2 = ISC_LIST_HEAD(keys); k2 != NULL;
+		     k2 = ISC_LIST_NEXT(k2, link)) {
+			if (dst_key_compare(k1->key, k2->key)) {
+				break;
+			}
+		}
+		/* No match found, add the new key. */
+		if (k2 == NULL) {
+			ISC_LIST_UNLINK(dnskeys, k1, link);
+			ISC_LIST_APPEND(keys, k1, link);
+		}
 	}
 
 	if (status) {
@@ -14869,6 +14909,24 @@ cleanup:
 		(void)putnull(text);
 	}
 
+	if (dns_rdataset_isassociated(&keyset)) {
+		dns_rdataset_disassociate(&keyset);
+	}
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+	if (version != NULL) {
+		dns_db_closeversion(db, &version, false);
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	while (!ISC_LIST_EMPTY(dnskeys)) {
+		key = ISC_LIST_HEAD(dnskeys);
+		ISC_LIST_UNLINK(dnskeys, key, link);
+		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
+	}
 	while (!ISC_LIST_EMPTY(keys)) {
 		key = ISC_LIST_HEAD(keys);
 		ISC_LIST_UNLINK(keys, key, link);
