@@ -733,6 +733,9 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 	default:
 		gss_log(3, "failed gss_accept_sec_context: %s",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
+		if (gouttoken.length > 0U) {
+			(void)gss_release_buffer(&minor, &gouttoken);
+		}
 		return (result);
 	}
 
