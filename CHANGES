@@ -1,3 +1,9 @@
+5617.	[placeholder]
+
+5616.	[placeholder]
+
+5615.	[placeholder]
+
 5614.	[bug]		Ensure all resources are properly cleaned up when a call
 			to gss_accept_sec_context() fails. [GL #2620]
 
