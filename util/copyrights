@@ -242,7 +242,6 @@
 ./bin/tests/bigtest/tests.sh			SH	2013,2016,2018,2019,2020,2021
 ./bin/tests/bigtest/zones			X	2013,2018,2019,2020,2021
 ./bin/tests/cfg_test.c				C	2020,2021
-./bin/tests/fromhex.pl				PERL	2015,2016,2018,2019,2020,2021
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004,2007,2012,2016,2018,2019,2020
 ./bin/tests/makejournal.c			C	2013,2015,2016,2017,2018,2019,2020,2021
 ./bin/tests/optional/Kchild.example.+005+33180.key	X	2018,2019,2020,2021
@@ -593,6 +592,7 @@
 ./bin/tests/system/forward/prereq.sh		SH	2019,2020,2021
 ./bin/tests/system/forward/setup.sh		SH	2018,2019,2020,2021
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2016,2018,2019,2020,2021
+./bin/tests/system/fromhex.pl			PERL	2015,2016,2018,2019,2020,2021
 ./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/geoip2/clean.sh		SH	2019,2020,2021
 ./bin/tests/system/geoip2/data/GeoIP2-City.json	X	2019,2020,2021
