@@ -25,10 +25,8 @@ echo "		exit 1; \\"
 echo "	}"
 echo
 echo "test check: $PARALLELS"
-port=${STARTPORT:-5000}
 for directory in $PARALLELDIRS ; do
         echo
         echo "test-$(echo "$directory" | tr _ -): check_interfaces"
-        echo "	@${SHELL} ./run.sh -r -p $port $directory 2>&1 | tee test.output.$directory"
-        port=$((port+100))
+        echo "	@${SHELL} ./run.sh -r $directory 2>&1 | tee test.output.$directory"
 done
