@@ -206,7 +206,8 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg;
-	isc_taskmgr_t *taskmgr;
+	isc_nm_t *netmgr = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task;
 	isc_timermgr_t *timermgr;
 	isc_socketmgr_t *socketmgr;
@@ -276,8 +277,9 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	taskmgr = NULL;
-	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
+	netmgr = isc_nm_start(mctx, 1);
+
+	RUNCHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
 	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;
@@ -322,6 +324,7 @@ main(int argc, char *argv[]) {
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);
+	isc_nm_destroy(&netmgr);
 
 	dst_lib_destroy();
 

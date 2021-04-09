@@ -18385,25 +18385,14 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	/* Create or resize the zone task pools. */
 	if (zmgr->zonetasks == NULL) {
 		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
-					     2, &pool);
+					     2, false, &pool);
 	} else {
-		result = isc_taskpool_expand(&zmgr->zonetasks, ntasks, &pool);
+		result = isc_taskpool_expand(&zmgr->zonetasks, ntasks, false,
+					     &pool);
 	}
 
 	if (result == ISC_R_SUCCESS) {
 		zmgr->zonetasks = pool;
-	}
-
-	pool = NULL;
-	if (zmgr->loadtasks == NULL) {
-		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
-					     2, &pool);
-	} else {
-		result = isc_taskpool_expand(&zmgr->loadtasks, ntasks, &pool);
-	}
-
-	if (result == ISC_R_SUCCESS) {
-		zmgr->loadtasks = pool;
 	}
 
 	/*
@@ -18411,15 +18400,19 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	 * privileged.  This prevents other tasks in the system from
 	 * running while the server task manager is in privileged
 	 * mode.
-	 *
-	 * NOTE: If we start using task privileges for any other
-	 * part of the system than zone tasks, then this will need to be
-	 * revisted.  In that case we'd want to turn on privileges for
-	 * zone tasks only when we were loading, and turn them off the
-	 * rest of the time.  For now, however, it's okay to just
-	 * set it and forget it.
 	 */
-	isc_taskpool_setprivilege(zmgr->loadtasks, true);
+	pool = NULL;
+	if (zmgr->loadtasks == NULL) {
+		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
+					     2, true, &pool);
+	} else {
+		result = isc_taskpool_expand(&zmgr->loadtasks, ntasks, true,
+					     &pool);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		zmgr->loadtasks = pool;
+	}
 
 	/* Create or resize the zone memory context pool. */
 	if (zmgr->mctxpool == NULL) {

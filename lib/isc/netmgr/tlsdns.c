@@ -475,8 +475,8 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		REQUIRE(csock->fd >= 0);
 
 		ievent = isc__nm_get_netievent_tlsdnslisten(mgr, csock);
-		isc__nm_enqueue_ievent(&mgr->workers[i],
-				       (isc__netievent_t *)ievent);
+		isc__nm_maybe_enqueue_ievent(&mgr->workers[i],
+					     (isc__netievent_t *)ievent);
 	}
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
@@ -770,16 +770,7 @@ isc__nm_async_tlsdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	/*
-	 * If network manager is interlocked, re-enqueue the event for
-	 * later.
-	 */
-	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		enqueue_stoplistening(sock);
-	} else {
-		stop_tlsdns_parent(sock);
-		isc__nm_drop_interlocked(sock->mgr);
-	}
+	stop_tlsdns_parent(sock);
 }
 
 void
@@ -1777,6 +1768,8 @@ timer_close_cb(uv_handle_t *handle) {
 
 static void
 stop_tlsdns_child(isc_nmsocket_t *sock) {
+	bool last_child = false;
+
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 	REQUIRE(sock->tid == isc_nm_tid());
 
@@ -1789,8 +1782,13 @@ stop_tlsdns_child(isc_nmsocket_t *sock) {
 
 	LOCK(&sock->parent->lock);
 	sock->parent->rchildren -= 1;
+	last_child = (sock->parent->rchildren == 0);
 	UNLOCK(&sock->parent->lock);
-	BROADCAST(&sock->parent->cond);
+
+	if (last_child) {
+		atomic_store(&sock->parent->closed, true);
+		isc__nmsocket_prep_destroy(sock->parent);
+	}
 }
 
 static void
@@ -1806,24 +1804,10 @@ stop_tlsdns_parent(isc_nmsocket_t *sock) {
 
 		atomic_store(&csock->active, false);
 
-		if (csock->tid == isc_nm_tid()) {
-			stop_tlsdns_child(csock);
-			continue;
-		}
-
 		ievent = isc__nm_get_netievent_tlsdnsstop(sock->mgr, csock);
 		isc__nm_enqueue_ievent(&sock->mgr->workers[csock->tid],
 				       (isc__netievent_t *)ievent);
 	}
-
-	LOCK(&sock->lock);
-	while (sock->rchildren > 0) {
-		WAIT(&sock->cond, &sock->lock);
-	}
-	atomic_store(&sock->closed, true);
-	UNLOCK(&sock->lock);
-
-	isc__nmsocket_prep_destroy(sock);
 }
 
 static void

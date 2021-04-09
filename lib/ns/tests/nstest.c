@@ -51,6 +51,7 @@
 
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
+isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
 isc_timermgr_t *timermgr = NULL;
@@ -213,6 +214,9 @@ cleanup_managers(void) {
 	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
 	}
+	if (netmgr != NULL) {
+		isc_nm_destroy(&netmgr);
+	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
 	}
@@ -237,7 +241,8 @@ create_managers(void) {
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, NULL, &taskmgr));
+	netmgr = isc_nm_start(mctx, ncpus);
+	CHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));

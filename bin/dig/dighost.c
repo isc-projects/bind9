@@ -1362,7 +1362,7 @@ setup_libs(void) {
 
 	netmgr = isc_nm_start(mctx, 1);
 
-	result = isc_taskmgr_create(mctx, 1, 0, netmgr, &taskmgr);
+	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);

@@ -224,7 +224,6 @@ libisc_la_SOURCES =		\
 	fsaccess_common_p.h	\
 	lib_p.h			\
 	mem_p.h			\
-	task_p.h		\
 	tls_p.h
 
 libisc_la_CPPFLAGS =		\

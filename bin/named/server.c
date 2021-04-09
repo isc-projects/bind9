@@ -9866,7 +9866,7 @@ view_loaded(void *arg) {
 }
 
 static isc_result_t
-load_zones(named_server_t *server, bool init, bool reconfig) {
+load_zones(named_server_t *server, bool reconfig) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
@@ -9921,16 +9921,6 @@ cleanup:
 	if (isc_refcount_decrement(&zl->refs) == 1) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
-	} else if (init) {
-		/*
-		 * Place the task manager into privileged mode.  This
-		 * ensures that after we leave task-exclusive mode, no
-		 * other tasks will be able to run except for the ones
-		 * that are loading zones. (This should only be done during
-		 * the initial server setup; it isn't necessary during
-		 * a reload.)
-		 */
-		isc_taskmgr_setprivilegedmode(named_g_taskmgr);
 	}
 
 	isc_task_endexclusive(server->task);
@@ -9998,7 +9988,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(load_configuration(named_g_conffile, server, true),
 		   "loading configuration");
 
-	CHECKFATAL(load_zones(server, true, false), "loading zones");
+	CHECKFATAL(load_zones(server, false), "loading zones");
 #ifdef ENABLE_AFL
 	named_g_run_done = true;
 #endif /* ifdef ENABLE_AFL */
@@ -10511,7 +10501,7 @@ reload(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, false, false);
+	result = load_zones(server, false);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -10880,7 +10870,7 @@ named_server_reconfigcommand(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, false, true);
+	result = load_zones(server, true);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,

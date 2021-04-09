@@ -960,7 +960,7 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, named_g_nm,
+	result = isc_taskmgr_create(named_g_mctx, 0, named_g_nm,
 				    &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1011,13 +1011,9 @@ destroy_managers(void) {
 	 * isc_taskmgr_destroy() will block until all tasks have exited.
 	 */
 	isc_taskmgr_destroy(&named_g_taskmgr);
+	isc_nm_destroy(&named_g_nm);
 	isc_timermgr_destroy(&named_g_timermgr);
 	isc_socketmgr_destroy(&named_g_socketmgr);
-
-	/*
-	 * At this point is safe to destroy the netmgr.
-	 */
-	isc_nm_destroy(&named_g_nm);
 }
 
 static void

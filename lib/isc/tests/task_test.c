@@ -37,7 +37,6 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include "../task_p.h"
 #include "isctest.h"
 
 /* Set to true (or use -v option) for verbose output */
@@ -120,6 +119,8 @@ set(isc_task_t *task, isc_event_t *event) {
 	atomic_store(value, atomic_fetch_add(&counter, 1));
 }
 
+#include <isc/thread.h>
+
 static void
 set_and_drop(isc_task_t *task, isc_event_t *event) {
 	atomic_int_fast32_t *value = (atomic_int_fast32_t *)event->ev_arg;
@@ -128,8 +129,7 @@ set_and_drop(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 	LOCK(&lock);
-	atomic_store(value, (int)isc_taskmgr_mode(taskmgr));
-	atomic_fetch_add(&counter, 1);
+	atomic_store(value, atomic_fetch_add(&counter, 1));
 	UNLOCK(&lock);
 }
 
@@ -204,17 +204,17 @@ privileged_events(void **state) {
 	UNUSED(state);
 
 	atomic_init(&counter, 1);
-	atomic_init(&a, 0);
-	atomic_init(&b, 0);
-	atomic_init(&c, 0);
-	atomic_init(&d, 0);
-	atomic_init(&e, 0);
+	atomic_init(&a, -1);
+	atomic_init(&b, -1);
+	atomic_init(&c, -1);
+	atomic_init(&d, -1);
+	atomic_init(&e, -1);
 
 	/*
-	 * Pause the task manager so we can fill up the work queue
-	 * without things happening while we do it.
+	 * Pause the net/task manager so we can fill up the work
+	 * queue without things happening while we do it.
 	 */
-	isc__taskmgr_pause(taskmgr);
+	isc_nm_pause(netmgr);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -233,7 +233,7 @@ privileged_events(void **state) {
 				   &a, sizeof(isc_event_t));
 	assert_non_null(event);
 
-	assert_int_equal(atomic_load(&a), 0);
+	assert_int_equal(atomic_load(&a), -1);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
@@ -241,7 +241,7 @@ privileged_events(void **state) {
 				   &b, sizeof(isc_event_t));
 	assert_non_null(event);
 
-	assert_int_equal(atomic_load(&b), 0);
+	assert_int_equal(atomic_load(&b), -1);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
@@ -249,7 +249,7 @@ privileged_events(void **state) {
 				   &c, sizeof(isc_event_t));
 	assert_non_null(event);
 
-	assert_int_equal(atomic_load(&c), 0);
+	assert_int_equal(atomic_load(&c), -1);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
@@ -257,7 +257,7 @@ privileged_events(void **state) {
 				   &d, sizeof(isc_event_t));
 	assert_non_null(event);
 
-	assert_int_equal(atomic_load(&d), 0);
+	assert_int_equal(atomic_load(&d), -1);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
@@ -265,19 +265,15 @@ privileged_events(void **state) {
 				   &e, sizeof(isc_event_t));
 	assert_non_null(event);
 
-	assert_int_equal(atomic_load(&e), 0);
+	assert_int_equal(atomic_load(&e), -1);
 	isc_task_send(task2, &event);
 
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
-	isc_taskmgr_setprivilegedmode(taskmgr);
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
-
-	isc__taskmgr_resume(taskmgr);
+	isc_nm_resume(netmgr);
 
 	/* We're waiting for *all* variables to be set */
-	while ((atomic_load(&a) == 0 || atomic_load(&b) == 0 ||
-		atomic_load(&c) == 0 || atomic_load(&d) == 0 ||
-		atomic_load(&e) == 0) &&
+	while ((atomic_load(&a) < 0 || atomic_load(&b) < 0 ||
+		atomic_load(&c) < 0 || atomic_load(&d) < 0 ||
+		atomic_load(&e) < 0) &&
 	       i++ < 5000)
 	{
 		isc_test_nap(1000);
@@ -293,15 +289,13 @@ privileged_events(void **state) {
 	assert_true(atomic_load(&d) <= 3);
 
 	/* ...and the non-privileged tasks that set b and e, last */
-	assert_true(atomic_load(&b) >= 4);
-	assert_true(atomic_load(&e) >= 4);
+	assert_true(atomic_load(&b) > 3);
+	assert_true(atomic_load(&e) > 3);
 
 	assert_int_equal(atomic_load(&counter), 6);
 
 	isc_task_setprivilege(task1, false);
 	assert_false(isc_task_privilege(task1));
-
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 
 	isc_task_destroy(&task1);
 	assert_null(task1);
@@ -331,10 +325,10 @@ privilege_drop(void **state) {
 	atomic_init(&e, -1);
 
 	/*
-	 * Pause the task manager so we can fill up the work queue
+	 * Pause the net/task manager so we can fill up the work queue
 	 * without things happening while we do it.
 	 */
-	isc__taskmgr_pause(taskmgr);
+	isc_nm_pause(netmgr);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -388,11 +382,7 @@ privilege_drop(void **state) {
 	assert_int_equal(atomic_load(&e), -1);
 	isc_task_send(task2, &event);
 
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
-	isc_taskmgr_setprivilegedmode(taskmgr);
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
-
-	isc__taskmgr_resume(taskmgr);
+	isc_nm_resume(netmgr);
 
 	/* We're waiting for all variables to be set. */
 	while ((atomic_load(&a) == -1 || atomic_load(&b) == -1 ||
@@ -407,18 +397,16 @@ privilege_drop(void **state) {
 	 * We need to check that all privilege mode events were fired
 	 * in privileged mode, and non privileged in non-privileged.
 	 */
-	assert_true(atomic_load(&a) == isc_taskmgrmode_privileged ||
-		    atomic_load(&c) == isc_taskmgrmode_privileged ||
-		    atomic_load(&d) == isc_taskmgrmode_privileged);
+	assert_true(atomic_load(&a) <= 3);
+	assert_true(atomic_load(&c) <= 3);
+	assert_true(atomic_load(&d) <= 3);
 
 	/* ...and neither of the non-privileged tasks did... */
-	assert_true(atomic_load(&b) == isc_taskmgrmode_normal ||
-		    atomic_load(&e) == isc_taskmgrmode_normal);
+	assert_true(atomic_load(&b) > 3);
+	assert_true(atomic_load(&e) > 3);
 
 	/* ...but all five of them did run. */
 	assert_int_equal(atomic_load(&counter), 6);
-
-	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 
 	isc_task_destroy(&task1);
 	assert_null(task1);
@@ -695,6 +683,7 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	if (atomic_load(&done)) {
 		isc_mem_put(event->ev_destroy_arg, event->ev_arg, sizeof(int));
 		isc_event_free(&event);
+		atomic_fetch_sub(&counter, 1);
 	} else {
 		isc_task_send(task, &event);
 	}
@@ -707,6 +696,8 @@ task_exclusive(void **state) {
 	int i;
 
 	UNUSED(state);
+
+	atomic_init(&counter, 0);
 
 	for (i = 0; i < 10; i++) {
 		isc_event_t *event = NULL;
@@ -732,10 +723,15 @@ task_exclusive(void **state) {
 		assert_non_null(event);
 
 		isc_task_send(tasks[i], &event);
+		atomic_fetch_add(&counter, 1);
 	}
 
 	for (i = 0; i < 10; i++) {
 		isc_task_detach(&tasks[i]);
+	}
+
+	while (atomic_load(&counter) > 0) {
+		isc_test_nap(1000);
 	}
 }
 
@@ -805,7 +801,8 @@ manytasks(void **state) {
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	result = isc_taskmgr_create(mctx, 4, 0, NULL, &taskmgr);
+	netmgr = isc_nm_start(mctx, 4);
+	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	atomic_init(&done, false);
@@ -822,6 +819,7 @@ manytasks(void **state) {
 	UNLOCK(&lock);
 
 	isc_taskmgr_destroy(&taskmgr);
+	isc_nm_destroy(&netmgr);
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&cv);
 	isc_mutex_destroy(&lock);

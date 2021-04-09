@@ -102,12 +102,11 @@ typedef enum {
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		isc_task_t **taskp);
-
 isc_result_t
 isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 		      isc_task_t **taskp, int threadid);
 /*%<
- * Create a task.
+ * Create a task, optionally bound to a particular threadid.
  *
  * Notes:
  *
@@ -136,6 +135,23 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_UNEXPECTED
  *\li	#ISC_R_SHUTTINGDOWN
+ */
+
+isc_result_t
+isc_task_run(isc_task_t *task);
+/*%<
+ * Run all the queued events for the 'task', returning
+ * when the queue is empty or the number of events executed
+ * exceeds the 'quantum' specified when the task was created.
+ *
+ * Requires:
+ *
+ *\li	'task' is a valid task.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_QUOTA
  */
 
 void
@@ -611,19 +627,12 @@ isc_task_privilege(isc_task_t *task);
 *****/
 
 isc_result_t
-isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		   unsigned int default_quantum, isc_nm_t *nm,
+isc_taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 		   isc_taskmgr_t **managerp);
 /*%<
  * Create a new task manager.
  *
  * Notes:
- *
- *\li	'workers' in the number of worker threads to create.  In general,
- *	the value should be close to the number of processors in the system.
- *	The 'workers' value is advisory only.  An attempt will be made to
- *	create 'workers' threads, but if at least one thread creation
- *	succeeds, isc_taskmgr_create() may return ISC_R_SUCCESS.
  *
  *\li	If 'default_quantum' is non-zero, then it will be used as the default
  *	quantum value when tasks are created.  If zero, then an implementation
@@ -635,8 +644,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  * Requires:
  *
  *\li      'mctx' is a valid memory context.
- *
- *\li	workers > 0
  *
  *\li	managerp != NULL && *managerp == NULL
  *
@@ -651,34 +658,14 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_NOTHREADS		No threads could be created.
  *\li	#ISC_R_UNEXPECTED		An unexpected error occurred.
- *\li	#ISC_R_SHUTTINGDOWN      	The non-threaded, shared, task
+ *\li	#ISC_R_SHUTTINGDOWN		The non-threaded, shared, task
  *					manager shutting down.
  */
 
 void
-isc_taskmgr_setprivilegedmode(isc_taskmgr_t *manager);
-
-isc_taskmgrmode_t
-isc_taskmgr_mode(isc_taskmgr_t *manager);
-/*%<
- * Set/get the current operating mode of the task manager.  Valid modes are:
- *
- *\li  isc_taskmgrmode_normal
- *\li  isc_taskmgrmode_privileged
- *
- * In privileged execution mode, only tasks that have had the "privilege"
- * flag set via isc_task_setprivilege() can be executed.  When all such
- * tasks are complete, the manager automatically returns to normal mode
- * and proceeds with running non-privileged ready tasks.  This means it is
- * necessary to have at least one privileged task waiting on the ready
- * queue *before* setting the manager into privileged execution mode,
- * which in turn means the task which calls this function should be in
- * task-exclusive mode when it does so.
- *
- * Requires:
- *
- *\li      'manager' is a valid task manager.
- */
+isc_taskmgr_attach(isc_taskmgr_t *, isc_taskmgr_t **);
+void
+isc_taskmgr_detach(isc_taskmgr_t *);
 
 void
 isc_taskmgr_destroy(isc_taskmgr_t **managerp);

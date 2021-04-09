@@ -41,6 +41,9 @@
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
+/* Must be different from ISC_NETMGR_TID_UNKNOWN */
+#define ISC_NETMGR_NON_INTERLOCKED -2
+
 #define ISC_NETMGR_TLSBUF_SIZE 65536
 
 #if !defined(WIN32)
@@ -174,6 +177,8 @@ typedef struct isc__networker {
 	bool finished;
 	isc_thread_t thread;
 	isc_queue_t *ievents;	   /* incoming async events */
+	isc_queue_t *ievents_priv; /* privileged async tasks */
+	isc_queue_t *ievents_task; /* async tasks */
 	isc_queue_t *ievents_prio; /* priority async events
 				    * used for listening etc.
 				    * can be processed while
@@ -236,27 +241,27 @@ struct isc_nmiface {
 
 typedef enum isc__netievent_type {
 	netievent_udpconnect,
+	netievent_udpclose,
 	netievent_udpsend,
 	netievent_udpread,
 	netievent_udpstop,
 	netievent_udpcancel,
-	netievent_udpclose,
 
 	netievent_tcpconnect,
+	netievent_tcpclose,
 	netievent_tcpsend,
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpaccept,
 	netievent_tcpstop,
 	netievent_tcpcancel,
-	netievent_tcpclose,
 
 	netievent_tcpdnsaccept,
 	netievent_tcpdnsconnect,
+	netievent_tcpdnsclose,
 	netievent_tcpdnssend,
 	netievent_tcpdnsread,
 	netievent_tcpdnscancel,
-	netievent_tcpdnsclose,
 	netievent_tcpdnsstop,
 
 	netievent_tlsclose,
@@ -268,19 +273,18 @@ typedef enum isc__netievent_type {
 
 	netievent_tlsdnsaccept,
 	netievent_tlsdnsconnect,
+	netievent_tlsdnsclose,
 	netievent_tlsdnssend,
 	netievent_tlsdnsread,
 	netievent_tlsdnscancel,
-	netievent_tlsdnsclose,
 	netievent_tlsdnsstop,
 	netievent_tlsdnscycle,
 	netievent_tlsdnsshutdown,
 
+	netievent_httpclose,
 	netievent_httpstop,
 	netievent_httpsend,
-	netievent_httpclose,
 
-	netievent_close,
 	netievent_shutdown,
 	netievent_stop,
 	netievent_pause,
@@ -288,6 +292,9 @@ typedef enum isc__netievent_type {
 	netievent_connectcb,
 	netievent_readcb,
 	netievent_sendcb,
+
+	netievent_task,
+	netievent_privilegedtask,
 
 	netievent_prio = 0xff, /* event type values higher than this
 				* will be treated as high-priority
@@ -300,6 +307,8 @@ typedef enum isc__netievent_type {
 	netievent_tlsdnslisten,
 	netievent_resume,
 	netievent_detach,
+	netievent_close,
+
 } isc__netievent_type;
 
 typedef union {
@@ -556,6 +565,36 @@ typedef struct isc__netievent__socket_quota {
 		isc__nm_put_netievent(nm, ievent);                             \
 	}
 
+typedef struct isc__netievent__task {
+	isc__netievent_type type;
+	isc_task_t *task;
+} isc__netievent__task_t;
+
+#define NETIEVENT_TASK_TYPE(type) \
+	typedef isc__netievent__task_t isc__netievent_##type##_t;
+
+#define NETIEVENT_TASK_DECL(type)                                \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type( \
+		isc_nm_t *nm, isc_task_t *task);                 \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,          \
+					  isc__netievent_##type##_t *ievent);
+
+#define NETIEVENT_TASK_DEF(type)                                               \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
+		isc_nm_t *nm, isc_task_t *task) {                              \
+		isc__netievent_##type##_t *ievent =                            \
+			isc__nm_get_netievent(nm, netievent_##type);           \
+		ievent->task = task;                                           \
+                                                                               \
+		return (ievent);                                               \
+	}                                                                      \
+                                                                               \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+					  isc__netievent_##type##_t *ievent) { \
+		ievent->task = NULL;                                           \
+		isc__nm_put_netievent(nm, ievent);                             \
+	}
+
 typedef struct isc__netievent_udpsend {
 	NETIEVENT__SOCKET;
 	isc_sockaddr_t peer;
@@ -617,6 +656,7 @@ struct isc_nm {
 	uint32_t nworkers;
 	isc_mutex_t lock;
 	isc_condition_t wkstatecond;
+	isc_condition_t wkpausecond;
 	isc__networker_t *workers;
 
 	isc_stats_t *stats;
@@ -631,6 +671,8 @@ struct isc_nm {
 	uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;
 
+	atomic_bool paused;
+
 	/*
 	 * Active connections are being closed and new connections are
 	 * no longer allowed.
@@ -643,7 +685,7 @@ struct isc_nm {
 	 * or pause, or we'll deadlock. We have to either re-enqueue our
 	 * event or wait for the other one to finish if we want to pause.
 	 */
-	atomic_bool interlocked;
+	atomic_int interlocked;
 
 	/*
 	 * Timeout values for TCP connections, corresponding to
@@ -1783,6 +1825,9 @@ NETIEVENT_TYPE(resume);
 NETIEVENT_TYPE(shutdown);
 NETIEVENT_TYPE(stop);
 
+NETIEVENT_TASK_TYPE(task);
+NETIEVENT_TASK_TYPE(privilegedtask);
+
 /* Now declared the helper functions */
 
 NETIEVENT_SOCKET_DECL(close);
@@ -1845,6 +1890,9 @@ NETIEVENT_DECL(pause);
 NETIEVENT_DECL(resume);
 NETIEVENT_DECL(shutdown);
 NETIEVENT_DECL(stop);
+
+NETIEVENT_TASK_DECL(task);
+NETIEVENT_TASK_DECL(privilegedtask);
 
 void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);

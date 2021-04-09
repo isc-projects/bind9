@@ -94,14 +94,13 @@ struct isc_timermgr {
 };
 
 void
-isc_timermgr_poke(isc_timermgr_t *manager0);
+isc_timermgr_poke(isc_timermgr_t *manager);
 
 static inline isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_result_t result;
 	isc_timermgr_t *manager;
 	isc_time_t due;
-	int cmp;
 
 	/*!
 	 * Note: the caller must ensure locking.
@@ -145,7 +144,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		/*
 		 * Already scheduled.
 		 */
-		cmp = isc_time_compare(&due, &timer->due);
+		int cmp = isc_time_compare(&due, &timer->due);
 		timer->due = due;
 		switch (cmp) {
 		case -1:
@@ -187,7 +186,6 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 
 static inline void
 deschedule(isc_timer_t *timer) {
-	bool need_wakeup = false;
 	isc_timermgr_t *manager;
 
 	/*
@@ -196,6 +194,7 @@ deschedule(isc_timer_t *timer) {
 
 	manager = timer->manager;
 	if (timer->index > 0) {
+		bool need_wakeup = false;
 		if (timer->index == 1) {
 			need_wakeup = true;
 		}
@@ -223,6 +222,7 @@ destroy(isc_timer_t *timer) {
 	(void)isc_task_purgerange(timer->task, timer, ISC_TIMEREVENT_FIRSTEVENT,
 				  ISC_TIMEREVENT_LASTEVENT, NULL);
 	deschedule(timer);
+
 	UNLINK(manager->timers, timer, link);
 
 	UNLOCK(&manager->lock);
@@ -467,10 +467,6 @@ isc_timer_touch(isc_timer_t *timer) {
 
 void
 isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
-	/*
-	 * Attach *timerp to timer.
-	 */
-
 	REQUIRE(VALID_TIMER(timer));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 	isc_refcount_increment(&timer->references);

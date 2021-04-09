@@ -17,6 +17,7 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sockaddr.h>
@@ -135,7 +136,8 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char **argv) {
 	char *keyname;
-	isc_taskmgr_t *taskmgr;
+	isc_nm_t *netmgr;
+	isc_taskmgr_t *taskmgr = NULL;
 	isc_timermgr_t *timermgr;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *sock;
@@ -177,8 +179,9 @@ main(int argc, char **argv) {
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	taskmgr = NULL;
-	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
+	netmgr = isc_nm_start(mctx, 1);
+
+	RUNCHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
 	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;
@@ -235,6 +238,7 @@ main(int argc, char **argv) {
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);
+	isc_nm_destroy(&netmgr);
 	isc_socket_detach(&sock);
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
