@@ -1599,7 +1599,7 @@ failure:
 
 isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			const char *filename) {
+			const char *filename, bool *recovered) {
 	dns_journal_t *j = NULL;
 	isc_result_t result;
 
@@ -1621,12 +1621,11 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 	}
 
 	result = roll_forward(j, db, options);
-	if ((result == ISC_R_SUCCESS || result == DNS_R_UPTODATE) &&
-	    j->recovered) {
-		result = DNS_R_RECOVERABLE;
-	}
 
 failure:
+	if (recovered != NULL) {
+		*recovered = j->recovered;
+	}
 	dns_journal_destroy(&j);
 	return (result);
 }

@@ -4734,10 +4734,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			options = 0;
 		}
 		result = dns_journal_rollforward(zone->mctx, db, options,
-						 zone->journal);
-		if (result != ISC_R_SUCCESS && result != DNS_R_RECOVERABLE &&
-		    result != ISC_R_NOTFOUND && result != DNS_R_UPTODATE &&
-		    result != DNS_R_NOJOURNAL && result != ISC_R_RANGE)
+						 zone->journal, &fixjournal);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
+		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
+		    result != ISC_R_RANGE)
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 				      ISC_LOG_ERROR,
@@ -4758,12 +4758,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			      dns_result_totext(result));
 		if (result == ISC_R_SUCCESS) {
 			needdump = true;
-		} else if (result == DNS_R_RECOVERABLE) {
+		}
+		if (fixjournal) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 				      ISC_LOG_ERROR,
 				      "retried using old journal format");
-			needdump = true;
-			fixjournal = true;
 		}
 	}
 
@@ -5087,12 +5086,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 	result = ISC_R_SUCCESS;
 
+	if (fixjournal) {
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
+		zone_journal_compact(zone, zone->db, 0);
+	}
 	if (needdump) {
-		if (fixjournal) {
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
-			zone_journal_compact(zone, zone->db, 0);
-			zone_needdump(zone, 0);
-		} else if (zone->type == dns_zone_key) {
+		if (zone->type == dns_zone_key) {
 			zone_needdump(zone, 30);
 		} else {
 			zone_needdump(zone, DNS_DUMP_DELAY);
