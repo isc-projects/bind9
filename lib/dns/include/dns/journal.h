@@ -249,7 +249,7 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, uint32_t *ttl,
 
 isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			const char *filename);
+			const char *filename, bool *recovered);
 /*%<
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
@@ -260,6 +260,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
  *\li	'db' is a valid database which does not have a version
  *           open for writing.
  *\li   'filename' is the name of the journal file belonging to 'db'.
+ *\li	'recovered' is a optional pointer to a boolean that returns
+ *	whether a recoverable error was detected.
  *
  * Returns:
  *\li	DNS_R_NOJOURNAL when journal does not exist.
@@ -268,8 +270,6 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
  *\li	DNS_R_UPTODATE when the database was already up to date.
  *\li	ISC_R_SUCCESS journal has been applied successfully to the
  *      database without any issues.
- *\li	DNS_R_RECOVERABLE if successful or up to date, but the journal
- *      was found to contain at least one outdated transaction header.
  *
  *	others
  */
