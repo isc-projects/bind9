@@ -330,11 +330,14 @@ library_unexpected_error(const char *file, int line, const char *format,
 static void
 usage(void) {
 	fprintf(stderr, "usage: named [-4|-6] [-c conffile] [-d debuglevel] "
-			"[-E engine] [-f|-g]\n"
-			"             [-n number_of_cpus] [-p port] [-s] "
-			"[-S sockets] [-t chrootdir]\n"
-			"             [-u username] [-U listeners] "
-			"[-m {usage|trace|record|size|mctx}]\n"
+			"[-D comment] [-E engine]\n"
+			"             [-f|-g] [-L logfile] [-n number_of_cpus] "
+			"[-p port] [-s]\n"
+			"             [-S sockets] [-t chrootdir] [-u "
+			"username] [-U listeners]\n"
+			"             [-X lockfile] [-m "
+			"{usage|trace|record|size|mctx}]\n"
+			"             [-M fill|nofill]\n"
 			"usage: named [-v|-V]\n");
 }
 
