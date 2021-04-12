@@ -29,6 +29,18 @@ Security Fixes
 
 .. _Siva Kakarla: https://github.com/sivakesava1
 
+- When a server's configuration set the ``tkey-gssapi-keytab`` or
+  ``tkey-gssapi-credential`` option, a specially crafted GSS-TSIG query
+  could cause a buffer overflow in the ISC implementation of SPNEGO (a
+  protocol enabling negotiation of the security mechanism used for
+  GSSAPI authentication). This flaw could be exploited to crash
+  ``named`` binaries compiled for 64-bit platforms, and could enable
+  remote code execution when ``named`` was compiled for 32-bit
+  platforms. (CVE-2021-25216)
+
+  This vulnerability was reported to us as ZDI-CAN-13347 by Trend Micro
+  Zero Day Initiative. [GL #2604]
+
 Known Issues
 ~~~~~~~~~~~~
 
