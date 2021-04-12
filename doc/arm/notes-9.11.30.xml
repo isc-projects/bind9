@@ -57,54 +57,15 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.30-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.30-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
         <para>
-	  The GSSAPI no longer uses the ISC implementation of the SPNEGO
-	  mechanism and instead relies on the SPNEGO implementation from the
-	  system Kerberos library. All major Kerberos libraries contain the
-	  SPNEGO mechanism implementation. [GL #2607]
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
+          The ISC implementation of SPNEGO was removed from BIND 9 source code.
+          Instead, BIND 9 now always uses the SPNEGO implementation provided by
+          the system GSSAPI library when it is built with GSSAPI support. All
+          major contemporary Kerberos/GSSAPI libraries contain an implementation
+          of the SPNEGO mechanism. [GL #2607]
         </para>
       </listitem>
     </itemizedlist>
