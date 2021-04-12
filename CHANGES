@@ -37,6 +37,8 @@
 			nonsensical values and both issues have been fixed.
 			[GL #389] [GL #2289]
 
+	--- 9.16.14 released ---
+
 5617.	[security]	A specially crafted GSS-TSIG query could cause a buffer
 			overflow in the ISC implementation of SPNEGO.
 			(CVE-2021-25216) [GL #2604]
