@@ -72,21 +72,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Previously, a memory leak could occur when ``named`` failed to bind a
-  UDP socket to a network interface. This has been fixed. [GL #2575]
-
-- After ``rndc checkds -checkds`` or ``rndc dnssec -rollover`` is used,
-  ``named`` now immediately attempts to reconfigure zone keys. This
-  change prevents unnecessary key rollover delays. [GL #2488]
-
-- Zones using KASP could not be thawed after they were frozen using
-  ``rndc freeze``. This has been fixed. [GL #2523]
-
-- CDS/CDNSKEY DELETE records are now removed when a zone transitions
-  from a secure to an insecure state. ``named-checkzone`` also no longer
-  reports an error when such records are found in an unsigned zone.
-  [GL #2517]
-
 - TCP idle and initial timeouts were being incorrectly applied: only the
   ``tcp-initial-timeout`` was applied on the whole connection, even if
   the connection were still active, which could prevent a large zone
@@ -106,3 +91,18 @@ Bug Fixes
   corrupt state. (Other zone journal files were not affected.) This has
   been fixed. If a corrupt journal file is detected, ``named`` can now
   recover from it. [GL #2600]
+
+- CDS/CDNSKEY DELETE records are now removed when a zone transitions
+  from a secure to an insecure state. ``named-checkzone`` also no longer
+  reports an error when such records are found in an unsigned zone.
+  [GL #2517]
+
+- Zones using KASP could not be thawed after they were frozen using
+  ``rndc freeze``. This has been fixed. [GL #2523]
+
+- After ``rndc checkds -checkds`` or ``rndc dnssec -rollover`` is used,
+  ``named`` now immediately attempts to reconfigure zone keys. This
+  change prevents unnecessary key rollover delays. [GL #2488]
+
+- Previously, a memory leak could occur when ``named`` failed to bind a
+  UDP socket to a network interface. This has been fixed. [GL #2575]
