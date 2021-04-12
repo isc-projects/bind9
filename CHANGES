@@ -1,3 +1,5 @@
+	--- 9.17.12 released ---
+
 5617.	[placeholder]
 
 5616.	[security]	named crashed when a DNAME record placed in the ANSWER
