@@ -1,3 +1,6 @@
+5634.	[bug]		Don't roll keys when the private key file is offline.
+			[GL #2596]
+
 5633.	[func]		Change the "max-ixfr-ratio" default to "unlimited".
 			[GL #2671]
 

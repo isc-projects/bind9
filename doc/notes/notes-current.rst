@@ -71,3 +71,6 @@ Bug Fixes
   between the new keys too. :gl:`#2628`
 
 - Update ZONEMD to match RFC 8976. :gl:`#2658`
+
+- With ``dnssec-policy```, don't roll keys if the private key file is offline.
+  :gl:`#2596`
