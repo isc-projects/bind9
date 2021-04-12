@@ -98,6 +98,10 @@ Bug Fixes
   been fixed. If a corrupt journal file is detected, ``named`` can now
   recover from it. [GL #2600]
 
+- When sending queries over TCP, ``dig`` now properly handles ``+tries=1
+  +retry=0`` by not retrying the connection when the remote server
+  closes the connection prematurely. [GL #2490]
+
 - CDS/CDNSKEY DELETE records are now removed when a zone transitions
   from a secure to an insecure state. ``named-checkzone`` also no longer
   reports an error when such records are found in an unsigned zone.
