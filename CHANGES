@@ -5,6 +5,10 @@
 			configuration included the "tkey-gssapi-credential"
 			option. This has been fixed. [GL #2634]
 
+5617.	[security]	A specially crafted GSS-TSIG query could cause a buffer
+			overflow in the ISC implementation of SPNEGO.
+			(CVE-2021-25216) [GL #2604]
+
 5616.	[security]	named crashed when a DNAME record placed in the ANSWER
 			section during DNAME chasing turned out to be the final
 			answer to a client query. (CVE-2021-25215) [GL #2540]
