@@ -57,36 +57,6 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes-9.11.30-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes-9.11.30-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -96,16 +66,6 @@
           the system GSSAPI library when it is built with GSSAPI support. All
           major contemporary Kerberos/GSSAPI libraries contain an implementation
           of the SPNEGO mechanism. [GL #2607]
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
         </para>
       </listitem>
     </itemizedlist>
