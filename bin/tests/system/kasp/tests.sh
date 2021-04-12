@@ -326,6 +326,27 @@ retry_quiet 10 update_is_signed "10.0.0.11" "10.0.0.44" || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+# Move the private key file, a rekey event should not introduce replacement
+# keys.
+ret=0
+echo_i "test that if private key files are inaccessible this doesn't trigger a rollover ($n)"
+basefile=$(key_get KEY1 BASEFILE)
+mv "${basefile}.private" "${basefile}.offline"
+rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "offline, policy default" $DIR/named.run || ret=1
+mv "${basefile}.offline" "${basefile}.private"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Nothing has changed.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+set_keytimes_csk_policy
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
 #
 # Zone: dynamic.kasp
 #
@@ -1341,13 +1362,50 @@ dnssec_verify
 check_rrsig_refresh
 
 #
+# Zone: ksk-missing.autosign.
+#
+set_zone "ksk-missing.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+# Key properties, timings and states same as above.
+# Skip checking the private file, because it is missing.
+key_set "KEY1" "PRIVATE" "no"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# Restore the PRIVATE variable.
+key_set "KEY1" "PRIVATE" "yes"
+
+#
 # Zone: zsk-missing.autosign.
 #
 set_zone "zsk-missing.autosign"
 set_policy "autosign" "2" "300"
 set_server "ns3" "10.53.0.3"
 # Key properties, timings and states same as above.
-# TODO.
+# Skip checking the private file, because it is missing.
+key_set "KEY2" "PRIVATE" "no"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# For the apex, we expect the SOA to be signed with the KSK because the ZSK is
+# offline. Temporary treat KEY1 as a zone signing key too.
+set_keyrole "KEY1" "csk"
+set_zonesigning "KEY1" "yes"
+set_zonesigning "KEY2" "no"
+check_apex
+set_keyrole "KEY1" "ksk"
+set_zonesigning "KEY1" "no"
+set_zonesigning "KEY2" "yes"
+check_subdomain
+dnssec_verify
+
+# Restore the PRIVATE variable.
+key_set "KEY2" "PRIVATE" "yes"
 
 #
 # Zone: zsk-retired.autosign.
