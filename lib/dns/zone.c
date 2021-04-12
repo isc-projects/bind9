@@ -19809,8 +19809,8 @@ zone_rekey(dns_zone_t *zone) {
 	if (kasp != NULL) {
 		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
 			result = dns_keymgr_run(&zone->origin, zone->rdclass,
-						dir, mctx, &keys, kasp, now,
-						&nexttime);
+						dir, mctx, &keys, &dnskeys,
+						kasp, now, &nexttime);
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_ERROR,
 					   "zone_rekey:dns_dnssec_keymgr "
