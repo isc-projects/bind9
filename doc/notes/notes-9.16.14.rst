@@ -51,16 +51,6 @@ Known Issues
   comments, ``$INCLUDE`` directives) to be lost while preserving zone
   data itself. [GL #2623]
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -73,12 +63,6 @@ Feature Changes
 - The default value for the ``stale-answer-client-timeout`` option was
   changed from ``1800`` (ms) to ``off``. The default value may be
   changed again in future releases as this feature matures. [GL #2608]
-
-- Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
-  the minimum of the SOA MINIMUM value and the SOA TTL. [GL #2347].
-
-- Reduce the supported maximum number of iterations that can be
-  configured in an NSEC3 zones to 150. [GL #2642]
 
 Bug Fixes
 ~~~~~~~~~
@@ -121,15 +105,3 @@ Bug Fixes
 
 - Previously, a memory leak could occur when ``named`` failed to bind a
   UDP socket to a network interface. This has been fixed. [GL #2575]
-
-- When dumping the cache to file, TTLs were being increased with
-  ``max-stale-ttl``. Also the comment above stale RRsets could have nonsensical
-  values if the RRset was still marked a stale but the ``max-stale-ttl`` has
-  passed (and is actually an RRset awaiting cleanup). Both issues have now
-  been fixed. [GL #389] [GL #2289]
-
-- ``named`` would overwrite a zone file unconditionally when it recovered from
-  a corrupted journal. [GL #2623]
-
-- With ``dnssec-policy``, when creating new keys also check for keyid conflicts
-  between the new keys too. [GL #2628]
