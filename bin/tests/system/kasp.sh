@@ -803,10 +803,12 @@ check_dnssecstatus() {
 
 # Check if RRset of type $1 in file $2 is signed with the right keys.
 # The right keys are the ones that expect a signature and matches the role $3.
-check_signatures() {
+_check_signatures() {
 	_qtype=$1
 	_file=$2
 	_role=$3
+
+	numsigs=0
 
 	if [ "$_role" = "KSK" ]; then
 		_expect_type=EXPECT_KRRSIG
@@ -815,28 +817,41 @@ check_signatures() {
 	fi
 
 	if [ "$(key_get KEY1 "$_expect_type")" = "yes" ] && [ "$(key_get KEY1 "$_role")" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY1 ID)$" > /dev/null || _log_error "${_qtype} RRset not signed with key $(key_get KEY1 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY1 ID)$" > /dev/null || return 1
+		numsigs=$((numsigs+1))
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY1 ID)$" > /dev/null && _log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY1 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY1 ID)$" > /dev/null && return 1
 	fi
 
 	if [ "$(key_get KEY2 "$_expect_type")" = "yes" ] && [ "$(key_get KEY2 "$_role")" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY2 ID)$" > /dev/null || _log_error "${_qtype} RRset not signed with key $(key_get KEY2 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY2 ID)$" > /dev/null || return 1
+		numsigs=$((numsigs+1))
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY2 ID)$" > /dev/null && _log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY2 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY2 ID)$" > /dev/null && return 1
 	fi
 
 	if [ "$(key_get KEY3 "$_expect_type")" = "yes" ] && [ "$(key_get KEY3 "$_role")" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY3 ID)$" > /dev/null || _log_error "${_qtype} RRset not signed with key $(key_get KEY3 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY3 ID)$" > /dev/null || return 1
+		numsigs=$((numsigs+1))
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY3 ID)$" > /dev/null && _log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY3 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY3 ID)$" > /dev/null && return 1
 	fi
 
 	if [ "$(key_get KEY4 "$_expect_type")" = "yes" ] && [ "$(key_get KEY4 "$_role")" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY4 ID)$" > /dev/null || _log_error "${_qtype} RRset not signed with key $(key_get KEY4 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY4 ID)$" > /dev/null || return 1
+		numsigs=$((numsigs+1))
 	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY4 ID)$" > /dev/null && _log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY4 ID)"
+		get_keys_which_signed "$_qtype" "$_file" | grep "^$(key_get KEY4 ID)$" > /dev/null && return 1
 	fi
+
+	lines=$(get_keys_which_signed "${_qtype}" "${_file}" | wc -l)
+	test "$lines" -eq "$numsigs" || echo_i "bad number of signatures for $_qtype (got $lines, expected $numsigs)"
+	test "$lines" -eq "$numsigs" || return 1
+
+	return 0
+}
+check_signatures() {
+	retry_quiet 3 _check_signatures $1 $2 $3 || _log_error "RRset $1 in zone $ZONE incorrectly signed"
 }
 
 response_has_cds_for_key() (
@@ -871,6 +886,8 @@ check_cds() {
 	echo_i "check CDS and CDNSKEY rrset are signed correctly for zone ${ZONE} ($n)"
 	ret=0
 
+	_checksig=0
+
 	_dig_with_opts "$ZONE" "@${SERVER}" "CDS" > "dig.out.$DIR.test$n.cds" || _log_error "dig ${ZONE} CDS failed"
 	grep "status: NOERROR" "dig.out.$DIR.test$n.cds" > /dev/null || _log_error "mismatch status in DNS response"
 
@@ -883,13 +900,13 @@ check_cds() {
 	else
 		grep "CDS.*0 0 0 00" "dig.out.$DIR.test$n.cds" > /dev/null || _log_error "missing CDS DELETE record in DNS response"
 		grep "CDNSKEY.*0 3 0 AA==" "dig.out.$DIR.test$n.cdnskey" > /dev/null || _log_error "missing CDNSKEY DELETE record in DNS response"
+		_checksig=1
 	fi
 
 	if [ "$(key_get KEY1 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DS)" = "omnipresent" ]; then
 		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY1 ID)"
-		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
 		response_has_cdnskey_for_key KEY1 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY1 ID)"
-		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
+		_checksig=1
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
 		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY1 ID)"
 		# KEY1 should not have an associated CDNSKEY, but there may be
@@ -900,9 +917,8 @@ check_cds() {
 
 	if [ "$(key_get KEY2 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DS)" = "omnipresent" ]; then
 		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY2 ID)"
-		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
 		response_has_cdnskey_for_key KEY2 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY2 ID)"
-		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
+		_checksig=1
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
 		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY2 ID)"
 		# KEY2 should not have an associated CDNSKEY, but there may be
@@ -913,9 +929,8 @@ check_cds() {
 
 	if [ "$(key_get KEY3 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DS)" = "omnipresent" ]; then
 		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY3 ID)"
-		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
 		response_has_cdnskey_for_key KEY3 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY3 ID)"
-		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
+		_checksig=1
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
 		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY3 ID)"
 		# KEY3 should not have an associated CDNSKEY, but there may be
@@ -926,9 +941,8 @@ check_cds() {
 
 	if [ "$(key_get KEY4 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DS)" = "omnipresent" ]; then
 		response_has_cds_for_key KEY4 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY4 ID)"
-		check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
 		response_has_cdnskey_for_key KEY4 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY4 ID)"
-		check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
+		_checksig=1
 	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
 		response_has_cds_for_key KEY4 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY4 ID)"
 		# KEY4 should not have an associated CDNSKEY, but there may be
@@ -937,68 +951,81 @@ check_cds() {
 		# so let's skip this check for now.
 	fi
 
+	test "$_checksig" -eq 0 || check_signatures "CDS" "dig.out.$DIR.test$n.cds" "KSK"
+	test "$_checksig" -eq 0 || check_signatures "CDNSKEY" "dig.out.$DIR.test$n.cdnskey" "KSK"
+
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
+}
+
+
+# Test DNSKEY query.
+_check_apex_dnskey() {
+	_dig_with_opts "$ZONE" "@${SERVER}" "DNSKEY" > "dig.out.$DIR.test$n" || return 1
+	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || return 1
+
+	_checksig=0
+
+	if [ "$(key_get KEY1 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DNSKEY)" = "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_checksig=1
+	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+	fi
+
+	if [ "$(key_get KEY2 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DNSKEY)" = "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_checksig=1
+	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+	fi
+
+	if [ "$(key_get KEY3 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DNSKEY)" = "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_checksig=1
+	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+	fi
+
+	if [ "$(key_get KEY4 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DNSKEY)" = "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_checksig=1
+	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+	fi
+
+	test "$_checksig" -eq 0 && return 0
+
+	retry_quiet 3 _check_signatures "DNSKEY" "dig.out.$DIR.test$n" "KSK" || return 1
+
+	return 0
 }
 
 # Test the apex of a configured zone. This checks that the SOA and DNSKEY
 # RRsets are signed correctly and with the appropriate keys.
 check_apex() {
+
 	# Test DNSKEY query.
-	_qtype="DNSKEY"
 	n=$((n+1))
-	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	echo_i "check DNSKEY rrset is signed correctly for zone ${ZONE} ($n)"
 	ret=0
-	_dig_with_opts "$ZONE" "@${SERVER}" $_qtype > "dig.out.$DIR.test$n" || _log_error "dig ${ZONE} ${_qtype} failed"
-	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || _log_error "mismatch status in DNS response"
-
-	if [ "$(key_get KEY1 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing ${_qtype} record in response for key $(key_get KEY1 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
-		numkeys=$((numkeys+1))
-	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && _log_error "unexpected ${_qtype} record in response for key $(key_get KEY1 ID)"
-	fi
-
-	if [ "$(key_get KEY2 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing ${_qtype} record in response for key $(key_get KEY2 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
-		numkeys=$((numkeys+1))
-	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && _log_error "unexpected ${_qtype} record in response for key $(key_get KEY2 ID)"
-	fi
-
-	if [ "$(key_get KEY3 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing ${_qtype} record in response for key $(key_get KEY3 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
-		numkeys=$((numkeys+1))
-	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && _log_error "unexpected ${_qtype} record in response for key $(key_get KEY3 ID)"
-	fi
-
-	if [ "$(key_get KEY4 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing ${_qtype} record in response for key $(key_get KEY4 ID)"
-		check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
-		numkeys=$((numkeys+1))
-	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && _log_error "unexpected ${_qtype} record in response for key $(key_get KEY4 ID)"
-	fi
-
-	lines=$(get_keys_which_signed $_qtype "dig.out.$DIR.test$n" | wc -l)
-	check_signatures $_qtype "dig.out.$DIR.test$n" "KSK"
+	retry_quiet 3 _check_apex_dnskey || ret=1
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 
+	# We retry the DNSKEY query for at most three seconds to avoid test
+	# failures due to timing issues. If the DNSKEY query check passes this
+	# means the zone is resigned and further apex checks (SOA, CDS, CDNSKEY)
+	# don't need to be retried quietly.
+
 	# Test SOA query.
-	_qtype="SOA"
 	n=$((n+1))
-	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	echo_i "check SOA rrset is signed correctly for zone ${ZONE} ($n)"
 	ret=0
-	_dig_with_opts "$ZONE" "@${SERVER}" $_qtype > "dig.out.$DIR.test$n" || _log_error "dig ${ZONE} ${_qtype} failed"
+	_dig_with_opts "$ZONE" "@${SERVER}" "SOA" > "dig.out.$DIR.test$n" || _log_error "dig ${ZONE} SOA failed"
 	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || _log_error "mismatch status in DNS response"
-	grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*${_qtype}.*" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing ${_qtype} record in response"
-	lines=$(get_keys_which_signed $_qtype "dig.out.$DIR.test$n" | wc -l)
-	check_signatures $_qtype "dig.out.$DIR.test$n" "ZSK"
+	grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*SOA.*" "dig.out.$DIR.test$n" > /dev/null || _log_error "missing SOA record in response"
+	check_signatures "SOA" "dig.out.$DIR.test$n" "ZSK"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 
