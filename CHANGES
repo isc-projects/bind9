@@ -23,8 +23,10 @@
 5614.	[bug]		Ensure all resources are properly cleaned up when a call
 			to gss_accept_sec_context() fails. [GL #2620]
 
-5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
-			implementation. [GL #2607]
+5609.	[func]		The ISC implementation of SPNEGO was removed from BIND 9
+			source code. It was no longer necessary as all major
+			contemporary Kerberos/GSSAPI libraries include support
+			for SPNEGO. [GL #2607]
 
 	--- 9.11.29 released ---
 
