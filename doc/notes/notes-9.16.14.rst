@@ -51,16 +51,6 @@ Known Issues
   comments, ``$INCLUDE`` directives) to be lost while preserving zone
   data itself. [GL #2623]
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
