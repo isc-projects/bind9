@@ -59,6 +59,7 @@ VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
 # EXPECT_ZRRSIG
 # EXPECT_KRRSIG
 # LEGACY
+# PRIVATE
 
 key_key() {
 	echo "${1}__${2}"
@@ -112,6 +113,7 @@ key_clear() {
 	key_set "$1" "EXPECT_ZRRSIG" 'no'
 	key_set "$1" "EXPECT_KRRSIG" 'no'
 	key_set "$1" "LEGACY" 'no'
+	key_set "$1" "PRIVATE" 'yes'
 }
 
 # Start clear.
@@ -303,6 +305,7 @@ check_key() {
 	_dnskey_ttl="$DNSKEY_TTL"
 	_lifetime=$(key_get "$1" LIFETIME)
 	_legacy=$(key_get "$1" LEGACY)
+	_private=$(key_get "$1" PRIVATE)
 
 	_published=$(key_get "$1" PUBLISHED)
 	_active=$(key_get "$1" ACTIVE)
@@ -341,7 +344,9 @@ check_key() {
 
 	# Check file existence.
 	[ -s "$KEY_FILE" ] || ret=1
-	[ -s "$PRIVATE_FILE" ] || ret=1
+	if [ "$_private" = "yes" ]; then
+		[ -s "$PRIVATE_FILE" ] || ret=1
+	fi
 	if [ "$_legacy" = "no" ]; then
 		[ -s "$STATE_FILE" ] || ret=1
 	fi
@@ -352,7 +357,9 @@ check_key() {
 	grep "; Created:" "$KEY_FILE" > "${ZONE}.${KEY_ID}.${_alg_num}.created" || _log_error "mismatch created comment in $KEY_FILE"
 	KEY_CREATED=$(awk '{print $3}' < "${ZONE}.${KEY_ID}.${_alg_num}.created")
 
-	grep "Created: ${KEY_CREATED}" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch created in $PRIVATE_FILE"
+	if [ "$_private" = "yes" ]; then
+		grep "Created: ${KEY_CREATED}" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch created in $PRIVATE_FILE"
+	fi
 	if [ "$_legacy" = "no" ]; then
 		grep "Generated: ${KEY_CREATED}" "$STATE_FILE" > /dev/null || _log_error "mismatch generated in $STATE_FILE"
 	fi
@@ -363,8 +370,10 @@ check_key() {
 	grep "This is a ${_role2} key, keyid ${_key_id}, for ${_zone}." "$KEY_FILE" > /dev/null || _log_error "mismatch top comment in $KEY_FILE"
 	grep "${_zone}\. ${_dnskey_ttl} IN DNSKEY ${_flags} 3 ${_alg_num}" "$KEY_FILE" > /dev/null || _log_error "mismatch DNSKEY record in $KEY_FILE"
 	# Now check the private key file.
-	grep "Private-key-format: v1.3" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch private key format in $PRIVATE_FILE"
-	grep "Algorithm: ${_alg_num} (${_alg_string})" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch algorithm in $PRIVATE_FILE"
+	if [ "$_private" = "yes" ]; then
+		grep "Private-key-format: v1.3" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch private key format in $PRIVATE_FILE"
+		grep "Algorithm: ${_alg_num} (${_alg_string})" "$PRIVATE_FILE" > /dev/null || _log_error "mismatch algorithm in $PRIVATE_FILE"
+	fi
 	# Now check the key state file.
 	if [ "$_legacy" = "no" ]; then
 		grep "This is the state of key ${_key_id}, for ${_zone}." "$STATE_FILE" > /dev/null || _log_error "mismatch top comment in $STATE_FILE"
@@ -444,6 +453,8 @@ check_timingmetadata() {
 	_key_file="${_base_file}.key"
 	_private_file="${_base_file}.private"
 	_state_file="${_base_file}.state"
+	_legacy=$(key_get "$1" LEGACY)
+	_private=$(key_get "$1" PRIVATE)
 
 	_published=$(key_get "$1" PUBLISHED)
 	_syncpublish=$(key_get "$1" SYNCPUBLISH)
@@ -459,13 +470,17 @@ check_timingmetadata() {
 
 	if [ "$_published" = "none" ]; then
 		grep "; Publish:" "${_key_file}" > /dev/null && _log_error "unexpected publish comment in ${_key_file}"
-		grep "Publish:" "${_private_file}" > /dev/null && _log_error "unexpected publish in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "Publish:" "${_private_file}" > /dev/null && _log_error "unexpected publish in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Published: " "${_state_file}" > /dev/null && _log_error "unexpected publish in ${_state_file}"
 		fi
 	else
 		grep "; Publish: $_published" "${_key_file}" > /dev/null || _log_error "mismatch publish comment in ${_key_file} (expected ${_published})"
-		grep "Publish: $_published" "${_private_file}" > /dev/null || _log_error "mismatch publish in ${_private_file} (expected ${_published})"
+		if [ "$_private" = "yes" ]; then
+			grep "Publish: $_published" "${_private_file}" > /dev/null || _log_error "mismatch publish in ${_private_file} (expected ${_published})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Published: $_published" "${_state_file}" > /dev/null || _log_error "mismatch publish in ${_state_file} (expected ${_published})"
 		fi
@@ -473,13 +488,17 @@ check_timingmetadata() {
 
 	if [ "$_syncpublish" = "none" ]; then
 		grep "; SyncPublish:" "${_key_file}" > /dev/null && _log_error "unexpected syncpublish comment in ${_key_file}"
-		grep "SyncPublish:" "${_private_file}" > /dev/null && _log_error "unexpected syncpublish in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "SyncPublish:" "${_private_file}" > /dev/null && _log_error "unexpected syncpublish in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "PublishCDS: " "${_state_file}" > /dev/null && _log_error "unexpected syncpublish in ${_state_file}"
 		fi
 	else
 		grep "; SyncPublish: $_syncpublish" "${_key_file}" > /dev/null || _log_error "mismatch syncpublish comment in ${_key_file} (expected ${_syncpublish})"
-		grep "SyncPublish: $_syncpublish" "${_private_file}" > /dev/null || _log_error "mismatch syncpublish in ${_private_file} (expected ${_syncpublish})"
+		if [ "$_private" = "yes" ]; then
+			grep "SyncPublish: $_syncpublish" "${_private_file}" > /dev/null || _log_error "mismatch syncpublish in ${_private_file} (expected ${_syncpublish})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "PublishCDS: $_syncpublish" "${_state_file}" > /dev/null || _log_error "mismatch syncpublish in ${_state_file} (expected ${_syncpublish})"
 		fi
@@ -487,13 +506,17 @@ check_timingmetadata() {
 
 	if [ "$_active" = "none" ]; then
 		grep "; Activate:" "${_key_file}" > /dev/null && _log_error "unexpected active comment in ${_key_file}"
-		grep "Activate:" "${_private_file}" > /dev/null && _log_error "unexpected active in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "Activate:" "${_private_file}" > /dev/null && _log_error "unexpected active in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Active: " "${_state_file}" > /dev/null && _log_error "unexpected active in ${_state_file}"
 		fi
 	else
 		grep "; Activate: $_active" "${_key_file}" > /dev/null || _log_error "mismatch active comment in ${_key_file} (expected ${_active})"
-		grep "Activate: $_active" "${_private_file}" > /dev/null || _log_error "mismatch active in ${_private_file} (expected ${_active})"
+		if [ "$_private" = "yes" ]; then
+			grep "Activate: $_active" "${_private_file}" > /dev/null || _log_error "mismatch active in ${_private_file} (expected ${_active})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Active: $_active" "${_state_file}" > /dev/null || _log_error "mismatch active in ${_state_file} (expected ${_active})"
 		fi
@@ -501,13 +524,17 @@ check_timingmetadata() {
 
 	if [ "$_retired" = "none" ]; then
 		grep "; Inactive:" "${_key_file}" > /dev/null && _log_error "unexpected retired comment in ${_key_file}"
-		grep "Inactive:" "${_private_file}" > /dev/null && _log_error "unexpected retired in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "Inactive:" "${_private_file}" > /dev/null && _log_error "unexpected retired in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Retired: " "${_state_file}" > /dev/null && _log_error "unexpected retired in ${_state_file}"
 		fi
 	else
 		grep "; Inactive: $_retired" "${_key_file}" > /dev/null || _log_error "mismatch retired comment in ${_key_file} (expected ${_retired})"
-		grep "Inactive: $_retired" "${_private_file}" > /dev/null || _log_error "mismatch retired in ${_private_file} (expected ${_retired})"
+		if [ "$_private" = "yes" ]; then
+			grep "Inactive: $_retired" "${_private_file}" > /dev/null || _log_error "mismatch retired in ${_private_file} (expected ${_retired})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Retired: $_retired" "${_state_file}" > /dev/null || _log_error "mismatch retired in ${_state_file} (expected ${_retired})"
 		fi
@@ -515,13 +542,17 @@ check_timingmetadata() {
 
 	if [ "$_revoked" = "none" ]; then
 		grep "; Revoke:" "${_key_file}" > /dev/null && _log_error "unexpected revoked comment in ${_key_file}"
-		grep "Revoke:" "${_private_file}" > /dev/null && _log_error "unexpected revoked in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "Revoke:" "${_private_file}" > /dev/null && _log_error "unexpected revoked in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Revoked: " "${_state_file}" > /dev/null && _log_error "unexpected revoked in ${_state_file}"
 		fi
 	else
 		grep "; Revoke: $_revoked" "${_key_file}" > /dev/null || _log_error "mismatch revoked comment in ${_key_file} (expected ${_revoked})"
-		grep "Revoke: $_revoked" "${_private_file}" > /dev/null || _log_error "mismatch revoked in ${_private_file} (expected ${_revoked})"
+		if [ "$_private" = "yes" ]; then
+			grep "Revoke: $_revoked" "${_private_file}" > /dev/null || _log_error "mismatch revoked in ${_private_file} (expected ${_revoked})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Revoked: $_revoked" "${_state_file}" > /dev/null || _log_error "mismatch revoked in ${_state_file} (expected ${_revoked})"
 		fi
@@ -529,13 +560,17 @@ check_timingmetadata() {
 
 	if [ "$_removed" = "none" ]; then
 		grep "; Delete:" "${_key_file}" > /dev/null && _log_error "unexpected removed comment in ${_key_file}"
-		grep "Delete:" "${_private_file}" > /dev/null && _log_error "unexpected removed in ${_private_file}"
+		if [ "$_private" = "yes" ]; then
+			grep "Delete:" "${_private_file}" > /dev/null && _log_error "unexpected removed in ${_private_file}"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Removed: " "${_state_file}" > /dev/null && _log_error "unexpected removed in ${_state_file}"
 		fi
 	else
 		grep "; Delete: $_removed" "${_key_file}" > /dev/null || _log_error "mismatch removed comment in ${_key_file} (expected ${_removed})"
-		grep "Delete: $_removed" "${_private_file}" > /dev/null || _log_error "mismatch removed in ${_private_file} (expected ${_removed})"
+		if [ "$_private" = "yes" ]; then
+			grep "Delete: $_removed" "${_private_file}" > /dev/null || _log_error "mismatch removed in ${_private_file} (expected ${_removed})"
+		fi
 		if [ "$_legacy" = "no" ]; then
 			grep "Removed: $_removed" "${_state_file}" > /dev/null || _log_error "mismatch removed in ${_state_file} (expected ${_removed})"
 		fi
@@ -672,7 +707,7 @@ _check_keys() {
 	# Check key files.
 	_ids=$(get_keyids "$DIR" "$ZONE")
 	for _id in $_ids; do
-		# There are three key files with the same algorithm.
+		# There are multiple key files with the same algorithm.
 		# Check them until a match is found.
 		ret=0
 		echo_i "check key id $_id"
