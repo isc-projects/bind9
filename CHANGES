@@ -69,35 +69,40 @@
 			right after recursion for a client query finished.
 			[GL #2594]
 
-5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
-			implementation. [GL #2607]
+5609.	[func]		The ISC implementation of SPNEGO was removed from BIND 9
+			source code. It was no longer necessary as all major
+			contemporary Kerberos/GSSAPI libraries include support
+			for SPNEGO. [GL #2607]
 
-5608.	[bug]		Dig now honors +retry=0 and +tries=1 when queries
-			are sent over TCP (+tcp) and the remote server closes
-			the connection prematurely. [GL #2490]
+5608.	[bug]		When sending queries over TCP, dig now properly handles
+			"+tries=1 +retry=0" by not retrying the connection when
+			the remote server closes the connection prematurely.
+			[GL #2490]
 
-5607.	[bug]		Rekey after 'rndc dnssec -checkds' or 'rndc dnssec
-			-rollover' command is received, because such a command
-			may influence the next key event. [GL #2488]
+5607.	[bug]		As "rndc dnssec -checkds" and "rndc dnssec -rollover"
+			commands may affect the next scheduled key event,
+			reconfiguration of zone keys is now triggered after
+			receiving either of these commands to prevent
+			unnecessary key rollover delays. [GL #2488]
 
-5606.	[bug]		CDS/CDNSKEY DELETE records were not removed when a zone
-			transitioned from secure to insecure. "named-checkzone"
-			should not complain if such records exist in an
-			unsigned zone. [GL #2517]
+5606.	[bug]		CDS/CDNSKEY DELETE records are now removed when a zone
+			transitions from a secure to an insecure state.
+			named-checkzone also no longer reports an error when
+			such records are found in an unsigned zone. [GL #2517]
 
-5605.	[bug]		"dig -u" now uses CLOCK_REALTIME for more accurate
-			time reporting. [GL #2592]
+5605.	[bug]		"dig -u" now uses the CLOCK_REALTIME clock source for
+			more accurate time reporting. [GL #2592]
 
 5603.	[bug]		Fix a memory leak that occurred when named failed to
 			bind a UDP socket to a network interface. [GL #2575]
 
-5602.	[bug]		Fix the TCPDNS and TLSDNS timers, so TCP initial
-			and idle timers work correctly. [GL #2573]
+5602.	[bug]		Fix TCPDNS and TLSDNS timers in Network Manager. This
+			makes the "tcp-initial-timeout" and "tcp-idle-timeout"
+			options work correctly again. [GL #2583]
 
-5601.	[bug]		Dynamic zones with dnssec-policy could not be thawed
-			because KASP zones were always considered dynamic;
-			previously, dynamic KASP zones did not check whether
-			updates were disabled. This has been fixed. [GL #2523]
+5601.	[bug]		Zones using KASP could not be thawed after they were
+			frozen using "rndc freeze". This has been fixed.
+			[GL #2523]
 
 	--- 9.16.13 released ---
 
