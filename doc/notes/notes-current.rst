@@ -14,7 +14,11 @@ Notes for BIND 9.17.12
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- A malformed incoming IXFR transfer could trigger an assertion failure
+  in ``named``, causing it to quit abnormally. (CVE-2021-25214)
+
+  ISC would like to thank Greg Kuechle of SaskTel for bringing this
+  vulnerability to our attention. [GL #2467]
 
 Known Issues
 ~~~~~~~~~~~~
