@@ -37,6 +37,23 @@
           bringing this vulnerability to our attention. [GL #2540]
         </para>
       </listitem>
+      <listitem>
+        <para>
+          When a server's configuration set the
+          <command>tkey-gssapi-keytab</command> or
+          <command>tkey-gssapi-credential</command> option, a specially crafted
+          GSS-TSIG query could cause a buffer overflow in the ISC implementation
+          of SPNEGO (a protocol enabling negotiation of the security mechanism
+          used for GSSAPI authentication). This flaw could be exploited to crash
+          <command>named</command> binaries compiled for 64-bit platforms, and
+          could enable remote code execution when <command>named</command> was
+          compiled for 32-bit platforms. (CVE-2021-25216)
+        </para>
+        <para>
+          This vulnerability was reported to us as ZDI-CAN-13347 by Trend Micro
+          Zero Day Initiative. [GL #2604]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
