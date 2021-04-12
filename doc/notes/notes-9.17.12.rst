@@ -29,21 +29,6 @@ Security Fixes
 
 .. _Siva Kakarla: https://github.com/sivakesava1
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -57,12 +42,6 @@ Feature Changes
 - The default value for the ``stale-answer-client-timeout`` option was
   changed from ``1800`` (ms) to ``off``. The default value may be
   changed again in future releases as this feature matures. [GL #2608]
-
-- Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
-  the minimum of the SOA MINIMUM value and the SOA TTL. [GL #2347].
-
-- Reduce the supported maximum number of iterations that can be
-  configured in an NSEC3 zones to 150. [GL #2642]
 
 Bug Fixes
 ~~~~~~~~~
@@ -105,21 +84,3 @@ Bug Fixes
 
 - ``named`` crashed after skipping a primary server while transferring a
   zone over TLS. This has been fixed. [GL #2562]
-
-- When dumping the cache to file, TTLs were being increased with
-  ``max-stale-ttl``. Also the comment above stale RRsets could have nonsensical
-  values if the RRset was still marked a stale but the ``max-stale-ttl`` has
-  passed (and is actually an RRset awaiting cleanup). Both issues have now
-  been fixed. [GL #389] [GL #2289]
-
-- ``named`` would overwrite a zone file unconditionally when it recovered from
-  a corrupted journal. [GL #2623]
-
-- After the networking manager was introduced to ``named`` to handle
-  incoming traffic, it was discovered that the recursive performance had been
-  degraded compared to the previous version (9.11).  This has been now fixed by
-  running internal tasks inside the networking manager worker threads, so
-  they do not compete for resources. [GL #2638]
-
-- With ``dnssec-policy``, when creating new keys also check for keyid conflicts
-  between the new keys too. [GL #2628]
