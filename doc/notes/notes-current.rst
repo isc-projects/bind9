@@ -91,3 +91,6 @@ Bug Fixes
 
 - ``named`` would overwrite a zone file unconditionally when it recovered from
   a corrupted journal. [GL #2623]
+
+- With ``dnssec-policy``, when creating new keys also check for keyid conflicts
+  between the new keys too. [GL #2628]
