@@ -187,6 +187,12 @@ dns_journal_empty(dns_journal_t *j);
  * Find out if a journal is empty.
  */
 
+bool
+dns_journal_recovered(dns_journal_t *j);
+/*<
+ * Find out if the journal could be opened using old journal format
+ */
+
 uint32_t
 dns_journal_first_serial(dns_journal_t *j);
 uint32_t
@@ -248,23 +254,18 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, uint32_t *ttl,
  */
 
 isc_result_t
-dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			const char *filename, bool *recovered);
+dns_journal_rollforward(dns_journal_t *j, dns_db_t *db, unsigned int options);
 /*%<
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
  * after a shutdown or crash.
  *
  * Requires:
- *\li   'mctx' is a valid memory context.
+ *\li   'journal' is a valid journal
  *\li	'db' is a valid database which does not have a version
  *           open for writing.
- *\li   'filename' is the name of the journal file belonging to 'db'.
- *\li	'recovered' is a optional pointer to a boolean that returns
- *	whether a recoverable error was detected.
  *
  * Returns:
- *\li	DNS_R_NOJOURNAL when journal does not exist.
  *\li	ISC_R_NOTFOUND when current serial in not in journal.
  *\li	ISC_R_RANGE when current serial in not in journals range.
  *\li	DNS_R_UPTODATE when the database was already up to date.
