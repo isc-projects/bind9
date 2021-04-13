@@ -22,23 +22,22 @@ static inline isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
-	return (generic_fromtext_ds(rdclass, type, lexer, origin, options,
-				    target, callbacks));
+	return (generic_fromtext_ds(CALL_FROMTEXT));
 }
 
 static inline isc_result_t
 totext_dlv(ARGS_TOTEXT) {
+	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
-	return (generic_totext_ds(rdata, tctx, target));
+	return (generic_totext_ds(CALL_TOTEXT));
 }
 
 static inline isc_result_t
 fromwire_dlv(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
-	return (generic_fromwire_ds(rdclass, type, source, dctx, options,
-				    target));
+	return (generic_fromwire_ds(CALL_FROMWIRE));
 }
 
 static inline isc_result_t
@@ -74,7 +73,7 @@ static inline isc_result_t
 fromstruct_dlv(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
-	return (generic_fromstruct_ds(rdclass, type, source, target));
+	return (generic_fromstruct_ds(CALL_FROMSTRUCT));
 }
 
 static inline isc_result_t
@@ -88,7 +87,7 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	dlv->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&dlv->common, link);
 
-	return (generic_tostruct_ds(rdata, target, mctx));
+	return (generic_tostruct_ds(CALL_TOSTRUCT));
 }
 
 static inline void

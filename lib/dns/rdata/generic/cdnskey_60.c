@@ -22,8 +22,7 @@ static inline isc_result_t
 fromtext_cdnskey(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_cdnskey);
 
-	return (generic_fromtext_key(rdclass, type, lexer, origin, options,
-				     target, callbacks));
+	return (generic_fromtext_key(CALL_FROMTEXT));
 }
 
 static inline isc_result_t
@@ -31,15 +30,14 @@ totext_cdnskey(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
 
-	return (generic_totext_key(rdata, tctx, target));
+	return (generic_totext_key(CALL_TOTEXT));
 }
 
 static inline isc_result_t
 fromwire_cdnskey(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_cdnskey);
 
-	return (generic_fromwire_key(rdclass, type, source, dctx, options,
-				     target));
+	return (generic_fromwire_key(CALL_FROMWIRE));
 }
 
 static inline isc_result_t
@@ -77,7 +75,7 @@ static inline isc_result_t
 fromstruct_cdnskey(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_cdnskey);
 
-	return (generic_fromstruct_key(rdclass, type, source, target));
+	return (generic_fromstruct_key(CALL_FROMSTRUCT));
 }
 
 static inline isc_result_t
@@ -92,7 +90,7 @@ tostruct_cdnskey(ARGS_TOSTRUCT) {
 	dnskey->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&dnskey->common, link);
 
-	return (generic_tostruct_key(rdata, target, mctx));
+	return (generic_tostruct_key(CALL_TOSTRUCT));
 }
 
 static inline void
