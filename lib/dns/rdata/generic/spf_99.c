@@ -19,24 +19,15 @@ fromtext_spf(ARGS_FROMTEXT) {
 
 	REQUIRE(type == dns_rdatatype_spf);
 
-	UNUSED(type);
-	UNUSED(rdclass);
-	UNUSED(origin);
-	UNUSED(options);
-	UNUSED(callbacks);
-
-	return (generic_fromtext_txt(rdclass, type, lexer, origin, options,
-				     target, callbacks));
+	return (generic_fromtext_txt(CALL_FROMTEXT));
 }
 
 static inline isc_result_t
 totext_spf(ARGS_TOTEXT) {
-
-	UNUSED(tctx);
-
+	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_spf);
 
-	return (generic_totext_txt(rdata, tctx, target));
+	return (generic_totext_txt(CALL_TOTEXT));
 }
 
 static inline isc_result_t
@@ -44,13 +35,7 @@ fromwire_spf(ARGS_FROMWIRE) {
 
 	REQUIRE(type == dns_rdatatype_spf);
 
-	UNUSED(type);
-	UNUSED(dctx);
-	UNUSED(rdclass);
-	UNUSED(options);
-
-	return (generic_fromwire_txt(rdclass, type, source, dctx, options,
-				     target));
+	return (generic_fromwire_txt(CALL_FROMWIRE));
 }
 
 static inline isc_result_t
@@ -82,7 +67,7 @@ fromstruct_spf(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_spf);
 
-	return (generic_fromstruct_txt(rdclass, type, source, target));
+	return (generic_fromstruct_txt(CALL_FROMSTRUCT));
 }
 
 static inline isc_result_t
@@ -99,7 +84,7 @@ tostruct_spf(ARGS_TOSTRUCT) {
 	spf->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&spf->common, link);
 
-	return (generic_tostruct_txt(rdata, target, mctx));
+	return (generic_tostruct_txt(CALL_TOSTRUCT));
 }
 
 static inline void
