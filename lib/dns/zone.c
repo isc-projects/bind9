@@ -901,6 +901,9 @@ static void
 setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value);
 static void
 zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial);
+static isc_result_t
+zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
+			 bool *fixjournal);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -4680,7 +4683,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	bool hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	bool nomaster = false;
 	bool had_db = false;
-	unsigned int options;
 	dns_include_t *inc;
 	bool is_dynamic = false;
 
@@ -4768,44 +4770,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    !DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOMERGE) &&
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
-		if (zone->type == dns_zone_master &&
-		    (inline_secure(zone) ||
-		     (zone->update_acl != NULL || zone->ssutable != NULL)))
-		{
-			options = DNS_JOURNALOPT_RESIGN;
-		} else {
-			options = 0;
-		}
-		result = dns_journal_rollforward(zone->mctx, db, options,
-						 zone->journal, &fixjournal);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
-		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
-		    result != ISC_R_RANGE)
-		{
-			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-				      ISC_LOG_ERROR,
-				      "journal rollforward failed: %s",
-				      dns_result_totext(result));
+		result = zone_journal_rollforward(zone, db, &needdump,
+						  &fixjournal);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
-		}
-		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
-			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-				      ISC_LOG_ERROR,
-				      "journal rollforward failed: "
-				      "journal out of sync with zone");
-			goto cleanup;
-		}
-		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
-			      "journal rollforward completed "
-			      "successfully: %s",
-			      dns_result_totext(result));
-		if (result == ISC_R_SUCCESS) {
-			needdump = true;
-		}
-		if (fixjournal) {
-			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-				      ISC_LOG_ERROR,
-				      "retried using old journal format");
 		}
 	}
 
@@ -11333,6 +11301,82 @@ dns_zone_refresh(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	zone_refresh(zone);
 	UNLOCK_ZONE(zone);
+}
+
+static isc_result_t
+zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
+			 bool *fixjournal) {
+	dns_journal_t *journal = NULL;
+	unsigned int options;
+	isc_result_t result;
+
+	if (zone->type == dns_zone_master &&
+	    (inline_secure(zone) ||
+	     (zone->update_acl != NULL || zone->ssutable != NULL)))
+	{
+		options = DNS_JOURNALOPT_RESIGN;
+	} else {
+		options = 0;
+	}
+
+	result = dns_journal_open(zone->mctx, zone->journal, DNS_JOURNAL_READ,
+				  &journal);
+	if (result == ISC_R_NOTFOUND) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(3),
+			      "no journal file, but that's OK ");
+		return (ISC_R_SUCCESS);
+	} else if (result != ISC_R_SUCCESS) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
+			      "journal open failed: %s",
+			      dns_result_totext(result));
+		return (result);
+	}
+
+	if (dns_journal_empty(journal)) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
+			      "journal empty");
+		dns_journal_destroy(&journal);
+		return (ISC_R_SUCCESS);
+	}
+
+	result = dns_journal_rollforward(journal, db, options);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		*needdump = true;
+		/* FALLTHROUGH */
+	case DNS_R_UPTODATE:
+		if (dns_journal_recovered(journal)) {
+			*fixjournal = true;
+			dns_zone_logc(
+				zone, DNS_LOGCATEGORY_ZONELOAD,
+				ISC_LOG_DEBUG(1),
+				"journal rollforward completed successfully "
+				"using old journal format: %s",
+				dns_result_totext(result));
+		} else {
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_DEBUG(1),
+				      "journal rollforward completed "
+				      "successfully: %s",
+				      dns_result_totext(result));
+		}
+
+		dns_journal_destroy(&journal);
+		return (ISC_R_SUCCESS);
+	case ISC_R_NOTFOUND:
+	case ISC_R_RANGE:
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
+			      "journal rollforward failed: journal out of sync "
+			      "with zone");
+		dns_journal_destroy(&journal);
+		return (result);
+	default:
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
+			      "journal rollforward failed: %s",
+			      dns_result_totext(result));
+		dns_journal_destroy(&journal);
+		return (result);
+	}
 }
 
 static void

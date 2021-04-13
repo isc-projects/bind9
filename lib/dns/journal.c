@@ -1450,8 +1450,8 @@ dns_journal_destroy(dns_journal_t **journalp) {
 
 /* XXX Share code with incoming IXFR? */
 
-static isc_result_t
-roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
+isc_result_t
+dns_journal_rollforward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 	isc_buffer_t source; /* Transaction data from disk */
 	isc_buffer_t target; /* Ditto after _fromwire check */
 	uint32_t db_serial;  /* Database SOA serial */
@@ -1594,39 +1594,6 @@ failure:
 
 	INSIST(ver == NULL);
 
-	return (result);
-}
-
-isc_result_t
-dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			const char *filename, bool *recovered) {
-	dns_journal_t *j = NULL;
-	isc_result_t result;
-
-	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(filename != NULL);
-
-	result = dns_journal_open(mctx, filename, DNS_JOURNAL_READ, &j);
-	if (result == ISC_R_NOTFOUND) {
-		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no journal file, but "
-							"that's OK");
-		return (DNS_R_NOJOURNAL);
-	}
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	if (JOURNAL_EMPTY(&j->header)) {
-		CHECK(DNS_R_UPTODATE);
-	}
-
-	result = roll_forward(j, db, options);
-
-failure:
-	if (recovered != NULL) {
-		*recovered = j->recovered;
-	}
-	dns_journal_destroy(&j);
 	return (result);
 }
 
@@ -1785,6 +1752,11 @@ cleanup:
 bool
 dns_journal_empty(dns_journal_t *j) {
 	return (JOURNAL_EMPTY(&j->header));
+}
+
+bool
+dns_journal_recovered(dns_journal_t *j) {
+	return (j->recovered);
 }
 
 uint32_t

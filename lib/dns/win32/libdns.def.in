@@ -415,6 +415,7 @@ dns_journal_last_serial
 dns_journal_next_rr
 dns_journal_open
 dns_journal_print
+dns_journal_recovered
 dns_journal_rollforward
 dns_journal_set_sourceserial
 dns_journal_write_transaction
