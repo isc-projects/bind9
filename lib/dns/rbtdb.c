@@ -3088,6 +3088,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	      isc_stdtime_t now, isc_rwlocktype_t locktype,
 	      dns_rdataset_t *rdataset) {
 	unsigned char *raw; /* RDATASLAB */
+	bool stale = STALE(header);
+	bool ancient = ANCIENT(header);
 
 	/*
 	 * Caller must be holding the node reader lock.
@@ -3104,6 +3106,29 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	new_reference(rbtdb, node, locktype);
 
 	INSIST(rdataset->methods == NULL); /* We must be disassociated. */
+
+	/*
+	 * Mark header stale or ancient if the RRset is no longer active.
+	 */
+	if (!ACTIVE(header, now)) {
+		dns_ttl_t stale_ttl = header->rdh_ttl + rbtdb->serve_stale_ttl;
+		/*
+		 * If this data is in the stale window keep it and if
+		 * DNS_DBFIND_STALEOK is not set we tell the caller to
+		 * skip this record.  We skip the records with ZEROTTL
+		 * (these records should not be cached anyway).
+		 */
+
+		if (KEEPSTALE(rbtdb) && stale_ttl > now) {
+			stale = true;
+		} else {
+			/*
+			 * We are not keeping stale, or it is outside the
+			 * stale window. Mark ancient, i.e. ready for cleanup.
+			 */
+			ancient = true;
+		}
+	}
 
 	rdataset->methods = &rdataset_methods;
 	rdataset->rdclass = rbtdb->common.rdclass;
@@ -3123,14 +3148,19 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	if (PREFETCH(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	}
-	if (STALE(header)) {
+	if (stale && !ancient) {
+		dns_ttl_t stale_ttl = header->rdh_ttl + rbtdb->serve_stale_ttl;
+		if (stale_ttl > now) {
+			stale_ttl = stale_ttl - now;
+		} else {
+			stale_ttl = 0;
+		}
 		if (STALE_WINDOW(header)) {
 			rdataset->attributes |= DNS_RDATASETATTR_STALE_WINDOW;
 		}
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
-		rdataset->stale_ttl =
-			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
-		rdataset->ttl = 0;
+		rdataset->stale_ttl = stale_ttl;
+		rdataset->ttl = stale_ttl;
 	} else if (IS_CACHE(rbtdb) && !ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
 		rdataset->stale_ttl = header->rdh_ttl;
