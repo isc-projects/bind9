@@ -406,8 +406,22 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				region = (isc_region_t){ .base = &recv_buf[0],
 							 .length = len };
 
+				INSIST(VALID_NMHANDLE(sock->statichandle));
 				sock->recv_cb(sock->statichandle, ISC_R_SUCCESS,
 					      &region, sock->recv_cbarg);
+				/* The handle could have been detached in
+				 * sock->recv_cb, making the sock->statichandle
+				 * nullified (it happens in netmgr.c). If it is
+				 * the case, then it means that we are not
+				 * interested in keeping the connection alive
+				 * anymore. Let's shutdown the SSL session, send
+				 * what we have in the SSL buffers, and close
+				 * the connection.
+				 */
+				if (sock->statichandle == NULL) {
+					finish = true;
+					break;
+				}
 			}
 		}
 	}
