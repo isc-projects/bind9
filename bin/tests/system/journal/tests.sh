@@ -28,7 +28,7 @@ ret=0
 dig_with_opts changed soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone changed/IN: retried using old journal format' ns1/named.run > /dev/null || ret=1
+grep 'zone changed/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -62,7 +62,8 @@ ret=0
 dig_with_opts changed2 soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone changed2/IN: retried using old journal format' ns1/named.run > /dev/null && ret=1
+grep 'zone changed2/IN: journal rollforward completed successfully: success' ns1/named.run > /dev/null || ret=1
+grep 'zone changed2/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -72,7 +73,8 @@ ret=0
 dig_with_opts unchanged2 soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010901' dig.out.test$n > /dev/null || ret=1
-grep 'zone unchanged2/IN: retried using old journal format' ns1/named.run > /dev/null && ret=1
+grep 'zone unchanged2/IN: journal rollforward completed successfully' ns1/named.run > /dev/null && ret=1
+grep 'zone unchanged2/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -90,7 +92,7 @@ ret=0
 dig_with_opts -t soa ixfr > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone ixfr/IN: journal rollforward completed successfully: up to date' ns1/named.run > /dev/null || ret=1
+grep 'zone ixfr/IN: journal rollforward completed successfully using old journal format: up to date' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -107,7 +109,7 @@ ret=0
 dig_with_opts -t soa hdr1d1d2d1d2 > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010905' dig.out.test$n > /dev/null || ret=1
-grep 'zone hdr1d1d2d1d2/IN: journal rollforward completed successfully: success' ns1/named.run > /dev/null || ret=1
+grep 'zone hdr1d1d2d1d2/IN: journal rollforward completed successfully using old journal format: success' ns1/named.run > /dev/null || ret=1
 grep 'zone_journal_compact: zone hdr1d1d2d1d2/IN: repair full journal' ns1/named.run > /dev/null || ret=1
 grep 'hdr1d1d2d1d2/IN: dns_journal_compact: success' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
@@ -129,8 +131,7 @@ ret=0
 dig_with_opts -t soa hdr1d2d1d2d1 > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010905' dig.out.test$n > /dev/null || ret=1
-grep 'zone hdr1d2d1d2d1/IN: journal rollforward completed successfully: success' ns1/named.run > /dev/null || ret=1
-grep 'zone hdr1d2d1d2d1/IN: retried using old journal format' ns1/named.run > /dev/null || ret=1
+grep 'zone hdr1d2d1d2d1/IN: journal rollforward completed successfully using old journal format: success' ns1/named.run > /dev/null || ret=1
 grep 'zone_journal_compact: zone hdr1d2d1d2d1/IN: repair full journal' ns1/named.run > /dev/null || ret=1
 grep 'zone hdr1d2d1d2d1/IN: dns_journal_compact: success' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
