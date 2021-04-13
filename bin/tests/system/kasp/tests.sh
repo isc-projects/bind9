@@ -805,6 +805,13 @@ check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 check_apex
 check_subdomain
+# Make sure the zone file is untouched.
+n=$((n+1))
+echo_i "Make sure the zonefile for zone ${ZONE} is not edited ($n)"
+ret=0
+diff "${DIR}/${ZONE}.db.infile" "${DIR}/${ZONE}.db" || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 #
 # Zone: insecure.kasp.
