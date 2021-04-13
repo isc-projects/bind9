@@ -1052,9 +1052,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
-		}
-
-		if (bad_name) {
+		} else if (bad_name) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-policy name may not be 'insecure', "
 				    "'none', or 'default' (which are built-in "
@@ -1062,9 +1060,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
+		} else {
+			has_dnssecpolicy = true;
 		}
-
-		has_dnssecpolicy = true;
 	}
 
 	obj = NULL;
@@ -3045,10 +3043,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * If the zone type is rbt/rbt64 then master/hint zones
-	 * require file clauses.
-	 * If inline signing is used, then slave zones require a
-	 * file clause as well
+	 * If the zone type is rbt/rbt64 then master/hint zones require file
+	 * clauses. If inline-signing is used, then slave zones require a
+	 * file clause as well.
 	 */
 	obj = NULL;
 	dlz = false;
@@ -3086,7 +3083,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
 			   (ztype == CFG_ZONE_SLAVE ||
-			    ztype == CFG_ZONE_MIRROR || ddns))
+			    ztype == CFG_ZONE_MIRROR || ddns ||
+			    has_dnssecpolicy))
 		{
 			tresult = fileexist(fileobj, files, true, logctx);
 			if (tresult != ISC_R_SUCCESS) {
