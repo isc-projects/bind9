@@ -1204,7 +1204,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			POST(state);
 		/* FALLTHROUGH */
 		case ft_escape:
-			if (!isdigit(c & 0xff)) {
+			if (!isdigit((unsigned char)c)) {
 				if (count >= 63) {
 					return (DNS_R_LABELTOOLONG);
 				}
@@ -1224,7 +1224,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			state = ft_escdecimal;
 		/* FALLTHROUGH */
 		case ft_escdecimal:
-			if (!isdigit(c & 0xff)) {
+			if (!isdigit((unsigned char)c)) {
 				return (DNS_R_BADESCAPE);
 			}
 			value *= 10;

@@ -91,7 +91,7 @@ fromtext_in_atma(ARGS_FROMTEXT) {
 				lastwasperiod = true;
 				continue;
 			}
-			if ((sr->base[0] < '0') || (sr->base[0] > '9')) {
+			if (!isdigit((unsigned char)sr->base[0])) {
 				RETTOK(DNS_R_SYNTAX);
 			}
 			RETERR(mem_tobuffer(target, sr->base, 1));
@@ -157,7 +157,7 @@ fromwire_in_atma(ARGS_FROMWIRE) {
 	if (region.base[0] == 1) {
 		unsigned int i;
 		for (i = 1; i < region.length; i++) {
-			if (region.base[i] < '0' || region.base[i] > '9') {
+			if (!isdigit((unsigned char)region.base[i])) {
 				return (DNS_R_FORMERR);
 			}
 		}
