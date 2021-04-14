@@ -941,17 +941,17 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check that reloading errors prevent synchronization ($n)"
-ret=0
+ret=1
 $DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
 sleep 1
 nextpart ns3/named.run > /dev/null
-cp ns3/master5.db.in ns3/master.db
+cp ns3/master6.db.in ns3/master.db
 rndc_reload ns3 10.53.0.3
 for i in 1 2 3 4 5 6 7 8 9 10
 do
-	if nextpart ns3/named.run |
-           grep "not loaded due to errors" > /dev/null
+	if nextpart ns3/named.run | grep "not loaded due to errors" > /dev/null
         then
+		ret=0
 		break
 	fi
 	sleep 1
@@ -959,6 +959,30 @@ done
 # Sanity check: the SOA record should be unchanged
 $DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.2 || ret=1
 $DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check inline-signing with an include file ($n)"
+ret=0
+$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+sleep 1
+nextpart ns3/named.run > /dev/null
+cp ns3/master7.db.in ns3/master.db
+rndc_reload ns3 10.53.0.3
+_includefile_loaded() {
+	$DIG $DIGOPTS @10.53.0.3 f.master A > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || return 1
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || return 1
+	grep "10\.0\.0\.7" dig.out.ns3.test$n > /dev/null || return 1
+	return 0
+}
+retry_quiet 10 _includefile_loaded
+# Sanity check: the SOA record should be changed
+$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.2 || ret=1
+$DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
