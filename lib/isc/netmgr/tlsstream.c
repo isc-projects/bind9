@@ -377,6 +377,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			bool received_shutdown =
 				((SSL_get_shutdown(sock->tlsstream.tls) &
 				  SSL_RECEIVED_SHUTDOWN) != 0);
+			bool sent_shutdown =
+				((SSL_get_shutdown(sock->tlsstream.tls) &
+				  SSL_SENT_SHUTDOWN) != 0);
 			rv = SSL_write_ex(sock->tlsstream.tls,
 					  send_data->uvbuf.base,
 					  send_data->uvbuf.len, &len);
@@ -386,7 +389,18 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				send_data->cb.send(send_data->handle, result,
 						   send_data->cbarg);
 				send_data = NULL;
-				if (!received_shutdown) {
+				/* This situation might occur only when SSL
+				 * shutdown was already sent (see
+				 * tls_send_outgoing()), and we are in the
+				 * process of shutting down the connection (in
+				 * this case tls_senddone() will be called), but
+				 * some code tries to send data over the
+				 * connection and called isc_tls_send(). The
+				 * socket will be detached there, in
+				 * tls_senddone().*/
+				if (sent_shutdown && received_shutdown) {
+					return;
+				} else if (!received_shutdown) {
 					isc__nmsocket_detach(&sock);
 					return;
 				}
