@@ -379,7 +379,7 @@ all_digits(const char *s) {
 		return (false);
 	}
 	while (*s != '\0') {
-		if (!isdigit((*s) & 0xff)) {
+		if (!isdigit((unsigned char)(*s))) {
 			return (false);
 		}
 		s++;

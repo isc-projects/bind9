@@ -89,7 +89,7 @@ conv_num(const char **buf, int *dest, int llim, int ulim) {
 	/* The limit also determines the number of valid digits. */
 	int rulim = ulim;
 
-	if (**buf < '0' || **buf > '9') {
+	if (!isdigit((unsigned char)**buf)) {
 		return (0);
 	}
 

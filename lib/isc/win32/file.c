@@ -102,7 +102,7 @@ gettemp(char *path, bool binary, int *doopen) {
 			if (*trv == 'z') {
 				*trv++ = 'a';
 			} else {
-				if (isdigit(*trv)) {
+				if (isdigit((unsigned char)*trv)) {
 					*trv = 'a';
 				} else {
 					++*trv;
