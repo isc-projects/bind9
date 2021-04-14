@@ -6294,9 +6294,10 @@ The ``$INCLUDE`` Directive
 Syntax: ``$INCLUDE`` filename [origin] [comment]
 
 This reads and processes the file ``filename`` as if it were included in the
-file at this point. If ``origin`` is specified, the file is processed
-with ``$ORIGIN`` set to that value; otherwise, the current ``$ORIGIN`` is
-used.
+file at this point. The ``filename`` can be an absolute path, or a relative
+path. In the latter case it is read from ``named``'s working directory. If
+``origin`` is specified, the file is processed with ``$ORIGIN`` set to that
+value; otherwise, the current ``$ORIGIN`` is used.
 
 The origin and the current domain name revert to the values they had
 prior to the ``$INCLUDE`` once the file has been read.
