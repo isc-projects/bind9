@@ -245,7 +245,7 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 	}
 
 	/* TODO Should we keep track of these requests in a list? */
-	if (pending > TLS_BUF_SIZE) {
+	if ((unsigned int)pending > TLS_BUF_SIZE) {
 		pending = TLS_BUF_SIZE;
 	}
 
