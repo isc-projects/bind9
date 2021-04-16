@@ -1,3 +1,10 @@
+5621.	[bug]		Due to a backporting mistake in change 5609, named
+			binaries built against a Kerberos/GSSAPI library whose
+			header files did not define the GSS_SPNEGO_MECHANISM
+			preprocessor macro were not able to start if their
+			configuration included the "tkey-gssapi-credential"
+			option. This has been fixed. [GL #2634]
+
 	--- 9.11.30 released ---
 
 5617.	[security]	A specially crafted GSS-TSIG query could cause a buffer
