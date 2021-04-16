@@ -89,3 +89,6 @@ Bug Fixes
   values if the RRset was still marked a stale but the ``max-stale-ttl`` has
   passed (and is actually an RRset awaiting cleanup). Both issues have now
   been fixed. [GL #389] [GL #2289]
+
+- ``named`` would overwrite a zone file unconditionally when it recovered from
+  a corrupted journal. [GL #2623]
