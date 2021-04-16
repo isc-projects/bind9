@@ -1,3 +1,6 @@
+5623.	[bug]		Prevent double xfrin_fail() call when shutting down
+			the server during ongoing transfer. [GL #2630]
+
 5622.	[cleanup]	Remove lib/samples, since export versions of libraries
 			are no longer maintained. [GL !4835]
 
