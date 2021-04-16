@@ -1,3 +1,6 @@
+5625.	[bug]		Address deadlock between rndc addzone/delzone.
+			[GL #2626]
+
 5624.	[func]		Remove the taskmgr dispatch threads and run the tasks
 			on top of netmgr loops. [GL #2638]
 
