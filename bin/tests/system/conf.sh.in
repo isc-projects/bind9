@@ -71,6 +71,8 @@ PIPEQUERIES=$TOP_BUILDDIR/bin/tests/system/pipelined/pipequeries
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
+# use local keytab instead of default /etc/krb5.keytab
+KRB5_KTNAME=dns.keytab
 
 #
 # Construct the lists of tests to run
