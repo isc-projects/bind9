@@ -1,3 +1,6 @@
+5622.	[cleanup]	Remove lib/samples, since export versions of libraries
+			are no longer maintained. [GL !4835]
+
 5621.	[placeholder]
 
 5620.	[bug]		Named would overwrite a zone file unconditionally when

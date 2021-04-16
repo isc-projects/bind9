@@ -1616,8 +1616,7 @@ AC_CONFIG_FILES([lib/Makefile
 		 lib/irs/Makefile
 		 lib/isccfg/Makefile
 		 lib/isccc/Makefile
-		 lib/bind9/Makefile
-		 lib/samples/Makefile])
+		 lib/bind9/Makefile])
 
 # Documentation
 

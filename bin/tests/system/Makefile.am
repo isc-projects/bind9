@@ -23,6 +23,7 @@ check_PROGRAMS =		\
 	feature-test		\
 	makejournal		\
 	pipelined/pipequeries	\
+	resolve			\
 	rndc/gencheck		\
 	rpz/dnsrps		\
 	tkey/keycreate		\
@@ -47,6 +48,14 @@ pipelined_pipequeries_CPPFLAGS =	\
 pipelined_pipequeries_LDADD =	\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
+
+resolve_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBISC_CFLAGS)	\
+	$(LIBDNS_CFLAGS)	\
+	$(LIBIRS_CFLAGS)
+
+resolve_LDADD = $(LIBISC_LIBS) $(LIBIRS_LIBS) $(LIBDNS_LIBS)
 
 tkey_keycreate_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
