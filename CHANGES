@@ -1,3 +1,6 @@
+5620.	[bug]		Named would overwrite a zone file unconditionally when
+			it recovered from a corrupted journal. [GL #2623]
+
 5619.	[protocol]	Implement draft-vandijk-dnsop-nsec-ttl, updating the
 			protocol such that NSEC(3) TTL values are set to the
 			minimum of the SOA MINIMUM value and the SOA TTL.
