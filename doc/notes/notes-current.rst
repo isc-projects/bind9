@@ -58,6 +58,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Fix a race condition in reading and writing key files for KASP zones in
+  multiple views. :gl:`#1875`
+
 - When dumping the cache to file, TTLs were being increased with
   ``max-stale-ttl``. Also the comment above stale RRsets could have nonsensical
   values if the RRset was still marked a stale but the ``max-stale-ttl`` has

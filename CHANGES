@@ -1,3 +1,6 @@
+5644.	[bug]		Fix a race condition in reading and writing key files
+			for KASP zones in multiple views. [GL #1875]
+
 5643.	[cleanup]	"make install" no longer creates an empty
 			${localstatedir}/run directory. [GL #2709]
 
