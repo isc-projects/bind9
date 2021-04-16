@@ -90,6 +90,8 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
+# use local keytab instead of default /etc/krb5.keytab
+KRB5_KTNAME=dns.keytab
 
 # the amount of fake "entropy" to generate with GENRANDOM in
 # system tests
@@ -627,6 +629,7 @@ export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
 export KRB5_CONFIG
+export KRB5_KTNAME
 export LWRESD
 export LWTEST
 export MAKEJOURNAL

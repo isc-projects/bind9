@@ -1865,7 +1865,7 @@
 ./bin/tests/system/nsupdate/ns7/in-addr.db.in	ZONE	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns7/machine.ccache	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns7/named.conf.in	CONF-C	2018,2019,2020,2021
-./bin/tests/system/nsupdate/ns8/dns.keytab	X	2018,2019,2020,2021
+./bin/tests/system/nsupdate/ns8/dns-other-than-KRB5_KTNAME.keytab	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns8/example.com.db.in	ZONE	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns8/in-addr.db.in	ZONE	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns8/machine.ccache	X	2018,2019,2020,2021
