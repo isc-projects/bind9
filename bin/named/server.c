@@ -13342,13 +13342,13 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
 	bool cleanup_config = false;
-#else  /* HAVE_LMDB */
+#else /* HAVE_LMDB */
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
+	bool locked = false;
 
 	UNUSED(zoneconf);
-	LOCK(&view->new_zone_lock);
-#endif /* HAVE_LMDB */
+#endif
 
 	/* Zone shouldn't already exist */
 	if (redirect) {
@@ -13368,12 +13368,16 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		goto cleanup;
 	}
 
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 #ifndef HAVE_LMDB
 	/*
 	 * Make sure we can open the configuration save file
 	 */
 	result = isc_stdio_open(view->new_zone_file, "a", &fp);
 	if (result != ISC_R_SUCCESS) {
+		isc_task_endexclusive(server->task);
 		TCHECK(putstr(text, "unable to create '"));
 		TCHECK(putstr(text, view->new_zone_file));
 		TCHECK(putstr(text, "': "));
@@ -13384,9 +13388,12 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	(void)isc_stdio_close(fp);
 	fp = NULL;
 #else  /* HAVE_LMDB */
+	LOCK(&view->new_zone_lock);
+	locked = true;
 	/* Make sure we can open the NZD database */
 	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
+		isc_task_endexclusive(server->task);
 		TCHECK(putstr(text, "unable to open NZD database for '"));
 		TCHECK(putstr(text, view->new_zone_db));
 		TCHECK(putstr(text, "'"));
@@ -13394,9 +13401,6 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		goto cleanup;
 	}
 #endif /* HAVE_LMDB */
-
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/* Mark view unfrozen and configure zone */
 	dns_view_thaw(view);
@@ -13501,7 +13505,9 @@ cleanup:
 	if (txn != NULL) {
 		(void)nzd_close(&txn, false);
 	}
-	UNLOCK(&view->new_zone_lock);
+	if (locked) {
+		UNLOCK(&view->new_zone_lock);
+	}
 #endif /* HAVE_LMDB */
 
 	if (zone != NULL) {
@@ -13525,7 +13531,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #else  /* HAVE_LMDB */
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
-	LOCK(&view->new_zone_lock);
+	bool locked = false;
 #endif /* HAVE_LMDB */
 
 	/* Zone must already exist */
@@ -13571,6 +13577,8 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	(void)isc_stdio_close(fp);
 	fp = NULL;
 #else  /* HAVE_LMDB */
+	LOCK(&view->new_zone_lock);
+	locked = true;
 	/* Make sure we can open the NZD database */
 	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
@@ -13723,7 +13731,9 @@ cleanup:
 	if (txn != NULL) {
 		(void)nzd_close(&txn, false);
 	}
-	UNLOCK(&view->new_zone_lock);
+	if (locked) {
+		UNLOCK(&view->new_zone_lock);
+	}
 #endif /* HAVE_LMDB */
 
 	if (zone != NULL) {
