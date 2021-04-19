@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.30
+Release Notes for BIND Version 9.11.31
 
 Introduction
 
@@ -36,7 +36,7 @@ Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
 
-Notes for BIND 9.11.30
+Notes for BIND 9.11.31
 
 Security Fixes
 
@@ -72,6 +72,12 @@ Feature Changes
     the system GSSAPI library when it is built with GSSAPI support. All
     major contemporary Kerberos/GSSAPI libraries contain an implementation
     of the SPNEGO mechanism. [GL #2607]
+
+Notes for BIND 9.11.30
+
+The BIND 9.11.30 release was withdrawn after a backporting bug was
+discovered during pre-release testing. ISC would like to acknowledge the
+assistance of Natan Segal of Bluecat Networks.
 
 Notes for BIND 9.11.29
 
