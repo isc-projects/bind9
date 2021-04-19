@@ -28,7 +28,7 @@ ret=0
 dig_with_opts changed soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone changed/IN: retried using old journal format' ns1/named.run > /dev/null || ret=1
+grep 'zone changed/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -62,7 +62,8 @@ ret=0
 dig_with_opts changed2 soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone changed2/IN: retried using old journal format' ns1/named.run > /dev/null && ret=1
+grep 'zone changed2/IN: journal rollforward completed successfully: success' ns1/named.run > /dev/null || ret=1
+grep 'zone changed2/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -72,7 +73,8 @@ ret=0
 dig_with_opts unchanged2 soa > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010901' dig.out.test$n > /dev/null || ret=1
-grep 'zone unchanged2/IN: retried using old journal format' ns1/named.run > /dev/null && ret=1
+grep 'zone unchanged2/IN: journal rollforward completed successfully' ns1/named.run > /dev/null && ret=1
+grep 'zone unchanged2/IN: journal rollforward completed successfully using old journal format' ns1/named.run > /dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -90,7 +92,7 @@ ret=0
 dig_with_opts -t soa ixfr > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010902' dig.out.test$n > /dev/null || ret=1
-grep 'zone ixfr/IN: journal rollforward completed successfully: recoverable' ns1/named.run > /dev/null || ret=1
+grep 'zone ixfr/IN: journal rollforward completed successfully using old journal format: up to date' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -107,7 +109,9 @@ ret=0
 dig_with_opts -t soa hdr1d1d2d1d2 > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010905' dig.out.test$n > /dev/null || ret=1
-grep 'zone hdr1d1d2d1d2/IN: journal rollforward completed successfully: recoverable' ns1/named.run > /dev/null || ret=1
+grep 'zone hdr1d1d2d1d2/IN: journal rollforward completed successfully using old journal format: success' ns1/named.run > /dev/null || ret=1
+grep 'zone_journal_compact: zone hdr1d1d2d1d2/IN: repair full journal' ns1/named.run > /dev/null || ret=1
+grep 'hdr1d1d2d1d2/IN: dns_journal_compact: success' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -127,7 +131,9 @@ ret=0
 dig_with_opts -t soa hdr1d2d1d2d1 > dig.out.test$n
 grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
 grep '2012010905' dig.out.test$n > /dev/null || ret=1
-grep 'zone hdr1d2d1d2d1/IN: journal rollforward completed successfully: recoverable' ns1/named.run > /dev/null || ret=1
+grep 'zone hdr1d2d1d2d1/IN: journal rollforward completed successfully using old journal format: success' ns1/named.run > /dev/null || ret=1
+grep 'zone_journal_compact: zone hdr1d2d1d2d1/IN: repair full journal' ns1/named.run > /dev/null || ret=1
+grep 'zone hdr1d2d1d2d1/IN: dns_journal_compact: success' ns1/named.run > /dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
@@ -175,10 +181,15 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check max-journal-size works after journal update ($n)"
 ret=0
-# a dump should have been triggered by repairing the journal,
-# which would have resulted in the journal already being
-# compacted.
-[ $(wc -c < ns1/maxjournal.db.jnl) -lt 4000 ] || ret=1
+# journal was repaired, it should still be big
+[ $(wc -c < ns1/maxjournal.db.jnl) -gt 12000 ] || ret=1
+# the zone hasn't been dumped yet, so 'rndc sync' should work without
+# needing a zone update first.
+rndc_with_opts 10.53.0.1 sync maxjournal
+check_size() (
+    [ $(wc -c < ns1/maxjournal.db.jnl) -lt 4000 ]
+)
+retry_quiet 10 check_size || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
