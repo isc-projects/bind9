@@ -50,7 +50,6 @@
 
 #include <dst/dst.h>
 
-#include <irs/netdb.h>
 #include <irs/resconf.h>
 
 static char *algname;
@@ -241,7 +240,7 @@ main(int argc, char *argv[]) {
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
 	isc_mem_t *keymctx = NULL;
-	unsigned int clientopt, resopt;
+	unsigned int clientopt, resopt = 0;
 	bool is_sep = false;
 	const char *port = "53";
 	isc_mem_t *mctx = NULL;
@@ -385,8 +384,8 @@ main(int argc, char *argv[]) {
 	}
 
 	clientopt = 0;
-	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
-				    clientopt, &client, addr4, addr6);
+	result = dns_client_create(mctx, actx, taskmgr, socketmgr, timermgr,
+				   clientopt, &client, addr4, addr6);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,
 			isc_result_totext(result));
@@ -444,7 +443,6 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Perform resolution */
-	resopt = DNS_CLIENTRESOPT_ALLOWRUN;
 	if (keynamestr == NULL) {
 		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
 	}

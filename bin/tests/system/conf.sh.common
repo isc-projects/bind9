@@ -737,7 +737,6 @@ export PYTHON
 export RESOLVE
 export RNDC
 export RRCHECKER
-export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TMPDIR

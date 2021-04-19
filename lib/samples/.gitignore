@@ -1,8 +1,0 @@
-Makefile-postinstall
-nsprobe
-process
-resolve
-sample-async
-sample-gai
-sample-request
-sample-update
