@@ -93,17 +93,6 @@ typedef isc_event_t isc_appevent_t;
 #define ISC_APPEVENT_SHUTDOWN	(ISC_EVENTCLASS_APP + 1)
 #define ISC_APPEVENT_LASTEVENT	(ISC_EVENTCLASS_APP + 65535)
 
-/*%
- * This structure is actually just the common prefix of an application context
- * implementation's version of an isc_appctx_t.
- * \brief
- * Direct use of this structure by clients is forbidden.  app implementations
- * may change the structure.  'magic' must be ISCAPI_APPCTX_MAGIC for any
- * of the isc_app_ routines to work.  app implementations must maintain
- * all app context invariants.
- */
-struct isc_appctx;
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t
