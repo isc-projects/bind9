@@ -37,9 +37,6 @@
 #include ISC_PLATFORM_GSSAPI_KRB5_HEADER
 #endif
 #endif
-#ifndef GSS_SPNEGO_MECHANISM
-#define GSS_SPNEGO_MECHANISM ((void*)0)
-#endif
 #endif
 
 ISC_LANG_BEGINDECLS
