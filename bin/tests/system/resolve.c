@@ -370,15 +370,15 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	result = isc_taskmgr_createinctx(mctx, 1, 0, &taskmgr);
+	result = isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	result = isc_socketmgr_createinctx(mctx, &socketmgr);
+	result = isc_socketmgr_create(mctx, &socketmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	result = isc_timermgr_createinctx(mctx, &timermgr);
+	result = isc_timermgr_create(mctx, &timermgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

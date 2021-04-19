@@ -277,13 +277,9 @@ isc_timer_gettype(isc_timer_t *timer);
  */
 
 isc_result_t
-isc_timermgr_createinctx(isc_mem_t *mctx, isc_timermgr_t **managerp);
-
-isc_result_t
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
 /*%<
- * Create a timer manager.  isc_timermgr_createinctx() also associates
- * the new manager with the specified application context.
+ * Create a timer manager.
  *
  * Notes:
  *
@@ -294,8 +290,6 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
  *\li	'mctx' is a valid memory context.
  *
  *\li	'managerp' points to a NULL isc_timermgr_t.
- *
- *\li	'actx' is a valid application context (for createinctx()).
  *
  * Ensures:
  *

@@ -5522,12 +5522,3 @@ error:
 	return (result);
 }
 #endif /* HAVE_JSON_C */
-
-isc_result_t
-isc_socketmgr_createinctx(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
-	isc_result_t result;
-
-	result = isc_socketmgr_create(mctx, managerp);
-
-	return (result);
-}
