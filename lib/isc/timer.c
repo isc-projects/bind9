@@ -770,12 +770,3 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 
 	*managerp = NULL;
 }
-
-isc_result_t
-isc_timermgr_createinctx(isc_mem_t *mctx, isc_timermgr_t **managerp) {
-	isc_result_t result;
-
-	result = isc_timermgr_create(mctx, managerp);
-
-	return (result);
-}

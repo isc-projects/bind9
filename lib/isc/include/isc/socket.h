@@ -716,9 +716,6 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 /*@}*/
 
 isc_result_t
-isc_socketmgr_createinctx(isc_mem_t *mctx, isc_socketmgr_t **managerp);
-
-isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 
 isc_result_t
@@ -729,8 +726,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
  * maximum number of sockets that the created manager should handle.
  * isc_socketmgr_create() is equivalent of isc_socketmgr_create2() with
  * "maxsocks" being zero.
- * isc_socketmgr_createinctx() also associates the new manager with the
- * specified application context.
  *
  * Notes:
  *
