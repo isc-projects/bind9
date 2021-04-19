@@ -21119,6 +21119,22 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 		 */
 		ISC_LIST_APPEND(zone->rss_post, event, ev_link);
 	} else {
+		bool rescheduled = false;
+		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+		/*
+		 * The zone is not yet fully loaded. Reschedule the event to
+		 * be picked up later. This turns this function into a busy
+		 * wait, but it only happens at startup.
+		 */
+		if (zone->db == NULL) {
+			rescheduled = true;
+			isc_task_send(task, &event);
+		}
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+		if (rescheduled) {
+			return;
+		}
+
 		rss_post(zone, event);
 	}
 	dns_zone_idetach(&zone);
