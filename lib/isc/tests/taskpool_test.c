@@ -124,13 +124,13 @@ get_tasks(void **state) {
 
 	/* two tasks in pool; make sure we can access them more than twice */
 	isc_taskpool_gettask(pool, &task1);
-	assert_true(ISCAPI_TASK_VALID(task1));
+	assert_non_null(task1);
 
 	isc_taskpool_gettask(pool, &task2);
-	assert_true(ISCAPI_TASK_VALID(task2));
+	assert_non_null(task2);
 
 	isc_taskpool_gettask(pool, &task3);
-	assert_true(ISCAPI_TASK_VALID(task3));
+	assert_non_null(task3);
 
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
@@ -159,9 +159,9 @@ set_privilege(void **state) {
 	isc_taskpool_gettask(pool, &task2);
 	isc_taskpool_gettask(pool, &task3);
 
-	assert_true(ISCAPI_TASK_VALID(task1));
-	assert_true(ISCAPI_TASK_VALID(task2));
-	assert_true(ISCAPI_TASK_VALID(task3));
+	assert_non_null(task1);
+	assert_non_null(task2);
+	assert_non_null(task3);
 
 	assert_true(isc_task_privilege(task1));
 	assert_true(isc_task_privilege(task2));
