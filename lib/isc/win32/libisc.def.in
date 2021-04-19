@@ -597,7 +597,6 @@ isc_sockaddr_setport
 isc_sockaddr_totext
 isc_sockaddr_v6fromin
 isc_socket_socketevent
-isc_socketmgr_createinctx
 isc_socketmgr_maxudp
 @IF NOTYET
 isc_socketmgr_renderjson
@@ -659,7 +658,6 @@ isc_task_shutdown
 isc_task_unpause
 isc_task_unsend
 isc_taskmgr_create
-isc_taskmgr_createinctx
 isc_taskmgr_destroy
 isc_taskmgr_excltask
 isc_taskmgr_mode
@@ -712,7 +710,6 @@ isc_timer_gettype
 isc_timer_reset
 isc_timer_touch
 isc_timermgr_create
-isc_timermgr_createinctx
 isc_timermgr_destroy
 isc_timermgr_poke
 isc__tls_initialize

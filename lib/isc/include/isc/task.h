@@ -611,15 +611,11 @@ isc_task_privilege(isc_task_t *task);
 *****/
 
 isc_result_t
-isc_taskmgr_createinctx(isc_mem_t *mctx, unsigned int workers,
-			unsigned int default_quantum, isc_taskmgr_t **managerp);
-isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		   unsigned int default_quantum, isc_nm_t *nm,
 		   isc_taskmgr_t **managerp);
 /*%<
- * Create a new task manager.  isc_taskmgr_createinctx() also associates
- * the new manager with the specified application context.
+ * Create a new task manager.
  *
  * Notes:
  *
@@ -643,8 +639,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *\li	workers > 0
  *
  *\li	managerp != NULL && *managerp == NULL
- *
- *\li	'actx' is a valid application context (for createinctx()).
  *
  * Ensures:
  *
