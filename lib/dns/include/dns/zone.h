@@ -363,6 +363,24 @@ dns_zone_getmaxttl(dns_zone_t *zone);
  *\li	dns_ttl_t maxttl.
  */
 
+void
+dns_zone_lock_keyfiles(dns_zone_t *zone);
+/*%<
+ *	Lock associated keyfiles for this zone.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_unlock_keyfiles(dns_zone_t *zone);
+/*%<
+ *	Unlock associated keyfiles for this zone.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
 isc_result_t
 dns_zone_load(dns_zone_t *zone, bool newonly);
 
