@@ -10827,6 +10827,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 #ifdef ENABLE_AFL
 		if (!dns_fuzzing_resolver) {
 #endif /* ifdef ENABLE_AFL */
+			UNLOCK_ZONE(zone);
 			result = dns_resolver_createfetch(
 				zone->view->resolver, kname,
 				dns_rdatatype_dnskey, NULL, NULL, NULL, NULL, 0,
@@ -10836,6 +10837,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 				0, NULL, zone->task, keyfetch_done, kfetch,
 				&kfetch->dnskeyset, &kfetch->dnskeysigset,
 				&kfetch->fetch);
+			LOCK_ZONE(zone);
 #ifdef ENABLE_AFL
 		} else {
 			result = ISC_R_FAILURE;
