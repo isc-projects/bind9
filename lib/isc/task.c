@@ -2015,15 +2015,3 @@ error:
 	return (result);
 }
 #endif /* ifdef HAVE_JSON_C */
-
-isc_result_t
-isc_taskmgr_createinctx(isc_mem_t *mctx, unsigned int workers,
-			unsigned int default_quantum,
-			isc_taskmgr_t **managerp) {
-	isc_result_t result;
-
-	result = isc_taskmgr_create(mctx, workers, default_quantum, NULL,
-				    managerp);
-
-	return (result);
-}
