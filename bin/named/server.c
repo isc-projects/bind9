@@ -14786,7 +14786,8 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 				return (ISC_R_BADNUMBER);
 			}
 
-			if (hash > 0xffU || flags > 0xffU) {
+			if (hash > 0xffU || flags > 0xffU ||
+			    iter > dns_nsec3_maxiterations()) {
 				return (ISC_R_RANGE);
 			}
 
