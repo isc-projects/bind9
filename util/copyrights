@@ -303,6 +303,7 @@
 ./bin/tests/system/addzone/ns2/default.nzf.in	X	2010,2018,2019,2020
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
+./bin/tests/system/addzone/tests_rndc_deadlock.py	PYTHON	2021
 ./bin/tests/system/allow-query/clean.sh		SH	2010,2012,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/allow-query/ns3/named.args	X	2018,2019,2020,2021
 ./bin/tests/system/allow-query/setup.sh		SH	2010,2012,2016,2018,2019,2020,2021
