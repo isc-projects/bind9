@@ -97,36 +97,6 @@ typedef struct isc_timerevent {
 #define ISC_TIMEREVENT_LIFE	  (ISC_EVENTCLASS_TIMER + 3)
 #define ISC_TIMEREVENT_LASTEVENT  (ISC_EVENTCLASS_TIMER + 65535)
 
-/*%
- * This structure is actually just the common prefix of a timer manager
- * object implementation's version of an isc_timermgr_t.
- * \brief
- * Direct use of this structure by clients is forbidden.  timer implementations
- * may change the structure.  'magic' must be ISCAPI_TIMERMGR_MAGIC for any
- * of the isc_timer_ routines to work.  timer implementations must maintain
- * all timer invariants.
- */
-struct isc_timermgr {
-	unsigned int impmagic;
-	unsigned int magic;
-};
-
-#define ISCAPI_TIMERMGR_MAGIC ISC_MAGIC('A', 't', 'm', 'g')
-#define ISCAPI_TIMERMGR_VALID(m) \
-	((m) != NULL && (m)->magic == ISCAPI_TIMERMGR_MAGIC)
-
-/*%
- * This is the common prefix of a timer object.  The same note as
- * that for the timermgr structure applies.
- */
-struct isc_timer {
-	unsigned int impmagic;
-	unsigned int magic;
-};
-
-#define ISCAPI_TIMER_MAGIC    ISC_MAGIC('A', 't', 'm', 'r')
-#define ISCAPI_TIMER_VALID(s) ((s) != NULL && (s)->magic == ISCAPI_TIMER_MAGIC)
-
 /***
  *** Timer and Timer Manager Functions
  ***

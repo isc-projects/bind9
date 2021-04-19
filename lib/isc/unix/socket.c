@@ -319,23 +319,21 @@ typedef isc_event_t intev_t;
  */
 #define NRETRIES 10
 
-typedef struct isc__socket isc__socket_t;
-typedef struct isc__socketmgr isc__socketmgr_t;
 typedef struct isc__socketthread isc__socketthread_t;
 
-#define NEWCONNSOCK(ev) ((isc__socket_t *)(ev)->newsocket)
+#define NEWCONNSOCK(ev) ((ev)->newsocket)
 
-struct isc__socket {
+struct isc_socket {
 	/* Not locked. */
-	isc_socket_t common;
-	isc__socketmgr_t *manager;
+	unsigned int magic;
+	isc_socketmgr_t *manager;
 	isc_mutex_t lock;
 	isc_sockettype_t type;
 	const isc_statscounter_t *statsindex;
 	isc_refcount_t references;
 
 	/* Locked by socket lock. */
-	ISC_LINK(isc__socket_t) link;
+	ISC_LINK(isc_socket_t) link;
 	int fd;
 	int pf;
 	int threadid;
@@ -366,9 +364,9 @@ struct isc__socket {
 #define SOCKET_MANAGER_MAGIC ISC_MAGIC('I', 'O', 'm', 'g')
 #define VALID_MANAGER(m)     ISC_MAGIC_VALID(m, SOCKET_MANAGER_MAGIC)
 
-struct isc__socketmgr {
+struct isc_socketmgr {
 	/* Not locked. */
-	isc_socketmgr_t common;
+	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_mutex_t lock;
 	isc_stats_t *stats;
@@ -376,20 +374,20 @@ struct isc__socketmgr {
 	isc__socketthread_t *threads;
 	unsigned int maxsocks;
 	/* Locked by manager lock. */
-	ISC_LIST(isc__socket_t) socklist;
+	ISC_LIST(isc_socket_t) socklist;
 	int reserved; /* unlocked */
 	isc_condition_t shutdown_ok;
 	size_t maxudp;
 };
 
 struct isc__socketthread {
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 	int threadid;
 	isc_thread_t thread;
 	int pipe_fds[2];
 	isc_mutex_t *fdlock;
 	/* Locked by fdlock. */
-	isc__socket_t **fds;
+	isc_socket_t **fds;
 	int *fdstate;
 #ifdef USE_KQUEUE
 	int kqueue_fd;
@@ -438,37 +436,37 @@ static isc_result_t
 socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	      isc_socket_t **socketp, isc_socket_t *dup_socket);
 static void
-send_recvdone_event(isc__socket_t *, isc_socketevent_t **);
+send_recvdone_event(isc_socket_t *, isc_socketevent_t **);
 static void
-send_senddone_event(isc__socket_t *, isc_socketevent_t **);
+send_senddone_event(isc_socket_t *, isc_socketevent_t **);
 static void
-send_connectdone_event(isc__socket_t *, isc_socket_connev_t **);
+send_connectdone_event(isc_socket_t *, isc_socket_connev_t **);
 static void
-free_socket(isc__socket_t **);
+free_socket(isc_socket_t **);
 static isc_result_t
-allocate_socket(isc__socketmgr_t *, isc_sockettype_t, isc__socket_t **);
+allocate_socket(isc_socketmgr_t *, isc_sockettype_t, isc_socket_t **);
 static void
-destroy(isc__socket_t **);
+destroy(isc_socket_t **);
 static void
-internal_accept(isc__socket_t *);
+internal_accept(isc_socket_t *);
 static void
-internal_connect(isc__socket_t *);
+internal_connect(isc_socket_t *);
 static void
-internal_recv(isc__socket_t *);
+internal_recv(isc_socket_t *);
 static void
-internal_send(isc__socket_t *);
+internal_send(isc_socket_t *);
 static void
-process_cmsg(isc__socket_t *, struct msghdr *, isc_socketevent_t *);
+process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
 static void
-build_msghdr_send(isc__socket_t *, char *, isc_socketevent_t *, struct msghdr *,
+build_msghdr_send(isc_socket_t *, char *, isc_socketevent_t *, struct msghdr *,
 		  struct iovec *, size_t *);
 static void
-build_msghdr_recv(isc__socket_t *, char *, isc_socketevent_t *, struct msghdr *,
+build_msghdr_recv(isc_socket_t *, char *, isc_socketevent_t *, struct msghdr *,
 		  struct iovec *, size_t *);
 static bool
 process_ctlfd(isc__socketthread_t *thread);
 static void
-setdscp(isc__socket_t *sock, isc_dscp_t dscp);
+setdscp(isc_socket_t *sock, isc_dscp_t dscp);
 
 #define SELECT_POKE_SHUTDOWN (-1)
 #define SELECT_POKE_NOTHING  (-2)
@@ -559,19 +557,19 @@ static const isc_statscounter_t rawstatsindex[] = {
 };
 
 static int
-gen_threadid(isc__socket_t *sock);
+gen_threadid(isc_socket_t *sock);
 
 static int
-gen_threadid(isc__socket_t *sock) {
+gen_threadid(isc_socket_t *sock) {
 	return (sock->fd % sock->manager->nthreads);
 }
 
 static void
-manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
+manager_log(isc_socketmgr_t *sockmgr, isc_logcategory_t *category,
 	    isc_logmodule_t *module, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(5, 6);
 static void
-manager_log(isc__socketmgr_t *sockmgr, isc_logcategory_t *category,
+manager_log(isc_socketmgr_t *sockmgr, isc_logcategory_t *category,
 	    isc_logmodule_t *module, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
@@ -612,11 +610,11 @@ thread_log(isc__socketthread_t *thread, isc_logcategory_t *category,
 }
 
 static void
-socket_log(isc__socket_t *sock, const isc_sockaddr_t *address,
+socket_log(isc_socket_t *sock, const isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
 	   const char *fmt, ...) ISC_FORMAT_PRINTF(6, 7);
 static void
-socket_log(isc__socket_t *sock, const isc_sockaddr_t *address,
+socket_log(isc_socket_t *sock, const isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
 	   const char *fmt, ...) {
 	char msgbuf[2048];
@@ -923,7 +921,7 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
  * will not get partial writes.
  */
 static void
-select_poke(isc__socketmgr_t *mgr, int threadid, int fd, int msg) {
+select_poke(isc_socketmgr_t *mgr, int threadid, int fd, int msg) {
 	int cc;
 	int buf[2];
 	char strbuf[ISC_STRERRORSIZE];
@@ -1077,7 +1075,7 @@ cmsg_space(socklen_t len) {
  * Process control messages received on a socket.
  */
 static void
-process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
+process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef USE_CMSG
 	struct cmsghdr *cmsgp;
 	struct in6_pktinfo *pktinfop;
@@ -1195,7 +1193,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
  * this transaction can send.
  */
 static void
-build_msghdr_send(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
+build_msghdr_send(isc_socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *write_countp) {
 	unsigned int iovcount;
 	size_t write_count;
@@ -1359,7 +1357,7 @@ build_msghdr_send(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
  * this transaction can receive.
  */
 static void
-build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
+build_msghdr_recv(isc_socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *read_countp) {
 	unsigned int iovcount;
 	size_t read_count;
@@ -1411,7 +1409,7 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 }
 
 static void
-set_dev_address(const isc_sockaddr_t *address, isc__socket_t *sock,
+set_dev_address(const isc_sockaddr_t *address, isc_socket_t *sock,
 		isc_socketevent_t *dev) {
 	if (sock->type == isc_sockettype_udp) {
 		if (address != NULL) {
@@ -1476,7 +1474,7 @@ dump_msg(struct msghdr *msg) {
 #define DOIO_EOF     3 /* EOF, no event sent */
 
 static int
-doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
+doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
 	struct iovec iov[MAXSCATTERGATHER_RECV];
 	size_t read_count;
@@ -1651,7 +1649,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
  *	No other return values are possible.
  */
 static int
-doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
+doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
 	struct iovec iov[MAXSCATTERGATHER_SEND];
 	size_t write_count;
@@ -1773,7 +1771,7 @@ resend:
  * references exist.
  */
 static void
-socketclose(isc__socketthread_t *thread, isc__socket_t *sock, int fd) {
+socketclose(isc__socketthread_t *thread, isc_socket_t *sock, int fd) {
 	int lockid = FDLOCK_ID(fd);
 	/*
 	 * No one has this socket open, so the watcher doesn't have to be
@@ -1826,10 +1824,10 @@ socketclose(isc__socketthread_t *thread, isc__socket_t *sock, int fd) {
 }
 
 static void
-destroy(isc__socket_t **sockp) {
+destroy(isc_socket_t **sockp) {
 	int fd = 0;
-	isc__socket_t *sock = *sockp;
-	isc__socketmgr_t *manager = sock->manager;
+	isc_socket_t *sock = *sockp;
+	isc_socketmgr_t *manager = sock->manager;
 	isc__socketthread_t *thread = NULL;
 
 	socket_log(sock, NULL, CREATION, "destroying");
@@ -1870,14 +1868,13 @@ destroy(isc__socket_t **sockp) {
 }
 
 static isc_result_t
-allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
-		isc__socket_t **socketp) {
-	isc__socket_t *sock;
+allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
+		isc_socket_t **socketp) {
+	isc_socket_t *sock;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
-	sock->common.magic = 0;
-	sock->common.impmagic = 0;
+	sock->magic = 0;
 	isc_refcount_init(&sock->references, 0);
 
 	sock->manager = manager;
@@ -1913,8 +1910,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	 */
 	isc_mutex_init(&sock->lock);
 
-	sock->common.magic = ISCAPI_SOCKET_MAGIC;
-	sock->common.impmagic = SOCKET_MAGIC;
+	sock->magic = SOCKET_MAGIC;
 	*socketp = sock;
 
 	return (ISC_R_SUCCESS);
@@ -1928,8 +1924,8 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
  * also close the socket.
  */
 static void
-free_socket(isc__socket_t **socketp) {
-	isc__socket_t *sock = *socketp;
+free_socket(isc_socket_t **socketp) {
+	isc_socket_t *sock = *socketp;
 	*socketp = NULL;
 
 	INSIST(VALID_SOCKET(sock));
@@ -1943,8 +1939,7 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(!ISC_LINK_LINKED(sock, link));
 	UNLOCK(&sock->lock);
 
-	sock->common.magic = 0;
-	sock->common.impmagic = 0;
+	sock->magic = 0;
 
 	isc_mutex_destroy(&sock->lock);
 
@@ -2068,7 +2063,7 @@ cleanup:
 #endif /* ifdef SO_SNDBUF */
 
 static void
-use_min_mtu(isc__socket_t *sock) {
+use_min_mtu(isc_socket_t *sock) {
 #if !defined(IPV6_USE_MIN_MTU) && !defined(IPV6_MTU)
 	UNUSED(sock);
 #endif /* if !defined(IPV6_USE_MIN_MTU) && !defined(IPV6_MTU) */
@@ -2093,7 +2088,7 @@ use_min_mtu(isc__socket_t *sock) {
 }
 
 static void
-set_tcp_maxseg(isc__socket_t *sock, int size) {
+set_tcp_maxseg(isc_socket_t *sock, int size) {
 #ifdef TCP_MAXSEG
 	if (sock->type == isc_sockettype_tcp) {
 		(void)setsockopt(sock->fd, IPPROTO_TCP, TCP_MAXSEG,
@@ -2103,7 +2098,7 @@ set_tcp_maxseg(isc__socket_t *sock, int size) {
 }
 
 static void
-set_ip_dontfrag(isc__socket_t *sock) {
+set_ip_dontfrag(isc_socket_t *sock) {
 	/*
 	 * Set the Don't Fragment flag on IP packets
 	 */
@@ -2129,8 +2124,8 @@ set_ip_dontfrag(isc__socket_t *sock) {
 }
 
 static isc_result_t
-opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
-	   isc__socket_t *dup_socket) {
+opensocket(isc_socketmgr_t *manager, isc_socket_t *sock,
+	   isc_socket_t *dup_socket) {
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
@@ -2433,10 +2428,9 @@ setup_done:
  * socket is returned in 'socketp'.
  */
 static isc_result_t
-socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
+socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	      isc_socket_t **socketp, isc_socket_t *dup_socket) {
-	isc__socket_t *sock = NULL;
-	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
+	isc_socket_t *sock = NULL;
 	isc__socketthread_t *thread;
 	isc_result_t result;
 	int lockid;
@@ -2473,7 +2467,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 
 	sock->pf = pf;
 
-	result = opensocket(manager, sock, (isc__socket_t *)dup_socket);
+	result = opensocket(manager, sock, dup_socket);
 	if (result != ISC_R_SUCCESS) {
 		free_socket(&sock);
 		return (result);
@@ -2485,7 +2479,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	sock->threadid = gen_threadid(sock);
 	isc_refcount_increment0(&sock->references);
 	thread = &manager->threads[sock->threadid];
-	*socketp = (isc_socket_t *)sock;
+	*socketp = sock;
 
 	/*
 	 * Note we don't have to lock the socket like we normally would because
@@ -2537,20 +2531,17 @@ isc_socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
  * in 'socketp'.
  */
 isc_result_t
-isc_socket_dup(isc_socket_t *sock0, isc_socket_t **socketp) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
-	return (socket_create((isc_socketmgr_t *)sock->manager, sock->pf,
-			      sock->type, socketp, sock0));
+	return (socket_create(sock->manager, sock->pf, sock->type, socketp,
+			      sock));
 }
 
 isc_result_t
-isc_socket_open(isc_socket_t *sock0) {
+isc_socket_open(isc_socket_t *sock) {
 	isc_result_t result;
-	isc__socket_t *sock = (isc__socket_t *)sock0;
 	isc__socketthread_t *thread;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -2600,16 +2591,14 @@ isc_socket_open(isc_socket_t *sock0) {
  * Attach to a socket.  Caller must explicitly detach when it is done.
  */
 void
-isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	int old_refs = isc_refcount_increment(&sock->references);
 	REQUIRE(old_refs > 0);
 
-	*socketp = (isc_socket_t *)sock;
+	*socketp = sock;
 }
 
 /*
@@ -2618,10 +2607,10 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
  */
 void
 isc_socket_detach(isc_socket_t **socketp) {
-	isc__socket_t *sock;
+	isc_socket_t *sock;
 
 	REQUIRE(socketp != NULL);
-	sock = (isc__socket_t *)*socketp;
+	sock = *socketp;
 	REQUIRE(VALID_SOCKET(sock));
 	if (isc_refcount_decrement(&sock->references) == 1) {
 		destroy(&sock);
@@ -2631,10 +2620,9 @@ isc_socket_detach(isc_socket_t **socketp) {
 }
 
 isc_result_t
-isc_socket_close(isc_socket_t *sock0) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_close(isc_socket_t *sock) {
 	int fd;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 	isc__socketthread_t *thread;
 	fflush(stdout);
 	REQUIRE(VALID_SOCKET(sock));
@@ -2682,7 +2670,7 @@ isc_socket_close(isc_socket_t *sock0) {
  * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
-send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
+send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
 
 	task = (*dev)->ev_sender;
@@ -2707,7 +2695,7 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
  * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
-send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
+send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
 
 	INSIST(dev != NULL && *dev != NULL);
@@ -2733,7 +2721,7 @@ send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
  * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
-send_connectdone_event(isc__socket_t *sock, isc_socket_connev_t **dev) {
+send_connectdone_event(isc_socket_t *sock, isc_socket_connev_t **dev) {
 	isc_task_t *task;
 
 	INSIST(dev != NULL && *dev != NULL);
@@ -2760,8 +2748,8 @@ send_connectdone_event(isc__socket_t *sock, isc_socket_connev_t **dev) {
  * so just unlock and return.
  */
 static void
-internal_accept(isc__socket_t *sock) {
-	isc__socketmgr_t *manager;
+internal_accept(isc_socket_t *sock) {
+	isc_socketmgr_t *manager;
 	isc__socketthread_t *thread, *nthread;
 	isc_socket_newconnev_t *dev;
 	isc_task_t *task;
@@ -2998,7 +2986,7 @@ internal_accept(isc__socket_t *sock) {
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 		isc_refcount_decrementz(&NEWCONNSOCK(dev)->references);
-		free_socket((isc__socket_t **)&dev->newsocket);
+		free_socket((isc_socket_t **)&dev->newsocket);
 	}
 
 	/*
@@ -3020,7 +3008,7 @@ soft_error:
 }
 
 static void
-internal_recv(isc__socket_t *sock) {
+internal_recv(isc_socket_t *sock) {
 	isc_socketevent_t *dev;
 
 	INSIST(VALID_SOCKET(sock));
@@ -3073,7 +3061,7 @@ finish:
 }
 
 static void
-internal_send(isc__socket_t *sock) {
+internal_send(isc_socket_t *sock) {
 	isc_socketevent_t *dev;
 
 	INSIST(VALID_SOCKET(sock));
@@ -3117,7 +3105,7 @@ finish:
  */
 static void
 process_fd(isc__socketthread_t *thread, int fd, bool readable, bool writeable) {
-	isc__socket_t *sock;
+	isc_socket_t *sock;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -3364,7 +3352,7 @@ process_ctlfd(isc__socketthread_t *thread) {
 static isc_threadresult_t
 netthread(void *uap) {
 	isc__socketthread_t *thread = uap;
-	isc__socketmgr_t *manager = thread->manager;
+	isc_socketmgr_t *manager = thread->manager;
 	(void)manager;
 	bool done;
 	int cc;
@@ -3522,18 +3510,14 @@ netthread(void *uap) {
 }
 
 void
-isc_socketmgr_setreserved(isc_socketmgr_t *manager0, uint32_t reserved) {
-	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
-
+isc_socketmgr_setreserved(isc_socketmgr_t *manager, uint32_t reserved) {
 	REQUIRE(VALID_MANAGER(manager));
 
 	manager->reserved = reserved;
 }
 
 void
-isc_socketmgr_maxudp(isc_socketmgr_t *manager0, unsigned int maxudp) {
-	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
-
+isc_socketmgr_maxudp(isc_socketmgr_t *manager, unsigned int maxudp) {
 	REQUIRE(VALID_MANAGER(manager));
 
 	manager->maxudp = maxudp;
@@ -3554,9 +3538,9 @@ setup_thread(isc__socketthread_t *thread) {
 	REQUIRE(thread->threadid >= 0 &&
 		thread->threadid < thread->manager->nthreads);
 
-	thread->fds = isc_mem_get(thread->manager->mctx,
-				  thread->manager->maxsocks *
-					  sizeof(isc__socket_t *));
+	thread->fds =
+		isc_mem_get(thread->manager->mctx,
+			    thread->manager->maxsocks * sizeof(isc_socket_t *));
 
 	memset(thread->fds, 0,
 	       thread->manager->maxsocks * sizeof(isc_socket_t *));
@@ -3756,7 +3740,7 @@ cleanup_thread(isc_mem_t *mctx, isc__socketthread_t *thread) {
 		    thread->manager->maxsocks * sizeof(uint32_t));
 #endif /* if defined(USE_EPOLL) */
 	isc_mem_put(thread->manager->mctx, thread->fds,
-		    thread->manager->maxsocks * sizeof(isc__socket_t *));
+		    thread->manager->maxsocks * sizeof(isc_socket_t *));
 	isc_mem_put(thread->manager->mctx, thread->fdstate,
 		    thread->manager->maxsocks * sizeof(int));
 
@@ -3776,7 +3760,7 @@ isc_result_t
 isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		      unsigned int maxsocks, int nthreads) {
 	int i;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
@@ -3794,8 +3778,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->nthreads = nthreads;
 	manager->stats = NULL;
 
-	manager->common.magic = ISCAPI_SOCKETMGR_MAGIC;
-	manager->common.impmagic = SOCKET_MANAGER_MAGIC;
+	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	ISC_LIST_INIT(manager->socklist);
 	isc_mutex_init(&manager->lock);
@@ -3819,14 +3802,13 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		isc_thread_setname(manager->threads[i].thread, tname);
 	}
 
-	*managerp = (isc_socketmgr_t *)manager;
+	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager0, unsigned int *nsockp) {
-	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
+isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(nsockp != NULL);
 
@@ -3836,9 +3818,7 @@ isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager0, unsigned int *nsockp) {
 }
 
 void
-isc_socketmgr_setstats(isc_socketmgr_t *manager0, isc_stats_t *stats) {
-	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
-
+isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(ISC_LIST_EMPTY(manager->socklist));
 	REQUIRE(manager->stats == NULL);
@@ -3849,14 +3829,14 @@ isc_socketmgr_setstats(isc_socketmgr_t *manager0, isc_stats_t *stats) {
 
 void
 isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 
 	/*
 	 * Destroy a socket manager.
 	 */
 
 	REQUIRE(managerp != NULL);
-	manager = (isc__socketmgr_t *)*managerp;
+	manager = *managerp;
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&manager->lock);
@@ -3898,15 +3878,14 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		isc_stats_detach(&manager->stats);
 	}
 	isc_mutex_destroy(&manager->lock);
-	manager->common.magic = 0;
-	manager->common.impmagic = 0;
+	manager->magic = 0;
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 
 	*managerp = NULL;
 }
 
 static isc_result_t
-socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
+socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	    unsigned int flags) {
 	int io_state;
 	bool have_lock = false;
@@ -3983,11 +3962,10 @@ socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_recv(isc_socket_t *sock0, isc_region_t *region, unsigned int minimum,
+isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		isc_task_t *task, isc_taskaction_t action, void *arg) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
 	isc_socketevent_t *dev;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(action != NULL);
@@ -4003,15 +3981,13 @@ isc_socket_recv(isc_socket_t *sock0, isc_region_t *region, unsigned int minimum,
 		return (ISC_R_NOMEMORY);
 	}
 
-	return (isc_socket_recv2(sock0, region, minimum, task, dev, 0));
+	return (isc_socket_recv2(sock, region, minimum, task, dev, 0));
 }
 
 isc_result_t
-isc_socket_recv2(isc_socket_t *sock0, isc_region_t *region,
-		 unsigned int minimum, isc_task_t *task,
-		 isc_socketevent_t *event, unsigned int flags) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_recv2(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
+		 isc_task_t *task, isc_socketevent_t *event,
+		 unsigned int flags) {
 	event->ev_sender = sock;
 	event->result = ISC_R_UNSET;
 	event->region = *region;
@@ -4036,7 +4012,7 @@ isc_socket_recv2(isc_socket_t *sock0, isc_region_t *region,
 }
 
 static isc_result_t
-socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
+socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 	    unsigned int flags) {
 	int io_state;
@@ -4147,12 +4123,11 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_sendto(isc_socket_t *sock0, isc_region_t *region, isc_task_t *task,
+isc_socket_sendto(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 		  isc_taskaction_t action, void *arg,
 		  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
 	isc_socketevent_t *dev;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -4176,11 +4151,9 @@ isc_socket_sendto(isc_socket_t *sock0, isc_region_t *region, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_sendto2(isc_socket_t *sock0, isc_region_t *region, isc_task_t *task,
+isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		   isc_socketevent_t *event, unsigned int flags) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE((flags & ~(ISC_SOCKFLAG_IMMEDIATE | ISC_SOCKFLAG_NORETRY)) ==
 		0);
@@ -4373,9 +4346,8 @@ isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
+isc_socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
 		isc_socket_options_t options) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
 
@@ -4463,8 +4435,7 @@ bind_socket:
 #undef ENABLE_ACCEPTFILTER
 
 isc_result_t
-isc_socket_filter(isc_socket_t *sock0, const char *filter) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_filter(isc_socket_t *sock, const char *filter) {
 #if defined(SO_ACCEPTFILTER) && defined(ENABLE_ACCEPTFILTER)
 	char strbuf[ISC_STRERRORSIZE];
 	struct accept_filter_arg afa;
@@ -4495,7 +4466,7 @@ isc_socket_filter(isc_socket_t *sock0, const char *filter) {
  * Try enabling TCP Fast Open for a given socket if the OS supports it.
  */
 static void
-set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
+set_tcp_fastopen(isc_socket_t *sock, unsigned int backlog) {
 #if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	char strbuf[ISC_STRERRORSIZE];
 
@@ -4567,8 +4538,7 @@ set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
  * as well keep things simple rather than having to track them.
  */
 isc_result_t
-isc_socket_listen(isc_socket_t *sock0, unsigned int backlog) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -4605,13 +4575,12 @@ isc_socket_listen(isc_socket_t *sock0, unsigned int backlog) {
  * This should try to do aggressive accept() XXXMLG
  */
 isc_result_t
-isc_socket_accept(isc_socket_t *sock0, isc_task_t *task,
-		  isc_taskaction_t action, void *arg) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_accept(isc_socket_t *sock, isc_task_t *task, isc_taskaction_t action,
+		  void *arg) {
 	isc_socket_newconnev_t *dev;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc__socket_t *nsock;
+	isc_socket_t *nsock;
 	isc_result_t result;
 	bool do_poke = false;
 
@@ -4655,7 +4624,7 @@ isc_socket_accept(isc_socket_t *sock0, isc_task_t *task,
 	nsock->statsindex = sock->statsindex;
 
 	dev->ev_sender = ntask;
-	dev->newsocket = (isc_socket_t *)nsock;
+	dev->newsocket = nsock;
 
 	/*
 	 * Poke watcher here.  We still have the socket locked, so there
@@ -4673,12 +4642,11 @@ isc_socket_accept(isc_socket_t *sock0, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
+isc_socket_connect(isc_socket_t *sock, const isc_sockaddr_t *addr,
 		   isc_task_t *task, isc_taskaction_t action, void *arg) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
 	isc_socket_connev_t *dev;
 	isc_task_t *ntask = NULL;
-	isc__socketmgr_t *manager;
+	isc_socketmgr_t *manager;
 	int cc;
 	char strbuf[ISC_STRERRORSIZE];
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -4836,7 +4804,7 @@ queue:
  * Called when a socket with a pending connect() finishes.
  */
 static void
-internal_connect(isc__socket_t *sock) {
+internal_connect(isc_socket_t *sock) {
 	isc_socket_connev_t *dev;
 	int cc;
 	isc_result_t result;
@@ -4937,8 +4905,7 @@ finish:
 }
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	isc_result_t result;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -4959,8 +4926,7 @@ isc_socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 }
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	socklen_t len;
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
@@ -4997,9 +4963,7 @@ out:
  * queued for task "task" of type "how".  "how" is a bitmask.
  */
 void
-isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	/*
@@ -5079,7 +5043,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 
 				isc_refcount_decrementz(
 					&NEWCONNSOCK(dev)->references);
-				free_socket((isc__socket_t **)&dev->newsocket);
+				free_socket((isc_socket_t **)&dev->newsocket);
 
 				dev->result = ISC_R_CANCELED;
 				dev->ev_sender = sock;
@@ -5120,17 +5084,14 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 }
 
 isc_sockettype_t
-isc_socket_gettype(isc_socket_t *sock0) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_gettype(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	return (sock->type);
 }
 
 void
-isc_socket_ipv6only(isc_socket_t *sock0, bool yes) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
+isc_socket_ipv6only(isc_socket_t *sock, bool yes) {
 #if defined(IPV6_V6ONLY)
 	int onoff = yes ? 1 : 0;
 #else  /* if defined(IPV6_V6ONLY) */
@@ -5158,7 +5119,7 @@ isc_socket_ipv6only(isc_socket_t *sock0, bool yes) {
 }
 
 static void
-setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
+setdscp(isc_socket_t *sock, isc_dscp_t dscp) {
 #if defined(IP_TOS) || defined(IPV6_TCLASS)
 	int value = dscp << 2;
 #endif /* if defined(IP_TOS) || defined(IPV6_TCLASS) */
@@ -5195,9 +5156,7 @@ setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
 }
 
 void
-isc_socket_dscp(isc_socket_t *sock0, isc_dscp_t dscp) {
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+isc_socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(dscp < 0x40);
 
@@ -5228,9 +5187,7 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender, isc_eventtype_t eventtype,
 }
 
 void
-isc_socket_setname(isc_socket_t *socket0, const char *name, void *tag) {
-	isc__socket_t *sock = (isc__socket_t *)socket0;
-
+isc_socket_setname(isc_socket_t *sock, const char *name, void *tag) {
 	/*
 	 * Name 'sock'.
 	 */
@@ -5244,23 +5201,17 @@ isc_socket_setname(isc_socket_t *socket0, const char *name, void *tag) {
 }
 
 const char *
-isc_socket_getname(isc_socket_t *socket0) {
-	isc__socket_t *sock = (isc__socket_t *)socket0;
-
+isc_socket_getname(isc_socket_t *sock) {
 	return (sock->name);
 }
 
 void *
-isc_socket_gettag(isc_socket_t *socket0) {
-	isc__socket_t *sock = (isc__socket_t *)socket0;
-
+isc_socket_gettag(isc_socket_t *sock) {
 	return (sock->tag);
 }
 
 int
-isc_socket_getfd(isc_socket_t *socket0) {
-	isc__socket_t *sock = (isc__socket_t *)socket0;
-
+isc_socket_getfd(isc_socket_t *sock) {
 	return ((short)sock->fd);
 }
 
@@ -5336,9 +5287,8 @@ _socktype(isc_sockettype_t type) {
 			goto error; \
 	} while (0)
 int
-isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
-	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
-	isc__socket_t *sock = NULL;
+isc_socketmgr_renderxml(isc_socketmgr_t *mgr, void *writer0) {
+	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	socklen_t len;
@@ -5444,10 +5394,9 @@ error:
 	} while (0)
 
 isc_result_t
-isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, void *stats0) {
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr, void *stats0) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
-	isc__socket_t *sock = NULL;
+	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	socklen_t len;
