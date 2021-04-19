@@ -66,9 +66,6 @@
 #include ISC_PLATFORM_GSSAPI_KRB5_HEADER
 #endif /* ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER */
 #endif /* ifdef WIN32 */
-#ifndef GSS_SPNEGO_MECHANISM
-#define GSS_SPNEGO_MECHANISM ((void *)0)
-#endif /* ifndef GSS_SPNEGO_MECHANISM */
 #endif /* ifdef GSSAPI */
 
 ISC_LANG_BEGINDECLS
