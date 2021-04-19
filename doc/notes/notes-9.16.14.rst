@@ -41,16 +41,6 @@ Security Fixes
   This vulnerability was reported to us as ZDI-CAN-13347 by Trend Micro
   Zero Day Initiative. [GL #2604]
 
-Known Issues
-~~~~~~~~~~~~
-
-- If zone journal files written by BIND 9.16.11 or earlier are present
-  when BIND is upgraded to BIND 9.16.13 or BIND 9.16.14, the zone file
-  for that zone may be inadvertently rewritten with the current zone
-  contents. This causes the original zone file structure (e.g.
-  comments, ``$INCLUDE`` directives) to be lost while preserving zone
-  data itself. [GL #2623]
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
