@@ -27,6 +27,8 @@
 			nonsensical values and both issues have been fixed.
 			[GL #389] [GL #2289]
 
+	--- 9.16.15 released ---
+
 5621.	[bug]		Due to a backporting mistake in change 5609, named
 			binaries built against a Kerberos/GSSAPI library whose
 			header files did not define the GSS_SPNEGO_MECHANISM
