@@ -1044,13 +1044,14 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 
 	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
 
-	isc_mutex_init(&resarg->lock);
 	*resarg = (resarg_t){
 		.actx = client->actx,
 		.client = client,
 		.result = DNS_R_SERVFAIL,
 		.namelist = namelist,
 	};
+
+	isc_mutex_init(&resarg->lock);
 
 	result = dns_client_startresolve(client, name, rdclass, type, options,
 					 client->task, resolve_done, resarg,
