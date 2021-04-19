@@ -5,8 +5,13 @@
 			configuration included the "tkey-gssapi-credential"
 			option. This has been fixed. [GL #2634]
 
-5620.	[bug]		Named would overwrite a zone file unconditionally when
-			it recovered from a corrupted journal. [GL #2623]
+5620.	[bug]		If zone journal files written by BIND 9.16.11 or earlier
+			were present when BIND was upgraded, the zone file for
+			that zone could have been inadvertently rewritten with
+			the current zone contents. This caused the original zone
+			file structure (e.g. comments, $INCLUDE directives) to
+			be lost, although the zone data itself was preserved.
+			This has been fixed. [GL #2623]
 
 	--- 9.16.14 released ---
 
