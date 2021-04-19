@@ -258,7 +258,7 @@
     <ProjectReference Include="..\..\..\bin\tests\system\win32\pipequeries.vcxproj">
       <Project>{E1478F40-786C-4738-8E99-E7A71DD98661}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\bin\tests\samples\win32\resolve.vcxproj">
+    <ProjectReference Include="..\..\..\bin\tests\system\win32\resolve.vcxproj">
       <Project>{F66D8B7E-721D-4602-99AD-820D19AD1313}</Project>
     </ProjectReference>
 @END STESTS
