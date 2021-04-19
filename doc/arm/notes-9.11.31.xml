@@ -1,0 +1,74 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.31"><info><title>Notes for BIND 9.11.31</title></info>
+
+  <section xml:id="relnotes-9.11.31-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          A malformed incoming IXFR transfer could trigger an assertion failure
+          in <command>named</command>, causing it to quit abnormally.
+          (CVE-2021-25214)
+        </para>
+        <para>
+          ISC would like to thank Greg Kuechle of SaskTel for bringing this
+          vulnerability to our attention. [GL #2467]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> crashed when a DNAME record placed in the
+          ANSWER section during DNAME chasing turned out to be the final answer
+          to a client query. (CVE-2021-25215)
+        </para>
+        <para>
+          ISC would like to thank <link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://github.com/sivakesava1">Siva Kakarla</link> for
+          bringing this vulnerability to our attention. [GL #2540]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When a server's configuration set the
+          <command>tkey-gssapi-keytab</command> or
+          <command>tkey-gssapi-credential</command> option, a specially crafted
+          GSS-TSIG query could cause a buffer overflow in the ISC implementation
+          of SPNEGO (a protocol enabling negotiation of the security mechanism
+          used for GSSAPI authentication). This flaw could be exploited to crash
+          <command>named</command> binaries compiled for 64-bit platforms, and
+          could enable remote code execution when <command>named</command> was
+          compiled for 32-bit platforms. (CVE-2021-25216)
+        </para>
+        <para>
+          This vulnerability was reported to us as ZDI-CAN-13347 by Trend Micro
+          Zero Day Initiative. [GL #2604]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.31-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The ISC implementation of SPNEGO was removed from BIND 9 source code.
+          Instead, BIND 9 now always uses the SPNEGO implementation provided by
+          the system GSSAPI library when it is built with GSSAPI support. All
+          major contemporary Kerberos/GSSAPI libraries contain an implementation
+          of the SPNEGO mechanism. [GL #2607]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>
