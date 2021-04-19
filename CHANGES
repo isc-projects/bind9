@@ -1,3 +1,6 @@
+5624.	[func]		Remove the taskmgr dispatch threads and run the tasks
+			on top of netmgr loops. [GL #2638]
+
 5623.	[bug]		Prevent double xfrin_fail() call when shutting down
 			the server during ongoing transfer. [GL #2630]
 
