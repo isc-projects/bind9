@@ -13,6 +13,7 @@ named.run
 parallel.mk
 /*.log
 /*.trs
+/resolve
 /run.sh
 /run.log
 /start.sh

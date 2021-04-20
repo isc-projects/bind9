@@ -516,11 +516,10 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
+	*ctx = (isc_appctx_t){ .magic = 0 };
 
-	ctx->magic = APPCTX_MAGIC;
-
-	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
+	ctx->magic = APPCTX_MAGIC;
 
 	*ctxp = ctx;
 

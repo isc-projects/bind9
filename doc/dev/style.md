@@ -136,7 +136,7 @@ format.
 Private header files, describing interfaces that are for internal use
 within a library but not for public use, are kept in the source tree at the
 same level as their related C files, and often have `"_p"` in their names,
-e.g. `lib/isc/task_p.h`.
+e.g. `lib/isc/mem_p.h`.
 
 Header files that define modules should have a structure like the
 following.  Note that `<isc/lang.h>` MUST be included by any public header

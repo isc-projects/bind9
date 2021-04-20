@@ -125,6 +125,7 @@ static bool usegsstsig = false;
 static bool use_win2k_gsstsig = false;
 static bool tried_other_gsstsig = false;
 static bool local_only = false;
+static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
 static isc_event_t *global_event = NULL;
@@ -927,7 +928,9 @@ setup_system(void) {
 	result = isc_timermgr_create(gmctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
 
-	result = isc_taskmgr_create(gmctx, 1, 0, NULL, &taskmgr);
+	netmgr = isc_nm_start(gmctx, 1);
+
+	result = isc_taskmgr_create(gmctx, 0, netmgr, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);
@@ -3310,6 +3313,9 @@ cleanup(void) {
 
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
+
+	ddebug("Shutting down network manager");
+	isc_nm_destroy(&netmgr);
 
 	ddebug("Destroying event");
 	isc_event_free(&global_event);

@@ -104,10 +104,10 @@ isc_socketmgr_setreserved
 isc_socketmgr_setstats
 isc_task_getname
 isc_task_gettag
+isc_task_run
 isc_task_unsendrange
-isc_taskmgr_mode
-isc__taskmgr_pause
-isc__taskmgr_resume
+isc_taskmgr_attach
+isc_taskmgr_detach
 isc_aes128_crypt
 isc_aes192_crypt
 isc_aes256_crypt
@@ -654,7 +654,6 @@ isc_task_unsend
 isc_taskmgr_create
 isc_taskmgr_destroy
 isc_taskmgr_excltask
-isc_taskmgr_mode
 @IF NOTYET
 isc_taskmgr_renderjson
 @END NOTYET
@@ -662,12 +661,10 @@ isc_taskmgr_renderjson
 isc_taskmgr_renderxml
 @END LIBXML2
 isc_taskmgr_setexcltask
-isc_taskmgr_setprivilegedmode
 isc_taskpool_create
 isc_taskpool_destroy
 isc_taskpool_expand
 isc_taskpool_gettask
-isc_taskpool_setprivilege
 isc_taskpool_size
 isc_thread_create
 isc_thread_join

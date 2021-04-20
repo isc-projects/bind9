@@ -92,3 +92,9 @@ Bug Fixes
 
 - ``named`` would overwrite a zone file unconditionally when it recovered from
   a corrupted journal. [GL #2623]
+
+- After the networking manager was introduced to ``named`` to handle
+  incoming traffic, it was discovered that the recursive performance had been
+  degraded compared to the previous version (9.11).  This has been now fixed by
+  running internal tasks inside the networking manager worker threads, so
+  they do not compete for resources. [GL #2638]

@@ -64,11 +64,11 @@ cleanup_managers(void) {
 	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
 	}
+	if (netmgr != NULL) {
+		isc_nm_destroy(&netmgr);
+	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
-	}
-	if (netmgr != NULL) {
-		isc_nm_detach(&netmgr);
 	}
 }
 
@@ -89,7 +89,7 @@ create_managers(unsigned int workers) {
 	isc_hp_init(6 * workers);
 
 	netmgr = isc_nm_start(test_mctx, workers);
-	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));
+	CHECK(isc_taskmgr_create(test_mctx, 0, netmgr, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 

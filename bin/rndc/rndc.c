@@ -1032,7 +1032,7 @@ main(int argc, char **argv) {
 	isc_mem_create(&rndc_mctx);
 	netmgr = isc_nm_start(rndc_mctx, 1);
 	DO("create task manager",
-	   isc_taskmgr_create(rndc_mctx, 1, 0, netmgr, &taskmgr));
+	   isc_taskmgr_create(rndc_mctx, 0, netmgr, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &rndc_task));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);

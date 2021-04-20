@@ -28,6 +28,9 @@
 
 #include "isctest.h"
 
+#define TASK_MAGIC    ISC_MAGIC('T', 'A', 'S', 'K')
+#define VALID_TASK(t) ISC_MAGIC_VALID(t, TASK_MAGIC)
+
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -57,7 +60,7 @@ create_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 8, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 8, 2, false, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 8);
 
@@ -73,13 +76,13 @@ expand_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 10, 2, &pool1);
+	result = isc_taskpool_create(taskmgr, test_mctx, 10, 2, false, &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool1), 10);
 
 	/* resizing to a smaller size should have no effect */
 	hold = pool1;
-	result = isc_taskpool_expand(&pool1, 5, &pool2);
+	result = isc_taskpool_expand(&pool1, 5, false, &pool2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool2), 10);
 	assert_ptr_equal(pool2, hold);
@@ -89,7 +92,7 @@ expand_pool(void **state) {
 
 	/* resizing to the same size should have no effect */
 	hold = pool1;
-	result = isc_taskpool_expand(&pool1, 10, &pool2);
+	result = isc_taskpool_expand(&pool1, 10, false, &pool2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool2), 10);
 	assert_ptr_equal(pool2, hold);
@@ -99,7 +102,7 @@ expand_pool(void **state) {
 
 	/* resizing to larger size should make a new pool */
 	hold = pool1;
-	result = isc_taskpool_expand(&pool1, 20, &pool2);
+	result = isc_taskpool_expand(&pool1, 20, false, &pool2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool2), 20);
 	assert_ptr_not_equal(pool2, hold);
@@ -118,19 +121,19 @@ get_tasks(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, false, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
 
 	/* two tasks in pool; make sure we can access them more than twice */
 	isc_taskpool_gettask(pool, &task1);
-	assert_non_null(task1);
+	assert_true(VALID_TASK(task1));
 
 	isc_taskpool_gettask(pool, &task2);
-	assert_non_null(task2);
+	assert_true(VALID_TASK(task2));
 
 	isc_taskpool_gettask(pool, &task3);
-	assert_non_null(task3);
+	assert_true(VALID_TASK(task3));
 
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
@@ -149,29 +152,21 @@ set_privilege(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, true, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
-
-	isc_taskpool_setprivilege(pool, true);
 
 	isc_taskpool_gettask(pool, &task1);
 	isc_taskpool_gettask(pool, &task2);
 	isc_taskpool_gettask(pool, &task3);
 
-	assert_non_null(task1);
-	assert_non_null(task2);
-	assert_non_null(task3);
+	assert_true(VALID_TASK(task1));
+	assert_true(VALID_TASK(task2));
+	assert_true(VALID_TASK(task3));
 
 	assert_true(isc_task_privilege(task1));
 	assert_true(isc_task_privilege(task2));
 	assert_true(isc_task_privilege(task3));
-
-	isc_taskpool_setprivilege(pool, false);
-
-	assert_false(isc_task_privilege(task1));
-	assert_false(isc_task_privilege(task2));
-	assert_false(isc_task_privilege(task3));
 
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);

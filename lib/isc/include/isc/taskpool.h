@@ -51,7 +51,7 @@ typedef struct isc_taskpool isc_taskpool_t;
 
 isc_result_t
 isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
-		    unsigned int quantum, isc_taskpool_t **poolp);
+		    unsigned int quantum, bool priv, isc_taskpool_t **poolp);
 /*%<
  * Create a task pool of "ntasks" tasks, each with quantum
  * "quantum".
@@ -90,7 +90,7 @@ isc_taskpool_size(isc_taskpool_t *pool);
  */
 
 isc_result_t
-isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
+isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size, bool priv,
 		    isc_taskpool_t **targetp);
 
 /*%<
@@ -129,19 +129,6 @@ isc_taskpool_destroy(isc_taskpool_t **poolp);
  *
  * Requires:
  * \li	'*poolp' is a valid task pool.
- */
-
-void
-isc_taskpool_setprivilege(isc_taskpool_t *pool, bool priv);
-/*%<
- * Set the privilege flag on all tasks in 'pool' to 'priv'.  If 'priv' is
- * true, then when the task manager is set into privileged mode, only
- * tasks wihin this pool will be able to execute.  (Note:  It is important
- * to turn the pool tasks' privilege back off before the last task finishes
- * executing.)
- *
- * Requires:
- * \li	'pool' is a valid task pool.
  */
 
 ISC_LANG_ENDDECLS
