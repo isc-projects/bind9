@@ -98,7 +98,6 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
                     futures[executor.submit(launch_rndc, ['stop'])] = 'stop'
                 else:
                     futures[executor.submit(named_proc.terminate)] = 'kill'
-
             else:
                 # We attempt to send couple rndc commands while named is
                 # being shutdown
@@ -117,7 +116,9 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
                 if futures[future] == "stop":
                     ret_code = result
 
-            except (dns.resolver.NXDOMAIN, dns.exception.Timeout):
+            except (dns.resolver.NXDOMAIN,
+                    dns.resolver.NoNameservers,
+                    dns.exception.Timeout):
                 pass
 
         if kill_method == "rndc":
