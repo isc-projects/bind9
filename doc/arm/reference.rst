@@ -1430,12 +1430,12 @@ default is used.
    reduced.
 
 ``dnssec-policy``
-   This specifies which key and signing policy (KASP) should be used for this zone.
-   This is a string referring to a ``dnssec-policy`` statement.  There are two
-   built-in policies: ``default``, which uses the default policy, and
-   ``none``, which means no DNSSEC policy and keeps the zone unsigned.  The
-   default is ``none``.  See :ref:`dnssec-policy Grammar
-   <dnssec_policy_grammar>` for more details.
+   This specifies which key and signing policy (KASP) should be used for this
+   zone. This is a string referring to a ``dnssec-policy`` statement.  There
+   are three built-in policies: ``default``, which uses the default policy,
+   ``insecure``, to be used when you want to gracefully unsign your zone, and
+   ``none``, which means no DNSSEC policy.  The default is ``none``.
+   See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for more details.
 
 ``dnssec-update-mode``
    If this option is set to its default value of ``maintain`` in a zone
