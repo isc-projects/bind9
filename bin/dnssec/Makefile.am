@@ -4,12 +4,12 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-AM_CPPFLAGS +=						\
+AM_CPPFLAGS +=			\
 	-DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 
 noinst_LTLIBRARIES = libdnssectool.la
 
-LDADD =				\
+LDADD +=			\
 	libdnssectool.la	\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)

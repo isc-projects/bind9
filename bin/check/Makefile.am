@@ -7,7 +7,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISCCFG_CFLAGS)	\
 	$(LIBBIND9_CFLAGS)
 
-AM_CPPFLAGS +=						\
+AM_CPPFLAGS +=			\
 	-DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 
 noinst_LTLIBRARIES = libcheck-tool.la
@@ -16,7 +16,7 @@ libcheck_tool_la_SOURCES =	\
 	check-tool.h		\
 	check-tool.c
 
-LDADD =				\
+LDADD +=			\
 	libcheck-tool.la	\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\

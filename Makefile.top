@@ -12,6 +12,7 @@ AM_CPPFLAGS =					\
 	-I$(srcdir)/include
 
 AM_LDFLAGS =
+LDADD =
 
 if HOST_MACOS
 AM_LDFLAGS +=					\

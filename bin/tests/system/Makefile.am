@@ -14,7 +14,7 @@ SUBDIRS = dyndb/driver dlzexternal/driver hooks/driver
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)
 
-LDADD =				\
+LDADD +=			\
 	$(LIBISC_LIBS)
 
 if HAVE_PERL

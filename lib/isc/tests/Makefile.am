@@ -1,5 +1,4 @@
 include $(top_srcdir)/Makefile.top
-include $(top_srcdir)/Makefile.tests
 
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)
@@ -15,7 +14,7 @@ libisctest_la_SOURCES =		\
 	isctest.h		\
 	uv_wrap.h
 
-TESTS =			\
+check_PROGRAMS =	\
 	aes_test	\
 	buffer_test	\
 	counter_test	\
@@ -48,9 +47,6 @@ TESTS =			\
 	taskpool_test	\
 	time_test	\
 	timer_test
-
-check_PROGRAMS =	\
-	$(TESTS)
 
 doh_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
@@ -91,8 +87,6 @@ netmgr_test_LDADD =	\
 	$(LDADD)	\
 	$(LIBUV_LIBS)
 
-unit-local: check
-
 EXTRA_DIST = testdata
 
-LOG_COMPILER = $(builddir)/../../unit-test-driver.sh
+include $(top_srcdir)/Makefile.tests

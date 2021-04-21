@@ -10,10 +10,10 @@ AM_CPPFLAGS +=			\
 	$(KRB5_CFLAGS)		\
 	$(READLINE_CFLAGS)
 
-AM_CPPFLAGS += \
+AM_CPPFLAGS +=			\
 	-DSESSION_KEYFILE=\"${localstatedir}/run/named/session.key\"
 
-LDADD =				\
+LDADD +=			\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)	\

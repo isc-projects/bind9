@@ -5,7 +5,7 @@ AM_CPPFLAGS +=			\
 	$(LIBDNS_CFLAGS)	\
 	-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\"
 
-LDADD =				\
+LDADD +=			\
 	libconfgen.la		\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)
