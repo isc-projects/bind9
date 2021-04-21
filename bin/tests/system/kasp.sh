@@ -196,8 +196,8 @@ set_policy() {
 	CDS_DELETE="no"
 }
 # By default policies are considered to be secure.
-# If a zone sets its policy to "none", call 'set_cdsdelete' to tell the system
-# test to expect a CDS and CDNSKEY Delete record.
+# If a zone sets its policy to "insecure", call 'set_cdsdelete' to tell the
+# system test to expect a CDS and CDNSKEY Delete record.
 set_cdsdelete() {
 	CDS_DELETE="yes"
 }
@@ -779,18 +779,22 @@ check_dnssecstatus() {
 
 	_rndccmd $_server dnssec -status $_zone in $_view > rndc.dnssec.status.out.$_zone.$n || _log_error "rndc dnssec -status zone ${_zone} failed"
 
-	grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "bad dnssec status for signed zone ${_zone}"
-	if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY1 ID) from dnssec status"
-	fi
-	if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY2 ID) from dnssec status"
-	fi
-	if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY3 ID) from dnssec status"
-	fi
-	if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY4 ID) from dnssec status"
+	if [ "$_policy" = "none" ]; then
+		grep "Zone does not have dnssec-policy" rndc.dnssec.status.out.$_zone.$n > /dev/null || log_error "bad dnssec status for unsigned zone ${_zone}"
+	else
+		grep "dnssec-policy: ${_policy}" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "bad dnssec status for signed zone ${_zone}"
+		if [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
+			grep "key: $(key_get KEY1 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY1 ID) from dnssec status"
+		fi
+		if [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
+			grep "key: $(key_get KEY2 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY2 ID) from dnssec status"
+		fi
+		if [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
+			grep "key: $(key_get KEY3 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY3 ID) from dnssec status"
+		fi
+		if [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
+			grep "key: $(key_get KEY4 ID)" rndc.dnssec.status.out.$_zone.$n > /dev/null || _log_error "missing key $(key_get KEY4 ID) from dnssec status"
+		fi
 	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
