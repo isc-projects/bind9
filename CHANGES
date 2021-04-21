@@ -1,3 +1,7 @@
+5629.	[func]		Reduce the supported maximum number of iterations
+			that can be configured in an NSEC3 zone to 150.
+			[GL #2642]
+
 	--- 9.11.31 released ---
 
 5621.	[bug]		Due to a backporting mistake in change 5609, named
