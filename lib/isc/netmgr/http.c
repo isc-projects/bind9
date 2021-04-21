@@ -867,7 +867,9 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	UNUSED(handle);
 
 	if (result != ISC_R_SUCCESS) {
-		session->reading = false;
+		if (result != ISC_R_TIMEDOUT) {
+			session->reading = false;
+		}
 		failed_read_cb(result, session);
 		return;
 	}
@@ -2352,19 +2354,34 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 static void
 failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
+	REQUIRE(result != ISC_R_SUCCESS);
 
 	if (session->client) {
 		http_cstream_t *cstream = NULL;
 		cstream = ISC_LIST_HEAD(session->cstreams);
 		while (cstream != NULL) {
 			http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
 			cstream->read_cb(session->handle, result,
 					 &(isc_region_t){ cstream->rbuf,
 							  cstream->rbufsize },
 					 cstream->read_cbarg);
-			put_http_cstream(session->mctx, cstream);
+			if (result != ISC_R_TIMEDOUT ||
+			    !isc__nmsocket_timer_running(session->handle->sock))
+			{
+				ISC_LIST_DEQUEUE(session->cstreams, cstream,
+						 link);
+				put_http_cstream(session->mctx, cstream);
+			}
 			cstream = next;
+		}
+
+		/*
+		 * If result was ISC_R_TIMEDOUT and the timer was reset,
+		 * then we still have active streams and should not close
+		 * the session.
+		 */
+		if (ISC_LIST_EMPTY(session->cstreams)) {
+			finish_http_session(session);
 		}
 	} else {
 		isc_nmsocket_h2_t *h2data = NULL; /* stream socket */
@@ -2386,9 +2403,12 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 
 			h2data = next;
 		}
-	}
 
-	finish_http_session(session);
+		/*
+		 * All streams are now destroyed; close the session.
+		 */
+		finish_http_session(session);
+	}
 }
 
 static const bool base64url_validation_table[256] = {
