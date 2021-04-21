@@ -1,3 +1,7 @@
+5629.	[func]		Reduce the supported maximum number of iterations
+			that can be configured in an NSEC3 zone to 150.
+			[GL #2642]
+
 5628.	[bug]		Host and nslookup could die on SERVFAIL response.
 			[GL #2564]
 
