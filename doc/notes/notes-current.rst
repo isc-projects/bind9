@@ -40,6 +40,9 @@ Feature Changes
 - Reduce the supported maximum number of iterations that can be
   configured in an NSEC3 zones to 150. :gl:`#2642`
 
+- Treat DNSSEC responses with NSEC3 iterations greater than 150 as insecure.
+  [GL #2445]
+
 Bug Fixes
 ~~~~~~~~~
 
