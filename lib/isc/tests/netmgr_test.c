@@ -41,6 +41,12 @@
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
 
+static void
+connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg);
+static void
+connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		isc_region_t *region, void *cbarg);
+
 isc_nm_t *listen_nm = NULL;
 isc_nm_t *connect_nm = NULL;
 
@@ -88,6 +94,8 @@ static bool skip_long_tests = false;
 
 static bool allow_send_back = false;
 static bool stream_use_TLS = false;
+
+static isc_nm_recv_cb_t connect_readcb = NULL;
 
 #define SKIP_IN_CI             \
 	if (skip_long_tests) { \
@@ -334,6 +342,8 @@ nm_setup(void **state __attribute__((unused))) {
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);
 
+	connect_readcb = connect_read_cb;
+
 	return (0);
 }
 
@@ -380,15 +390,6 @@ noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg) {
 	UNUSED(cbarg);
 
 	return (0);
-}
-
-static void
-noop_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	UNUSED(handle);
-	UNUSED(result);
-	UNUSED(cbarg);
-
-	isc_refcount_decrement(&active_cconnects);
 }
 
 static void
@@ -476,7 +477,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	isc_refcount_decrement(&active_cconnects);
 
-	if (eresult != ISC_R_SUCCESS) {
+	if (eresult != ISC_R_SUCCESS || connect_readcb == NULL) {
 		return;
 	}
 
@@ -484,7 +485,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_attach(handle, &readhandle);
-	isc_nm_read(handle, connect_read_cb, NULL);
+	isc_nm_read(handle, connect_readcb, NULL);
 
 	connect_send(handle);
 }
@@ -538,6 +539,7 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			    listen_send_cb, cbarg);
 		return;
 	}
+
 	/* close the connection on stop_magic */
 unref:
 	if (handle == cbarg) {
@@ -662,9 +664,10 @@ static void
 mock_udpconnect_uv_udp_open(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -675,9 +678,10 @@ static void
 mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_bind, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -689,9 +693,10 @@ static void
 mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -703,9 +708,10 @@ static void
 mock_udpconnect_uv_recv_buffer_size(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_recv_buffer_size, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -716,9 +722,10 @@ static void
 mock_udpconnect_uv_send_buffer_size(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_send_buffer_size, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -738,9 +745,10 @@ udp_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -1138,8 +1146,9 @@ stream_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
-	stream_connect(noop_connect_cb, NULL, T_CONNECT, 0);
+	stream_connect(connect_connect_cb, NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
@@ -1641,10 +1650,11 @@ tcpdns_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			     (isc_nmiface_t *)&tcp_listen_addr, noop_connect_cb,
-			     NULL, T_CONNECT, 0);
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
@@ -2175,10 +2185,12 @@ tlsdns_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			     (isc_nmiface_t *)&tcp_listen_addr, noop_connect_cb,
-			     NULL, T_CONNECT, 0, tcp_connect_tlsctx);
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0,
+			     tcp_connect_tlsctx);
 
 	isc_nm_closedown(connect_nm);
 
@@ -2564,22 +2576,6 @@ main(void) {
 						nm_setup, nm_teardown),
 
 		/* TCP */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_tcp_bind,
-		 */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_fileno, */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown( */
-		/* 	mock_listentcp_uv_tcp_getsockname, nm_setup, */
-		/* 	nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_listen, */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_tcpconnect_uv_tcp_bind,
-		 */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_tcpconnect_uv_tcp_connect,
-		 */
-		/* 				nm_setup, nm_teardown), */
 		cmocka_unit_test_setup_teardown(tcp_noop, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_noresponse, nm_setup,
