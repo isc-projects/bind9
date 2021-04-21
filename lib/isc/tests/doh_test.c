@@ -55,19 +55,19 @@ static uint64_t stop_magic = 0;
 static uv_buf_t send_msg = { .base = (char *)&send_magic,
 			     .len = sizeof(send_magic) };
 
-static atomic_int_fast64_t nsends;
-
-static atomic_uint_fast64_t ssends;
-static atomic_uint_fast64_t sreads;
-
-static atomic_uint_fast64_t csends;
-static atomic_uint_fast64_t creads;
+static atomic_int_fast64_t nsends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t ssends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t sreads = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t csends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t creads = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t ctimeouts = ATOMIC_VAR_INIT(0);
 
 static atomic_bool was_error;
 
 static unsigned int workers = 0;
 
 static bool reuse_supported = true;
+static bool noanswer = false;
 
 static atomic_bool POST = ATOMIC_VAR_INIT(true);
 
@@ -292,11 +292,14 @@ nm_setup(void **state) {
 	atomic_store(&creads, 0);
 	atomic_store(&sreads, 0);
 	atomic_store(&ssends, 0);
+	atomic_store(&ctimeouts, 0);
 
 	atomic_store(&was_error, false);
 
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, false);
+
+	noanswer = false;
 
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 	isc_nonce_buf(&stop_magic, sizeof(stop_magic));
@@ -428,11 +431,16 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			tcp_buffer_length);
 
 		if (magic == send_magic) {
-			isc_nm_send(handle, region, doh_reply_sent_cb, NULL);
+			if (!noanswer) {
+				isc_nm_send(handle, region, doh_reply_sent_cb,
+					    NULL);
+			}
 			return;
 		} else if (magic == stop_magic) {
-			/* We are done, so we don't send anything back */
-			/* There should be no more packets in the buffer */
+			/*
+			 * We are done, so we don't send anything back.
+			 * There should be no more packets in the buffer.
+			 */
 			assert_int_equal(tcp_buffer_length, 0);
 		}
 	}
@@ -541,6 +549,134 @@ static void
 doh_noresponse_GET(void **state) {
 	atomic_store(&POST, false);
 	doh_noresponse(state);
+}
+
+static void
+timeout_query_sent_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		      void *cbarg) {
+	UNUSED(eresult);
+	UNUSED(cbarg);
+
+	assert_non_null(handle);
+
+	if (eresult == ISC_R_SUCCESS) {
+		atomic_fetch_add(&csends, 1);
+	}
+
+	isc_nmhandle_detach(&handle);
+}
+
+static void
+timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		 isc_region_t *region, void *arg) {
+	UNUSED(region);
+	UNUSED(arg);
+
+	assert_non_null(handle);
+
+	atomic_fetch_add(&ctimeouts, 1);
+
+	if (eresult == ISC_R_TIMEDOUT && atomic_load(&ctimeouts) < 5) {
+		isc_nmhandle_settimeout(handle, 50);
+		return;
+	}
+
+	/*
+	 * XXX: We should be attaching to a readhandle in
+	 * timeout_request_cb() and detaching it here, but we
+	 * don't do this because the handle passed to this function
+	 * is for the tcpsocket, not the httpsocket. This is a
+	 * bug.
+	 */
+	/* isc_nmhandle_detach(&handle); */
+}
+
+static void
+timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+	isc_nmhandle_t *sendhandle = NULL;
+	/* isc_nmhandle_t *readhandle = NULL; */
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	if (result != ISC_R_SUCCESS) {
+		goto error;
+	}
+
+	isc_nmhandle_attach(handle, &sendhandle);
+	isc_nm_send(handle,
+		    &(isc_region_t){ .base = (uint8_t *)send_msg.base,
+				     .length = send_msg.len },
+		    timeout_query_sent_cb, arg);
+
+	/* isc_nmhandle_attach(handle, &readhandle); */
+	isc_nm_read(handle, timeout_retry_cb, NULL);
+	return;
+
+error:
+	atomic_store(&was_error, true);
+}
+
+static void
+doh_timeout_recovery(void **state) {
+	isc_nm_t **nm = (isc_nm_t **)*state;
+	isc_nm_t *listen_nm = nm[0];
+	isc_nm_t *connect_nm = nm[1];
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_tlsctx_t *ctx = atomic_load(&use_TLS) ? server_tlsctx : NULL;
+	char req_url[256];
+
+	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
+				   0, NULL, NULL, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
+				      doh_receive_request_cb, NULL, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the TCP client timeouts to 0.05 seconds.
+	 * timeout_retry_cb() will give up after five timeouts.
+	 */
+	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
+			DOH_PATH);
+	isc_nm_httpconnect(connect_nm, NULL, (isc_nmiface_t *)&tcp_listen_addr,
+			   req_url, atomic_load(&POST), timeout_request_cb,
+			   NULL, ctx, 50, 0);
+
+	/*
+	 * Sleep until sends reaches 5.
+	 */
+	for (size_t i = 0; i < 1000; i++) {
+		if (atomic_load(&ctimeouts) == 5) {
+			break;
+		}
+		usleep(1000);
+	}
+	assert_true(atomic_load(&ctimeouts) == 5);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
+}
+
+static void
+doh_timeout_recovery_POST(void **state) {
+	atomic_store(&POST, true);
+	doh_timeout_recovery(state);
+}
+
+static void
+doh_timeout_recovery_GET(void **state) {
+	atomic_store(&POST, false);
+	doh_timeout_recovery(state);
 }
 
 static void
@@ -1636,6 +1772,10 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_noresponse_GET, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_timeout_recovery_POST,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_timeout_recovery_GET,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_one_POST, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_one_GET, nm_setup,
