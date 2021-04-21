@@ -75,6 +75,12 @@ do
 	n=`expr $n + 1`
 	echo_i "checking that named-checkconf detects no error in $good ($n)"
 	ret=0
+	if ! $FEATURETEST --with-libnghttp2
+	then
+		case $good in
+		good-doh-*.conf) continue;
+		esac
+	fi
 	$CHECKCONF $good > checkconf.out$n 2>&1
 	if [ $? != 0 ]; then echo_i "failed"; ret=1; fi
 	status=`expr $status + $ret`

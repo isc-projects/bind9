@@ -123,13 +123,11 @@ libisc_la_SOURCES =		\
 	$(libisc_la_HEADERS)	\
 	$(pk11_HEADERS)		\
 	$(pkcs11_HEADERS)	\
-	netmgr/http.c		\
 	netmgr/netmgr-int.h	\
 	netmgr/netmgr.c		\
 	netmgr/tcp.c		\
 	netmgr/tcpdns.c		\
 	netmgr/tlsdns.c		\
-	netmgr/tlsstream.c	\
 	netmgr/udp.c		\
 	netmgr/uv-compat.c	\
 	netmgr/uv-compat.h	\
@@ -245,6 +243,18 @@ libisc_la_LIBADD =		\
 	$(LIBUV_LIBS)		\
 	$(OPENSSL_LIBS)		\
 	$(ZLIB_LIBS)
+
+if HAVE_LIBNGHTTP2
+libisc_la_SOURCES +=		\
+	netmgr/http.c		\
+	netmgr/tlsstream.c
+
+libisc_la_CPPFLAGS +=		\
+	$(LIBNGHTTP2_CFLAGS)
+
+libisc_la_LIBADD +=		\
+	$(LIBNGHTTP2_LIBS)
+endif
 
 if HAVE_JSON_C
 libisc_la_CPPFLAGS +=		\

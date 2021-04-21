@@ -89,9 +89,12 @@ options {\n\
 	nta-recheck 300;\n\
 #	pid-file \"" NAMED_LOCALSTATEDIR "/run/named/named.pid\"; \n\
 	port 53;\n\
-	tls-port 853;\n\
-	http-port 80;\n\
-	https-port 443;\n\
+	tls-port 853;\n"
+#if HAVE_LIBNGHTTP2
+			    "http-port 80;\n"
+			    "https-port 443;\n"
+#endif
+			    "\
 	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\

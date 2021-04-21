@@ -161,8 +161,13 @@ static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
 static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_uint32, 0 },
+#if HAVE_LIBNGHTTP2
 	{ "tls", &cfg_type_astring, 0 },
 	{ "http", &cfg_type_astring, 0 },
+#else
+	{ "tls", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "http", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_listen_tuple = {
@@ -1244,8 +1249,13 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
 	{ "tls-port", &cfg_type_uint32, 0 },
+#if HAVE_LIBNGHTTP2
 	{ "http-port", &cfg_type_uint32, 0 },
 	{ "https-port", &cfg_type_uint32, 0 },
+#else
+	{ "http-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "https-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "querylog", &cfg_type_boolean, 0 },
 	{ "random-device", &cfg_type_qstringornone, 0 },
 	{ "recursing-file", &cfg_type_qstring, 0 },

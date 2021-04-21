@@ -19,7 +19,6 @@ check_PROGRAMS =	\
 	buffer_test	\
 	counter_test	\
 	crc64_test	\
-	doh_test	\
 	errno_test	\
 	file_test	\
 	hash_test	\
@@ -48,15 +47,21 @@ check_PROGRAMS =	\
 	time_test	\
 	timer_test
 
+if HAVE_LIBNGHTTP2
+check_PROGRAMS +=	\
+	doh_test
+
 doh_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
 	$(LIBUV_CFLAGS)	\
+	$(LIBNGHTTP2_CFLAGS)	\
 	$(OPENSSL_CFLAGS)
 
 doh_test_LDADD =	\
 	$(LDADD)	\
-	$(LIBUV_LIBS)	\
-	$(OPENSSL_LIBS)
+	$(LIBNGHTTP2_LIBS)	\
+	$(LIBUV_LIBS)
+endif HAVE_LIBNGHTTP2
 
 hmac_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\

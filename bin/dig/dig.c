@@ -1426,6 +1426,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			FULLCHECK6("https", "https-get", "https-post",
 				   "http-plain", "http-plain-get",
 				   "http-plain-post");
+#if HAVE_LIBNGHTTP2
 			if (lookup->https_path != NULL) {
 				isc_mem_free(mctx, lookup->https_path);
 				lookup->https_path = NULL;
@@ -1485,6 +1486,9 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				lookup->https_path = isc_mem_strdup(mctx,
 								    value);
 			}
+#else
+			fprintf(stderr, ";; DoH support not enabled\n");
+#endif
 			break;
 		default:
 			goto invalid_option;
