@@ -1,3 +1,6 @@
+5630.	[func]		Treat DNSSEC responses with NSEC3 iterations greater
+			than 150 as insecure. [GL #2445]
+
 5629.	[func]		Reduce the supported maximum number of iterations
 			that can be configured in an NSEC3 zone to 150.
 			[GL #2642]
