@@ -94,6 +94,7 @@ static atomic_bool check_listener_quota;
 static bool skip_long_tests = false;
 
 static bool allow_send_back = false;
+static bool noanswer = false;
 static bool stream_use_TLS = false;
 
 static isc_nm_recv_cb_t connect_readcb = NULL;
@@ -345,6 +346,7 @@ nm_setup(void **state __attribute__((unused))) {
 	atomic_store(&check_listener_quota, false);
 
 	connect_readcb = connect_read_cb;
+	noanswer = false;
 
 	return (0);
 }
@@ -533,7 +535,7 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	memmove(&magic, region->base, sizeof(magic));
 	assert_true(magic == stop_magic || magic == send_magic);
 
-	if (magic == send_magic) {
+	if (magic == send_magic && !noanswer) {
 		isc_nmhandle_t *sendhandle = NULL;
 		isc_nmhandle_attach(handle, &sendhandle);
 		isc_refcount_increment0(&active_ssends);
@@ -1768,6 +1770,49 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 }
 
 static void
+tcpdns_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+
+	SKIP_IN_CI;
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = isc_nm_listentcpdns(
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, listen_read_cb,
+		NULL, listen_accept_cb, NULL, 0, 0, NULL, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the TCP client timeouts to 0.05 seconds, connect,
+	 * then sleep for at least a second for each 'tick'.
+	 * timeout_retry_cb() will give up after five timeouts.
+	 */
+	connect_readcb = timeout_retry_cb;
+	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, 50, 0);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
+}
+
+static void
 tcpdns_recv_one(void **state __attribute__((unused))) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
@@ -2307,6 +2352,55 @@ tlsdns_noresponse(void **state __attribute__((unused))) {
 }
 
 static void
+tlsdns_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_sockaddr_t connect_addr;
+
+	SKIP_IN_CI;
+
+	connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = isc_nm_listentlsdns(
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, listen_read_cb,
+		NULL, listen_accept_cb, NULL, 0, 0, NULL, tcp_listen_tlsctx,
+		&listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the TCP client timeouts to 0.05 seconds, connect,
+	 * then sleep for at least a second for each 'tick'.
+	 * timeout_retry_cb() will give up after five timeouts.
+	 */
+	connect_readcb = timeout_retry_cb;
+	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tlsdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, 50, 0,
+			     tcp_connect_tlsctx);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
+}
+
+static void
 tlsdns_recv_one(void **state __attribute__((unused))) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
@@ -2701,6 +2795,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(tcpdns_timeout_recovery,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_recv_send, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_recv_half_send, nm_setup,
@@ -2771,6 +2867,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(tlsdns_timeout_recovery,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_recv_send, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_recv_half_send, nm_setup,
