@@ -79,6 +79,13 @@ zonefile="${zone}.db"
 infile="${zone}.db.infile"
 cp template.db.in $zonefile
 
+# Set up zone that stays unsigned.
+zone="insecure.kasp"
+echo_i "setting up zone: $zone"
+zonefile="${zone}.db"
+infile="${zone}.db.infile"
+cp template.db.in $zonefile
+
 # Some of these zones already have keys.
 zone="dnssec-keygen.kasp"
 $KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
