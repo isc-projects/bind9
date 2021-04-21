@@ -48,6 +48,9 @@ Feature Changes
 - Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
   the minimum of the SOA MINIMUM value and the SOA TTL. [GL #2347].
 
+- Reduce the supported maximum number of iterations that can be
+  configured in an NSEC3 zones to 150. [GL #2642]
+
 Bug Fixes
 ~~~~~~~~~
 
