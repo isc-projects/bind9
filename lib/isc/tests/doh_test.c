@@ -55,6 +55,7 @@ static uint64_t stop_magic = 0;
 static uv_buf_t send_msg = { .base = (char *)&send_magic,
 			     .len = sizeof(send_magic) };
 
+static atomic_int_fast64_t active_cconnects = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t nsends = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t ssends = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t sreads = ATOMIC_VAR_INIT(0);
@@ -119,10 +120,10 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
+	(void)atomic_fetch_sub(&active_cconnects, 1);
 	memmove(&data, arg, sizeof(data));
 	isc_mem_put(handle->sock->mgr->mctx, arg, sizeof(data));
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&slowdown, true);
 		goto error;
 	}
 
@@ -139,6 +140,11 @@ error:
 	data.reply_cb(handle, result, NULL, data.cb_arg);
 	isc_mem_put(handle->sock->mgr->mctx, data.region.base,
 		    data.region.length);
+	if (result == ISC_R_TOOMANYOPENFILES) {
+		atomic_store(&slowdown, true);
+	} else {
+		atomic_store(&was_error, true);
+	}
 }
 
 static void
@@ -296,6 +302,7 @@ nm_setup(void **state) {
 	atomic_store(&sreads, 0);
 	atomic_store(&ssends, 0);
 	atomic_store(&ctimeouts, 0);
+	atomic_store(&active_cconnects, 0);
 
 	atomic_store(&was_error, false);
 
@@ -382,9 +389,8 @@ doh_receive_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	UNUSED(cbarg);
 	UNUSED(region);
 
-	(void)atomic_fetch_sub(&nsends, 1);
-
 	if (eresult == ISC_R_SUCCESS) {
+		(void)atomic_fetch_sub(&nsends, 1);
 		atomic_fetch_add(&csends, 1);
 		atomic_fetch_add(&creads, 1);
 		isc_nm_resumeread(handle);
@@ -678,11 +684,13 @@ doh_timeout_recovery_GET(void **state) {
 static void
 doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			  isc_region_t *region, void *cbarg) {
-	int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
+	isc_nmhandle_t *thandle = NULL;
 	assert_non_null(handle);
 	UNUSED(region);
 
+	isc_nmhandle_attach(handle, &thandle);
 	if (eresult == ISC_R_SUCCESS) {
+		int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
 		atomic_fetch_add(&csends, 1);
 		atomic_fetch_add(&creads, 1);
 		if (sends > 0) {
@@ -694,12 +702,16 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 						.base = (uint8_t *)send_msg.base,
 						.length = send_msg.len },
 					doh_receive_send_reply_cb, cbarg);
+				if (eresult == ISC_R_CANCELED) {
+					break;
+				}
 				assert_true(eresult == ISC_R_SUCCESS);
 			}
 		}
 	} else {
 		atomic_store(&was_error, true);
 	}
+	isc_nmhandle_detach(&thandle);
 }
 
 static isc_threadresult_t
@@ -716,8 +728,9 @@ doh_connect_thread(isc_threadarg_t arg) {
 		 * We need to back off and slow down if we start getting
 		 * errors, to prevent a thundering herd problem.
 		 */
-		if (atomic_load(&slowdown)) {
-			isc_test_nap(1000 * workers);
+		int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
+		if (atomic_load(&slowdown) || active > workers) {
+			isc_test_nap(1000 * (active - workers));
 			atomic_store(&slowdown, false);
 		}
 		connect_send_request(
@@ -1018,6 +1031,8 @@ doh_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
+	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1031,7 +1046,7 @@ doh_recv_half_send(void **state) {
 		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
 	}
 
-	while (atomic_load(&nsends) >= (NSENDS * NWRITES) / 2) {
+	while (atomic_load(&nsends) > 0) {
 		isc_thread_yield();
 	}
 
@@ -1092,6 +1107,8 @@ doh_half_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
+	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1105,7 +1122,7 @@ doh_half_recv_send(void **state) {
 		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
 	}
 
-	while (atomic_load(&nsends) >= (NSENDS * NWRITES) / 2) {
+	while (atomic_load(&nsends) > 0) {
 		isc_thread_yield();
 	}
 
@@ -1166,6 +1183,8 @@ doh_half_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
+	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1179,7 +1198,7 @@ doh_half_recv_half_send(void **state) {
 		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
 	}
 
-	while (atomic_load(&nsends) >= (NSENDS * NWRITES) / 2) {
+	while (atomic_load(&nsends) > 0) {
 		isc_thread_yield();
 	}
 
