@@ -47,6 +47,10 @@ Feature Changes
   ``named`` now sends back empty DNS messages with the TC (TrunCated) bit set,
   forcing the DNS client to fall back to TCP.  :gl:`#2790`
 
+- DNS over HTTPS support can be disabled at the compile time via the new
+  configuration option ``--disable-doh``.  This allows BIND 9 to be
+  compiled without libnghttp2 library. [GL #2478]
+
 Bug Fixes
 ~~~~~~~~~
 
