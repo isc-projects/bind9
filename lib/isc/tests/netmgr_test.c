@@ -453,7 +453,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		goto unref;
 	}
 
-	assert_int_equal(region->length, sizeof(magic));
+	assert_true(region->length >= sizeof(magic));
 
 	atomic_fetch_add(&creads, 1);
 
@@ -530,21 +530,22 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	atomic_fetch_add(&sreads, 1);
 
-	assert_int_equal(region->length, sizeof(magic));
+	assert_true(region->length >= sizeof(magic));
 
 	memmove(&magic, region->base, sizeof(magic));
 	assert_true(magic == stop_magic || magic == send_magic);
 
-	if (magic == send_magic && !noanswer) {
-		isc_nmhandle_t *sendhandle = NULL;
-		isc_nmhandle_attach(handle, &sendhandle);
-		isc_refcount_increment0(&active_ssends);
-		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-			    listen_send_cb, cbarg);
+	if (magic == send_magic) {
+		if (!noanswer) {
+			isc_nmhandle_t *sendhandle = NULL;
+			isc_nmhandle_attach(handle, &sendhandle);
+			isc_refcount_increment0(&active_ssends);
+			isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
+				    listen_send_cb, cbarg);
+		}
 		return;
 	}
 
-	/* close the connection on stop_magic */
 unref:
 	if (handle == cbarg) {
 		isc_refcount_decrement(&active_sreads);
@@ -1191,12 +1192,12 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 				  (isc_nmiface_t *)&tcp_connect_addr,
 				  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg,
 				  tcp_connect_tlsctx, timeout, extrahandlesize);
-		return;
+	} else {
+		isc_nm_tcpconnect(connect_nm,
+				  (isc_nmiface_t *)&tcp_connect_addr,
+				  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg,
+				  timeout, extrahandlesize);
 	}
-
-	isc_nm_tcpconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg, timeout,
-			  extrahandlesize);
 }
 
 static void
@@ -1253,6 +1254,44 @@ stream_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
+}
+
+static void
+stream_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+
+	SKIP_IN_CI;
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = stream_listen(stream_accept_cb, NULL, 0, 0, NULL,
+			       &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the client timeouts to 0.05 seconds.
+	 */
+	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	connect_readcb = timeout_retry_cb;
+	isc_refcount_increment0(&active_cconnects);
+	stream_connect(connect_connect_cb, NULL, 50, 0);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
 }
 
 static void
@@ -1558,6 +1597,11 @@ tcp_noop(void **state) {
 static void
 tcp_noresponse(void **state) {
 	stream_noresponse(state);
+}
+
+static void
+tcp_timeout_recovery(void **state) {
+	stream_timeout_recovery(state);
 }
 
 static void
@@ -2112,6 +2156,12 @@ static void
 tls_noresponse(void **state) {
 	stream_use_TLS = true;
 	stream_noresponse(state);
+}
+
+static void
+tls_timeout_recovery(void **state) {
+	stream_use_TLS = true;
+	stream_timeout_recovery(state);
 }
 
 static void
@@ -2739,6 +2789,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(tcp_timeout_recovery, nm_setup,
+						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_recv_one, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_recv_two, nm_setup,
@@ -2810,6 +2862,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(tls_noop, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tls_noresponse, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(tls_timeout_recovery, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tls_recv_one, nm_setup,
 						nm_teardown),
