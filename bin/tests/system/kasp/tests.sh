@@ -786,6 +786,23 @@ check_apex
 check_subdomain
 
 #
+# Zone: insecure.kasp.
+#
+set_zone "insecure.kasp"
+set_policy "insecure" "0" "0"
+set_server "ns3" "10.53.0.3"
+
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+
+#
 # Zone: unlimited.kasp.
 #
 set_zone "unlimited.kasp"
