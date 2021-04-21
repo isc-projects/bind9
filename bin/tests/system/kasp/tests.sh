@@ -3598,7 +3598,7 @@ wait_for_done_signing() {
 # Zone: step1.going-insecure.kasp
 #
 set_zone "step1.going-insecure.kasp"
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 # Expect a CDS/CDNSKEY Delete Record.
 set_cdsdelete
@@ -3635,7 +3635,7 @@ check_next_key_event 93600
 # Zone: step2.going-insecure.kasp
 #
 set_zone "step2.going-insecure.kasp"
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # The DS is long enough removed from the zone to be considered HIDDEN.
@@ -3665,7 +3665,7 @@ check_next_key_event 7500
 #
 set_zone "step1.going-insecure-dynamic.kasp"
 set_dynamic
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 # Expect a CDS/CDNSKEY Delete Record.
 set_cdsdelete
@@ -3703,7 +3703,7 @@ check_next_key_event 93600
 #
 set_zone "step2.going-insecure-dynamic.kasp"
 set_dynamic
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # The DS is long enough removed from the zone to be considered HIDDEN.
