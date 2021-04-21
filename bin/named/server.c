@@ -9174,7 +9174,7 @@ load_configuration(const char *filename, named_server_t *server,
 		dns_kasp_detach(&kasp);
 	}
 	/*
-	 * Create the built-in kasp policies ("default", "none").
+	 * Create the built-in kasp policies ("default", "insecure").
 	 */
 	kasp = NULL;
 	CHECK(cfg_kasp_fromconfig(NULL, "default", named_g_mctx, named_g_lctx,
@@ -9184,7 +9184,7 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_kasp_detach(&kasp);
 
 	kasp = NULL;
-	CHECK(cfg_kasp_fromconfig(NULL, "none", named_g_mctx, named_g_lctx,
+	CHECK(cfg_kasp_fromconfig(NULL, "insecure", named_g_mctx, named_g_lctx,
 				  &kasplist, &kasp));
 	INSIST(kasp != NULL);
 	dns_kasp_freeze(kasp);
@@ -14827,7 +14827,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		CHECK(ISC_R_UNEXPECTEDEND);
 	}
 
-	if (dns_zone_use_kasp(zone)) {
+	if (dns_zone_getkasp(zone) != NULL) {
 		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
 				   "command instead");
 		(void)putnull(text);
