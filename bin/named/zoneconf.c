@@ -1228,15 +1228,23 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "dnssec-policy", &obj);
 		if (result == ISC_R_SUCCESS) {
 			kaspname = cfg_obj_asstring(obj);
-			result = dns_kasplist_find(kasplist, kaspname, &kasp);
-			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
-					    "'dnssec-policy '%s' not found ",
-					    kaspname);
-				RETERR(result);
+			if (strcmp(kaspname, "none") != 0) {
+				result = dns_kasplist_find(kasplist, kaspname,
+							   &kasp);
+				if (result != ISC_R_SUCCESS) {
+					cfg_obj_log(
+						obj, named_g_lctx,
+						ISC_LOG_ERROR,
+						"dnssec-policy '%s' not found ",
+						kaspname);
+					RETERR(result);
+				}
+				dns_zone_setkasp(zone, kasp);
+				use_kasp = true;
 			}
-			dns_zone_setkasp(zone, kasp);
-			use_kasp = dns_zone_use_kasp(zone);
+		}
+		if (!use_kasp) {
+			dns_zone_setkasp(zone, NULL);
 		}
 
 		obj = NULL;
@@ -1649,10 +1657,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		obj = NULL;
 		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
-		if (kasp != NULL && strcmp(dns_kasp_getname(kasp), "none") != 0)
-		{
+		if (kasp != NULL) {
+			bool s2i = (strcmp(dns_kasp_getname(kasp),
+					   "insecure") != 0);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, true);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, true);
+			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, !s2i);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, true);
 		} else if (result == ISC_R_SUCCESS) {
 			const char *arg = cfg_obj_asstring(obj);
@@ -1669,11 +1678,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, false);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
-		} else {
-			bool s2i = dns_zone_secure_to_insecure(zone, false);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, s2i);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, false);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, s2i);
 		}
 	}
 
@@ -2192,13 +2196,6 @@ named_zone_inlinesigning(dns_zone_t *zone, const cfg_obj_t *zconfig,
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "inline-signing: "
 				     "implicitly through dnssec-policy");
-		} else {
-			inline_signing = dns_zone_secure_to_insecure(zone,
-								     true);
-			dns_zone_log(
-				zone, ISC_LOG_DEBUG(1), "inline-signing: %s",
-				inline_signing ? "transitioning to insecure"
-					       : "no");
 		}
 	}
 

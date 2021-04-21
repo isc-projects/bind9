@@ -1087,6 +1087,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 bool keyset_kskonly) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
@@ -1097,7 +1098,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	bool use_kasp = false;
 	isc_mem_t *mctx = diff->mctx;
 
-	if (dns_zone_use_kasp(zone)) {
+	if (kasp != NULL) {
 		check_ksk = false;
 		keyset_kskonly = true;
 		use_kasp = true;
