@@ -168,7 +168,10 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 static void
 tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
+	bool destroy = true;
+
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(result != ISC_R_SUCCESS);
 
 	if (!sock->tlsstream.server &&
 	    (sock->tlsstream.state == TLS_INIT ||
@@ -188,14 +191,22 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 		req = isc__nm_uvreq_get(sock->mgr, sock);
 		req->cb.recv = sock->recv_cb;
 		req->cbarg = sock->recv_cbarg;
-		req->handle = NULL;
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
-		isc__nmsocket_clearcb(sock);
+		if (result != ISC_R_TIMEDOUT) {
+			isc__nmsocket_clearcb(sock);
+		}
 		isc__nm_readcb(sock, req, result);
+		if (result == ISC_R_TIMEDOUT &&
+		    isc__nmsocket_timer_running(sock->outerhandle->sock))
+		{
+			destroy = false;
+		}
 	}
 
-	isc__nmsocket_prep_destroy(sock);
-	isc__nmsocket_detach(&sock);
+	if (destroy) {
+		isc__nmsocket_prep_destroy(sock);
+		isc__nmsocket_detach(&sock);
+	}
 }
 
 static void
@@ -520,6 +531,7 @@ tls_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		tls_failed_read_cb(tlssock, result);
 		return;
 	}
+
 	tls_do_bio(tlssock, region, NULL, false);
 }
 
