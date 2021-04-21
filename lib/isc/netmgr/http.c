@@ -925,6 +925,9 @@ http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	http_do_bio(session, NULL, NULL, NULL);
 	session->sending--;
 	isc_nmhandle_detach(&transphandle);
+	if (result != ISC_R_SUCCESS && session->sending == 0) {
+		finish_http_session(session);
+	}
 	isc__nm_httpsession_detach(&session);
 }
 
