@@ -2636,6 +2636,18 @@ https_svcb(void **state) {
 		TEXT_INVALID("2 svc.example.net. mandatory=key7,"),
 		TEXT_INVALID("2 svc.example.net. "
 			     "mandatory=key7,,key7"),
+		/* Invalid test vectors */
+		TEXT_INVALID("1 foo.example.com. ( key123=abc key123=def )"),
+		TEXT_INVALID("1 foo.example.com. mandatory"),
+		TEXT_INVALID("1 foo.example.com. alpn"),
+		TEXT_INVALID("1 foo.example.com. port"),
+		TEXT_INVALID("1 foo.example.com. ipv4hint"),
+		TEXT_INVALID("1 foo.example.com. ipv6hint"),
+		TEXT_INVALID("1 foo.example.com. no-default-alpn=abc"),
+		TEXT_INVALID("1 foo.example.com. mandatory=key123"),
+		TEXT_INVALID("1 foo.example.com. mandatory=mandatory"),
+		TEXT_INVALID("1 foo.example.com. ( mandatory=key123,key123 "
+			     "key123=abc)"),
 		TEXT_SENTINEL()
 
 	};
