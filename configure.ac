@@ -10,7 +10,7 @@
 #
 # Defining the version in m4 requires a bit of dancing around,
 # so the strings are properly concatenated, as you can't use
-# a shell variable in AC_INIT()
+# a shell variable in AC_INIT
 #
 m4_define([bind_VERSION_MAJOR], 9)dnl
 m4_define([bind_VERSION_MINOR], 17)dnl
@@ -24,7 +24,7 @@ m4_define([bind_PKG_VERSION], [[bind_VERSION_MAJOR.bind_VERSION_MINOR.bind_VERSI
 # Autoconf initialization
 #
 AC_INIT([BIND], bind_PKG_VERSION, [info@isc.org], [], [https://www.isc.org/downloads/])
-AC_PREREQ(2.60)
+AC_PREREQ([2.69])
 
 AC_DEFINE([PACKAGE_VERSION_MAJOR], ["][bind_VERSION_MAJOR]["], [BIND 9 Major part of the version])
 AC_DEFINE([PACKAGE_VERSION_MINOR], ["][bind_VERSION_MINOR]["], [BIND 9 Minor part of the version])
@@ -55,6 +55,13 @@ AC_DEFINE_UNQUOTED([PACKAGE_CONFIGARGS], ["$bind_CONFIGARGS"], [Either 'defaults
 
 AC_DEFINE([PACKAGE_BUILDER], ["make"], [make or Visual Studio])
 
+#
+# Get the Canonical System Type
+#
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
 AC_CONFIG_SRCDIR([bin/named/main.c])
 AM_INIT_AUTOMAKE([1.9 tar-pax foreign subdir-objects dist-xz no-dist-gzip -Wall -Werror])
 AM_SILENT_RULES([yes])
@@ -75,12 +82,13 @@ AS_IF([test "$cross_compiling" = no],
 # Enable system extensions to C and POSIX
 #
 AC_USE_SYSTEM_EXTENSIONS
-AC_CANONICAL_HOST
 
 #
 # Compiler compatibility flags
 #
-AC_PROG_CC_C99
+m4_version_prereq([2.70],
+		  [AC_PROG_CC],
+		  [AC_PROG_CC_C99])
 AC_PROG_CPP_WERROR
 
 #
@@ -320,8 +328,6 @@ AS_CASE([$host],
 		  ])
 	])
 
-AC_HEADER_STDC
-
 AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h], [], [],
 		 [$ac_includes_default
 		  #ifdef HAVE_SYS_PARAM_H
@@ -388,8 +394,6 @@ AC_CHECK_FUNCS([setegid setresgid])
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINTPTR_T
-
-AC_HEADER_TIME
 
 #
 # check for uname library routine
@@ -1089,14 +1093,16 @@ esac
 AC_CHECK_FUNCS([tzset])
 
 AC_MSG_CHECKING(for optarg declaration)
-AC_TRY_COMPILE([
-#include <unistd.h>
-],
-[optarg = 0;],
-[AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)
-GEN_NEED_OPTARG="-DNEED_OPTARG=1"
-AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <unistd.h>]],
+     [[optarg = 0;]]
+   )],
+  [AC_MSG_RESULT(yes)],
+  [AC_MSG_RESULT(no)
+   GEN_NEED_OPTARG="-DNEED_OPTARG=1"
+   AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])]
+)
 
 #
 # Check for nanoseconds in file stats
@@ -1205,15 +1211,16 @@ AC_LINK_IFELSE(
 # Check for __builtin_expect
 #
 AC_MSG_CHECKING([compiler support for __builtin_expect])
-AC_TRY_LINK(, [
-	return (__builtin_expect(1, 1) ? 1 : 0);
-], [
-	have_builtin_expect=yes
-	AC_MSG_RESULT(yes)
-], [
-	have_builtin_expect=no
-	AC_MSG_RESULT(no)
-])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[]],
+     [[return (__builtin_expect(1, 1) ? 1 : 0);]]
+   )],
+  [have_builtin_expect=yes
+   AC_MSG_RESULT(yes)],
+  [have_builtin_expect=no
+   AC_MSG_RESULT(no)]
+)
 if test "yes" = "$have_builtin_expect"; then
 	AC_DEFINE(HAVE_BUILTIN_EXPECT, 1, [Define to 1 if the compiler supports __builtin_expect.])
 fi
@@ -1222,15 +1229,16 @@ fi
 # Check for __builtin_clz
 #
 AC_MSG_CHECKING([compiler support for __builtin_clz])
-AC_TRY_LINK(, [
-	return (__builtin_clz(0xff) == 24 ? 1 : 0);
-], [
-	have_builtin_clz=yes
-	AC_MSG_RESULT(yes)
-], [
-	have_builtin_clz=no
-	AC_MSG_RESULT(no)
-])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[]],
+     [[return (__builtin_clz(0xff) == 24 ? 1 : 0);]]
+   )],
+  [have_builtin_clz=yes
+   AC_MSG_RESULT(yes)],
+  [have_builtin_clz=no
+   AC_MSG_RESULT(no)]
+)
 if test "yes" = "$have_builtin_clz"; then
 	AC_DEFINE(HAVE_BUILTIN_CLZ, 1, [Define to 1 if the compiler supports __builtin_clz.])
 fi
