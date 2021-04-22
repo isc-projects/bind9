@@ -654,7 +654,7 @@
 ./bin/tests/system/nsupdate/ns6/named.args	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns7/dns.keytab	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns7/machine.ccache	X	2018,2019,2020,2021
-./bin/tests/system/nsupdate/ns8/dns.keytab	X	2018,2019,2020,2021
+./bin/tests/system/nsupdate/ns8/dns-other-than-KRB5_KTNAME.keytab	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns8/machine.ccache	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns9/dns.keytab	X	2018,2019,2020,2021
 ./bin/tests/system/nsupdate/ns9/machine.ccache	X	2018,2019,2020,2021
