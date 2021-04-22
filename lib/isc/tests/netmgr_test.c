@@ -107,6 +107,9 @@ static isc_nm_recv_cb_t connect_readcb = NULL;
 
 #define NSENDS 100
 
+/* Timeout for soft-timeout tests (0.05 seconds) */
+#define T_SOFT 50
+
 /* Timeouts in miliseconds */
 #define T_INIT	     120 * 1000
 #define T_IDLE	     120 * 1000
@@ -810,7 +813,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	if (eresult == ISC_R_TIMEDOUT && atomic_load(&csends) < 5) {
-		isc_nmhandle_settimeout(handle, 50);
+		isc_nmhandle_settimeout(handle, T_SOFT);
 		connect_send(handle);
 		return;
 	}
@@ -844,7 +847,7 @@ udp_timeout_recovery(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
-			  NULL, 50, 0);
+			  NULL, T_SOFT, 0);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_GE(csends, 1);
@@ -1275,10 +1278,10 @@ stream_timeout_recovery(void **state __attribute__((unused))) {
 	/*
 	 * Shorten all the client timeouts to 0.05 seconds.
 	 */
-	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	connect_readcb = timeout_retry_cb;
 	isc_refcount_increment0(&active_cconnects);
-	stream_connect(connect_connect_cb, NULL, 50, 0);
+	stream_connect(connect_connect_cb, NULL, T_SOFT, 0);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_GE(csends, 1);
@@ -1836,11 +1839,11 @@ tcpdns_timeout_recovery(void **state __attribute__((unused))) {
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
 	connect_readcb = timeout_retry_cb;
-	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
 			     (isc_nmiface_t *)&tcp_listen_addr,
-			     connect_connect_cb, NULL, 50, 0);
+			     connect_connect_cb, NULL, T_SOFT, 0);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_GE(csends, 1);
@@ -2429,11 +2432,11 @@ tlsdns_timeout_recovery(void **state __attribute__((unused))) {
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
 	connect_readcb = timeout_retry_cb;
-	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
 			     (isc_nmiface_t *)&tcp_listen_addr,
-			     connect_connect_cb, NULL, 50, 0,
+			     connect_connect_cb, NULL, T_SOFT, 0,
 			     tcp_connect_tlsctx);
 
 	WAIT_FOR_EQ(cconnects, 1);

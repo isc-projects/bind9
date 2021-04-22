@@ -77,6 +77,9 @@ static atomic_bool use_TLS = ATOMIC_VAR_INIT(false);
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
 
+/* Timeout for soft-timeout tests (0.05 seconds) */
+#define T_SOFT 50
+
 #define NSENDS	100
 #define NWRITES 10
 
@@ -577,7 +580,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	atomic_fetch_add(&ctimeouts, 1);
 
 	if (eresult == ISC_R_TIMEDOUT && atomic_load(&ctimeouts) < 5) {
-		isc_nmhandle_settimeout(handle, 50);
+		isc_nmhandle_settimeout(handle, T_SOFT);
 		return;
 	}
 
@@ -636,12 +639,12 @@ doh_timeout_recovery(void **state) {
 	 * Shorten all the TCP client timeouts to 0.05 seconds.
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
-	isc_nm_settimeouts(connect_nm, 50, 50, 50, 50);
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			DOH_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, (isc_nmiface_t *)&tcp_listen_addr,
 			   req_url, atomic_load(&POST), timeout_request_cb,
-			   NULL, ctx, 50, 0);
+			   NULL, ctx, T_SOFT, 0);
 
 	/*
 	 * Sleep until sends reaches 5.
