@@ -581,20 +581,13 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		return;
 	}
 
-	/*
-	 * XXX: We should be attaching to a readhandle in
-	 * timeout_request_cb() and detaching it here, but we
-	 * don't do this because the handle passed to this function
-	 * is for the tcpsocket, not the httpsocket. This is a
-	 * bug.
-	 */
-	/* isc_nmhandle_detach(&handle); */
+	isc_nmhandle_detach(&handle);
 }
 
 static void
 timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_nmhandle_t *sendhandle = NULL;
-	/* isc_nmhandle_t *readhandle = NULL; */
+	isc_nmhandle_t *readhandle = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
@@ -608,7 +601,7 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 				     .length = send_msg.len },
 		    timeout_query_sent_cb, arg);
 
-	/* isc_nmhandle_attach(handle, &readhandle); */
+	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, timeout_retry_cb, NULL);
 	return;
 
