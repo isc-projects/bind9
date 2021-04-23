@@ -3244,6 +3244,14 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that not-at-zone-apex RRSIG(SOA) RRsets are removed from the zone after load ($n)"
+ret=0
+dig_with_opts split-rrsig AXFR @10.53.0.7 > dig.out.test$n || ret=1
+grep -q "not-at-zone-apex.*RRSIG.*SOA" dig.out.test$n && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
 ret=0
 alg=1
