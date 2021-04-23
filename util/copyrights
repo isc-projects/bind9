@@ -1212,6 +1212,10 @@
 ./bin/tests/system/dnssec/signer/general/Kexample.com.+005+07065.private	X	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/Kexample.com.+005+23362.key	X	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/Kexample.com.+005+23362.private	X	2018,2019,2020,2021
+./bin/tests/system/dnssec/signer/general/Kexample.com.+008+15002.key	X	2021
+./bin/tests/system/dnssec/signer/general/Kexample.com.+008+15002.private	X	2021
+./bin/tests/system/dnssec/signer/general/Kexample.com.+008+63613.key	X	2021
+./bin/tests/system/dnssec/signer/general/Kexample.com.+008+63613.private	X	2021
 ./bin/tests/system/dnssec/signer/general/bogus-ksk.key	X	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/bogus-zsk.key	X	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/test1.zone	ZONE	2018,2019,2020,2021
@@ -1222,6 +1226,7 @@
 ./bin/tests/system/dnssec/signer/general/test6.zone	ZONE	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/test7.zone	ZONE	2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/general/test8.zone	ZONE	2018,2019,2020,2021
+./bin/tests/system/dnssec/signer/general/test9.zone	ZONE	2021
 ./bin/tests/system/dnssec/signer/remove.db.in	ZONE	2016,2018,2019,2020,2021
 ./bin/tests/system/dnssec/signer/remove2.db.in	ZONE	2016,2018,2019,2020,2021
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
