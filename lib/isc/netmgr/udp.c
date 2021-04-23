@@ -815,6 +815,7 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(result != ISC_R_SUCCESS);
 
 	if (atomic_load(&sock->client)) {
+		isc__nmsocket_timer_stop(sock);
 		isc__nm_stop_reading(sock);
 
 		if (!sock->recv_read) {

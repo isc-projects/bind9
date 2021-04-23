@@ -651,9 +651,11 @@ isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 destroy:
 	isc__nmsocket_prep_destroy(sock);
 
-	/* We need to detach from quota after the read callback function had a
-	 * chance to be executed. */
-	if (sock->quota) {
+	/*
+	 * We need to detach from quota after the read callback function had a
+	 * chance to be executed.
+	 */
+	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
 	}
 }

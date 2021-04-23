@@ -654,10 +654,10 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	stop_tcp_parent(sock);
 }
 
-static void
-failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+void
+isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->statichandle != NULL);
+	REQUIRE(result != ISC_R_SUCCESS);
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
@@ -676,16 +676,13 @@ failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 destroy:
 	isc__nmsocket_prep_destroy(sock);
 
-	/* We need to detach from quota after the read callback function had a
-	 * chance to be executed. */
-	if (sock->quota) {
+	/*
+	 * We need to detach from quota after the read callback function had a
+	 * chance to be executed.
+	 */
+	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
 	}
-}
-
-void
-isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
-	failed_read_cb(sock, result);
 }
 
 static void
@@ -750,7 +747,7 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	if (isc__nmsocket_closing(sock)) {
 		sock->reading = true;
-		failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
 		return;
 	}
 
@@ -760,11 +757,12 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 void
 isc__nm_tcp_pauseread(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
 	isc__netievent_tcppauseread_t *ievent = NULL;
-	isc_nmsocket_t *sock = handle->sock;
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
 
@@ -812,7 +810,7 @@ isc__nm_tcp_resumeread(isc_nmhandle_t *handle) {
 
 	if (!isc__nmsocket_active(sock)) {
 		sock->reading = true;
-		failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
 		return;
 	}
 
@@ -838,7 +836,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {
-		failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
 		goto free;
 	}
 
@@ -848,7 +846,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 					 sock->statsindex[STATID_RECVFAIL]);
 		}
 
-		failed_read_cb(sock, isc__nm_uverr2result(nread));
+		isc__nm_tcp_failed_read_cb(sock, isc__nm_uverr2result(nread));
 
 		goto free;
 	}
@@ -1337,7 +1335,7 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	}
 
 	if (sock->statichandle != NULL) {
-		failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
 		return;
 	}
 
@@ -1377,7 +1375,7 @@ isc__nm_async_tcpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	uv_timer_stop(&sock->timer);
 
-	failed_read_cb(sock, ISC_R_EOF);
+	isc__nm_tcp_failed_read_cb(sock, ISC_R_EOF);
 }
 
 int_fast32_t

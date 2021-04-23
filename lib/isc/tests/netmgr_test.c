@@ -41,6 +41,12 @@
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
 
+static void
+connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg);
+static void
+connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		isc_region_t *region, void *cbarg);
+
 isc_nm_t *listen_nm = NULL;
 isc_nm_t *connect_nm = NULL;
 
@@ -67,13 +73,14 @@ static unsigned int workers = 0;
 static atomic_int_fast64_t nsends;
 static int_fast64_t esends; /* expected sends */
 
-static atomic_int_fast64_t ssends;
-static atomic_int_fast64_t sreads;
-static atomic_int_fast64_t saccepts;
+static atomic_int_fast64_t ssends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t sreads = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t saccepts = ATOMIC_VAR_INIT(0);
 
-static atomic_int_fast64_t cconnects;
-static atomic_int_fast64_t csends;
-static atomic_int_fast64_t creads;
+static atomic_int_fast64_t cconnects = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t csends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t creads = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t ctimeouts = ATOMIC_VAR_INIT(0);
 
 static isc_refcount_t active_cconnects;
 static isc_refcount_t active_csends;
@@ -87,7 +94,10 @@ static atomic_bool check_listener_quota;
 static bool skip_long_tests = false;
 
 static bool allow_send_back = false;
+static bool noanswer = false;
 static bool stream_use_TLS = false;
+
+static isc_nm_recv_cb_t connect_readcb = NULL;
 
 #define SKIP_IN_CI             \
 	if (skip_long_tests) { \
@@ -96,6 +106,9 @@ static bool stream_use_TLS = false;
 	}
 
 #define NSENDS 100
+
+/* Timeout for soft-timeout tests (0.05 seconds) */
+#define T_SOFT 50
 
 /* Timeouts in miliseconds */
 #define T_INIT	     120 * 1000
@@ -306,6 +319,7 @@ nm_setup(void **state __attribute__((unused))) {
 	atomic_store(&cconnects, 0);
 	atomic_store(&csends, 0);
 	atomic_store(&creads, 0);
+	atomic_store(&ctimeouts, 0);
 	allow_send_back = false;
 	stream_use_TLS = false;
 
@@ -333,6 +347,9 @@ nm_setup(void **state __attribute__((unused))) {
 
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);
+
+	connect_readcb = connect_read_cb;
+	noanswer = false;
 
 	return (0);
 }
@@ -380,15 +397,6 @@ noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg) {
 	UNUSED(cbarg);
 
 	return (0);
-}
-
-static void
-noop_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	UNUSED(handle);
-	UNUSED(result);
-	UNUSED(cbarg);
-
-	isc_refcount_decrement(&active_cconnects);
 }
 
 static void
@@ -448,7 +456,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		goto unref;
 	}
 
-	assert_int_equal(region->length, sizeof(magic));
+	assert_true(region->length >= sizeof(magic));
 
 	atomic_fetch_add(&creads, 1);
 
@@ -462,7 +470,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 unref:
-	atomic_fetch_sub(&active_creads, 1);
+	isc_refcount_decrement(&active_creads);
 	isc_nmhandle_detach(&handle);
 }
 
@@ -476,7 +484,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	isc_refcount_decrement(&active_cconnects);
 
-	if (eresult != ISC_R_SUCCESS) {
+	if (eresult != ISC_R_SUCCESS || connect_readcb == NULL) {
 		return;
 	}
 
@@ -484,7 +492,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_attach(handle, &readhandle);
-	isc_nm_read(handle, connect_read_cb, NULL);
+	isc_nm_read(handle, connect_readcb, NULL);
 
 	connect_send(handle);
 }
@@ -525,20 +533,22 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	atomic_fetch_add(&sreads, 1);
 
-	assert_int_equal(region->length, sizeof(magic));
+	assert_true(region->length >= sizeof(magic));
 
 	memmove(&magic, region->base, sizeof(magic));
 	assert_true(magic == stop_magic || magic == send_magic);
 
 	if (magic == send_magic) {
-		isc_nmhandle_t *sendhandle = NULL;
-		isc_nmhandle_attach(handle, &sendhandle);
-		isc_refcount_increment0(&active_ssends);
-		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-			    listen_send_cb, cbarg);
+		if (!noanswer) {
+			isc_nmhandle_t *sendhandle = NULL;
+			isc_nmhandle_attach(handle, &sendhandle);
+			isc_refcount_increment0(&active_ssends);
+			isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
+				    listen_send_cb, cbarg);
+		}
 		return;
 	}
-	/* close the connection on stop_magic */
+
 unref:
 	if (handle == cbarg) {
 		isc_refcount_decrement(&active_sreads);
@@ -662,9 +672,10 @@ static void
 mock_udpconnect_uv_udp_open(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -675,9 +686,10 @@ static void
 mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_bind, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -689,9 +701,10 @@ static void
 mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -703,9 +716,10 @@ static void
 mock_udpconnect_uv_recv_buffer_size(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_recv_buffer_size, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -716,9 +730,10 @@ static void
 mock_udpconnect_uv_send_buffer_size(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_send_buffer_size, UV_ENOMEM);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -738,9 +753,10 @@ udp_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
-			  (isc_nmiface_t *)&udp_listen_addr, noop_connect_cb,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
@@ -784,6 +800,67 @@ udp_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
+}
+
+static void
+timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		 isc_region_t *region, void *cbarg) {
+	UNUSED(region);
+	UNUSED(cbarg);
+
+	assert_non_null(handle);
+
+	F();
+
+	if (eresult == ISC_R_TIMEDOUT && atomic_load(&csends) < 5) {
+		isc_nmhandle_settimeout(handle, T_SOFT);
+		connect_send(handle);
+		return;
+	}
+
+	atomic_fetch_add(&ctimeouts, 1);
+
+	isc_refcount_decrement(&active_creads);
+	isc_nmhandle_detach(&handle);
+}
+
+static void
+udp_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+
+	SKIP_IN_CI;
+
+	/*
+	 * Listen using the noop callback so that client reads will time out.
+	 */
+	result = isc_nm_listenudp(listen_nm, (isc_nmiface_t *)&udp_listen_addr,
+				  noop_recv_cb, NULL, 0, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Connect with client timeout set to 0.05 seconds, then sleep for at
+	 * least a second for each 'tick'. timeout_retry_cb() will give up
+	 * after five timeouts.
+	 */
+	connect_readcb = timeout_retry_cb;
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
+			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
+			  NULL, T_SOFT, 0);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
 }
 
 static void
@@ -1118,12 +1195,12 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 				  (isc_nmiface_t *)&tcp_connect_addr,
 				  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg,
 				  tcp_connect_tlsctx, timeout, extrahandlesize);
-		return;
+	} else {
+		isc_nm_tcpconnect(connect_nm,
+				  (isc_nmiface_t *)&tcp_connect_addr,
+				  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg,
+				  timeout, extrahandlesize);
 	}
-
-	isc_nm_tcpconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			  (isc_nmiface_t *)&tcp_listen_addr, cb, cbarg, timeout,
-			  extrahandlesize);
 }
 
 static void
@@ -1138,8 +1215,9 @@ stream_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
-	stream_connect(noop_connect_cb, NULL, T_CONNECT, 0);
+	stream_connect(connect_connect_cb, NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
@@ -1179,6 +1257,44 @@ stream_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
+}
+
+static void
+stream_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+
+	SKIP_IN_CI;
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = stream_listen(stream_accept_cb, NULL, 0, 0, NULL,
+			       &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the client timeouts to 0.05 seconds.
+	 */
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	connect_readcb = timeout_retry_cb;
+	isc_refcount_increment0(&active_cconnects);
+	stream_connect(connect_connect_cb, NULL, T_SOFT, 0);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
 }
 
 static void
@@ -1487,6 +1603,11 @@ tcp_noresponse(void **state) {
 }
 
 static void
+tcp_timeout_recovery(void **state) {
+	stream_timeout_recovery(state);
+}
+
+static void
 tcp_recv_one(void **state) {
 	stream_recv_one(state);
 }
@@ -1641,10 +1762,11 @@ tcpdns_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			     (isc_nmiface_t *)&tcp_listen_addr, noop_connect_cb,
-			     NULL, T_CONNECT, 0);
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0);
 	isc_nm_closedown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
@@ -1692,6 +1814,49 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
+}
+
+static void
+tcpdns_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+
+	SKIP_IN_CI;
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = isc_nm_listentcpdns(
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, listen_read_cb,
+		NULL, listen_accept_cb, NULL, 0, 0, NULL, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the TCP client timeouts to 0.05 seconds, connect,
+	 * then sleep for at least a second for each 'tick'.
+	 * timeout_retry_cb() will give up after five timeouts.
+	 */
+	connect_readcb = timeout_retry_cb;
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_SOFT, 0);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
 }
 
 static void
@@ -1997,6 +2162,12 @@ tls_noresponse(void **state) {
 }
 
 static void
+tls_timeout_recovery(void **state) {
+	stream_use_TLS = true;
+	stream_timeout_recovery(state);
+}
+
+static void
 tls_recv_one(void **state) {
 	stream_use_TLS = true;
 	stream_recv_one(state);
@@ -2175,10 +2346,12 @@ tlsdns_noop(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
-			     (isc_nmiface_t *)&tcp_listen_addr, noop_connect_cb,
-			     NULL, T_CONNECT, 0, tcp_connect_tlsctx);
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0,
+			     tcp_connect_tlsctx);
 
 	isc_nm_closedown(connect_nm);
 
@@ -2229,6 +2402,55 @@ tlsdns_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
+}
+
+static void
+tlsdns_timeout_recovery(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_sockaddr_t connect_addr;
+
+	SKIP_IN_CI;
+
+	connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
+
+	/*
+	 * Accept connections but don't send responses, forcing client
+	 * reads to time out.
+	 */
+	noanswer = true;
+	result = isc_nm_listentlsdns(
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, listen_read_cb,
+		NULL, listen_accept_cb, NULL, 0, 0, NULL, tcp_listen_tlsctx,
+		&listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Shorten all the TCP client timeouts to 0.05 seconds, connect,
+	 * then sleep for at least a second for each 'tick'.
+	 * timeout_retry_cb() will give up after five timeouts.
+	 */
+	connect_readcb = timeout_retry_cb;
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tlsdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
+			     (isc_nmiface_t *)&tcp_listen_addr,
+			     connect_connect_cb, NULL, T_SOFT, 0,
+			     tcp_connect_tlsctx);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_GE(csends, 1);
+	WAIT_FOR_GE(csends, 2);
+	WAIT_FOR_GE(csends, 3);
+	WAIT_FOR_GE(csends, 4);
+	WAIT_FOR_EQ(csends, 5);
+	WAIT_FOR_EQ(ctimeouts, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc_nm_closedown(connect_nm);
 }
 
 static void
@@ -2550,6 +2772,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(udp_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(udp_timeout_recovery, nm_setup,
+						nm_teardown),
 		cmocka_unit_test_setup_teardown(udp_recv_one, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(udp_recv_two, nm_setup,
@@ -2564,25 +2788,11 @@ main(void) {
 						nm_setup, nm_teardown),
 
 		/* TCP */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_tcp_bind,
-		 */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_fileno, */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown( */
-		/* 	mock_listentcp_uv_tcp_getsockname, nm_setup, */
-		/* 	nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_listentcp_uv_listen, */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_tcpconnect_uv_tcp_bind,
-		 */
-		/* 				nm_setup, nm_teardown), */
-		/* cmocka_unit_test_setup_teardown(mock_tcpconnect_uv_tcp_connect,
-		 */
-		/* 				nm_setup, nm_teardown), */
 		cmocka_unit_test_setup_teardown(tcp_noop, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_noresponse, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(tcp_timeout_recovery, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcp_recv_one, nm_setup,
 						nm_teardown),
@@ -2640,6 +2850,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(tcpdns_timeout_recovery,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_recv_send, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tcpdns_recv_half_send, nm_setup,
@@ -2653,6 +2865,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(tls_noop, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tls_noresponse, nm_setup,
+						nm_teardown),
+		cmocka_unit_test_setup_teardown(tls_timeout_recovery, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tls_recv_one, nm_setup,
 						nm_teardown),
@@ -2710,6 +2924,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_noresponse, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(tlsdns_timeout_recovery,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_recv_send, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_recv_half_send, nm_setup,

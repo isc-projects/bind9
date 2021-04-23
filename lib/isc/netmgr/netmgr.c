@@ -2550,7 +2550,7 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	if (eresult == ISC_R_SUCCESS) {
+	if (eresult == ISC_R_SUCCESS || eresult == ISC_R_TIMEDOUT) {
 		isc__netievent_readcb_t ievent = { .sock = sock,
 						   .req = uvreq,
 						   .result = eresult };
