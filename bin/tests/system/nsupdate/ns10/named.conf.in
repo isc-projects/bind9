@@ -20,7 +20,7 @@ options {
 	recursion no;
 	notify yes;
 	minimal-responses no;
-	tkey-gssapi-keytab "dns.keytab";
+	tkey-gssapi-credential "DNS/ns10.example.com@EXAMPLE.COM";
 };
 
 key rndc_key {
