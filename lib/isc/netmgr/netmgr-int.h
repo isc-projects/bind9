@@ -1417,9 +1417,6 @@ void
 isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_tlsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_tlsstartread(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void

@@ -869,7 +869,6 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tlsstartread);
 		NETIEVENT_CASE(tlssend);
 		NETIEVENT_CASE(tlsclose);
-		NETIEVENT_CASE(tlsconnect);
 		NETIEVENT_CASE(tlsdobio);
 		NETIEVENT_CASE(tlscancel);
 
