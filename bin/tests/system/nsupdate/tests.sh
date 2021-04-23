@@ -1132,6 +1132,10 @@ grep "UPDATE, status: NOERROR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
 grep "UPDATE, status: FORMERR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+
+
+n=`expr $n + 1`
+ret=0
 echo_i "check that DS to the zone apex is ignored ($n)"
 $DIG $DIGOPTS +tcp +norec example DS @10.53.0.3 > dig.out.pre.test$n || ret=1
 grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
@@ -1151,7 +1155,20 @@ grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.post.test$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
-if $FEATURETEST --gssapi ; then
+n=`expr $n + 1`
+ret=0
+echo_i "check that excessive NSEC3PARAM iterations are rejected by nsupdate ($n)"
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone example
+update add example 0 in NSEC3PARAM 1 0 151 -
+END
+grep "NSEC3PARAM has excessive iterations (> 150)" nsupdate.out-$n || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+if ! $FEATURETEST --gssapi ; then
+  echo_i "SKIPPED: GSSAPI tests"
+else
   n=`expr $n + 1`
   ret=0
   echo_i "check krb5-self match ($n)"
