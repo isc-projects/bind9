@@ -13,6 +13,7 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import random
+import signal
 import subprocess
 from string import ascii_lowercase as letters
 import time
@@ -185,7 +186,14 @@ def test_named_shutdown(named_port, control_port):
             time.sleep(1)
 
         if not is_dead:
-            named_proc.kill()
+            named_proc.send_signal(signal.SIGABRT)
+            for _ in range(MAX_TIMEOUT):
+                if named_proc.poll() is not None:
+                    is_dead = True
+                    break
+                time.sleep(1)
+            if not is_dead:
+                named_proc.kill()
 
         assert is_dead
         # Ensures that named exited gracefully.
