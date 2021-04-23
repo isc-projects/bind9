@@ -3826,13 +3826,12 @@ cleanup:
 
 static isc_result_t
 check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
+	bool ok = false;
 	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
 	dns_dbversion_t *version = NULL;
 	dns_rdata_nsec3param_t nsec3param;
-	bool ok = false;
+	dns_rdataset_t rdataset;
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	bool dynamic = (zone->type == dns_zone_master)
 			       ? dns_zone_isdynamic(zone, false)
 			       : false;
@@ -3863,18 +3862,21 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 		goto cleanup;
 	}
 
-	/*
-	 * For dynamic zones we must support every algorithm so we can
-	 * regenerate all the NSEC3 chains.
-	 * For non-dynamic zones we only need to find a supported algorithm.
-	 */
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
 	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
-		dns_rdata_reset(&rdata);
-		INSIST(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		/*
+		 * For dynamic zones we must support every algorithm so we
+		 * can regenerate all the NSEC3 chains.
+		 * For non-dynamic zones we only need to find a supported
+		 * algorithm.
+		 */
 		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NSEC3TESTZONE) &&
 		    nsec3param.hash == DNS_NSEC3_UNKNOWNALG && !dynamic)
 		{
@@ -3901,6 +3903,16 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 			}
 		} else {
 			ok = true;
+		}
+
+		/*
+		 * Warn if the zone has excessive NSEC3 iterations.
+		 */
+		if (nsec3param.iterations > dns_nsec3_maxiterations()) {
+			dnssec_log(zone, ISC_LOG_WARNING,
+				   "excessive NSEC3PARAM iterations %u > %u",
+				   nsec3param.iterations,
+				   dns_nsec3_maxiterations());
 		}
 	}
 	if (result == ISC_R_NOMORE) {
