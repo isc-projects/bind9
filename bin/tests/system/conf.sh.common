@@ -720,6 +720,7 @@ export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
 export KRB5_CONFIG
+export KRB5_KTNAME
 export MAKEJOURNAL
 export MDIG
 export NAMED
