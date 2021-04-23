@@ -312,8 +312,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 			 unsigned int timeout, const isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_nm_cb_t connected,
 			 isc_nm_cb_t sent, isc_taskaction_t action,
-			 isc_taskaction_t timeout_action, void *arg,
-			 dns_messageid_t *idp, dns_dispentry_t **resp);
+			 isc_nm_cb_t timedout, void *arg, dns_messageid_t *idp,
+			 dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *
@@ -321,15 +321,15 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
  * to contain the magic token used to request event flow stop.
  *
  * The 'connected' and 'sent' callbacks are run to inform the caller when
- * the connection and send functions are complete.
+ * the connect and send functions are complete. The 'timedout' callback
+ * is run to inform the caller that a read has timed out; it may optionally
+ * reset the read timer.
  *
  * The specified 'task' is sent the 'action' callback for response packets.
  * (Later, this should be updated to a network manager callback function,
  * but for now we still use isc_task for this.) When the event is delivered,
  * it must be returned using dns_dispatch_freeevent() or through
  * dns_dispatch_removeresponse() for another to be delivered.
- *
- * On timeout, 'timeout_action' will be sent to the task.
  *
  * All three callback functions are sent 'arg' as a parameter.
  *

@@ -16,6 +16,7 @@
 
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -75,24 +76,20 @@ struct dns_request {
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
 	isc_socketevent_t sendevent;
-	isc_event_t ctlevent;
-	bool canceling; /* ctlevent outstanding */
 	isc_sockaddr_t destaddr;
+	unsigned int timeout;
 	unsigned int udpcount;
 	isc_dscp_t dscp;
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_SENDING	 0x0002
-#define DNS_REQUEST_F_CANCELED                                                \
-	0x0004				 /*%< ctlevent received, or otherwise \
-					  * synchronously canceled */
-#define DNS_REQUEST_F_TIMEDOUT	  0x0008 /*%< canceled due to a timeout */
-#define DNS_REQUEST_F_TCP	  0x0010 /*%< This request used TCP */
+#define DNS_REQUEST_F_CANCELED	 0x0004
+#define DNS_REQUEST_F_TCP	 0x0010
+
 #define DNS_REQUEST_CANCELED(r)	  (((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) (((r)->flags & DNS_REQUEST_F_CONNECTING) != 0)
 #define DNS_REQUEST_SENDING(r)	  (((r)->flags & DNS_REQUEST_F_SENDING) != 0)
-#define DNS_REQUEST_TIMEDOUT(r)	  (((r)->flags & DNS_REQUEST_F_TIMEDOUT) != 0)
 
 /***
  *** Forward
@@ -113,21 +110,19 @@ req_render(dns_message_t *message, isc_buffer_t **buffer, unsigned int options,
 static void
 req_response(isc_task_t *task, isc_event_t *event);
 static void
-req_timeout(isc_task_t *task, isc_event_t *event);
-static void
 req_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 static void
 req_sendevent(dns_request_t *request, isc_result_t result);
 static void
 req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 static void
-req_cancel(dns_request_t *request);
+req_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 static void
 req_destroy(dns_request_t *request);
 static void
 req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
-static void
-do_cancel(isc_task_t *task, isc_event_t *event);
+void
+request_cancel(dns_request_t *request);
 
 /***
  *** Public
@@ -236,9 +231,6 @@ static void
 mgr_shutdown(dns_requestmgr_t *requestmgr) {
 	dns_request_t *request;
 
-	/*
-	 * Caller holds lock.
-	 */
 	if (!requestmgr->exiting) {
 		requestmgr->exiting = true;
 		for (request = ISC_LIST_HEAD(requestmgr->requests);
@@ -422,9 +414,6 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp) {
 	request = isc_mem_get(mctx, sizeof(*request));
 	*request = (dns_request_t){ .dscp = -1 };
 	ISC_LINK_INIT(request, link);
-	ISC_EVENT_INIT(&request->ctlevent, sizeof(request->ctlevent), 0, NULL,
-		       DNS_EVENT_REQUESTCONTROL, do_cancel, request, NULL, NULL,
-		       NULL);
 
 	isc_mem_attach(mctx, &request->mctx);
 
@@ -574,16 +563,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		return (result);
 	}
 
-	if (udptimeout == 0 && udpretries != 0) {
-		udptimeout = timeout / (udpretries + 1);
-		if (udptimeout == 0) {
-			udptimeout = 1;
-		}
-	}
-
-	timeout *= 1000;
-	udptimeout *= 1000;
-
 	request->udpcount = udpretries;
 	request->dscp = dscp;
 
@@ -603,6 +582,15 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 	if ((options & DNS_REQUESTOPT_TCP) != 0 || r.length > 512) {
 		tcp = true;
+		request->timeout = timeout * 1000;
+	} else {
+		if (udptimeout == 0 && udpretries != 0) {
+			udptimeout = timeout / (udpretries + 1);
+		}
+		if (udptimeout == 0) {
+			udptimeout = 1;
+		}
+		request->timeout = udptimeout * 1000;
 	}
 
 again:
@@ -618,9 +606,9 @@ again:
 	}
 
 	result = dns_dispatch_addresponse(
-		request->dispatch, dispopt, tcp ? timeout : udptimeout,
-		destaddr, task, req_connected, req_senddone, req_response,
-		req_timeout, request, &id, &request->dispentry);
+		request->dispatch, dispopt, request->timeout, destaddr, task,
+		req_connected, req_senddone, req_response, req_timeout, request,
+		&id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -708,7 +696,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_result_t result;
 	isc_mem_t *mctx;
 	dns_messageid_t id;
-	bool tcp;
+	bool tcp = false;
 	bool settsigkey = true;
 	bool connected = false;
 
@@ -738,16 +726,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		return (result);
 	}
 
-	if (udptimeout == 0 && udpretries != 0) {
-		udptimeout = timeout / (udpretries + 1);
-		if (udptimeout == 0) {
-			udptimeout = 1;
-		}
-	}
-
-	timeout *= 1000;
-	udptimeout *= 1000;
-
 	request->udpcount = udpretries;
 	request->dscp = dscp;
 
@@ -763,7 +741,19 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	}
 
 use_tcp:
-	tcp = ((options & DNS_REQUESTOPT_TCP) != 0);
+	if ((options & DNS_REQUESTOPT_TCP) != 0) {
+		tcp = true;
+		request->timeout = timeout * 1000;
+	} else {
+		if (udptimeout == 0 && udpretries != 0) {
+			udptimeout = timeout / (udpretries + 1);
+		}
+		if (udptimeout == 0) {
+			udptimeout = 1;
+		}
+		request->timeout = udptimeout * 1000;
+	}
+
 	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr, dscp,
 			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
@@ -771,9 +761,9 @@ use_tcp:
 	}
 
 	result = dns_dispatch_addresponse(
-		request->dispatch, 0, tcp ? timeout : udptimeout, destaddr,
-		task, req_connected, req_senddone, req_response, req_timeout,
-		request, &id, &request->dispentry);
+		request->dispatch, 0, request->timeout, destaddr, task,
+		req_connected, req_senddone, req_response, req_timeout, request,
+		&id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -952,26 +942,28 @@ cleanup:
  */
 static void
 send_if_done(dns_request_t *request, isc_result_t result) {
-	if (request->event != NULL && !request->canceling) {
+	if (request->event != NULL) {
 		req_sendevent(request, result);
 	}
 }
 
-/*
- * Handle the control event.
- */
-static void
-do_cancel(isc_task_t *task, isc_event_t *event) {
-	dns_request_t *request = event->ev_arg;
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_REQUESTCONTROL);
-	LOCK(&request->requestmgr->locks[request->hash]);
-	request->canceling = false;
+void
+request_cancel(dns_request_t *request) {
 	if (!DNS_REQUEST_CANCELED(request)) {
-		req_cancel(request);
+		req_log(ISC_LOG_DEBUG(3), "do_cancel: request %p", request);
+
+		request->flags |= DNS_REQUEST_F_CANCELED;
+		request->flags &= ~DNS_REQUEST_F_CONNECTING;
+
+		if (request->dispentry != NULL) {
+			dns_dispatch_cancel(NULL, request->dispentry,
+					    DNS_REQUEST_SENDING(request),
+					    DNS_REQUEST_CONNECTING(request));
+			dns_dispatch_removeresponse(&request->dispentry, NULL);
+		}
+
+		dns_dispatch_detach(&request->dispatch);
 	}
-	send_if_done(request, ISC_R_CANCELED);
-	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
 void
@@ -979,15 +971,9 @@ dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_cancel: request %p", request);
-
-	REQUIRE(VALID_REQUEST(request));
-
 	LOCK(&request->requestmgr->locks[request->hash]);
-	if (!request->canceling && !DNS_REQUEST_CANCELED(request)) {
-		isc_event_t *ev = &request->ctlevent;
-		isc_task_send(request->event->ev_sender, &ev);
-		request->canceling = true;
-	}
+	request_cancel(request);
+	send_if_done(request, ISC_R_CANCELED);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
@@ -1054,8 +1040,8 @@ dns_request_destroy(dns_request_t **requestp) {
 	UNLOCK(&request->requestmgr->lock);
 
 	/*
-	 * These should have been cleaned up by req_cancel() before
-	 * the completion event was sent.
+	 * These should have been cleaned up before the completion
+	 * event was sent.
 	 */
 	INSIST(!ISC_LINK_LINKED(request, link));
 	INSIST(request->dispentry == NULL);
@@ -1073,6 +1059,10 @@ req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	UNUSED(handle);
 
+	if (eresult == ISC_R_CANCELED) {
+		return;
+	}
+
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(DNS_REQUEST_CONNECTING(request));
 
@@ -1081,22 +1071,17 @@ req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
-	if (DNS_REQUEST_CANCELED(request)) {
-		/*
-		 * Send delayed event.
-		 */
-		if (DNS_REQUEST_TIMEDOUT(request)) {
-			send_if_done(request, ISC_R_TIMEDOUT);
-		} else {
-			send_if_done(request, ISC_R_CANCELED);
-		}
+	if (eresult == ISC_R_TIMEDOUT) {
+		dns_dispatch_removeresponse(&request->dispentry, NULL);
+		dns_dispatch_detach(&request->dispatch);
+		send_if_done(request, eresult);
+	} else if (DNS_REQUEST_CANCELED(request)) {
+		send_if_done(request, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
+		req_send(request);
 	} else {
-		if (eresult == ISC_R_SUCCESS) {
-			req_send(request);
-		} else {
-			req_cancel(request);
-			send_if_done(request, ISC_R_CANCELED);
-		}
+		request_cancel(request);
+		send_if_done(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
@@ -1116,16 +1101,36 @@ req_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	request->flags &= ~DNS_REQUEST_F_SENDING;
 
 	if (DNS_REQUEST_CANCELED(request)) {
-		if (DNS_REQUEST_TIMEDOUT(request)) {
-			send_if_done(request, ISC_R_TIMEDOUT);
+		if (eresult == ISC_R_TIMEDOUT) {
+			send_if_done(request, eresult);
 		} else {
 			send_if_done(request, ISC_R_CANCELED);
 		}
 	} else if (eresult != ISC_R_SUCCESS) {
-		req_cancel(request);
+		request_cancel(request);
 		send_if_done(request, ISC_R_CANCELED);
 	}
 
+	UNLOCK(&request->requestmgr->locks[request->hash]);
+}
+
+static void
+req_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
+
+	REQUIRE(VALID_REQUEST(request));
+
+	UNUSED(eresult);
+
+	req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);
+
+	LOCK(&request->requestmgr->locks[request->hash]);
+	if (--request->udpcount != 0) {
+		isc_nmhandle_settimeout(handle, request->timeout);
+		if (!DNS_REQUEST_SENDING(request)) {
+			req_send(request);
+		}
+	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
@@ -1164,35 +1169,13 @@ done:
 	 * Cleanup.
 	 */
 	dns_dispatch_removeresponse(&request->dispentry, &devent);
-	req_cancel(request);
+	request_cancel(request);
+
 	/*
 	 * Send completion event.
 	 */
 	send_if_done(request, result);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
-}
-
-static void
-req_timeout(isc_task_t *task, isc_event_t *event) {
-	dns_request_t *request = event->ev_arg;
-
-	REQUIRE(VALID_REQUEST(request));
-
-	req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);
-
-	UNUSED(task);
-	LOCK(&request->requestmgr->locks[request->hash]);
-	if (request->udpcount-- != 0) {
-		if (!DNS_REQUEST_SENDING(request)) {
-			req_send(request);
-		}
-	} else {
-		request->flags |= DNS_REQUEST_F_TIMEDOUT;
-		req_cancel(request);
-		send_if_done(request, ISC_R_TIMEDOUT);
-	}
-	UNLOCK(&request->requestmgr->locks[request->hash]);
-	isc_event_free(&event);
 }
 
 static void
@@ -1244,29 +1227,6 @@ req_destroy(dns_request_t *request) {
 		requestmgr_detach(&request->requestmgr);
 	}
 	isc_mem_putanddetach(&request->mctx, request, sizeof(*request));
-}
-
-/*
- * Stop the current request.  Must be called from the request's task.
- */
-static void
-req_cancel(dns_request_t *request) {
-	REQUIRE(VALID_REQUEST(request));
-
-	req_log(ISC_LOG_DEBUG(3), "req_cancel: request %p", request);
-
-	/*
-	 * Lock held by caller.
-	 */
-	request->flags |= DNS_REQUEST_F_CANCELED;
-
-	if (request->dispentry != NULL) {
-		dns_dispatch_cancel(NULL, request->dispentry,
-				    DNS_REQUEST_SENDING(request),
-				    DNS_REQUEST_CONNECTING(request));
-		dns_dispatch_removeresponse(&request->dispentry, NULL);
-	}
-	dns_dispatch_detach(&request->dispatch);
 }
 
 static void

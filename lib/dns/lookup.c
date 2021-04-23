@@ -140,10 +140,10 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 
 static void
 lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	bool want_restart;
 	bool send_event;
-	dns_name_t *name, *fname, *prefix;
+	dns_name_t *name = NULL, *fname = NULL, *prefix = NULL;
 	dns_fixedname_t foundname, fixed;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int nlabels;
@@ -156,7 +156,6 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 
 	LOCK(&lookup->lock);
 
-	result = ISC_R_SUCCESS;
 	name = dns_fixedname_name(&lookup->name);
 
 	do {
@@ -202,12 +201,10 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			}
 		} else if (event != NULL) {
 			result = event->result;
-			fname = dns_fixedname_name(&event->foundname);
+			fname = event->foundname;
 			dns_resolver_destroyfetch(&lookup->fetch);
 			INSIST(event->rdataset == &lookup->rdataset);
 			INSIST(event->sigrdataset == &lookup->sigrdataset);
-		} else {
-			fname = NULL; /* Silence compiler warning. */
 		}
 
 		/*

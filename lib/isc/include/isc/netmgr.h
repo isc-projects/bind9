@@ -160,6 +160,12 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle);
  * a TCPDNS socket wrapping a TCP connection), the timer is set for
  * both socket layers.
  */
+bool
+isc_nmhandle_timer_running(isc_nmhandle_t *handle);
+/*%<
+ * Return true if the timer for the socket connected to 'handle'
+ * is running.
+ */
 
 void
 isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value);

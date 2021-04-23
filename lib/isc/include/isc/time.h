@@ -71,6 +71,16 @@ isc_interval_iszero(const isc_interval_t *i);
  *\li	'i' is a valid pointer.
  */
 
+unsigned int
+isc_interval_ms(const isc_interval_t *i);
+/*%<
+ * Returns interval 'i' expressed as a number of milliseconds.
+ *
+ * Requires:
+ *
+ *\li	'i' is a valid pointer.
+ */
+
 /***
  *** Absolute Times
  ***/

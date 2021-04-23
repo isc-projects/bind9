@@ -576,8 +576,8 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 		} else if (eresult == DNS_R_SERVFAIL) {
 			goto unexpected;
 		} else if (eresult != DNS_R_CNAME &&
-			   isdelegation(dns_fixedname_name(&devent->foundname),
-					&val->frdataset, eresult))
+			   isdelegation(devent->foundname, &val->frdataset,
+					eresult))
 		{
 			/*
 			 * Failed to find a DS while trying to prove

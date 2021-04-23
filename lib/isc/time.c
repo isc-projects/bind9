@@ -31,6 +31,7 @@
 #define NS_PER_S  1000000000 /*%< Nanoseconds per second. */
 #define NS_PER_US 1000	     /*%< Nanoseconds per microsecond. */
 #define NS_PER_MS 1000000    /*%< Nanoseconds per millisecond. */
+#define MS_PER_S  1000	     /*%< Milliseonds per second. */
 
 #if defined(CLOCK_REALTIME)
 #define CLOCKSOURCE_HIRES CLOCK_REALTIME
@@ -75,6 +76,14 @@ isc_interval_iszero(const isc_interval_t *i) {
 	}
 
 	return (false);
+}
+
+unsigned int
+isc_interval_ms(const isc_interval_t *i) {
+	REQUIRE(i != NULL);
+	INSIST(i->nanoseconds < NS_PER_S);
+
+	return ((i->seconds * MS_PER_S) + (i->nanoseconds / NS_PER_MS));
 }
 
 /***

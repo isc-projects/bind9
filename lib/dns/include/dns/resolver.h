@@ -74,7 +74,8 @@ typedef struct dns_fetchevent {
 	dns_dbnode_t *	      node;
 	dns_rdataset_t *      rdataset;
 	dns_rdataset_t *      sigrdataset;
-	dns_fixedname_t	      foundname;
+	dns_fixedname_t	      fname;
+	dns_name_t *	      foundname;
 	const isc_sockaddr_t *client;
 	dns_messageid_t	      id;
 	isc_result_t	      vresult;

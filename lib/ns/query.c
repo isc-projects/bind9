@@ -6652,7 +6652,7 @@ query_resume(query_ctx_t *qctx) {
 	} else if (REDIRECT(qctx->client)) {
 		tname = qctx->client->query.redirect.fname;
 	} else {
-		tname = dns_fixedname_name(&qctx->event->foundname);
+		tname = qctx->event->foundname;
 	}
 
 	dns_name_copy(tname, qctx->fname);

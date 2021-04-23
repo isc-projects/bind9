@@ -579,9 +579,9 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 	isc_result_t vresult = ISC_R_SUCCESS;
 	bool want_restart;
 	bool send_event = false;
-	dns_name_t *name, *prefix;
+	dns_name_t *name = NULL, *prefix = NULL;
 	dns_fixedname_t foundname, fixed;
-	dns_rdataset_t *trdataset;
+	dns_rdataset_t *trdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int nlabels;
 	int order;
@@ -643,7 +643,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			node = event->node;
 			result = event->result;
 			vresult = event->vresult;
-			fname = dns_fixedname_name(&event->foundname);
+			fname = event->foundname;
 			INSIST(event->rdataset == rctx->rdataset);
 			INSIST(event->sigrdataset == rctx->sigrdataset);
 		}
