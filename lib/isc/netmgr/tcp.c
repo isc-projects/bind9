@@ -317,9 +317,13 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	if (result != ISC_R_SUCCESS) {
 		if (isc__nm_in_netthread()) {
 			sock->tid = isc_nm_tid();
+			isc__nmsocket_clearcb(sock);
+			isc__nm_connectcb(sock, req, result, false);
+		} else {
+			isc__nmsocket_clearcb(sock);
+			sock->tid = isc_random_uniform(mgr->nworkers);
+			isc__nm_connectcb(sock, req, result, true);
 		}
-		isc__nmsocket_clearcb(sock);
-		isc__nm_connectcb(sock, req, result, false);
 		atomic_store(&sock->closed, true);
 		isc__nmsocket_detach(&sock);
 		return;
