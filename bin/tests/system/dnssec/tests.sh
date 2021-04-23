@@ -1313,7 +1313,7 @@ status=$((status+ret))
 echo_ic "one non-KSK DNSKEY ($n)"
 ret=0
 (
-cd signer/general || exit 1
+cd signer/general || exit 0
 rm -f signed.zone
 $SIGNER -f signed.zone -o example.com. test2.zone > signer.out.$n
 test -f signed.zone
@@ -1325,7 +1325,7 @@ status=$((status+ret))
 echo_ic "one KSK DNSKEY ($n)"
 ret=0
 (
-cd signer/general || exit 1
+cd signer/general || exit 0
 rm -f signed.zone
 $SIGNER -f signed.zone -o example.com. test3.zone > signer.out.$n
 test -f signed.zone
@@ -1373,7 +1373,7 @@ status=$((status+ret))
 echo_ic "two DNSKEY, both private keys missing ($n)"
 ret=0
 (
-cd signer/general || exit 1
+cd signer/general || exit 0
 rm -f signed.zone
 $SIGNER -f signed.zone -o example.com. test7.zone > signer.out.$n
 test -f signed.zone
@@ -1385,11 +1385,35 @@ status=$((status+ret))
 echo_ic "two DNSKEY, one private key missing ($n)"
 ret=0
 (
-cd signer/general || exit 1
+cd signer/general || exit 0
 rm -f signed.zone
 $SIGNER -f signed.zone -o example.com. test8.zone > signer.out.$n
 test -f signed.zone
 ) && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_ic "check that dnssec-signzone rejects excessive NSEC3 iterations ($n)"
+ret=0
+(
+cd signer/general || exit 0
+rm -f signed.zone
+$SIGNER -f signed.zone -3 - -H 151 -o example.com. test9.zone > signer.out.$n
+test -f signed.zone
+) && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_ic "check that dnssec-signzone accepts maximum NSEC3 iterations ($n)"
+ret=0
+(
+cd signer/general || exit 1
+rm -f signed.zone
+$SIGNER -f signed.zone -3 - -H 150 -o example.com. test9.zone > signer.out.$n
+test -f signed.zone
+) || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
