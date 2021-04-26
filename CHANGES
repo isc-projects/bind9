@@ -1,3 +1,7 @@
+5627.	[bug]		RRSIG(SOA) RRsets placed anywhere else than at zone apex
+			were triggering infinite resigning loops. This has been
+			fixed. [GL #2650]
+
 5626.	[bug]		When generating new keys, check for keyid conflicts
 			between new keys too. [GL #2628]
 

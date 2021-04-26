@@ -7024,8 +7024,10 @@ zone_resigninc(dns_zone_t *zone) {
 		 * recent signature.
 		 */
 		/* XXXMPA increase number of RRsets signed pre call */
-		if (covers == dns_rdatatype_soa || i++ > zone->signatures ||
-		    resign > stop) {
+		if ((covers == dns_rdatatype_soa &&
+		     dns_name_equal(name, &zone->origin)) ||
+		    i++ > zone->signatures || resign > stop)
+		{
 			break;
 		}
 
