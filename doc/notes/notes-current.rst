@@ -98,3 +98,6 @@ Bug Fixes
   degraded compared to the previous version (9.11).  This has been now fixed by
   running internal tasks inside the networking manager worker threads, so
   they do not compete for resources. [GL #2638]
+
+- With ``dnssec-policy``, when creating new keys also check for keyid conflicts
+  between the new keys too. [GL #2628]
