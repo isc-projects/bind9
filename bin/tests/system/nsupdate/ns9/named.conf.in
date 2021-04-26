@@ -20,7 +20,7 @@ options {
 	recursion no;
 	notify yes;
 	minimal-responses no;
-	tkey-gssapi-credential "DNS/ns9.example.com@EXAMPLE.COM";
+	@TKEY_CONFIGURATION@
 };
 
 key rndc_key {
