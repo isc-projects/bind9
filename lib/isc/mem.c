@@ -1366,15 +1366,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 		}
 	}
 
-	/*
-	 * If we didn't get any items, return NULL.
-	 */
 	item = mpctx->items;
-	if (ISC_UNLIKELY(item == NULL)) {
-		atomic_fetch_sub_release(&mpctx->allocated, 1);
-		goto out;
-	}
-
 	mpctx->items = item->next;
 
 	INSIST(atomic_fetch_sub_release(&mpctx->freecount, 1) > 0);
@@ -1382,7 +1374,6 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 	ADD_TRACE(mpctx->mctx, item, mpctx->size, file, line);
 
-out:
 	MPCTXUNLOCK(mpctx);
 
 	return (item);
