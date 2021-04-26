@@ -5,6 +5,9 @@
 5626.	[bug]		When generating new keys, check for keyid conflicts
 			between new keys too. [GL #2628]
 
+5625.	[bug]		Address deadlock between rndc addzone/delzone.
+			[GL #2626]
+
 5622.	[cleanup]	Remove lib/samples, since export versions of libraries
 			are no longer maintained. [GL !4835]
 
