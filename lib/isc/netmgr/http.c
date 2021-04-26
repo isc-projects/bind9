@@ -1068,19 +1068,28 @@ http_call_connect_cb(isc_nmsocket_t *sock, isc_nm_http_session_t *session,
 
 	REQUIRE(sock->connect_cb != NULL);
 
-	req = isc__nm_uvreq_get(sock->mgr, sock);
-	req->cb.connect = sock->connect_cb;
-	req->cbarg = sock->connect_cbarg;
-	if (session != NULL) {
-		session->client_httphandle = httphandle;
-		req->handle = NULL;
-		isc_nmhandle_attach(httphandle, &req->handle);
-	} else {
-		req->handle = httphandle;
-	}
+	if (result == ISC_R_SUCCESS) {
+		req = isc__nm_uvreq_get(sock->mgr, sock);
+		req->cb.connect = sock->connect_cb;
+		req->cbarg = sock->connect_cbarg;
+		if (session != NULL) {
+			session->client_httphandle = httphandle;
+			req->handle = NULL;
+			isc_nmhandle_attach(httphandle, &req->handle);
+		} else {
+			req->handle = httphandle;
+		}
 
-	isc__nmsocket_clearcb(sock);
-	isc__nm_connectcb(sock, req, result, true);
+		isc__nmsocket_clearcb(sock);
+		isc__nm_connectcb(sock, req, result, true);
+	} else {
+		void *cbarg = sock->connect_cbarg;
+		isc_nm_cb_t connect_cb = sock->connect_cb;
+
+		isc__nmsocket_clearcb(sock);
+		connect_cb(httphandle, result, cbarg);
+		isc_nmhandle_detach(&httphandle);
+	}
 }
 
 static void
@@ -1168,6 +1177,7 @@ error:
 		isc_mem_free(mctx, http_sock->h2.connect.uri);
 	}
 
+	isc__nmsocket_prep_destroy(http_sock);
 	isc__nmsocket_detach(&http_sock);
 }
 
