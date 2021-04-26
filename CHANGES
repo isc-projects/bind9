@@ -1,3 +1,6 @@
+5628.	[bug]		Host and nslookup could die on SERVFAIL response.
+			[GL #2564]
+
 5627.	[bug]		RRSIG(SOA) RRsets placed anywhere else than at zone apex
 			were triggering infinite resigning loops. This has been
 			fixed. [GL #2650]
