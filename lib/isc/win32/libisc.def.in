@@ -96,9 +96,6 @@ isc_socket_send
 isc_socket_sendto
 isc_socket_sendto2
 isc_socket_setname
-isc_socketmgr_create
-isc_socketmgr_create2
-isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
 isc_socketmgr_setreserved
 isc_socketmgr_setstats
@@ -352,6 +349,8 @@ isc_logconfig_create
 isc_logconfig_destroy
 isc_logconfig_use
 isc_logfile_roll
+isc_managers_create
+isc_managers_destroy
 isc_md_new
 isc_md_init
 isc_md_reset
@@ -453,7 +452,6 @@ isc_nmhandle_setdata
 isc_nmhandle_settimeout
 isc_nm_cancelread
 isc_nm_closedown
-isc_nm_destroy
 isc_nm_detach
 isc_nm_http_endpoint
 isc_nm_httpconnect
@@ -469,7 +467,6 @@ isc_nm_read
 isc_nm_resumeread
 isc_nm_send
 isc_nm_setstats
-isc_nm_start
 isc_nm_stoplistening
 isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
@@ -653,8 +650,6 @@ isc_task_setprivilege
 isc_task_shutdown
 isc_task_unpause
 isc_task_unsend
-isc_taskmgr_create
-isc_taskmgr_destroy
 isc_taskmgr_excltask
 @IF NOTYET
 isc_taskmgr_renderjson
@@ -706,8 +701,6 @@ isc_timer_detach
 isc_timer_gettype
 isc_timer_reset
 isc_timer_touch
-isc_timermgr_create
-isc_timermgr_destroy
 isc_timermgr_poke
 isc_tls_get_http2_alpn
 isc_tls_create

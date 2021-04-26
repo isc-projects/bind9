@@ -44,9 +44,7 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
-#ifdef OPENSSL_LEAKS
-#include <openssl/err.h>
-#endif /* ifdef OPENSSL_LEAKS */
+#include "task_p.h"
 
 /*
  * Task manager is built around 'as little locking as possible' concept.
@@ -967,8 +965,8 @@ isc_taskmgr_detach(isc_taskmgr_t *manager) {
 }
 
 isc_result_t
-isc_taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
-		   isc_taskmgr_t **managerp) {
+isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
+		    isc_taskmgr_t **managerp) {
 	isc_taskmgr_t *manager;
 
 	/*
@@ -1010,7 +1008,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 }
 
 void
-isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
+isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	isc_taskmgr_t *manager;
 	isc_task_t *task;
 

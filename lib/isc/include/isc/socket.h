@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SOCKET_H
-#define ISC_SOCKET_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -677,42 +676,6 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 /*@}*/
 
 isc_result_t
-isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
-
-isc_result_t
-isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
-		      unsigned int maxsocks, int nthreads);
-/*%<
- * Create a socket manager.  If "maxsocks" is non-zero, it specifies the
- * maximum number of sockets that the created manager should handle.
- * isc_socketmgr_create() is equivalent of isc_socketmgr_create2() with
- * "maxsocks" being zero.
- *
- * Notes:
- *
- *\li	All memory will be allocated in memory context 'mctx'.
- *
- * Requires:
- *
- *\li	'mctx' is a valid memory context.
- *
- *\li	'managerp' points to a NULL isc_socketmgr_t.
- *
- *\li	'actx' is a valid application context (for createinctx()).
- *
- * Ensures:
- *
- *\li	'*managerp' is a valid isc_socketmgr_t.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_UNEXPECTED
- *\li	#ISC_R_NOTIMPLEMENTED
- */
-
-isc_result_t
 isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp);
 /*%<
  * Returns in "*nsockp" the maximum number of sockets this manager may open.
@@ -739,31 +702,6 @@ isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats);
  *
  *\li	stats is a valid statistics supporting socket statistics counters
  *	(see above).
- */
-
-void
-isc_socketmgr_destroy(isc_socketmgr_t **managerp);
-/*%<
- * Destroy a socket manager.
- *
- * Notes:
- *
- *\li	This routine blocks until there are no sockets left in the manager,
- *	so if the caller holds any socket references using the manager, it
- *	must detach them before calling isc_socketmgr_destroy() or it will
- *	block forever.
- *
- * Requires:
- *
- *\li	'*managerp' is a valid isc_socketmgr_t.
- *
- *\li	All sockets managed by this manager are fully detached.
- *
- * Ensures:
- *
- *\li	*managerp == NULL
- *
- *\li	All resources used by the manager have been freed.
  */
 
 isc_sockettype_t
@@ -908,5 +846,3 @@ typedef isc_result_t (*isc_socketmgrcreatefunc_t)(isc_mem_t *	    mctx,
 						  isc_socketmgr_t **managerp);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SOCKET_H */

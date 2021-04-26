@@ -16,6 +16,7 @@
 #include <isc/base64.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/print.h>
@@ -135,22 +136,22 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 
 int
 main(int argc, char **argv) {
-	char *keyname;
-	isc_nm_t *netmgr;
+	char *keyname = NULL;
+	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
-	isc_timermgr_t *timermgr;
-	isc_socketmgr_t *socketmgr;
-	isc_socket_t *sock;
+	isc_timermgr_t *timermgr = NULL;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_socket_t *sock = NULL;
 	unsigned int attrs, attrmask;
 	isc_sockaddr_t bind_any;
-	dns_dispatchmgr_t *dispatchmgr;
-	dns_dispatch_t *dispatchv4;
-	dns_view_t *view;
-	dns_tkeyctx_t *tctx;
-	dst_key_t *dstkey;
-	isc_log_t *log;
-	isc_logconfig_t *logconfig;
-	isc_task_t *task;
+	dns_dispatchmgr_t *dispatchmgr = NULL;
+	dns_dispatch_t *dispatchv4 = NULL;
+	dns_view_t *view = NULL;
+	dns_tkeyctx_t *tctx = NULL;
+	dst_key_t *dstkey = NULL;
+	isc_log_t *log = NULL;
+	isc_logconfig_t *logconfig = NULL;
+	isc_task_t *task = NULL;
 	isc_result_t result;
 	int type;
 
@@ -179,16 +180,10 @@ main(int argc, char **argv) {
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	netmgr = isc_nm_start(mctx, 1);
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
+			    &socketmgr);
 
-	RUNCHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
-	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-	timermgr = NULL;
-	RUNCHECK(isc_timermgr_create(mctx, &timermgr));
-	socketmgr = NULL;
-	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
-	dispatchmgr = NULL;
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 	isc_sockaddr_any(&bind_any);
 	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
@@ -237,11 +232,8 @@ main(int argc, char **argv) {
 	dns_dispatchmgr_destroy(&dispatchmgr);
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
-	isc_taskmgr_destroy(&taskmgr);
-	isc_nm_destroy(&netmgr);
 	isc_socket_detach(&sock);
-	isc_socketmgr_destroy(&socketmgr);
-	isc_timermgr_destroy(&timermgr);
+	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
 
 	dns_tsigkeyring_detach(&ring);
 

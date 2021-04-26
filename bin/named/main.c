@@ -31,6 +31,7 @@
 #include <isc/hash.h>
 #include <isc/hp.h>
 #include <isc/httpd.h>
+#include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/platform.h>
@@ -937,45 +938,17 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface", named_g_udpdisp,
 		      named_g_udpdisp == 1 ? "" : "s");
 
-	/*
-	 * We have ncpus network threads, ncpus worker threads, ncpus
-	 * old network threads - make it 4x just to be safe. The memory
-	 * impact is negligible.
-	 */
-	isc_hp_init(4 * named_g_cpus);
-	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);
-	if (named_g_nm == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_nm_start() failed");
-		return (ISC_R_UNEXPECTED);
+	result = isc_managers_create(named_g_mctx, named_g_cpus,
+				     0 /* quantum */, maxsocks, &named_g_netmgr,
+				     &named_g_taskmgr, &named_g_timermgr,
+				     &named_g_socketmgr);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
-	result = isc_taskmgr_create(named_g_mctx, 0, named_g_nm,
-				    &named_g_taskmgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_taskmgr_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
-	result = isc_timermgr_create(named_g_mctx, &named_g_timermgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_timermgr_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
-	result = isc_socketmgr_create2(named_g_mctx, &named_g_socketmgr,
-				       maxsocks, named_g_cpus);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_socketmgr_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
 	isc_socketmgr_maxudp(named_g_socketmgr, maxudp);
-	isc_nm_maxudp(named_g_nm, maxudp);
+	isc_nm_maxudp(named_g_netmgr, maxudp);
+
 	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &socks);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -988,21 +961,8 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	/*
-	 * isc_nm_closedown() closes all active connections, freeing
-	 * attached clients and other resources and preventing new
-	 * connections from being established, but it not does not
-	 * stop all processing or destroy the netmgr yet.
-	 */
-	isc_nm_closedown(named_g_nm);
-
-	/*
-	 * isc_taskmgr_destroy() will block until all tasks have exited.
-	 */
-	isc_taskmgr_destroy(&named_g_taskmgr);
-	isc_nm_destroy(&named_g_nm);
-	isc_timermgr_destroy(&named_g_timermgr);
-	isc_socketmgr_destroy(&named_g_socketmgr);
+	isc_managers_destroy(&named_g_netmgr, &named_g_taskmgr,
+			     &named_g_timermgr, &named_g_socketmgr);
 }
 
 static void

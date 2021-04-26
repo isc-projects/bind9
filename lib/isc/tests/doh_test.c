@@ -43,6 +43,7 @@
 #include "../netmgr/netmgr-int.h"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
+#include "../netmgr_p.h"
 #include "isctest.h"
 
 #define MAX_NM 2
@@ -319,7 +320,7 @@ nm_setup(void **state) {
 
 	nm = isc_mem_get(test_mctx, MAX_NM * sizeof(nm[0]));
 	for (size_t i = 0; i < MAX_NM; i++) {
-		nm[i] = isc_nm_start(test_mctx, nworkers);
+		isc__netmgr_create(test_mctx, nworkers, &nm[i]);
 		assert_non_null(nm[i]);
 	}
 
@@ -339,7 +340,7 @@ nm_teardown(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc_nm_destroy(&nm[i]);
+		isc__netmgr_destroy(&nm[i]);
 		assert_null(nm[i]);
 	}
 	isc_mem_put(test_mctx, nm, MAX_NM * sizeof(nm[0]));

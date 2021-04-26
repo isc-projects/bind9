@@ -41,6 +41,7 @@
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
 #include <isc/nonce.h>
@@ -106,9 +107,9 @@ unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
+isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
-isc_nm_t *netmgr = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
 isc_refcount_t recvcount = ATOMIC_VAR_INIT(0);
@@ -1360,10 +1361,7 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
-	netmgr = isc_nm_start(mctx, 1);
-
-	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
-	check_result(result, "isc_taskmgr_create");
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
@@ -4226,20 +4224,8 @@ destroy_libs(void) {
 		debug("freeing task");
 		isc_task_detach(&global_task);
 	}
-	/*
-	 * The taskmgr_destroy() and isc_nm_destroy() calls block until
-	 * all events are cleared.
-	 */
-	if (taskmgr != NULL) {
-		debug("freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-	}
 
-	debug("closing down netmgr");
-	isc_nm_closedown(netmgr);
-
-	debug("destroy netmgr");
-	isc_nm_destroy(&netmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	LOCK_LOOKUP;
 	isc_refcount_destroy(&recvcount);

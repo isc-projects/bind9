@@ -10,7 +10,7 @@ LDADD +=			\
 
 check_LTLIBRARIES = libisctest.la
 libisctest_la_SOURCES =		\
-	../unix/socket_p.h	\
+	../socket_p.h		\
 	isctest.c		\
 	isctest.h		\
 	uv_wrap.h

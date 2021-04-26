@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_TASK_H
-#define ISC_TASK_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -626,80 +625,10 @@ isc_task_privilege(isc_task_t *task);
 ***** Task Manager.
 *****/
 
-isc_result_t
-isc_taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
-		   isc_taskmgr_t **managerp);
-/*%<
- * Create a new task manager.
- *
- * Notes:
- *
- *\li	If 'default_quantum' is non-zero, then it will be used as the default
- *	quantum value when tasks are created.  If zero, then an implementation
- *	defined default quantum will be used.
- *
- *\li	If 'nm' is set then netmgr is paused when an exclusive task mode
- *	is requested.
- *
- * Requires:
- *
- *\li      'mctx' is a valid memory context.
- *
- *\li	managerp != NULL && *managerp == NULL
- *
- * Ensures:
- *
- *\li	On success, '*managerp' will be attached to the newly created task
- *	manager.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_NOTHREADS		No threads could be created.
- *\li	#ISC_R_UNEXPECTED		An unexpected error occurred.
- *\li	#ISC_R_SHUTTINGDOWN		The non-threaded, shared, task
- *					manager shutting down.
- */
-
 void
 isc_taskmgr_attach(isc_taskmgr_t *, isc_taskmgr_t **);
 void
 isc_taskmgr_detach(isc_taskmgr_t *);
-
-void
-isc_taskmgr_destroy(isc_taskmgr_t **managerp);
-/*%<
- * Destroy '*managerp'.
- *
- * Notes:
- *
- *\li	Calling isc_taskmgr_destroy() will shutdown all tasks managed by
- *	*managerp that haven't already been shutdown.  The call will block
- *	until all tasks have entered the done state.
- *
- *\li	isc_taskmgr_destroy() must not be called by a task event action,
- *	because it would block forever waiting for the event action to
- *	complete.  An event action that wants to cause task manager shutdown
- *	should request some non-event action thread of execution to do the
- *	shutdown, e.g. by signaling a condition variable or using
- *	isc_app_shutdown().
- *
- *\li	Task manager references are not reference counted, so the caller
- *	must ensure that no attempt will be made to use the manager after
- *	isc_taskmgr_destroy() returns.
- *
- * Requires:
- *
- *\li	'*managerp' is a valid task manager.
- *
- *\li	isc_taskmgr_destroy() has not be called previously on '*managerp'.
- *
- * Ensures:
- *
- *\li	All resources used by the task manager, and any tasks it managed,
- *	have been freed.
- */
 
 void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
@@ -736,5 +665,3 @@ isc_taskmgr_renderjson(isc_taskmgr_t *mgr, void *tasksobj0);
 #endif /* HAVE_JSON_C */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_TASK_H */

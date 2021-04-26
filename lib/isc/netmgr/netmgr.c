@@ -37,6 +37,7 @@
 #include <isc/util.h>
 
 #include "netmgr-int.h"
+#include "netmgr_p.h"
 #include "openssl_shim.h"
 #include "uv-compat.h"
 
@@ -206,8 +207,8 @@ isc__nm_winsock_destroy(void) {
 }
 #endif /* WIN32 */
 
-isc_nm_t *
-isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
+void
+isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	isc_nm_t *mgr = NULL;
 	char name[32];
 
@@ -296,7 +297,7 @@ isc_nm_start(isc_mem_t *mctx, uint32_t workers) {
 	}
 
 	mgr->magic = NM_MAGIC;
-	return (mgr);
+	*netmgrp = mgr;
 }
 
 /*
@@ -485,14 +486,13 @@ isc_nm_closedown(isc_nm_t *mgr) {
 }
 
 void
-isc_nm_destroy(isc_nm_t **mgr0) {
+isc__netmgr_destroy(isc_nm_t **netmgrp) {
 	isc_nm_t *mgr = NULL;
 	int counter = 0;
 
-	REQUIRE(mgr0 != NULL);
-	REQUIRE(VALID_NM(*mgr0));
+	REQUIRE(VALID_NM(*netmgrp));
 
-	mgr = *mgr0;
+	mgr = *netmgrp;
 
 	/*
 	 * Close active connections.
@@ -524,7 +524,7 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	/*
 	 * Detach final reference.
 	 */
-	isc_nm_detach(mgr0);
+	isc_nm_detach(netmgrp);
 }
 
 void

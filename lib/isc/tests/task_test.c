@@ -29,6 +29,7 @@
 #include <isc/cmocka.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -784,7 +785,6 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 static void
 manytasks(void **state) {
 	isc_mem_t *mctx = NULL;
-	isc_result_t result;
 	isc_event_t *event = NULL;
 	uintptr_t ntasks = 10000;
 
@@ -801,9 +801,7 @@ manytasks(void **state) {
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	netmgr = isc_nm_start(mctx, 4);
-	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_managers_create(mctx, 4, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
 	atomic_init(&done, false);
 
@@ -818,8 +816,8 @@ manytasks(void **state) {
 	}
 	UNLOCK(&lock);
 
-	isc_taskmgr_destroy(&taskmgr);
-	isc_nm_destroy(&netmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&cv);
 	isc_mutex_destroy(&lock);
@@ -899,7 +897,7 @@ sd_event2(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-shutdown(void **state) {
+task_shutdown(void **state) {
 	isc_result_t result;
 	isc_eventtype_t event_type;
 	isc_event_t *event = NULL;
@@ -1545,7 +1543,8 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(purgeevent_notpurge, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(shutdown, _setup4, _teardown),
+		cmocka_unit_test_setup_teardown(task_shutdown, _setup4,
+						_teardown),
 		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
 						_teardown),
 	};

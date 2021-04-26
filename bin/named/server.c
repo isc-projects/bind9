@@ -8840,7 +8840,8 @@ load_configuration(const char *filename, named_server_t *server,
 		advertised = MAX_ADVERTISED_TIMEOUT;
 	}
 
-	isc_nm_settimeouts(named_g_nm, initial, idle, keepalive, advertised);
+	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
+			   advertised);
 
 	/*
 	 * Configure sets of UDP query source ports.
@@ -9950,7 +9951,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	CHECKFATAL(ns_interfacemgr_create(
 			   named_g_mctx, server->sctx, named_g_taskmgr,
-			   named_g_timermgr, named_g_socketmgr, named_g_nm,
+			   named_g_timermgr, named_g_socketmgr, named_g_netmgr,
 			   named_g_dispatchmgr, server->task, named_g_udpdisp,
 			   geoip, named_g_cpus, &server->interfacemgr),
 		   "creating interface manager");
@@ -10220,7 +10221,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
 				      named_g_timermgr, named_g_socketmgr,
-				      named_g_nm, &server->zonemgr),
+				      named_g_netmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
 							       "setsize");
@@ -10260,7 +10261,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
 	isc_socketmgr_setstats(named_g_socketmgr, server->sockstats);
-	isc_nm_setstats(named_g_nm, server->sockstats);
+	isc_nm_setstats(named_g_netmgr, server->sockstats);
 
 	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,
 				    dns_zonestatscounter_max),
@@ -16342,7 +16343,7 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
-	isc_nm_gettimeouts(named_g_nm, &initial, &idle, &keepalive,
+	isc_nm_gettimeouts(named_g_netmgr, &initial, &idle, &keepalive,
 			   &advertised);
 
 	/* Look for optional arguments. */
@@ -16396,7 +16397,7 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		result = isc_task_beginexclusive(named_g_server->task);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		isc_nm_settimeouts(named_g_nm, initial, idle, keepalive,
+		isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 				   advertised);
 
 		isc_task_endexclusive(named_g_server->task);

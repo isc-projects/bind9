@@ -37,6 +37,7 @@
 #include "../netmgr/udp.c"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
+#include "../netmgr_p.h"
 #include "isctest.h"
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
@@ -335,12 +336,12 @@ nm_setup(void **state __attribute__((unused))) {
 		return (-1);
 	}
 
-	listen_nm = isc_nm_start(test_mctx, workers);
+	isc__netmgr_create(test_mctx, workers, &listen_nm);
 	assert_non_null(listen_nm);
 	isc_nm_settimeouts(listen_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
 
-	connect_nm = isc_nm_start(test_mctx, workers);
+	isc__netmgr_create(test_mctx, workers, &connect_nm);
 	assert_non_null(connect_nm);
 	isc_nm_settimeouts(connect_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
@@ -358,10 +359,10 @@ static int
 nm_teardown(void **state __attribute__((unused))) {
 	UNUSED(state);
 
-	isc_nm_destroy(&connect_nm);
+	isc__netmgr_destroy(&connect_nm);
 	assert_null(connect_nm);
 
-	isc_nm_destroy(&listen_nm);
+	isc__netmgr_destroy(&listen_nm);
 	assert_null(listen_nm);
 
 	WAIT_FOR_EQ(active_cconnects, 0);

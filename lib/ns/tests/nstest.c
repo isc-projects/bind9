@@ -22,6 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
@@ -56,7 +57,6 @@ isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
-isc_nm_t *nm = NULL;
 dns_zonemgr_t *zonemgr = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_clientmgr_t *clientmgr = NULL;
@@ -198,28 +198,9 @@ cleanup_managers(void) {
 	if (interfacemgr != NULL) {
 		ns_interfacemgr_detach(&interfacemgr);
 	}
-	if (socketmgr != NULL) {
-		isc_socketmgr_destroy(&socketmgr);
-	}
-	ns_test_nap(500000);
-	if (nm != NULL) {
-		/*
-		 * Force something in the workqueue as a workaround
-		 * for libuv bug - not sending uv_close callback.
-		 */
-		isc_nm_pause(nm);
-		isc_nm_resume(nm);
-		isc_nm_detach(&nm);
-	}
-	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
-	}
-	if (netmgr != NULL) {
-		isc_nm_destroy(&netmgr);
-	}
-	if (timermgr != NULL) {
-		isc_timermgr_destroy(&timermgr);
-	}
+
+	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+
 	if (app_running) {
 		isc_app_finish();
 	}
@@ -241,24 +222,18 @@ create_managers(void) {
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
 
-	netmgr = isc_nm_start(mctx, ncpus);
-	CHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
+	isc_managers_create(mctx, ncpus, 0, 0, &netmgr, &taskmgr, &timermgr,
+			    &socketmgr);
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));
-
-	CHECK(isc_timermgr_create(mctx, &timermgr));
-
-	CHECK(isc_socketmgr_create(mctx, &socketmgr));
-
-	nm = isc_nm_start(mctx, ncpus);
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));
 
 	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, socketmgr,
-				     nm, dispatchmgr, maintask, ncpus, NULL,
+				     netmgr, dispatchmgr, maintask, ncpus, NULL,
 				     ncpus, &interfacemgr));
 
 	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));

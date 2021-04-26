@@ -30,7 +30,7 @@
 #include <isc/socket.h>
 #include <isc/task.h>
 
-#include "../unix/socket_p.h"
+#include "../socket_p.h"
 #include "isctest.h"
 
 static bool recv_dscp;

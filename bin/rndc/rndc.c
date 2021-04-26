@@ -22,6 +22,7 @@
 #include <isc/commandline.h>
 #include <isc/file.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netmgr.h>
@@ -59,6 +60,7 @@
 const char *progname = NULL;
 bool verbose;
 
+static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *rndc_task = NULL;
 
@@ -72,7 +74,6 @@ static bool local4set = false, local6set = false;
 static int nserveraddrs;
 static int currentaddr = 0;
 static unsigned int remoteport = 0;
-static isc_nm_t *netmgr = NULL;
 static isc_buffer_t *databuf = NULL;
 static isccc_ccmsg_t rndc_ccmsg;
 static uint32_t algorithm;
@@ -1030,9 +1031,7 @@ main(int argc, char **argv) {
 	serial = isc_random32();
 
 	isc_mem_create(&rndc_mctx);
-	netmgr = isc_nm_start(rndc_mctx, 1);
-	DO("create task manager",
-	   isc_taskmgr_create(rndc_mctx, 0, netmgr, &taskmgr));
+	isc_managers_create(rndc_mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 	DO("create task", isc_task_create(taskmgr, 0, &rndc_task));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
@@ -1089,9 +1088,7 @@ main(int argc, char **argv) {
 	}
 
 	isc_task_detach(&rndc_task);
-	isc_taskmgr_destroy(&taskmgr);
-
-	isc_nm_closedown(netmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	/*
 	 * Note: when TCP connections are shut down, there will be a final
@@ -1100,8 +1097,6 @@ main(int argc, char **argv) {
 	 * after the netmgr is closed down.
 	 */
 	isccc_ccmsg_invalidate(&rndc_ccmsg);
-
-	isc_nm_destroy(&netmgr);
 
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);
