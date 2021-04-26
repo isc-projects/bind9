@@ -1867,7 +1867,7 @@ Boolean Options
    is disabled.
 
    The maximum value for this option is ``resolver-query-timeout`` minus
-   one second. The minimum value, ``0``, causes a cached RRset to be
+   one second. The minimum value, ``0``, causes a cached (stale) RRset to be
    immediately returned if it is available while still attempting to
    refresh the data in cache. :rfc:`8767` recommends a value of ``1800``
    (milliseconds).

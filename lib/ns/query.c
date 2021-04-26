@@ -5917,9 +5917,6 @@ query_lookup(query_ctx_t *qctx) {
 			return (ns_query_done(qctx));
 		}
 	} else if (stale_timeout) {
-		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
-		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
-
 		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
 			if (!stale_found) {
 				/*
@@ -8033,7 +8030,7 @@ query_addanswer(query_ctx_t *qctx) {
 		 * We can clear the attribute to prevent redundant clearing
 		 * in subsequent lookups.
 		 */
-		qctx->client->query.attributes &= ~DNS_RDATASETATTR_STALE_ADDED;
+		qctx->client->query.attributes &= ~NS_QUERYATTR_STALEOK;
 	}
 
 	if (qctx->dns64) {
