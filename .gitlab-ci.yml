@@ -637,6 +637,7 @@ gcc:stretch:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
+    EXTRA_CONFIGURE: "--without-gssapi"
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
