@@ -392,6 +392,29 @@ keymgr_dnsseckey_kaspkey_match(dns_dnsseckey_t *dkey, dns_kasp_key_t *kkey) {
 	return (true);
 }
 
+static bool
+keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
+	uint16_t id = dst_key_id(newkey);
+	uint32_t rid = dst_key_rid(newkey);
+	uint32_t alg = dst_key_alg(newkey);
+
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keys); dkey != NULL;
+	     dkey = ISC_LIST_NEXT(dkey, link))
+	{
+		if (dst_key_alg(dkey->key) != alg) {
+			continue;
+		}
+		if (dst_key_id(dkey->key) == id ||
+		    dst_key_rid(dkey->key) == id ||
+		    dst_key_id(dkey->key) == rid ||
+		    dst_key_rid(dkey->key) == rid)
+		{
+			return (true);
+		}
+	}
+	return (false);
+}
+
 /*
  * Create a new key for 'origin' given the kasp key configuration 'kkey'.
  * This will check for key id collisions with keys in 'keylist'.
@@ -401,19 +424,16 @@ keymgr_dnsseckey_kaspkey_match(dns_dnsseckey_t *dkey, dns_kasp_key_t *kkey) {
 static isc_result_t
 keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 		 dns_rdataclass_t rdclass, isc_mem_t *mctx,
-		 dns_dnsseckeylist_t *keylist, dst_key_t **dst_key) {
-	bool conflict;
+		 dns_dnsseckeylist_t *keylist, dns_dnsseckeylist_t *newkeys,
+		 dst_key_t **dst_key) {
+	bool conflict = false;
 	int keyflags = DNS_KEYOWNER_ZONE;
 	isc_result_t result = ISC_R_SUCCESS;
 	dst_key_t *newkey = NULL;
 
 	do {
-		uint16_t id;
-		uint32_t rid;
 		uint32_t algo = dns_kasp_key_algorithm(kkey);
 		int size = dns_kasp_key_size(kkey);
-
-		conflict = false;
 
 		if (dns_kasp_key_ksk(kkey)) {
 			keyflags |= DNS_KEYFLAG_KSK;
@@ -423,28 +443,17 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 					&newkey, NULL));
 
 		/* Key collision? */
-		id = dst_key_id(newkey);
-		rid = dst_key_rid(newkey);
-		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keylist);
-		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
-		{
-			if (dst_key_alg(dkey->key) != algo) {
-				continue;
-			}
-			if (dst_key_id(dkey->key) == id ||
-			    dst_key_rid(dkey->key) == id ||
-			    dst_key_id(dkey->key) == rid ||
-			    dst_key_rid(dkey->key) == rid)
-			{
-				/* Try again. */
-				conflict = true;
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-					      DNS_LOGMODULE_DNSSEC,
-					      ISC_LOG_WARNING,
-					      "keymgr: key collision id %d",
-					      dst_key_id(newkey));
-				dst_key_free(&newkey);
-			}
+		conflict = keymgr_keyid_conflict(newkey, keylist);
+		if (!conflict) {
+			conflict = keymgr_keyid_conflict(newkey, newkeys);
+		}
+		if (conflict) {
+			/* Try again. */
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+				      "keymgr: key collision id %d",
+				      dst_key_id(newkey));
+			dst_key_free(&newkey);
 		}
 	} while (conflict);
 
@@ -1732,7 +1741,8 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	if (candidate == NULL) {
 		/* No key available in keyring, create a new one. */
 		isc_result_t result = keymgr_createkey(kaspkey, origin, rdclass,
-						       mctx, keyring, &dst_key);
+						       mctx, keyring, newkeys,
+						       &dst_key);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
