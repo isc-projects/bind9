@@ -2309,6 +2309,7 @@ http_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	atomic_store(&sock->closed, true);
+	atomic_store(&sock->active, false);
 	session = sock->h2.session;
 
 	if (session != NULL && session->handle) {
@@ -2318,12 +2319,28 @@ http_close_direct(isc_nmsocket_t *sock) {
 
 void
 isc__nm_http_close(isc_nmsocket_t *sock) {
+	bool destroy = false;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httpsocket);
 	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
+		return;
+	}
+
+	if (sock->h2.session != NULL && sock->h2.session->closed &&
+	    sock->tid == isc_nm_tid())
+	{
+		isc__nm_httpsession_detach(&sock->h2.session);
+		destroy = true;
+	} else if (sock->h2.session == NULL && sock->tid == isc_nm_tid()) {
+		destroy = true;
+	}
+
+	if (destroy) {
+		http_close_direct(sock);
+		isc__nmsocket_prep_destroy(sock);
 		return;
 	}
 
