@@ -975,10 +975,8 @@ AC_SUBST([ZLIB_LIBS])
 # Check if the system supports glibc-compatible backtrace() function.
 #
 AC_CHECK_HEADERS([execinfo.h],
-		 [AC_SEARCH_LIBS([backtrace], [execinfo],
-				 [AC_CHECK_FUNCS([backtrace backtrace_symbols])])])
-
-AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
+		 [AC_SEARCH_LIBS([backtrace_symbols], [execinfo],
+				 [AC_CHECK_FUNCS([backtrace_symbols])])])
 
 #
 # We do the IPv6 compilation checking after libtool so that we can put

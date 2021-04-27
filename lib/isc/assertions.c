@@ -16,8 +16,14 @@
 
 #include <isc/assertions.h>
 #include <isc/backtrace.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/strerr.h>
+
+#if _WIN32
+#include <dbghelp.h>
+#endif
 
 /*
  * The maximum number of stack frames to dump on assertion failure.
@@ -95,30 +101,15 @@ static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
 	void *tracebuf[BACKTRACE_MAXFRAME];
-	int nframes;
-	bool have_backtrace = false;
-	isc_result_t result;
-
-	result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME, &nframes);
-	if (result == ISC_R_SUCCESS && nframes > 0) {
-		have_backtrace = true;
-	}
+	int nframes = isc_backtrace(tracebuf, BACKTRACE_MAXFRAME);
 
 	fprintf(stderr, "%s:%d: %s(%s) failed%s\n", file, line,
 		isc_assertion_typetotext(type), cond,
-		(have_backtrace) ? ", back trace" : ".");
+		(nframes > 0) ? ", back trace" : ".");
 
-	if (result == ISC_R_SUCCESS) {
-#if HAVE_BACKTRACE_SYMBOLS
-		char **strs = backtrace_symbols(tracebuf, nframes);
-		for (int i = 0; i < nframes; i++) {
-			fprintf(stderr, "%s\n", strs[i]);
-		}
-#else  /* HAVE_BACKTRACE_SYMBOLS */
-		for (int i = 0; i < nframes; i++) {
-			fprintf(stderr, "#%d %p in ??\n", i, tracebuf[i]);
-		}
-#endif /* HAVE_BACKTRACE_SYMBOLS */
+	if (nframes > 0) {
+		isc_backtrace_symbols_fd(tracebuf, nframes, fileno(stderr));
 	}
+
 	fflush(stderr);
 }
