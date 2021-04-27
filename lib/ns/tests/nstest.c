@@ -893,21 +893,11 @@ ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp) {
  */
 void
 ns_test_nap(uint32_t usec) {
-#ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 
 	ts.tv_sec = usec / 1000000;
 	ts.tv_nsec = (usec % 1000000) * 1000;
 	nanosleep(&ts, NULL);
-#elif HAVE_USLEEP
-	usleep(usec);
-#else  /* ifdef HAVE_NANOSLEEP */
-	/*
-	 * No fractional-second sleep function is available, so we
-	 * round up to the nearest second and sleep instead
-	 */
-	sleep((usec / 1000000) + 1);
-#endif /* ifdef HAVE_NANOSLEEP */
 }
 
 isc_result_t

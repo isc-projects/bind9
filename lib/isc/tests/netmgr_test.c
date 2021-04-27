@@ -137,7 +137,7 @@ static isc_nm_recv_cb_t connect_readcb = NULL;
 				__r = WAIT_REPEATS;         \
 			}                                   \
 			__o = __l;                          \
-			usleep(T_WAIT);                     \
+			isc_test_nap(T_WAIT);               \
 		} while (__r > 0);                          \
 		X(v);                                       \
 		P(__r);                                     \
@@ -606,7 +606,7 @@ connect_thread(isc_threadarg_t arg) {
 			 * start slowing down the connections to prevent the
 			 * thundering herd problem.
 			 */
-			usleep((active - workers) * 1000);
+			isc_test_nap((active - workers) * 1000);
 		}
 		connect(connect_nm);
 	}
@@ -1071,7 +1071,7 @@ udp_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	usleep((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10000);
 
 	isc_nm_closedown(connect_nm);
 
@@ -1519,7 +1519,7 @@ stream_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	usleep((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10000);
 
 	isc_nm_closedown(connect_nm);
 
@@ -1787,7 +1787,7 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 		NULL, noop_accept_cb, NULL, 0, 0, NULL, &listen_sock);
 	if (result != ISC_R_SUCCESS) {
 		isc_refcount_decrement(&active_cconnects);
-		usleep(1000);
+		isc_test_nap(1000);
 	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -2073,7 +2073,7 @@ tcpdns_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	usleep((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10000);
 
 	isc_nm_closedown(connect_nm);
 
@@ -2675,7 +2675,7 @@ tlsdns_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	usleep((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10000);
 
 	isc_nm_closedown(connect_nm);
 

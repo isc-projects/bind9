@@ -1149,8 +1149,6 @@ AC_COMPILE_IFELSE(
 #
 AC_CHECK_FUNCS([if_nametoindex])
 
-AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
-
 ISC_ATOMIC_LIBS=""
 AC_CHECK_HEADERS(
   [stdatomic.h],
