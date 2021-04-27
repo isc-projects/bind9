@@ -177,7 +177,8 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 		}
 		isc__nm_readcb(sock, req, result);
 		if (result == ISC_R_TIMEDOUT &&
-		    isc__nmsocket_timer_running(sock->outerhandle->sock))
+		    (sock->outerhandle == NULL ||
+		     isc__nmsocket_timer_running(sock->outerhandle->sock)))
 		{
 			destroy = false;
 		}
@@ -400,7 +401,8 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 
 		/* Decrypt and pass data from network to client */
 		if (sock->tlsstream.state >= TLS_IO && sock->recv_cb != NULL &&
-		    !atomic_load(&sock->readpaused))
+		    !atomic_load(&sock->readpaused) &&
+		    sock->statichandle != NULL)
 		{
 			uint8_t recv_buf[TLS_BUF_SIZE];
 			INSIST(sock->tlsstream.state > TLS_HANDSHAKE);
@@ -803,6 +805,7 @@ tls_close_direct(isc_nmsocket_t *sock) {
 
 	/* further cleanup performed in isc__nm_tls_cleanup_data() */
 	atomic_store(&sock->closed, true);
+	atomic_store(&sock->active, false);
 	sock->tlsstream.state = TLS_CLOSED;
 }
 
@@ -919,7 +922,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
-
 	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	atomic_store(&tlssock->active, true);
