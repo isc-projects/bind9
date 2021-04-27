@@ -136,6 +136,12 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
  *\li	#ISC_R_SHUTTINGDOWN
  */
 
+void
+isc_task_ready(isc_task_t *task);
+/*%<
+ * Enqueue the task onto netmgr queue.
+ */
+
 isc_result_t
 isc_task_run(isc_task_t *task);
 /*%<

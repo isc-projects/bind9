@@ -39,6 +39,8 @@
 
 #include "uv-compat.h"
 
+#define ISC_NETMGR_QUANTUM_DEFAULT 128
+
 #define ISC_NETMGR_TID_UNKNOWN -1
 
 /* Must be different from ISC_NETMGR_TID_UNKNOWN */
@@ -188,6 +190,7 @@ typedef struct isc__networker {
 	char *recvbuf;
 	char *sendbuf;
 	bool recvbuf_inuse;
+	unsigned int quantum;
 } isc__networker_t;
 
 /*

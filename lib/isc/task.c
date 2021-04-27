@@ -17,6 +17,7 @@
  */
 
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <isc/app.h>
 #include <isc/atomic.h>
@@ -102,6 +103,7 @@ struct isc_task {
 	task_state_t state;
 	int pause_cnt;
 	isc_refcount_t references;
+	isc_refcount_t running;
 	isc_eventlist_t events;
 	isc_eventlist_t on_shutdown;
 	unsigned int nevents;
@@ -112,21 +114,14 @@ struct isc_task {
 	void *tag;
 	bool bound;
 	/* Protected by atomics */
-	atomic_uint_fast32_t flags;
+	atomic_bool shuttingdown;
+	atomic_bool privileged;
 	/* Locked by task manager lock. */
 	LINK(isc_task_t) link;
 };
 
-#define TASK_F_SHUTTINGDOWN 0x01
-#define TASK_F_PRIVILEGED   0x02
-
-#define TASK_SHUTTINGDOWN(t) \
-	((atomic_load_acquire(&(t)->flags) & TASK_F_SHUTTINGDOWN) != 0)
-#define TASK_PRIVILEGED(t) \
-	((atomic_load_acquire(&(t)->flags) & TASK_F_PRIVILEGED) != 0)
-
-#define TASK_FLAG_SET(t, f) atomic_fetch_or_release(&(t)->flags, (f))
-#define TASK_FLAG_CLR(t, f) atomic_fetch_and_release(&(t)->flags, ~(f))
+#define TASK_SHUTTINGDOWN(t) (atomic_load_acquire(&(t)->shuttingdown))
+#define TASK_PRIVILEGED(t)   (atomic_load_acquire(&(t)->privileged))
 
 #define TASK_MANAGER_MAGIC ISC_MAGIC('T', 'S', 'K', 'M')
 #define VALID_MANAGER(m)   ISC_MAGIC_VALID(m, TASK_MANAGER_MAGIC)
@@ -137,19 +132,14 @@ struct isc_taskmgr {
 	isc_refcount_t references;
 	isc_mem_t *mctx;
 	isc_mutex_t lock;
-	atomic_uint_fast32_t tasks_running;
-	atomic_uint_fast32_t tasks_ready;
 	atomic_uint_fast32_t tasks_count;
-	isc_nm_t *nm;
+	isc_nm_t *netmgr;
 
 	/* Locked by task manager lock. */
 	unsigned int default_quantum;
 	LIST(isc_task_t) tasks;
 	atomic_bool exclusive_req;
 	atomic_bool exiting;
-
-	/* Locked by halt_lock */
-	unsigned int halted;
 
 	/*
 	 * Multiple threads can read/write 'excl' at the same time, so we need
@@ -161,9 +151,6 @@ struct isc_taskmgr {
 };
 
 #define DEFAULT_DEFAULT_QUANTUM 25
-#define FINISHED(m)                              \
-	(atomic_load_relaxed(&((m)->exiting)) && \
-	 atomic_load(&(m)->tasks_count) == 0)
 
 /*%
  * The following are intended for internal use (indicated by "isc__"
@@ -193,6 +180,7 @@ task_finished(isc_task_t *task) {
 
 	XTRACE("task_finished");
 
+	isc_refcount_destroy(&task->running);
 	isc_refcount_destroy(&task->references);
 
 	LOCK(&manager->lock);
@@ -251,11 +239,13 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	task->pause_cnt = 0;
 
 	isc_refcount_init(&task->references, 1);
+	isc_refcount_init(&task->running, 0);
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
 	task->nevents = 0;
 	task->quantum = (quantum > 0) ? quantum : manager->default_quantum;
-	atomic_init(&task->flags, 0);
+	atomic_init(&task->shuttingdown, false);
+	atomic_init(&task->privileged, false);
 	task->now = 0;
 	isc_time_settoepoch(&task->tnow);
 	memset(task->name, 0, sizeof(task->name));
@@ -311,9 +301,9 @@ task_shutdown(isc_task_t *task) {
 
 	XTRACE("task_shutdown");
 
-	if (!TASK_SHUTTINGDOWN(task)) {
+	if (atomic_compare_exchange_strong(&task->shuttingdown,
+					   &(bool){ false }, true)) {
 		XTRACE("shutting down");
-		TASK_FLAG_SET(task, TASK_F_SHUTTINGDOWN);
 		if (task->state == task_state_idle) {
 			INSIST(EMPTY(task->events));
 			task->state = task_state_ready;
@@ -350,7 +340,14 @@ task_ready(isc_task_t *task) {
 	REQUIRE(VALID_MANAGER(manager));
 
 	XTRACE("task_ready");
-	isc_nm_task_enqueue(manager->nm, task, task->threadid);
+
+	isc_refcount_increment0(&task->running);
+	isc_nm_task_enqueue(manager->netmgr, task, task->threadid);
+}
+
+void
+isc_task_ready(isc_task_t *task) {
+	task_ready(task);
 }
 
 static inline bool
@@ -820,8 +817,7 @@ task_run(isc_task_t *task) {
 	 * and task lock to avoid deadlocks, just bail then.
 	 */
 	if (task->state != task_state_ready) {
-		UNLOCK(&task->lock);
-		return (ISC_R_SUCCESS);
+		goto done;
 	}
 
 	INSIST(task->state == task_state_ready);
@@ -886,7 +882,6 @@ task_run(isc_task_t *task) {
 				 * The task is done.
 				 */
 				XTRACE("done");
-				finished = true;
 				task->state = task_state_done;
 			} else {
 				if (task->state == task_state_running) {
@@ -920,6 +915,13 @@ task_run(isc_task_t *task) {
 			break;
 		}
 	}
+
+done:
+	if (isc_refcount_decrement(&task->running) == 1 &&
+	    task->state == task_state_done)
+	{
+		finished = true;
+	}
 	UNLOCK(&task->lock);
 
 	if (finished) {
@@ -937,7 +939,7 @@ isc_task_run(isc_task_t *task) {
 static void
 manager_free(isc_taskmgr_t *manager) {
 	isc_refcount_destroy(&manager->references);
-	isc_nm_detach(&manager->nm);
+	isc_nm_detach(&manager->netmgr);
 
 	isc_mutex_destroy(&manager->lock);
 	isc_mutex_destroy(&manager->excl_lock);
@@ -988,13 +990,10 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	manager->default_quantum = default_quantum;
 
 	if (nm != NULL) {
-		isc_nm_attach(nm, &manager->nm);
+		isc_nm_attach(nm, &manager->netmgr);
 	}
 
 	INIT_LIST(manager->tasks);
-	atomic_init(&manager->tasks_count, 0);
-	atomic_init(&manager->tasks_running, 0);
-	atomic_init(&manager->tasks_ready, 0);
 	atomic_init(&manager->exiting, false);
 	atomic_store_relaxed(&manager->exclusive_req, false);
 
@@ -1074,6 +1073,18 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 
 	XTHREADTRACE("isc_taskmgr_destroy");
 
+#ifdef ISC_TASK_TRACE
+	int counter = 0;
+	while (isc_refcount_current(&manager->references) > 1 &&
+	       counter++ < 1000) {
+		usleep(10 * 1000);
+	}
+#else
+	while (isc_refcount_current(&manager->references) > 1) {
+		usleep(10 * 1000);
+	}
+#endif
+
 	REQUIRE(isc_refcount_decrement(&manager->references) == 1);
 	manager_free(manager);
 }
@@ -1130,7 +1141,7 @@ isc_task_beginexclusive(isc_task_t *task) {
 		return (ISC_R_LOCKBUSY);
 	}
 
-	isc_nm_pause(manager->nm);
+	isc_nm_pause(manager->netmgr);
 
 	return (ISC_R_SUCCESS);
 }
@@ -1143,7 +1154,7 @@ isc_task_endexclusive(isc_task_t *task) {
 	REQUIRE(task->state == task_state_running);
 	manager = task->manager;
 
-	isc_nm_resume(manager->nm);
+	isc_nm_resume(manager->netmgr);
 	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
 					       &(bool){ true }, false));
 }
@@ -1210,20 +1221,8 @@ isc_task_unpause(isc_task_t *task) {
 void
 isc_task_setprivilege(isc_task_t *task, bool priv) {
 	REQUIRE(VALID_TASK(task));
-	uint_fast32_t oldflags, newflags;
 
-	oldflags = atomic_load_acquire(&task->flags);
-	do {
-		if (priv) {
-			newflags = oldflags | TASK_F_PRIVILEGED;
-		} else {
-			newflags = oldflags & ~TASK_F_PRIVILEGED;
-		}
-		if (newflags == oldflags) {
-			return;
-		}
-	} while (!atomic_compare_exchange_weak_acq_rel(&task->flags, &oldflags,
-						       newflags));
+	atomic_store_release(&task->privileged, priv);
 }
 
 bool
@@ -1268,21 +1267,6 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr, void *writer0) {
 	TRY0(xmlTextWriterWriteFormatString(writer, "%d",
 					    mgr->default_quantum));
 	TRY0(xmlTextWriterEndElement(writer)); /* default-quantum */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks-count"));
-	TRY0(xmlTextWriterWriteFormatString(
-		writer, "%d", (int)atomic_load_relaxed(&mgr->tasks_count)));
-	TRY0(xmlTextWriterEndElement(writer)); /* tasks-count */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks-running"));
-	TRY0(xmlTextWriterWriteFormatString(
-		writer, "%d", (int)atomic_load_relaxed(&mgr->tasks_running)));
-	TRY0(xmlTextWriterEndElement(writer)); /* tasks-running */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks-ready"));
-	TRY0(xmlTextWriterWriteFormatString(
-		writer, "%d", (int)atomic_load_relaxed(&mgr->tasks_ready)));
-	TRY0(xmlTextWriterEndElement(writer)); /* tasks-ready */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* thread-model */
 
@@ -1372,18 +1356,6 @@ isc_taskmgr_renderjson(isc_taskmgr_t *mgr, void *tasks0) {
 	obj = json_object_new_int(mgr->default_quantum);
 	CHECKMEM(obj);
 	json_object_object_add(tasks, "default-quantum", obj);
-
-	obj = json_object_new_int(atomic_load_relaxed(&mgr->tasks_count));
-	CHECKMEM(obj);
-	json_object_object_add(tasks, "tasks-count", obj);
-
-	obj = json_object_new_int(atomic_load_relaxed(&mgr->tasks_running));
-	CHECKMEM(obj);
-	json_object_object_add(tasks, "tasks-running", obj);
-
-	obj = json_object_new_int(atomic_load_relaxed(&mgr->tasks_ready));
-	CHECKMEM(obj);
-	json_object_object_add(tasks, "tasks-ready", obj);
 
 	array = json_object_new_array();
 	CHECKMEM(array);

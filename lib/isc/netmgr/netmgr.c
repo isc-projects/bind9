@@ -135,15 +135,16 @@ nm_thread(isc_threadarg_t worker0);
 static void
 async_cb(uv_async_t *handle);
 static bool
-process_queue(isc__networker_t *worker, isc_queue_t *queue);
+process_queue(isc__networker_t *worker, isc_queue_t *queue,
+	      unsigned int *quantump);
 static bool
-process_priority_queue(isc__networker_t *worker);
-static void
-process_privilege_queue(isc__networker_t *worker);
-static void
-process_tasks_queue(isc__networker_t *worker);
-static void
-process_normal_queue(isc__networker_t *worker);
+process_priority_queue(isc__networker_t *worker, unsigned int *quantump);
+static bool
+process_privilege_queue(isc__networker_t *worker, unsigned int *quantump);
+static bool
+process_task_queue(isc__networker_t *worker, unsigned int *quantump);
+static bool
+process_normal_queue(isc__networker_t *worker, unsigned int *quantump);
 
 static void
 isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -264,6 +265,7 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		*worker = (isc__networker_t){
 			.mgr = mgr,
 			.id = i,
+			.quantum = ISC_NETMGR_QUANTUM_DEFAULT,
 		};
 
 		r = uv_loop_init(&worker->loop);
@@ -278,8 +280,8 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		isc_condition_init(&worker->cond);
 
 		worker->ievents = isc_queue_new(mgr->mctx, 128);
-		worker->ievents_priv = isc_queue_new(mgr->mctx, 128);
 		worker->ievents_task = isc_queue_new(mgr->mctx, 128);
+		worker->ievents_priv = isc_queue_new(mgr->mctx, 128);
 		worker->ievents_prio = isc_queue_new(mgr->mctx, 128);
 		worker->recvbuf = isc_mem_get(mctx, ISC_NETMGR_RECVBUF_SIZE);
 		worker->sendbuf = isc_mem_get(mctx, ISC_NETMGR_SENDBUF_SIZE);
@@ -631,7 +633,8 @@ nm_thread(isc_threadarg_t worker0) {
 			while (worker->paused) {
 				WAIT(&worker->cond, &worker->lock);
 				UNLOCK(&worker->lock);
-				(void)process_priority_queue(worker);
+				(void)process_priority_queue(
+					worker, &(unsigned int){ UINT_MAX });
 				LOCK(&worker->lock);
 			}
 
@@ -642,10 +645,11 @@ nm_thread(isc_threadarg_t worker0) {
 			UNLOCK(&worker->lock);
 
 			/*
-			 * All workers must run the privileged event
+			 * All workers must drain the privileged event
 			 * queue before we resume from pause.
 			 */
-			process_privilege_queue(worker);
+			(void)process_privilege_queue(
+				worker, &(unsigned int){ UINT_MAX });
 
 			LOCK(&mgr->lock);
 			while (atomic_load(&mgr->paused)) {
@@ -660,16 +664,6 @@ nm_thread(isc_threadarg_t worker0) {
 		}
 
 		INSIST(!worker->finished);
-
-		/*
-		 * We've fully resumed from pause. Drain the normal
-		 * asynchronous event queues before resuming the uv_run()
-		 * loop. (This is not strictly necessary, it just ensures
-		 * that all pending events are processed before another
-		 * pause can slip in.)
-		 */
-		process_tasks_queue(worker);
-		process_normal_queue(worker);
 	}
 
 	/*
@@ -677,8 +671,8 @@ nm_thread(isc_threadarg_t worker0) {
 	 * (they may include shutdown events) but do not process
 	 * the netmgr event queue.
 	 */
-	process_privilege_queue(worker);
-	process_tasks_queue(worker);
+	(void)process_privilege_queue(worker, &(unsigned int){ UINT_MAX });
+	(void)process_task_queue(worker, &(unsigned int){ UINT_MAX });
 
 	LOCK(&mgr->lock);
 	mgr->workers_running--;
@@ -686,6 +680,23 @@ nm_thread(isc_threadarg_t worker0) {
 	UNLOCK(&mgr->lock);
 
 	return ((isc_threadresult_t)0);
+}
+
+static bool
+process_all_queues(isc__networker_t *worker, unsigned int quantum) {
+	/*
+	 * The queue processing functions will return false when the
+	 * system is pausing or stopping, or if we have completed
+	 * 'quantum' events.
+	 *
+	 * We don't want to proceed to a new queue until the previous one
+	 * has been fully drained, so whenever one queue is interrupted,
+	 * we skip all the later ones.
+	 */
+	return (process_priority_queue(worker, &quantum) &&
+		process_privilege_queue(worker, &quantum) &&
+		process_task_queue(worker, &quantum) &&
+		process_normal_queue(worker, &quantum));
 }
 
 /*
@@ -697,18 +708,14 @@ nm_thread(isc_threadarg_t worker0) {
 static void
 async_cb(uv_async_t *handle) {
 	isc__networker_t *worker = (isc__networker_t *)handle->loop->data;
+	unsigned int quantum = worker->quantum;
 
-	/*
-	 * process_priority_queue() returns false when pausing or stopping,
-	 * so we don't want to process the other queues in that case.
-	 */
-	if (!process_priority_queue(worker)) {
-		return;
+	if (!process_all_queues(worker, quantum)) {
+		/* If we didn't process all the events, we need to enqueue
+		 * async_cb to be run in the next iteration of the uv_loop
+		 */
+		uv_async_send(handle);
 	}
-
-	process_privilege_queue(worker);
-	process_tasks_queue(worker);
-	process_normal_queue(worker);
 }
 
 static void
@@ -775,8 +782,7 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	switch (result) {
 	case ISC_R_QUOTA:
-		isc_nm_task_enqueue(worker->mgr, (isc_task_t *)ievent->task,
-				    isc_nm_tid());
+		isc_task_ready(ievent->task);
 		return;
 	case ISC_R_SUCCESS:
 		return;
@@ -787,23 +793,23 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 static bool
-process_priority_queue(isc__networker_t *worker) {
-	return (process_queue(worker, worker->ievents_prio));
+process_priority_queue(isc__networker_t *worker, unsigned int *quantump) {
+	return (process_queue(worker, worker->ievents_prio, quantump));
 }
 
-static void
-process_privilege_queue(isc__networker_t *worker) {
-	(void)process_queue(worker, worker->ievents_priv);
+static bool
+process_privilege_queue(isc__networker_t *worker, unsigned int *quantump) {
+	return (process_queue(worker, worker->ievents_priv, quantump));
 }
 
-static void
-process_tasks_queue(isc__networker_t *worker) {
-	(void)process_queue(worker, worker->ievents_task);
+static bool
+process_task_queue(isc__networker_t *worker, unsigned int *quantump) {
+	return (process_queue(worker, worker->ievents_task, quantump));
 }
 
-static void
-process_normal_queue(isc__networker_t *worker) {
-	(void)process_queue(worker, worker->ievents);
+static bool
+process_normal_queue(isc__networker_t *worker, unsigned int *quantump) {
+	return (process_queue(worker, worker->ievents, quantump));
 }
 
 /*
@@ -905,16 +911,27 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 }
 
 static bool
-process_queue(isc__networker_t *worker, isc_queue_t *queue) {
-	isc__netievent_t *ievent = NULL;
+process_queue(isc__networker_t *worker, isc_queue_t *queue,
+	      unsigned int *quantump) {
+	while (*quantump > 0) {
+		isc__netievent_t *ievent =
+			(isc__netievent_t *)isc_queue_dequeue(queue);
 
-	while ((ievent = (isc__netievent_t *)isc_queue_dequeue(queue)) != NULL)
-	{
+		(*quantump)--;
+
+		if (ievent == NULL) {
+			/* We fully drained this queue */
+			return (true);
+		}
+
 		if (!process_netievent(worker, ievent)) {
+			/* Netievent told us to stop */
 			return (false);
 		}
 	}
-	return (true);
+
+	/* No more quantum */
+	return (false);
 }
 
 void *
