@@ -227,8 +227,9 @@ void (*dighost_shutdown)(void);
 
 /* forward declarations */
 
+#define cancel_lookup(l) _cancel_lookup(l, __FILE__, __LINE__)
 static void
-cancel_lookup(dig_lookup_t *lookup);
+_cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line);
 
 static void
 recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
@@ -1694,6 +1695,9 @@ _query_detach(dig_query_t **queryp, const char *file, unsigned int line) {
 	      isc_refcount_current(&query->references) - 1);
 
 	if (isc_refcount_decrement(&query->references) == 1) {
+		INSIST(query->readhandle == NULL);
+		INSIST(query->sendhandle == NULL);
+
 		if (ISC_LINK_LINKED(query, link)) {
 			ISC_LIST_UNLINK(lookup->q, query, link);
 		}
@@ -2669,11 +2673,12 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 /*%
  * Cancel a lookup, sending canceling reads on all existing sockets.
  */
+
 static void
-cancel_lookup(dig_lookup_t *lookup) {
+_cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 	dig_query_t *query, *next;
 
-	debug("cancel_lookup()");
+	debug("%s:%u:%s()", file, line, __func__);
 	query = ISC_LIST_HEAD(lookup->q);
 	while (query != NULL) {
 		REQUIRE(DIG_VALID_QUERY(query));
@@ -2939,6 +2944,7 @@ static void
 start_udp(dig_query_t *query) {
 	isc_result_t result;
 	dig_query_t *next = NULL;
+	dig_query_t *connectquery = NULL;
 
 	REQUIRE(DIG_VALID_QUERY(query));
 
@@ -2990,8 +2996,10 @@ start_udp(dig_query_t *query) {
 		}
 	}
 
+	query_attach(query, &connectquery);
 	isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
-			  (isc_nmiface_t *)&query->sockaddr, udp_ready, query,
+			  (isc_nmiface_t *)&query->sockaddr, udp_ready,
+			  connectquery,
 			  (timeout ? timeout : UDP_TIMEOUT) * 1000, 0);
 }
 
@@ -4186,15 +4194,13 @@ cancel_all(void) {
 		return;
 	}
 	atomic_store(&cancel_now, true);
-	if (current_lookup != NULL) {
+	while (current_lookup != NULL) {
 		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
 			nq = ISC_LIST_NEXT(q, link);
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			if (q->readhandle != NULL) {
-				isc_refcount_decrement0(&recvcount);
-				debug("recvcount=%" PRIuFAST32,
-				      isc_refcount_current(&recvcount));
+				isc_nm_cancelread(q->readhandle);
 			}
 			query_detach(&q);
 		}
