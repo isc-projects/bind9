@@ -1629,15 +1629,13 @@ ns__client_put_cb(void *client0) {
 void
 ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		   isc_region_t *region, void *arg) {
-	ns_client_t *client;
-	ns_clientmgr_t *mgr;
-	ns_interface_t *ifp;
+	ns_client_t *client = NULL;
 	isc_result_t result;
 	isc_result_t sigresult = ISC_R_SUCCESS;
-	isc_buffer_t *buffer;
+	isc_buffer_t *buffer = NULL;
 	isc_buffer_t tbuffer;
-	dns_rdataset_t *opt;
-	const dns_name_t *signame;
+	dns_rdataset_t *opt = NULL;
+	const dns_name_t *signame = NULL;
 	bool ra; /* Recursion available. */
 	isc_netaddr_t netaddr;
 	int match;
@@ -1645,29 +1643,24 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	unsigned int flags;
 	bool notimp;
 	size_t reqsize;
-	dns_aclenv_t *env;
+	dns_aclenv_t *env = NULL;
 #ifdef HAVE_DNSTAP
 	dns_dtmsgtype_t dtmsgtype;
 #endif /* ifdef HAVE_DNSTAP */
-	ifp = (ns_interface_t *)arg;
 
 	if (eresult != ISC_R_SUCCESS) {
 		return;
 	}
 
-	mgr = ifp->clientmgr;
-	if (mgr == NULL) {
-		/* The interface was shut down in the meantime, just bail */
-		return;
-	}
-
-	REQUIRE(VALID_MANAGER(mgr));
-
 	client = isc_nmhandle_getdata(handle);
 	if (client == NULL) {
+		ns_interface_t *ifp = (ns_interface_t *)arg;
+
+		INSIST(VALID_MANAGER(ifp->clientmgr));
+
 		client = isc_nmhandle_getextra(handle);
 
-		result = ns__client_setup(client, mgr, true);
+		result = ns__client_setup(client, ifp->clientmgr, true);
 		if (result != ISC_R_SUCCESS) {
 			return;
 		}

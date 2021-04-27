@@ -465,8 +465,6 @@ run(void) {
 	}
 
 	waitforsignal();
-
-	isc_nm_closedown(netmgr);
 }
 
 int

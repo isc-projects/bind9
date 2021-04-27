@@ -59,7 +59,10 @@ cleanup_managers(void) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
 	}
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
+			     taskmgr == NULL ? NULL : &taskmgr,
+			     timermgr == NULL ? NULL : &timermgr,
+			     socketmgr == NULL ? NULL : &socketmgr);
 }
 
 static isc_result_t

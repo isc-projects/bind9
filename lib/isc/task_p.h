@@ -77,6 +77,24 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp);
  *
  *\li	'*managerp' is a valid task manager.
  *
+ *\li   'isc__taskmgr_shutdown()' and isc__netmgr_shutdown() have been
+ *	called.
+ */
+
+void
+isc__taskmgr_shutdown(isc_taskmgr_t *manager);
+/*%>
+ * Shutdown 'manager'.
+ *
+ * Notes:
+ *
+ *\li	Calling isc__taskmgr_shutdown() will shut down all tasks managed by
+ *	*managerp that haven't already been shut down.
+ *
+ * Requires:
+ *
+ *\li   'manager' is a valid task manager.
+ *
  *\li	isc_taskmgr_destroy() has not be called previously on '*managerp'.
  *
  * Ensures:

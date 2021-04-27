@@ -474,7 +474,7 @@ isc_nm_detach(isc_nm_t **mgr0) {
 }
 
 void
-isc_nm_closedown(isc_nm_t *mgr) {
+isc__netmgr_shutdown(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 
 	atomic_store(&mgr->closing, true);
@@ -497,7 +497,7 @@ isc__netmgr_destroy(isc_nm_t **netmgrp) {
 	/*
 	 * Close active connections.
 	 */
-	isc_nm_closedown(mgr);
+	isc__netmgr_shutdown(mgr);
 
 	/*
 	 * Wait for the manager to be dereferenced elsewhere.

@@ -1008,19 +1008,12 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 }
 
 void
-isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
-	isc_taskmgr_t *manager;
+isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	isc_task_t *task;
 
-	/*
-	 * Destroy '*managerp'.
-	 */
-
-	REQUIRE(managerp != NULL);
-	manager = *managerp;
 	REQUIRE(VALID_MANAGER(manager));
 
-	XTHREADTRACE("isc_taskmgr_destroy");
+	XTHREADTRACE(e "isc_taskmgr_shutdown");
 	/*
 	 * Only one non-worker thread may ever call this routine.
 	 * If a worker thread wants to initiate shutdown of the
@@ -1070,10 +1063,19 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	}
 
 	UNLOCK(&manager->lock);
+}
 
-	isc_taskmgr_detach(manager);
+void
+isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
+	REQUIRE(managerp != NULL && VALID_MANAGER(*managerp));
 
+	isc_taskmgr_t *manager = *managerp;
 	*managerp = NULL;
+
+	XTHREADTRACE("isc_taskmgr_destroy");
+
+	REQUIRE(isc_refcount_decrement(&manager->references) == 1);
+	manager_free(manager);
 }
 
 void

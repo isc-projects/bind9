@@ -42,6 +42,7 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 
 	REQUIRE(taskmgrp == NULL || *taskmgrp == NULL);
 	if (taskmgrp != NULL) {
+		INSIST(netmgr != NULL);
 		result = isc__taskmgr_create(mctx, quantum, netmgr, &taskmgr);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -87,23 +88,57 @@ fail:
 void
 isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
 		     isc_timermgr_t **timermgrp, isc_socketmgr_t **socketmgrp) {
-	if (netmgrp != NULL && *netmgrp != NULL) {
-		isc_nm_closedown(*netmgrp);
+	/*
+	 * If we have a taskmgr to clean up, then we must also have a netmgr.
+	 */
+	REQUIRE(taskmgrp != NULL || netmgrp == NULL);
+
+	/*
+	 * The sequence of operations here is important:
+	 *
+	 * 1. Initiate shutdown of the taskmgr, sending shutdown events to
+	 * all tasks that are not already shutting down.
+	 */
+	if (taskmgrp != NULL) {
+		INSIST(*taskmgrp != NULL);
+		isc__taskmgr_shutdown(*taskmgrp);
 	}
 
-	if (taskmgrp != NULL && *taskmgrp != NULL) {
+	/*
+	 * 2. Initiate shutdown of the network manager, freeing clients
+	 * and other resources and preventing new connections, but do
+	 * not stop processing of existing events.
+	 */
+	if (netmgrp != NULL) {
+		INSIST(*netmgrp != NULL);
+		isc__netmgr_shutdown(*netmgrp);
+	}
+
+	/*
+	 * 3. Finish destruction of the task manager when all tasks
+	 * have completed.
+	 */
+	if (taskmgrp != NULL) {
 		isc__taskmgr_destroy(taskmgrp);
 	}
 
-	if (netmgrp != NULL && *netmgrp != NULL) {
+	/*
+	 * 4. Finish destruction of the netmgr, and wait until all
+	 * references have been released.
+	 */
+	if (netmgrp != NULL) {
 		isc__netmgr_destroy(netmgrp);
 	}
 
-	if (timermgrp != NULL && *timermgrp != NULL) {
+	/*
+	 * 5. Clean up the remaining managers.
+	 */
+	if (timermgrp != NULL) {
+		INSIST(*timermgrp != NULL);
 		isc__timermgr_destroy(timermgrp);
 	}
-
-	if (socketmgrp != NULL && *socketmgrp != NULL) {
+	if (socketmgrp != NULL) {
+		INSIST(*socketmgrp != NULL);
 		isc__socketmgr_destroy(socketmgrp);
 	}
 }

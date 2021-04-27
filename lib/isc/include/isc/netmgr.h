@@ -79,15 +79,6 @@ isc_nm_detach(isc_nm_t **mgr0);
  * for all other references to be gone.
  */
 
-void
-isc_nm_closedown(isc_nm_t *mgr);
-/*%<
- * Close down all active connections, freeing associated resources;
- * prevent new connections from being established. This can optionally
- * be called prior to shutting down the netmgr, to stop all processing
- * before shutting down the task manager.
- */
-
 /* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */
 int
 isc_nm_tid(void);

@@ -24,6 +24,13 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netgmrp);
 void
 isc__netmgr_destroy(isc_nm_t **netmgrp);
 /*%<
- * Destroy is working the same way as isc_nm_detach, but it actively waits
- * for all other references to be gone.
+ * Similar to isc_nm_detach(), but actively waits for all other references
+ * to be gone before returning.
+ */
+
+void
+isc__netmgr_shutdown(isc_nm_t *mgr);
+/*%<
+ * Shut down all active connections, freeing associated resources;
+ * prevent new connections from being established.
  */

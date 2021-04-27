@@ -199,7 +199,10 @@ cleanup_managers(void) {
 		ns_interfacemgr_detach(&interfacemgr);
 	}
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
+			     taskmgr == NULL ? NULL : &taskmgr,
+			     timermgr == NULL ? NULL : &timermgr,
+			     socketmgr == NULL ? NULL : &socketmgr);
 
 	if (app_running) {
 		isc_app_finish();
