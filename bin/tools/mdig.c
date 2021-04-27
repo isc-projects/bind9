@@ -2060,21 +2060,6 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	}
 }
 
-#ifdef WIN32
-static void
-usleep(unsigned int usec) {
-	HANDLE timer;
-	LARGE_INTEGER ft;
-
-	ft.QuadPart = -(10 * (__int64)usec);
-
-	timer = CreateWaitableTimer(NULL, TRUE, NULL);
-	SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
-	WaitForSingleObject(timer, INFINITE);
-	CloseHandle(timer);
-}
-#endif
-
 /*% Main processing routine for mdig */
 int
 main(int argc, char *argv[]) {

@@ -28,6 +28,8 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "isctest.h"
+
 static void
 isc_quota_get_set_test(void **state) {
 	UNUSED(state);
@@ -256,7 +258,7 @@ isc_thread_t g_threads[10 * 100];
 static void *
 quota_detach(void *quotap) {
 	isc_quota_t *quota = (isc_quota_t *)quotap;
-	usleep(10000);
+	isc_test_nap(10000);
 	isc_quota_detach(&quota);
 	return ((isc_threadresult_t)0);
 }
