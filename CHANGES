@@ -1,3 +1,5 @@
+5631.	[bug]		Update ZONEMD to match RFC 8976. [GL #2658]
+
 5630.	[func]		Treat DNSSEC responses with NSEC3 iterations greater
 			than 150 as insecure. [GL #2445]
 
