@@ -246,6 +246,8 @@
 ./bin/tests/system/cacheclean/clean.sh		SH	2001,2004,2007,2011,2012,2014,2015,2016,2018,2019,2020,2021
 ./bin/tests/system/cacheclean/dig.batch		X	2001,2018,2019,2020,2021
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001,2018,2019,2020,2021
+./bin/tests/system/cacheclean/ns1/named.args	X	2021
+./bin/tests/system/cacheclean/ns2/named.args	X	2021
 ./bin/tests/system/cacheclean/setup.sh		SH	2018,2019,2020,2021
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004,2007,2011,2012,2013,2014,2016,2018,2019,2020,2021
 ./bin/tests/system/case/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020,2021
@@ -447,6 +449,7 @@
 ./bin/tests/system/feature-test.c		C	2016,2017,2018,2019,2020,2021
 ./bin/tests/system/fetchlimit/ans4/ans.pl	PERL	2019,2020,2021
 ./bin/tests/system/fetchlimit/clean.sh		SH	2015,2016,2018,2019,2020,2021
+./bin/tests/system/fetchlimit/ns3/named.args	X	2021
 ./bin/tests/system/fetchlimit/setup.sh		SH	2015,2016,2018,2019,2020,2021
 ./bin/tests/system/fetchlimit/tests.sh		SH	2015,2016,2018,2019,2020,2021
 ./bin/tests/system/filter-aaaa/clean.sh		SH	2010,2012,2014,2016,2018,2019,2020,2021
@@ -904,6 +907,7 @@
 ./bin/tests/system/testsummary.sh		SH	2018,2019,2020,2021
 ./bin/tests/system/timeouts/clean.sh		SH	2021
 ./bin/tests/system/timeouts/conftest.py		PYTHON	2021
+./bin/tests/system/timeouts/ns1/named.args	X	2021
 ./bin/tests/system/timeouts/prereq.sh		SH	2021
 ./bin/tests/system/timeouts/setup.sh		SH	2021
 ./bin/tests/system/timeouts/tests-tcp.py	PYTHON-BIN	2021
@@ -1010,6 +1014,9 @@
 ./bin/tests/system/xferquota/tests.sh		SH	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
 ./bin/tests/system/zero/ans5/ans.pl		PERL	2016,2018,2019,2020,2021
 ./bin/tests/system/zero/clean.sh		SH	2013,2014,2015,2016,2018,2019,2020,2021
+./bin/tests/system/zero/ns2/named.args		X	2021
+./bin/tests/system/zero/ns3/named.args		X	2021
+./bin/tests/system/zero/ns4/named.args		X	2021
 ./bin/tests/system/zero/setup.sh		SH	2013,2014,2016,2018,2019,2020,2021
 ./bin/tests/system/zero/tests.sh		SH	2013,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/zonechecks/clean.sh		SH	2004,2007,2012,2014,2015,2016,2018,2019,2020,2021
