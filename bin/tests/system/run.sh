@@ -318,6 +318,11 @@ else
     fi
 fi
 
+NAMED_RUN_LINES_THRESHOLD=200000
+find "${systest}" -type f -name "named.run" -exec wc -l {} \; | awk "\$1 > ${NAMED_RUN_LINES_THRESHOLD} { print \$2 }" | sort | while read -r LOG_FILE; do
+    echowarn "I:${systest}:${LOG_FILE} contains more than ${NAMED_RUN_LINES_THRESHOLD} lines, consider tweaking the test to limit disk I/O"
+done
+
 echoend "E:$systest:$(date_with_args)"
 
 exit $status
