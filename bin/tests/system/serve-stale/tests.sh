@@ -1648,9 +1648,11 @@ status=$((status+ret))
 sleep 2
 
 echo_i "sending queries for tests $((n+1))-$((n+2))..."
+t1=`$PERL -e 'print time()'`
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
 wait
+t2=`$PERL -e 'print time()'`
 
 # We configured a long value of 30 seconds for resolver-query-timeout.
 # That should give us enough time to receive an stale answer from cache
@@ -1658,8 +1660,6 @@ wait
 n=$((n+1))
 echo_i "check stale data.example comes from cache (default stale-answer-client-timeout) ($n)"
 nextpart ns3/named.run > /dev/null
-t1=`$PERL -e 'print time()'`
-t2=`$PERL -e 'print time()'`
 wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
 ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
