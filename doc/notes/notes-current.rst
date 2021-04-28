@@ -54,3 +54,5 @@ Bug Fixes
 
 - With ``dnssec-policy``, when creating new keys also check for keyid conflicts
   between the new keys too. :gl:`#2628`
+
+- Update ZONEMD to match RFC 8976. :gl:`#2658`
