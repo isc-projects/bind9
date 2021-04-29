@@ -15,12 +15,12 @@ New Features
 ~~~~~~~~~~~~
 
 - ``dig`` has been extended to support DNS-over-HTTPS (DoH) queries,
-  using ``dig +https`` and related options. [GL #1641]
+  using ``dig +https`` and related options. :gl:`#1641`
 
 - A new ``purge-keys`` option has been added to ``dnssec-policy``. It
   sets the period of time that key files are retained after becoming
   obsolete due to a key rollover; the default is 90 days. This feature
-  can be disabled by setting ``purge-keys`` to 0. [GL #2408]
+  can be disabled by setting ``purge-keys`` to 0. :gl:`#2408`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -29,12 +29,12 @@ Feature Changes
   DNS-over-HTTPS (DoH) in BIND 9, ``listen-on`` and ``listen-on-v6``
   statements using the ``http`` parameter must now also specify the
   ``tls`` parameter. ``tls none`` can be used to explicitly allow
-  unencrypted HTTP connections. [GL #2472]
+  unencrypted HTTP connections. :gl:`#2472`
 
 - ``http default`` can now be specified in ``listen-on`` and
   ``listen-on-v6`` statements to use the default HTTP endpoint of
   ``/dns-query``. It is no longer necessary to include an ``http``
-  statement in ``named.conf`` unless overriding this value. [GL #2472]
+  statement in ``named.conf`` unless overriding this value. :gl:`#2472`
 
 Bug Fixes
 ~~~~~~~~~
@@ -54,37 +54,37 @@ Bug Fixes
   A journal file's format can be changed manually by running
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
   (upgrade). Note that this *must not* be done while ``named`` is
-  running. [GL #2505]
+  running. :gl:`#2505`
 
 - ``named`` crashed when it was allowed to serve stale answers and
   ``stale-answer-client-timeout`` was triggered without any (stale) data
-  available in the cache to answer the query. [GL #2503]
+  available in the cache to answer the query. :gl:`#2503`
 
 - If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
   instead of sending back a proper response. To prevent this problem,
   the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
-  been happening since BIND 9.17.6. [GL #2466]
+  been happening since BIND 9.17.6. :gl:`#2466`
 
 - NSEC3 records were not immediately created when signing a dynamic zone
   using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
-  [GL #2498]
+  :gl:`#2498`
 
 - A memory leak occurred when ``named`` was reconfigured after adding an
   inline-signed zone with ``auto-dnssec maintain`` enabled. This has
-  been fixed. [GL #2041]
+  been fixed. :gl:`#2041`
 
 - An invalid direction field (not one of ``N``, ``S``, ``E``, ``W``) in
   a LOC record resulted in an INSIST failure when a zone file containing
-  such a record was loaded. [GL #2499]
+  such a record was loaded. :gl:`#2499`
 
 - If an invalid key name (e.g. ``a..b``) was specified in a
   ``primaries`` list in ``named.conf``, the wrong size was passed to
   ``isc_mem_put()``, which resulted in the returned memory being put on
   the wrong free list and prevented ``named`` from starting up. This has
-  been fixed. [GL #2460]
+  been fixed. :gl:`#2460`
 
 - ``libtool`` was inadvertently introduced as a build-time requirement
   when the build system was revamped in BIND 9.17.2. This unnecessarily
   prevented hosts without that tool from building BIND 9 from source
   tarballs. A standalone ``libtool`` script no longer needs to be
-  present in ``PATH`` to build BIND 9 from a source tarball. [GL #2504]
+  present in ``PATH`` to build BIND 9 from a source tarball. :gl:`#2504`
