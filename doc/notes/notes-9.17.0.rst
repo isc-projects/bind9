@@ -36,7 +36,7 @@ New Features
 
    This behavior is controlled by the ``max-ixfr-ratio`` option - a
    percentage value representing the ratio of IXFR size to the size of a
-   full zone transfer. The default is ``100%``. [GL #1515]
+   full zone transfer. The default is ``100%``. :gl:`#1515`
 
 -  A new RPZ option ``nsdname-wait-recurse`` controls whether
    RPZ-NSDNAME rules should always be applied even if the names of
@@ -45,7 +45,7 @@ New Features
    up initial responses by skipping RPZ-NSDNAME rules when name server
    domain names are not yet in the cache. The names will be looked up in
    the background and the rule will be applied for subsequent queries.
-   [GL #1138]
+   :gl:`#1138`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -58,14 +58,14 @@ Feature Changes
    the notable exception of Ubuntu 18.04 (Bionic) which is a work in
    progress. If you are running on an affected operating system, compile
    BIND 9 with ``--disable-pthread-rwlock`` until a fixed version of
-   glibc is available. [GL !3125]
+   glibc is available. :gl:`!3125`
 
 .. _bug: https://sourceware.org/bugzilla/show_bug.cgi?id=23844
 
 -  The ``rndc nta -dump`` and ``rndc secroots`` commands now both
    include ``validate-except`` entries when listing negative trust
    anchors. These are indicated by the keyword ``permanent`` in place of
-   the expiry date. [GL #1532]
+   the expiry date. :gl:`#1532`
 
 Bug Fixes
 ~~~~~~~~~
