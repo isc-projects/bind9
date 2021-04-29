@@ -1,3 +1,5 @@
+	--- 9.11.31 released ---
+
 5621.	[bug]		Due to a backporting mistake in change 5609, named
 			binaries built against a Kerberos/GSSAPI library whose
 			header files did not define the GSS_SPNEGO_MECHANISM
@@ -5,11 +7,30 @@
 			configuration included the "tkey-gssapi-credential"
 			option. This has been fixed. [GL #2634]
 
+	--- 9.11.30 released ---
+
+5617.	[security]	A specially crafted GSS-TSIG query could cause a buffer
+			overflow in the ISC implementation of SPNEGO.
+			(CVE-2021-25216) [GL #2604]
+
+5616.	[security]	named crashed when a DNAME record placed in the ANSWER
+			section during DNAME chasing turned out to be the final
+			answer to a client query. (CVE-2021-25215) [GL #2540]
+
+5615.	[security]	Insufficient IXFR checks could result in named serving a
+			zone without an SOA record at the apex, leading to a
+			RUNTIME_CHECK assertion failure when the zone was
+			subsequently refreshed. This has been fixed by adding an
+			owner name check for all SOA records which are included
+			in a zone transfer. (CVE-2021-25214) [GL #2467]
+
 5614.	[bug]		Ensure all resources are properly cleaned up when a call
 			to gss_accept_sec_context() fails. [GL #2620]
 
-5609.	[func]		GSSAPI support no longer uses the ISC SPNEGO
-			implementation. [GL #2607]
+5609.	[func]		The ISC implementation of SPNEGO was removed from BIND 9
+			source code. It was no longer necessary as all major
+			contemporary Kerberos/GSSAPI libraries include support
+			for SPNEGO. [GL #2607]
 
 	--- 9.11.29 released ---
 

@@ -11,67 +11,10 @@
 
 <section xml:id="relnotes-9.11.30"><info><title>Notes for BIND 9.11.30</title></info>
 
-  <section xml:id="relnotes-9.11.30-security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-	  The GSSAPI no longer uses the ISC implementation of the SPNEGO
-	  mechanism and instead relies on the SPNEGO implementation from the
-	  system Kerberos library. All major Kerberos libraries contain the
-	  SPNEGO mechanism implementation. [GL #2607]
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.30-bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
+  <para>
+    <emphasis>The BIND 9.11.30 release was withdrawn after a backporting bug was
+    discovered during pre-release testing. ISC would like to acknowledge the
+    assistance of Natan Segal of Bluecat Networks.</emphasis>
+  </para>
 
 </section>

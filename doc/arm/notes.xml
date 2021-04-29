@@ -21,6 +21,8 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-download.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-license.xml"/>
 
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.11.32.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.11.31.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.11.30.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.11.29.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.11.28.xml"/>

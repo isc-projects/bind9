@@ -9188,10 +9188,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (noqname != NULL)
 			query_addnoqnameproof(client, noqname);
 		/*
-		 * We shouldn't ever fail to add 'rdataset'
-		 * because it's already in the answer.
+		 * 'rdataset' will only be non-NULL here if the ANSWER section
+		 * of the message to be sent to the client already contains an
+		 * RRset with the same owner name and the same type as
+		 * 'rdataset'.  This should never happen, with one exception:
+		 * when chasing DNAME records, one of the DNAME records placed
+		 * in the ANSWER section may turn out to be the final answer to
+		 * the client's query, but we have no way of knowing that until
+		 * now.  In such a case, 'rdataset' will be freed later, so we
+		 * do not need to free it here.
 		 */
-		INSIST(rdataset == NULL);
+		INSIST(rdataset == NULL || qtype == dns_rdatatype_dname);
 	}
 
  addauth:
