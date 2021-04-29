@@ -1882,7 +1882,7 @@ Boolean Options
    is made. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
 
-   The default ``stale-refresh-time`` is 30 seconds, as RFC 8767 recommends
+   The default ``stale-refresh-time`` is 30 seconds, as :rfc:`8767` recommends
    that attempts to refresh to be done no more frequently than every 30
    seconds. A value of zero disables the feature, meaning that normal
    resolution will take place first, if that fails only then ``named`` will
