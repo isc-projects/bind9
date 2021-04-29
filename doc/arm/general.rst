@@ -581,7 +581,7 @@ is accepted but not returned in responses.
 [17] Wildcard records are not supported in DNSSEC secure zones.
 
 [18] Servers authoritative for secure zones being resolved by BIND
-9 must support EDNS0 (RFC2671), and must return all relevant SIGs
+9 must support EDNS0 (:rfc:`2671`), and must return all relevant SIGs
 and NXTs in responses, rather than relying on the resolving server
 to perform separate queries for missing SIGs and NXTs.
 
