@@ -25,6 +25,7 @@ options {
 	dnssec-validation auto;
 	bindkeys-file "managed.conf";
 	dnssec-accept-expired yes;
+	minimal-responses no;
 };
 
 key rndc_key {

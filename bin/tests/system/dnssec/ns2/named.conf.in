@@ -168,4 +168,9 @@ zone "corp" {
 	file "corp.db";
 };
 
+zone "too-many-iterations" {
+	type master;
+	file "too-many-iterations.db.signed";
+};
+
 include "trusted.conf";
