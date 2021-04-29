@@ -32,6 +32,10 @@ variables:
 
   BIND_INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
+  # Disable pytest's "cacheprovider" plugin to prevent it from creating
+  # cross-testrun files as there is no need to use that feature in CI.
+  PYTEST_ADDOPTS: "-p no:cacheprovider"
+
   # Default platforms to run "stress" tests on
   BIND_STRESS_TEST_OS: linux
   BIND_STRESS_TEST_ARCH: amd64
