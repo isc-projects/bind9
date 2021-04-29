@@ -3682,7 +3682,6 @@ main(int argc, char *argv[]) {
 	warnifallksk(gdb);
 
 	if (IS_NSEC3) {
-		unsigned int max;
 		bool answer;
 
 		hash_length = dns_nsec3_hashlength(dns_hash_sha1);
@@ -3699,11 +3698,10 @@ main(int argc, char *argv[]) {
 			fatal("NSEC3 generation requested with "
 			      "NSEC-only DNSKEY");
 
-		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
-		check_result(result, "dns_nsec3_maxiterations()");
-		if (nsec3iter > max)
+		if (nsec3iter > dns_nsec3_maxiterations())
 			fatal("NSEC3 iterations too big for weakest DNSKEY "
-			      "strength. Maximum iterations allowed %u.", max);
+			      "strength. Maximum iterations allowed %u.",
+			      dns_nsec3_maxiterations());
 	} else {
 		hashlist_init(&hashlist, 0, 0);	/* silence clang */
 	}
