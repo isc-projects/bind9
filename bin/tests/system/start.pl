@@ -210,7 +210,7 @@ sub start_server {
 		if (++$tries > 140) {
 			print "I:$test:Couldn't start server $command (pid=$child)\n";
 			print "I:$test:failed\n";
-			system "kill -9 $child" if ("$child" ne "");
+			kill "ABRT", $child if ("$child" ne "");
 			chdir "$testdir";
 			system "$PERL $srcdir/stop.pl $test";
 			exit 1;
