@@ -1035,6 +1035,17 @@ grep "UPDATE, status: NOERROR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
 grep "UPDATE, status: FORMERR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=`expr $n + 1`
+ret=0
+echo_i "check that excessive NSEC3PARAM iterations are rejected by nsupdate ($n)"
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone example
+update add example 0 in NSEC3PARAM 1 0 151 -
+END
+grep "NSEC3PARAM has excessive iterations (> 150)" nsupdate.out-$n || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
 if $FEATURETEST --gssapi ; then
   n=`expr $n + 1`
   ret=0
