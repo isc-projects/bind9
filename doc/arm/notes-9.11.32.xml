@@ -55,7 +55,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          Reduce the supported maximum number of iterations that can be
+          configured in an NSEC3 zones to 150. [GL #2642]
         </para>
       </listitem>
     </itemizedlist>
