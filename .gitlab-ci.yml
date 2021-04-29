@@ -39,6 +39,10 @@ variables:
   # In multithreaded unit tests, abort on the first failure
   CMOCKA_TEST_ABORT: 1
 
+  # Disable pytest's "cacheprovider" plugin to prevent it from creating
+  # cross-testrun files as there is no need to use that feature in CI.
+  PYTEST_ADDOPTS: "-p no:cacheprovider"
+
   # Default platforms to run "stress" tests on
   BIND_STRESS_TEST_OS: linux
   BIND_STRESS_TEST_ARCH: amd64
