@@ -56,6 +56,7 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/nsec3.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -1975,6 +1976,19 @@ parseclass:
 			dns_name_format(bad, namebuf, sizeof(namebuf));
 			fprintf(stderr, "check-names failed: bad name '%s'\n",
 				namebuf);
+			goto failure;
+		}
+	}
+
+	if (!isdelete && rdata->type == dns_rdatatype_nsec3param) {
+		dns_rdata_nsec3param_t nsec3param;
+
+		result = dns_rdata_tostruct(rdata, &nsec3param, NULL);
+		check_result(result, "dns_rdata_tostruct");
+		if (nsec3param.iterations > dns_nsec3_maxiterations()) {
+			fprintf(stderr,
+				"NSEC3PARAM has excessive iterations (> %u)\n",
+				dns_nsec3_maxiterations());
 			goto failure;
 		}
 	}
