@@ -1,3 +1,5 @@
+5631.	[bug]		Update ZONEMD to match RFC 8976. [GL #2658]
+
 5629.	[func]		Reduce the supported maximum number of iterations
 			that can be configured in an NSEC3 zone to 150.
 			[GL #2642]
