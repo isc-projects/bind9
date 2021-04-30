@@ -785,6 +785,23 @@ check_apex
 check_subdomain
 
 #
+# Zone: insecure.kasp.
+#
+set_zone "insecure.kasp"
+set_policy "insecure" "0" "0"
+set_server "ns3" "10.53.0.3"
+
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+
+#
 # Zone: unlimited.kasp.
 #
 set_zone "unlimited.kasp"
@@ -3541,6 +3558,44 @@ check_apex
 check_subdomain
 dnssec_verify
 
+#
+# Zone step1.going-straight-to-none.kasp
+#
+set_zone "step1.going-straight-to-none.kasp"
+set_policy "default" "1" "3600"
+set_server "ns6" "10.53.0.6"
+# Key properties.
+set_keyrole      "KEY1" "csk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "yes"
+# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+# This policy only has one key.
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# The first key is immediately published and activated.
+created=$(key_get KEY1 CREATED)
+set_keytime "KEY1" "PUBLISHED"   "${created}"
+set_keytime "KEY1" "ACTIVE"      "${created}"
+set_keytime "KEY1" "SYNCPUBLISH" "${created}"
+# Key lifetime is unlimited, so not setting RETIRED and REMOVED.
+check_keytimes
+
+check_apex
+check_subdomain
+dnssec_verify
+
 # Reconfig dnssec-policy (triggering algorithm roll and other dnssec-policy
 # changes).
 echo_i "reconfig dnssec-policy to trigger algorithm rollover"
@@ -3598,7 +3653,7 @@ wait_for_done_signing() {
 # Zone: step1.going-insecure.kasp
 #
 set_zone "step1.going-insecure.kasp"
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 # Expect a CDS/CDNSKEY Delete Record.
 set_cdsdelete
@@ -3635,7 +3690,7 @@ check_next_key_event 93600
 # Zone: step2.going-insecure.kasp
 #
 set_zone "step2.going-insecure.kasp"
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # The DS is long enough removed from the zone to be considered HIDDEN.
@@ -3665,7 +3720,7 @@ check_next_key_event 7500
 #
 set_zone "step1.going-insecure-dynamic.kasp"
 set_dynamic
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 # Expect a CDS/CDNSKEY Delete Record.
 set_cdsdelete
@@ -3703,7 +3758,7 @@ check_next_key_event 93600
 #
 set_zone "step2.going-insecure-dynamic.kasp"
 set_dynamic
-set_policy "none" "2" "7200"
+set_policy "insecure" "2" "7200"
 set_server "ns6" "10.53.0.6"
 
 # The DS is long enough removed from the zone to be considered HIDDEN.
@@ -3727,6 +3782,42 @@ check_subdomain
 # propagation delay, plus DNSKEY TTL:
 # 5m + 2h = 125m =  7500 seconds.
 check_next_key_event 7500
+
+#
+# Zone: step1.going-straight-to-none.kasp
+#
+set_zone "step1.going-straight-to-none.kasp"
+set_policy "none" "1" "3600"
+set_server "ns6" "10.53.0.6"
+
+# The zone will go bogus after signatures expire, but remains validly signed for now.
+
+# Key properties.
+set_keyrole      "KEY1" "csk"
+set_keylifetime  "KEY1" "0"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning   "KEY1" "yes"
+set_zonesigning  "KEY1" "yes"
+# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+set_keystate "KEY1" "GOAL"         "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS"     "omnipresent"
+# This policy only has one key.
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+# Various signing policy checks.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+echo_i "status: $status"
+exit $status
 
 #
 # Testing KSK/ZSK algorithm rollover.
