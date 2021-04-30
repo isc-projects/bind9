@@ -59,6 +59,12 @@
           configured in an NSEC3 zones to 150. [GL #2642]
         </para>
       </listitem>
+      <listitem>
+        <para>
+	  Treat DNSSEC responses with NSEC3 iterations greater than 150 as
+	  insecure. [GL #2445]
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
