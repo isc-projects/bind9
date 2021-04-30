@@ -58,7 +58,7 @@ sub assert {
     my ($cond, $explanation) = @_;
     if (!$cond) {
 	print "Test Failed: $explanation ***\n";
-	$failures++
+	$failures++;
     }
 }
 
@@ -79,6 +79,7 @@ sub test {
         assert($rcode eq $expected, "expected $expected, got $rcode");
     } else {
 	print "Update failed: ", $res->errorstring, "\n";
+	$failures++;
     }
 }
 
