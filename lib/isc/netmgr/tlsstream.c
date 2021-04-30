@@ -113,8 +113,14 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	send_req->tlssock = NULL;
 
 	if (send_req->cb != NULL) {
+		INSIST(VALID_NMHANDLE(tlssock->statichandle));
 		send_req->cb(send_req->handle, eresult, send_req->cbarg);
 		isc_nmhandle_detach(&send_req->handle);
+		/* The last handle has been just detached: close the underlying
+		 * socket. */
+		if (tlssock->statichandle == NULL) {
+			finish = true;
+		}
 	}
 
 	isc_mem_put(handle->sock->mgr->mctx, send_req->data.base,
