@@ -311,7 +311,10 @@ then
     {
       $PERL update_test.pl -s 10.53.0.1 -p ${PORT} update.nil. || ret=1
     } | cat_i
-    grep "updating zone 'update.nil/IN': too many NSEC3 iterations (151)" ns1/named.run > /dev/null || ret=1
+    if $PERL -e 'use Net::DNS; die "Net::DNS too old ($Net::DNS::VERSION < 1.01)" if ($Net::DNS::VERSION < 1.01)' > /dev/null
+    then
+        grep "updating zone 'update.nil/IN': too many NSEC3 iterations (151)" ns1/named.run > /dev/null || ret=1
+    fi
     [ $ret -eq 1 ] && { echo_i "failed"; status=1; }
 else
     echo_i "The second part of this test requires the Net::DNS library." >&2
