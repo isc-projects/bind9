@@ -1880,7 +1880,7 @@ try_private:
 
 unsigned int
 dns_nsec3_maxiterations(void) {
-	return (150);
+	return (DNS_NSEC3_MAXITERATIONS);
 }
 
 isc_result_t
@@ -2022,6 +2022,13 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	first = true;
 
 	while (qlabels >= zlabels) {
+		/*
+		 * If there are too many iterations reject the NSEC3 record.
+		 */
+		if (nsec3.iterations > DNS_NSEC3_MAXITERATIONS) {
+			return (DNS_R_NSEC3ITERRANGE);
+		}
+
 		length = isc_iterated_hash(hash, nsec3.hash, nsec3.iterations,
 					   nsec3.salt, nsec3.salt_length,
 					   qname->ndata, qname->length);
