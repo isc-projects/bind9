@@ -302,36 +302,43 @@ elif [ "$serial" -gt "$now" ]; then
 fi
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
-ret=0
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
-    echo_i "running update.pl test"
-    {
-      $PERL update_test.pl -s 10.53.0.1 -p ${PORT} update.nil. || ret=1
-    } | cat_i
+    n=`expr $n + 1`
+    ret=0
+    echo_i "running update.pl test ($n)"
+    $PERL update_test.pl -s 10.53.0.1 -p ${PORT} update.nil. > perl.update_test.out || ret=1
+    [ $ret -eq 1 ] && { echo_i "failed"; status=1; }
+
     if $PERL -e 'use Net::DNS; die "Net::DNS too old ($Net::DNS::VERSION < 1.01)" if ($Net::DNS::VERSION < 1.01)' > /dev/null
     then
-        grep "updating zone 'update.nil/IN': too many NSEC3 iterations (151)" ns1/named.run > /dev/null || ret=1
+	n=`expr $n + 1`
+	ret=0
+	echo_i "check for too many NSEC3 iterations log ($n)"
+	grep "updating zone 'update.nil/IN': too many NSEC3 iterations (151)" ns1/named.run > /dev/null || ret=1
+	[ $ret -eq 1 ] && { echo_i "failed"; status=1; }
     fi
-    [ $ret -eq 1 ] && { echo_i "failed"; status=1; }
 else
     echo_i "The second part of this test requires the Net::DNS library." >&2
 fi
 
+n=`expr $n + 1`
 ret=0
-echo_i "fetching first copy of test zone"
+echo_i "fetching first copy of test zone ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr > dig.out.ns1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=`expr $n + 1`
 ret=0
-echo_i "fetching second copy of test zone"
+echo_i "fetching second copy of test zone ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.2 axfr > dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=`expr $n + 1`
 ret=0
-echo_i "comparing zones"
+echo_i "comparing zones ($n)"
 digcomp dig.out.ns1 dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
@@ -351,21 +358,24 @@ else
 fi
 sleep 10
 
+n=`expr $n + 1`
 ret=0
-echo_i "fetching ns1 after hard restart"
+echo_i "fetching ns1 after hard restart ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr > dig.out.ns1.after || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=`expr $n + 1`
 ret=0
-echo_i "comparing zones"
+echo_i "comparing zones ($n)"
 digcomp dig.out.ns1 dig.out.ns1.after || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 echo_i "begin RT #482 regression test"
 
+n=`expr $n + 1`
 ret=0
-echo_i "update master"
+echo_i "update master ($n)"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated2.example.nil. 600 A 10.10.10.2
@@ -387,8 +397,9 @@ fi
 
 sleep 5
 
+n=`expr $n + 1`
 ret=0
-echo_i "update master again"
+echo_i "update master again ($n)"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated3.example.nil. 600 A 10.10.10.3
@@ -410,7 +421,8 @@ fi
 
 sleep 5
 
-echo_i "check to 'out of sync' message"
+n=`expr $n + 1`
+echo_i "check to 'out of sync' message ($n)"
 if grep "out of sync" ns2/named.run
 then
 	echo_i "failed (found 'out of sync')"
