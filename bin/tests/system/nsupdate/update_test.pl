@@ -410,9 +410,13 @@ test("NOERROR", ["update", rr_add("u.$zone 300 NS ns.u.$zone")]);
 
 test("NOERROR", ["update", rr_del("u.$zone NS ns.u.$zone")]);
 
-section("Excessive NSEC3PARAM iterations");
-test("REFUSED", ["update", rr_add("$zone 300 NSEC3PARAM 1 0 151 -")]);
-test("NOERROR", ["update", rr_add("$zone 300 NSEC3PARAM 1 0 150 -")]);
+if ($Net::DNS::VERSION < 1.01) {
+    print "skipped Excessive NSEC3PARAM iterations; Net::DNS too old.\n";
+} else {
+    section("Excessive NSEC3PARAM iterations");
+    test("REFUSED", ["update", rr_add("$zone 300 NSEC3PARAM 1 0 151 -")]);
+    test("NOERROR", ["update", rr_add("$zone 300 NSEC3PARAM 1 0 150 -")]);
+}
 
 if ($failures) {
     print "$failures tests failed.\n";
