@@ -949,15 +949,14 @@ case "$use_gssapi" in
 		    gssapi_linked=yes, gssapi_linked=no)
 	        case $gssapi_linked in
 		    yes) AC_MSG_RESULT([krb5-config: linked]);;
-		    no)  AC_MSG_RESULT([krb5-config: could not determine proper GSSAPI linkage])
-		        use_gssapi="yes"
+		    no)  AC_MSG_ERROR([krb5-config: could not determine proper GSSAPI linkage])
 		        ;;
 	        esac
 	        LIBS=$saved_libs
 	    fi
         fi
     else
-        use_gssapi="yes"
+        AC_MSG_ERROR([krb5-config not found])
     fi
     if test "yes" = "$use_gssapi"; then
 	AC_MSG_CHECKING([for GSSAPI library, non krb5-config method])
