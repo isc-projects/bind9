@@ -50,6 +50,12 @@ zone "step1.going-insecure-dynamic.kasp" {
 	allow-update { any; };
 };
 
+zone "step1.going-straight-to-none.kasp" {
+	type master;
+	file "step1.going-straight-to-none.kasp.db";
+	dnssec-policy "default";
+};
+
 /* These are alorithm rollover test zones. */
 zone "step1.algorithm-roll.kasp" {
 	type primary;

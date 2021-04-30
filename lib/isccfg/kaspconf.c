@@ -326,9 +326,9 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 			}
 		}
 		INSIST(!(dns_kasp_keylist_empty(kasp)));
-	} else if (strcmp(kaspname, "none") == 0) {
-		/* "dnssec-policy none": key list must be empty */
-		INSIST(strcmp(kaspname, "none") == 0);
+	} else if (strcmp(kaspname, "insecure") == 0) {
+		/* "dnssec-policy insecure": key list must be empty */
+		INSIST(strcmp(kaspname, "insecure") == 0);
 		INSIST(dns_kasp_keylist_empty(kasp));
 	} else {
 		/* No keys clause configured, use the "default". */

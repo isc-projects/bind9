@@ -2459,6 +2459,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
+		} else if (strcmp(kaspname, "insecure") == 0) {
+			has_dnssecpolicy = true;
 		} else if (strcmp(kaspname, "none") == 0) {
 			has_dnssecpolicy = false;
 		} else {

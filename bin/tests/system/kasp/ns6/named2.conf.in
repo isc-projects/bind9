@@ -39,27 +39,33 @@ controls {
 zone "step1.going-insecure.kasp" {
         type master;
         file "step1.going-insecure.kasp.db";
-        dnssec-policy "none";
+        dnssec-policy "insecure";
 };
 
 zone "step2.going-insecure.kasp" {
         type master;
         file "step2.going-insecure.kasp.db";
-        dnssec-policy "none";
+        dnssec-policy "insecure";
 };
 
 zone "step1.going-insecure-dynamic.kasp" {
         type master;
         file "step1.going-insecure-dynamic.kasp.db";
-        dnssec-policy "none";
+        dnssec-policy "insecure";
 	allow-update { any; };
 };
 
 zone "step2.going-insecure-dynamic.kasp" {
         type master;
         file "step2.going-insecure-dynamic.kasp.db";
-        dnssec-policy "none";
+        dnssec-policy "insecure";
 	allow-update { any; };
+};
+
+zone "step1.going-straight-to-none.kasp" {
+        type master;
+        file "step1.going-straight-to-none.kasp.db";
+        dnssec-policy "none";
 };
 
 /*

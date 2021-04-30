@@ -43,6 +43,14 @@ Feature Changes
 - Treat DNSSEC responses with NSEC3 iterations greater than 150 as insecure.
   :gl:`#2445`
 
+- Zones that want to transition from secure to insecure mode without making it
+  bogus in the process should now first change their ``dnssec-policy`` to
+  ``insecure`` (as opposed to ``none``). Only after the DNSSEC records have
+  been removed from the zone (in a timely manner), the ``dnssec-policy`` can
+  be set to ``none`` (or be removed from the configuration). Setting the
+  ``dnssec-policy`` to ``insecure`` will cause CDS and CDNSKEY DELETE records
+  to be published. :gl:`#2645`
+
 Bug Fixes
 ~~~~~~~~~
 

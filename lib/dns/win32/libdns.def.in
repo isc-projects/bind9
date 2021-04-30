@@ -1290,7 +1290,6 @@ dns_zone_rekey
 dns_zone_replacedb
 dns_zone_rpz_enable
 dns_zone_rpz_enable_db
-dns_zone_secure_to_insecure
 dns_zone_set_parentcatz
 dns_zone_setadded
 dns_zone_setalsonotify
@@ -1378,7 +1377,6 @@ dns_zone_setzeronosoattl
 dns_zone_signwithkey
 dns_zone_synckeyzone
 dns_zone_unload
-dns_zone_use_kasp
 dns_zone_verifydb
 dns_zonekey_iszonekey
 dns_zonemgr_attach
