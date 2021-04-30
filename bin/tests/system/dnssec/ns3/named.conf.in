@@ -333,6 +333,12 @@ zone "unsupported.trusted" {
 	file "unsupported.trusted.db.signed";
 };
 
+zone "too-many-iterations" {
+	type slave;
+	masters { 10.53.0.2; };
+	file "too-many-iterations.bk";
+};
+
 include "siginterval.conf";
 
 include "trusted.conf";

@@ -78,6 +78,7 @@
 #include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nsec3.h>
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
@@ -13469,7 +13470,8 @@ ns_server_signing(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 			if (n != 3U)
 				return (ISC_R_BADNUMBER);
 
-			if (hash > 0xffU || flags > 0xffU)
+			if (hash > 0xffU || flags > 0xffU ||
+			    iter > dns_nsec3_maxiterations())
 				return (ISC_R_RANGE);
 
 			ptr = next_token(lex, text);

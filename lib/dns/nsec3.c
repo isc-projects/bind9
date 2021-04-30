@@ -1774,72 +1774,10 @@ dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version,
 	return (result);
 }
 
-isc_result_t
-dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
-			isc_mem_t *mctx, unsigned int *iterationsp)
+unsigned int
+dns_nsec3_maxiterations(void)
 {
-	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
-	dst_key_t *key = NULL;
-	isc_buffer_t buffer;
-	isc_result_t result;
-	unsigned int bits, minbits = 4096;
-
-	result = dns_db_getoriginnode(db, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
-				     0, 0, &rdataset, NULL);
-	dns_db_detachnode(db, &node);
-	if (result == ISC_R_NOTFOUND) {
-		*iterationsp = 0;
-		return (ISC_R_SUCCESS);
-	}
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	for (result = dns_rdataset_first(&rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		dns_rdataset_current(&rdataset, &rdata);
-
-		REQUIRE(rdata.type == dns_rdatatype_key ||
-			rdata.type == dns_rdatatype_dnskey);
-		REQUIRE(rdata.length > 3);
-
-		/* Skip unsupported algorithms when
-		 * calculating the maximum iterations.
-		 */
-		if (!dst_algorithm_supported(rdata.data[3]))
-			continue;
-
-		isc_buffer_init(&buffer, rdata.data, rdata.length);
-		isc_buffer_add(&buffer, rdata.length);
-		CHECK(dst_key_fromdns(dns_db_origin(db), rdataset.rdclass,
-				      &buffer, mctx, &key));
-		bits = dst_key_size(key);
-		dst_key_free(&key);
-		if (minbits > bits)
-			minbits = bits;
-	}
-	if (result != ISC_R_NOMORE)
-		goto failure;
-
-	if (minbits <= 1024)
-		*iterationsp = 150;
-	else if (minbits <= 2048)
-		*iterationsp = 500;
-	else
-		*iterationsp = 2500;
-	result = ISC_R_SUCCESS;
-
- failure:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
-	return (result);
+	return (150);
 }
 
 isc_result_t
