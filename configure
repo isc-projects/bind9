@@ -16248,8 +16248,13 @@ fi
 
 done
         if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
-	    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: gssapi.h not found" >&5
-printf "%s\n" "krb5-config: gssapi.h not found" >&6; }
+	    case "$use_gssapi" in
+	    auto|yes)
+	        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: gssapi.h not found" >&5
+printf "%s\n" "krb5-config: gssapi.h not found" >&6; };;
+            *)
+	        as_fn_error $? "krb5-config: gssapi.h not found" "$LINENO" 5;;
+	    esac
 	    CPPFLAGS="$saved_cppflags"
 	    use_gssapi="yes"
         else
@@ -16267,11 +16272,29 @@ fi
 
 done
 	    if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
-	        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: krb5.h not found" >&5
-printf "%s\n" "krb5-config: krb5.h not found" >&6; }
+		case "$use_gssapi" in
+		auto|yes)
+	            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: krb5.h not found" >&5
+printf "%s\n" "krb5-config: krb5.h not found" >&6; };;
+		*)
+	            as_fn_error $? "krb5-config: krb5.h not found" "$LINENO" 5;;
+		esac
 	        CPPFLAGS="$saved_cppflags"
 	        use_gssapi="yes"
 	    else
+		       for ac_header in gssapi_krb5.h gssapi/gssapi_krb5.h
+do :
+  as_ac_Header=`printf "%s\n" "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
+fi
+
+done
 	        CPPFLAGS="$saved_cppflags"
 	        saved_libs="$LIBS"
 	        LIBS=$gssapi_libs
@@ -16306,9 +16329,9 @@ printf "%s\n" "krb5-config: linked" >&6; }
 			case "$use_gssapi" in
 			auto|yes)
 			    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: could not determine proper GSSAPI linkage" >&5
-printf "%s\n" "krb5-config: could not determine proper GSSAPI linkage" >&6; } ;;
+printf "%s\n" "krb5-config: could not determine proper GSSAPI linkage" >&6; };;
 			*)
-			    as_fn_error $? "krb5-config: could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
+			    as_fn_error $? "krb5-config: could not determine proper GSSAPI linkage" "$LINENO" 5;;
 			esac
 		        ;;
 	        esac
