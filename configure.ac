@@ -903,7 +903,7 @@ AC_SUBST(GEOIPLINKOBJS)
 
 AC_MSG_CHECKING(for GSSAPI library)
 
-# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --with-gssapi=krb5-config, --without-gssapi]
 AC_ARG_WITH(gssapi,
 	    AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
 			   [Specify path for system-supplied GSSAPI

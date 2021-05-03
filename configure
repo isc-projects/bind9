@@ -16161,7 +16161,7 @@ esac
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library" >&5
 printf %s "checking for GSSAPI library... " >&6; }
 
-# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --with-gssapi=krb5-config, --without-gssapi]
 
 # Check whether --with-gssapi was given.
 if test ${with_gssapi+y}
