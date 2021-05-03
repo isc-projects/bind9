@@ -600,7 +600,7 @@ LIBS="$LIBS $LIBUV_LIBS"
 
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error])
+AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error uv_sleep])
 AX_RESTORE_FLAGS([libuv])
 
 # libnghttp2
@@ -1148,8 +1148,6 @@ AC_COMPILE_IFELSE(
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
 AC_CHECK_FUNCS([if_nametoindex])
-
-AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 
 ISC_ATOMIC_LIBS=""
 AC_CHECK_HEADERS(

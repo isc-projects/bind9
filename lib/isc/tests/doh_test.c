@@ -653,7 +653,7 @@ doh_timeout_recovery(void **state) {
 		if (atomic_load(&ctimeouts) == 5) {
 			break;
 		}
-		usleep(1000);
+		isc_test_nap(1000);
 	}
 	assert_true(atomic_load(&ctimeouts) == 5);
 
@@ -717,7 +717,7 @@ doh_connect_thread(isc_threadarg_t arg) {
 		 * errors, to prevent a thundering herd problem.
 		 */
 		if (atomic_load(&slowdown)) {
-			usleep(1000 * workers);
+			isc_test_nap(1000 * workers);
 			atomic_store(&slowdown, false);
 		}
 		connect_send_request(

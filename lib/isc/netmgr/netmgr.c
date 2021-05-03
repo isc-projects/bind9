@@ -512,11 +512,7 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	 * Wait for the manager to be dereferenced elsewhere.
 	 */
 	while (isc_refcount_current(&mgr->references) > 1 && counter++ < 1000) {
-#ifdef WIN32
-		_sleep(10);
-#else  /* ifdef WIN32 */
-		usleep(10000);
-#endif /* ifdef WIN32 */
+		uv_sleep(10);
 	}
 
 #ifdef NETMGR_TRACE
@@ -531,11 +527,7 @@ isc_nm_destroy(isc_nm_t **mgr0) {
 	 * Now just patiently wait
 	 */
 	while (isc_refcount_current(&mgr->references) > 1) {
-#ifdef WIN32
-		_sleep(10);
-#else  /* ifdef WIN32 */
-		usleep(10000);
-#endif /* ifdef WIN32 */
+		uv_sleep(10);
 	}
 
 	/*
