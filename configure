@@ -16175,13 +16175,13 @@ fi
 # first try using krb5-config, if that does not work then fall back to "yes" method.
 
 case "$use_gssapi" in
-*/krb5-config|krb5-config)
+*/krb5-config|krb5-config|auto|yes)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: trying $use_gssapi" >&5
 printf "%s\n" "trying $use_gssapi" >&6; }
-    if test krb5-config = "$use_gssapi"
+    if test krb5-config = "$use_gssapi" -o auto = "$use_gssapi" -o yes = "$use_gssapi"
     then
-	# Extract the first word of "$use_gssapi", so it can be a program name with args.
-set dummy $use_gssapi; ac_word=$2
+	# Extract the first word of "krb5-config", so it can be a program name with args.
+set dummy krb5-config; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
 if test ${ac_cv_path_KRB5_CONFIG+y}
@@ -16297,18 +16297,34 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
 	        case $gssapi_linked in
-		    yes) { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: linked" >&5
-printf "%s\n" "krb5-config: linked" >&6; };;
-		    no)  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: could not determine proper GSSAPI linkage" >&5
-printf "%s\n" "krb5-config: could not determine proper GSSAPI linkage" >&6; }
-		        use_gssapi="yes"
+		    yes)
+			use_gssapi=krb5-config
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: linked" >&5
+printf "%s\n" "krb5-config: linked" >&6; }
+			;;
+		    no)
+			case "$use_gssapi" in
+			auto|yes)
+			    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: could not determine proper GSSAPI linkage" >&5
+printf "%s\n" "krb5-config: could not determine proper GSSAPI linkage" >&6; } ;;
+			*)
+			    as_fn_error $? "krb5-config: could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
+			esac
 		        ;;
 	        esac
 	        LIBS=$saved_libs
 	    fi
         fi
     else
-        use_gssapi="yes"
+	case "$use_gssapi" in
+	auto|yes)
+	    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: krb5-config: not found" >&5
+printf "%s\n" "krb5-config: not found" >&6; }
+	    ;;
+	*)
+            as_fn_error $? "krb5-config: not found" "$LINENO" 5
+	    ;;
+	esac
     fi
     if test "yes" = "$use_gssapi"; then
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GSSAPI library, non krb5-config method" >&5

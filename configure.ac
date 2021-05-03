@@ -913,11 +913,11 @@ AC_ARG_WITH(gssapi,
 # first try using krb5-config, if that does not work then fall back to "yes" method.
 
 case "$use_gssapi" in
-*/krb5-config|krb5-config)
+*/krb5-config|krb5-config|auto|yes)
     AC_MSG_RESULT(trying $use_gssapi)
-    if test krb5-config = "$use_gssapi"
+    if test krb5-config = "$use_gssapi" -o auto = "$use_gssapi" -o yes = "$use_gssapi"
     then
-	AC_PATH_PROG(KRB5_CONFIG, $use_gssapi)
+	AC_PATH_PROG(KRB5_CONFIG, krb5-config)
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
@@ -948,15 +948,31 @@ case "$use_gssapi" in
 	        AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
 		    gssapi_linked=yes, gssapi_linked=no)
 	        case $gssapi_linked in
-		    yes) AC_MSG_RESULT([krb5-config: linked]);;
-		    no)  AC_MSG_ERROR([krb5-config: could not determine proper GSSAPI linkage])
+		    yes)
+			use_gssapi=krb5-config
+			AC_MSG_RESULT([krb5-config: linked])
+			;;
+		    no)
+			case "$use_gssapi" in
+			auto|yes)
+			    AC_MSG_RESULT([krb5-config: could not determine proper GSSAPI linkage]) ;;
+			*)
+			    AC_MSG_ERROR([krb5-config: could not determine proper GSSAPI linkage]) ;;
+			esac
 		        ;;
 	        esac
 	        LIBS=$saved_libs
 	    fi
         fi
     else
-        AC_MSG_ERROR([krb5-config not found])
+	case "$use_gssapi" in
+	auto|yes)
+	    AC_MSG_RESULT([krb5-config: not found])
+	    ;;
+	*)
+            AC_MSG_ERROR([krb5-config: not found])
+	    ;;
+	esac
     fi
     if test "yes" = "$use_gssapi"; then
 	AC_MSG_CHECKING([for GSSAPI library, non krb5-config method])
