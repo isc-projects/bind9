@@ -33,6 +33,10 @@ uv_handle_set_data(uv_handle_t *handle, void *data) {
 }
 #endif /* ifndef HAVE_UV_HANDLE_SET_DATA */
 
+#ifndef HAVE_UV_SLEEP
+#define uv_sleep(msec) usleep(msec * 1000)
+#endif
+
 #ifdef HAVE_UV_UDP_CONNECT
 #define isc_uv_udp_connect uv_udp_connect
 #else
