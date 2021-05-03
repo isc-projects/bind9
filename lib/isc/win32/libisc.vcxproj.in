@@ -80,7 +80,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>@OPENSSL_LIBCRYPTO@@OPENSSL_LIBSSL@@LIBUV_LIB@@NGHTTP2_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>@OPENSSL_LIBCRYPTO@@OPENSSL_LIBSSL@@LIBUV_LIB@@NGHTTP2_LIB@@LIBXML2_LIB@@ZLIB_LIB@ws2_32.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>.\$(Configuration)\$(ProjectName).lib</ImportLibrary>
     </Link>
@@ -168,7 +168,7 @@ copy InstallFiles ..\Build\Debug\
       <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@LIBUV_INC@@NGHTTP2_INC@@OPENSSL_INC@@ZLIB_INC@include;..\include;..\;win32;..\..\isccfg\include;..\..\dns\win32\include;..\..\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
 @ELSE PKCS11
-      <PreprocessorDefinitions>BIND9;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BIND9;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBISC_EXPORTS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@LIBUV_INC@@NGHTTP2_INC@@OPENSSL_INC@@ZLIB_INC@include;..\include;..\;win32;..\..\isccfg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
 @END PKCS11

@@ -22,25 +22,14 @@
  * dumping a back trace on a fatal error, normally followed by self termination,
  * functions defined in this module generally doesn't employ assertion checks
  * (if it did, a program bug could cause infinite recursive calls to a
- * backtrace function).  These functions still perform minimal checks and return
- * ISC_R_FAILURE if they detect an error, but the caller should therefore be
- * very careful about the use of these functions, and generally discouraged to
- * use them except in an exit path.  The exception is
- * isc_backtrace_getsymbolfromindex(), which is expected to be used in a
- * non-error-handling context and validates arguments with assertion checks.
+ * backtrace function).
  */
 
-#ifndef ISC_BACKTRACE_H
-#define ISC_BACKTRACE_H 1
+#pragma once
 
 /***
  ***	Imports
  ***/
-
-#if HAVE_BACKTRACE_SYMBOLS
-#include <execinfo.h>
-#endif /* HAVE_BACKTRACE_SYMBOLS */
-
 #include <isc/types.h>
 
 /***
@@ -48,8 +37,8 @@
  ***/
 
 ISC_LANG_BEGINDECLS
-isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
+int
+isc_backtrace(void **addrs, int maxaddrs);
 /*%<
  * Get a back trace of the running process above this function itself.  On
  * success, addrs[i] will store the address of the call point of the i-th
@@ -69,6 +58,42 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
  *\li	#ISC_R_NOTFOUND
  *\li	#ISC_R_NOTIMPLEMENTED
  */
-ISC_LANG_ENDDECLS
 
-#endif /* ISC_BACKTRACE_H */
+char **
+isc_backtrace_symbols(void *const *buffer, int size);
+/*
+ * isc_backtrace_symbols() attempts to transform a call stack obtained by
+ * backtrace() into an array of human-readable strings using dladdr().  The
+ * array of strings returned has size elements.  It is allocated using
+ * malloc() and should be released using free().  There is no need to free
+ * the individual strings in the array.
+ *
+ * Notes:
+ *
+ *\li	On Windows, this is shim implementation using SymFromAddr()
+ *\li	On systems with backtrace_symbols(), it's just a thin wrapper
+ *\li	Otherwise, it returns NULL
+ *\li	See platform NOTES for backtrace_symbols
+ *
+ * Returns:
+ *
+ *\li	On success, backtrace_symbols() returns a pointer to the array
+ *\li	On error, NULL is returned.
+ */
+
+void
+isc_backtrace_symbols_fd(void *const *buffer, int size, int fd);
+/*
+ * isc_backtrace_symbols_fd() performs the same operation as
+ * isc_backtrace_symbols(), but the resulting strings are immediately written to
+ * the file descriptor fd, and are not returned.  isc_backtrace_symbols_fd()
+ * does not call malloc(3), and so can be employed in situations where the
+ * latter function might fail.
+ *
+ * Notes:
+ *
+ *\li	See isc_backtrace_symbols() notes
+ *\li	See platform NOTES for backtrace_symbols_fd for caveats
+ */
+
+ISC_LANG_ENDDECLS

@@ -14,6 +14,7 @@
 #include <uv.h>
 
 #include <isc/atomic.h>
+#include <isc/backtrace.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
@@ -38,16 +39,6 @@
 #include "netmgr-int.h"
 #include "openssl_shim.h"
 #include "uv-compat.h"
-
-#if NETMGR_TRACE
-#if HAVE_BACKTRACE
-#include <execinfo.h>
-#else /* HAVE_BACKTRACE */
-#define backtrace(buffer, size) 0
-#define backtrace_symbols_fd(buffer, size, fd) \
-	fprintf(stderr, "<not available>");
-#endif /* HAVE_BACKTRACE */
-#endif /* NETMGR_TRACE */
 
 /*%
  * How many isc_nmhandles and isc_nm_uvreqs will we be
@@ -1358,7 +1349,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
 
 #if NETMGR_TRACE
-	sock->backtrace_size = backtrace(sock->backtrace, TRACE_SIZE);
+	sock->backtrace_size = isc_backtrace(sock->backtrace, TRACE_SIZE);
 	ISC_LINK_INIT(sock, active_link);
 	ISC_LIST_INIT(sock->active_handles);
 	LOCK(&mgr->lock);
@@ -1506,7 +1497,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	isc___nmsocket_attach(sock, &handle->sock FLARG_PASS);
 
 #if NETMGR_TRACE
-	handle->backtrace_size = backtrace(handle->backtrace, TRACE_SIZE);
+	handle->backtrace_size = isc_backtrace(handle->backtrace, TRACE_SIZE);
 #endif
 
 	if (peer != NULL) {
@@ -3096,8 +3087,8 @@ nmhandle_dump(isc_nmhandle_t *handle) {
 	fprintf(stderr, "Active handle %p, refs %" PRIuFAST32 "\n", handle,
 		isc_refcount_current(&handle->references));
 	fprintf(stderr, "Created by:\n");
-	backtrace_symbols_fd(handle->backtrace, handle->backtrace_size,
-			     STDERR_FILENO);
+	isc_backtrace_symbols_fd(handle->backtrace, handle->backtrace_size,
+				 STDERR_FILENO);
 	fprintf(stderr, "\n\n");
 }
 
@@ -3121,8 +3112,8 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 		atomic_load(&sock->connecting) ? " connecting" : "",
 		sock->accepting ? " accepting" : "");
 	fprintf(stderr, "Created by:\n");
-	backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
-			     STDERR_FILENO);
+	isc_backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
+				 STDERR_FILENO);
 	fprintf(stderr, "\n");
 
 	for (handle = ISC_LIST_HEAD(sock->active_handles); handle != NULL;

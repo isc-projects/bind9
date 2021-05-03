@@ -205,8 +205,6 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
 	void *tracebuf[BACKTRACE_MAXFRAME];
 	int nframes;
-	isc_result_t result;
-	const char *logsuffix = "";
 
 	/*
 	 * Handle assertion failures.
@@ -219,32 +217,23 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 */
 		isc_assertion_setcallback(NULL);
 
-		result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME,
-						&nframes);
-		if (result == ISC_R_SUCCESS && nframes > 0) {
-			logsuffix = ", back trace";
-		}
+		nframes = isc_backtrace(tracebuf, BACKTRACE_MAXFRAME);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "%s:%d: %s(%s) failed%s", file, line,
-			      isc_assertion_typetotext(type), cond, logsuffix);
-		if (result == ISC_R_SUCCESS) {
-#if HAVE_BACKTRACE_SYMBOLS
-			char **strs = backtrace_symbols(tracebuf, nframes);
-			for (int i = 0; i < nframes; i++) {
-				isc_log_write(named_g_lctx,
-					      NAMED_LOGCATEGORY_GENERAL,
-					      NAMED_LOGMODULE_MAIN,
-					      ISC_LOG_CRITICAL, "%s", strs[i]);
+			      isc_assertion_typetotext(type), cond,
+			      (nframes > 0) ? ", back trace" : "");
+		if (nframes > 0) {
+			char **strs = isc_backtrace_symbols(tracebuf, nframes);
+			if (strs != NULL) {
+				for (int i = 0; i < nframes; i++) {
+					isc_log_write(named_g_lctx,
+						      NAMED_LOGCATEGORY_GENERAL,
+						      NAMED_LOGMODULE_MAIN,
+						      ISC_LOG_CRITICAL, "%s",
+						      strs[i]);
+				}
 			}
-#else  /* HAVE_BACKTRACE_SYMBOLS */
-			for (int i = 0; i < nframes; i++) {
-				isc_log_write(
-					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-					"#%d %p in ??", i, tracebuf[i]);
-			}
-#endif /* HAVE_BACKTRACE_SYMBOLS */
 		}
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,

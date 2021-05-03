@@ -131,7 +131,9 @@ isc_appctx_destroy
 isc_assertion_failed
 isc_assertion_setcallback
 isc_assertion_typetotext
-isc_backtrace_gettrace
+isc_backtrace
+isc_backtrace_symbols
+isc_backtrace_symbols_fd
 isc_base32_decoderegion
 isc_base32_decodestring
 isc_base32_tobuffer
