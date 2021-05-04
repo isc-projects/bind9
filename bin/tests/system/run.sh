@@ -120,20 +120,14 @@ export HIGHPORT
 
 restart=false
 
-start_servers_failed() {
-    echoinfo "I:$systest:starting servers failed"
-    echofail "R:$systest:FAIL"
-    echoend  "E:$systest:$(date_with_args)"
-    exit 1
-}
-
 start_servers() {
     echoinfo "I:$systest:starting servers"
     if $restart; then
-        $PERL start.pl --restart --port "$PORT" "$systest" || start_servers_failed
-    else
-        restart=true
-        $PERL start.pl --port "$PORT" "$systest" || start_servers_failed
+        restart_opt="--restart"
+    fi
+    if ! $PERL start.pl ${restart_opt} --port "$PORT" "$systest"; then
+        echoinfo "I:$systest:starting servers failed"
+        return 1
     fi
 }
 
@@ -218,29 +212,38 @@ status=0
 run=0
 # Run the tests
 if [ -r "$systest/tests.sh" ]; then
-    start_servers
-    ( cd "$systest" && $SHELL tests.sh "$@" )
-    status=$?
-    run=$((run+1))
-    stop_servers || status=1
+    if start_servers; then
+        ( cd "$systest" && $SHELL tests.sh "$@" )
+        status=$?
+        run=$((run+1))
+        stop_servers || status=1
+    else
+        status=1
+    fi
 fi
 
-if [ -n "$PYTEST" ]; then
-    run=$((run+1))
-    for test in $(cd "${systest}" && find . -name "tests*.py"); do
-        start_servers
-        rm -f "$systest/$test.status"
-        test_status=0
-        (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
-        if [ -f "$systest/$test.status" ]; then
-            echo_i "FAILED"
-            test_status=$(cat "$systest/$test.status")
-        fi
-        status=$((status+test_status))
-        stop_servers || status=1
-    done
-else
-    echoinfo "I:$systest:pytest not installed, skipping python tests"
+if [ $status -eq 0 ]; then
+    if [ -n "$PYTEST" ]; then
+        run=$((run+1))
+        for test in $(cd "${systest}" && find . -name "tests*.py"); do
+            if start_servers; then
+                rm -f "$systest/$test.status"
+                test_status=0
+                (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+                if [ -f "$systest/$test.status" ]; then
+                    echo_i "FAILED"
+                    test_status=$(cat "$systest/$test.status")
+                fi
+                status=$((status+test_status))
+                stop_servers || status=1
+            else
+                status=1
+                break
+            fi
+        done
+    else
+        echoinfo "I:$systest:pytest not installed, skipping python tests"
+    fi
 fi
 
 if [ "$run" -eq "0" ]; then
