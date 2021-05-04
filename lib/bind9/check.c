@@ -890,6 +890,9 @@ kasp_name_allowed(const cfg_listelt_t *element) {
 	if (strcmp("none", name) == 0) {
 		return (false);
 	}
+	if (strcmp("insecure", name) == 0) {
+		return (false);
+	}
 	if (strcmp("default", name) == 0) {
 		return (false);
 	}

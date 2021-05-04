@@ -20078,8 +20078,7 @@ zone_rekey(dns_zone_t *zone) {
 		/*
 		 * Only update DNSKEY TTL if we have a policy.
 		 */
-		if (kasp != NULL && strcmp(dns_kasp_getname(kasp), "none") != 0)
-		{
+		if (kasp != NULL) {
 			ttl = dns_kasp_dnskeyttl(kasp);
 		}
 
