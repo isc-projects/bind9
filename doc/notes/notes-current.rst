@@ -51,6 +51,10 @@ Feature Changes
   ``dnssec-policy`` to ``insecure`` will cause CDS and CDNSKEY DELETE records
   to be published. :gl:`#2645`
 
+- Change the ``max-ixfr-ratio`` configuration option default value to
+  ``unlimited`` for better backwards compatibility in the stable release
+  series. :gl:`#2671`
+
 Bug Fixes
 ~~~~~~~~~
 
