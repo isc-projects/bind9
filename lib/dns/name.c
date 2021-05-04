@@ -317,7 +317,7 @@ dns_name_ismailbox(const dns_name_t *name) {
 	}
 
 	/*
-	 * RFC292/RFC1123 hostname.
+	 * RFC952/RFC1123 hostname.
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
@@ -366,7 +366,7 @@ dns_name_ishostname(const dns_name_t *name, bool wildcard) {
 	}
 
 	/*
-	 * RFC292/RFC1123 hostname.
+	 * RFC952/RFC1123 hostname.
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
