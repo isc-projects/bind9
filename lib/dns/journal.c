@@ -2494,6 +2494,11 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	}
 
 	/*
+	 * Always perform a re-write when processing a version 1 journal.
+	 */
+	rewrite = j1->header_ver1;
+
+	/*
 	 * Check whether we need to rewrite the whole journal
 	 * file (for example, to upversion it).
 	 */
@@ -2581,6 +2586,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	INSIST(best_guess.serial != j1->header.end.serial);
 	if (best_guess.serial != serial) {
 		CHECK(journal_next(j1, &best_guess, false));
+		serial = best_guess.serial;
 	}
 
 	/*
