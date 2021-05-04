@@ -1754,12 +1754,17 @@ start_lookup(void) {
  * decremented, current_lookup will not be set to NULL.)
  */
 static void
-clear_current_lookup() {
+clear_current_lookup(void) {
 	dig_lookup_t *lookup = current_lookup;
 
 	INSIST(!free_now);
 
 	debug("clear_current_lookup()");
+
+	if (lookup == NULL) {
+		debug("current_lookup is already detached");
+		return;
+	}
 
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
 		debug("still have a worker");
@@ -2907,6 +2912,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			      isc_result_totext(eresult));
 		}
 
+		cancel_lookup(l);
 		lookup_detach(&l);
 		query_detach(&query);
 		return;
@@ -3574,15 +3580,18 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	      region, arg);
 
 	LOCK_LOOKUP;
-	lookup_attach(query->lookup, &l);
 
 	isc_refcount_decrement0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
 	if (eresult == ISC_R_CANCELED) {
 		debug("recv_done: cancel");
-		goto detach_query;
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
+		return;
 	}
+
+	lookup_attach(query->lookup, &l);
 
 	if (query->lookup->use_usec) {
 		TIME_NOW_HIRES(&query->time_recv);
@@ -4204,7 +4213,13 @@ cancel_all(void) {
 			}
 			query_detach(&q);
 		}
-		lookup_detach(&current_lookup);
+
+		/*
+		 * current_lookup could have been detached via query_detach().
+		 */
+		if (current_lookup != NULL) {
+			lookup_detach(&current_lookup);
+		}
 	}
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
