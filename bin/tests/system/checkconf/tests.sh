@@ -13,6 +13,8 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
+mkdir keys
+
 n=`expr $n + 1`
 echo_i "checking that named-checkconf handles a known good config ($n)"
 ret=0
@@ -567,6 +569,8 @@ $CHECKCONF warn-maxratio1.conf > checkconf.out$n 2>/dev/null || ret=1
 grep "exceeds 100%" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
+
+rmdir keys
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
