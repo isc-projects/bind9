@@ -86,3 +86,7 @@ Bug Fixes
   degraded compared to the previous version (9.11).  This has been now fixed by
   running internal tasks inside the networking manager worker threads, so
   they do not compete for resources. :gl:`#2638`
+
+- Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
+  views with different ``dnssec-policy``. Using the same ``key-directory`` for
+  such zones is not allowed. :gl:`#2463`

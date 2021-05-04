@@ -1,3 +1,7 @@
+5642.	[bug]		Check "key-directory" conflicts in "named.conf" for
+			zones in multiple views with different "dnssec-policy".
+			[GL #2463].
+
 5641.	[bug]		Address potential memory leak in dst_key_fromnamedfile.
 			[GL #2689]
 
