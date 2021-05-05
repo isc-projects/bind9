@@ -1852,6 +1852,7 @@
 ./lib/isc/include/isc/atomic.h			C	2018,2019,2020,2021
 ./lib/isc/include/isc/attributes.h		C	2020,2021
 ./lib/isc/include/isc/backtrace.h		C	2009,2016,2018,2019,2020,2021
+./lib/isc/include/isc/barrier.h			C	2021
 ./lib/isc/include/isc/base32.h			C	2008,2014,2016,2018,2019,2020,2021
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007,2016,2018,2019,2020,2021
 ./lib/isc/include/isc/bind9.h			C	2009,2013,2016,2018,2019,2020,2021

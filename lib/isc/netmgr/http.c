@@ -1199,7 +1199,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
-	sock->result = ISC_R_DEFAULT;
+	sock->result = ISC_R_UNSET;
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
 	atomic_init(&sock->client, true);
@@ -2170,7 +2170,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
 	isc__nmsocket_attach(sock, &sock->outer->h2.httpserver);
 
 	sock->nchildren = sock->outer->nchildren;
-	sock->result = ISC_R_DEFAULT;
+	sock->result = ISC_R_UNSET;
 	sock->tid = isc_random_uniform(sock->nchildren);
 	sock->fd = (uv_os_sock_t)-1;
 

@@ -14,6 +14,7 @@
 #include <uv.h>
 
 #include <isc/atomic.h>
+#include <isc/barrier.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
@@ -85,7 +86,7 @@ stop_tcpdns_child(isc_nmsocket_t *sock);
 static isc_result_t
 tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	isc__networker_t *worker = NULL;
-	isc_result_t result = ISC_R_DEFAULT;
+	isc_result_t result = ISC_R_UNSET;
 	int r;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -269,7 +270,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
-	sock->result = ISC_R_DEFAULT;
+	sock->result = ISC_R_UNSET;
 	atomic_init(&sock->client, true);
 
 	req = isc__nm_uvreq_get(mgr, sock);
@@ -311,7 +312,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	}
 
 	LOCK(&sock->lock);
-	while (sock->result == ISC_R_DEFAULT) {
+	while (sock->result == ISC_R_UNSET) {
 		WAIT(&sock->cond, &sock->lock);
 	}
 	atomic_store(&sock->active, true);
@@ -342,6 +343,40 @@ isc__nm_tcpdns_lb_socket(sa_family_t sa_family) {
 	return (sock);
 }
 
+static void
+start_tcpdns_child(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nmsocket_t *sock,
+		   uv_os_sock_t fd, int tid) {
+	isc__netievent_tcpdnslisten_t *ievent = NULL;
+	isc_nmsocket_t *csock = &sock->children[tid];
+
+	isc__nmsocket_init(csock, mgr, isc_nm_tcpdnssocket, iface);
+	csock->parent = sock;
+	csock->accept_cb = sock->accept_cb;
+	csock->accept_cbarg = sock->accept_cbarg;
+	csock->recv_cb = sock->recv_cb;
+	csock->recv_cbarg = sock->recv_cbarg;
+	csock->extrahandlesize = sock->extrahandlesize;
+	csock->backlog = sock->backlog;
+	csock->tid = tid;
+	/*
+	 * We don't attach to quota, just assign - to avoid
+	 * increasing quota unnecessarily.
+	 */
+	csock->pquota = sock->pquota;
+	isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
+
+#if HAVE_SO_REUSEPORT_LB || defined(WIN32)
+	UNUSED(fd);
+	csock->fd = isc__nm_tcpdns_lb_socket(iface->addr.type.sa.sa_family);
+#else
+	csock->fd = dup(fd);
+#endif
+	REQUIRE(csock->fd >= 0);
+
+	ievent = isc__nm_get_netievent_tcpdnslisten(mgr, csock);
+	isc__nm_maybe_enqueue_ievent(&mgr->workers[tid],
+				     (isc__netievent_t *)ievent);
+}
 isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
@@ -350,18 +385,15 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		    isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
-	sa_family_t sa_family = iface->addr.type.sa.sa_family;
 	size_t children_size = 0;
-#if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
 	uv_os_sock_t fd = -1;
-#endif
 
 	REQUIRE(VALID_NM(mgr));
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_tcpdnslistener, iface);
 
-	sock->rchildren = 0;
+	atomic_init(&sock->rchildren, 0);
 #if defined(WIN32)
 	sock->nchildren = 1;
 #else
@@ -371,44 +403,37 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	sock->children = isc_mem_get(mgr->mctx, children_size);
 	memset(sock->children, 0, children_size);
 
-	sock->result = ISC_R_DEFAULT;
-	sock->tid = isc_random_uniform(sock->nchildren);
+	sock->result = ISC_R_UNSET;
+	sock->accept_cb = accept_cb;
+	sock->accept_cbarg = accept_cbarg;
+	sock->recv_cb = recv_cb;
+	sock->recv_cbarg = recv_cbarg;
+	sock->extrahandlesize = extrahandlesize;
+	sock->backlog = backlog;
+	sock->pquota = quota;
+
+	if (isc__nm_in_netthread()) {
+		sock->tid = isc_nm_tid();
+	} else {
+		sock->tid = isc_random_uniform(sock->nchildren);
+	}
 	sock->fd = -1;
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
-	fd = isc__nm_tcpdns_lb_socket(sa_family);
+	fd = isc__nm_tcpdns_lb_socket(iface->addr.type.sa.sa_family);
 #endif
+
+	isc_barrier_init(&sock->startlistening, sock->nchildren);
 
 	for (size_t i = 0; i < sock->nchildren; i++) {
-		isc__netievent_tcpdnslisten_t *ievent = NULL;
-		isc_nmsocket_t *csock = &sock->children[i];
+		if ((int)i == isc_nm_tid()) {
+			continue;
+		}
+		start_tcpdns_child(mgr, iface, sock, fd, i);
+	}
 
-		isc__nmsocket_init(csock, mgr, isc_nm_tcpdnssocket, iface);
-		csock->parent = sock;
-		csock->accept_cb = accept_cb;
-		csock->accept_cbarg = accept_cbarg;
-		csock->recv_cb = recv_cb;
-		csock->recv_cbarg = recv_cbarg;
-		csock->extrahandlesize = extrahandlesize;
-		csock->backlog = backlog;
-		csock->tid = i;
-		/*
-		 * We don't attach to quota, just assign - to avoid
-		 * increasing quota unnecessarily.
-		 */
-		csock->pquota = quota;
-		isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
-
-#if HAVE_SO_REUSEPORT_LB || defined(WIN32)
-		csock->fd = isc__nm_tcpdns_lb_socket(sa_family);
-#else
-		csock->fd = dup(fd);
-#endif
-		REQUIRE(csock->fd >= 0);
-
-		ievent = isc__nm_get_netievent_tcpdnslisten(mgr, csock);
-		isc__nm_maybe_enqueue_ievent(&mgr->workers[i],
-					     (isc__netievent_t *)ievent);
+	if (isc__nm_in_netthread()) {
+		start_tcpdns_child(mgr, iface, sock, fd, isc_nm_tid());
 	}
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
@@ -416,21 +441,21 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 #endif
 
 	LOCK(&sock->lock);
-	while (sock->rchildren != sock->nchildren) {
+	while (atomic_load(&sock->rchildren) != sock->nchildren) {
 		WAIT(&sock->cond, &sock->lock);
 	}
 	result = sock->result;
 	atomic_store(&sock->active, true);
-	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
-	INSIST(result != ISC_R_DEFAULT);
+
+	INSIST(result != ISC_R_UNSET);
 
 	if (result == ISC_R_SUCCESS) {
-		REQUIRE(sock->rchildren == sock->nchildren);
+		REQUIRE(atomic_load(&sock->rchildren) == sock->nchildren);
 		*sockp = sock;
 	} else {
 		atomic_store(&sock->active, false);
-		isc__nm_tcpdns_stoplistening(sock);
+		isc_nm_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 	}
 
@@ -446,7 +471,7 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	int r;
 	int flags = 0;
 	isc_nmsocket_t *sock = NULL;
-	isc_result_t result = ISC_R_DEFAULT;
+	isc_result_t result = ISC_R_UNSET;
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(ievent->sock->tid == isc_nm_tid());
@@ -534,16 +559,14 @@ done:
 		sock->pquota = NULL;
 	}
 
-	sock->parent->rchildren += 1;
-	if (sock->parent->result == ISC_R_DEFAULT) {
+	atomic_fetch_add(&sock->parent->rchildren, 1);
+	if (sock->parent->result == ISC_R_UNSET) {
 		sock->parent->result = result;
 	}
 	SIGNAL(&sock->parent->cond);
-	if (!atomic_load(&sock->parent->active)) {
-		WAIT(&sock->parent->scond, &sock->parent->lock);
-	}
-	INSIST(atomic_load(&sock->parent->active));
 	UNLOCK(&sock->parent->lock);
+
+	isc_barrier_wait(&sock->parent->startlistening);
 }
 
 static void
@@ -607,7 +630,15 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
-	enqueue_stoplistening(sock);
+
+	if (!isc__nm_in_netthread()) {
+		enqueue_stoplistening(sock);
+	} else if (!isc__nm_acquire_interlocked(sock->mgr)) {
+		enqueue_stoplistening(sock);
+	} else {
+		stop_tcpdns_parent(sock);
+		isc__nm_drop_interlocked(sock->mgr);
+	}
 }
 
 void
@@ -626,7 +657,15 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	stop_tcpdns_parent(sock);
+	/*
+	 * If network manager is paused, re-enqueue the event for later.
+	 */
+	if (!isc__nm_acquire_interlocked(sock->mgr)) {
+		enqueue_stoplistening(sock);
+	} else {
+		stop_tcpdns_parent(sock);
+		isc__nm_drop_interlocked(sock->mgr);
+	}
 }
 
 void
@@ -1224,8 +1263,6 @@ timer_close_cb(uv_handle_t *timer) {
 
 static void
 stop_tcpdns_child(isc_nmsocket_t *sock) {
-	bool last_child = false;
-
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 	REQUIRE(sock->tid == isc_nm_tid());
 
@@ -1236,33 +1273,41 @@ stop_tcpdns_child(isc_nmsocket_t *sock) {
 
 	tcpdns_close_direct(sock);
 
-	LOCK(&sock->parent->lock);
-	sock->parent->rchildren -= 1;
-	last_child = (sock->parent->rchildren == 0);
-	UNLOCK(&sock->parent->lock);
+	atomic_fetch_sub(&sock->parent->rchildren, 1);
 
-	if (last_child) {
-		atomic_store(&sock->parent->closed, true);
-		isc__nmsocket_prep_destroy(sock->parent);
-	}
+	isc_barrier_wait(&sock->parent->stoplistening);
 }
 
 static void
 stop_tcpdns_parent(isc_nmsocket_t *sock) {
+	isc_nmsocket_t *csock = NULL;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpdnslistener);
 
+	isc_barrier_init(&sock->stoplistening, sock->nchildren);
+
 	for (size_t i = 0; i < sock->nchildren; i++) {
-		isc__netievent_tcpdnsstop_t *ievent = NULL;
-		isc_nmsocket_t *csock = &sock->children[i];
+		csock = &sock->children[i];
 		REQUIRE(VALID_NMSOCK(csock));
 
-		atomic_store(&csock->active, false);
+		if ((int)i == isc_nm_tid()) {
+			/*
+			 * We need to schedule closing the other sockets first
+			 */
+			continue;
+		}
 
-		ievent = isc__nm_get_netievent_tcpdnsstop(sock->mgr, csock);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[csock->tid],
-				       (isc__netievent_t *)ievent);
+		atomic_store(&csock->active, false);
+		enqueue_stoplistening(csock);
 	}
+
+	csock = &sock->children[isc_nm_tid()];
+	atomic_store(&csock->active, false);
+	stop_tcpdns_child(csock);
+
+	atomic_store(&sock->closed, true);
+	isc__nmsocket_prep_destroy(sock);
 }
 
 static void

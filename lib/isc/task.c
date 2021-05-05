@@ -1014,7 +1014,7 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 
 	REQUIRE(VALID_MANAGER(manager));
 
-	XTHREADTRACE(e "isc_taskmgr_shutdown");
+	XTHREADTRACE("isc_taskmgr_shutdown");
 	/*
 	 * Only one non-worker thread may ever call this routine.
 	 * If a worker thread wants to initiate shutdown of the
