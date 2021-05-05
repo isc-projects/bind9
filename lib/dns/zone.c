@@ -6373,7 +6373,7 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when,
  */
 static bool
 delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
-	  bool *warn) {
+	  bool kasp, bool *warn) {
 	unsigned int i = 0;
 	isc_result_t ret;
 	bool have_ksk = false, have_zsk = false;
@@ -6417,12 +6417,27 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
 		*warn = true;
 	}
 
+	if (have_pksk && have_pzsk) {
+		return (true);
+	}
+
 	/*
-	 * It's okay to delete a signature if there is an active key
-	 * with the same algorithm to replace it.
+	 * Deleting the SOA RRSIG is always okay.
+	 */
+	if (rrsig_ptr->covered == dns_rdatatype_soa) {
+		return (true);
+	}
+
+	/*
+	 * It's okay to delete a signature if there is an active key with the
+	 * same algorithm to replace it, unless that violates the DNSSEC
+	 * policy.
 	 */
 	if (have_pksk || have_pzsk) {
-		return (true);
+		if (kasp && have_pzsk) {
+			return (true);
+		}
+		return (!kasp);
 	}
 
 	/*
@@ -6456,6 +6471,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
+	bool kasp = (dns_zone_getkasp(zone) != NULL);
 	bool found;
 	int64_t timewarn = 0, timemaybe = 0;
 
@@ -6498,7 +6514,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		    type != dns_rdatatype_cdnskey)
 		{
 			bool warn = false, deleted = false;
-			if (delsig_ok(&rrsig, keys, nkeys, &warn)) {
+			if (delsig_ok(&rrsig, keys, nkeys, kasp, &warn)) {
 				result = update_one_rr(db, ver, zonediff->diff,
 						       DNS_DIFFOP_DELRESIGN,
 						       name, rdataset.ttl,
@@ -6742,6 +6758,8 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 			isc_stdtime_t when;
 			bool ksk = false;
 			bool zsk = false;
+			bool have_ksk = false;
+			bool have_zsk = false;
 
 			kresult = dst_key_getbool(keys[i], DST_BOOL_KSK, &ksk);
 			if (kresult != ISC_R_SUCCESS) {
@@ -6754,6 +6772,56 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				if (!KSK(keys[i])) {
 					zsk = true;
 				}
+			}
+
+			have_ksk = ksk;
+			have_zsk = zsk;
+			both = have_ksk && have_zsk;
+
+			for (j = 0; j < nkeys; j++) {
+				if (both) {
+					break;
+				}
+
+				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
+					continue;
+				}
+
+				/*
+				 * Don't consider inactive keys or offline keys.
+				 */
+				if (!dst_key_isprivate(keys[j])) {
+					continue;
+				}
+				if (dst_key_inactive(keys[j])) {
+					continue;
+				}
+
+				if (REVOKE(keys[j])) {
+					continue;
+				}
+
+				if (!have_ksk) {
+					kresult = dst_key_getbool(keys[j],
+								  DST_BOOL_KSK,
+								  &have_ksk);
+					if (kresult != ISC_R_SUCCESS) {
+						if (KSK(keys[j])) {
+							have_ksk = true;
+						}
+					}
+				}
+				if (!have_zsk) {
+					kresult = dst_key_getbool(keys[j],
+								  DST_BOOL_ZSK,
+								  &have_zsk);
+					if (kresult != ISC_R_SUCCESS) {
+						if (!KSK(keys[j])) {
+							have_zsk = true;
+						}
+					}
+				}
+				both = have_ksk && have_zsk;
 			}
 
 			if (type == dns_rdatatype_dnskey ||
@@ -6771,7 +6839,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				/*
 				 * Other RRsets are signed with ZSK.
 				 */
-				continue;
+				if (type != dns_rdatatype_soa &&
+				    type != zone->privatetype) {
+					continue;
+				}
+				if (have_zsk) {
+					continue;
+				}
 			} else if (!dst_key_is_signing(keys[i], DST_BOOL_ZSK,
 						       inception, &when)) {
 				/*
@@ -19806,22 +19880,20 @@ zone_rekey(dns_zone_t *zone) {
 			   isc_result_totext(result));
 	}
 
-	if (kasp != NULL &&
-	    (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
-		result = dns_keymgr_run(&zone->origin, zone->rdclass, dir, mctx,
-					&keys, kasp, now, &nexttime);
-		if (result != ISC_R_SUCCESS) {
-			if (kasp != NULL) {
-				UNLOCK(&kasp->lock);
-			}
-			dnssec_log(zone, ISC_LOG_ERROR,
-				   "zone_rekey:dns_dnssec_keymgr failed: %s",
-				   isc_result_totext(result));
-			goto failure;
-		}
-	}
-
 	if (kasp != NULL) {
+		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
+			result = dns_keymgr_run(&zone->origin, zone->rdclass,
+						dir, mctx, &keys, &dnskeys,
+						kasp, now, &nexttime);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_rekey:dns_dnssec_keymgr "
+					   "failed: %s",
+					   isc_result_totext(result));
+				UNLOCK(&kasp->lock);
+				goto failure;
+			}
+		}
 		UNLOCK(&kasp->lock);
 	}
 
@@ -19841,8 +19913,7 @@ zone_rekey(dns_zone_t *zone) {
 		/*
 		 * Only update DNSKEY TTL if we have a policy.
 		 */
-		if (kasp != NULL && strcmp(dns_kasp_getname(kasp), "none") != 0)
-		{
+		if (kasp != NULL) {
 			ttl = dns_kasp_dnskeyttl(kasp);
 		}
 
@@ -20178,6 +20249,10 @@ failure:
 		 * Something went wrong; try again in ten minutes or
 		 * after a key refresh interval, whichever is shorter.
 		 */
+		dnssec_log(zone, ISC_LOG_DEBUG(3),
+			   "zone_rekey failure: %s (retry in %u seconds)",
+			   isc_result_totext(result),
+			   ISC_MIN(zone->refreshkeyinterval, 600));
 		isc_interval_set(&ival, ISC_MIN(zone->refreshkeyinterval, 600),
 				 0);
 		isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
