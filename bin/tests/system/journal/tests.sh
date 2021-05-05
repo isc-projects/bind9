@@ -157,6 +157,32 @@ c2=$(cat -v ns1/*.jnl | grep -c "BIND LOG V9.2")
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "Check that journal with mixed headers can be compacted (version 1,2,1,2) ($n)"
+ret=0
+journal=ns1/d1212.jnl.saved
+seriallist=$($JOURNALPRINT -x $journal | awk '$1 == "Transaction:" { print $11 }')
+for serial in $seriallist
+do
+        cp $journal tmp.jnl
+        $JOURNALPRINT -c $serial tmp.jnl || ret=1
+done
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "Check that journal with mixed headers can be compacted (version 2,1,2,1) ($n)"
+ret=0
+journal=ns1/d2121.jnl.saved
+seriallist=$($JOURNALPRINT -x $journal | awk '$1 == "Transaction:" { print $11 }')
+for serial in $seriallist
+do
+        cp ns1/d1212.jnl.saved tmp.jnl
+        $JOURNALPRINT -c $serial tmp.jnl || ret=1
+done
+[ $ret -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check upgrade of managed-keys.bind.jnl succeeded($n)"
 ret=0
 $JOURNALPRINT ns1/managed-keys.bind.jnl > journalprint.out.test$n

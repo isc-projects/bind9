@@ -74,3 +74,6 @@ Bug Fixes
 
 - With ``dnssec-policy```, don't roll keys if the private key file is offline.
   :gl:`#2596`
+
+- Journal compaction could fail when a journal with invalid transaction 
+  headers was not detected at startup. :gl:`#2670`
