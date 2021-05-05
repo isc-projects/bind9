@@ -219,8 +219,8 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source, unsigned int max,
 	char buffer[NUMBERSIZE];
 	int v;
 
-	if (!isdigit(source->base[0] & 0xff) || source->length > NUMBERSIZE - 1)
-	{
+	if (!isdigit((unsigned char)source->base[0]) ||
+	    source->length > NUMBERSIZE - 1) {
 		return (ISC_R_BADNUMBER);
 	}
 

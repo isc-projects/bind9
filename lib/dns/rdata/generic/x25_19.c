@@ -35,7 +35,8 @@ fromtext_x25(ARGS_FROMTEXT) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	for (i = 0; i < token.value.as_textregion.length; i++) {
-		if (!isdigit(token.value.as_textregion.base[i] & 0xff)) {
+		if (!isdigit((unsigned char)token.value.as_textregion.base[i]))
+		{
 			RETTOK(ISC_R_RANGE);
 		}
 	}
@@ -125,7 +126,7 @@ fromstruct_x25(ARGS_FROMSTRUCT) {
 	}
 
 	for (i = 0; i < x25->x25_len; i++) {
-		if (!isdigit(x25->x25[i] & 0xff)) {
+		if (!isdigit((unsigned char)x25->x25[i])) {
 			return (ISC_R_RANGE);
 		}
 	}

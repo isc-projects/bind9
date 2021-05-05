@@ -230,7 +230,7 @@ isc_dir_createunique(char *templet) {
 		 */
 		p = x;
 		while (*p != '\0') {
-			if (isdigit(*p & 0xff)) {
+			if (isdigit((unsigned char)*p)) {
 				*p = 'a';
 			} else if (*p != 'z') {
 				++*p;

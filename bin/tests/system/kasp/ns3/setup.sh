@@ -77,6 +77,7 @@ zone="unsigned.kasp"
 echo_i "setting up zone: $zone"
 zonefile="${zone}.db"
 infile="${zone}.db.infile"
+cp template.db.in $infile
 cp template.db.in $zonefile
 
 # Set up zone that stays unsigned.
