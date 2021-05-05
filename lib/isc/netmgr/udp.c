@@ -690,7 +690,6 @@ isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->parent == NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface->addr);
 	result = udp_connect_direct(sock, req);
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&sock->active, false);
@@ -742,6 +741,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	req->cbarg = cbarg;
 	req->peer = peer->addr;
 	req->local = local->addr;
+	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface->addr);
 
 	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &sock->fd);
 	if (result != ISC_R_SUCCESS) {
