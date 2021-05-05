@@ -77,3 +77,6 @@ Bug Fixes
 
 - Journal compaction could fail when a journal with invalid transaction 
   headers was not detected at startup. :gl:`#2670`
+
+- ``named-checkconf`` now complains if zones with ``dnssec-policy`` reference
+  the same zone file more than once. :gl:`#2603`

@@ -11,6 +11,7 @@
 
 /*! \file */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1433,8 +1434,7 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 
 		alg = 0;
 		for (i = len + 1 + 1; i < dir.entry.length; i++) {
-			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
-			{
+			if (!isdigit((unsigned char)dir.entry.name[i])) {
 				break;
 			}
 			alg *= 10;
@@ -1452,15 +1452,8 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		}
 
 		for (i++; i < dir.entry.length; i++) {
-			if (dir.entry.name[i] < '0' || dir.entry.name[i] > '9')
-			{
+			if (!isdigit((unsigned char)dir.entry.name[i])) {
 				break;
-
-				/*
-				 * Did we not read exactly 5 more digits?
-				 * Did we overflow?
-				 * Did we correctly terminate?
-				 */
 			}
 		}
 

@@ -1,3 +1,6 @@
+5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
+			only referenced once in 'named.conf'. [GL #2603]
+
 5635.	[bug]		Journal compaction could fail when a journal with
 			invalid transaction headers was not detected at
 			startup.  [GL #2670]
@@ -37,7 +40,7 @@
 5619.	[protocol]	Implement draft-vandijk-dnsop-nsec-ttl, updating the
 			protocol such that NSEC(3) TTL values are set to the
 			minimum of the SOA MINIMUM value and the SOA TTL.
-			[GL #2347].
+			[GL #2347]
 
 5618.	[bug]		When introducing change 5149, "rndc dumpdb" started
 			to print a line above a stale RRset, indicating how
