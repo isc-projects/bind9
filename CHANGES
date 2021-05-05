@@ -1,3 +1,7 @@
+5635.	[bug]		Journal compaction could fail when a journal with
+			invalid transaction headers was not detected at
+			startup.  [GL #2670]
+
 5634.	[bug]		Don't roll keys when the private key file is offline.
 			[GL #2596]
 
