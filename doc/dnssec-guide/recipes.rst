@@ -1098,7 +1098,7 @@ Then use ``rndc reload`` to reload the zone.
 
 The "insecure" policy is a built-in policy (like "default"). It will make sure
 the zone is still DNSSEC maintained, to allow for a graceful transition to
-unsigned,
+unsigned.
 
 When the DS records have been removed from the parent zone, use
 ``rndc dnssec -checkds -key <id> withdrawn example.com`` to tell ``named`` that
