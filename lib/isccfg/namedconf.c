@@ -2194,8 +2194,6 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "forwarders", &cfg_type_portiplist,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
 		  CFG_ZONE_STATICSTUB | CFG_ZONE_FORWARD },
-	{ "inline-signing", &cfg_type_boolean,
-	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
 	{ "key-directory", &cfg_type_qstring,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
 	{ "maintain-ixfr-base", NULL, CFG_CLAUSEFLAG_ANCIENT },
@@ -2305,6 +2303,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_HINT | CFG_ZONE_REDIRECT },
 	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
+	{ "inline-signing", &cfg_type_boolean,
+	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
 	{ "ixfr-base", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "ixfr-from-differences", &cfg_type_boolean,
 	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR },

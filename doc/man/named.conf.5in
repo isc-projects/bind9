@@ -343,7 +343,6 @@ options {
       hostname ( quoted_string | none );
       http\-port integer;
       https\-port integer;
-      inline\-signing boolean;
       interface\-interval duration;
       ipv4only\-contact string;
       ipv4only\-enable boolean;
@@ -765,7 +764,6 @@ view string [ class ] {
       forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
           | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
       glue\-cache boolean;// deprecated
-      inline\-signing boolean;
       ipv4only\-contact string;
       ipv4only\-enable boolean;
       ipv4only\-server string;

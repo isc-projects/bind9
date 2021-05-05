@@ -225,7 +225,7 @@ options {\n\
 	dnssec-update-mode maintain;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
-	inline-signing no;\n\
+#	inline-signing no;\n\
 	ixfr-from-differences false;\n\
 #	maintain-ixfr-base <obsolete>;\n\
 #	max-ixfr-log-size <obsolete>\n\

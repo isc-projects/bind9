@@ -54,6 +54,12 @@ Feature Changes
   ``dnssec-policy`` to ``insecure`` will cause CDS and CDNSKEY DELETE records
   to be published. :gl:`#2645`
 
+- ``inline-signing`` was incorrectly described as being inherited from the
+  ``options`` or ``view`` levels and was incorrectly accepted at those levels
+  without effect.  This has been corrected, ``named.conf`` files with
+  ``inline-signing`` at those levels will no longer load with this fix applied.
+  :gl:`#2536`
+
 Bug Fixes
 ~~~~~~~~~
 

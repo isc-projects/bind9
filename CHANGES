@@ -1,3 +1,8 @@
+5633.	[doc]		Inline-signing was incorrectly described as being
+			inherited from the options / view levels and was
+			incorrectly accepted at those levels without effect.
+			This has been corrected. [GL #2536]
+
 5632.	[func]		Add built-in dnssec-policy "insecure". This is used to
 			transition a zone from a signed state to a unsigned
 			state. [GL #2645]
