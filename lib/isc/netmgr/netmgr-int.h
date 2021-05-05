@@ -249,7 +249,6 @@ typedef enum isc__netievent_type {
 	netievent_udpclose,
 	netievent_udpsend,
 	netievent_udpread,
-	netievent_udpstop,
 	netievent_udpcancel,
 
 	netievent_tcpconnect,
@@ -258,7 +257,6 @@ typedef enum isc__netievent_type {
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpaccept,
-	netievent_tcpstop,
 	netievent_tcpcancel,
 
 	netievent_tcpdnsaccept,
@@ -267,7 +265,6 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnssend,
 	netievent_tcpdnsread,
 	netievent_tcpdnscancel,
-	netievent_tcpdnsstop,
 
 	netievent_tlsclose,
 	netievent_tlssend,
@@ -282,12 +279,10 @@ typedef enum isc__netievent_type {
 	netievent_tlsdnssend,
 	netievent_tlsdnsread,
 	netievent_tlsdnscancel,
-	netievent_tlsdnsstop,
 	netievent_tlsdnscycle,
 	netievent_tlsdnsshutdown,
 
 	netievent_httpclose,
-	netievent_httpstop,
 	netievent_httpsend,
 
 	netievent_shutdown,
@@ -301,19 +296,26 @@ typedef enum isc__netievent_type {
 	netievent_task,
 	netievent_privilegedtask,
 
-	netievent_prio = 0xff, /* event type values higher than this
-				* will be treated as high-priority
-				* events, which can be processed
-				* while the netmgr is paused.
-				*/
+	/*
+	 * event type values higher than this will be treated
+	 * as high-priority events, which can be processed
+	 * while the netmgr is pausing or paused.
+	 */
+	netievent_prio = 0xff,
+
 	netievent_udplisten,
+	netievent_udpstop,
 	netievent_tcplisten,
+	netievent_tcpstop,
 	netievent_tcpdnslisten,
+	netievent_tcpdnsstop,
 	netievent_tlsdnslisten,
+	netievent_tlsdnsstop,
+	netievent_httpstop,
+
 	netievent_resume,
 	netievent_detach,
 	netievent_close,
-
 } isc__netievent_type;
 
 typedef union {
@@ -658,7 +660,7 @@ struct isc_nm {
 	int magic;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
-	uint32_t nworkers;
+	int nworkers;
 	isc_mutex_t lock;
 	isc_condition_t wkstatecond;
 	isc_condition_t wkpausecond;

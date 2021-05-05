@@ -336,7 +336,7 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	mgr->magic = 0;
 
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
 		isc__netievent_t *event = isc__nm_get_netievent_stop(mgr);
 		isc__nm_enqueue_ievent(worker, event);
@@ -348,7 +348,7 @@ nm_destroy(isc_nm_t **mgr0) {
 	}
 	UNLOCK(&mgr->lock);
 
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
 		isc__netievent_t *ievent = NULL;
 		int r;
@@ -414,33 +414,45 @@ nm_destroy(isc_nm_t **mgr0) {
 #endif /* WIN32 */
 }
 
+static void
+enqueue_pause(isc__networker_t *worker) {
+	isc__netievent_pause_t *event =
+		isc__nm_get_netievent_pause(worker->mgr);
+	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)event);
+}
+
+static void
+isc__nm_async_pause(isc__networker_t *worker, isc__netievent_t *ev0) {
+	UNUSED(ev0);
+	REQUIRE(worker->paused == false);
+
+	worker->paused = true;
+	uv_stop(&worker->loop);
+}
+
 void
 isc_nm_pause(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
-	uint_fast32_t pausing = 0;
 	REQUIRE(!atomic_load(&mgr->paused));
 
 	isc__nm_acquire_interlocked_force(mgr);
 
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
-		if (i != (size_t)isc_nm_tid()) {
-			isc__netievent_resume_t *event =
-				isc__nm_get_netievent_pause(mgr);
-			pausing++;
-			isc__nm_enqueue_ievent(worker,
-					       (isc__netievent_t *)event);
-		} else {
+		if (i == isc_nm_tid()) {
 			isc__nm_async_pause(worker, NULL);
+		} else {
+			enqueue_pause(worker);
 		}
 	}
 
 	if (isc__nm_in_netthread()) {
 		isc_barrier_wait(&mgr->pausing);
+		drain_priority_queue(&mgr->workers[isc_nm_tid()]);
 	}
 
 	LOCK(&mgr->lock);
-	while (atomic_load(&mgr->workers_paused) != pausing) {
+	while (atomic_load(&mgr->workers_paused) != mgr->workers_running) {
 		WAIT(&mgr->wkstatecond, &mgr->lock);
 	}
 	UNLOCK(&mgr->lock);
@@ -449,24 +461,39 @@ isc_nm_pause(isc_nm_t *mgr) {
 					       true));
 }
 
+static void
+enqueue_resume(isc__networker_t *worker) {
+	isc__netievent_resume_t *event =
+		isc__nm_get_netievent_resume(worker->mgr);
+	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)event);
+}
+
+static void
+isc__nm_async_resume(isc__networker_t *worker, isc__netievent_t *ev0) {
+	UNUSED(ev0);
+	REQUIRE(worker->paused == true);
+
+	worker->paused = false;
+}
+
 void
 isc_nm_resume(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(atomic_load(&mgr->paused));
 
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
-		if (i != (size_t)isc_nm_tid()) {
-			isc__netievent_resume_t *event =
-				isc__nm_get_netievent_resume(mgr);
-			isc__nm_enqueue_ievent(worker,
-					       (isc__netievent_t *)event);
-		} else {
+		if (i == isc_nm_tid()) {
 			isc__nm_async_resume(worker, NULL);
+		} else {
+			enqueue_resume(worker);
 		}
 	}
 
 	if (isc__nm_in_netthread()) {
+		drain_privilege_queue(&mgr->workers[isc_nm_tid()]);
+
+		atomic_fetch_sub(&mgr->workers_paused, 1);
 		isc_barrier_wait(&mgr->resuming);
 	}
 
@@ -512,7 +539,7 @@ isc__netmgr_shutdown(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 
 	atomic_store(&mgr->closing, true);
-	for (size_t i = 0; i < mgr->nworkers; i++) {
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__netievent_t *event = NULL;
 		event = isc__nm_get_netievent_shutdown(mgr);
 		isc__nm_enqueue_ievent(&mgr->workers[i], event);
@@ -740,23 +767,6 @@ isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	worker->finished = true;
 	/* Close the async handler */
 	uv_close((uv_handle_t *)&worker->async, NULL);
-}
-
-static void
-isc__nm_async_pause(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-	REQUIRE(worker->paused == false);
-
-	worker->paused = true;
-	uv_stop(&worker->loop);
-}
-
-static void
-isc__nm_async_resume(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-	REQUIRE(worker->paused == true);
-
-	worker->paused = false;
 }
 
 void
@@ -2756,16 +2766,25 @@ isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 bool
 isc__nm_acquire_interlocked(isc_nm_t *mgr) {
+	if (!isc__nm_in_netthread()) {
+		return (false);
+	}
+
 	LOCK(&mgr->lock);
 	bool success = atomic_compare_exchange_strong(
 		&mgr->interlocked, &(int){ ISC_NETMGR_NON_INTERLOCKED },
 		isc_nm_tid());
+
 	UNLOCK(&mgr->lock);
 	return (success);
 }
 
 void
 isc__nm_drop_interlocked(isc_nm_t *mgr) {
+	if (!isc__nm_in_netthread()) {
+		return;
+	}
+
 	LOCK(&mgr->lock);
 	int tid = atomic_exchange(&mgr->interlocked,
 				  ISC_NETMGR_NON_INTERLOCKED);
@@ -2776,6 +2795,10 @@ isc__nm_drop_interlocked(isc_nm_t *mgr) {
 
 void
 isc__nm_acquire_interlocked_force(isc_nm_t *mgr) {
+	if (!isc__nm_in_netthread()) {
+		return;
+	}
+
 	LOCK(&mgr->lock);
 	while (!atomic_compare_exchange_strong(
 		&mgr->interlocked, &(int){ ISC_NETMGR_NON_INTERLOCKED },
