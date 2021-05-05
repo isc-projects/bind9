@@ -1,3 +1,6 @@
+5633.	[func]		Change the "max-ixfr-ratio" default to "unlimited".
+			[GL #2671]
+
 5632.	[func]		Add built-in dnssec-policy "insecure". This is used to
 			transition a zone from a signed state to a unsigned
 			state. [GL #2645]

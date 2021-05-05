@@ -1131,7 +1131,7 @@ default is used.
    :ref:`incremental_zone_transfers`.
 
    The minimum value is ``1%``. The keyword ``unlimited`` disables ratio
-   checking and allows IXFRs of any size. The default is ``100%``.
+   checking and allows IXFRs of any size. The default is ``unlimited``.
 
 ``new-zones-directory``
    This specifies the directory in which to store the configuration
