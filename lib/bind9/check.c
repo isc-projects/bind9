@@ -893,6 +893,9 @@ kasp_name_allowed(const cfg_listelt_t *element) {
 	if (strcmp("default", name) == 0) {
 		return (false);
 	}
+	if (strcmp("insecure", name) == 0) {
+		return (false);
+	}
 	return (true);
 }
 
@@ -1193,8 +1196,9 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 
 		if (bad_name) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-policy name may not be 'none' or "
-				    "'default' (which is the built-in policy)");
+				    "dnssec-policy name may not be 'insecure', "
+				    "'none', or 'default' (which are built-in "
+				    "policies)");
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
