@@ -1,3 +1,6 @@
+5634.	[bug]		Don't roll keys when the private key file is offline.
+			[GL #2596]
+
 5633.	[doc]		Inline-signing was incorrectly described as being
 			inherited from the options / view levels and was
 			incorrectly accepted at those levels without effect.

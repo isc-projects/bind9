@@ -569,8 +569,8 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 		      isc_mem_t *mctx, dst_key_t **keyp) {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
-	char *newfilename = NULL;
-	int newfilenamelen = 0;
+	char *newfilename = NULL, *statefilename = NULL;
+	int newfilenamelen = 0, statefilenamelen = 0;
 	isc_lex_t *lex = NULL;
 
 	REQUIRE(dst_initialized);
@@ -604,9 +604,39 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	newfilename = NULL;
 	RETERR(result);
 
+	/*
+	 * Read the state file, if requested by type.
+	 */
+	if ((type & DST_TYPE_STATE) != 0) {
+		statefilenamelen = strlen(filename) + 7;
+		if (dirname != NULL) {
+			statefilenamelen += strlen(dirname) + 1;
+		}
+		statefilename = isc_mem_get(mctx, statefilenamelen);
+		result = addsuffix(statefilename, statefilenamelen, dirname,
+				   filename, ".state");
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	pubkey->kasp = false;
+	if ((type & DST_TYPE_STATE) != 0) {
+		result = dst_key_read_state(statefilename, mctx, &pubkey);
+		if (result == ISC_R_SUCCESS) {
+			pubkey->kasp = true;
+		} else if (result == ISC_R_FILENOTFOUND) {
+			/* Having no state is valid. */
+			result = ISC_R_SUCCESS;
+		}
+		RETERR(result);
+	}
+
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
 	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
 	{
+		if (statefilename != NULL) {
+			isc_mem_put(mctx, statefilename, statefilenamelen);
+		}
+
 		result = computeid(pubkey);
 		if (result != ISC_R_SUCCESS) {
 			dst_key_free(&pubkey);
@@ -636,32 +666,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 		RETERR(DST_R_UNSUPPORTEDALG);
 	}
 
-	/*
-	 * Read the state file, if requested by type.
-	 */
-	if ((type & DST_TYPE_STATE) != 0) {
-		newfilenamelen = strlen(filename) + 7;
-		if (dirname != NULL) {
-			newfilenamelen += strlen(dirname) + 1;
-		}
-		newfilename = isc_mem_get(mctx, newfilenamelen);
-		result = addsuffix(newfilename, newfilenamelen, dirname,
-				   filename, ".state");
-		INSIST(result == ISC_R_SUCCESS);
-
-		key->kasp = false;
-		result = dst_key_read_state(newfilename, mctx, &key);
-		if (result == ISC_R_SUCCESS) {
-			key->kasp = true;
-		} else if (result == ISC_R_FILENOTFOUND) {
-			/* Having no state is valid. */
-			result = ISC_R_SUCCESS;
-		}
-		isc_mem_put(mctx, newfilename, newfilenamelen);
-		newfilename = NULL;
-		RETERR(result);
-	}
-
 	newfilenamelen = strlen(filename) + 9;
 	if (dirname != NULL) {
 		newfilenamelen += strlen(dirname) + 1;
@@ -677,6 +681,20 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 
 	RETERR(key->func->parse(key, lex, pubkey));
 	isc_lex_destroy(&lex);
+
+	key->kasp = false;
+	if ((type & DST_TYPE_STATE) != 0) {
+		result = dst_key_read_state(statefilename, mctx, &key);
+		if (result == ISC_R_SUCCESS) {
+			key->kasp = true;
+		} else if (result == ISC_R_FILENOTFOUND) {
+			/* Having no state is valid. */
+			result = ISC_R_SUCCESS;
+		}
+		isc_mem_put(mctx, statefilename, statefilenamelen);
+		statefilename = NULL;
+	}
+	RETERR(result);
 
 	RETERR(computeid(key));
 
@@ -694,6 +712,9 @@ out:
 	}
 	if (newfilename != NULL) {
 		isc_mem_put(mctx, newfilename, newfilenamelen);
+	}
+	if (statefilename != NULL) {
+		isc_mem_put(mctx, statefilename, statefilenamelen);
 	}
 	if (lex != NULL) {
 		isc_lex_destroy(&lex);

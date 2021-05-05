@@ -253,6 +253,15 @@ zone "unfresh-sigs.autosign" {
 };
 
 /*
+ * Zone that has missing private KSK.
+ */
+zone "ksk-missing.autosign" {
+	type primary;
+	file "ksk-missing.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
  * Zone that has missing private ZSK.
  */
 zone "zsk-missing.autosign" {
