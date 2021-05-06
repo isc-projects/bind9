@@ -528,10 +528,10 @@ call_unlink_cstream_readcb(http_cstream_t *cstream,
 			   isc_result_t result) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(cstream != NULL);
+	ISC_LIST_UNLINK(session->cstreams, cstream, link);
 	cstream->read_cb(session->handle, result,
 			 &(isc_region_t){ cstream->rbuf, cstream->rbufsize },
 			 cstream->read_cbarg);
-	ISC_LIST_UNLINK(session->cstreams, cstream, link);
 	put_http_cstream(session->mctx, cstream);
 }
 
