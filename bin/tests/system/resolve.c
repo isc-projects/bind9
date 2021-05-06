@@ -93,6 +93,11 @@ ctxs_init(void) {
 	isc_managers_create(ctxs_mctx, 1, 0, 0, &ctxs_netmgr, &ctxs_taskmgr,
 			    &ctxs_timermgr, &ctxs_socketmgr);
 
+	result = isc_app_ctxstart(ctxs_actx);
+	if (result != ISC_R_SUCCESS) {
+		goto fail;
+	}
+
 	return (ISC_R_SUCCESS);
 
 fail:
