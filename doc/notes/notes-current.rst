@@ -43,9 +43,6 @@ Feature Changes
 - Treat DNSSEC responses with NSEC3 iterations greater than 150 as insecure.
   :gl:`#2445`
 
-- Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
-  the minimum of the SOA MINIMUM value and the SOA TTL. :gl:`#2347`
-
 - Zones that want to transition from secure to insecure mode without making it
   bogus in the process should now first change their ``dnssec-policy`` to
   ``insecure`` (as opposed to ``none``). Only after the DNSSEC records have
