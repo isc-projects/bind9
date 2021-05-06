@@ -1095,6 +1095,8 @@ void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 	REQUIRE(VALID_MANAGER(mgr));
 	REQUIRE(VALID_TASK(task));
+	REQUIRE(task->threadid == 0);
+
 	LOCK(&mgr->excl_lock);
 	if (mgr->excl != NULL) {
 		isc_task_detach(&mgr->excl);

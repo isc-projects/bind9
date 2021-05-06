@@ -108,6 +108,14 @@ start_udp_child(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nmsocket_t *sock,
 				     (isc__netievent_t *)ievent);
 }
 
+static void
+enqueue_stoplistening(isc_nmsocket_t *sock) {
+	isc__netievent_udpstop_t *ievent =
+		isc__nm_get_netievent_udpstop(sock->mgr, sock);
+	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			       (isc__netievent_t *)ievent);
+}
+
 isc_result_t
 isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		 void *cbarg, size_t extrahandlesize, isc_nmsocket_t **sockp) {
@@ -139,11 +147,8 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 	sock->recv_cbarg = cbarg;
 	sock->extrahandlesize = extrahandlesize;
 	sock->result = ISC_R_UNSET;
-	if (isc__nm_in_netthread()) {
-		sock->tid = isc_nm_tid();
-	} else {
-		sock->tid = isc_random_uniform(sock->nchildren);
-	}
+
+	sock->tid = 0;
 	sock->fd = -1;
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
@@ -182,7 +187,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
 		*sockp = sock;
 	} else {
 		atomic_store(&sock->active, false);
-		isc_nm_stoplistening(sock);
+		enqueue_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 	}
 
@@ -298,14 +303,6 @@ done:
 	isc_barrier_wait(&sock->parent->startlistening);
 }
 
-static void
-enqueue_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_udpstop_t *ievent =
-		isc__nm_get_netievent_udpstop(sock->mgr, sock);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
-}
-
 void
 isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -319,11 +316,8 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 
 	if (!isc__nm_in_netthread()) {
 		enqueue_stoplistening(sock);
-	} else if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		enqueue_stoplistening(sock);
 	} else {
 		stop_udp_parent(sock);
-		isc__nm_drop_interlocked(sock->mgr);
 	}
 }
 
@@ -345,15 +339,7 @@ isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	/*
-	 * If network manager is paused, re-enqueue the event for later.
-	 */
-	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		enqueue_stoplistening(sock);
-	} else {
-		stop_udp_parent(sock);
-		isc__nm_drop_interlocked(sock->mgr);
-	}
+	stop_udp_parent(sock);
 }
 
 /*
@@ -1016,6 +1002,7 @@ stop_udp_parent(isc_nmsocket_t *sock) {
 	isc_nmsocket_t *csock = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_udplistener);
 
 	isc_barrier_init(&sock->stoplistening, sock->nchildren);

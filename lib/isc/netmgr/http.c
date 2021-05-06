@@ -2171,7 +2171,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
 
 	sock->nchildren = sock->outer->nchildren;
 	sock->result = ISC_R_UNSET;
-	sock->tid = isc_random_uniform(sock->nchildren);
+	sock->tid = 0;
 	sock->fd = (uv_os_sock_t)-1;
 
 	atomic_store(&sock->listening, true);
@@ -2254,6 +2254,7 @@ isc__nm_http_stoplistening(isc_nmsocket_t *sock) {
 		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				       (isc__netievent_t *)ievent);
 	} else {
+		REQUIRE(isc_nm_tid() == sock->tid);
 		isc__netievent_httpstop_t ievent = { .sock = sock };
 		isc__nm_async_httpstop(NULL, (isc__netievent_t *)&ievent);
 	}

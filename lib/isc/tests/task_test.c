@@ -708,12 +708,16 @@ task_exclusive(void **state) {
 
 		tasks[i] = NULL;
 
-		result = isc_task_create(taskmgr, 0, &tasks[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
-
-		/* task chosen from the middle of the range */
 		if (i == 6) {
+			/* task chosen from the middle of the range */
+			result = isc_task_create_bound(taskmgr, 0, &tasks[i],
+						       0);
+			assert_int_equal(result, ISC_R_SUCCESS);
+
 			isc_taskmgr_setexcltask(taskmgr, tasks[6]);
+		} else {
+			result = isc_task_create(taskmgr, 0, &tasks[i]);
+			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 
 		v = isc_mem_get(test_mctx, sizeof *v);

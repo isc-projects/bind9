@@ -344,6 +344,14 @@ isc__nm_tcpdns_lb_socket(sa_family_t sa_family) {
 }
 
 static void
+enqueue_stoplistening(isc_nmsocket_t *sock) {
+	isc__netievent_tcpdnsstop_t *ievent =
+		isc__nm_get_netievent_tcpdnsstop(sock->mgr, sock);
+	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			       (isc__netievent_t *)ievent);
+}
+
+static void
 start_tcpdns_child(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nmsocket_t *sock,
 		   uv_os_sock_t fd, int tid) {
 	isc__netievent_tcpdnslisten_t *ievent = NULL;
@@ -412,11 +420,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 	sock->backlog = backlog;
 	sock->pquota = quota;
 
-	if (isc__nm_in_netthread()) {
-		sock->tid = isc_nm_tid();
-	} else {
-		sock->tid = isc_random_uniform(sock->nchildren);
-	}
+	sock->tid = 0;
 	sock->fd = -1;
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
@@ -455,7 +459,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
 		*sockp = sock;
 	} else {
 		atomic_store(&sock->active, false);
-		isc_nm_stoplistening(sock);
+		enqueue_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 	}
 
@@ -612,14 +616,6 @@ done:
 	}
 }
 
-static void
-enqueue_stoplistening(isc_nmsocket_t *sock) {
-	isc__netievent_tcpdnsstop_t *ievent =
-		isc__nm_get_netievent_tcpdnsstop(sock->mgr, sock);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
-}
-
 void
 isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -633,11 +629,8 @@ isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock) {
 
 	if (!isc__nm_in_netthread()) {
 		enqueue_stoplistening(sock);
-	} else if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		enqueue_stoplistening(sock);
 	} else {
 		stop_tcpdns_parent(sock);
-		isc__nm_drop_interlocked(sock->mgr);
 	}
 }
 
@@ -657,15 +650,7 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	/*
-	 * If network manager is paused, re-enqueue the event for later.
-	 */
-	if (!isc__nm_acquire_interlocked(sock->mgr)) {
-		enqueue_stoplistening(sock);
-	} else {
-		stop_tcpdns_parent(sock);
-		isc__nm_drop_interlocked(sock->mgr);
-	}
+	stop_tcpdns_parent(sock);
 }
 
 void
@@ -1283,6 +1268,7 @@ stop_tcpdns_parent(isc_nmsocket_t *sock) {
 	isc_nmsocket_t *csock = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->type == isc_nm_tcpdnslistener);
 
 	isc_barrier_init(&sock->stoplistening, sock->nchildren);

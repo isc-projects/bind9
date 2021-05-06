@@ -10201,7 +10201,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	 * startup and shutdown of the server, as well as all exclusive
 	 * tasks.
 	 */
-	CHECKFATAL(isc_task_create(named_g_taskmgr, 0, &server->task),
+	CHECKFATAL(isc_task_create_bound(named_g_taskmgr, 0, &server->task, 0),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
 	isc_taskmgr_setexcltask(named_g_taskmgr, server->task);

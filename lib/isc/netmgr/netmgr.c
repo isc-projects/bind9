@@ -437,6 +437,10 @@ isc_nm_pause(isc_nm_t *mgr) {
 
 	isc__nm_acquire_interlocked_force(mgr);
 
+	if (isc__nm_in_netthread()) {
+		REQUIRE(isc_nm_tid() == 0);
+	}
+
 	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
 		if (i == isc_nm_tid()) {
@@ -447,8 +451,8 @@ isc_nm_pause(isc_nm_t *mgr) {
 	}
 
 	if (isc__nm_in_netthread()) {
+		atomic_fetch_add(&mgr->workers_paused, 1);
 		isc_barrier_wait(&mgr->pausing);
-		drain_priority_queue(&mgr->workers[isc_nm_tid()]);
 	}
 
 	LOCK(&mgr->lock);
@@ -480,6 +484,11 @@ void
 isc_nm_resume(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(atomic_load(&mgr->paused));
+
+	if (isc__nm_in_netthread()) {
+		REQUIRE(isc_nm_tid() == 0);
+		drain_priority_queue(&mgr->workers[isc_nm_tid()]);
+	}
 
 	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
