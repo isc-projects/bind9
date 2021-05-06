@@ -166,6 +166,12 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			  isc_nm_http_session_t *session);
 
 static void
+client_call_failed_read_cb(isc_result_t result, isc_nm_http_session_t *session);
+
+static void
+server_call_failed_read_cb(isc_result_t result, isc_nm_http_session_t *session);
+
+static void
 failed_read_cb(isc_result_t result, isc_nm_http_session_t *session);
 
 static isc_result_t
@@ -420,23 +426,10 @@ finish_http_session(isc_nm_http_session_t *session) {
 			isc_nm_cancelread(session->handle);
 		}
 
-		if (!ISC_LIST_EMPTY(session->cstreams)) {
-			http_cstream_t *cstream =
-				ISC_LIST_HEAD(session->cstreams);
-			while (cstream != NULL) {
-				http_cstream_t *next = ISC_LIST_NEXT(cstream,
-								     link);
-				ISC_LIST_DEQUEUE(session->cstreams, cstream,
-						 link);
-				cstream->read_cb(
-					session->client_httphandle,
-					ISC_R_UNEXPECTED,
-					&(isc_region_t){ cstream->rbuf,
-							 cstream->rbufsize },
-					cstream->read_cbarg);
-				put_http_cstream(session->mctx, cstream);
-				cstream = next;
-			}
+		if (session->client) {
+			client_call_failed_read_cb(ISC_R_UNEXPECTED, session);
+		} else {
+			server_call_failed_read_cb(ISC_R_UNEXPECTED, session);
 		}
 		isc_nmhandle_detach(&session->handle);
 	}
@@ -2401,29 +2394,63 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 }
 
 static void
-failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
+client_call_failed_read_cb(isc_result_t result,
+			   isc_nm_http_session_t *session) {
+	http_cstream_t *cstream = NULL;
+
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(result != ISC_R_SUCCESS);
 
-	if (session->client) {
-		http_cstream_t *cstream = NULL;
-		cstream = ISC_LIST_HEAD(session->cstreams);
-		while (cstream != NULL) {
-			http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-			cstream->read_cb(session->client_httphandle, result,
-					 &(isc_region_t){ cstream->rbuf,
-							  cstream->rbufsize },
-					 cstream->read_cbarg);
-			if (result != ISC_R_TIMEDOUT ||
-			    !isc__nmsocket_timer_running(session->handle->sock))
-			{
-				ISC_LIST_DEQUEUE(session->cstreams, cstream,
-						 link);
-				put_http_cstream(session->mctx, cstream);
-			}
-			cstream = next;
+	cstream = ISC_LIST_HEAD(session->cstreams);
+	while (cstream != NULL) {
+		http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
+		cstream->read_cb(
+			session->client_httphandle, result,
+			&(isc_region_t){ cstream->rbuf, cstream->rbufsize },
+			cstream->read_cbarg);
+
+		if (result != ISC_R_TIMEDOUT ||
+		    !isc__nmsocket_timer_running(session->handle->sock))
+		{
+			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
+			put_http_cstream(session->mctx, cstream);
 		}
 
+		cstream = next;
+	}
+}
+
+static void
+server_call_failed_read_cb(isc_result_t result,
+			   isc_nm_http_session_t *session) {
+	isc_nmsocket_h2_t *h2data = NULL; /* stream socket */
+
+	REQUIRE(VALID_HTTP2_SESSION(session));
+	REQUIRE(result != ISC_R_SUCCESS);
+
+	for (h2data = ISC_LIST_HEAD(session->sstreams); h2data != NULL;
+	     h2data = ISC_LIST_NEXT(h2data, link))
+	{
+		failed_httpstream_read_cb(h2data->psock, result, session);
+	}
+
+	h2data = ISC_LIST_HEAD(session->sstreams);
+	while (h2data != NULL) {
+		isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
+		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
+		/* Cleanup socket in place */
+		atomic_store(&h2data->psock->active, false);
+		atomic_store(&h2data->psock->closed, true);
+		isc__nmsocket_detach(&h2data->psock);
+
+		h2data = next;
+	}
+}
+
+static void
+failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
+	if (session->client) {
+		client_call_failed_read_cb(result, session);
 		/*
 		 * If result was ISC_R_TIMEDOUT and the timer was reset,
 		 * then we still have active streams and should not close
@@ -2433,26 +2460,7 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 			finish_http_session(session);
 		}
 	} else {
-		isc_nmsocket_h2_t *h2data = NULL; /* stream socket */
-		for (h2data = ISC_LIST_HEAD(session->sstreams); h2data != NULL;
-		     h2data = ISC_LIST_NEXT(h2data, link))
-		{
-			failed_httpstream_read_cb(h2data->psock, result,
-						  session);
-		}
-
-		h2data = ISC_LIST_HEAD(session->sstreams);
-		while (h2data != NULL) {
-			isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
-			ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
-			/* Cleanup socket in place */
-			atomic_store(&h2data->psock->active, false);
-			atomic_store(&h2data->psock->closed, true);
-			isc__nmsocket_detach(&h2data->psock);
-
-			h2data = next;
-		}
-
+		server_call_failed_read_cb(result, session);
 		/*
 		 * All streams are now destroyed; close the session.
 		 */
