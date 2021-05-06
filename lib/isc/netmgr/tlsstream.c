@@ -849,6 +849,12 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlslistener);
 
+	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
+					    true)) {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
 	atomic_store(&sock->listening, false);
 	atomic_store(&sock->closed, true);
 	sock->recv_cb = NULL;
