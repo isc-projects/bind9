@@ -37,6 +37,7 @@
 #include "../netmgr/udp.c"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
+#include "../netmgr_p.h"
 #include "isctest.h"
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
@@ -335,12 +336,12 @@ nm_setup(void **state __attribute__((unused))) {
 		return (-1);
 	}
 
-	listen_nm = isc_nm_start(test_mctx, workers);
+	isc__netmgr_create(test_mctx, workers, &listen_nm);
 	assert_non_null(listen_nm);
 	isc_nm_settimeouts(listen_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
 
-	connect_nm = isc_nm_start(test_mctx, workers);
+	isc__netmgr_create(test_mctx, workers, &connect_nm);
 	assert_non_null(connect_nm);
 	isc_nm_settimeouts(connect_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
@@ -358,10 +359,10 @@ static int
 nm_teardown(void **state __attribute__((unused))) {
 	UNUSED(state);
 
-	isc_nm_destroy(&connect_nm);
+	isc__netmgr_destroy(&connect_nm);
 	assert_null(connect_nm);
 
-	isc_nm_destroy(&listen_nm);
+	isc__netmgr_destroy(&listen_nm);
 	assert_null(listen_nm);
 
 	WAIT_FOR_EQ(active_cconnects, 0);
@@ -677,7 +678,7 @@ mock_udpconnect_uv_udp_open(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	RESET_RETURN;
 }
@@ -691,7 +692,7 @@ mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	RESET_RETURN;
 }
@@ -706,7 +707,7 @@ mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	RESET_RETURN;
 }
@@ -721,7 +722,7 @@ mock_udpconnect_uv_recv_buffer_size(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	RESET_RETURN;
 }
@@ -735,7 +736,7 @@ mock_udpconnect_uv_send_buffer_size(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	RESET_RETURN;
 }
@@ -758,7 +759,7 @@ udp_noop(void **state __attribute__((unused))) {
 	isc_nm_udpconnect(connect_nm, (isc_nmiface_t *)&udp_connect_addr,
 			  (isc_nmiface_t *)&udp_listen_addr, connect_connect_cb,
 			  NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
 	atomic_assert_int_eq(csends, 0);
@@ -787,7 +788,7 @@ udp_noresponse(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -860,7 +861,7 @@ udp_timeout_recovery(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 }
 
 static void
@@ -889,7 +890,7 @@ udp_recv_one(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -937,7 +938,7 @@ udp_recv_two(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -980,7 +981,7 @@ udp_recv_send(void **state __attribute__((unused))) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -1020,7 +1021,7 @@ udp_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -1073,7 +1074,7 @@ udp_half_recv_send(void **state __attribute__((unused))) {
 	/* Try to send a little while longer */
 	isc_test_nap((esends / 2) * 10000);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -1115,7 +1116,7 @@ udp_half_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -1218,7 +1219,7 @@ stream_noop(void **state __attribute__((unused))) {
 	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	stream_connect(connect_connect_cb, NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
 	atomic_assert_int_eq(csends, 0);
@@ -1244,7 +1245,7 @@ stream_noresponse(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1294,7 +1295,7 @@ stream_timeout_recovery(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 }
 
 static void
@@ -1322,7 +1323,7 @@ stream_recv_one(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1367,7 +1368,7 @@ stream_recv_two(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1416,7 +1417,7 @@ stream_recv_send(void **state __attribute__((unused))) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -1462,7 +1463,7 @@ stream_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -1521,7 +1522,7 @@ stream_half_recv_send(void **state __attribute__((unused))) {
 	/* Try to send a little while longer */
 	isc_test_nap((esends / 2) * 10000);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -1569,7 +1570,7 @@ stream_half_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -1767,7 +1768,7 @@ tcpdns_noop(void **state __attribute__((unused))) {
 	isc_nm_tcpdnsconnect(connect_nm, (isc_nmiface_t *)&tcp_connect_addr,
 			     (isc_nmiface_t *)&tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
 	atomic_assert_int_eq(csends, 0);
@@ -1801,7 +1802,7 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1856,7 +1857,7 @@ tcpdns_timeout_recovery(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 }
 
 static void
@@ -1886,7 +1887,7 @@ tcpdns_recv_one(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1936,7 +1937,7 @@ tcpdns_recv_two(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -1980,7 +1981,7 @@ tcpdns_recv_send(void **state __attribute__((unused))) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -2021,7 +2022,7 @@ tcpdns_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -2075,7 +2076,7 @@ tcpdns_half_recv_send(void **state __attribute__((unused))) {
 	/* Try to send a little while longer */
 	isc_test_nap((esends / 2) * 10000);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -2118,7 +2119,7 @@ tcpdns_half_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -2355,7 +2356,7 @@ tlsdns_noop(void **state __attribute__((unused))) {
 			     connect_connect_cb, NULL, T_CONNECT, 0,
 			     tcp_connect_tlsctx);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	atomic_assert_int_eq(cconnects, 0);
 	atomic_assert_int_eq(csends, 0);
@@ -2391,7 +2392,7 @@ tlsdns_noresponse(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -2452,7 +2453,7 @@ tlsdns_timeout_recovery(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 }
 
 static void
@@ -2484,7 +2485,7 @@ tlsdns_recv_one(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -2537,7 +2538,7 @@ tlsdns_recv_two(void **state __attribute__((unused))) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	X(cconnects);
 	X(csends);
@@ -2582,7 +2583,7 @@ tlsdns_recv_send(void **state __attribute__((unused))) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -2624,7 +2625,7 @@ tlsdns_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -2679,7 +2680,7 @@ tlsdns_half_recv_send(void **state __attribute__((unused))) {
 	/* Try to send a little while longer */
 	isc_test_nap((esends / 2) * 10000);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 
 	DONE();
 	for (size_t i = 0; i < workers; i++) {
@@ -2723,7 +2724,7 @@ tlsdns_half_recv_half_send(void **state __attribute__((unused))) {
 	WAIT_FOR_GE(ssends, esends / 2);
 	WAIT_FOR_GE(creads, esends / 2);
 
-	isc_nm_closedown(connect_nm);
+	isc__netmgr_shutdown(connect_nm);
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);

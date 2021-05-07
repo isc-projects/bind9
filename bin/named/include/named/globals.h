@@ -62,7 +62,7 @@ EXTERN bool named_g_run_done INIT(false);
  */
 EXTERN isc_timermgr_t *named_g_timermgr INIT(NULL);
 EXTERN isc_socketmgr_t *named_g_socketmgr INIT(NULL);
-EXTERN isc_nm_t *named_g_nm INIT(NULL);
+EXTERN isc_nm_t *named_g_netmgr INIT(NULL);
 EXTERN cfg_parser_t *named_g_parser INIT(NULL);
 EXTERN cfg_parser_t *named_g_addparser INIT(NULL);
 EXTERN const char *named_g_version     INIT(PACKAGE_VERSION);

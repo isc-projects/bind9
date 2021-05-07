@@ -12,6 +12,7 @@
 /*! \file */
 
 #if HAVE_CMOCKA
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -30,7 +31,7 @@
 #include <isc/socket.h>
 #include <isc/task.h>
 
-#include "../unix/socket_p.h"
+#include "../socket_p.h"
 #include "isctest.h"
 
 static bool recv_dscp;
@@ -79,14 +80,14 @@ _teardown(void **state) {
 
 typedef struct {
 	atomic_bool done;
+	atomic_uintptr_t socket;
 	isc_result_t result;
-	isc_socket_t *socket;
 } completion_t;
 
 static void
 completion_init(completion_t *completion) {
 	atomic_init(&completion->done, false);
-	completion->socket = NULL;
+	atomic_init(&completion->socket, (uintptr_t)NULL);
 }
 
 static void
@@ -99,7 +100,7 @@ accept_done(isc_task_t *task, isc_event_t *event) {
 	completion->result = nevent->result;
 	atomic_store(&completion->done, true);
 	if (completion->result == ISC_R_SUCCESS) {
-		completion->socket = nevent->newsocket;
+		atomic_store(&completion->socket, (uintptr_t)nevent->newsocket);
 	}
 
 	isc_event_free(&event);
@@ -136,35 +137,24 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static isc_result_t
+static void
 waitfor(completion_t *completion) {
 	int i = 0;
 	while (!atomic_load(&completion->done) && i++ < 5000) {
-		isc_test_nap(1000);
+		isc_test_nap(10000);
 	}
-	if (atomic_load(&completion->done)) {
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_FAILURE);
+	assert_true(atomic_load(&completion->done));
 }
 
 static void
-waitbody(void) {
-	isc_test_nap(1000);
-}
-
-static isc_result_t
 waitfor2(completion_t *c1, completion_t *c2) {
 	int i = 0;
 
 	while (!(atomic_load(&c1->done) && atomic_load(&c2->done)) &&
 	       i++ < 5000) {
-		waitbody();
+		isc_test_nap(10000);
 	}
-	if (atomic_load(&c1->done) && atomic_load(&c2->done)) {
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_FAILURE);
+	assert_true(atomic_load(&c1->done) && atomic_load(&c2->done));
 }
 
 /*
@@ -525,7 +515,7 @@ tcp_dscp_v4_test(void **state) {
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_true(atomic_load(&completion2.done));
 	assert_int_equal(completion2.result, ISC_R_SUCCESS);
-	s3 = completion2.socket;
+	s3 = (isc_socket_t *)atomic_load(&completion2.socket);
 
 	isc_socket_dscp(s2, 056); /* EF */
 
@@ -613,7 +603,7 @@ tcp_dscp_v6_test(void **state) {
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_true(atomic_load(&completion2.done));
 	assert_int_equal(completion2.result, ISC_R_SUCCESS);
-	s3 = completion2.socket;
+	s3 = (isc_socket_t *)atomic_load(&completion2.socket);
 
 	isc_socket_dscp(s2, 056); /* EF */
 

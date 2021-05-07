@@ -19,6 +19,7 @@
 
 #include <isc/astack.h>
 #include <isc/atomic.h>
+#include <isc/barrier.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/magic.h>
@@ -38,6 +39,8 @@
 #include <isc/util.h>
 
 #include "uv-compat.h"
+
+#define ISC_NETMGR_QUANTUM_DEFAULT 128
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
@@ -172,7 +175,6 @@ typedef struct isc__networker {
 	uv_async_t async; /* async channel to send
 			   * data to this networker */
 	isc_mutex_t lock;
-	isc_condition_t cond;
 	bool paused;
 	bool finished;
 	isc_thread_t thread;
@@ -183,11 +185,14 @@ typedef struct isc__networker {
 				    * used for listening etc.
 				    * can be processed while
 				    * worker is paused */
+	isc_condition_t cond_prio;
+
 	isc_refcount_t references;
 	atomic_int_fast64_t pktcount;
 	char *recvbuf;
 	char *sendbuf;
 	bool recvbuf_inuse;
+	unsigned int quantum;
 } isc__networker_t;
 
 /*
@@ -244,7 +249,6 @@ typedef enum isc__netievent_type {
 	netievent_udpclose,
 	netievent_udpsend,
 	netievent_udpread,
-	netievent_udpstop,
 	netievent_udpcancel,
 
 	netievent_tcpconnect,
@@ -253,7 +257,6 @@ typedef enum isc__netievent_type {
 	netievent_tcpstartread,
 	netievent_tcppauseread,
 	netievent_tcpaccept,
-	netievent_tcpstop,
 	netievent_tcpcancel,
 
 	netievent_tcpdnsaccept,
@@ -262,7 +265,6 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnssend,
 	netievent_tcpdnsread,
 	netievent_tcpdnscancel,
-	netievent_tcpdnsstop,
 
 	netievent_tlsclose,
 	netievent_tlssend,
@@ -277,12 +279,10 @@ typedef enum isc__netievent_type {
 	netievent_tlsdnssend,
 	netievent_tlsdnsread,
 	netievent_tlsdnscancel,
-	netievent_tlsdnsstop,
 	netievent_tlsdnscycle,
 	netievent_tlsdnsshutdown,
 
 	netievent_httpclose,
-	netievent_httpstop,
 	netievent_httpsend,
 
 	netievent_shutdown,
@@ -296,19 +296,26 @@ typedef enum isc__netievent_type {
 	netievent_task,
 	netievent_privilegedtask,
 
-	netievent_prio = 0xff, /* event type values higher than this
-				* will be treated as high-priority
-				* events, which can be processed
-				* while the netmgr is paused.
-				*/
+	/*
+	 * event type values higher than this will be treated
+	 * as high-priority events, which can be processed
+	 * while the netmgr is pausing or paused.
+	 */
+	netievent_prio = 0xff,
+
 	netievent_udplisten,
+	netievent_udpstop,
 	netievent_tcplisten,
+	netievent_tcpstop,
 	netievent_tcpdnslisten,
+	netievent_tcpdnsstop,
 	netievent_tlsdnslisten,
+	netievent_tlsdnsstop,
+	netievent_httpstop,
+
 	netievent_resume,
 	netievent_detach,
 	netievent_close,
-
 } isc__netievent_type;
 
 typedef union {
@@ -653,7 +660,7 @@ struct isc_nm {
 	int magic;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
-	uint32_t nworkers;
+	int nworkers;
 	isc_mutex_t lock;
 	isc_condition_t wkstatecond;
 	isc_condition_t wkpausecond;
@@ -668,7 +675,7 @@ struct isc_nm {
 	isc_mutex_t evlock;
 
 	uint_fast32_t workers_running;
-	uint_fast32_t workers_paused;
+	atomic_uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;
 
 	atomic_bool paused;
@@ -698,6 +705,9 @@ struct isc_nm {
 	atomic_uint_fast32_t idle;
 	atomic_uint_fast32_t keepalive;
 	atomic_uint_fast32_t advertised;
+
+	isc_barrier_t pausing;
+	isc_barrier_t resuming;
 
 #ifdef NETMGR_TRACE
 	ISC_LIST(isc_nmsocket_t) active_sockets;
@@ -833,6 +843,9 @@ struct isc_nmsocket {
 	/*% Self socket */
 	isc_nmsocket_t *self;
 
+	isc_barrier_t startlistening;
+	isc_barrier_t stoplistening;
+
 	/*% TLS stuff */
 	struct tls {
 		isc_tls_t *tls;
@@ -927,7 +940,7 @@ struct isc_nmsocket {
 
 	/* Atomic */
 	/*% Number of running (e.g. listening) child sockets */
-	uint_fast32_t rchildren;
+	atomic_uint_fast32_t rchildren;
 
 	/*%
 	 * Socket is active if it's listening, working, etc. If it's

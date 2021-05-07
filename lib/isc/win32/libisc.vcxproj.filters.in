@@ -44,6 +44,9 @@
     <ClInclude Include="..\include\isc\backtrace.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\barrier.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\base32.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -138,6 +141,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\magic.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\isc\managers.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\mem.h">
@@ -528,6 +534,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\log.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\managers.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\mem.c">

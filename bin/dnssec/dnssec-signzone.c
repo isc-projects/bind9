@@ -40,6 +40,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/managers.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -3963,13 +3964,7 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	netmgr = isc_nm_start(mctx, ntasks);
-
-	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
-	if (result != ISC_R_SUCCESS) {
-		fatal("failed to create task manager: %s",
-		      isc_result_totext(result));
-	}
+	isc_managers_create(mctx, ntasks, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
 	master = NULL;
 	result = isc_task_create(taskmgr, 0, &master);
@@ -4020,8 +4015,7 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < (int)ntasks; i++) {
 		isc_task_detach(&tasks[i]);
 	}
-	isc_taskmgr_destroy(&taskmgr);
-	isc_nm_destroy(&netmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 	TIME_NOW(&sign_finish);

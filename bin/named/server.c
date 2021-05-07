@@ -8840,7 +8840,8 @@ load_configuration(const char *filename, named_server_t *server,
 		advertised = MAX_ADVERTISED_TIMEOUT;
 	}
 
-	isc_nm_settimeouts(named_g_nm, initial, idle, keepalive, advertised);
+	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
+			   advertised);
 
 	/*
 	 * Configure sets of UDP query source ports.
@@ -9844,6 +9845,12 @@ view_loaded(void *arg) {
 				      "all zones loaded");
 		}
 
+		/*
+		 * Clear taskmgr privileged mode now that zones are loaded.
+		 */
+		isc_taskmgr_setmode(dns_zonemgr_gettaskmgr(server->zonemgr),
+				    isc_taskmgrmode_normal);
+
 		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
 			   "forcing zone maintenance");
 
@@ -9866,7 +9873,7 @@ view_loaded(void *arg) {
 }
 
 static isc_result_t
-load_zones(named_server_t *server, bool reconfig) {
+load_zones(named_server_t *server, bool init, bool reconfig) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
@@ -9923,6 +9930,19 @@ cleanup:
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
 	}
 
+	/*
+	 * If we're setting up the server for the first time,
+	 * set the task manager into privileged mode; this ensures
+	 * that no other tasks will begin to run until after
+	 * zone loading is complete.
+	 *
+	 * We do *not* want to do this in the case of reload or
+	 * reconfig, as loading a large zone could cause the server
+	 * to be inactive for too long a time.
+	 */
+	isc_taskmgr_setmode(named_g_taskmgr, init ? isc_taskmgrmode_privileged
+						  : isc_taskmgrmode_normal);
+
 	isc_task_endexclusive(server->task);
 	return (result);
 }
@@ -9950,7 +9970,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	CHECKFATAL(ns_interfacemgr_create(
 			   named_g_mctx, server->sctx, named_g_taskmgr,
-			   named_g_timermgr, named_g_socketmgr, named_g_nm,
+			   named_g_timermgr, named_g_socketmgr, named_g_netmgr,
 			   named_g_dispatchmgr, server->task, named_g_udpdisp,
 			   geoip, named_g_cpus, &server->interfacemgr),
 		   "creating interface manager");
@@ -9988,7 +10008,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(load_configuration(named_g_conffile, server, true),
 		   "loading configuration");
 
-	CHECKFATAL(load_zones(server, false), "loading zones");
+	CHECKFATAL(load_zones(server, true, false), "loading zones");
 #ifdef ENABLE_AFL
 	named_g_run_done = true;
 #endif /* ifdef ENABLE_AFL */
@@ -10181,7 +10201,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	 * startup and shutdown of the server, as well as all exclusive
 	 * tasks.
 	 */
-	CHECKFATAL(isc_task_create(named_g_taskmgr, 0, &server->task),
+	CHECKFATAL(isc_task_create_bound(named_g_taskmgr, 0, &server->task, 0),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
 	isc_taskmgr_setexcltask(named_g_taskmgr, server->task);
@@ -10220,7 +10240,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
 				      named_g_timermgr, named_g_socketmgr,
-				      named_g_nm, &server->zonemgr),
+				      named_g_netmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
 							       "setsize");
@@ -10260,7 +10280,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
 	isc_socketmgr_setstats(named_g_socketmgr, server->sockstats);
-	isc_nm_setstats(named_g_nm, server->sockstats);
+	isc_nm_setstats(named_g_netmgr, server->sockstats);
 
 	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,
 				    dns_zonestatscounter_max),
@@ -10501,7 +10521,7 @@ reload(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, false);
+	result = load_zones(server, false, false);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -10870,7 +10890,7 @@ named_server_reconfigcommand(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, true);
+	result = load_zones(server, false, true);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -16342,7 +16362,7 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
-	isc_nm_gettimeouts(named_g_nm, &initial, &idle, &keepalive,
+	isc_nm_gettimeouts(named_g_netmgr, &initial, &idle, &keepalive,
 			   &advertised);
 
 	/* Look for optional arguments. */
@@ -16396,7 +16416,7 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		result = isc_task_beginexclusive(named_g_server->task);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		isc_nm_settimeouts(named_g_nm, initial, idle, keepalive,
+		isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 				   advertised);
 
 		isc_task_endexclusive(named_g_server->task);

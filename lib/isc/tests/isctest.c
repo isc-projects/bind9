@@ -20,6 +20,7 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/hp.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/socket.h>
@@ -58,18 +59,10 @@ cleanup_managers(void) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
 	}
-	if (socketmgr != NULL) {
-		isc_socketmgr_destroy(&socketmgr);
-	}
-	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
-	}
-	if (netmgr != NULL) {
-		isc_nm_destroy(&netmgr);
-	}
-	if (timermgr != NULL) {
-		isc_timermgr_destroy(&timermgr);
-	}
+	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
+			     taskmgr == NULL ? NULL : &taskmgr,
+			     timermgr == NULL ? NULL : &timermgr,
+			     socketmgr == NULL ? NULL : &socketmgr);
 }
 
 static isc_result_t
@@ -87,14 +80,12 @@ create_managers(unsigned int workers) {
 	INSIST(workers != 0);
 
 	isc_hp_init(6 * workers);
+	isc_managers_create(test_mctx, workers, 0, 0, &netmgr, &taskmgr,
+			    &timermgr, &socketmgr);
 
-	netmgr = isc_nm_start(test_mctx, workers);
-	CHECK(isc_taskmgr_create(test_mctx, 0, netmgr, &taskmgr));
-	CHECK(isc_task_create(taskmgr, 0, &maintask));
+	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
-	CHECK(isc_timermgr_create(test_mctx, &timermgr));
-	CHECK(isc_socketmgr_create(test_mctx, &socketmgr));
 	return (ISC_R_SUCCESS);
 
 cleanup:
@@ -149,9 +140,6 @@ void
 isc_test_end(void) {
 	if (maintask != NULL) {
 		isc_task_detach(&maintask);
-	}
-	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
 	}
 
 	cleanup_managers();

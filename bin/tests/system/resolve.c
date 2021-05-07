@@ -29,6 +29,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lib.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -66,25 +67,8 @@ isc_timermgr_t *ctxs_timermgr = NULL;
 
 static void
 ctxs_destroy(void) {
-	if (ctxs_netmgr != NULL) {
-		isc_nm_closedown(ctxs_netmgr);
-	}
-
-	if (ctxs_taskmgr != NULL) {
-		isc_taskmgr_destroy(&ctxs_taskmgr);
-	}
-
-	if (ctxs_netmgr != NULL) {
-		isc_nm_destroy(&ctxs_netmgr);
-	}
-
-	if (ctxs_timermgr != NULL) {
-		isc_timermgr_destroy(&ctxs_timermgr);
-	}
-
-	if (ctxs_socketmgr != NULL) {
-		isc_socketmgr_destroy(&ctxs_socketmgr);
-	}
+	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr,
+			     &ctxs_socketmgr);
 
 	if (ctxs_actx != NULL) {
 		isc_appctx_destroy(&ctxs_actx);
@@ -106,22 +90,8 @@ ctxs_init(void) {
 		goto fail;
 	}
 
-	ctxs_netmgr = isc_nm_start(ctxs_mctx, 1);
-
-	result = isc_taskmgr_create(ctxs_mctx, 0, ctxs_netmgr, &ctxs_taskmgr);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	result = isc_socketmgr_create(ctxs_mctx, &ctxs_socketmgr);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	result = isc_timermgr_create(ctxs_mctx, &ctxs_timermgr);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
+	isc_managers_create(ctxs_mctx, 1, 0, 0, &ctxs_netmgr, &ctxs_taskmgr,
+			    &ctxs_timermgr, &ctxs_socketmgr);
 
 	return (ISC_R_SUCCESS);
 

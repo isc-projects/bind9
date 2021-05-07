@@ -621,7 +621,7 @@ isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
 	tlssock->tlsstream.server_iface = *iface;
 	ISC_LINK_INIT(&tlssock->tlsstream.server_iface.addr, link);
 	tlssock->iface = &tlssock->tlsstream.server_iface;
-	tlssock->result = ISC_R_DEFAULT;
+	tlssock->result = ISC_R_UNSET;
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
 	tlssock->extrahandlesize = extrahandlesize;
@@ -643,19 +643,12 @@ isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
 
 	/* wait for listen result */
 	isc__nmsocket_attach(tlssock->outer, &tsock);
-	LOCK(&tlssock->outer->lock);
-	while (tlssock->outer->rchildren != tlssock->outer->nchildren) {
-		WAIT(&tlssock->outer->cond, &tlssock->outer->lock);
-	}
-	result = tlssock->outer->result;
 	tlssock->result = result;
 	atomic_store(&tlssock->active, true);
 	INSIST(tlssock->outer->tlsstream.tlslistener == NULL);
 	isc__nmsocket_attach(tlssock, &tlssock->outer->tlsstream.tlslistener);
-	BROADCAST(&tlssock->outer->scond);
-	UNLOCK(&tlssock->outer->lock);
 	isc__nmsocket_detach(&tsock);
-	INSIST(result != ISC_R_DEFAULT);
+	INSIST(result != ISC_R_UNSET);
 
 	if (result == ISC_R_SUCCESS) {
 		atomic_store(&tlssock->listening, true);
@@ -849,6 +842,12 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlslistener);
 
+	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
+					    true)) {
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
 	atomic_store(&sock->listening, false);
 	atomic_store(&sock->closed, true);
 	sock->recv_cb = NULL;
@@ -885,7 +884,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	ISC_LINK_INIT(&nsock->tlsstream.local_iface.addr, link);
 	nsock->iface = &nsock->tlsstream.local_iface;
 	nsock->extrahandlesize = extrahandlesize;
-	nsock->result = ISC_R_DEFAULT;
+	nsock->result = ISC_R_UNSET;
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;

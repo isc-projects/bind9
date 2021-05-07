@@ -82,6 +82,7 @@
 #endif /* HAVE_LIBXML2 */
 
 #include "errno2result.h"
+#include "socket_p.h"
 
 /*
  * Set by the -T dscp option on the command line. If set to a value
@@ -2548,12 +2549,7 @@ SocketIoThread(LPVOID ThreadContext) {
  * Create a new socket manager.
  */
 isc_result_t
-isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
-	return (isc_socketmgr_create2(mctx, managerp, 0, 1));
-}
-
-isc_result_t
-isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
+isc__socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		      unsigned int maxsocks, int nthreads) {
 	isc_socketmgr_t *manager;
 
@@ -2611,7 +2607,7 @@ isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
 }
 
 void
-isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
+isc__socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 
 	/*

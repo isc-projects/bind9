@@ -68,33 +68,15 @@ typedef void (*isc_nm_opaquecb_t)(void *arg);
  * callbacks.
  */
 
-isc_nm_t *
-isc_nm_start(isc_mem_t *mctx, uint32_t workers);
-/*%<
- * Creates a new network manager with 'workers' worker threads,
- * and starts it running.
- */
-
 void
 isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst);
 void
 isc_nm_detach(isc_nm_t **mgr0);
-void
-isc_nm_destroy(isc_nm_t **mgr0);
 /*%<
  * Attach/detach a network manager. When all references have been
  * released, the network manager is shut down, freeing all resources.
  * Destroy is working the same way as detach, but it actively waits
  * for all other references to be gone.
- */
-
-void
-isc_nm_closedown(isc_nm_t *mgr);
-/*%<
- * Close down all active connections, freeing associated resources;
- * prevent new connections from being established. This can optionally
- * be called prior to shutting down the netmgr, to stop all processing
- * before shutting down the task manager.
  */
 
 /* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */

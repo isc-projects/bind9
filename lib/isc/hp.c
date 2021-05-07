@@ -82,6 +82,9 @@ tid(void) {
 
 void
 isc_hp_init(int max_threads) {
+	if (isc__hp_max_threads > max_threads) {
+		return;
+	}
 	isc__hp_max_threads = max_threads;
 	isc__hp_max_retired = max_threads * HP_MAX_HPS;
 }

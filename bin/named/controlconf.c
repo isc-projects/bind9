@@ -1164,10 +1164,10 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	}
 #endif
 
-	CHECK(isc_nm_listentcp(named_g_nm, (isc_nmiface_t *)&listener->address,
-			       control_newconn, listener,
-			       sizeof(controlconnection_t), 5, NULL,
-			       &listener->sock));
+	CHECK(isc_nm_listentcp(
+		named_g_netmgr, (isc_nmiface_t *)&listener->address,
+		control_newconn, listener, sizeof(controlconnection_t), 5, NULL,
+		&listener->sock));
 #if 0
 	/* XXX: no unix socket support yet */
 	if (type == isc_socktype_unix) {

@@ -34,6 +34,7 @@
 #include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -1761,10 +1762,8 @@ main(int argc, char *argv[]) {
 	isc_mem_create(&mctx);
 
 	CHECK(isc_appctx_create(mctx, &actx));
-	netmgr = isc_nm_start(mctx, 1);
-	CHECK(isc_taskmgr_create(mctx, 0, netmgr, &taskmgr));
-	CHECK(isc_socketmgr_create(mctx, &socketmgr));
-	CHECK(isc_timermgr_create(mctx, &timermgr));
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
+			    &socketmgr);
 
 	parse_args(argc, argv);
 
@@ -1867,18 +1866,7 @@ cleanup:
 	if (client != NULL) {
 		dns_client_destroy(&client);
 	}
-	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
-	}
-	if (netmgr != NULL) {
-		isc_nm_destroy(&netmgr);
-	}
-	if (timermgr != NULL) {
-		isc_timermgr_destroy(&timermgr);
-	}
-	if (socketmgr != NULL) {
-		isc_socketmgr_destroy(&socketmgr);
-	}
+	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
 	if (actx != NULL) {
 		isc_appctx_destroy(&actx);
 	}

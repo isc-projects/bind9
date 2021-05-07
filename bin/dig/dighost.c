@@ -41,6 +41,7 @@
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
 #include <isc/nonce.h>
@@ -106,9 +107,9 @@ unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
+isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
-isc_nm_t *netmgr = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
 isc_refcount_t recvcount = ATOMIC_VAR_INIT(0);
@@ -226,8 +227,9 @@ void (*dighost_shutdown)(void);
 
 /* forward declarations */
 
+#define cancel_lookup(l) _cancel_lookup(l, __FILE__, __LINE__)
 static void
-cancel_lookup(dig_lookup_t *lookup);
+_cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line);
 
 static void
 recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
@@ -1360,10 +1362,7 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
-	netmgr = isc_nm_start(mctx, 1);
-
-	result = isc_taskmgr_create(mctx, 0, netmgr, &taskmgr);
-	check_result(result, "isc_taskmgr_create");
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
@@ -1696,6 +1695,9 @@ _query_detach(dig_query_t **queryp, const char *file, unsigned int line) {
 	      isc_refcount_current(&query->references) - 1);
 
 	if (isc_refcount_decrement(&query->references) == 1) {
+		INSIST(query->readhandle == NULL);
+		INSIST(query->sendhandle == NULL);
+
 		if (ISC_LINK_LINKED(query, link)) {
 			ISC_LIST_UNLINK(lookup->q, query, link);
 		}
@@ -1752,12 +1754,17 @@ start_lookup(void) {
  * decremented, current_lookup will not be set to NULL.)
  */
 static void
-clear_current_lookup() {
+clear_current_lookup(void) {
 	dig_lookup_t *lookup = current_lookup;
 
 	INSIST(!free_now);
 
 	debug("clear_current_lookup()");
+
+	if (lookup == NULL) {
+		debug("current_lookup is already detached");
+		return;
+	}
 
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
 		debug("still have a worker");
@@ -2671,11 +2678,12 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 /*%
  * Cancel a lookup, sending canceling reads on all existing sockets.
  */
+
 static void
-cancel_lookup(dig_lookup_t *lookup) {
+_cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 	dig_query_t *query, *next;
 
-	debug("cancel_lookup()");
+	debug("%s:%u:%s()", file, line, __func__);
 	query = ISC_LIST_HEAD(lookup->q);
 	while (query != NULL) {
 		REQUIRE(DIG_VALID_QUERY(query));
@@ -2904,6 +2912,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			      isc_result_totext(eresult));
 		}
 
+		cancel_lookup(l);
 		lookup_detach(&l);
 		query_detach(&query);
 		return;
@@ -2941,6 +2950,7 @@ static void
 start_udp(dig_query_t *query) {
 	isc_result_t result;
 	dig_query_t *next = NULL;
+	dig_query_t *connectquery = NULL;
 
 	REQUIRE(DIG_VALID_QUERY(query));
 
@@ -2992,8 +3002,10 @@ start_udp(dig_query_t *query) {
 		}
 	}
 
+	query_attach(query, &connectquery);
 	isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
-			  (isc_nmiface_t *)&query->sockaddr, udp_ready, query,
+			  (isc_nmiface_t *)&query->sockaddr, udp_ready,
+			  connectquery,
 			  (timeout ? timeout : UDP_TIMEOUT) * 1000, 0);
 }
 
@@ -3568,15 +3580,18 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	      region, arg);
 
 	LOCK_LOOKUP;
-	lookup_attach(query->lookup, &l);
 
 	isc_refcount_decrement0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
 	if (eresult == ISC_R_CANCELED) {
 		debug("recv_done: cancel");
-		goto detach_query;
+		isc_nmhandle_detach(&query->readhandle);
+		query_detach(&query);
+		return;
 	}
+
+	lookup_attach(query->lookup, &l);
 
 	if (query->lookup->use_usec) {
 		TIME_NOW_HIRES(&query->time_recv);
@@ -4188,19 +4203,23 @@ cancel_all(void) {
 		return;
 	}
 	atomic_store(&cancel_now, true);
-	if (current_lookup != NULL) {
+	while (current_lookup != NULL) {
 		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
 			nq = ISC_LIST_NEXT(q, link);
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			if (q->readhandle != NULL) {
-				isc_refcount_decrement0(&recvcount);
-				debug("recvcount=%" PRIuFAST32,
-				      isc_refcount_current(&recvcount));
+				isc_nm_cancelread(q->readhandle);
 			}
 			query_detach(&q);
 		}
-		lookup_detach(&current_lookup);
+
+		/*
+		 * current_lookup could have been detached via query_detach().
+		 */
+		if (current_lookup != NULL) {
+			lookup_detach(&current_lookup);
+		}
 	}
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
@@ -4226,20 +4245,8 @@ destroy_libs(void) {
 		debug("freeing task");
 		isc_task_detach(&global_task);
 	}
-	/*
-	 * The taskmgr_destroy() and isc_nm_destroy() calls block until
-	 * all events are cleared.
-	 */
-	if (taskmgr != NULL) {
-		debug("freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-	}
 
-	debug("closing down netmgr");
-	isc_nm_closedown(netmgr);
-
-	debug("destroy netmgr");
-	isc_nm_destroy(&netmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	LOCK_LOOKUP;
 	isc_refcount_destroy(&recvcount);

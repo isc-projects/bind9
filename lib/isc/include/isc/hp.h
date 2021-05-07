@@ -66,8 +66,10 @@ typedef void(isc_hp_deletefunc_t)(void *);
 void
 isc_hp_init(int max_threads);
 /*%<
- * Initialize hazard pointer constants - isc__hp_max_threads. If more threads
- * will try to access hp it will assert.
+ * Initialize hazard pointer constants, isc__hp_max_threads and
+ * isc__hp_max_retired. If more threads try to access hp, it
+ * will assert. Calling this function repeatedly can be used
+ * to increase the limits, but cannot reduce them.
  */
 
 isc_hp_t *

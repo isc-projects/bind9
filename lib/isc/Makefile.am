@@ -11,6 +11,7 @@ libisc_la_HEADERS =			\
 	include/isc/atomic.h		\
 	include/isc/attributes.h	\
 	include/isc/backtrace.h		\
+	include/isc/barrier.h		\
 	include/isc/base32.h		\
 	include/isc/base64.h		\
 	include/isc/bind9.h		\
@@ -46,6 +47,7 @@ libisc_la_HEADERS =			\
 	include/isc/list.h		\
 	include/isc/log.h		\
 	include/isc/magic.h		\
+	include/isc/managers.h		\
 	include/isc/md.h		\
 	include/isc/mem.h		\
 	include/isc/meminfo.h		\
@@ -182,6 +184,7 @@ libisc_la_SOURCES =		\
 	lex.c			\
 	lib.c			\
 	log.c			\
+	managers.c		\
 	md.c			\
 	mem.c			\
 	mutexblock.c		\
@@ -222,6 +225,10 @@ libisc_la_SOURCES =		\
 	pthreads/thread.c	\
 	entropy_private.h	\
 	fsaccess_common_p.h	\
+	task_p.h		\
+	timer_p.h		\
+	socket_p.h		\
+	netmgr_p.h		\
 	lib_p.h			\
 	mem_p.h			\
 	tls_p.h

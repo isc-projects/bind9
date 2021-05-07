@@ -29,9 +29,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#ifdef OPENSSL_LEAKS
-#include <openssl/err.h>
-#endif /* ifdef OPENSSL_LEAKS */
+#include "timer_p.h"
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)      fprintf(stderr, "%s\n", (s))
@@ -630,10 +628,6 @@ static isc_threadresult_t
 	}
 	UNLOCK(&manager->lock);
 
-#ifdef OPENSSL_LEAKS
-	ERR_remove_state(0);
-#endif /* ifdef OPENSSL_LEAKS */
-
 	return ((isc_threadresult_t)0);
 }
 
@@ -663,7 +657,7 @@ set_index(void *what, unsigned int index) {
 }
 
 isc_result_t
-isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
+isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
 	isc_result_t result;
 
@@ -707,7 +701,7 @@ isc_timermgr_poke(isc_timermgr_t *manager) {
 }
 
 void
-isc_timermgr_destroy(isc_timermgr_t **managerp) {
+isc__timermgr_destroy(isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
 
 	/*

@@ -1,3 +1,17 @@
+5638.	[bug]		Improvements related to network manager/task manager
+			integration:
+			- added isc_managers_create() and _destroy() functions
+			  to handle setup and teardown of netmgr, taskmgr,
+			  timermgr and socketmgr since these require a
+			  precise order of operations now.
+			- event queue processing is now quantized to prevent
+			  infinite looping.
+			- the netmgr can now be paused from within a netmgr
+			  thread.
+			- fixed deadlocks due to conflict between netmgr
+			  pause/resume and listen/stoplistening operations.
+			[GL #2654]
+
 5637.	[placeholder]
 
 5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
