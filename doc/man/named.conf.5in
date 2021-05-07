@@ -535,6 +535,21 @@ options {
 .fi
 .UNINDENT
 .UNINDENT
+.SS PARENTAL\-AGENTS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+parental\-agents string [ port integer ] [
+    dscp integer ] { ( remote\-servers |
+    ipv4_address [ port integer ] |
+    ipv6_address [ port integer ] ) [ key
+    string ] [ tls string ]; ... };
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
 .SS PLUGIN
 .INDENT 0.0
 .INDENT 3.5
@@ -1029,6 +1044,10 @@ view string [ class ] {
               notify\-source\-v6 ( ipv6_address | * ) [ port ( integer
                   | * ) ] [ dscp integer ];
               notify\-to\-soa boolean;
+              parental\-agents [ port integer ] [ dscp integer ] { (
+                  remote\-servers | ipv4_address [ port integer ] |
+                  ipv6_address [ port integer ] ) [ key string ] [
+                  tls string ]; ... };
               primaries [ port integer ] [ dscp integer ] { (
                   remote\-servers | ipv4_address [ port integer ] |
                   ipv6_address [ port integer ] ) [ key string ] [
@@ -1141,6 +1160,10 @@ zone string [ class ] {
       notify\-source\-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
           [ dscp integer ];
       notify\-to\-soa boolean;
+      parental\-agents [ port integer ] [ dscp integer ] { (
+          remote\-servers | ipv4_address [ port integer ] |
+          ipv6_address [ port integer ] ) [ key string ] [ tls
+          string ]; ... };
       primaries [ port integer ] [ dscp integer ] { (
           remote\-servers | ipv4_address [ port integer ] |
           ipv6_address [ port integer ] ) [ key string ] [ tls

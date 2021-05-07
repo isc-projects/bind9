@@ -37,6 +37,7 @@ EXTRA_DIST =					\
 	../misc/master.zoneopt.rst		\
 	../misc/mirror.zoneopt.rst		\
 	../misc/options.grammar.rst		\
+	../misc/parentals.grammar.rst		\
 	../misc/primaries.grammar.rst		\
 	../misc/redirect.zoneopt.rst		\
 	../misc/server.grammar.rst		\
