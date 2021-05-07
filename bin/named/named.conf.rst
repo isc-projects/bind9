@@ -145,10 +145,10 @@ MASTERS
 ::
 
   masters string [ port integer ] [ dscp
-      integer ] { ( primaries | ipv4_address
-      [ port integer ] | ipv6_address [ port
-      integer ] ) [ key string ] [ tls
-      string ]; ... };
+      integer ] { ( remote-servers |
+      ipv4_address [ port integer ] |
+      ipv6_address [ port integer ] ) [ key
+      string ] [ tls string ]; ... };
 
 OPTIONS
 ^^^^^^^
@@ -167,9 +167,10 @@ OPTIONS
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... };
+  	also-notify [ port integer ] [ dscp integer ] { (
+  	    remote-servers | ipv4_address [ port integer ] |
+  	    ipv6_address [ port integer ] ) [ key string ] [ tls
+  	    string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
   	    ] [ dscp integer ];
   	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
@@ -185,7 +186,7 @@ OPTIONS
   	blackhole { address_match_element; ... };
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( primaries | ipv4_address [ port
+  	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ] [ tls string ]; ... } ] [ zone-directory
   	    quoted_string ] [ in-memory boolean ] [ min-update-interval
@@ -478,10 +479,10 @@ PRIMARIES
 ::
 
   primaries string [ port integer ] [ dscp
-      integer ] { ( primaries | ipv4_address
-      [ port integer ] | ipv6_address [ port
-      integer ] ) [ key string ] [ tls
-      string ]; ... };
+      integer ] { ( remote-servers |
+      ipv4_address [ port integer ] |
+      ipv6_address [ port integer ] ) [ key
+      string ] [ tls string ]; ... };
 
 SERVER
 ^^^^^^
@@ -586,9 +587,10 @@ VIEW
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... };
+  	also-notify [ port integer ] [ dscp integer ] { (
+  	    remote-servers | ipv4_address [ port integer ] |
+  	    ipv6_address [ port integer ] ) [ key string ] [ tls
+  	    string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
   	    ] [ dscp integer ];
   	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
@@ -598,7 +600,7 @@ VIEW
   	auto-dnssec ( allow | maintain | off );
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( primaries | ipv4_address [ port
+  	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ] [ tls string ]; ... } ] [ zone-directory
   	    quoted_string ] [ in-memory boolean ] [ min-update-interval
@@ -864,7 +866,7 @@ VIEW
   		allow-update { address_match_element; ... };
   		allow-update-forwarding { address_match_element; ... };
   		also-notify [ port integer ] [ dscp integer ] { (
-  		    primaries | ipv4_address [ port integer ] |
+  		    remote-servers | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ] [
   		    tls string ]; ... };
   		alt-transfer-source ( ipv4_address | * ) [ port (
@@ -905,7 +907,7 @@ VIEW
   		masterfile-format ( map | raw | text );
   		masterfile-style ( full | relative );
   		masters [ port integer ] [ dscp integer ] { (
-  		    primaries | ipv4_address [ port integer ] |
+  		    remote-servers | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ] [
   		    tls string ]; ... };
   		max-ixfr-ratio ( unlimited | percentage );
@@ -929,7 +931,7 @@ VIEW
   		    | * ) ] [ dscp integer ];
   		notify-to-soa boolean;
   		primaries [ port integer ] [ dscp integer ] { (
-  		    primaries | ipv4_address [ port integer ] |
+  		    remote-servers | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ] [
   		    tls string ]; ... };
   		request-expire boolean;
@@ -974,9 +976,10 @@ ZONE
   	allow-transfer { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { ( primaries |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... };
+  	also-notify [ port integer ] [ dscp integer ] { (
+  	    remote-servers | ipv4_address [ port integer ] |
+  	    ipv6_address [ port integer ] ) [ key string ] [ tls
+  	    string ]; ... };
   	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
   	    ] [ dscp integer ];
   	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
@@ -1012,8 +1015,8 @@ ZONE
   	key-directory quoted_string;
   	masterfile-format ( map | raw | text );
   	masterfile-style ( full | relative );
-  	masters [ port integer ] [ dscp integer ] { ( primaries |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
+  	masters [ port integer ] [ dscp integer ] { ( remote-servers
+  	    | ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ] [ tls string ]; ... };
   	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
@@ -1035,9 +1038,10 @@ ZONE
   	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
   	    [ dscp integer ];
   	notify-to-soa boolean;
-  	primaries [ port integer ] [ dscp integer ] { ( primaries |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... };
+  	primaries [ port integer ] [ dscp integer ] { (
+  	    remote-servers | ipv4_address [ port integer ] |
+  	    ipv6_address [ port integer ] ) [ key string ] [ tls
+  	    string ]; ... };
   	request-expire boolean;
   	request-ixfr boolean;
   	serial-update-method ( date | increment | unixtime );

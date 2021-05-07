@@ -767,7 +767,7 @@ resume:
 		const cfg_obj_t *tls;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
-				     "primarieselement");
+				     "remoteselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 		tls = cfg_tuple_get(cfg_listelt_value(element), "tls");
 
