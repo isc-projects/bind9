@@ -64,7 +64,7 @@
 #define ISC_R_MULTICAST	       43	    /*%< invalid use of multicast */
 #define ISC_R_NOTFILE	       44	    /*%< not a file */
 #define ISC_R_NOTDIRECTORY     45	    /*%< not a directory */
-#define ISC_R_QUEUEFULL	       46	    /*%< queue is full */
+#define ISC_R_EMPTY	       46	    /*%< queue is empty */
 #define ISC_R_FAMILYMISMATCH   47	    /*%< address family mismatch */
 #define ISC_R_FAMILYNOSUPPORT  48	    /*%< AF not supported */
 #define ISC_R_BADHEX	       49	    /*%< bad hex encoding */
