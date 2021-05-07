@@ -18478,7 +18478,7 @@ dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, uint32_t value) {
 }
 
 uint32_t
-dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
+dns_zonemgr_gettransfersin(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	return (zmgr->transfersin);
@@ -18492,10 +18492,17 @@ dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, uint32_t value) {
 }
 
 uint32_t
-dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
+dns_zonemgr_gettransfersperns(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	return (zmgr->transfersperns);
+}
+
+isc_taskmgr_t *
+dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->taskmgr);
 }
 
 /*

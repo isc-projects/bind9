@@ -216,18 +216,19 @@ privileged_events(void **state) {
 	 * queue without things happening while we do it.
 	 */
 	isc_nm_pause(netmgr);
+	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task1, "privileged", NULL);
-	assert_false(isc_task_privilege(task1));
+	assert_false(isc_task_getprivilege(task1));
 	isc_task_setprivilege(task1, true);
-	assert_true(isc_task_privilege(task1));
+	assert_true(isc_task_getprivilege(task1));
 
 	result = isc_task_create(taskmgr, 0, &task2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task2, "normal", NULL);
-	assert_false(isc_task_privilege(task2));
+	assert_false(isc_task_getprivilege(task2));
 
 	/* First event: privileged */
 	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST, set,
@@ -296,7 +297,7 @@ privileged_events(void **state) {
 	assert_int_equal(atomic_load(&counter), 6);
 
 	isc_task_setprivilege(task1, false);
-	assert_false(isc_task_privilege(task1));
+	assert_false(isc_task_getprivilege(task1));
 
 	isc_task_destroy(&task1);
 	assert_null(task1);
@@ -330,18 +331,19 @@ privilege_drop(void **state) {
 	 * without things happening while we do it.
 	 */
 	isc_nm_pause(netmgr);
+	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task1, "privileged", NULL);
-	assert_false(isc_task_privilege(task1));
+	assert_false(isc_task_getprivilege(task1));
 	isc_task_setprivilege(task1, true);
-	assert_true(isc_task_privilege(task1));
+	assert_true(isc_task_getprivilege(task1));
 
 	result = isc_task_create(taskmgr, 0, &task2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task2, "normal", NULL);
-	assert_false(isc_task_privilege(task2));
+	assert_false(isc_task_getprivilege(task2));
 
 	/* First event: privileged */
 	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,

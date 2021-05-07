@@ -635,9 +635,10 @@ isc_task_endexclusive
 isc_task_exiting
 isc_task_getcurrenttime
 isc_task_getcurrenttimex
+isc_task_getprivilege
 isc_task_onshutdown
 isc_task_pause
-isc_task_privilege
+isc_task_privileged
 isc_task_purge
 isc_task_purgeevent
 isc_task_purgerange
@@ -651,6 +652,7 @@ isc_task_shutdown
 isc_task_unpause
 isc_task_unsend
 isc_taskmgr_excltask
+isc_taskmgr_mode
 @IF NOTYET
 isc_taskmgr_renderjson
 @END NOTYET
@@ -658,6 +660,7 @@ isc_taskmgr_renderjson
 isc_taskmgr_renderxml
 @END LIBXML2
 isc_taskmgr_setexcltask
+isc_taskmgr_setmode
 isc_taskpool_create
 isc_taskpool_destroy
 isc_taskpool_expand

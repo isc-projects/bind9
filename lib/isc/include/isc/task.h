@@ -12,8 +12,8 @@
 #pragma once
 
 /*****
-***** Module Info
-*****/
+ ***** Module Info
+ *****/
 
 /*! \file isc/task.h
  * \brief The task system provides a lightweight execution context, which is
@@ -84,8 +84,8 @@
 #define ISC_TASKEVENT_LASTEVENT	 (ISC_EVENTCLASS_TASK + 65535)
 
 /*****
-***** Tasks.
-*****/
+ ***** Tasks.
+ *****/
 
 ISC_LANG_BEGINDECLS
 
@@ -611,15 +611,15 @@ isc_task_setprivilege(isc_task_t *task, bool priv);
  * but when the task manager has been set to privileged execution mode via
  * isc_taskmgr_setmode(), only tasks with the flag set will be executed,
  * and all other tasks will wait until they're done.  Once all privileged
- * tasks have finished executing, the task manager will automatically
- * return to normal execution mode and nonprivileged task can resume.
+ * tasks have finished executing, the task manager resumes running
+ * non-privileged tasks.
  *
  * Requires:
  *\li	'task' is a valid task.
  */
 
 bool
-isc_task_privilege(isc_task_t *task);
+isc_task_getprivilege(isc_task_t *task);
 /*%<
  * Returns the current value of the task's privilege flag.
  *
@@ -627,14 +627,48 @@ isc_task_privilege(isc_task_t *task);
  *\li	'task' is a valid task.
  */
 
+bool
+isc_task_privileged(isc_task_t *task);
+/*%<
+ * Returns true if the task's privilege flag is set *and* the task
+ * manager is currently in privileged mode.
+ *
+ * Requires:
+ *\li	'task' is a valid task.
+ */
+
 /*****
-***** Task Manager.
-*****/
+ ***** Task Manager.
+ *****/
 
 void
 isc_taskmgr_attach(isc_taskmgr_t *, isc_taskmgr_t **);
 void
 isc_taskmgr_detach(isc_taskmgr_t *);
+/*%<
+ * Attach/detach the task manager.
+ */
+
+void
+isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
+isc_taskmgrmode_t
+isc_taskmgr_mode(isc_taskmgr_t *manager);
+/*%<
+ * Set/get the operating mode of the task manager. Valid modes are:
+ *
+ *\li	isc_taskmgrmode_normal
+ *\li	isc_taskmgrmode_privileged
+ *
+ * In privileged execution mode, only tasks that have had the "privilege"
+ * flag set via isc_task_setprivilege() can be executed. When all such
+ * tasks are complete, non-privileged tasks resume running. The task calling
+ * this function should be in task-exclusive mode; the privileged tasks
+ * will be run after isc_task_endexclusive() is called.
+ *
+ * Requires:
+ *
+ *\li	'manager' is a valid task manager.
+ */
 
 void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);

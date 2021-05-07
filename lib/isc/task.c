@@ -138,6 +138,7 @@ struct isc_taskmgr {
 	/* Locked by task manager lock. */
 	unsigned int default_quantum;
 	LIST(isc_task_t) tasks;
+	atomic_uint_fast32_t mode;
 	atomic_bool exclusive_req;
 	atomic_bool exiting;
 
@@ -995,6 +996,7 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 
 	INIT_LIST(manager->tasks);
 	atomic_init(&manager->exiting, false);
+	atomic_init(&manager->mode, isc_taskmgrmode_normal);
 	atomic_store_relaxed(&manager->exclusive_req, false);
 
 	isc_mem_attach(mctx, &manager->mctx);
@@ -1219,6 +1221,16 @@ isc_task_unpause(isc_task_t *task) {
 }
 
 void
+isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode) {
+	atomic_store(&manager->mode, mode);
+}
+
+isc_taskmgrmode_t
+isc_taskmgr_mode(isc_taskmgr_t *manager) {
+	return (atomic_load(&manager->mode));
+}
+
+void
 isc_task_setprivilege(isc_task_t *task, bool priv) {
 	REQUIRE(VALID_TASK(task));
 
@@ -1226,10 +1238,17 @@ isc_task_setprivilege(isc_task_t *task, bool priv) {
 }
 
 bool
-isc_task_privilege(isc_task_t *task) {
+isc_task_getprivilege(isc_task_t *task) {
 	REQUIRE(VALID_TASK(task));
 
 	return (TASK_PRIVILEGED(task));
+}
+
+bool
+isc_task_privileged(isc_task_t *task) {
+	REQUIRE(VALID_TASK(task));
+
+	return (isc_taskmgr_mode(task->manager) && TASK_PRIVILEGED(task));
 }
 
 bool

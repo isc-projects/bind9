@@ -757,7 +757,7 @@ isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int threadid) {
 
 	worker = &nm->workers[tid];
 
-	if (isc_task_privilege(task)) {
+	if (isc_task_privileged(task)) {
 		event = (isc__netievent_t *)
 			isc__nm_get_netievent_privilegedtask(nm, task);
 	} else {

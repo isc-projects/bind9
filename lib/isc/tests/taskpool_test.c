@@ -164,9 +164,9 @@ set_privilege(void **state) {
 	assert_true(VALID_TASK(task2));
 	assert_true(VALID_TASK(task3));
 
-	assert_true(isc_task_privilege(task1));
-	assert_true(isc_task_privilege(task2));
-	assert_true(isc_task_privilege(task3));
+	assert_true(isc_task_getprivilege(task1));
+	assert_true(isc_task_getprivilege(task2));
+	assert_true(isc_task_getprivilege(task3));
 
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
