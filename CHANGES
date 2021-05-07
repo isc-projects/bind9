@@ -1,3 +1,5 @@
+5637.	[placeholder]
+
 5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
 			only referenced once in 'named.conf'. [GL #2603]
 
