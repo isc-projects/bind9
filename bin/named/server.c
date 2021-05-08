@@ -9845,12 +9845,6 @@ view_loaded(void *arg) {
 				      "all zones loaded");
 		}
 
-		/*
-		 * Clear taskmgr privileged mode now that zones are loaded.
-		 */
-		isc_taskmgr_setmode(dns_zonemgr_gettaskmgr(server->zonemgr),
-				    isc_taskmgrmode_normal);
-
 		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
 			   "forcing zone maintenance");
 
@@ -9875,8 +9869,9 @@ view_loaded(void *arg) {
 static isc_result_t
 load_zones(named_server_t *server, bool init, bool reconfig) {
 	isc_result_t result;
-	dns_view_t *view;
-	ns_zoneload_t *zl;
+	isc_taskmgr_t *taskmgr = dns_zonemgr_gettaskmgr(server->zonemgr);
+	ns_zoneload_t *zl = NULL;
+	dns_view_t *view = NULL;
 
 	zl = isc_mem_get(server->mctx, sizeof(*zl));
 	zl->server = server;
@@ -9930,20 +9925,26 @@ cleanup:
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
 	}
 
-	/*
-	 * If we're setting up the server for the first time,
-	 * set the task manager into privileged mode; this ensures
-	 * that no other tasks will begin to run until after
-	 * zone loading is complete.
-	 *
-	 * We do *not* want to do this in the case of reload or
-	 * reconfig, as loading a large zone could cause the server
-	 * to be inactive for too long a time.
-	 */
-	isc_taskmgr_setmode(named_g_taskmgr, init ? isc_taskmgrmode_privileged
-						  : isc_taskmgrmode_normal);
+	if (init) {
+		/*
+		 * If we're setting up the server for the first time, set
+		 * the task manager into privileged mode; this ensures
+		 * that no other tasks will begin to run until after zone
+		 * loading is complete. We won't return from exclusive mode
+		 * until the loading is finished; we can then drop out of
+		 * privileged mode.
+		 *
+		 * We do *not* want to do this in the case of reload or
+		 * reconfig, as loading a large zone could cause the server
+		 * to be inactive for too long a time.
+		 */
+		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
+		isc_task_endexclusive(server->task);
+		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
+	} else {
+		isc_task_endexclusive(server->task);
+	}
 
-	isc_task_endexclusive(server->task);
 	return (result);
 }
 
