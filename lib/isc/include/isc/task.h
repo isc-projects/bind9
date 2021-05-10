@@ -644,7 +644,7 @@ isc_task_privileged(isc_task_t *task);
 void
 isc_taskmgr_attach(isc_taskmgr_t *, isc_taskmgr_t **);
 void
-isc_taskmgr_detach(isc_taskmgr_t *);
+isc_taskmgr_detach(isc_taskmgr_t **);
 /*%<
  * Attach/detach the task manager.
  */
