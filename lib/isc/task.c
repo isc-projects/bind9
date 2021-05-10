@@ -1074,26 +1074,22 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 void
 isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	REQUIRE(managerp != NULL && VALID_MANAGER(*managerp));
-
-	isc_taskmgr_t *manager = *managerp;
-	*managerp = NULL;
-
 	XTHREADTRACE("isc_taskmgr_destroy");
 
 #ifdef ISC_TASK_TRACE
 	int counter = 0;
-	while (isc_refcount_current(&manager->references) > 1 &&
+	while (isc_refcount_current(&(*managerp)->references) > 1 &&
 	       counter++ < 1000) {
 		usleep(10 * 1000);
 	}
+	INSIST(counter < 1000);
 #else
-	while (isc_refcount_current(&manager->references) > 1) {
+	while (isc_refcount_current(&(*managerp)->references) > 1) {
 		usleep(10 * 1000);
 	}
 #endif
 
-	REQUIRE(isc_refcount_decrement(&manager->references) == 1);
-	manager_free(manager);
+	isc_taskmgr_detach(managerp);
 }
 
 void
