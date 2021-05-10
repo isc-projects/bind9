@@ -40,7 +40,7 @@
 
 #include "uv-compat.h"
 
-#define ISC_NETMGR_QUANTUM_DEFAULT 128
+#define ISC_NETMGR_QUANTUM_DEFAULT 1024
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
