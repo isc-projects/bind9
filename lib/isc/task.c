@@ -193,7 +193,7 @@ task_finished(isc_task_t *task) {
 	task->magic = 0;
 	isc_mem_put(mctx, task, sizeof(*task));
 
-	isc_taskmgr_detach(manager);
+	isc_taskmgr_detach(&manager);
 }
 
 isc_result_t
@@ -265,6 +265,7 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 
 	if (exiting) {
 		isc_mutex_destroy(&task->lock);
+		isc_taskmgr_detach(&task->manager);
 		isc_mem_put(manager->mctx, task, sizeof(*task));
 		return (ISC_R_SHUTTINGDOWN);
 	}
@@ -959,8 +960,12 @@ isc_taskmgr_attach(isc_taskmgr_t *source, isc_taskmgr_t **targetp) {
 }
 
 void
-isc_taskmgr_detach(isc_taskmgr_t *manager) {
-	REQUIRE(VALID_MANAGER(manager));
+isc_taskmgr_detach(isc_taskmgr_t **managerp) {
+	REQUIRE(managerp != NULL);
+	REQUIRE(VALID_MANAGER(*managerp));
+
+	isc_taskmgr_t *manager = *managerp;
+	*managerp = NULL;
 
 	if (isc_refcount_decrement(&manager->references) == 1) {
 		manager_free(manager);
