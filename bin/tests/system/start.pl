@@ -343,7 +343,7 @@ sub construct_ans_command {
 	if ($restart) {
 		$command .= " >>ans.run 2>&1 &";
 	} else {
-			$command .= " >ans.run 2>&1 &";
+		$command .= " >ans.run 2>&1 &";
 	}
 
 	# get the shell to report the pid of the server ($!)

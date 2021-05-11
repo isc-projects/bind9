@@ -36,7 +36,8 @@ else
     clean=true
 fi
 
-while getopts "knp:r-:" flag; do
+restart=false
+while getopts "knp:r-:t" flag; do
     case "$flag" in
     -) case "${OPTARG}" in
                keep) stopservers=false ;;
@@ -46,6 +47,7 @@ while getopts "knp:r-:" flag; do
     k) stopservers=false ;;
     n) clean=false ;;
     p) baseport=$OPTARG ;;
+    t) restart=true ;;
     esac
 done
 shift `expr $OPTIND - 1`
@@ -118,8 +120,6 @@ export CONTROLPORT
 export LOWPORT
 export HIGHPORT
 
-restart=false
-
 start_servers() {
     echoinfo "I:$systest:starting servers"
     if $restart; then
@@ -186,14 +186,16 @@ else
     exit 0
 fi
 
-# Clean up files left from any potential previous runs
-if test -f $systest/clean.sh
-then
-    if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
-        echowarn "I:$systest:clean.sh script failed"
-        echofail "R:$systest:FAIL"
-        echoend  "E:$systest:$(date_with_args)"
-        exit 1
+# Clean up files left from any potential previous runs except when
+# started with the --restart option.
+if ! $restart; then
+    if test -f "$systest/clean.sh"; then
+        if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
+            echowarn "I:$systest:clean.sh script failed"
+            echofail "R:$systest:FAIL"
+            echoend  "E:$systest:$(date_with_args)"
+            exit 1
+        fi
     fi
 fi
 
@@ -310,7 +312,7 @@ elif [ "$status" -ne 0 ]; then
     echofail "R:$systest:FAIL"
 else
     echopass "R:$systest:PASS"
-    if $clean; then
+    if $clean && ! $restart; then
        ( cd $systest && $SHELL clean.sh "$@" )
        if test -d ../../../.git; then
            git status -su --ignored "${systest}/" 2>/dev/null | \
