@@ -1,3 +1,6 @@
+5648.	[bug]		The calculation of the estimated IXFR transaction
+			size by dns_journal_iter_init() was invalid. [GL #2685]
+
 5647.	[func]		The interfacemgr has been refactored to use fewer
 			clientmgr objects, which in turn use fewer memory
 			contexts and tasks.  This should result in less
