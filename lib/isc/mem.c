@@ -42,6 +42,8 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
+#include <jemalloc/jemalloc.h>
+
 #include "mem_p.h"
 
 #define MCTXLOCK(m)   LOCK(&m->lock)
@@ -442,6 +444,9 @@ default_memfree(void *ptr) {
 
 static void
 mem_initialize(void) {
+	malloc_conf = "xmalloc:true,background_thread:true,metadata_thp:auto,"
+		      "dirty_decay_ms:30000,muzzy_decay_ms:30000";
+
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
