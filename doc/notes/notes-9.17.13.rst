@@ -11,33 +11,6 @@
 Notes for BIND 9.17.13
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- New configuration options, ``tcp-receive-buffer``, ``tcp-send-buffer``,
-  ``udp-receive-buffer``, and ``udp-send-buffer``, have been added.  These
-  options allows the operator to fine tune the receiving and sending
-  buffers in the operating system.  On busy servers, increasing the value
-  of the receive buffers can prevent the server from dropping the packets
-  during short spikes, and decreasing the value would prevent the server to
-  became clogged up with queries that are too old and have already timeouted
-  on the receiving side. :gl:`#2313`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -108,10 +81,3 @@ Bug Fixes
 - When generating zone signing keys, KASP now also checks for key ID
   conflicts among newly created keys, rather than just between new and
   existing ones. :gl:`#2628`
-
-- Fix a race condition in reading and writing key files for KASP zones in
-  multiple views. :gl:`#1875`
-
-- Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
-  views with different ``dnssec-policy``. Using the same ``key-directory`` for
-  such zones is not allowed. :gl:`#2463`
