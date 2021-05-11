@@ -960,7 +960,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 		}
 	} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
 		   xhdr.count == pos->serial && xhdr.serial1 == 0U &&
-		   isc_serial_ge(xhdr.serial0, xhdr.count))
+		   isc_serial_gt(xhdr.serial0, xhdr.count))
 	{
 		xhdr.serial1 = xhdr.serial0;
 		xhdr.serial0 = xhdr.count;
@@ -1857,9 +1857,51 @@ dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
 		 * adding up sizes and RR counts so we can calculate
 		 * the IXFR size.
 		 */
-		CHECK(journal_seek(j, pos.offset));
 		do {
+			CHECK(journal_seek(j, pos.offset));
 			CHECK(journal_read_xhdr(j, &xhdr));
+			/*
+			 * Handle mixture of version 1 and version 2
+			 * transaction headers in a version 1 journal.
+			 */
+			if (j->header_ver1 &&
+			    (xhdr.serial0 != pos.serial ||
+			     isc_serial_le(xhdr.serial1, xhdr.serial0)))
+			{
+				if (j->xhdr_version == XHDR_VERSION1 &&
+				    xhdr.serial1 == pos.serial) {
+					j->xhdr_version = XHDR_VERSION2;
+					CHECK(journal_seek(j, pos.offset));
+					CHECK(journal_read_xhdr(j, &xhdr));
+				} else if (j->xhdr_version == XHDR_VERSION2 &&
+					   xhdr.count == pos.serial) {
+					j->xhdr_version = XHDR_VERSION1;
+					CHECK(journal_seek(j, pos.offset));
+					CHECK(journal_read_xhdr(j, &xhdr));
+				}
+			}
+
+			/*
+			 * Handle <size, serial0, serial1, 0> transaction
+			 * header.
+			 */
+			if (j->header_ver1 &&
+			    j->xhdr_version == XHDR_VERSION2 &&
+			    xhdr.count == pos.serial && xhdr.serial1 == 0U &&
+			    isc_serial_gt(xhdr.serial0, xhdr.count))
+			{
+				xhdr.serial1 = xhdr.serial0;
+				xhdr.serial0 = xhdr.count;
+				xhdr.count = 0;
+			}
+
+			/*
+			 * Check that xhdr is consistent.
+			 */
+			if (xhdr.serial0 != pos.serial ||
+			    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+				CHECK(ISC_R_UNEXPECTED);
+			}
 
 			size += xhdr.size;
 			count += xhdr.count;
@@ -1989,7 +2031,7 @@ read_one_rr(dns_journal_t *j, bool retry) {
 		} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
 			   xhdr.count == j->it.current_serial &&
 			   xhdr.serial1 == 0U &&
-			   isc_serial_ge(xhdr.serial0, xhdr.count))
+			   isc_serial_gt(xhdr.serial0, xhdr.count))
 		{
 			xhdr.serial1 = xhdr.serial0;
 			xhdr.serial0 = xhdr.count;
@@ -2665,7 +2707,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			 */
 			if (j1->xhdr_version == XHDR_VERSION2 &&
 			    xhdr.count == serial && xhdr.serial1 == 0U &&
-			    isc_serial_ge(xhdr.serial0, xhdr.count))
+			    isc_serial_gt(xhdr.serial0, xhdr.count))
 			{
 				xhdr.serial1 = xhdr.serial0;
 				xhdr.serial0 = xhdr.count;
