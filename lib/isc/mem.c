@@ -1084,7 +1084,8 @@ isc_mem_getname(isc_mem_t *ctx) {
  */
 
 void
-isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
+isc__mempool_create(isc_mem_t *mctx, size_t size,
+		    isc_mempool_t **mpctxp FLARG) {
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(size > 0U);
 	REQUIRE(mpctxp != NULL && *mpctxp == NULL);
@@ -1117,6 +1118,13 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 	atomic_init(&mpctx->fillcount, 1);
 	atomic_init(&mpctx->gets, 0);
 
+#if ISC_MEM_TRACKLINES
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr, "create pool %p file %s line %u mctx %p\n",
+			mpctx, file, line, mctx);
+	}
+#endif /* ISC_MEM_TRACKLINES */
+
 	*mpctxp = (isc_mempool_t *)mpctx;
 
 	MCTXLOCK(mctx);
@@ -1138,7 +1146,7 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 }
 
 void
-isc_mempool_destroy(isc_mempool_t **mpctxp) {
+isc__mempool_destroy(isc_mempool_t **mpctxp FLARG) {
 	REQUIRE(mpctxp != NULL);
 	REQUIRE(VALID_MEMPOOL(*mpctxp));
 
@@ -1149,6 +1157,14 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 
 	mpctx = *mpctxp;
 	*mpctxp = NULL;
+
+#if ISC_MEM_TRACKLINES
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr, "destroy pool %p file %s line %u mctx %p\n",
+			mpctx, file, line, mctx);
+	}
+#endif
+
 	if (atomic_load_acquire(&mpctx->allocated) > 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mempool_destroy(): mempool %s "

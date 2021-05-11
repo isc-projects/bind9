@@ -361,8 +361,11 @@ isc_mem_renderjson(void *memobj0);
  * Memory pools
  */
 
+#define isc_mempool_create(c, s, mp) \
+	isc__mempool_create((c), (s), (mp)_ISC_MEM_FILELINE)
 void
-isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
+isc__mempool_create(isc_mem_t *mctx, size_t size,
+		    isc_mempool_t **mpctxp _ISC_MEM_FLARG);
 /*%<
  * Create a memory pool.
  *
@@ -381,8 +384,9 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
 
+#define isc_mempool_destroy(mp) isc__mempool_destroy((mp)_ISC_MEM_FILELINE)
 void
-isc_mempool_destroy(isc_mempool_t **mpctxp);
+isc__mempool_destroy(isc_mempool_t **mpctxp _ISC_MEM_FLARG);
 /*%<
  * Destroy a memory pool.
  *
