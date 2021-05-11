@@ -330,11 +330,6 @@ unlock:
 }
 #endif /* ISC_MEM_TRACKLINES */
 
-static void *
-default_memalloc(size_t size);
-static void
-default_memfree(void *ptr);
-
 /*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
@@ -342,7 +337,7 @@ static inline void *
 mem_get(isc_mem_t *ctx, size_t size) {
 	char *ret;
 
-	ret = default_memalloc(size);
+	ret = malloc(size);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		if (ISC_LIKELY(ret != NULL)) {
@@ -362,7 +357,7 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
-	default_memfree(mem);
+	free(mem);
 }
 
 #define stats_bucket(ctx, size)                      \
@@ -406,42 +401,6 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
  * Private.
  */
 
-static void *
-default_memalloc(size_t size) {
-	void *ptr;
-
-	ptr = malloc(size);
-
-	/*
-	 * If the space cannot be allocated, a null pointer is returned. If the
-	 * size of the space requested is zero, the behavior is
-	 * implementation-defined: either a null pointer is returned, or the
-	 * behavior is as if the size were some nonzero value, except that the
-	 * returned pointer shall not be used to access an object.
-	 * [ISO9899 § 7.22.3]
-	 *
-	 * [ISO9899]
-	 *   ISO/IEC WG 9899:2011: Programming languages - C.
-	 *   International Organization for Standardization, Geneva,
-	 * Switzerland.
-	 *   http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1570.pdf
-	 */
-
-	if (ptr == NULL && size != 0) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		isc_error_fatal(__FILE__, __LINE__, "malloc failed: %s",
-				strbuf);
-	}
-
-	return (ptr);
-}
-
-static void
-default_memfree(void *ptr) {
-	free(ptr);
-}
-
 static void
 mem_initialize(void) {
 	malloc_conf = "xmalloc:true,background_thread:true,metadata_thp:auto,"
@@ -480,7 +439,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	STATIC_ASSERT(ALIGNMENT_SIZE >= sizeof(size_info),
 		      "alignment size too small");
 
-	ctx = default_memalloc(sizeof(*ctx));
+	ctx = malloc(sizeof(*ctx));
 
 	*ctx = (isc_mem_t){
 		.magic = MEM_MAGIC,
@@ -511,8 +470,8 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)) {
 		unsigned int i;
 
-		ctx->debuglist = default_memalloc(
-			(DEBUG_TABLE_COUNT * sizeof(debuglist_t)));
+		ctx->debuglist =
+			malloc((DEBUG_TABLE_COUNT * sizeof(debuglist_t)));
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			ISC_LIST_INIT(ctx->debuglist[i]);
 		}
@@ -564,7 +523,7 @@ destroy(isc_mem_t *ctx) {
 			}
 		}
 
-		default_memfree(ctx->debuglist);
+		free(ctx->debuglist);
 		decrement_malloced(ctx,
 				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
@@ -595,7 +554,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(malloced == 0);
 	}
-	default_memfree(ctx);
+	free(ctx);
 }
 
 void
