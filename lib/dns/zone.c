@@ -5969,9 +5969,9 @@ same_keynames(dns_name_t *const *oldlist, dns_name_t *const *newlist,
 }
 
 static void
-clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		     dns_name_t ***keynamesp, unsigned int *countp,
-		     isc_mem_t *mctx) {
+clear_serverslist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
+		  dns_name_t ***keynamesp, unsigned int *countp,
+		  isc_mem_t *mctx) {
 	unsigned int count;
 	isc_sockaddr_t *addrs;
 	isc_dscp_t *dscps;
@@ -6012,7 +6012,7 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 }
 
 static isc_result_t
-set_addrkeylist(unsigned int count, const isc_sockaddr_t *addrs,
+set_serverslist(unsigned int count, const isc_sockaddr_t *addrs,
 		isc_sockaddr_t **newaddrsp, const isc_dscp_t *dscp,
 		isc_dscp_t **newdscpp, dns_name_t **names,
 		dns_name_t ***newnamesp, isc_mem_t *mctx) {
@@ -6113,9 +6113,8 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		goto unlock;
 	}
 
-	clear_addresskeylist(&zone->notify, &zone->notifydscp,
-			     &zone->notifykeynames, &zone->notifycnt,
-			     zone->mctx);
+	clear_serverslist(&zone->notify, &zone->notifydscp,
+			  &zone->notifykeynames, &zone->notifycnt, zone->mctx);
 
 	if (count == 0) {
 		goto unlock;
@@ -6124,7 +6123,7 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	/*
 	 * Set up the notify and notifykey lists
 	 */
-	result = set_addrkeylist(count, notify, &newaddrs, dscps, &newdscps,
+	result = set_serverslist(count, notify, &newaddrs, dscps, &newdscps,
 				 keynames, &newnames, zone->mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
@@ -6194,9 +6193,8 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof(bool));
 		zone->mastersok = NULL;
 	}
-	clear_addresskeylist(&zone->masters, &zone->masterdscps,
-			     &zone->masterkeynames, &zone->masterscnt,
-			     zone->mctx);
+	clear_serverslist(&zone->masters, &zone->masterdscps,
+			  &zone->masterkeynames, &zone->masterscnt, zone->mctx);
 	/*
 	 * If count == 0, don't allocate any space for masters, mastersok or
 	 * keynames so internally, those pointers are NULL if count == 0
@@ -6216,7 +6214,7 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	/*
 	 * Now set up the primaries and primary key lists
 	 */
-	result = set_addrkeylist(count, masters, &newaddrs, NULL, &newdscps,
+	result = set_serverslist(count, masters, &newaddrs, NULL, &newdscps,
 				 keynames, &newnames, zone->mctx);
 	INSIST(newdscps == NULL);
 	if (result != ISC_R_SUCCESS) {

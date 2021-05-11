@@ -1287,8 +1287,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			RETERR(named_config_getipandkeylist(config, obj, mctx,
-							    &ipkl));
+			RETERR(named_config_getipandkeylist(config, "primaries",
+							    obj, mctx, &ipkl));
 			result = dns_zone_setalsonotifydscpkeys(
 				zone, ipkl.addrs, ipkl.dscps, ipkl.keys,
 				ipkl.count);
@@ -1882,8 +1882,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (obj == NULL && ztype == dns_zone_mirror &&
 		    dns_name_equal(dns_zone_getorigin(zone), dns_rootname))
 		{
-			result = named_config_getprimariesdef(
-				named_g_config,
+			result = named_config_getremotesdef(
+				named_g_config, "primaries",
 				DEFAULT_IANA_ROOT_ZONE_PRIMARIES, &obj);
 			RETERR(result);
 		}
@@ -1891,8 +1891,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			RETERR(named_config_getipandkeylist(config, obj, mctx,
-							    &ipkl));
+			RETERR(named_config_getipandkeylist(config, "primaries",
+							    obj, mctx, &ipkl));
 			result = dns_zone_setprimarieswithkeys(
 				mayberaw, ipkl.addrs, ipkl.keys, ipkl.count);
 			count = ipkl.count;

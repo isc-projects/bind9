@@ -571,8 +571,8 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 }
 
 static isc_result_t
-getprimariesdef(const cfg_obj_t *cctx, const char *list, const char *name,
-		const cfg_obj_t **ret) {
+getremotesdef(const cfg_obj_t *cctx, const char *list, const char *name,
+	      const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt;
@@ -599,20 +599,26 @@ getprimariesdef(const cfg_obj_t *cctx, const char *list, const char *name,
 }
 
 isc_result_t
-named_config_getprimariesdef(const cfg_obj_t *cctx, const char *name,
-			     const cfg_obj_t **ret) {
+named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
+			   const char *name, const cfg_obj_t **ret) {
 	isc_result_t result;
 
-	result = getprimariesdef(cctx, "primaries", name, ret);
-	if (result != ISC_R_SUCCESS) {
-		result = getprimariesdef(cctx, "masters", name, ret);
+	if (strcmp(list, "parental-agents") == 0) {
+		return (getremotesdef(cctx, list, name, ret));
+	} else if (strcmp(list, "primaries") == 0) {
+		result = getremotesdef(cctx, list, name, ret);
+		if (result != ISC_R_SUCCESS) {
+			result = getremotesdef(cctx, "masters", name, ret);
+		}
+		return (result);
 	}
-	return (result);
+	return (ISC_R_NOTFOUND);
 }
 
 isc_result_t
-named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
-			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
+named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
+			     const cfg_obj_t *list, isc_mem_t *mctx,
+			     dns_ipkeylist_t *ipkl) {
 	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
 	uint32_t listcount = 0, l = 0, j;
 	uint32_t stackcount = 0, pushed = 0;
@@ -728,11 +734,11 @@ resume:
 				continue;
 			}
 			list = NULL;
-			tresult = named_config_getprimariesdef(config, listname,
-							       &list);
+			tresult = named_config_getremotesdef(config, listtype,
+							     listname, &list);
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
-					    "primaries \"%s\" not found",
+					    "%s \"%s\" not found", listtype,
 					    listname);
 
 				result = tresult;

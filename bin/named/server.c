@@ -3075,8 +3075,8 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 
 	obj = cfg_tuple_get(catz_obj, "default-masters");
 	if (obj != NULL && cfg_obj_istuple(obj)) {
-		result = named_config_getipandkeylist(config, obj, view->mctx,
-						      &opts->masters);
+		result = named_config_getipandkeylist(
+			config, "primaries", obj, view->mctx, &opts->masters);
 	}
 
 	obj = cfg_tuple_get(catz_obj, "in-memory");
