@@ -604,7 +604,7 @@ isc_mem_attach(isc_mem_t *source, isc_mem_t **targetp) {
 }
 
 void
-isc_mem_detach(isc_mem_t **ctxp) {
+isc__mem_detach(isc_mem_t **ctxp FLARG) {
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 
 	isc_mem_t *ctx = *ctxp;
@@ -612,6 +612,12 @@ isc_mem_detach(isc_mem_t **ctxp) {
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
+#if ISC_MEM_TRACKLINES
+		if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+			fprintf(stderr, "destroy mctx %p file %s line %u\n",
+				ctx, file, line);
+		}
+#endif
 		destroy(ctx);
 	}
 }
@@ -663,7 +669,7 @@ destroy:
 }
 
 void
-isc_mem_destroy(isc_mem_t **ctxp) {
+isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	/*
 	 * This routine provides legacy support for callers who use mctxs
 	 * without attaching/detaching.
@@ -674,6 +680,11 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	isc_mem_t *ctx = *ctxp;
 
 #if ISC_MEM_TRACKLINES
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr, "destroy mctx %p file %s line %u\n", ctx, file,
+			line);
+	}
+
 	if (isc_refcount_decrement(&ctx->references) > 1) {
 		print_active(ctx, stderr);
 	}
@@ -1343,7 +1354,6 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 void *
 isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	element *item = NULL;
-	unsigned int i;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
@@ -1366,7 +1376,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 		 * We need to dip into the well.  Lock the memory
 		 * context here and fill up our free list.
 		 */
-		for (i = 0; i < fillcount; i++) {
+		for (size_t i = 0; i < fillcount; i++) {
 			item = mem_get(mctx, mpctx->size);
 			mem_getstats(mctx, mpctx->size);
 			item->next = mpctx->items;
@@ -1843,8 +1853,14 @@ error:
 #endif /* HAVE_JSON_C */
 
 void
-isc_mem_create(isc_mem_t **mctxp) {
+isc__mem_create(isc_mem_t **mctxp FLARG) {
 	mem_create(mctxp, isc_mem_defaultflags);
+#if ISC_MEM_TRACKLINES
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr, "create mctx %p file %s line %u\n", *mctxp,
+			file, line);
+	}
+#endif /* ISC_MEM_TRACKLINES */
 }
 
 void

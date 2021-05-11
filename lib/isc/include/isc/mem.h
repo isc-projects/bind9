@@ -175,8 +175,8 @@ extern unsigned int isc_mem_defaultflags;
 	} while (0)
 
 /*@{*/
-void
-isc_mem_create(isc_mem_t **mctxp);
+#define isc_mem_create(cp) ISCMEMFUNC(create)((cp)_ISC_MEM_FILELINE)
+void ISCMEMFUNC(create)(isc_mem_t **_ISC_MEM_FLARG);
 
 /*!<
  * \brief Create a memory context.
@@ -188,8 +188,8 @@ isc_mem_create(isc_mem_t **mctxp);
 /*@{*/
 void
 isc_mem_attach(isc_mem_t *, isc_mem_t **);
-void
-isc_mem_detach(isc_mem_t **);
+#define isc_mem_detach(cp) ISCMEMFUNC(detach)((cp)_ISC_MEM_FILELINE)
+void ISCMEMFUNC(detach)(isc_mem_t **_ISC_MEM_FLARG);
 /*!<
  * \brief Attach to / detach from a memory context.
  *
@@ -204,8 +204,8 @@ isc_mem_detach(isc_mem_t **);
  */
 /*@}*/
 
-void
-isc_mem_destroy(isc_mem_t **);
+#define isc_mem_destroy(cp) ISCMEMFUNC(destroy)((cp)_ISC_MEM_FILELINE)
+void ISCMEMFUNC(destroy)(isc_mem_t **_ISC_MEM_FLARG);
 /*%<
  * Destroy a memory context.
  */
