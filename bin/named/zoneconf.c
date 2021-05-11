@@ -1689,6 +1689,26 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*%
+	 * Configure parental agents, applies to primary and secondary zones.
+	 */
+	if (ztype == dns_zone_master || ztype == dns_zone_slave) {
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "parental-agents", &obj);
+		if (obj != NULL) {
+			dns_ipkeylist_t ipkl;
+			dns_ipkeylist_init(&ipkl);
+			RETERR(named_config_getipandkeylist(
+				config, "parental-agents", obj, mctx, &ipkl));
+			result = dns_zone_setparentals(zone, ipkl.addrs,
+						       ipkl.keys, ipkl.count);
+			dns_ipkeylist_clear(mctx, &ipkl);
+			RETERR(result);
+		} else {
+			RETERR(dns_zone_setparentals(zone, NULL, NULL, 0));
+		}
+	}
+
+	/*%
 	 * Primary master functionality.
 	 */
 	if (ztype == dns_zone_master) {

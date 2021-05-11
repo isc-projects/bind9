@@ -279,6 +279,14 @@ struct dns_zone {
 	unsigned int masterscnt;
 	unsigned int curmaster;
 	isc_sockaddr_t masteraddr;
+
+	isc_sockaddr_t *parentals;
+	isc_dscp_t *parentaldscps;
+	dns_name_t **parentalkeynames;
+	dns_dnsseckeylist_t checkds_ok;
+	unsigned int parentalscnt;
+	isc_sockaddr_t parentaladdr;
+
 	dns_notifytype_t notifytype;
 	isc_sockaddr_t *notify;
 	dns_name_t **notifykeynames;
@@ -1121,6 +1129,16 @@ free_refs:
 	return (result);
 }
 
+static void
+clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
+	dns_dnsseckey_t *key;
+	while (!ISC_LIST_EMPTY(*list)) {
+		key = ISC_LIST_HEAD(*list);
+		ISC_LIST_UNLINK(*list, key, link);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+}
+
 /*
  * Free a zone.  Because we require that there be no more
  * outstanding events or references, no locking is necessary.
@@ -1214,6 +1232,10 @@ zone_free(dns_zone_t *zone) {
 	if (zone->kasp != NULL) {
 		dns_kasp_detach(&zone->kasp);
 	}
+	if (!ISC_LIST_EMPTY(zone->checkds_ok)) {
+		clear_keylist(&zone->checkds_ok, zone->mctx);
+	}
+
 	zone->journalsize = -1;
 	if (zone->journal != NULL) {
 		isc_mem_free(zone->mctx, zone->journal);
@@ -1243,6 +1265,9 @@ zone_free(dns_zone_t *zone) {
 		dns_catz_catzs_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
+
+	RUNTIME_CHECK(dns_zone_setparentals(zone, NULL, NULL, 0) ==
+		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_zone_setprimarieswithkeys(zone, NULL, NULL, 0) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0) == ISC_R_SUCCESS);
@@ -6232,6 +6257,58 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	zone->masterkeynames = newnames;
 	zone->masterscnt = count;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
+
+unlock:
+	UNLOCK_ZONE(zone);
+	return (result);
+}
+
+isc_result_t
+dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
+		      dns_name_t **keynames, uint32_t count) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_sockaddr_t *newaddrs = NULL;
+	isc_dscp_t *newdscps = NULL;
+	dns_name_t **newkeynames = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(count == 0 || parentals != NULL);
+	if (keynames != NULL) {
+		REQUIRE(count != 0);
+	}
+
+	LOCK_ZONE(zone);
+
+	clear_serverslist(&zone->parentals, &zone->parentaldscps,
+			  &zone->parentalkeynames, &zone->parentalscnt,
+			  zone->mctx);
+	/*
+	 * If count == 0, don't allocate any space for parentals, or keynames
+	 * so internally, those pointers are NULL if count == 0
+	 */
+	if (count == 0) {
+		goto unlock;
+	}
+
+	/*
+	 * Now set up the parentals and parental key lists
+	 */
+	result = set_serverslist(count, parentals, &newaddrs, NULL, &newdscps,
+				 keynames, &newkeynames, zone->mctx);
+	INSIST(newdscps == NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto unlock;
+	}
+
+	/*
+	 * Everything is ok so attach to the zone.
+	 */
+	zone->parentals = newaddrs;
+	zone->parentaldscps = newdscps;
+	zone->parentalkeynames = newkeynames;
+	zone->parentalscnt = count;
+
+	dns_zone_log(zone, ISC_LOG_NOTICE, "checkds: set %u parentals", count);
 
 unlock:
 	UNLOCK_ZONE(zone);
@@ -19436,16 +19513,6 @@ cleanup:
 		dns_db_detach(&db);
 	}
 	return (result);
-}
-
-static void
-clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
-	dns_dnsseckey_t *key;
-	while (!ISC_LIST_EMPTY(*list)) {
-		key = ISC_LIST_HEAD(*list);
-		ISC_LIST_UNLINK(*list, key, link);
-		dns_dnsseckey_destroy(mctx, &key);
-	}
 }
 
 /* Called once; *timep should be set to the current time. */

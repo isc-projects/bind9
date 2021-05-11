@@ -627,12 +627,9 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *primaries,
  *\li	'zone' to be a valid zone.
  *\li	'primaries' array of isc_sockaddr_t with port set or NULL.
  *\li	'count' the number of primaries.
- *\li      'keynames' array of dns_name_t's for tsig keys or NULL.
+ *\li	'keynames' array of dns_name_t's for tsig keys or NULL.
  *
- *  \li    dns_zone_setprimaries() is just a wrapper to setprimarieswithkeys(),
- *      passing NULL in the keynames field.
- *
- * \li	If 'primaries' is NULL then 'count' must be zero.
+ *\li	If 'primaries' is NULL then 'count' must be zero.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
@@ -642,15 +639,14 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 
 isc_result_t
 dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
-		      dns_name_t **keynames, dns_name_t **tlsnames,
-		      uint32_t count);
+		      dns_name_t **keynames, uint32_t count);
 /*%<
  *	Set the list of parental agents for the zone.
  *
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'parentals' array of isc_sockaddr_t with port set or NULL.
- *\li	'count' the number of parentals.
+ *\li	'count' the number of primaries.
  *\li	'keynames' array of dns_name_t's for tsig keys or NULL.
  *
  *\li	If 'parentals' is NULL then 'count' must be zero.
