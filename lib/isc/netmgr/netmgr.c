@@ -1485,6 +1485,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	}
 
 	isc_mutex_init(&sock->lock);
+	isc_condition_init(&sock->cond);
 	isc_condition_init(&sock->scond);
 	isc_refcount_init(&sock->references, 1);
 
