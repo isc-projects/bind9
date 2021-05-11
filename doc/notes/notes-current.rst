@@ -34,57 +34,66 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Implement ``draft-vandijk-dnsop-nsec-ttl``, NSEC(3) TTL values are now set to
-  the minimum of the SOA MINIMUM value and the SOA TTL. :gl:`#2347`
+- The ``draft-vandijk-dnsop-nsec-ttl`` IETF draft was implemented:
+  NSEC(3) TTL values are now set to the minimum of the SOA MINIMUM value
+  or the SOA TTL. :gl:`#2347`
 
-- Reduce the supported maximum number of iterations that can be
-  configured in an NSEC3 zones to 150. :gl:`#2642`
+- The maximum supported number of NSEC3 iterations that can be
+  configured for a zone has been reduced to 150. :gl:`#2642`
 
-- Treat DNSSEC responses with NSEC3 iterations greater than 150 as insecure.
-  :gl:`#2445`
+- DNSSEC responses containing NSEC3 records with iteration counts
+  greater than 150 are now treated as insecure. :gl:`#2445`
 
-- Zones that want to transition from secure to insecure mode without making it
-  bogus in the process should now first change their ``dnssec-policy`` to
-  ``insecure`` (as opposed to ``none``). Only after the DNSSEC records have
-  been removed from the zone (in a timely manner), the ``dnssec-policy`` can
-  be set to ``none`` (or be removed from the configuration). Setting the
-  ``dnssec-policy`` to ``insecure`` will cause CDS and CDNSKEY DELETE records
-  to be published. :gl:`#2645`
+- Zones that want to transition from secure to insecure mode without
+  becoming bogus in the process must now have their ``dnssec-policy``
+  changed first to ``insecure``, rather than ``none``. After the DNSSEC
+  records have been removed from the zone, the ``dnssec-policy`` can be
+  set to ``none`` or removed from the configuration. Setting the
+  ``dnssec-policy`` to ``insecure`` causes CDS and CDNSKEY DELETE
+  records to be published. :gl:`#2645`
 
-- ``inline-signing`` was incorrectly described as being inherited from the
-  ``options`` or ``view`` levels and was incorrectly accepted at those levels
-  without effect.  This has been corrected, ``named.conf`` files with
-  ``inline-signing`` at those levels will no longer load with this fix applied.
-  :gl:`#2536`
+- ``inline-signing`` was incorrectly described as being inherited from
+  the ``options``/``view`` levels and was incorrectly accepted at those
+  levels without effect. This has been fixed; ``named.conf`` files with
+  ``inline-signing`` at those levels no longer load. :gl:`#2536`
 
 Bug Fixes
 ~~~~~~~~~
 
-- When dumping the cache to file, TTLs were being increased with
-  ``max-stale-ttl``. Also the comment above stale RRsets could have nonsensical
-  values if the RRset was still marked a stale but the ``max-stale-ttl`` has
-  passed (and is actually an RRset awaiting cleanup). Both issues have now
-  been fixed. :gl:`#389` :gl:`#2289`
+- TTL values in cache dumps were reported incorrectly when
+  ``stale-cache-enable`` was set to ``yes``. This has been fixed.
+  :gl:`#389` :gl:`#2289`
 
-- ``named`` would overwrite a zone file unconditionally when it recovered from
-  a corrupted journal. :gl:`#2623`
+- If zone journal files written by BIND 9.16.11 or earlier were present
+  when BIND was upgraded to BIND 9.17.11 or BIND 9.17.12, the zone file
+  for that zone could have been inadvertently rewritten with the current
+  zone contents. This caused the original zone file structure (e.g.
+  comments, ``$INCLUDE`` directives) to be lost, although the zone data
+  itself was preserved. :gl:`#2623`
 
-- After the networking manager was introduced to ``named`` to handle
-  incoming traffic, it was discovered that the recursive performance had been
-  degraded compared to the previous version (9.11).  This has been now fixed by
-  running internal tasks inside the networking manager worker threads, so
-  they do not compete for resources. :gl:`#2638`
+- After the network manager was introduced to ``named`` to handle
+  incoming traffic, it was discovered that recursive performance had
+  degraded compared to previous BIND 9 versions. This has now been
+  fixed by processing internal tasks inside network manager worker
+  threads, preventing resource contention among two sets of threads.
+  :gl:`#2638`
 
-- With ``dnssec-policy``, when creating new keys also check for keyid conflicts
-  between the new keys too. :gl:`#2628`
+- When generating zone signing keys, KASP now also checks for key ID
+  conflicts among newly created keys, rather than just between new and
+  existing ones. :gl:`#2628`
 
-- Update ZONEMD to match RFC 8976. :gl:`#2658`
+- The implementation of the ZONEMD RR type has been updated to match
+  :rfc:`8976`. :gl:`#2658`
 
-- With ``dnssec-policy```, don't roll keys if the private key file is offline.
+- If ``dnssec-policy`` was active and the private key file was
+  temporarily offline during a rekey event, ``named`` could introduce
+  replacement keys and break a signed zone. This has been fixed.
   :gl:`#2596`
 
-- Journal compaction could fail when a journal with invalid transaction 
-  headers was not detected at startup. :gl:`#2670`
+- It was possible for corrupt journal files generated by an earlier
+  version of ``named`` to cause problems after an upgrade. This has been
+  fixed. :gl:`#2670`
 
-- ``named-checkconf`` now complains if zones with ``dnssec-policy`` reference
-  the same zone file more than once. :gl:`#2603`
+- ``named`` and ``named-checkconf`` did not report an error when
+  multiple zones with the ``dnssec-policy`` option set were using the
+  same zone file. This has been fixed. :gl:`#2603`
