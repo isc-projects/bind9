@@ -15,7 +15,7 @@
 set -e
 
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
-NAMED_DEFAULT_ARGS="-m record,size,mctx -d 99 -g -U 4"
+NAMED_DEFAULT_ARGS="-m record -d 99 -g -U 4"
 
 kill_named() {
 	pidfile="${1}"

@@ -909,12 +909,6 @@ main(int argc, char **argv) {
 			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
 			}
-			if (strcasecmp(isc_commandline_argument, "size") == 0) {
-				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
-			}
-			if (strcasecmp(isc_commandline_argument, "mctx") == 0) {
-				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
-			}
 			break;
 		default:
 			break;

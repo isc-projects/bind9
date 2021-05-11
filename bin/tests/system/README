@@ -546,7 +546,7 @@ By default, start.pl starts a "named" server with the following options:
     -g              Runs the server in the foreground and logs everything to
                     stderr.
 
-    -m record,size,mctx
+    -m record
                     Turns on these memory usage debugging flags.
 
     -U 4            Uses four listeners.

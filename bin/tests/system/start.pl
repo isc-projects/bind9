@@ -267,7 +267,7 @@ sub construct_ns_command {
 	} else {
 		$command .= "-D $test-$server ";
 		$command .= "-X named.lock ";
-		$command .= "-m record,size,mctx ";
+		$command .= "-m record ";
 
 		foreach my $t_option(
 			"dropedns", "ednsformerr", "ednsnotimp", "ednsrefused",

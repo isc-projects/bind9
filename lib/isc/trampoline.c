@@ -40,17 +40,13 @@ static size_t isc__trampoline_min = 1;
 static size_t isc__trampoline_max = 65;
 
 /*
- * We can't use isc_mem API here, because it's called too
- * early and when the isc_mem_debugging flags are changed
- * later and ISC_MEM_DEBUGSIZE or ISC_MEM_DEBUGCTX flags are
- * added, neither isc_mem_put() nor isc_mem_free() can be used
- * to free up the memory allocated here because the flags were
- * not set when calling isc_mem_get() or isc_mem_allocate()
- * here.
+ * We can't use isc_mem API here, because it's called too early and the
+ * isc_mem_debugging flags can be changed later causing mismatch between flags
+ * used for isc_mem_get() and isc_mem_put().
  *
- * Actually, since this is a single allocation at library load
- * and deallocation at library unload, using the standard
- * allocator without the tracking is fine for this purpose.
+ * Since this is a single allocation at library load and deallocation at library
+ * unload, using the standard allocator without the tracking is fine for this
+ * single purpose.
  */
 static isc__trampoline_t *
 isc__trampoline_new(int tid, isc_threadfunc_t start, isc_threadarg_t arg) {

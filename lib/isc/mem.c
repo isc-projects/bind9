@@ -604,28 +604,11 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	isc_mem_t *ctx = *ctxp;
 	*ctxp = NULL;
 
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE | ISC_MEM_DEBUGCTX)) != 0))
-	{
-		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
-			size_info *si = &(((size_info *)ptr)[-1]);
-			size_t oldsize = si->size - ALIGNMENT_SIZE;
-			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0) {
-				oldsize -= ALIGNMENT_SIZE;
-			}
-			INSIST(oldsize == size);
-		}
-		isc__mem_free(ctx, ptr FLARG_PASS);
-
-		goto destroy;
-	}
-
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
 	mem_put(ctx, ptr, size);
 
-destroy:
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
 		destroy(ctx);
@@ -717,12 +700,6 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	void *ptr;
 	bool call_water = false;
 
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE | ISC_MEM_DEBUGCTX)) != 0))
-	{
-		return (isc__mem_allocate(ctx, size FLARG_PASS));
-	}
-
 	ptr = mem_get(ctx, size);
 	mem_getstats(ctx, size);
 
@@ -743,23 +720,6 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 	REQUIRE(ptr != NULL);
 
 	bool call_water = false;
-	size_info *si;
-
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE | ISC_MEM_DEBUGCTX)) != 0))
-	{
-		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
-			size_t oldsize;
-			si = &(((size_info *)ptr)[-1]);
-			oldsize = si->size - ALIGNMENT_SIZE;
-			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0) {
-				oldsize -= ALIGNMENT_SIZE;
-			}
-			INSIST(oldsize == size);
-		}
-		isc__mem_free(ctx, ptr FLARG_PASS);
-		return;
-	}
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
@@ -894,16 +854,9 @@ mem_allocateunlocked(isc_mem_t *ctx, size_t size) {
 	size_info *si;
 
 	size += ALIGNMENT_SIZE;
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
-		size += ALIGNMENT_SIZE;
-	}
 
 	si = mem_get(ctx, size);
 
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
-		si->ctx = ctx;
-		si++;
-	}
 	si->size = size;
 	return (&si[1]);
 }
@@ -955,11 +908,6 @@ isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 			oldsize = (((size_info *)ptr)[-1]).size;
 			INSIST(oldsize >= ALIGNMENT_SIZE);
 			oldsize -= ALIGNMENT_SIZE;
-			if (ISC_UNLIKELY((isc_mem_debugging &
-					  ISC_MEM_DEBUGCTX) != 0)) {
-				INSIST(oldsize >= ALIGNMENT_SIZE);
-				oldsize -= ALIGNMENT_SIZE;
-			}
 			copysize = (oldsize > size) ? size : oldsize;
 			memmove(new_ptr, ptr, copysize);
 			isc__mem_free(ctx, ptr FLARG_PASS);
@@ -980,14 +928,8 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	size_t size;
 	bool call_water = false;
 
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
-		si = &(((size_info *)ptr)[-2]);
-		REQUIRE(si->ctx == ctx);
-		size = si[1].size;
-	} else {
-		si = &(((size_info *)ptr)[-1]);
-		size = si->size;
-	}
+	si = &(((size_info *)ptr)[-1]);
+	size = si->size;
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 

@@ -43,8 +43,6 @@ extern unsigned int isc_mem_defaultflags;
 #define ISC_MEM_DEBUGTRACE  0x00000001U
 #define ISC_MEM_DEBUGRECORD 0x00000002U
 #define ISC_MEM_DEBUGUSAGE  0x00000004U
-#define ISC_MEM_DEBUGSIZE   0x00000008U
-#define ISC_MEM_DEBUGCTX    0x00000010U
 #define ISC_MEM_DEBUGALL    0x0000001FU
 /*!<
  * The variable isc_mem_debugging holds a set of flags for
@@ -63,14 +61,6 @@ extern unsigned int isc_mem_defaultflags;
  * \li #ISC_MEM_DEBUGUSAGE
  *	If a hi_water mark is set, print the maximum inuse memory
  *	every time it is raised once it exceeds the hi_water mark.
- *
- * \li #ISC_MEM_DEBUGSIZE
- *	Check the size argument being passed to isc_mem_put() matches
- *	that passed to isc_mem_get().
- *
- * \li #ISC_MEM_DEBUGCTX
- *	Check the mctx argument being passed to isc_mem_put() matches
- *	that passed to isc_mem_get().
  */
 /*@}*/
 
