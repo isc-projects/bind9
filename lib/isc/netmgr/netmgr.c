@@ -1261,7 +1261,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	}
 
 	if (sock->buf != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->buf);
+		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
 	}
 
 	if (sock->quota != NULL) {
@@ -1279,8 +1279,10 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_astack_destroy(sock->inactivereqs);
 	sock->magic = 0;
 
-	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
-	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
+	isc_mem_put(sock->mgr->mctx, sock->ah_frees,
+		    sock->ah_size * sizeof(sock->ah_frees[0]));
+	isc_mem_put(sock->mgr->mctx, sock->ah_handles,
+		    sock->ah_size * sizeof(sock->ah_handles[0]));
 	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
 #if HAVE_LIBNGHTTP2
@@ -1492,10 +1494,10 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
-	sock->ah_frees = isc_mem_allocate(mgr->mctx,
-					  sock->ah_size * sizeof(size_t));
-	sock->ah_handles = isc_mem_allocate(
-		mgr->mctx, sock->ah_size * sizeof(isc_nmhandle_t *));
+	sock->ah_frees = isc_mem_get(mgr->mctx,
+				     sock->ah_size * sizeof(sock->ah_frees[0]));
+	sock->ah_handles = isc_mem_get(
+		mgr->mctx, sock->ah_size * sizeof(sock->ah_handles[0]));
 	ISC_LINK_INIT(&sock->quotacb, link);
 	for (size_t i = 0; i < 32; i++) {
 		sock->ah_frees[i] = i;
@@ -1905,12 +1907,12 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 	if (sock->buf == NULL) {
 		/* We don't have the buffer at all */
 		size_t alloc_len = len < NM_REG_BUF ? NM_REG_BUF : NM_BIG_BUF;
-		sock->buf = isc_mem_allocate(sock->mgr->mctx, alloc_len);
+		sock->buf = isc_mem_get(sock->mgr->mctx, alloc_len);
 		sock->buf_size = alloc_len;
 	} else {
 		/* We have the buffer but it's too small */
-		sock->buf = isc_mem_reallocate(sock->mgr->mctx, sock->buf,
-					       NM_BIG_BUF);
+		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
+		sock->buf = isc_mem_get(sock->mgr->mctx, NM_BIG_BUF);
 		sock->buf_size = NM_BIG_BUF;
 	}
 }
