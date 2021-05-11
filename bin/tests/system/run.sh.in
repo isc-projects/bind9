@@ -43,8 +43,9 @@ else
 fi
 
 do_run=false
+restart=false
 log_flags="-r"
-while getopts "sknp:r-:" OPT; do
+while getopts "sknp:r-:t" OPT; do
     log_flags="$log_flags -$OPT$OPTARG"
     if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
         OPT="${OPTARG%%=*}"
@@ -59,6 +60,7 @@ while getopts "sknp:r-:" OPT; do
         p | port) baseport=$OPTARG ;;
         r | run) do_run=true ;;
         s | skip) exit 77 ;;
+        t | restart) restart=true ;;
         -) break ;;
         *) echo "invalid option" >&2; exit 1 ;;
     esac
@@ -112,8 +114,6 @@ fi
 
 # Determine which ports to use for this system test.
 eval "$(cd "${srcdir}" && ./get_ports.sh -p "$baseport" -t "$systest")"
-
-restart=false
 
 start_servers() {
     echoinfo "I:$systest:starting servers"
@@ -173,14 +173,16 @@ else
     exit 0
 fi
 
-# Clean up files left from any potential previous runs
-if test -f "$systest/clean.sh"
-then
-    if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
-        echowarn "I:$systest:clean.sh script failed"
-        echofail "R:$systest:FAIL"
-        echoend  "E:$systest:$(date_with_args)"
-        exit 1
+# Clean up files left from any potential previous runs except when
+# started with the --restart option.
+if ! $restart; then
+    if test -f "$systest/clean.sh"; then
+        if ! ( cd "${systest}" && $SHELL clean.sh "$@" ); then
+            echowarn "I:$systest:clean.sh script failed"
+            echofail "R:$systest:FAIL"
+            echoend  "E:$systest:$(date_with_args)"
+            exit 1
+        fi
     fi
 fi
 
@@ -313,7 +315,7 @@ if [ $status -ne 0 ]; then
     echofail "R:$systest:FAIL"
 else
     echopass "R:$systest:PASS"
-    if $clean; then
+    if $clean && ! $restart; then
         ( cd "${systest}" && $SHELL clean.sh "$@" )
         if [ "${srcdir}" = "${builddir}" ]; then
             print_outstanding_files
