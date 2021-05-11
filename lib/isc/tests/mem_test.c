@@ -181,8 +181,7 @@ isc_mem_total_test(void **state) {
 	after = isc_mem_total(mctx2);
 	diff = after - before;
 
-	/* 2048 +8 bytes extra for size_info */
-	assert_int_equal(diff, (2048 + 8) * 100000);
+	assert_int_equal(diff, (2048) * 100000);
 
 	/* ISC_MEMFLAG_INTERNAL */
 
@@ -198,8 +197,7 @@ isc_mem_total_test(void **state) {
 	after = isc_mem_total(test_mctx);
 	diff = after - before;
 
-	/* 2048 +8 bytes extra for size_info */
-	assert_int_equal(diff, (2048 + 8) * 100000);
+	assert_int_equal(diff, (2048) * 100000);
 
 	isc_mem_destroy(&mctx2);
 }

@@ -100,13 +100,6 @@ struct element {
 	element *next;
 };
 
-typedef struct {
-	alignas(ALIGNMENT) union {
-		size_t size;
-		isc_mem_t *ctx;
-	};
-} size_info;
-
 struct stats {
 	atomic_size_t gets;
 	atomic_size_t totalgets;
@@ -263,7 +256,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 #endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
-	dl = malloc(sizeof(debuglink_t));
+	dl = mallocx(sizeof(debuglink_t), 0);
 	INSIST(dl != NULL);
 	increment_malloced(mctx, sizeof(debuglink_t));
 
@@ -313,7 +306,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 		if (ISC_UNLIKELY(dl->ptr == ptr)) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
 			decrement_malloced(mctx, sizeof(*dl));
-			free(dl);
+			sdallocx(dl, sizeof(*dl), 0);
 			goto unlock;
 		}
 		dl = ISC_LIST_NEXT(dl, link);
@@ -337,12 +330,10 @@ static inline void *
 mem_get(isc_mem_t *ctx, size_t size) {
 	char *ret;
 
-	ret = malloc(size);
+	ret = mallocx(size, 0);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
-		if (ISC_LIKELY(ret != NULL)) {
-			memset(ret, 0xbe, size); /* Mnemonic for "beef". */
-		}
+		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
 
 	return (ret);
@@ -357,7 +348,7 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
-	free(mem);
+	sdallocx(mem, size, 0);
 }
 
 #define stats_bucket(ctx, size)                      \
@@ -434,12 +425,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 	isc_mem_t *ctx;
 
-	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0,
-		      "alignment size not power of 2");
-	STATIC_ASSERT(ALIGNMENT_SIZE >= sizeof(size_info),
-		      "alignment size too small");
-
-	ctx = malloc(sizeof(*ctx));
+	ctx = mallocx(sizeof(*ctx), 0);
 
 	*ctx = (isc_mem_t){
 		.magic = MEM_MAGIC,
@@ -471,7 +457,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 		unsigned int i;
 
 		ctx->debuglist =
-			malloc((DEBUG_TABLE_COUNT * sizeof(debuglist_t)));
+			mallocx((DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			ISC_LIST_INIT(ctx->debuglist[i]);
 		}
@@ -518,12 +504,13 @@ destroy(isc_mem_t *ctx) {
 				INSIST(!ctx->checkfree || dl->ptr == NULL);
 
 				ISC_LIST_UNLINK(ctx->debuglist[i], dl, link);
-				free(dl);
+				sdallocx(dl, sizeof(*dl), 0);
 				decrement_malloced(ctx, sizeof(*dl));
 			}
 		}
 
-		free(ctx->debuglist);
+		sdallocx(ctx->debuglist,
+			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
 		decrement_malloced(ctx,
 				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
@@ -554,7 +541,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(malloced == 0);
 	}
-	free(ctx);
+	sdallocx(ctx, sizeof(*ctx), 0);
 }
 
 void
@@ -644,6 +631,16 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	*ctxp = NULL;
 }
 
+#define CALL_HI_WATER(ctx)                                     \
+	if ((ctx->water != NULL) && hi_water(ctx)) {           \
+		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER); \
+	}
+
+#define CALL_LO_WATER(ctx)                                     \
+	if ((ctx->water != NULL) && lo_water(ctx)) {           \
+		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER); \
+	}
+
 static inline bool
 hi_water(isc_mem_t *ctx) {
 	bool call_water = false;
@@ -719,18 +716,12 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
-	bool call_water = false;
-
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
 	mem_put(ctx, ptr, size);
 
-	call_water = lo_water(ctx);
-
-	if (call_water && (ctx->water != NULL)) {
-		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
-	}
+	CALL_LO_WATER(ctx);
 }
 
 void
@@ -844,34 +835,20 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	MCTXUNLOCK(ctx);
 }
 
-/*
- * Replacements for malloc() and free() -- they implicitly remember the
- * size of the object allocated (with some additional overhead).
- */
-
-static void *
-mem_allocateunlocked(isc_mem_t *ctx, size_t size) {
-	size_info *si;
-
-	size += ALIGNMENT_SIZE;
-
-	si = mem_get(ctx, size);
-
-	si->size = size;
-	return (&si[1]);
-}
-
 void *
 isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	size_info *si;
+	void *ptr;
 	bool call_water = false;
 
-	si = mem_allocateunlocked(ctx, size);
-	mem_getstats(ctx, si[-1].size);
+	ptr = mem_get(ctx, size);
 
-	ADD_TRACE(ctx, si, si[-1].size, file, line);
+	/* Recalculate the real allocated size */
+	size = sallocx(ptr, 0);
+
+	mem_getstats(ctx, size);
+	ADD_TRACE(ctx, ptr, size, file, line);
 
 	call_water = hi_water(ctx);
 
@@ -879,41 +856,52 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
 	}
 
-	return (si);
+	return (ptr);
 }
 
 void *
-isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
+isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	void *new_ptr = NULL;
 
-	/*
-	 * This function emulates the realloc(3) standard library
-	 * function:
-	 * - if size > 0, allocate new memory; and if ptr is non NULL,
-	 * copy as much of the old contents to the new buffer and free
-	 * the old one. Note that when allocation fails the original
-	 * pointer is intact; the caller must free it.
-	 * - if size is 0 and ptr is non NULL, simply free the given
-	 * ptr.
-	 * - this function returns:
-	 *     pointer to the newly allocated memory, or
-	 *     NULL if allocation fails or doesn't happen.
-	 */
-	if (size > 0U) {
-		new_ptr = isc__mem_allocate(ctx, size FLARG_PASS);
-		if (new_ptr != NULL && ptr != NULL) {
-			size_t oldsize, copysize;
-			oldsize = (((size_info *)ptr)[-1]).size;
-			INSIST(oldsize >= ALIGNMENT_SIZE);
-			oldsize -= ALIGNMENT_SIZE;
-			copysize = (oldsize > size) ? size : oldsize;
-			memmove(new_ptr, ptr, copysize);
-			isc__mem_free(ctx, ptr FLARG_PASS);
+	if (new_size == 0) {
+		/*
+		 * FIXME: We should not call isc__mem_reallocate with size == 0,
+		 * this is undefined behaviour.  This code is kept only for
+		 * backwards compatibility.
+		 */
+		isc__mem_free(ctx, old_ptr FLARG_PASS);
+	} else {
+		size_t old_size = sallocx(old_ptr, 0);
+
+		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
+		mem_putstats(ctx, old_ptr, old_size);
+
+		new_ptr = rallocx(old_ptr, new_size, 0);
+
+		if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+			ssize_t diff_size = new_size - old_size;
+			void *diff_ptr = (uint8_t *)new_ptr + old_size;
+			if (diff_size >= 0) {
+				/* Mnemonic for "beef". */
+				memset(diff_ptr, 0xbe, diff_size);
+			}
 		}
-	} else if (ptr != NULL) {
-		isc__mem_free(ctx, ptr FLARG_PASS);
+
+		/* Recalculate the real allocated size */
+		new_size = sallocx(new_ptr, 0);
+
+		mem_getstats(ctx, new_size);
+		ADD_TRACE(ctx, new_ptr, new_size, file, line);
+
+		/*
+		 * We want to postpone the call to water in edge case where the
+		 * realloc will exactly hit on the boundary of the water and we
+		 * would call water twice.
+		 */
+		CALL_LO_WATER(ctx);
+		CALL_HI_WATER(ctx);
 	}
 
 	return (new_ptr);
@@ -924,23 +912,14 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
-	size_info *si;
-	size_t size;
-	bool call_water = false;
-
-	si = &(((size_info *)ptr)[-1]);
-	size = si->size;
+	size_t size = sallocx(ptr, 0);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, si, size);
-	mem_put(ctx, si, size);
+	mem_putstats(ctx, ptr, size);
+	mem_put(ctx, ptr, size);
 
-	call_water = lo_water(ctx);
-
-	if (call_water && (ctx->water != NULL)) {
-		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
-	}
+	CALL_LO_WATER(ctx);
 }
 
 /*
@@ -1562,12 +1541,10 @@ error:
 int
 isc_mem_renderxml(void *writer0) {
 	isc_mem_t *ctx;
-	summarystat_t summary;
+	summarystat_t summary = { 0 };
 	uint64_t lost;
 	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
-
-	memset(&summary, 0, sizeof(summary));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "contexts"));
 
@@ -1705,12 +1682,10 @@ isc_result_t
 isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_mem_t *ctx;
-	summarystat_t summary;
+	summarystat_t summary = { 0 };
 	uint64_t lost;
 	json_object *ctxarray, *obj;
 	json_object *memobj = (json_object *)memobj0;
-
-	memset(&summary, 0, sizeof(summary));
 
 	ctxarray = json_object_new_array();
 	CHECKMEM(ctxarray);
