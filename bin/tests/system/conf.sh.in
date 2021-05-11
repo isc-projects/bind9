@@ -82,6 +82,7 @@ SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_UNIX"
 
 PARALLEL_UNIX="@DNSTAP@
 chain
+checkds
 cookie
 dlzexternal
 dnssec
