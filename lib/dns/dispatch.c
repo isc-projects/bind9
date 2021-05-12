@@ -1991,101 +1991,6 @@ unlock:
 
 #define ATTRMATCH(_a1, _a2, _mask) (((_a1) & (_mask)) == ((_a2) & (_mask)))
 
-static bool
-local_addr_match(dns_dispatch_t *disp, const isc_sockaddr_t *addr) {
-	isc_sockaddr_t sockaddr;
-	isc_result_t result;
-
-	REQUIRE(disp->socket != NULL);
-
-	if (addr == NULL) {
-		return (true);
-	}
-
-	/*
-	 * Don't match wildcard ports unless the port is available in the
-	 * current configuration.
-	 */
-	if (isc_sockaddr_getport(addr) == 0 &&
-	    isc_sockaddr_getport(&disp->local) == 0 &&
-	    !portavailable(disp->mgr, disp->socket, NULL))
-	{
-		return (false);
-	}
-
-	/*
-	 * Check if we match the binding <address,port>.
-	 * Wildcard ports match/fail here.
-	 */
-	if (isc_sockaddr_equal(&disp->local, addr)) {
-		return (true);
-	}
-	if (isc_sockaddr_getport(addr) == 0) {
-		return (false);
-	}
-
-	/*
-	 * Check if we match a bound wildcard port <address,port>.
-	 */
-	if (!isc_sockaddr_eqaddr(&disp->local, addr)) {
-		return (false);
-	}
-	result = isc_socket_getsockname(disp->socket, &sockaddr);
-	if (result != ISC_R_SUCCESS) {
-		return (false);
-	}
-
-	return (isc_sockaddr_equal(&sockaddr, addr));
-}
-
-/*
- * Requires mgr be locked.
- *
- * No dispatcher can be locked by this thread when calling this function.
- *
- *
- * NOTE:
- *	If a matching dispatcher is found, it is locked after this function
- *	returns, and must be unlocked by the caller.
- */
-static isc_result_t
-dispatch_find(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *local,
-	      unsigned int attributes, unsigned int mask,
-	      dns_dispatch_t **dispp) {
-	dns_dispatch_t *disp;
-	isc_result_t result;
-
-	/*
-	 * Make certain that we will not match a private or exclusive dispatch.
-	 */
-	attributes &= ~(DNS_DISPATCHATTR_PRIVATE | DNS_DISPATCHATTR_EXCLUSIVE);
-	mask |= (DNS_DISPATCHATTR_PRIVATE | DNS_DISPATCHATTR_EXCLUSIVE);
-
-	disp = ISC_LIST_HEAD(mgr->list);
-	while (disp != NULL) {
-		LOCK(&disp->lock);
-		if ((disp->shutting_down == 0) &&
-		    ATTRMATCH(disp->attributes, attributes, mask) &&
-		    local_addr_match(disp, local))
-		{
-			break;
-		}
-		UNLOCK(&disp->lock);
-		disp = ISC_LIST_NEXT(disp, link);
-	}
-
-	if (disp == NULL) {
-		result = ISC_R_NOTFOUND;
-		goto out;
-	}
-
-	*dispp = disp;
-	result = ISC_R_SUCCESS;
-out:
-
-	return (result);
-}
-
 static isc_result_t
 qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 	     unsigned int increment, dns_qid_t **qidp, bool needsocktable) {
@@ -2450,13 +2355,12 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 }
 
 isc_result_t
-dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-			isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-			unsigned int buffersize, unsigned int maxbuffers,
-			unsigned int maxrequests, unsigned int buckets,
-			unsigned int increment, unsigned int attributes,
-			unsigned int mask, dns_dispatch_t **dispp,
-			dns_dispatch_t *dup_dispatch) {
+dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
+		    isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
+		    unsigned int buffersize, unsigned int maxbuffers,
+		    unsigned int maxrequests, unsigned int buckets,
+		    unsigned int increment, unsigned int attributes,
+		    dns_dispatch_t **dispp) {
 	isc_result_t result;
 	dns_dispatch_t *disp = NULL;
 
@@ -2484,46 +2388,12 @@ dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		goto createudp;
 	}
 
-	/*
-	 * See if we have a dispatcher that matches.
-	 */
-	if (dup_dispatch == NULL) {
-		result = dispatch_find(mgr, localaddr, attributes, mask, &disp);
-		if (result == ISC_R_SUCCESS) {
-			disp->refcount++;
-
-			if (disp->maxrequests < maxrequests) {
-				disp->maxrequests = maxrequests;
-			}
-
-			if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) ==
-				    0 &&
-			    (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
-			{
-				disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
-				if (disp->recv_pending != 0) {
-					isc_socket_cancel(disp->socket,
-							  disp->task[0],
-							  ISC_SOCKCANCEL_RECV);
-				}
-			}
-
-			UNLOCK(&disp->lock);
-			UNLOCK(&mgr->lock);
-
-			*dispp = disp;
-
-			return (ISC_R_SUCCESS);
-		}
-	}
-
 createudp:
 	/*
 	 * Nope, create one.
 	 */
-	result = dispatch_createudp(
-		mgr, sockmgr, taskmgr, localaddr, maxrequests, attributes,
-		&disp, dup_dispatch == NULL ? NULL : dup_dispatch->socket);
+	result = dispatch_createudp(mgr, sockmgr, taskmgr, localaddr,
+				    maxrequests, attributes, &disp, NULL);
 
 	if (result != ISC_R_SUCCESS) {
 		UNLOCK(&mgr->lock);
@@ -2534,19 +2404,6 @@ createudp:
 	*dispp = disp;
 
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-		    isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-		    unsigned int buffersize, unsigned int maxbuffers,
-		    unsigned int maxrequests, unsigned int buckets,
-		    unsigned int increment, unsigned int attributes,
-		    unsigned int mask, dns_dispatch_t **dispp) {
-	return (dns_dispatch_getudp_dup(mgr, sockmgr, taskmgr, localaddr,
-					buffersize, maxbuffers, maxrequests,
-					buckets, increment, attributes, mask,
-					dispp, NULL));
 }
 
 /*
