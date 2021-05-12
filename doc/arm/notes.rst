@@ -52,7 +52,7 @@ https://www.isc.org/download/. There you will find additional
 information about each release, source code, and pre-compiled versions
 for Microsoft Windows operating systems.
 
-.. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.17.13.rst
 .. include:: ../notes/notes-9.17.12.rst
 .. include:: ../notes/notes-9.17.11.rst
 .. include:: ../notes/notes-9.17.10.rst

@@ -1,85 +1,102 @@
 5638.	[bug]		Improvements related to network manager/task manager
 			integration:
-			- added isc_managers_create() and _destroy() functions
-			  to handle setup and teardown of netmgr, taskmgr,
-			  timermgr and socketmgr since these require a
-			  precise order of operations now.
-			- event queue processing is now quantized to prevent
+			- isc_managers_create() and isc_managers_destroy()
+			  functions were added to handle setup and teardown of
+			  netmgr, taskmgr, timermgr, and socketmgr, since these
+			  require a precise order of operations now.
+			- Event queue processing is now quantized to prevent
 			  infinite looping.
-			- the netmgr can now be paused from within a netmgr
+			- The netmgr can now be paused from within a netmgr
 			  thread.
-			- fixed deadlocks due to conflict between netmgr
-			  pause/resume and listen/stoplistening operations.
+			- Deadlocks due to a conflict between netmgr's
+			  pause/resume and listen/stoplistening operations were
+			  fixed.
 			[GL #2654]
 
 5637.	[placeholder]
 
-5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
-			only referenced once in 'named.conf'. [GL #2603]
+5636.	[bug]		named and named-checkconf did not report an error when
+			multiple zones with the "dnssec-policy" option set were
+			using the same zone file. This has been fixed.
+			[GL #2603]
 
 5635.	[bug]		Journal compaction could fail when a journal with
-			invalid transaction headers was not detected at
-			startup.  [GL #2670]
+			invalid transaction headers was not detected at startup.
+			This has been fixed. [GL #2670]
 
-5634.	[bug]		Don't roll keys when the private key file is offline.
-			[GL #2596]
+5634.	[bug]		If "dnssec-policy" was active and a private key file was
+			temporarily offline during a rekey event, named could
+			incorrectly introduce replacement keys and break a
+			signed zone. This has been fixed. [GL #2596]
 
-5633.	[doc]		Inline-signing was incorrectly described as being
-			inherited from the options / view levels and was
+5633.	[doc]		The "inline-signing" option was incorrectly described as
+			being inherited from the "options"/"view" levels and was
 			incorrectly accepted at those levels without effect.
-			This has been corrected. [GL #2536]
+			This has been fixed. [GL #2536]
 
-5632.	[func]		Add built-in dnssec-policy "insecure". This is used to
-			transition a zone from a signed state to a unsigned
-			state. [GL #2645]
+5632.	[func]		Add a new built-in KASP, "insecure", which is used to
+			transition a zone from a signed to an unsigned state.
+			The existing built-in KASP "none" should no longer be
+			used to unsign a zone. [GL #2645]
 
-5631.	[bug]		Update ZONEMD to match RFC 8976. [GL #2658]
+5631.	[protocol]	Update the implementation of the ZONEMD RR type to match
+			RFC 8976. [GL #2658]
 
-5630.	[func]		Treat DNSSEC responses with NSEC3 iterations greater
-			than 150 as insecure. [GL #2445]
+5630.	[func]		Treat DNSSEC responses containing NSEC3 records with
+			iteration counts greater than 150 as insecure.
+			[GL #2445]
 
-5629.	[func]		Reduce the supported maximum number of iterations
-			that can be configured in an NSEC3 zone to 150.
-			[GL #2642]
+5629.	[func]		Reduce the maximum supported number of NSEC3 iterations
+			that can be configured for a zone to 150. [GL #2642]
 
-5628.	[bug]		Host and nslookup could die on SERVFAIL response.
-			[GL #2564]
+5628.	[bug]		Host and nslookup could crash upon receiving a SERVFAIL
+			response. This has been fixed. [GL #2564]
 
-5627.	[bug]		RRSIG(SOA) RRsets placed anywhere else than at zone apex
-			were triggering infinite resigning loops. This has been
-			fixed. [GL #2650]
+5627.	[bug]		RRSIG(SOA) RRsets placed anywhere other than at the zone
+			apex were triggering infinite resigning loops. This has
+			been fixed. [GL #2650]
 
-5626.	[bug]		When generating new keys, check for keyid conflicts
-			between new keys too. [GL #2628]
+5626.	[bug]		When generating zone signing keys, KASP now also checks
+			for key ID conflicts among newly created keys, rather
+			than just between new and existing ones. [GL #2628]
 
-5625.	[bug]		Address deadlock between rndc addzone/delzone.
-			[GL #2626]
+5625.	[bug]		A deadlock could occur when multiple "rndc addzone",
+			"rndc delzone", and/or "rndc modzone" commands were
+			invoked simultaneously for different zones. This has
+			been fixed. [GL #2626]
 
-5624.	[func]		Remove the taskmgr dispatch threads and run the tasks
-			on top of netmgr loops. [GL #2638]
+5624.	[func]		Task manager events are now processed inside network
+			manager loops. The task manager no longer needs its own
+			set of worker threads, which improves resolver
+			performance. [GL #2638]
 
-5623.	[bug]		Prevent double xfrin_fail() call when shutting down
-			the server during ongoing transfer. [GL #2630]
+5623.	[bug]		When named was shut down during an ongoing zone
+			transfer, xfrin_fail() could incorrectly be called
+			twice. This has been fixed. [GL #2630]
 
-5622.	[cleanup]	Remove lib/samples, since export versions of libraries
-			are no longer maintained. [GL !4835]
+5622.	[cleanup]	The lib/samples/ directory has been removed, as export
+			versions of libraries are no longer maintained.
+			[GL !4835]
 
 5621.	[placeholder]
 
-5620.	[bug]		Named would overwrite a zone file unconditionally when
-			it recovered from a corrupted journal. [GL #2623]
+5620.	[bug]		If zone journal files written by BIND 9.16.11 or earlier
+			were present when BIND was upgraded, the zone file for
+			that zone could have been inadvertently rewritten with
+			the current zone contents. This caused the original zone
+			file structure (e.g. comments, $INCLUDE directives) to
+			be lost, although the zone data itself was preserved.
+			This has been fixed. [GL #2623]
 
 5619.	[protocol]	Implement draft-vandijk-dnsop-nsec-ttl, updating the
 			protocol such that NSEC(3) TTL values are set to the
-			minimum of the SOA MINIMUM value and the SOA TTL.
+			minimum of the SOA MINIMUM value or the SOA TTL.
 			[GL #2347]
 
-5618.	[bug]		When introducing change 5149, "rndc dumpdb" started
-			to print a line above a stale RRset, indicating how
-			long the data will be retained. Also, TTLs were
-			increased with 'max-stale-ttl'. This could lead to
-			nonsensical values and both issues have been fixed.
-			[GL #389] [GL #2289]
+5618.	[bug]		Change 5149 introduced some inconsistencies in the way
+			record TTLs were presented in cache dumps. These
+			inconsistencies have been eliminated. [GL #389]
+			[GL #2289]
 
 	--- 9.17.12 released ---
 
