@@ -55,14 +55,14 @@
     <itemizedlist>
       <listitem>
         <para>
-          Reduce the supported maximum number of iterations that can be
-          configured in an NSEC3 zones to 150. [GL #2642]
+          The maximum supported number of NSEC3 iterations that can be
+          configured for a zone has been reduced to 150. [GL #2642]
         </para>
       </listitem>
       <listitem>
         <para>
-	  Treat DNSSEC responses with NSEC3 iterations greater than 150 as
-	  insecure. [GL #2445]
+          DNSSEC responses containing NSEC3 records with iteration counts
+          greater than 150 are now treated as insecure. [GL #2445]
         </para>
       </listitem>
     </itemizedlist>
@@ -72,7 +72,8 @@
     <itemizedlist>
       <listitem>
         <para>
-          Update ZONEMD to match RFC 8976. [GL #2658]
+          The implementation of the ZONEMD RR type has been updated to match RFC
+          8976. [GL #2658]
         </para>
       </listitem>
     </itemizedlist>
