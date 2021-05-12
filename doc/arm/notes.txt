@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.31
+Release Notes for BIND Version 9.11.32
 
 Introduction
 
@@ -35,6 +35,19 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.32
+
+Feature Changes
+
+  • DNSSEC responses containing NSEC3 records with iteration counts
+    greater than 150 are now treated as insecure. [GL #2445]
+
+  • The maximum supported number of NSEC3 iterations that can be
+    configured for a zone has been reduced to 150. [GL #2642]
+
+  • The implementation of the ZONEMD RR type has been updated to match RFC
+    8976. [GL #2658]
 
 Notes for BIND 9.11.31
 
