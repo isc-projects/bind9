@@ -63,8 +63,9 @@ static atomic_int_fast64_t sreads = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t csends = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t creads = ATOMIC_VAR_INIT(0);
 static atomic_int_fast64_t ctimeouts = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t total_sends = ATOMIC_VAR_INIT(0);
 
-static atomic_bool was_error;
+static atomic_bool was_error = ATOMIC_VAR_INIT(false);
 
 static unsigned int workers = 0;
 
@@ -87,18 +88,16 @@ static isc_tlsctx_t *client_tlsctx = NULL;
 
 #define DOH_PATH "/dns-query"
 
-#define CHECK_RANGE_FULL(v)                                       \
-	{                                                         \
-		int __v = atomic_load(&v);                        \
-		assert_true(__v > NSENDS * NWRITES * 10 / 100);   \
-		assert_true(__v <= NSENDS * NWRITES * 110 / 100); \
+#define CHECK_RANGE_FULL(v)                                    \
+	{                                                      \
+		int __v = atomic_load(&v);                     \
+		assert_true(__v >= atomic_load(&total_sends)); \
 	}
 
-#define CHECK_RANGE_HALF(v)                                       \
-	{                                                         \
-		int __v = atomic_load(&v);                        \
-		assert_true(__v > NSENDS * NWRITES * 5 / 100);    \
-		assert_true(__v <= NSENDS * NWRITES * 110 / 100); \
+#define CHECK_RANGE_HALF(v)                                        \
+	{                                                          \
+		int __v = atomic_load(&v);                         \
+		assert_true(__v >= atomic_load(&total_sends) / 2); \
 	}
 
 /* Enable this to print values while running tests */
@@ -296,7 +295,8 @@ nm_setup(void **state) {
 	close(tcp_listen_sock);
 	tcp_listen_sock = -1;
 
-	atomic_store(&nsends, NSENDS * NWRITES);
+	atomic_store(&total_sends, NSENDS * NWRITES);
+	atomic_store(&nsends, atomic_load(&total_sends));
 
 	atomic_store(&csends, 0);
 	atomic_store(&creads, 0);
@@ -755,8 +755,9 @@ doh_recv_one(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 
-	atomic_store(&nsends, 1);
+	atomic_store(&total_sends, 1);
 
+	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -795,6 +796,7 @@ doh_recv_one(void **state) {
 	assert_null(listen_sock);
 	isc__netmgr_shutdown(connect_nm);
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
@@ -872,8 +874,9 @@ doh_recv_two(void **state) {
 	char req_url[256];
 	isc_tlsctx_t *ctx = NULL;
 
-	atomic_store(&nsends, 2);
+	atomic_store(&total_sends, 2);
 
+	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -916,6 +919,7 @@ doh_recv_two(void **state) {
 	assert_null(listen_sock);
 	isc__netmgr_shutdown(connect_nm);
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
@@ -985,6 +989,7 @@ doh_recv_send(void **state) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
@@ -1032,8 +1037,9 @@ doh_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
+	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1061,6 +1067,7 @@ doh_recv_half_send(void **state) {
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
@@ -1108,8 +1115,9 @@ doh_half_recv_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
+	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1137,6 +1145,7 @@ doh_half_recv_send(void **state) {
 
 	isc__netmgr_shutdown(connect_nm);
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
@@ -1184,8 +1193,9 @@ doh_half_recv_half_send(void **state) {
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
 
-	atomic_store(&nsends, (NSENDS * NWRITES) / 2);
+	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
+	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
 		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
@@ -1212,6 +1222,7 @@ doh_half_recv_half_send(void **state) {
 		isc_thread_join(threads[i], NULL);
 	}
 
+	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
