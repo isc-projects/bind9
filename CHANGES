@@ -34,6 +34,8 @@
 			  function.
 			[GL #2654] [GL #2638] [GL #2401]
 
+	--- 9.16.16 released ---
+
 5637.	[func]		Change the default value of the "max-ixfr-ratio" option
 			to "unlimited". [GL #2671]
 
