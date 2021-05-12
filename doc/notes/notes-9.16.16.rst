@@ -11,26 +11,6 @@
 Notes for BIND 9.16.16
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -86,16 +66,3 @@ Bug Fixes
 - When generating zone signing keys, KASP now also checks for key ID
   conflicts among newly created keys, rather than just between new and
   existing ones. :gl:`#2628`
-
-- Fix a race condition in reading and writing key files for KASP zones in
-  multiple views. :gl:`#1875`
-
-- After the networking manager was introduced to ``named`` to handle
-  incoming traffic, it was discovered that the recursive performance had been
-  degraded compared to the previous version (9.11).  This has been now fixed by
-  running internal tasks inside the networking manager worker threads, so
-  they do not compete for resources. :gl:`#2638`
-
-- Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
-  views with different ``dnssec-policy``. Using the same ``key-directory`` for
-  such zones is not allowed. :gl:`#2463`
