@@ -1180,6 +1180,15 @@ dst_key_goal(dst_key_t *key);
  *	'key' to be valid.
  */
 
+isc_result_t
+dst_key_role(dst_key_t *key, bool *ksk, bool *zsk);
+/*%<
+ * Get the key role. A key can have the KSK or the ZSK role, or both.
+ *
+ * Requires:
+ *	'key' to be valid.
+ */
+
 void
 dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
 /*%<
