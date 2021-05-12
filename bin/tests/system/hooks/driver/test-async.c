@@ -53,7 +53,6 @@
 typedef struct async_instance {
 	ns_plugin_t *module;
 	isc_mem_t *mctx;
-	isc_mempool_t *datapool;
 	isc_ht_t *ht;
 	isc_mutex_t hlock;
 	isc_log_t *lctx;
@@ -146,7 +145,6 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	*inst = (async_instance_t){ .mctx = NULL };
 	isc_mem_attach(mctx, &inst->mctx);
 
-	isc_mempool_create(mctx, sizeof(state_t), &inst->datapool);
 	CHECK(isc_ht_init(&inst->ht, mctx, 16));
 	isc_mutex_init(&inst->hlock);
 
@@ -194,9 +192,6 @@ plugin_destroy(void **instp) {
 		isc_ht_destroy(&inst->ht);
 		isc_mutex_destroy(&inst->hlock);
 	}
-	if (inst->datapool != NULL) {
-		isc_mempool_destroy(&inst->datapool);
-	}
 
 	isc_mem_putanddetach(&inst->mctx, inst, sizeof(*inst));
 	*instp = NULL;
@@ -230,7 +225,7 @@ client_state_create(const query_ctx_t *qctx, async_instance_t *inst) {
 	state_t *state = NULL;
 	isc_result_t result;
 
-	state = isc_mempool_get(inst->datapool);
+	state = isc_mem_get(inst->mctx, sizeof(*state));
 	if (state == NULL) {
 		return;
 	}
@@ -257,7 +252,7 @@ client_state_destroy(const query_ctx_t *qctx, async_instance_t *inst) {
 	UNLOCK(&inst->hlock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc_mempool_put(inst->datapool, state);
+	isc_mem_put(inst->mctx, state, sizeof(*state));
 }
 
 static ns_hookresult_t

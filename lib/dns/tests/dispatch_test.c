@@ -275,8 +275,7 @@ dispatch_getnext(void **state) {
 	isc_sockaddr_fromin(&local, &ina, 0);
 	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr, &local,
-				     512, 6, 1024, 17, 19, attrs, attrs,
-				     &dispatch);
+				     512, 6, 1024, 17, 19, attrs, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
