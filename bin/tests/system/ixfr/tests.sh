@@ -251,9 +251,22 @@ $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.4 > dig.out2.test$n || ret=1
 digcomp dig.out1.test$n dig.out2.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1.test$n || ret=1
 awk '$4 == "SOA" { if ($7 == 3) exit(0); else exit(1);}' dig.out1.test$n || ret=1
+#
+nextpart ns4/named.run > /dev/null
 # Should be incremental transfer.
 $DIG $DIGOPTS ixfr=1 test @10.53.0.4 > dig.out3.test$n || ret=1
 awk '$4 == "SOA" { soacnt++} END { if (soacnt == 6) exit(0); else exit(1);}' dig.out3.test$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check estimated IXFR size ($n)"
+ret=0
+# note IXFR delta size will be slightly bigger with version 1 transaction
+# headers as there is no correction for the overall record length storage.
+# Ver1 = 4 * (6 + 10 + 10 + 17 + 5 * 4) + 2 * (13 + 10 + 4) + (6 * 4) = 330
+# Ver2 = 4 * (6 + 10 + 10 + 17 + 5 * 4) + 2 * (13 + 10 + 4) = 306
+nextpart ns4/named.run | grep "IXFR delta size (306 bytes)" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
