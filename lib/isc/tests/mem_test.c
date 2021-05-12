@@ -82,7 +82,6 @@ isc_mem_test(void **state) {
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
-	isc_mempool_setmaxalloc(mp1, MP1_MAXALLOC);
 
 	/*
 	 * Allocate MP1_MAXALLOC items from the pool.  This is our max.
@@ -91,12 +90,6 @@ isc_mem_test(void **state) {
 		items1[i] = isc_mempool_get(mp1);
 		assert_non_null(items1[i]);
 	}
-
-	/*
-	 * Try to allocate one more.  This should fail.
-	 */
-	tmp = isc_mempool_get(mp1);
-	assert_null(tmp);
 
 	/*
 	 * Free the first 11 items.  Verify that there are 10 free items on

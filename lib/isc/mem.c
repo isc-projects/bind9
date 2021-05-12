@@ -154,7 +154,6 @@ struct isc_mempool {
 	ISC_LINK(isc_mempool_t) link; /*%< next pool in this mem context */
 	element *items;		      /*%< low water item list */
 	size_t size;		      /*%< size of each item on this pool */
-	atomic_size_t maxalloc;	      /*%< max number of items allowed */
 	atomic_size_t allocated;      /*%< # of items currently given out */
 	atomic_size_t freecount;      /*%< # of items on reserved list */
 	atomic_size_t freemax;	      /*%< # of items allowed on free list */
@@ -805,15 +804,14 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	pool = ISC_LIST_HEAD(ctx->pools);
 	if (pool != NULL) {
 		fprintf(out, "[Pool statistics]\n");
-		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",
-			"name", "size", "maxalloc", "allocated", "freecount",
-			"freemax", "fillcount", "gets", "L");
+		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %1s\n", "name",
+			"size", "allocated", "freecount", "freemax",
+			"fillcount", "gets", "L");
 	}
 	while (pool != NULL) {
 		fprintf(out,
 			"%15s %10zu %10zu %10zu %10zu %10zu %10zu %10zu %s\n",
-			pool->name, pool->size,
-			atomic_load_relaxed(&pool->maxalloc),
+			pool->name, pool->size, (size_t)0,
 			atomic_load_relaxed(&pool->allocated),
 			atomic_load_relaxed(&pool->freecount),
 			atomic_load_relaxed(&pool->freemax),
@@ -1109,7 +1107,6 @@ isc__mempool_create(isc_mem_t *mctx, size_t size,
 		.size = size,
 	};
 
-	atomic_init(&mpctx->maxalloc, SIZE_MAX);
 	atomic_init(&mpctx->allocated, 0);
 	atomic_init(&mpctx->freecount, 0);
 	atomic_init(&mpctx->freemax, 1);
@@ -1199,17 +1196,7 @@ void *
 isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	allocated = atomic_fetch_add_release(&mpctx->allocated, 1);
-	maxalloc = atomic_load_acquire(&mpctx->maxalloc);
-
-	/*
-	 * Don't let the caller go over quota.
-	 */
-	if (ISC_UNLIKELY(allocated >= maxalloc)) {
-		atomic_fetch_sub_release(&mpctx->allocated, 1);
-		return (NULL);
-	}
-
+	(void)atomic_fetch_add_relaxed(&mpctx->allocated, 1);
 	atomic_fetch_add_relaxed(&mpctx->gets, 1);
 
 	return (isc__mem_get(mpctx->mctx, mpctx->size FLARG_PASS));
@@ -1220,8 +1207,7 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mem != NULL);
 
-	INSIST(atomic_fetch_sub_release(&mpctx->allocated, 1) > 0);
-
+	atomic_fetch_sub_relaxed(&mpctx->allocated, 1);
 	isc__mem_put(mpctx->mctx, mem, mpctx->size FLARG_PASS);
 }
 
@@ -1234,16 +1220,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	allocated = atomic_fetch_add_release(&mpctx->allocated, 1);
-	maxalloc = atomic_load_acquire(&mpctx->maxalloc);
-
-	/*
-	 * Don't let the caller go over quota
-	 */
-	if (ISC_UNLIKELY(allocated >= maxalloc)) {
-		atomic_fetch_sub_release(&mpctx->allocated, 1);
-		return (NULL);
-	}
+	(void)atomic_fetch_add_release(&mpctx->allocated, 1);
 
 	if (ISC_UNLIKELY(mpctx->items == NULL)) {
 		isc_mem_t *mctx = mpctx->mctx;
@@ -1331,21 +1308,6 @@ isc_mempool_getfreecount(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	return (atomic_load_relaxed(&mpctx->freecount));
-}
-
-void
-isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-	REQUIRE(limit > 0);
-
-	atomic_store_release(&mpctx->maxalloc, limit);
-}
-
-unsigned int
-isc_mempool_getmaxalloc(isc_mempool_t *mpctx) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-
-	return (atomic_load_relaxed(&mpctx->maxalloc));
 }
 
 unsigned int

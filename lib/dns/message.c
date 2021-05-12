@@ -1076,10 +1076,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			goto cleanup;
 		}
 		rdataset = isc_mempool_get(msg->rdspool);
-		if (rdataset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 
 		/*
 		 * Convert rdatalist to rdataset, and attach the latter to
@@ -1516,10 +1512,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 		if (result == ISC_R_NOTFOUND) {
 			rdataset = isc_mempool_get(msg->rdspool);
-			if (rdataset == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			free_rdataset = true;
 
 			rdatalist = newrdatalist(msg);
@@ -2558,9 +2550,6 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = isc_mempool_get(msg->rdspool);
-	if (*item == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	dns_rdataset_init(*item);
 	return (ISC_R_SUCCESS);
