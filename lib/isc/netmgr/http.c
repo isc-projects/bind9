@@ -49,7 +49,7 @@
 #define MAX_ALLOWED_DATA_IN_POST \
 	(MAX_DNS_MESSAGE_SIZE + MAX_DNS_MESSAGE_SIZE / 2)
 
-#define MAX_STREAMS_PER_SESSION (NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+#define MAX_STREAMS_PER_SESSION (100)
 
 #define HEADER_MATCH(header, name, namelen)   \
 	(((namelen) == sizeof(header) - 1) && \
