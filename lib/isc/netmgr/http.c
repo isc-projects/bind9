@@ -562,10 +562,6 @@ on_server_stream_close_callback(int32_t stream_id,
 	int rv = 0;
 
 	ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
-	if (ISC_LIST_EMPTY(session->sstreams)) {
-		rv = nghttp2_session_terminate_session(session->ngsession,
-						       NGHTTP2_NO_ERROR);
-	}
 	session->nsstreams--;
 	isc__nmsocket_detach(&sock);
 	return (rv);
