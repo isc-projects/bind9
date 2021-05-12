@@ -55,14 +55,20 @@
     <itemizedlist>
       <listitem>
         <para>
+          DNSSEC responses containing NSEC3 records with iteration counts
+          greater than 150 are now treated as insecure. [GL #2445]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           The maximum supported number of NSEC3 iterations that can be
           configured for a zone has been reduced to 150. [GL #2642]
         </para>
       </listitem>
       <listitem>
         <para>
-          DNSSEC responses containing NSEC3 records with iteration counts
-          greater than 150 are now treated as insecure. [GL #2445]
+          The implementation of the ZONEMD RR type has been updated to match RFC
+          8976. [GL #2658]
         </para>
       </listitem>
     </itemizedlist>
@@ -72,8 +78,7 @@
     <itemizedlist>
       <listitem>
         <para>
-          The implementation of the ZONEMD RR type has been updated to match RFC
-          8976. [GL #2658]
+          None.
         </para>
       </listitem>
     </itemizedlist>
