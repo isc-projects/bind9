@@ -1,53 +1,66 @@
-5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
-			only referenced once in 'named.conf'. [GL #2603]
+5637.	[func]		Change the default value of the "max-ixfr-ratio" option
+			to "unlimited". [GL #2671]
+
+5636.	[bug]		named and named-checkconf did not report an error when
+			multiple zones with the "dnssec-policy" option set were
+			using the same zone file. This has been fixed.
+			[GL #2603]
 
 5635.	[bug]		Journal compaction could fail when a journal with
-			invalid transaction headers was not detected at
-			startup.  [GL #2670]
+			invalid transaction headers was not detected at startup.
+			This has been fixed. [GL #2670]
 
-5634.	[bug]		Don't roll keys when the private key file is offline.
-			[GL #2596]
+5634.	[bug]		If "dnssec-policy" was active and a private key file was
+			temporarily offline during a rekey event, named could
+			incorrectly introduce replacement keys and break a
+			signed zone. This has been fixed. [GL #2596]
 
-5633.	[func]		Change the "max-ixfr-ratio" default to "unlimited".
-			[GL #2671]
+5633.	[doc]		The "inline-signing" option was incorrectly described as
+			being inherited from the "options"/"view" levels and was
+			incorrectly accepted at those levels without effect.
+			This has been fixed. [GL #2536]
 
-5632.	[func]		Add built-in dnssec-policy "insecure". This is used to
-			transition a zone from a signed state to a unsigned
-			state. [GL #2645]
+5632.	[func]		Add a new built-in KASP, "insecure", which is used to
+			transition a zone from a signed to an unsigned state.
+			The existing built-in KASP "none" should no longer be
+			used to unsign a zone. [GL #2645]
 
-5631.	[bug]		Update ZONEMD to match RFC 8976. [GL #2658]
+5631.	[protocol]	Update the implementation of the ZONEMD RR type to match
+			RFC 8976. [GL #2658]
 
-5630.	[func]		Treat DNSSEC responses with NSEC3 iterations greater
-			than 150 as insecure. [GL #2445]
+5630.	[func]		Treat DNSSEC responses containing NSEC3 records with
+			iteration counts greater than 150 as insecure.
+			[GL #2445]
 
-5629.	[func]		Reduce the supported maximum number of iterations
-			that can be configured in an NSEC3 zone to 150.
-			[GL #2642]
+5629.	[func]		Reduce the maximum supported number of NSEC3 iterations
+			that can be configured for a zone to 150. [GL #2642]
 
-5627.	[bug]		RRSIG(SOA) RRsets placed anywhere else than at zone apex
-			were triggering infinite resigning loops. This has been
-			fixed. [GL #2650]
+5627.	[bug]		RRSIG(SOA) RRsets placed anywhere other than at the zone
+			apex were triggering infinite resigning loops. This has
+			been fixed. [GL #2650]
 
-5626.	[bug]		When generating new keys, check for keyid conflicts
-			between new keys too. [GL #2628]
+5626.	[bug]		When generating zone signing keys, KASP now also checks
+			for key ID conflicts among newly created keys, rather
+			than just between new and existing ones. [GL #2628]
 
-5625.	[bug]		Address deadlock between rndc addzone/delzone.
-			[GL #2626]
+5625.	[bug]		A deadlock could occur when multiple "rndc addzone",
+			"rndc delzone", and/or "rndc modzone" commands were
+			invoked simultaneously for different zones. This has
+			been fixed. [GL #2626]
 
-5622.	[cleanup]	Remove lib/samples, since export versions of libraries
-			are no longer maintained. [GL !4835]
+5622.	[cleanup]	The lib/samples/ directory has been removed, as export
+			versions of libraries are no longer maintained.
+			[GL !4835]
 
 5619.	[protocol]	Implement draft-vandijk-dnsop-nsec-ttl, updating the
 			protocol such that NSEC(3) TTL values are set to the
-			minimum of the SOA MINIMUM value and the SOA TTL.
+			minimum of the SOA MINIMUM value or the SOA TTL.
 			[GL #2347]
 
-5618.	[bug]		When introducing change 5149, "rndc dumpdb" started
-			to print a line above a stale RRset, indicating how
-			long the data will be retained. Also, TTLs were
-			increased with 'max-stale-ttl'. This could lead to
-			nonsensical values and both issues have been fixed.
-			[GL #389] [GL #2289]
+5618.	[bug]		Change 5149 introduced some inconsistencies in the way
+			record TTLs were presented in cache dumps. These
+			inconsistencies have been eliminated. [GL #389]
+			[GL #2289]
 
 	--- 9.16.15 released ---
 
