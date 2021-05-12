@@ -70,6 +70,10 @@ Bug Fixes
   ``stale-cache-enable`` was set to ``yes``. This has been fixed.
   :gl:`#389` :gl:`#2289`
 
+- A deadlock could occur when multiple ``rndc addzone``, ``rndc
+  delzone``, and/or ``rndc modzone`` commands were invoked
+  simultaneously for different zones. This has been fixed. :gl:`#2626`
+
 - ``named`` and ``named-checkconf`` did not report an error when
   multiple zones with the ``dnssec-policy`` option set were using the
   same zone file. This has been fixed. :gl:`#2603`
