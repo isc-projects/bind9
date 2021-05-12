@@ -2205,6 +2205,7 @@ isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httplistener);
+	REQUIRE(uri != NULL && *uri != '\0');
 
 	httpcbarg = isc_mem_get(sock->mgr->mctx, sizeof(isc_nm_httpcbarg_t));
 	*httpcbarg = (isc_nm_httpcbarg_t){ .cb = cb, .cbarg = cbarg };
