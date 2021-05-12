@@ -382,8 +382,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					  send_data->uvbuf.base,
 					  send_data->uvbuf.len, &len);
 			if (rv != 1 || len != send_data->uvbuf.len) {
-				result = received_shutdown ? ISC_R_CANCELED
-							   : ISC_R_TLSERROR;
+				result = received_shutdown || sent_shutdown
+						 ? ISC_R_CANCELED
+						 : ISC_R_TLSERROR;
 				send_data->cb.send(send_data->handle, result,
 						   send_data->cbarg);
 				send_data = NULL;
@@ -396,9 +397,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				 * connection and called isc_tls_send(). The
 				 * socket will be detached there, in
 				 * tls_senddone().*/
-				if (sent_shutdown && received_shutdown) {
+				if (sent_shutdown || received_shutdown) {
 					return;
-				} else if (!received_shutdown) {
+				} else {
 					isc__nmsocket_detach(&sock);
 					return;
 				}
