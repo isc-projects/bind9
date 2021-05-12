@@ -1,3 +1,5 @@
+	--- 9.17.13 released ---
+
 5638.	[bug]		Improvements related to network manager/task manager
 			integration:
 			- isc_managers_create() and isc_managers_destroy()
