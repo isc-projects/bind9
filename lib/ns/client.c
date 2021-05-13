@@ -112,21 +112,6 @@
 #define NS_CLIENT_DROPPORT 1
 #endif /* ifndef NS_CLIENT_DROPPORT */
 
-#define CLIENT_NMCTXS_PERCPU 8
-/*%<
- * Number of 'mctx pools' for clients. (Should this be configurable?)
- * When enabling threads, we use a pool of memory contexts shared by
- * client objects, since concurrent access to a shared context would cause
- * heavy contentions.  The above constant is expected to be enough for
- * completely avoiding contentions among threads for an authoritative-only
- * server.
- */
-
-#define CLIENT_NTASKS_PERCPU 32
-/*%<
- * Number of tasks to be used by clients - those are used only when recursing
- */
-
 #if defined(_WIN32) && !defined(_WIN64)
 LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests;
 #else  /* if defined(_WIN32) && !defined(_WIN64) */
@@ -2243,9 +2228,7 @@ get_clienttask(ns_clientmgr_t *manager, isc_task_t **taskp) {
 		tid = isc_random_uniform(manager->ncpus);
 	}
 
-	int rand = isc_random_uniform(CLIENT_NTASKS_PERCPU);
-	int nexttask = (rand * manager->ncpus) + tid;
-	isc_task_attach(manager->taskpool[nexttask], taskp);
+	isc_task_attach(manager->taskpool[tid], taskp);
 }
 
 isc_result_t
@@ -2412,14 +2395,13 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 		isc_task_detach(&manager->excl);
 	}
 
-	for (i = 0; i < manager->ncpus * CLIENT_NTASKS_PERCPU; i++) {
+	for (i = 0; i < manager->ncpus; i++) {
 		if (manager->taskpool[i] != NULL) {
 			isc_task_detach(&manager->taskpool[i]);
 		}
 	}
 	isc_mem_put(manager->mctx, manager->taskpool,
-		    manager->ncpus * CLIENT_NTASKS_PERCPU *
-			    sizeof(isc_task_t *));
+		    manager->ncpus * sizeof(isc_task_t *));
 	ns_server_detach(&manager->sctx);
 
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
@@ -2453,13 +2435,12 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	ns_interface_attach(interface, &manager->interface);
 
 	manager->exiting = false;
-	int ntasks = CLIENT_NTASKS_PERCPU * manager->ncpus;
-	manager->taskpool = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-	for (i = 0; i < ntasks; i++) {
+	manager->taskpool = isc_mem_get(mctx,
+					manager->ncpus * sizeof(isc_task_t *));
+	for (i = 0; i < manager->ncpus; i++) {
 		manager->taskpool[i] = NULL;
 		result = isc_task_create_bound(manager->taskmgr, 20,
-					       &manager->taskpool[i],
-					       i % CLIENT_NTASKS_PERCPU);
+					       &manager->taskpool[i], i);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	isc_refcount_init(&manager->references, 1);
