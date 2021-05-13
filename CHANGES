@@ -1,6 +1,26 @@
 5639.	[bug]		Check that the first and last SOA record of an AXFR
 			are consistent. [GL #2528]
 
+5638.	[bug]		Refactoring, performance and stability improvements
+			related to the network manager and task manager. This
+			rolls up several recent changes from the main branch:
+			- isc_task events now run within netmgr event loops.
+			- add isc_managers_create() and _destroy() functions
+			  to handle setup and teardown of netmgr and taskmgr,
+			  since these now require a precise order of
+			  operations.
+			- event queue processing is now quantized to prevent
+			  infinite looping.
+			- the netmgr can now be paused from within a netmgr
+			  thread.
+			- fixed deadlocks due to conflict between netmgr
+			  pause/resume and listen/stoplistening operations.
+			- allow recovery from read and connect timeout events
+			- ensure that calls to isc_nm_*connect() always
+			  return the connection status via a callback
+			  function.
+			[GL #2654] [GL #2638] [GL #2401]
+
 5636.	[bug]		Check that zone files for 'dnssec-policy' zones are
 			only referenced once in 'named.conf'. [GL #2603]
 
