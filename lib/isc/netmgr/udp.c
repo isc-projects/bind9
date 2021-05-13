@@ -481,12 +481,17 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 */
 		INSIST(sock->parent != NULL);
 
+#if defined(WIN32)
+		/* On Windows, we have only a single listening listener */
+		rsock = sock;
+#else
 		if (isc__nm_in_netthread()) {
 			ntid = isc_nm_tid();
 		} else {
 			ntid = sock->tid;
 		}
 		rsock = &sock->parent->children[ntid];
+#endif
 	}
 
 send:
