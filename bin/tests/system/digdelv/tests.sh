@@ -664,7 +664,8 @@ ret=0
   echo_i "check that dig +bufsize=0 +edns sends EDNS with bufsize of 0 ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 a.example +bufsize=0 +edns +qr > dig.out.test$n 2>&1 || ret=1
-  grep -E 'EDNS:.* udp: 0\r{0,1}$' dig.out.test$n > /dev/null|| ret=1
+  pat='EDNS:.* udp: 0$'
+  tr -d '\r' < dig.out.test$n | grep -E "$pat" > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
