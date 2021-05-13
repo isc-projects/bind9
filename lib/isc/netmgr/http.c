@@ -49,7 +49,7 @@
 #define MAX_ALLOWED_DATA_IN_POST \
 	(MAX_DNS_MESSAGE_SIZE + MAX_DNS_MESSAGE_SIZE / 2)
 
-#define MAX_STREAMS_PER_SESSION (NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+#define MAX_STREAMS_PER_SESSION (100)
 
 #define HEADER_MATCH(header, name, namelen)   \
 	(((namelen) == sizeof(header) - 1) && \
@@ -562,10 +562,6 @@ on_server_stream_close_callback(int32_t stream_id,
 	int rv = 0;
 
 	ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
-	if (ISC_LIST_EMPTY(session->sstreams)) {
-		rv = nghttp2_session_terminate_session(session->ngsession,
-						       NGHTTP2_NO_ERROR);
-	}
 	session->nsstreams--;
 	isc__nmsocket_detach(&sock);
 	return (rv);
@@ -2209,6 +2205,7 @@ isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httplistener);
+	REQUIRE(uri != NULL && *uri != '\0');
 
 	httpcbarg = isc_mem_get(sock->mgr->mctx, sizeof(isc_nm_httpcbarg_t));
 	*httpcbarg = (isc_nm_httpcbarg_t){ .cb = cb, .cbarg = cbarg };
