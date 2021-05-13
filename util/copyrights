@@ -1173,6 +1173,7 @@
 ./bin/tests/system/xfer/ans5/badmessageid	X	2020,2021
 ./bin/tests/system/xfer/ans5/goodaxfr		X	2011,2018,2019,2020,2021
 ./bin/tests/system/xfer/ans5/partial		X	2011,2018,2019,2020,2021
+./bin/tests/system/xfer/ans5/soamismatch	X	2021
 ./bin/tests/system/xfer/ans5/unknownkey		X	2011,2018,2019,2020,2021
 ./bin/tests/system/xfer/ans5/unsigned		X	2011,2018,2019,2020,2021
 ./bin/tests/system/xfer/ans5/wrongkey		X	2011,2018,2019,2020,2021
