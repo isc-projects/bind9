@@ -337,7 +337,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\task.h" />
     <ClInclude Include="..\include\isc\taskpool.h" />
     <ClInclude Include="..\include\isc\timer.h" />
-    <ClInclude Include="..\include\isc\tls.h" />
     <ClInclude Include="..\include\isc\tm.h" />
     <ClInclude Include="..\include\isc\types.h" />
     <ClInclude Include="..\include\isc\utf8.h" />
@@ -415,15 +414,12 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\mem.c" />
     <ClCompile Include="..\mutexblock.c" />
     <ClCompile Include="..\netaddr.c" />
-    <ClCompile Include="..\netmgr\http.c" />
     <ClCompile Include="..\netmgr\netmgr.c" />
     <ClCompile Include="..\netmgr\tcp.c" />
     <ClCompile Include="..\netmgr\udp.c" />
     <ClCompile Include="..\netmgr\uverr2result.c" />
     <ClCompile Include="..\netmgr\uv-compat.c" />
     <ClCompile Include="..\netmgr\tcpdns.c" />
-    <ClCompile Include="..\netmgr\tlsdns.c" />
-    <ClCompile Include="..\netmgr\tlsstream.c" />
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nonce.c" />
     <ClCompile Include="..\openssl_shim.c" />

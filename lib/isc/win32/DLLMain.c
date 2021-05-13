@@ -13,7 +13,6 @@
 #include <windows.h>
 
 #include <isc/mem.h>
-#include <isc/tls.h>
 #include <isc/util.h>
 
 #include "lib_p.h"

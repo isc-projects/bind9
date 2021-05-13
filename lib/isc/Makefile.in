@@ -55,8 +55,7 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		managers.@O@ md.@O@ mem.@O@ mutexblock.@O@ \
 		netmgr/netmgr.@O@ netmgr/tcp.@O@ netmgr/udp.@O@ \
-		netmgr/tcpdns.@O@ netmgr/tlsdns.@O@ \
-		netmgr/tlsstream.@O@ netmgr/http.@O@ \
+		netmgr/tcpdns.@O@ \
 		netmgr/uverr2result.@O@ netmgr/uv-compat.@O@ \
 		netaddr.@O@ netscope.@O@ nonce.@O@ openssl_shim.@O@ pool.@O@ \
 		parseint.@O@ portset.@O@ queue.@O@ quota.@O@ \

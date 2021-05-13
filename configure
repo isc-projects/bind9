@@ -752,8 +752,6 @@ NO_LIBTOOL_DNSLIBS
 NO_LIBTOOL_ISCLIBS
 INSTALL_LIBRARY
 ALWAYS_DEFINES
-LIBNGHTTP2_LIBS
-LIBNGHTTP2_CFLAGS
 LIBUV_LIBS
 LIBUV_CFLAGS
 PTHREAD_CFLAGS
@@ -975,8 +973,6 @@ MAXMINDDB_LIBS
 MAXMINDDB_PREFIX
 LIBUV_CFLAGS
 LIBUV_LIBS
-LIBNGHTTP2_CFLAGS
-LIBNGHTTP2_LIBS
 OPENSSL_CFLAGS
 OPENSSL_LIBS
 LIBXML2_CFLAGS
@@ -1750,10 +1746,6 @@ Some influential environment variables:
   LIBUV_CFLAGS
               C compiler flags for LIBUV, overriding pkg-config
   LIBUV_LIBS  linker flags for LIBUV, overriding pkg-config
-  LIBNGHTTP2_CFLAGS
-              C compiler flags for LIBNGHTTP2, overriding pkg-config
-  LIBNGHTTP2_LIBS
-              linker flags for LIBNGHTTP2, overriding pkg-config
   OPENSSL_CFLAGS
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
@@ -5427,7 +5419,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -5789,7 +5781,7 @@ esac
 fi
 
 : ${AR=ar}
-: ${AR_FLAGS=cru}
+: ${AR_FLAGS=cr}
 
 
 
@@ -6332,11 +6324,8 @@ _LT_EOF
   test $ac_status = 0; }; then
     # Now try to grab the symbols.
     nlist=conftest.nm
-    if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist\""; } >&5
-  (eval $NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && test -s "$nlist"; then
+    $ECHO "$as_me:$LINENO: $NM conftest.$ac_objext | $lt_cv_sys_global_symbol_pipe > $nlist" >&5
+    if eval "$NM" conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist 2>&5 && test -s "$nlist"; then
       # Try sorting and uniquifying the output.
       if sort "$nlist" | uniq > "$nlist"T; then
 	mv -f "$nlist"T "$nlist"
@@ -7555,8 +7544,8 @@ int forced_loaded() { return 2;}
 _LT_EOF
       echo "$LTCC $LTCFLAGS -c -o conftest.o conftest.c" >&5
       $LTCC $LTCFLAGS -c -o conftest.o conftest.c 2>&5
-      echo "$AR cru libconftest.a conftest.o" >&5
-      $AR cru libconftest.a conftest.o 2>&5
+      echo "$AR cr libconftest.a conftest.o" >&5
+      $AR cr libconftest.a conftest.o 2>&5
       echo "$RANLIB libconftest.a" >&5
       $RANLIB libconftest.a 2>&5
       cat > conftest.c << _LT_EOF
@@ -7583,11 +7572,16 @@ $as_echo "$lt_cv_ld_force_load" >&6; }
       _lt_dar_allow_undefined='$wl-undefined ${wl}suppress' ;;
     darwin1.*)
       _lt_dar_allow_undefined='$wl-flat_namespace $wl-undefined ${wl}suppress' ;;
-    darwin*)
-      case ${MACOSX_DEPLOYMENT_TARGET},$host in
-	10.[012],*|,*powerpc*)
+    darwin*) # darwin 5.x on
+      # if running on 10.5 or later, the deployment target defaults
+      # to the OS version, if on x86, and 10.4, the deployment
+      # target defaults to 10.4. Don't you love it?
+      case ${MACOSX_DEPLOYMENT_TARGET-10.0},$host in
+	10.0,*86*-darwin8*|10.0,*-darwin[912]*)
+	  _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup' ;;
+	10.[012][,.]*)
 	  _lt_dar_allow_undefined='$wl-flat_namespace $wl-undefined ${wl}suppress' ;;
-	*)
+	10.*|11.*)
 	  _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup' ;;
       esac
     ;;
@@ -8413,6 +8407,12 @@ lt_prog_compiler_static=
 	lt_prog_compiler_pic='-KPIC'
 	lt_prog_compiler_static='-static'
         ;;
+      # flang / f18. f95 an alias for gfortran or flang on Debian
+      flang* | f18* | f95*)
+	lt_prog_compiler_wl='-Wl,'
+	lt_prog_compiler_pic='-fPIC'
+	lt_prog_compiler_static='-static'
+        ;;
       # icc used to be incompatible with GCC.
       # ICC 10 doesn't accept -KPIC any more.
       icc* | ifort*)
@@ -8889,6 +8889,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -9143,7 +9146,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -9813,6 +9816,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs=no
       else
 	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -9834,7 +9838,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -10947,6 +10951,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -16240,154 +16256,6 @@ done
 
 
 
-
-# libnghttp2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnghttp2" >&5
-$as_echo_n "checking for libnghttp2... " >&6; }
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnghttp2 >= 1.6.0" >&5
-$as_echo_n "checking for libnghttp2 >= 1.6.0... " >&6; }
-
-if test -n "$LIBNGHTTP2_CFLAGS"; then
-    pkg_cv_LIBNGHTTP2_CFLAGS="$LIBNGHTTP2_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnghttp2 >= 1.6.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libnghttp2 >= 1.6.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_LIBNGHTTP2_CFLAGS=`$PKG_CONFIG --cflags "libnghttp2 >= 1.6.0" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$LIBNGHTTP2_LIBS"; then
-    pkg_cv_LIBNGHTTP2_LIBS="$LIBNGHTTP2_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnghttp2 >= 1.6.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libnghttp2 >= 1.6.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_LIBNGHTTP2_LIBS=`$PKG_CONFIG --libs "libnghttp2 >= 1.6.0" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        LIBNGHTTP2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libnghttp2 >= 1.6.0" 2>&1`
-        else
-	        LIBNGHTTP2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libnghttp2 >= 1.6.0" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBNGHTTP2_PKG_ERRORS" >&5
-
-	as_fn_error $? "libnghttp2 not found" "$LINENO" 5
-elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	as_fn_error $? "libnghttp2 not found" "$LINENO" 5
-else
-	LIBNGHTTP2_CFLAGS=$pkg_cv_LIBNGHTTP2_CFLAGS
-	LIBNGHTTP2_LIBS=$pkg_cv_LIBNGHTTP2_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-fi
-
-
-  CCASFLAGS_libnghttp2_ax_save_flags=$CCASFLAGS
-
-
-
-  CFLAGS_libnghttp2_ax_save_flags=$CFLAGS
-
-
-
-  CPPFLAGS_libnghttp2_ax_save_flags=$CPPFLAGS
-
-
-
-  CXXFLAGS_libnghttp2_ax_save_flags=$CXXFLAGS
-
-
-
-  ERLCFLAGS_libnghttp2_ax_save_flags=$ERLCFLAGS
-
-
-
-  FCFLAGS_libnghttp2_ax_save_flags=$FCFLAGS
-
-
-
-  FCLIBS_libnghttp2_ax_save_flags=$FCLIBS
-
-
-
-  FFLAGS_libnghttp2_ax_save_flags=$FFLAGS
-
-
-
-  FLIBS_libnghttp2_ax_save_flags=$FLIBS
-
-
-
-  GCJFLAGS_libnghttp2_ax_save_flags=$GCJFLAGS
-
-
-
-  JAVACFLAGS_libnghttp2_ax_save_flags=$JAVACFLAGS
-
-
-
-  LDFLAGS_libnghttp2_ax_save_flags=$LDFLAGS
-
-
-
-  LIBS_libnghttp2_ax_save_flags=$LIBS
-
-
-
-  OBJCFLAGS_libnghttp2_ax_save_flags=$OBJCFLAGS
-
-
-
-  OBJCXXFLAGS_libnghttp2_ax_save_flags=$OBJCXXFLAGS
-
-
-
-  UPCFLAGS_libnghttp2_ax_save_flags=$UPCFLAGS
-
-
-
-  VALAFLAGS_libnghttp2_ax_save_flags=$VALAFLAGS
-
-
-
-
-CFLAGS="$CFLAGS $LIBNGHTTP2_CFLAGS"
-LIBS="$LIBS $LIBNGHTTP2_LIBS"
 
 #
 # flockfile is usually provided by pthreads
@@ -25885,7 +25753,6 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.

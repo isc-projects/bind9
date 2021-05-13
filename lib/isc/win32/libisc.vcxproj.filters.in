@@ -263,9 +263,6 @@
     <ClInclude Include="..\include\isc\timer.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\tls.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\tm.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -566,9 +563,6 @@
     <ClCompile Include="..\netaddr.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\netmgr\http.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\netmgr\netmgr.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -585,12 +579,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\netmgr\tcpdns.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\netmgr\tlsdns.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\netmgr\tlsstream.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\netscope.c">

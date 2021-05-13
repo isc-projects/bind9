@@ -36,7 +36,6 @@
 #include <isc/strerr.h>
 #include <isc/task.h>
 #include <isc/thread.h>
-#include <isc/tls.h>
 #include <isc/util.h>
 
 #include "netmgr-int.h"
@@ -944,27 +943,6 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tcpdnsread);
 		NETIEVENT_CASE(tcpdnsstop);
 
-		NETIEVENT_CASE(tlsstartread);
-		NETIEVENT_CASE(tlssend);
-		NETIEVENT_CASE(tlsclose);
-		NETIEVENT_CASE(tlsdobio);
-		NETIEVENT_CASE(tlscancel);
-
-		NETIEVENT_CASE(tlsdnscycle);
-		NETIEVENT_CASE(tlsdnsaccept);
-		NETIEVENT_CASE(tlsdnslisten);
-		NETIEVENT_CASE(tlsdnsconnect);
-		NETIEVENT_CASE(tlsdnssend);
-		NETIEVENT_CASE(tlsdnscancel);
-		NETIEVENT_CASE(tlsdnsclose);
-		NETIEVENT_CASE(tlsdnsread);
-		NETIEVENT_CASE(tlsdnsstop);
-		NETIEVENT_CASE(tlsdnsshutdown);
-
-		NETIEVENT_CASE(httpstop);
-		NETIEVENT_CASE(httpsend);
-		NETIEVENT_CASE(httpclose);
-
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
 		NETIEVENT_CASE(sendcb);
@@ -1024,11 +1002,6 @@ NETIEVENT_SOCKET_DEF(tcplisten);
 NETIEVENT_SOCKET_DEF(tcppauseread);
 NETIEVENT_SOCKET_DEF(tcpstartread);
 NETIEVENT_SOCKET_DEF(tcpstop);
-NETIEVENT_SOCKET_DEF(tlsclose);
-NETIEVENT_SOCKET_DEF(tlsconnect);
-NETIEVENT_SOCKET_DEF(tlsdobio);
-NETIEVENT_SOCKET_DEF(tlsstartread);
-NETIEVENT_SOCKET_HANDLE_DEF(tlscancel);
 NETIEVENT_SOCKET_DEF(udpclose);
 NETIEVENT_SOCKET_DEF(udplisten);
 NETIEVENT_SOCKET_DEF(udpread);
@@ -1044,24 +1017,8 @@ NETIEVENT_SOCKET_REQ_DEF(tcpdnssend);
 NETIEVENT_SOCKET_HANDLE_DEF(tcpdnscancel);
 NETIEVENT_SOCKET_QUOTA_DEF(tcpdnsaccept);
 
-NETIEVENT_SOCKET_DEF(tlsdnsclose);
-NETIEVENT_SOCKET_DEF(tlsdnsread);
-NETIEVENT_SOCKET_DEF(tlsdnsstop);
-NETIEVENT_SOCKET_DEF(tlsdnslisten);
-NETIEVENT_SOCKET_REQ_DEF(tlsdnsconnect);
-NETIEVENT_SOCKET_REQ_DEF(tlsdnssend);
-NETIEVENT_SOCKET_HANDLE_DEF(tlsdnscancel);
-NETIEVENT_SOCKET_QUOTA_DEF(tlsdnsaccept);
-NETIEVENT_SOCKET_DEF(tlsdnscycle);
-NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
-
-NETIEVENT_SOCKET_DEF(httpstop);
-NETIEVENT_SOCKET_REQ_DEF(httpsend);
-NETIEVENT_SOCKET_DEF(httpclose);
-
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
 NETIEVENT_SOCKET_REQ_DEF(tcpsend);
-NETIEVENT_SOCKET_REQ_DEF(tlssend);
 NETIEVENT_SOCKET_REQ_DEF(udpconnect);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(readcb);
@@ -1249,8 +1206,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
 	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
-	isc__nm_tls_cleanup_data(sock);
-	isc__nm_http_cleanup_data(sock);
 #ifdef NETMGR_TRACE
 	LOCK(&sock->mgr->lock);
 	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
@@ -1363,15 +1318,6 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tcpdnssocket:
 			isc__nm_tcpdns_close(sock);
 			return;
-		case isc_nm_tlssocket:
-			isc__nm_tls_close(sock);
-			break;
-		case isc_nm_tlsdnssocket:
-			isc__nm_tlsdns_close(sock);
-			return;
-		case isc_nm_httpsocket:
-			isc__nm_http_close(sock);
-			return;
 		default:
 			break;
 		}
@@ -1414,10 +1360,7 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 	REQUIRE(VALID_NMSOCK(*sockp));
 	REQUIRE((*sockp)->type == isc_nm_udplistener ||
 		(*sockp)->type == isc_nm_tcplistener ||
-		(*sockp)->type == isc_nm_tcpdnslistener ||
-		(*sockp)->type == isc_nm_tlsdnslistener ||
-		(*sockp)->type == isc_nm_tlslistener ||
-		(*sockp)->type == isc_nm_httplistener);
+		(*sockp)->type == isc_nm_tcpdnslistener);
 
 	isc__nmsocket_detach(sockp);
 }
@@ -1478,10 +1421,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	case isc_nm_tcplistener:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tcpdnslistener:
-	case isc_nm_tlsdnssocket:
-	case isc_nm_tlsdnslistener:
-	case isc_nm_httpsocket:
-	case isc_nm_httplistener:
 		if (family == AF_INET) {
 			sock->statsindex = tcp4statsindex;
 		} else {
@@ -1498,8 +1437,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_condition_init(&sock->scond);
 	isc_refcount_init(&sock->references, 1);
 
-	memset(&sock->tlsstream, 0, sizeof(sock->tlsstream));
-
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
@@ -1510,8 +1447,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->closing, false);
 
 	atomic_store(&sock->active_child_connections, 0);
-
-	isc__nm_http_initsocket(sock);
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -1642,13 +1577,11 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 	case isc_nm_tcpdnssocket:
-	case isc_nm_tlsdnssocket:
 		if (!atomic_load(&sock->client)) {
 			break;
 		}
 		/* fallthrough */
 	case isc_nm_tcpsocket:
-	case isc_nm_tlssocket:
 		INSIST(sock->statichandle == NULL);
 
 		/*
@@ -1661,11 +1594,6 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		break;
 	default:
 		break;
-	}
-
-	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
-		isc__nm_httpsession_attach(sock->h2.session,
-					   &handle->httpsession);
 	}
 
 	return (handle);
@@ -1689,9 +1617,7 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	return (handle->sock->type == isc_nm_tcpsocket ||
-		handle->sock->type == isc_nm_tcpdnssocket ||
-		handle->sock->type == isc_nm_tlssocket ||
-		handle->sock->type == isc_nm_tlsdnssocket);
+		handle->sock->type == isc_nm_tcpdnssocket);
 }
 
 static void
@@ -1800,10 +1726,6 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 
 	if (handle->doreset != NULL) {
 		handle->doreset(handle->opaque);
-	}
-
-	if (sock->type == isc_nm_httpsocket && handle->httpsession != NULL) {
-		isc__nm_httpsession_detach(&handle->httpsession);
 	}
 
 	nmhandle_deactivate(sock, handle);
@@ -1932,6 +1854,8 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 void
 isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
+	UNUSED(async);
+
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 		isc__nm_udp_failed_read_cb(sock, result);
@@ -1941,9 +1865,6 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 		return;
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_failed_read_cb(sock, result);
-		return;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_failed_read_cb(sock, result, async);
 		return;
 	default:
 		INSIST(0);
@@ -1964,11 +1885,6 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
 	isc__nmsocket_timer_stop(sock);
-
-	if (sock->tls.pending_req != NULL) {
-		REQUIRE(req == sock->tls.pending_req);
-		sock->tls.pending_req = NULL;
-	}
 
 	/* Call the connect callback directly */
 
@@ -2074,7 +1990,6 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-	case isc_nm_tlssocket:
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
 		break;
 	default:
@@ -2111,16 +2026,6 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 		break;
-	case isc_nm_tlsdnssocket:
-		/*
-		 * We need to limit the individual chunks to be read, so the
-		 * BIO_write() will always succeed and the consumed before the
-		 * next readcb is called.
-		 */
-		if (size >= ISC_NETMGR_TLSBUF_SIZE) {
-			size = ISC_NETMGR_TLSBUF_SIZE;
-		}
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2155,10 +2060,6 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcpdns_read_cb);
 		break;
-	case isc_nm_tlsdnssocket:
-		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
-				  isc__nm_tlsdns_read_cb);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2181,7 +2082,6 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
-	case isc_nm_tlsdnssocket:
 		r = uv_read_stop(&sock->uv_handle.stream);
 		break;
 	default:
@@ -2209,8 +2109,6 @@ processbuffer(isc_nmsocket_t *sock) {
 	switch (sock->type) {
 	case isc_nm_tcpdnssocket:
 		return (isc__nm_tcpdns_processbuffer(sock));
-	case isc_nm_tlsdnssocket:
-		return (isc__nm_tlsdns_processbuffer(sock));
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2298,12 +2196,6 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	switch (handle->sock->type) {
-	case isc_nm_httpsocket:
-		isc__nm_http_cleartimeout(handle);
-		return;
-	case isc_nm_tlssocket:
-		isc__nm_tls_cleartimeout(handle);
-		return;
 	default:
 		handle->sock->read_timeout = 0;
 
@@ -2319,12 +2211,6 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	switch (handle->sock->type) {
-	case isc_nm_httpsocket:
-		isc__nm_http_settimeout(handle, timeout);
-		return;
-	case isc_nm_tlssocket:
-		isc__nm_tls_settimeout(handle, timeout);
-		return;
 	default:
 		handle->sock->read_timeout = timeout;
 		isc__nmsocket_timer_restart(handle->sock);
@@ -2435,15 +2321,6 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_send(handle, region, cb, cbarg);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_send(handle, region, cb, cbarg);
-		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_send(handle, region, cb, cbarg);
-		break;
-	case isc_nm_httpsocket:
-		isc__nm_http_send(handle, region, cb, cbarg);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2471,15 +2348,6 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_read(handle, cb, cbarg);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_read(handle, cb, cbarg);
-		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_read(handle, cb, cbarg);
-		break;
-	case isc_nm_httpsocket:
-		isc__nm_http_read(handle, cb, cbarg);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2500,12 +2368,6 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_cancelread(handle);
 		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_cancelread(handle);
-		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_cancelread(handle);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2522,9 +2384,6 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_pauseread(handle);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_pauseread(handle);
-		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2540,9 +2399,6 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_resumeread(handle);
-		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_resumeread(handle);
 		break;
 	default:
 		INSIST(0);
@@ -2563,15 +2419,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tcplistener:
 		isc__nm_tcp_stoplistening(sock);
-		break;
-	case isc_nm_tlslistener:
-		isc__nm_tls_stoplistening(sock);
-		break;
-	case isc_nm_tlsdnslistener:
-		isc__nm_tlsdns_stoplistening(sock);
-		break;
-	case isc_nm_httplistener:
-		isc__nm_http_stoplistening(sock);
 		break;
 	default:
 		INSIST(0);
@@ -2743,13 +2590,9 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_shutdown(sock);
 		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_shutdown(sock);
-		break;
 	case isc_nm_udplistener:
 	case isc_nm_tcplistener:
 	case isc_nm_tcpdnslistener:
-	case isc_nm_tlsdnslistener:
 		return;
 	default:
 		INSIST(0);
@@ -3171,18 +3014,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_tcpdnslistener");
 	case isc_nm_tcpdnssocket:
 		return ("isc_nm_tcpdnssocket");
-	case isc_nm_tlssocket:
-		return ("isc_nm_tlssocket");
-	case isc_nm_tlslistener:
-		return ("isc_nm_tlslistener");
-	case isc_nm_tlsdnslistener:
-		return ("isc_nm_tlsdnslistener");
-	case isc_nm_tlsdnssocket:
-		return ("isc_nm_tlsdnssocket");
-	case isc_nm_httplistener:
-		return ("isc_nm_httplistener");
-	case isc_nm_httpsocket:
-		return ("isc_nm_httpsocket");
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

@@ -14,7 +14,6 @@
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
-#include <isc/tls.h>
 #include <isc/types.h>
 
 /*
@@ -347,16 +346,6 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
 
-isc_result_t
-isc_nm_listentlsdns(isc_nm_t *mgr, isc_nmiface_t *iface,
-		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
-		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		    isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
-/*%<
- * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
- */
-
 void
 isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
 /*%<
@@ -377,33 +366,6 @@ isc_nm_tcpdns_sequential(isc_nmhandle_t *handle);
 
 void
 isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value);
-/*%<
- * Enable/disable keepalive on this connection by setting it to 'value'.
- *
- * When keepalive is active, we switch to using the keepalive timeout
- * to determine when to close a connection, rather than the idle timeout.
- */
-
-void
-isc_nm_tlsdns_sequential(isc_nmhandle_t *handle);
-/*%<
- * Disable pipelining on this connection. Each DNS packet will be only
- * processed after the previous completes.
- *
- * The socket must be unpaused after the query is processed.  This is done
- * the response is sent, or if we're dropping the query, it will be done
- * when a handle is fully dereferenced by calling the socket's
- * closehandle_cb callback.
- *
- * Note: This can only be run while a message is being processed; if it is
- * run before any messages are read, no messages will be read.
- *
- * Also note: once this has been set, it cannot be reversed for a given
- * connection.
- */
-
-void
-isc_nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
  * Enable/disable keepalive on this connection by setting it to 'value'.
  *
@@ -457,27 +419,12 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  *	full range of socket-related stats counter numbers.
  */
 
-isc_result_t
-isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
-
-void
-isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
-		  unsigned int timeout, size_t extrahandlesize);
-
 void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);
-void
-isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
-		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		     size_t extrahandlesize, isc_tlsctx_t *sslctx);
 /*%<
- * Establish a DNS client connection via a TCP or TLS connection, bound to
+ * Establish a DNS client connection via a TCP connection, bound to
  * the address 'local' and connected to the address 'peer'.
  *
  * When the connection is complete or has timed out, call 'cb' with
@@ -489,21 +436,6 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  * The connected socket can only be accessed via the handle passed to
  * 'cb'.
  */
-
-void
-isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
-		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *ctx, unsigned int timeout,
-		   size_t extrahandlesize);
-
-isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
-		  isc_quota_t *quota, isc_tlsctx_t *ctx,
-		  isc_nmsocket_t **sockp);
-
-isc_result_t
-isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
-		     void *cbarg, size_t extrahandlesize);
 
 void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
