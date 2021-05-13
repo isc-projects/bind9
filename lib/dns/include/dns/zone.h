@@ -1726,6 +1726,12 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
  *\li	'zone->zmgr' == NULL;
  */
 
+isc_taskmgr_t *
+dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr);
+/*%
+ * Get the tasmkgr object attached to 'zmgr'.
+ */
+
 void
 dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, uint32_t value);
 /*%<

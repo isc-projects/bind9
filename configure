@@ -752,6 +752,8 @@ NO_LIBTOOL_DNSLIBS
 NO_LIBTOOL_ISCLIBS
 INSTALL_LIBRARY
 ALWAYS_DEFINES
+LIBNGHTTP2_LIBS
+LIBNGHTTP2_CFLAGS
 LIBUV_LIBS
 LIBUV_CFLAGS
 PTHREAD_CFLAGS
@@ -859,6 +861,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -972,6 +975,8 @@ MAXMINDDB_LIBS
 MAXMINDDB_PREFIX
 LIBUV_CFLAGS
 LIBUV_LIBS
+LIBNGHTTP2_CFLAGS
+LIBNGHTTP2_LIBS
 OPENSSL_CFLAGS
 OPENSSL_LIBS
 LIBXML2_CFLAGS
@@ -1024,6 +1029,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1276,6 +1282,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1413,7 +1428,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1566,6 +1581,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1734,6 +1750,10 @@ Some influential environment variables:
   LIBUV_CFLAGS
               C compiler flags for LIBUV, overriding pkg-config
   LIBUV_LIBS  linker flags for LIBUV, overriding pkg-config
+  LIBNGHTTP2_CFLAGS
+              C compiler flags for LIBNGHTTP2, overriding pkg-config
+  LIBNGHTTP2_LIBS
+              linker flags for LIBNGHTTP2, overriding pkg-config
   OPENSSL_CFLAGS
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
@@ -4010,7 +4030,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4056,7 +4076,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4080,7 +4100,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4125,7 +4145,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4149,7 +4169,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -16155,7 +16175,7 @@ CFLAGS="$CFLAGS $LIBUV_CFLAGS"
 LIBS="$LDFLAGS $LIBUV_LIBS"
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-for ac_func in uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error
+for ac_func in uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error uv_sleep
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -16220,6 +16240,154 @@ done
 
 
 
+
+# libnghttp2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnghttp2" >&5
+$as_echo_n "checking for libnghttp2... " >&6; }
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnghttp2 >= 1.6.0" >&5
+$as_echo_n "checking for libnghttp2 >= 1.6.0... " >&6; }
+
+if test -n "$LIBNGHTTP2_CFLAGS"; then
+    pkg_cv_LIBNGHTTP2_CFLAGS="$LIBNGHTTP2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnghttp2 >= 1.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libnghttp2 >= 1.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBNGHTTP2_CFLAGS=`$PKG_CONFIG --cflags "libnghttp2 >= 1.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBNGHTTP2_LIBS"; then
+    pkg_cv_LIBNGHTTP2_LIBS="$LIBNGHTTP2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnghttp2 >= 1.6.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libnghttp2 >= 1.6.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBNGHTTP2_LIBS=`$PKG_CONFIG --libs "libnghttp2 >= 1.6.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBNGHTTP2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libnghttp2 >= 1.6.0" 2>&1`
+        else
+	        LIBNGHTTP2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libnghttp2 >= 1.6.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBNGHTTP2_PKG_ERRORS" >&5
+
+	as_fn_error $? "libnghttp2 not found" "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	as_fn_error $? "libnghttp2 not found" "$LINENO" 5
+else
+	LIBNGHTTP2_CFLAGS=$pkg_cv_LIBNGHTTP2_CFLAGS
+	LIBNGHTTP2_LIBS=$pkg_cv_LIBNGHTTP2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+
+  CCASFLAGS_libnghttp2_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_libnghttp2_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_libnghttp2_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_libnghttp2_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_libnghttp2_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_libnghttp2_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_libnghttp2_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_libnghttp2_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_libnghttp2_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_libnghttp2_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_libnghttp2_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_libnghttp2_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_libnghttp2_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_libnghttp2_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_libnghttp2_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_libnghttp2_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_libnghttp2_ax_save_flags=$VALAFLAGS
+
+
+
+
+CFLAGS="$CFLAGS $LIBNGHTTP2_CFLAGS"
+LIBS="$LIBS $LIBNGHTTP2_LIBS"
 
 #
 # flockfile is usually provided by pthreads
@@ -19213,6 +19381,49 @@ if test "$enable_backtrace" = "yes"; then :
 
 $as_echo "#define USE_BACKTRACE 1" >>confdefs.h
 
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for backtrace in -lexecinfo" >&5
+$as_echo_n "checking for backtrace in -lexecinfo... " >&6; }
+if ${ac_cv_lib_execinfo_backtrace+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexecinfo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char backtrace ();
+int
+main ()
+{
+return backtrace ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_execinfo_backtrace=yes
+else
+  ac_cv_lib_execinfo_backtrace=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_execinfo_backtrace" >&5
+$as_echo "$ac_cv_lib_execinfo_backtrace" >&6; }
+if test "x$ac_cv_lib_execinfo_backtrace" = xyes; then :
+  EXILIBS=-lexecinfo
+else
+  EXILIBS=
+fi
+
+       LIBS="$LIBS $EXILIBS"
        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <execinfo.h>
@@ -19903,19 +20114,6 @@ do :
 if test "x$ac_cv_func_if_nametoindex" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_IF_NAMETOINDEX 1
-_ACEOF
-
-fi
-done
-
-
-for ac_func in nanosleep usleep explicit_bzero
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi

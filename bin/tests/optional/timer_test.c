@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/task.h>
@@ -93,7 +94,8 @@ static char three[] = "3";
 
 int
 main(int argc, char *argv[]) {
-	isc_taskmgr_t *manager = NULL;
+	isc_nm_t *netmgr = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
 	isc_timermgr_t *timgr = NULL;
 	unsigned int workers;
 	isc_time_t expires, now;
@@ -113,13 +115,13 @@ main(int argc, char *argv[]) {
 	printf("%u workers\n", workers);
 
 	isc_mem_create(&mctx1);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx1, workers, 0, NULL, &manager) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_managers_create(mctx1, workers, 0, &netmgr,
+					  &taskmgr) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx1, &timgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &t3) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, shutdown_task, one) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t2, shutdown_task, two) ==
@@ -169,7 +171,7 @@ main(int argc, char *argv[]) {
 	Sleep(2000);
 #endif /* ifndef WIN32 */
 	isc_timermgr_destroy(&timgr);
-	isc_taskmgr_destroy(&manager);
+	isc_managers_destroy(&netmgr, &taskmgr);
 	printf("destroyed\n");
 
 	printf("Statistics for mctx1:\n");

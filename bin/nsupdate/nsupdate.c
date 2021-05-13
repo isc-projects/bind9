@@ -28,6 +28,7 @@
 #include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
@@ -139,6 +140,7 @@ static bool usegsstsig = false;
 static bool use_win2k_gsstsig = false;
 static bool tried_other_gsstsig = false;
 static bool local_only = false;
+static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
 static isc_event_t *global_event = NULL;
@@ -942,8 +944,8 @@ setup_system(void) {
 	result = isc_timermgr_create(gmctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
 
-	result = isc_taskmgr_create(gmctx, 1, 0, NULL, &taskmgr);
-	check_result(result, "isc_taskmgr_create");
+	result = isc_managers_create(gmctx, 1, 0, &netmgr, &taskmgr);
+	check_result(result, "isc_managers_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
@@ -3344,7 +3346,7 @@ cleanup(void) {
 	}
 
 	ddebug("Shutting down task manager");
-	isc_taskmgr_destroy(&taskmgr);
+	isc_managers_destroy(&netmgr, &taskmgr);
 
 	ddebug("Destroying event");
 	isc_event_free(&global_event);

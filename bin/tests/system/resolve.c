@@ -28,6 +28,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lib.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -245,6 +246,7 @@ main(int argc, char *argv[]) {
 	const char *port = "53";
 	isc_mem_t *mctx = NULL;
 	isc_appctx_t *actx = NULL;
+	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
@@ -370,7 +372,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	result = isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr);
+	result = isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -472,7 +474,7 @@ cleanup:
 	dns_client_destroy(&client);
 
 	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
+		isc_managers_destroy(&netmgr, &taskmgr);
 	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);

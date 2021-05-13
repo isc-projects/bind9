@@ -68,33 +68,15 @@ typedef void (*isc_nm_opaquecb_t)(void *arg);
  * callbacks.
  */
 
-isc_nm_t *
-isc_nm_start(isc_mem_t *mctx, uint32_t workers);
-/*%<
- * Creates a new network manager with 'workers' worker threads,
- * and starts it running.
- */
-
 void
 isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst);
 void
 isc_nm_detach(isc_nm_t **mgr0);
-void
-isc_nm_destroy(isc_nm_t **mgr0);
 /*%<
  * Attach/detach a network manager. When all references have been
  * released, the network manager is shut down, freeing all resources.
  * Destroy is working the same way as detach, but it actively waits
  * for all other references to be gone.
- */
-
-void
-isc_nm_closedown(isc_nm_t *mgr);
-/*%<
- * Close down all active connections, freeing associated resources;
- * prevent new connections from being established. This can optionally
- * be called prior to shutting down the netmgr, to stop all processing
- * before shutting down the task manager.
  */
 
 /* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */
@@ -207,7 +189,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  * can then be freed automatically when the handle is destroyed.
  */
 
-isc_result_t
+void
 isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
@@ -318,7 +300,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  *
  */
 
-isc_result_t
+void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
@@ -476,10 +458,21 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  */
 
 isc_result_t
+isc_nm_listentls(isc_nm_t *mgr, isc_nmiface_t *iface,
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
+		 isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
+
+void
+isc_nm_tlsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		  unsigned int timeout, size_t extrahandlesize);
+
+void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);
-isc_result_t
+void
 isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize, isc_tlsctx_t *sslctx);
@@ -495,4 +488,32 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  *
  * The connected socket can only be accessed via the handle passed to
  * 'cb'.
+ */
+
+void
+isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
+		   isc_tlsctx_t *ctx, unsigned int timeout,
+		   size_t extrahandlesize);
+
+isc_result_t
+isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
+		  isc_quota_t *quota, isc_tlsctx_t *ctx,
+		  isc_nmsocket_t **sockp);
+
+isc_result_t
+isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
+		     void *cbarg, size_t extrahandlesize);
+
+void
+isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
+/*%<
+ * Enqueue the 'task' onto the netmgr ievents queue.
+ *
+ * Requires:
+ * \li 'mgr' is a valid netmgr object
+ * \li 'task' is a valid task
+ * \li 'threadid' is either the preferred netmgr tid or -1, in which case
+ *     tid will be picked randomly. The threadid is capped (by modulo) to
+ *     maximum number of 'workers' as specifed in isc_nm_start()
  */

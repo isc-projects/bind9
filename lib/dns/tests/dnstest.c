@@ -32,6 +32,7 @@
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/print.h>
@@ -63,6 +64,7 @@
 
 isc_mem_t *dt_mctx = NULL;
 isc_log_t *lctx = NULL;
+isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
 isc_timermgr_t *timermgr = NULL;
@@ -94,11 +96,12 @@ cleanup_managers(void) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
 	}
+
+	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
+			     taskmgr == NULL ? NULL : &taskmgr);
+
 	if (socketmgr != NULL) {
 		isc_socketmgr_destroy(&socketmgr);
-	}
-	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
 	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
@@ -113,10 +116,10 @@ create_managers(void) {
 	isc_result_t result;
 	ncpus = isc_os_ncpus();
 
-	CHECK(isc_taskmgr_create(dt_mctx, ncpus, 0, NULL, &taskmgr));
+	CHECK(isc_managers_create(dt_mctx, ncpus, 0, &netmgr, &taskmgr));
 	CHECK(isc_timermgr_create(dt_mctx, &timermgr));
 	CHECK(isc_socketmgr_create(dt_mctx, &socketmgr));
-	CHECK(isc_task_create(taskmgr, 0, &maintask));
+	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
 	return (ISC_R_SUCCESS);
 
 cleanup:

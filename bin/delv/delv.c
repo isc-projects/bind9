@@ -33,6 +33,7 @@
 #include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #ifdef WIN32
@@ -1726,6 +1727,7 @@ main(int argc, char *argv[]) {
 	dns_namelist_t namelist;
 	unsigned int resopt, clopt;
 	isc_appctx_t *actx = NULL;
+	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
@@ -1749,7 +1751,7 @@ main(int argc, char *argv[]) {
 	isc_mem_create(&mctx);
 
 	CHECK(isc_appctx_create(mctx, &actx));
-	CHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
+	CHECK(isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr));
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 	CHECK(isc_timermgr_create(mctx, &timermgr));
 
@@ -1856,7 +1858,7 @@ cleanup:
 		dns_client_destroy(&client);
 	}
 	if (taskmgr != NULL) {
-		isc_taskmgr_destroy(&taskmgr);
+		isc_managers_destroy(&netmgr, &taskmgr);
 	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);

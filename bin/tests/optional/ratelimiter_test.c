@@ -10,6 +10,7 @@
  */
 
 #include <isc/app.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/ratelimiter.h>
@@ -19,6 +20,7 @@
 #include <isc/util.h>
 
 isc_ratelimiter_t *rlim = NULL;
+isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_task_t *g_task = NULL;
@@ -100,7 +102,7 @@ main(int argc, char *argv[]) {
 	isc_interval_set(&linterval, 1, 0);
 
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, 3, 0, NULL, &taskmgr) ==
+	RUNTIME_CHECK(isc_managers_create(mctx, 3, 0, &netmgr, &taskmgr) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &g_task) == ISC_R_SUCCESS);
@@ -129,7 +131,7 @@ main(int argc, char *argv[]) {
 	isc_ratelimiter_detach(&rlim);
 
 	isc_timermgr_destroy(&timermgr);
-	isc_taskmgr_destroy(&taskmgr);
+	isc_managers_destroy(&netmgr, &taskmgr);
 
 	isc_mem_stats(mctx, stdout);
 

@@ -9675,8 +9675,9 @@ view_loaded(void *arg) {
 static isc_result_t
 load_zones(named_server_t *server, bool init, bool reconfig) {
 	isc_result_t result;
-	dns_view_t *view;
-	ns_zoneload_t *zl;
+	isc_taskmgr_t *taskmgr = dns_zonemgr_gettaskmgr(server->zonemgr);
+	dns_view_t *view = NULL;
+	ns_zoneload_t *zl = NULL;
 
 	zl = isc_mem_get(server->mctx, sizeof(*zl));
 	zl->server = server;
@@ -9728,19 +9729,28 @@ cleanup:
 	if (isc_refcount_decrement(&zl->refs) == 1) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
-	} else if (init) {
-		/*
-		 * Place the task manager into privileged mode.  This
-		 * ensures that after we leave task-exclusive mode, no
-		 * other tasks will be able to run except for the ones
-		 * that are loading zones. (This should only be done during
-		 * the initial server setup; it isn't necessary during
-		 * a reload.)
-		 */
-		isc_taskmgr_setprivilegedmode(named_g_taskmgr);
 	}
 
-	isc_task_endexclusive(server->task);
+	if (init) {
+		/*
+		 * If we're setting up the server for the first time, set
+		 * the task manager into privileged mode; this ensures
+		 * that no other tasks will begin to run until after zone
+		 * loading is complete. We won't return from exclusive mode
+		 * until the loading is finished; we can then drop out of
+		 * privileged mode.
+		 *
+		 * We do *not* want to do this in the case of reload or
+		 * reconfig, as loading a large zone could cause the server
+		 * to be inactive for too long a time.
+		 */
+		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
+		isc_task_endexclusive(server->task);
+		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
+	} else {
+		isc_task_endexclusive(server->task);
+	}
+
 	return (result);
 }
 
@@ -10006,7 +10016,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	 * startup and shutdown of the server, as well as all exclusive
 	 * tasks.
 	 */
-	CHECKFATAL(isc_task_create(named_g_taskmgr, 0, &server->task),
+	CHECKFATAL(isc_task_create_bound(named_g_taskmgr, 0, &server->task, 0),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
 	isc_taskmgr_setexcltask(named_g_taskmgr, server->task);
