@@ -364,7 +364,7 @@ case "$INSTALL" in
 		;;
 esac
 
-AC_PATH_PROGS([PYTEST], [pytest-3 py.test-3 pytest pytest-pypy], [])
+AC_PATH_PROGS([PYTEST], [pytest-3 py.test-3 pytest py.test pytest-pypy], [])
 AS_IF([test -z "$PYTEST"],
       [AC_MSG_WARN([pytest not found, some system tests will be skipped])])
 AC_SUBST([PYTEST])

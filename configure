@@ -12881,7 +12881,7 @@ case "$INSTALL" in
 		;;
 esac
 
-for ac_prog in pytest-3 py.test-3 pytest pytest-pypy
+for ac_prog in pytest-3 py.test-3 pytest py.test pytest-pypy
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
