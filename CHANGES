@@ -1,3 +1,6 @@
+5641.	[bug]		Address potential memory leak in dst_key_fromnamedfile.
+			[GL #2689]
+
 5639.	[bug]		Check that the first and last SOA record of an AXFR
 			are consistent. [GL #2528]
 
