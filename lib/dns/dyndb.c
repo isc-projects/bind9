@@ -122,7 +122,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	dns_dyndb_register_t *register_func = NULL;
 	dns_dyndb_destroy_t *destroy_func = NULL;
 	dns_dyndb_version_t *version_func = NULL;
-	int version, flags;
+	int version;
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
@@ -130,12 +130,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		      ISC_LOG_INFO, "loading DynDB instance '%s' driver '%s'",
 		      instname, filename);
 
-	flags = RTLD_NOW | RTLD_LOCAL;
-#if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__
-	flags |= RTLD_DEEPBIND;
-#endif /* if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ */
-
-	handle = dlopen(filename, flags);
+	handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
 	}
@@ -431,7 +426,7 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	dctx->timermgr = tmgr;
 	dctx->hashinit = hashinit;
 	dctx->lctx = lctx;
-	dctx->refvar = &isc_bind9;
+	dctx->memdebug = &isc_mem_debugging;
 
 	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->magic = DNS_DYNDBCTX_MAGIC;
