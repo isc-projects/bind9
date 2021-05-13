@@ -180,6 +180,9 @@ struct dns_xfrin_ctx {
 		uint32_t current_serial;
 		dns_journal_t *journal;
 	} ixfr;
+
+	dns_rdata_t firstsoa;
+	unsigned char *firstsoa_data;
 };
 
 #define XFRIN_MAGIC    ISC_MAGIC('X', 'f', 'r', 'I')
@@ -565,6 +568,13 @@ redo:
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
 		}
+		xfr->firstsoa = *rdata;
+		if (xfr->firstsoa_data != NULL) {
+			isc_mem_free(xfr->mctx, xfr->firstsoa_data);
+		}
+		xfr->firstsoa_data = isc_mem_allocate(xfr->mctx, rdata->length);
+		memcpy(xfr->firstsoa_data, rdata->data, rdata->length);
+		xfr->firstsoa.data = xfr->firstsoa_data;
 		xfr->state = XFRST_FIRSTDATA;
 		break;
 
@@ -649,6 +659,16 @@ redo:
 		}
 		CHECK(axfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
 		if (rdata->type == dns_rdatatype_soa) {
+			/*
+			 * Use dns_rdata_compare instead of memcmp to
+			 * allow for case differences.
+			 */
+			if (dns_rdata_compare(rdata, &xfr->firstsoa) != 0) {
+				xfrin_log(xfr, ISC_LOG_ERROR,
+					  "start and ending SOA records "
+					  "mismatch");
+				FAIL(DNS_R_FORMERR);
+			}
 			CHECK(axfr_commit(xfr));
 			xfr->state = XFRST_AXFR_END;
 			break;
@@ -852,7 +872,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 				  .id = (dns_messageid_t)isc_random16(),
 				  .maxrecords = dns_zone_getmaxrecords(zone),
 				  .masteraddr = *masteraddr,
-				  .sourceaddr = *sourceaddr };
+				  .sourceaddr = *sourceaddr,
+				  .firstsoa = DNS_RDATA_INIT };
 
 	isc_mem_attach(mctx, &xfr->mctx);
 	dns_zone_iattach(zone, &xfr->zone);
@@ -1614,6 +1635,10 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
 		 * xfr->zone must not be detached before xfrin_log() is called.
 		 */
 		dns_zone_idetach(&xfr->zone);
+	}
+
+	if (xfr->firstsoa_data != NULL) {
+		isc_mem_free(xfr->mctx, xfr->firstsoa_data);
 	}
 
 	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));
