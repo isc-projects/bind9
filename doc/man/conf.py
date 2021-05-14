@@ -31,8 +31,11 @@
 # -- Project information -----------------------------------------------------
 
 project = u'BIND 9'
+# pylint: disable=wrong-import-position
+import datetime
+year = datetime.datetime.now().year
 # pylint: disable=redefined-builtin
-copyright = u'2021, Internet Systems Consortium'
+copyright = u"%d, Internet Systems Consortium" % year
 author = u'Internet Systems Consortium'
 
 # -- General configuration ---------------------------------------------------
