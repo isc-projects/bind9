@@ -226,9 +226,7 @@ client_state_create(const query_ctx_t *qctx, async_instance_t *inst) {
 	isc_result_t result;
 
 	state = isc_mem_get(inst->mctx, sizeof(*state));
-	if (state == NULL) {
-		return;
-	}
+	*state = (state_t){ .async = false };
 
 	LOCK(&inst->hlock);
 	result = isc_ht_add(inst->ht, (const unsigned char *)&qctx->client,
