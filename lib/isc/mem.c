@@ -196,7 +196,7 @@ print_active(isc_mem_t *ctx, FILE *out);
 static inline size_t
 increment_malloced(isc_mem_t *ctx, size_t size) {
 	size_t malloced = atomic_fetch_add_relaxed(&ctx->malloced, size) + size;
-	size_t maxmalloced = atomic_load_acquire(&ctx->maxmalloced);
+	size_t maxmalloced = atomic_load_relaxed(&ctx->maxmalloced);
 
 	if (malloced > maxmalloced) {
 		atomic_compare_exchange_strong(&ctx->maxmalloced, &maxmalloced,
@@ -208,7 +208,7 @@ increment_malloced(isc_mem_t *ctx, size_t size) {
 
 static inline size_t
 decrement_malloced(isc_mem_t *ctx, size_t size) {
-	size_t malloced = atomic_fetch_sub_release(&ctx->malloced, size) - size;
+	size_t malloced = atomic_fetch_sub_relaxed(&ctx->malloced, size) - size;
 
 	return (malloced);
 }
@@ -637,51 +637,62 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 
 static inline bool
 hi_water(isc_mem_t *ctx) {
-	bool call_water = false;
-	size_t inuse = atomic_load_acquire(&ctx->inuse);
-	size_t maxinuse = atomic_load_acquire(&ctx->maxinuse);
-	size_t hi_water = atomic_load_acquire(&ctx->hi_water);
+	size_t inuse;
+	size_t maxinuse;
+	size_t hi_water = atomic_load_relaxed(&ctx->hi_water);
 
-	if (hi_water != 0U && inuse > hi_water) {
-		atomic_store(&ctx->is_overmem, true);
-		if (!atomic_load_acquire(&ctx->hi_called)) {
-			call_water = true;
-		}
+	if (hi_water == 0) {
+		return (false);
 	}
+
+	inuse = atomic_load_acquire(&ctx->inuse);
+	if (inuse <= hi_water) {
+		return (false);
+	}
+
+	maxinuse = atomic_load_acquire(&ctx->maxinuse);
 	if (inuse > maxinuse) {
 		(void)atomic_compare_exchange_strong(&ctx->maxinuse, &maxinuse,
 						     inuse);
 
-		if (hi_water != 0U && inuse > hi_water &&
-		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
-		{
+		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr, "maxinuse = %lu\n",
 				(unsigned long)inuse);
 		}
 	}
 
-	return (call_water);
-}
-
-/*
- * The check against ctx->lo_water == 0 is for the condition
- * when the context was pushed over hi_water but then had
- * isc_mem_setwater() called with 0 for hi_water and lo_water.
- */
-static inline bool
-lo_water(isc_mem_t *ctx) {
-	bool call_water = false;
-	size_t inuse = atomic_load_acquire(&ctx->inuse);
-	size_t lo_water = atomic_load_acquire(&ctx->lo_water);
-
-	if ((inuse < lo_water) || (lo_water == 0U)) {
-		atomic_store(&ctx->is_overmem, false);
-		if (atomic_load_acquire(&ctx->hi_called)) {
-			call_water = true;
-		}
+	if (atomic_load_acquire(&ctx->hi_called)) {
+		return (false);
 	}
 
-	return (call_water);
+	/* We are over water (for the first time) */
+	atomic_store_release(&ctx->is_overmem, true);
+
+	return (true);
+}
+
+static inline bool
+lo_water(isc_mem_t *ctx) {
+	size_t inuse;
+	size_t lo_water = atomic_load_relaxed(&ctx->lo_water);
+
+	if (lo_water == 0) {
+		return (false);
+	}
+
+	inuse = atomic_load_acquire(&ctx->inuse);
+	if (inuse >= lo_water) {
+		return (false);
+	}
+
+	if (!atomic_load_acquire(&ctx->hi_called)) {
+		return (false);
+	}
+
+	/* We are no longer overmem */
+	atomic_store(&ctx->is_overmem, false);
+
+	return (true);
 }
 
 void *
@@ -1215,8 +1226,6 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 void *
 isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	element *item = NULL;
-	size_t allocated;
-	size_t maxalloc;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
