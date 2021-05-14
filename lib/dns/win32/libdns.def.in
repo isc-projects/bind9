@@ -1389,6 +1389,7 @@ dns_zonemgr_getiolimit
 dns_zonemgr_getnotifyrate
 dns_zonemgr_getserialqueryrate
 dns_zonemgr_getstartupnotifyrate
+dns_zonemgr_gettaskmgr
 dns_zonemgr_getttransfersin
 dns_zonemgr_getttransfersperns
 dns_zonemgr_managezone

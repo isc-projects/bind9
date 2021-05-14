@@ -30,6 +30,7 @@
 #include <isc/hash.h>
 #include <isc/hp.h>
 #include <isc/httpd.h>
+#include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/platform.h>
@@ -916,23 +917,11 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface", named_g_udpdisp,
 		      named_g_udpdisp == 1 ? "" : "s");
 
-	/*
-	 * We have ncpus network threads, ncpus worker threads, ncpus
-	 * old network threads - make it 4x just to be safe. The memory
-	 * impact is negligible.
-	 */
-	isc_hp_init(4 * named_g_cpus);
-	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);
-	if (named_g_nm == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_nm_start() failed");
-		return (ISC_R_UNEXPECTED);
-	}
-
-	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, named_g_nm,
-				    &named_g_taskmgr);
+	result = isc_managers_create(named_g_mctx, named_g_cpus, 0, &named_g_nm,
+				     &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_taskmgr_create() failed: %s",
+				 "isc_managers_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -967,25 +956,9 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	/*
-	 * isc_nm_closedown() closes all active connections, freeing
-	 * attached clients and other resources and preventing new
-	 * connections from being established, but it not does not
-	 * stop all processing or destroy the netmgr yet.
-	 */
-	isc_nm_closedown(named_g_nm);
-
-	/*
-	 * isc_taskmgr_destroy() will block until all tasks have exited.
-	 */
-	isc_taskmgr_destroy(&named_g_taskmgr);
+	isc_managers_destroy(&named_g_nm, &named_g_taskmgr);
 	isc_timermgr_destroy(&named_g_timermgr);
 	isc_socketmgr_destroy(&named_g_socketmgr);
-
-	/*
-	 * At this point is safe to destroy the netmgr.
-	 */
-	isc_nm_destroy(&named_g_nm);
 }
 
 static void

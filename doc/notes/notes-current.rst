@@ -80,3 +80,9 @@ Bug Fixes
 
 - ``named-checkconf`` now complains if zones with ``dnssec-policy`` reference
   the same zone file more than once. :gl:`#2603`
+
+- After the networking manager was introduced to ``named`` to handle
+  incoming traffic, it was discovered that the recursive performance had been
+  degraded compared to the previous version (9.11).  This has been now fixed by
+  running internal tasks inside the networking manager worker threads, so
+  they do not compete for resources. :gl:`#2638`

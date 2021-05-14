@@ -39,6 +39,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/managers.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -143,6 +144,7 @@ static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
 static isc_mutex_t namelock, statslock;
+static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
 static dns_dbversion_t *gversion; /* The database version */
@@ -3961,7 +3963,7 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	result = isc_taskmgr_create(mctx, ntasks, 0, NULL, &taskmgr);
+	result = isc_managers_create(mctx, ntasks, 0, &netmgr, &taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to create task manager: %s",
 		      isc_result_totext(result));
@@ -4016,7 +4018,7 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < (int)ntasks; i++) {
 		isc_task_detach(&tasks[i]);
 	}
-	isc_taskmgr_destroy(&taskmgr);
+	isc_managers_destroy(&netmgr, &taskmgr);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 	TIME_NOW(&sign_finish);

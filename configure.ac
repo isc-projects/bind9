@@ -707,7 +707,7 @@ CFLAGS="$CFLAGS $LIBUV_CFLAGS"
 LIBS="$LDFLAGS $LIBUV_LIBS"
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
-AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error])
+AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import uv_udp_connect uv_translate_sys_error uv_sleep])
 AX_RESTORE_FLAGS([libuv])
 
 #
@@ -1549,6 +1549,8 @@ AC_ARG_ENABLE([backtrace],
 
 AS_IF([test "$enable_backtrace" = "yes"],
       [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
+       AC_CHECK_LIB(execinfo,backtrace,EXILIBS=-lexecinfo,EXILIBS=)
+       LIBS="$LIBS $EXILIBS"
        AC_LINK_IFELSE(
 	 [AC_LANG_PROGRAM(
 	    [[#include <execinfo.h>]],

@@ -87,26 +87,15 @@ do
 	  while read p
 	  do
 	      case $p in
-	      isc__app_register) continue;;                     # internal
-	      isc__mem_register) continue;;                     # internal
-	      isc__task_register) continue;;                    # internal
-	      isc__taskmgr_dispatch) continue;;                 # internal
-	      isc__timer_register) continue;;                   # internal
 	      isc_ntsecurity_getaccountgroups) continue;;       # internal
-	      isc__taskmgr_dispatch) continue;;			# no threads
-	      isc__taskmgr_ready) continue;;			# no threads
 	      isc_socketmgr_getmaxsockets) p=isc__socketmgr_getmaxsockets;;
 	      esac
 	      grep -q "^${p}"'$' $def && continue
 	      test $lib = isc -a -f lib/isc/win32/libisc.def.exclude &&
 		  grep -q "^${p}"'$' lib/isc/win32/libisc.def.exclude &&
 		  continue
-	      if test -d lib/$lib/win32
-	      then
-		  grep -q "^$p(" lib/$lib/*.c lib/$lib/win32/*.c && echo "$p"
-	      else
-		  grep -q "^$p(" lib/$lib/*.c && echo "$p"
-	      fi
+              grep -sq "^$p(" lib/$lib/*.c lib/$lib/unix/*.c \
+                      lib/$lib/win32/*.c lib/$lib/netmgr/*.c && echo "$p"
 	  done`
     [ -n "$list" ] && {
 	status=1

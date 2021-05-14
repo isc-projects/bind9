@@ -71,13 +71,16 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	/*
 	 * Depending on how dlopen() was called, we may not have
 	 * access to named's global namespace, in which case we need
-	 * to initialize libisc/libdns
+	 * to initialize libisc/libdns. We check this by comparing
+	 * the value of isc_mem_debugging to the value passed via
+	 * the context object.
 	 */
-	if (dctx->refvar != &isc_bind9) {
+	if (dctx->memdebug != &isc_mem_debugging) {
 		isc_lib_register();
 		isc_log_setcontext(dctx->lctx);
 		dns_log_setcontext(dctx->lctx);
 		isc_hash_set_initializer(dctx->hashinit);
+		isc_mem_debugging = *(unsigned int *)dctx->memdebug;
 	}
 
 	s = isc_mem_strdup(mctx, parameters);

@@ -57,10 +57,9 @@ alloc_pool(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
 
 isc_result_t
 isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
-		    unsigned int quantum, isc_taskpool_t **poolp) {
+		    unsigned int quantum, bool priv, isc_taskpool_t **poolp) {
 	unsigned int i;
 	isc_taskpool_t *pool = NULL;
-	isc_result_t result;
 
 	INSIST(ntasks > 0);
 
@@ -69,11 +68,13 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
 
 	/* Create the tasks */
 	for (i = 0; i < ntasks; i++) {
-		result = isc_task_create(tmgr, quantum, &pool->tasks[i]);
+		isc_result_t result = isc_task_create_bound(tmgr, quantum,
+							    &pool->tasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			isc_taskpool_destroy(&pool);
 			return (result);
 		}
+		isc_task_setprivilege(pool->tasks[i], priv);
 		isc_task_setname(pool->tasks[i], "taskpool", NULL);
 	}
 
@@ -93,9 +94,8 @@ isc_taskpool_size(isc_taskpool_t *pool) {
 }
 
 isc_result_t
-isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
+isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size, bool priv,
 		    isc_taskpool_t **targetp) {
-	isc_result_t result;
 	isc_taskpool_t *pool;
 
 	REQUIRE(sourcep != NULL && *sourcep != NULL);
@@ -119,13 +119,15 @@ isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
 
 		/* Create new tasks */
 		for (i = pool->ntasks; i < size; i++) {
-			result = isc_task_create(pool->tmgr, pool->quantum,
-						 &newpool->tasks[i]);
+			isc_result_t result =
+				isc_task_create_bound(pool->tmgr, pool->quantum,
+						      &newpool->tasks[i], i);
 			if (result != ISC_R_SUCCESS) {
 				*sourcep = pool;
 				isc_taskpool_destroy(&newpool);
 				return (result);
 			}
+			isc_task_setprivilege(newpool->tasks[i], priv);
 			isc_task_setname(newpool->tasks[i], "taskpool", NULL);
 		}
 
@@ -150,17 +152,4 @@ isc_taskpool_destroy(isc_taskpool_t **poolp) {
 	isc_mem_put(pool->mctx, pool->tasks,
 		    pool->ntasks * sizeof(isc_task_t *));
 	isc_mem_putanddetach(&pool->mctx, pool, sizeof(*pool));
-}
-
-void
-isc_taskpool_setprivilege(isc_taskpool_t *pool, bool priv) {
-	unsigned int i;
-
-	REQUIRE(pool != NULL);
-
-	for (i = 0; i < pool->ntasks; i++) {
-		if (pool->tasks[i] != NULL) {
-			isc_task_setprivilege(pool->tasks[i], priv);
-		}
-	}
 }

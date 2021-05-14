@@ -20,6 +20,7 @@
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/log.h>
+#include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/nonce.h>
@@ -86,10 +87,10 @@
 #define US_PER_SEC 1000000 /*%< Microseconds per second. */
 #define US_PER_MS  1000	   /*%< Microseconds per millisecond. */
 
-static isc_mem_t *mctx;
-static dns_requestmgr_t *requestmgr;
-static const char *batchname;
-static FILE *batchfp;
+static isc_mem_t *mctx = NULL;
+static dns_requestmgr_t *requestmgr = NULL;
+static const char *batchname = NULL;
+static FILE *batchfp = NULL;
 static bool burst = false;
 static bool have_ipv4 = false;
 static bool have_ipv6 = false;
@@ -114,7 +115,7 @@ static bool yaml = false;
 static bool continue_on_error = false;
 static uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
-static char *server;
+static char *server = NULL;
 static isc_sockaddr_t dstaddr;
 static in_port_t port = 53;
 static isc_dscp_t dscp = -1;
@@ -2063,19 +2064,20 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 /*% Main processing routine for mdig */
 int
 main(int argc, char *argv[]) {
-	struct query *query;
+	struct query *query = NULL;
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
-	isc_log_t *lctx;
-	isc_logconfig_t *lcfg;
-	isc_taskmgr_t *taskmgr;
-	isc_task_t *task;
-	isc_timermgr_t *timermgr;
-	isc_socketmgr_t *socketmgr;
-	dns_dispatchmgr_t *dispatchmgr;
+	isc_log_t *lctx = NULL;
+	isc_logconfig_t *lcfg = NULL;
+	isc_nm_t *netmgr = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
+	isc_task_t *task = NULL;
+	isc_timermgr_t *timermgr = NULL;
+	isc_socketmgr_t *socketmgr = NULL;
+	dns_dispatchmgr_t *dispatchmgr = NULL;
 	unsigned int attrs, attrmask;
-	dns_dispatch_t *dispatchvx;
-	dns_view_t *view;
+	dns_dispatch_t *dispatchvx = NULL;
+	dns_view_t *view = NULL;
 	int ns;
 	unsigned int i;
 
@@ -2095,11 +2097,8 @@ main(int argc, char *argv[]) {
 
 	preparse_args(argc, argv);
 
-	mctx = NULL;
 	isc_mem_create(&mctx);
 
-	lctx = NULL;
-	lcfg = NULL;
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -2129,16 +2128,11 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	taskmgr = NULL;
-	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
-	task = NULL;
+	RUNCHECK(isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr));
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-	timermgr = NULL;
 
 	RUNCHECK(isc_timermgr_create(mctx, &timermgr));
-	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
-	dispatchmgr = NULL;
 	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY;
@@ -2151,18 +2145,15 @@ main(int argc, char *argv[]) {
 	}
 	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP |
 		   DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
-	dispatchvx = NULL;
 	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
 				     have_src ? &srcaddr : &bind_any, 4096, 100,
 				     100, 17, 19, attrs, attrmask,
 				     &dispatchvx));
-	requestmgr = NULL;
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
 		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,
 		&requestmgr));
 
-	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
 	query = ISC_LIST_HEAD(queries);
@@ -2209,7 +2200,7 @@ main(int argc, char *argv[]) {
 
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
-	isc_taskmgr_destroy(&taskmgr);
+	isc_managers_destroy(&netmgr, &taskmgr);
 
 	dst_lib_destroy();
 

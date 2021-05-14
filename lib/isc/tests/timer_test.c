@@ -435,8 +435,8 @@ reset(void **state) {
 	setup_test(isc_timertype_ticker, &expires, &interval, test_reset);
 }
 
-static int startflag;
-static int shutdownflag;
+static atomic_bool startflag;
+static atomic_bool shutdownflag;
 static isc_timer_t *tickertimer = NULL;
 static isc_timer_t *oncetimer = NULL;
 static isc_task_t *task1 = NULL;
@@ -448,29 +448,20 @@ static isc_task_t *task2 = NULL;
  */
 
 static void
-start_event(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	if (verbose) {
-		print_message("# start_event\n");
-	}
-
-	LOCK(&mx);
-	while (!startflag) {
-		(void)isc_condition_wait(&cv, &mx);
-	}
-	UNLOCK(&mx);
-
-	isc_event_free(&event);
-}
-
-static void
 tick_event(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(task);
+
+	if (!atomic_load(&startflag)) {
+		if (verbose) {
+			print_message("# tick_event %d\n", -1);
+		}
+		isc_event_free(&event);
+		return;
+	}
 
 	int tick = atomic_fetch_add(&eventcnt, 1);
 	if (verbose) {
@@ -496,8 +487,6 @@ tick_event(isc_task_t *task, isc_event_t *event) {
 
 static void
 once_event(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-
 	if (verbose) {
 		print_message("# once_event\n");
 	}
@@ -505,12 +494,7 @@ once_event(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Allow task1 to start processing events.
 	 */
-	LOCK(&mx);
-	startflag = 1;
-
-	result = isc_condition_broadcast(&cv);
-	subthread_assert_result_equal(result, ISC_R_SUCCESS);
-	UNLOCK(&mx);
+	atomic_store(&startflag, true);
 
 	isc_event_free(&event);
 	isc_task_shutdown(task);
@@ -518,8 +502,6 @@ once_event(isc_task_t *task, isc_event_t *event) {
 
 static void
 shutdown_purge(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-
 	UNUSED(task);
 	UNUSED(event);
 
@@ -530,12 +512,7 @@ shutdown_purge(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Signal shutdown processing complete.
 	 */
-	LOCK(&mx);
-	shutdownflag = 1;
-
-	result = isc_condition_signal(&cv);
-	subthread_assert_result_equal(result, ISC_R_SUCCESS);
-	UNLOCK(&mx);
+	atomic_store(&shutdownflag, 1);
 
 	isc_event_free(&event);
 }
@@ -544,21 +521,16 @@ shutdown_purge(isc_task_t *task, isc_event_t *event) {
 static void
 purge(void **state) {
 	isc_result_t result;
-	isc_event_t *event = NULL;
 	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
 
-	startflag = 0;
-	shutdownflag = 0;
+	atomic_init(&startflag, 0);
+	atomic_init(&shutdownflag, 0);
 	atomic_init(&eventcnt, 0);
 	seconds = 1;
 	nanoseconds = 0;
-
-	isc_mutex_init(&mx);
-
-	isc_condition_init(&cv);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -568,13 +540,6 @@ purge(void **state) {
 
 	result = isc_task_create(taskmgr, 0, &task2);
 	assert_int_equal(result, ISC_R_SUCCESS);
-
-	LOCK(&mx);
-
-	event = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
-				   start_event, NULL, sizeof(*event));
-	assert_non_null(event);
-	isc_task_send(task1, &event);
 
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, seconds, 0);
@@ -600,12 +565,9 @@ purge(void **state) {
 	/*
 	 * Wait for shutdown processing to complete.
 	 */
-	while (!shutdownflag) {
-		result = isc_condition_wait(&cv, &mx);
-		assert_int_equal(result, ISC_R_SUCCESS);
+	while (!atomic_load(&shutdownflag)) {
+		isc_test_nap(1000);
 	}
-
-	UNLOCK(&mx);
 
 	assert_int_equal(atomic_load(&errcnt), ISC_R_SUCCESS);
 
@@ -615,7 +577,6 @@ purge(void **state) {
 	isc_timer_detach(&oncetimer);
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
-	isc_mutex_destroy(&mx);
 }
 
 int

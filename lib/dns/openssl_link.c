@@ -29,7 +29,6 @@
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/thread.h>
-#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
