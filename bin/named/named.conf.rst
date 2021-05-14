@@ -343,6 +343,10 @@ OPTIONS
   	nta-lifetime duration;
   	nta-recheck duration;
   	nxdomain-redirect string;
+  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [
+  	    dscp integer ];
+  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * )
+  	    ] [ dscp integer ];
   	pid-file ( quoted_string | none );
   	port integer;
   	preferred-glue string;
@@ -744,6 +748,10 @@ VIEW
   	nta-lifetime duration;
   	nta-recheck duration;
   	nxdomain-redirect string;
+  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [
+  	    dscp integer ];
+  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * )
+  	    ] [ dscp integer ];
   	plugin ( query ) string [ {
   	    unspecified-text } ];
   	preferred-glue string;
@@ -945,6 +953,10 @@ VIEW
   		    remote-servers | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ] [
   		    tls string ]; ... };
+  		parental-source ( ipv4_address | * ) [ port ( integer |
+  		    * ) ] [ dscp integer ];
+  		parental-source-v6 ( ipv6_address | * ) [ port (
+  		    integer | * ) ] [ dscp integer ];
   		primaries [ port integer ] [ dscp integer ] { (
   		    remote-servers | ipv4_address [ port integer ] |
   		    ipv6_address [ port integer ] ) [ key string ] [
@@ -1057,6 +1069,10 @@ ZONE
   	    remote-servers | ipv4_address [ port integer ] |
   	    ipv6_address [ port integer ] ) [ key string ] [ tls
   	    string ]; ... };
+  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [
+  	    dscp integer ];
+  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * )
+  	    ] [ dscp integer ];
   	primaries [ port integer ] [ dscp integer ] { (
   	    remote-servers | ipv4_address [ port integer ] |
   	    ipv6_address [ port integer ] ) [ key string ] [ tls

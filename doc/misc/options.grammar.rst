@@ -188,6 +188,10 @@
   	nta-lifetime <duration>;
   	nta-recheck <duration>;
   	nxdomain-redirect <string>;
+  	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
+  	    dscp <integer> ];
+  	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
+  	    ] [ dscp <integer> ];
   	pid-file ( <quoted_string> | none );
   	port <integer>;
   	preferred-glue <string>;
