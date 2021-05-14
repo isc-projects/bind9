@@ -1986,17 +1986,19 @@ bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
 
 	/* Check endpoints are valid */
 	tresult = cfg_map_get(http, "endpoints", &eps);
-	RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
-	for (elt = cfg_list_first(eps); elt != NULL; elt = cfg_list_next(elt)) {
-		const cfg_obj_t *ep = cfg_listelt_value(elt);
-		const char *path = cfg_obj_asstring(ep);
-		if (!isc_nm_http_path_isvalid(path)) {
-			cfg_obj_log(eps, logctx, ISC_LOG_ERROR,
-				    "endpoint '%s' is not a "
-				    "valid absolute HTTP path",
-				    path);
-			if (result == ISC_R_SUCCESS) {
-				result = ISC_R_FAILURE;
+	if (tresult == ISC_R_SUCCESS) {
+		for (elt = cfg_list_first(eps); elt != NULL;
+		     elt = cfg_list_next(elt)) {
+			const cfg_obj_t *ep = cfg_listelt_value(elt);
+			const char *path = cfg_obj_asstring(ep);
+			if (!isc_nm_http_path_isvalid(path)) {
+				cfg_obj_log(eps, logctx, ISC_LOG_ERROR,
+					    "endpoint '%s' is not a "
+					    "valid absolute HTTP path",
+					    path);
+				if (result == ISC_R_SUCCESS) {
+					result = ISC_R_FAILURE;
+				}
 			}
 		}
 	}

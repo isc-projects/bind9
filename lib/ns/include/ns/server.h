@@ -83,6 +83,7 @@ struct ns_server {
 	isc_quota_t recursionquota;
 	isc_quota_t tcpquota;
 	isc_quota_t xfroutquota;
+	ISC_LIST(isc_quota_t) http_quotas;
 
 	/*% Test options and other configurables */
 	uint32_t options;

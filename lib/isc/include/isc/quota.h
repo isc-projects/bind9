@@ -60,6 +60,7 @@ struct isc_quota {
 	atomic_uint_fast32_t waiting;
 	isc_mutex_t	     cblock;
 	ISC_LIST(isc_quota_cb_t) cbs;
+	ISC_LINK(isc_quota_t) link;
 };
 
 void

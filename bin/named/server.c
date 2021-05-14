@@ -8629,6 +8629,11 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "https-port", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	named_g_httpsport = (in_port_t)cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "http-listener-clients", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_http_listener_clients = cfg_obj_asuint32(obj);
 #endif
 
 	/*
@@ -11326,6 +11331,9 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	const cfg_obj_t *eplist = NULL;
 	const cfg_listelt_t *elt = NULL;
 	size_t len = 1, i = 0;
+	uint32_t max_clients = named_g_http_listener_clients;
+	ns_server_t *server = NULL;
+	isc_quota_t *quota = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE((key == NULL) == (cert == NULL));
@@ -11339,13 +11347,22 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	 * of "/dns-query".
 	 */
 	if (http != NULL) {
-		CHECK(cfg_map_get(http, "endpoints", &eplist));
-		len = cfg_list_length(eplist, false);
+		const cfg_obj_t *cfg_max_clients = NULL;
+		if (cfg_map_get(http, "endpoints", &eplist) == ISC_R_SUCCESS) {
+			INSIST(eplist != NULL);
+			len = cfg_list_length(eplist, false);
+		}
+
+		if (cfg_map_get(http, "listener-clients", &cfg_max_clients) ==
+		    ISC_R_SUCCESS) {
+			INSIST(cfg_max_clients != NULL);
+			max_clients = cfg_obj_asuint32(cfg_max_clients);
+		}
 	}
 
 	endpoints = isc_mem_allocate(mctx, sizeof(endpoints[0]) * len);
 
-	if (http != NULL) {
+	if (http != NULL && eplist != NULL) {
 		for (elt = cfg_list_first(eplist); elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			const cfg_obj_t *ep = cfg_listelt_value(elt);
@@ -11358,18 +11375,39 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 
 	INSIST(i == len);
 
-	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
-					  key, cert, endpoints, len, &delt);
-	if (result != ISC_R_SUCCESS) {
-		if (delt != NULL) {
-			ns_listenelt_destroy(delt);
-		}
-		return (result);
+	INSIST(named_g_server != NULL);
+	ns_server_attach(named_g_server->sctx, &server);
+	if (max_clients > 0) {
+		quota = isc_mem_get(mctx, sizeof(isc_quota_t));
+		isc_quota_init(quota, max_clients);
 	}
+	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
+					  key, cert, endpoints, len, quota,
+					  &delt);
+	if (result != ISC_R_SUCCESS) {
+		goto error;
+	}
+
+	if (quota != NULL) {
+		ISC_LIST_APPEND(server->http_quotas, quota, link);
+	}
+	ns_server_detach(&server);
 
 	*target = delt;
 
-cleanup:
+	return (result);
+error:
+	if (delt != NULL) {
+		ns_listenelt_destroy(delt);
+	}
+	if (quota != NULL) {
+		isc_quota_destroy(quota);
+		isc_mem_put(mctx, quota, sizeof(*quota));
+	}
+
+	if (server != NULL) {
+		ns_server_detach(&server);
+	}
 	return (result);
 }
 

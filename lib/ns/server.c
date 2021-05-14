@@ -52,6 +52,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	isc_quota_init(&sctx->xfroutquota, 10);
 	isc_quota_init(&sctx->tcpquota, 10);
 	isc_quota_init(&sctx->recursionquota, 100);
+	ISC_LIST_INIT(sctx->http_quotas);
 
 	CHECKFATAL(dns_tkeyctx_create(mctx, &sctx->tkeyctx));
 
@@ -125,6 +126,7 @@ ns_server_detach(ns_server_t **sctxp) {
 
 	if (isc_refcount_decrement(&sctx->references) == 1) {
 		ns_altsecret_t *altsecret;
+		isc_quota_t *http_quota;
 
 		while ((altsecret = ISC_LIST_HEAD(sctx->altsecrets)) != NULL) {
 			ISC_LIST_UNLINK(sctx->altsecrets, altsecret, link);
@@ -134,6 +136,18 @@ ns_server_detach(ns_server_t **sctxp) {
 		isc_quota_destroy(&sctx->recursionquota);
 		isc_quota_destroy(&sctx->tcpquota);
 		isc_quota_destroy(&sctx->xfroutquota);
+
+		http_quota = ISC_LIST_HEAD(sctx->http_quotas);
+		while (http_quota != NULL) {
+			isc_quota_t *next = NULL;
+
+			next = ISC_LIST_NEXT(http_quota, link);
+			ISC_LIST_DEQUEUE(sctx->http_quotas, http_quota, link);
+			isc_quota_destroy(http_quota);
+			isc_mem_put(sctx->mctx, http_quota,
+				    sizeof(*http_quota));
+			http_quota = next;
+		}
 
 		if (sctx->server_id != NULL) {
 			isc_mem_free(sctx->mctx, sctx->server_id);
