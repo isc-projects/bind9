@@ -77,7 +77,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	"invalid use of multicast address", /*%< 43 */
 	"not a file",			    /*%< 44 */
 	"not a directory",		    /*%< 45 */
-	"queue is full",		    /*%< 46 */
+	"queue is empty",		    /*%< 46 */
 	"address family mismatch",	    /*%< 47 */
 	"address family not supported",	    /*%< 48 */
 	"bad hex encoding",		    /*%< 49 */
@@ -151,7 +151,7 @@ static const char *identifier[ISC_R_NRESULTS] = { "ISC_R_SUCCESS",
 						  "ISC_R_MULTICAST",
 						  "ISC_R_NOTFILE",
 						  "ISC_R_NOTDIRECTORY",
-						  "ISC_R_QUEUEFULL",
+						  "ISC_R_EMPTY",
 						  "ISC_R_FAMILYMISMATCH",
 						  "ISC_R_FAMILYNOSUPPORT",
 						  "ISC_R_BADHEX",
