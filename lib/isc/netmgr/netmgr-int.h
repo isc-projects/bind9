@@ -39,8 +39,6 @@
 
 #include "uv-compat.h"
 
-#define ISC_NETMGR_QUANTUM_DEFAULT 1024
-
 #define ISC_NETMGR_TID_UNKNOWN -1
 
 /* Must be different from ISC_NETMGR_TID_UNKNOWN */
@@ -163,6 +161,17 @@ isc__nm_dump_active(isc_nm_t *nm);
 #endif
 
 /*
+ * Queue types in the order of processing priority.
+ */
+typedef enum {
+	NETIEVENT_PRIORITY = 0,
+	NETIEVENT_PRIVILEGED = 1,
+	NETIEVENT_TASK = 2,
+	NETIEVENT_NORMAL = 3,
+	NETIEVENT_MAX = 4,
+} netievent_type_t;
+
+/*
  * Single network event loop worker.
  */
 typedef struct isc__networker {
@@ -175,13 +184,8 @@ typedef struct isc__networker {
 	bool paused;
 	bool finished;
 	isc_thread_t thread;
-	isc_queue_t *ievents;	   /* incoming async events */
-	isc_queue_t *ievents_priv; /* privileged async tasks */
-	isc_queue_t *ievents_task; /* async tasks */
-	isc_queue_t *ievents_prio; /* priority async events
-				    * used for listening etc.
-				    * can be processed while
-				    * worker is paused */
+	isc_queue_t *ievents[NETIEVENT_MAX];
+	atomic_uint_fast32_t nievents[NETIEVENT_MAX];
 	isc_condition_t cond_prio;
 
 	isc_refcount_t references;
@@ -189,7 +193,6 @@ typedef struct isc__networker {
 	char *recvbuf;
 	char *sendbuf;
 	bool recvbuf_inuse;
-	unsigned int quantum;
 } isc__networker_t;
 
 /*
