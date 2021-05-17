@@ -471,6 +471,7 @@ isc_nm_stoplistening
 isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
 isc_nm_gettimeouts
+isc_nm_setnetbuffers
 isc_nm_settimeouts
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential

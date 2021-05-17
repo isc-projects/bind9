@@ -274,14 +274,8 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 #endif
 
-#ifdef ISC_RECV_BUFFER_SIZE
-	uv_recv_buffer_size(&sock->uv_handle.handle,
-			    &(int){ ISC_RECV_BUFFER_SIZE });
-#endif
-#ifdef ISC_SEND_BUFFER_SIZE
-	uv_send_buffer_size(&sock->uv_handle.handle,
-			    &(int){ ISC_SEND_BUFFER_SIZE });
-#endif
+	isc__nm_set_network_buffers(sock->mgr, &sock->uv_handle.handle);
+
 	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 			      udp_recv_cb);
 	if (r != 0) {
@@ -647,14 +641,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		goto done;
 	}
 
-#ifdef ISC_RECV_BUFFER_SIZE
-	uv_recv_buffer_size(&sock->uv_handle.handle,
-			    &(int){ ISC_RECV_BUFFER_SIZE });
-#endif
-#ifdef ISC_SEND_BUFFER_SIZE
-	uv_send_buffer_size(&sock->uv_handle.handle,
-			    &(int){ ISC_SEND_BUFFER_SIZE });
-#endif
+	isc__nm_set_network_buffers(sock->mgr, &sock->uv_handle.handle);
 
 	/*
 	 * On FreeBSD the UDP connect() call sometimes results in a

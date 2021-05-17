@@ -1,3 +1,6 @@
+5640.	[func]		Add new configuration option to set the operating system
+			receive and send buffers. [GL #2313]
+
 5639.	[bug]		Check that the first and last SOA record of an AXFR
 			are consistent. [GL #2528]
 

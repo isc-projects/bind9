@@ -149,6 +149,8 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		}
 	}
 
+	isc__nm_set_network_buffers(sock->mgr, &sock->uv_handle.handle);
+
 	uv_handle_set_data(&req->uv_req.handle, req);
 	r = uv_tcp_connect(&req->uv_req.connect, &sock->uv_handle.tcp,
 			   &req->peer.type.sa, tlsdns_connect_cb);
@@ -609,6 +611,8 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
 	}
 #endif
+
+	isc__nm_set_network_buffers(sock->mgr, &sock->uv_handle.handle);
 
 	/*
 	 * The callback will run in the same thread uv_listen() was

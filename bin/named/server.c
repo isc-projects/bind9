@@ -8503,6 +8503,10 @@ load_configuration(const char *filename, named_server_t *server,
 	uint32_t reserved;
 	uint32_t udpsize;
 	uint32_t transfer_message_size;
+	uint32_t recv_tcp_buffer_size;
+	uint32_t send_tcp_buffer_size;
+	uint32_t recv_udp_buffer_size;
+	uint32_t send_udp_buffer_size;
 	named_cache_t *nsc;
 	named_cachelist_t cachelist, tmpcachelist;
 	ns_altsecret_t *altsecret;
@@ -8774,6 +8778,9 @@ load_configuration(const char *filename, named_server_t *server,
 					     named_g_aclconfctx),
 	       "configuring statistics server(s)");
 
+	/*
+	 * Configure the network manager
+	 */
 	obj = NULL;
 	result = named_config_get(maps, "tcp-initial-timeout", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -8842,6 +8849,44 @@ load_configuration(const char *filename, named_server_t *server,
 
 	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 			   advertised);
+
+#define CAP_IF_NOT_ZERO(v, min, max)        \
+	if (v > 0 && v < min) {             \
+		recv_tcp_buffer_size = min; \
+	} else if (v > max) {               \
+		recv_tcp_buffer_size = max; \
+	}
+
+	/* Set the kernel send and receive buffer sizes */
+	obj = NULL;
+	result = named_config_get(maps, "tcp-receive-buffer", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	recv_tcp_buffer_size = cfg_obj_asuint32(obj);
+	CAP_IF_NOT_ZERO(recv_tcp_buffer_size, 4096, INT32_MAX);
+
+	obj = NULL;
+	result = named_config_get(maps, "tcp-send-buffer", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	send_tcp_buffer_size = cfg_obj_asuint32(obj);
+	CAP_IF_NOT_ZERO(send_tcp_buffer_size, 4096, INT32_MAX);
+
+	obj = NULL;
+	result = named_config_get(maps, "udp-receive-buffer", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	recv_udp_buffer_size = cfg_obj_asuint32(obj);
+	CAP_IF_NOT_ZERO(recv_udp_buffer_size, 4096, INT32_MAX);
+
+	obj = NULL;
+	result = named_config_get(maps, "udp-send-buffer", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	send_udp_buffer_size = cfg_obj_asuint32(obj);
+	CAP_IF_NOT_ZERO(send_udp_buffer_size, 4096, INT32_MAX);
+
+	isc_nm_setnetbuffers(named_g_netmgr, recv_tcp_buffer_size,
+			     send_tcp_buffer_size, recv_udp_buffer_size,
+			     send_udp_buffer_size);
+
+#undef CAP_IF_NOT_ZERO
 
 	/*
 	 * Configure sets of UDP query source ports.

@@ -123,6 +123,8 @@ options {\n\
 	tcp-initial-timeout 300;\n\
 	tcp-keepalive-timeout 300;\n\
 	tcp-listen-queue 10;\n\
+	tcp-receive-buffer 0;\n\
+	tcp-send-buffer 0;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-domain <none>\n\
 #	tkey-gssapi-credential <none>\n\
@@ -133,6 +135,8 @@ options {\n\
 #	treat-cr-as-space <obsolete>;\n\
 	trust-anchor-telemetry yes;\n\
 #	use-id-pool <obsolete>;\n\
+	udp-receive-buffer 0;\n\
+	udp-send-buffer 0;\n\
 \n\
 	/* view */\n\
 	allow-new-zones no;\n\

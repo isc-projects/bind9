@@ -425,6 +425,17 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
  */
 
 void
+isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
+		     int32_t recv_udp, int32_t send_udp);
+/*%<
+ * If not 0, sets the SO_RCVBUF and SO_SNDBUF socket options for TCP and UDP
+ * respectively.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
 isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 		   uint32_t *keepalive, uint32_t *advertised);
 /*%<
