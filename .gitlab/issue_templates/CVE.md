@@ -13,6 +13,7 @@ email to [security-officer@isc.org](security-officer@isc.org).
   - [ ] Determine CVSS score
   - [ ] Determine the range of BIND versions affected (including the Subscription Edition)
   - [ ] Determine whether workarounds for the problem exists
+  - [ ] Create a draft of the security advisory and put the information above in there
   - [ ] Prepare a detailed description of the problem which should include the following by default:
       - instructions for reproducing the problem (a system test is good enough)
       - explanation of code flow which triggers the problem (a system test is *not* good enough)

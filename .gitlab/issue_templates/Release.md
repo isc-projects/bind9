@@ -85,7 +85,9 @@
  - [ ] ***(QA)*** Merge the automatically prepared `prep 9.x.y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_x`).
  - [ ] ***(QA)*** For each maintained branch, update the `BIND_BASELINE_VERSION` variable for the `abi-check` job in `.gitlab-ci.yml` to the latest published BIND version tag for a given branch.
  - [ ] ***(QA)*** Prepare empty release notes for the next set of releases.
- - [ ] ***(QA)*** Sanitize all confidential issues assigned to the release milestone and make them public.
+ - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
+ - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Flake8, PyLint) by modifying the relevant `Dockerfile`.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
+[^2]: As a rule of thumb, security vulnerabilities which have reproducers merged to the public repository are considered okay for full disclosure.
