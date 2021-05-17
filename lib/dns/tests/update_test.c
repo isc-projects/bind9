@@ -256,6 +256,7 @@ unixtime_zero_test(void **state) {
 static void
 past_to_date_test(void **state) {
 	uint32_t old, serial;
+	dns_updatemethod_t used = dns_updatemethod_none;
 
 	UNUSED(state);
 
@@ -263,11 +264,11 @@ past_to_date_test(void **state) {
 	old = dns_update_soaserial(0, dns_updatemethod_date, NULL);
 	set_mystdtime(2014, 4, 1);
 
-	serial = dns_update_soaserial(old, dns_updatemethod_date, NULL);
-
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
 	assert_true(isc_serial_lt(old, serial));
 	assert_int_not_equal(serial, 0);
 	assert_int_equal(serial, 2014040100);
+	assert_int_equal(dns_updatemethod_date, used);
 }
 
 /* now to date */
@@ -275,16 +276,35 @@ static void
 now_to_date_test(void **state) {
 	uint32_t old;
 	uint32_t serial;
+	dns_updatemethod_t used = dns_updatemethod_none;
 
 	UNUSED(state);
 
 	set_mystdtime(2014, 4, 1);
 	old = dns_update_soaserial(0, dns_updatemethod_date, NULL);
 
-	serial = dns_update_soaserial(old, dns_updatemethod_date, NULL);
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
 	assert_true(isc_serial_lt(old, serial));
 	assert_int_not_equal(serial, 0);
 	assert_int_equal(serial, 2014040101);
+	assert_int_equal(dns_updatemethod_date, used);
+
+	old = 2014040198;
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
+	assert_true(isc_serial_lt(old, serial));
+	assert_int_not_equal(serial, 0);
+	assert_int_equal(serial, 2014040199);
+	assert_int_equal(dns_updatemethod_date, used);
+
+	/*
+	 * Stealing from "tomorrow".
+	 */
+	old = 2014040199;
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
+	assert_true(isc_serial_lt(old, serial));
+	assert_int_not_equal(serial, 0);
+	assert_int_equal(serial, 2014040200);
+	assert_int_equal(dns_updatemethod_increment, used);
 }
 
 /* future to date */
@@ -292,6 +312,7 @@ static void
 future_to_date_test(void **state) {
 	uint32_t old;
 	uint32_t serial;
+	dns_updatemethod_t used = dns_updatemethod_none;
 
 	UNUSED(state);
 
@@ -299,10 +320,18 @@ future_to_date_test(void **state) {
 	old = dns_update_soaserial(0, dns_updatemethod_date, NULL);
 	set_mystdtime(2014, 3, 31);
 
-	serial = dns_update_soaserial(old, dns_updatemethod_date, NULL);
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
 	assert_true(isc_serial_lt(old, serial));
 	assert_int_not_equal(serial, 0);
 	assert_int_equal(serial, 2014040101);
+	assert_int_equal(dns_updatemethod_increment, used);
+
+	old = serial;
+	serial = dns_update_soaserial(old, dns_updatemethod_date, &used);
+	assert_true(isc_serial_lt(old, serial));
+	assert_int_not_equal(serial, 0);
+	assert_int_equal(serial, 2014040102);
+	assert_int_equal(dns_updatemethod_increment, used);
 }
 
 int
