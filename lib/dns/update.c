@@ -2244,8 +2244,19 @@ dns_update_soaserial(uint32_t serial, dns_updatemethod_t method,
 	case dns_updatemethod_unixtime:
 	case dns_updatemethod_date:
 		if (!(new_serial != 0 && isc_serial_gt(new_serial, serial))) {
-			method = dns_updatemethod_increment;
-			new_serial = dns__update_soaserial(serial, method);
+			/*
+			 * If the new date serial following YYYYMMDD00 is equal
+			 * to or smaller than the current serial, but YYYYMMDD99
+			 * would be larger, pretend we have used the
+			 * "dns_updatemethod_date" method.
+			 */
+			if (method == dns_updatemethod_unixtime ||
+			    !isc_serial_gt(new_serial + 99, serial))
+			{
+				method = dns_updatemethod_increment;
+			}
+			new_serial = dns__update_soaserial(
+				serial, dns_updatemethod_increment);
 		}
 		break;
 	default:
