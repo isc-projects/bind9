@@ -98,3 +98,7 @@ Bug Fixes
 
 - ``named-checkconf`` now complains if zones with ``dnssec-policy`` reference
   the same zone file more than once. :gl:`#2603`
+
+- Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
+  views with different ``dnssec-policy``. Using the same ``key-directory`` for
+  such zones is not allowed. :gl:`#2463`
