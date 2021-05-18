@@ -468,16 +468,6 @@ dns_zone_idetach(dns_zone_t **zonep);
  *\li	'zonep' to point to a valid zone.
  */
 
-void
-dns_zone_setflag(dns_zone_t *zone, unsigned int flags, bool value);
-/*%<
- *	Sets ('value' == 'true') / clears ('value' == 'IS_FALSE')
- *	zone flags.  Valid flag bits are DNS_ZONE_F_*.
- *
- * Requires
- *\li	'zone' to be a valid zone.
- */
-
 isc_result_t
 dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*%<
