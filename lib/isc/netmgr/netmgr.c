@@ -331,6 +331,7 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		RUNTIME_CHECK(r == 0);
 
 		isc_mutex_init(&worker->lock);
+		isc_condition_init(&worker->cond_prio);
 
 		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
 			worker->ievents[type] = isc_queue_new(mgr->mctx, 128);
