@@ -1,3 +1,6 @@
+5641.	[bug]		Address potential memory leak in dst_key_fromnamedfile.
+			[GL #2689]
+
 5640.	[func]		Add new configuration option to set the operating system
 			receive and send buffers. [GL #2313]
 

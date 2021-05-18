@@ -599,10 +599,8 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 			   ".key");
 	INSIST(result == ISC_R_SUCCESS);
 
-	result = dst_key_read_public(newfilename, type, mctx, &pubkey);
+	RETERR(dst_key_read_public(newfilename, type, mctx, &pubkey));
 	isc_mem_put(mctx, newfilename, newfilenamelen);
-	newfilename = NULL;
-	RETERR(result);
 
 	/*
 	 * Read the state file, if requested by type.
@@ -633,33 +631,20 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
 	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
 	{
-		if (statefilename != NULL) {
-			isc_mem_put(mctx, statefilename, statefilenamelen);
-		}
-
-		result = computeid(pubkey);
-		if (result != ISC_R_SUCCESS) {
-			dst_key_free(&pubkey);
-			return (result);
-		}
-
+		RETERR(computeid(pubkey));
 		*keyp = pubkey;
-		return (ISC_R_SUCCESS);
+		pubkey = NULL;
+		goto out;
 	}
 
-	result = algorithm_status(pubkey->key_alg);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&pubkey);
-		return (result);
-	}
+	RETERR(algorithm_status(pubkey->key_alg));
 
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
 			     pubkey->key_flags, pubkey->key_proto,
 			     pubkey->key_size, pubkey->key_class,
 			     pubkey->key_ttl, mctx);
 	if (key == NULL) {
-		dst_key_free(&pubkey);
-		return (ISC_R_NOMEMORY);
+		RETERR(ISC_R_NOMEMORY);
 	}
 
 	if (key->func->parse == NULL) {
@@ -691,20 +676,17 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 			/* Having no state is valid. */
 			result = ISC_R_SUCCESS;
 		}
-		isc_mem_put(mctx, statefilename, statefilenamelen);
-		statefilename = NULL;
+		RETERR(result);
 	}
-	RETERR(result);
 
 	RETERR(computeid(key));
 
 	if (pubkey->key_id != key->key_id) {
 		RETERR(DST_R_INVALIDPRIVATEKEY);
 	}
-	dst_key_free(&pubkey);
 
 	*keyp = key;
-	return (ISC_R_SUCCESS);
+	key = NULL;
 
 out:
 	if (pubkey != NULL) {
