@@ -3697,6 +3697,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 	isc_result_t result;
 
 	REQUIRE(nodep != NULL && *nodep == NULL);
+	REQUIRE(type == dns_rdatatype_nsec3 || firstp != NULL);
 
 	if (type == dns_rdatatype_nsec3) {
 		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
