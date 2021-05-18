@@ -499,7 +499,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 		  isc_quota_t *quota, isc_tlsctx_t *ctx,
-		  isc_nmsocket_t **sockp);
+		  uint32_t max_concurrent_streams, isc_nmsocket_t **sockp);
 
 isc_result_t
 isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,

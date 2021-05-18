@@ -8634,6 +8634,11 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "http-listener-clients", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	named_g_http_listener_clients = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "http-streams-per-connection", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	named_g_http_streams_per_conn = cfg_obj_asuint32(obj);
 #endif
 
 	/*
@@ -11332,6 +11337,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	const cfg_listelt_t *elt = NULL;
 	size_t len = 1, i = 0;
 	uint32_t max_clients = named_g_http_listener_clients;
+	uint32_t max_streams = named_g_http_streams_per_conn;
 	ns_server_t *server = NULL;
 	isc_quota_t *quota = NULL;
 
@@ -11348,6 +11354,8 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	 */
 	if (http != NULL) {
 		const cfg_obj_t *cfg_max_clients = NULL;
+		const cfg_obj_t *cfg_max_streams = NULL;
+
 		if (cfg_map_get(http, "endpoints", &eplist) == ISC_R_SUCCESS) {
 			INSIST(eplist != NULL);
 			len = cfg_list_length(eplist, false);
@@ -11357,6 +11365,13 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 		    ISC_R_SUCCESS) {
 			INSIST(cfg_max_clients != NULL);
 			max_clients = cfg_obj_asuint32(cfg_max_clients);
+		}
+
+		if (cfg_map_get(http, "streams-per-connection",
+				&cfg_max_streams) == ISC_R_SUCCESS)
+		{
+			INSIST(cfg_max_streams != NULL);
+			max_streams = cfg_obj_asuint32(cfg_max_streams);
 		}
 	}
 
@@ -11383,7 +11398,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	}
 	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
 					  key, cert, endpoints, len, quota,
-					  &delt);
+					  max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}

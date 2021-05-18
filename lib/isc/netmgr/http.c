@@ -50,8 +50,6 @@
 #define MAX_ALLOWED_DATA_IN_POST \
 	(MAX_DNS_MESSAGE_SIZE + MAX_DNS_MESSAGE_SIZE / 2)
 
-#define MAX_STREAMS_PER_SESSION (100)
-
 #define HEADER_MATCH(header, name, namelen)   \
 	(((namelen) == sizeof(header) - 1) && \
 	 (strncasecmp((header), (const char *)(name), (namelen)) == 0))
@@ -145,6 +143,7 @@ struct isc_nm_http_session {
 	size_t bufsize;
 
 	isc_tlsctx_t *tlsctx;
+	uint32_t max_concurrent_streams;
 
 	isc__nm_http_pending_callbacks_t pending_write_callbacks;
 	isc_buffer_t *pending_write_data;
@@ -1626,7 +1625,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 	}
 
-	if (session->nsstreams >= MAX_STREAMS_PER_SESSION) {
+	if (session->nsstreams >= session->max_concurrent_streams) {
 		return (NGHTTP2_ERR_CALLBACK_FAILURE);
 	}
 
@@ -2322,7 +2321,7 @@ static int
 server_send_connection_header(isc_nm_http_session_t *session) {
 	nghttp2_settings_entry iv[1] = {
 		{ NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,
-		  MAX_STREAMS_PER_SESSION }
+		  session->max_concurrent_streams }
 	};
 	int rv;
 
@@ -2402,6 +2401,8 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	http_transpost_tcp_nodelay(handle);
 
 	new_session(httplistensock->mgr->mctx, NULL, &session);
+	session->max_concurrent_streams =
+		httplistensock->h2.max_concurrent_streams;
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
@@ -2417,12 +2418,20 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 		  isc_quota_t *quota, isc_tlsctx_t *ctx,
-		  isc_nmsocket_t **sockp) {
+		  uint32_t max_concurrent_streams, isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_httplistener, iface);
+	sock->h2.max_concurrent_streams =
+		NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS;
+
+	if (max_concurrent_streams > 0 &&
+	    max_concurrent_streams < NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+	{
+		sock->h2.max_concurrent_streams = max_concurrent_streams;
+	}
 
 	if (ctx != NULL) {
 		isc_tlsctx_enable_http2server_alpn(ctx);

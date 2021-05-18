@@ -94,6 +94,7 @@ options {\n\
 			    "http-port 80;\n"
 			    "https-port 443;\n"
 			    "http-listener-clients 300;\n"
+			    "http-streams-per-connection 100;\n"
 #endif
 			    "\
 	prefetch 2 9;\n\

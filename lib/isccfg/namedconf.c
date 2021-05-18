@@ -1252,10 +1252,13 @@ static cfg_clausedef_t options_clauses[] = {
 #if HAVE_LIBNGHTTP2
 	{ "http-port", &cfg_type_uint32, 0 },
 	{ "http-listener-clients", &cfg_type_uint32, 0 },
+	{ "http-streams-per-connection", &cfg_type_uint32, 0 },
 	{ "https-port", &cfg_type_uint32, 0 },
 #else
 	{ "http-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "http-listener-clients", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "http-streams-per-connection", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "https-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
@@ -3906,6 +3909,7 @@ static cfg_type_t cfg_type_bracketed_http_endpoint_list = {
 static cfg_clausedef_t cfg_http_description_clauses[] = {
 	{ "endpoints", &cfg_type_bracketed_http_endpoint_list, 0 },
 	{ "listener-clients", &cfg_type_uint32, 0 },
+	{ "streams-per-connection", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 

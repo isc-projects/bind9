@@ -78,6 +78,7 @@ EXTERN in_port_t named_g_httpport      INIT(0);
 EXTERN isc_dscp_t named_g_dscp	       INIT(-1);
 
 EXTERN in_port_t named_g_http_listener_clients INIT(0);
+EXTERN in_port_t named_g_http_streams_per_conn INIT(0);
 
 EXTERN named_server_t *named_g_server INIT(NULL);
 
