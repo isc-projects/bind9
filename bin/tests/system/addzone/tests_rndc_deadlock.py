@@ -68,23 +68,22 @@ def test_rndc_deadlock():
     test_state = {'finished': False}
 
     # Create 4 worker threads running "rndc" commands in a loop.
-    executor = concurrent.futures.ThreadPoolExecutor()
-    for i in range(1, 5):
-        domain = 'example%d' % i
-        executor.submit(rndc_loop, test_state, domain)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for i in range(1, 5):
+            domain = 'example%d' % i
+            executor.submit(rndc_loop, test_state, domain)
 
-    # Run "rndc status" in 1-second intervals for a maximum of 10 seconds.  If
-    # any "rndc status" command fails, the loop will be interrupted.
-    server_is_responsive = True
-    attempts = 10
-    while server_is_responsive and attempts > 0:
-        server_is_responsive = check_if_server_is_responsive()
-        attempts -= 1
-        time.sleep(1)
+        # Run "rndc status" in 1-second intervals for a maximum of 10 seconds.
+        # If any "rndc status" command fails, the loop will be interrupted.
+        server_is_responsive = True
+        attempts = 10
+        while server_is_responsive and attempts > 0:
+            server_is_responsive = check_if_server_is_responsive()
+            attempts -= 1
+            time.sleep(1)
 
-    # Signal worker threads that the test is finished.
-    test_state['finished'] = True
-    executor.shutdown()
+        # Signal worker threads that the test is finished.
+        test_state['finished'] = True
 
     # Check whether all "rndc status" commands succeeded.
     assert server_is_responsive
