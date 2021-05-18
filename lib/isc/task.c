@@ -78,15 +78,16 @@
 typedef enum {
 	task_state_idle,    /* not doing anything, events queue empty */
 	task_state_ready,   /* waiting in worker's queue */
-	task_state_paused,  /* not running, paused */
-	task_state_pausing, /* running, waiting to be paused */
 	task_state_running, /* actively processing events */
 	task_state_done	    /* shutting down, no events or references */
 } task_state_t;
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static const char *statenames[] = {
-	"idle", "ready", "paused", "pausing", "running", "done",
+	"idle",
+	"ready",
+	"running",
+	"done",
 };
 #endif /* if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C) */
 
@@ -101,7 +102,6 @@ struct isc_task {
 	int threadid;
 	/* Locked by task lock. */
 	task_state_t state;
-	int pause_cnt;
 	isc_refcount_t references;
 	isc_refcount_t running;
 	isc_eventlist_t events;
@@ -237,7 +237,6 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 
 	isc_mutex_init(&task->lock);
 	task->state = task_state_idle;
-	task->pause_cnt = 0;
 
 	isc_refcount_init(&task->references, 1);
 	isc_refcount_init(&task->running, 0);
@@ -312,8 +311,6 @@ task_shutdown(isc_task_t *task) {
 			was_idle = true;
 		}
 		INSIST(task->state == task_state_ready ||
-		       task->state == task_state_paused ||
-		       task->state == task_state_pausing ||
 		       task->state == task_state_running);
 
 		/*
@@ -437,9 +434,7 @@ task_send(isc_task_t *task, isc_event_t **eventp, int c) {
 		task->state = task_state_ready;
 	}
 	INSIST(task->state == task_state_ready ||
-	       task->state == task_state_running ||
-	       task->state == task_state_paused ||
-	       task->state == task_state_pausing);
+	       task->state == task_state_running);
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
 
@@ -779,26 +774,6 @@ isc_task_gettag(isc_task_t *task) {
 	return (task->tag);
 }
 
-void
-isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t) {
-	REQUIRE(VALID_TASK(task));
-	REQUIRE(t != NULL);
-
-	LOCK(&task->lock);
-	*t = task->now;
-	UNLOCK(&task->lock);
-}
-
-void
-isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t) {
-	REQUIRE(VALID_TASK(task));
-	REQUIRE(t != NULL);
-
-	LOCK(&task->lock);
-	*t = task->tnow;
-	UNLOCK(&task->lock);
-}
-
 /***
  *** Task Manager.
  ***/
@@ -813,11 +788,7 @@ task_run(isc_task_t *task) {
 	REQUIRE(VALID_TASK(task));
 
 	LOCK(&task->lock);
-	/*
-	 * It is possible because that we have a paused task in the queue - it
-	 * might have been paused in the meantime and we never hold both queue
-	 * and task lock to avoid deadlocks, just bail then.
-	 */
+	/* FIXME */
 	if (task->state != task_state_ready) {
 		goto done;
 	}
@@ -885,23 +856,10 @@ task_run(isc_task_t *task) {
 				 */
 				XTRACE("done");
 				task->state = task_state_done;
-			} else {
-				if (task->state == task_state_running) {
-					XTRACE("idling");
-					task->state = task_state_idle;
-				} else if (task->state == task_state_pausing) {
-					XTRACE("pausing");
-					task->state = task_state_paused;
-				}
+			} else if (task->state == task_state_running) {
+				XTRACE("idling");
+				task->state = task_state_idle;
 			}
-			break;
-		} else if (task->state == task_state_pausing) {
-			/*
-			 * We got a pause request on this task, stop working on
-			 * it and switch the state to paused.
-			 */
-			XTRACE("pausing");
-			task->state = task_state_paused;
 			break;
 		} else if (dispatch_count >= task->quantum) {
 			/*
@@ -1162,65 +1120,6 @@ isc_task_endexclusive(isc_task_t *task) {
 	isc_nm_resume(manager->netmgr);
 	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
 					       &(bool){ true }, false));
-}
-
-void
-isc_task_pause(isc_task_t *task) {
-	REQUIRE(VALID_TASK(task));
-
-	LOCK(&task->lock);
-	task->pause_cnt++;
-	if (task->pause_cnt > 1) {
-		/*
-		 * Someone already paused this task, just increase
-		 * the number of pausing clients.
-		 */
-		UNLOCK(&task->lock);
-		return;
-	}
-
-	INSIST(task->state == task_state_idle ||
-	       task->state == task_state_ready ||
-	       task->state == task_state_running);
-	if (task->state == task_state_running) {
-		task->state = task_state_pausing;
-	} else {
-		task->state = task_state_paused;
-	}
-	UNLOCK(&task->lock);
-}
-
-void
-isc_task_unpause(isc_task_t *task) {
-	bool was_idle = false;
-
-	REQUIRE(VALID_TASK(task));
-
-	LOCK(&task->lock);
-	task->pause_cnt--;
-	INSIST(task->pause_cnt >= 0);
-	if (task->pause_cnt > 0) {
-		UNLOCK(&task->lock);
-		return;
-	}
-
-	INSIST(task->state == task_state_paused ||
-	       task->state == task_state_pausing);
-	/* If the task was pausing we can't reschedule it */
-	if (task->state == task_state_pausing) {
-		task->state = task_state_running;
-	} else {
-		task->state = task_state_idle;
-	}
-	if (task->state == task_state_idle && !EMPTY(task->events)) {
-		task->state = task_state_ready;
-		was_idle = true;
-	}
-	UNLOCK(&task->lock);
-
-	if (was_idle) {
-		task_ready(task);
-	}
 }
 
 void

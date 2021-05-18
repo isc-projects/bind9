@@ -556,41 +556,6 @@ isc_task_endexclusive(isc_task_t *task);
  *		exclusive access by calling isc_task_spl().
  */
 
-void
-isc_task_pause(isc_task_t *task0);
-void
-isc_task_unpause(isc_task_t *task0);
-/*%<
- * Pause/unpause this task. Pausing a task removes it from the ready
- * queue if it is present there; this ensures that the task will not
- * run again until unpaused. This is necessary when the libuv network
- * thread executes a function which schedules task manager events; this
- * prevents the task manager from executing the next event in a task
- * before the network thread has finished.
- *
- * Requires:
- *\li	'task' is a valid task, and is not already paused or shutting down.
- */
-
-void
-isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
-void
-isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
-/*%<
- * Provide the most recent timestamp on the task.  The timestamp is considered
- * as the "current time".
- *
- * isc_task_getcurrentime() returns the time in one-second granularity;
- * isc_task_getcurrentimex() returns it in nanosecond granularity.
- *
- * Requires:
- *\li	'task' is a valid task.
- *\li	't' is a valid non NULL pointer.
- *
- * Ensures:
- *\li	'*t' has the "current time".
- */
-
 bool
 isc_task_exiting(isc_task_t *t);
 /*%<

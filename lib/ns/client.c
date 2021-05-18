@@ -31,6 +31,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -1660,7 +1661,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	client->state = NS_CLIENTSTATE_READY;
 
-	isc_task_pause(client->task);
 	if (client->handle == NULL) {
 		isc_nmhandle_setdata(handle, client, ns__client_reset_cb,
 				     ns__client_put_cb);
@@ -1701,7 +1701,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 			      "dropped request: suspicious port");
-		isc_task_unpause(client->task);
 		return;
 	}
 #endif /* if NS_CLIENT_DROPPORT */
@@ -1715,7 +1714,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 			      "dropped request: blackholed peer");
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -1729,7 +1727,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * There isn't enough header to determine whether
 		 * this was a request or a response.  Drop it.
 		 */
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -1746,7 +1743,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	if ((flags & DNS_MESSAGEFLAG_QR) != 0) {
 		CTRACE("unexpected response");
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -1814,7 +1810,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			result = DNS_R_FORMERR;
 		}
 		ns_client_error(client, result);
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -1865,7 +1860,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 */
 		if ((client->sctx->options & NS_SERVER_EDNSFORMERR) != 0) {
 			ns_client_error(client, DNS_R_FORMERR);
-			isc_task_unpause(client->task);
 			return;
 		}
 
@@ -1874,7 +1868,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 */
 		if ((client->sctx->options & NS_SERVER_EDNSNOTIMP) != 0) {
 			ns_client_error(client, DNS_R_NOTIMP);
-			isc_task_unpause(client->task);
 			return;
 		}
 
@@ -1883,7 +1876,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 */
 		if ((client->sctx->options & NS_SERVER_EDNSREFUSED) != 0) {
 			ns_client_error(client, DNS_R_REFUSED);
-			isc_task_unpause(client->task);
 			return;
 		}
 
@@ -1892,13 +1884,11 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 */
 		if ((client->sctx->options & NS_SERVER_DROPEDNS) != 0) {
 			ns_client_drop(client, ISC_R_SUCCESS);
-			isc_task_unpause(client->task);
 			return;
 		}
 
 		result = process_opt(client, opt);
 		if (result != ISC_R_SUCCESS) {
-			isc_task_unpause(client->task);
 			return;
 		}
 	}
@@ -1911,7 +1901,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			result = dns_message_reply(client->message, true);
 			if (result != ISC_R_SUCCESS) {
 				ns_client_error(client, result);
-				isc_task_unpause(client->task);
 				return;
 			}
 
@@ -1920,7 +1909,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			}
 
 			ns_client_send(client);
-			isc_task_unpause(client->task);
 			return;
 		}
 
@@ -1930,7 +1918,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_dumpmessage(client, "message class could not be "
 					      "determined");
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_FORMERR);
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -1985,7 +1972,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
-		isc_task_unpause(client->task);
 		return;
 	}
 
@@ -2086,7 +2072,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		      client->message->opcode == dns_opcode_update))
 		{
 			ns_client_error(client, sigresult);
-			isc_task_unpause(client->task);
 			return;
 		}
 	}
@@ -2181,8 +2166,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		CTRACE("unknown opcode");
 		ns_client_error(client, DNS_R_NOTIMP);
 	}
-
-	isc_task_unpause(client->task);
 }
 
 isc_result_t
@@ -2224,9 +2207,8 @@ get_clienttask(ns_clientmgr_t *manager, isc_task_t **taskp) {
 	MTRACE("clienttask");
 
 	int tid = isc_nm_tid();
-	if (tid < 0) {
-		tid = isc_random_uniform(manager->ncpus);
-	}
+	REQUIRE(tid >= 0);
+	REQUIRE(tid < manager->ncpus);
 
 	isc_task_attach(manager->taskpool[tid], taskp);
 }
@@ -2401,7 +2383,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 		}
 	}
 	isc_mem_put(manager->mctx, manager->taskpool,
-		    manager->ncpus * sizeof(isc_task_t *));
+		    manager->ncpus * sizeof(manager->taskpool[0]));
 	ns_server_detach(&manager->sctx);
 
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
@@ -2435,8 +2417,8 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	ns_interface_attach(interface, &manager->interface);
 
 	manager->exiting = false;
-	manager->taskpool = isc_mem_get(mctx,
-					manager->ncpus * sizeof(isc_task_t *));
+	manager->taskpool = isc_mem_get(
+		mctx, manager->ncpus * sizeof(manager->taskpool[0]));
 	for (i = 0; i < manager->ncpus; i++) {
 		manager->taskpool[i] = NULL;
 		result = isc_task_create_bound(manager->taskmgr, 20,
