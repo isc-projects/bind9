@@ -1,3 +1,5 @@
+5643.	[placeholder]
+
 5642.	[bug]		Check "key-directory" conflicts in "named.conf" for
 			zones in multiple views with different "dnssec-policy".
 			[GL #2463].
