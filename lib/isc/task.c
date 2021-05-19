@@ -1020,7 +1020,6 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	{
 		LOCK(&task->lock);
 		if (task_shutdown(task)) {
-			task->threadid = 0;
 			task_ready(task);
 		}
 		UNLOCK(&task->lock);
