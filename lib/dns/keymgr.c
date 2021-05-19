@@ -1713,6 +1713,20 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 				      keystr, keymgr_keyrole(active_key->key),
 				      dns_kasp_getname(kasp));
 		}
+
+		/*
+		 * If rollover is not allowed, warn.
+		 */
+		if (!rollover) {
+			dst_key_format(active_key->key, keystr, sizeof(keystr));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+				      "keymgr: DNSKEY %s (%s) is offline in "
+				      "policy %s, cannot start rollover",
+				      keystr, keymgr_keyrole(active_key->key),
+				      dns_kasp_getname(kasp));
+			return (ISC_R_SUCCESS);
+		}
 	} else if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(origin, namestr, sizeof(namestr));
@@ -1723,20 +1737,6 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	}
 
 	/* It is time to do key rollover, we need a new key. */
-
-	/*
-	 * If rollover is not allowed, warn.
-	 */
-	if (!rollover) {
-		dst_key_format(active_key->key, keystr, sizeof(keystr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
-			      "keymgr: DNSKEY %s (%s) is offline in policy %s, "
-			      "cannot start rollover",
-			      keystr, keymgr_keyrole(active_key->key),
-			      dns_kasp_getname(kasp));
-		return (ISC_R_SUCCESS);
-	}
 
 	/*
 	 * Check if there is a key available in pool because keys
