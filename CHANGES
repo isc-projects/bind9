@@ -1,3 +1,6 @@
+5643.	[cleanup]	"make install" no longer creates an empty
+			${localstatedir}/run directory. [GL #2709]
+
 5642.	[bug]		Check "key-directory" conflicts in "named.conf" for
 			zones in multiple views with different "dnssec-policy".
 			[GL #2463].
