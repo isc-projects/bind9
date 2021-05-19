@@ -1310,7 +1310,6 @@ dns_zone_setdbtype
 dns_zone_setdialup
 dns_zone_setdnssecsignstats
 dns_zone_setfile
-dns_zone_setflag
 dns_zone_setforwardacl
 dns_zone_setidlein
 dns_zone_setidleout
