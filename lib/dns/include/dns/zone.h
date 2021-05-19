@@ -1724,6 +1724,22 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
  */
 
 isc_result_t
+dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		       isc_stdtime_t now, dns_dnsseckeylist_t *keys);
+/*%
+ * Find DNSSEC keys used for signing with dnssec-policy. Load these keys
+ * into 'keys'.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *\li	'keys' to be an initialised DNSSEC keylist.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	Error
+ */
+
+isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		   dns_zonemgr_t **zmgrp);

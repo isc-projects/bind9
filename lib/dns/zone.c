@@ -6552,6 +6552,85 @@ failure:
 	return (result);
 }
 
+/*%
+ * Find DNSSEC keys used for signing zone with dnssec-policy. Load these keys
+ * into 'keys'. Requires KASP to be locked.
+ */
+isc_result_t
+dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		       isc_stdtime_t now, dns_dnsseckeylist_t *keys) {
+	isc_result_t result;
+	const char *dir = dns_zone_getkeydirectory(zone);
+	dns_dbnode_t *node = NULL;
+	dns_dnsseckey_t *key, *key_next;
+	dns_dnsseckeylist_t dnskeys;
+	dns_name_t *origin = dns_zone_getorigin(zone);
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_rdataset_t keyset;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(kasp != NULL);
+
+	ISC_LIST_INIT(dnskeys);
+
+	CHECK(dns_db_findnode(db, origin, false, &node));
+
+	/* Get keys from private key files. */
+	dns_zone_lock_keyfiles(zone);
+	result = dns_dnssec_findmatchingkeys(origin, dir, now,
+					     dns_zone_getmctx(zone), keys);
+	dns_zone_unlock_keyfiles(zone);
+
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		goto failure;
+	}
+
+	/* Get public keys (dnskeys). */
+	dns_rdataset_init(&keyset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
+				     dns_rdatatype_none, 0, &keyset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		CHECK(dns_dnssec_keylistfromrdataset(
+			origin, dir, dns_zone_getmctx(zone), &keyset, NULL,
+			NULL, false, false, &dnskeys));
+	} else if (result != ISC_R_NOTFOUND) {
+		CHECK(result);
+	}
+
+	/* Add new 'dnskeys' to 'keys'. */
+	for (dns_dnsseckey_t *k1 = ISC_LIST_HEAD(dnskeys); k1 != NULL;
+	     k1 = key_next) {
+		dns_dnsseckey_t *k2 = NULL;
+		key_next = ISC_LIST_NEXT(k1, link);
+
+		for (k2 = ISC_LIST_HEAD(*keys); k2 != NULL;
+		     k2 = ISC_LIST_NEXT(k2, link)) {
+			if (dst_key_compare(k1->key, k2->key)) {
+				break;
+			}
+		}
+		/* No match found, add the new key. */
+		if (k2 == NULL) {
+			ISC_LIST_UNLINK(dnskeys, k1, link);
+			ISC_LIST_APPEND(*keys, k1, link);
+		}
+	}
+
+failure:
+	if (dns_rdataset_isassociated(&keyset)) {
+		dns_rdataset_disassociate(&keyset);
+	}
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+	while (!ISC_LIST_EMPTY(dnskeys)) {
+		key = ISC_LIST_HEAD(dnskeys);
+		ISC_LIST_UNLINK(dnskeys, key, link);
+		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
+	}
+	return (result);
+}
+
 static isc_result_t
 offline(dns_db_t *db, dns_dbversion_t *ver, dns__zonediff_t *zonediff,
 	dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata) {
