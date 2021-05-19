@@ -71,6 +71,9 @@ static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	  isc_log_t *logctxlogc);
 
+static isc_result_t
+keydirexist(const cfg_obj_t *zcgf, const char *dir, const char *kaspnamestr,
+	    isc_symtab_t *symtab, isc_log_t *logctx, isc_mem_t *mctx);
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
 	UNUSED(type);
@@ -2202,9 +2205,9 @@ cleanup:
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
-	       isc_symtab_t *files, isc_symtab_t *inview, const char *viewname,
-	       dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
-	       isc_log_t *logctx, isc_mem_t *mctx) {
+	       isc_symtab_t *files, isc_symtab_t *keydirs, isc_symtab_t *inview,
+	       const char *viewname, dns_rdataclass_t defclass,
+	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx) {
 	const char *znamestr;
 	const char *typestr = NULL;
 	const char *target = NULL;
@@ -2229,6 +2232,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool has_dnssecpolicy = false;
 	const void *clauses = NULL;
 	const char *option = NULL;
+	const char *kaspname = NULL;
+	const char *dir = NULL;
 	static const char *acls[] = {
 		"allow-notify",
 		"allow-transfer",
@@ -2458,8 +2463,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	(void)cfg_map_get(zoptions, "dnssec-policy", &obj);
 	if (obj != NULL) {
 		const cfg_obj_t *kasps = NULL;
-		const char *kaspname = cfg_obj_asstring(obj);
 
+		kaspname = cfg_obj_asstring(obj);
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
 		} else if (strcmp(kaspname, "insecure") == 0) {
@@ -3013,7 +3018,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	obj = NULL;
 	tresult = cfg_map_get(zoptions, "key-directory", &obj);
 	if (tresult == ISC_R_SUCCESS) {
-		const char *dir = cfg_obj_asstring(obj);
+		dir = cfg_obj_asstring(obj);
+
 		tresult = isc_file_isdirectory(dir);
 		switch (tresult) {
 		case ISC_R_SUCCESS:
@@ -3031,6 +3037,25 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 				    "key-directory: '%s' %s", dir,
 				    isc_result_totext(tresult));
+			result = tresult;
+		}
+	}
+
+	/*
+	 * Make sure there is no other zone with the same
+	 * key-directory and a different dnssec-policy.
+	 */
+	if (zname != NULL) {
+		char keydirbuf[DNS_NAME_FORMATSIZE + 128];
+		char *tmp = keydirbuf;
+		size_t len = sizeof(keydirbuf);
+		dns_name_format(zname, keydirbuf, sizeof(keydirbuf));
+		tmp += strlen(tmp);
+		len -= strlen(tmp);
+		(void)snprintf(tmp, len, "/%s", (dir == NULL) ? "(null)" : dir);
+		tresult = keydirexist(zconfig, (const char *)keydirbuf,
+				      kaspname, keydirs, logctx, mctx);
+		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
@@ -3241,6 +3266,56 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	symvalue.as_cpointer = obj;
 	result = isc_symtab_define(symtab, cfg_obj_asstring(obj),
 				   writeable ? 2 : 1, symvalue,
+				   isc_symexists_reject);
+	return (result);
+}
+
+static isc_result_t
+keydirexist(const cfg_obj_t *zcfg, const char *keydir, const char *kaspnamestr,
+	    isc_symtab_t *symtab, isc_log_t *logctx, isc_mem_t *mctx) {
+	isc_result_t result;
+	isc_symvalue_t symvalue;
+	char *symkey;
+
+	if (kaspnamestr == NULL || strcmp(kaspnamestr, "none") == 0) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = isc_symtab_lookup(symtab, keydir, 0, &symvalue);
+	if (result == ISC_R_SUCCESS) {
+		const cfg_obj_t *kasp = NULL;
+		const cfg_obj_t *exist = symvalue.as_cpointer;
+		const char *file = cfg_obj_file(exist);
+		unsigned int line = cfg_obj_line(exist);
+
+		/*
+		 * Having the same key-directory for the same zone is fine
+		 * iff the zone is using the same policy, or has no policy.
+		 */
+		(void)cfg_map_get(cfg_tuple_get(exist, "options"),
+				  "dnssec-policy", &kasp);
+		if (kasp == NULL ||
+		    strcmp(cfg_obj_asstring(kasp), "none") == 0 ||
+		    strcmp(cfg_obj_asstring(kasp), kaspnamestr) == 0)
+		{
+			return (ISC_R_SUCCESS);
+		}
+
+		cfg_obj_log(zcfg, logctx, ISC_LOG_ERROR,
+			    "key-directory '%s' already in use by zone %s with "
+			    "policy %s: %s:%u",
+			    keydir,
+			    cfg_obj_asstring(cfg_tuple_get(exist, "name")),
+			    cfg_obj_asstring(kasp), file, line);
+		return (ISC_R_EXISTS);
+	}
+
+	/*
+	 * Add the new zone plus key-directory.
+	 */
+	symkey = isc_mem_strdup(mctx, keydir);
+	symvalue.as_cpointer = zcfg;
+	result = isc_symtab_define(symtab, symkey, 2, symvalue,
 				   isc_symexists_reject);
 	return (result);
 }
@@ -4206,8 +4281,8 @@ check_dnstap(const cfg_obj_t *voptions, const cfg_obj_t *config,
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_symtab_t *files, bool check_plugins, isc_symtab_t *inview,
-	       isc_log_t *logctx, isc_mem_t *mctx) {
+	       isc_symtab_t *files, isc_symtab_t *keydirs, bool check_plugins,
+	       isc_symtab_t *inview, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
 	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
@@ -4267,8 +4342,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, voptions, config, symtab, files,
-					 inview, viewname, vclass, actx, logctx,
-					 mctx);
+					 keydirs, inview, viewname, vclass,
+					 actx, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -4881,6 +4956,7 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	isc_result_t tresult;
 	isc_symtab_t *symtab = NULL;
 	isc_symtab_t *files = NULL;
+	isc_symtab_t *keydirs = NULL;
 	isc_symtab_t *inview = NULL;
 
 	static const char *builtin[] = { "localhost", "localnets", "any",
@@ -4932,6 +5008,12 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		goto cleanup;
 	}
 
+	tresult = isc_symtab_create(mctx, 100, freekey, mctx, false, &keydirs);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+		goto cleanup;
+	}
+
 	tresult = isc_symtab_create(mctx, 100, freekey, mctx, true, &inview);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -4940,8 +5022,8 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-					 files, check_plugins, inview, logctx,
-					 mctx);
+					 files, keydirs, check_plugins, inview,
+					 logctx, mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -5032,8 +5114,8 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		}
 		if (tresult == ISC_R_SUCCESS) {
 			tresult = check_viewconf(config, voptions, key, vclass,
-						 files, check_plugins, inview,
-						 logctx, mctx);
+						 files, keydirs, check_plugins,
+						 inview, logctx, mctx);
 		}
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
@@ -5151,6 +5233,9 @@ cleanup:
 	}
 	if (files != NULL) {
 		isc_symtab_destroy(&files);
+	}
+	if (keydirs != NULL) {
+		isc_symtab_destroy(&keydirs);
 	}
 
 	return (result);
