@@ -36,9 +36,9 @@ isc_lib_register(void) {
 }
 
 void
-isc__initialize(void) ISC_CONSTRUCTOR(101);
+isc__initialize(void) ISC_CONSTRUCTOR;
 void
-isc__shutdown(void) ISC_DESTRUCTOR(101);
+isc__shutdown(void) ISC_DESTRUCTOR;
 
 void
 isc__initialize(void) {
