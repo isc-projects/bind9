@@ -504,10 +504,13 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 isc_result_t
 isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
 		     void *cbarg, size_t extrahandlesize);
-#endif
 
 bool
 isc_nm_is_http_handle(isc_nmhandle_t *handle);
+
+bool
+isc_nm_http_path_isvalid(const char *path);
+#endif /* HAVE_LIBNGHTTP2 */
 
 void
 isc_nm_bad_request(isc_nmhandle_t *handle);

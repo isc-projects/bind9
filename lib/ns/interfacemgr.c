@@ -549,6 +549,7 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 
 	if (result == ISC_R_SUCCESS) {
 		for (size_t i = 0; i < neps; i++) {
+			INSIST(isc_nm_http_path_isvalid(eps[i]));
 			result = isc_nm_http_endpoint(sock, eps[i],
 						      ns__client_request, ifp,
 						      sizeof(ns_client_t));

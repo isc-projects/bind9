@@ -1964,6 +1964,41 @@ doh_base64_to_base64url(void **state) {
 	}
 }
 
+static void
+doh_path_validation(void **state) {
+	UNUSED(state);
+
+	assert_true(isc_nm_http_path_isvalid("/"));
+	assert_true(isc_nm_http_path_isvalid(DOH_PATH));
+	assert_false(isc_nm_http_path_isvalid("laaaa"));
+	assert_false(isc_nm_http_path_isvalid(""));
+	assert_false(isc_nm_http_path_isvalid("//"));
+	assert_true(isc_nm_http_path_isvalid("/lala///"));
+	assert_true(isc_nm_http_path_isvalid("/lalaaaaaa"));
+	assert_true(isc_nm_http_path_isvalid("/lalaaa/la/la/la"));
+	assert_true(isc_nm_http_path_isvalid("/la/a"));
+	assert_true(isc_nm_http_path_isvalid("/la+la"));
+	assert_true(isc_nm_http_path_isvalid("/la&la/la*la/l-a_/la!/la\'"));
+	assert_true(isc_nm_http_path_isvalid("/la/(la)/la"));
+	assert_true(isc_nm_http_path_isvalid("/la,la,la"));
+	assert_true(isc_nm_http_path_isvalid("/la-'la'-la"));
+	assert_true(isc_nm_http_path_isvalid("/la:la=la"));
+	assert_true(isc_nm_http_path_isvalid("/l@l@l@"));
+	assert_false(isc_nm_http_path_isvalid("/#lala"));
+	assert_true(isc_nm_http_path_isvalid("/lala;la"));
+	assert_false(
+		isc_nm_http_path_isvalid("la&la/laalaala*lala/l-al_a/lal!/"));
+	assert_true(isc_nm_http_path_isvalid("/Lal/lAla.jpg"));
+
+	/* had to replace ? with ! because it does not verify a query string */
+	assert_true(isc_nm_http_path_isvalid("/watch!v=oavMtUWDBTM"));
+	assert_false(isc_nm_http_path_isvalid("/watch?v=dQw4w9WgXcQ"));
+	assert_true(isc_nm_http_path_isvalid("/datatracker.ietf.org/doc/html/"
+					     "rfc2616"));
+	assert_true(isc_nm_http_path_isvalid("/doc/html/rfc8484"));
+	assert_true(isc_nm_http_path_isvalid("/123"));
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests_short[] = {
@@ -1974,6 +2009,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
 						nm_teardown),
@@ -1993,6 +2030,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
 						nm_teardown),

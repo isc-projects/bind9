@@ -1695,6 +1695,13 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	}
 	socket->h2.request_path = isc_mem_strndup(
 		socket->mgr->mctx, (const char *)value, vlen + 1);
+
+	if (!isc_nm_http_path_isvalid(socket->h2.request_path)) {
+		isc_mem_free(socket->mgr->mctx, socket->h2.request_path);
+		socket->h2.request_path = NULL;
+		return (ISC_HTTP_ERROR_BAD_REQUEST);
+	}
+
 	handler = find_server_request_handler(socket->h2.request_path,
 					      socket->h2.session->serversocket);
 	if (handler != NULL) {
@@ -2476,7 +2483,7 @@ isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httplistener);
-	REQUIRE(uri != NULL && *uri != '\0');
+	REQUIRE(isc_nm_http_path_isvalid(uri));
 
 	httpcbarg = isc_mem_get(sock->mgr->mctx, sizeof(isc_nm_httpcbarg_t));
 	*httpcbarg = (isc_nm_httpcbarg_t){ .cb = cb, .cbarg = cbarg };
@@ -3008,6 +3015,7 @@ typedef struct isc_httpparser_state {
 
 #define MATCH(ch)      (st->str[0] == (ch))
 #define MATCH_ALPHA()  isalpha((unsigned char)(st->str[0]))
+#define MATCH_DIGIT()  isdigit((unsigned char)(st->str[0]))
 #define MATCH_ALNUM()  isalnum((unsigned char)(st->str[0]))
 #define MATCH_XDIGIT() isxdigit((unsigned char)(st->str[0]))
 #define ADVANCE()      st->str++
@@ -3181,4 +3189,195 @@ rule_percent_charcode(isc_httpparser_state_t *st) {
 	ADVANCE();
 
 	return (true);
+}
+
+/*
+ * DoH URL Location Verifier. Based on the following grammar (EBNF/WSN
+ * notation):
+ *
+ * S             = path_absolute.
+ * path_absolute = '/' [ segments ] '\0'.
+ * segments      = segment_nz { slash_segment }.
+ * slash_segment = '/' segment.
+ * segment       = { pchar }.
+ * segment_nz    = pchar { pchar }.
+ * pchar         = unreserved | pct_encoded | sub_delims | ':' | '@'.
+ * unreserved    = ALPHA | DIGIT | '-' | '.' | '_' | '~'.
+ * pct_encoded   = '%' XDIGIT XDIGIT.
+ * sub_delims    = '!' | '$' | '&' | '\'' | '(' | ')' | '*' | '+' |
+ *                 ',' | ';' | '='.
+ *
+ * The grammar is extracted from RFC 3986. It is slightly modified to
+ * aid in parser creation, but the end result is the same
+ * (path_absolute is defined slightly differently - split into
+ * multiple productions).
+ *
+ * https://datatracker.ietf.org/doc/html/rfc3986#appendix-A
+ */
+
+typedef struct isc_http_location_parser_state {
+	const char *str;
+} isc_http_location_parser_state_t;
+
+static bool
+rule_loc_path_absolute(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_segments(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_slash_segment(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_segment(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_segment_nz(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_pchar(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_unreserved(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_pct_encoded(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_sub_delims(isc_http_location_parser_state_t *);
+
+static bool
+rule_loc_path_absolute(isc_http_location_parser_state_t *st) {
+	if (MATCH('/')) {
+		ADVANCE();
+	} else {
+		return (false);
+	}
+
+	(void)rule_loc_segments(st);
+
+	if (MATCH('\0')) {
+		ADVANCE();
+	} else {
+		return (false);
+	}
+
+	return (true);
+}
+
+static bool
+rule_loc_segments(isc_http_location_parser_state_t *st) {
+	if (!rule_loc_segment_nz(st)) {
+		return (false);
+	}
+
+	while (rule_loc_slash_segment(st)) {
+		/* zero or more */;
+	}
+
+	return (true);
+}
+
+static bool
+rule_loc_slash_segment(isc_http_location_parser_state_t *st) {
+	if (MATCH('/')) {
+		ADVANCE();
+	} else {
+		return (false);
+	}
+
+	return (rule_loc_segment(st));
+}
+
+static bool
+rule_loc_segment(isc_http_location_parser_state_t *st) {
+	while (rule_loc_pchar(st)) {
+		/* zero or more */;
+	}
+
+	return (true);
+}
+
+static bool
+rule_loc_segment_nz(isc_http_location_parser_state_t *st) {
+	if (!rule_loc_pchar(st)) {
+		return (false);
+	}
+
+	while (rule_loc_pchar(st)) {
+		/* zero or more */;
+	}
+
+	return (true);
+}
+
+static bool
+rule_loc_pchar(isc_http_location_parser_state_t *st) {
+	if (rule_loc_unreserved(st)) {
+		return (true);
+	} else if (rule_loc_pct_encoded(st)) {
+		return (true);
+	} else if (rule_loc_sub_delims(st)) {
+		return (true);
+	} else if (MATCH(':') || MATCH('@')) {
+		ADVANCE();
+		return (true);
+	}
+
+	return (false);
+}
+
+static bool
+rule_loc_unreserved(isc_http_location_parser_state_t *st) {
+	if (MATCH_ALPHA() | MATCH_DIGIT() | MATCH('-') | MATCH('.') |
+	    MATCH('_') | MATCH('~'))
+	{
+		ADVANCE();
+		return (true);
+	}
+	return (false);
+}
+
+static bool
+rule_loc_pct_encoded(isc_http_location_parser_state_t *st) {
+	if (!MATCH('%')) {
+		return (false);
+	}
+	ADVANCE();
+
+	if (!MATCH_XDIGIT()) {
+		return (false);
+	}
+	ADVANCE();
+
+	if (!MATCH_XDIGIT()) {
+		return (false);
+	}
+	ADVANCE();
+
+	return (true);
+}
+
+static bool
+rule_loc_sub_delims(isc_http_location_parser_state_t *st) {
+	if (MATCH('!') | MATCH('$') | MATCH('&') | MATCH('\'') | MATCH('(') |
+	    MATCH(')') | MATCH('*') | MATCH('+') | MATCH(',') | MATCH(';') |
+	    MATCH('='))
+	{
+		ADVANCE();
+		return (true);
+	}
+
+	return (false);
+}
+
+bool
+isc_nm_http_path_isvalid(const char *path) {
+	isc_http_location_parser_state_t state = { 0 };
+
+	REQUIRE(path != NULL);
+
+	state.str = path;
+
+	return (rule_loc_path_absolute(&state));
 }
