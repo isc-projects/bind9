@@ -80,6 +80,9 @@ static atomic_bool use_TLS = ATOMIC_VAR_INIT(false);
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
 
+static isc_quota_t listener_quota;
+static atomic_bool check_listener_quota = ATOMIC_VAR_INIT(false);
+
 /* Timeout for soft-timeout tests (0.05 seconds) */
 #define T_SOFT 50
 
@@ -330,6 +333,9 @@ nm_setup(void **state) {
 	isc_tlsctx_createclient(&client_tlsctx);
 	isc_tlsctx_enable_http2client_alpn(client_tlsctx);
 
+	isc_quota_init(&listener_quota, 0);
+	atomic_store(&check_listener_quota, false);
+
 	*state = nm;
 
 	return (0);
@@ -351,6 +357,8 @@ nm_teardown(void **state) {
 	if (client_tlsctx != NULL) {
 		isc_tlsctx_free(&client_tlsctx);
 	}
+
+	isc_quota_destroy(&listener_quota);
 
 	return (0);
 }
@@ -381,6 +389,17 @@ sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 	snprintf(outbuf, outbuf_len, "%s://%s%s%s:%u%s",
 		 https ? "https" : "http", family == AF_INET ? "" : "[", saddr,
 		 family == AF_INET ? "" : "]", port, append ? append : "");
+}
+
+static isc_quota_t *
+init_listener_quota(size_t nthreads) {
+	isc_quota_t *quotap = NULL;
+	if (atomic_load(&check_listener_quota)) {
+		unsigned max_quota = ISC_MAX(nthreads / 2, 1);
+		isc_quota_max(&listener_quota, max_quota);
+		quotap = &listener_quota;
+	}
+	return (quotap);
 }
 
 static void
@@ -754,12 +773,13 @@ doh_recv_one(void **state) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, 1);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -835,6 +855,36 @@ doh_recv_one_GET_TLS(void **state) {
 }
 
 static void
+doh_recv_one_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(state);
+}
+
+static void
+doh_recv_one_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(state);
+}
+
+static void
+doh_recv_one_POST_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(state);
+}
+
+static void
+doh_recv_one_GET_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(state);
+}
+
+static void
 doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -873,12 +923,13 @@ doh_recv_two(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 	isc_tlsctx_t *ctx = NULL;
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -958,6 +1009,36 @@ doh_recv_two_GET_TLS(void **state) {
 }
 
 static void
+doh_recv_two_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(state);
+}
+
+static void
+doh_recv_two_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(state);
+}
+
+static void
+doh_recv_two_POST_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(state);
+}
+
+static void
+doh_recv_two_GET_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(state);
+}
+
+static void
 doh_recv_send(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
@@ -966,9 +1047,10 @@ doh_recv_send(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1028,6 +1110,36 @@ doh_recv_send_GET_TLS(void **state) {
 }
 
 static void
+doh_recv_send_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(state);
+}
+
+static void
+doh_recv_send_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(state);
+}
+
+static void
+doh_recv_send_POST_TLS_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(state);
+}
+
+static void
+doh_recv_send_GET_TLS_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&use_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(state);
+}
+
+static void
 doh_recv_half_send(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
@@ -1036,12 +1148,13 @@ doh_recv_half_send(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1106,6 +1219,36 @@ doh_recv_half_send_GET_TLS(void **state) {
 }
 
 static void
+doh_recv_half_send_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_half_send(state);
+}
+
+static void
+doh_recv_half_send_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_half_send(state);
+}
+
+static void
+doh_recv_half_send_POST_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_half_send(state);
+}
+
+static void
+doh_recv_half_send_GET_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_half_send(state);
+}
+
+static void
 doh_half_recv_send(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
@@ -1114,12 +1257,13 @@ doh_half_recv_send(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1184,6 +1328,36 @@ doh_half_recv_send_GET_TLS(void **state) {
 }
 
 static void
+doh_half_recv_send_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_send(state);
+}
+
+static void
+doh_half_recv_send_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_send(state);
+}
+
+static void
+doh_half_recv_send_POST_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_send(state);
+}
+
+static void
+doh_half_recv_send_GET_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_send(state);
+}
+
+static void
 doh_half_recv_half_send(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
@@ -1192,12 +1366,13 @@ doh_half_recv_half_send(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
 	isc_thread_t threads[32] = { 0 };
+	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, NULL,
+		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
 		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1257,6 +1432,36 @@ static void
 doh_half_recv_half_send_GET_TLS(void **state) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
+	doh_half_recv_half_send(state);
+}
+
+static void
+doh_half_recv_half_send_POST_quota(void **state) {
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_half_send(state);
+}
+
+static void
+doh_half_recv_half_send_GET_quota(void **state) {
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_half_send(state);
+}
+
+static void
+doh_half_recv_half_send_POST_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, true);
+	atomic_store(&check_listener_quota, true);
+	doh_half_recv_half_send(state);
+}
+
+static void
+doh_half_recv_half_send_GET_TLS_quota(void **state) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&POST, false);
+	atomic_store(&check_listener_quota, true);
 	doh_half_recv_half_send(state);
 }
 
@@ -1811,6 +2016,14 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_one_GET_TLS, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_one_POST_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_one_GET_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_one_POST_TLS_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_one_GET_TLS_quota,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_two_POST, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_two_GET, nm_setup,
@@ -1819,6 +2032,14 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_two_GET_TLS, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_two_POST_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_two_GET_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_two_POST_TLS_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_two_GET_TLS_quota,
+						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_send_GET, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_send_POST, nm_setup,
@@ -1826,6 +2047,14 @@ main(void) {
 		cmocka_unit_test_setup_teardown(doh_recv_send_GET_TLS, nm_setup,
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_send_POST_TLS,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_send_GET_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_send_POST_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_send_GET_TLS_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_send_POST_TLS_quota,
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_half_send_GET,
 						nm_setup, nm_teardown),
@@ -1835,6 +2064,16 @@ main(void) {
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_recv_half_send_POST_TLS,
 						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_half_send_GET_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_recv_half_send_POST_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_recv_half_send_GET_TLS_quota, nm_setup,
+			nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_recv_half_send_POST_TLS_quota, nm_setup,
+			nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_half_recv_send_GET,
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST,
@@ -1843,6 +2082,16 @@ main(void) {
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST_TLS,
 						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_half_recv_send_GET_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST_quota,
+						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_send_GET_TLS_quota, nm_setup,
+			nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_send_POST_TLS_quota, nm_setup,
+			nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_half_recv_half_send_GET,
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_half_recv_half_send_POST,
@@ -1852,10 +2101,18 @@ main(void) {
 		cmocka_unit_test_setup_teardown(
 			doh_half_recv_half_send_POST_TLS, nm_setup,
 			nm_teardown),
-		/*cmocka_unit_test_setup_teardown(doh_cloudflare_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_cloudflare_POST, nm_setup,
-		nm_teardown)*/
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_half_send_GET_quota, nm_setup,
+			nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_half_send_POST_quota, nm_setup,
+			nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_half_send_GET_TLS_quota, nm_setup,
+			nm_teardown),
+		cmocka_unit_test_setup_teardown(
+			doh_half_recv_half_send_POST_TLS_quota, nm_setup,
+			nm_teardown),
 	};
 	int result = 0;
 
