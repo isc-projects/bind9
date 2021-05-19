@@ -137,7 +137,8 @@ echo_i "verifying adding of multiple inline zones followed by reconfiguration wo
 [ ! -f ns2/zones.conf ] && touch ns2/zones.conf
 copy_setports ns2/named3.conf.in ns2/named.conf
 
-for i in `seq 1 50`; do
+i=1
+while [ $i -lt 50 ]; do
 	ret=0
 	zone_name=`printf "example%03d.com" $i`
 
@@ -171,6 +172,7 @@ EOF
     $RNDCCMD 10.53.0.2 reconfig || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; break; fi
 done # end for #
+	i=$((i + 1))
 status=`expr $status + $ret`
 
 echo_i "exit status: $status"
