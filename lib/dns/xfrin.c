@@ -1082,7 +1082,6 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 	CHECK(dns_rdatalist_tordataset(rdl, rds));
 
 	CHECK(dns_message_gettempname(msg, &name));
-	dns_name_init(name, NULL);
 	dns_name_clone(&tuple->name, name);
 	ISC_LIST_APPEND(name->list, rds, link);
 
@@ -1127,7 +1126,6 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	/* Create a name for the question section. */
 	CHECK(dns_message_gettempname(msg, &qname));
-	dns_name_init(qname, NULL);
 	dns_name_clone(&xfr->name, qname);
 
 	/* Formulate the question and attach it to the question name. */

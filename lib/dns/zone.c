@@ -12749,7 +12749,6 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	/*
 	 * Make question.
 	 */
-	dns_name_init(qname, NULL);
 	dns_name_clone(name, qname);
 	dns_rdataset_makequestion(qrdataset, zone->rdclass, rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
@@ -14963,7 +14962,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	/*
 	 * Make question.
 	 */
-	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
 	dns_rdataset_makequestion(temprdataset, zone->rdclass,
 				  dns_rdatatype_soa);
@@ -14998,7 +14996,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	dns_db_attach(zone->db, &zonedb);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
-	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
 	dns_db_currentversion(zonedb, &version);
 	result = dns_db_findnode(zonedb, tempname, false, &node);

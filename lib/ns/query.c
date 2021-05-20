@@ -788,7 +788,7 @@ ns_query_free(ns_client_t *client) {
 
 isc_result_t
 ns_query_init(ns_client_t *client) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -827,16 +827,8 @@ ns_query_init(ns_client_t *client) {
 	client->query.redirect.fname =
 		dns_fixedname_initname(&client->query.redirect.fixed);
 	query_reset(client, false);
-	result = ns_client_newdbversion(client, 3);
-	if (result != ISC_R_SUCCESS) {
-		isc_mutex_destroy(&client->query.fetchlock);
-		return (result);
-	}
-	result = ns_client_newnamebuf(client);
-	if (result != ISC_R_SUCCESS) {
-		query_freefreeversions(client, true);
-		isc_mutex_destroy(&client->query.fetchlock);
-	}
+	ns_client_newdbversion(client, 3);
+	ns_client_newnamebuf(client);
 
 	return (result);
 }
@@ -9812,8 +9804,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
-	dns_name_init(tname, NULL);
-	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
+	dns_name_clone(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -10346,8 +10337,8 @@ cleanup:
 static isc_result_t
 query_cname(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
-	dns_name_t *tname;
-	dns_rdataset_t *trdataset;
+	dns_name_t *tname = NULL;
+	dns_rdataset_t *trdataset = NULL;
 	dns_rdataset_t **sigrdatasetp = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_cname_t cname;
@@ -10409,7 +10400,6 @@ query_cname(query_ctx_t *qctx) {
 	 * Reset qname to be the target name of the CNAME and restart
 	 * the query.
 	 */
-	tname = NULL;
 	result = dns_message_gettempname(qctx->client->message, &tname);
 	if (result != ISC_R_SUCCESS) {
 		return (ns_query_done(qctx));
@@ -10426,8 +10416,7 @@ query_cname(query_ctx_t *qctx) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
-	dns_name_init(tname, NULL);
-	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
+	dns_name_clone(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -10627,7 +10616,7 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	dns_name_dup(client->query.qname, client->mctx, aname);
+	dns_name_clone(client->query.qname, aname);
 
 	result = dns_message_gettemprdatalist(client->message, &rdatalist);
 	if (result != ISC_R_SUCCESS) {
@@ -10762,7 +10751,6 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	dns_name_init(name, NULL);
 	dns_name_clone(dns_db_origin(qctx->db), name);
 	rdataset = ns_client_newrdataset(client);
 	if (rdataset == NULL) {
@@ -10899,7 +10887,6 @@ query_addns(query_ctx_t *qctx) {
 					 "failed: done");
 		return (result);
 	}
-	dns_name_init(name, NULL);
 	dns_name_clone(dns_db_origin(qctx->db), name);
 	rdataset = ns_client_newrdataset(client);
 	if (rdataset == NULL) {

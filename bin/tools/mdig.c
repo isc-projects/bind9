@@ -88,10 +88,10 @@
 #define US_PER_SEC 1000000 /*%< Microseconds per second. */
 #define US_PER_MS  1000	   /*%< Microseconds per millisecond. */
 
-static isc_mem_t *mctx;
-static dns_requestmgr_t *requestmgr;
-static const char *batchname;
-static FILE *batchfp;
+static isc_mem_t *mctx = NULL;
+static dns_requestmgr_t *requestmgr = NULL;
+static const char *batchname = NULL;
+static FILE *batchfp = NULL;
 static bool burst = false;
 static bool have_ipv4 = false;
 static bool have_ipv6 = false;
@@ -116,7 +116,7 @@ static bool yaml = false;
 static bool continue_on_error = false;
 static uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
-static char *server;
+static char *server = NULL;
 static isc_sockaddr_t dstaddr;
 static in_port_t port = 53;
 static isc_dscp_t dscp = -1;
@@ -580,10 +580,10 @@ compute_cookie(unsigned char *cookie, size_t len) {
 
 static isc_result_t
 sendquery(struct query *query, isc_task_t *task) {
-	dns_request_t *request;
-	dns_message_t *message;
-	dns_name_t *qname;
-	dns_rdataset_t *qrdataset;
+	dns_request_t *request = NULL;
+	dns_message_t *message = NULL;
+	dns_name_t *qname = NULL;
+	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 	dns_fixedname_t queryname;
 	isc_buffer_t buf;
@@ -598,7 +598,6 @@ sendquery(struct query *query, isc_task_t *task) {
 				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
-	message = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
@@ -620,15 +619,12 @@ sendquery(struct query *query, isc_task_t *task) {
 	message->rdclass = query->rdclass;
 	message->id = (unsigned short)(random() & 0xFFFF);
 
-	qname = NULL;
 	result = dns_message_gettempname(message, &qname);
 	CHECK("dns_message_gettempname", result);
 
-	qrdataset = NULL;
 	result = dns_message_gettemprdataset(message, &qrdataset);
 	CHECK("dns_message_gettemprdataset", result);
 
-	dns_name_init(qname, NULL);
 	dns_name_clone(dns_fixedname_name(&queryname), qname);
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
@@ -2064,11 +2060,11 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 /*% Main processing routine for mdig */
 int
 main(int argc, char *argv[]) {
-	struct query *query;
+	struct query *query = NULL;
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
-	isc_log_t *lctx;
-	isc_logconfig_t *lcfg;
+	isc_log_t *lctx = NULL;
+	isc_logconfig_t *lcfg = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
@@ -2076,8 +2072,8 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	unsigned int attrs, attrmask;
-	dns_dispatch_t *dispatchvx;
-	dns_view_t *view;
+	dns_dispatch_t *dispatchvx = NULL;
+	dns_view_t *view = NULL;
 	int ns;
 	unsigned int i;
 
@@ -2097,11 +2093,8 @@ main(int argc, char *argv[]) {
 
 	preparse_args(argc, argv);
 
-	mctx = NULL;
 	isc_mem_create(&mctx);
 
-	lctx = NULL;
-	lcfg = NULL;
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -2153,13 +2146,12 @@ main(int argc, char *argv[]) {
 				     have_src ? &srcaddr : &bind_any, 4096, 100,
 				     100, 17, 19, attrs, attrmask,
 				     &dispatchvx));
-	requestmgr = NULL;
+
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
 		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,
 		&requestmgr));
 
-	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
 	query = ISC_LIST_HEAD(queries);
