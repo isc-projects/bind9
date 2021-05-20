@@ -15162,10 +15162,10 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	CHECK(dns_db_findnode(db, origin, false, &node));
 	dns_db_currentversion(db, &version);
 	/* Get keys from private key files. */
-	LOCK(&kasp->lock);
-	result = dns_dnssec_findmatchingkeys(origin, dir, now,
+	dns_zone_lock_keyfiles(zone);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), dir, now,
 					     dns_zone_getmctx(zone), &keys);
-	UNLOCK(&kasp->lock);
+	dns_zone_unlock_keyfiles(zone);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
 	}

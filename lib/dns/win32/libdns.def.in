@@ -1276,6 +1276,7 @@ dns_zone_keydone
 dns_zone_link
 dns_zone_load
 dns_zone_loadandthaw
+dns_zone_lock_keyfiles
 dns_zone_log
 dns_zone_logc
 dns_zone_logv
@@ -1376,6 +1377,7 @@ dns_zone_setzeronosoattl
 dns_zone_signwithkey
 dns_zone_synckeyzone
 dns_zone_unload
+dns_zone_unlock_keyfiles
 dns_zone_verifydb
 dns_zonekey_iszonekey
 dns_zonemgr_attach
