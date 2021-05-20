@@ -1402,7 +1402,6 @@ sendstream(xfrout_ctx_t *xfr) {
 			if (result != ISC_R_SUCCESS) {
 				goto failure;
 			}
-			dns_name_init(qname, NULL);
 			isc_buffer_availableregion(&xfr->buf, &r);
 			INSIST(r.length >= xfr->qname->length);
 			r.length = xfr->qname->length;
@@ -1476,7 +1475,6 @@ sendstream(xfrout_ctx_t *xfr) {
 		if (result != ISC_R_SUCCESS) {
 			goto failure;
 		}
-		dns_name_init(msgname, NULL);
 		isc_buffer_availableregion(&xfr->buf, &r);
 		INSIST(r.length >= name->length);
 		r.length = name->length;
