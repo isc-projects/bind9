@@ -543,7 +543,6 @@ dns_message_getrawmessage
 dns_message_getsig0
 dns_message_getsig0key
 dns_message_gettempname
-dns_message_gettempoffsets
 dns_message_gettemprdata
 dns_message_gettemprdatalist
 dns_message_gettemprdataset

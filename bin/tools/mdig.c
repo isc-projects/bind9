@@ -579,10 +579,10 @@ compute_cookie(unsigned char *cookie, size_t len) {
 
 static isc_result_t
 sendquery(struct query *query, isc_task_t *task) {
-	dns_request_t *request;
-	dns_message_t *message;
-	dns_name_t *qname;
-	dns_rdataset_t *qrdataset;
+	dns_request_t *request = NULL;
+	dns_message_t *message = NULL;
+	dns_name_t *qname = NULL;
+	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 	dns_fixedname_t queryname;
 	isc_buffer_t buf;
@@ -597,7 +597,6 @@ sendquery(struct query *query, isc_task_t *task) {
 				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
-	message = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
@@ -619,15 +618,12 @@ sendquery(struct query *query, isc_task_t *task) {
 	message->rdclass = query->rdclass;
 	message->id = (unsigned short)(random() & 0xFFFF);
 
-	qname = NULL;
 	result = dns_message_gettempname(message, &qname);
 	CHECK("dns_message_gettempname", result);
 
-	qrdataset = NULL;
 	result = dns_message_gettemprdataset(message, &qrdataset);
 	CHECK("dns_message_gettemprdataset", result);
 
-	dns_name_init(qname, NULL);
 	dns_name_clone(dns_fixedname_name(&queryname), qname);
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);

@@ -2055,7 +2055,6 @@ insert_soa(dig_lookup_t *lookup) {
 
 	result = dns_message_gettempname(lookup->sendmsg, &soaname);
 	check_result(result, "dns_message_gettempname");
-	dns_name_init(soaname, NULL);
 	dns_name_clone(lookup->name, soaname);
 	ISC_LIST_INIT(soaname->list);
 	ISC_LIST_APPEND(soaname->list, rdataset, link);
@@ -2116,7 +2115,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 	result = dns_message_gettempname(lookup->sendmsg, &lookup->name);
 	check_result(result, "dns_message_gettempname");
-	dns_name_init(lookup->name, NULL);
 
 	isc_buffer_init(&lookup->namebuf, lookup->name_space,
 			sizeof(lookup->name_space));
@@ -2160,7 +2158,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		result = dns_message_gettempname(lookup->sendmsg,
 						 &lookup->oname);
 		check_result(result, "dns_message_gettempname");
-		dns_name_init(lookup->oname, NULL);
 		/* XXX Helper funct to conv char* to name? */
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2

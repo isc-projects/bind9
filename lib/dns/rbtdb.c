@@ -10372,7 +10372,6 @@ restart:
 	}
 
 	for (; ge != NULL; ge = ge->next) {
-		isc_buffer_t *buffer = NULL;
 		dns_name_t *name = NULL;
 		dns_rdataset_t *rdataset_a = NULL;
 		dns_rdataset_t *sigrdataset_a = NULL;
@@ -10380,16 +10379,12 @@ restart:
 		dns_rdataset_t *sigrdataset_aaaa = NULL;
 		dns_name_t *gluename = dns_fixedname_name(&ge->fixedname);
 
-		isc_buffer_allocate(msg->mctx, &buffer, 512);
-
 		result = dns_message_gettempname(msg, &name);
 		if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
-			isc_buffer_free(&buffer);
 			goto no_glue;
 		}
 
-		dns_name_copy(gluename, name, buffer);
-		dns_message_takebuffer(msg, &buffer);
+		dns_name_copynf(gluename, name);
 
 		if (dns_rdataset_isassociated(&ge->rdataset_a)) {
 			result = dns_message_gettemprdataset(msg, &rdataset_a);
