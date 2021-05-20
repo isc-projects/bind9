@@ -29,7 +29,8 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- Native PKCS#11 support has been removed; BIND 9 now uses OpenSSL engine_pkcs11 from the
+  OpenSC project. :gl:`#2691`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
