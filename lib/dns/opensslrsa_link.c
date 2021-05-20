@@ -24,8 +24,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dst/result.h>
 
 #include "dst_internal.h"

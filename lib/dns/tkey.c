@@ -29,8 +29,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -52,10 +50,6 @@
 
 #define TEMP_BUFFER_SZ	   8192
 #define TKEY_RANDOM_AMOUNT 16
-
-#if USE_PKCS11
-#include <pk11/pk11.h>
-#endif /* if USE_PKCS11 */
 
 #define RETERR(x)                            \
 	do {                                 \

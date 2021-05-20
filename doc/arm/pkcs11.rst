@@ -17,60 +17,21 @@ Public Key Cryptography Standard #11 (PKCS#11) defines a
 platform-independent API for the control of hardware security modules
 (HSMs) and other cryptographic support devices.
 
-BIND 9 is known to work with three HSMs: the AEP Keyper, which has been
-tested with Debian Linux, Solaris x86, and Windows Server 2003; the
-Thales nShield, tested with Debian Linux; and the Sun SCA 6000
-cryptographic acceleration board, tested with Solaris x86. In addition,
-BIND can be used with all current versions of SoftHSM, a software-based
-HSM simulator library produced by the OpenDNSSEC project.
-
 PKCS#11 uses a "provider library": a dynamically loadable
 library which provides a low-level PKCS#11 interface to drive the HSM
 hardware. The PKCS#11 provider library comes from the HSM vendor, and it
 is specific to the HSM to be controlled.
 
-There are two available mechanisms for PKCS#11 support in BIND 9:
-OpenSSL-based PKCS#11 and native PKCS#11. With OpenSSL-based PKCS#11,
-BIND uses a modified version of OpenSSL, which loads the
-provider library and operates the HSM indirectly; any cryptographic
-operations not supported by the HSM can be carried out by OpenSSL
-instead. Native PKCS#11 enables BIND to bypass OpenSSL completely;
-BIND loads the provider library itself, and uses the PKCS#11 API to
-drive the HSM directly.
+BIND 9 uses OpenSSL engine_pkcs11 from the OpenSC project.  The engine is
+dynamically loaded into OpenSSL and the HSM is operated indirectly; any
+cryptographic operations not supported by the HSM can be carried out by OpenSSL
+instead.
 
 Prerequisites
 ~~~~~~~~~~~~~
 
 See the documentation provided by the HSM vendor for information about
 installing, initializing, testing, and troubleshooting the HSM.
-
-Native PKCS#11
-~~~~~~~~~~~~~~
-
-Native PKCS#11 mode only works with an HSM capable of carrying out
-*every* cryptographic operation BIND 9 may need. The HSM's provider
-library must have a complete implementation of the PKCS#11 API, so that
-all these functions are accessible. As of this writing, only the Thales
-nShield HSM and SoftHSMv2 can be used in this fashion. For other HSMs,
-including the AEP Keyper, Sun SCA 6000, and older versions of SoftHSM,
-use OpenSSL-based PKCS#11. (Note: Eventually, when more HSMs become
-capable of supporting native PKCS#11, it is expected that OpenSSL-based
-PKCS#11 will be deprecated.)
-
-To build BIND with native PKCS#11, configure it as follows:
-
-::
-
-   $ cd bind9
-   $ ./configure --enable-native-pkcs11 \
-       --with-pkcs11=provider-library-path
-
-
-This causes all BIND tools, including ``named`` and the ``dnssec-*``
-and ``pkcs11-*`` tools, to use the PKCS#11 provider library specified in
-provider-library-path for cryptography. (The provider library path can
-be overridden using the ``-E`` argument in ``named`` and the ``dnssec-*`` tools,
-or the ``-m`` argument in the ``pkcs11-*`` tools.)
 
 Building SoftHSMv2
 ^^^^^^^^^^^^^^^^^^
@@ -99,155 +60,162 @@ with BIND.
    $  make install
    $  /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2
 
-
 OpenSSL-based PKCS#11
 ~~~~~~~~~~~~~~~~~~~~~
 
 OpenSSL-based PKCS#11 uses engine_pkcs11 OpenSSL engine from libp11 project.
 
-For more information, see https://gitlab.isc.org/isc-projects/bind9/-/wikis/BIND-9-PKCS11
+engine_pkcs11 tries to fit the PKCS#11 API within the engine API of OpenSSL.
+That is, it provides a gateway between PKCS#11 modules and the OpenSSL engine
+API.  One has to register the engine with OpenSSL and one has to provide the
+path to the PKCS#11 module which should be gatewayed to. This can be done by
+editing the OpenSSL configuration file, by engine specific controls, or by using
+the p11-kit proxy module.
 
-PKCS#11 Tools
-~~~~~~~~~~~~~
+It is recommended, that libp11 >= 0.4.12 is used.
 
-BIND 9 includes a minimal set of tools to operate the HSM, including
-``pkcs11-keygen`` to generate a new key pair within the HSM,
-``pkcs11-list`` to list objects currently available, ``pkcs11-destroy``
-to remove objects, and ``pkcs11-tokens`` to list available tokens.
+For more detailed howto including the examples, we recommend reading:
 
-In UNIX/Linux builds, these tools are built only if BIND 9 is configured
-with the ``--with-pkcs11`` option. (Note: If ``--with-pkcs11`` is set to ``yes``,
-rather than to the path of the PKCS#11 provider, the tools are
-built but the provider is left undefined. Use the ``-m`` option or the
-``PKCS11_PROVIDER`` environment variable to specify the path to the
-provider.)
+https://gitlab.isc.org/isc-projects/bind9/-/wikis/BIND-9-PKCS11
 
 Using the HSM
 ~~~~~~~~~~~~~
 
-For OpenSSL-based PKCS#11, the runtime environment must first be set up
-so the OpenSSL and PKCS#11 libraries can be loaded:
+The canonical documentation for configuring engine_pkcs11 is in the
+`libp11/README.md`_, but here's copy of working configuration for
+your convenience:
+
+.. _`libp11/README.md`: https://github.com/OpenSC/libp11/blob/master/README.md#pkcs-11-module-configuration
+
+We are going to use our own custom copy of OpenSSL configuration, again it's
+driven by an environment variable, this time called OPENSSL_CONF.  We are
+going to copy the global OpenSSL configuration (often found in
+``etc/ssl/openssl.conf``) and customize it to use engines_pkcs11.
+
+::
+   cp /etc/ssl/openssl.cnf /opt/bind9/etc/openssl.cnf
+
+and export the environment variable:
+
+::
+   export OPENSSL_CONF=/opt/bind9/etc/openssl.cnf
+
+Now add following line at the top of file, before any sections (in square
+brackets) are defined:
+
+::
+   openssl_conf = openssl_init
+
+And add following lines at the bottom of the file:
+
+::
+   [openssl_init]
+   engines=engine_section
+
+   [engine_section]
+   pkcs11 = pkcs11_section
+
+   [pkcs11_section]
+   engine_id = pkcs11
+   dynamic_path = <PATHTO>/pkcs11.so
+   MODULE_PATH = <FULL_PATH_TO_HSM_MODULE>
+   init = 0
+
+Key Generation
+~~~~~~~~~~~~~~
+
+HSM keys can now be created and used.  We are going to assume that you already
+have a BIND 9 installed, either from a package, or from the sources, and the
+tools are readily available in the ``$PATH``.
+
+For generating the keys, we are going to use ``pkcs11-tool`` available from the
+OpenSC suite.  On both DEB-based and RPM-based distributions, the package is
+called opensc.
+
+We need to generate at least two RSA keys:
 
 ::
 
-   $ export LD_LIBRARY_PATH=/opt/pkcs11/usr/lib:${LD_LIBRARY_PATH}
+   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type rsa:2048 --label example.net-ksk --pin <PIN>
+   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type rsa:2048 --label example.net-ksk --pin <PIN>
 
-This causes ``named`` and other binaries to load the OpenSSL library
-from ``/opt/pkcs11/usr/lib``, rather than from the default location. This
-step is not necessary when using native PKCS#11.
+Remember that each key should have unique label and we are going to use that
+label to reference the private key.
 
-Some HSMs require other environment variables to be set. For example,
-when operating an AEP Keyper, the location of
-the "machine" file, which stores information about the Keyper for use by
-the provider library, must be specified. If the machine file is in
-``/opt/Keyper/PKCS11Provider/machine``, use:
+Convert the RSA keys stored in the HSM into a format that BIND 9 understands.
+The ``dnssec-keyfromlabel`` tool from BIND 9 can link the raw keys stored in the
+HSM with the ``K<zone>+<alg>+<id>`` files.  You'll need to provide the OpenSSL
+engine name (``pkcs11``), the algorithm (``RSASHA256``) and the PKCS#11 label
+that specify the token (we asume that it has been initialized as bind9), the
+name of the PKCS#11 object (called label when generating the keys using
+``pkcs11-tool``) and the HSM PIN.
 
-::
-
-   $ export KEYPER_LIBRARY_PATH=/opt/Keyper/PKCS11Provider
-
-Such environment variables must be set when running any tool that
-uses the HSM, including ``pkcs11-keygen``, ``pkcs11-list``,
-``pkcs11-destroy``, ``dnssec-keyfromlabel``, ``dnssec-signzone``,
-``dnssec-keygen``, and ``named``.
-
-HSM keys can now be created and used. In this case, we will create
-a 2048-bit key and give it the label "sample-ksk":
+Convert the KSK:
 
 ::
+   dnssec-keyfromlabel -E pkcs11 -a RSASHA256 -l "token=bind9;object=example.net-ksk;pin-value=0000" -f KSK example.net
 
-   $ pkcs11-keygen -b 2048 -l sample-ksk
-
-To confirm that the key exists:
-
-::
-
-   $ pkcs11-list
-   Enter PIN:
-   object[0]: handle 2147483658 class 3 label[8] 'sample-ksk' id[0]
-   object[1]: handle 2147483657 class 2 label[8] 'sample-ksk' id[0]
-
-Before using this key to sign a zone, we must create a pair of BIND 9
-key files. The ``dnssec-keyfromlabel`` utility does this. In this case, we
-are using the HSM key "sample-ksk" as the key-signing key for
-"example.net":
+and ZSK:
 
 ::
+   dnssec-keyfromlabel -E pkcs11 -a RSASHA256 -l "token=bind9;object=example.net-zsk;pin-value=0000" example.net
 
-   $ dnssec-keyfromlabel -l sample-ksk -f KSK example.net
-
-The resulting K*.key and K*.private files can now be used to sign the
-zone. Unlike normal K\* files, which contain both public and private key
-data, these files contain only the public key data, plus an
-identifier for the private key which remains stored within the HSM.
-Signing with the private key takes place inside the HSM.
-
-To generate a second key in the HSM for use as a
-zone-signing key, follow the same procedure above, using a different
-keylabel, a smaller key size, and omitting ``-f KSK`` from the
-``dnssec-keyfromlabel`` arguments:
+NOTE: you can use PIN stored on disk, by specifying ``pin-source=<path_to>/<file>``, f.e.:
 
 ::
+   (umask 0700 && echo -n 0000 > /opt/bind9/etc/pin.txt)
 
-   $ pkcs11-keygen -b 1024 -l sample-zsk
-   $ dnssec-keyfromlabel -l sample-zsk example.net
-
-Alternatively, a conventional on-disk key can be generated
-using ``dnssec-keygen``:
+and then use in the label specification:
 
 ::
+   pin-source=/opt/bind9/etc/pin.txt
 
-   $ dnssec-keygen example.net
-
-This provides less security than an HSM key, but since HSMs can be slow
-or cumbersome to use for security reasons, it may be more efficient to
-reserve HSM keys for use in the less frequent key-signing operation. The
-zone-signing key can be rolled more frequently, if desired, to
-compensate for a reduction in key security. (Note: When using native
-PKCS#11, there is no speed advantage to using on-disk keys, as
-cryptographic operations are done by the HSM.)
-
-Now the zone can be signed. Please note that, if the -S option is not used for
-``dnssec-signzone``, the contents of both
-``K*.key`` files must be added to the zone master file before signing it.
+Confirm that you have one KSK and one ZSK present in the current directory:
 
 ::
+   ls -l K*
 
-   $ dnssec-signzone -S example.net
-   Enter PIN:
-   Verifying the zone using the following algorithms:
-   NSEC3RSASHA1.
-   Zone signing complete:
-   Algorithm: NSEC3RSASHA1: ZSKs: 1, KSKs: 1 active, 0 revoked, 0 stand-by
-   example.net.signed
+The output should look like this (the second number will be different):
+
+::
+   Kexample.net.+008+31729.key
+   Kexample.net.+008+31729.private
+   Kexample.net.+008+42231.key
+   Kexample.net.+008+42231.private
+
 
 Specifying the Engine on the Command Line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using OpenSSL-based PKCS#11, the "engine" to be used by OpenSSL can
-be specified in ``named`` and all of the BIND ``dnssec-*`` tools by
-using the ``-E <engine>`` command line option. If BIND 9 is built with the
-``--with-pkcs11`` option, this option defaults to "pkcs11". Specifying the
-engine is generally not necessary unless
-a different OpenSSL engine is used.
+When using OpenSSL-based PKCS#11, the "engine" to be used by OpenSSL can be
+specified in ``named`` and all of the BIND ``dnssec-*`` tools by using the ``-E
+<engine>`` command line option. Specifying the engine is generally not necessary
+unless a different OpenSSL engine is used.
 
-To disable use of the "pkcs11" engine - for
-troubleshooting purposes, or because the HSM is unavailable - set
-the engine to the empty string. For example:
+The zone signing commences as usual, with only one small difference.  We need to
+provide the name of the OpenSSL engine using the -E command line option.
 
 ::
-
-   $ dnssec-signzone -E '' -S example.net
-
-This causes ``dnssec-signzone`` to run as if it were compiled without
-the ``--with-pkcs11`` option.
-
-When built with native PKCS#11 mode, the "engine" option has a different
-meaning: it specifies the path to the PKCS#11 provider library. This may
-be useful when testing a new provider library.
+   dnssec-signzone -E pkcs11 -S -o example.net example.net
 
 Running ``named`` With Automatic Zone Re-signing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The zone can also be signed automatically by named. Again, we need to provide
+the name of the OpenSSL engine using the -E command line option.
+
+::
+   named -E pkcs11 -c named.conf
+
+and the logs should have lines like:
+
+::
+   Fetching example.net/RSASHA256/31729 (KSK) from key repository.
+   DNSKEY example.net/RSASHA256/31729 (KSK) is now published
+   DNSKEY example.net/RSA256SHA256/31729 (KSK) is now active
+   Fetching example.net/RSASHA256/42231 (ZSK) from key repository.
+   DNSKEY example.net/RSASHA256/42231 (ZSK) is now published
+   DNSKEY example.net/RSA256SHA256/42231 (ZSK) is now active
 
 For ``named`` to dynamically re-sign zones using HSM keys,
 and/or to sign new records inserted via nsupdate, ``named`` must
@@ -273,14 +241,3 @@ Here is a sample ``openssl.cnf``:
 This also allows the ``dnssec-\*`` tools to access the HSM without PIN
 entry. (The ``pkcs11-\*`` tools access the HSM directly, not via OpenSSL, so
 a PIN is still required to use them.)
-
-In native PKCS#11 mode, the PIN can be provided in a file specified as
-an attribute of the key's label. For example, if a key had the label
-``pkcs11:object=local-zsk;pin-source=/etc/hsmpin``, then the PIN would
-be read from the file ``/etc/hsmpin``.
-
-.. warning::
-
-   Placing the HSM's PIN in a text file in this manner may reduce the
-   security advantage of using an HSM. Use caution
-   when configuring the system in this way.

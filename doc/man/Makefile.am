@@ -32,10 +32,6 @@ MANPAGES_RST =				\
 	nsec3hash.rst			\
 	nslookup.rst			\
 	nsupdate.rst			\
-	pkcs11-destroy.rst		\
-	pkcs11-keygen.rst		\
-	pkcs11-list.rst			\
-	pkcs11-tokens.rst		\
 	rndc-confgen.rst		\
 	rndc.conf.rst			\
 	rndc.rst			\
@@ -59,10 +55,6 @@ MANPAGES_RST =				\
 	../../bin/dnssec/dnssec-verify.rst \
 	../../bin/named/named.rst \
 	../../bin/nsupdate/nsupdate.rst \
-	../../bin/pkcs11/pkcs11-destroy.rst \
-	../../bin/pkcs11/pkcs11-keygen.rst \
-	../../bin/pkcs11/pkcs11-list.rst \
-	../../bin/pkcs11/pkcs11-tokens.rst \
 	../../bin/plugins/filter-aaaa.rst \
 	../../bin/plugins/filter-a.rst \
 	../../bin/rndc/rndc.conf.rst \
@@ -119,22 +111,10 @@ man_MANS +=				\
 	named-nzd2nzf.1
 endif HAVE_LMDB
 
-if HAVE_PKCS11
-man_MANS +=				\
-	pkcs11-destroy.1		\
-	pkcs11-keygen.1			\
-	pkcs11-list.1			\
-	pkcs11-tokens.1
-endif HAVE_PKCS11
-
 MANPAGES_IN =				\
 	$(man_MANS:=in)			\
 	dnstap-read.1in			\
-	named-nzd2nzf.1in		\
-	pkcs11-destroy.1in		\
-	pkcs11-keygen.1in		\
-	pkcs11-list.1in			\
-	pkcs11-tokens.1in
+	named-nzd2nzf.1in
 
 EXTRA_DIST =				\
 	conf.py				\

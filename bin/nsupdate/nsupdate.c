@@ -46,8 +46,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/callbacks.h>
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>

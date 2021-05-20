@@ -61,10 +61,6 @@
 
 #include <dst/dst.h>
 
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
-
 #include "dnssectool.h"
 
 const char *program = "dnssec-verify";
@@ -163,14 +159,7 @@ usage(void) {
 	fprintf(stderr, "\t\tfile format of input zonefile (text)\n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
-#if USE_PKCS11
-	fprintf(stderr,
-		"\t\tpath to PKCS#11 provider library "
-		"(default is %s)\n",
-		PK11_LIB_LOCATION);
-#else  /* if USE_PKCS11 */
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
-#endif /* if USE_PKCS11 */
 	fprintf(stderr, "\t-x:\tDNSKEY record signed with KSKs only, "
 			"not ZSKs\n");
 	fprintf(stderr, "\t-z:\tAll records signed with KSKs\n");
@@ -219,9 +208,6 @@ main(int argc, char *argv[]) {
 
 	isc_mem_create(&mctx);
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;

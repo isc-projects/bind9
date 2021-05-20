@@ -27,8 +27,6 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/byaddr.h>
 #include <dns/dns64.h>
 #include <dns/fixedname.h>

@@ -731,9 +731,6 @@ export NSUPDATE
 export NZD2NZF
 export PERL
 export PIPEQUERIES
-export PK11DEL
-export PK11GEN
-export PK11LIST
 export PSSUSPEND
 export PYTHON
 export RESOLVE

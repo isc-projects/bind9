@@ -61,10 +61,7 @@ Options
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
    engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``). When BIND is
-   built with native PKCS#11 cryptography (``--enable-native-pkcs11``), it
-   defaults to the path of the PKCS#11 provider library specified via
-   ``--with-pkcs11``.
+   hardware service module (usually ``pkcs11``).
 
 ``-f``
    This option indicates a forced overwrite and causes ``dnssec-revoke`` to write the new key pair,

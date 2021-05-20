@@ -37,8 +37,6 @@
 #include <isc/print.h>
 #include <isc/safe.h>
 
-#include <pk11/site.h>
-
 #include <isccc/alist.h>
 #include <isccc/base64.h>
 #include <isccc/cc.h>

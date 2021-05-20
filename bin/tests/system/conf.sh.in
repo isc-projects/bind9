@@ -48,9 +48,6 @@ NSEC3HASH=$TOP_BUILDDIR/bin/tools/nsec3hash
 NSLOOKUP=$TOP_BUILDDIR/bin/dig/nslookup
 NSUPDATE=$TOP_BUILDDIR/bin/nsupdate/nsupdate
 NZD2NZF=$TOP_BUILDDIR/bin/tools/named-nzd2nzf
-PK11DEL="$TOP_BUILDDIR/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
-PK11GEN="$TOP_BUILDDIR/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11LIST="$TOP_BUILDDIR/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
 RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
 REVOKE=$TOP_BUILDDIR/bin/dnssec/dnssec-revoke
 RNDC=$TOP_BUILDDIR/bin/rndc/rndc
@@ -77,7 +74,7 @@ KRB5_KTNAME=dns.keytab
 #
 # Construct the lists of tests to run
 #
-SEQUENTIAL_UNIX="@PKCS11_TEST@"
+SEQUENTIAL_UNIX=""
 SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_UNIX"
 
 PARALLEL_UNIX="@DNSTAP@

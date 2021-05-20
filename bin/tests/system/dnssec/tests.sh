@@ -3366,12 +3366,6 @@ do
 	    ;;
 	15|16)
 	    key1=$($KEYGEN -a "$alg" -n zone "$zone" 2> "keygen-$alg.err" || true)
-	    # Soft-fail	in case HSM doesn't support Edwards curves
-	    if grep "not found" "keygen-$alg.err" > /dev/null && [ "$CRYPTO" = "pkcs11" ]; then
-		echo_i "Algorithm $alg not supported by HSM: skipping"
-		alg=$((alg+1))
-		continue
-	    fi
 	    ;;
 	*)
 	    key1=$($KEYGEN -a "$alg" -n zone "$zone" 2> "keygen-$alg.err" || true)

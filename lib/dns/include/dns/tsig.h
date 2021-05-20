@@ -26,7 +26,6 @@
 #include <dns/types.h>
 
 #include <dst/dst.h>
-#include <pk11/site.h>
 
 /*
  * Algorithms.

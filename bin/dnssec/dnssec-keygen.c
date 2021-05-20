@@ -40,8 +40,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/kasp.h>
@@ -58,10 +56,6 @@
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
-
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -168,14 +162,7 @@ usage(void) {
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -E <engine>:\n");
-#if USE_PKCS11
-	fprintf(stderr,
-		"        path to PKCS#11 provider library "
-		"(default is %s)\n",
-		PK11_LIB_LOCATION);
-#else  /* if USE_PKCS11 */
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
-#endif /* if USE_PKCS11 */
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
 	fprintf(stderr, "    -g <generator>: use specified generator "
 			"(DH only)\n");
@@ -881,9 +868,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;

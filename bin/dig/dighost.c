@@ -55,8 +55,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
@@ -83,10 +81,6 @@
 #include <bind9/getaddresses.h>
 
 #include "dighost.h"
-
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
 
 #define systemlocale(l) (void)setlocale(l, "")
 #define resetlocale(l)	(void)setlocale(l, "C")
@@ -1338,9 +1332,6 @@ setup_libs(void) {
 
 	debug("setup_libs()");
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	result = isc_net_probeipv4();

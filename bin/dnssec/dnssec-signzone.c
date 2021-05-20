@@ -84,10 +84,6 @@
 
 #include <dst/dst.h>
 
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
-
 #include "dnssectool.h"
 
 const char *program = "dnssec-signzone";
@@ -3254,14 +3250,7 @@ usage(void) {
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
-#if USE_PKCS11
-	fprintf(stderr,
-		"\t\tpath to PKCS#11 provider library "
-		"(default is %s)\n",
-		PK11_LIB_LOCATION);
-#else  /* if USE_PKCS11 */
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
-#endif /* if USE_PKCS11 */
 	fprintf(stderr, "\t-P:\t");
 	fprintf(stderr, "disable post-sign verification\n");
 	fprintf(stderr, "\t-Q:\t");
@@ -3401,9 +3390,6 @@ main(int argc, char *argv[]) {
 
 	isc_mem_create(&mctx);
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;

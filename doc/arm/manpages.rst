@@ -40,10 +40,6 @@ Manual Pages
 .. include:: ../../bin/tools/nsec3hash.rst
 .. include:: ../../bin/dig/nslookup.rst
 .. include:: ../../bin/nsupdate/nsupdate.rst
-.. include:: ../../bin/pkcs11/pkcs11-destroy.rst
-.. include:: ../../bin/pkcs11/pkcs11-keygen.rst
-.. include:: ../../bin/pkcs11/pkcs11-list.rst
-.. include:: ../../bin/pkcs11/pkcs11-tokens.rst
 .. include:: ../../bin/confgen/rndc-confgen.rst
 .. include:: ../../bin/rndc/rndc.conf.rst
 .. include:: ../../bin/rndc/rndc.rst

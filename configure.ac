@@ -747,43 +747,6 @@ AX_RESTORE_FLAGS([openssl])
 AC_SUBST([OPENSSL_CFLAGS])
 AC_SUBST([OPENSSL_LIBS])
 
-#
-# was --enable-native-pkcs11 specified?
-#
-# [pairwise: --enable-native-pkcs11, --disable-native-pkcs11]
-AC_ARG_ENABLE([native-pkcs11],
-	      AS_HELP_STRING([--enable-native-pkcs11],
-			     [use native PKCS11 for public-key crypto [default=no]]),
-	      [:], [enable_native_pkcs11="no"])
-
-AC_MSG_CHECKING([for PKCS11 for Public-Key Cryptography])
-AS_CASE([$enable_native_pkcs11],
-	[no],[AC_MSG_RESULT([no])],
-	[yes],[CRYPTO=pkcs11
-	       AC_MSG_RESULT([yes])
-	       AC_CHECK_FUNCS([getpassphrase])
-	      ])
-AM_CONDITIONAL([HAVE_PKCS11], [test "$CRYPTO" = "pkcs11"])
-
-AC_SUBST([CRYPTO])
-AS_CASE([$CRYPTO],
-	[pkcs11],[AC_DEFINE([USE_PKCS11], [1], [define if PKCS11 is used for Public-Key Cryptography])],
-	[AC_DEFINE([USE_OPENSSL], [1], [define if OpenSSL is used for Public-Key Cryptography])])
-
-#
-# was --with-pkcs11 specified?
-#
-# [pairwise: skip]
-AC_ARG_WITH([pkcs11],
-	    [AS_HELP_STRING([--with-pkcs11[=PATH]],
-			    [Build with PKCS11 support [no|path] (PATH is for the PKCS11 provider)])],
-	    [:], [with_pkcs11="undefined"])
-
-AS_CASE([$with_pkcs11],
-	[yes|auto],[AC_MSG_ERROR([--with-pkcs11 needs explicit path to the PKCS11 library])],
-	[no|undefined],[with_pkcs11="undefined"])
-AC_DEFINE_UNQUOTED([PK11_LIB_LOCATION], ["$with_pkcs11"], [define the default PKCS11 library path])
-
 AC_CHECK_FUNCS([clock_gettime])
 
 # [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
@@ -1634,7 +1597,6 @@ AC_CONFIG_FILES([bin/Makefile
 		 bin/nsupdate/Makefile
 		 bin/check/Makefile
 		 bin/confgen/Makefile
-		 bin/pkcs11/Makefile
 		 bin/plugins/Makefile])
 
 # Libraries
@@ -1742,11 +1704,6 @@ report() {
 
     test "auto" = "$validation_default" && echo "    DNSSEC validation active by default (--enable-auto-validation)"
 
-    test "$CRYPTO" = "pkcs11" && (
-	echo "    Using PKCS#11 for Public-Key Cryptography (--with-native-pkcs11)"
-	echo "    PKCS#11 module (--with-pkcs11): $with_pkcs11"
-    )
-
     echo "    Dynamically loadable zone (DLZ) drivers:"
     test "no" = "$with_dlz_bdb" || \
 	echo "        Berkeley DB (--with-dlz-bdb)"
@@ -1797,10 +1754,6 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
-
-    test "$CRYPTO" = "pkcs11" || (
-	echo "    Using PKCS#11 for Public-Key Cryptography (--with-native-pkcs11)"
-    )
 
     test "yes" = "$enable_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"

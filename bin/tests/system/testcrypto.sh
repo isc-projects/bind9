@@ -66,8 +66,6 @@ then
 else
     if test $quiet -eq 0; then
         echo_i "This test requires support for $msg" >&2
-        echo_i "configure with --with-openssl, or --enable-native-pkcs11" \
-            "--with-pkcs11" >&2
     fi
     exit 255
 fi

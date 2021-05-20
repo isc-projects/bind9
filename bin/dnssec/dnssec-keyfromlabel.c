@@ -25,8 +25,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -37,10 +35,6 @@
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
-
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
 
 #include "dnssectool.h"
 
@@ -69,14 +63,7 @@ usage(void) {
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 	fprintf(stderr, "    -E <engine>:\n");
-#if USE_PKCS11
-	fprintf(stderr,
-		"        path to PKCS#11 provider library "
-		"(default is %s)\n",
-		PK11_LIB_LOCATION);
-#else  /* if USE_PKCS11 */
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
-#endif /* if USE_PKCS11 */
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
@@ -170,9 +157,6 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;
@@ -622,12 +606,7 @@ main(int argc, char **argv) {
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	/* associate the key */
-	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass,
-#if USE_PKCS11
-				"pkcs11",
-#else  /* if USE_PKCS11 */
-				engine,
-#endif /* if USE_PKCS11 */
+	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass, engine,
 				label, NULL, mctx, &key);
 
 	if (ret != ISC_R_SUCCESS) {
