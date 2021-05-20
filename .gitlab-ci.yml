@@ -1187,10 +1187,12 @@ clang:freebsd11:amd64:
     USER: gitlab-runner
   <<: *freebsd_11_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:clang:freebsd11:amd64:
   <<: *freebsd_11_amd64_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   variables:
     USER: gitlab-runner
     TEST_PARALLEL_JOBS: 4
@@ -1201,6 +1203,7 @@ system:clang:freebsd11:amd64:
 unit:clang:freebsd11:amd64:
   <<: *freebsd_11_amd64_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: clang:freebsd11:amd64
       artifacts: true
