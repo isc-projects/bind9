@@ -123,6 +123,19 @@
 #define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
 
+/*%
+ * KASP flags
+ */
+#define KASP_LOCK(k)                  \
+	if ((k) != NULL) {            \
+		LOCK((&((k)->lock))); \
+	}
+
+#define KASP_UNLOCK(k)                  \
+	if ((k) != NULL) {              \
+		UNLOCK((&((k)->lock))); \
+	}
+
 /*
  * Default values.
  */
@@ -191,6 +204,9 @@ typedef struct dns_include dns_include_t;
 #define ZONEDB_LOCK(l, t)     RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
 
+#define LOCK_KEYFILES(z)   LOCK(&(z)->keyflock)
+#define UNLOCK_KEYFILES(z) UNLOCK(&(z)->keyflock)
+
 #ifdef ENABLE_AFL
 extern bool dns_fuzzing_resolver;
 #endif /* ifdef ENABLE_AFL */
@@ -199,6 +215,7 @@ struct dns_zone {
 	/* Unlocked */
 	unsigned int magic;
 	isc_mutex_t lock;
+	isc_mutex_t keyflock;
 #ifdef DNS_ZONE_CHECKLOCK
 	bool locked;
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
@@ -1033,6 +1050,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->mctx = NULL;
 	isc_mem_attach(mctx, &zone->mctx);
 	isc_mutex_init(&zone->lock);
+	isc_mutex_init(&zone->keyflock);
 	ZONEDB_INITLOCK(&zone->dblock);
 	/* XXX MPA check that all elements are initialised */
 #ifdef DNS_ZONE_CHECKLOCK
@@ -1094,6 +1112,7 @@ free_refs:
 	isc_refcount_destroy(&zone->erefs);
 	isc_refcount_destroy(&zone->irefs);
 	ZONEDB_DESTROYLOCK(&zone->dblock);
+	isc_mutex_destroy(&zone->keyflock);
 	isc_mutex_destroy(&zone->lock);
 	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
 	return (result);
@@ -1267,6 +1286,7 @@ zone_free(dns_zone_t *zone) {
 
 	/* last stuff */
 	ZONEDB_DESTROYLOCK(&zone->dblock);
+	isc_mutex_destroy(&zone->keyflock);
 	isc_mutex_destroy(&zone->lock);
 	zone->magic = 0;
 	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
@@ -6276,6 +6296,58 @@ was_dumping(dns_zone_t *zone) {
 	return (false);
 }
 
+static void
+dns__zone_lockunlock_keyfiles(dns_zone_t *zone, bool lock) {
+	dns_viewlist_t *vlist = NULL;
+	dns_view_t *v = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (zone->kasp == NULL) {
+		/* No need to lock, nothing is writing key files. */
+		return;
+	}
+
+	if (zone->view == NULL || zone->view->viewlist == NULL) {
+		if (lock) {
+			LOCK_KEYFILES(zone);
+		} else {
+			UNLOCK_KEYFILES(zone);
+		}
+		return;
+	}
+
+	/*
+	 * Also lock keyfiles for zones with the same name in a different view.
+	 */
+	vlist = zone->view->viewlist;
+	for (v = ISC_LIST_HEAD(*vlist); v != NULL; v = ISC_LIST_NEXT(v, link)) {
+		dns_zone_t *z = NULL;
+		isc_result_t ret = dns_view_findzone(v, &zone->origin, &z);
+		if (ret == ISC_R_SUCCESS) {
+			INSIST(DNS_ZONE_VALID(z));
+
+			/* WMM check if policy is the same? */
+			if (lock) {
+				LOCK_KEYFILES(z);
+			} else {
+				UNLOCK_KEYFILES(z);
+			}
+			dns_zone_detach(&z);
+		}
+	}
+}
+
+void
+dns_zone_lock_keyfiles(dns_zone_t *zone) {
+	dns__zone_lockunlock_keyfiles(zone, true);
+}
+
+void
+dns_zone_unlock_keyfiles(dns_zone_t *zone) {
+	dns__zone_lockunlock_keyfiles(zone, false);
+}
+
 /*%
  * Find up to 'maxkeys' DNSSEC keys used for signing version 'ver' of database
  * 'db' for zone 'zone' in its key directory, then load these keys into 'keys'.
@@ -6292,13 +6364,21 @@ dns__zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), false, &node));
 	memset(keys, 0, sizeof(*keys) * maxkeys);
+
+	dns_zone_lock_keyfiles(zone);
+
 	result = dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
 					 directory, now, mctx, maxkeys, keys,
 					 nkeys);
+
+	dns_zone_unlock_keyfiles(zone);
+
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}
+
 failure:
+
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
@@ -7238,7 +7318,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		int zsk_count = 0;
 		bool approved;
 
-		LOCK(&kasp->lock);
+		KASP_LOCK(kasp);
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
@@ -7249,7 +7329,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 				zsk_count++;
 			}
 		}
-		UNLOCK(&kasp->lock);
+		KASP_UNLOCK(kasp);
 
 		if (type == dns_rdatatype_dnskey ||
 		    type == dns_rdatatype_cdnskey || type == dns_rdatatype_cds)
@@ -19810,6 +19890,8 @@ zone_rekey(dns_zone_t *zone) {
 	TIME_NOW(&timenow);
 	now = isc_time_seconds(&timenow);
 
+	kasp = dns_zone_getkasp(zone);
+
 	dnssec_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
 	/* Get the SOA record's TTL */
@@ -19823,9 +19905,18 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
 		ttl = keyset.ttl;
-		CHECK(dns_dnssec_keylistfromrdataset(
+
+		dns_zone_lock_keyfiles(zone);
+
+		result = dns_dnssec_keylistfromrdataset(
 			&zone->origin, dir, mctx, &keyset, &keysigs, &soasigs,
-			false, false, &dnskeys));
+			false, false, &dnskeys);
+
+		dns_zone_unlock_keyfiles(zone);
+
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 	} else if (result != ISC_R_NOTFOUND) {
 		goto failure;
 	}
@@ -19850,10 +19941,8 @@ zone_rekey(dns_zone_t *zone) {
 	 */
 	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
-	kasp = dns_zone_getkasp(zone);
-	if (kasp != NULL) {
-		LOCK(&kasp->lock);
-	}
+	KASP_LOCK(kasp);
+	dns_zone_lock_keyfiles(zone);
 
 	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, now, mctx,
 					     &keys);
@@ -19873,12 +19962,15 @@ zone_rekey(dns_zone_t *zone) {
 					   "zone_rekey:dns_dnssec_keymgr "
 					   "failed: %s",
 					   isc_result_totext(result));
-				UNLOCK(&kasp->lock);
+				dns_zone_unlock_keyfiles(zone);
+				KASP_UNLOCK(kasp);
 				goto failure;
 			}
 		}
-		UNLOCK(&kasp->lock);
 	}
+
+	dns_zone_unlock_keyfiles(zone);
+	KASP_UNLOCK(kasp);
 
 	if (result == ISC_R_SUCCESS) {
 		bool cds_delete = false;
