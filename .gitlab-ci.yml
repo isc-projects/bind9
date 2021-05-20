@@ -516,7 +516,7 @@ pylint:
 tarball-create:
   stage: precheck
   <<: *base_image
-  <<: *schedules_tags_web_triggering_rules
+  <<: *default_triggering_rules
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
@@ -814,7 +814,6 @@ gcc:tarball:
     RUN_MAKE_INSTALL: 1
   <<: *base_image
   <<: *build_job
-  <<: *schedules_tags_web_triggering_rules
   before_script:
     - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
     - rm -f bind-*.tar.${TARBALL_EXTENSION}
