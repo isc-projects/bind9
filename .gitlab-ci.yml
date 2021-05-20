@@ -810,7 +810,6 @@ gcc:tarball:
     RUN_MAKE_INSTALL: 1
   <<: *base_image
   <<: *build_job
-  <<: *schedules_tags_web_triggering_rules
   before_script:
     - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
     - rm -f bind-*.tar.${TARBALL_EXTENSION}
