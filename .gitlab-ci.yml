@@ -204,6 +204,12 @@ stages:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
+.schedules-tags-web-triggering-rules: &schedules_tags_web_triggering_rules
+  only:
+    - schedules
+    - tags
+    - web
+
 .precheck: &precheck_job
   <<: *default_triggering_rules
   <<: *base_image
@@ -335,6 +341,7 @@ stages:
        --output kyua_html > /dev/null
 
 .windows_system_test: &windows_system_test_job
+  <<: *schedules_tags_web_triggering_rules
   stage: system
   script:
     - 'Push-Location bin/tests/system'
@@ -350,10 +357,6 @@ stages:
     untracked: true
     expire_in: "1 day"
     when: on_failure
-  only:
-    - schedules
-    - tags
-    - web
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
@@ -513,6 +516,7 @@ pylint:
 tarball-create:
   stage: precheck
   <<: *base_image
+  <<: *schedules_tags_web_triggering_rules
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
@@ -524,10 +528,6 @@ tarball-create:
   artifacts:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
-  only:
-    - schedules
-    - tags
-    - web
 
 # Jobs for doc builds on Debian Sid (amd64)
 
@@ -814,6 +814,7 @@ gcc:tarball:
     RUN_MAKE_INSTALL: 1
   <<: *base_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
   before_script:
     - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
     - rm -f bind-*.tar.${TARBALL_EXTENSION}
@@ -821,37 +822,27 @@ gcc:tarball:
   needs:
     - job: tarball-create
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
   needs:
     - job: gcc:tarball
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
     - job: gcc:tarball
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 # Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
 
@@ -1334,12 +1325,9 @@ system:msvc:windows:amd64:
 msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_build_job
+  <<: *schedules_tags_web_triggering_rules
   variables:
     VSCONF: Debug
-  only:
-    - schedules
-    - tags
-    - web
 
 system:msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
