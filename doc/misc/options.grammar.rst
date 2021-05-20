@@ -120,7 +120,9 @@
   	glue-cache <boolean>; // deprecated
   	heartbeat-interval <integer>;
   	hostname ( <quoted_string> | none );
+  	http-listener-clients <integer>;
   	http-port <integer>;
+  	http-streams-per-connection <integer>;
   	https-port <integer>;
   	interface-interval <duration>;
   	ipv4only-contact <string>;
