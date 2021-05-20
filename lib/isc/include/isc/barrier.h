@@ -13,7 +13,7 @@
 
 #include <isc/util.h>
 
-#if __SANITIZE_THREAD__ && !defined(WIN32)
+#if __SANITIZE_THREAD__
 
 #include <pthread.h>
 

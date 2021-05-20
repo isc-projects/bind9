@@ -42,14 +42,6 @@
 #define RSA_MAX_PUBEXP_BITS 35
 #endif /* ifndef RSA_MAX_PUBEXP_BITS */
 
-/*
- * We don't use configure for windows so enforce the OpenSSL version
- * here.  Unlike with configure we don't support overriding this test.
- */
-#if defined(WIN32) && (OPENSSL_VERSION_NUMBER < 0x10000000L)
-#error Please upgrade OpenSSL to 1.0.0 or greater.
-#endif /* if defined(WIN32) && (OPENSSL_VERSION_NUMBER < 0x10000000L) */
-
 #define DST_RET(a)        \
 	{                 \
 		ret = a;  \

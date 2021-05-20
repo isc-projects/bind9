@@ -179,8 +179,7 @@ number of detected CPUs minus one for machines with more than 1 CPU.
 This cannot be increased to a value higher than the number of CPUs.
 If \fB\-n\fP has been set to a higher value than the number of detected
 CPUs, then \fB\-U\fP may be increased as high as that value, but no
-higher. On Windows, the number of UDP listeners is hardwired to 1 and
-this option has no effect.
+higher.
 .TP
 .B \fB\-u user\fP
 This option sets the setuid to \fBuser\fP after completing privileged operations, such as

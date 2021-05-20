@@ -714,10 +714,6 @@ main(int argc, char **argv) {
 		conffile = NAMED_CONFFILE;
 	}
 
-#ifdef _WIN32
-	InitSockets();
-#endif /* ifdef _WIN32 */
-
 	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
 
 	dns_result_register();
@@ -757,10 +753,6 @@ main(int argc, char **argv) {
 	isc_log_destroy(&logc);
 
 	isc_mem_destroy(&mctx);
-
-#ifdef _WIN32
-	DestroySockets();
-#endif /* ifdef _WIN32 */
 
 	return (exit_status);
 }

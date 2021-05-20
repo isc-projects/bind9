@@ -147,11 +147,7 @@ ns_plugin_expandpath_test(void **state) {
 			.input = "foo.so",
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-#ifndef WIN32
 			.output = NAMED_PLUGINDIR "/foo.so",
-#else  /* ifndef WIN32 */
-			.output = "foo.so",
-#endif /* ifndef WIN32 */
 		},
 		{
 			NS_TEST_ID("no space at all in target buffer"),
@@ -171,14 +167,12 @@ ns_plugin_expandpath_test(void **state) {
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
-#ifndef WIN32
 		{
 			NS_TEST_ID("target buffer too small to fit full path"),
 			.input = "foo.so",
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
-#endif /* ifndef WIN32 */
 	};
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {

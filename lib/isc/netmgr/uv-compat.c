@@ -25,23 +25,15 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 		int addrlen = (addr->sa_family == AF_INET)
 				      ? sizeof(struct sockaddr_in)
 				      : sizeof(struct sockaddr_in6);
-#ifdef WIN32
-		err = connect(handle->socket, addr, addrlen);
-#else  /* WIN32 */
 		err = connect(handle->io_watcher.fd, addr, addrlen);
-#endif /* WIN32 */
 	} while (err == -1 && errno == EINTR);
 
 	if (err) {
-#ifdef WIN32
-		return (uv_translate_sys_error(err));
-#else /* WIN32 */
 #if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
 		return (uv_translate_sys_error(errno));
 #else
 		return (-errno);
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
-#endif /* WIN32 */
 	}
 
 	return (0);
@@ -58,10 +50,6 @@ isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 	if (r < 0) {
 		return (r);
 	}
-
-#if defined(WIN32)
-	REQUIRE(fd != INVALID_SOCKET);
-#endif
 
 	r = uv_udp_bind(handle, addr, flags);
 	if (r == UV_EADDRNOTAVAIL &&

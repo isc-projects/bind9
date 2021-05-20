@@ -20,6 +20,7 @@
  */
 #include <math.h>
 #include <maxminddb.h>
+#include <netinet/in.h>
 
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -30,14 +31,6 @@
 
 #include <dns/acl.h>
 #include <dns/geoip.h>
-#ifndef WIN32
-#include <netinet/in.h>
-#else /* ifndef WIN32 */
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
-#endif		     /* ifndef _WINSOCKAPI_ */
-#include <winsock2.h>
-#endif /* WIN32 */
 #include <dns/log.h>
 
 /*

@@ -43,7 +43,7 @@ isc_threadresult_t
 isc__trampoline_run(isc_threadarg_t arg);
 /*%<
  * Run the thread trampoline, this will get passed to the actual
- * pthread_create() (or Windows equivalent), initialize the isc_tid_v.
+ * pthread_create(), initialize the isc_tid_v.
  *
  * Requires:
  *\li	'arg' is a valid isc_trampoline_t

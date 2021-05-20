@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <sys/mman.h>
 
 #include <isc/atomic.h>
 #include <isc/crc64.h>
@@ -61,15 +62,6 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zonekey.h>
-
-#ifndef WIN32
-#include <sys/mman.h>
-#else /* ifndef WIN32 */
-#define PROT_READ   0x01
-#define PROT_WRITE  0x02
-#define MAP_PRIVATE 0x0002
-#define MAP_FAILED  ((void *)-1)
-#endif /* ifndef WIN32 */
 
 #include "rbtdb.h"
 
@@ -283,8 +275,6 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
  * respect the RETAIN bit and not expire the data until its TTL is
  * expired.
  */
-
-#undef IGNORE /* WIN32 winbase.h defines this. */
 
 #define EXISTS(header)                                 \
 	((atomic_load_acquire(&(header)->attributes) & \

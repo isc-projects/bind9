@@ -95,7 +95,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->extrahandlesize = sock->extrahandlesize;
 	csock->tid = tid;
 
-#if HAVE_SO_REUSEPORT_LB || defined(WIN32)
+#if HAVE_SO_REUSEPORT_LB
 	UNUSED(fd);
 	csock->fd = isc__nm_udp_lb_socket(iface->type.sa.sa_family);
 #else
@@ -133,12 +133,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 	isc__nmsocket_init(sock, mgr, isc_nm_udplistener, iface);
 
 	atomic_init(&sock->rchildren, 0);
-#if defined(WIN32)
-	sock->nchildren = 1;
-#else
 	sock->nchildren = mgr->nworkers;
-#endif
-
 	children_size = sock->nchildren * sizeof(sock->children[0]);
 	sock->children = isc_mem_get(mgr->mctx, children_size);
 	memset(sock->children, 0, children_size);
@@ -151,7 +146,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 	sock->tid = 0;
 	sock->fd = -1;
 
-#if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
+#if !HAVE_SO_REUSEPORT_LB
 	fd = isc__nm_udp_lb_socket(iface->type.sa.sa_family);
 #endif
 
@@ -168,7 +163,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 		start_udp_child(mgr, iface, sock, fd, isc_nm_tid());
 	}
 
-#if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
+#if !HAVE_SO_REUSEPORT_LB
 	isc__nm_closesocket(fd);
 #endif
 
@@ -244,7 +239,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
-#if HAVE_SO_REUSEPORT_LB || defined(WIN32)
+#if HAVE_SO_REUSEPORT_LB
 	r = isc_uv_udp_freebind(&sock->uv_handle.udp,
 				&sock->parent->iface.type.sa, uv_bind_flags);
 	if (r < 0) {
@@ -471,17 +466,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 */
 		INSIST(sock->parent != NULL);
 
-#if defined(WIN32)
-		/* On Windows, we have only a single listening listener */
-		rsock = sock;
-#else
 		if (isc__nm_in_netthread()) {
 			ntid = isc_nm_tid();
 		} else {
 			ntid = sock->tid;
 		}
 		rsock = &sock->parent->children[ntid];
-#endif
 	}
 
 send:

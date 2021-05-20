@@ -17,10 +17,6 @@
 
 	       ;; libisc
 	       (expand-file-name
-		(concat directory-of-current-dir-locals-file "lib/isc/unix/include"))
-	       (expand-file-name
-		(concat directory-of-current-dir-locals-file "lib/isc/pthreads/include"))
-	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/isc/include"))
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/isc"))

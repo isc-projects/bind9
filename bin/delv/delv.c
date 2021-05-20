@@ -9,22 +9,18 @@
  * information regarding copyright ownership.
  */
 
-#include <bind.keys.h>
-
-#ifndef WIN32
 #include <arpa/inet.h>
+#include <bind.keys.h>
+#include <inttypes.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#endif /* ifndef WIN32 */
-
-#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/app.h>
@@ -38,9 +34,6 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#ifdef WIN32
-#include <isc/ntpaths.h>
-#endif /* ifdef WIN32 */
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -821,14 +814,7 @@ setup_dnsseckeys(dns_client_t *client) {
 	}
 
 	if (filename == NULL) {
-#ifndef WIN32
 		filename = SYSCONFDIR "/bind.keys";
-#else  /* ifndef WIN32 */
-		static char buf[MAX_PATH];
-		strlcpy(buf, isc_ntpaths_get(SYS_CONF_DIR), sizeof(buf));
-		strlcat(buf, "\\bind.keys", sizeof(buf));
-		filename = buf;
-#endif /* ifndef WIN32 */
 	}
 
 	if (trust_anchor == NULL) {
@@ -1743,9 +1729,7 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
 	dns_master_style_t *style = NULL;
-#ifndef WIN32
 	struct sigaction sa;
-#endif /* ifndef WIN32 */
 
 	progname = argv[0];
 	preparse_args(argc, argv);
@@ -1773,14 +1757,12 @@ main(int argc, char *argv[]) {
 
 	CHECK(isc_app_ctxstart(actx));
 
-#ifndef WIN32
 	/* Unblock SIGINT if it's been blocked by isc_app_ctxstart() */
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	if (sigfillset(&sa.sa_mask) != 0 || sigaction(SIGINT, &sa, NULL) < 0) {
 		fatal("Couldn't set up signal handler");
 	}
-#endif /* ifndef WIN32 */
 
 	/* Create client */
 	result = dns_client_create(mctx, actx, taskmgr, socketmgr, timermgr, 0,

@@ -24,7 +24,7 @@ TMPDIR=${TMPDIR:-/tmp}
 # This is not the windows build.
 CYGWIN=""
 
-# Load common values shared between windows and unix/linux.
+# Load common values
 . $TOP_SRCDIR/bin/tests/system/conf.sh.common
 
 ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname

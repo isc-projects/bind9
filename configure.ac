@@ -997,7 +997,7 @@ AC_COMPILE_IFELSE(
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
-# comment in lib/isc/unix/socket.c).
+# comment in lib/isc/socket.c).
 #
 # [pairwise: --enable-tcp-fastopen, --disable-tcp-fastopen]
 AC_ARG_ENABLE([tcp_fastopen],

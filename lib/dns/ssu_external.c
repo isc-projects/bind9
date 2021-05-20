@@ -18,12 +18,9 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <unistd.h>
-
-#ifndef _WIN32
 #include <sys/socket.h>
 #include <sys/un.h>
-#endif /* ifndef _WIN32 */
+#include <unistd.h>
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -58,7 +55,6 @@ ssu_e_log(int level, const char *fmt, ...) {
 static int
 ux_socket_connect(const char *path) {
 	int fd = -1;
-#ifndef _WIN32
 	struct sockaddr_un addr;
 
 	REQUIRE(path != NULL);
@@ -94,7 +90,6 @@ ux_socket_connect(const char *path) {
 		close(fd);
 		return (-1);
 	}
-#endif /* ifndef _WIN32 */
 	return (fd);
 }
 

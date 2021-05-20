@@ -163,17 +163,6 @@ then
 	 chmod +x lib/bind/configure lib/bind/mkinstalldirs
 fi
 
-# Fix files which should be using DOS style newlines
-windirs=`find lib bin -type d -name win32`
-windirs="$windirs win32utils"
-winnames="-name *.mak -or -name *.dsp -or -name *.dsw -or -name *.txt -or -name *.bat"
-for f in `find $windirs -type f \( $winnames \) -print`
-do
-	awk '{sub("\r$", "", $0); printf("%s\r\n", $0);}' < $f > tmp
-	touch -r $f tmp
-	mv tmp $f
-done
-
 # check that documentation has been updated properly; issue a warning
 # if it hasn't
 ok=

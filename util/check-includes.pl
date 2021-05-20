@@ -22,9 +22,8 @@ use strict;
 use vars qw($debug $isc_includes $dns_includes
             $omapi_includes);
 
-$isc_includes =  "-Ilib/isc/include -Ilib/isc/unix/include " .
-      "-Ilib/isc/pthreads/include";
-$dns_includes = "-Ilib/dns/include -Ilib/dns/sec/dst/include";
+$isc_includes =  "-Ilib/isc/include";
+$dns_includes = "-Ilib/dns/include -Ilib/dns/dst/include";
 $omapi_includes = "-Ilib/omapi/include";
 
 $0 =~ s%.*/%%;
@@ -58,9 +57,6 @@ for (<>) {
 
   # From external sources; ignore.
   next if $file =~ m%lib/dns/sec/(dnssafe|openssl)%m;
-
-  # Totally wrong platform; ignore.
-  next if $file =~ m%lib/isc/win32%;
 
   ($tmpfile = $file) =~ s%(.*/)?%/tmp/%;
   $tmpfile =~ s/\.h$/.c/;

@@ -230,41 +230,6 @@ isc__nm_force_tid(int tid) {
 	isc__nm_tid_v = tid;
 }
 
-#ifdef WIN32
-static void
-isc__nm_winsock_initialize(void) {
-	WORD wVersionRequested = MAKEWORD(2, 2);
-	WSADATA wsaData;
-	int result;
-
-	result = WSAStartup(wVersionRequested, &wsaData);
-	if (result != 0) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(result, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "WSAStartup() failed with error code %lu: %s",
-				 result, strbuf);
-	}
-
-	/*
-	 * Confirm that the WinSock DLL supports version 2.2.  Note that if the
-	 * DLL supports versions greater than 2.2 in addition to 2.2, it will
-	 * still return 2.2 in wVersion since that is the version we requested.
-	 */
-	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "Unusable WinSock DLL version: %u.%u",
-				 LOBYTE(wsaData.wVersion),
-				 HIBYTE(wsaData.wVersion));
-	}
-}
-
-static void
-isc__nm_winsock_destroy(void) {
-	WSACleanup();
-}
-#endif /* WIN32 */
-
 static void
 isc__nm_threadpool_initialize(uint32_t workers) {
 	char buf[11];
@@ -282,10 +247,6 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	char name[32];
 
 	REQUIRE(workers > 0);
-
-#ifdef WIN32
-	isc__nm_winsock_initialize();
-#endif /* WIN32 */
 
 	isc__nm_threadpool_initialize(workers);
 
@@ -461,10 +422,6 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
-
-#ifdef WIN32
-	isc__nm_winsock_destroy();
-#endif /* WIN32 */
 }
 
 static void
@@ -2938,47 +2895,18 @@ isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
 
 isc_result_t
 isc__nm_socket(int domain, int type, int protocol, uv_os_sock_t *sockp) {
-#ifdef WIN32
-	SOCKET sock;
-	sock = socket(domain, type, protocol);
-	if (sock == INVALID_SOCKET) {
-		char strbuf[ISC_STRERRORSIZE];
-		DWORD socket_errno = WSAGetLastError();
-		switch (socket_errno) {
-		case WSAEMFILE:
-		case WSAENOBUFS:
-			return (ISC_R_NORESOURCES);
-
-		case WSAEPROTONOSUPPORT:
-		case WSAEPFNOSUPPORT:
-		case WSAEAFNOSUPPORT:
-			return (ISC_R_FAMILYNOSUPPORT);
-		default:
-			strerror_r(socket_errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(
-				__FILE__, __LINE__,
-				"socket() failed with error code %lu: %s",
-				socket_errno, strbuf);
-			return (ISC_R_UNEXPECTED);
-		}
-	}
-#else
 	int sock = socket(domain, type, protocol);
 	if (sock < 0) {
 		return (isc_errno_toresult(errno));
 	}
-#endif
+
 	*sockp = (uv_os_sock_t)sock;
 	return (ISC_R_SUCCESS);
 }
 
 void
 isc__nm_closesocket(uv_os_sock_t sock) {
-#ifdef WIN32
-	closesocket(sock);
-#else
 	close(sock);
-#endif
 }
 
 #define setsockopt_on(socket, level, name) \
@@ -3169,11 +3097,7 @@ isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-#if defined(_WIN32)
-#define TIMEOUT_TYPE	DWORD
-#define TIMEOUT_DIV	1000
-#define TIMEOUT_OPTNAME TCP_MAXRT
-#elif defined(TCP_CONNECTIONTIMEOUT)
+#if defined(TCP_CONNECTIONTIMEOUT)
 #define TIMEOUT_TYPE	int
 #define TIMEOUT_DIV	1000
 #define TIMEOUT_OPTNAME TCP_CONNECTIONTIMEOUT

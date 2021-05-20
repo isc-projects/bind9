@@ -32,18 +32,15 @@
  *    /etc/resolv.conf
  */
 
-#ifndef WIN32
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#endif /* ifndef WIN32 */
-
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -123,11 +120,6 @@ static isc_result_t
 resconf_parsesortlist(irs_resconf_t *conf, FILE *fp);
 static isc_result_t
 resconf_parseoption(irs_resconf_t *ctx, FILE *fp);
-
-#if HAVE_GET_WIN32_NAMESERVERS
-static isc_result_t
-get_win32_nameservers(irs_resconf_t *conf);
-#endif /* if HAVE_GET_WIN32_NAMESERVERS */
 
 /*!
  * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
@@ -597,13 +589,6 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 			}
 		}
 	}
-
-#if HAVE_GET_WIN32_NAMESERVERS
-	ret = get_win32_nameservers(conf);
-	if (ret != ISC_R_SUCCESS) {
-		goto error;
-	}
-#endif /* if HAVE_GET_WIN32_NAMESERVERS */
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (conf->numns == 0U) {

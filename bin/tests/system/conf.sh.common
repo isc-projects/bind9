@@ -33,8 +33,7 @@ export LANG=C
 # this reason, these must be run sequentially.
 #
 # Sequential tests that only run on unix/linux should be added to
-# SEQUENTIAL_UNIX in conf.sh.in; those that only run on windows should
-# be added to SEQUENTIAL_WINDOWS in conf.sh.win32.
+# SEQUENTIAL_UNIX in conf.sh.in
 #
 SEQUENTIAL_COMMON=""
 
@@ -44,8 +43,7 @@ SEQUENTIAL_COMMON=""
 # test, these tests can be run in parallel.
 #
 # Parallel tests that only run on unix/linux should be added to
-# PARALLEL_UNIX in conf.sh.in; those that only run on windows should
-# be added to PARALLEL_WINDOWS in conf.sh.win32.
+# PARALLEL_UNIX in conf.sh.in;
 #
 # Note: some of the longer-running tests such as serve-stale and
 # rpzrecurse are scheduled first, in order to get more benefit from
@@ -661,34 +659,28 @@ get_named_xfer_stats() {
 #   copy_setports infile outfile
 #
 copy_setports() {
-    # The indirect method of handling the substitution of the PORT variables
-    # (defining "atsign" then substituting for it in the "sed" statement) is
-    # required to prevent the "Configure" script (in the win32utils/ directory)
-    # from replacing the <at>PORT<at> substitution tokens when it processes
-    # this file and produces conf.sh.
-    atsign="@"
-    sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
-        -e "s/${atsign}TLSPORT${atsign}/${TLSPORT}/g" \
-		-e "s/${atsign}HTTPPORT${atsign}/${HTTPPORT}/g" \
-        -e "s/${atsign}HTTPSPORT${atsign}/${HTTPSPORT}/g" \
-        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
-        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
-        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
-        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
-        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
-        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
-        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
-        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
-        -e "s/${atsign}DEFAULT_ALGORITHM${atsign}/${DEFAULT_ALGORITHM}/g" \
-        -e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
-        -e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \
-        -e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
-        -e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
-        -e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
-        -e "s/${atsign}DISABLED_ALGORITHM${atsign}/${DISABLED_ALGORITHM}/g" \
-        -e "s/${atsign}DISABLED_ALGORITHM_NUMBER${atsign}/${DISABLED_ALGORITHM_NUMBER}/g" \
-        -e "s/${atsign}DISABLED_BITS${atsign}/${DISABLED_BITS}/g" \
+    sed -e "s/@PORT@/${PORT}/g" \
+        -e "s/@TLSPORT@/${TLSPORT}/g" \
+		-e "s/@HTTPPORT@/${HTTPPORT}/g" \
+        -e "s/@HTTPSPORT@/${HTTPSPORT}/g" \
+        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+        -e "s/@DEFAULT_ALGORITHM@/${DEFAULT_ALGORITHM}/g" \
+        -e "s/@DEFAULT_ALGORITHM_NUMBER@/${DEFAULT_ALGORITHM_NUMBER}/g" \
+        -e "s/@DEFAULT_BITS@/${DEFAULT_BITS}/g" \
+        -e "s/@ALTERNATIVE_ALGORITHM@/${ALTERNATIVE_ALGORITHM}/g" \
+        -e "s/@ALTERNATIVE_ALGORITHM_NUMBER@/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
+        -e "s/@ALTERNATIVE_BITS@/${ALTERNATIVE_BITS}/g" \
+        -e "s/@DISABLED_ALGORITHM@/${DISABLED_ALGORITHM}/g" \
+        -e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_NUMBER}/g" \
+        -e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
         $1 > $2
 }
 

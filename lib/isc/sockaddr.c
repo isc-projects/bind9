@@ -13,9 +13,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#if defined(WIN32) || defined(WIN64)
-#include <malloc.h>
-#endif /* if defined(WIN32) || defined(WIN64) */
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
@@ -137,7 +134,6 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		snprintf(pbuf, sizeof(pbuf), "%u",
 			 ntohs(sockaddr->type.sin6.sin6_port));
 		break;
-#ifndef _WIN32
 	case AF_UNIX:
 		plen = strlen(sockaddr->type.sunix.sun_path);
 		if (plen >= isc_buffer_availablelength(target)) {
@@ -157,7 +153,6 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		avail.base[0] = '\0';
 
 		return (ISC_R_SUCCESS);
-#endif /* ifndef _WIN32  */
 	default:
 		return (ISC_R_FAILURE);
 	}
@@ -468,7 +463,6 @@ isc_sockaddr_isnetzero(const isc_sockaddr_t *sockaddr) {
 
 isc_result_t
 isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
-#ifndef _WIN32
 	if (strlen(path) >= sizeof(sockaddr->type.sunix.sun_path)) {
 		return (ISC_R_NOSPACE);
 	}
@@ -478,11 +472,6 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
 	strlcpy(sockaddr->type.sunix.sun_path, path,
 		sizeof(sockaddr->type.sunix.sun_path));
 	return (ISC_R_SUCCESS);
-#else  /* ifndef _WIN32 */
-	UNUSED(sockaddr);
-	UNUSED(path);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifndef _WIN32 */
 }
 
 isc_result_t
@@ -496,11 +485,9 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa) {
 	case AF_INET6:
 		length = sizeof(isa->type.sin6);
 		break;
-#ifndef _WIN32
 	case AF_UNIX:
 		length = sizeof(isa->type.sunix);
 		break;
-#endif /* ifndef _WIN32 */
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
 	}

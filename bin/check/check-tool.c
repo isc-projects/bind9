@@ -15,10 +15,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#ifdef _WIN32
-#include <Winsock2.h>
-#endif /* ifdef _WIN32 */
-
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -788,25 +784,3 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 
 	return (result);
 }
-
-#ifdef _WIN32
-void
-InitSockets(void) {
-	WORD wVersionRequested;
-	WSADATA wsaData;
-	int err;
-
-	wVersionRequested = MAKEWORD(2, 0);
-
-	err = WSAStartup(wVersionRequested, &wsaData);
-	if (err != 0) {
-		fprintf(stderr, "WSAStartup() failed: %d\n", err);
-		exit(1);
-	}
-}
-
-void
-DestroySockets(void) {
-	WSACleanup();
-}
-#endif /* ifdef _WIN32 */

@@ -555,9 +555,7 @@ printversion(bool verbose) {
 	/*
 	 * The default rndc.conf and rndc.key paths are in the same
 	 * directory, but named only has rndc.key defined internally.
-	 * We construct the rndc.conf path from it. (We could use
-	 * NAMED_SYSCONFDIR here but the result would look wrong on
-	 * Windows.)
+	 * We construct the rndc.conf path from it.
 	 */
 	strlcpy(rndcconf, named_g_keyfile, sizeof(rndcconf));
 	dot = strrchr(rndcconf, '.');
@@ -923,16 +921,12 @@ create_managers(void) {
 		ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
 		named_g_cpus_detected, named_g_cpus_detected == 1 ? "" : "s",
 		named_g_cpus, named_g_cpus == 1 ? "" : "s");
-#ifdef WIN32
-	named_g_udpdisp = 1;
-#else  /* ifdef WIN32 */
 	if (named_g_udpdisp == 0) {
 		named_g_udpdisp = named_g_cpus_detected;
 	}
 	if (named_g_udpdisp > named_g_cpus) {
 		named_g_udpdisp = named_g_cpus;
 	}
-#endif /* ifdef WIN32 */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "using %u UDP listener%s per interface", named_g_udpdisp,
@@ -1154,7 +1148,6 @@ setup(void) {
 	/*
 	 * Get the initial resource limits.
 	 */
-#ifndef WIN32
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_stacksize,
 					    &named_g_initstacksize) ==
 		      ISC_R_SUCCESS);
@@ -1164,7 +1157,6 @@ setup(void) {
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_coresize,
 					    &named_g_initcoresize) ==
 		      ISC_R_SUCCESS);
-#endif /* ifndef WIN32 */
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
 					    &named_g_initopenfiles) ==
 		      ISC_R_SUCCESS);
@@ -1426,17 +1418,6 @@ main(int argc, char *argv[]) {
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	(void)ProfilerStart(NULL);
 #endif /* ifdef HAVE_GPERFTOOLS_PROFILER */
-
-#ifdef WIN32
-	/*
-	 * Prevent unbuffered I/O from crippling named performance on Windows
-	 * when it is logging to stderr (e.g. in system tests).  Use full
-	 * buffering (_IOFBF) as line buffering (_IOLBF) is unavailable on
-	 * Windows and fflush() is called anyway after each log message gets
-	 * written to the default stderr logging channels created by libisc.
-	 */
-	setvbuf(stderr, NULL, _IOFBF, BUFSIZ);
-#endif /* ifdef WIN32 */
 
 #ifdef HAVE_LIBXML2
 	xmlInitThreads();

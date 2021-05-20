@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 unused_headers=$(
-	git ls-files -- '*.h' ':!:*include*' ':!:*rdata*' ':!:*win32*' |
+	git ls-files -- '*.h' ':!:*include*' ':!:*rdata*' |
 	sed 's|.*/\(.*\.h\)|\1|' |
 	while read -r header; do
 		git grep -q "#include \".*${header}\"" || echo "${header}"

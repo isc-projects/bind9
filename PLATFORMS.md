@@ -18,12 +18,12 @@ the OpenSSL cryptography library, and the `nghttp2` HTTP/2 library.
 The following C11 features are used in BIND 9:
 
 * Atomic operations support from the compiler is needed, either in the form of
-  builtin operations, C11 atomics, or the `Interlocked` family of functions on
-  Windows.
+  builtin operations.
 
 * Thread Local Storage support from the compiler is needed, either in the form
-  of C11 `_Thread_local`/`thread_local`, the `__thread` GCC extension, or
-  the `__declspec(thread)` MSVC extension on Windows.
+  of C11 `_Thread_local`/`thread_local`, or the `__thread` GCC extension.
+
+The C11 variants are preferred.
 
 BIND 9.17 requires a fairly recent version of `libuv` (at least 1.x).  For
 some of the older systems listed below, you will have to install an updated
@@ -58,13 +58,11 @@ The amd64, i386, armhf and arm64 CPU architectures are all fully supported.
 ### Best effort
 
 The following are platforms on which BIND is known to build and run.
-ISC makes every effort to fix bugs on these platforms, but may be unable to
-do so quickly due to lack of hardware, less familiarity on the part of
-engineering staff, and other constraints. With the exception of Windows
-Server 2016, none of these are tested regularly by ISC.
+ISC makes every effort to fix bugs on these platforms, but may be unable
+to do so quickly due to lack of hardware, less familiarity on the part
+of engineering staff, and other constraints. None of these are tested
+regularly by ISC.
 
-* Windows Server 2012 R2, 2016 / x64
-* Windows 10 / x64
 * macOS 10.12+
 * Solaris 11
 * NetBSD
@@ -96,8 +94,7 @@ platforms.
 These are platforms on which BIND 9.17 is known *not* to build or run:
 
 * Platforms without at least OpenSSL 1.0.2
-* Windows 10 / x86
-* Windows Server 2012 and older
+* Windows
 * Solaris 10 and older
 * Platforms that don't support IPv6 Advanced Socket API (RFC 3542)
 * Platforms that don't support atomic operations (via compiler or library)

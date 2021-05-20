@@ -14,11 +14,11 @@ noinst_LTLIBRARIES = libconfgen.la
 
 libconfgen_la_SOURCES =		\
 	include/confgen/os.h	\
-	keygen.h		\
 	keygen.c		\
-	util.h			\
+	keygen.h		\
+	os.c			\
 	util.c			\
-	unix/os.c
+	util.h
 
 sbin_PROGRAMS = tsig-keygen rndc-confgen
 

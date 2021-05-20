@@ -29,14 +29,12 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#ifndef _WIN32
-#include <sys/un.h>
-#endif /* ifndef _WIN32 */
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
 
 typedef unsigned int isc_result_t;
 typedef uint32_t     dns_ttl_t;
@@ -104,9 +102,7 @@ typedef struct isc_sockaddr {
 		struct sockaddr	    sa;
 		struct sockaddr_in  sin;
 		struct sockaddr_in6 sin6;
-#ifndef _WIN32
-		struct sockaddr_un sunix;
-#endif /* ifndef _WIN32 */
+		struct sockaddr_un  sunix;
 	} type;
 	unsigned int length;
 	void *	     link;

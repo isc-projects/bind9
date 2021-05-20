@@ -40,13 +40,6 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	  dns_masterformat_t fileformat, const dns_master_style_t *style,
 	  const uint32_t rawversion);
 
-#ifdef _WIN32
-void
-InitSockets(void);
-void
-DestroySockets(void);
-#endif /* ifdef _WIN32 */
-
 extern int debug;
 extern const char *journal;
 extern bool nomerge;

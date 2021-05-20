@@ -191,9 +191,7 @@ static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
 	ipv6_result = try_proto(PF_INET6);
-#ifndef _WIN32
 	unix_result = try_proto(PF_UNIX);
-#endif /* ifndef _WIN32 */
 }
 
 static void

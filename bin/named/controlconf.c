@@ -1149,9 +1149,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 
 	pf = isc_sockaddr_pf(&listener->address);
 	if ((pf == AF_INET && isc_net_probeipv4() != ISC_R_SUCCESS) ||
-#ifndef _WIN32
 	    (pf == AF_UNIX && isc_net_probeunix() != ISC_R_SUCCESS) ||
-#endif /* ifdef _WIN32 */
 	    (pf == AF_INET6 && isc_net_probeipv6() != ISC_R_SUCCESS))
 	{
 		CHECK(ISC_R_FAMILYNOSUPPORT);

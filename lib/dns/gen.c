@@ -11,19 +11,6 @@
 
 /*! \file */
 
-#ifdef WIN32
-/*
- * Silence compiler warnings about using strcpy and friends.
- */
-#define _CRT_SECURE_NO_DEPRECATE 1
-/*
- * We use snprintf which was defined late in Windows even it is in C99.
- */
-#if _MSC_VER < 1900
-#define snprintf _snprintf
-#endif /* if _MSC_VER < 1900 */
-#endif /* ifdef WIN32 */
-
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -38,11 +25,7 @@
 #define PATH_MAX 1024
 #endif /* ifndef PATH_MAX */
 
-#ifdef WIN32
-#include "gen-win32.h"
-#else /* ifdef WIN32 */
-#include "gen-unix.h"
-#endif /* ifdef WIN32 */
+#include "gen.h"
 
 #ifndef ULLONG_MAX
 #define ULLONG_MAX (~0ULL)

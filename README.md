@@ -141,10 +141,6 @@ Unix, including RHEL/CentOS, Fedora, Debian, Ubuntu, SLES, openSUSE,
 Slackware, Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris,
 OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
 
-BIND 9 is also available for Windows Server 2012 R2 and higher. See
-`win32utils/build.txt` for details on building for Windows
-systems.
-
 To build on a Unix or Linux system, use:
 
 		$ autoreconf -fi (if you are building in the git repository)

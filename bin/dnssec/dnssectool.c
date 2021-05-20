@@ -19,10 +19,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
-#include <Winsock2.h>
-#endif /* ifdef _WIN32 */
-
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -567,25 +563,3 @@ isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 	}
 	return (false);
 }
-
-#ifdef _WIN32
-void
-InitSockets(void) {
-	WORD wVersionRequested;
-	WSADATA wsaData;
-	int err;
-
-	wVersionRequested = MAKEWORD(2, 0);
-
-	err = WSAStartup(wVersionRequested, &wsaData);
-	if (err != 0) {
-		fprintf(stderr, "WSAStartup() failed: %d\n", err);
-		exit(1);
-	}
-}
-
-void
-DestroySockets(void) {
-	WSACleanup();
-}
-#endif /* ifdef _WIN32 */

@@ -20,7 +20,7 @@
 #endif /* ifdef ISC_MAIN_HOOK */
 
 /*
- * Commandline arguments for named; also referenced in win32/ntservice.c
+ * Commandline arguments for named;
  */
 #define NAMED_MAIN_ARGS "46A:c:d:D:E:fFgL:M:m:n:N:p:sS:t:T:U:u:vVx:X:"
 

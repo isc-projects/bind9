@@ -47,7 +47,6 @@
 
 #define ISC_NETMGR_TLSBUF_SIZE 65536
 
-#if !defined(WIN32)
 /*
  * New versions of libuv support recvmmsg on unices.
  * Since recvbuf is only allocated per worker allocating a bigger one is not
@@ -56,9 +55,6 @@
  * will break if the original value changes.
  */
 #define ISC_NETMGR_RECVBUF_SIZE (20 * 65536)
-#else
-#define ISC_NETMGR_RECVBUF_SIZE (65536)
-#endif
 
 #define ISC_NETMGR_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
@@ -94,8 +90,6 @@ isc__nm_dump_active(isc_nm_t *nm);
 #if defined(__linux__)
 #include <syscall.h>
 #define gettid() (uint32_t) syscall(SYS_gettid)
-#elif defined(_WIN32)
-#define gettid() (uint32_t) GetCurrentThreadId()
 #else
 #define gettid() (uint32_t) pthread_self()
 #endif

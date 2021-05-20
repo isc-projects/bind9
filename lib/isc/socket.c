@@ -4168,7 +4168,6 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 
 void
 isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
-#ifndef _WIN32
 	int s;
 	struct stat sb;
 	char strbuf[ISC_STRERRORSIZE];
@@ -4281,16 +4280,11 @@ isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 		}
 	}
 	close(s);
-#else  /* ifndef _WIN32 */
-	UNUSED(sockaddr);
-	UNUSED(active);
-#endif /* ifndef _WIN32 */
 }
 
 isc_result_t
 isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		    uint32_t owner, uint32_t group) {
-#ifndef _WIN32
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
 	char path[sizeof(sockaddr->type.sunix.sun_path)];
@@ -4332,13 +4326,6 @@ isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		result = ISC_R_FAILURE;
 	}
 	return (result);
-#else  /* ifndef _WIN32 */
-	UNUSED(sockaddr);
-	UNUSED(perm);
-	UNUSED(owner);
-	UNUSED(group);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifndef _WIN32 */
 }
 
 isc_result_t

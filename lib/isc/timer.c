@@ -598,10 +598,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 }
 
 static isc_threadresult_t
-#ifdef _WIN32 /* XXXDCL */
-	WINAPI
-#endif /* ifdef _WIN32 */
-	run(void *uap) {
+run(void *uap) {
 	isc_timermgr_t *manager = uap;
 	isc_time_t now;
 	isc_result_t result;

@@ -526,8 +526,6 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize);
  *     path to the directory into which named plugins are installed will be
  *     prepended to it and the result will be stored in 'dst'.
  *
- * On Windows, 'src' is always copied to 'dst' verbatim.
- *
  * Returns:
  *\li	#ISC_R_SUCCESS	Success
  *\li	#ISC_R_NOSPACE	'dst' is not large enough to hold the output string

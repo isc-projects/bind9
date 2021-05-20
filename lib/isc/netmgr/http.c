@@ -2267,7 +2267,6 @@ server_send_connection_header(isc_nm_http_session_t *session) {
  */
 static void
 http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
-#ifndef _WIN32
 	isc_nmsocket_t *tcpsock = NULL;
 	uv_os_fd_t tcp_fd = (uv_os_fd_t)-1;
 
@@ -2280,7 +2279,6 @@ http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
 	(void)uv_fileno((uv_handle_t *)&tcpsock->uv_handle.tcp, &tcp_fd);
 	RUNTIME_CHECK(tcp_fd != (uv_os_fd_t)-1);
 	(void)isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd);
-#endif
 }
 
 static isc_result_t

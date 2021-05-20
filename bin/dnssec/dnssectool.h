@@ -107,11 +107,4 @@ key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
 bool
 isoptarg(const char *arg, char **argv, void (*usage)(void));
 
-#ifdef _WIN32
-void
-InitSockets(void);
-void
-DestroySockets(void);
-#endif /* ifdef _WIN32 */
-
 #endif /* DNSSEC_DNSSECTOOL_H */

@@ -51,7 +51,7 @@ EOF
     # Compile the test program.
     if
        gcc  -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings \
-           -I/usr/pkg/pthreads/include -I$prefix/include -c test.cc 2>&1
+           "-I$prefix/include" -c test.cc 2>&1
     then
        :
     else
