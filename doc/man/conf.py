@@ -40,6 +40,10 @@ author = u'Internet Systems Consortium'
 
 # -- General configuration ---------------------------------------------------
 
+# Build man pages directly in _build/man/, not in _build/man/<section>/.
+# This is what the shell code in Makefile.am expects.
+man_make_section_directory = False
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
