@@ -9512,7 +9512,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
-	dns_name_clone(&cname.cname, tname);
+	dns_name_copynf(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -10124,7 +10124,7 @@ query_cname(query_ctx_t *qctx) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
-	dns_name_clone(&cname.cname, tname);
+	dns_name_copynf(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -10226,7 +10226,7 @@ query_dname(query_ctx_t *qctx) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
-	dns_name_clone(&dname.dname, tname);
+	dns_name_copynf(&dname.dname, tname);
 	dns_rdata_freestruct(&dname);
 
 	/*
@@ -10324,7 +10324,8 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	dns_name_clone(client->query.qname, aname);
+
+	dns_name_copynf(client->query.qname, aname);
 
 	result = dns_message_gettemprdatalist(client->message, &rdatalist);
 	if (result != ISC_R_SUCCESS) {
@@ -10459,7 +10460,13 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
+	/*
+	 * We'll be releasing 'name' before returning, so it's safe to
+	 * use clone instead of copying here.
+	 */
 	dns_name_clone(dns_db_origin(qctx->db), name);
+
 	rdataset = ns_client_newrdataset(client);
 	if (rdataset == NULL) {
 		CTRACE(ISC_LOG_ERROR, "unable to allocate rdataset");
