@@ -180,7 +180,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_message_takebuffer(msg, &tmprdatabuf);
 
 	RETERR(dns_message_gettempname(msg, &newname));
-	dns_name_clone(name, newname);
+	dns_name_copynf(name, newname);
 
 	RETERR(dns_message_gettemprdatalist(msg, &newlist));
 	newlist->rdclass = newrdata->rdclass;
