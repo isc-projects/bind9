@@ -1284,7 +1284,6 @@ static uint16_t
 parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_result_t result;
 	char *word;
-	isc_buffer_t *namebuf = NULL;
 	isc_buffer_t source;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
@@ -1295,10 +1294,6 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	result = dns_message_gettempname(msg, namep);
 	check_result(result, "dns_message_gettempname");
-	isc_buffer_allocate(gmctx, &namebuf, DNS_NAME_MAXWIRE);
-	dns_name_init(*namep, NULL);
-	dns_name_setbuffer(*namep, namebuf);
-	dns_message_takebuffer(msg, &namebuf);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
 	result = dns_name_fromtext(*namep, &source, dns_rootname, 0, NULL);
@@ -2093,7 +2088,6 @@ setzone(dns_name_t *zonename) {
 	if (zonename != NULL) {
 		result = dns_message_gettempname(updatemsg, &name);
 		check_result(result, "dns_message_gettempname");
-		dns_name_init(name, NULL);
 		dns_name_clone(zonename, name);
 		result = dns_message_gettemprdataset(updatemsg, &rdataset);
 		check_result(result, "dns_message_gettemprdataset");
@@ -3275,7 +3269,6 @@ start_update(void) {
 	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 
 	if (userzone != NULL) {
-		dns_name_init(name, NULL);
 		dns_name_clone(userzone, name);
 	} else {
 		dns_rdataset_t *tmprdataset;
@@ -3294,7 +3287,6 @@ start_update(void) {
 		}
 		firstname = NULL;
 		dns_message_currentname(updatemsg, section, &firstname);
-		dns_name_init(name, NULL);
 		dns_name_clone(firstname, name);
 		/*
 		 * Looks to see if the first name references a DS record

@@ -2871,11 +2871,10 @@ ns_client_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 
 isc_result_t
 ns_client_newnamebuf(ns_client_t *client) {
-	isc_buffer_t *dbuf;
+	isc_buffer_t *dbuf = NULL;
 
 	CTRACE("ns_client_newnamebuf");
 
-	dbuf = NULL;
 	isc_buffer_allocate(client->mctx, &dbuf, 1024);
 	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
 
@@ -2885,7 +2884,7 @@ ns_client_newnamebuf(ns_client_t *client) {
 
 dns_name_t *
 ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	isc_region_t r;
 	isc_result_t result;
 
@@ -2893,7 +2892,6 @@ ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 
 	CTRACE("ns_client_newname");
 
-	name = NULL;
 	result = dns_message_gettempname(client->message, &name);
 	if (result != ISC_R_SUCCESS) {
 		CTRACE("ns_client_newname: "
@@ -2902,7 +2900,7 @@ ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 	}
 	isc_buffer_availableregion(dbuf, &r);
 	isc_buffer_init(nbuf, r.base, r.length);
-	dns_name_init(name, NULL);
+	dns_name_setbuffer(name, NULL);
 	dns_name_setbuffer(name, nbuf);
 	client->query.attributes |= NS_QUERYATTR_NAMEBUFUSED;
 
@@ -2913,7 +2911,6 @@ ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 isc_buffer_t *
 ns_client_getnamebuf(ns_client_t *client) {
 	isc_buffer_t *dbuf;
-	isc_result_t result;
 	isc_region_t r;
 
 	CTRACE("ns_client_getnamebuf");
@@ -2923,24 +2920,14 @@ ns_client_getnamebuf(ns_client_t *client) {
 	 * a new one if necessary.
 	 */
 	if (ISC_LIST_EMPTY(client->query.namebufs)) {
-		result = ns_client_newnamebuf(client);
-		if (result != ISC_R_SUCCESS) {
-			CTRACE("ns_client_getnamebuf: "
-			       "ns_client_newnamebuf failed: done");
-			return (NULL);
-		}
+		ns_client_newnamebuf(client);
 	}
 
 	dbuf = ISC_LIST_TAIL(client->query.namebufs);
 	INSIST(dbuf != NULL);
 	isc_buffer_availableregion(dbuf, &r);
 	if (r.length < DNS_NAME_MAXWIRE) {
-		result = ns_client_newnamebuf(client);
-		if (result != ISC_R_SUCCESS) {
-			CTRACE("ns_client_getnamebuf: "
-			       "ns_client_newnamebuf failed: done");
-			return (NULL);
-		}
+		ns_client_newnamebuf(client);
 		dbuf = ISC_LIST_TAIL(client->query.namebufs);
 		isc_buffer_availableregion(dbuf, &r);
 		INSIST(r.length >= 255);
@@ -2969,8 +2956,6 @@ ns_client_keepname(ns_client_t *client, dns_name_t *name, isc_buffer_t *dbuf) {
 
 void
 ns_client_releasename(ns_client_t *client, dns_name_t **namep) {
-	dns_name_t *name = *namep;
-
 	/*%
 	 * 'name' is no longer needed.  Return it to our pool of temporary
 	 * names.  If it is using a name buffer, relinquish its exclusive
@@ -2978,11 +2963,7 @@ ns_client_releasename(ns_client_t *client, dns_name_t **namep) {
 	 */
 
 	CTRACE("ns_client_releasename");
-	if (dns_name_hasbuffer(name)) {
-		INSIST((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) !=
-		       0);
-		client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
-	}
+	client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
 	dns_message_puttempname(client->message, namep);
 	CTRACE("ns_client_releasename: done");
 }
@@ -2990,16 +2971,13 @@ ns_client_releasename(ns_client_t *client, dns_name_t **namep) {
 isc_result_t
 ns_client_newdbversion(ns_client_t *client, unsigned int n) {
 	unsigned int i;
-	ns_dbversion_t *dbversion;
+	ns_dbversion_t *dbversion = NULL;
 
 	for (i = 0; i < n; i++) {
 		dbversion = isc_mem_get(client->mctx, sizeof(*dbversion));
-		{
-			dbversion->db = NULL;
-			dbversion->version = NULL;
-			ISC_LIST_INITANDAPPEND(client->query.freeversions,
-					       dbversion, link);
-		}
+		*dbversion = (ns_dbversion_t){ 0 };
+		ISC_LIST_INITANDAPPEND(client->query.freeversions, dbversion,
+				       link);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -3007,14 +2985,10 @@ ns_client_newdbversion(ns_client_t *client, unsigned int n) {
 
 static inline ns_dbversion_t *
 client_getdbversion(ns_client_t *client) {
-	isc_result_t result;
-	ns_dbversion_t *dbversion;
+	ns_dbversion_t *dbversion = NULL;
 
 	if (ISC_LIST_EMPTY(client->query.freeversions)) {
-		result = ns_client_newdbversion(client, 1);
-		if (result != ISC_R_SUCCESS) {
-			return (NULL);
-		}
+		ns_client_newdbversion(client, 1);
 	}
 	dbversion = ISC_LIST_HEAD(client->query.freeversions);
 	INSIST(dbversion != NULL);
