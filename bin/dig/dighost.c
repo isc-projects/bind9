@@ -2244,9 +2244,7 @@ setup_lookup(dig_lookup_t *lookup) {
 						name, lookup->oname,
 						lookup->name, &lookup->namebuf);
 				} else {
-					result = dns_name_copy(
-						name, lookup->name,
-						&lookup->namebuf);
+					dns_name_copynf(name, lookup->name);
 				}
 			}
 			if (result != ISC_R_SUCCESS) {
