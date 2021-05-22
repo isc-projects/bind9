@@ -24,9 +24,10 @@ dns_acl_match
 dns_acl_merge
 dns_acl_none
 dns_aclelement_match
+dns_aclenv_attach
 dns_aclenv_copy
-dns_aclenv_destroy
-dns_aclenv_init
+dns_aclenv_create
+dns_aclenv_detach
 dns_adb_adjustsrtt
 dns_adb_agesrtt
 dns_adb_attach

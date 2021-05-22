@@ -67,28 +67,28 @@
 
 /*% nameserver interface manager structure */
 struct ns_interfacemgr {
-	unsigned int magic; /*%< Magic number. */
+	unsigned int magic; /*%< Magic number */
 	isc_refcount_t references;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;	    /*%< Memory context. */
-	ns_server_t *sctx;	    /*%< Server context. */
-	isc_taskmgr_t *taskmgr;	    /*%< Task manager. */
-	isc_task_t *excl;	    /*%< Exclusive task. */
-	isc_timermgr_t *timermgr;   /*%< Timer manager. */
-	isc_socketmgr_t *socketmgr; /*%< Socket manager. */
-	isc_nm_t *nm;		    /*%< Net manager. */
-	int ncpus;		    /*%< Number of workers . */
+	isc_mem_t *mctx;	    /*%< Memory context */
+	ns_server_t *sctx;	    /*%< Server context */
+	isc_taskmgr_t *taskmgr;	    /*%< Task manager */
+	isc_task_t *excl;	    /*%< Exclusive task */
+	isc_timermgr_t *timermgr;   /*%< Timer manager */
+	isc_socketmgr_t *socketmgr; /*%< Socket manager */
+	isc_nm_t *nm;		    /*%< Net manager */
+	int ncpus;		    /*%< Number of workers */
 	dns_dispatchmgr_t *dispatchmgr;
-	unsigned int generation; /*%< Current generation no. */
+	unsigned int generation; /*%< Current generation no */
 	ns_listenlist_t *listenon4;
 	ns_listenlist_t *listenon6;
-	dns_aclenv_t aclenv;		     /*%< Localhost/localnets ACLs */
-	ISC_LIST(ns_interface_t) interfaces; /*%< List of interfaces. */
+	dns_aclenv_t *aclenv;		     /*%< Localhost/localnets ACLs */
+	ISC_LIST(ns_interface_t) interfaces; /*%< List of interfaces */
 	ISC_LIST(isc_sockaddr_t) listenon;
-	int backlog;		  /*%< Listen queue size */
-	unsigned int udpdisp;	  /*%< UDP dispatch count */
-	atomic_bool shuttingdown; /*%< Interfacemgr is shutting
-				   * down */
+	int backlog;		     /*%< Listen queue size */
+	unsigned int udpdisp;	     /*%< UDP dispatch count */
+	atomic_bool shuttingdown;    /*%< Interfacemgr shutting down */
+	ns_clientmgr_t **clientmgrs; /*%< Client managers */
 #ifdef USE_ROUTE_SOCKET
 	isc_task_t *task;
 	isc_socket_t *route;
@@ -232,16 +232,16 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	 */
 	result = ns_listenlist_create(mctx, &mgr->listenon4);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_ctx;
+		goto cleanup_sctx;
 	}
 	ns_listenlist_attach(mgr->listenon4, &mgr->listenon6);
 
-	result = dns_aclenv_init(mctx, &mgr->aclenv);
+	result = dns_aclenv_create(mctx, &mgr->aclenv);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_listenon;
 	}
 #if defined(HAVE_GEOIP2)
-	mgr->aclenv.geoip = geoip;
+	mgr->aclenv->geoip = geoip;
 #else  /* if defined(HAVE_GEOIP2) */
 	UNUSED(geoip);
 #endif /* if defined(HAVE_GEOIP2) */
@@ -271,6 +271,15 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
 
+	mgr->clientmgrs = isc_mem_get(mgr->mctx,
+				      mgr->ncpus * sizeof(*mgr->clientmgrs[0]));
+	for (size_t i = 0; i < (size_t)mgr->ncpus; i++) {
+		result = ns_clientmgr_create(mgr->sctx, mgr->taskmgr,
+					     mgr->timermgr, mgr->aclenv, (int)i,
+					     &mgr->clientmgrs[i]);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+
 #ifdef USE_ROUTE_SOCKET
 	if (mgr->route != NULL) {
 		isc_region_t r = { mgr->buf, sizeof(mgr->buf) };
@@ -288,14 +297,14 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 
 #ifdef USE_ROUTE_SOCKET
 cleanup_aclenv:
-	dns_aclenv_destroy(&mgr->aclenv);
+	dns_aclenv_detach(&mgr->aclenv);
 #endif /* ifdef USE_ROUTE_SOCKET */
 cleanup_listenon:
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
 cleanup_lock:
 	isc_mutex_destroy(&mgr->lock);
-cleanup_ctx:
+cleanup_sctx:
 	ns_server_detach(&mgr->sctx);
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
 	return (result);
@@ -315,11 +324,17 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 		isc_task_detach(&mgr->task);
 	}
 #endif /* ifdef USE_ROUTE_SOCKET */
-	dns_aclenv_destroy(&mgr->aclenv);
+	dns_aclenv_detach(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
 	clearlistenon(mgr);
 	isc_mutex_destroy(&mgr->lock);
+	for (size_t i = 0; i < (size_t)mgr->ncpus; i++) {
+		ns_clientmgr_destroy(&mgr->clientmgrs[i]);
+	}
+	isc_mem_put(mgr->mctx, mgr->clientmgrs,
+		    mgr->ncpus * sizeof(*mgr->clientmgrs[0]));
+
 	if (mgr->sctx != NULL) {
 		ns_server_detach(&mgr->sctx);
 	}
@@ -342,7 +357,7 @@ dns_aclenv_t *
 ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
-	return (&mgr->aclenv);
+	return (mgr->aclenv);
 }
 
 void
@@ -390,7 +405,6 @@ static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    const char *name, ns_interface_t **ifpret) {
 	ns_interface_t *ifp;
-	isc_result_t result;
 	int disp;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
@@ -427,16 +441,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	isc_refcount_init(&ifp->references, 1);
 	ifp->magic = IFACE_MAGIC;
 
-	result = ns_clientmgr_create(mgr->mctx, mgr->sctx, mgr->taskmgr,
-				     mgr->timermgr, ifp, mgr->ncpus,
-				     &ifp->clientmgr);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "ns_clientmgr_create() failed: %s",
-			      isc_result_totext(result));
-		goto failure;
-	}
-
 	ifp->tcplistensocket = NULL;
 	ifp->http_listensocket = NULL;
 	ifp->http_secure_listensocket = NULL;
@@ -444,14 +448,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	*ifpret = ifp;
 
 	return (ISC_R_SUCCESS);
-
-failure:
-	isc_mutex_destroy(&ifp->lock);
-
-	ifp->magic = 0;
-	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
-
-	return (ISC_R_UNEXPECTED);
 }
 
 static isc_result_t
@@ -682,9 +678,6 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 		isc_nm_stoplistening(ifp->http_secure_listensocket);
 		isc_nmsocket_close(&ifp->http_secure_listensocket);
 	}
-	if (ifp->clientmgr != NULL) {
-		ns_clientmgr_destroy(&ifp->clientmgr);
-	}
 }
 
 static void
@@ -810,7 +803,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 
 	/* First add localhost address */
 	prefixlen = (netaddr->family == AF_INET) ? 32 : 128;
-	result = dns_iptable_addprefix(mgr->aclenv.localhost->iptable, netaddr,
+	result = dns_iptable_addprefix(mgr->aclenv->localhost->iptable, netaddr,
 				       prefixlen, true);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -841,7 +834,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = dns_iptable_addprefix(mgr->aclenv.localnets->iptable, netaddr,
+	result = dns_iptable_addprefix(mgr->aclenv->localnets->iptable, netaddr,
 				       prefixlen, true);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -1006,11 +999,11 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 	}
 
 	if (!adjusting) {
-		result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
+		result = clearacl(mgr->mctx, &mgr->aclenv->localhost);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_iter;
 		}
-		result = clearacl(mgr->mctx, &mgr->aclenv.localnets);
+		result = clearacl(mgr->mctx, &mgr->aclenv->localnets);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_iter;
 		}
@@ -1108,7 +1101,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			 * if not, ignore the interface.
 			 */
 			(void)dns_acl_match(&listen_netaddr, NULL, le->acl,
-					    &mgr->aclenv, &match, NULL);
+					    mgr->aclenv, &match, NULL);
 			if (match <= 0) {
 				continue;
 			}
@@ -1347,17 +1340,11 @@ ns_interfacemgr_setlistenon6(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
 
 void
 ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr) {
-	ns_interface_t *interface;
-
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	LOCK(&mgr->lock);
-	interface = ISC_LIST_HEAD(mgr->interfaces);
-	while (interface != NULL) {
-		if (interface->clientmgr != NULL) {
-			ns_client_dumprecursing(f, interface->clientmgr);
-		}
-		interface = ISC_LIST_NEXT(interface, link);
+	for (size_t i = 0; i < (size_t)mgr->ncpus; i++) {
+		ns_client_dumprecursing(f, mgr->clientmgrs[i]);
 	}
 	UNLOCK(&mgr->lock);
 }
@@ -1414,4 +1401,15 @@ ns__interfacemgr_nextif(ns_interface_t *ifp) {
 	next = ISC_LIST_NEXT(ifp, link);
 	UNLOCK(&ifp->lock);
 	return (next);
+}
+
+ns_clientmgr_t *
+ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr) {
+	int tid = isc_nm_tid();
+
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	REQUIRE(tid >= 0);
+	REQUIRE(tid < mgr->ncpus);
+
+	return (mgr->clientmgrs[tid]);
 }

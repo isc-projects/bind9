@@ -150,12 +150,12 @@ struct ns_clientmgr {
 	isc_timermgr_t *timermgr;
 	isc_task_t *	excl;
 	isc_refcount_t	references;
-	int		ncpus;
+	int		tid;
 
 	/* Attached by clients, needed for e.g. recursion */
-	isc_task_t **taskpool;
+	isc_task_t *task;
 
-	ns_interface_t *interface;
+	dns_aclenv_t *aclenv;
 
 	/* Lock covers manager state. */
 	isc_mutex_t lock;
@@ -170,6 +170,7 @@ struct ns_clientmgr {
 struct ns_client {
 	unsigned int	 magic;
 	isc_mem_t *	 mctx;
+	int		 tid;
 	bool		 allocated; /* Do we need to free it? */
 	ns_server_t *	 sctx;
 	ns_clientmgr_t * manager;
@@ -344,8 +345,8 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds);
  */
 
 isc_result_t
-ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, ns_interface_t *ifp, int ncpus,
+ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
+		    isc_timermgr_t *timermgr, dns_aclenv_t *aclenv, int tid,
 		    ns_clientmgr_t **managerp);
 /*%<
  * Create a client manager.

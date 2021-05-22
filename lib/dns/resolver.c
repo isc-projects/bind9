@@ -3933,7 +3933,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	if (blackhole != NULL) {
 		int match;
 
-		if ((dns_acl_match(&ipaddr, NULL, blackhole, &res->view->aclenv,
+		if ((dns_acl_match(&ipaddr, NULL, blackhole, res->view->aclenv,
 				   &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
 		{
@@ -7165,7 +7165,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 		}
 
 		result = dns_acl_match(&netaddr, NULL, view->denyansweracl,
-				       &view->aclenv, &match, NULL);
+				       view->aclenv, &match, NULL);
 		if (result == ISC_R_SUCCESS && match > 0) {
 			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 			dns_name_format(name, namebuf, sizeof(namebuf));

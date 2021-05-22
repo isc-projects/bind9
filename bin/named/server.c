@@ -5081,8 +5081,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Copy the aclenv object.
 	 */
-	dns_aclenv_copy(&view->aclenv, ns_interfacemgr_getaclenv(
-					       named_g_server->interfacemgr));
+	dns_aclenv_copy(view->aclenv, ns_interfacemgr_getaclenv(
+					      named_g_server->interfacemgr));
 
 	/*
 	 * Configure the "match-clients" and "match-destinations" ACL.

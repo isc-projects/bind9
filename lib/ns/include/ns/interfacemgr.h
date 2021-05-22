@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_INTERFACEMGR_H
-#define NS_INTERFACEMGR_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -91,8 +90,7 @@ struct ns_interface {
 					*   servicing TCP queries
 					*   (whether accepting or
 					*   connected) */
-	int		nudpdispatch;  /*%< Number of UDP dispatches */
-	ns_clientmgr_t *clientmgr;     /*%< Client manager. */
+	int nudpdispatch;	       /*%< Number of UDP dispatches */
 	ISC_LINK(ns_interface_t) link;
 };
 
@@ -205,12 +203,19 @@ ns_interfacemgr_getserver(ns_interfacemgr_t *mgr);
  * Returns the ns_server object associated with the interface manager.
  */
 
+ns_clientmgr_t *
+ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr);
+/*%<
+ *
+ * Returns the client manager for the current worker thread.
+ * (This cannot be run from outside a network manager thread.)
+ */
+
 ns_interface_t *
 ns__interfacemgr_getif(ns_interfacemgr_t *mgr);
 ns_interface_t *
 ns__interfacemgr_nextif(ns_interface_t *ifp);
-/*
+/*%<
  * Functions to allow external callers to walk the interfaces list.
  * (Not intended for use outside this module and associated tests.)
  */
-#endif /* NS_INTERFACEMGR_H */

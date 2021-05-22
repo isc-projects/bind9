@@ -216,6 +216,11 @@ isc__nm_in_netthread(void) {
 	return (isc__nm_tid_v >= 0);
 }
 
+void
+isc__nm_force_tid(int tid) {
+	isc__nm_tid_v = tid;
+}
+
 #ifdef WIN32
 static void
 isc__nm_winsock_initialize(void) {

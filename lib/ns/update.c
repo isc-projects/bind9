@@ -2583,8 +2583,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ttl_t maxttl = 0;
 	uint32_t maxrecords;
 	uint64_t records;
-	dns_aclenv_t *env =
-		ns_interfacemgr_getaclenv(client->manager->interface->mgr);
+	dns_aclenv_t *env = client->manager->aclenv;
 	size_t ruleslen = 0;
 	size_t rule;
 	const dns_ssurule_t **rules = NULL;

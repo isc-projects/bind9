@@ -1111,7 +1111,7 @@ struct isc_nmsocket {
 
 bool
 isc__nm_in_netthread(void);
-/*%
+/*%<
  * Returns 'true' if we're in the network thread.
  */
 
