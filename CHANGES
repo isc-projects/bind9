@@ -1,3 +1,8 @@
+5676.	[func]		Memory allocation has been substantially refactored,
+			and is now based on the memory allocation API
+			provided by 'libjemalloc'. This is now a build
+			dependency for BIND. [GL #2433]
+
 5675.	[bug]		Improve BIND's compatibility with DoH clients by
 			ignoring an "Accept" HTTP header value. [GL !5246]
 
