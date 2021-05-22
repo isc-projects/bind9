@@ -1020,7 +1020,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS) {
 		goto cleanup_rdata;
 	}
-	dns_name_copynf(&key->name, owner);
+	dns_name_copy(&key->name, owner);
 
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS) {

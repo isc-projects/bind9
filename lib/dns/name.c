@@ -2463,7 +2463,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 }
 
 void
-dns_name_copynf(const dns_name_t *source, dns_name_t *dest) {
+dns_name_copy(const dns_name_t *source, dns_name_t *dest) {
 	isc_buffer_t *target = NULL;
 	unsigned char *ndata = NULL;
 

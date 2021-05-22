@@ -201,7 +201,7 @@ savezonecut(dns_fixedname_t *fzonecut, dns_name_t *name) {
 	dns_name_t *result;
 
 	result = dns_fixedname_initname(fzonecut);
-	dns_name_copynf(name, result);
+	dns_name_copy(name, result);
 
 	return (result);
 }
@@ -2397,7 +2397,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			dns_name_copynf(gorigin, nextname);
+			dns_name_copy(gorigin, nextname);
 			done = true;
 		} else if (result != ISC_R_SUCCESS) {
 			fatal("iterating through the database failed: %s",
@@ -2534,7 +2534,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			dns_name_copynf(gorigin, nextname);
+			dns_name_copy(gorigin, nextname);
 			done = true;
 		} else if (result != ISC_R_SUCCESS) {
 			fatal("iterating through the database failed: %s",

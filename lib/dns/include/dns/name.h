@@ -1241,7 +1241,7 @@ dns_name_settotextfilter(dns_name_totextfilter_t *proc);
  */
 
 void
-dns_name_copynf(const dns_name_t *source, dns_name_t *dest);
+dns_name_copy(const dns_name_t *source, dns_name_t *dest);
 /*%<
  * Copies the name in 'source' into 'dest'.  The name data is copied to
  * the dedicated buffer for 'dest'. (If copying to a name that doesn't

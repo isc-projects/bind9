@@ -7330,7 +7330,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	tat->view = NULL;
 	dns_rdataset_init(&tat->rdataset);
 	dns_rdataset_init(&tat->sigrdataset);
-	dns_name_copynf(keyname, dns_fixedname_initname(&tat->keyname));
+	dns_name_copy(keyname, dns_fixedname_initname(&tat->keyname));
 	result = get_tat_qname(dns_fixedname_initname(&tat->tatname), keyname,
 			       keynode);
 	if (result != ISC_R_SUCCESS) {

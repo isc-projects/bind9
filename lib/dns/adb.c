@@ -3325,7 +3325,7 @@ post_copy:
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
 	if (alias) {
 		if (target != NULL) {
-			dns_name_copynf(&adbname->target, target);
+			dns_name_copy(&adbname->target, target);
 		}
 		result = DNS_R_ALIAS;
 	} else {

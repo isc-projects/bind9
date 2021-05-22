@@ -3059,7 +3059,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * is, we need to remember the node name.
 			 */
 			zcname = dns_fixedname_name(&search->zonecut_name);
-			dns_name_copynf(name, zcname);
+			dns_name_copy(name, zcname);
 			search->copy_name = true;
 		}
 	} else {
@@ -3229,7 +3229,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	 */
 	if (foundname != NULL && search->copy_name) {
 		zcname = dns_fixedname_name(&search->zonecut_name);
-		dns_name_copynf(zcname, foundname);
+		dns_name_copy(zcname, foundname);
 	}
 	if (nodep != NULL) {
 		/*
@@ -4079,7 +4079,7 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 */
 			result = find_wildcard(&search, &node, name);
 			if (result == ISC_R_SUCCESS) {
-				dns_name_copynf(name, foundname);
+				dns_name_copy(name, foundname);
 				wild = true;
 				goto found;
 			} else if (result != ISC_R_NOTFOUND) {
@@ -4799,7 +4799,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			if (foundname != NULL) {
 				dns_name_init(&name, NULL);
 				dns_rbt_namefromnode(node, &name);
-				dns_name_copynf(&name, foundname);
+				dns_name_copy(&name, foundname);
 				while (i > 0) {
 					i--;
 					level_node = search->chain.levels[i];
@@ -5368,7 +5368,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	} else if (result != ISC_R_SUCCESS) {
 		goto tree_exit;
 	} else if (!dcnull) {
-		dns_name_copynf(dcname, foundname);
+		dns_name_copy(dcname, foundname);
 	}
 	/*
 	 * We now go looking for an NS rdataset at the node.
@@ -9832,7 +9832,7 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 		return (rbtdbiter->result);
 	}
 
-	dns_name_copynf(origin, name);
+	dns_name_copy(origin, name);
 	return (ISC_R_SUCCESS);
 }
 
@@ -10136,7 +10136,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		glue = isc_mem_get(ctx->rbtdb->common.mctx, sizeof(*glue));
 
 		gluename = dns_fixedname_initname(&glue->fixedname);
-		dns_name_copynf(name_a, gluename);
+		dns_name_copy(name_a, gluename);
 
 		dns_rdataset_init(&glue->rdataset_a);
 		dns_rdataset_init(&glue->sigrdataset_a);
@@ -10160,7 +10160,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 					   sizeof(*glue));
 
 			gluename = dns_fixedname_initname(&glue->fixedname);
-			dns_name_copynf(name_aaaa, gluename);
+			dns_name_copy(name_aaaa, gluename);
 
 			dns_rdataset_init(&glue->rdataset_a);
 			dns_rdataset_init(&glue->sigrdataset_a);
@@ -10299,7 +10299,7 @@ restart:
 			goto no_glue;
 		}
 
-		dns_name_copynf(gluename, name);
+		dns_name_copy(gluename, name);
 
 		if (dns_rdataset_isassociated(&ge->rdataset_a)) {
 			result = dns_message_gettemprdataset(msg, &rdataset_a);

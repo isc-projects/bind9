@@ -265,7 +265,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 
 		isc_buffer_init(&buffer, bad + 1, name->length);
 		bad->name = dns_fixedname_initname(&bad->fname);
-		dns_name_copynf(name, bad->name);
+		dns_name_copy(name, bad->name);
 		bc->table[hash] = bad;
 
 		count = atomic_fetch_add_relaxed(&bc->count, 1);
