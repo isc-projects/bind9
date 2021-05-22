@@ -16,7 +16,14 @@ $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/other.db
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/static.db
 
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns6/huge.zone.db
-awk 'END { for (i = 1; i <= 1000000; i++)
+
+# we make the huge zone less huge if we're running under
+# TSAN, to give the test a fighting chance not to time out.
+size=1000000
+if $FEATURETEST --tsan; then
+    size=250000
+fi
+awk 'END { for (i = 1; i <= '${size}'; i++)
      printf "host%d IN A 10.53.0.6\n", i; }' < /dev/null >> ns6/huge.zone.db
 
 copy_setports ns2/named.conf.in ns2/named.conf

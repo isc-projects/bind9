@@ -1,3 +1,7 @@
+5646.	[bug]		The default TCP timeout for rndc has been increased
+			to 60 seconds. This was its original value, but it
+			had been inadvertently lowered to 10. [GL #2643]
+
 5645.	[cleanup]	Remove the rarely-used dns_name_copy() function
 			and rename dns_name_copynf() to dns_name_copy().
 			[GL !5081]
