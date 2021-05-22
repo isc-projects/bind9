@@ -797,8 +797,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
 	}
 
-	dns_name_copynf(dns_fixedname_name(&lookold->fdomain),
-			dns_fixedname_name(&looknew->fdomain));
+	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
+		      dns_fixedname_name(&looknew->fdomain));
 
 	if (servers) {
 		clone_server_list(lookold->my_server_list,
@@ -1890,7 +1890,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 					lookup->recurse = false;
 				}
 				domain = dns_fixedname_name(&lookup->fdomain);
-				dns_name_copynf(name, domain);
+				dns_name_copy(name, domain);
 			}
 			debug("adding server %s", namestr);
 			num = getaddresses(lookup, namestr, &lresult);
@@ -2244,9 +2244,7 @@ setup_lookup(dig_lookup_t *lookup) {
 						name, lookup->oname,
 						lookup->name, &lookup->namebuf);
 				} else {
-					result = dns_name_copy(
-						name, lookup->name,
-						&lookup->namebuf);
+					dns_name_copy(name, lookup->name);
 				}
 			}
 			if (result != ISC_R_SUCCESS) {

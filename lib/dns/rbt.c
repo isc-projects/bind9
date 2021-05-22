@@ -1100,7 +1100,7 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	if (include_chain_end && chain->end != NULL) {
 		NODENAME(chain->end, &nodename);
-		dns_name_copynf(&nodename, name);
+		dns_name_copy(&nodename, name);
 	} else {
 		dns_name_reset(name);
 	}
@@ -3296,7 +3296,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 		if (chain->level_count > 0) {
 			result = chain_name(chain, origin, false);
 		} else {
-			dns_name_copynf(dns_rootname, origin);
+			dns_name_copy(dns_rootname, origin);
 		}
 	}
 

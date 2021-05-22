@@ -679,12 +679,35 @@ once.
 
 ##### Copying
 
-There are two methods for copying name objects: `dns_name_clone()`
-makes a target refer to the same data as the source without copying
-the data, so the source must not be changed while the target is still in
-use.  `dns_name_dup()` and `dns_name_dupwithoffsets()` create a true
-copy of the name, dynamically allocating memory as needed; targets
-created by these must be freed by calling `dns_name_free()`.
+There are three methods for copying name objects:
+
+- `dns_name_clone()` makes a target refer to the same data as the
+  source, but does not copy the data. The source must not be changed
+  or freed while the target is still in use.
+
+- `dns_name_copy()` copies the source data from one name object into
+  another, which must already have a dedicated buffer associated with
+  it to receive the data.  The target name can have a buffer assigned
+  to it using `dns_name_setbuffer()`:
+
+        dns_name_t target;
+        unsigned char namedata[DNS_NAME_MAXWIRE];
+        isc_buffer_t buffer;
+
+        isc_buffer_init(&buffer, namedata, sizeof(namedata));
+        dns_name_init(&target, NULL);
+        dns_name_setbuffer(target, &buffer);
+        dns_name_copy(source, &target);
+
+  Using a [fixed name](#fixedname) (see below) for the target
+  ensures that it has sufficient buffer space without needing to set
+  a buffer.
+
+- `dns_name_dup()` copies a name into a new name object, dynamically
+  allocating buffer space as needed. `dns_name_dupwithoffsets()` does
+  the same, but also dynamically allocates space for the copied offset
+  table.  Targets created by these functions must be freed by calling
+  `dns_name_free()`.
 
 ##### Wire format
 
@@ -799,7 +822,7 @@ not all of this information is required:
 * `dns_name_caseequal()`: same as `dns_name_equal()`, but case-sensitive
 * `dns_name_issubdomain()`: returns `true` if one name contains another
 
-##### Fixed names
+##### <a name="fixedname"></a>Fixed names
 
 `dns_fixedname_t` is a convenience type containing a name, an offsets
 table, and a dedicated buffer big enough for the longest possible DNS

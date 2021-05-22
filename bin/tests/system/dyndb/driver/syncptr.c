@@ -229,7 +229,7 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	/* Reverse zone is managed by this driver, prepare PTR record */
 	pevent->zone = NULL;
 	dns_zone_attach(ptr_zone, &pevent->zone);
-	dns_name_copynf(name, dns_fixedname_name(&pevent->ptr_target_name));
+	dns_name_copy(name, dns_fixedname_name(&pevent->ptr_target_name));
 	dns_name_clone(dns_fixedname_name(&pevent->ptr_target_name),
 		       &ptr_struct.ptr);
 	dns_diff_init(inst->mctx, &pevent->diff);

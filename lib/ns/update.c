@@ -713,7 +713,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		add_rr_prepare_ctx_t *ctx = rr_action_data;
 
 		ctx->oldname = dns_fixedname_initname(&fixed);
-		dns_name_copynf(name, ctx->oldname);
+		dns_name_copy(name, ctx->oldname);
 		dns_rdataset_getownercase(&rdataset, ctx->oldname);
 	}
 
@@ -1057,7 +1057,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	t = ISC_LIST_HEAD(temp->tuples);
 	while (t != NULL) {
 		name = &t->name;
-		dns_name_copynf(name, tmpname);
+		dns_name_copy(name, tmpname);
 		*typep = t->rdata.type;
 
 		/* A new unique name begins here. */

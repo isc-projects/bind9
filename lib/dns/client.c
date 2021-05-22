@@ -735,7 +735,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			if (tresult != ISC_R_SUCCESS) {
 				goto done;
 			}
-			dns_name_copynf(&cname.cname, name);
+			dns_name_copy(&cname.cname, name);
 			dns_rdata_freestruct(&cname);
 			want_restart = true;
 			goto done;
@@ -1155,7 +1155,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->sigrdataset = sigrdataset;
 
 	dns_fixedname_init(&rctx->name);
-	dns_name_copynf(name, dns_fixedname_name(&rctx->name));
+	dns_name_copy(name, dns_fixedname_name(&rctx->name));
 
 	rctx->client = client;
 	ISC_LINK_INIT(rctx, link);

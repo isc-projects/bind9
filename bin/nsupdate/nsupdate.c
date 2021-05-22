@@ -2730,7 +2730,7 @@ lookforsoa:
 		 * address.
 		 */
 		zname = dns_fixedname_initname(&fzname);
-		dns_name_copynf(name, zname);
+		dns_name_copy(name, zname);
 	}
 
 	if (debugging) {

@@ -1384,7 +1384,7 @@ db_find:
 			 * We found an answer, but the cache may be better.
 			 */
 			zfname = dns_fixedname_name(&zfixedname);
-			dns_name_copynf(fname, zfname);
+			dns_name_copy(fname, zfname);
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
@@ -1446,9 +1446,9 @@ finish:
 				dns_rdataset_disassociate(sigrdataset);
 			}
 		}
-		dns_name_copynf(zfname, fname);
+		dns_name_copy(zfname, fname);
 		if (dcname != NULL) {
-			dns_name_copynf(zfname, dcname);
+			dns_name_copy(zfname, dcname);
 		}
 		dns_rdataset_clone(&zrdataset, rdataset);
 		if (sigrdataset != NULL &&
@@ -1472,7 +1472,7 @@ finish:
 			}
 			result = ISC_R_NOTFOUND;
 		} else if (dcname != NULL) {
-			dns_name_copynf(fname, dcname);
+			dns_name_copy(fname, dcname);
 		}
 	}
 
@@ -2272,7 +2272,7 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		 */
 		for (i = namelabels; i > minlabels && i > 1; i--) {
 			if (i == namelabels) {
-				dns_name_copynf(name, zonename);
+				dns_name_copy(name, zonename);
 			} else {
 				dns_name_split(name, i, NULL, zonename);
 			}

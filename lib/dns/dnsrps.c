@@ -612,7 +612,7 @@ rpsdb_finddb(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		nodep = &node;
 	}
 	rpsdb_findnode(db, name, false, nodep);
-	dns_name_copynf(name, foundname);
+	dns_name_copy(name, foundname);
 	return (rpsdb_findrdataset(db, *nodep, NULL, type, 0, 0, rdataset,
 				   sigrdataset));
 }

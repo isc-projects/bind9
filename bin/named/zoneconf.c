@@ -272,8 +272,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		dns_fixedname_init(&fname);
 		if (usezone) {
-			dns_name_copynf(dns_zone_getorigin(zone),
-					dns_fixedname_name(&fname));
+			dns_name_copy(dns_zone_getorigin(zone),
+				      dns_fixedname_name(&fname));
 		} else {
 			str = cfg_obj_asstring(dname);
 			isc_buffer_constinit(&b, str, strlen(str));

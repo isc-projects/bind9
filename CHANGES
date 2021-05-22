@@ -1,3 +1,7 @@
+5645.	[cleanup]	Remove the rarely-used dns_name_copy() function
+			and rename dns_name_copynf() to dns_name_copy().
+			[GL !5081]
+
 5644.	[bug]		Fix a race condition in reading and writing key files
 			for KASP zones in multiple views. [GL #1875]
 
