@@ -2464,7 +2464,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 
 static isc_result_t
 name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
-	unsigned char *ndata;
+	unsigned char *ndata = NULL;
 
 	/*
 	 * Make dest a copy of source.
@@ -2496,7 +2496,7 @@ name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
 	}
 
 	if (dest->labels > 0 && dest->offsets != NULL) {
-		if (source->offsets != NULL) {
+		if (source->offsets != NULL && source->labels != 0) {
 			memmove(dest->offsets, source->offsets, source->labels);
 		} else {
 			set_offsets(dest, dest->offsets, NULL);
