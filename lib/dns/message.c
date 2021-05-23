@@ -104,12 +104,14 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
  * of various block allocations used within the server.
  * XXXMLG These should come from a config setting.
  */
-#define SCRATCHPAD_SIZE 512
-#define NAME_COUNT	64
-#define OFFSET_COUNT	4
-#define RDATA_COUNT	8
-#define RDATALIST_COUNT 8
-#define RDATASET_COUNT	64
+#define SCRATCHPAD_SIZE	   1232
+#define NAME_FILLCOUNT	   4
+#define NAME_FREEMAX	   8 * NAME_FILLCOUNT
+#define OFFSET_COUNT	   4
+#define RDATA_COUNT	   8
+#define RDATALIST_COUNT	   8
+#define RDATASET_FILLCOUNT 4
+#define RDATASET_FREEMAX   8 * RDATASET_FILLCOUNT
 
 /*%
  * Text representation of the different items, for message_totext
@@ -733,13 +735,13 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 	ISC_LIST_INIT(m->freerdatalist);
 
 	isc_mempool_create(m->mctx, sizeof(dns_fixedname_t), &m->namepool);
-	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
-	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
+	isc_mempool_setfillcount(m->namepool, NAME_FILLCOUNT);
+	isc_mempool_setfreemax(m->namepool, 32 * NAME_FREEMAX);
 	isc_mempool_setname(m->namepool, "msg:names");
 
 	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t), &m->rdspool);
-	isc_mempool_setfillcount(m->rdspool, RDATASET_COUNT);
-	isc_mempool_setfreemax(m->rdspool, RDATASET_COUNT);
+	isc_mempool_setfillcount(m->rdspool, RDATASET_FILLCOUNT);
+	isc_mempool_setfreemax(m->rdspool, 32 * RDATASET_FREEMAX);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
