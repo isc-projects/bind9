@@ -1,3 +1,9 @@
+5647.	[func]		The interfacemgr has been refactored to use fewer
+			clientmgr objects, which in turn use fewer memory
+			contexts and tasks.  This should result in less
+			fragmented memory and better startup performance.
+			[GL #2433]
+
 5646.	[bug]		The default TCP timeout for rndc has been increased
 			to 60 seconds. This was its original value, but it
 			had been inadvertently lowered to 10. [GL #2643]
