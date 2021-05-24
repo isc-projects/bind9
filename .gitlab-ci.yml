@@ -178,6 +178,10 @@ stages:
   image: "freebsd-12.2-x86_64"
   <<: *libvirt_amd64
 
+.freebsd-13-amd64: &freebsd_13_amd64_image
+  image: "freebsd-13.0-x86_64"
+  <<: *libvirt_amd64
+
 .openbsd-amd64: &openbsd_amd64_image
   image: "openbsd-6.9-x86_64"
   <<: *libvirt_amd64
@@ -199,6 +203,12 @@ stages:
     - schedules
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
+
+.schedules-tags-web-triggering-rules: &schedules_tags_web_triggering_rules
+  only:
+    - schedules
+    - tags
+    - web
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -330,6 +340,7 @@ stages:
        --output kyua_html > /dev/null
 
 .windows_system_test: &windows_system_test_job
+  <<: *schedules_tags_web_triggering_rules
   stage: system
   script:
     - 'Push-Location bin/tests/system'
@@ -345,10 +356,6 @@ stages:
     untracked: true
     expire_in: "1 day"
     when: on_failure
-  only:
-    - schedules
-    - tags
-    - web
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
@@ -506,6 +513,7 @@ pylint:
 tarball-create:
   stage: precheck
   <<: *base_image
+  <<: *default_triggering_rules
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
@@ -517,10 +525,6 @@ tarball-create:
   artifacts:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
-  only:
-    - schedules
-    - tags
-    - web
 
 # Jobs for doc builds on Debian 10 "buster" (amd64)
 
@@ -776,37 +780,27 @@ gcc:tarball:
   needs:
     - job: tarball-create
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
   needs:
     - job: gcc:tarball
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
     - job: gcc:tarball
       artifacts: true
-  only:
-    - schedules
-    - tags
-    - web
 
 # Jobs for regular GCC builds on Debian "sid" (i386)
 
@@ -1120,10 +1114,12 @@ clang:freebsd11:amd64:
     USER: gitlab-runner
   <<: *freebsd_11_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:clang:freebsd11:amd64:
   <<: *freebsd_11_amd64_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   variables:
     USER: gitlab-runner
     TEST_PARALLEL_JOBS: 4
@@ -1134,6 +1130,7 @@ system:clang:freebsd11:amd64:
 unit:clang:freebsd11:amd64:
   <<: *freebsd_11_amd64_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: clang:freebsd11:amd64
       artifacts: true
@@ -1162,6 +1159,33 @@ unit:clang:freebsd12:amd64:
   <<: *unit_test_job
   needs:
     - job: clang:freebsd12:amd64
+      artifacts: true
+
+# Jobs for Clang builds on FreeBSD 13 (amd64)
+
+clang:freebsd13:amd64:
+  variables:
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT}"
+    USER: gitlab-runner
+  <<: *freebsd_13_amd64_image
+  <<: *build_job
+
+system:clang:freebsd13:amd64:
+  <<: *freebsd_13_amd64_image
+  <<: *system_test_job
+  variables:
+    USER: gitlab-runner
+    TEST_PARALLEL_JOBS: 4
+  needs:
+    - job: clang:freebsd13:amd64
+      artifacts: true
+
+unit:clang:freebsd13:amd64:
+  <<: *freebsd_13_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: clang:freebsd13:amd64
       artifacts: true
 
 # Jobs for Clang builds on OpenBSD (amd64)
@@ -1231,12 +1255,9 @@ system:msvc:windows:amd64:
 msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_build_job
+  <<: *schedules_tags_web_triggering_rules
   variables:
     VSCONF: Debug
-  only:
-    - schedules
-    - tags
-    - web
 
 system:msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
