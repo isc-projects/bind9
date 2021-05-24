@@ -15170,7 +15170,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		if (isc_sockaddr_eqaddr(from, &zone->masters[i])) {
 			break;
 		}
-		if (zone->view->aclenv.match_mapped &&
+		if (zone->view->aclenv->match_mapped &&
 		    IN6_IS_ADDR_V4MAPPED(&from->type.sin6.sin6_addr) &&
 		    isc_sockaddr_pf(&zone->masters[i]) == AF_INET)
 		{
@@ -15190,9 +15190,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	tsigkey = dns_message_gettsigkey(msg);
 	tsig = dns_tsigkey_identity(tsigkey);
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
-	    (dns_acl_match(&netaddr, tsig, zone->notify_acl,
-			   &zone->view->aclenv, &match,
-			   NULL) == ISC_R_SUCCESS) &&
+	    (dns_acl_match(&netaddr, tsig, zone->notify_acl, zone->view->aclenv,
+			   &match, NULL) == ISC_R_SUCCESS) &&
 	    match > 0)
 	{
 		/* Accept notify. */

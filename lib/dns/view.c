@@ -274,7 +274,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_order;
 	}
 
-	result = dns_aclenv_init(view->mctx, &view->aclenv);
+	result = dns_aclenv_create(view->mctx, &view->aclenv);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_peerlist;
 	}
@@ -590,7 +590,7 @@ destroy(dns_view_t *view) {
 	}
 #endif /* HAVE_LMDB */
 	dns_fwdtable_destroy(&view->fwdtable);
-	dns_aclenv_destroy(&view->aclenv);
+	dns_aclenv_detach(&view->aclenv);
 	if (view->failcache != NULL) {
 		dns_badcache_destroy(&view->failcache);
 	}

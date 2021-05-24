@@ -41,6 +41,8 @@ _setup(void **state) {
 
 	UNUSED(state);
 
+	isc__nm_force_tid(0);
+
 	result = ns_test_begin(NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -50,6 +52,8 @@ _setup(void **state) {
 static int
 _teardown(void **state) {
 	UNUSED(state);
+
+	isc__nm_force_tid(-1);
 
 	ns_test_end();
 

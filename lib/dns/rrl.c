@@ -1048,7 +1048,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 	if (rrl->exempt != NULL) {
 		isc_netaddr_fromsockaddr(&netclient, client_addr);
 		result = dns_acl_match(&netclient, NULL, rrl->exempt,
-				       &view->aclenv, &exempt_match, NULL);
+				       view->aclenv, &exempt_match, NULL);
 		if (result == ISC_R_SUCCESS && exempt_match > 0) {
 			return (DNS_RRL_RESULT_OK);
 		}

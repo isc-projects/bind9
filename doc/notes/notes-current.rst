@@ -41,7 +41,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The interface handling code has been refactored to use fewer resources,
+  which should lead to less memory fragmentation and better startup
+  performance.  :gl:`#2433`
 
 Bug Fixes
 ~~~~~~~~~

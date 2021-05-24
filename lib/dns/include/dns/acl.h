@@ -87,9 +87,12 @@ struct dns_acl {
 };
 
 struct dns_aclenv {
-	dns_acl_t *localhost;
-	dns_acl_t *localnets;
-	bool	   match_mapped;
+	unsigned int   magic;
+	isc_mem_t *    mctx;
+	isc_refcount_t references;
+	dns_acl_t *    localhost;
+	dns_acl_t *    localnets;
+	bool	       match_mapped;
 #if defined(HAVE_GEOIP2)
 	dns_geoip_databases_t *geoip;
 #endif /* HAVE_GEOIP2 */
@@ -191,16 +194,38 @@ dns_acl_allowed(isc_netaddr_t *addr, const dns_name_t *signer, dns_acl_t *acl,
  */
 
 isc_result_t
-dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);
+dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp);
 /*%<
- * Initialize ACL environment, setting up localhost and localnets ACLs
+ * Create ACL environment, setting up localhost and localnets ACLs
  */
 
 void
 dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s);
+/*%<
+ * Copy the ACLs from one ACL environment object to another.
+ *
+ * Requires:
+ *\li	both 's' and 't' are valid ACL environments.
+ */
 
 void
-dns_aclenv_destroy(dns_aclenv_t *env);
+dns_aclenv_attach(dns_aclenv_t *source, dns_aclenv_t **targetp);
+/*%<
+ * Attach '*targetp' to ACL environment 'source'.
+ *
+ * Requires:
+ *\li	'source' is a valid ACL environment.
+ *\li	'targetp' is not NULL and '*targetp' is NULL.
+ */
+
+void
+dns_aclenv_detach(dns_aclenv_t **aclenvp);
+/*%<
+ * Detach an ACL environment; on final detach, destroy it.
+ *
+ * Requires:
+ *\li	'*aclenvp' to be a valid ACL environment
+ */
 
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,

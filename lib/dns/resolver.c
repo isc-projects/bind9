@@ -3933,7 +3933,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	if (blackhole != NULL) {
 		int match;
 
-		if ((dns_acl_match(&ipaddr, NULL, blackhole, &res->view->aclenv,
+		if ((dns_acl_match(&ipaddr, NULL, blackhole, res->view->aclenv,
 				   &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
 		{
@@ -7165,7 +7165,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 		}
 
 		result = dns_acl_match(&netaddr, NULL, view->denyansweracl,
-				       &view->aclenv, &match, NULL);
+				       view->aclenv, &match, NULL);
 		if (result == ISC_R_SUCCESS && match > 0) {
 			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 			dns_name_format(name, namebuf, sizeof(namebuf));
@@ -10402,12 +10402,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		}
 		res->buckets[i].mctx = NULL;
 		snprintf(name, sizeof(name), "res%u", i);
-		/*
-		 * Use a separate memory context for each bucket to reduce
-		 * contention among multiple threads.  Do this only when
-		 * enabling threads because it will be require more memory.
-		 */
-		isc_mem_create(&res->buckets[i].mctx);
+		isc_mem_attach(view->mctx, &res->buckets[i].mctx);
 		isc_mem_setname(res->buckets[i].mctx, name);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);

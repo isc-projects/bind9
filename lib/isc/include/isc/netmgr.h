@@ -528,3 +528,10 @@ isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
  *     tid will be picked randomly. The threadid is capped (by modulo) to
  *     maximum number of 'workers' as specifed in isc_nm_start()
  */
+
+void
+isc__nm_force_tid(int tid);
+/*%<
+ * Force the thread ID to 'tid'. This is STRICTLY for use in unit
+ * tests and should not be used in any production code.
+ */

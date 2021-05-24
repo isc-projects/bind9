@@ -253,8 +253,7 @@ create_managers(void) {
 	 * we'll just sleep for a bit and hope.
 	 */
 	ns_test_nap(500000);
-	ns_interface_t *ifp = ns__interfacemgr_getif(interfacemgr);
-	clientmgr = ifp->clientmgr;
+	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
 
 	atomic_store(&run_managers, true);
 
