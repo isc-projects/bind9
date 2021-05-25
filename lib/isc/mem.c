@@ -42,7 +42,18 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
+#if defined(HAVE_MALLOC_NP_H)
+#include <malloc_np.h>
+#elif defined(HAVE_JEMALLOC)
 #include <jemalloc/jemalloc.h>
+
+#if JEMALLOC_VERSION_MAJOR < 4
+#define sdallocx(ptr, size, flags) dallocx(ptr, flags)
+#endif /* JEMALLOC_VERSION_MAJOR < 4 */
+
+#else
+#include "jemalloc_shim.h"
+#endif
 
 #include "mem_p.h"
 
