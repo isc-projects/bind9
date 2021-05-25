@@ -854,6 +854,73 @@ ixfr_order(const void *av, const void *bv) {
 	return (r);
 }
 
+static isc_result_t
+maybe_fixup_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr, uint32_t serial,
+		 isc_offset_t offset) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/*
+	 * Handle mixture of version 1 and version 2
+	 * transaction headers in a version 1 journal.
+	 */
+	if ((xhdr->serial0 != serial ||
+	     isc_serial_le(xhdr->serial1, xhdr->serial0))) {
+		if (j->xhdr_version == XHDR_VERSION1 && xhdr->serial1 == serial)
+		{
+			isc_log_write(
+				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+				"%s: XHDR_VERSION1 -> XHDR_VERSION2 at %u",
+				j->filename, serial);
+			j->xhdr_version = XHDR_VERSION2;
+			CHECK(journal_seek(j, offset));
+			CHECK(journal_read_xhdr(j, xhdr));
+			j->recovered = true;
+		} else if (j->xhdr_version == XHDR_VERSION2 &&
+			   xhdr->count == serial) {
+			isc_log_write(
+				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+				"%s: XHDR_VERSION2 -> XHDR_VERSION1 at %u",
+				j->filename, serial);
+			j->xhdr_version = XHDR_VERSION1;
+			CHECK(journal_seek(j, offset));
+			CHECK(journal_read_xhdr(j, xhdr));
+			j->recovered = true;
+		}
+	}
+
+	/*
+	 * Handle <size, serial0, serial1, 0> transaction header.
+	 */
+	if (j->xhdr_version == XHDR_VERSION1) {
+		uint32_t value;
+
+		CHECK(journal_read(j, &value, sizeof(value)));
+		if (value != 0L) {
+			CHECK(journal_seek(j, offset + 12));
+		} else {
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+				      "%s: XHDR_VERSION1 count zero at %u",
+				      j->filename, serial);
+			j->xhdr_version = XHDR_VERSION2;
+			j->recovered = true;
+		}
+	} else if (j->xhdr_version == XHDR_VERSION2 && xhdr->count == serial &&
+		   xhdr->serial1 == 0U &&
+		   isc_serial_gt(xhdr->serial0, xhdr->count))
+	{
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+			      "%s: XHDR_VERSION2 count zero at %u", j->filename,
+			      serial);
+		xhdr->serial1 = xhdr->serial0;
+		xhdr->serial0 = xhdr->count;
+		xhdr->count = 0;
+		j->recovered = true;
+	}
+
+failure:
+	return (result);
+}
+
 /*
  * Advance '*pos' to the next journal transaction.
  *
@@ -871,7 +938,7 @@ ixfr_order(const void *av, const void *bv) {
  *    Other results due to file errors are possible.
  */
 static isc_result_t
-journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
+journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	isc_result_t result;
 	journal_xhdr_t xhdr;
 	size_t hdrsize;
@@ -896,46 +963,20 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 		return (result);
 	}
 
+	if (j->header_ver1) {
+		CHECK(maybe_fixup_xhdr(j, &xhdr, pos->serial, pos->offset));
+	}
+
 	/*
 	 * Check serial number consistency.
 	 */
 	if (xhdr.serial0 != pos->serial ||
 	    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
-		if (j->header_ver1 && j->xhdr_version == XHDR_VERSION1 &&
-		    xhdr.serial1 == pos->serial && !retry)
-		{
-			/* XHDR_VERSION1 -> XHDR_VERSION2 */
-			isc_log_write(
-				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
-				"%s: XHDR_VERSION1 -> XHDR_VERSION2 at %u",
-				j->filename, pos->serial);
-			j->xhdr_version = XHDR_VERSION2;
-			result = journal_next(j, pos, true);
-			if (result == ISC_R_SUCCESS) {
-				j->recovered = true;
-			}
-			return (result);
-		} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
-			   xhdr.count == pos->serial && !retry)
-		{
-			/* XHDR_VERSION2 -> XHDR_VERSION1 */
-			isc_log_write(
-				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
-				"%s: XHDR_VERSION2 -> XHDR_VERSION1 at %u",
-				j->filename, pos->serial);
-			j->xhdr_version = XHDR_VERSION1;
-			result = journal_next(j, pos, true);
-			if (result == ISC_R_SUCCESS) {
-				j->recovered = true;
-			}
-			return (result);
-		} else {
-			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-				      "%s: journal file corrupt: "
-				      "expected serial %u, got %u",
-				      j->filename, pos->serial, xhdr.serial0);
-			return (ISC_R_UNEXPECTED);
-		}
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal file corrupt: "
+			      "expected serial %u, got %u",
+			      j->filename, pos->serial, xhdr.serial0);
+		return (ISC_R_UNEXPECTED);
 	}
 
 	/*
@@ -944,29 +985,6 @@ journal_next(dns_journal_t *j, journal_pos_t *pos, bool retry) {
 	hdrsize = (j->xhdr_version == XHDR_VERSION2)
 			  ? sizeof(journal_rawxhdr_t)
 			  : sizeof(journal_rawxhdr_ver1_t);
-
-	/*
-	 * Handle <size, serial0, serial1, 0> transaction header.
-	 */
-	if (j->header_ver1 && j->xhdr_version == XHDR_VERSION1) {
-		uint32_t value;
-
-		CHECK(journal_read(j, &value, sizeof(value)));
-		if (value != 0L) {
-			CHECK(journal_seek(j, pos->offset + 12));
-		} else {
-			j->recovered = true;
-			hdrsize += 4;
-		}
-	} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
-		   xhdr.count == pos->serial && xhdr.serial1 == 0U &&
-		   isc_serial_ge(xhdr.serial0, xhdr.count))
-	{
-		xhdr.serial1 = xhdr.serial0;
-		xhdr.serial0 = xhdr.count;
-		xhdr.count = 0;
-		j->recovered = true;
-	}
 
 	if ((isc_offset_t)(pos->offset + hdrsize + xhdr.size) < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -1114,7 +1132,7 @@ journal_find(dns_journal_t *j, uint32_t serial, journal_pos_t *pos) {
 		if (DNS_SERIAL_GT(current_pos.serial, serial)) {
 			return (ISC_R_NOTFOUND);
 		}
-		result = journal_next(j, &current_pos, false);
+		result = journal_next(j, &current_pos);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1326,7 +1344,7 @@ dns_journal_commit(dns_journal_t *j) {
 	if (!JOURNAL_EMPTY(&j->header)) {
 		while (!DNS_SERIAL_GT(j->x.pos[1].serial,
 				      j->header.begin.serial)) {
-			CHECK(journal_next(j, &j->header.begin, false));
+			CHECK(journal_next(j, &j->header.begin));
 		}
 		index_invalidate(j, j->x.pos[1].serial);
 	}
@@ -1806,7 +1824,7 @@ dns_journal_get_sourceserial(dns_journal_t *j, uint32_t *sourceserial) {
  */
 
 static isc_result_t
-read_one_rr(dns_journal_t *j, bool retry);
+read_one_rr(dns_journal_t *j);
 
 /*
  * Make sure the buffer 'b' is has at least 'size' bytes
@@ -1857,14 +1875,27 @@ dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
 		 * adding up sizes and RR counts so we can calculate
 		 * the IXFR size.
 		 */
-		CHECK(journal_seek(j, pos.offset));
 		do {
+			CHECK(journal_seek(j, pos.offset));
 			CHECK(journal_read_xhdr(j, &xhdr));
+
+			if (j->header_ver1) {
+				CHECK(maybe_fixup_xhdr(j, &xhdr, pos.serial,
+						       pos.offset));
+			}
+
+			/*
+			 * Check that xhdr is consistent.
+			 */
+			if (xhdr.serial0 != pos.serial ||
+			    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+				CHECK(ISC_R_UNEXPECTED);
+			}
 
 			size += xhdr.size;
 			count += xhdr.count;
 
-			result = journal_next(j, &pos, false);
+			result = journal_next(j, &pos);
 			if (result == ISC_R_NOMORE) {
 				result = ISC_R_SUCCESS;
 			}
@@ -1900,14 +1931,14 @@ dns_journal_first_rr(dns_journal_t *j) {
 	j->it.xsize = 0; /* We have no transaction data yet... */
 	j->it.xpos = 0;	 /* ...and haven't used any of it. */
 
-	return (read_one_rr(j, false));
+	return (read_one_rr(j));
 
 failure:
 	return (result);
 }
 
 static isc_result_t
-read_one_rr(dns_journal_t *j, bool retry) {
+read_one_rr(dns_journal_t *j) {
 	isc_result_t result;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -1938,63 +1969,21 @@ read_one_rr(dns_journal_t *j, bool retry) {
 				      j->filename);
 			FAIL(ISC_R_UNEXPECTED);
 		}
+
+		if (j->header_ver1) {
+			CHECK(maybe_fixup_xhdr(j, &xhdr, j->it.current_serial,
+					       save.offset));
+		}
+
 		if (xhdr.serial0 != j->it.current_serial ||
 		    isc_serial_le(xhdr.serial1, xhdr.serial0))
 		{
-			if (!retry && j->header_ver1 &&
-			    j->xhdr_version == XHDR_VERSION2 &&
-			    xhdr.count == j->it.current_serial)
-			{
-				/* XHDR_VERSION2 -> XHDR_VERSION1 */
-				j->xhdr_version = XHDR_VERSION1;
-				CHECK(journal_seek(j, save.offset));
-				result = read_one_rr(j, true);
-				if (result == ISC_R_SUCCESS) {
-					j->recovered = true;
-				}
-				return (result);
-			} else if (!retry && j->header_ver1 &&
-				   j->xhdr_version == XHDR_VERSION1 &&
-				   xhdr.serial1 == j->it.current_serial)
-			{
-				/* XHDR_VERSION1 -> XHDR_VERSION2 */
-				j->xhdr_version = XHDR_VERSION2;
-				CHECK(journal_seek(j, save.offset));
-				result = read_one_rr(j, true);
-				if (result == ISC_R_SUCCESS) {
-					j->recovered = true;
-				}
-				return (result);
-			}
 			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				      "%s: journal file corrupt: "
 				      "expected serial %u, got %u",
 				      j->filename, j->it.current_serial,
 				      xhdr.serial0);
 			FAIL(ISC_R_UNEXPECTED);
-		}
-
-		/*
-		 * Handle <size, serial0, serial1, 0> transaction header.
-		 */
-		if (j->header_ver1 && j->xhdr_version == XHDR_VERSION1) {
-			uint32_t value;
-
-			CHECK(journal_read(j, &value, sizeof(value)));
-			if (value != 0L) {
-				CHECK(journal_seek(j, save.offset + 12));
-			} else {
-				j->recovered = true;
-			}
-		} else if (j->header_ver1 && j->xhdr_version == XHDR_VERSION2 &&
-			   xhdr.count == j->it.current_serial &&
-			   xhdr.serial1 == 0U &&
-			   isc_serial_ge(xhdr.serial0, xhdr.count))
-		{
-			xhdr.serial1 = xhdr.serial0;
-			xhdr.serial0 = xhdr.count;
-			xhdr.count = 0;
-			j->recovered = true;
 		}
 
 		j->it.xsize = xhdr.size;
@@ -2080,7 +2069,7 @@ failure:
 
 isc_result_t
 dns_journal_next_rr(dns_journal_t *j) {
-	j->it.result = read_one_rr(j, false);
+	j->it.result = read_one_rr(j);
 	return (j->it.result);
 }
 
@@ -2567,7 +2556,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 
 	current_pos = best_guess;
 	while (current_pos.serial != serial) {
-		CHECK(journal_next(j1, &current_pos, false));
+		CHECK(journal_next(j1, &current_pos));
 		if (current_pos.serial == j1->header.end.serial) {
 			break;
 		}
@@ -2585,7 +2574,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 
 	INSIST(best_guess.serial != j1->header.end.serial);
 	if (best_guess.serial != serial) {
-		CHECK(journal_next(j1, &best_guess, false));
+		CHECK(journal_next(j1, &best_guess));
 		serial = best_guess.serial;
 	}
 
@@ -2665,7 +2654,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			 */
 			if (j1->xhdr_version == XHDR_VERSION2 &&
 			    xhdr.count == serial && xhdr.serial1 == 0U &&
-			    isc_serial_ge(xhdr.serial0, xhdr.count))
+			    isc_serial_gt(xhdr.serial0, xhdr.count))
 			{
 				xhdr.serial1 = xhdr.serial0;
 				xhdr.serial0 = xhdr.count;
@@ -2731,7 +2720,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		current_pos = j2->header.begin;
 		while (current_pos.serial != j2->header.end.serial) {
 			index_add(j2, &current_pos);
-			CHECK(journal_next(j2, &current_pos, false));
+			CHECK(journal_next(j2, &current_pos));
 		}
 
 		/*
