@@ -172,7 +172,7 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle);
  */
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
+isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 		 void *cbarg, size_t extrasize, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
@@ -189,7 +189,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nm_recv_cb_t cb,
  */
 
 void
-isc_nm_udpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
 /*%<
@@ -277,7 +277,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
+isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		 isc_nmsocket_t **sockp);
@@ -300,7 +300,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
  */
 
 void
-isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize);
 /*%<
@@ -318,7 +318,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_nmiface_t *iface,
+isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
@@ -420,7 +420,7 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  */
 
 void
-isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     size_t extrahandlesize);
 /*%<

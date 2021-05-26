@@ -1406,17 +1406,17 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 
 void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
-		    isc_nmiface_t *iface FLARG) {
+		    isc_sockaddr_t *iface FLARG) {
 	uint16_t family;
 
 	REQUIRE(sock != NULL);
 	REQUIRE(mgr != NULL);
 	REQUIRE(iface != NULL);
 
-	family = iface->addr.type.sa.sa_family;
+	family = iface->type.sa.sa_family;
 
 	*sock = (isc_nmsocket_t){ .type = type,
-				  .iface = iface,
+				  .iface = *iface,
 				  .fd = -1,
 				  .ah_size = 32,
 				  .inactivehandles = isc_astack_new(
@@ -1569,19 +1569,15 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 #endif
 
 	if (peer != NULL) {
-		memmove(&handle->peer, peer, sizeof(isc_sockaddr_t));
+		handle->peer = *peer;
 	} else {
-		memmove(&handle->peer, &sock->peer, sizeof(isc_sockaddr_t));
+		handle->peer = sock->peer;
 	}
 
 	if (local != NULL) {
-		memmove(&handle->local, local, sizeof(isc_sockaddr_t));
-	} else if (sock->iface != NULL) {
-		memmove(&handle->local, &sock->iface->addr,
-			sizeof(isc_sockaddr_t));
+		handle->local = *local;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		handle->local = sock->iface;
 	}
 
 	LOCK(&sock->lock);

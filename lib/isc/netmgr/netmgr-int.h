@@ -234,13 +234,6 @@ struct isc_nmhandle {
 	char extra[];
 };
 
-/*
- * An interface - an address we can listen on.
- */
-struct isc_nmiface {
-	isc_sockaddr_t addr;
-};
-
 typedef enum isc__netievent_type {
 	netievent_udpconnect,
 	netievent_udpclose,
@@ -758,7 +751,7 @@ struct isc_nmsocket {
 	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t *children;
 	uint_fast32_t nchildren;
-	isc_nmiface_t *iface;
+	isc_sockaddr_t iface;
 	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;
 
@@ -1000,7 +993,7 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock FLARG);
 
 void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
-		    isc_nmiface_t *iface FLARG);
+		    isc_sockaddr_t *iface FLARG);
 /*%<
  * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
  * and its interface to 'iface'.
