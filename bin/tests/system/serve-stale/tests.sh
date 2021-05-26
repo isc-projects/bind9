@@ -20,6 +20,7 @@ stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\
 
 status=0
 n=0
+
 #
 # First test server with serve-stale options set.
 #
@@ -1647,6 +1648,8 @@ status=$((status+ret))
 # Allow RRset to become stale.
 sleep 2
 
+nextpart ns3/named.run > /dev/null
+
 echo_i "sending queries for tests $((n+1))-$((n+2))..."
 t1=`$PERL -e 'print time()'`
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
@@ -1659,9 +1662,8 @@ t2=`$PERL -e 'print time()'`
 # after stale-answer-client-timeout timer of 1.8 sec triggers.
 n=$((n+1))
 echo_i "check stale data.example comes from cache (default stale-answer-client-timeout) ($n)"
-nextpart ns3/named.run > /dev/null
-wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
 ret=0
+wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
@@ -1673,6 +1675,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "check stale nodata.example comes from cache (default stale-answer-client-timeout) ($n)"
+ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
@@ -2196,6 +2199,33 @@ n=$((n+1))
 echo_i "check stale nxdomain.example (fetch-limits dual-mode) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check DNS64 processing of a stale negative answer ($n)"
+# configure ns3 with dns64
+copy_setports ns3/named8.conf.in ns3/named.conf
+rndc_reload ns3 10.53.0.3
+# flush cache, enable ans2 responses
+$RNDCCMD 10.53.0.3 flush > rndc.out.test$n.1 2>&1 || ret=1
+$DIG -p ${PORT} @10.53.0.2 txt enable > /dev/null
+# prime the cache with an AAAA NXRRSET response
+$DIG -p ${PORT} @10.53.0.3 a-only.example AAAA > dig.out.1.test$n
+grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
+grep "2001:aaaa" dig.out.1.test$n > /dev/null || ret=1
+# disable responses from the auth server
+$DIG -p ${PORT} @10.53.0.2 txt disable > /dev/null
+# wait two seconds for the previous answer to become stale
+sleep 2
+# resend the query and wait in the background; we should get a stale answer
+$DIG -p ${PORT} @10.53.0.3 a-only.example AAAA > dig.out.2.test$n &
+# re-enable queries after a pause, so the server gets a real answer too
+sleep 2
+$DIG -p ${PORT} @10.53.0.2 txt enable > /dev/null
+wait
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
+grep "2001:aaaa" dig.out.2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

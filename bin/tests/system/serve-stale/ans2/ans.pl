@@ -117,6 +117,15 @@ sub reply_handler {
 	    push @auth, $rr;
 	}
 	$rcode = "NOERROR";
+    } elsif ($qname eq "a-only.example") {
+        if ($qtype eq "A") {
+	    my $rr = new Net::DNS::RR("a-only.example 2 IN A $localaddr");
+	    push @ans, $rr;
+	} else {
+	    my $rr = new Net::DNS::RR($negSOA);
+	    push @auth, $rr;
+	}
+	$rcode = "NOERROR";
     } elsif ($qname eq "longttl.example") {
 	if ($qtype eq "TXT") {
 	    my $rr = new Net::DNS::RR($LONGTXT);
