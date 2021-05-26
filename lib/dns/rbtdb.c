@@ -766,7 +766,7 @@ static char FILE_VERSION[32] = "\0";
  *      that indicates that the database does not implement cyclic
  *      processing.
  */
-static atomic_uint_fast32_t init_count;
+static atomic_uint_fast32_t init_count = ATOMIC_VAR_INIT(0);
 
 /*
  * Locking

@@ -1466,6 +1466,7 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 
 	ISC_LIST_INIT(controls->listeners);
 
+	atomic_init(&controls->shuttingdown, false);
 	isc_mutex_init(&controls->symtab_lock);
 	LOCK(&controls->symtab_lock);
 	result = isccc_cc_createsymtab(&controls->symtab);

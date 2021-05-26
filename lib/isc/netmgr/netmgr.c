@@ -278,6 +278,14 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	atomic_init(&mgr->maxudp, 0);
 	atomic_init(&mgr->interlocked, ISC_NETMGR_NON_INTERLOCKED);
 	atomic_init(&mgr->workers_paused, 0);
+	atomic_init(&mgr->paused, false);
+	atomic_init(&mgr->closing, false);
+	atomic_init(&mgr->idle, false);
+	atomic_init(&mgr->keepalive, false);
+	atomic_init(&mgr->recv_tcp_buffer_size, 0);
+	atomic_init(&mgr->send_tcp_buffer_size, 0);
+	atomic_init(&mgr->recv_udp_buffer_size, 0);
+	atomic_init(&mgr->send_udp_buffer_size, 0);
 
 #ifdef NETMGR_TRACE
 	ISC_LIST_INIT(mgr->active_sockets);
@@ -1554,8 +1562,16 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->sequential, false);
 	atomic_init(&sock->readpaused, false);
 	atomic_init(&sock->closing, false);
+	atomic_init(&sock->listening, 0);
+	atomic_init(&sock->closed, 0);
+	atomic_init(&sock->destroying, 0);
+	atomic_init(&sock->ah, 0);
+	atomic_init(&sock->client, 0);
+	atomic_init(&sock->connecting, false);
+	atomic_init(&sock->keepalive, false);
+	atomic_init(&sock->connected, false);
 
-	atomic_store(&sock->active_child_connections, 0);
+	atomic_init(&sock->active_child_connections, 0);
 
 	isc__nm_http_initsocket(sock);
 
