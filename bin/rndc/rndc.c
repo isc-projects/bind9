@@ -600,8 +600,8 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 	}
 
 	atomic_fetch_add_relaxed(&connects, 1);
-	isc_nm_tcpconnect(netmgr, (isc_nmiface_t *)local, (isc_nmiface_t *)addr,
-			  rndc_connected, &rndc_ccmsg, 60000, 0);
+	isc_nm_tcpconnect(netmgr, local, addr, rndc_connected, &rndc_ccmsg,
+			  60000, 0);
 }
 
 static void

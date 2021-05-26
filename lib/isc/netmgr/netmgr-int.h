@@ -829,7 +829,7 @@ typedef struct isc_nmsocket_h2 {
 		char *uri;
 		bool post;
 		isc_tlsctx_t *tlsctx;
-		isc_nmiface_t local_interface;
+		isc_sockaddr_t local_interface;
 		void *cstream;
 	} connect;
 } isc_nmsocket_h2_t;
@@ -887,8 +887,8 @@ struct isc_nmsocket {
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
 		isc_nmsocket_t *tlslistener;
-		isc_nmiface_t server_iface;
-		isc_nmiface_t local_iface;
+		isc_sockaddr_t server_iface;
+		isc_sockaddr_t local_iface;
 		atomic_bool result_updated;
 		enum {
 			TLS_INIT,
@@ -932,7 +932,7 @@ struct isc_nmsocket {
 	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t *children;
 	uint_fast32_t nchildren;
-	isc_nmiface_t *iface;
+	isc_sockaddr_t iface;
 	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;
 
@@ -1174,7 +1174,7 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock FLARG);
 
 void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
-		    isc_nmiface_t *iface FLARG);
+		    isc_sockaddr_t *iface FLARG);
 /*%<
  * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
  * and its interface to 'iface'.

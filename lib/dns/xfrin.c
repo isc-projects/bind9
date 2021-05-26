@@ -936,17 +936,15 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	 */
 	switch (transport_type) {
 	case DNS_TRANSPORT_TCP:
-		isc_nm_tcpdnsconnect(xfr->netmgr,
-				     (isc_nmiface_t *)&xfr->sourceaddr,
-				     (isc_nmiface_t *)&xfr->masteraddr,
-				     xfrin_connect_done, connect_xfr, 30000, 0);
+		isc_nm_tcpdnsconnect(xfr->netmgr, &xfr->sourceaddr,
+				     &xfr->masteraddr, xfrin_connect_done,
+				     connect_xfr, 30000, 0);
 		break;
 	case DNS_TRANSPORT_TLS:
 		CHECK(isc_tlsctx_createclient(&xfr->tlsctx));
-		isc_nm_tlsdnsconnect(
-			xfr->netmgr, (isc_nmiface_t *)&xfr->sourceaddr,
-			(isc_nmiface_t *)&xfr->masteraddr, xfrin_connect_done,
-			connect_xfr, 30000, 0, xfr->tlsctx);
+		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
+				     &xfr->masteraddr, xfrin_connect_done,
+				     connect_xfr, 30000, 0, xfr->tlsctx);
 		break;
 	default:
 		INSIST(0);

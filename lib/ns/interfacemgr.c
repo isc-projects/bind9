@@ -455,8 +455,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
-	result = isc_nm_listenudp(ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr,
-				  ns__client_request, ifp, sizeof(ns_client_t),
+	result = isc_nm_listenudp(ifp->mgr->nm, &ifp->addr, ns__client_request,
+				  ifp, sizeof(ns_client_t),
 				  &ifp->udplistensocket);
 	return (result);
 }
@@ -466,10 +466,9 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	result = isc_nm_listentcpdns(
-		ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr, ns__client_request,
-		ifp, ns__client_tcpconn, ifp, sizeof(ns_client_t),
-		ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota,
-		&ifp->tcplistensocket);
+		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
+		ns__client_tcpconn, ifp, sizeof(ns_client_t), ifp->mgr->backlog,
+		&ifp->mgr->sctx->tcpquota, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "creating TCP socket: %s",
@@ -511,10 +510,9 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
 
 	result = isc_nm_listentlsdns(
-		ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr, ns__client_request,
-		ifp, ns__client_tcpconn, ifp, sizeof(ns_client_t),
-		ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota, sslctx,
-		&ifp->tcplistensocket);
+		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
+		ns__client_tcpconn, ifp, sizeof(ns_client_t), ifp->mgr->backlog,
+		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -544,14 +542,12 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 			size_t neps) {
 	isc_result_t result;
 	isc_nmsocket_t *sock = NULL;
-	size_t i = 0;
 
-	result = isc_nm_listenhttp(ifp->mgr->nm, (isc_nmiface_t *)&ifp->addr,
-				   ifp->mgr->backlog, &ifp->mgr->sctx->tcpquota,
-				   sslctx, &sock);
+	result = isc_nm_listenhttp(ifp->mgr->nm, &ifp->addr, ifp->mgr->backlog,
+				   &ifp->mgr->sctx->tcpquota, sslctx, &sock);
 
 	if (result == ISC_R_SUCCESS) {
-		for (i = 0; i < neps; i++) {
+		for (size_t i = 0; i < neps; i++) {
 			result = isc_nm_http_endpoint(sock, eps[i],
 						      ns__client_request, ifp,
 						      sizeof(ns_client_t));

@@ -167,8 +167,8 @@ connect_send_request(isc_nm_t *mgr, const char *uri, bool post,
 		ctx = client_tlsctx;
 	}
 
-	isc_nm_httpconnect(mgr, NULL, (isc_nmiface_t *)&tcp_listen_addr, uri,
-			   post, connect_send_cb, data, ctx, timeout, 0);
+	isc_nm_httpconnect(mgr, NULL, &tcp_listen_addr, uri, post,
+			   connect_send_cb, data, ctx, timeout, 0);
 }
 
 static int
@@ -484,8 +484,8 @@ mock_doh_uv_tcp_bind(void **state) {
 
 	WILL_RETURN(uv_tcp_bind, UV_EADDRINUSE);
 
-	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
-				   0, NULL, NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
+				   &listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 	assert_null(listen_sock);
 
@@ -501,8 +501,8 @@ doh_noop(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 
-	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
-				   0, NULL, NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH, noop_read_cb, NULL,
 				      0);
@@ -547,8 +547,8 @@ doh_noresponse(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 
-	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
-				   0, NULL, NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH, noop_read_cb, NULL,
@@ -648,8 +648,8 @@ doh_timeout_recovery(void **state) {
 	isc_tlsctx_t *ctx = atomic_load(&use_TLS) ? server_tlsctx : NULL;
 	char req_url[256];
 
-	result = isc_nm_listenhttp(listen_nm, (isc_nmiface_t *)&tcp_listen_addr,
-				   0, NULL, NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -668,9 +668,9 @@ doh_timeout_recovery(void **state) {
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			DOH_PATH);
-	isc_nm_httpconnect(connect_nm, NULL, (isc_nmiface_t *)&tcp_listen_addr,
-			   req_url, atomic_load(&POST), timeout_request_cb,
-			   NULL, ctx, T_SOFT, 0);
+	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
+			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
+			   T_SOFT, 0);
 
 	/*
 	 * Sleep until sends reaches 5.
@@ -778,9 +778,9 @@ doh_recv_one(void **state) {
 	atomic_store(&total_sends, 1);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
@@ -928,9 +928,9 @@ doh_recv_two(void **state) {
 	atomic_store(&total_sends, 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
@@ -944,10 +944,9 @@ doh_recv_two(void **state) {
 		ctx = client_tlsctx;
 	}
 
-	isc_nm_httpconnect(connect_nm, NULL, (isc_nmiface_t *)&tcp_listen_addr,
-			   req_url, atomic_load(&POST),
-			   doh_connect_send_two_requests_cb, NULL, ctx, 5000,
-			   0);
+	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
+			   atomic_load(&POST), doh_connect_send_two_requests_cb,
+			   NULL, ctx, 5000, 0);
 
 	while (atomic_load(&nsends) > 0) {
 		if (atomic_load(&was_error)) {
@@ -1049,9 +1048,9 @@ doh_recv_send(void **state) {
 	isc_thread_t threads[32] = { 0 };
 	isc_quota_t *quotap = init_listener_quota(workers);
 
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
@@ -1153,9 +1152,9 @@ doh_recv_half_send(void **state) {
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
@@ -1262,9 +1261,9 @@ doh_half_recv_send(void **state) {
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
@@ -1371,9 +1370,9 @@ doh_half_recv_half_send(void **state) {
 	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
 
 	atomic_store(&nsends, atomic_load(&total_sends));
-	result = isc_nm_listenhttp(
-		listen_nm, (isc_nmiface_t *)&tcp_listen_addr, 0, quotap,
-		atomic_load(&use_TLS) ? server_tlsctx : NULL, &listen_sock);
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_http_endpoint(listen_sock, DOH_PATH,
