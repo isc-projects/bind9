@@ -50,7 +50,7 @@
  */
 
 static isc_thread_t blockedthread;
-static atomic_bool is_running;
+static atomic_bool is_running = ATOMIC_VAR_INIT(0);
 
 #ifdef WIN32
 /*

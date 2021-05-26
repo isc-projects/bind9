@@ -52,7 +52,9 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	counters_alloc_size = sizeof(isc__atomic_statcounter_t) * ncounters;
 	stats->counters = isc_mem_get(mctx, counters_alloc_size);
 	isc_refcount_init(&stats->references, 1);
-	memset(stats->counters, 0, counters_alloc_size);
+	for (int i = 0; i < ncounters; i++) {
+		atomic_init(&stats->counters[i], 0);
+	}
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	stats->ncounters = ncounters;

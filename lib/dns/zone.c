@@ -17961,6 +17961,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	memset(zmgr->unreachable, 0, sizeof(zmgr->unreachable));
+	for (size_t i = 0; i < UNREACH_CACHE_SIZE; i++) {
+		atomic_init(&zmgr->unreachable[i].expire, 0);
+	}
 	isc_rwlock_init(&zmgr->rwlock, 0, 0);
 
 	zmgr->transfersin = 10;

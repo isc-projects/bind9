@@ -127,9 +127,11 @@
  */
 
 #if defined(_WIN32) && !defined(_WIN64)
-LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests;
+LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests =
+	ATOMIC_VAR_INIT(0);
 #else  /* if defined(_WIN32) && !defined(_WIN64) */
-LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests;
+LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests =
+	ATOMIC_VAR_INIT(0);
 #endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 static void
