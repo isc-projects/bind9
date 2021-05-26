@@ -2797,11 +2797,10 @@ start_tcp(dig_query_t *query) {
 		if (query->lookup->tls_mode) {
 			result = isc_tlsctx_createclient(&query->tlsctx);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_nm_tlsdnsconnect(netmgr,
-					     (isc_nmiface_t *)&localaddr,
-					     (isc_nmiface_t *)&query->sockaddr,
-					     tcp_connected, query,
-					     local_timeout, 0, query->tlsctx);
+			isc_nm_tlsdnsconnect(netmgr, &localaddr,
+					     &query->sockaddr, tcp_connected,
+					     query, local_timeout, 0,
+					     query->tlsctx);
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
 			snprintf(uri, sizeof(uri), "https://%s:%u%s",
@@ -2816,16 +2815,14 @@ start_tcp(dig_query_t *query) {
 					query->tlsctx);
 			}
 
-			isc_nm_httpconnect(netmgr, (isc_nmiface_t *)&localaddr,
-					   (isc_nmiface_t *)&query->sockaddr,
+			isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr,
 					   uri, !query->lookup->https_get,
 					   tcp_connected, query, query->tlsctx,
 					   local_timeout, 0);
 		} else {
-			isc_nm_tcpdnsconnect(
-				netmgr, (isc_nmiface_t *)&localaddr,
-				(isc_nmiface_t *)&query->sockaddr,
-				tcp_connected, query, local_timeout, 0);
+			isc_nm_tcpdnsconnect(netmgr, &localaddr,
+					     &query->sockaddr, tcp_connected,
+					     query, local_timeout, 0);
 		}
 
 		/* XXX: set DSCP */
@@ -2998,8 +2995,7 @@ start_udp(dig_query_t *query) {
 	}
 
 	query_attach(query, &connectquery);
-	isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&localaddr,
-			  (isc_nmiface_t *)&query->sockaddr, udp_ready,
+	isc_nm_udpconnect(netmgr, &localaddr, &query->sockaddr, udp_ready,
 			  connectquery,
 			  (timeout ? timeout : UDP_TIMEOUT) * 1000, 0);
 }

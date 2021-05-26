@@ -423,20 +423,17 @@ static void
 run(void) {
 	switch (protocol) {
 	case UDP:
-		isc_nm_udpconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
-				  (isc_nmiface_t *)&sockaddr_remote, connect_cb,
-				  NULL, timeout, 0);
+		isc_nm_udpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
+				  connect_cb, NULL, timeout, 0);
 		break;
 	case TCP:
-		isc_nm_tcpdnsconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
-				     (isc_nmiface_t *)&sockaddr_remote,
+		isc_nm_tcpdnsconnect(netmgr, &sockaddr_local, &sockaddr_remote,
 				     connect_cb, NULL, timeout, 0);
 		break;
 	case DOT: {
 		isc_tlsctx_createclient(&tls_ctx);
 
-		isc_nm_tlsdnsconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
-				     (isc_nmiface_t *)&sockaddr_remote,
+		isc_nm_tlsdnsconnect(netmgr, &sockaddr_local, &sockaddr_remote,
 				     connect_cb, NULL, timeout, 0, tls_ctx);
 		break;
 	}
@@ -454,10 +451,9 @@ run(void) {
 		if (is_https) {
 			isc_tlsctx_createclient(&tls_ctx);
 		}
-		isc_nm_httpconnect(netmgr, (isc_nmiface_t *)&sockaddr_local,
-				   (isc_nmiface_t *)&sockaddr_remote, req_url,
-				   is_post, connect_cb, NULL, tls_ctx, timeout,
-				   0);
+		isc_nm_httpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
+				   req_url, is_post, connect_cb, NULL, tls_ctx,
+				   timeout, 0);
 	} break;
 	default:
 		INSIST(0);

@@ -124,7 +124,7 @@ struct isc_nm_http_session {
 	isc_nmhandle_t *handle;
 	isc_nmhandle_t *client_httphandle;
 	isc_nmsocket_t *serversocket;
-	isc_nmiface_t server_iface;
+	isc_sockaddr_t server_iface;
 
 	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
 	size_t bufsize;
@@ -1053,7 +1053,7 @@ http_call_connect_cb(isc_nmsocket_t *sock, isc_nm_http_session_t *session,
 		     isc_result_t result) {
 	isc__nm_uvreq_t *req = NULL;
 	isc_nmhandle_t *httphandle = isc__nmhandle_get(sock, &sock->peer,
-						       &sock->iface->addr);
+						       &sock->iface);
 
 	REQUIRE(sock->connect_cb != NULL);
 
@@ -1171,11 +1171,11 @@ error:
 }
 
 void
-isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t *tlsctx, unsigned int timeout,
 		   size_t extrahandlesize) {
-	isc_nmiface_t local_interface;
+	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NM(mgr));
@@ -1185,8 +1185,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	REQUIRE(*uri != '\0');
 
 	if (local == NULL) {
-		isc_sockaddr_anyofpf(&local_interface.addr,
-				     (peer->addr).type.sa.sa_family);
+		isc_sockaddr_anyofpf(&local_interface, peer->type.sa.sa_family);
 		local = &local_interface;
 	}
 
@@ -1205,10 +1204,9 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 
 		req->cb.connect = cb;
 		req->cbarg = cbarg;
-		req->peer = peer->addr;
-		req->local = local->addr;
-		req->handle = isc__nmhandle_get(sock, &req->peer,
-						&sock->iface->addr);
+		req->peer = *peer;
+		req->local = *local;
+		req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface);
 
 		if (isc__nm_in_netthread()) {
 			sock->tid = isc_nm_tid();
@@ -1233,7 +1231,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	 */
 	if (local == &local_interface) {
 		sock->h2.connect.local_interface = local_interface;
-		sock->iface = &sock->h2.connect.local_interface;
+		sock->iface = sock->h2.connect.local_interface;
 	}
 
 	if (tlsctx != NULL) {
@@ -1381,7 +1379,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	socket = isc_mem_get(session->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(socket, session->serversocket->mgr,
 			   isc_nm_httpsocket,
-			   (isc_nmiface_t *)&session->server_iface);
+			   (isc_sockaddr_t *)&session->server_iface);
 	socket->h2 = (isc_nmsocket_h2_t){
 		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
 		.psock = socket,
@@ -2128,7 +2126,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	isc_nmhandle_attach(handle, &session->handle);
 	isc__nmsocket_attach(httplistensock, &session->serversocket);
-	session->server_iface.addr = isc_nmhandle_localaddr(session->handle);
+	session->server_iface = isc_nmhandle_localaddr(session->handle);
 	server_send_connection_header(session);
 
 	/* TODO H2 */
@@ -2137,7 +2135,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 }
 
 isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, isc_nmiface_t *iface, int backlog,
+isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 		  isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;

@@ -266,20 +266,20 @@ run(void) {
 
 	switch (protocol) {
 	case UDP:
-		result = isc_nm_listenudp(netmgr, (isc_nmiface_t *)&sockaddr,
-					  read_cb, NULL, 0, &sock);
+		result = isc_nm_listenudp(netmgr, &sockaddr, read_cb, NULL, 0,
+					  &sock);
 		break;
 	case TCP:
-		result = isc_nm_listentcpdns(netmgr, (isc_nmiface_t *)&sockaddr,
-					     read_cb, NULL, accept_cb, NULL, 0,
-					     0, NULL, &sock);
+		result = isc_nm_listentcpdns(netmgr, &sockaddr, read_cb, NULL,
+					     accept_cb, NULL, 0, 0, NULL,
+					     &sock);
 		break;
 	case DOT: {
 		isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 
-		result = isc_nm_listentlsdns(netmgr, (isc_nmiface_t *)&sockaddr,
-					     read_cb, NULL, accept_cb, NULL, 0,
-					     0, NULL, tls_ctx, &sock);
+		result = isc_nm_listentlsdns(netmgr, &sockaddr, read_cb, NULL,
+					     accept_cb, NULL, 0, 0, NULL,
+					     tls_ctx, &sock);
 		break;
 	}
 	case HTTPS:
@@ -288,8 +288,8 @@ run(void) {
 		if (is_https) {
 			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 		}
-		result = isc_nm_listenhttp(netmgr, (isc_nmiface_t *)&sockaddr,
-					   0, NULL, tls_ctx, &sock);
+		result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL, tls_ctx,
+					   &sock);
 		if (result == ISC_R_SUCCESS) {
 			result = isc_nm_http_endpoint(sock, DEFAULT_DOH_PATH,
 						      read_cb, NULL, 0);

@@ -201,7 +201,6 @@ isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->iface != NULL);
 	REQUIRE(sock->parent == NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
@@ -285,7 +284,7 @@ error:
 }
 
 void
-isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
+isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		  size_t extrahandlesize) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -298,7 +297,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
 
-	sa_family = peer->addr.type.sa.sa_family;
+	sa_family = peer->type.sa.sa_family;
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_tcpsocket, local);
@@ -312,9 +311,9 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_nmiface_t *local, isc_nmiface_t *peer,
 	req = isc__nm_uvreq_get(mgr, sock);
 	req->cb.connect = cb;
 	req->cbarg = cbarg;
-	req->peer = peer->addr;
-	req->local = local->addr;
-	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface->addr);
+	req->peer = *peer;
+	req->local = *local;
+	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface);
 
 	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &sock->fd);
 	if (result != ISC_R_SUCCESS) {
@@ -379,7 +378,7 @@ isc__nm_tcp_lb_socket(sa_family_t sa_family) {
 }
 
 static void
-start_tcp_child(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nmsocket_t *sock,
+start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 		uv_os_sock_t fd, int tid) {
 	isc__netievent_tcplisten_t *ievent = NULL;
 	isc_nmsocket_t *csock = &sock->children[tid];
@@ -400,7 +399,7 @@ start_tcp_child(isc_nm_t *mgr, isc_nmiface_t *iface, isc_nmsocket_t *sock,
 
 #if HAVE_SO_REUSEPORT_LB || defined(WIN32)
 	UNUSED(fd);
-	csock->fd = isc__nm_tcp_lb_socket(iface->addr.type.sa.sa_family);
+	csock->fd = isc__nm_tcp_lb_socket(iface->type.sa.sa_family);
 #else
 	csock->fd = dup(fd);
 #endif
@@ -420,7 +419,7 @@ enqueue_stoplistening(isc_nmsocket_t *sock) {
 }
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
+isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
 		 isc_nmsocket_t **sockp) {
@@ -456,7 +455,7 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 	sock->fd = -1;
 
 #if !HAVE_SO_REUSEPORT_LB && !defined(WIN32)
-	fd = isc__nm_tcp_lb_socket(iface->addr.type.sa.sa_family);
+	fd = isc__nm_tcp_lb_socket(iface->type.sa.sa_family);
 #endif
 
 	isc_barrier_init(&sock->startlistening, sock->nchildren);
@@ -501,7 +500,6 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_nmiface_t *iface,
 void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcplisten_t *ievent = (isc__netievent_tcplisten_t *)ev0;
-	isc_nmiface_t *iface = NULL;
 	sa_family_t sa_family;
 	int r;
 	int flags = 0;
@@ -513,11 +511,9 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(ievent->sock->parent));
 
 	sock = ievent->sock;
-	iface = sock->iface;
-	sa_family = iface->addr.type.sa.sa_family;
+	sa_family = sock->iface.type.sa.sa_family;
 
 	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->iface != NULL);
 	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
@@ -550,8 +546,8 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 #if HAVE_SO_REUSEPORT_LB || defined(WIN32)
-	r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-				&sock->iface->addr.type.sa, flags);
+	r = isc_uv_tcp_freebind(&sock->uv_handle.tcp, &sock->iface.type.sa,
+				flags);
 	if (r < 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
 		goto done;
@@ -559,7 +555,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 #else
 	if (sock->parent->fd == -1) {
 		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-					&sock->iface->addr.type.sa, flags);
+					&sock->iface.type.sa, flags);
 		if (r < 0) {
 			isc__nm_incstats(sock->mgr,
 					 sock->statsindex[STATID_BINDFAIL]);
@@ -974,7 +970,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	}
 
 	csock = isc_mem_get(ssock->mgr->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, ssock->iface);
+	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, &ssock->iface);
 	csock->tid = ssock->tid;
 	csock->extrahandlesize = ssock->extrahandlesize;
 	isc__nmsocket_attach(ssock, &csock->server);
