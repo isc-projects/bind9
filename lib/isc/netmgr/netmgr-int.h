@@ -240,13 +240,6 @@ struct isc_nmhandle {
 	char extra[];
 };
 
-/*
- * An interface - an address we can listen on.
- */
-struct isc_nmiface {
-	isc_sockaddr_t addr;
-};
-
 typedef enum isc__netievent_type {
 	netievent_udpconnect,
 	netievent_udpclose,
