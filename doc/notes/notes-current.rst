@@ -50,3 +50,7 @@ Bug Fixes
 - Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
   views with different ``dnssec-policy``. Using the same ``key-directory`` for
   such zones is not allowed. :gl:`#2463`
+
+- The calculation of the estimated IXFR transaction size by
+  `dns_journal_iter_init()` was invalid.  This resulted in excessive
+  AXFR-style-IXFR responses. :gl:`#2685`

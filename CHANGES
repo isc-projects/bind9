@@ -1,3 +1,6 @@
+5648.	[bug]		The calculation of the estimated IXFR transaction
+			size by dns_journal_iter_init() was invalid. [GL #2685]
+
 5644.	[bug]		Fix a race condition in reading and writing key files
 			for KASP zones in multiple views. [GL #1875]
 
