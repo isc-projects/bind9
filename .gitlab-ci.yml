@@ -387,7 +387,6 @@ stages:
   <<: *default_triggering_rules
   stage: unit
   before_script:
-    - if [ -n "$TCP_CONNECTIONTIMEOUT" ]; then sudo sysctl 'net.inet.tcp.keepinittime=1'; fi
     - *setup_softhsm
     - *retrieve_out_of_tree_workspace
   script:
@@ -1232,8 +1231,6 @@ unit:clang:openbsd:amd64:
   <<: *unit_test_job
   variables:
     USER: gitlab-runner
-    # There's no socket option on OpenBSD, so we need to set this globally
-    TCP_CONNECTIONTIMEOUT: 1
   needs:
     - job: clang:openbsd:amd64
       artifacts: true
