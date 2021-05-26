@@ -491,7 +491,15 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	atomic_init(&ctx->maxinuse, 0);
 	atomic_init(&ctx->malloced, sizeof(*ctx));
 	atomic_init(&ctx->maxmalloced, sizeof(*ctx));
+	atomic_init(&ctx->hi_water, 0);
+	atomic_init(&ctx->lo_water, 0);
+	atomic_init(&ctx->hi_called, false);
+	atomic_init(&ctx->is_overmem, false);
 
+	for (size_t i = 0; i < STATS_BUCKETS + 1; i++) {
+		atomic_init(&ctx->stats[i].gets, 0);
+		atomic_init(&ctx->stats[i].totalgets, 0);
+	}
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_TRACKLINES
@@ -1211,6 +1219,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 	atomic_init(&mpctx->freecount, 0);
 	atomic_init(&mpctx->freemax, 1);
 	atomic_init(&mpctx->fillcount, 1);
+	atomic_init(&mpctx->gets, 0);
 
 	*mpctxp = (isc_mempool_t *)mpctx;
 

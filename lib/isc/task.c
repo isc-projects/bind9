@@ -960,7 +960,8 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	INIT_LIST(manager->tasks);
 	atomic_init(&manager->exiting, false);
 	atomic_init(&manager->mode, isc_taskmgrmode_normal);
-	atomic_store_relaxed(&manager->exclusive_req, false);
+	atomic_init(&manager->exclusive_req, false);
+	atomic_init(&manager->tasks_count, 0);
 
 	isc_mem_attach(mctx, &manager->mctx);
 

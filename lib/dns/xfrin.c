@@ -879,6 +879,12 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	dns_zone_iattach(zone, &xfr->zone);
 	dns_name_init(&xfr->name, NULL);
 
+	isc_refcount_init(&xfr->connects, 0);
+	isc_refcount_init(&xfr->sends, 0);
+	isc_refcount_init(&xfr->recvs, 0);
+
+	atomic_init(&xfr->shuttingdown, false);
+
 	if (db != NULL) {
 		dns_db_attach(db, &xfr->db);
 	}
