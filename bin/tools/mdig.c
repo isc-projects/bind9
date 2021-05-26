@@ -2175,7 +2175,7 @@ main(int argc, char *argv[]) {
 	dns_requestmgr_detach(&requestmgr);
 
 	dns_dispatch_detach(&dispatchvx);
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 
 	isc_task_shutdown(task);
 	isc_task_detach(&task);

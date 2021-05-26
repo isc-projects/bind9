@@ -70,7 +70,7 @@ _teardown(void **state) {
 
 	dns_dispatch_detach(&dispatch);
 	dns_view_detach(&view);
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 	dns_test_end();
 
 	return (0);

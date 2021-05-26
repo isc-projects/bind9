@@ -165,7 +165,7 @@ shutdown_managers(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (dispatchmgr != NULL) {
-		dns_dispatchmgr_destroy(&dispatchmgr);
+		dns_dispatchmgr_detach(&dispatchmgr);
 	}
 
 	atomic_store(&shutdown_done, true);

@@ -168,7 +168,7 @@ reset(void) {
 		dns_dispatchset_destroy(&dset);
 	}
 	if (dispatchmgr != NULL) {
-		dns_dispatchmgr_destroy(&dispatchmgr);
+		dns_dispatchmgr_detach(&dispatchmgr);
 	}
 }
 
@@ -393,7 +393,7 @@ dispatch_getnext(void **state) {
 	 * Shutdown the dispatch.
 	 */
 	dns_dispatch_detach(&dispatch);
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 }
 
 int

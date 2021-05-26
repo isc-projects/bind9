@@ -14011,8 +14011,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying master "
-			     "%s (source %s): %s",
+			     "refresh: unable to get response, master "
+			     "%s, source %s: %s",
 			     master, source, dns_result_totext(result));
 		goto next_master;
 	}

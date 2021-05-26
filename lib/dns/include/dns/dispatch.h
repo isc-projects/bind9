@@ -79,9 +79,10 @@ ISC_LANG_BEGINDECLS
 
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t); /*%< standard event common */
-	isc_result_t result;		       /*%< result code */
-	isc_region_t region;		       /*%< data region */
-	isc_buffer_t buffer;		       /*%< data buffer */
+	isc_result_t	result;		       /*%< result code */
+	isc_region_t	region;		       /*%< data region */
+	isc_buffer_t	buffer;		       /*%< data buffer */
+	dns_dispatch_t *dispatch;
 };
 
 /*%
@@ -146,8 +147,19 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm, dns_dispatchmgr_t **mgrp);
  *\li	anything else	-- failure
  */
 
+#define dns_dispatchmgr_attach(mgr, mgrp) \
+	dns__dispatchmgr_attach(mgr, mgrp, __func__, __FILE__, __LINE__)
+
 void
-dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp);
+dns__dispatchmgr_attach(dns_dispatchmgr_t *mgr, dns_dispatchmgr_t **mgrp,
+			const char *func, const char *file, unsigned int line);
+
+#define dns_dispatchmgr_detach(mgrp) \
+	dns__dispatchmgr_detach(mgrp, __func__, __FILE__, __LINE__)
+
+void
+dns__dispatchmgr_detach(dns_dispatchmgr_t **mgrp, const char *func,
+			const char *file, unsigned int line);
 /*%<
  * Destroys the dispatchmgr when it becomes empty.  This could be
  * immediately.
@@ -246,8 +258,12 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
  *\li	Anything else	-- failure.
  */
 
+#define dns_dispatch_attach(d, dp) \
+	dns__dispatch_attach(d, dp, __func__, __FILE__, __LINE__)
+
 void
-dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
+dns__dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp,
+		     const char *func, const char *file, unsigned int line);
 /*%<
  * Attach to a dispatch handle.
  *
@@ -257,8 +273,12 @@ dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
  *\li	dispp != NULL && *dispp == NULL
  */
 
+#define dns_dispatch_detach(dp) \
+	dns__dispatch_detach(dp, __func__, __FILE__, __LINE__)
+
 void
-dns_dispatch_detach(dns_dispatch_t **dispp);
+dns__dispatch_detach(dns_dispatch_t **dispp, const char *func, const char *file,
+		     unsigned int line);
 /*%<
  * Detaches from the dispatch.
  *
@@ -277,15 +297,13 @@ dns_dispatch_connect(dns_dispentry_t *resp);
  */
 
 void
-dns_dispatch_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp, bool sending,
-		    bool connecting);
+dns_dispatch_cancel(dns_dispentry_t *resp);
 /*%<
- * Cancel pending sends (if 'sending' is true) and connects (if
- * 'connecting' is true) in 'resp' or 'disp'.
+ * Cancel pending connects in 'resp', by setting a flag so that
+ * a read is not started when the connect handler runs.
  *
  * Requires:
- *\li	'resp' is NULL and 'disp' is valid, or
- *\li	'disp' is NULL and 'resp' is valid.
+ *\li	'resp' is valid.
  */
 
 void

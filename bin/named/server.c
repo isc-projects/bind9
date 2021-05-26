@@ -10003,7 +10003,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	ns_interfacemgr_detach(&server->interfacemgr);
 
-	dns_dispatchmgr_destroy(&named_g_dispatchmgr);
+	dns_dispatchmgr_detach(&named_g_dispatchmgr);
 
 	dns_zonemgr_shutdown(server->zonemgr);
 

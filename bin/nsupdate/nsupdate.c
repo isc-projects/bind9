@@ -735,7 +735,7 @@ doshutdown(void) {
 	}
 
 	ddebug("Shutting down dispatch manager");
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 }
 
 static void

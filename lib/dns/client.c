@@ -268,7 +268,6 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
 	dns_client_t *client = NULL;
-	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_dispatch_t *dispatchv6 = NULL;
 	dns_view_t *view = NULL;
@@ -293,12 +292,11 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 		goto cleanup_lock;
 	}
 
-	result = dns_dispatchmgr_create(mctx, nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, nm, &client->dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
 	}
-	client->dispatchmgr = dispatchmgr;
-	(void)setsourceports(mctx, dispatchmgr);
+	(void)setsourceports(mctx, client->dispatchmgr);
 
 	/*
 	 * If only one address family is specified, use it.
@@ -306,7 +304,7 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	 */
 	client->dispatchv4 = NULL;
 	if (localaddr4 != NULL || localaddr6 == NULL) {
-		result = getudpdispatch(AF_INET, dispatchmgr, taskmgr,
+		result = getudpdispatch(AF_INET, client->dispatchmgr, taskmgr,
 					&dispatchv4, localaddr4);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv4 = dispatchv4;
@@ -315,7 +313,7 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	client->dispatchv6 = NULL;
 	if (localaddr6 != NULL || localaddr4 == NULL) {
-		result = getudpdispatch(AF_INET6, dispatchmgr, taskmgr,
+		result = getudpdispatch(AF_INET6, client->dispatchmgr, taskmgr,
 					&dispatchv6, localaddr6);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv6 = dispatchv6;
@@ -332,8 +330,8 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	/* Create the default view for class IN */
 	result = createview(mctx, dns_rdataclass_in, taskmgr, RESOLVER_NTASKS,
-			    nm, timermgr, dispatchmgr, dispatchv4, dispatchv6,
-			    &view);
+			    nm, timermgr, client->dispatchmgr, dispatchv4,
+			    dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
 	}
@@ -366,7 +364,7 @@ cleanup_dispatchmgr:
 	if (dispatchv6 != NULL) {
 		dns_dispatch_detach(&dispatchv6);
 	}
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&client->dispatchmgr);
 cleanup_task:
 	isc_task_detach(&client->task);
 cleanup_lock:
@@ -394,7 +392,7 @@ destroyclient(dns_client_t *client) {
 		dns_dispatch_detach(&client->dispatchv6);
 	}
 
-	dns_dispatchmgr_destroy(&client->dispatchmgr);
+	dns_dispatchmgr_detach(&client->dispatchmgr);
 
 	isc_task_detach(&client->task);
 
