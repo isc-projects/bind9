@@ -237,15 +237,12 @@ OPTIONS
   	dnssec-secure-to-insecure boolean;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder |
-  	    resolver | update ) [ ( query | response ) ];
-  	    ... };
-  	dnstap-identity ( quoted_string | none |
-  	    hostname );
-  	dnstap-output ( file | unix ) quoted_string [
-  	    size ( unlimited | size ) ] [ versions (
-  	    unlimited | integer ) ] [ suffix ( increment
-  	    | timestamp ) ];
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+  	    ( query | response ) ]; ... };
+  	dnstap-identity ( quoted_string | none | hostname );
+  	dnstap-output ( file | unix ) quoted_string [ size ( unlimited |
+  	    size ) ] [ versions ( unlimited | integer ) ] [ suffix (
+  	    increment | timestamp ) ];
   	dnstap-version ( quoted_string | none );
   	dscp integer;
   	dual-stack-servers [ port integer ] { ( quoted_string [ port
@@ -276,7 +273,6 @@ OPTIONS
   	glue-cache boolean;
   	heartbeat-interval integer;
   	hostname ( quoted_string | none );
-  	inline-signing boolean;
   	interface-interval duration;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    boolean );
@@ -298,6 +294,7 @@ OPTIONS
   	max-cache-size ( default | unlimited | sizeval | percentage );
   	max-cache-ttl duration;
   	max-clients-per-query integer;
+  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-ncache-ttl duration;
   	max-records integer;
@@ -622,9 +619,8 @@ VIEW
   	dnssec-secure-to-insecure boolean;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder |
-  	    resolver | update ) [ ( query | response ) ];
-  	    ... };
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+  	    ( query | response ) ]; ... };
   	dual-stack-servers [ port integer ] { ( quoted_string [ port
   	    integer ] [ dscp integer ] | ipv4_address [ port
   	    integer ] [ dscp integer ] | ipv6_address [ port
@@ -642,7 +638,6 @@ VIEW
   	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
   	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
   	glue-cache boolean;
-  	inline-signing boolean;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    boolean );
   	key string {
@@ -666,6 +661,7 @@ VIEW
   	max-cache-size ( default | unlimited | sizeval | percentage );
   	max-cache-ttl duration;
   	max-clients-per-query integer;
+  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-ncache-ttl duration;
   	max-records integer;
@@ -873,9 +869,11 @@ VIEW
   		key-directory quoted_string;
   		masterfile-format ( map | raw | text );
   		masterfile-style ( full | relative );
-  		masters [ port integer ] [ dscp integer ] { ( primaries
-  		    | ipv4_address [ port integer ] | ipv6_address [
-  		    port integer ] ) [ key string ]; ... };
+  		masters [ port integer ] [ dscp integer ] { (
+  		    primaries | ipv4_address [ port integer ] |
+  		    ipv6_address [ port integer ] ) [ key string ];
+  		    ... };
+  		max-ixfr-ratio ( unlimited | percentage );
   		max-journal-size ( default | unlimited | sizeval );
   		max-records integer;
   		max-refresh-time integer;
@@ -982,6 +980,7 @@ ZONE
   	masters [ port integer ] [ dscp integer ] { ( primaries |
   	    ipv4_address [ port integer ] | ipv6_address [ port
   	    integer ] ) [ key string ]; ... };
+  	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-records integer;
   	max-refresh-time integer;
