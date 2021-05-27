@@ -1619,7 +1619,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache data.example (stale-answer-client-timeout)"
+echo_i "prime cache data.example (stale-answer-client-timeout) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -1628,7 +1628,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "prime cache nodata.example (stale-answer-client-timeout)"
+echo_i "prime cache nodata.example (stale-answer-client-timeout) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
@@ -1661,24 +1661,65 @@ t2=`$PERL -e 'print time()'`
 # That should give us enough time to receive an stale answer from cache
 # after stale-answer-client-timeout timer of 1.8 sec triggers.
 n=$((n+1))
-echo_i "check stale data.example comes from cache (default stale-answer-client-timeout) ($n)"
+echo_i "check stale data.example comes from cache (stale-answer-client-timeout 1.8) ($n)"
 ret=0
 wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "data\.example\..*3.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
-# Default stale-answer-client-timeout is 1.8s, we allow some extra time
+# Configured stale-answer-client-timeout is 1.8s, we allow some extra time
 # just in case other tests are taking too much cpu.
 [ $((t2 - t1)) -le 10 ] || { echo_i "query took $((t2 - t1))s to resolve.";  ret=1; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "check stale nodata.example comes from cache (default stale-answer-client-timeout) ($n)"
-ret=0
+echo_i "check stale nodata.example comes from cache (stale-answer-client-timeout 1.8) ($n)"
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Now query for RRset not in cache. The first query should time out, but once
+# we enable the authoritative server, the second query should be able to get a
+# response.
+
+nextpart ns3/named.run > /dev/null
+
+echo_i "sending queries for tests $((n+2))-$((n+3))..."
+$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2)) &
+$DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 longttl.example TXT > dig.out.test$((n+3)) &
+
+# Enable the authoritative name server after stale-answer-client-timeout.
+n=$((n+1))
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+sleep 3
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check not in cache longttl.example times out (stale-answer-client-timeout 1.8) ($n)"
+ret=0
+wait_for_log 3 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
+waitfile() {
+    [ -s "$1" ] || return 1
+}
+retry_quiet 3 waitfile dig.out.test$n || ret=1
+grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check not in cache longttl.example comes from authoritative (stale-answer-client-timeout 1.8) ($n)"
+ret=0
+retry_quiet 7 waitfile dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
