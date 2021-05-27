@@ -14390,6 +14390,148 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
+# check for GCC malloc attribute
+#
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __attribute__((malloc))" >&5
+$as_echo_n "checking for __attribute__((malloc))... " >&6; }
+if ${ax_cv_have_func_attribute_malloc+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+                    void *foo( void ) __attribute__((malloc));
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+                                      if test -s conftest.err; then :
+  ax_cv_have_func_attribute_malloc=no
+else
+  ax_cv_have_func_attribute_malloc=yes
+fi
+else
+  ax_cv_have_func_attribute_malloc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_func_attribute_malloc" >&5
+$as_echo "$ax_cv_have_func_attribute_malloc" >&6; }
+
+    if test yes = $ax_cv_have_func_attribute_malloc; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_FUNC_ATTRIBUTE_MALLOC 1
+_ACEOF
+
+fi
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for extended malloc attributes" >&5
+$as_echo_n "checking for extended malloc attributes... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+       #include <stddef.h>
+       #include <stdlib.h>
+       __attribute__ ((malloc, malloc (free, 1))
+       void * xmalloc(size_t sz) { return malloc(sz); }
+
+int
+main ()
+{
+
+       void *p = xmalloc(8);
+       free(p);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_MALLOC_EXT_ATTR 1" >>confdefs.h
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+#
+# check for GCC returns_nonnull attribute
+#
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __attribute__((returns_nonnull))" >&5
+$as_echo_n "checking for __attribute__((returns_nonnull))... " >&6; }
+if ${ax_cv_have_func_attribute_returns_nonnull+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+                    void *foo( void ) __attribute__((returns_nonnull));
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+                                      if test -s conftest.err; then :
+  ax_cv_have_func_attribute_returns_nonnull=no
+else
+  ax_cv_have_func_attribute_returns_nonnull=yes
+fi
+else
+  ax_cv_have_func_attribute_returns_nonnull=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_func_attribute_returns_nonnull" >&5
+$as_echo "$ax_cv_have_func_attribute_returns_nonnull" >&6; }
+
+    if test yes = $ax_cv_have_func_attribute_returns_nonnull; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL 1
+_ACEOF
+
+fi
+
+
+
+
+#
 # check if we have kqueue
 #
 # [pairwise: --enable-kqueue, --disable-kqueue]
@@ -21853,19 +21995,19 @@ case $with_cmocka in #(
   detect) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
-$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.1.3" >&5
+$as_echo_n "checking for cmocka >= 1.1.3... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.1.3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.1.3") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.0.0" 2>/dev/null`
+  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.1.3" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -21877,12 +22019,12 @@ if test -n "$CMOCKA_LIBS"; then
     pkg_cv_CMOCKA_LIBS="$CMOCKA_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.1.3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.1.3") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.0.0" 2>/dev/null`
+  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.1.3" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -21903,9 +22045,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.1.3" 2>&1`
         else
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.1.3" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$CMOCKA_PKG_ERRORS" >&5
@@ -21923,23 +22065,24 @@ $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
+				     with_cmocka=yes
 fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
-$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.1.3" >&5
+$as_echo_n "checking for cmocka >= 1.1.3... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.1.3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.1.3") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.0.0" 2>/dev/null`
+  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.1.3" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -21951,12 +22094,12 @@ if test -n "$CMOCKA_LIBS"; then
     pkg_cv_CMOCKA_LIBS="$CMOCKA_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.1.3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.1.3") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.0.0" 2>/dev/null`
+  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.1.3" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -21977,14 +22120,14 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.1.3" 2>&1`
         else
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.1.3" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$CMOCKA_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (cmocka >= 1.0.0) were not met:
+	as_fn_error $? "Package requirements (cmocka >= 1.1.3) were not met:
 
 $CMOCKA_PKG_ERRORS
 
