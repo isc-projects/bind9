@@ -1,3 +1,6 @@
+5651.	[func]		Refactor zone dumping to be processed asynchronously
+			via the uv_work_t thread pool API. [GL #2732]
+
 5650.	[bug]		Prevent a crash that could occur if serve-stale
 			was enabled and a prefetch was triggered during a
 			query restart. [GL #2733]

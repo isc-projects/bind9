@@ -26,6 +26,9 @@ New Features
 
 - None.
 
+- Run zone dumping tasks on separate asynchronous thread pools.  This change
+  makes zone dumping no longer block networking I/O. :gl:`#2732`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
