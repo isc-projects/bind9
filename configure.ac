@@ -603,6 +603,7 @@ LIBS="$LIBS $LIBUV_LIBS"
 AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data])
 AC_CHECK_FUNCS([uv_req_get_data uv_req_set_data])
 AC_CHECK_FUNCS([uv_udp_connect uv_translate_sys_error uv_sleep])
+AC_CHECK_FUNCS([uv_os_getenv uv_os_setenv])
 AX_RESTORE_FLAGS([libuv])
 
 # libnghttp2
