@@ -60,3 +60,7 @@ Bug Fixes
 - The calculation of the estimated IXFR transaction size by
   `dns_journal_iter_init()` was invalid.  This resulted in excessive
   AXFR-style-IXFR responses. :gl:`#2685`
+
+- If a query was answered with stale data on a server with DNS64 enabled,
+  an assertion could occur if a non-stale answer arrived afterward. This
+  has been fixed. :gl:`#2731`

@@ -1,3 +1,7 @@
+5649.	[bug]		If a query was answered with stale data on a server
+			with DNS64 enabled, an assertion could occur if a
+			non-stale answer arrived afterward. [GL #2731]
+
 5648.	[bug]		The calculation of the estimated IXFR transaction
 			size by dns_journal_iter_init() was invalid. [GL #2685]
 
