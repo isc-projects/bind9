@@ -493,11 +493,11 @@ dns_lookup_cancel
 dns_lookup_create
 dns_lookup_destroy
 dns_master_dump
-dns_master_dumpinc
+dns_master_dumpasync
 dns_master_dumpnode
 dns_master_dumpnodetostream
 dns_master_dumptostream
-dns_master_dumptostreaminc
+dns_master_dumptostreamasync
 dns_master_initrawheader
 dns_master_loadbuffer
 dns_master_loadbufferinc
