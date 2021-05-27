@@ -19,43 +19,49 @@
  * library version.
  */
 
-#ifndef HAVE_UV_HANDLE_GET_DATA
+#define UV_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+
+#if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
 static inline void *
 uv_handle_get_data(const uv_handle_t *handle) {
 	return (handle->data);
 }
-#endif /* ifndef HAVE_UV_HANDLE_GET_DATA */
 
-#ifndef HAVE_UV_HANDLE_SET_DATA
 static inline void
 uv_handle_set_data(uv_handle_t *handle, void *data) {
 	handle->data = data;
 }
-#endif /* ifndef HAVE_UV_HANDLE_SET_DATA */
 
-#ifndef HAVE_UV_REQ_GET_DATA
 static inline void *
 uv_req_get_data(const uv_req_t *req) {
 	return (req->data);
 }
-#endif /* ifndef HAVE_UV_REQ_GET_DATA */
 
-#ifndef HAVE_UV_REQ_SET_DATA
 static inline void
 uv_req_set_data(uv_req_t *req, void *data) {
 	req->data = data;
 }
-#endif /* ifndef HAVE_UV_REQ_SET_DATA */
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 19, 0) */
 
-#ifndef HAVE_UV_SLEEP
+#if UV_VERSION_HEX < UV_VERSION(1, 34, 0)
 #define uv_sleep(msec) usleep(msec * 1000)
-#endif
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 34, 0) */
 
-#ifdef HAVE_UV_UDP_CONNECT
+#if UV_VERSION_HEX < UV_VERSION(1, 27, 0)
+int
+isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr);
+/*%<
+ * Associate the UDP handle to a remote address and port, so every message sent
+ * by this handle is automatically sent to that destination.
+ *
+ * NOTE: This is just a limited shim for uv_udp_connect() as it requires the
+ * handle to be bound.
+ */
+#else /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 #define isc_uv_udp_connect uv_udp_connect
-#else
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 
-#ifndef HAVE_UV_OS_GETENV
+#if UV_VERSION_HEX < UV_VERSION(1, 12, 0)
 #include <stdlib.h>
 #include <string.h>
 
@@ -79,23 +85,9 @@ uv_os_getenv(const char *name, char *buffer, size_t *size) {
 
 	return (0);
 }
-#endif /* HAVE_UV_OS_GETENV */
 
-#ifndef HAVE_UV_OS_SETENV
 #define uv_os_setenv(name, value) setenv(name, value, 0)
-#endif /* HAVE_UV_OS_SETENV */
-
-int
-isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr);
-/*%<
- * Associate the UDP handle to a remote address and port, so every message sent
- * by this handle is automatically sent to that destination.
- *
- * NOTE: This is just a limited shim for uv_udp_connect() as it requires the
- * handle to be bound.
- */
-
-#endif
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 12, 0) */
 
 int
 isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,

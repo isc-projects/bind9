@@ -16,7 +16,7 @@
 
 #include "netmgr-int.h"
 
-#ifndef HAVE_UV_UDP_CONNECT
+#if UV_VERSION_HEX < UV_VERSION(1, 27, 0)
 int
 isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 	int err = 0;
@@ -46,7 +46,7 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 
 	return (0);
 }
-#endif /* ifndef HAVE_UV_UDP_CONNECT */
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 
 int
 isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
