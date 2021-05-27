@@ -100,6 +100,7 @@ isc_socketmgr_getmaxsockets
 isc_socketmgr_setreserved
 isc_socketmgr_setstats
 isc_task_getname
+isc_task_getnetmgr
 isc_task_gettag
 isc_task_ready
 isc_task_run
