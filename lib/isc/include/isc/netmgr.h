@@ -67,6 +67,12 @@ typedef void (*isc_nm_opaquecb_t)(void *arg);
  * callbacks.
  */
 
+typedef void (*isc_nm_workcb_t)(void *arg);
+typedef void (*isc_nm_after_workcb_t)(void *arg, isc_result_t result);
+/*%<
+ * Callback functions for libuv threadpool work (see uv_work_t)
+ */
+
 void
 isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst);
 void
@@ -448,4 +454,24 @@ isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
  * \li 'threadid' is either the preferred netmgr tid or -1, in which case
  *     tid will be picked randomly. The threadid is capped (by modulo) to
  *     maximum number of 'workers' as specifed in isc_nm_start()
+ */
+
+void
+isc_nm_work_offload(isc_nm_t *mgr, isc_nm_workcb_t work_cb,
+		    isc_nm_after_workcb_t after_work_cb, void *data);
+/*%<
+ * Schedules a job to be handled by the libuv thread pool (see uv_work_t).
+ * The function specified in `work_cb` will be run by a thread in the
+ * thread pool; when complete, the `after_work_cb` function will run.
+ *
+ * Requires:
+ * \li 'mgr' is a valid netmgr object.
+ * \li We are currently running in a network manager thread.
+ */
+
+void
+isc__nm_force_tid(int tid);
+/*%<
+ * Force the thread ID to 'tid'. This is STRICTLY for use in unit
+ * tests and should not be used in any production code.
  */

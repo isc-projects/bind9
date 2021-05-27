@@ -601,6 +601,17 @@ typedef union {
 } isc__netievent_storage_t;
 
 /*
+ * Work item for a uv_work threadpool.
+ */
+typedef struct isc__nm_work {
+	isc_nm_t *netmgr;
+	uv_work_t req;
+	isc_nm_workcb_t cb;
+	isc_nm_after_workcb_t after_cb;
+	void *data;
+} isc__nm_work_t;
+
+/*
  * Network manager
  */
 #define NM_MAGIC    ISC_MAGIC('N', 'E', 'T', 'M')

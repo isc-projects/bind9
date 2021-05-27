@@ -480,6 +480,7 @@ isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
 isc_nm_udpconnect
+isc_nm_work_offload
 isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked
