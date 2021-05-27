@@ -33,6 +33,20 @@ uv_handle_set_data(uv_handle_t *handle, void *data) {
 }
 #endif /* ifndef HAVE_UV_HANDLE_SET_DATA */
 
+#ifndef HAVE_UV_REQ_GET_DATA
+static inline void *
+uv_req_get_data(const uv_req_t *req) {
+	return (req->data);
+}
+#endif /* ifndef HAVE_UV_REQ_GET_DATA */
+
+#ifndef HAVE_UV_REQ_SET_DATA
+static inline void
+uv_req_set_data(uv_req_t *req, void *data) {
+	req->data = data;
+}
+#endif /* ifndef HAVE_UV_REQ_SET_DATA */
+
 #ifndef HAVE_UV_SLEEP
 #define uv_sleep(msec) usleep(msec * 1000)
 #endif
