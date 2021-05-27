@@ -510,6 +510,12 @@
 /* Define to 1 if you have the `uv_handle_set_data' function. */
 #undef HAVE_UV_HANDLE_SET_DATA
 
+/* Define to 1 if you have the `uv_req_get_data' function. */
+#undef HAVE_UV_REQ_GET_DATA
+
+/* Define to 1 if you have the `uv_req_set_data' function. */
+#undef HAVE_UV_REQ_SET_DATA
+
 /* Define to 1 if you have the `uv_sleep' function. */
 #undef HAVE_UV_SLEEP
 
