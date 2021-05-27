@@ -134,8 +134,12 @@
 
 #define REDIRECT(c) (((c)->query.attributes & NS_QUERYATTR_REDIRECT) != 0)
 
-/*% Was the query already answered due to stale-answer-client-timeout? */
+/*% Was the client already sent a response? */
 #define QUERY_ANSWERED(q) (((q)->attributes & NS_QUERYATTR_ANSWERED) != 0)
+
+/*% Have we already processed an answer via stale-answer-client-timeout? */
+#define QUERY_STALEPENDING(q) \
+	(((q)->attributes & NS_QUERYATTR_STALEPENDING) != 0)
 
 /*% Does the query allow stale data in the response? */
 #define QUERY_STALEOK(q) (((q)->attributes & NS_QUERYATTR_STALEOK) != 0)
@@ -5926,7 +5930,7 @@ query_lookup(query_ctx_t *qctx) {
 					dns_resolver_destroyfetch(
 						&qctx->client->query.fetch);
 				}
-				return query_lookup(qctx);
+				return (query_lookup(qctx));
 			} else {
 				/*
 				 * Immediately return the stale answer, start a
@@ -5955,6 +5959,13 @@ query_lookup(query_ctx_t *qctx) {
 			if (!stale_found) {
 				return (result);
 			}
+
+			/*
+			 * There still might be real answer later. Mark the
+			 * query so we'll know we can skip answering.
+			 */
+			qctx->client->query.attributes |=
+				NS_QUERYATTR_STALEPENDING;
 		}
 	}
 
@@ -5967,6 +5978,7 @@ query_lookup(query_ctx_t *qctx) {
 		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
 		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
 	}
+
 	result = query_gotanswer(qctx, result);
 
 	if (refresh_rrset) {
@@ -6072,10 +6084,12 @@ static void
 fetch_callback(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	dns_fetch_t *fetch = NULL;
-	ns_client_t *client;
-	bool fetch_canceled, client_shuttingdown;
-	isc_result_t result;
+	ns_client_t *client = NULL;
+	bool fetch_canceled = false;
+	bool fetch_answered = false;
+	bool client_shuttingdown = false;
 	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
+	isc_result_t result;
 	int errorloglevel;
 	query_ctx_t qctx;
 
@@ -6083,7 +6097,9 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE ||
 		event->ev_type == DNS_EVENT_TRYSTALE);
+
 	client = devent->ev_arg;
+
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
@@ -6095,7 +6111,6 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(ISC_EVENT_PTR(&event));
 		return;
 	}
-
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
 	 * that a lookup due to stale-answer-client-timeout may have set.
@@ -6107,13 +6122,23 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
-	if (client->query.fetch != NULL) {
+	INSIST(client->query.fetch == devent->fetch ||
+	       client->query.fetch == NULL);
+	if (QUERY_STALEPENDING(&client->query)) {
+		/*
+		 * We've gotten an authoritative answer to a query that
+		 * was left pending after a stale timeout. We don't need
+		 * to do anything with it; free all the data and go home.
+		 */
+		client->query.fetch = NULL;
+		fetch_answered = true;
+	} else if (client->query.fetch != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
 		INSIST(devent->fetch == client->query.fetch);
 		client->query.fetch = NULL;
-		fetch_canceled = false;
+
 		/*
 		 * Update client->now.
 		 */
@@ -6126,7 +6151,6 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		fetch_canceled = true;
 	}
 	UNLOCK(&client->query.fetchlock);
-	INSIST(client->query.fetch == NULL);
 
 	SAVE(fetch, devent->fetch);
 
@@ -6169,7 +6193,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	qctx_init(client, &devent, 0, &qctx);
 
 	client_shuttingdown = ns_client_shuttingdown(client);
-	if (fetch_canceled || client_shuttingdown) {
+	if (fetch_canceled || fetch_answered || client_shuttingdown) {
 		/*
 		 * We've timed out or are shutting down. We can now
 		 * free the event and other resources held by qctx, but
