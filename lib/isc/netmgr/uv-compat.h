@@ -55,6 +55,36 @@ uv_req_set_data(uv_req_t *req, void *data) {
 #define isc_uv_udp_connect uv_udp_connect
 #else
 
+#ifndef HAVE_UV_OS_GETENV
+#include <stdlib.h>
+#include <string.h>
+
+static inline int
+uv_os_getenv(const char *name, char *buffer, size_t *size) {
+	size_t len;
+	char *buf = getenv(name);
+
+	if (buf == NULL) {
+		return (UV_ENOENT);
+	}
+
+	len = strlen(buf) + 1;
+	if (len > *size) {
+		*size = len;
+		return (UV_ENOBUFS);
+	}
+
+	*size = len;
+	memmove(buffer, buf, len);
+
+	return (0);
+}
+#endif /* HAVE_UV_OS_GETENV */
+
+#ifndef HAVE_UV_OS_SETENV
+#define uv_os_setenv(name, value) setenv(name, value, 0)
+#endif /* HAVE_UV_OS_SETENV */
+
 int
 isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr);
 /*%<

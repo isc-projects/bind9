@@ -510,6 +510,12 @@
 /* Define to 1 if you have the `uv_handle_set_data' function. */
 #undef HAVE_UV_HANDLE_SET_DATA
 
+/* Define to 1 if you have the `uv_os_getenv' function. */
+#undef HAVE_UV_OS_GETENV
+
+/* Define to 1 if you have the `uv_os_setenv' function. */
+#undef HAVE_UV_OS_SETENV
+
 /* Define to 1 if you have the `uv_req_get_data' function. */
 #undef HAVE_UV_REQ_GET_DATA
 
