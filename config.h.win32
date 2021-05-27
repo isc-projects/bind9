@@ -379,13 +379,10 @@ typedef __int64 off_t;
 #define SSL_CTX_UP_REF 1
 
 /* Define to 1 if you have the `uv_handle_get_data' function. */
-@HAVE_UV_HANDLE_GET_DATA@
+#define HAVE_UV_HANDLE_GET_DATA 1
 
 /* Define to 1 if you have the `uv_handle_set_data' function. */
-@HAVE_UV_HANDLE_SET_DATA@
-
-/* Define to 1 if you have the `uv_import' function. */
-@HAVE_UV_IMPORT@
+#define HAVE_UV_HANDLE_SET_DATA 1
 
 /* GSSAPI Related defines */
 @HAVE_GSSAPI@
