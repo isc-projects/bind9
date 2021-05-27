@@ -1898,6 +1898,11 @@ opentmp(isc_mem_t *mctx, dns_masterformat_t format, const char *file,
 			      isc_result_totext(result));
 		goto cleanup;
 	}
+
+#if defined(POSIX_FADV_DONTNEED)
+	posix_fadvise(fileno(f), 0, 0, POSIX_FADV_DONTNEED);
+#endif
+
 	*tempp = tempname;
 	*fp = f;
 	return (ISC_R_SUCCESS);
