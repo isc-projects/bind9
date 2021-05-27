@@ -49,11 +49,11 @@
 #endif /* __GNUC__ */
 
 #if HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR && HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
-#define ISC_CONSTRUCTOR(priority) __attribute__((constructor(priority)))
-#define ISC_DESTRUCTOR(priority)  __attribute__((destructor(priority)))
+#define ISC_CONSTRUCTOR __attribute__((constructor))
+#define ISC_DESTRUCTOR	__attribute__((destructor))
 #elif WIN32
-#define ISC_CONSTRUCTOR(priority)
-#define ISC_DESTRUCTOR(priority)
+#define ISC_CONSTRUCTOR
+#define ISC_DESTRUCTOR
 #endif
 
 /*%
