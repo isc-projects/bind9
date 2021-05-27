@@ -130,13 +130,6 @@ struct dns_rdataset {
 	 */
 	isc_stdtime_t resign;
 
-	/*
-	 * When a cache rdataset's TTL has expired but it hasn't been
-	 * cleaned up yet, it will have this value set so that the time
-	 * it expired can be printed by dns_master_dump*().
-	 */
-	isc_stdtime_t expired;
-
 	/*@{*/
 	/*%
 	 * These are for use by the rdataset implementation, and MUST NOT

@@ -3135,7 +3135,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->type = RBTDB_RDATATYPE_BASE(header->type);
 	rdataset->covers = RBTDB_RDATATYPE_EXT(header->type);
 	rdataset->ttl = header->rdh_ttl - now;
-	rdataset->expired = 0;
 	rdataset->trust = header->trust;
 
 	if (NEGATIVE(header)) {
@@ -3164,8 +3163,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
 	} else if (IS_CACHE(rbtdb) && !ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
-		rdataset->expired = header->rdh_ttl;
-		rdataset->ttl = 0;
+		rdataset->ttl = header->rdh_ttl;
 	}
 
 	rdataset->private1 = rbtdb;
