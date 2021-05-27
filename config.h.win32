@@ -376,24 +376,6 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `SSL_CTX_up_ref' function. */
 #define SSL_CTX_UP_REF 1
 
-/* Define to 1 if you have the `uv_handle_get_data' function. */
-#define HAVE_UV_HANDLE_GET_DATA 1
-
-/* Define to 1 if you have the `uv_handle_set_data' function. */
-#define HAVE_UV_HANDLE_SET_DATA 1
-
-/* Define to 1 if you have the `uv_os_getenv' function. */
-#define HAVE_UV_OS_GETENV 1
-
-/* Define to 1 if you have the `uv_os_setenv' function. */
-#define HAVE_UV_OS_SETENV 1
-
-/* Define to 1 if you have the `uv_req_get_data' function. */
-#define HAVE_UV_REQ_GET_DATA 1
-
-/* Define to 1 if you have the `uv_req_set_data' function. */
-#define HAVE_UV_REQ_SET_DATA 1
-
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double
