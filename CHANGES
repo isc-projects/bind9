@@ -1,3 +1,7 @@
+5650.	[bug]		Prevent a crash that could occur if serve-stale
+			was enabled and a prefetch was triggered during a
+			query restart. [GL #2733]
+
 5649.	[bug]		If a query was answered with stale data on a server
 			with DNS64 enabled, an assertion could occur if a
 			non-stale answer arrived afterward. [GL #2731]

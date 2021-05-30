@@ -64,3 +64,7 @@ Bug Fixes
 - If a query was answered with stale data on a server with DNS64 enabled,
   an assertion could occur if a non-stale answer arrived afterward. This
   has been fixed. :gl:`#2731`
+
+- Fixed an assertion failure that could occur if stale data was used
+  to answer a query, and then a prefetch was triggered after the query
+  was restarted (for example, to follow a CNAME). :gl:`#2733`
