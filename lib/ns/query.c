@@ -5811,6 +5811,7 @@ query_lookup(query_ctx_t *qctx) {
 		{
 			qctx->rdataset->ttl = qctx->view->staleanswerttl;
 			stale_found = true;
+			inc_stats(qctx->client, ns_statscounter_usedstale);
 		} else {
 			stale_found = false;
 		}

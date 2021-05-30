@@ -1114,7 +1114,7 @@ again:
 				char buf[sizeof("YYYYMMDDHHMMSS")];
 				memset(buf, 0, sizeof(buf));
 				isc_buffer_init(&b, buf, sizeof(buf) - 1);
-				dns_time64_totext((uint64_t)rds->stale_ttl, &b);
+				dns_time64_totext((uint64_t)rds->ttl, &b);
 				fprintf(f,
 					"; expired since %s "
 					"(awaiting cleanup)\n",
