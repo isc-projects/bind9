@@ -3136,6 +3136,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->covers = RBTDB_RDATATYPE_EXT(header->type);
 	rdataset->ttl = header->rdh_ttl - now;
 	rdataset->trust = header->trust;
+
 	if (NEGATIVE(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_NEGATIVE;
 	}
@@ -3148,23 +3149,21 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	if (PREFETCH(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	}
+
 	if (stale && !ancient) {
 		dns_ttl_t stale_ttl = header->rdh_ttl + rbtdb->serve_stale_ttl;
 		if (stale_ttl > now) {
-			stale_ttl = stale_ttl - now;
+			rdataset->ttl = stale_ttl - now;
 		} else {
-			stale_ttl = 0;
+			rdataset->ttl = 0;
 		}
 		if (STALE_WINDOW(header)) {
 			rdataset->attributes |= DNS_RDATASETATTR_STALE_WINDOW;
 		}
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
-		rdataset->stale_ttl = stale_ttl;
-		rdataset->ttl = stale_ttl;
 	} else if (IS_CACHE(rbtdb) && !ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
-		rdataset->stale_ttl = header->rdh_ttl;
-		rdataset->ttl = 0;
+		rdataset->ttl = header->rdh_ttl;
 	}
 
 	rdataset->private1 = rbtdb;
@@ -5589,7 +5588,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		  isc_rwlocktype_write);
 
 	for (header = rbtnode->data; header != NULL; header = header->next) {
-		if (header->rdh_ttl <= now - RBTDB_VIRTUAL) {
+		if (header->rdh_ttl + rbtdb->serve_stale_ttl <=
+		    now - RBTDB_VIRTUAL) {
 			/*
 			 * We don't check if refcurrent(rbtnode) == 0 and try
 			 * to free like we do in cache_find(), because
@@ -5860,7 +5860,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (!ACTIVE(header, now)) {
-			if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
+			if ((header->rdh_ttl + rbtdb->serve_stale_ttl <
+			     now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS))
 			{
@@ -6957,7 +6958,9 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 
 		header = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
-		if (header && header->rdh_ttl < now - RBTDB_VIRTUAL) {
+		if (header != NULL && header->rdh_ttl + rbtdb->serve_stale_ttl <
+					      now - RBTDB_VIRTUAL)
+		{
 			expire_header(rbtdb, header, tree_locked, expire_ttl);
 		}
 
