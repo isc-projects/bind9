@@ -6118,6 +6118,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	if (client->view->cachedb != NULL && client->view->recursion) {
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
+	client->query.fetchoptions &= ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	client->query.dboptions &= ~DNS_DBFIND_STALETIMEOUT;
 	client->nodetach = false;
 
