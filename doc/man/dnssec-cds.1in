@@ -1,5 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
+.TH "DNSSEC-CDS" "1" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.SH NAME
+dnssec-cds \- change DS records for a child zone based on CDS/CDNSKEY
 .
 .nr rst2man-indent-level 0
 .
@@ -27,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "DNSSEC-CDS" "1" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
-.SH NAME
-dnssec-cds \- change DS records for a child zone based on CDS/CDNSKEY
 .SH SYNOPSIS
 .sp
 \fBdnssec\-cds\fP [\fB\-a\fP alg...] [\fB\-c\fP class] [\fB\-D\fP] {\fB\-d\fP dsset\-file} {\fB\-f\fP child\-file} [\fB\-i**[extension]] [\fP\-s** start\-time] [\fB\-T\fP ttl] [\fB\-u\fP] [\fB\-v\fP level] [\fB\-V\fP] {domain}
