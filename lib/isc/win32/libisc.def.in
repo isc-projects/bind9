@@ -100,6 +100,7 @@ isc_socketmgr_getmaxsockets
 isc_socketmgr_setreserved
 isc_socketmgr_setstats
 isc_task_getname
+isc_task_getnetmgr
 isc_task_gettag
 isc_task_ready
 isc_task_run
@@ -474,11 +475,13 @@ isc_nm_tcpdnsconnect
 isc_nm_gettimeouts
 isc_nm_setnetbuffers
 isc_nm_settimeouts
+isc_nm_task_enqueue
 isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
 isc_nm_tlsdnsconnect
 isc_nm_udpconnect
+isc_nm_work_offload
 isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked

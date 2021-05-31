@@ -774,6 +774,13 @@ isc_task_gettag(isc_task_t *task) {
 	return (task->tag);
 }
 
+isc_nm_t *
+isc_task_getnetmgr(isc_task_t *task) {
+	REQUIRE(VALID_TASK(task));
+
+	return (task->manager->netmgr);
+}
+
 /***
  *** Task Manager.
  ***/

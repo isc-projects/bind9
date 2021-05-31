@@ -33,6 +33,9 @@ New Features
   became clogged up with queries that are too old and have already timeouted
   on the receiving side. :gl:`#2313`
 
+- Run zone dumping tasks on separate asynchronous thread pools.  This change
+  makes zone dumping no longer block networking I/O. :gl:`#2732`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

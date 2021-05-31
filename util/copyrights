@@ -2260,4 +2260,3 @@
 ./win32utils/Configure				PERL	2013,2014,2015,2016,2017,2018,2019,2020,2021
 ./win32utils/GeoIP.diff				X	2013,2018,2019,2020,2021
 ./win32utils/bind9.sln.in			X	2013,2014,2015,2016,2017,2018,2019,2020
-./win32utils/libuv.diff				X	2020,2021

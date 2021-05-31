@@ -511,6 +511,9 @@ isc_task_getname(isc_task_t *task);
  *
  */
 
+isc_nm_t *
+isc_task_getnetmgr(isc_task_t *task);
+
 void *
 isc_task_gettag(isc_task_t *task);
 /*%<
