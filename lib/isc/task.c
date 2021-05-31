@@ -799,6 +799,13 @@ isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t) {
 	UNLOCK(&task->lock);
 }
 
+isc_nm_t *
+isc_task_getnetmgr(isc_task_t *task) {
+	REQUIRE(VALID_TASK(task));
+
+	return (task->manager->netmgr);
+}
+
 /***
  *** Task Manager.
  ***/

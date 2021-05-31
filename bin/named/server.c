@@ -11089,7 +11089,7 @@ resume:
 				";\n; Cache dump of view '%s' (cache %s)\n;\n",
 				dctx->view->view->name,
 				dns_cache_getname(dctx->view->view->cache));
-			result = dns_master_dumptostreaminc(
+			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->cache, NULL, style, dctx->fp,
 				dctx->task, dumpdone, dctx, &dctx->mdctx);
 			if (result == DNS_R_CONTINUE) {
@@ -11149,7 +11149,7 @@ resume:
 				goto nextzone;
 			}
 			dns_db_currentversion(dctx->db, &dctx->version);
-			result = dns_master_dumptostreaminc(
+			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->db, dctx->version, style,
 				dctx->fp, dctx->task, dumpdone, dctx,
 				&dctx->mdctx);

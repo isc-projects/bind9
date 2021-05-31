@@ -480,6 +480,7 @@ isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
 isc_nm_udpconnect
+isc_nm_work_offload
 isc_nmsocket_close
 isc__nm_acquire_interlocked
 isc__nm_drop_interlocked
@@ -640,6 +641,7 @@ isc_task_getname
 isc_task_unsendrange
 isc_task_getcurrenttime
 isc_task_getcurrenttimex
+isc_task_getnetmgr
 isc_task_getprivilege
 isc_task_gettag
 isc_task_onshutdown
