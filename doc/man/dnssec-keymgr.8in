@@ -1,5 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
+.TH "DNSSEC-KEYMGR" "8" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
+.SH NAME
+dnssec-keymgr \- ensure correct DNSKEY coverage based on a defined policy
 .
 .nr rst2man-indent-level 0
 .
@@ -27,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "DNSSEC-KEYMGR" "8" "@RELEASE_DATE@" "@BIND9_VERSION@" "BIND 9"
-.SH NAME
-dnssec-keymgr \- ensure correct DNSKEY coverage based on a defined policy
 .SH SYNOPSIS
 .sp
 \fBdnssec\-keymgr\fP [\fB\-K\fP\fIdirectory\fP] [\fB\-c\fP\fIfile\fP] [\fB\-f\fP] [\fB\-k\fP] [\fB\-q\fP] [\fB\-v\fP] [\fB\-z\fP] [\fB\-g\fP\fIpath\fP] [\fB\-s\fP\fIpath\fP] [zone...]
