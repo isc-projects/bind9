@@ -1,5 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
+.TH "RNDC" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.SH NAME
+rndc \- name server control utility
 .
 .nr rst2man-indent-level 0
 .
@@ -27,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "RNDC" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
-.SH NAME
-rndc \- name server control utility
 .SH SYNOPSIS
 .sp
 \fBrndc\fP [\fB\-b\fP source\-address] [\fB\-c\fP config\-file] [\fB\-k\fP key\-file] [\fB\-s\fP server] [\fB\-p\fP port] [\fB\-q\fP] [\fB\-r\fP] [\fB\-V\fP] [\fB\-y\fP key_id] [[\fB\-4\fP] | [\fB\-6\fP]] {command}

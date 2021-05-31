@@ -1,5 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
+.TH "RNDC-CONFGEN" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.SH NAME
+rndc-confgen \- rndc key generation tool
 .
 .nr rst2man-indent-level 0
 .
@@ -27,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "RNDC-CONFGEN" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
-.SH NAME
-rndc-confgen \- rndc key generation tool
 .SH SYNOPSIS
 .sp
 \fBrndc\-confgen\fP [\fB\-a\fP] [\fB\-A\fP algorithm] [\fB\-b\fP keysize] [\fB\-c\fP keyfile] [\fB\-h\fP] [\fB\-k\fP keyname] [\fB\-p\fP port] [\fB\-s\fP address] [\fB\-t\fP chrootdir] [\fB\-u\fP user]
