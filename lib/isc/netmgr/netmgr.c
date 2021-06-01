@@ -1727,7 +1727,8 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 	return (handle->sock->type == isc_nm_tcpsocket ||
 		handle->sock->type == isc_nm_tcpdnssocket ||
 		handle->sock->type == isc_nm_tlssocket ||
-		handle->sock->type == isc_nm_tlsdnssocket);
+		handle->sock->type == isc_nm_tlsdnssocket ||
+		handle->sock->type == isc_nm_httpsocket);
 }
 
 static void

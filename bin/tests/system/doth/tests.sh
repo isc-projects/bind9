@@ -182,5 +182,41 @@ grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "checking DoH query for a large answer (POST) ($n)"
+ret=0
+dig_with_https_opts @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query for a large answer (GET) ($n)"
+ret=0
+dig_with_https_opts +https-get @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking unencrypted DoH query for a large answer (POST) ($n)"
+ret=0
+dig_with_http_opts @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking unencrypted DoH query for a large answer (POST) ($n)"
+ret=0
+dig_with_http_opts +http-plain-get @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
