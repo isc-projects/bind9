@@ -40,6 +40,11 @@ New Features
   gradually instead all-at-once to be able to grow the memory usage gradually
   while keeping steady response rate during the rehashing. :gl:`#2941`
 
+- Add finer-grained ``update-policy`` rule types, ``krb5-subdomain-self-rhs``
+  and ``ms-subdomain-self-rhs``, that restrict updates to SRV and PTR records
+  so that their content can only match the machine name embedded in the
+  Kerberos principal making the change. :gl:`#481`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
