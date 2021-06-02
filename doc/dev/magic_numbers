@@ -1,7 +1,3 @@
-Copyright (C) Internet Systems Consortium, Inc. ("ISC")
-
-See COPYRIGHT in the source root or https://isc.org/copyright.html for terms.
-
 Magic Numbers
 
 A number of data structures in the ISC and DNS libraries have an unsigned int

@@ -30,7 +30,7 @@ $year += 1900;
 open(CHANGES, "git ls-files | sed 's;^;./;' | sort |") || die "git ls-files: $!";
 while (<CHANGES>) {
     chomp;
-    
+
     next if (m%/\. |         # just ignore all hidden files
 	       /ChangeLog       |   #
 	       Makefile.(am|in) |   # build system doesn't need to have copyright
@@ -56,6 +56,7 @@ while (<CHANGES>) {
 	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/dnssec-guide/img/ |		# images
+	       doc/dev/ |                       # developer notes
 	       doc/(draft|expired|rfc)/ |	# imported
 	       doc/notes/ |     # release notes doesn't really need copyright
 	       \.*in$ |         # the generated documentation doesn't really need copyright

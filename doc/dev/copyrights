@@ -1,6 +1,4 @@
-#
-# Merge and Update copyrights
-#
+Merge and Update copyrights
 
 git clean -dfx
 perl util/merge_copyrights
