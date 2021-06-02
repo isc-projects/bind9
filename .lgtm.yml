@@ -13,6 +13,7 @@ extraction:
       - "libidn2-dev"
       - "libmaxminddb-dev"
       - "libuv1-dev"
+      - "libnghttp2-dev"
     configure:
       command:
       - "autoreconf -fi"
