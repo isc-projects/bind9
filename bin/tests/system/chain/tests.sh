@@ -292,5 +292,23 @@ grep 'status: NOERROR' dig.out.7.$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Regression test for CVE-2021-25215 (authoritative server).
+n=`expr $n + 1`
+echo_i "checking DNAME resolution via itself (authoritative) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.2 DNAME self.domain0.self.domain0.nil. > dig.out.2.$n 2>&1
+grep 'status: NOERROR' dig.out.2.$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+# Regression test for CVE-2021-25215 (recursive resolver).
+n=`expr $n + 1`
+echo_i "checking DNAME resolution via itself (recursive) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 DNAME self.example.self.example.dname. > dig.out.7.$n 2>&1
+grep 'status: NOERROR' dig.out.7.$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
