@@ -71,3 +71,7 @@ Bug Fixes
 - Fixed an assertion failure that could occur if stale data was used
   to answer a query, and then a prefetch was triggered after the query
   was restarted (for example, to follow a CNAME). :gl:`#2733`
+
+- Fix an error that would enable don't fragment socket option instead
+  of disabling it leading to errors when sending the oversized UDP
+  packets. [GL #2746]
