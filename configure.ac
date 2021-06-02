@@ -727,19 +727,6 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 AC_MSG_CHECKING(for libuv)
 PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
 		  [AC_MSG_ERROR([libuv not found])])
-AC_SUBST([LIBUV_CFLAGS])
-AC_SUBST([LIBUV_LIBS])
-
-AX_SAVE_FLAGS([libuv])
-CFLAGS="$CFLAGS $LIBUV_CFLAGS"
-LIBS="$LDFLAGS $LIBUV_LIBS"
-# Those functions are only provided in newer versions of libuv, we'll be emulating them
-# for now
-AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data])
-AC_CHECK_FUNCS([uv_req_get_data uv_req_set_data])
-AC_CHECK_FUNCS([uv_udp_connect uv_translate_sys_error uv_sleep])
-AC_CHECK_FUNCS([uv_os_getenv uv_os_setenv])
-AX_RESTORE_FLAGS([libuv])
 
 #
 # flockfile is usually provided by pthreads

@@ -36,11 +36,11 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 #ifdef WIN32
 		return (uv_translate_sys_error(err));
 #else /* WIN32 */
-#ifdef HAVE_UV_TRANSLATE_SYS_ERROR
+#if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
 		return (uv_translate_sys_error(errno));
 #else
 		return (-errno);
-#endif /* HAVE_UV_TRANSLATE_SYS_ERROR */
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
 #endif /* WIN32 */
 	}
 
