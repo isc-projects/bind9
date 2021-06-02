@@ -2817,7 +2817,7 @@ isc__nm_closesocket(uv_os_sock_t sock) {
 	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
 
 #define setsockopt_off(socket, level, name) \
-	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
+	setsockopt(socket, level, name, &(int){ 0 }, sizeof(int))
 
 isc_result_t
 isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
