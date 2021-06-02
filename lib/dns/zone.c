@@ -6479,6 +6479,7 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when,
 	unsigned int delta;
 	char timebuf[80];
 
+	LOCK_ZONE(zone);
 	zone->key_expiry = when;
 	if (when <= now) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -6502,6 +6503,7 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when,
 		dns_zone_log(zone, ISC_LOG_NOTICE, "setting keywarntime to %s",
 			     timebuf);
 	}
+	UNLOCK_ZONE(zone);
 }
 
 /*
