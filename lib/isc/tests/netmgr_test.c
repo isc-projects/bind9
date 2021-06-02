@@ -677,7 +677,7 @@ mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-#if HAVE_UV_UDP_CONNECT
+#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 static void
 mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
@@ -2098,7 +2098,7 @@ main(void) {
 						nm_setup, nm_teardown),
 		cmocka_unit_test_setup_teardown(mock_udpconnect_uv_udp_bind,
 						nm_setup, nm_teardown),
-#if HAVE_UV_UDP_CONNECT
+#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 		cmocka_unit_test_setup_teardown(mock_udpconnect_uv_udp_connect,
 						nm_setup, nm_teardown),
 #endif

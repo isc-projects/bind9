@@ -584,7 +584,7 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		return (ISC_R_CANCELED);
 	}
 
-#ifdef HAVE_UV_UDP_CONNECT
+#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 	/*
 	 * If we used uv_udp_connect() (and not the shim version for
 	 * older versions of libuv), then the peer address has to be

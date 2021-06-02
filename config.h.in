@@ -504,33 +504,6 @@
 /* define if the compiler supports _Unwind_Backtrace() */
 #undef HAVE_UNWIND_BACKTRACE
 
-/* Define to 1 if you have the `uv_handle_get_data' function. */
-#undef HAVE_UV_HANDLE_GET_DATA
-
-/* Define to 1 if you have the `uv_handle_set_data' function. */
-#undef HAVE_UV_HANDLE_SET_DATA
-
-/* Define to 1 if you have the `uv_os_getenv' function. */
-#undef HAVE_UV_OS_GETENV
-
-/* Define to 1 if you have the `uv_os_setenv' function. */
-#undef HAVE_UV_OS_SETENV
-
-/* Define to 1 if you have the `uv_req_get_data' function. */
-#undef HAVE_UV_REQ_GET_DATA
-
-/* Define to 1 if you have the `uv_req_set_data' function. */
-#undef HAVE_UV_REQ_SET_DATA
-
-/* Define to 1 if you have the `uv_sleep' function. */
-#undef HAVE_UV_SLEEP
-
-/* Define to 1 if you have the `uv_translate_sys_error' function. */
-#undef HAVE_UV_TRANSLATE_SYS_ERROR
-
-/* Define to 1 if you have the `uv_udp_connect' function. */
-#undef HAVE_UV_UDP_CONNECT
-
 /* Use zlib library */
 #undef HAVE_ZLIB
 
