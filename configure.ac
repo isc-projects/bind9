@@ -1176,7 +1176,7 @@ AC_CHECK_HEADERS(
 	 AX_RESTORE_FLAGS([atomic])
 	])
      ],
-     [AC_MSG_RESULT([__sync builtins])
+     [AC_MSG_FAILURE([not found])
      ])
   ])
 LIBS="$LIBS $ISC_ATOMIC_LIBS"

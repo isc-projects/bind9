@@ -17,11 +17,11 @@ the OpenSSL cryptography library, and the `nghttp2` HTTP/2 library.
 
 The following C11 features are used in BIND 9:
 
-* Atomic operations support from the compiler is needed, either in the form of
-  builtin operations.
+* Atomic operations support, either in the form of C11 atomics or
+  `__atomic` builtin operations.
 
-* Thread Local Storage support from the compiler is needed, either in the form
-  of C11 `_Thread_local`/`thread_local`, or the `__thread` GCC extension.
+* Thread Local Storage support, either in the form of C11
+  `_Thread_local`/`thread_local`, or the `__thread` GCC extension.
 
 The C11 variants are preferred.
 
