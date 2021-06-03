@@ -1,14 +1,18 @@
-Merge and Update copyrights
+<!--
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
-git clean -dfx
-perl util/merge_copyrights
-diff util/copyrights util/newcopyrights
-... examine output, particularly any files with the "?" type, and
-... then edit util/newcopyrights if necessary
-mv util/newcopyrights util/copyrights
-perl util/update_copyrights < util/copyrights
-git diff
-... examine output, edit as necessary.  mail me about anything that
-... the script should have been able to do itself. :-)
-git add util/copyrights
-git commit -m 'update_copyrights'
+SPDX-License-Identifier: MPL-2.0
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0.  If a copy of the MPL was not distributed with this
+file, you can obtain one at https://mozilla.org/MPL/2.0/.
+
+See the COPYRIGHT file distributed with this work for additional
+information regarding copyright ownership.
+-->
+
+* C files: `reuse addheader --license MPL-2.0 --copyright 'Internet Systems Consortium, Inc. ("ISC")' --style c --copyright-style string-c --multi-line --exclude-year --template=isc <file>`
+* RST files: `reuse addheader --license MPL-2.0 --copyright 'Internet Systems Consortium, Inc. ("ISC")' --style rst --copyright-style string-c --exclude-year --template=isc <file>`
+* named.conf: same as C files
+* zone files are using lisp style: reuse addheader --license MPL-2.0 --copyright 'Internet Systems Consortium, Inc. ("ISC")' --style lisp --copyright-style string-c --exclude-year --template=isc <file>
+* shell uses python style: reuse addheader --license MPL-2.0 --copyright 'Internet Systems Consortium, Inc. ("ISC")' --style python --copyright-style string-c --exclude-year --template=isc <file>
