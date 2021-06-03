@@ -460,6 +460,15 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+reuse:
+  <<: *precheck_job
+  needs: []
+  image:
+    name: docker.io/fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
+
 danger:
   <<: *precheck_job
   needs: []
