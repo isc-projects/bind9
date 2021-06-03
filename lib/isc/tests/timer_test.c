@@ -113,6 +113,8 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 
 	isc_condition_init(&cv);
 
+	atomic_store(&errcnt, ISC_R_SUCCESS);
+
 	LOCK(&mx);
 
 	result = isc_task_create(taskmgr, 0, &task);
