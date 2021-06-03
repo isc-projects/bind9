@@ -429,11 +429,6 @@ misc:
     - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
     - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
     - rm CHANGES.tmp
-    - perl -w util/merge_copyrights
-    - diff -urNap util/copyrights util/newcopyrights
-    - rm util/newcopyrights
-    - perl -w util/update_copyrights < util/copyrights
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - sh util/check-win32util-configure
     - sh util/check-categories.sh
@@ -441,7 +436,6 @@ misc:
   needs: []
   artifacts:
     paths:
-      - util/newcopyrights
       - checklibs.out
     expire_in: "1 day"
     when: on_failure
