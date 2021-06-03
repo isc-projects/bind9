@@ -155,25 +155,38 @@ set_global_error(isc_result_t result) {
 }
 
 static void
-subthread_assert_true(bool expected) {
+subthread_assert_true(bool expected, const char *file, unsigned int line) {
 	if (!expected) {
+		printf("# %s:%u subthread_assert_true\n", file, line);
 		set_global_error(ISC_R_UNEXPECTED);
 	}
 }
+#define subthread_assert_true(expected) \
+	subthread_assert_true(expected, __FILE__, __LINE__)
 
 static void
-subthread_assert_int_equal(int observed, int expected) {
+subthread_assert_int_equal(int observed, int expected, const char *file,
+			   unsigned int line) {
 	if (observed != expected) {
+		printf("# %s:%u subthread_assert_int_equal(%d != %d)\n", file,
+		       line, observed, expected);
 		set_global_error(ISC_R_UNEXPECTED);
 	}
 }
+#define subthread_assert_int_equal(observed, expected) \
+	subthread_assert_int_equal(observed, expected, __FILE__, __LINE__)
 
 static void
-subthread_assert_result_equal(isc_result_t result, isc_result_t expected) {
+subthread_assert_result_equal(isc_result_t result, isc_result_t expected,
+			      const char *file, unsigned int line) {
 	if (result != expected) {
+		printf("# %s:%u subthread_assert_result_equal(%u != %u)\n",
+		       file, line, result, expected);
 		set_global_error(result);
 	}
 }
+#define subthread_assert_result_equal(observed, expected) \
+	subthread_assert_result_equal(observed, expected, __FILE__, __LINE__)
 
 static void
 ticktock(isc_task_t *task, isc_event_t *event) {
