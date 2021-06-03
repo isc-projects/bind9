@@ -1705,20 +1705,25 @@ n=$((n+1))
 echo_i "check not in cache longttl.example times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
 wait_for_log 3 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
-waitfile() {
+check_results() {
     [ -s "$1" ] || return 1
+    grep "connection timed out" "$1" > /dev/null || return 1
+    return 0
 }
-retry_quiet 3 waitfile dig.out.test$n || ret=1
-grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+retry_quiet 3 check_results dig.out.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "check not in cache longttl.example comes from authoritative (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-retry_quiet 7 waitfile dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+check_results() {
+    [ -s "$1" ] || return 1
+    grep "status: NOERROR" "$1" > /dev/null || return 1
+    grep "ANSWER: 1," "$1" > /dev/null || return 1
+    return 0
+}
+retry_quiet 7 check_results dig.out.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
