@@ -248,28 +248,6 @@ AS_IF([test "$enable_fuzzing" = "afl"],
 			 [AC_MSG_ERROR([set CC=afl-<gcc|clang> when --enable-fuzzing=afl is used])])
       ])
 
-# [pairwise: --enable-mutex-atomics, --disable-mutex-atomics]
-AC_ARG_ENABLE(mutex_atomics,
-	      AS_HELP_STRING([--enable-mutex-atomics],
-			     [emulate atomics by mutex-locked variables, useful for debugging
-				[default=no]]),
-	      [],
-	      [enable_mutex_atomics=no])
-
-AC_MSG_CHECKING([whether to emulate atomics with mutexes])
-case "$enable_mutex_atomics" in
-yes)
-	AC_MSG_RESULT(yes)
-	AC_DEFINE(ISC_MUTEX_ATOMICS, 1, [Define to emulate atomic variables with mutexes.])
-	;;
-no)
-	AC_MSG_RESULT(no)
-	;;
-*)
-	AC_MSG_ERROR("--enable-mutex-atomics requires yes or no")
-	;;
-esac
-
 #
 # Perl is optional; it is used only by some of the system test scripts.
 #
