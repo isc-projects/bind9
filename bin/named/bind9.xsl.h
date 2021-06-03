@@ -4,18 +4,6 @@
  */
 static char xslmsg[] =
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-	"<!--\n"
-	" - Copyright (C) Internet Systems Consortium, Inc. (\"ISC\")\n"
-	" -\n"
-	" - This Source Code Form is subject to the terms of the Mozilla "
-	"Public\n"
-	" - License, v. 2.0. If a copy of the MPL was not distributed with "
-	"this\n"
-	" - file, you can obtain one at https://mozilla.org/MPL/2.0/.\n"
-	" -\n"
-	" - See the COPYRIGHT file distributed with this work for additional\n"
-	" - information regarding copyright ownership.\n"
-	"-->\n"
 	"\n"
 	"<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" "
 	"xmlns=\"http://www.w3.org/1999/xhtml\" version=\"1.0\">\n"
