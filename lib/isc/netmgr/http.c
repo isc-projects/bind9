@@ -111,7 +111,7 @@ typedef struct http_cstream {
 	size_t GET_path_len;
 
 	isc_nm_http_response_status_t response_status;
-
+	isc_nmsocket_t *httpsock;
 	LINK(struct http_cstream) link;
 } http_cstream_t;
 
@@ -375,6 +375,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 		return (result);
 	}
 
+	isc__nmsocket_attach(sock, &stream->httpsock);
 	stream->authoritylen = stream->up.field_data[ISC_UF_HOST].len;
 	stream->authority = isc_mem_get(mctx, stream->authoritylen + AUTHEXTRA);
 	memmove(stream->authority, &uri[stream->up.field_data[ISC_UF_HOST].off],
@@ -416,6 +417,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 			stream->up.field_data[ISC_UF_QUERY].len);
 	}
 
+	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
 
 	return (ISC_R_SUCCESS);
@@ -436,6 +438,14 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 		isc_mem_put(mctx, stream->postdata.base,
 			    stream->postdata.length);
 	}
+	if (stream == stream->httpsock->h2.connect.cstream) {
+		stream->httpsock->h2.connect.cstream = NULL;
+	}
+	if (ISC_LINK_LINKED(stream, link)) {
+		ISC_LIST_UNLINK(stream->httpsock->h2.session->cstreams, stream,
+				link);
+	}
+	isc__nmsocket_detach(&stream->httpsock);
 	isc_mem_put(mctx, stream, sizeof(http_cstream_t));
 }
 
@@ -1514,14 +1524,11 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	}
 
 	cstream->sending = true;
-	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_PREPEND(session->cstreams, cstream, link);
-	}
 
 	sock->h2.connect.cstream = NULL;
 	result = client_submit_request(session, cstream);
 	if (result != ISC_R_SUCCESS) {
-		ISC_LIST_UNLINK(session->cstreams, cstream, link);
+		put_http_cstream(session->mctx, cstream);
 		goto error;
 	}
 
@@ -2163,14 +2170,10 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	cstream->read_cbarg = cbarg;
 	cstream->reading = true;
 
-	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_PREPEND(session->cstreams, cstream, link);
-	}
-
 	if (cstream->sending) {
 		result = client_submit_request(session, cstream);
 		if (result != ISC_R_SUCCESS) {
-			ISC_LIST_UNLINK(session->cstreams, cstream, link);
+			put_http_cstream(session->mctx, cstream);
 			return;
 		}
 
@@ -2608,12 +2611,21 @@ client_call_failed_read_cb(isc_result_t result,
 	cstream = ISC_LIST_HEAD(session->cstreams);
 	while (cstream != NULL) {
 		http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-		cstream->read_cb(
-			session->client_httphandle, result,
-			&(isc_region_t){ cstream->rbuf, cstream->rbufsize },
-			cstream->read_cbarg);
 
-		if (result != ISC_R_TIMEDOUT ||
+		/*
+		 * read_cb could be NULL if cstream was allocated and added
+		 * to the tracking list, but was not properly initialized due
+		 * to a low-level error. It is safe to get rid of the object
+		 * in such a case.
+		 */
+		if (cstream->read_cb != NULL) {
+			cstream->read_cb(session->client_httphandle, result,
+					 &(isc_region_t){ cstream->rbuf,
+							  cstream->rbufsize },
+					 cstream->read_cbarg);
+		}
+
+		if (result != ISC_R_TIMEDOUT || cstream->read_cb == NULL ||
 		    !isc__nmsocket_timer_running(session->handle->sock))
 		{
 			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
@@ -2843,11 +2855,7 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 			sock->h2.query_data = NULL;
 		}
 
-		if (sock->h2.connect.cstream != NULL) {
-			put_http_cstream(sock->mgr->mctx,
-					 sock->h2.connect.cstream);
-			sock->h2.connect.cstream = NULL;
-		}
+		INSIST(sock->h2.connect.cstream == NULL);
 
 		if (sock->h2.buf != NULL) {
 			isc_mem_free(sock->mgr->mctx, sock->h2.buf);
