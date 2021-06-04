@@ -254,7 +254,6 @@ struct dns_dumpctx {
 	isc_mutex_t lock;
 	isc_refcount_t references;
 	atomic_bool canceled;
-	bool first;
 	bool do_date;
 	isc_stdtime_t now;
 	FILE *f;
@@ -1578,7 +1577,6 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dctx->done = NULL;
 	dctx->done_arg = NULL;
 	dctx->task = NULL;
-	dctx->first = true;
 	atomic_init(&dctx->canceled, false);
 	dctx->file = NULL;
 	dctx->tmpfile = NULL;
@@ -1737,7 +1735,6 @@ dumptostream(dns_dumpctx_t *dctx) {
 	char *bufmem;
 	dns_name_t *name;
 	dns_fixedname_t fixname;
-	isc_time_t start;
 
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
 
@@ -1745,32 +1742,24 @@ dumptostream(dns_dumpctx_t *dctx) {
 
 	name = dns_fixedname_initname(&fixname);
 
-	if (dctx->first) {
-		CHECK(writeheader(dctx));
+	CHECK(writeheader(dctx));
 
-		/*
-		 * Fast format is not currently written incrementally,
-		 * so we make the call to dns_db_serialize() here.
-		 * If the database is anything other than an rbtdb,
-		 * this should result in not implemented
-		 */
-		if (dctx->format == dns_masterformat_map) {
-			result = dns_db_serialize(dctx->db, dctx->version,
-						  dctx->f);
-			goto cleanup;
-		}
-
-		result = dns_dbiterator_first(dctx->dbiter);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
-			goto cleanup;
-		}
-
-		dctx->first = false;
-	} else {
-		result = ISC_R_SUCCESS;
+	/*
+	 * Fast format is not currently written incrementally,
+	 * so we make the call to dns_db_serialize() here.
+	 * If the database is anything other than an rbtdb,
+	 * this should result in not implemented
+	 */
+	if (dctx->format == dns_masterformat_map) {
+		result = dns_db_serialize(dctx->db, dctx->version, dctx->f);
+		goto cleanup;
 	}
 
-	isc_time_now(&start);
+	result = dns_dbiterator_first(dctx->dbiter);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
+		goto cleanup;
+	}
+
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_t *rdsiter = NULL;
 		dns_dbnode_t *node = NULL;
@@ -1790,6 +1779,10 @@ dumptostream(dns_dumpctx_t *dctx) {
 			}
 			dctx->tctx.neworigin = origin;
 		}
+
+		result = dns_dbiterator_pause(dctx->dbiter);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 		result = dns_db_allrdatasets(dctx->db, node, dctx->version,
 					     dctx->now, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
