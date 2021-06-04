@@ -696,12 +696,22 @@ client_on_header_callback(nghttp2_session *ngsession,
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(session->client);
-	REQUIRE(!ISC_LIST_EMPTY(session->cstreams));
 
 	UNUSED(flags);
 	UNUSED(ngsession);
 
 	cstream = find_http_cstream(frame->hd.stream_id, session);
+	if (cstream == NULL) {
+		/*
+		 * This could happen in two cases:
+		 * - the server sent us bad data, or
+		 * - we closed the session prematurely before receiving all
+		 *   responses (i.e., because of a belated or partial response).
+		 */
+		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+	}
+
+	INSIST(!ISC_LIST_EMPTY(session->cstreams));
 
 	switch (frame->hd.type) {
 	case NGHTTP2_HEADERS:
