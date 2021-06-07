@@ -114,7 +114,7 @@ n=$((n + 1))
 echo_i "checking DoH XFR (POST) (failure expected) ($n)"
 ret=0
 dig_with_https_opts +comm @10.53.0.1 . AXFR > dig.out.test$n
-grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+grep "; Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -154,7 +154,7 @@ n=$((n + 1))
 echo_i "checking DoH XFR (GET) (failure expected) ($n)"
 ret=0
 dig_with_https_opts +https-get +comm @10.53.0.1 . AXFR > dig.out.test$n
-grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+grep "; Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -178,7 +178,7 @@ n=$((n + 1))
 echo_i "checking unencrypted DoH XFR (failure expected) ($n)"
 ret=0
 dig_with_http_opts +comm @10.53.0.1 . AXFR > dig.out.test$n
-grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+grep "; Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

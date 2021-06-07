@@ -823,6 +823,7 @@ typedef struct isc_nmsocket_h2 {
 	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
 	isc_rwlock_t lock;
 
+	bool response_submitted;
 	struct {
 		char *uri;
 		bool post;

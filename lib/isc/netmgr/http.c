@@ -1910,6 +1910,15 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	nghttp2_data_provider data_prd;
 	int rv;
 
+	if (socket->h2.response_submitted) {
+		/* NGHTTP2 will gladly accept new response (write request)
+		 * from us even though we cannot send more than one over the
+		 * same HTTP/2 stream. Thus, we need to handle this case
+		 * manually. We will return failure code so that it will be
+		 * passed to the write callback. */
+		return (ISC_R_FAILURE);
+	}
+
 	data_prd.source.ptr = socket;
 	data_prd.read_callback = server_read_callback;
 
@@ -1918,6 +1927,8 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	if (rv != 0) {
 		return (ISC_R_FAILURE);
 	}
+
+	socket->h2.response_submitted = true;
 	return (ISC_R_SUCCESS);
 }
 
@@ -2693,6 +2704,14 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 		 */
 		finish_http_session(session);
 	}
+}
+
+bool
+isc_nm_is_http_handle(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->type == isc_nm_httpsocket);
 }
 
 static const bool base64url_validation_table[256] = {
