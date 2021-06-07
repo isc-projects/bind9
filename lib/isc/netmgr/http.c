@@ -140,7 +140,6 @@ struct isc_nm_http_session {
 	isc_nmhandle_t *handle;
 	isc_nmhandle_t *client_httphandle;
 	isc_nmsocket_t *serversocket;
-	isc_sockaddr_t server_iface;
 
 	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
 	size_t bufsize;
@@ -1337,6 +1336,9 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	session->client = true;
 	transp_sock->h2.session = session;
 	http_sock->h2.connect.tlsctx = NULL;
+	/* otherwise we will get some garbage output in DIG */
+	http_sock->iface = handle->sock->iface;
+	http_sock->peer = handle->sock->peer;
 
 	transp_sock->h2.connect.post = http_sock->h2.connect.post;
 	transp_sock->h2.connect.uri = http_sock->h2.connect.uri;
@@ -1604,7 +1606,8 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	socket = isc_mem_get(session->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(socket, session->serversocket->mgr,
 			   isc_nm_httpsocket,
-			   (isc_sockaddr_t *)&session->server_iface);
+			   (isc_sockaddr_t *)&session->handle->sock->iface);
+	socket->peer = session->handle->sock->peer;
 	socket->h2 = (isc_nmsocket_h2_t){
 		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
 		.psock = socket,
@@ -2356,7 +2359,6 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	isc_nmhandle_attach(handle, &session->handle);
 	isc__nmsocket_attach(httplistensock, &session->serversocket);
-	session->server_iface = isc_nmhandle_localaddr(session->handle);
 	server_send_connection_header(session);
 
 	/* TODO H2 */
