@@ -424,7 +424,7 @@ eui64			EUI64	01-23-45-67-89-ab-cd-ef
 ; The text representation is not specified in the draft.
 ; This example was written based on the bind9 RR parsing code.
 ;tkey01			TKEY	928321914 928321915 (
-;				255		; algorithm
+;				algorithm-name.	; algorithm
 ;				65535 		; mode
 ;				0		; error
 ;				3 		; key size
@@ -434,7 +434,7 @@ eui64			EUI64	01-23-45-67-89-ab-cd-ef
 ;				)
 ;; A TKEY with empty "other data"
 ;tkey02			TKEY	928321914 928321915 (
-;				255		; algorithm
+;				algorithm-name.	; algorithm
 ;				65535 		; mode
 ;				0		; error
 ;				3 		; key size
