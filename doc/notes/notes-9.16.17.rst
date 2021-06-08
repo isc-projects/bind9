@@ -11,26 +11,6 @@
 Notes for BIND 9.16.17
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -77,11 +57,3 @@ Bug Fixes
 - A race condition could occur when reading and writing key files for
   zones using KASP and configured in multiple views. This has been
   fixed. :gl:`#1875`
-
-- Fixed a bug that caused the NSEC salt to be changed for KASP zones on
-  every startup. :gl:`#2725`
-
-- Signed, insecure delegation responses prepared by ``named`` either
-  lacked the necessary NSEC records or contained duplicate NSEC records
-  when both wildcard expansion and CNAME chaining were required to
-  prepare the response. This has been fixed. :gl:`#2759`
