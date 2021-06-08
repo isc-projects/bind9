@@ -33,10 +33,6 @@ New Features
   decreasing it can prevent the server from becoming clogged with
   queries that are too old and have already timed out. :gl:`#2313`
 
-- Zone dumping tasks are now run on separate asynchronous thread pools.
-  This change prevents zone dumping from blocking network I/O.
-  :gl:`#2732`
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -47,6 +43,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Zone dumping tasks are now run on separate asynchronous thread pools.
+  This change prevents zone dumping from blocking network I/O.
+  :gl:`#2732`
+
 - The interface handling code has been refactored to use fewer
   resources, which should lead to less memory fragmentation and better
   startup performance. :gl:`#2433`
@@ -54,30 +54,30 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- A race condition could occur when reading and writing key files for
-  zones using KASP and configured in multiple views. This has been
-  fixed. :gl:`#1875`
+- The calculation of the estimated IXFR transaction size in
+  ``dns_journal_iter_init()`` was invalid. This resulted in excessive
+  AXFR-style IXFR responses. :gl:`#2685`
+
+- Fixed an assertion failure that could occur if stale data was used to
+  answer a query, and then a prefetch was triggered after the query was
+  restarted (for example, to follow a CNAME). :gl:`#2733`
+
+- If a query was answered with stale data on a server with DNS64
+  enabled, an assertion could occur if a non-stale answer arrived
+  afterward. This has been fixed. :gl:`#2731`
+
+- Fixed an error which caused the ``IP_DONTFRAG`` socket option to be
+  enabled instead of disabled, leading to errors when sending oversized
+  UDP packets. :gl:`#2746`
 
 - Zones which are configured in multiple views, with different values
   set for ``dnssec-policy`` and with identical values set for
   ``key-directory``, are now detected and treated as a configuration
   error. :gl:`#2463`
 
-- The calculation of the estimated IXFR transaction size in
-  ``dns_journal_iter_init()`` was invalid. This resulted in excessive
-  AXFR-style IXFR responses. :gl:`#2685`
-
-- If a query was answered with stale data on a server with DNS64
-  enabled, an assertion could occur if a non-stale answer arrived
-  afterward. This has been fixed. :gl:`#2731`
-
-- Fixed an assertion failure that could occur if stale data was used to
-  answer a query, and then a prefetch was triggered after the query was
-  restarted (for example, to follow a CNAME). :gl:`#2733`
-
-- Fixed an error which caused the ``IP_DONTFRAG`` socket option to be
-  enabled instead of disabled, leading to errors when sending oversized
-  UDP packets. :gl:`#2746`
+- A race condition could occur when reading and writing key files for
+  zones using KASP and configured in multiple views. This has been
+  fixed. :gl:`#1875`
 
 - Fixed a bug that caused the NSEC salt to be changed for KASP zones on
   every startup. :gl:`#2725`
