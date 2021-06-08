@@ -1,60 +1,59 @@
-5652.	[bug]		Copy and paste error caused the socket option to
-			be enabled instead of disabled. [GL #2746]
+5652.	[bug]		A copy-and-paste error in change 5584 caused the
+			IP_DONTFRAG socket option to be enabled instead of
+			disabled. This has been fixed. [GL #2746]
 
-5651.	[func]		Refactor zone dumping to be processed asynchronously
-			via the uv_work_t thread pool API. [GL #2732]
+5651.	[func]		Refactor zone dumping to be processed asynchronously via
+			the uv_work_t thread pool API. [GL #2732]
 
-5650.	[bug]		Prevent a crash that could occur if serve-stale
-			was enabled and a prefetch was triggered during a
-			query restart. [GL #2733]
+5650.	[bug]		Prevent a crash that could occur if serve-stale was
+			enabled and a prefetch was triggered during a query
+			restart. [GL #2733]
 
-5649.	[bug]		If a query was answered with stale data on a server
-			with DNS64 enabled, an assertion could occur if a
-			non-stale answer arrived afterward. [GL #2731]
+5649.	[bug]		If a query was answered with stale data on a server with
+			DNS64 enabled, an assertion could occur if a non-stale
+			answer arrived afterward. [GL #2731]
 
-5648.	[bug]		The calculation of the estimated IXFR transaction
-			size by dns_journal_iter_init() was invalid. [GL #2685]
+5648.	[bug]		The calculation of the estimated IXFR transaction size
+			in dns_journal_iter_init() was invalid. [GL #2685]
 
 5644.	[bug]		Fix a race condition in reading and writing key files
-			for KASP zones in multiple views. [GL #1875]
+			for zones using KASP and configured in multiple views.
+			[GL #1875]
 
 5643.	[cleanup]	"make install" no longer creates an empty
 			${localstatedir}/run directory. [GL #2709]
 
-5642.	[bug]		Check "key-directory" conflicts in "named.conf" for
-			zones in multiple views with different "dnssec-policy".
-			[GL #2463].
+5642.	[bug]		Zones which are configured in multiple views with
+			different values set for "dnssec-policy" and with
+			identical values set for "key-directory" are now
+			detected and treated as a configuration error.
+			[GL #2463]
 
-5641.	[bug]		Address potential memory leak in dst_key_fromnamedfile.
-			[GL #2689]
+5641.	[bug]		Address a potential memory leak in
+			dst_key_fromnamedfile(). [GL #2689]
 
-5639.	[bug]		Check that the first and last SOA record of an AXFR
-			are consistent. [GL #2528]
+5639.	[bug]		Check that the first and last SOA record of an AXFR are
+			consistent. [GL #2528]
 
-5638.	[bug]		Refactoring, performance and stability improvements
-			related to the network manager and task manager. This
-			rolls up several recent changes from the main branch:
-			- isc_task events now run within netmgr event loops.
-			- add isc_managers_create() and _destroy() functions
-			  to handle setup and teardown of netmgr and taskmgr,
-			  since these now require a precise order of
-			  operations.
-			- event queue processing is now quantized to prevent
+5638.	[bug]		Improvements related to network manager/task manager
+			integration:
+			- isc_managers_create() and isc_managers_destroy()
+			  functions were added to handle setup and teardown of
+			  netmgr, taskmgr, timermgr, and socketmgr, since these
+			  require a precise order of operations now.
+			- Event queue processing is now quantized to prevent
 			  infinite looping.
-			- the netmgr can now be paused from within a netmgr
+			- The netmgr can now be paused from within a netmgr
 			  thread.
-			- fixed deadlocks due to conflict between netmgr
-			  pause/resume and listen/stoplistening operations.
-			- allow recovery from read and connect timeout events
-			- ensure that calls to isc_nm_*connect() always
-			  return the connection status via a callback
-			  function.
-			[GL #2654] [GL #2638] [GL #2401]
+			- Deadlocks due to a conflict between netmgr's
+			  pause/resume and listen/stoplistening operations were
+			  fixed.
+			[GL #2654]
 
-5633.	[doc]		Inline-signing was incorrectly described as being
-			inherited from the options / view levels and was
+5633.	[doc]		The "inline-signing" option was incorrectly described as
+			being inherited from the "options"/"view" levels and was
 			incorrectly accepted at those levels without effect.
-			This has been corrected. [GL #2536]
+			This has been fixed. [GL #2536]
 
 	--- 9.16.16 released ---
 
