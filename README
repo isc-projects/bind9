@@ -391,6 +391,10 @@ BIND 9.11.32
 
 BIND 9.11.32 is a maintenance release.
 
+BIND 9.11.33
+
+BIND 9.11.33 is a maintenance release.
+
 Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
