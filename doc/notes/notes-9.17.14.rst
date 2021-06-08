@@ -11,16 +11,6 @@
 Notes for BIND 9.17.14
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -32,13 +22,6 @@ New Features
   server from dropping packets during short traffic spikes, and
   decreasing it can prevent the server from becoming clogged with
   queries that are too old and have already timed out. :gl:`#2313`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- Support for compiling and running BIND 9 natively on Windows has been
-  completely removed.  The last release branch that has working Windows
-  support is BIND 9.16. :gl:`#2690`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -78,11 +61,3 @@ Bug Fixes
 - A race condition could occur when reading and writing key files for
   zones using KASP and configured in multiple views. This has been
   fixed. :gl:`#1875`
-
-- Fixed a bug that caused the NSEC salt to be changed for KASP zones on
-  every startup. :gl:`#2725`
-
-- Signed, insecure delegation responses prepared by ``named`` either
-  lacked the necessary NSEC records or contained duplicate NSEC records
-  when both wildcard expansion and CNAME chaining were required to
-  prepare the response. This has been fixed. :gl:`#2759`
