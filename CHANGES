@@ -1,3 +1,5 @@
+	--- 9.16.17 released ---
+
 5652.	[bug]		A copy-and-paste error in change 5584 caused the
 			IP_DONTFRAG socket option to be enabled instead of
 			disabled. This has been fixed. [GL #2746]
