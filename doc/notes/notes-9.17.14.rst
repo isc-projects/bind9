@@ -11,16 +11,6 @@
 Notes for BIND 9.17.14
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -32,11 +22,6 @@ New Features
   server from dropping packets during short traffic spikes, and
   decreasing it can prevent the server from becoming clogged with
   queries that are too old and have already timed out. :gl:`#2313`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
