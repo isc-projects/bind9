@@ -261,7 +261,11 @@ dns_dbfind_staleok_test(void **state) {
 					DNS_DBFIND_STALEOK, 0, &node, found,
 					&rdataset, NULL);
 			} while (result == ISC_R_SUCCESS);
-			assert_in_range(count, 1, 10);
+			/*
+			 * usleep(100000) can be slightly less than 10ms so
+			 * allow the count to reach 11.
+			 */
+			assert_in_range(count, 1, 11);
 			assert_int_equal(result, ISC_R_NOTFOUND);
 			break;
 		case 2:
