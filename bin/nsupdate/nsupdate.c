@@ -2634,6 +2634,17 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	check_result(result, "dns_request_getresponse");
+
+	if (rcvmsg->rcode == dns_rcode_refused) {
+		next_server("recvsoa", addr, DNS_R_REFUSED);
+		dns_message_detach(&rcvmsg);
+		dns_request_destroy(&request);
+		dns_message_renderreset(soaquery);
+		dns_message_settsigkey(soaquery, NULL);
+		sendrequest(&servers[ns_inuse], soaquery, &request);
+		return;
+	}
+
 	section = DNS_SECTION_ANSWER;
 	POST(section);
 	if (debugging) {
