@@ -79,6 +79,9 @@ Options
 ``-6``
    This option sets use of IPv6 only.
 
+``-C``
+   Overrides the default `resolv.conf` file. This is only intended for testing.
+
 ``-d``
    This option sets debug mode, which provides tracing information about the update
    requests that are made and the replies received from the name server.
