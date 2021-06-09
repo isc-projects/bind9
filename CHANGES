@@ -1,3 +1,7 @@
+5653.	[bug]		Fixed a bug that caused the NSEC3 salt to be changed
+			for KASP zones on restart.
+			[GL #2725]
+
 5652.	[bug]		Copy and paste error caused the socket option to
 			be enabled instead of disabled. [GL #2746]
 
