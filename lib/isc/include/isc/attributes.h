@@ -11,16 +11,8 @@
 
 #pragma once
 
-#ifdef _WIN32
-#define __attribute__(attribute) /* do nothing */
-#else
-#define __declspec(modifier) /* do nothing */
-#endif
-
 #if HAVE_FUNC_ATTRIBUTE_NORETURN
 #define ISC_NORETURN __attribute__((noreturn))
-#elif _WIN32
-#define ISC_NORETURN __declspec(noreturn)
 #else
 #define ISC_NORETURN
 #endif

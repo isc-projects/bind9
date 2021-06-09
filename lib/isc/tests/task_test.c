@@ -518,11 +518,7 @@ basic(void **state) {
 				  &interval, task2, basic_tick, tock, &ti2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-#ifndef WIN32
 	sleep(2);
-#else  /* ifndef WIN32 */
-	Sleep(2000);
-#endif /* ifndef WIN32 */
 
 	for (i = 0; testarray[i] != NULL; i++) {
 		/*
@@ -547,11 +543,7 @@ basic(void **state) {
 	isc_task_detach(&task3);
 	isc_task_detach(&task4);
 
-#ifndef WIN32
 	sleep(10);
-#else  /* ifndef WIN32 */
-	Sleep(10000);
-#endif /* ifndef WIN32 */
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 }

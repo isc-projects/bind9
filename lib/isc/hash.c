@@ -12,9 +12,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
-#if defined(WIN32) || defined(WIN64)
-#include <malloc.h>
-#endif /* if defined(WIN32) || defined(WIN64) */
 
 #include "entropy_private.h"
 #include "isc/hash.h" /* IWYU pragma: keep */

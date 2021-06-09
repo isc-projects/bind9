@@ -329,11 +329,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	uint64_t diff;
 	time_t tnow;
 	struct tm tmnow;
-#ifdef WIN32
-	wchar_t time_str[100];
-#else  /* ifdef WIN32 */
 	char time_str[100];
-#endif /* ifdef WIN32 */
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
@@ -368,23 +364,11 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		time(&tnow);
 		(void)localtime_r(&tnow, &tmnow);
 
-#ifdef WIN32
-		/*
-		 * On Windows, time zone name ("%Z") may be a localized
-		 * wide-character string, which strftime() handles incorrectly.
-		 */
-		if (wcsftime(time_str, sizeof(time_str) / sizeof(time_str[0]),
-			     L"%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
-		{
-			printf(";; WHEN: %ls\n", time_str);
-		}
-#else  /* ifdef WIN32 */
 		if (strftime(time_str, sizeof(time_str),
 			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
 		{
 			printf(";; WHEN: %s\n", time_str);
 		}
-#endif /* ifdef WIN32 */
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
 			       "bytes %" PRIu64 ")\n",

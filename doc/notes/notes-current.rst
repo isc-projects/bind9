@@ -39,7 +39,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- Support for compiling and running BIND 9 natively on Windows has been
+  completely removed.  The last release branch that has working Windows
+  support is BIND 9.16. :gl:`#2690`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

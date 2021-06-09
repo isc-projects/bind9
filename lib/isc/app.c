@@ -12,17 +12,15 @@
 /*! \file */
 
 #include <errno.h>
+#include <inttypes.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#ifndef WIN32
-#include <inttypes.h>
-#include <signal.h>
-#include <sys/time.h>
-#endif /* WIN32 */
 
 #include <isc/app.h>
 #include <isc/atomic.h>
@@ -38,12 +36,6 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#ifdef WIN32
-#include <process.h>
-#else /* WIN32 */
-#include <pthread.h>
-#endif /* WIN32 */
-
 /*%
  * For BIND9 internal applications built with threads, we use a single app
  * context and let multiple worker, I/O, timer threads do actual jobs.
@@ -52,24 +44,11 @@
 static isc_thread_t blockedthread;
 static atomic_bool is_running = ATOMIC_VAR_INIT(0);
 
-#ifdef WIN32
-/*
- * We need to remember which thread is the main thread...
- */
-static isc_thread_t main_thread;
-#endif /* ifdef WIN32 */
-
 /*
  * The application context of this module.
  */
 #define APPCTX_MAGIC	ISC_MAGIC('A', 'p', 'c', 'x')
 #define VALID_APPCTX(c) ISC_MAGIC_VALID(c, APPCTX_MAGIC)
-
-#ifdef WIN32
-#define NUM_EVENTS 2
-
-enum { RELOAD_EVENT, SHUTDOWN_EVENT };
-#endif /* WIN32 */
 
 struct isc_appctx {
 	unsigned int magic;
@@ -81,17 +60,12 @@ struct isc_appctx {
 	atomic_bool want_shutdown;
 	atomic_bool want_reload;
 	atomic_bool blocked;
-#ifdef WIN32
-	HANDLE hEvents[NUM_EVENTS];
-#else  /* WIN32 */
 	isc_mutex_t readylock;
 	isc_condition_t ready;
-#endif /* WIN32 */
 };
 
 static isc_appctx_t isc_g_appctx;
 
-#ifndef WIN32
 static void
 handle_signal(int sig, void (*handler)(int)) {
 	struct sigaction sa;
@@ -106,7 +80,6 @@ handle_signal(int sig, void (*handler)(int)) {
 				"handle_signal() %d setup: %s", sig, strbuf);
 	}
 }
-#endif /* ifndef WIN32 */
 
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
@@ -118,10 +91,8 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 
 	isc_mutex_init(&ctx->lock);
 
-#ifndef WIN32
 	isc_mutex_init(&ctx->readylock);
 	isc_condition_init(&ctx->ready);
-#endif /* WIN32 */
 
 	ISC_LIST_INIT(ctx->on_run);
 
@@ -131,15 +102,6 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	atomic_init(&ctx->want_reload, false);
 	atomic_init(&ctx->blocked, false);
 
-#ifdef WIN32
-	main_thread = GetCurrentThread();
-
-	/* Create the reload event in a non-signaled state */
-	ctx->hEvents[RELOAD_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-	/* Create the shutdown event in a non-signaled state */
-	ctx->hEvents[SHUTDOWN_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
-#else /* WIN32 */
 	int presult;
 	sigset_t sset;
 	char strbuf[ISC_STRERRORSIZE];
@@ -175,8 +137,6 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 		isc_error_fatal(__FILE__, __LINE__,
 				"isc_app_start() pthread_sigmask: %s", strbuf);
 	}
-
-#endif /* WIN32 */
 
 	return (ISC_R_SUCCESS);
 }
@@ -229,10 +189,6 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-#ifdef WIN32
-	REQUIRE(main_thread == GetCurrentThread());
-#endif /* ifdef WIN32 */
-
 	if (atomic_compare_exchange_strong_acq_rel(&ctx->running,
 						   &(bool){ false }, true))
 	{
@@ -251,14 +207,12 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 		UNLOCK(&ctx->lock);
 	}
 
-#ifndef WIN32
 	/*
 	 * BIND9 internal tools using multiple contexts do not
 	 * rely on signal. */
 	if (isc_bind9 && ctx != &isc_g_appctx) {
 		return (ISC_R_SUCCESS);
 	}
-#endif /* WIN32 */
 
 	/*
 	 * There is no danger if isc_app_shutdown() is called before we
@@ -267,29 +221,6 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 * sigwait().
 	 */
 	while (!atomic_load_acquire(&ctx->want_shutdown)) {
-#ifdef WIN32
-		DWORD dwWaitResult = WaitForMultipleObjects(
-			NUM_EVENTS, ctx->hEvents, FALSE, INFINITE);
-
-		/* See why we returned */
-
-		if (WaitSucceeded(dwWaitResult, NUM_EVENTS)) {
-			/*
-			 * The return was due to one of the events
-			 * being signaled
-			 */
-			switch (WaitSucceededIndex(dwWaitResult)) {
-			case RELOAD_EVENT:
-				atomic_store_release(&ctx->want_reload, true);
-
-				break;
-
-			case SHUTDOWN_EVENT:
-				atomic_store_release(&ctx->want_shutdown, true);
-				break;
-			}
-		}
-#else  /* WIN32 */
 		if (isc_bind9) {
 			sigset_t sset;
 			int sig;
@@ -339,7 +270,6 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 				UNLOCK(&ctx->readylock);
 			}
 		}
-#endif /* WIN32 */
 		if (atomic_compare_exchange_strong_acq_rel(
 			    &ctx->want_reload, &(bool){ true }, false))
 		{
@@ -385,9 +315,6 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 	if (atomic_compare_exchange_strong_acq_rel(&ctx->shutdown_requested,
 						   &(bool){ false }, true))
 	{
-#ifdef WIN32
-		SetEvent(ctx->hEvents[SHUTDOWN_EVENT]);
-#else  /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_shutdown, true);
@@ -406,7 +333,6 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 			atomic_store_release(&ctx->want_shutdown, true);
 			SIGNAL(&ctx->ready);
 		}
-#endif /* WIN32 */
 	}
 }
 
@@ -425,9 +351,6 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	 * Don't send the reload signal if we're shutting down.
 	 */
 	if (!atomic_load_acquire(&ctx->shutdown_requested)) {
-#ifdef WIN32
-		SetEvent(ctx->hEvents[RELOAD_EVENT]);
-#else  /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_reload, true);
@@ -446,7 +369,6 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 			atomic_store_release(&ctx->want_reload, true);
 			SIGNAL(&ctx->ready);
 		}
-#endif /* WIN32 */
 	}
 }
 
@@ -460,10 +382,8 @@ isc_app_ctxfinish(isc_appctx_t *ctx) {
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mutex_destroy(&ctx->lock);
-#ifndef WIN32
 	isc_mutex_destroy(&ctx->readylock);
 	isc_condition_destroy(&ctx->ready);
-#endif /* WIN32 */
 }
 
 void
@@ -477,16 +397,12 @@ isc_app_block(void) {
 	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
 						       &(bool){ false }, true));
 
-#ifdef WIN32
-	blockedthread = GetCurrentThread();
-#else  /* WIN32 */
 	sigset_t sset;
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_UNBLOCK, &sset, NULL) == 0);
-#endif /* WIN32 */
 }
 
 void
@@ -495,9 +411,6 @@ isc_app_unblock(void) {
 	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
 						       &(bool){ true }, false));
 
-#ifdef WIN32
-	REQUIRE(blockedthread == GetCurrentThread());
-#else  /* WIN32 */
 	REQUIRE(blockedthread == pthread_self());
 
 	sigset_t sset;
@@ -505,7 +418,6 @@ isc_app_unblock(void) {
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
-#endif /* WIN32 */
 }
 
 isc_result_t

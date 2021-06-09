@@ -1,7 +1,6 @@
 include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=				\
-	-I$(srcdir)/unix/include	\
 	-I$(top_builddir)/include	\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
@@ -52,18 +51,18 @@ named_SOURCES =				\
 	config.c			\
 	control.c			\
 	controlconf.c			\
+	dlz_dlopen_driver.c		\
 	fuzz.c				\
 	log.c				\
 	logconf.c			\
 	main.c				\
+	os.c				\
 	server.c			\
 	statschannel.c			\
 	tkeyconf.c			\
 	transportconf.c			\
 	tsigconf.c			\
 	zoneconf.c			\
-	unix/dlz_dlopen_driver.c	\
-	unix/os.c			\
 	include/dlz/dlz_dlopen_driver.h	\
 	include/named/builtin.h		\
 	include/named/config.h		\
@@ -74,6 +73,7 @@ named_SOURCES =				\
 	include/named/log.h		\
 	include/named/logconf.h		\
 	include/named/main.h		\
+	include/named/os.h		\
 	include/named/server.h		\
 	include/named/smf_globals.h	\
 	include/named/statschannel.h	\
@@ -82,7 +82,6 @@ named_SOURCES =				\
 	include/named/tsigconf.h	\
 	include/named/types.h		\
 	include/named/zoneconf.h	\
-	unix/include/named/os.h		\
 	xsl_p.h
 
 if HAVE_GEOIP2

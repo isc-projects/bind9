@@ -3347,10 +3347,6 @@ main(int argc, char *argv[]) {
 	}
 	isc_commandline_reset = true;
 
-#ifdef _WIN32
-	InitSockets();
-#endif /* ifdef _WIN32 */
-
 	masterstyle = &dns_master_style_explicitttl;
 
 	check_result(isc_app_start(), "isc_app_start");
@@ -4106,8 +4102,5 @@ main(int argc, char *argv[]) {
 			    &sign_finish);
 	}
 
-#ifdef _WIN32
-	DestroySockets();
-#endif /* ifdef _WIN32 */
 	return (vresult == ISC_R_SUCCESS ? 0 : 1);
 }

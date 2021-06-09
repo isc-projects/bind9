@@ -21,10 +21,6 @@
 #include <isc/result.h>
 #include <isc/strerr.h>
 
-#if _WIN32
-#include <dbghelp.h>
-#endif
-
 /*
  * The maximum number of stack frames to dump on assertion failure.
  */

@@ -51,7 +51,7 @@
 #if HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR && HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
 #define ISC_CONSTRUCTOR __attribute__((constructor))
 #define ISC_DESTRUCTOR	__attribute__((destructor))
-#elif WIN32
+#else
 #define ISC_CONSTRUCTOR
 #define ISC_DESTRUCTOR
 #endif

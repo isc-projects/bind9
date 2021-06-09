@@ -2734,8 +2734,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	}
 
 	/*
-	 * Close both journals before trying to rename files (this is
-	 * necessary on WIN32).
+	 * Close both journals before trying to rename files.
 	 */
 	dns_journal_destroy(&j1);
 	dns_journal_destroy(&j2);

@@ -164,8 +164,7 @@ Options
    This cannot be increased to a value higher than the number of CPUs.
    If ``-n`` has been set to a higher value than the number of detected
    CPUs, then ``-U`` may be increased as high as that value, but no
-   higher. On Windows, the number of UDP listeners is hardwired to 1 and
-   this option has no effect.
+   higher.
 
 ``-u user``
    This option sets the setuid to ``user`` after completing privileged operations, such as

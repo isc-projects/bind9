@@ -1026,24 +1026,12 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	isc_dir_t dir;
 	isc_result_t result;
 	char sep = '/';
-#ifdef _WIN32
-	char *bname2;
-#endif /* ifdef _WIN32 */
 
 	/*
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
-#ifdef _WIN32
-	bname2 = strrchr(file->name, '\\');
-	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
-	    (bname == NULL && bname2 != NULL))
-	{
-		bname = bname2;
-		sep = '\\';
-	}
-#endif /* ifdef _WIN32 */
 	if (bname != NULL) {
 		*bname++ = '\0';
 		dirname = file->name;
@@ -1166,23 +1154,11 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	size_t bnamelen;
 	isc_dir_t dir;
 	char sep = '/';
-#ifdef _WIN32
-	char *bname2;
-#endif /* ifdef _WIN32 */
 	/*
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
-#ifdef _WIN32
-	bname2 = strrchr(file->name, '\\');
-	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
-	    (bname == NULL && bname2 != NULL))
-	{
-		bname = bname2;
-		sep = '\\';
-	}
-#endif /* ifdef _WIN32 */
 	if (bname != NULL) {
 		*bname++ = '\0';
 		dirname = file->name;

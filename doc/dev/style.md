@@ -782,9 +782,6 @@ have them: for example, `isc_string_strlcpy()`  is an implementation
 of the BSD-specific `strlcpy()` function.  On Linux and systems
 without a `strlcpy()` function, it is `#define`d to `isc_string_strlcpy()`
 
-In some cases, UNIX and Windows implementations of functions are kept
-in separate files, such as `lib/isc/unix/file.c` and `lib/isc/win32/file.c`.
-
 #### Some notes on standard functions
 
 * Always use `memmove()` rather than `memcpy()`.

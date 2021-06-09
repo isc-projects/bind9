@@ -277,11 +277,7 @@ struct ns_client {
  */
 #define NS_FAILCACHE_CD 0x01
 
-#if defined(_WIN32) && !defined(_WIN64)
-LIBNS_EXTERNAL_DATA extern atomic_uint_fast32_t ns_client_requests;
-#else  /* if defined(_WIN32) && !defined(_WIN64) */
 LIBNS_EXTERNAL_DATA extern atomic_uint_fast64_t ns_client_requests;
-#endif /* if defined(_WIN32) && !defined(_WIN64) */
 
 /***
  *** Functions

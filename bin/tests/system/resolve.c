@@ -9,19 +9,16 @@
  * information regarding copyright ownership.
  */
 
-#ifndef WIN32
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif /* ifndef WIN32 */
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <isc/app.h>
 #include <isc/attributes.h>

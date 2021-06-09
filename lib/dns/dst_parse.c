@@ -648,13 +648,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		/* File exists; warn that we are changing its permissions */
 		int level;
 
-#ifdef _WIN32
-		/* Windows security model is pretty different,
-		 * e.g., there is no umask... */
-		level = ISC_LOG_NOTICE;
-#else  /* ifdef _WIN32 */
 		level = ISC_LOG_WARNING;
-#endif /* ifdef _WIN32 */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_DNSSEC, level,
 			      "Permissions on the file %s "

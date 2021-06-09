@@ -92,11 +92,6 @@ stages:
     - bsd-stress
     - stress
 
-.windows-amd64: &windows_amd64
-  tags:
-    - windows
-    - amd64
-
 ### Docker Image Templates
 
 # Alpine Linux
@@ -154,12 +149,6 @@ stages:
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
-
-# Windows
-
-.windows-server-2016-amd64: &windows_server_2016_amd64_image
-  image: "$CI_REGISTRY_IMAGE:windows-server-2016-amd64"
-  <<: *windows_amd64
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
@@ -286,33 +275,6 @@ stages:
     untracked: true
     expire_in: "1 day"
 
-.windows_build: &windows_build_job
-  stage: build
-  script:
-    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
-    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
-    - 'Pop-Location'
-    - 'Set-Location win32utils'
-    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
-         "with-tools-version=15.0"
-         "with-platform-toolset=v141"
-         "with-platform-version=10.0.17763.0"
-         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
-         "with-openssl=C:/OpenSSL"
-         "with-libxml2=C:/libxml2"
-         "with-libuv=C:/libuv"
-         "with-nghttp2=C:/nghttp2"
-         "without-python"
-         "with-system-tests"
-         x64'
-    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
-    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  needs: []
-  artifacts:
-    untracked: true
-    expire_in: "1 day"
-    when: always
-
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
       sh -x bin/tests/system/ifconfig.sh up;
@@ -363,24 +325,6 @@ stages:
   artifacts:
     expire_in: "1 day"
     untracked: true
-    when: on_failure
-
-.windows_system_test: &windows_system_test_job
-  <<: *schedules_tags_web_triggering_rules
-  stage: system
-  script:
-    - 'Push-Location bin/tests/system'
-    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
-    - '& cmd.exe /C ifconfig.bat up; ""'
-    - 'Start-Sleep 2'
-    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
-    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
-    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
-  artifacts:
-    untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .unit_test_common: &unit_test_common
@@ -473,7 +417,6 @@ misc:
     - perl -w util/update_copyrights < util/copyrights
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
-    - sh util/check-win32util-configure
     - sh util/check-categories.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
@@ -1235,40 +1178,6 @@ unit:clang:openbsd:amd64:
     - job: clang:openbsd:amd64
       artifacts: true
 
-# Jobs for Visual Studio 2017 builds on Windows (amd64)
-
-msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *default_triggering_rules
-  variables:
-    VSCONF: Release
-
-system:msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Release
-  needs:
-    - job: msvc:windows:amd64
-      artifacts: true
-
-msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *schedules_tags_web_triggering_rules
-  variables:
-    VSCONF: Debug
-
-system:msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Debug
-  needs:
-    - job: msvc-debug:windows:amd64
-      artifacts: true
-
 # Job producing a release tarball
 
 release:
@@ -1276,17 +1185,7 @@ release:
   stage: release
   script:
     - export BIND_DIRECTORY="$(basename "$(find . -name "bind-*.tar.*" -printf "%f")" ".tar.${TARBALL_EXTENSION}")"
-    # Remove redundant files and system test utilities from Windows build artifacts
-    - find Build/Release/ -name "*.pdb" -print -delete
-    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
-    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
-    # Create Windows zips
-    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
-    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Release/
-    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Debug/
-    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
-    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
-    # Prepare release tarball contents (tarballs + zips + documentation)
+    # Prepare release tarball contents (tarballs + documentation)
     - mkdir -p release/doc/arm
     - pushd release
     - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
@@ -1302,10 +1201,6 @@ release:
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
     - job: tarball-create
-      artifacts: true
-    - job: msvc:windows:amd64
-      artifacts: true
-    - job: msvc-debug:windows:amd64
       artifacts: true
     - job: docs
       artifacts: true

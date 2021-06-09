@@ -1,3 +1,5 @@
+5654.	[func]		Windows support has been removed. [GL #2690]
+
 5653.	[bug]		Fixed a bug that caused the NSEC3 salt to be changed
 			for KASP zones on restart.
 			[GL #2725]

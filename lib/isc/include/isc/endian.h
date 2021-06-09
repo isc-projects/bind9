@@ -30,30 +30,6 @@
 #define le64toh(x) letoh64(x)
 #endif /* !be16toh */
 
-#elif defined(_WIN32)
-
-/*
- * Windows is always little-endian and has its own byte-swapping routines, so
- * use these.
- */
-
-#include <stdlib.h>
-
-#define htobe16(x) _byteswap_ushort(x)
-#define htole16(x) (x)
-#define be16toh(x) _byteswap_ushort(x)
-#define le16toh(x) (x)
-
-#define htobe32(x) _byteswap_ulong(x)
-#define htole32(x) (x)
-#define be32toh(x) _byteswap_ulong(x)
-#define le32toh(x) (x)
-
-#define htobe64(x) _byteswap_uint64(x)
-#define htole64(x) (x)
-#define be64toh(x) _byteswap_uint64(x)
-#define le64toh(x) (x)
-
 #elif defined __APPLE__
 
 /*

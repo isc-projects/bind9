@@ -580,8 +580,6 @@ handles messages sent to this facility is described in the
 version of ``syslog``, which only uses two arguments to the ``openlog()``
 function, this clause is silently ignored.
 
-On Windows machines, syslog messages are directed to the EventViewer.
-
 The ``severity`` clause works like ``syslog``'s "priorities," except
 that they can also be used when writing straight to a file rather
 than using ``syslog``. Messages which are not at least of the severity
@@ -1074,8 +1072,7 @@ default is used.
    specifies the directory containing GeoIP database files.  By default, the
    option is set based on the prefix used to build the ``libmaxminddb`` module;
    for example, if the library is installed in ``/usr/local/lib``, then the
-   default ``geoip-directory`` is ``/usr/local/share/GeoIP``. On Windows,
-   the default is the ``named`` working directory.  See :ref:`acl`
+   default ``geoip-directory`` is ``/usr/local/share/GeoIP``. See :ref:`acl`
    for details about ``geoip`` ACLs.
 
 ``key-directory``
@@ -3015,8 +3012,6 @@ system.
    ``512``. The minimum value is ``128`` and the maximum value is
    ``128`` fewer than maxsockets (-S). This option may be removed in the
    future.
-
-   This option has little effect on Windows.
 
 ``max-cache-size``
    This sets the maximum amount of memory to use for the server's cache, in bytes

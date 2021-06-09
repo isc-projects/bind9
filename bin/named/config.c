@@ -50,27 +50,23 @@ options {\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
 			    "	cookie-algorithm siphash24;\n"
-#ifndef WIN32
 			    "	coresize default;\n\
 	datasize default;\n"
-#endif /* ifndef WIN32 */
 			    "\
 #	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
 	edns-udp-size 1232;\n\
-#	fake-iquery <obsolete>;\n"
-#ifndef WIN32
-			    "	files unlimited;\n"
-#endif /* ifndef WIN32 */
-#if defined(HAVE_GEOIP2) && !defined(WIN32)
+#	fake-iquery <obsolete>;\n\
+	files unlimited;\n"
+#if defined(HAVE_GEOIP2)
 			    "	geoip-directory \"" MAXMINDDB_PREFIX "/share/"
 			    "GeoIP\";"
 			    "\n"
 #elif defined(HAVE_GEOIP2)
 			    "	geoip-directory \".\";\n"
-#endif /* if defined(HAVE_GEOIP2) && !defined(WIN32) */
+#endif /* if defined(HAVE_GEOIP2) */
 			    "\
 #	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
@@ -110,11 +106,9 @@ options {\n\
 	server-id none;\n\
 	session-keyalg hmac-sha256;\n\
 #	session-keyfile \"" NAMED_LOCALSTATEDIR "/run/named/session.key\";\n\
-	session-keyname local-ddns;\n"
-#ifndef WIN32
-			    "	stacksize default;\n"
-#endif /* ifndef WIN32 */
-			    "	startup-notify-rate 20;\n\
+	session-keyname local-ddns;\n\
+	stacksize default;\n\
+	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 #	statistics-interval <obsolete>;\n\
 	tcp-advertised-timeout 300;\n\

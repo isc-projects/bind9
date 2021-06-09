@@ -23,10 +23,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdbool.h>
-#ifndef WIN32
 #include <arpa/inet.h>
-#endif /* WIN32 */
+#include <stdbool.h>
 
 #include <isc/buffer.h>
 #include <isc/hmac.h>

@@ -20,10 +20,6 @@
 
 #include <dns/edns.h>
 
-#ifdef WIN32
-#include <Winsock2.h>
-#endif /* ifdef WIN32 */
-
 #ifndef MAXHOSTNAMELEN
 #ifdef HOST_NAME_MAX
 #define MAXHOSTNAMELEN HOST_NAME_MAX
@@ -85,19 +81,6 @@ main(int argc, char **argv) {
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[MAXHOSTNAMELEN];
 		int n;
-#ifdef WIN32
-		/* From InitSocket() */
-		WORD wVersionRequested;
-		WSADATA wsaData;
-		int err;
-
-		wVersionRequested = MAKEWORD(2, 0);
-		err = WSAStartup(wVersionRequested, &wsaData);
-		if (err != 0) {
-			fprintf(stderr, "WSAStartup() failed: %d\n", err);
-			exit(1);
-		}
-#endif /* ifdef WIN32 */
 
 		n = gethostname(hostname, sizeof(hostname));
 		if (n == -1) {
@@ -105,9 +88,6 @@ main(int argc, char **argv) {
 			return (1);
 		}
 		fprintf(stdout, "%s\n", hostname);
-#ifdef WIN32
-		WSACleanup();
-#endif /* ifdef WIN32 */
 		return (0);
 	}
 
@@ -149,9 +129,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
-#ifdef WIN32
-		return (0);
-#elif defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
+#if defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
 		int s;
 		int n = -1;
 		int v6only = -1;
@@ -164,9 +142,9 @@ main(int argc, char **argv) {
 			close(s);
 		}
 		return ((n == 0 && v6only == 0) ? 0 : 1);
-#else  /* ifdef WIN32 */
+#else  /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
 		return (1);
-#endif /* ifdef WIN32 */
+#endif /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
 	}
 
 	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {

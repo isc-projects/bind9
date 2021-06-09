@@ -519,10 +519,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-#ifdef _WIN32
-	InitSockets();
-#endif /* ifdef _WIN32 */
-
 	isc_mem_create(&mctx);
 	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx) ==
@@ -572,9 +568,6 @@ main(int argc, char **argv) {
 		isc_log_destroy(&lctx);
 	}
 	isc_mem_destroy(&mctx);
-#ifdef _WIN32
-	DestroySockets();
-#endif /* ifdef _WIN32 */
 
 	return ((result == ISC_R_SUCCESS) ? 0 : 1);
 }

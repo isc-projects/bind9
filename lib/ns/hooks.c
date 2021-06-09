@@ -59,7 +59,6 @@ isc_result_t
 ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 	int result;
 
-#ifndef WIN32
 	/*
 	 * On Unix systems, differentiate between paths and filenames.
 	 */
@@ -74,12 +73,6 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 		 */
 		result = snprintf(dst, dstsize, "%s/%s", NAMED_PLUGINDIR, src);
 	}
-#else  /* ifndef WIN32 */
-	/*
-	 * On Windows, always copy 'src' do 'dst'.
-	 */
-	result = snprintf(dst, dstsize, "%s", src);
-#endif /* ifndef WIN32 */
 
 	if (result < 0) {
 		return (isc_errno_toresult(errno));

@@ -580,15 +580,9 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	/* If an absolute path is specified, don't use the key directory */
-#ifndef WIN32
 	if (filename[0] == '/') {
 		dirname = NULL;
 	}
-#else  /* WIN32 */
-	if (filename[0] == '/' || filename[0] == '\\') {
-		dirname = NULL;
-	}
-#endif /* ifndef WIN32 */
 
 	newfilenamelen = strlen(filename) + 5;
 	if (dirname != NULL) {
