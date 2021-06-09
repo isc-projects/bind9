@@ -445,10 +445,6 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		}
 		isc_mem_put(listener->mctx, conn->secret.rstart,
 			    REGION_SIZE(conn->secret));
-		if (result != ISCCC_R_BADAUTH) {
-			log_invalid(&conn->ccmsg, result);
-			goto cleanup;
-		}
 	}
 
 	if (key == NULL) {
