@@ -75,3 +75,6 @@ Bug Fixes
 - Fix an error that would enable don't fragment socket option instead
   of disabling it leading to errors when sending the oversized UDP
   packets. [GL #2746]
+
+- Fixed a bug that caused the NSEC salt to be changed for KASP zones on
+  every startup. :gl:`#2725`
