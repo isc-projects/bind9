@@ -22,4 +22,4 @@
  * clients will run isc_lib_register(), which sets it to false,
  * overriding certain BIND9 behaviors.
  */
-LIBISC_EXTERNAL_DATA bool isc_bind9 = true;
+bool isc_bind9 = true;

@@ -135,7 +135,7 @@ static unsigned char root_ndata[] = { "" };
 static unsigned char root_offsets[] = { 0 };
 
 static dns_name_t root = DNS_NAME_INITABSOLUTE(root_ndata, root_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_rootname = &root;
+const dns_name_t *dns_rootname = &root;
 
 static unsigned char wild_ndata[] = { "\001*" };
 static unsigned char wild_offsets[] = { 0 };
@@ -143,7 +143,7 @@ static unsigned char wild_offsets[] = { 0 };
 static dns_name_t const wild = DNS_NAME_INITNONABSOLUTE(wild_ndata,
 							wild_offsets);
 
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_wildcardname = &wild;
+const dns_name_t *dns_wildcardname = &wild;
 
 /*
  * dns_name_t to text post-conversion procedure.

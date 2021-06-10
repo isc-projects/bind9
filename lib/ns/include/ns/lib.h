@@ -18,7 +18,7 @@
 
 ISC_LANG_BEGINDECLS
 
-LIBNS_EXTERNAL_DATA extern unsigned int ns_pps;
+extern unsigned int ns_pps;
 
 isc_result_t
 ns_lib_init(void);

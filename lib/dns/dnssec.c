@@ -44,7 +44,7 @@
 
 #include <dst/result.h>
 
-LIBDNS_EXTERNAL_DATA isc_stats_t *dns_dnssec_stats;
+isc_stats_t *dns_dnssec_stats;
 
 #define is_response(msg) ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
 

@@ -21,17 +21,17 @@
 #include <isc/result.h>
 
 /*% Index into parent argv vector. */
-LIBISC_EXTERNAL_DATA extern int isc_commandline_index;
+extern int isc_commandline_index;
 /*% Character checked for validity. */
-LIBISC_EXTERNAL_DATA extern int isc_commandline_option;
+extern int isc_commandline_option;
 /*% Argument associated with option. */
-LIBISC_EXTERNAL_DATA extern char *isc_commandline_argument;
+extern char *isc_commandline_argument;
 /*% For printing error messages. */
-LIBISC_EXTERNAL_DATA extern char *isc_commandline_progname;
+extern char *isc_commandline_progname;
 /*% Print error message. */
-LIBISC_EXTERNAL_DATA extern bool isc_commandline_errprint;
+extern bool isc_commandline_errprint;
 /*% Reset getopt. */
-LIBISC_EXTERNAL_DATA extern bool isc_commandline_reset;
+extern bool isc_commandline_reset;
 
 ISC_LANG_BEGINDECLS
 

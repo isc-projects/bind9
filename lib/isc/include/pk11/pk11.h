@@ -68,7 +68,7 @@ typedef enum {
 /*%
  * Global flag to make choose_slots() verbose
  */
-LIBISC_EXTERNAL_DATA extern bool pk11_verbose_init;
+extern bool pk11_verbose_init;
 
 /*%
  * Function prototypes

@@ -159,9 +159,9 @@ typedef union isc_logdestination {
  * definitions with indexes into its isc_logcategory structure corresponding to
  * the order of the names.
  */
-LIBISC_EXTERNAL_DATA extern isc_logcategory_t isc_categories[];
-LIBISC_EXTERNAL_DATA extern isc_log_t *	      isc_lctx;
-LIBISC_EXTERNAL_DATA extern isc_logmodule_t   isc_modules[];
+extern isc_logcategory_t isc_categories[];
+extern isc_log_t *	 isc_lctx;
+extern isc_logmodule_t	 isc_modules[];
 /*@}*/
 
 /*@{*/

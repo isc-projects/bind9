@@ -22,7 +22,7 @@ ISC_LANG_BEGINDECLS
 /*%
  * Tuning: external query load in packets per seconds.
  */
-LIBDNS_EXTERNAL_DATA extern unsigned int dns_pps;
+extern unsigned int dns_pps;
 
 isc_result_t
 dns_lib_init(void);

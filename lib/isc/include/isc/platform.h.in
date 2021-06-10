@@ -42,22 +42,6 @@
 #define IOV_MAX 1024
 #endif
 
-/***
- *** Miscellaneous.
- ***/
-
-/***
- ***	Windows dll support.
- ***/
-
-#define LIBISC_EXTERNAL_DATA
-#define LIBDNS_EXTERNAL_DATA
-#define LIBISCCC_EXTERNAL_DATA
-#define LIBISCCFG_EXTERNAL_DATA
-#define LIBNS_EXTERNAL_DATA
-#define LIBBIND9_EXTERNAL_DATA
-#define LIBTESTS_EXTERNAL_DATA
-
 /*
  * Tell emacs to use C mode for this file.
  *

@@ -19,16 +19,13 @@
  * When adding a new category, be sure to add the appropriate
  * \#define to <isccfg/log.h>.
  */
-LIBISCCFG_EXTERNAL_DATA isc_logcategory_t cfg_categories[] = { { "config", 0 },
-							       { NULL, 0 } };
+isc_logcategory_t cfg_categories[] = { { "config", 0 }, { NULL, 0 } };
 
 /*%
  * When adding a new module, be sure to add the appropriate
  * \#define to <isccfg/log.h>.
  */
-LIBISCCFG_EXTERNAL_DATA isc_logmodule_t cfg_modules[] = {
-	{ "isccfg/parser", 0 }, { NULL, 0 }
-};
+isc_logmodule_t cfg_modules[] = { { "isccfg/parser", 0 }, { NULL, 0 } };
 
 void
 cfg_log_init(isc_log_t *lctx) {

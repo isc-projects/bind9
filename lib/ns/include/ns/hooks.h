@@ -410,7 +410,7 @@ typedef ns_hooklist_t ns_hooktable_t[NS_HOOKPOINTS_COUNT];
  * ns__hook_table is a global hook table, which is used if view->hooktable
  * is NULL.  It's intended only for use by unit tests.
  */
-LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
+extern ns_hooktable_t *ns__hook_table;
 
 typedef void (*ns_hook_cancelasync_t)(ns_hookasync_t *);
 typedef void (*ns_hook_destroyasync_t)(ns_hookasync_t **);

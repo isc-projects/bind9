@@ -22,6 +22,6 @@
  * tools) it must be set to true at runtime.  Export library clients
  * will call isc_lib_register(), which will set it to false.
  */
-LIBISC_EXTERNAL_DATA extern bool isc_bind9;
+extern bool isc_bind9;
 
 #endif /* ISC_BIND9_H */

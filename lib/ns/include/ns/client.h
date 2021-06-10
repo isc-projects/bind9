@@ -277,7 +277,7 @@ struct ns_client {
  */
 #define NS_FAILCACHE_CD 0x01
 
-LIBNS_EXTERNAL_DATA extern atomic_uint_fast64_t ns_client_requests;
+extern atomic_uint_fast64_t ns_client_requests;
 
 /***
  *** Functions

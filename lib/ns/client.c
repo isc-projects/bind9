@@ -113,8 +113,7 @@
 #define NS_CLIENT_DROPPORT 1
 #endif /* ifndef NS_CLIENT_DROPPORT */
 
-LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests =
-	ATOMIC_VAR_INIT(0);
+atomic_uint_fast64_t ns_client_requests = ATOMIC_VAR_INIT(0);
 
 static void
 clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
