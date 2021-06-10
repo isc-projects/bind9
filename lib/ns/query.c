@@ -8728,26 +8728,40 @@ query_addds(query_ctx_t *qctx) {
 
 	/*
 	 * We've already added the NS record, so if the name's not there,
-	 * we have other problems.  Use this name rather than calling
-	 * query_addrrset().
+	 * we have other problems.
 	 */
 	result = dns_message_firstname(client->message, DNS_SECTION_AUTHORITY);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	rname = NULL;
-	dns_message_currentname(client->message, DNS_SECTION_AUTHORITY, &rname);
-	result = dns_message_findtype(rname, dns_rdatatype_ns, 0, NULL);
+	/*
+	 * Find the delegation in the response message - it is not necessarily
+	 * the first name in the AUTHORITY section when wildcard processing is
+	 * involved.
+	 */
+	while (result == ISC_R_SUCCESS) {
+		rname = NULL;
+		dns_message_currentname(client->message, DNS_SECTION_AUTHORITY,
+					&rname);
+		result = dns_message_findtype(rname, dns_rdatatype_ns, 0, NULL);
+		if (result == ISC_R_SUCCESS) {
+			break;
+		}
+		result = dns_message_nextname(client->message,
+					      DNS_SECTION_AUTHORITY);
+	}
+
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	ISC_LIST_APPEND(rname->list, rdataset, link);
-	ISC_LIST_APPEND(rname->list, sigrdataset, link);
-	rdataset = NULL;
-	sigrdataset = NULL;
-	return;
+	/*
+	 * Add the NSEC record to the delegation.
+	 */
+	query_addrrset(qctx, &rname, &rdataset, &sigrdataset, NULL,
+		       DNS_SECTION_AUTHORITY);
+	goto cleanup;
 
 addnsec3:
 	if (!dns_db_iszone(qctx->db)) {
