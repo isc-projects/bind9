@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
-#include <isc/platform.h>
 #include <isc/result.h>
 
 /*% Index into parent argv vector. */

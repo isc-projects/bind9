@@ -15,7 +15,6 @@
 #include <sys/time.h> /* Required on some systems for <sys/resource.h>. */
 #include <sys/types.h>
 
-#include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>

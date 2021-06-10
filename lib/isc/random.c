@@ -34,7 +34,6 @@
 #include <unistd.h>
 
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/thread.h>

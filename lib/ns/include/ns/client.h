@@ -61,7 +61,6 @@
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/netmgr.h>
-#include <isc/platform.h>
 #include <isc/quota.h>
 #include <isc/stdtime.h>
 

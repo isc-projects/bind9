@@ -14,8 +14,6 @@
 
 #include <stdbool.h>
 
-#include <isc/platform.h>
-
 /*
  * This determines whether we are using the libisc/libdns libraries
  * in BIND9 or in some other application.  For BIND9 (named and related

@@ -17,7 +17,6 @@
 
 #include <isc/attributes.h>
 #include <isc/log.h>
-#include <isc/platform.h>
 #include <isc/stdtime.h>
 
 #include <dns/rdatastruct.h>

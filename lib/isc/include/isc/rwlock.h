@@ -19,7 +19,6 @@
 #include <isc/atomic.h>
 #include <isc/condition.h>
 #include <isc/lang.h>
-#include <isc/platform.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS

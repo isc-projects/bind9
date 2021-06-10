@@ -17,7 +17,6 @@
 #include <limits.h>
 
 #include <isc/lang.h>
-#include <isc/platform.h>
 #include <isc/result.h>
 
 #include <sys/types.h> /* Required on some systems. */

@@ -35,7 +35,6 @@
 #include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>

@@ -20,7 +20,6 @@
 
 #include <isc/formatcheck.h> /* Required for ISC_FORMAT_PRINTF() macro. */
 #include <isc/lang.h>
-#include <isc/platform.h>
 
 /***
  *** Functions

@@ -17,7 +17,6 @@
 #include <isc/attributes.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
-#include <isc/platform.h>
 
 #define NS_CONTROL_PORT 953
 

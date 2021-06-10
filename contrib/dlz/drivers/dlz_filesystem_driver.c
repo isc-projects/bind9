@@ -50,7 +50,6 @@
 
 #include <isc/dir.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>

@@ -15,7 +15,6 @@
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/md.h>
-#include <isc/platform.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/types.h>

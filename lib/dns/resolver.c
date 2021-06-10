@@ -18,7 +18,6 @@
 #include <isc/atomic.h>
 #include <isc/counter.h>
 #include <isc/log.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>

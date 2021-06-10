@@ -1620,10 +1620,6 @@ AC_CONFIG_FILES([doc/Makefile
 		 doc/man/Makefile
 		 doc/misc/Makefile])
 
-# Generated headers
-
-AC_CONFIG_FILES([lib/isc/include/isc/platform.h])
-
 # Unit Tests
 
 AC_CONFIG_FILES([lib/isc/tests/Makefile
