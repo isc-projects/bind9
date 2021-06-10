@@ -19,12 +19,6 @@
  *****/
 
 /***
- *** Default strerror_r buffer size
- ***/
-
-#define ISC_STRERRORSIZE 128
-
-/***
  *** System limitations
  ***/
 
