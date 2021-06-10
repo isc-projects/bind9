@@ -36,6 +36,7 @@
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding merge requests in the private repository[^1] (Subscription Edition only).
  - [ ] ***(QA)*** Ensure all merge requests marked for backporting have been indeed backported.
+ - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is in effect.
 
 ### Before the Tagging Deadline
 
@@ -56,6 +57,7 @@
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 
  - [ ] ***(QA)*** Verify GitLab CI results for the tags created and prepare a QA report for the releases to be published.
+ - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
  - [ ] ***(QA)*** Request signatures for the tarballs, providing their location and checksums.
  - [ ] ***(Signers)*** Validate tarball checksums, sign tarballs, and upload signatures.
  - [ ] ***(QA)*** Verify tarball signatures and check tarball checksums again.
