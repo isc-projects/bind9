@@ -78,3 +78,8 @@ Bug Fixes
 
 - Fixed a bug that caused the NSEC salt to be changed for KASP zones on
   every startup. :gl:`#2725`
+
+- Signed, insecure delegation responses prepared by ``named`` either
+  lacked the necessary NSEC records or contained duplicate NSEC records
+  when both wildcard expansion and CNAME chaining were required to
+  prepare the response. This has been fixed. :gl:`#2759`
