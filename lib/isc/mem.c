@@ -589,6 +589,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 	REQUIRE(ptr != NULL);
+	REQUIRE(size > 0);
 
 	ctx = *ctxp;
 	*ctxp = NULL;
@@ -713,9 +714,11 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size);
-	mem_getstats(ctx, size);
+	if (ISC_LIKELY(size != 0)) {
+		ptr = mem_get(ctx, size);
+	}
 
+	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
 
 	call_water = hi_water(ctx);
@@ -730,12 +733,15 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 void
 isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(ptr != NULL);
+	REQUIRE(ISC_LIKELY(ptr != NULL && size != 0) ||
+		ISC_UNLIKELY(ptr == NULL && size == 0));
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size);
+	if (ISC_LIKELY(ptr != NULL)) {
+		mem_put(ctx, ptr, size);
+	}
 
 	CALL_LO_WATER(ctx);
 }
@@ -856,10 +862,12 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size);
+	if (ISC_LIKELY(size != 0)) {
+		ptr = mem_get(ctx, size);
 
-	/* Recalculate the real allocated size */
-	size = sallocx(ptr, 0);
+		/* Recalculate the real allocated size */
+		size = sallocx(ptr, 0);
+	}
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -879,14 +887,9 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (old_ptr == NULL) {
+	if (ISC_UNLIKELY(old_ptr == NULL)) {
 		new_ptr = isc__mem_allocate(ctx, new_size FLARG_PASS);
-	} else if (new_size == 0) {
-		/*
-		 * FIXME: We should not call isc__mem_reallocate with size == 0,
-		 * this is undefined behaviour.  This code is kept only for
-		 * backwards compatibility.
-		 */
+	} else if (ISC_UNLIKELY(new_size == 0)) {
 		isc__mem_free(ctx, old_ptr FLARG_PASS);
 	} else {
 		size_t old_size = sallocx(old_ptr, 0);
@@ -912,9 +915,9 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 		ADD_TRACE(ctx, new_ptr, new_size, file, line);
 
 		/*
-		 * We want to postpone the call to water in edge case where the
-		 * realloc will exactly hit on the boundary of the water and we
-		 * would call water twice.
+		 * We want to postpone the call to water in edge case
+		 * where the realloc will exactly hit on the boundary of
+		 * the water and we would call water twice.
 		 */
 		CALL_LO_WATER(ctx);
 		CALL_HI_WATER(ctx);
@@ -925,17 +928,20 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 
 void
 isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
-	size_t size;
+	size_t size = 0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(ptr != NULL);
 
-	size = sallocx(ptr, 0);
+	if (ISC_LIKELY(ptr != NULL)) {
+		size = sallocx(ptr, 0);
+	}
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size);
+	if (ISC_LIKELY(ptr != NULL)) {
+		mem_put(ctx, ptr, size);
+	}
 
 	CALL_LO_WATER(ctx);
 }
@@ -956,9 +962,7 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 
 	ns = isc__mem_allocate(mctx, len FLARG_PASS);
 
-	if (ns != NULL) {
-		strlcpy(ns, s, len);
-	}
+	strlcpy(ns, s, len);
 
 	return (ns);
 }
@@ -970,6 +974,7 @@ isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(s != NULL);
+	REQUIRE(size != 0);
 
 	len = strlen(s) + 1;
 	if (len > size) {
@@ -978,9 +983,7 @@ isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
 
 	ns = isc__mem_allocate(mctx, len FLARG_PASS);
 
-	if (ns != NULL) {
-		strlcpy(ns, s, len);
-	}
+	strlcpy(ns, s, len);
 
 	return (ns);
 }
