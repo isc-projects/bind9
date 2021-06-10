@@ -1,3 +1,9 @@
+5655.	[bug]		Signed, insecure delegation responses prepared by named
+			either lacked the necessary NSEC records or contained
+			duplicate NSEC records when both wildcard expansion and
+			CNAME chaining were required to prepare the response.
+			This has been fixed. [GL #2759]
+
 5654.	[func]		Windows support has been removed. [GL #2690]
 
 5653.	[bug]		Fixed a bug that caused the NSEC3 salt to be changed
