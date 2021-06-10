@@ -23,6 +23,7 @@
 #include <isc/aes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/log.h>

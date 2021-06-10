@@ -20,6 +20,7 @@
 #endif /* ifdef HAVE_LMDB */
 
 #include <isc/atomic.h>
+#include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>

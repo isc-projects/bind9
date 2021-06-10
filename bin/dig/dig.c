@@ -19,6 +19,7 @@
 
 #include <isc/app.h>
 #include <isc/attributes.h>
+#include <isc/dir.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/platform.h>

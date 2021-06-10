@@ -24,6 +24,7 @@
 #include <cmocka.h>
 #include <maxminddb.h>
 
+#include <isc/dir.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/types.h>

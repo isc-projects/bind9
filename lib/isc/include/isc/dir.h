@@ -9,18 +9,26 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_DIR_H
-#define ISC_DIR_H 1
+#pragma once
 
 /*! \file */
 
 #include <dirent.h>
+#include <limits.h>
 
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/result.h>
 
 #include <sys/types.h> /* Required on some systems. */
+
+#ifndef NAME_MAX
+#define NAME_MAX 256
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 /*% Directory Entry */
 typedef struct isc_direntry {
@@ -69,5 +77,3 @@ isc_dir_createunique(char *templet);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_DIR_H */

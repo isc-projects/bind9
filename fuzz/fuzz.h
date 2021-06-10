@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <isc/dir.h>
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/once.h>
