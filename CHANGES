@@ -1,3 +1,6 @@
+5704.	[bug]		TCP keepalive settings were not being applied
+			correctly. [GL #1927]
+
 5703.	[bug]		Fix a crash in dig caused by closing an HTTP/2
 			socket with an unused HTTP/2 session. [GL #2735]
 
