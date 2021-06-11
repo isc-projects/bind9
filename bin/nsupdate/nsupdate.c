@@ -2472,6 +2472,10 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_request_getresponse");
 	}
 
+	if (answer->opcode != dns_opcode_update) {
+		fatal("invalid OPCODE in response to UPDATE request");
+	}
+
 	if (answer->rcode != dns_rcode_noerror) {
 		seenerror = true;
 		if (!debugging) {
@@ -2676,6 +2680,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	POST(section);
 	if (debugging) {
 		show_message(stderr, rcvmsg, "Reply from SOA query:");
+	}
+
+	if (rcvmsg->opcode != dns_opcode_query) {
+		fatal("invalid OPCODE in response to SOA query");
 	}
 
 	if (rcvmsg->rcode != dns_rcode_noerror &&
@@ -3149,6 +3157,10 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	if (debugging) {
 		show_message(stderr, rcvmsg,
 			     "recvmsg reply from GSS-TSIG query");
+	}
+
+	if (rcvmsg->opcode != dns_opcode_query) {
+		fatal("invalid OPCODE in response to GSS-TSIG query");
 	}
 
 	if (rcvmsg->rcode == dns_rcode_formerr && !tried_other_gsstsig) {
