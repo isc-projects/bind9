@@ -58,6 +58,7 @@
 #include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
+#include <dns/opcode.h>
 #include <dns/peer.h>
 #include <dns/private.h>
 #include <dns/rcode.h>
@@ -13182,6 +13183,23 @@ stub_glue_response_cb(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Unexpected opcode.
+	 */
+	if (msg->opcode != dns_opcode_query) {
+		char opcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, opcode, sizeof(opcode));
+		(void)dns_opcode_totext(msg->rcode, &rb);
+
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "refreshing stub: "
+			     "unexpected opcode (%.*s) from %s (source %s)",
+			     (int)rb.used, opcode, master, source);
+		goto cleanup;
+	}
+
+	/*
 	 * Unexpected rcode.
 	 */
 	if (msg->rcode != dns_rcode_noerror) {
@@ -13594,6 +13612,23 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Unexpected opcode.
+	 */
+	if (msg->opcode != dns_opcode_query) {
+		char opcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, opcode, sizeof(opcode));
+		(void)dns_opcode_totext(msg->rcode, &rb);
+
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "refreshing stub: "
+			     "unexpected opcode (%.*s) from %s (source %s)",
+			     (int)rb.used, opcode, master, source);
+		goto next_master;
+	}
+
+	/*
 	 * Unexpected rcode.
 	 */
 	if (msg->rcode != dns_rcode_noerror) {
@@ -13979,6 +14014,23 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			     "refresh: failure trying master "
 			     "%s (source %s): %s",
 			     master, source, dns_result_totext(result));
+		goto next_master;
+	}
+
+	/*
+	 * Unexpected opcode.
+	 */
+	if (msg->opcode != dns_opcode_query) {
+		char opcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, opcode, sizeof(opcode));
+		(void)dns_opcode_totext(msg->rcode, &rb);
+
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "refresh: "
+			     "unexpected opcode (%.*s) from %s (source %s)",
+			     (int)rb.used, opcode, master, source);
 		goto next_master;
 	}
 
@@ -18218,6 +18270,23 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 					 DNS_MESSAGEPARSE_PRESERVEORDER |
 						 DNS_MESSAGEPARSE_CLONEBUFFER);
 	if (result != ISC_R_SUCCESS) {
+		goto next_master;
+	}
+
+	/*
+	 * Unexpected opcode.
+	 */
+	if (msg->opcode != dns_opcode_update) {
+		char opcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, opcode, sizeof(opcode));
+		(void)dns_opcode_totext(msg->rcode, &rb);
+
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "forwarding dynamic update: "
+			     "unexpected opcode (%.*s) from %s",
+			     (int)rb.used, opcode, master);
 		goto next_master;
 	}
 
