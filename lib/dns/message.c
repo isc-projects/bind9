@@ -1578,9 +1578,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->opt = rdataset;
 			rdataset = NULL;
 			free_rdataset = false;
-			ercode = (dns_rcode_t)(
-				(msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK) >>
-				20);
+			ercode = (dns_rcode_t)((msg->opt->ttl &
+						DNS_MESSAGE_EDNSRCODE_MASK) >>
+					       20);
 			msg->rcode |= ercode;
 			dns_message_puttempname(msg, &name);
 			free_name = false;
