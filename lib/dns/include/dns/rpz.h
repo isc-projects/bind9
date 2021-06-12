@@ -96,10 +96,11 @@ typedef uint64_t dns_rpz_zbits_t;
  * Mask of the specified and higher numbered policy zones
  * Avoid hassles with (1<<33) or (1<<65)
  */
-#define DNS_RPZ_ZMASK(n)                                                     \
-	((dns_rpz_zbits_t)(                                                  \
-		(((n) >= DNS_RPZ_MAX_ZONES - 1) ? 0 : (1ULL << ((n) + 1))) - \
-		1))
+#define DNS_RPZ_ZMASK(n)                                     \
+	((dns_rpz_zbits_t)((((n) >= DNS_RPZ_MAX_ZONES - 1)   \
+				    ? 0                      \
+				    : (1ULL << ((n) + 1))) - \
+			   1))
 
 /*
  * The trigger counter type.
