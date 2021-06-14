@@ -823,6 +823,7 @@ typedef struct isc_nmsocket_h2 {
 	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
 	isc_rwlock_t lock;
 
+	bool response_submitted;
 	struct {
 		char *uri;
 		bool post;
@@ -885,8 +886,6 @@ struct isc_nmsocket {
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
 		isc_nmsocket_t *tlslistener;
-		isc_sockaddr_t server_iface;
-		isc_sockaddr_t local_iface;
 		atomic_bool result_updated;
 		enum {
 			TLS_INIT,

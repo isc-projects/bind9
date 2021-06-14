@@ -413,7 +413,6 @@ doh_receive_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		(void)atomic_fetch_sub(&nsends, 1);
 		atomic_fetch_add(&csends, 1);
 		atomic_fetch_add(&creads, 1);
-		isc_nm_resumeread(handle);
 	} else {
 		/* We failed to connect; try again */
 		atomic_store(&was_error, true);

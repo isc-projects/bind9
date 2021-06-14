@@ -111,7 +111,7 @@ typedef struct http_cstream {
 	size_t GET_path_len;
 
 	isc_nm_http_response_status_t response_status;
-
+	isc_nmsocket_t *httpsock;
 	LINK(struct http_cstream) link;
 } http_cstream_t;
 
@@ -140,7 +140,6 @@ struct isc_nm_http_session {
 	isc_nmhandle_t *handle;
 	isc_nmhandle_t *client_httphandle;
 	isc_nmsocket_t *serversocket;
-	isc_sockaddr_t server_iface;
 
 	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
 	size_t bufsize;
@@ -375,6 +374,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 		return (result);
 	}
 
+	isc__nmsocket_attach(sock, &stream->httpsock);
 	stream->authoritylen = stream->up.field_data[ISC_UF_HOST].len;
 	stream->authority = isc_mem_get(mctx, stream->authoritylen + AUTHEXTRA);
 	memmove(stream->authority, &uri[stream->up.field_data[ISC_UF_HOST].off],
@@ -416,6 +416,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 			stream->up.field_data[ISC_UF_QUERY].len);
 	}
 
+	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
 
 	return (ISC_R_SUCCESS);
@@ -436,6 +437,14 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 		isc_mem_put(mctx, stream->postdata.base,
 			    stream->postdata.length);
 	}
+	if (stream == stream->httpsock->h2.connect.cstream) {
+		stream->httpsock->h2.connect.cstream = NULL;
+	}
+	if (ISC_LINK_LINKED(stream, link)) {
+		ISC_LIST_UNLINK(stream->httpsock->h2.session->cstreams, stream,
+				link);
+	}
+	isc__nmsocket_detach(&stream->httpsock);
 	isc_mem_put(mctx, stream, sizeof(http_cstream_t));
 }
 
@@ -556,7 +565,8 @@ call_unlink_cstream_readcb(http_cstream_t *cstream,
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(cstream != NULL);
 	ISC_LIST_UNLINK(session->cstreams, cstream, link);
-	cstream->read_cb(session->handle, result,
+	INSIST(VALID_NMHANDLE(session->client_httphandle));
+	cstream->read_cb(session->client_httphandle, result,
 			 &(isc_region_t){ cstream->rbuf, cstream->rbufsize },
 			 cstream->read_cbarg);
 	put_http_cstream(session->mctx, cstream);
@@ -686,12 +696,22 @@ client_on_header_callback(nghttp2_session *ngsession,
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(session->client);
-	REQUIRE(!ISC_LIST_EMPTY(session->cstreams));
 
 	UNUSED(flags);
 	UNUSED(ngsession);
 
 	cstream = find_http_cstream(frame->hd.stream_id, session);
+	if (cstream == NULL) {
+		/*
+		 * This could happen in two cases:
+		 * - the server sent us bad data, or
+		 * - we closed the session prematurely before receiving all
+		 *   responses (i.e., because of a belated or partial response).
+		 */
+		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+	}
+
+	INSIST(!ISC_LIST_EMPTY(session->cstreams));
 
 	switch (frame->hd.type) {
 	case NGHTTP2_HEADERS:
@@ -1316,6 +1336,9 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	session->client = true;
 	transp_sock->h2.session = session;
 	http_sock->h2.connect.tlsctx = NULL;
+	/* otherwise we will get some garbage output in DIG */
+	http_sock->iface = handle->sock->iface;
+	http_sock->peer = handle->sock->peer;
 
 	transp_sock->h2.connect.post = http_sock->h2.connect.post;
 	transp_sock->h2.connect.uri = http_sock->h2.connect.uri;
@@ -1514,14 +1537,11 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	}
 
 	cstream->sending = true;
-	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_PREPEND(session->cstreams, cstream, link);
-	}
 
 	sock->h2.connect.cstream = NULL;
 	result = client_submit_request(session, cstream);
 	if (result != ISC_R_SUCCESS) {
-		ISC_LIST_UNLINK(session->cstreams, cstream, link);
+		put_http_cstream(session->mctx, cstream);
 		goto error;
 	}
 
@@ -1586,7 +1606,8 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	socket = isc_mem_get(session->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(socket, session->serversocket->mgr,
 			   isc_nm_httpsocket,
-			   (isc_sockaddr_t *)&session->server_iface);
+			   (isc_sockaddr_t *)&session->handle->sock->iface);
+	socket->peer = session->handle->sock->peer;
 	socket->h2 = (isc_nmsocket_h2_t){
 		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
 		.psock = socket,
@@ -1892,6 +1913,15 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	nghttp2_data_provider data_prd;
 	int rv;
 
+	if (socket->h2.response_submitted) {
+		/* NGHTTP2 will gladly accept new response (write request)
+		 * from us even though we cannot send more than one over the
+		 * same HTTP/2 stream. Thus, we need to handle this case
+		 * manually. We will return failure code so that it will be
+		 * passed to the write callback. */
+		return (ISC_R_FAILURE);
+	}
+
 	data_prd.source.ptr = socket;
 	data_prd.read_callback = server_read_callback;
 
@@ -1900,6 +1930,8 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	if (rv != 0) {
 		return (ISC_R_FAILURE);
 	}
+
+	socket->h2.response_submitted = true;
 	return (ISC_R_SUCCESS);
 }
 
@@ -2163,14 +2195,10 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	cstream->read_cbarg = cbarg;
 	cstream->reading = true;
 
-	if (!ISC_LINK_LINKED(cstream, link)) {
-		ISC_LIST_PREPEND(session->cstreams, cstream, link);
-	}
-
 	if (cstream->sending) {
 		result = client_submit_request(session, cstream);
 		if (result != ISC_R_SUCCESS) {
-			ISC_LIST_UNLINK(session->cstreams, cstream, link);
+			put_http_cstream(session->mctx, cstream);
 			return;
 		}
 
@@ -2331,7 +2359,6 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	isc_nmhandle_attach(handle, &session->handle);
 	isc__nmsocket_attach(httplistensock, &session->serversocket);
-	session->server_iface = isc_nmhandle_localaddr(session->handle);
 	server_send_connection_header(session);
 
 	/* TODO H2 */
@@ -2608,12 +2635,21 @@ client_call_failed_read_cb(isc_result_t result,
 	cstream = ISC_LIST_HEAD(session->cstreams);
 	while (cstream != NULL) {
 		http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-		cstream->read_cb(
-			session->client_httphandle, result,
-			&(isc_region_t){ cstream->rbuf, cstream->rbufsize },
-			cstream->read_cbarg);
 
-		if (result != ISC_R_TIMEDOUT ||
+		/*
+		 * read_cb could be NULL if cstream was allocated and added
+		 * to the tracking list, but was not properly initialized due
+		 * to a low-level error. It is safe to get rid of the object
+		 * in such a case.
+		 */
+		if (cstream->read_cb != NULL) {
+			cstream->read_cb(session->client_httphandle, result,
+					 &(isc_region_t){ cstream->rbuf,
+							  cstream->rbufsize },
+					 cstream->read_cbarg);
+		}
+
+		if (result != ISC_R_TIMEDOUT || cstream->read_cb == NULL ||
 		    !isc__nmsocket_timer_running(session->handle->sock))
 		{
 			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
@@ -2670,6 +2706,14 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 		 */
 		finish_http_session(session);
 	}
+}
+
+bool
+isc_nm_is_http_handle(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->type == isc_nm_httpsocket);
 }
 
 static const bool base64url_validation_table[256] = {
@@ -2843,11 +2887,7 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 			sock->h2.query_data = NULL;
 		}
 
-		if (sock->h2.connect.cstream != NULL) {
-			put_http_cstream(sock->mgr->mctx,
-					 sock->h2.connect.cstream);
-			sock->h2.connect.cstream = NULL;
-		}
+		INSIST(sock->h2.connect.cstream == NULL);
 
 		if (sock->h2.buf != NULL) {
 			isc_mem_free(sock->mgr->mctx, sock->h2.buf);

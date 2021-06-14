@@ -577,7 +577,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 */
 	tlssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*tlssock));
 	isc__nmsocket_init(tlssock, handle->sock->mgr, isc_nm_tlssocket,
-			   &tlslistensock->tlsstream.server_iface);
+			   &handle->sock->iface);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
 	tlssock->tlsstream.ctx = tlslistensock->tlsstream.ctx;
@@ -619,9 +619,6 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	tlssock = isc_mem_get(mgr->mctx, sizeof(*tlssock));
 
 	isc__nmsocket_init(tlssock, mgr, isc_nm_tlslistener, iface);
-	tlssock->tlsstream.server_iface = *iface;
-	ISC_LINK_INIT(&tlssock->tlsstream.server_iface, link);
-	tlssock->iface = tlssock->tlsstream.server_iface;
 	tlssock->result = ISC_R_UNSET;
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
@@ -881,9 +878,6 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tlssocket, local);
-	nsock->tlsstream.local_iface = *local;
-	ISC_LINK_INIT(&nsock->tlsstream.local_iface, link);
-	nsock->iface = nsock->tlsstream.local_iface;
 	nsock->extrahandlesize = extrahandlesize;
 	nsock->result = ISC_R_UNSET;
 	nsock->connect_cb = cb;
@@ -891,8 +885,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->connect_timeout = timeout;
 	nsock->tlsstream.ctx = ctx;
 
-	isc_nm_tcpconnect(mgr, &nsock->tlsstream.local_iface, peer,
-			  tcp_connected, nsock, nsock->connect_timeout, 0);
+	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, nsock,
+			  nsock->connect_timeout, 0);
 }
 
 static void
@@ -908,6 +902,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		goto error;
 	}
 
+	tlssock->iface = handle->sock->iface;
+	tlssock->peer = handle->sock->peer;
 	if (isc__nm_closing(tlssock)) {
 		result = ISC_R_CANCELED;
 		goto error;
