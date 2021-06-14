@@ -254,5 +254,17 @@ test_opcodes NOERROR 0
 test_opcodes NOTIMP 1 2 3 6 7 8 9 10 11 12 13 14 15
 test_opcodes FORMERR 4 5
 
+n=$((n + 1))
+echo_i "checking server quotas for both encrypted and unencrypted HTTP ($n)"
+ret=0
+if [ -x "$PYTHON" ]; then
+	BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_quota.py"
+	ret=$?
+else
+	echo_i "Python is not available. Skipping the test..."
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
