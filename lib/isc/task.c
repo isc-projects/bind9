@@ -99,8 +99,8 @@ struct isc_task {
 	unsigned int magic;
 	isc_taskmgr_t *manager;
 	isc_mutex_t lock;
-	int threadid;
 	/* Locked by task lock. */
+	int threadid;
 	task_state_t state;
 	isc_refcount_t references;
 	isc_refcount_t running;
@@ -251,6 +251,7 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	memset(task->name, 0, sizeof(task->name));
 	task->tag = NULL;
 	INIT_LINK(task, link);
+	task->magic = TASK_MAGIC;
 
 	exiting = false;
 	LOCK(&manager->lock);
@@ -263,13 +264,15 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	UNLOCK(&manager->lock);
 
 	if (exiting) {
+		isc_refcount_destroy(&task->running);
+		isc_refcount_decrement(&task->references);
+		isc_refcount_destroy(&task->references);
 		isc_mutex_destroy(&task->lock);
 		isc_taskmgr_detach(&task->manager);
 		isc_mem_put(manager->mctx, task, sizeof(*task));
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
-	task->magic = TASK_MAGIC;
 	*taskp = task;
 
 	return (ISC_R_SUCCESS);
@@ -341,7 +344,9 @@ task_ready(isc_task_t *task) {
 	XTRACE("task_ready");
 
 	isc_refcount_increment0(&task->running);
+	LOCK(&task->lock);
 	isc_nm_task_enqueue(manager->netmgr, task, task->threadid);
+	UNLOCK(&task->lock);
 }
 
 void
@@ -1026,11 +1031,15 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	 */
 	for (task = HEAD(manager->tasks); task != NULL; task = NEXT(task, link))
 	{
+		bool was_idle;
+
 		LOCK(&task->lock);
-		if (task_shutdown(task)) {
+		was_idle = task_shutdown(task);
+		UNLOCK(&task->lock);
+
+		if (was_idle) {
 			task_ready(task);
 		}
-		UNLOCK(&task->lock);
 	}
 
 	UNLOCK(&manager->lock);
@@ -1061,7 +1070,10 @@ void
 isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 	REQUIRE(VALID_MANAGER(mgr));
 	REQUIRE(VALID_TASK(task));
+
+	LOCK(&task->lock);
 	REQUIRE(task->threadid == 0);
+	UNLOCK(&task->lock);
 
 	LOCK(&mgr->excl_lock);
 	if (mgr->excl != NULL) {
