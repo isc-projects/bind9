@@ -424,8 +424,8 @@ BIND 9.11.35 is a maintenance release.
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
 basic POSIX support, and a 64-bit integer type. Successful builds have been
-observed on many versions of Linux and UNIX, including RHEL/CentOS, Fedora,
-Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD, NetBSD,
+observed on many versions of Linux and UNIX, including RHEL/CentOS/Oracle Linux,
+Fedora, Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD, NetBSD,
 OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
 
 BIND is also available for Windows Server 2008 and higher.  See
