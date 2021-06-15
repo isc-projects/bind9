@@ -243,5 +243,11 @@ done
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check that journal is applied to zone with keydata placeholder record"
+ret=0
+grep 'managed-keys-zone: journal rollforward completed successfully: up to date' ns2/named.run > /dev/null 2>&1 || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
