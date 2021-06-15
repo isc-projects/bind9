@@ -882,6 +882,8 @@ This statement may appear only once in a configuration file. If there is
 no ``options`` statement, an options block with each option set to its
 default is used.
 
+.. _attach-cache:
+
 ``attach-cache``
    This option allows multiple views to share a single cache database. Each view has
    its own cache database by default, but if multiple views have the
@@ -3014,20 +3016,48 @@ system.
    future.
 
 ``max-cache-size``
-   This sets the maximum amount of memory to use for the server's cache, in bytes
-   or percentage of total physical memory. When the amount of data in the cache
-   reaches this limit, the server causes records to expire
-   prematurely, following an LRU-based strategy, so that the limit is not
-   exceeded. The keyword ``unlimited``, or the value 0, places no
-   limit on the cache size; records are purged from the cache only when
-   their TTLs expire. Any positive values less than 2MB are ignored
-   and reset to 2MB. In a server with multiple views, the limit applies
-   separately to the cache of each view. The default is ``90%``. On
-   systems where detection of the amount of physical memory is not supported,
-   values represented as a percentage fall back to unlimited. Note that the
-   detection of physical memory is done only once at startup, so
-   ``named`` does not adjust the cache size if the amount of physical
-   memory is changed during runtime.
+   This sets the maximum amount of memory to use for an individual cache
+   database and its associated metadata, in bytes or percentage of total
+   physical memory. By default, each view has its own separate cache,
+   which means the total amount of memory required for cache data is the
+   sum of the cache database sizes for all views (unless the
+   :ref:`attach-cache <attach-cache>` option is used).
+
+   When the amount of data in a cache database reaches the configured
+   limit, ``named`` starts purging non-expired records (following an
+   LRU-based strategy).
+
+   The default size limit for each individual cache is:
+
+     - 90% of physical memory for views with ``recursion`` set to
+       ``yes`` (the default), or
+
+     - 2 MB for views with ``recursion`` set to ``no``.
+
+   Any positive value smaller than 2 MB is ignored and reset to 2 MB.
+   The keyword ``unlimited``, or the value ``0``, places no limit on the
+   cache size; records are then purged from the cache only when they
+   expire (according to their TTLs).
+
+   .. note::
+
+       For configurations which define multiple views with separate
+       caches and recursion enabled, it is recommended to set
+       ``max-cache-size`` appropriately for each view, as using the
+       default value of that option (90% of physical memory for each
+       individual cache) may lead to memory exhaustion over time.
+
+   Upon startup and reconfiguration, caches with a limited size
+   preallocate a small amount of memory (less than 1% of
+   ``max-cache-size`` for a given view). This preallocation serves as an
+   optimization to eliminate extra latency introduced by resizing
+   internal cache structures.
+
+   On systems where detection of the amount of physical memory is not
+   supported, percentage-based values fall back to ``unlimited``. Note
+   that the amount of physical memory available is only detected on
+   startup, so ``named`` does not adjust the cache size limits if the
+   amount of physical memory is changed at runtime.
 
 ``tcp-listen-queue``
    This sets the listen-queue depth. The default and minimum is 10. If the kernel
