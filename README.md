@@ -133,10 +133,10 @@ capability support at compile time. See [Compile-time options](#opts)
 below for details on other libraries that may be required to support
 optional features.
 
-Successful builds have been observed on many versions of Linux and
-Unix, including RHEL/CentOS, Fedora, Debian, Ubuntu, SLES, openSUSE,
-Slackware, Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris,
-OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
+Successful builds have been observed on many versions of Linux and Unix,
+including RHEL/CentOS/Oracle Linux, Fedora, Debian, Ubuntu, SLES, openSUSE,
+Slackware, Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris, OpenIndiana,
+OmniOS CE, HP-UX, and OpenWRT.
 
 To build on a Unix or Linux system, use:
 
