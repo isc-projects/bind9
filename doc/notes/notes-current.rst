@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.17.14
+Notes for BIND 9.17.15
 ----------------------
 
 Security Fixes
@@ -24,17 +24,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- New configuration options, ``tcp-receive-buffer``, ``tcp-send-buffer``,
-  ``udp-receive-buffer``, and ``udp-send-buffer``, have been added.  These
-  options allows the operator to fine tune the receiving and sending
-  buffers in the operating system.  On busy servers, increasing the value
-  of the receive buffers can prevent the server from dropping the packets
-  during short spikes, and decreasing the value would prevent the server to
-  became clogged up with queries that are too old and have already timeouted
-  on the receiving side. :gl:`#2313`
-
-- Run zone dumping tasks on separate asynchronous thread pools.  This change
-  makes zone dumping no longer block networking I/O. :gl:`#2732`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -46,38 +36,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The interface handling code has been refactored to use fewer resources,
-  which should lead to less memory fragmentation and better startup
-  performance.  :gl:`#2433`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
-
-- Fix a race condition in reading and writing key files for KASP zones in
-  multiple views. :gl:`#1875`
-
-- Check ``key-directory`` conflicts in ``named.conf`` for zones in multiple
-  views with different ``dnssec-policy``. Using the same ``key-directory`` for
-  such zones is not allowed. :gl:`#2463`
-
-- ``named-checkconf`` now complains if zones with ``dnssec-policy`` reference
-  the same zone file more than once. :gl:`#2603`
-
-- The calculation of the estimated IXFR transaction size by
-  `dns_journal_iter_init()` was invalid.  This resulted in excessive
-  AXFR-style-IXFR responses. :gl:`#2685`
-
-- If a query was answered with stale data on a server with DNS64 enabled,
-  an assertion could occur if a non-stale answer arrived afterward. This
-  has been fixed. :gl:`#2731`
-
-- Fixed an assertion failure that could occur if stale data was used
-  to answer a query, and then a prefetch was triggered after the query
-  was restarted (for example, to follow a CNAME). :gl:`#2733`
-
-- Fix an error that would enable don't fragment socket option instead
-  of disabling it leading to errors when sending the oversized UDP
-  packets. [GL #2746]
 
 - Fixed a bug that caused the NSEC salt to be changed for KASP zones on
   every startup. :gl:`#2725`
