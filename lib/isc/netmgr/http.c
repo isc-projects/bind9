@@ -1025,6 +1025,13 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			nghttp2_session_mem_send(session->ngsession, &data);
 		const size_t new_total = total + pending;
 
+		/* Sometimes nghttp2_session_mem_send() does not return any
+		 * data to send even though nghttp2_session_want_write()
+		 * returns success. */
+		if (pending == 0 || data == NULL) {
+			break;
+		}
+
 		/* reallocate buffer if required */
 		if (new_total > sizeof(tmp_data)) {
 			uint8_t *old_prepared_data = prepared_data;
