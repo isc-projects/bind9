@@ -2337,7 +2337,7 @@ static uint32_t
 rehash_bits(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rbt->hashbits;
 
-	while (newcount >= HASHSIZE(newbits) && newbits < rbt->maxhashbits) {
+	while (newcount >= HASHSIZE(newbits) && newbits < RBT_HASH_MAX_BITS) {
 		newbits += 1;
 	}
 
