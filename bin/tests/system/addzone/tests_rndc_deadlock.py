@@ -17,7 +17,7 @@ import time
 
 def run_rndc(server, rndc_command):
     '''
-    Send the specified 'rndc_command' to 'server' with a timeout of 2 seconds
+    Send the specified 'rndc_command' to 'server' with a timeout of 10 seconds
     '''
     rndc = os.getenv('RNDC')
     port = os.getenv('CONTROLPORT')
@@ -25,7 +25,7 @@ def run_rndc(server, rndc_command):
     cmdline = [rndc, '-c', '../common/rndc.conf', '-p', port, '-s', server]
     cmdline.extend(rndc_command)
 
-    subprocess.check_output(cmdline, stderr=subprocess.STDOUT, timeout=2)
+    subprocess.check_output(cmdline, stderr=subprocess.STDOUT, timeout=10)
 
 
 def rndc_loop(test_state, domain):
@@ -73,8 +73,9 @@ def test_rndc_deadlock():
             domain = 'example%d' % i
             executor.submit(rndc_loop, test_state, domain)
 
-        # Run "rndc status" in 1-second intervals for a maximum of 10 seconds.
-        # If any "rndc status" command fails, the loop will be interrupted.
+        # Run "rndc status" 10 times, with 1-second pauses between attempts.
+        # Each "rndc status" invocation has a timeout of 10 seconds.  If any of
+        # them fails, the loop will be interrupted.
         server_is_responsive = True
         attempts = 10
         while server_is_responsive and attempts > 0:
