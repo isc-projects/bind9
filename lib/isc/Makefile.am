@@ -55,7 +55,6 @@ libisc_la_HEADERS =			\
 	include/isc/mem.h		\
 	include/isc/meminfo.h		\
 	include/isc/mutex.h		\
-	include/isc/mutexatomic.h	\
 	include/isc/mutexblock.h	\
 	include/isc/net.h		\
 	include/isc/netaddr.h		\

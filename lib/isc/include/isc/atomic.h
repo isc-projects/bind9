@@ -11,15 +11,11 @@
 
 #pragma once
 
-#ifdef ISC_MUTEX_ATOMICS
-#include <isc/mutexatomic.h>
-#else /* ifdef ISC_MUTEX_ATOMICS */
-#if HAVE_STDATOMIC_H
+#if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
-#else /* if HAVE_STDATOMIC_H */
+#else
 #include <isc/stdatomic.h>
-#endif /* if HAVE_STDATOMIC_H */
-#endif /* ifdef ISC_MUTEX_ATOMICS */
+#endif
 
 /*
  * We define a few additional macros to make things easier

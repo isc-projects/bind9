@@ -1450,11 +1450,9 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
-#ifndef ISC_MUTEX_ATOMICS
 	STATIC_ASSERT((sizeof(h->attributes) == 2),
 		      "The .attributes field of rdatasetheader_t needs to be "
 		      "16-bit int type exactly.");
-#endif /* !ISC_MUTEX_ATOMICS */
 
 #if TRACE_HEADER
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in) {
@@ -7520,9 +7518,6 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize, void *arg,
 		header->is_mmapped = 1;
 		header->node = rbtnode;
 		header->node_is_relative = 0;
-#ifdef ISC_MUTEX_ATOMICS
-		atomic_init(&header->attributes, header->attributes.v);
-#endif
 
 		if (RESIGN(header) &&
 		    (header->resign != 0 || header->resign_lsb != 0)) {
