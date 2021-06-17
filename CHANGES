@@ -1,3 +1,8 @@
+5658.	[bug]		Increasing "max-cache-size" for a running named instance
+			(using "rndc reconfig") was not causing the hash tables
+			used by cache databases to be grown accordingly. This
+			has been fixed. [GL #2770]
+
 5657.	[cleanup]	Removed support for builtin atomics in old versions
 			of clang (<< 3.6.0) and gcc (<< 4.7.0), and atomics
 			emulated with mutex. [GL #2606]
