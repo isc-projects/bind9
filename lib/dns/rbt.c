@@ -1081,11 +1081,28 @@ isc_result_t
 dns_rbt_adjusthashsize(dns_rbt_t *rbt, size_t size) {
 	REQUIRE(VALID_RBT(rbt));
 
-	size_t newsize = size / RBT_HASH_BUCKETSIZE;
-
-	rbt->maxhashbits = rehash_bits(rbt, newsize);
-
-	maybe_rehash(rbt, newsize);
+	if (size > 0) {
+		/*
+		 * Setting a new, finite size limit was requested for the RBT.
+		 * Estimate how many hash table slots are needed for the
+		 * requested size and how many bits would be needed to index
+		 * those hash table slots, then rehash the RBT if necessary.
+		 * Note that the hash table can only grow, it is not shrunk if
+		 * the requested size limit is lower than the current one.
+		 */
+		size_t newsize = size / RBT_HASH_BUCKETSIZE;
+		rbt->maxhashbits = rehash_bits(rbt, newsize);
+		maybe_rehash(rbt, newsize);
+	} else {
+		/*
+		 * Setting an infinite size limit was requested for the RBT.
+		 * Increase the maximum allowed number of hash table slots to
+		 * 2^32, which enables the hash table to grow as nodes are
+		 * added to the RBT without immediately preallocating 2^32 hash
+		 * table slots.
+		 */
+		rbt->maxhashbits = RBT_HASH_MAX_BITS;
+	}
 
 	return (ISC_R_SUCCESS);
 }
