@@ -1400,14 +1400,15 @@ dns_db_hashsize(dns_db_t *db);
 isc_result_t
 dns_db_adjusthashsize(dns_db_t *db, size_t size);
 /*%<
- * For database implementations using a hash table, adjust
- * the size of the hash table to store objects with size
- * memory footprint.
+ * For database implementations using a hash table, adjust the size of
+ * the hash table to store objects with a maximum total memory footprint
+ * of 'size' bytes.  If 'size' is set to 0, it means no finite limit is
+ * requested.
  *
  * Requires:
  *
  * \li	'db' is a valid database.
- * \li  'size' is maximum memory footprint of the database
+ * \li  'size' is maximum memory footprint of the database in bytes
  *
  * Returns:
  * \li	#ISC_R_SUCCESS	The registration succeeded

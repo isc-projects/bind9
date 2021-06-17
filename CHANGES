@@ -1,3 +1,8 @@
+5658.	[bug]		Increasing "max-cache-size" for a running named instance
+			(using "rndc reconfig") was not causing the hash tables
+			used by cache databases to be grown accordingly. This
+			has been fixed. [GL #2770]
+
 5655.	[bug]		Signed, insecure delegation responses prepared by named
 			either lacked the necessary NSEC records or contained
 			duplicate NSEC records when both wildcard expansion and
