@@ -1,3 +1,7 @@
+5667.	[bug]		The configuration-checking code failed to account for
+			the inheritance rules of the "dnssec-policy" option.
+			[GL #2780]
+
 5666.	[func]		Tweak the safe "edns-udp-size" to match the probing
 			value from BIND 9.16 for better compatibility. Also
 			``named`` now sets the DON'T FRAGMENT flag on outgoing

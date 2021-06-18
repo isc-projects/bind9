@@ -62,4 +62,7 @@ Bug Fixes
 
 - A deadlock at startup was introduced when fixing :gl:`#1875` because when
   locking key files for reading and writing, "in-view" logic was not taken into
-  account. This has been fixed. [GL #2783]
+  account. This has been fixed. :gl:`#2783`
+
+- Checking of ``dnssec-policy`` was broken. The checks failed to account for
+  ``dnssec-policy`` inheritance. :gl:`#2780`
