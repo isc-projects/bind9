@@ -11,41 +11,8 @@
 Notes for BIND 9.16.18
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
-
-- Fixed a bug that caused the NSEC salt to be changed for KASP zones on
-  every startup. :gl:`#2725`
-
-- Signed, insecure delegation responses prepared by ``named`` either
-  lacked the necessary NSEC records or contained duplicate NSEC records
-  when both wildcard expansion and CNAME chaining were required to
-  prepare the response. This has been fixed. :gl:`#2759`
 
 - When preparing DNS responses, ``named`` could replace the letters
   ``W`` (uppercase) and ``w`` (lowercase) with ``\000``. This has been
@@ -56,7 +23,3 @@ Bug Fixes
   the code detecting ``key-directory`` conflicts for zones using KASP
   incorrectly reported unique key directories as being reused. This has
   been fixed. :gl:`#2778`
-
-- A deadlock at startup was introduced when fixing :gl:`#1875` because when
-  locking key files for reading and writing, "in-view" logic was not taken into
-  account. This has been fixed. [GL #2783]
