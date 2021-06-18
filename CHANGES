@@ -1,3 +1,5 @@
+	--- 9.16.18 released ---
+
 5660.	[bug]		The configuration-checking code failed to account for
 			the inheritance rules of the "key-directory" option.
 			[GL #2778]
