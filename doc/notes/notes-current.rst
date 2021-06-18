@@ -39,9 +39,12 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Queries where the wildcard match contained the letter ``W`` failed
-  to return the correct response as the ``W`` was mapped to ``\000``.
-  :gl:`#2779`
+- When preparing DNS responses, ``named`` could replace the letters
+  ``W`` (uppercase) and ``w`` (lowercase) with ``\000``. This has been
+  fixed. :gl:`#2779`
 
-- Checking of ``key-directory`` and ``dnssec-policy`` was broken.
-  The checks failed to account for key-directory inheritance. :gl:`#2778`
+- The configuration-checking code failed to account for the inheritance
+  rules of the ``key-directory`` option. As a side effect of this flaw,
+  the code detecting ``key-directory`` conflicts for zones using KASP
+  incorrectly reported unique key directories as being reused. This has
+  been fixed. :gl:`#2778`
