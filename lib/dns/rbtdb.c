@@ -9886,7 +9886,8 @@ static const unsigned char maptolower[256] = {
 	['F'] = 'f', ['G'] = 'g', ['H'] = 'h', ['I'] = 'i', ['J'] = 'j',
 	['K'] = 'k', ['L'] = 'l', ['M'] = 'm', ['N'] = 'n', ['O'] = 'o',
 	['P'] = 'p', ['Q'] = 'q', ['R'] = 'r', ['S'] = 's', ['T'] = 't',
-	['U'] = 'u', ['V'] = 'v', ['X'] = 'x', ['Y'] = 'y', ['Z'] = 'z',
+	['U'] = 'u', ['V'] = 'v', ['W'] = 'w', ['X'] = 'x', ['Y'] = 'y',
+	['Z'] = 'z',
 };
 
 static const unsigned char maptoupper[256] = {
@@ -9894,7 +9895,8 @@ static const unsigned char maptoupper[256] = {
 	['f'] = 'F', ['g'] = 'G', ['h'] = 'H', ['i'] = 'I', ['j'] = 'J',
 	['k'] = 'K', ['l'] = 'L', ['m'] = 'M', ['n'] = 'N', ['o'] = 'O',
 	['p'] = 'P', ['q'] = 'Q', ['r'] = 'R', ['s'] = 'S', ['t'] = 'T',
-	['u'] = 'U', ['v'] = 'V', ['x'] = 'X', ['y'] = 'Y', ['z'] = 'Z',
+	['u'] = 'U', ['v'] = 'V', ['w'] = 'W', ['x'] = 'X', ['y'] = 'Y',
+	['z'] = 'Z',
 };
 
 static void
