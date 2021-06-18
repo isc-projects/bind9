@@ -53,3 +53,5 @@ Bug Fixes
   to return the correct response as the ``W`` was mapped to ``\000``.
   :gl:`#2779`
 
+- Checking of ``key-directory`` and ``dnssec-policy`` was broken.
+  The checks failed to account for key-directory inheritance. :gl:`#2778`
