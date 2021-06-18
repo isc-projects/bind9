@@ -48,3 +48,8 @@ Bug Fixes
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
+
+- Queries where the wildcard match contained the letter ``W`` failed
+  to return the correct response as the ``W`` was mapped to ``\000``.
+  :gl:`#2779`
+
