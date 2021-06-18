@@ -1,3 +1,6 @@
+5659.	[bug]		'W' in wildcard expansions was being mapped to '\000'.
+			[GL #2779]
+
 	--- 9.17.14 released ---
 
 5652.	[bug]		A copy-and-paste error in change 5584 caused the
