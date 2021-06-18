@@ -3191,8 +3191,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Warn if key-directory doesn't exist
 	 */
 	obj = NULL;
-	tresult = cfg_map_get(zoptions, "key-directory", &obj);
-	if (tresult == ISC_R_SUCCESS) {
+	(void)cfg_map_get(zoptions, "key-directory", &obj);
+	if (obj == NULL && voptions != NULL) {
+		(void)cfg_map_get(voptions, "key-directory", &obj);
+	}
+	if (obj == NULL && goptions != NULL) {
+		(void)cfg_map_get(goptions, "key-directory", &obj);
+	}
+	if (obj != NULL) {
 		dir = cfg_obj_asstring(obj);
 
 		tresult = isc_file_isdirectory(dir);
