@@ -1,3 +1,6 @@
+5659.	[bug]		'W' in wildcard expansions was being mapped to '\000'.
+			[GL #2779]
+
 5658.	[bug]		Increasing "max-cache-size" for a running named instance
 			(using "rndc reconfig") was not causing the hash tables
 			used by cache databases to be grown accordingly. This
