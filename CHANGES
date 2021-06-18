@@ -1,3 +1,7 @@
+5660.	[bug]		Checking of key-directory and dnssec-policy was broken.
+			The checks failed to account for key-directory
+			inheritance. [GL #2778]
+
 5659.	[bug]		'W' in wildcard expansions was being mapped to '\000'.
 			[GL #2779]
 
