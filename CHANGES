@@ -15,9 +15,13 @@
 			the inheritance rules of the "key-directory" option.
 			[GL #2778]
 
+			This change was included in BIND 9.17.15.
+
 5659.	[bug]		When preparing DNS responses, named could replace the
 			letters 'W' (uppercase) and 'w' (lowercase) with '\000'.
 			This has been fixed. [GL #2779]
+
+			This change was included in BIND 9.17.15.
 
 5658.	[bug]		Increasing "max-cache-size" for a running named instance
 			(using "rndc reconfig") was not causing the hash tables
