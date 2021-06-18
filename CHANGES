@@ -11,12 +11,13 @@
 			that is in a different view, "in-view" logic was not
 			taken into account. This has been fixed. [GL #2783]
 
-5660.	[bug]		Checking of key-directory and dnssec-policy was broken.
-			The checks failed to account for key-directory
-			inheritance. [GL #2778]
+5660.	[bug]		The configuration-checking code failed to account for
+			the inheritance rules of the "key-directory" option.
+			[GL #2778]
 
-5659.	[bug]		'W' in wildcard expansions was being mapped to '\000'.
-			[GL #2779]
+5659.	[bug]		When preparing DNS responses, named could replace the
+			letters 'W' (uppercase) and 'w' (lowercase) with '\000'.
+			This has been fixed. [GL #2779]
 
 5658.	[bug]		Increasing "max-cache-size" for a running named instance
 			(using "rndc reconfig") was not causing the hash tables
