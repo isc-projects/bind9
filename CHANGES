@@ -1,3 +1,8 @@
+5661.	[bug]		A deadlock was introduced when fixing [GL #1875] because
+			when locking the key file mutex for each zone structure
+			that is in a different view, "in-view" logic was not
+			taken into account. This has been fixed. [GL #2783]
+
 5660.	[bug]		Checking of key-directory and dnssec-policy was broken.
 			The checks failed to account for key-directory
 			inheritance. [GL #2778]

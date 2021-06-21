@@ -53,3 +53,7 @@ Bug Fixes
 
 - Checking of ``key-directory`` and ``dnssec-policy`` was broken.
   The checks failed to account for key-directory inheritance. :gl:`#2778`
+
+- A deadlock at startup was introduced when fixing :gl:`#1875` because when
+  locking key files for reading and writing, "in-view" logic was not taken into
+  account. This has been fixed. [GL #2783]
