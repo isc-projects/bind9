@@ -264,6 +264,7 @@ view \"_bind\" chaos {\n\
 	recursion no;\n\
 	notify no;\n\
 	allow-new-zones no;\n\
+	max-cache-size 2M;\n\
 \n\
 	# Prevent use of this zone in DNS amplified reflection DoS attacks\n\
 	rate-limit {\n\
