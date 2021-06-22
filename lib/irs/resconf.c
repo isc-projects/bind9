@@ -74,6 +74,13 @@
 #define RESCONFMAXLINELEN     256U /*%< max size of a line */
 #define RESCONFMAXSORTLIST    10U  /*%< max 10 */
 
+#define CHECK(op)                            \
+	do {                                 \
+		result = (op);               \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup;        \
+	} while (0)
+
 /*!
  * configuration data structure
  */
@@ -108,6 +115,10 @@ struct irs_resconf {
 	uint8_t resdebug;
 	/*%< set to n in 'options ndots:n' */
 	uint8_t ndots;
+	/*%< set to n in 'options attempts:n' */
+	uint8_t attempts;
+	/*%< set to n in 'options timeout:n' */
+	uint8_t timeout;
 };
 
 static isc_result_t
@@ -165,8 +176,8 @@ eatwhite(FILE *fp) {
  */
 static int
 getword(FILE *fp, char *buffer, size_t size) {
+	char *p = NULL;
 	int ch;
-	char *p;
 
 	REQUIRE(buffer != NULL);
 	REQUIRE(size > 0U);
@@ -447,10 +458,25 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 }
 
 static isc_result_t
+resconf_optionnumber(const char *word, uint8_t *number) {
+	char *p;
+	long n;
+
+	n = strtol(word, &p, 10);
+	if (*p != '\0') { /* Bad string. */
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+	if (n < 0 || n > 0xff) { /* Out of range. */
+		return (ISC_R_RANGE);
+	}
+	*number = n;
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 	int delim;
-	long ndots;
-	char *p;
+	isc_result_t result = ISC_R_SUCCESS;
 	char word[RESCONFMAXLINELEN];
 
 	delim = getword(fp, word, sizeof(word));
@@ -462,14 +488,11 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 		if (strcmp("debug", word) == 0) {
 			conf->resdebug = 1;
 		} else if (strncmp("ndots:", word, 6) == 0) {
-			ndots = strtol(word + 6, &p, 10);
-			if (*p != '\0') { /* Bad string. */
-				return (ISC_R_UNEXPECTEDTOKEN);
-			}
-			if (ndots < 0 || ndots > 0xff) { /* Out of range. */
-				return (ISC_R_RANGE);
-			}
-			conf->ndots = (uint8_t)ndots;
+			CHECK(resconf_optionnumber(word + 6, &conf->ndots));
+		} else if (strncmp("attempts:", word, 9) == 0) {
+			CHECK(resconf_optionnumber(word + 9, &conf->attempts));
+		} else if (strncmp("timeout:", word, 8) == 0) {
+			CHECK(resconf_optionnumber(word + 8, &conf->timeout));
 		}
 
 		if (delim == EOF || delim == '\n') {
@@ -479,7 +502,8 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+cleanup:
+	return (result);
 }
 
 static isc_result_t
@@ -521,6 +545,8 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 	conf->sortlistnxt = 0;
 	conf->resdebug = 0;
 	conf->ndots = 1;
+	conf->attempts = 3;
+	conf->timeout = 0;
 	for (i = 0; i < RESCONFMAXSEARCH; i++) {
 		conf->search[i] = NULL;
 	}
@@ -668,4 +694,18 @@ irs_resconf_getndots(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
 	return ((unsigned int)conf->ndots);
+}
+
+unsigned int
+irs_resconf_getattempts(irs_resconf_t *conf) {
+	REQUIRE(IRS_RESCONF_VALID(conf));
+
+	return ((unsigned int)conf->attempts);
+}
+
+unsigned int
+irs_resconf_gettimeout(irs_resconf_t *conf) {
+	REQUIRE(IRS_RESCONF_VALID(conf));
+
+	return ((unsigned int)conf->timeout);
 }

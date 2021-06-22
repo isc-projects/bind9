@@ -115,4 +115,24 @@ irs_resconf_getndots(irs_resconf_t *conf);
  *\li	'conf' is a valid resconf object.
  */
 
+unsigned int
+irs_resconf_getattempts(irs_resconf_t *conf);
+/*%<
+ * Return the 'attempts' value stored in 'conf'.
+ *
+ * Requires:
+ *
+ *\li	'conf' is a valid resconf object.
+ */
+
+unsigned int
+irs_resconf_gettimeout(irs_resconf_t *conf);
+/*%<
+ * Return the 'timeout' value stored in 'conf'.
+ *
+ * Requires:
+ *
+ *\li	'conf' is a valid resconf object.
+ */
+
 ISC_LANG_ENDDECLS
