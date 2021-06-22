@@ -2007,30 +2007,6 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc_nm_tlsdns_sequential(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->type == isc_nm_tlsdnssocket);
-
-	sock = handle->sock;
-
-	/*
-	 * We don't want pipelining on this connection. That means
-	 * that we need to pause after reading each request, and
-	 * resume only after the request has been processed. This
-	 * is done in resume_processing(), which is the socket's
-	 * closehandle_cb callback, called whenever a handle
-	 * is released.
-	 */
-
-	isc__nmsocket_timer_stop(sock);
-	isc__nm_stop_reading(sock);
-	atomic_store(&sock->sequential, true);
-}
-
-void
 isc_nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
 

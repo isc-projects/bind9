@@ -1,3 +1,6 @@
+5663.	[bug]		Properly handle non-zero OPCODEs when receiving the
+			queries over DoT and DoH channels. [GL #2787]
+
 5662.	[bug]		Views with recursion disabled are now configured with a
 			default cache size of 2 MB, unless "max-cache-size" is
 			explicitly set. This prevents cache RBT hash tables from
