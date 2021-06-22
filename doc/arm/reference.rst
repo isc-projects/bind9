@@ -3610,7 +3610,7 @@ Tuning
    milliseconds to prefer IPv6 name servers. The default is ``50``
    milliseconds.
 
-``tcp-recv-buffer``;  ``udp-recv-buffer``
+``tcp-receive-buffer``; ``udp-receive-buffer``
    These options control the operating system's receive buffer sizes
    (``SO_RCVBUF``) for TCP and UDP sockets respectively.  Buffering at
    the operating system level can prevent packet drops during brief load
