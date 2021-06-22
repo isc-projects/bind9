@@ -1,3 +1,8 @@
+5662.	[bug]		Views with recursion disabled are now configured with a
+			default cache size of 2 MB, unless "max-cache-size" is
+			explicitly set. This prevents cache RBT hash tables from
+			being needlessly preallocated for such views. [GL #2777]
+
 5661.	[bug]		A deadlock was introduced when fixing [GL #1875] because
 			when locking the key file mutex for each zone structure
 			that is in a different view, "in-view" logic was not

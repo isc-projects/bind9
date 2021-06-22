@@ -3972,6 +3972,42 @@ register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 }
 
 /*
+ * Determine if a minimal-sized cache can be used for a given view, according
+ * to 'maps' (implicit defaults, global options, view options) and 'optionmaps'
+ * (global options, view options).  This is only allowed for views which have
+ * recursion disabled and do not have "max-cache-size" set explicitly.  Using
+ * minimal-sized caches prevents a situation in which all explicitly configured
+ * and built-in views inherit the default "max-cache-size 90%;" setting, which
+ * could lead to memory exhaustion with multiple views configured.
+ */
+static bool
+minimal_cache_allowed(const cfg_obj_t *maps[4],
+		      const cfg_obj_t *optionmaps[3]) {
+	const cfg_obj_t *obj;
+
+	/*
+	 * Do not use a minimal-sized cache for a view with recursion enabled.
+	 */
+	obj = NULL;
+	(void)named_config_get(maps, "recursion", &obj);
+	INSIST(obj != NULL);
+	if (cfg_obj_asboolean(obj)) {
+		return (false);
+	}
+
+	/*
+	 * Do not use a minimal-sized cache if a specific size was requested.
+	 */
+	obj = NULL;
+	(void)named_config_get(optionmaps, "max-cache-size", &obj);
+	if (obj != NULL) {
+		return (false);
+	}
+
+	return (true);
+}
+
+/*
  * Configure 'view' according to 'vconfig', taking defaults from
  * 'config' where values are missing in 'vconfig'.
  *
@@ -4236,6 +4272,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	if (named_g_maxcachesize != 0) {
 		max_cache_size = named_g_maxcachesize;
+	} else if (minimal_cache_allowed(maps, optionmaps)) {
+		/*
+		 * dns_cache_setcachesize() will adjust this to the smallest
+		 * allowed value.
+		 */
+		max_cache_size = 1;
 	} else if (cfg_obj_isstring(obj)) {
 		str = cfg_obj_asstring(obj);
 		INSIST(strcasecmp(str, "unlimited") == 0);
