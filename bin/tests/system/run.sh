@@ -236,17 +236,19 @@ if [ $status -eq 0 ]; then
             rm -f "$systest/$test.status"
             if start_servers; then
                 run=$((run+1))
-                rm -f "$systest/$test.status"
                 test_status=0
                 (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
                 if [ -f "$systest/$test.status" ]; then
-                    echo_i "FAILED"
-                    test_status=$(cat "$systest/$test.status")
+                    if [ "$(cat "$systest/$test.status")" != "5" ]; then
+                        test_status=$(cat "$systest/$test.status")
+                    fi
                 fi
                 status=$((status+test_status))
                 stop_servers || status=1
             else
                 status=1
+            fi
+            if [ $status -ne 0 ]; then
                 break
             fi
         done
