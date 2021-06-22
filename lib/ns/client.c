@@ -1818,7 +1818,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	      dns_acl_allowed(&netaddr, NULL, client->sctx->keepresporder,
 			      env))))
 	{
-		isc_nm_tcpdns_sequential(handle);
+		isc_nm_sequential(handle);
 	}
 
 	dns_opcodestats_increment(client->sctx->opcodestats,

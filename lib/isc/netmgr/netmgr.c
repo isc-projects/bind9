@@ -3255,6 +3255,40 @@ isc_nm_work_offload(isc_nm_t *netmgr, isc_nm_workcb_t work_cb,
 	RUNTIME_CHECK(r == 0);
 }
 
+void
+isc_nm_sequential(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+
+	switch (sock->type) {
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		break;
+	case isc_nm_httpsocket:
+		return;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
+	/*
+	 * We don't want pipelining on this connection. That means
+	 * that we need to pause after reading each request, and
+	 * resume only after the request has been processed. This
+	 * is done in resume_processing(), which is the socket's
+	 * closehandle_cb callback, called whenever a handle
+	 * is released.
+	 */
+
+	isc__nmsocket_timer_stop(sock);
+	isc__nm_stop_reading(sock);
+	atomic_store(&sock->sequential, true);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
