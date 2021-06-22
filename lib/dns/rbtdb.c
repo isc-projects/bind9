@@ -13,6 +13,7 @@
 
 /* #define inline */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sys/mman.h>
@@ -9840,11 +9841,9 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name) {
 	memset(header->upper, 0, sizeof(header->upper));
 	fully_lower = true;
 	for (i = 0; i < name->length; i++) {
-		if (name->ndata[i] >= 'A' && name->ndata[i] <= 'Z') {
-			{
-				header->upper[i / 8] |= 1 << (i % 8);
-				fully_lower = false;
-			}
+		if (isupper(name->ndata[i])) {
+			header->upper[i / 8] |= 1 << (i % 8);
+			fully_lower = false;
 		}
 	}
 	RDATASET_ATTR_SET(header, RDATASET_ATTR_CASESET);
@@ -9869,24 +9868,6 @@ rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 		    isc_rwlocktype_write);
 }
 
-static const unsigned char maptolower[256] = {
-	['A'] = 'a', ['B'] = 'b', ['C'] = 'c', ['D'] = 'd', ['E'] = 'e',
-	['F'] = 'f', ['G'] = 'g', ['H'] = 'h', ['I'] = 'i', ['J'] = 'j',
-	['K'] = 'k', ['L'] = 'l', ['M'] = 'm', ['N'] = 'n', ['O'] = 'o',
-	['P'] = 'p', ['Q'] = 'q', ['R'] = 'r', ['S'] = 's', ['T'] = 't',
-	['U'] = 'u', ['V'] = 'v', ['W'] = 'w', ['X'] = 'x', ['Y'] = 'y',
-	['Z'] = 'z',
-};
-
-static const unsigned char maptoupper[256] = {
-	['a'] = 'A', ['b'] = 'B', ['c'] = 'C', ['d'] = 'D', ['e'] = 'E',
-	['f'] = 'F', ['g'] = 'G', ['h'] = 'H', ['i'] = 'I', ['j'] = 'J',
-	['k'] = 'K', ['l'] = 'L', ['m'] = 'M', ['n'] = 'N', ['o'] = 'O',
-	['p'] = 'P', ['q'] = 'Q', ['r'] = 'R', ['s'] = 'S', ['t'] = 'T',
-	['u'] = 'U', ['v'] = 'V', ['w'] = 'W', ['x'] = 'X', ['y'] = 'Y',
-	['z'] = 'Z',
-};
-
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
@@ -9907,15 +9888,10 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 
 	if (ISC_LIKELY(CASEFULLYLOWER(header))) {
 		for (size_t i = 0; i < name->length; i++) {
-			uint8_t c = name->ndata[i];
-			if (c >= 'A' && c <= 'Z') {
-				name->ndata[i] = maptolower[c];
-			}
+			name->ndata[i] = tolower(name->ndata[i]);
 		}
 	} else {
 		for (size_t i = 0; i < name->length; i++) {
-			uint8_t c = name->ndata[i];
-
 			if (mask == (1 << 7)) {
 				bits = header->upper[i / 8];
 				mask = 1;
@@ -9923,15 +9899,9 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 				mask <<= 1;
 			}
 
-			if (c >= 'a' && c <= 'z') {
-				if ((bits & mask) != 0) {
-					name->ndata[i] = maptoupper[c];
-				}
-			} else if (c >= 'A' && c <= 'Z') {
-				if ((bits & mask) == 0) {
-					name->ndata[i] = maptolower[c];
-				}
-			}
+			name->ndata[i] = ((bits & mask) != 0)
+						 ? toupper(name->ndata[i])
+						 : tolower(name->ndata[i]);
 		}
 	}
 
