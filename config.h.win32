@@ -376,6 +376,12 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `SSL_CTX_up_ref' function. */
 #define SSL_CTX_UP_REF 1
 
+/* Define to 1 if you have the `setlocale' function. */
+#define HAVE_SETLOCALE 1
+
+/* Define to 1 if you have the <locale.h> header file. */
+#define HAVE_LOCALE_H 1
+
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double
