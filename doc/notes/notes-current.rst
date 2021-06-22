@@ -14,7 +14,11 @@ Notes for BIND 9.17.15
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Sending non-zero opcode via DoT or DoH channels would trigger an assertion
+  failure in ``named``. This has been fixed.
+
+  ISC would like to thank Ville Heikkila of Synopsys Cybersecurity Research
+  Center for responsibly disclosing the vulnerability to us. :gl:`#2787`
 
 Known Issues
 ~~~~~~~~~~~~
@@ -58,4 +62,4 @@ Bug Fixes
 
 - A deadlock at startup was introduced when fixing :gl:`#1875` because when
   locking key files for reading and writing, "in-view" logic was not taken into
-  account. This has been fixed. [GL #2783]
+  account. This has been fixed. :gl:`#2783`
