@@ -13,12 +13,9 @@
 
 #include <inttypes.h>
 #include <limits.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif /* ifdef HAVE_LOCALE_H */
 
 #include <isc/app.h>
 #include <isc/attributes.h>
