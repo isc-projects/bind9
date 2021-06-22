@@ -201,20 +201,25 @@ fi
 
 if [ $status -eq 0 ]; then
     if [ -n "$PYTEST" ]; then
-        run=$((run+1))
         for test in $(cd "${systest}" && find . -name "tests*.py"); do
             if start_servers; then
-                rm -f "$systest/$test.status"
+                run=$((run+1))
                 test_status=0
                 (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
                 if [ -f "$systest/$test.status" ]; then
-                    echo_i "FAILED"
-                    test_status=$(cat "$systest/$test.status")
+                    if [ "$(cat "$systest/$test.status")" = "5" ]; then
+                        echowarn "R:$systest:SKIPPED"
+                    else
+                        echo_i "FAILED"
+                        test_status=$(cat "$systest/$test.status")
+                    fi
                 fi
                 status=$((status+test_status))
                 stop_servers || status=1
             else
                 status=1
+            fi
+            if [ $status -ne 0 ]; then
                 break
             fi
         done
