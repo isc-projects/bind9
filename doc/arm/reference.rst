@@ -5316,57 +5316,70 @@ or ``delegation-only``.
     behave very slowly if there are 100000 files in a single directory.)
 
 ``mirror``
-   A mirror zone is similar to a zone of type ``secondary``, except its data is
-   subject to DNSSEC validation before being used in answers.  Validation is
-   applied to the entire zone during the zone transfer process, and again when
-   the zone file is loaded from disk upon restarting ``named``.  If validation
-   of a new version of a mirror zone fails, a retransfer is scheduled and the
-   most recent correctly validated version of that zone is used, until it either
-   expires or a newer version validates correctly. If no usable zone data is
-   available for a mirror zone, either due to transfer failure or
-   expiration, traditional DNS recursion is used to look up the answers instead.
-   Mirror zones cannot be used in a view that does not have recursion enabled.
+   A mirror zone is similar to a zone of type ``secondary``, except its
+   data is subject to DNSSEC validation before being used in answers.
+   Validation is applied to the entire zone during the zone transfer
+   process, and again when the zone file is loaded from disk upon
+   restarting ``named``. If validation of a new version of a mirror zone
+   fails, a retransfer is scheduled; in the meantime, the most recent
+   correctly validated version of that zone is used until it either
+   expires or a newer version validates correctly. If no usable zone
+   data is available for a mirror zone, due to either transfer failure
+   or expiration, traditional DNS recursion is used to look up the
+   answers instead. Mirror zones cannot be used in a view that does not
+   have recursion enabled.
 
-   Answers coming from a mirror zone look almost exactly like answers from a
-   zone of type ``secondary``, with the notable exceptions that the AA bit
-   ("authoritative answer") is not set, and the AD bit ("authenticated data")
-   is.
+   Answers coming from a mirror zone look almost exactly like answers
+   from a zone of type ``secondary``, with the notable exceptions that
+   the AA bit ("authoritative answer") is not set, and the AD bit
+   ("authenticated data") is.
 
-   Mirror zones are intended to be used to set up a fast local copy of the root
-   zone, similar to the one described in :rfc:`7706`.  A default list of primary
-   servers for the IANA root zone is built into ``named`` and thus its mirroring
-   can be enabled using the following configuration:
+   Mirror zones are intended to be used to set up a fast local copy of
+   the root zone (see :rfc:`8806`). A default list of primary servers
+   for the IANA root zone is built into ``named``, so its mirroring can
+   be enabled using the following configuration:
 
-    ::
+   ::
 
-        zone "." {
-             type mirror;
-        };
+       zone "." {
+           type mirror;
+       };
 
-   Mirroring a zone other than root
-   requires an explicit list of primary servers to be provided using the
-   ``primaries`` option (see :ref:`primaries_grammar` for details), and a
-   key-signing key (KSK) for the specified zone to be explicitly configured as a
-   trust anchor.
+   Mirror zone validation always happens for the entire zone contents.
+   This ensures that each version of the zone used by the resolver is
+   fully self-consistent with respect to DNSSEC. For incoming mirror
+   zone IXFRs, every revision of the zone contained in the IXFR sequence
+   is validated independently, in the order in which the zone revisions
+   appear on the wire. For this reason, it might be useful to force use
+   of AXFR for mirror zones by setting ``request-ixfr no;`` for the
+   relevant zone (or view). Other, more efficient zone verification
+   methods may be added in the future.
 
-   To make mirror zone contents persist between ``named`` restarts, use the
-   :ref:`file <file-option>` option.
+   To make mirror zone contents persist between ``named`` restarts, use
+   the :ref:`file <file-option>` option.
 
-   When configuring NOTIFY for a mirror zone, only ``notify no;`` and ``notify
-   explicit;`` can be used at the zone level; any other ``notify``
-   setting at the zone level is a configuration error. Using any other
-   ``notify`` setting at the ``options`` or ``view`` level causes that
-   setting to be overridden with ``notify explicit;`` for the mirror zone.  The
-   global default for the ``notify`` option is ``yes``, so mirror zones are by
-   default configured with ``notify explicit;``.
+   Mirroring a zone other than root requires an explicit list of primary
+   servers to be provided using the ``primaries`` option (see
+   :ref:`primaries_grammar` for details), and a key-signing key (KSK)
+   for the specified zone to be explicitly configured as a trust anchor
+   (see :ref:`trust-anchors`).
+
+   When configuring NOTIFY for a mirror zone, only ``notify no;`` and
+   ``notify explicit;`` can be used at the zone level; any other
+   ``notify`` setting at the zone level is a configuration error. Using
+   any other ``notify`` setting at the ``options`` or ``view`` level
+   causes that setting to be overridden with ``notify explicit;`` for
+   the mirror zone. The global default for the ``notify`` option is
+   ``yes``, so mirror zones are by default configured with ``notify
+   explicit;``.
 
    Outgoing transfers of mirror zones are disabled by default but may be
    enabled using :ref:`allow-transfer <allow-transfer-access>`.
 
    .. note::
-      Use of this zone type with any zone other than the root should
-      be considered *experimental* and may cause performance issues, especially
-      for zones which are large and/or frequently updated.
+      Use of this zone type with any zone other than the root should be
+      considered *experimental* and may cause performance issues,
+      especially for zones that are large and/or frequently updated.
 
 ``hint``
    The initial set of root name servers is specified using a hint zone.
