@@ -1829,6 +1829,7 @@ check_apex
 check_subdomain
 dnssec_verify
 
+# Test with views.
 set_zone "example.net"
 set_server "ns4" "10.53.0.4"
 TSIG="hmac-sha1:keyforview1:$VIEW1"
@@ -1859,6 +1860,23 @@ dnssec_verify
 n=$((n+1))
 # check subdomain
 echo_i "check TXT example.net (view example2) rrset is signed correctly ($n)"
+ret=0
+dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
+grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
+grep "view.${ZONE}\..*${DEFAULT_TTL}.*IN.*TXT.*view2" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "missing view.${ZONE} TXT record in response"
+check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+TSIG="hmac-sha1:keyforview3:$VIEW3"
+wait_for_nsec
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example2"
+check_apex
+dnssec_verify
+n=$((n+1))
+# check subdomain
+echo_i "check TXT example.net (in-view example2) rrset is signed correctly ($n)"
 ret=0
 dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
 grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"

@@ -6395,6 +6395,17 @@ dns__zone_lockunlock_keyfiles(dns_zone_t *zone, bool lock) {
 		if (ret == ISC_R_SUCCESS) {
 			INSIST(DNS_ZONE_VALID(z));
 
+			/*
+			 * Skip in-view zones, in other words if the view
+			 * pointer is not the same as the zone view pointer:
+			 * 'in-view' zones can be part of another view,
+			 * while they also have their own home view.
+			 */
+			if (v != z->view) {
+				dns_zone_detach(&z);
+				continue;
+			}
+
 			/* WMM check if policy is the same? */
 			if (lock) {
 				LOCK_KEYFILES(z);

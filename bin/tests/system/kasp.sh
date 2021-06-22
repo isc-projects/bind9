@@ -31,6 +31,7 @@ SHA224="hXfwwwiag2QGqblopofai9NuW28q/1rH4CaTnA=="
 SHA256="R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY="
 VIEW1="YPfMoAk6h+3iN8MDRQC004iSNHY="
 VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
+VIEW3="C1Azf+gGPMmxrUg/WQINP6eV9Y0="
 
 ###############################################################################
 # Key properties                                                              #
