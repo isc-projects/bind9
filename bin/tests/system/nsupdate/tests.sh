@@ -1238,6 +1238,23 @@ END
 grep "NSEC3PARAM has excessive iterations (> 150)" nsupdate.out-$n >/dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=`expr $n + 1`
+ret=0
+echo_i "check nsupdate retries with another server on REFUSED response ($n)"
+# resolv.conf uses 10.53.0.1 followed by 10.53.0.3; example is only
+# served by 10.53.0.3, so we should fail over to the second server;
+# that's what we're testing for. (failure is still expected, however,
+# because the address lookup for the primary doesn't use the overridden
+# resolv.conf file).
+$NSUPDATE -D -C resolv.conf -p ${PORT} << EOF > nsupdate.out-$n 2>&1 && ret=1
+zone example
+update add a 3600 IN A 1.2.3.4
+send
+EOF
+grep '10.53.0.1.*REFUSED' nsupdate.out-$n > /dev/null || ret=1
+grep 'Reply from SOA query' nsupdate.out-$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
 if ! $FEATURETEST --gssapi ; then
   echo_i "SKIPPED: GSSAPI tests"
 else

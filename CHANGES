@@ -1,3 +1,6 @@
+5665.	[bug]		'nsupdate' did not retry with another server if
+			it received a REFUSED response. [GL #2758]
+
 5664.	[func]		Handle a UDP sending error on UDP messages larger
 			than the path MTU; in such a case an empty response is
 			sent back with the TC (TrunCated) bit set. Re-enable

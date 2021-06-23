@@ -179,6 +179,7 @@ static dns_message_t *answer = NULL;
 static uint32_t default_ttl = 0;
 static bool default_ttl_set = false;
 static bool checknames = true;
+static const char *resolvconf = RESOLV_CONF;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -823,9 +824,9 @@ setup_system(void) {
 
 	isc_log_setdebuglevel(glctx, logdebuglevel);
 
-	result = irs_resconf_load(gmctx, RESOLV_CONF, &resconf);
+	result = irs_resconf_load(gmctx, resolvconf, &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		fatal("parse of %s failed", RESOLV_CONF);
+		fatal("parse of %s failed", resolvconf);
 	}
 
 	nslist = irs_resconf_getnameservers(resconf);
@@ -1005,7 +1006,7 @@ version(void) {
 	fprintf(stderr, "nsupdate %s\n", PACKAGE_VERSION);
 }
 
-#define PARSE_ARGS_FMT "46dDML:y:ghilovk:p:Pr:R::t:Tu:V"
+#define PARSE_ARGS_FMT "46C:dDghilL:Mok:p:Pr:R:t:Tu:vVy:"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -1045,9 +1046,9 @@ pre_parse_args(int argc, char **argv) {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					argv[0], isc_commandline_option);
 			}
-			fprintf(stderr, "usage: nsupdate [-dDi] [-L level] [-l]"
-					"[-g | -o | -y keyname:secret | -k "
-					"keyfile] "
+			fprintf(stderr, "usage: nsupdate [-CdDi] [-L level] "
+					"[-l] [-g | -o | -y keyname:secret "
+					"| -k keyfile] [-p port] "
 					"[-v] [-V] [-P] [-T] [-4 | -6] "
 					"[filename]\n");
 			exit(1);
@@ -1119,6 +1120,9 @@ parse_args(int argc, char **argv) {
 			} else {
 				fatal("can't find IPv6 networking");
 			}
+			break;
+		case 'C':
+			resolvconf = isc_commandline_argument;
 			break;
 		case 'd':
 			debugging = true;
@@ -1211,7 +1215,7 @@ parse_args(int argc, char **argv) {
 			break;
 
 		case 'R':
-			fatal("The -R options has been deprecated.\n");
+			fatal("The -R option has been deprecated.");
 			break;
 
 		default:
@@ -2634,6 +2638,17 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	check_result(result, "dns_request_getresponse");
+
+	if (rcvmsg->rcode == dns_rcode_refused) {
+		next_server("recvsoa", addr, DNS_R_REFUSED);
+		dns_message_detach(&rcvmsg);
+		dns_request_destroy(&request);
+		dns_message_renderreset(soaquery);
+		dns_message_settsigkey(soaquery, NULL);
+		sendrequest(&servers[ns_inuse], soaquery, &request);
+		return;
+	}
+
 	section = DNS_SECTION_ANSWER;
 	POST(section);
 	if (debugging) {
