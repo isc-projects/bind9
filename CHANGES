@@ -1,3 +1,8 @@
+5666.	[func]		Tweak the safe "edns-udp-size" to match the probing
+			value from BIND 9.16 for better compatibility. Also
+			``named`` now sets the DON'T FRAGMENT flag on outgoing
+			UDP packets. [GL #2183]
+
 5664.	[func]		Handle a UDP sending error on UDP messages larger
 			than the path MTU; in such a case an empty response is
 			sent back with the TC (TrunCated) bit set. Re-enable

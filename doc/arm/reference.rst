@@ -1886,7 +1886,7 @@ Boolean Options
    without a valid server COOKIE. A value below 128 is silently
    raised to 128. The default value is 4096, but the ``max-udp-size``
    option may further limit the response size as the default for
-   ``max-udp-size`` is 1232.
+   ``max-udp-size`` is 4096.
 
 ``sit-secret``
    This experimental option is obsolete.
@@ -3491,6 +3491,19 @@ Tuning
    1432 are chosen to allow for an IPv4-/IPv6-encapsulated UDP message
    to be sent without fragmentation at the minimum MTU sizes for
    Ethernet and IPv6 networks.)
+
+   The ``named`` now sets the DON'T FRAGMENT flag on outgoing UDP packets.
+   According to the measurements done by multiple parties this should not be
+   causing any operational problems as most of the Internet "core" is able to
+   cope with IP message sizes between 1400-1500 bytes, the 1232 size was picked
+   as a conservative minimal number that could be changed by the DNS operator to
+   a estimated path MTU minus the estimated header space. In practice, the
+   smallest MTU witnessed in the operational DNS community is 1500 octets, the
+   Ethernet maximum payload size, so a a useful default for maximum DNS/UDP
+   payload size on **reliable** networks would be 1432.
+
+   Any server-specific ``edns-udp-size`` setting has precedence over all
+   the above rules.
 
 ``max-udp-size``
    This sets the maximum EDNS UDP message size that ``named`` sends, in bytes.
