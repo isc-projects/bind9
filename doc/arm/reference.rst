@@ -3503,7 +3503,7 @@ Tuning
    a estimated path MTU minus the estimated header space. In practice, the
    smallest MTU witnessed in the operational DNS community is 1500 octets, the
    Ethernet maximum payload size, so a a useful default for maximum DNS/UDP
-   payload size on **reliable** networks would be 1400.
+   payload size on **reliable** networks would be 1432.
 
    Any server-specific ``edns-udp-size`` setting has precedence over all
    the above rules.
