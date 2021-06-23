@@ -1364,12 +1364,6 @@ AC_SUBST([CMOCKA_LIBS])
 AM_CONDITIONAL([HAVE_CMOCKA], [test "$with_cmocka" = "yes"])
 
 #
-# Check for i18n
-#
-AC_CHECK_HEADERS(locale.h)
-AC_CHECK_FUNCS(setlocale)
-
-#
 # was --with-tuning specified?
 #
 # [pairwise: --with-tuning=small, --without-tuning]
