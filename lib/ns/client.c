@@ -257,13 +257,33 @@ client_senddone(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(client->sendhandle == handle);
 
 	CTRACE("senddone");
+
+	/*
+	 * Set sendhandle to NULL, but don't detach it immediately, in
+	 * case we need to retry the send. If we do resend, then
+	 * sendhandle will be reattached. Whether or not we resend,
+	 * we will then detach the handle from *this* send by detaching
+	 * 'handle' directly below.
+	 */
+	client->sendhandle = NULL;
+
 	if (result != ISC_R_SUCCESS) {
-		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-			      "send failed: %s", isc_result_totext(result));
+		if (!TCP_CLIENT(client) && result == ISC_R_MAXSIZE) {
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+				      "send exceeded maximum size: truncating");
+			client->query.attributes &= ~NS_QUERYATTR_ANSWERED;
+			client->rcode_override = dns_rcode_noerror;
+			ns_client_error(client, ISC_R_MAXSIZE);
+		} else {
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+				      "send failed: %s",
+				      isc_result_totext(result));
+		}
 	}
 
-	isc_nmhandle_detach(&client->sendhandle);
+	isc_nmhandle_detach(&handle);
 }
 
 static void
@@ -699,8 +719,9 @@ ns_client_dropport(in_port_t port) {
 
 void
 ns_client_error(ns_client_t *client, isc_result_t result) {
+	dns_message_t *message = NULL;
 	dns_rcode_t rcode;
-	dns_message_t *message;
+	bool trunc = false;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -712,6 +733,10 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		rcode = dns_result_torcode(result);
 	} else {
 		rcode = (dns_rcode_t)(client->rcode_override & 0xfff);
+	}
+
+	if (result == ISC_R_MAXSIZE) {
+		trunc = true;
 	}
 
 #if NS_CLIENT_DROPPORT
@@ -810,7 +835,11 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 			return;
 		}
 	}
+
 	message->rcode = rcode;
+	if (trunc) {
+		message->flags |= DNS_MESSAGEFLAG_TC;
+	}
 
 	if (rcode == dns_rcode_formerr) {
 		/*
