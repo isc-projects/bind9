@@ -1,3 +1,7 @@
+5668.	[bug]		When a zone fails to load on startup, the setnsec3param
+			task is rescheduled. This caused a hang on shutdown, and
+			is now fixed. [GL #2791]
+
 5667.	[bug]		The configuration-checking code failed to account for
 			the inheritance rules of the "dnssec-policy" option.
 			[GL #2780]
