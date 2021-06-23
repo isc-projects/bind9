@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.16.18
+Notes for BIND 9.16.19
 ----------------------
 
 Security Fixes
@@ -46,13 +46,6 @@ Bug Fixes
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
-
-- Queries where the wildcard match contained the letter ``W`` failed
-  to return the correct response as the ``W`` was mapped to ``\000``.
-  :gl:`#2779`
-
-- Checking of ``key-directory`` and ``dnssec-policy`` was broken.
-  The checks failed to account for key-directory inheritance. :gl:`#2778`
 
 - A deadlock at startup was introduced when fixing :gl:`#1875` because when
   locking key files for reading and writing, "in-view" logic was not taken into
