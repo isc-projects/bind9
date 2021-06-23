@@ -32,6 +32,13 @@ New Features
   added to add a list of servers to a zone that can be used for checking DS
   presence. :gl:`#1126`
 
+- It is now possible to set a hard quota on the number of concurrent DoH
+  connections, and the number of active HTTP/2 streams per connection,
+  by using the ``http-listener-clients`` and ``http-streams-per-connection``
+  options, or the ``listener-clients`` and ``streams-per-connection``
+  parameters to an ``http`` statement. The defaults are 300 and 100
+  respectively. :gl:`#2809`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
