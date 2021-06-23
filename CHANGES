@@ -1,3 +1,9 @@
+5664.	[func]		Handle a UDP sending error on UDP messages larger
+			than the path MTU; in such a case an empty response is
+			sent back with the TC (TrunCated) bit set. Re-enable
+			setting the DF (Don't Fragment) flag on outgoing
+			UDP sockets. [GL #2790]
+
 5662.	[bug]		Views with recursion disabled are now configured with a
 			default cache size of 2 MB, unless "max-cache-size" is
 			explicitly set. This prevents cache RBT hash tables from
