@@ -62,5 +62,5 @@ Bug Fixes
   locking key files for reading and writing, "in-view" logic was not taken into
   account. This has been fixed. :gl:`#2783`
 
-- Checking of ``dnssec-policy`` was broken. The checks failed to account for
-  ``dnssec-policy`` inheritance. :gl:`#2780`
+- Fix a race condition where two threads are competing for the same set of key
+  file locks, that could lead to a deadlock. This has been fixed. :gl:`#2786`
