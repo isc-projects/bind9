@@ -40,7 +40,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- IP fragmentation on outgoing UDP sockets has been disabled.  Errors from
+  sending DNS messages larger than the specified path MTU are properly handled;
+  ``named`` now sends back empty DNS messages with the TC (TrunCated) bit set,
+  forcing the DNS client to fall back to TCP.  :gl:`#2790`
 
 Bug Fixes
 ~~~~~~~~~
