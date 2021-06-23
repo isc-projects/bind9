@@ -1,3 +1,7 @@
+5666.	[func]		Tweak the safe "edns-udp-size" to match the probing
+			value from BIND 9.16 for better compatibility.
+			[GL #2183]
+
 5665.	[bug]		'nsupdate' did not retry with another server if
 			it received a REFUSED response. [GL #2758]
 
