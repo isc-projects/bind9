@@ -18,6 +18,10 @@
 #include <string.h>
 #include <uv.h>
 
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif /* HAVE_LOCALE_H */
+
 #ifdef HAVE_DNSTAP
 #include <protobuf-c/protobuf-c.h>
 #endif
@@ -1474,6 +1478,20 @@ main(int argc, char *argv[]) {
 #ifdef HAVE_LIBXML2
 	xmlInitThreads();
 #endif /* HAVE_LIBXML2 */
+
+	/*
+	 * Technically, this call is superfluous because on startup of the main
+	 * program, the portable "C" locale is selected by default.  This
+	 * explicit call here is for a reference that the BIND 9 code base is
+	 * not locale aware and the locale MUST be set to "C" (or "POSIX") when
+	 * calling any BIND 9 library code.  If you are calling external
+	 * libraries that use locale, such calls must be wrapped into
+	 * setlocale(LC_ALL, ""); before the call and setlocale(LC_ALL, "C");
+	 * after the call, and no BIND 9 library calls must be made in between.
+	 */
+#if HAVE_SETLOCALE
+	setlocale(LC_ALL, "C");
+#endif /* HAVE_SETLOCALE */
 
 	/*
 	 * Record version in core image.

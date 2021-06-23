@@ -99,6 +99,14 @@
 #define NS_IN6ADDRSZ 16
 #endif /* if !defined(NS_IN6ADDRSZ) */
 
+#if HAVE_SETLOCALE
+#define systemlocale(l) (void)setlocale(l, "")
+#define resetlocale(l)	(void)setlocale(l, "C")
+#else
+#define systemlocale(l)
+#define resetlocale(l)
+#endif /* HAVE_SETLOCALE */
+
 dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
 dig_searchlistlist_t search_list;
@@ -1338,11 +1346,6 @@ setup_system(bool ipv4only, bool ipv6only) {
 	}
 
 	irs_resconf_destroy(&resconf);
-
-#ifdef HAVE_SETLOCALE
-	/* Set locale */
-	(void)setlocale(LC_ALL, "");
-#endif /* ifdef HAVE_SETLOCALE */
 
 	if (keyfile[0] != 0) {
 		setup_file_key();
@@ -4418,8 +4421,9 @@ destroy_libs(void) {
 #ifdef HAVE_LIBIDN2
 static isc_result_t
 idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
-	char src[MXNAME], *dst;
+	char src[MXNAME], *dst = NULL;
 	size_t srclen, dstlen;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	/*
 	 * Copy name from 'buffer' to 'src' and terminate it with NULL.
@@ -4427,23 +4431,27 @@ idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
 	srclen = isc_buffer_usedlength(buffer) - used_org;
 	if (srclen >= sizeof(src)) {
 		warn("Input name too long to perform IDN conversion");
-		return (ISC_R_SUCCESS);
+		goto cleanup;
 	}
 	memmove(src, (char *)isc_buffer_base(buffer) + used_org, srclen);
 	src[srclen] = '\0';
+
+	systemlocale(LC_ALL);
 
 	/*
 	 * Convert 'src' to the current locale's character encoding.
 	 */
 	idn_ace_to_locale(src, &dst);
 
+	resetlocale(LC_ALL);
+
 	/*
 	 * Check whether the converted name will fit back into 'buffer'.
 	 */
 	dstlen = strlen(dst);
 	if (isc_buffer_length(buffer) < used_org + dstlen) {
-		idn2_free(dst);
-		return (ISC_R_NOSPACE);
+		result = ISC_R_NOSPACE;
+		goto cleanup;
 	}
 
 	/*
@@ -4456,9 +4464,12 @@ idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
 	/*
 	 * Clean up.
 	 */
-	idn2_free(dst);
+cleanup:
+	if (dst != NULL) {
+		idn2_free(dst);
+	}
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 /*%
@@ -4473,6 +4484,8 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	const char *final_src;
 	char *ascii_src;
 	int res;
+
+	systemlocale(LC_ALL);
 
 	/*
 	 * We trust libidn2 to return an error if 'src' is too large to be a
@@ -4494,6 +4507,8 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	(void)strlcpy(dst, final_src, dstlen);
 
 	idn2_free(ascii_src);
+
+	resetlocale(LC_ALL);
 }
 
 /*%
@@ -4507,6 +4522,8 @@ static void
 idn_ace_to_locale(const char *src, char **dst) {
 	char *local_src, *utf8_src;
 	int res;
+
+	systemlocale(LC_ALL);
 
 	/*
 	 * We need to:
@@ -4573,5 +4590,7 @@ idn_ace_to_locale(const char *src, char **dst) {
 	idn2_free(utf8_src);
 
 	*dst = local_src;
+
+	resetlocale(LC_ALL);
 }
 #endif /* HAVE_LIBIDN2 */
