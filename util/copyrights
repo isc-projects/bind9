@@ -1557,6 +1557,7 @@
 ./lib/dns/tests/private_test.c			C	2011,2012,2016,2018,2019,2020,2021
 ./lib/dns/tests/rbt_serialize_test.c		C	2014,2015,2016,2018,2019,2020,2021
 ./lib/dns/tests/rbt_test.c			C	2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
+./lib/dns/tests/rbtdb_test.c			C	2021
 ./lib/dns/tests/rdata_test.c			C	2012,2013,2015,2016,2017,2018,2019,2020,2021
 ./lib/dns/tests/rdataset_test.c			C	2012,2016,2018,2019,2020,2021
 ./lib/dns/tests/rdatasetstats_test.c		C	2012,2015,2016,2018,2019,2020,2021
