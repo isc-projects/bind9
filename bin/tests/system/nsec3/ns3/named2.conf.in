@@ -118,7 +118,7 @@ zone "nsec3-to-nsec.kasp" {
 	dnssec-policy "nsec";
 };
 
-/* Add a zone that fails to load, should not prevent shutdown. */
+/* The zone fails to load, but is fixed after a reload. */
 zone "nsec3-fails-to-load.kasp" {
 	type primary;
 	file "nsec3-fails-to-load.kasp.db";
