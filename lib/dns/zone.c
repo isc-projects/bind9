@@ -21051,12 +21051,17 @@ static void
 setnsec3param(isc_task_t *task, isc_event_t *event) {
 	const char *me = "setnsec3param";
 	dns_zone_t *zone = event->ev_arg;
+	bool loadpending;
 
 	INSIST(DNS_ZONE_VALID(zone));
 
 	UNUSED(task);
 
 	ENTER;
+
+	LOCK_ZONE(zone);
+	loadpending = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	UNLOCK_ZONE(zone);
 
 	/*
 	 * If receive_secure_serial is still processing or we have a
@@ -21075,7 +21080,7 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 		 * be picked up later. This turns this function into a busy
 		 * wait, but it only happens at startup.
 		 */
-		if (zone->db == NULL) {
+		if (zone->db == NULL && loadpending) {
 			rescheduled = true;
 			isc_task_send(task, &event);
 		}

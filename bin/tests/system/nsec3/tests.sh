@@ -218,7 +218,6 @@ echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 
-
 # Zone: nsec-to-nsec3.kasp. (reconfigured)
 set_zone_policy "nsec-to-nsec3.kasp" "nsec3"
 set_nsec3param "0" "5" "8"
@@ -321,6 +320,16 @@ set_zone_policy "nsec3.kasp" "nsec3"
 set_nsec3param "0" "5" "8"
 SALT="${prevsalt}"
 echo_i "check zone ${ZONE} after restart has salt ${SALT}"
+check_nsec3
+dnssec_verify
+
+# Zone: nsec3-fails-to-load.kasp. (should be fixed after reload)
+cp ns3/template.db.in ns3/nsec3-fails-to-load.kasp.db
+rndc_reload ns3 10.53.0.3
+
+set_zone_policy "nsec3-fails-to-load.kasp" "nsec3"
+set_nsec3param "0" "5" "8"
+echo_i "check zone ${ZONE} after reload"
 check_nsec3
 dnssec_verify
 
