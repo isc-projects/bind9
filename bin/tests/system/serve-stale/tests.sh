@@ -1694,7 +1694,7 @@ $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 longttl.example TXT > dig.out.t
 n=$((n+1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-sleep 3
+sleep 4
 $DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
@@ -1704,13 +1704,13 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check not in cache longttl.example times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-wait_for_log 3 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
+wait_for_log 4 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
 check_results() {
     [ -s "$1" ] || return 1
     grep "connection timed out" "$1" > /dev/null || return 1
     return 0
 }
-retry_quiet 3 check_results dig.out.test$n || ret=1
+retry_quiet 4 check_results dig.out.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1723,7 +1723,7 @@ check_results() {
     grep "ANSWER: 1," "$1" > /dev/null || return 1
     return 0
 }
-retry_quiet 7 check_results dig.out.test$n || ret=1
+retry_quiet 8 check_results dig.out.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
