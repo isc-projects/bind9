@@ -2245,6 +2245,19 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		dst_key_settime(ksk_key->key, DST_TIME_DSDELETE, when);
 	}
 
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_NOTICE)) {
+		char keystr[DST_KEY_FORMATSIZE];
+		char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+
+		dst_key_format(ksk_key->key, keystr, sizeof(keystr));
+		isc_stdtime_tostring(when, timestr, sizeof(timestr));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_NOTICE,
+			      "keymgr: checkds DS for key %s seen %s at %s",
+			      keystr, dspublish ? "published" : "withdrawn",
+			      timestr);
+	}
+
 	/* Store key state and update hints. */
 	isc_dir_init(&dir);
 	if (directory == NULL) {
