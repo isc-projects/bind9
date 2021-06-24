@@ -1,7 +1,3 @@
-Copyright (C) Internet Systems Consortium, Inc. ("ISC")
-
-See COPYRIGHT in the source root or https://isc.org/copyright.html for terms.
-
 Result Codes
 
 The use of global variables or a GetLastError() function to return results
