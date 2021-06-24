@@ -743,4 +743,5 @@ export SIGNER
 export SUBDIRS
 export TMPDIR
 export TSIGKEYGEN
+export VERIFY
 export WIRETEST
