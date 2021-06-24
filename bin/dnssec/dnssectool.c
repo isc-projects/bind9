@@ -276,7 +276,7 @@ strtokeystate(const char *str) {
 			return ((dst_key_state_t)i);
 		}
 	}
-	fatal("unknown key state");
+	fatal("unknown key state %s", str);
 }
 
 isc_stdtime_t
