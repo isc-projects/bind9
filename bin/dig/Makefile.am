@@ -8,7 +8,7 @@ AM_CPPFLAGS +=			\
 	$(LIBBIND9_CFLAGS)	\
 	$(LIBIDN2_CFLAGS)
 
-LDADD =				\
+LDADD +=			\
 	libdighost.la		\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\
@@ -19,8 +19,8 @@ LDADD =				\
 
 noinst_LTLIBRARIES = libdighost.la
 
-libdighost_la_SOURCES = \
-	dighost.h	\
+libdighost_la_SOURCES =		\
+	dighost.h		\
 	dighost.c
 
 bin_PROGRAMS = dig host nslookup

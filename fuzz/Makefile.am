@@ -8,7 +8,7 @@ AM_CPPFLAGS +=				\
 AM_LDFLAGS +=				\
 	$(FUZZ_LDFLAGS)
 
-LDADD =					\
+LDADD +=				\
 	libfuzzmain.la			\
 	$(LIBISC_LIBS)			\
 	$(LIBDNS_LIBS)

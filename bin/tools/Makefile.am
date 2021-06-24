@@ -4,7 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-LDADD =				\
+LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBISC_LIBS)
 

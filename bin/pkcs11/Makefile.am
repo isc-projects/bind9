@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.top
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)
 
-LDADD =				\
+LDADD +=			\
 	$(LIBISC_LIBS)
 
 bin_PROGRAMS =			\
