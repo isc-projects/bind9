@@ -61,7 +61,7 @@ static const char *timetags[TIMING_NTAGS] = {
 
 #define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
 static const char *numerictags[NUMERIC_NTAGS] = {
-	"Predecessor:", "Successor:", "MaxTTL:", "RollPeriod:", NULL
+	"Predecessor:", "Successor:", "MaxTTL:", "RollPeriod:", NULL, NULL, NULL
 };
 
 struct parse_map {

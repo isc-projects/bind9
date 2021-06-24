@@ -142,7 +142,9 @@ typedef enum dst_key_state {
 #define DST_NUM_MAXTTL	    2
 #define DST_NUM_ROLLPERIOD  3
 #define DST_NUM_LIFETIME    4
-#define DST_MAX_NUMERIC	    4
+#define DST_NUM_DSPUBCOUNT  5
+#define DST_NUM_DSDELCOUNT  6
+#define DST_MAX_NUMERIC	    6
 
 /* Boolean metadata definitions */
 #define DST_BOOL_KSK	0

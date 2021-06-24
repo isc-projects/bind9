@@ -97,7 +97,8 @@
 
 #define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
 static const char *numerictags[NUMERIC_NTAGS] = {
-	"Predecessor:", "Successor:", "MaxTTL:", "RollPeriod:", "Lifetime:"
+	"Predecessor:", "Successor:",  "MaxTTL:",    "RollPeriod:",
+	"Lifetime:",	"DSPubCount:", "DSRemCount:"
 };
 
 #define BOOLEAN_NTAGS (DST_MAX_BOOLEAN + 1)
@@ -2019,6 +2020,9 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_DSDELETE, "DSRemoved", fp);
 		printtime(key, DST_TIME_SYNCPUBLISH, "PublishCDS", fp);
 		printtime(key, DST_TIME_SYNCDELETE, "DeleteCDS", fp);
+
+		printnum(key, DST_NUM_DSPUBCOUNT, "DSPubCount", fp);
+		printnum(key, DST_NUM_DSDELCOUNT, "DSDelCount", fp);
 
 		printtime(key, DST_TIME_DNSKEY, "DNSKEYChange", fp);
 		printtime(key, DST_TIME_ZRRSIG, "ZRRSIGChange", fp);
