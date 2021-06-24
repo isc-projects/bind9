@@ -2636,6 +2636,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "dnssec-policy", &obj);
+	if (obj == NULL && voptions != NULL) {
+		(void)cfg_map_get(voptions, "dnssec-policy", &obj);
+	}
+	if (obj == NULL && goptions != NULL) {
+		(void)cfg_map_get(goptions, "dnssec-policy", &obj);
+	}
 	if (obj != NULL) {
 		const cfg_obj_t *kasps = NULL;
 
