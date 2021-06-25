@@ -1015,10 +1015,15 @@ dst_key_getbool(const dst_key_t *key, int type, bool *valuep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(valuep != NULL);
 	REQUIRE(type <= DST_MAX_BOOLEAN);
+
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->boolset[type]) {
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*valuep = key->bools[type];
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -1026,15 +1031,21 @@ void
 dst_key_setbool(dst_key_t *key, int type, bool value) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_BOOLEAN);
+
+	isc_mutex_lock(&key->mdlock);
 	key->bools[type] = value;
 	key->boolset[type] = true;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 void
 dst_key_unsetbool(dst_key_t *key, int type) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_BOOLEAN);
+
+	isc_mutex_lock(&key->mdlock);
 	key->boolset[type] = false;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 isc_result_t
@@ -1042,10 +1053,15 @@ dst_key_getnum(const dst_key_t *key, int type, uint32_t *valuep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(valuep != NULL);
 	REQUIRE(type <= DST_MAX_NUMERIC);
+
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->numset[type]) {
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*valuep = key->nums[type];
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -1053,15 +1069,21 @@ void
 dst_key_setnum(dst_key_t *key, int type, uint32_t value) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_NUMERIC);
+
+	isc_mutex_lock(&key->mdlock);
 	key->nums[type] = value;
 	key->numset[type] = true;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 void
 dst_key_unsetnum(dst_key_t *key, int type) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_NUMERIC);
+
+	isc_mutex_lock(&key->mdlock);
 	key->numset[type] = false;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 isc_result_t
@@ -1069,10 +1091,14 @@ dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(timep != NULL);
 	REQUIRE(type <= DST_MAX_TIMES);
+
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->timeset[type]) {
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*timep = key->times[type];
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 	return (ISC_R_SUCCESS);
 }
 
@@ -1080,15 +1106,21 @@ void
 dst_key_settime(dst_key_t *key, int type, isc_stdtime_t when) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_TIMES);
+
+	isc_mutex_lock(&key->mdlock);
 	key->times[type] = when;
 	key->timeset[type] = true;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 void
 dst_key_unsettime(dst_key_t *key, int type) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_TIMES);
+
+	isc_mutex_lock(&key->mdlock);
 	key->timeset[type] = false;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 isc_result_t
@@ -1096,10 +1128,15 @@ dst_key_getstate(const dst_key_t *key, int type, dst_key_state_t *statep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(statep != NULL);
 	REQUIRE(type <= DST_MAX_KEYSTATES);
+
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->keystateset[type]) {
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*statep = key->keystates[type];
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -1107,15 +1144,21 @@ void
 dst_key_setstate(dst_key_t *key, int type, dst_key_state_t state) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_KEYSTATES);
+
+	isc_mutex_lock(&key->mdlock);
 	key->keystates[type] = state;
 	key->keystateset[type] = true;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 void
 dst_key_unsetstate(dst_key_t *key, int type) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_KEYSTATES);
+
+	isc_mutex_lock(&key->mdlock);
 	key->keystateset[type] = false;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 isc_result_t
@@ -1287,6 +1330,7 @@ dst_key_free(dst_key_t **keyp) {
 		if (key->key_tkeytoken) {
 			isc_buffer_free(&key->key_tkeytoken);
 		}
+		isc_mutex_destroy(&key->mdlock);
 		isc_safe_memwipe(key, sizeof(*key));
 		isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	}
@@ -1482,6 +1526,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg, unsigned int flags,
 		key->times[i] = 0;
 		key->timeset[i] = false;
 	}
+	isc_mutex_init(&key->mdlock);
 	key->inactive = false;
 	key->magic = KEY_MAGIC;
 	return (key);
