@@ -24,7 +24,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Automatic KSK rollover: A new configuration option ``parental-agents`` is
+  added to add a list of servers to a zone that can be used for checking DS
+  presence. :gl:`#1126`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
