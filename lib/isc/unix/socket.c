@@ -2585,6 +2585,46 @@ set_tcp_maxseg(isc__socket_t *sock, int size) {
 #endif
 }
 
+static void
+set_ip_nopmtud(isc__socket_t *sock) {
+	/*
+	 * Disable the Path MTU Discovery on the socket
+	 */
+	if (sock->pf == AF_INET6) {
+#if defined(IPV6_DONTFRAG)
+		int off = 0;
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_DONTFRAG,
+				 &off, sizeof(off));
+#endif /* defined(IPV6_DONTFRAG) */
+#if defined(IPV6_MTU_DISCOVER)
+		int action;
+#if defined(IP_PMTUDISC_OMIT)
+		action = IP_PMTUDISC_OMIT;
+#else /* defined(IP_PMTUDISC_OMIT) */
+		action = IP_PMTUDISC_DONT;
+#endif /* defined(IP_PMTUDISC_OMIT) */
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
+				 &action, sizeof(action));
+#endif /* defined(IPV6_MTU_DISCOVER) */
+	} else if (sock->pf == AF_INET) {
+#if defined(IP_DONTFRAG)
+		int off = 0;
+		(void)setsockopt(sock->fd, IPPROTO_IP, IP_DONTFRAG, &off,
+				 sizeof(off));
+#endif /* defined(IP_DONTFRAG) */
+#if defined(IP_MTU_DISCOVER)
+		int action;
+#if defined(IP_PMTUDISC_OMIT)
+		action = IP_PMTUDISC_OMIT;
+#else /* defined(IP_PMTUDISC_OMIT) */
+		action = IP_PMTUDISC_DONT;
+#endif /* defined(IP_PMTUDISC_OMIT) */
+		(void)setsockopt(sock->fd, IPPROTO_IP, IP_MTU_DISCOVER,
+				 &action, sizeof(action));
+#endif /* defined(IP_MTU_DISCOVER) */
+	}
+}
+
 static isc_result_t
 opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	   isc__socket_t *dup_socket)
@@ -2864,40 +2904,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
 
-#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
-		/*
-		 * Turn off Path MTU discovery on IPv4/UDP sockets.
-		 * Prefer IP_PMTUDISC_OMIT over IP_PMTUDISC_DONT
-		 * if it available.
-		 */
-		if (sock->pf == AF_INET) {
-			int action;
-#if defined(IP_PMTUDISC_OMIT)
-			action = IP_PMTUDISC_OMIT;
-			if (setsockopt(sock->fd, IPPROTO_IP,
-				       IP_MTU_DISCOVER, &action,
-				       sizeof(action)) < 0) {
-#endif
-				action = IP_PMTUDISC_DONT;
-				(void)setsockopt(sock->fd, IPPROTO_IP,
-						 IP_MTU_DISCOVER,
-						 &action, sizeof(action));
-#if defined(IP_PMTUDISC_OMIT)
-			}
-#endif
-		}
-#endif
-#if defined(IP_DONTFRAG)
-		/*
-		 * Turn off Path MTU discovery on IPv4/UDP sockets.
-		 */
-		if (sock->pf == AF_INET) {
-			int off = 0;
-			(void)setsockopt(sock->fd, IPPROTO_IP, IP_DONTFRAG,
-					 &off, sizeof(off));
-		}
-#endif
-
 #if defined(SO_RCVBUF)
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
@@ -2946,6 +2952,8 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	}
 #endif
 #endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
+
+	set_ip_nopmtud(sock);
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
