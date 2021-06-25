@@ -867,6 +867,8 @@ responses such as NXDOMAIN.
 
 ``parental-agents`` lists allow for a common set of parental agents to be easily
 used by multiple primary and secondary zones in their ``parental-agents`` lists.
+A parental agent is the entity that the zone has a relationship with to
+change its delegation information (defined in :rfc:`7344`).
 
 .. _primaries_grammar:
 
@@ -5038,8 +5040,14 @@ BIND has mechanisms in place to facilitate automated KSK rollovers. It
 publishes CDS and CDNSKEY records that can be used by the parent zone to
 publish or withdraw the zone's DS records. BIND will query the parental
 agents to see if the new DS is actually published before withdrawing the
-old DNSSEC key. The following options apply to DS queries sent to
-``parental-agents``:
+old DNSSEC key.
+
+   .. note::
+      The DS response is not validated so it is recommended to set up a
+      trust relationship with the parental agent. For example, use TSIG to
+      authenticate the parental agent, or point to a validating resolver.
+
+The following options apply to DS queries sent to ``parental-agents``:
 
 ``parental-source``
    ``parental-source`` determines which local source address, and
