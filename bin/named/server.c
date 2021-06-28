@@ -8892,11 +8892,11 @@ load_configuration(const char *filename, named_server_t *server,
 	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 			   advertised);
 
-#define CAP_IF_NOT_ZERO(v, min, max)        \
-	if (v > 0 && v < min) {             \
-		recv_tcp_buffer_size = min; \
-	} else if (v > max) {               \
-		recv_tcp_buffer_size = max; \
+#define CAP_IF_NOT_ZERO(v, min, max) \
+	if (v > 0 && v < min) {      \
+		v = min;             \
+	} else if (v > max) {        \
+		v = max;             \
 	}
 
 	/* Set the kernel send and receive buffer sizes */
