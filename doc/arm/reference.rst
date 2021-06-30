@@ -287,6 +287,9 @@ The following statements are supported:
     ``options``
         Controls global server configuration options and sets defaults for other statements.
 
+    ``parental-agents``
+        Defines a named list of servers for inclusion in primary and secondary zones' ``parental-agents`` lists.
+
     ``primaries``
         Defines a named list of servers for inclusion in stub and secondary zones' ``primaries`` or ``also-notify`` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
 
@@ -849,6 +852,21 @@ not logged at this debug level.
 At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
+
+.. _parentals_grammar:
+
+``parental-agents`` Statement Grammar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: ../misc/parentals.grammar.rst
+
+.. _parentals_statement:
+
+``parental-agents`` Statement Definition and Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``parental-agents`` lists allow for a common set of parental agents to be easily
+used by multiple primary and secondary zones in their ``parental-agents`` lists.
 
 .. _primaries_grammar:
 

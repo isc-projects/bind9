@@ -413,6 +413,12 @@ options {
         zone-statistics ( full | terse | none | <boolean> );
 };
 
+parental-agents <string> [ port <integer> ] [
+    dscp <integer> ] { ( <remote-servers> |
+    <ipv4_address> [ port <integer> ] |
+    <ipv6_address> [ port <integer> ] ) [ key
+    <string> ]; ... }; // may occur multiple times
+
 plugin ( query ) <string> [ { <unspecified-text>
     } ]; // may occur multiple times
 
@@ -857,6 +863,10 @@ view <string> [ <class> ] {
                     | * ) ] [ dscp <integer> ];
                 notify-to-soa <boolean>;
                 nsec3-test-zone <boolean>; // test only
+                parental-agents [ port <integer> ] [ dscp <integer> ] { (
+                    <remote-servers> | <ipv4_address> [ port <integer> ] |
+                    <ipv6_address> [ port <integer> ] ) [ key <string> ];
+                    ... };
                 primaries [ port <integer> ] [ dscp <integer> ] { (
                     <remote-servers> | <ipv4_address> [ port <integer> ] |
                     <ipv6_address> [ port <integer> ] ) [ key <string> ];
@@ -966,6 +976,9 @@ zone <string> [ <class> ] {
             [ dscp <integer> ];
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
+        parental-agents [ port <integer> ] [ dscp <integer> ] { (
+            <remote-servers> | <ipv4_address> [ port <integer> ] |
+            <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
         primaries [ port <integer> ] [ dscp <integer> ] { (
             <remote-servers> | <ipv4_address> [ port <integer> ] |
             <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };

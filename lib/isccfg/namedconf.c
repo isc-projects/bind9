@@ -1103,6 +1103,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "masters", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "options", &cfg_type_options, 0 },
+	{ "parental-agents", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
@@ -2337,6 +2338,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "masters", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },
+	{ "parental-agents", &cfg_type_namesockaddrkeylist,
+	  CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
 	{ "primaries", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT },

@@ -641,6 +641,27 @@ dns_zone_setprimarieswithkeys(dns_zone_t *zone, const isc_sockaddr_t *primaries,
  */
 
 isc_result_t
+dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
+		      dns_name_t **keynames, dns_name_t **tlsnames,
+		      uint32_t count);
+/*%<
+ *	Set the list of parental agents for the zone.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'parentals' array of isc_sockaddr_t with port set or NULL.
+ *\li	'count' the number of parentals.
+ *\li	'keynames' array of dns_name_t's for tsig keys or NULL.
+ *
+ *\li	If 'parentals' is NULL then 'count' must be zero.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOMEMORY
+ *\li      Any result dns_name_dup() can return, if keynames!=NULL
+ */
+
+isc_result_t
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		       uint32_t count);
 isc_result_t

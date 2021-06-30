@@ -48,6 +48,7 @@
   	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-to-soa <boolean>;
+  	parental-agents [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
   	serial-update-method ( date | increment | unixtime );
   	sig-signing-nodes <integer>;
   	sig-signing-signatures <integer>;
