@@ -22,16 +22,6 @@ setup() {
 	echo "$zone" >> zones
 }
 
-private_type_record() {
-	_zone=$1
-	_algorithm=$2
-	_keyfile=$3
-
-	_id=$(keyfile_to_key_id "$_keyfile")
-
-	printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
-}
-
 # Set in the key state files the Predecessor/Successor fields.
 # Key $1 is the predecessor of key $2.
 key_successor() {
