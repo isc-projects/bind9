@@ -410,6 +410,22 @@ keyfile_to_key_id() {
 	echo "$1" | sed "s/.*+0\{0,4\}//"
 }
 
+# private_type_record: write a private type record recording the state of the
+# signing process
+#
+# For a given zone ($1), algorithm number ($2) and key file ($3), print the
+# private type record with default type value of 65534, indicating that the
+# signing process for this key is completed.
+private_type_record() {
+        _zone=$1
+        _algorithm=$2
+        _keyfile=$3
+
+        _id=$(keyfile_to_key_id "$_keyfile")
+
+        printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
+}
+
 # nextpart*() - functions for reading files incrementally
 #
 # These functions aim to facilitate looking for (or waiting for)
