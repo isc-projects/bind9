@@ -29,8 +29,8 @@ file documentation:
     ``address_match_list``
         A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
 
-    ``primaries_list``
-        A named list of one or more ``ip_addr`` with optional ``tls_id``, ``key_id`` and/or ``ip_port``. A ``primaries_list`` may include other ``primaries_list``.
+    ``remoteserver_list``
+        A named list of one or more ``ip_addr`` with optional ``tls_id``, ``key_id`` and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list``.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example. ``my.test.domain``.
@@ -279,6 +279,9 @@ The following statements are supported:
 
     ``options``
         Controls global server configuration options and sets defaults for other statements.
+
+    ``parental-agents``
+        Defines a named list of servers for inclusion in primary and secondary zones' ``parental-agents`` lists.
 
     ``primaries``
         Defines a named list of servers for inclusion in stub and secondary zones' ``primaries`` or ``also-notify`` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
@@ -843,6 +846,23 @@ not logged at this debug level.
 At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
+
+.. _parentals_grammar:
+
+``parental-agents`` Statement Grammar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: ../misc/parentals.grammar.rst
+
+.. _parentals_statement:
+
+``parental-agents`` Statement Definition and Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``parental-agents`` lists allow for a common set of parental agents to be easily
+used by multiple primary and secondary zones in their ``parental-agents`` lists.
+A parental agent is the entity that the zone has a relationship with to
+change its delegation information (defined in :rfc:`7344`).
 
 .. _primaries_grammar:
 
@@ -2609,7 +2629,7 @@ options are:
 .. note:: Solaris 2.5.1 and earlier does not support setting the source address
    for TCP sockets.
 
-.. note:: See also ``transfer-source`` and ``notify-source``.
+.. note:: See also ``transfer-source``, ``notify-source`` and ``parental-source``.
 
 .. _zone_transfers:
 
@@ -5117,6 +5137,38 @@ The following options can be specified in a ``dnssec-policy`` statement:
     This is the expected propagation delay from the time when the parent
     zone is updated to the time when the new version is served by all of
     the parent zone's name servers.  The default is ``PT1H`` (1 hour).
+
+Automated KSK Rollovers
+^^^^^^^^^^^^^^^^^^^^^^^
+
+BIND has mechanisms in place to facilitate automated KSK rollovers. It
+publishes CDS and CDNSKEY records that can be used by the parent zone to
+publish or withdraw the zone's DS records. BIND will query the parental
+agents to see if the new DS is actually published before withdrawing the
+old DNSSEC key.
+
+   .. note::
+      The DS response is not validated so it is recommended to set up a
+      trust relationship with the parental agent. For example, use TSIG to
+      authenticate the parental agent, or point to a validating resolver.
+
+The following options apply to DS queries sent to ``parental-agents``:
+
+``parental-source``
+   ``parental-source`` determines which local source address, and
+   optionally UDP port, is used to send parental DS queries. This
+   address must appear in the secondary server's ``parental-agents`` zone
+   clause. This statement sets the ``parental-source`` for all zones, but can
+   be overridden on a per-zone or per-view basis by including a
+   ``parental-source`` statement within the ``zone`` or ``view`` block in the
+   configuration file.
+
+   .. note:: Solaris 2.5.1 and earlier does not support setting the source
+      address for TCP sockets.
+
+``parental-source-v6``
+   This option acts like ``parental-source``, but applies to parental DS
+   queries sent to IPv6 addresses.
 
 .. _managed-keys:
 

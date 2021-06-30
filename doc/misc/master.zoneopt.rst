@@ -6,7 +6,7 @@
   	allow-query-on { <address_match_element>; ... };
   	allow-transfer { <address_match_element>; ... };
   	allow-update { <address_match_element>; ... };
-  	also-notify [ port <integer> ] [ dscp <integer> ] { ( <primaries> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+  	also-notify [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
   	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	auto-dnssec ( allow | maintain | off );
@@ -48,6 +48,9 @@
   	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	notify-to-soa <boolean>;
+  	parental-agents [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+  	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+  	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	serial-update-method ( date | increment | unixtime );
   	sig-signing-nodes <integer>;
   	sig-signing-signatures <integer>;

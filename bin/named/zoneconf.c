@@ -1308,8 +1308,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			RETERR(named_config_getipandkeylist(config, obj, mctx,
-							    &ipkl));
+			RETERR(named_config_getipandkeylist(config, "primaries",
+							    obj, mctx, &ipkl));
 			result = dns_zone_setalsonotify(zone, ipkl.addrs,
 							ipkl.dscps, ipkl.keys,
 							ipkl.tlss, ipkl.count);
@@ -1319,6 +1319,30 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			RETERR(dns_zone_setalsonotify(zone, NULL, NULL, NULL,
 						      NULL, 0));
 		}
+
+		obj = NULL;
+		result = named_config_get(maps, "parental-source", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		RETERR(dns_zone_setparentalsrc4(zone, cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1) {
+			dscp = named_g_dscp;
+		}
+		RETERR(dns_zone_setparentalsrc4dscp(zone, dscp));
+		named_add_reserved_dispatch(named_g_server,
+					    cfg_obj_assockaddr(obj));
+
+		obj = NULL;
+		result = named_config_get(maps, "parental-source-v6", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		RETERR(dns_zone_setparentalsrc6(zone, cfg_obj_assockaddr(obj)));
+		dscp = cfg_obj_getdscp(obj);
+		if (dscp == -1) {
+			dscp = named_g_dscp;
+		}
+		RETERR(dns_zone_setparentalsrc6dscp(zone, dscp));
+		named_add_reserved_dispatch(named_g_server,
+					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "notify-source", &obj);
@@ -1711,6 +1735,28 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*%
+	 * Configure parental agents, applies to primary and secondary zones.
+	 */
+	if (ztype == dns_zone_master || ztype == dns_zone_slave) {
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "parental-agents", &obj);
+		if (obj != NULL) {
+			dns_ipkeylist_t ipkl;
+			dns_ipkeylist_init(&ipkl);
+			RETERR(named_config_getipandkeylist(
+				config, "parental-agents", obj, mctx, &ipkl));
+			result = dns_zone_setparentals(zone, ipkl.addrs,
+						       ipkl.keys, ipkl.tlss,
+						       ipkl.count);
+			dns_ipkeylist_clear(mctx, &ipkl);
+			RETERR(result);
+		} else {
+			RETERR(dns_zone_setparentals(zone, NULL, NULL, NULL,
+						     0));
+		}
+	}
+
+	/*%
 	 * Primary master functionality.
 	 */
 	if (ztype == dns_zone_master) {
@@ -1904,8 +1950,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (obj == NULL && ztype == dns_zone_mirror &&
 		    dns_name_equal(dns_zone_getorigin(zone), dns_rootname))
 		{
-			result = named_config_getprimariesdef(
-				named_g_config,
+			result = named_config_getremotesdef(
+				named_g_config, "primaries",
 				DEFAULT_IANA_ROOT_ZONE_PRIMARIES, &obj);
 			RETERR(result);
 		}
@@ -1913,8 +1959,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			RETERR(named_config_getipandkeylist(config, obj, mctx,
-							    &ipkl));
+			RETERR(named_config_getipandkeylist(config, "primaries",
+							    obj, mctx, &ipkl));
 			result = dns_zone_setprimaries(mayberaw, ipkl.addrs,
 						       ipkl.keys, ipkl.tlss,
 						       ipkl.count);
