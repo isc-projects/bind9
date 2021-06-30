@@ -928,7 +928,8 @@ case "$use_gssapi" in
         saved_cppflags="$CPPFLAGS"
         CPPFLAGS="$gssapi_cflags $CPPFLAGS"
         AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
-	    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
+	    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
+	     gssapi_hack="#include <$ac_header>"])
         if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
 	    case "$use_gssapi" in
 	    auto|yes)
@@ -940,7 +941,8 @@ case "$use_gssapi" in
 	    use_gssapi="yes"
         else
 	    AC_CHECK_HEADERS(krb5/krb5.h krb5.h,
-	        [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
+	        [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
+		 gssapi_krb5_hack="#include <$ac_header>"])
 	    if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
 		case "$use_gssapi" in
 		auto|yes)
@@ -952,12 +954,21 @@ case "$use_gssapi" in
 	        use_gssapi="yes"
 	    else
 		AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h,
-		    [ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"])
+		    [ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
+		     gssapi_krb5_hack="#include <$ac_header>"])
 	        CPPFLAGS="$saved_cppflags"
 	        saved_libs="$LIBS"
 	        LIBS=$gssapi_libs
 	        AC_MSG_CHECKING([krb5-config linking as $LIBS])
-	        AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
+	        AC_TRY_LINK([
+#include <sys/types.h>
+$gssapi_hack
+$gssapi_krb5_hack
+$krb5_hack
+				] , [gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);
+#if defined(HAVE_GSSAPI_KRB5_H) || defined(HAVE_GSSAPI_GSSAPI_KRB5_H)
+gsskrb5_register_acceptor_identity(NULL);
+#endif],
 		    gssapi_linked=yes, gssapi_linked=no)
 	        case $gssapi_linked in
 		    yes)

@@ -16244,6 +16244,7 @@ then :
 #define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
+	     gssapi_hack="#include <$ac_header>"
 fi
 
 done
@@ -16268,6 +16269,7 @@ then :
 #define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
+		 gssapi_krb5_hack="#include <$ac_header>"
 fi
 
 done
@@ -16292,6 +16294,7 @@ then :
 #define `printf "%s\n" "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
+		     gssapi_krb5_hack="#include <$ac_header>"
 fi
 
 done
@@ -16303,10 +16306,18 @@ printf %s "checking krb5-config linking as $LIBS... " >&6; }
 	        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+#include <sys/types.h>
+$gssapi_hack
+$gssapi_krb5_hack
+$krb5_hack
+
 int
 main (void)
 {
-gss_acquire_cred();krb5_init_context()
+gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);
+#if defined(HAVE_GSSAPI_KRB5_H) || defined(HAVE_GSSAPI_GSSAPI_KRB5_H)
+gsskrb5_register_acceptor_identity(NULL);
+#endif
   ;
   return 0;
 }
