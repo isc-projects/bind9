@@ -39,8 +39,8 @@ file documentation:
     ``address_match_list``
         A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
 
-    ``primaries_list``
-        A named list of one or more ``ip_addr`` with optional ``key_id`` and/or ``ip_port``. A ``primaries_list`` may include other ``primaries_list``.
+    ``remoteserver_list``
+        A named list of one or more ``ip_addr`` with optional ``key_id`` and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list``.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example. ``my.test.domain``.

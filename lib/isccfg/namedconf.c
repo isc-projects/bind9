@@ -99,7 +99,7 @@ static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_logsuffix;
 static cfg_type_t cfg_type_logversions;
-static cfg_type_t cfg_type_primarieselement;
+static cfg_type_t cfg_type_remoteselement;
 static cfg_type_t cfg_type_maxduration;
 static cfg_type_t cfg_type_minimal;
 static cfg_type_t cfg_type_nameportiplist;
@@ -167,8 +167,8 @@ static cfg_type_t cfg_type_acl = { "acl",	    cfg_parse_tuple,
 				   cfg_print_tuple, cfg_doc_tuple,
 				   &cfg_rep_tuple,  acl_fields };
 
-/*% primaries */
-static cfg_tuplefielddef_t primaries_fields[] = {
+/*% remote servers, used for primaries and parental agents */
+static cfg_tuplefielddef_t remotes_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_optional_dscp, 0 },
@@ -176,19 +176,19 @@ static cfg_tuplefielddef_t primaries_fields[] = {
 	{ NULL, NULL, 0 }
 };
 
-static cfg_type_t cfg_type_primaries = { "primaries",	  cfg_parse_tuple,
-					 cfg_print_tuple, cfg_doc_tuple,
-					 &cfg_rep_tuple,  primaries_fields };
+static cfg_type_t cfg_type_remoteservers = { "remote-servers", cfg_parse_tuple,
+					     cfg_print_tuple,  cfg_doc_tuple,
+					     &cfg_rep_tuple,   remotes_fields };
 
 /*%
  * "sockaddrkeylist", a list of socket addresses with optional keys
- * and an optional default port, as used in the primaries option.
+ * and an optional default port, as used in the remote-servers option.
  * E.g.,
- *   "port 1234 { myprimaries; 10.0.0.1 key foo; 1::2 port 69; }"
+ *   "port 1234 { myservers; 10.0.0.1 key foo; 1::2 port 69; }"
  */
 
 static cfg_tuplefielddef_t namesockaddrkey_fields[] = {
-	{ "primarieselement", &cfg_type_primarieselement, 0 },
+	{ "remoteselement", &cfg_type_remoteselement, 0 },
 	{ "key", &cfg_type_optional_keyref, 0 },
 	{ NULL, NULL, 0 },
 };
@@ -1101,9 +1101,9 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
-	{ "masters", &cfg_type_primaries, CFG_CLAUSEFLAG_MULTI },
+	{ "masters", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "options", &cfg_type_options, 0 },
-	{ "primaries", &cfg_type_primaries, CFG_CLAUSEFLAG_MULTI },
+	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
@@ -3691,10 +3691,10 @@ static cfg_type_t cfg_type_nameportiplist = {
  */
 
 static void
-doc_primarieselement(cfg_printer_t *pctx, const cfg_type_t *type) {
+doc_remoteselement(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_cstr(pctx, "( ");
-	cfg_print_cstr(pctx, "<primaries>");
+	cfg_print_cstr(pctx, "<remote-servers>");
 	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv4_address>");
 	cfg_print_cstr(pctx, " ");
@@ -3707,8 +3707,8 @@ doc_primarieselement(cfg_printer_t *pctx, const cfg_type_t *type) {
 }
 
 static isc_result_t
-parse_primarieselement(cfg_parser_t *pctx, const cfg_type_t *type,
-		       cfg_obj_t **ret) {
+parse_remoteselement(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	UNUSED(type);
@@ -3726,7 +3726,8 @@ parse_primarieselement(cfg_parser_t *pctx, const cfg_type_t *type,
 		}
 	} else {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
-				 "expected IP address or primaries list name");
+				 "expected IP address or remote servers list "
+				 "name");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 cleanup:
@@ -3734,12 +3735,12 @@ cleanup:
 	return (result);
 }
 
-static cfg_type_t cfg_type_primarieselement = { "primaries_element",
-						parse_primarieselement,
-						NULL,
-						doc_primarieselement,
-						NULL,
-						NULL };
+static cfg_type_t cfg_type_remoteselement = { "remotes_element",
+					      parse_remoteselement,
+					      NULL,
+					      doc_remoteselement,
+					      NULL,
+					      NULL };
 
 static int
 cmp_clause(const void *ap, const void *bp) {

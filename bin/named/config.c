@@ -695,7 +695,7 @@ resume:
 		isc_buffer_t b;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
-				     "primarieselement");
+				     "remoteselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (!cfg_obj_issockaddr(addr)) {
