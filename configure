@@ -17341,7 +17341,7 @@ then
 			CCNOOPT="$CCNOOPT -pthread"
 			;;
 		*-solaris*)
-			CC="$CC -mt"
+			CC="$CC"
 			CCOPT="$CCOPT -mt"
 			CCNOOPT="$CCNOOPT -mt"
 			;;
@@ -29223,8 +29223,17 @@ report() {
     echo "    localstatedir: $localstatedir"
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
-    $CC --version 2>&1 | sed 's/^/    /'
-
+    if test "yes" == "$GCC"; then
+	$CC --version 2>&1 | sed 's/^/    /'
+    else
+	case "$host_os" in
+	    solaris*)
+		$CC -V 2>&1 | sed 's/^/    /'
+		;;
+	    *)
+		$CC --version 2>&1 | sed 's/^/    /'
+	esac
+    fi
     if test "X$ac_unrecognized_opts" != "X"; then
 	echo "Unrecognized options:"
 	echo "    $ac_unrecognized_opts"
