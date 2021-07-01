@@ -6638,6 +6638,8 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	ISC_LIST_INIT(dnskeys);
 
+	dns_rdataset_init(&keyset);
+
 	CHECK(dns_db_findnode(db, origin, false, &node));
 
 	/* Get keys from private key files. */
