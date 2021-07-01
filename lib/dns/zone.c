@@ -297,6 +297,8 @@ struct dns_zone {
 	isc_task_t *loadtask;
 	isc_sockaddr_t notifysrc4;
 	isc_sockaddr_t notifysrc6;
+	isc_sockaddr_t parentalsrc4;
+	isc_sockaddr_t parentalsrc6;
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t altxfrsource4;
@@ -304,6 +306,8 @@ struct dns_zone {
 	isc_sockaddr_t sourceaddr;
 	isc_dscp_t notifysrc4dscp;
 	isc_dscp_t notifysrc6dscp;
+	isc_dscp_t parentalsrc4dscp;
+	isc_dscp_t parentalsrc6dscp;
 	isc_dscp_t xfrsource4dscp;
 	isc_dscp_t xfrsource6dscp;
 	isc_dscp_t altxfrsource4dscp;
@@ -580,6 +584,7 @@ struct dns_zonemgr {
 	isc_taskpool_t *loadtasks;
 	isc_task_t *task;
 	isc_pool_t *mctxpool;
+	isc_ratelimiter_t *checkdsrl;
 	isc_ratelimiter_t *notifyrl;
 	isc_ratelimiter_t *refreshrl;
 	isc_ratelimiter_t *startupnotifyrl;
@@ -596,6 +601,7 @@ struct dns_zonemgr {
 	/* Configuration data. */
 	uint32_t transfersin;
 	uint32_t transfersperns;
+	unsigned int checkdsrate;
 	unsigned int notifyrate;
 	unsigned int startupnotifyrate;
 	unsigned int serialqueryrate;
@@ -1031,6 +1037,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 			 .idleout = DNS_DEFAULT_IDLEOUT,
 			 .notifysrc4dscp = -1,
 			 .notifysrc6dscp = -1,
+			 .parentalsrc4dscp = -1,
+			 .parentalsrc6dscp = -1,
 			 .xfrsource4dscp = -1,
 			 .xfrsource6dscp = -1,
 			 .altxfrsource4dscp = -1,
@@ -1091,6 +1099,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	ISC_LIST_INIT(zone->notifies);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
+	isc_sockaddr_any(&zone->parentalsrc4);
+	isc_sockaddr_any6(&zone->parentalsrc6);
 	isc_sockaddr_any(&zone->xfrsource4);
 	isc_sockaddr_any6(&zone->xfrsource6);
 	isc_sockaddr_any(&zone->altxfrsource4);
@@ -5905,6 +5915,74 @@ dns_zone_getaltxfrsource6dscp(dns_zone_t *zone) {
 }
 
 isc_result_t
+dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->parentalsrc4 = *parentalsrc;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getparentalsrc4(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->parentalsrc4);
+}
+
+isc_result_t
+dns_zone_setparentalsrc4dscp(dns_zone_t *zone, isc_dscp_t dscp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->parentalsrc4dscp = dscp;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_dscp_t
+dns_zone_getparentalsrc4dscp(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->parentalsrc4dscp);
+}
+
+isc_result_t
+dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->parentalsrc6 = *parentalsrc;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getparentalsrc6(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->parentalsrc6);
+}
+
+isc_result_t
+dns_zone_setparentalsrc6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->parentalsrc6dscp = dscp;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_dscp_t
+dns_zone_getparentalsrc6dscp(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->parentalsrc6dscp);
+}
+
+isc_result_t
 dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -5953,6 +6031,23 @@ isc_sockaddr_t *
 dns_zone_getnotifysrc6(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (&zone->notifysrc6);
+}
+
+isc_result_t
+dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->notifysrc6dscp = dscp;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_dscp_t
+dns_zone_getnotifysrc6dscp(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->notifysrc6dscp);
 }
 
 static bool
@@ -6081,23 +6176,6 @@ set_serverslist(unsigned int count, const isc_sockaddr_t *addrs,
 	*newaddrsp = newaddrs;
 	*newnamesp = newnames;
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->notifysrc6dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getnotifysrc6dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->notifysrc6dscp);
 }
 
 isc_result_t
@@ -18044,6 +18122,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->loadtasks = NULL;
 	zmgr->mctxpool = NULL;
 	zmgr->task = NULL;
+	zmgr->checkdsrl = NULL;
 	zmgr->notifyrl = NULL;
 	zmgr->refreshrl = NULL;
 	zmgr->startupnotifyrl = NULL;
@@ -18071,9 +18150,15 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	isc_task_setname(zmgr->task, "zmgr", zmgr);
 	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->notifyrl);
+					&zmgr->checkdsrl);
 	if (result != ISC_R_SUCCESS) {
 		goto free_task;
+	}
+
+	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
+					&zmgr->notifyrl);
+	if (result != ISC_R_SUCCESS) {
+		goto free_checkdsrl;
 	}
 
 	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
@@ -18094,7 +18179,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_startupnotifyrl;
 	}
 
-	/* default to 20 refresh queries / notifies per second. */
+	/* default to 20 refresh queries / notifies / checkds per second. */
+	setrl(zmgr->checkdsrl, &zmgr->checkdsrate, 20);
 	setrl(zmgr->notifyrl, &zmgr->notifyrate, 20);
 	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, 20);
 	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, 20);
@@ -18124,6 +18210,8 @@ free_refreshrl:
 	isc_ratelimiter_detach(&zmgr->refreshrl);
 free_notifyrl:
 	isc_ratelimiter_detach(&zmgr->notifyrl);
+free_checkdsrl:
+	isc_ratelimiter_detach(&zmgr->checkdsrl);
 free_task:
 	isc_task_detach(&zmgr->task);
 free_urlock:
@@ -18312,6 +18400,7 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
+	isc_ratelimiter_shutdown(zmgr->checkdsrl);
 	isc_ratelimiter_shutdown(zmgr->notifyrl);
 	isc_ratelimiter_shutdown(zmgr->refreshrl);
 	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
@@ -18440,6 +18529,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	isc_refcount_destroy(&zmgr->refs);
 	isc_mutex_destroy(&zmgr->iolock);
+	isc_ratelimiter_detach(&zmgr->checkdsrl);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
@@ -18828,6 +18918,13 @@ setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value) {
 	isc_ratelimiter_setpertic(rl, pertic);
 
 	*rate = value;
+}
+
+void
+dns_zonemgr_setcheckdsrate(dns_zonemgr_t *zmgr, unsigned int value) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	setrl(zmgr->checkdsrl, &zmgr->checkdsrate, value);
 }
 
 void

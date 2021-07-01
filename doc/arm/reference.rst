@@ -2612,7 +2612,7 @@ options are:
    .. note:: Solaris 2.5.1 and earlier does not support setting the source address
       for TCP sockets.
 
-   .. note:: See also ``transfer-source`` and ``notify-source``.
+   .. note:: See also ``transfer-source``, ``notify-source`` and ``parental-source``.
 
 .. _zone_transfers:
 
@@ -5030,6 +5030,32 @@ The following options can be specified in a ``dnssec-policy`` statement:
     This is the expected propagation delay from the time when the parent
     zone is updated to the time when the new version is served by all of
     the parent zone's name servers.  The default is ``PT1H`` (1 hour).
+
+Automated KSK Rollovers
+^^^^^^^^^^^^^^^^^^^^^^^
+
+BIND has mechanisms in place to facilitate automated KSK rollovers. It
+publishes CDS and CDNSKEY records that can be used by the parent zone to
+publish or withdraw the zone's DS records. BIND will query the parental
+agents to see if the new DS is actually published before withdrawing the
+old DNSSEC key. The following options apply to DS queries sent to
+``parental-agents``:
+
+``parental-source``
+   ``parental-source`` determines which local source address, and
+   optionally UDP port, is used to send parental DS queries. This
+   address must appear in the secondary server's ``parental-agents`` zone
+   clause. This statement sets the ``parental-source`` for all zones, but can
+   be overridden on a per-zone or per-view basis by including a
+   ``parental-source`` statement within the ``zone`` or ``view`` block in the
+   configuration file.
+
+   .. note:: Solaris 2.5.1 and earlier does not support setting the source
+      address for TCP sockets.
+
+``parental-source-v6``
+   This option acts like ``parental-source``, but applies to parental DS
+   queries sent to IPv6 addresses.
 
 .. _managed-keys:
 

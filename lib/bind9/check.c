@@ -3462,6 +3462,7 @@ static struct {
 	const char *v6;
 } sources[] = { { "transfer-source", "transfer-source-v6" },
 		{ "notify-source", "notify-source-v6" },
+		{ "parental-source", "parental-source-v6" },
 		{ "query-source", "query-source-v6" },
 		{ NULL, NULL } };
 

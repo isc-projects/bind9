@@ -894,6 +894,94 @@ dns_zone_setaltxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
  */
 
 isc_result_t
+dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
+/*%<
+ * 	Set the source address to be used with IPv4 parental DS queries.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'parentalsrc' to contain the address.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_sockaddr_t *
+dns_zone_getparentalsrc4(dns_zone_t *zone);
+/*%<
+ *	Returns the source address set by a previous dns_zone_setparentalsrc4
+ *	call, or the default of inaddr_any, port 0.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+isc_dscp_t
+dns_zone_getparentalsrc4dscp(dns_zone_t *zone);
+/*%/
+ * Get the DSCP value associated with the IPv4 parental source.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+isc_result_t
+dns_zone_setparentalsrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
+/*%<
+ * Set the DSCP value associated with the IPv4 parental source.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_result_t
+dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
+/*%<
+ * 	Set the source address to be used with IPv6 parental DS queries.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'parentalsrc' to contain the address.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_sockaddr_t *
+dns_zone_getparentalsrc6(dns_zone_t *zone);
+/*%<
+ *	Returns the source address set by a previous dns_zone_setparentalsrc6
+ *	call, or the default of in6addr_any, port 0.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+isc_dscp_t
+dns_zone_getparentalsrc6dscp(dns_zone_t *zone);
+/*%/
+ * Get the DSCP value associated with the IPv6 parental source.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+isc_result_t
+dns_zone_setparentalsrc6dscp(dns_zone_t *zone, isc_dscp_t dscp);
+/*%<
+ * Set the DSCP value associated with the IPv6 parental source.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_result_t
 dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
 /*%<
  * 	Set the source address to be used with IPv4 NOTIFY messages.
@@ -1813,6 +1901,15 @@ dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
+ */
+
+void
+dns_zonemgr_setcheckdsrate(dns_zonemgr_t *zmgr, unsigned int value);
+/*%<
+ *	Set the number of parental DS queries sent per second.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager
  */
 
 void

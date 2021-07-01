@@ -180,6 +180,8 @@ options {\n\
 	notify-source *;\n\
 	notify-source-v6 *;\n\
 	nsec3-test-zone no;\n\
+	parental-source *;\n\
+	parental-source-v6 *;\n\
 	provide-ixfr true;\n\
 	qname-minimization relaxed;\n\
 	query-source address *;\n\
