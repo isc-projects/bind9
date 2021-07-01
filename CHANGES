@@ -1,3 +1,7 @@
+5671.	[bug]		Fix a race condition where two threads are competing for
+			the same set of key file locks, that could lead to a
+			deadlock. This has been fixed. [GL #2786]
+
 5670.	[bug]		Handle place holder KEYDATA records. [GL #2769]
 
 5669.	[func]		Add 'checkds' feature. Zones with "dnssec-policy" and
