@@ -1204,6 +1204,7 @@ dns_zone_getchecknames
 dns_zone_getclass
 dns_zone_getdb
 dns_zone_getdbtype
+dns_zone_getdnsseckeys
 dns_zone_getdnssecsignstats
 dns_zone_getexpiretime
 dns_zone_getfile
@@ -1234,6 +1235,10 @@ dns_zone_getnotifysrc6
 dns_zone_getnotifysrc6dscp
 dns_zone_getoptions
 dns_zone_getorigin
+dns_zone_getparentalsrc4
+dns_zone_getparentalsrc4dscp
+dns_zone_getparentalsrc6
+dns_zone_getparentalsrc6dscp
 dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getqueryonacl
@@ -1340,6 +1345,11 @@ dns_zone_setnotifytype
 dns_zone_setnsec3param
 dns_zone_setoption
 dns_zone_setorigin
+dns_zone_setparentals
+dns_zone_setparentalsrc4
+dns_zone_setparentalsrc4dscp
+dns_zone_setparentalsrc6
+dns_zone_setparentalsrc6dscp
 dns_zone_setprimaries
 dns_zone_setprimarieswithkeys
 dns_zone_setprivatetype
@@ -1395,6 +1405,7 @@ dns_zonemgr_getttransfersperns
 dns_zonemgr_managezone
 dns_zonemgr_releasezone
 dns_zonemgr_resumexfrs
+dns_zonemgr_setcheckdsrate
 dns_zonemgr_setiolimit
 dns_zonemgr_setnotifyrate
 dns_zonemgr_setserialqueryrate
@@ -1487,6 +1498,7 @@ dst_key_read_public
 dst_key_read_state
 dst_key_restore
 dst_key_rid
+dst_key_role
 dst_key_secretsize
 dst_key_setbits
 dst_key_setbool
