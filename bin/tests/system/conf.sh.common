@@ -66,6 +66,7 @@ catz \
 cds \
 chain \
 checkconf \
+checkds \
 checknames \
 checkzone \
 database \

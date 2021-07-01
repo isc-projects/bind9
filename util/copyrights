@@ -362,6 +362,14 @@
 ./bin/tests/system/checkconf/dnssec.3		X	2011,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/checkconf/good.zonelist	X	2016,2017,2018,2019,2020,2021
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
+./bin/tests/system/checkds/README		TXT.BRIEF	2021
+./bin/tests/system/checkds/clean.sh		SH	2021
+./bin/tests/system/checkds/conftest.py		PYTHON	2021
+./bin/tests/system/checkds/ns2/setup.sh		SH	2021
+./bin/tests/system/checkds/ns5/setup.sh		SH	2021
+./bin/tests/system/checkds/ns9/setup.sh		SH	2021
+./bin/tests/system/checkds/setup.sh		SH	2021
+./bin/tests/system/checkds/tests-checkds.py	PYTHON-BIN	2021
 ./bin/tests/system/checkdstool/clean.sh		SH	2012,2013,2014,2016,2017,2018,2019,2020,2021
 ./bin/tests/system/checkdstool/dig.bat		BAT	2016,2018,2019,2020,2021
 ./bin/tests/system/checkdstool/dig.pl		PERL	2014,2016,2017,2018,2019,2020,2021
