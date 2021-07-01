@@ -1964,7 +1964,7 @@ if ($use_python ne "no") {
         $configcond{"PYTHON"} = 1;
         $configdefd{"USE_PYTHON"} = "USE_PYTHON";
         $configvar{"PYTHON"} = "$python_command";
-        $configtest{"CHECKDS"} = "checkds";
+        $configtest{"CHECKDS"} = "checkdstool";
         $configtest{"COVERAGE"} = "coverage";
         $configtest{"KEYMGR"} = "keymgr";
         # Doesn't matter

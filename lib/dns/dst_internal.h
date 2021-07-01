@@ -94,6 +94,7 @@ typedef enum { DO_SIGN, DO_VERIFY } dst_use_t;
 struct dst_key {
 	unsigned int magic;
 	isc_refcount_t refs;
+	isc_mutex_t mdlock;	    /*%< lock for read/write metadata */
 	dns_name_t *key_name;	    /*%< name of the key */
 	unsigned int key_size;	    /*%< size of the key in bits */
 	unsigned int key_proto;	    /*%< protocols this key is used for

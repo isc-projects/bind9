@@ -1103,7 +1103,9 @@ unsigned.
 When the DS records have been removed from the parent zone, use
 ``rndc dnssec -checkds -key <id> withdrawn example.com`` to tell ``named`` that
 the DS is removed, and the remaining DNSSEC records will be removed in a timely
-manner.
+manner. Or if you have parental agents configured, the DNSSEC records will be
+automatically removed after BIND has seen that the parental agents no longer
+serves the DS RRset for this zone.
 
 After a while, your zone is reverted back to the traditional, insecure DNS
 format. You can verify by checking that all DNSKEY and RRSIG records have been

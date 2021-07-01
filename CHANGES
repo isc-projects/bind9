@@ -1,5 +1,10 @@
 5670.	[bug]		Handle place holder KEYDATA records. [GL #2769]
 
+5669.	[func]		Add 'checkds' feature. Zones with "dnssec-policy" and
+			"parental-agents" configured will check for DS presence
+			and are able to perform automatic KSK rollover.
+			[GL #1126]
+
 5668.	[bug]		When a zone fails to load on startup, the setnsec3param
 			task is rescheduled. This caused a hang on shutdown, and
 			is now fixed. [GL #2791]
