@@ -611,6 +611,22 @@ on_server_stream_close_callback(int32_t stream_id,
 
 	ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
 	session->nsstreams--;
+
+	/*
+	 * By making a call to isc__nmsocket_prep_destroy(), we ensure that
+	 * the socket gets marked as inactive, allowing the HTTP/2 data
+	 * associated with it to be properly disposed of eventually.
+	 *
+	 * An HTTP/2 stream socket will normally be marked as inactive in
+	 * the normal course of operation. However, when browsers terminate
+	 * HTTP/2 streams prematurely (e.g. by sending RST_STREAM),
+	 * corresponding sockets can remain marked as active, retaining
+	 * references to the HTTP/2 data (most notably the session objects),
+	 * preventing them from being correctly freed and leading to BIND
+	 * hanging on shutdown.  Calling isc__nmsocket_prep_destroy()
+	 * ensures that this will not happen.
+	 */
+	isc__nmsocket_prep_destroy(sock);
 	isc__nmsocket_detach(&sock);
 	return (rv);
 }
