@@ -2036,7 +2036,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 		if (isc_base64_decodestring(socket->h2.query_data,
 					    &decoded_buf) != ISC_R_SUCCESS)
 		{
-			code = ISC_HTTP_ERROR_GENERIC;
+			code = ISC_HTTP_ERROR_BAD_REQUEST;
 			goto error;
 		}
 		isc__buffer_usedregion(&decoded_buf, &data);
@@ -2055,7 +2055,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 error:
 	result = server_send_error_response(code, ngsession, socket);
 	if (result != ISC_R_SUCCESS) {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 	}
 	return (0);
 }
