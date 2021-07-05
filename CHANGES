@@ -1,3 +1,6 @@
+5674.	[bug]		Fix BIND hanging when HTTP/2 streams are aborted
+			prematurely by web browsers. [GL !5245]
+
 5673.	[func]		Add "--disable-doh" configuration option to allow
 			BIND 9 to compile without libnghttp2 library.
 			[GL #2478]
