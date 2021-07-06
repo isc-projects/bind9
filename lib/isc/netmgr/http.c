@@ -2001,6 +2001,21 @@ server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
 	isc_nmhandle_detach(&handle);
 }
 
+void
+isc__nm_http_bad_request(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	sock = handle->sock;
+	REQUIRE(sock->type == isc_nm_httpsocket);
+	REQUIRE(!atomic_load(&sock->client));
+	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
+
+	(void)server_send_error_response(ISC_HTTP_ERROR_BAD_REQUEST,
+					 sock->h2.session->ngsession, sock);
+}
+
 static int
 server_on_request_recv(nghttp2_session *ngsession,
 		       isc_nm_http_session_t *session, isc_nmsocket_t *socket) {

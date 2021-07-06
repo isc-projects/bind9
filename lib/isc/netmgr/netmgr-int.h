@@ -1655,6 +1655,16 @@ void
 isc__nm_http_close(isc_nmsocket_t *sock);
 
 void
+isc__nm_http_bad_request(isc_nmhandle_t *handle);
+/*%<
+ * Respond to the request with 400 "Bad Request" status.
+ *
+ * Requires:
+ * \li 'handle' is a valid HTTP netmgr handle object, referencing a server-side
+ * socket
+ */
+
+void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void

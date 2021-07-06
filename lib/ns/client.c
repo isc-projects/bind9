@@ -1724,6 +1724,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 			      "dropped request: suspicious port");
+		isc_nm_bad_request(handle);
 		return;
 	}
 #endif /* if NS_CLIENT_DROPPORT */
@@ -1737,6 +1738,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 			      "dropped request: blackholed peer");
+		isc_nm_bad_request(handle);
 		return;
 	}
 
@@ -1750,6 +1752,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * There isn't enough header to determine whether
 		 * this was a request or a response.  Drop it.
 		 */
+		isc_nm_bad_request(handle);
 		return;
 	}
 
@@ -1766,6 +1769,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	if ((flags & DNS_MESSAGEFLAG_QR) != 0) {
 		CTRACE("unexpected response");
+		isc_nm_bad_request(handle);
 		return;
 	}
 

@@ -3301,6 +3301,38 @@ isc_nm_sequential(isc_nmhandle_t *handle) {
 	atomic_store(&sock->sequential, true);
 }
 
+void
+isc_nm_bad_request(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httpsocket:
+		isc__nm_http_bad_request(handle);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+
+	case isc_nm_udpsocket:
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		return;
+		break;
+
+	case isc_nm_tcpsocket:
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	}
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
