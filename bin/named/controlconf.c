@@ -392,10 +392,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 		isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
-		if (result != ISCCC_R_BADAUTH) {
-			log_invalid(&conn->ccmsg, result);
-			goto cleanup;
-		}
 	}
 
 	if (key == NULL) {

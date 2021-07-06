@@ -1,3 +1,7 @@
+5672.	[bug]		Authentication of rndc messages could fail if a
+			"controls" statement was configured with multiple
+			key algorithms in the same listener. [GL #2756]
+
 5671.	[bug]		Fix a race condition where two threads are competing for
 			the same set of key file locks, that could lead to a
 			deadlock. This has been fixed. [GL #2786]
