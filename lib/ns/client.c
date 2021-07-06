@@ -21,7 +21,6 @@
 #include <isc/mutex.h>
 #include <isc/nonce.h>
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/safe.h>
@@ -113,8 +112,7 @@
 #define NS_CLIENT_DROPPORT 1
 #endif /* ifndef NS_CLIENT_DROPPORT */
 
-LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests =
-	ATOMIC_VAR_INIT(0);
+atomic_uint_fast64_t ns_client_requests = ATOMIC_VAR_INIT(0);
 
 static void
 clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);

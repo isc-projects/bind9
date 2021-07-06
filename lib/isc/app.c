@@ -28,7 +28,6 @@
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/platform.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/task.h>

@@ -35,7 +35,6 @@
 #include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>
@@ -122,10 +121,10 @@
 #define BACKTRACE_MAXFRAME 128
 #endif /* ifndef BACKTRACE_MAXFRAME */
 
-LIBISC_EXTERNAL_DATA extern int isc_dscp_check_value;
-LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_hour;
-LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
-LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
+extern int isc_dscp_check_value;
+extern unsigned int dns_zone_mkey_hour;
+extern unsigned int dns_zone_mkey_day;
+extern unsigned int dns_zone_mkey_month;
 
 static bool want_stats = false;
 static char program_name[NAME_MAX] = "named";

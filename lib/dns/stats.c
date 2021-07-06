@@ -604,7 +604,7 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
 /***
  *** Obsolete variables and functions follow:
  ***/
-LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
+const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
 	"success",   "referral", "nxrrset",   "nxdomain",
 	"recursion", "failure",	 "duplicate", "dropped"
 };

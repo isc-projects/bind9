@@ -21,7 +21,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -53,7 +52,7 @@ struct ns_plugin {
 };
 
 static ns_hooklist_t default_hooktable[NS_HOOKPOINTS_COUNT];
-LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
+ns_hooktable_t *ns__hook_table = &default_hooktable;
 
 isc_result_t
 ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {

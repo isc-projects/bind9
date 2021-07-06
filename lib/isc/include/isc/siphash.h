@@ -14,7 +14,6 @@
 #pragma once
 
 #include <isc/lang.h>
-#include <isc/platform.h>
 #include <isc/types.h>
 
 #define ISC_SIPHASH24_KEY_LENGTH 128 / 8

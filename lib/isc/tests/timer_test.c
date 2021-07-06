@@ -27,7 +27,6 @@
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/task.h>
 #include <isc/time.h>

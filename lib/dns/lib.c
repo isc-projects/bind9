@@ -31,7 +31,7 @@
  *** Globals
  ***/
 
-LIBDNS_EXTERNAL_DATA unsigned int dns_pps = 0U;
+unsigned int dns_pps = 0U;
 
 /***
  *** Functions

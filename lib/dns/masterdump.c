@@ -105,7 +105,7 @@ typedef struct dns_totext_ctx {
 	dns_indent_t indent;
 } dns_totext_ctx_t;
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_keyzone = {
+const dns_master_style_t dns_master_style_keyzone = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_OMIT_TTL | DNS_STYLEFLAG_TTL |
@@ -120,7 +120,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_keyzone = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_default = {
+const dns_master_style_t dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_OMIT_TTL | DNS_STYLEFLAG_TTL |
@@ -135,7 +135,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_default = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_full = {
+const dns_master_style_t dns_master_style_full = {
 	DNS_STYLEFLAG_COMMENT | DNS_STYLEFLAG_RESIGN,
 	46,
 	46,
@@ -146,7 +146,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_full = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_explicitttl = {
+const dns_master_style_t dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_COMMENT | DNS_STYLEFLAG_RRCOMMENT |
@@ -160,7 +160,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_explicitttl = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_cache = {
+const dns_master_style_t dns_master_style_cache = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
 		DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE,
@@ -173,36 +173,34 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_cache = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t
-	dns_master_style_cache_with_expired = {
-		DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
-			DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
-			DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE |
-			DNS_STYLEFLAG_EXPIRED,
-		24,
-		32,
-		32,
-		40,
-		80,
-		8,
-		UINT_MAX
-	};
-
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_simple = {
-	0, 24, 32, 32, 40, 80, 8, UINT_MAX
+const dns_master_style_t dns_master_style_cache_with_expired = {
+	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
+		DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
+		DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE |
+		DNS_STYLEFLAG_EXPIRED,
+	24,
+	32,
+	32,
+	40,
+	80,
+	8,
+	UINT_MAX
 };
+
+const dns_master_style_t dns_master_style_simple = { 0,	 24, 32, 32,
+						     40, 80, 8,	 UINT_MAX };
 
 /*%
  * A style suitable for dns_rdataset_totext().
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_debug = {
+const dns_master_style_t dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER, 24, 32, 40, 48, 80, 8, UINT_MAX
 };
 
 /*%
  * Similar, but indented (i.e., prepended with indentctx.string).
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_indent = {
+const dns_master_style_t dns_master_style_indent = {
 	DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_INDENT,
 	24,
 	32,
@@ -216,7 +214,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_indent = {
 /*%
  * Similar, but with each line commented out.
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_comment = {
+const dns_master_style_t dns_master_style_comment = {
 	DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_MULTILINE |
 		DNS_STYLEFLAG_RRCOMMENT | DNS_STYLEFLAG_COMMENTDATA,
 	24,
@@ -231,7 +229,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_comment = {
 /*%
  * YAML style
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_yaml = {
+const dns_master_style_t dns_master_style_yaml = {
 	DNS_STYLEFLAG_YAML | DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_INDENT,
 	24,
 	32,

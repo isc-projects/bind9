@@ -23,6 +23,7 @@
 #include <isc/aes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/log.h>
@@ -30,7 +31,6 @@
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>

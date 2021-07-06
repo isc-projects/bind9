@@ -142,8 +142,8 @@ struct dns_name {
 #define DNS_NAME_CHECKMX	0x0010 /*%< Used by rdata. */
 #define DNS_NAME_CHECKMXFAIL	0x0020 /*%< Used by rdata. */
 
-LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_rootname;
-LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_wildcardname;
+extern const dns_name_t *dns_rootname;
+extern const dns_name_t *dns_wildcardname;
 
 /*%<
  * DNS_NAME_INITNONABSOLUTE and DNS_NAME_INITABSOLUTE are macros for

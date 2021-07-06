@@ -33,7 +33,6 @@
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
-#include <isc/platform.h>
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/random.h>

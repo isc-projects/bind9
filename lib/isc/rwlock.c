@@ -21,7 +21,6 @@
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>

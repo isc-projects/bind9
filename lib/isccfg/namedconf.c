@@ -2341,17 +2341,15 @@ static cfg_clausedef_t zone_only_clauses[] = {
 static cfg_clausedef_t *namedconf_clausesets[] = { namedconf_clauses,
 						   namedconf_or_view_clauses,
 						   NULL };
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
-	"namedconf",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    namedconf_clausesets
-};
+cfg_type_t cfg_type_namedconf = { "namedconf",	     cfg_parse_mapbody,
+				  cfg_print_mapbody, cfg_doc_mapbody,
+				  &cfg_rep_map,	     namedconf_clausesets };
 
 /*% The bind.keys syntax (trust-anchors/managed-keys/trusted-keys only). */
 static cfg_clausedef_t *bindkeys_clausesets[] = { bindkeys_clauses, NULL };
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bindkeys = {
-	"bindkeys",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    bindkeys_clausesets
-};
+cfg_type_t cfg_type_bindkeys = { "bindkeys",	    cfg_parse_mapbody,
+				 cfg_print_mapbody, cfg_doc_mapbody,
+				 &cfg_rep_map,	    bindkeys_clausesets };
 
 /*% The "options" statement syntax. */
 
@@ -2376,15 +2374,13 @@ static cfg_type_t cfg_type_viewopts = { "view",	       cfg_parse_map,
 
 static cfg_clausedef_t *zone_clausesets[] = { zone_only_clauses, zone_clauses,
 					      NULL };
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_zoneopts = {
-	"zoneopts",  cfg_parse_map, cfg_print_map,
-	cfg_doc_map, &cfg_rep_map,  zone_clausesets
-};
+cfg_type_t cfg_type_zoneopts = { "zoneopts",  cfg_parse_map, cfg_print_map,
+				 cfg_doc_map, &cfg_rep_map,  zone_clausesets };
 
 /*% The "dnssec-policy" statement syntax. */
 static cfg_clausedef_t *dnssecpolicy_clausesets[] = { dnssecpolicy_clauses,
 						      NULL };
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_dnssecpolicyopts = {
+cfg_type_t cfg_type_dnssecpolicyopts = {
 	"dnssecpolicyopts", cfg_parse_map, cfg_print_map,
 	cfg_doc_map,	    &cfg_rep_map,  dnssecpolicy_clausesets
 };
@@ -2564,10 +2560,9 @@ static cfg_clausedef_t addzoneconf_clauses[] = {
 static cfg_clausedef_t *addzoneconf_clausesets[] = { addzoneconf_clauses,
 						     NULL };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_addzoneconf = {
-	"addzoneconf",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    addzoneconf_clausesets
-};
+cfg_type_t cfg_type_addzoneconf = { "addzoneconf",     cfg_parse_mapbody,
+				    cfg_print_mapbody, cfg_doc_mapbody,
+				    &cfg_rep_map,      addzoneconf_clausesets };
 
 static isc_result_t
 parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
@@ -2908,10 +2903,8 @@ static cfg_type_t cfg_type_ixfrdifftype = {
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_keyref = {
-	"keyref",     parse_keyvalue,  print_keyvalue,
-	doc_keyvalue, &cfg_rep_string, &key_kw
-};
+cfg_type_t cfg_type_keyref = { "keyref",     parse_keyvalue,  print_keyvalue,
+			       doc_keyvalue, &cfg_rep_string, &key_kw };
 
 static cfg_type_t cfg_type_optional_keyref = {
 	"optional_keyref",     parse_optional_keyvalue, print_keyvalue,
@@ -3545,29 +3538,26 @@ static cfg_clausedef_t rndcconf_clauses[] = {
 
 static cfg_clausedef_t *rndcconf_clausesets[] = { rndcconf_clauses, NULL };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndcconf = {
-	"rndcconf",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    rndcconf_clausesets
-};
+cfg_type_t cfg_type_rndcconf = { "rndcconf",	    cfg_parse_mapbody,
+				 cfg_print_mapbody, cfg_doc_mapbody,
+				 &cfg_rep_map,	    rndcconf_clausesets };
 
 static cfg_clausedef_t rndckey_clauses[] = { { "key", &cfg_type_key, 0 },
 					     { NULL, NULL, 0 } };
 
 static cfg_clausedef_t *rndckey_clausesets[] = { rndckey_clauses, NULL };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndckey = {
-	"rndckey",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    rndckey_clausesets
-};
+cfg_type_t cfg_type_rndckey = { "rndckey",	   cfg_parse_mapbody,
+				cfg_print_mapbody, cfg_doc_mapbody,
+				&cfg_rep_map,	   rndckey_clausesets };
 
 /*
  * session.key has exactly the same syntax as rndc.key, but it's defined
  * separately for clarity (and so we can extend it someday, if needed).
  */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sessionkey = {
-	"sessionkey",	 cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody, &cfg_rep_map,	    rndckey_clausesets
-};
+cfg_type_t cfg_type_sessionkey = { "sessionkey",      cfg_parse_mapbody,
+				   cfg_print_mapbody, cfg_doc_mapbody,
+				   &cfg_rep_map,      rndckey_clausesets };
 
 static cfg_tuplefielddef_t nameport_fields[] = {
 	{ "name", &cfg_type_astring, 0 },

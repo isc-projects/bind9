@@ -16,7 +16,6 @@
 
 #include <isc/assertions.h>
 #include <isc/backtrace.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/strerr.h>

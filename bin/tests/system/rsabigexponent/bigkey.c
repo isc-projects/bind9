@@ -14,7 +14,6 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/stdio.h>

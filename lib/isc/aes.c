@@ -16,7 +16,6 @@
 
 #include <isc/aes.h>
 #include <isc/assertions.h>
-#include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>

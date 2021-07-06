@@ -15,6 +15,7 @@
 #include <maxminddb.h>
 #endif /* if defined(HAVE_GEOIP2) */
 
+#include <isc/dir.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>

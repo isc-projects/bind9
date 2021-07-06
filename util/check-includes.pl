@@ -95,12 +95,6 @@ for (<>) {
       unless $file =~ m%isc/resultclass.h%;
   }
 
-  if (/$nocomment.*ISC_PLATFORM_/m &&
-      ! m%^#include <isc/platform.h>%m) {
-    print "$file has ISC_PLATFORM_ without <isc/platform.h>\n"
-      unless $file =~ m%isc/platform.h%;
-  }
-
   if ($file !~ m%isc/magic\.h$%) {
     print "$file has ISC_MAGIC_VALID without <isc/magic.h>\n"
       if /$nocomment.*ISC_MAGIC_VALID/m && ! m%^#include <isc/magic.h>%m;
@@ -231,13 +225,6 @@ for (<>) {
       # So skip the elision test in any event.
       # XXX would be good to test for files that need types.h but don't
       # include it.
-      next;
-    }
-
-    if ($elided eq "<isc/platform.h>") {
-      if (! /^$nocomment.*ISC_PLATFORM_/m) {
-        print "$file has <isc/platform.h> but no ISC_PLATFORM_\n";
-      }
       next;
     }
 

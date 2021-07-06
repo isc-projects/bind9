@@ -31,7 +31,6 @@
 #include <isc/condition.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/task.h>
 #include <isc/time.h>

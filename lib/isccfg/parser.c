@@ -127,22 +127,19 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
  * not need a union member).
  */
 
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_string = { "string", free_string };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_boolean = { "boolean", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_map = { "map", free_map };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_list = { "list", free_list };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_tuple = { "tuple", free_tuple };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_netprefix = { "netprefix",
-							free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_void = { "void", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_fixedpoint = { "fixedpoint",
-							 free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_percentage = { "percentage",
-							 free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_duration = { "duration", free_noop };
+cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop };
+cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop };
+cfg_rep_t cfg_rep_string = { "string", free_string };
+cfg_rep_t cfg_rep_boolean = { "boolean", free_noop };
+cfg_rep_t cfg_rep_map = { "map", free_map };
+cfg_rep_t cfg_rep_list = { "list", free_list };
+cfg_rep_t cfg_rep_tuple = { "tuple", free_tuple };
+cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
+cfg_rep_t cfg_rep_netprefix = { "netprefix", free_noop };
+cfg_rep_t cfg_rep_void = { "void", free_noop };
+cfg_rep_t cfg_rep_fixedpoint = { "fixedpoint", free_noop };
+cfg_rep_t cfg_rep_percentage = { "percentage", free_noop };
+cfg_rep_t cfg_rep_duration = { "duration", free_noop };
 
 /*
  * Configuration type definitions.
@@ -743,10 +740,8 @@ cfg_obj_isvoid(const cfg_obj_t *obj) {
 	return (obj->type->rep == &cfg_rep_void);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_void = {
-	"void",	      cfg_parse_void, cfg_print_void,
-	cfg_doc_void, &cfg_rep_void,  NULL
-};
+cfg_type_t cfg_type_void = { "void",	   cfg_parse_void, cfg_print_void,
+			     cfg_doc_void, &cfg_rep_void,  NULL };
 
 /*
  * percentage
@@ -803,10 +798,9 @@ cfg_obj_aspercentage(const cfg_obj_t *obj) {
 	return (obj->value.uint32);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_percentage = {
-	"percentage",	  cfg_parse_percentage, cfg_print_percentage,
-	cfg_doc_terminal, &cfg_rep_percentage,	NULL
-};
+cfg_type_t cfg_type_percentage = { "percentage",	 cfg_parse_percentage,
+				   cfg_print_percentage, cfg_doc_terminal,
+				   &cfg_rep_percentage,	 NULL };
 
 bool
 cfg_obj_ispercentage(const cfg_obj_t *obj) {
@@ -887,10 +881,9 @@ cfg_obj_asfixedpoint(const cfg_obj_t *obj) {
 	return (obj->value.uint32);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_fixedpoint = {
-	"fixedpoint",	  cfg_parse_fixedpoint, cfg_print_fixedpoint,
-	cfg_doc_terminal, &cfg_rep_fixedpoint,	NULL
-};
+cfg_type_t cfg_type_fixedpoint = { "fixedpoint",	 cfg_parse_fixedpoint,
+				   cfg_print_fixedpoint, cfg_doc_terminal,
+				   &cfg_rep_fixedpoint,	 NULL };
 
 bool
 cfg_obj_isfixedpoint(const cfg_obj_t *obj) {
@@ -955,10 +948,9 @@ cfg_obj_asuint32(const cfg_obj_t *obj) {
 	return (obj->value.uint32);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_uint32 = {
-	"integer",	  cfg_parse_uint32, cfg_print_uint32,
-	cfg_doc_terminal, &cfg_rep_uint32,  NULL
-};
+cfg_type_t cfg_type_uint32 = { "integer",	 cfg_parse_uint32,
+			       cfg_print_uint32, cfg_doc_terminal,
+			       &cfg_rep_uint32,	 NULL };
 
 /*
  * uint64
@@ -983,10 +975,9 @@ cfg_print_uint64(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_cstr(pctx, buf);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_uint64 = {
-	"64_bit_integer", NULL, cfg_print_uint64, cfg_doc_terminal,
-	&cfg_rep_uint64,  NULL
-};
+cfg_type_t cfg_type_uint64 = { "64_bit_integer", NULL,
+			       cfg_print_uint64, cfg_doc_terminal,
+			       &cfg_rep_uint64,	 NULL };
 
 /*
  * Get the number of digits in a number.
@@ -1398,18 +1389,15 @@ cleanup:
  *
  * A duration can also be a TTL value (number + optional unit).
  */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration = {
-	"duration",	  cfg_parse_duration, cfg_print_duration,
-	cfg_doc_terminal, &cfg_rep_duration,  NULL
-};
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration_or_unlimited = {
-	"duration_or_unlimited",
-	cfg_parse_duration_or_unlimited,
-	cfg_print_duration_or_unlimited,
-	cfg_doc_terminal,
-	&cfg_rep_duration,
-	NULL
-};
+cfg_type_t cfg_type_duration = { "duration",	     cfg_parse_duration,
+				 cfg_print_duration, cfg_doc_terminal,
+				 &cfg_rep_duration,  NULL };
+cfg_type_t cfg_type_duration_or_unlimited = { "duration_or_unlimited",
+					      cfg_parse_duration_or_unlimited,
+					      cfg_print_duration_or_unlimited,
+					      cfg_doc_terminal,
+					      &cfg_rep_duration,
+					      NULL };
 
 /*
  * qstring (quoted string), ustring (unquoted string), astring
@@ -1713,41 +1701,36 @@ cfg_obj_asstring(const cfg_obj_t *obj) {
 }
 
 /* Quoted string only */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_qstring = {
-	"quoted_string",  cfg_parse_qstring, print_qstring,
-	cfg_doc_terminal, &cfg_rep_string,   NULL
-};
+cfg_type_t cfg_type_qstring = { "quoted_string", cfg_parse_qstring,
+				print_qstring,	 cfg_doc_terminal,
+				&cfg_rep_string, NULL };
 
 /* Unquoted string only */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_ustring = {
-	"string",	  parse_ustring,   cfg_print_ustring,
-	cfg_doc_terminal, &cfg_rep_string, NULL
-};
+cfg_type_t cfg_type_ustring = { "string",	   parse_ustring,
+				cfg_print_ustring, cfg_doc_terminal,
+				&cfg_rep_string,   NULL };
 
 /* Any string (quoted or unquoted); printed with quotes */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_astring = {
-	"string",	  cfg_parse_astring, print_qstring,
-	cfg_doc_terminal, &cfg_rep_string,   NULL
-};
+cfg_type_t cfg_type_astring = { "string",	 cfg_parse_astring,
+				print_qstring,	 cfg_doc_terminal,
+				&cfg_rep_string, NULL };
 
 /*
  * Any string (quoted or unquoted); printed with quotes.
  * If CFG_PRINTER_XKEY is set when printing the string will be '?' out.
  */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sstring = {
-	"string",	  cfg_parse_sstring, print_sstring,
-	cfg_doc_terminal, &cfg_rep_string,   NULL
-};
+cfg_type_t cfg_type_sstring = { "string",	 cfg_parse_sstring,
+				print_sstring,	 cfg_doc_terminal,
+				&cfg_rep_string, NULL };
 
 /*
  * Text enclosed in brackets. Used to pass a block of configuration
  * text to dynamic library or external application. Checked for
  * bracket balance, but not otherwise parsed.
  */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_text = {
-	"bracketed_text", parse_btext,	   print_btext,
-	doc_btext,	  &cfg_rep_string, NULL
-};
+cfg_type_t cfg_type_bracketed_text = { "bracketed_text", parse_btext,
+				       print_btext,	 doc_btext,
+				       &cfg_rep_string,	 NULL };
 
 #if defined(HAVE_GEOIP2)
 /*
@@ -1925,14 +1908,12 @@ static cfg_type_t cfg_type_addrmatchelt = { "address_match_element",
 /*%
  * A bracketed address match list
  */
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_aml = {
-	"bracketed_aml",
-	cfg_parse_bracketed_list,
-	cfg_print_bracketed_list,
-	cfg_doc_bracketed_list,
-	&cfg_rep_list,
-	&cfg_type_addrmatchelt
-};
+cfg_type_t cfg_type_bracketed_aml = { "bracketed_aml",
+				      cfg_parse_bracketed_list,
+				      cfg_print_bracketed_list,
+				      cfg_doc_bracketed_list,
+				      &cfg_rep_list,
+				      &cfg_type_addrmatchelt };
 
 /*
  * Optional bracketed text
@@ -1973,14 +1954,12 @@ doc_optional_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "[ { <unspecified-text> } ]");
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_optional_bracketed_text = {
-	"optional_btext",
-	parse_optional_btext,
-	print_optional_btext,
-	doc_optional_btext,
-	NULL,
-	NULL
-};
+cfg_type_t cfg_type_optional_bracketed_text = { "optional_btext",
+						parse_optional_btext,
+						print_optional_btext,
+						doc_optional_btext,
+						NULL,
+						NULL };
 
 /*
  * Booleans
@@ -2057,10 +2036,9 @@ cfg_print_boolean(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_boolean = {
-	"boolean",	  cfg_parse_boolean, cfg_print_boolean,
-	cfg_doc_terminal, &cfg_rep_boolean,  NULL
-};
+cfg_type_t cfg_type_boolean = { "boolean",	   cfg_parse_boolean,
+				cfg_print_boolean, cfg_doc_terminal,
+				&cfg_rep_boolean,  NULL };
 
 /*
  * Lists.
@@ -2944,10 +2922,9 @@ cleanup:
 	return (result);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_token = {
-	"token",	  parse_token,	   cfg_print_ustring,
-	cfg_doc_terminal, &cfg_rep_string, NULL
-};
+cfg_type_t cfg_type_token = { "token",		 parse_token,
+			      cfg_print_ustring, cfg_doc_terminal,
+			      &cfg_rep_string,	 NULL };
 
 /*
  * An unsupported option.  This is just a list of tokens with balanced braces
@@ -2996,10 +2973,9 @@ cleanup:
 	return (result);
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_unsupported = {
-	"unsupported",	  parse_unsupported, cfg_print_spacelist,
-	cfg_doc_terminal, &cfg_rep_list,     NULL
-};
+cfg_type_t cfg_type_unsupported = { "unsupported",	 parse_unsupported,
+				    cfg_print_spacelist, cfg_doc_terminal,
+				    &cfg_rep_list,	 NULL };
 
 /*
  * Try interpreting the current token as a network address.
@@ -3258,30 +3234,25 @@ cfg_doc_netaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 	}
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netaddr = {
-	"netaddr",	 parse_netaddr,	    cfg_print_sockaddr,
-	cfg_doc_netaddr, &cfg_rep_sockaddr, &netaddr_flags
-};
+cfg_type_t cfg_type_netaddr = { "netaddr",	    parse_netaddr,
+				cfg_print_sockaddr, cfg_doc_netaddr,
+				&cfg_rep_sockaddr,  &netaddr_flags };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netaddr4 = {
-	"netaddr4",	 parse_netaddr,	    cfg_print_sockaddr,
-	cfg_doc_netaddr, &cfg_rep_sockaddr, &netaddr4_flags
-};
+cfg_type_t cfg_type_netaddr4 = { "netaddr4",	     parse_netaddr,
+				 cfg_print_sockaddr, cfg_doc_netaddr,
+				 &cfg_rep_sockaddr,  &netaddr4_flags };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netaddr4wild = {
-	"netaddr4wild",	 parse_netaddr,	    cfg_print_sockaddr,
-	cfg_doc_netaddr, &cfg_rep_sockaddr, &netaddr4wild_flags
-};
+cfg_type_t cfg_type_netaddr4wild = { "netaddr4wild",	 parse_netaddr,
+				     cfg_print_sockaddr, cfg_doc_netaddr,
+				     &cfg_rep_sockaddr,	 &netaddr4wild_flags };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netaddr6 = {
-	"netaddr6",	 parse_netaddr,	    cfg_print_sockaddr,
-	cfg_doc_netaddr, &cfg_rep_sockaddr, &netaddr6_flags
-};
+cfg_type_t cfg_type_netaddr6 = { "netaddr6",	     parse_netaddr,
+				 cfg_print_sockaddr, cfg_doc_netaddr,
+				 &cfg_rep_sockaddr,  &netaddr6_flags };
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netaddr6wild = {
-	"netaddr6wild",	 parse_netaddr,	    cfg_print_sockaddr,
-	cfg_doc_netaddr, &cfg_rep_sockaddr, &netaddr6wild_flags
-};
+cfg_type_t cfg_type_netaddr6wild = { "netaddr6wild",	 parse_netaddr,
+				     cfg_print_sockaddr, cfg_doc_netaddr,
+				     &cfg_rep_sockaddr,	 &netaddr6wild_flags };
 
 /* netprefix */
 
@@ -3388,10 +3359,9 @@ cfg_obj_asnetprefix(const cfg_obj_t *obj, isc_netaddr_t *netaddr,
 	*prefixlen = obj->value.netprefix.prefixlen;
 }
 
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_netprefix = {
-	"netprefix",	  cfg_parse_netprefix, print_netprefix,
-	cfg_doc_terminal, &cfg_rep_netprefix,  NULL
-};
+cfg_type_t cfg_type_netprefix = { "netprefix",	      cfg_parse_netprefix,
+				  print_netprefix,    cfg_doc_terminal,
+				  &cfg_rep_netprefix, NULL };
 
 static isc_result_t
 parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
@@ -3447,17 +3417,15 @@ cleanup:
 }
 
 static unsigned int sockaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sockaddr = {
-	"sockaddr",	  cfg_parse_sockaddr, cfg_print_sockaddr,
-	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr_flags
-};
+cfg_type_t cfg_type_sockaddr = { "sockaddr",	     cfg_parse_sockaddr,
+				 cfg_print_sockaddr, cfg_doc_sockaddr,
+				 &cfg_rep_sockaddr,  &sockaddr_flags };
 
 static unsigned int sockaddrdscp_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
 					 CFG_ADDR_DSCPOK;
-LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sockaddrdscp = {
-	"sockaddr",	  cfg_parse_sockaddr, cfg_print_sockaddr,
-	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddrdscp_flags
-};
+cfg_type_t cfg_type_sockaddrdscp = { "sockaddr",	 cfg_parse_sockaddr,
+				     cfg_print_sockaddr, cfg_doc_sockaddr,
+				     &cfg_rep_sockaddr,	 &sockaddrdscp_flags };
 
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type,

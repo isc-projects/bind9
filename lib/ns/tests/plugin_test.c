@@ -24,8 +24,8 @@
 #include <cmocka.h>
 
 #include <isc/attributes.h>
+#include <isc/dir.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>

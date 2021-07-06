@@ -19,7 +19,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/strerr.h>
@@ -42,7 +41,7 @@
 #define PK11_NO_LOGERR 1
 #endif /* ifndef PK11_NO_LOGERR */
 
-LIBISC_EXTERNAL_DATA bool pk11_verbose_init = false;
+bool pk11_verbose_init = false;
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mem_t *pk11_mctx = NULL;

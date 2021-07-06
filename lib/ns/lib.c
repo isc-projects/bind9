@@ -28,7 +28,7 @@
  *** Globals
  ***/
 
-LIBNS_EXTERNAL_DATA unsigned int ns_pps = 0U;
+unsigned int ns_pps = 0U;
 
 /***
  *** Private

@@ -67,7 +67,6 @@
 #include <inttypes.h>
 
 #include <isc/lang.h>
-#include <isc/platform.h>
 #include <isc/types.h>
 
 #include <arpa/inet.h> /* Contractual promise. */

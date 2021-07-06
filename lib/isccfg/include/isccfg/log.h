@@ -17,8 +17,8 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-LIBISCCFG_EXTERNAL_DATA extern isc_logcategory_t cfg_categories[];
-LIBISCCFG_EXTERNAL_DATA extern isc_logmodule_t	 cfg_modules[];
+extern isc_logcategory_t cfg_categories[];
+extern isc_logmodule_t	 cfg_modules[];
 
 #define CFG_LOGCATEGORY_CONFIG (&cfg_categories[0])
 

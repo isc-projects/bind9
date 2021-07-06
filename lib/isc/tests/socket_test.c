@@ -26,7 +26,6 @@
 #include <cmocka.h>
 
 #include <isc/atomic.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/socket.h>
 #include <isc/task.h>

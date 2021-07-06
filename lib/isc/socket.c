@@ -46,7 +46,6 @@
 #include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/region.h>

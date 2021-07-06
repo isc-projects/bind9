@@ -27,7 +27,7 @@
 
 ISC_LANG_BEGINDECLS
 
-LIBDNS_EXTERNAL_DATA extern isc_stats_t *dns_dnssec_stats;
+extern isc_stats_t *dns_dnssec_stats;
 
 /*%< Maximum number of keys supported in a zone. */
 #define DNS_MAXZONEKEYS 32

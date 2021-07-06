@@ -24,6 +24,7 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>

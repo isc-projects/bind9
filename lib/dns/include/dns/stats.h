@@ -456,7 +456,7 @@ enum {
 /*%<
  * (Obsoleted)
  */
-LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
+extern const char *dns_statscounter_names[];
 
 /*%
  * Attributes for statistics counters of RRset and Rdatatype types.
