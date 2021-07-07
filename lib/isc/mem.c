@@ -108,6 +108,13 @@ struct stats {
 	atomic_size_t totalgets;
 };
 
+typedef struct water {
+	isc_mem_water_t water;
+	void *water_arg;
+	size_t hi_water;
+	size_t lo_water;
+} water_t;
+
 #define MEM_MAGIC	 ISC_MAGIC('M', 'e', 'm', 'C')
 #define VALID_CONTEXT(c) ISC_MAGIC_VALID(c, MEM_MAGIC)
 
@@ -138,12 +145,9 @@ struct isc_mem {
 	atomic_size_t maxinuse;
 	atomic_size_t malloced;
 	atomic_size_t maxmalloced;
-	atomic_size_t hi_water;
-	atomic_size_t lo_water;
 	atomic_bool hi_called;
 	atomic_bool is_overmem;
-	isc_mem_water_t water;
-	void *water_arg;
+	atomic_uintptr_t water;
 	ISC_LIST(isc_mempool_t) pools;
 	unsigned int poolcnt;
 
@@ -439,8 +443,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	atomic_init(&ctx->maxinuse, 0);
 	atomic_init(&ctx->malloced, sizeof(*ctx));
 	atomic_init(&ctx->maxmalloced, sizeof(*ctx));
-	atomic_init(&ctx->hi_water, 0);
-	atomic_init(&ctx->lo_water, 0);
+	atomic_init(&ctx->water, (uintptr_t)NULL);
 	atomic_init(&ctx->hi_called, false);
 	atomic_init(&ctx->is_overmem, false);
 
@@ -479,11 +482,18 @@ static void
 destroy(isc_mem_t *ctx) {
 	unsigned int i;
 	size_t malloced;
+	water_t *water;
 
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += isc_mem_inuse(ctx);
 	UNLOCK(&contextslock);
+
+	water = (water_t *)atomic_exchange(&ctx->water, (uintptr_t)NULL);
+	if (water != NULL) {
+		sdallocx(water, sizeof(*water), 0);
+		decrement_malloced(ctx, sizeof(water_t));
+	}
 
 	ctx->magic = 0;
 
@@ -637,28 +647,33 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	*ctxp = NULL;
 }
 
-#define CALL_HI_WATER(ctx)                                     \
-	if ((ctx->water != NULL) && hi_water(ctx)) {           \
-		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER); \
+#define CALL_HI_WATER(ctx)                                                    \
+	{                                                                     \
+		water_t *water = (water_t *)atomic_load_relaxed(&ctx->water); \
+		if (water != NULL && hi_water(ctx, water)) {                  \
+			(water->water)(water->water_arg, ISC_MEM_HIWATER);    \
+		}                                                             \
 	}
 
-#define CALL_LO_WATER(ctx)                                     \
-	if ((ctx->water != NULL) && lo_water(ctx)) {           \
-		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER); \
+#define CALL_LO_WATER(ctx)                                                    \
+	{                                                                     \
+		water_t *water = (water_t *)atomic_load_relaxed(&ctx->water); \
+		if ((water != NULL) && lo_water(ctx, water)) {                \
+			(water->water)(water->water_arg, ISC_MEM_LOWATER);    \
+		}                                                             \
 	}
 
 static inline bool
-hi_water(isc_mem_t *ctx) {
+hi_water(isc_mem_t *ctx, water_t *water) {
 	size_t inuse;
 	size_t maxinuse;
-	size_t hi_water = atomic_load_relaxed(&ctx->hi_water);
 
-	if (hi_water == 0) {
+	if (water->hi_water == 0) {
 		return (false);
 	}
 
 	inuse = atomic_load_acquire(&ctx->inuse);
-	if (inuse <= hi_water) {
+	if (inuse <= water->hi_water) {
 		return (false);
 	}
 
@@ -684,16 +699,15 @@ hi_water(isc_mem_t *ctx) {
 }
 
 static inline bool
-lo_water(isc_mem_t *ctx) {
+lo_water(isc_mem_t *ctx, water_t *water) {
 	size_t inuse;
-	size_t lo_water = atomic_load_relaxed(&ctx->lo_water);
 
-	if (lo_water == 0) {
+	if (water->lo_water == 0) {
 		return (false);
 	}
 
 	inuse = atomic_load_acquire(&ctx->inuse);
-	if (inuse >= lo_water) {
+	if (inuse >= water->lo_water) {
 		return (false);
 	}
 
@@ -702,7 +716,7 @@ lo_water(isc_mem_t *ctx) {
 	}
 
 	/* We are no longer overmem */
-	atomic_store(&ctx->is_overmem, false);
+	atomic_store_release(&ctx->is_overmem, false);
 
 	return (true);
 }
@@ -710,7 +724,6 @@ lo_water(isc_mem_t *ctx) {
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	void *ptr = NULL;
-	bool call_water = false;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
@@ -721,11 +734,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
 
-	call_water = hi_water(ctx);
-
-	if (call_water && (ctx->water != NULL)) {
-		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
-	}
+	CALL_HI_WATER(ctx);
 
 	return (ptr);
 }
@@ -858,7 +867,6 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 void *
 isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 	void *ptr = NULL;
-	bool call_water = false;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
@@ -872,11 +880,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
 
-	call_water = hi_water(ctx);
-
-	if (call_water && (ctx->water != NULL)) {
-		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
-	}
+	CALL_HI_WATER(ctx);
 
 	return (ptr);
 }
@@ -1037,40 +1041,40 @@ isc_mem_maxmalloced(isc_mem_t *ctx) {
 void
 isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		 size_t hiwater, size_t lowater) {
-	bool callwater = false;
-	isc_mem_water_t oldwater;
-	void *oldwater_arg = NULL;
+	water_t *oldwater;
+	water_t *newwater = NULL;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(hiwater >= lowater);
 
-	MCTXLOCK(ctx);
-	oldwater = ctx->water;
-	oldwater_arg = ctx->water_arg;
-	if (water == NULL) {
-		callwater = atomic_load_acquire(&ctx->hi_called);
-		ctx->water = NULL;
-		ctx->water_arg = NULL;
-		atomic_store_release(&ctx->hi_water, 0);
-		atomic_store_release(&ctx->lo_water, 0);
-	} else {
-		if (atomic_load_acquire(&ctx->hi_called) &&
-		    (ctx->water != water || ctx->water_arg != water_arg ||
-		     atomic_load_acquire(&ctx->inuse) < lowater ||
-		     lowater == 0U))
-		{
-			callwater = true;
-		}
-		ctx->water = water;
-		ctx->water_arg = water_arg;
-		atomic_store_release(&ctx->hi_water, hiwater);
-		atomic_store_release(&ctx->lo_water, lowater);
-	}
-	MCTXUNLOCK(ctx);
+	if (water != NULL) {
+		newwater = mallocx(sizeof(*newwater), 0);
+		increment_malloced(ctx, sizeof(*newwater));
 
-	if (callwater && oldwater != NULL) {
-		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
+		*newwater = (water_t){
+			.water = water,
+			.water_arg = water_arg,
+			.hi_water = hiwater,
+			.lo_water = lowater,
+		};
 	}
+	oldwater = (water_t *)atomic_exchange(&ctx->water, (uintptr_t)newwater);
+
+	if (oldwater == NULL) {
+		return;
+	}
+
+	INSIST(oldwater->water != NULL);
+
+	if (atomic_load_acquire(&ctx->hi_called) &&
+	    (oldwater->water != water || oldwater->water_arg != water_arg ||
+	     atomic_load_acquire(&ctx->inuse) < lowater || lowater == 0U))
+	{
+		(oldwater->water)(oldwater->water_arg, ISC_MEM_LOWATER);
+	}
+
+	decrement_malloced(ctx, sizeof(*oldwater));
+	sdallocx(oldwater, sizeof(*oldwater), 0);
 }
 
 bool
@@ -1426,6 +1430,7 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	int xmlrc;
+	water_t *water;
 
 	MCTXLOCK(ctx);
 
@@ -1489,15 +1494,16 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
+	water = (water_t *)atomic_load_relaxed(&ctx->water);
 	TRY0(xmlTextWriterWriteFormatString(
 		writer, "%" PRIu64 "",
-		(uint64_t)atomic_load_relaxed(&ctx->hi_water)));
+		(water != NULL) ? (uint64_t)water->hi_water : 0));
 	TRY0(xmlTextWriterEndElement(writer)); /* hiwater */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "lowater"));
 	TRY0(xmlTextWriterWriteFormatString(
 		writer, "%" PRIu64 "",
-		(uint64_t)atomic_load_relaxed(&ctx->lo_water)));
+		(water != NULL) ? (uint64_t)water->lo_water : 0));
 	TRY0(xmlTextWriterEndElement(writer)); /* lowater */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* context */
@@ -1576,6 +1582,7 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	json_object *ctxobj, *obj;
 	char buf[1024];
+	water_t *water;
 
 	MCTXLOCK(ctx);
 
@@ -1635,11 +1642,12 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
-	obj = json_object_new_int64(atomic_load_relaxed(&ctx->hi_water));
+	water = (water_t *)atomic_load_relaxed(&ctx->water);
+	obj = json_object_new_int64((water != NULL) ? water->hi_water : 0);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "hiwater", obj);
 
-	obj = json_object_new_int64(atomic_load_relaxed(&ctx->lo_water));
+	obj = json_object_new_int64((water != NULL) ? water->lo_water : 0);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "lowater", obj);
 
