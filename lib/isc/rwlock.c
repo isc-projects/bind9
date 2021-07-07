@@ -112,9 +112,12 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 void
 isc_rwlock_downgrade(isc_rwlock_t *rwl) {
+	isc_result_t result;
 	atomic_store_release(&rwl->downgrade, true);
-	isc_rwlock_unlock(rwl, isc_rwlocktype_write);
-	isc_rwlock_lock(rwl, isc_rwlocktype_read);
+	result = isc_rwlock_unlock(rwl, isc_rwlocktype_write);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	result = isc_rwlock_lock(rwl, isc_rwlocktype_read);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	atomic_store_release(&rwl->downgrade, false);
 }
 
