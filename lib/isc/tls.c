@@ -10,7 +10,9 @@
  */
 
 #include <inttypes.h>
+#if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
+#endif /* HAVE_LIBNGHTTP2 */
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
@@ -388,6 +390,7 @@ isc_tls_free(isc_tls_t **tlsp) {
 	*tlsp = NULL;
 }
 
+#if HAVE_LIBNGHTTP2
 #ifndef OPENSSL_NO_NEXTPROTONEG
 /*
  * NPN TLS extension client callback.
@@ -480,3 +483,4 @@ isc_tls_get_http2_alpn(isc_tls_t *tls, const unsigned char **alpn,
 	}
 #endif
 }
+#endif /* HAVE_LIBNGHTTP2 */

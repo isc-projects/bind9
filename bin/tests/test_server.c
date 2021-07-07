@@ -282,6 +282,7 @@ run(void) {
 					     tls_ctx, &sock);
 		break;
 	}
+#if HAVE_LIBNGHTTP2
 	case HTTPS:
 	case HTTP: {
 		bool is_https = protocol == HTTPS;
@@ -295,6 +296,7 @@ run(void) {
 						      read_cb, NULL, 0);
 		}
 	} break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

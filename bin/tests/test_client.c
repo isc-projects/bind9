@@ -392,6 +392,7 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nm_send(handle, &message, send_cb, NULL);
 }
 
+#if HAVE_LIBNGHTTP2
 static void
 sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 		size_t outbuf_len, const char *append) {
@@ -418,6 +419,7 @@ sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 		 saddr, sa_family == AF_INET ? "" : "]", sa_port,
 		 append ? append : "");
 }
+#endif
 
 static void
 run(void) {
@@ -437,6 +439,7 @@ run(void) {
 				     connect_cb, NULL, timeout, 0, tls_ctx);
 		break;
 	}
+#if HAVE_LIBNGHTTP2
 	case HTTP_GET:
 	case HTTPS_GET:
 	case HTTPS_POST:
@@ -455,6 +458,7 @@ run(void) {
 				   req_url, is_post, connect_cb, NULL, tls_ctx,
 				   timeout, 0);
 	} break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

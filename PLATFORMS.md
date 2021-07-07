@@ -31,10 +31,13 @@ some of the older systems listed below, you will have to install an updated
 updated packages. The other option is to build and install `libuv` from
 source.
 
-Certain optional BIND features have additional library dependencies.
-These include `libxml2` and `libjson-c` for statistics, `libmaxminddb` for
-geolocation, `libfstrm` and `libprotobuf-c` for DNSTAP, and `libidn2` for
-internationalized domain name conversion.
+Certain optional BIND features have additional library dependencies:
+
+* `libfstrm` and `libprotobuf-c` for DNSTAP
+* `libidn2` for internationalized domain name conversion.
+* `libmaxminddb` for geolocation
+* `libnghttp2` for DNS over HTTPS
+* `libxml2` and `libjson-c` for statistics channel
 
 ISC regularly tests BIND on many operating systems and architectures, but
 lacks the resources to test all of them. Consequently, ISC is only able to

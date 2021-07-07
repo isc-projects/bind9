@@ -14,6 +14,7 @@
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -73,6 +74,7 @@ tables(void **state) {
 		assert_non_null(str);
 		assert_string_not_equal(str, "(result code text not "
 					     "available)");
+		fprintf(stderr, "%u < %u\n", result, (unsigned)ISC_R_NRESULTS);
 	}
 
 	str = isc_result_toid(result);

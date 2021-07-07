@@ -1523,17 +1523,6 @@ isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 
 void
-isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
-		 isc_nm_cb_t cb, void *cbarg);
-
-void
-isc__nm_tls_cancelread(isc_nmhandle_t *handle);
-
-/*%<
- * Back-end implementation of isc_nm_send() for TLSDNS handles.
- */
-
-void
 isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock);
 
 void
@@ -1580,6 +1569,18 @@ void
 isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
 /*%<
  * Stop reading on a connected TLSDNS handle.
+ */
+
+#if HAVE_LIBNGHTTP2
+void
+isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_tls_cancelread(isc_nmhandle_t *handle);
+
+/*%<
+ * Back-end implementation of isc_nm_send() for TLSDNS handles.
  */
 
 void
@@ -1679,6 +1680,8 @@ isc__nm_httpsession_attach(isc_nm_http_session_t *source,
 			   isc_nm_http_session_t **targetp);
 void
 isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp);
+
+#endif
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)

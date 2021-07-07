@@ -2796,6 +2796,7 @@ start_tcp(dig_query_t *query) {
 					     &query->sockaddr, tcp_connected,
 					     query, local_timeout, 0,
 					     query->tlsctx);
+#if HAVE_LIBNGHTTP2
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
 			snprintf(uri, sizeof(uri), "https://%s:%u%s",
@@ -2814,6 +2815,7 @@ start_tcp(dig_query_t *query) {
 					   uri, !query->lookup->https_get,
 					   tcp_connected, query, query->tlsctx,
 					   local_timeout, 0);
+#endif
 		} else {
 			isc_nm_tcpdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,

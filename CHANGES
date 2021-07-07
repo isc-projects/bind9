@@ -1,3 +1,7 @@
+5673.	[func]		Add "--disable-doh" configuration option to allow
+			BIND 9 to compile without libnghttp2 library.
+			[GL #2478]
+
 5672.	[bug]		Authentication of rndc messages could fail if a
 			"controls" statement was configured with multiple
 			key algorithms in the same listener. [GL #2756]

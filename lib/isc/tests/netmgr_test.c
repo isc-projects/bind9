@@ -1145,14 +1145,18 @@ tcp_connect(isc_nm_t *nm) {
 			  connect_connect_cb, NULL, T_CONNECT, 0);
 }
 
+#if HAVE_LIBNGHTTP2
 static void
 tls_connect(isc_nm_t *nm);
+#endif
 
 static stream_connect_function
 get_stream_connect_function(void) {
+#if HAVE_LIBNGHTTP2
 	if (stream_use_TLS) {
 		return (tls_connect);
 	}
+#endif
 	return (tcp_connect);
 }
 
@@ -1161,16 +1165,19 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 	      size_t extrahandlesize, int backlog, isc_quota_t *quota,
 	      isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
+
+#if HAVE_LIBNGHTTP2
 	if (stream_use_TLS) {
 		result = isc_nm_listentls(listen_nm, &tcp_listen_addr,
 					  accept_cb, accept_cbarg,
 					  extrahandlesize, backlog, quota,
 					  tcp_listen_tlsctx, sockp);
-	} else {
-		result = isc_nm_listentcp(
-			listen_nm, &tcp_listen_addr, accept_cb, accept_cbarg,
-			extrahandlesize, backlog, quota, sockp);
+		return (result);
 	}
+#endif
+	result = isc_nm_listentcp(listen_nm, &tcp_listen_addr, accept_cb,
+				  accept_cbarg, extrahandlesize, backlog, quota,
+				  sockp);
 
 	return (result);
 }
@@ -1178,15 +1185,16 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 static void
 stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 	       size_t extrahandlesize) {
+#if HAVE_LIBNGHTTP2
 	if (stream_use_TLS) {
 		isc_nm_tlsconnect(connect_nm, &tcp_connect_addr,
 				  &tcp_listen_addr, cb, cbarg,
 				  tcp_connect_tlsctx, timeout, extrahandlesize);
-	} else {
-		isc_nm_tcpconnect(connect_nm, &tcp_connect_addr,
-				  &tcp_listen_addr, cb, cbarg, timeout,
-				  extrahandlesize);
+		return;
 	}
+#endif
+	isc_nm_tcpconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr, cb,
+			  cbarg, timeout, extrahandlesize);
 }
 
 static void
@@ -2121,6 +2129,7 @@ tcpdns_half_recv_half_send(void **state __attribute__((unused))) {
 
 /* TLS */
 
+#if HAVE_LIBNGHTTP2
 static void
 tls_connect(isc_nm_t *nm) {
 	isc_nm_tlsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
@@ -2301,6 +2310,7 @@ tls_half_recv_half_send_quota_sendback(void **state) {
 	atomic_store(&check_listener_quota, true);
 	stream_half_recv_half_send(state);
 }
+#endif
 
 /* TLSDNS */
 
@@ -2833,6 +2843,7 @@ main(void) {
 		cmocka_unit_test_setup_teardown(tcpdns_half_recv_half_send,
 						nm_setup, nm_teardown),
 
+#if HAVE_LIBNGHTTP2
 		/* TLS */
 		cmocka_unit_test_setup_teardown(tls_noop, nm_setup,
 						nm_teardown),
@@ -2886,6 +2897,7 @@ main(void) {
 		cmocka_unit_test_setup_teardown(
 			tls_half_recv_half_send_quota_sendback, nm_setup,
 			nm_teardown),
+#endif
 
 		/* TLSDNS */
 		cmocka_unit_test_setup_teardown(tlsdns_recv_one, nm_setup,

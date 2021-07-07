@@ -540,6 +540,7 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 static isc_result_t
 ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 			size_t neps) {
+#if HAVE_LIBNGHTTP2
 	isc_result_t result;
 	isc_nmsocket_t *sock = NULL;
 
@@ -581,6 +582,13 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	}
 
 	return (result);
+#else
+	UNUSED(ifp);
+	UNUSED(sslctx);
+	UNUSED(eps);
+	UNUSED(neps);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }
 
 static isc_result_t

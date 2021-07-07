@@ -8626,6 +8626,7 @@ load_configuration(const char *filename, named_server_t *server,
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
+#if HAVE_LIBNGHTTP2
 	obj = NULL;
 	result = named_config_get(maps, "http-port", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -8635,6 +8636,7 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "https-port", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	named_g_httpsport = (in_port_t)cfg_obj_asuint32(obj);
+#endif
 
 	/*
 	 * If bind.keys exists, load it.  If "dnssec-validation auto"

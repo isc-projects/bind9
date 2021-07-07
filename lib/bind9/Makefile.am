@@ -29,3 +29,7 @@ libbind9_la_LIBADD =		\
 libbind9_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
 	-release "$(PACKAGE_VERSION)"
+
+if HAVE_DNSTAP
+libbind9_la_CPPFLAGS += $(DNSTAP_CFLAGS)
+endif

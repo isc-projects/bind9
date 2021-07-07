@@ -954,12 +954,6 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tcpdnsread);
 		NETIEVENT_CASE(tcpdnsstop);
 
-		NETIEVENT_CASE(tlsstartread);
-		NETIEVENT_CASE(tlssend);
-		NETIEVENT_CASE(tlsclose);
-		NETIEVENT_CASE(tlsdobio);
-		NETIEVENT_CASE(tlscancel);
-
 		NETIEVENT_CASE(tlsdnscycle);
 		NETIEVENT_CASE(tlsdnsaccept);
 		NETIEVENT_CASE(tlsdnslisten);
@@ -971,9 +965,17 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tlsdnsstop);
 		NETIEVENT_CASE(tlsdnsshutdown);
 
+#if HAVE_LIBNGHTTP2
+		NETIEVENT_CASE(tlsstartread);
+		NETIEVENT_CASE(tlssend);
+		NETIEVENT_CASE(tlsclose);
+		NETIEVENT_CASE(tlsdobio);
+		NETIEVENT_CASE(tlscancel);
+
 		NETIEVENT_CASE(httpstop);
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
+#endif
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
@@ -1281,8 +1283,10 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
 	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
+#if HAVE_LIBNGHTTP2
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
+#endif
 #ifdef NETMGR_TRACE
 	LOCK(&sock->mgr->lock);
 	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
@@ -1395,15 +1399,17 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tcpdnssocket:
 			isc__nm_tcpdns_close(sock);
 			return;
-		case isc_nm_tlssocket:
-			isc__nm_tls_close(sock);
-			break;
 		case isc_nm_tlsdnssocket:
 			isc__nm_tlsdns_close(sock);
 			return;
+#if HAVE_LIBNGHTTP2
+		case isc_nm_tlssocket:
+			isc__nm_tls_close(sock);
+			break;
 		case isc_nm_httpsocket:
 			isc__nm_http_close(sock);
 			return;
+#endif
 		default:
 			break;
 		}
@@ -1551,7 +1557,9 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 
 	atomic_init(&sock->active_child_connections, 0);
 
+#if HAVE_LIBNGHTTP2
 	isc__nm_http_initsocket(sock);
+#endif
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -1699,10 +1707,12 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		break;
 	}
 
+#if HAVE_LIBNGHTTP2
 	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
 		isc__nm_httpsession_attach(sock->h2.session,
 					   &handle->httpsession);
 	}
+#endif
 
 	return (handle);
 }
@@ -1839,9 +1849,11 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 		handle->doreset(handle->opaque);
 	}
 
+#if HAVE_LIBNGHTTP2
 	if (sock->type == isc_nm_httpsocket && handle->httpsession != NULL) {
 		isc__nm_httpsession_detach(&handle->httpsession);
 	}
+#endif
 
 	nmhandle_deactivate(sock, handle);
 
@@ -2335,12 +2347,14 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	switch (handle->sock->type) {
+#if HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
 		isc__nm_http_cleartimeout(handle);
 		return;
 	case isc_nm_tlssocket:
 		isc__nm_tls_cleartimeout(handle);
 		return;
+#endif
 	default:
 		handle->sock->read_timeout = 0;
 
@@ -2356,12 +2370,14 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	switch (handle->sock->type) {
+#if HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
 		isc__nm_http_settimeout(handle, timeout);
 		return;
 	case isc_nm_tlssocket:
 		isc__nm_tls_settimeout(handle, timeout);
 		return;
+#endif
 	default:
 		handle->sock->read_timeout = timeout;
 		isc__nmsocket_timer_restart(handle->sock);
@@ -2472,15 +2488,17 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_send(handle, region, cb, cbarg);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_send(handle, region, cb, cbarg);
-		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_send(handle, region, cb, cbarg);
+		break;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nm_tls_send(handle, region, cb, cbarg);
 		break;
 	case isc_nm_httpsocket:
 		isc__nm_http_send(handle, region, cb, cbarg);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2508,15 +2526,17 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	case isc_nm_tcpdnssocket:
 		isc__nm_tcpdns_read(handle, cb, cbarg);
 		break;
-	case isc_nm_tlssocket:
-		isc__nm_tls_read(handle, cb, cbarg);
-		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_read(handle, cb, cbarg);
+		break;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nm_tls_read(handle, cb, cbarg);
 		break;
 	case isc_nm_httpsocket:
 		isc__nm_http_read(handle, cb, cbarg);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2540,9 +2560,11 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_cancelread(handle);
 		break;
+#if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 		isc__nm_tls_cancelread(handle);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2559,9 +2581,11 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_pauseread(handle);
 		break;
+#if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 		isc__nm_tls_pauseread(handle);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2578,9 +2602,11 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_resumeread(handle);
 		break;
+#if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 		isc__nm_tls_resumeread(handle);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2601,15 +2627,17 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	case isc_nm_tcplistener:
 		isc__nm_tcp_stoplistening(sock);
 		break;
-	case isc_nm_tlslistener:
-		isc__nm_tls_stoplistening(sock);
-		break;
 	case isc_nm_tlsdnslistener:
 		isc__nm_tlsdns_stoplistening(sock);
+		break;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlslistener:
+		isc__nm_tls_stoplistening(sock);
 		break;
 	case isc_nm_httplistener:
 		isc__nm_http_stoplistening(sock);
 		break;
+#endif
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
