@@ -2043,6 +2043,14 @@ read_one_rr(dns_journal_t *j) {
 	ttl = isc_buffer_getuint32(&j->it.source);
 	rdlen = isc_buffer_getuint16(&j->it.source);
 
+	if (rdlen > DNS_RDATA_MAXLENGTH) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal corrupt: impossible rdlen "
+			      "(%u bytes)",
+			      j->filename, rdlen);
+		FAIL(ISC_R_FAILURE);
+	}
+
 	/*
 	 * Parse the rdata.
 	 */
