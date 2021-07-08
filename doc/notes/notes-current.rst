@@ -100,6 +100,9 @@ Bug Fixes
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
 
+- If ``nsupdate`` sends an SOA request and receives a REFUSED response,
+  it now fails over to the next available server. :gl:`#2758`
+
 - A bug that caused the NSEC3 salt to be changed on every restart for
   zones using KASP has been fixed. :gl:`#2725`
 
