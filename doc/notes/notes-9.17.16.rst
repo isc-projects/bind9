@@ -22,11 +22,6 @@ Security Fixes
   Research Center for bringing this vulnerability to our attention.
   :gl:`#2787`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
