@@ -28,11 +28,6 @@ Security Fixes
   the opcode of those responses and rejecting the messages if they don't
   match the expected value. :gl:`#2762`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
