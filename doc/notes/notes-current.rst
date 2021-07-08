@@ -14,11 +14,13 @@ Notes for BIND 9.17.16
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- Sending non-zero opcode via DoT or DoH channels would trigger an assertion
-  failure in ``named``. This has been fixed.
+- Sending DNS messages with the OPCODE field set to anything other than
+  QUERY (0) via DNS-over-TLS (DoT) or DNS-over-HTTPS (DoH) channels
+  triggered an assertion failure in ``named``. This has been fixed.
 
-  ISC would like to thank Ville Heikkila of Synopsys Cybersecurity Research
-  Center for responsibly disclosing the vulnerability to us. :gl:`#2787`
+  ISC would like to thank Ville Heikkila of Synopsys Cybersecurity
+  Research Center for bringing this vulnerability to our attention.
+  :gl:`#2787`
 
 - Named failed to check the opcode of responses when performing refresh,
   stub updates, and UPDATE forwarding.  This could lead to an assertion
@@ -34,9 +36,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Automatic KSK rollover: A new configuration option ``parental-agents`` is
-  added to add a list of servers to a zone that can be used for checking DS
-  presence. :gl:`#1126`
+- Using a new configuration option, ``parental-agents``, each zone can
+  now be associated with a list of servers that can be used to check the
+  DS RRset in the parent zone. This enables automatic KSK rollovers.
+  :gl:`#1126`
 
 - It is now possible to set a hard quota on the number of concurrent DoH
   connections, and the number of active HTTP/2 streams per connection,
@@ -49,16 +52,17 @@ Removed Features
 ~~~~~~~~~~~~~~~~
 
 - Support for compiling and running BIND 9 natively on Windows has been
-  completely removed.  The last release branch that has working Windows
-  support is BIND 9.16. :gl:`#2690`
+  completely removed. The last stable release branch that has working
+  Windows support is BIND 9.16. :gl:`#2690`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- IP fragmentation on outgoing UDP sockets has been disabled.  Errors from
-  sending DNS messages larger than the specified path MTU are properly handled;
-  ``named`` now sends back empty DNS messages with the TC (TrunCated) bit set,
-  forcing the DNS client to fall back to TCP.  :gl:`#2790`
+- IP fragmentation has been disabled for outgoing UDP sockets. Errors
+  triggered by sending DNS messages larger than the specified path MTU
+  are properly handled by sending empty DNS replies with the ``TC``
+  (TrunCated) bit set, which forces DNS clients to fall back to TCP.
+  :gl:`#2790`
 
 - DNS over HTTPS support can be disabled at the compile time via the new
   configuration option ``--disable-doh``.  This allows BIND 9 to be
@@ -86,23 +90,25 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Fixed a bug that caused the NSEC salt to be changed for KASP zones on
-  every startup. :gl:`#2725`
+- A bug that caused the NSEC3 salt to be changed on every restart for
+  zones using KASP has been fixed. :gl:`#2725`
 
 - Signed, insecure delegation responses prepared by ``named`` either
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
 
-- Checking of ``dnssec-policy`` was broken. The checks failed to account for
-  ``dnssec-policy`` inheritance. :gl:`#2780`
+- The configuration-checking code failed to account for the inheritance
+  rules of the ``dnssec-policy`` option. This has been fixed.
+  :gl:`#2780`
 
-- A deadlock at startup was introduced when fixing :gl:`#1875` because when
-  locking key files for reading and writing, "in-view" logic was not taken into
-  account. This has been fixed. :gl:`#2783`
+- The fix for :gl:`#1875` inadvertently introduced a deadlock: when
+  locking key files for reading and writing, the ``in-view`` logic was
+  not considered. This has been fixed. :gl:`#2783`
 
-- Fix a race condition where two threads are competing for the same set of key
-  file locks, that could lead to a deadlock. This has been fixed. :gl:`#2786`
+- A race condition could occur where two threads were competing for the
+  same set of key file locks, leading to a deadlock. This has been
+  fixed. :gl:`#2786`
 
 - Testing revealed that setting the thread affinity on both the netmgr
   and netthread threads led to inconsistent recursive performance, as
