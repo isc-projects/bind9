@@ -90,13 +90,13 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- A bug that caused the NSEC3 salt to be changed on every restart for
-  zones using KASP has been fixed. :gl:`#2725`
-
 - Signed, insecure delegation responses prepared by ``named`` either
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
+
+- A bug that caused the NSEC3 salt to be changed on every restart for
+  zones using KASP has been fixed. :gl:`#2725`
 
 - The configuration-checking code failed to account for the inheritance
   rules of the ``dnssec-policy`` option. This has been fixed.
