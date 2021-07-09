@@ -1,47 +1,51 @@
-5671.	[bug]		Fix a race condition where two threads are competing for
-			the same set of key file locks, that could lead to a
-			deadlock. This has been fixed. [GL #2786]
+5671.	[bug]		A race condition could occur where two threads were
+			competing for the same set of key file locks, leading to
+			a deadlock. This has been fixed. [GL #2786]
 
-5670.	[bug]		Handle place holder KEYDATA records. [GL #2769]
+5670.	[bug]		create_keydata() created an invalid placeholder keydata
+			record upon a refresh failure, which prevented the
+			database of managed keys from subsequently being read
+			back. This has been fixed. [GL #2686]
 
-5669.	[func]		Add 'checkds' feature. Zones with "dnssec-policy" and
-			"parental-agents" configured will check for DS presence
-			and are able to perform automatic KSK rollover.
-			[GL #1126]
+5669.	[func]		KASP support was extended with the "check DS" feature.
+			Zones with "dnssec-policy" and "parental-agents"
+			configured now check for DS presence and can perform
+			automatic KSK rollovers. [GL #1126]
 
-5668.	[bug]		When a zone fails to load on startup, the setnsec3param
-			task is rescheduled. This caused a hang on shutdown, and
-			is now fixed. [GL #2791]
+5668.	[bug]		Rescheduling a setnsec3param() task when a zone failed
+			to load on startup caused a hang on shutdown. This has
+			been fixed. [GL #2791]
 
 5667.	[bug]		The configuration-checking code failed to account for
 			the inheritance rules of the "dnssec-policy" option.
-			[GL #2780]
+			This has been fixed. [GL #2780]
 
-5666.	[func]		Tweak the safe "edns-udp-size" to match the probing
-			value from BIND 9.16 for better compatibility.
+5666.	[doc]		The safe "edns-udp-size" value was tweaked to match the
+			probing value from BIND 9.16 for better compatibility.
 			[GL #2183]
 
-5665.	[bug]		'nsupdate' did not retry with another server if
-			it received a REFUSED response. [GL #2758]
+5665.	[bug]		If nsupdate sends an SOA request and receives a REFUSED
+			response, it now fails over to the next available
+			server. [GL #2758]
 
-5664.	[func]		Handle a UDP sending error on UDP messages larger
-			than the path MTU; in such a case an empty response is
-			sent back with the TC (TrunCated) bit set. Re-enable
-			setting the DF (Don't Fragment) flag on outgoing
-			UDP sockets. [GL #2790]
+5664.	[func]		For UDP messages larger than the path MTU, named now
+			sends an empty response with the TC (TrunCated) bit set.
+			In addition, setting the DF (Don't Fragment) flag on
+			outgoing UDP sockets was re-enabled. [GL #2790]
 
-5663.	[bug]		Properly handle non-zero OPCODEs when receiving the
-			queries over DoT and DoH channels. [GL #2787]
+5663.	[bug]		Non-zero OPCODEs are now properly handled when receiving
+			queries over DNS-over-TLS (DoT) and DNS-over-HTTPS (DoH)
+			channels. [GL #2787]
 
 5662.	[bug]		Views with recursion disabled are now configured with a
-			default cache size of 2 MB, unless "max-cache-size" is
+			default cache size of 2 MB unless "max-cache-size" is
 			explicitly set. This prevents cache RBT hash tables from
 			being needlessly preallocated for such views. [GL #2777]
 
-5661.	[bug]		A deadlock was introduced when fixing [GL #1875] because
-			when locking the key file mutex for each zone structure
-			that is in a different view, "in-view" logic was not
-			taken into account. This has been fixed. [GL #2783]
+5661.	[bug]		Change 5644 inadvertently introduced a deadlock: when
+			locking the key file mutex for each zone structure in a
+			different view, the "in-view" logic was not considered.
+			This has been fixed. [GL #2783]
 
 5660.	[bug]		The configuration-checking code failed to account for
 			the inheritance rules of the "key-directory" option.
@@ -56,17 +60,17 @@
 			This change was included in BIND 9.17.15.
 
 5658.	[bug]		Increasing "max-cache-size" for a running named instance
-			(using "rndc reconfig") was not causing the hash tables
+			(using "rndc reconfig") did not cause the hash tables
 			used by cache databases to be grown accordingly. This
 			has been fixed. [GL #2770]
 
-5657.	[cleanup]	Removed support for builtin atomics in old versions
-			of clang (<< 3.6.0) and gcc (<< 4.7.0), and atomics
-			emulated with mutex. [GL #2606]
+5657.	[cleanup]	Support was removed for both built-in atomics in old
+			versions of Clang (< 3.6.0) and GCC (< 4.7.0), and
+			atomics emulated with a mutex. [GL #2606]
 
-5656.	[bug]		Ensure that large responses work correctly over
-			DoH, and that zone transfer requests over DoH are
-			explicitly rejected. [GL !5148]
+5656.	[bug]		Named now ensures that large responses work correctly
+			over DNS-over-HTTPS (DoH), and that zone transfer
+			requests over DoH are explicitly rejected. [GL !5148]
 
 5655.	[bug]		Signed, insecure delegation responses prepared by named
 			either lacked the necessary NSEC records or contained
@@ -74,11 +78,10 @@
 			CNAME chaining were required to prepare the response.
 			This has been fixed. [GL #2759]
 
-5654.	[func]		Windows support has been removed. [GL #2690]
+5654.	[port]		Windows support has been removed. [GL #2690]
 
-5653.	[bug]		Fixed a bug that caused the NSEC3 salt to be changed
-			for KASP zones on restart.
-			[GL #2725]
+5653.	[bug]		A bug that caused the NSEC3 salt to be changed on every
+			restart for zones using KASP has been fixed. [GL #2725]
 
 	--- 9.17.14 released ---
 
