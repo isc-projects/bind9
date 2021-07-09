@@ -14,18 +14,11 @@ Notes for BIND 9.16.19
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
-
 - Named failed to check the opcode of responses when performing refresh,
   stub updates, and UPDATE forwarding.  This could lead to an assertion
   failure under particular conditions.  This has been addressed by checking
   the opcode of those responses and rejecting the messages if they don't
   match the expected value. :gl:`#2762`
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
 
 New Features
 ~~~~~~~~~~~~
@@ -34,11 +27,6 @@ New Features
   now be associated with a list of servers that can be used to check the
   DS RRset in the parent zone. This enables automatic KSK rollovers.
   :gl:`#1126`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
