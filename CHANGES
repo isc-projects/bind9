@@ -1,3 +1,5 @@
+	--- 9.17.16 released ---
+
 5671.	[bug]		A race condition could occur where two threads were
 			competing for the same set of key file locks, leading to
 			a deadlock. This has been fixed. [GL #2786]
