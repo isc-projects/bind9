@@ -169,14 +169,14 @@ struct isc_mempool {
 	ISC_LINK(isc_mempool_t) link; /*%< next pool in this mem context */
 	element *items;		      /*%< low water item list */
 	size_t size;		      /*%< size of each item on this pool */
-	atomic_size_t allocated;      /*%< # of items currently given out */
-	atomic_size_t freecount;      /*%< # of items on reserved list */
-	atomic_size_t freemax;	      /*%< # of items allowed on free list */
-	atomic_size_t fillcount;      /*%< # of items to fetch on each fill */
+	size_t allocated;	      /*%< # of items currently given out */
+	size_t freecount;	      /*%< # of items on reserved list */
+	size_t freemax;		      /*%< # of items allowed on free list */
+	size_t fillcount;	      /*%< # of items to fetch on each fill */
 	/*%< Stats only. */
-	atomic_size_t gets; /*%< # of requests to this pool */
-			    /*%< Debugging only. */
-	char name[16];	    /*%< printed name in stats reports */
+	size_t gets; /*%< # of requests to this pool */
+	/*%< Debugging only. */
+	char name[16]; /*%< printed name in stats reports */
 };
 
 /*
@@ -848,12 +848,9 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	while (pool != NULL) {
 		fprintf(out,
 			"%15s %10zu %10zu %10zu %10zu %10zu %10zu %10zu %s\n",
-			pool->name, pool->size, (size_t)0,
-			atomic_load_relaxed(&pool->allocated),
-			atomic_load_relaxed(&pool->freecount),
-			atomic_load_relaxed(&pool->freemax),
-			atomic_load_relaxed(&pool->fillcount),
-			atomic_load_relaxed(&pool->gets), "N");
+			pool->name, pool->size, (size_t)0, pool->allocated,
+			pool->freecount, pool->freemax, pool->fillcount,
+			pool->gets, "N");
 		pool = ISC_LIST_NEXT(pool, link);
 	}
 
@@ -1134,13 +1131,9 @@ isc__mempool_create(isc_mem_t *mctx, size_t size,
 		.magic = MEMPOOL_MAGIC,
 		.mctx = mctx,
 		.size = size,
+		.freemax = 1,
+		.fillcount = 1,
 	};
-
-	atomic_init(&mpctx->allocated, 0);
-	atomic_init(&mpctx->freecount, 0);
-	atomic_init(&mpctx->freemax, 1);
-	atomic_init(&mpctx->fillcount, 1);
-	atomic_init(&mpctx->gets, 0);
 
 #if ISC_MEM_TRACKLINES
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
@@ -1186,19 +1179,20 @@ isc__mempool_destroy(isc_mempool_t **mpctxp FLARG) {
 	}
 #endif
 
-	if (atomic_load_acquire(&mpctx->allocated) > 0) {
+	if (mpctx->allocated > 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mempool_destroy(): mempool %s "
 				 "leaked memory",
 				 mpctx->name);
 	}
-	REQUIRE(atomic_load_acquire(&mpctx->allocated) == 0);
+	REQUIRE(mpctx->allocated == 0);
 
 	/*
 	 * Return any items on the free list
 	 */
 	while (mpctx->items != NULL) {
-		INSIST(atomic_fetch_sub_release(&mpctx->freecount, 1) > 0);
+		INSIST(mpctx->freecount > 0);
+		mpctx->freecount--;
 
 		item = mpctx->items;
 		mpctx->items = item->next;
@@ -1225,8 +1219,8 @@ void *
 isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	(void)atomic_fetch_add_relaxed(&mpctx->allocated, 1);
-	atomic_fetch_add_relaxed(&mpctx->gets, 1);
+	mpctx->allocated++;
+	mpctx->gets++;
 
 	return (isc__mem_get(mpctx->mctx, mpctx->size FLARG_PASS));
 }
@@ -1236,7 +1230,7 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mem != NULL);
 
-	atomic_fetch_sub_relaxed(&mpctx->allocated, 1);
+	mpctx->allocated--;
 	isc__mem_put(mpctx->mctx, mem, mpctx->size FLARG_PASS);
 }
 
@@ -1247,11 +1241,11 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	(void)atomic_fetch_add_release(&mpctx->allocated, 1);
+	mpctx->allocated++;
 
 	if (ISC_UNLIKELY(mpctx->items == NULL)) {
 		isc_mem_t *mctx = mpctx->mctx;
-		size_t fillcount = atomic_load_acquire(&mpctx->fillcount);
+		const size_t fillcount = mpctx->fillcount;
 		/*
 		 * We need to dip into the well.  Lock the memory
 		 * context here and fill up our free list.
@@ -1261,15 +1255,18 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 			mem_getstats(mctx, mpctx->size);
 			item->next = mpctx->items;
 			mpctx->items = item;
-			atomic_fetch_add_relaxed(&mpctx->freecount, 1);
+			mpctx->freecount++;
 		}
 	}
 
 	item = mpctx->items;
+	INSIST(item != NULL);
+
 	mpctx->items = item->next;
 
-	INSIST(atomic_fetch_sub_release(&mpctx->freecount, 1) > 0);
-	atomic_fetch_add_relaxed(&mpctx->gets, 1);
+	INSIST(mpctx->freecount > 0);
+	mpctx->freecount--;
+	mpctx->gets++;
 
 	ADD_TRACE(mpctx->mctx, item, mpctx->size, file, line);
 
@@ -1285,10 +1282,11 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	REQUIRE(mem != NULL);
 
 	isc_mem_t *mctx = mpctx->mctx;
-	size_t freecount = atomic_load_acquire(&mpctx->freecount);
-	size_t freemax = atomic_load_acquire(&mpctx->freemax);
+	const size_t freecount = mpctx->freecount;
+	const size_t freemax = mpctx->freemax;
 
-	INSIST(atomic_fetch_sub_release(&mpctx->allocated, 1) > 0);
+	INSIST(mpctx->allocated > 0);
+	mpctx->allocated--;
 
 	DELETE_TRACE(mctx, mem, mpctx->size, file, line);
 
@@ -1307,7 +1305,7 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	item = (element *)mem;
 	item->next = mpctx->items;
 	mpctx->items = item;
-	atomic_fetch_add_relaxed(&mpctx->freecount, 1);
+	mpctx->freecount++;
 }
 
 #endif /* __SANITIZE_ADDRESS__ */
@@ -1320,28 +1318,28 @@ void
 isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	atomic_store_release(&mpctx->freemax, limit);
+	mpctx->freemax = limit;
 }
 
 unsigned int
 isc_mempool_getfreemax(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (atomic_load_acquire(&mpctx->freemax));
+	return (mpctx->freemax);
 }
 
 unsigned int
 isc_mempool_getfreecount(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (atomic_load_relaxed(&mpctx->freecount));
+	return (mpctx->freecount);
 }
 
 unsigned int
 isc_mempool_getallocated(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (atomic_load_relaxed(&mpctx->allocated));
+	return (mpctx->allocated);
 }
 
 void
@@ -1349,14 +1347,14 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(limit > 0);
 
-	atomic_store_release(&mpctx->fillcount, limit);
+	mpctx->fillcount = limit;
 }
 
 unsigned int
 isc_mempool_getfillcount(isc_mempool_t *mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (atomic_load_relaxed(&mpctx->fillcount));
+	return (mpctx->fillcount);
 }
 
 /*
