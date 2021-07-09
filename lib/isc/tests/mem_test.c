@@ -167,8 +167,8 @@ isc_mem_total_test(void **state) {
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_allocate(mctx2, 2048);
-		isc_mem_free(mctx2, ptr);
+		ptr = isc_mem_get(mctx2, 2048);
+		isc_mem_put(mctx2, ptr, 2048);
 	}
 
 	after = isc_mem_total(mctx2);
@@ -183,8 +183,8 @@ isc_mem_total_test(void **state) {
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_allocate(test_mctx, 2048);
-		isc_mem_free(test_mctx, ptr);
+		ptr = isc_mem_get(test_mctx, 2048);
+		isc_mem_put(test_mctx, ptr, 2048);
 	}
 
 	after = isc_mem_total(test_mctx);
