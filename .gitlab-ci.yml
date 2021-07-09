@@ -1165,7 +1165,7 @@ release:
     # Prepare release tarball contents (tarballs + documentation)
     - mkdir -p release/doc/arm
     - pushd release
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
+    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" .
     - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
