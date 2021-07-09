@@ -31,6 +31,8 @@
 			"controls" statement was configured with multiple
 			key algorithms in the same listener. [GL #2756]
 
+	--- 9.16.19 released ---
+
 5671.	[bug]		A race condition could occur where two threads were
 			competing for the same set of key file locks, leading to
 			a deadlock. This has been fixed. [GL #2786]
