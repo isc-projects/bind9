@@ -33,7 +33,7 @@ Feature Changes
   MTU minus the estimated header space. In practice, the smallest MTU
   witnessed in the operational DNS community is 1500 octets, the maximum
   Ethernet payload size, so a useful default for maximum DNS/UDP payload
-  size on reliable networks would be 1400 bytes. :gl:`#2183`
+  size on reliable networks would be 1432 bytes. :gl:`#2183`
 
 Bug Fixes
 ~~~~~~~~~
