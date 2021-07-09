@@ -74,6 +74,9 @@ Bug Fixes
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
 
+- Checking of ``dnssec-policy`` was broken. The checks failed to account for
+  ``dnssec-policy`` inheritance. :gl:`#2780`
+
 - A deadlock at startup was introduced when fixing :gl:`#1875` because when
   locking key files for reading and writing, "in-view" logic was not taken into
   account. This has been fixed. :gl:`#2783`
