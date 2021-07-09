@@ -82,7 +82,6 @@ isc_mem_test(void **state) {
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
-	isc_mempool_setmaxalloc(mp1, MP1_MAXALLOC);
 
 	/*
 	 * Allocate MP1_MAXALLOC items from the pool.  This is our max.
@@ -91,12 +90,6 @@ isc_mem_test(void **state) {
 		items1[i] = isc_mempool_get(mp1);
 		assert_non_null(items1[i]);
 	}
-
-	/*
-	 * Try to allocate one more.  This should fail.
-	 */
-	tmp = isc_mempool_get(mp1);
-	assert_null(tmp);
 
 	/*
 	 * Free the first 11 items.  Verify that there are 10 free items on
@@ -174,15 +167,14 @@ isc_mem_total_test(void **state) {
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_allocate(mctx2, 2048);
-		isc_mem_free(mctx2, ptr);
+		ptr = isc_mem_get(mctx2, 2048);
+		isc_mem_put(mctx2, ptr, 2048);
 	}
 
 	after = isc_mem_total(mctx2);
 	diff = after - before;
 
-	/* 2048 +8 bytes extra for size_info */
-	assert_int_equal(diff, (2048 + 8) * 100000);
+	assert_int_equal(diff, (2048) * 100000);
 
 	/* ISC_MEMFLAG_INTERNAL */
 
@@ -191,15 +183,14 @@ isc_mem_total_test(void **state) {
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_allocate(test_mctx, 2048);
-		isc_mem_free(test_mctx, ptr);
+		ptr = isc_mem_get(test_mctx, 2048);
+		isc_mem_put(test_mctx, ptr, 2048);
 	}
 
 	after = isc_mem_total(test_mctx);
 	diff = after - before;
 
-	/* 2048 +8 bytes extra for size_info */
-	assert_int_equal(diff, (2048 + 8) * 100000);
+	assert_int_equal(diff, (2048) * 100000);
 
 	isc_mem_destroy(&mctx2);
 }
@@ -430,68 +421,6 @@ isc_mem_benchmark(void **state) {
 	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
 }
 
-static isc_threadresult_t
-mempool_thread(isc_threadarg_t arg) {
-	isc_mempool_t *mp = (isc_mempool_t *)arg;
-	void *items[NUM_ITEMS];
-
-	for (int i = 0; i < ITERS; i++) {
-		for (int j = 0; j < NUM_ITEMS; j++) {
-			items[j] = isc_mempool_get(mp);
-		}
-		for (int j = 0; j < NUM_ITEMS; j++) {
-			isc_mempool_put(mp, items[j]);
-		}
-	}
-
-	return ((isc_threadresult_t)0);
-}
-
-static void
-isc_mempool_benchmark(void **state) {
-	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
-	isc_thread_t threads[32];
-	isc_time_t ts1, ts2;
-	double t;
-	isc_result_t result;
-	isc_mempool_t *mp = NULL;
-	isc_mutex_t mplock;
-
-	isc_mutex_init(&mplock);
-
-	isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
-
-	isc_mempool_associatelock(mp, &mplock);
-
-	isc_mempool_setfreemax(mp, 32768);
-	isc_mempool_setfillcount(mp, ISC_MAX(NUM_ITEMS / nthreads, 1));
-
-	UNUSED(state);
-
-	result = isc_time_now(&ts1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	for (int i = 0; i < nthreads; i++) {
-		isc_thread_create(mempool_thread, mp, &threads[i]);
-	}
-	for (int i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	result = isc_time_now(&ts2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	t = isc_time_microdiff(&ts2, &ts1);
-
-	printf("[ TIME     ] isc_mempool_benchmark: "
-	       "%d isc_mempool_{get,put} calls, %f seconds, %f calls/second\n",
-	       nthreads * ITERS * NUM_ITEMS, t / 1000000.0,
-	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
-
-	isc_mempool_destroy(&mp);
-	isc_mutex_destroy(&mplock);
-}
-
 #endif /* __SANITIZE_THREAD */
 
 /*
@@ -510,8 +439,6 @@ main(void) {
 
 #if !defined(__SANITIZE_THREAD__)
 		cmocka_unit_test_setup_teardown(isc_mem_benchmark, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_mempool_benchmark, _setup,
 						_teardown),
 #endif /* __SANITIZE_THREAD__ */
 #if ISC_MEM_TRACKLINES

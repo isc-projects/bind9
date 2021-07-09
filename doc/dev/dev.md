@@ -483,10 +483,12 @@ or simply by running `isc_buffer_init()` on the region's base pointer.
 
 #### <a name="mem"></a>Memory management
 
-BIND manages its own memory internally via "memory contexts".  Multiple
+BIND tracks its memory usage internally via "memory contexts".  Multiple
 separate memory contexts can be created for the use of different modules or
 subcomponents, and each can have its own size limits and tuning parameters
-and maintain its own statistics, allocations and free lists.
+and maintain its own statistics, allocations and free lists.  Memory
+allocation is based on the `jemalloc` library on platforms where the library
+is available.
 
 The memory system helps with diagnosis of common coding errors such as
 memory leaks and use after free. Newly allocated memory is populated with
@@ -498,13 +500,6 @@ To create a basic memory context, use:
 
         isc_mem_t *mctx = NULL;
         isc_mem_create(&mctx);
-
-(The zeroes are tuning parameters, `max_size` and `target_size`: Any
-allocations smaller than `max_size` will be satisfied by getting
-blocks of size `target_size` from the operating system's memory
-allocator and breaking them up into pieces, while larger allocations
-will call the system allocator directly. These parameters are rarely
-used.)
 
 When holding a persistent reference to a memory context it is advisable to
 increment its reference counter using `isc_mem_attach()`.  Do not just
@@ -567,16 +562,14 @@ The function `isc_mem_strdup()` -- a version of `strdup()` that uses memory
 contexts -- will also return memory that can be freed with
 `isc_mem_free()`.
 
-Every allocation and deallocation requires a memory context lock to be
-acquired.  This will cause performance problems if you write code that
-allocates and deallocates memory frequently.  Whenever possible,
-inner loop functions should be passed static buffers rather than allocating
-memory.
-
 In cases where small fixed-size blocks of memory may be needed frequently,
 the `isc_mempool` API can be used.  This creates a standing pool of blocks
 of a specified size which can be passed out and returned without the need
-for locking the entire memory context.
+for a new memory allocation; this can improve performance in tight inner
+loops.
+
+None of these allocation functions, including `isc_mempool_get()`, can
+fail.  If no memory is available for allocation, the program will abort.
 
 #### <a name="lists"></a>Lists
 

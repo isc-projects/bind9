@@ -167,6 +167,7 @@ libisc_la_SOURCES =		\
 	httpd.c			\
 	interfaceiter.c		\
 	iterated_hash.c		\
+	jemalloc_shim.h		\
 	lex.c			\
 	lib.c			\
 	log.c			\
@@ -230,6 +231,7 @@ libisc_la_SOURCES =		\
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
+	$(JEMALLOC_CPPFLAGS)	\
 	$(LIBISC_CFLAGS)	\
 	$(LIBUV_CFLAGS)		\
 	$(OPENSSL_CFLAGS)	\
@@ -240,6 +242,7 @@ libisc_la_LDFLAGS =		\
 	-release "$(PACKAGE_VERSION)"
 
 libisc_la_LIBADD =		\
+	$(JEMALLOC_LIBS)	\
 	$(LIBUV_LIBS)		\
 	$(OPENSSL_LIBS)		\
 	$(ZLIB_LIBS)

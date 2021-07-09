@@ -899,7 +899,6 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -916,7 +915,6 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -934,7 +932,6 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -951,7 +948,6 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 void

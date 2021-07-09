@@ -804,7 +804,7 @@ static void
 setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
-	unsigned int attrs, attrmask;
+	unsigned int attrs;
 	isc_sockaddrlist_t *nslist;
 	isc_logconfig_t *logconfig = NULL;
 	irs_resconf_t *resconf = NULL;
@@ -939,9 +939,6 @@ setup_system(void) {
 
 	set_source_ports(dispatchmgr);
 
-	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
-	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
-
 	if (have_ipv6) {
 		attrs = DNS_DISPATCHATTR_UDP;
 		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
@@ -949,7 +946,7 @@ setup_system(void) {
 		isc_sockaddr_any6(&bind_any6);
 		result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
 					     &bind_any6, PACKETSIZE, 4, 2, 3, 5,
-					     attrs, attrmask, &dispatchv6);
+					     attrs, &dispatchv6);
 		check_result(result, "dns_dispatch_getudp (v6)");
 	}
 
@@ -960,7 +957,7 @@ setup_system(void) {
 		isc_sockaddr_any(&bind_any);
 		result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
 					     &bind_any, PACKETSIZE, 4, 2, 3, 5,
-					     attrs, attrmask, &dispatchv4);
+					     attrs, &dispatchv4);
 		check_result(result, "dns_dispatch_getudp (v4)");
 	}
 

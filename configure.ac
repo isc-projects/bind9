@@ -1377,6 +1377,28 @@ AC_SUBST([CMOCKA_LIBS])
 AM_CONDITIONAL([HAVE_CMOCKA], [test "$with_cmocka" = "yes"])
 
 #
+# Compile with jemalloc (either provided as package or wired in the system on FreeBSD and NetBSD)
+#
+# [pairwise: --with-jemalloc=detect, --with-jemalloc=yes, --without-jemalloc]
+AC_ARG_WITH([jemalloc],
+	    [AS_HELP_STRING([--with-jemalloc=detect],[enable jemalloc memory allocator (default is detect)])],
+	    [],[with_jemalloc=detect])
+
+AS_CASE([$with_jemalloc],
+	[no],[],
+	[yes],[AX_CHECK_JEMALLOC(
+		 [AC_DEFINE([HAVE_JEMALLOC], [1], [Define to 1 if jemalloc is available])],
+		 [AC_MSG_ERROR([jemalloc not found])])],
+	[AX_CHECK_JEMALLOC(
+	   [AC_DEFINE([HAVE_JEMALLOC], [1], [Define to 1 if jemalloc is available])
+	    with_jemalloc=yes],
+	   [AC_MSG_WARN([jemalloc not found; performance will be reduced])
+	    with_jemalloc=no])])
+
+AS_IF([test "$with_jemalloc" = "no"],
+      [AC_CHECK_FUNCS([malloc_size malloc_usable_size])])
+
+#
 # was --with-tuning specified?
 #
 # [pairwise: --with-tuning=small, --without-tuning]
@@ -1687,6 +1709,9 @@ report() {
     echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
+    if test "yes" = "$with_jemalloc"; then
+	echo "    Memory allocator: jemalloc"
+    fi
     if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
 	echo "    Mutex lock type: $with_locktype"
     fi
@@ -1743,6 +1768,14 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
+    if test "no" = "$with_jemalloc"; then
+      echo "    Memory allocator: system"
+      echo "    WARNING: This is not a recommended configuration"
+      echo "    WARNING: Using system memory allocator causes"
+      echo "    WARNING: reduced performance and increased memory"
+      echo "    WARNING: fragmentation.  Installing jemalloc >= 4.0.0"
+      echo "    WARNING: memory allocator is strongly recommended."
+    fi
     test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
     test "no" = "$enable_dnstap" && \

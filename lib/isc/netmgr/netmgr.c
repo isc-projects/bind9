@@ -281,21 +281,6 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	atomic_init(&mgr->keepalive, 30000);
 	atomic_init(&mgr->advertised, 30000);
 
-	isc_mutex_init(&mgr->reqlock);
-	isc_mempool_create(mgr->mctx, sizeof(isc__nm_uvreq_t), &mgr->reqpool);
-	isc_mempool_setname(mgr->reqpool, "nm_reqpool");
-	isc_mempool_setfreemax(mgr->reqpool, 4096);
-	isc_mempool_associatelock(mgr->reqpool, &mgr->reqlock);
-	isc_mempool_setfillcount(mgr->reqpool, 32);
-
-	isc_mutex_init(&mgr->evlock);
-	isc_mempool_create(mgr->mctx, sizeof(isc__netievent_storage_t),
-			   &mgr->evpool);
-	isc_mempool_setname(mgr->evpool, "nm_evpool");
-	isc_mempool_setfreemax(mgr->evpool, 4096);
-	isc_mempool_associatelock(mgr->evpool, &mgr->evlock);
-	isc_mempool_setfillcount(mgr->evpool, 32);
-
 	isc_barrier_init(&mgr->pausing, workers);
 	isc_barrier_init(&mgr->resuming, workers);
 
@@ -377,14 +362,14 @@ nm_destroy(isc_nm_t **mgr0) {
 
 		/* Empty the async event queues */
 		while ((ievent = DEQUEUE_PRIORITY_NETIEVENT(worker)) != NULL) {
-			isc_mempool_put(mgr->evpool, ievent);
+			isc_mem_put(mgr->mctx, ievent, sizeof(*ievent));
 		}
 
 		INSIST(DEQUEUE_PRIVILEGED_NETIEVENT(worker) == NULL);
 		INSIST(DEQUEUE_TASK_NETIEVENT(worker) == NULL);
 
 		while ((ievent = DEQUEUE_PRIORITY_NETIEVENT(worker)) != NULL) {
-			isc_mempool_put(mgr->evpool, ievent);
+			isc_mem_put(mgr->mctx, ievent, sizeof(*ievent));
 		}
 		isc_condition_destroy(&worker->cond_prio);
 
@@ -412,12 +397,6 @@ nm_destroy(isc_nm_t **mgr0) {
 	isc_condition_destroy(&mgr->wkstatecond);
 	isc_condition_destroy(&mgr->wkpausecond);
 	isc_mutex_destroy(&mgr->lock);
-
-	isc_mempool_destroy(&mgr->evpool);
-	isc_mutex_destroy(&mgr->evlock);
-
-	isc_mempool_destroy(&mgr->reqpool);
-	isc_mutex_destroy(&mgr->reqlock);
 
 	isc_mem_put(mgr->mctx, mgr->workers,
 		    mgr->nworkers * sizeof(isc__networker_t));
@@ -1038,7 +1017,8 @@ process_queue(isc__networker_t *worker, netievent_type_t type) {
 
 void *
 isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type) {
-	isc__netievent_storage_t *event = isc_mempool_get(mgr->evpool);
+	isc__netievent_storage_t *event = isc_mem_get(mgr->mctx,
+						      sizeof(*event));
 
 	*event = (isc__netievent_storage_t){ .ni.type = type };
 	return (event);
@@ -1046,7 +1026,7 @@ isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type) {
 
 void
 isc__nm_put_netievent(isc_nm_t *mgr, void *ievent) {
-	isc_mempool_put(mgr->evpool, ievent);
+	isc_mem_put(mgr->mctx, ievent, sizeof(isc__netievent_storage_t));
 }
 
 NETIEVENT_SOCKET_DEF(tcpclose);
@@ -1261,7 +1241,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	}
 
 	if (sock->buf != NULL) {
-		isc_mem_free(sock->mgr->mctx, sock->buf);
+		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
 	}
 
 	if (sock->quota != NULL) {
@@ -1273,14 +1253,16 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_astack_destroy(sock->inactivehandles);
 
 	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
-		isc_mempool_put(sock->mgr->reqpool, uvreq);
+		isc_mem_put(sock->mgr->mctx, uvreq, sizeof(*uvreq));
 	}
 
 	isc_astack_destroy(sock->inactivereqs);
 	sock->magic = 0;
 
-	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
-	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
+	isc_mem_put(sock->mgr->mctx, sock->ah_frees,
+		    sock->ah_size * sizeof(sock->ah_frees[0]));
+	isc_mem_put(sock->mgr->mctx, sock->ah_handles,
+		    sock->ah_size * sizeof(sock->ah_handles[0]));
 	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
 #if HAVE_LIBNGHTTP2
@@ -1492,10 +1474,10 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
-	sock->ah_frees = isc_mem_allocate(mgr->mctx,
-					  sock->ah_size * sizeof(size_t));
-	sock->ah_handles = isc_mem_allocate(
-		mgr->mctx, sock->ah_size * sizeof(isc_nmhandle_t *));
+	sock->ah_frees = isc_mem_get(mgr->mctx,
+				     sock->ah_size * sizeof(sock->ah_frees[0]));
+	sock->ah_handles = isc_mem_get(
+		mgr->mctx, sock->ah_size * sizeof(sock->ah_handles[0]));
 	ISC_LINK_INIT(&sock->quotacb, link);
 	for (size_t i = 0; i < 32; i++) {
 		sock->ah_frees[i] = i;
@@ -1905,12 +1887,12 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 	if (sock->buf == NULL) {
 		/* We don't have the buffer at all */
 		size_t alloc_len = len < NM_REG_BUF ? NM_REG_BUF : NM_BIG_BUF;
-		sock->buf = isc_mem_allocate(sock->mgr->mctx, alloc_len);
+		sock->buf = isc_mem_get(sock->mgr->mctx, alloc_len);
 		sock->buf_size = alloc_len;
 	} else {
 		/* We have the buffer but it's too small */
-		sock->buf = isc_mem_reallocate(sock->mgr->mctx, sock->buf,
-					       NM_BIG_BUF);
+		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
+		sock->buf = isc_mem_get(sock->mgr->mctx, NM_BIG_BUF);
 		sock->buf_size = NM_BIG_BUF;
 	}
 }
@@ -2426,7 +2408,7 @@ isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG) {
 	}
 
 	if (req == NULL) {
-		req = isc_mempool_get(mgr->reqpool);
+		req = isc_mem_get(mgr->mctx, sizeof(*req));
 	}
 
 	*req = (isc__nm_uvreq_t){ .magic = 0 };
@@ -2462,7 +2444,7 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 
 	if (!isc__nmsocket_active(sock) ||
 	    !isc_astack_trypush(sock->inactivereqs, req)) {
-		isc_mempool_put(sock->mgr->reqpool, req);
+		isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
 	}
 
 	if (handle != NULL) {

@@ -2071,7 +2071,7 @@ main(int argc, char *argv[]) {
 	isc_timermgr_t *timermgr = NULL;
 	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
-	unsigned int attrs, attrmask;
+	unsigned int attrs;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
 	int ns;
@@ -2139,14 +2139,10 @@ main(int argc, char *argv[]) {
 		isc_sockaddr_any6(&bind_any);
 		attrs |= DNS_DISPATCHATTR_IPV6;
 	}
-	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP |
-		   DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
 	dispatchvx = NULL;
 	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
 				     have_src ? &srcaddr : &bind_any, 4096, 100,
-				     100, 17, 19, attrs, attrmask,
-				     &dispatchvx));
-
+				     100, 17, 19, attrs, &dispatchvx));
 	RUNCHECK(dns_requestmgr_create(
 		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
 		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,

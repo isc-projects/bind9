@@ -593,7 +593,7 @@ static isc_result_t
 find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 		  const isc_sockaddr_t *destaddr, dns_dispatch_t **dispatchp) {
 	dns_dispatch_t *disp = NULL;
-	unsigned int attrs, attrmask;
+	unsigned int attrs;
 
 	if (srcaddr == NULL) {
 		switch (isc_sockaddr_pf(destaddr)) {
@@ -628,15 +628,10 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 	default:
 		return (ISC_R_NOTIMPLEMENTED);
 	}
-	attrmask = 0;
-	attrmask |= DNS_DISPATCHATTR_UDP;
-	attrmask |= DNS_DISPATCHATTR_TCP;
-	attrmask |= DNS_DISPATCHATTR_IPV4;
-	attrmask |= DNS_DISPATCHATTR_IPV6;
 	return (dns_dispatch_getudp(requestmgr->dispatchmgr,
 				    requestmgr->socketmgr, requestmgr->taskmgr,
 				    srcaddr, 4096, 32768, 32768, 16411, 16433,
-				    attrs, attrmask, dispatchp));
+				    attrs, dispatchp));
 }
 
 static isc_result_t

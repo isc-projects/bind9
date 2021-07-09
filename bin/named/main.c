@@ -430,8 +430,6 @@ static struct flag_def {
 			{ "trace", ISC_MEM_DEBUGTRACE, false },
 			{ "record", ISC_MEM_DEBUGRECORD, false },
 			{ "usage", ISC_MEM_DEBUGUSAGE, false },
-			{ "size", ISC_MEM_DEBUGSIZE, false },
-			{ "mctx", ISC_MEM_DEBUGCTX, false },
 			{ NULL, 0, false } },
   mem_context_flags[] = { { "fill", ISC_MEMFLAG_FILL, false },
 			  { "nofill", ISC_MEMFLAG_FILL, true },

@@ -229,16 +229,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    unsigned int buffersize, unsigned int maxbuffers,
 		    unsigned int maxrequests, unsigned int buckets,
 		    unsigned int increment, unsigned int attributes,
-		    unsigned int mask, dns_dispatch_t **dispp);
-
-isc_result_t
-dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
-			isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-			unsigned int buffersize, unsigned int maxbuffers,
-			unsigned int maxrequests, unsigned int buckets,
-			unsigned int increment, unsigned int attributes,
-			unsigned int mask, dns_dispatch_t **dispp,
-			dns_dispatch_t *dup);
+		    dns_dispatch_t **dispp);
 /*%<
  * Attach to existing dns_dispatch_t if one is found with dns_dispatchmgr_find,
  * otherwise create a new UDP dispatch.
