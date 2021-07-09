@@ -364,7 +364,7 @@ isc_mem_renderjson(void *memobj0);
 #define isc_mempool_create(c, s, mp) \
 	isc__mempool_create((c), (s), (mp)_ISC_MEM_FILELINE)
 void
-isc__mempool_create(isc_mem_t *mctx, size_t size,
+isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 		    isc_mempool_t **mpctxp _ISC_MEM_FLARG);
 /*%<
  * Create a memory pool.
@@ -385,7 +385,7 @@ isc__mempool_create(isc_mem_t *mctx, size_t size,
 
 #define isc_mempool_destroy(mp) isc__mempool_destroy((mp)_ISC_MEM_FILELINE)
 void
-isc__mempool_destroy(isc_mempool_t **mpctxp _ISC_MEM_FLARG);
+isc__mempool_destroy(isc_mempool_t **restrict mpctxp _ISC_MEM_FLARG);
 /*%<
  * Destroy a memory pool.
  *
@@ -395,7 +395,7 @@ isc__mempool_destroy(isc_mempool_t **mpctxp _ISC_MEM_FLARG);
  */
 
 void
-isc_mempool_setname(isc_mempool_t *mpctx, const char *name);
+isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name);
 /*%<
  * Associate a name with a memory pool.  At most 15 characters may be
  *used.
@@ -418,38 +418,39 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name);
  */
 
 unsigned int
-isc_mempool_getfreemax(isc_mempool_t *mpctx);
+isc_mempool_getfreemax(isc_mempool_t *restrict mpctx);
 /*%<
  * Returns the maximum allowed size of the free list.
  */
 
 void
-isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit);
+isc_mempool_setfreemax(isc_mempool_t *restrict mpctx, const unsigned int limit);
 /*%<
  * Sets the maximum allowed size of the free list.
  */
 
 unsigned int
-isc_mempool_getfreecount(isc_mempool_t *mpctx);
+isc_mempool_getfreecount(isc_mempool_t *restrict mpctx);
 /*%<
  * Returns current size of the free list.
  */
 
 unsigned int
-isc_mempool_getallocated(isc_mempool_t *mpctx);
+isc_mempool_getallocated(isc_mempool_t *restrict mpctx);
 /*%<
  * Returns the number of items allocated from this pool.
  */
 
 unsigned int
-isc_mempool_getfillcount(isc_mempool_t *mpctx);
+isc_mempool_getfillcount(isc_mempool_t *restrict mpctx);
 /*%<
  * Returns the number of items allocated as a block from the parent
  * memory context when the free list is empty.
  */
 
 void
-isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
+isc_mempool_setfillcount(isc_mempool_t *restrict mpctx,
+			 const unsigned int limit);
 /*%<
  * Sets the fillcount.
  *

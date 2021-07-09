@@ -1106,9 +1106,10 @@ isc_mem_getname(isc_mem_t *ctx) {
  */
 
 void
-isc__mempool_create(isc_mem_t *mctx, size_t size,
-		    isc_mempool_t **mpctxp FLARG) {
-	isc_mempool_t *mpctx = NULL;
+isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
+		    isc_mempool_t **restrict mpctxp FLARG) {
+	isc_mempool_t *restrict mpctx = NULL;
+	size_t size = element_size;
 
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(size > 0U);
@@ -1151,7 +1152,7 @@ isc__mempool_create(isc_mem_t *mctx, size_t size,
 }
 
 void
-isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
+isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(name != NULL);
 
@@ -1159,10 +1160,10 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 }
 
 void
-isc__mempool_destroy(isc_mempool_t **mpctxp FLARG) {
-	isc_mempool_t *mpctx = NULL;
+isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
+	isc_mempool_t *restrict mpctx = NULL;
 	isc_mem_t *mctx = NULL;
-	element *item = NULL;
+	element *restrict item = NULL;
 
 	REQUIRE(mpctxp != NULL);
 	REQUIRE(VALID_MEMPOOL(*mpctxp));
@@ -1216,7 +1217,7 @@ isc__mempool_destroy(isc_mempool_t **mpctxp FLARG) {
 
 #if __SANITIZE_ADDRESS__
 void *
-isc__mempool_get(isc_mempool_t *mpctx FLARG) {
+isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	mpctx->allocated++;
@@ -1226,7 +1227,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 }
 
 void
-isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
+isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mem != NULL);
 
@@ -1236,8 +1237,8 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 
 #else /* __SANITIZE_ADDRESS__ */
 void *
-isc__mempool_get(isc_mempool_t *mpctx FLARG) {
-	element *item = NULL;
+isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
+	element *restrict item = NULL;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
@@ -1275,8 +1276,8 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 
 /* coverity[+free : arg-1] */
 void
-isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
-	element *item = NULL;
+isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
+	element *restrict item = NULL;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mem != NULL);
@@ -1315,35 +1316,37 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
  */
 
 void
-isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit) {
+isc_mempool_setfreemax(isc_mempool_t *restrict mpctx,
+		       const unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	mpctx->freemax = limit;
 }
 
 unsigned int
-isc_mempool_getfreemax(isc_mempool_t *mpctx) {
+isc_mempool_getfreemax(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	return (mpctx->freemax);
 }
 
 unsigned int
-isc_mempool_getfreecount(isc_mempool_t *mpctx) {
+isc_mempool_getfreecount(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	return (mpctx->freecount);
 }
 
 unsigned int
-isc_mempool_getallocated(isc_mempool_t *mpctx) {
+isc_mempool_getallocated(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	return (mpctx->allocated);
 }
 
 void
-isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit) {
+isc_mempool_setfillcount(isc_mempool_t *restrict mpctx,
+			 unsigned int const limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(limit > 0);
 
@@ -1351,7 +1354,7 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit) {
 }
 
 unsigned int
-isc_mempool_getfillcount(isc_mempool_t *mpctx) {
+isc_mempool_getfillcount(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	return (mpctx->fillcount);
