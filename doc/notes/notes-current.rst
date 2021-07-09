@@ -58,6 +58,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- The code managing :rfc:`5011` trust anchors created an invalid
+  placeholder keydata record upon a refresh failure, which prevented the
+  database of managed keys from subsequently being read back. This has
+  been fixed. :gl:`#2686`
+
 - Signed, insecure delegation responses prepared by ``named`` either
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
