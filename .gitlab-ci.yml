@@ -998,7 +998,7 @@ gcc:softhsm2.4:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
+    EXTRA_CONFIGURE: "--without-jemalloc --enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
   <<: *base_image
   <<: *build_job
 
