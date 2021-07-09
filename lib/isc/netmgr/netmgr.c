@@ -1259,10 +1259,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_astack_destroy(sock->inactivereqs);
 	sock->magic = 0;
 
-	isc_mem_put(sock->mgr->mctx, sock->ah_frees,
-		    sock->ah_size * sizeof(sock->ah_frees[0]));
-	isc_mem_put(sock->mgr->mctx, sock->ah_handles,
-		    sock->ah_size * sizeof(sock->ah_handles[0]));
+	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
+	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
 	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
 #if HAVE_LIBNGHTTP2
@@ -1474,9 +1472,9 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
-	sock->ah_frees = isc_mem_get(mgr->mctx,
-				     sock->ah_size * sizeof(sock->ah_frees[0]));
-	sock->ah_handles = isc_mem_get(
+	sock->ah_frees = isc_mem_allocate(
+		mgr->mctx, sock->ah_size * sizeof(sock->ah_frees[0]));
+	sock->ah_handles = isc_mem_allocate(
 		mgr->mctx, sock->ah_size * sizeof(sock->ah_handles[0]));
 	ISC_LINK_INIT(&sock->quotacb, link);
 	for (size_t i = 0; i < 32; i++) {
