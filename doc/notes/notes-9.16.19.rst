@@ -11,16 +11,6 @@
 Notes for BIND 9.16.19
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -28,11 +18,6 @@ New Features
   now be associated with a list of servers that can be used to check the
   DS RRset in the parent zone. This enables automatic KSK rollovers.
   :gl:`#1126`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
