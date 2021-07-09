@@ -2869,7 +2869,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
 
 	if (!adb->shutting_down) {
 		adb->shutting_down = true;
-		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
+		isc_mem_setwater(adb->mctx, NULL, NULL, 0, 0);
 		/*
 		 * Isolate shutdown_names and shutdown_entries calls.
 		 */
@@ -4699,7 +4699,7 @@ dns_adb_setadbsize(dns_adb_t *adb, size_t size) {
 	lowater = size - (size >> 2); /* Approximately 3/4ths. */
 
 	if (size == 0U || hiwater == 0U || lowater == 0U) {
-		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
+		isc_mem_setwater(adb->mctx, NULL, NULL, 0, 0);
 	} else {
 		isc_mem_setwater(adb->mctx, water, adb, hiwater, lowater);
 	}

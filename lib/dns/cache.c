@@ -950,7 +950,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 		/*
 		 * Disable cache memory limiting.
 		 */
-		isc_mem_setwater(cache->mctx, water, cache, 0, 0);
+		isc_mem_setwater(cache->mctx, NULL, NULL, 0, 0);
 	} else {
 		/*
 		 * Establish new cache memory limits (either for the first
