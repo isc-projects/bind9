@@ -210,6 +210,10 @@ static void
 call_pending_callbacks(isc__nm_http_pending_callbacks_t pending_callbacks,
 		       isc_result_t result);
 
+static void
+server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
+	       const isc_result_t result, isc_region_t *data);
+
 static bool
 http_session_active(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
@@ -607,6 +611,22 @@ on_server_stream_close_callback(int32_t stream_id,
 
 	ISC_LIST_UNLINK(session->sstreams, &sock->h2, link);
 	session->nsstreams--;
+
+	/*
+	 * By making a call to isc__nmsocket_prep_destroy(), we ensure that
+	 * the socket gets marked as inactive, allowing the HTTP/2 data
+	 * associated with it to be properly disposed of eventually.
+	 *
+	 * An HTTP/2 stream socket will normally be marked as inactive in
+	 * the normal course of operation. However, when browsers terminate
+	 * HTTP/2 streams prematurely (e.g. by sending RST_STREAM),
+	 * corresponding sockets can remain marked as active, retaining
+	 * references to the HTTP/2 data (most notably the session objects),
+	 * preventing them from being correctly freed and leading to BIND
+	 * hanging on shutdown.  Calling isc__nmsocket_prep_destroy()
+	 * ensures that this will not happen.
+	 */
+	isc__nmsocket_prep_destroy(sock);
 	isc__nmsocket_detach(&sock);
 	return (rv);
 }
@@ -1986,12 +2006,26 @@ server_send_error_response(const isc_http_error_responses_t error,
 					   socket));
 }
 
+static void
+server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
+	       const isc_result_t result, isc_region_t *data) {
+	isc_sockaddr_t addr;
+	isc_nmhandle_t *handle = NULL;
+
+	REQUIRE(VALID_NMSOCK(socket));
+	REQUIRE(VALID_HTTP2_SESSION(session));
+	REQUIRE(socket->h2.cb != NULL);
+
+	addr = isc_nmhandle_peeraddr(session->handle);
+	handle = isc__nmhandle_get(socket, &addr, NULL);
+	socket->h2.cb(handle, result, data, socket->h2.cbarg);
+	isc_nmhandle_detach(&handle);
+}
+
 static int
 server_on_request_recv(nghttp2_session *ngsession,
 		       isc_nm_http_session_t *session, isc_nmsocket_t *socket) {
 	isc_result_t result;
-	isc_nmhandle_t *handle = NULL;
-	isc_sockaddr_t addr;
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
 	isc_region_t data;
 
@@ -2035,10 +2069,8 @@ server_on_request_recv(nghttp2_session *ngsession,
 		ISC_UNREACHABLE();
 	}
 
-	addr = isc_nmhandle_peeraddr(session->handle);
-	handle = isc__nmhandle_get(socket, &addr, NULL);
-	socket->h2.cb(handle, ISC_R_SUCCESS, &data, socket->h2.cbarg);
-	isc_nmhandle_detach(&handle);
+	server_call_cb(socket, session, ISC_R_SUCCESS, &data);
+
 	return (0);
 
 error:
@@ -2608,9 +2640,6 @@ isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 static void
 failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			  isc_nm_http_session_t *session) {
-	isc_nmhandle_t *handle = NULL;
-	isc_sockaddr_t addr;
-
 	REQUIRE(VALID_NMSOCK(sock));
 	INSIST(sock->type == isc_nm_httpsocket);
 
@@ -2623,12 +2652,8 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	(void)nghttp2_submit_rst_stream(
 		session->ngsession, NGHTTP2_FLAG_END_STREAM, sock->h2.stream_id,
 		NGHTTP2_REFUSED_STREAM);
-	addr = isc_nmhandle_peeraddr(session->handle);
-	handle = isc__nmhandle_get(sock, &addr, NULL);
-	sock->h2.cb(handle, result,
-		    &(isc_region_t){ sock->h2.buf, sock->h2.bufsize },
-		    sock->h2.cbarg);
-	isc_nmhandle_detach(&handle);
+	server_call_cb(sock, session, result,
+		       &(isc_region_t){ sock->h2.buf, sock->h2.bufsize });
 }
 
 static void
