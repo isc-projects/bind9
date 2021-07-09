@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.33
+Release Notes for BIND Version 9.11.34
 
 Introduction
 
@@ -35,6 +35,12 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.34
+
+This maintenance release of BIND 9.11 contains no significant changes,
+although some minor updates have been made (for example, to fix build
+issues on Solaris 11).
 
 Notes for BIND 9.11.33
 
