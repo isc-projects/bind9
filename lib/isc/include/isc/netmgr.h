@@ -510,6 +510,18 @@ bool
 isc_nm_is_http_handle(isc_nmhandle_t *handle);
 
 void
+isc_nm_bad_request(isc_nmhandle_t *handle);
+/*%<
+ * Perform a transport protocol specific action on the handle in case of a
+ * bad/malformed incoming DNS message.
+ *
+ * NOTE: The function currently is no-op for any protocol except HTTP/2.
+ *
+ * Requires:
+ *  \li 'handle' is a valid netmgr handle object.
+ */
+
+void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
 /*%<
  * Enqueue the 'task' onto the netmgr ievents queue.

@@ -1806,23 +1806,6 @@ server_handle_content_type_header(isc_nmsocket_t *socket, const uint8_t *value,
 }
 
 static isc_http_error_responses_t
-server_handle_accept_header(isc_nmsocket_t *socket, const uint8_t *value,
-			    const size_t valuelen) {
-	const char type_accept_all[] = "*/*";
-	const char type_dns_message[] = DNS_MEDIA_TYPE;
-	isc_http_error_responses_t resp = ISC_HTTP_ERROR_SUCCESS;
-
-	UNUSED(socket);
-
-	if (!(HEADER_MATCH(type_dns_message, value, valuelen) ||
-	      HEADER_MATCH(type_accept_all, value, valuelen)))
-	{
-		resp = ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE;
-	}
-	return (resp);
-}
-
-static isc_http_error_responses_t
 server_handle_header(isc_nmsocket_t *socket, const uint8_t *name,
 		     size_t namelen, const uint8_t *value,
 		     const size_t valuelen) {
@@ -1831,7 +1814,6 @@ server_handle_header(isc_nmsocket_t *socket, const uint8_t *name,
 	const char path[] = ":path";
 	const char method[] = ":method";
 	const char scheme[] = ":scheme";
-	const char accept[] = "accept";
 	const char content_length[] = "Content-Length";
 	const char content_type[] = "Content-Type";
 
@@ -1852,9 +1834,6 @@ server_handle_header(isc_nmsocket_t *socket, const uint8_t *name,
 	} else if (!was_error && HEADER_MATCH(content_type, name, namelen)) {
 		code = server_handle_content_type_header(socket, value,
 							 valuelen);
-	} else if (!was_error &&
-		   HEADER_MATCH(accept, (const char *)name, namelen)) {
-		code = server_handle_accept_header(socket, value, valuelen);
 	}
 
 	return (code);
@@ -2022,6 +2001,21 @@ server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
 	isc_nmhandle_detach(&handle);
 }
 
+void
+isc__nm_http_bad_request(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	sock = handle->sock;
+	REQUIRE(sock->type == isc_nm_httpsocket);
+	REQUIRE(!atomic_load(&sock->client));
+	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
+
+	(void)server_send_error_response(ISC_HTTP_ERROR_BAD_REQUEST,
+					 sock->h2.session->ngsession, sock);
+}
+
 static int
 server_on_request_recv(nghttp2_session *ngsession,
 		       isc_nm_http_session_t *session, isc_nmsocket_t *socket) {
@@ -2057,7 +2051,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 		if (isc_base64_decodestring(socket->h2.query_data,
 					    &decoded_buf) != ISC_R_SUCCESS)
 		{
-			code = ISC_HTTP_ERROR_GENERIC;
+			code = ISC_HTTP_ERROR_BAD_REQUEST;
 			goto error;
 		}
 		isc__buffer_usedregion(&decoded_buf, &data);
@@ -2076,7 +2070,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 error:
 	result = server_send_error_response(code, ngsession, socket);
 	if (result != ISC_R_SUCCESS) {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 	}
 	return (0);
 }

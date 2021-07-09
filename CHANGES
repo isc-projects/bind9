@@ -1,3 +1,6 @@
+5675.	[bug]		Improve BIND's compatibility with DoH clients by
+			ignoring an "Accept" HTTP header value. [GL !5246]
+
 5674.	[bug]		Fix BIND hanging when HTTP/2 streams are aborted
 			prematurely by web browsers. [GL !5245]
 
