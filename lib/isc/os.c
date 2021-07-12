@@ -9,7 +9,12 @@
  * information regarding copyright ownership.
  */
 
+#include <isc/once.h>
 #include <isc/os.h>
+#include <isc/util.h>
+
+static isc_once_t ncpus_once = ISC_ONCE_INIT;
+static unsigned int ncpus = 0;
 
 #ifdef HAVE_SYSCONF
 
@@ -46,10 +51,8 @@ sysctl_ncpus(void) {
 }
 #endif /* if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME) */
 
-unsigned int
-isc_os_ncpus(void) {
-	long ncpus = 0;
-
+static void
+ncpus_initialize(void) {
 #if defined(HAVE_SYSCONF)
 	ncpus = sysconf_ncpus();
 #endif /* if defined(HAVE_SYSCONF) */
@@ -61,6 +64,13 @@ isc_os_ncpus(void) {
 	if (ncpus <= 0) {
 		ncpus = 1;
 	}
+}
 
-	return ((unsigned int)ncpus);
+unsigned int
+isc_os_ncpus(void) {
+	isc_result_t result = isc_once_do(&ncpus_once, ncpus_initialize);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	INSIST(ncpus > 0);
+
+	return (ncpus);
 }
