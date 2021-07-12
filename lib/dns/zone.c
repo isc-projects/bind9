@@ -13606,7 +13606,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
 		    (msg->rcode == dns_rcode_servfail ||
 		     msg->rcode == dns_rcode_notimp ||
-		     msg->rcode == dns_rcode_formerr))
+		     (msg->rcode == dns_rcode_formerr && msg->opt == NULL)))
 		{
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refreshing stub: rcode (%.*s) retrying "
@@ -13995,7 +13995,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
 		    (msg->rcode == dns_rcode_servfail ||
 		     msg->rcode == dns_rcode_notimp ||
-		     msg->rcode == dns_rcode_formerr))
+		     (msg->rcode == dns_rcode_formerr && msg->opt == NULL)))
 		{
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: rcode (%.*s) retrying without "

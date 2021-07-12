@@ -233,7 +233,6 @@ sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
 ADDR ns2.ugly.
 NS boing.ugly.
-NS boing.ugly.
 NS ugly.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done

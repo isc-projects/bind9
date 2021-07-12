@@ -1,3 +1,10 @@
+5677.	[func]		Only accept FORMERR without a OPT record as an
+			indication that the server does net support EDNS.
+			This will break communication with servers that
+			don't understand EDNS and incorrectly echo back
+			the request message with the rcode field set to
+			FORMERR and the QR bit set to 1. [GL #2249]
+
 5676.	[func]		Memory allocation has been substantially refactored,
 			and is now based on the memory allocation API
 			provided by 'libjemalloc'. This is now a build

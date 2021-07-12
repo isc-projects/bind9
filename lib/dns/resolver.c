@@ -10005,19 +10005,11 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((rcode == dns_rcode_formerr) &&
+	if ((rcode == dns_rcode_formerr) && rctx->opt == NULL &&
 	    (rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0)
 	{
 		/*
 		 * It's very likely they don't like EDNS0.
-		 * If the response code is SERVFAIL, also check if the
-		 * response contains an OPT RR and don't cache the
-		 * failure since it can be returned for various other
-		 * reasons.
-		 *
-		 * XXXRTH  We should check if the question
-		 *		we're asking requires EDNS0, and
-		 *		if so, we should bail out.
 		 */
 		rctx->retryopts |= DNS_FETCHOPT_NOEDNS0;
 		rctx->resend = true;
