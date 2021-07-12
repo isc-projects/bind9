@@ -555,6 +555,9 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 			result = isc_nm_http_endpoint(sock, eps[i],
 						      ns__client_request, ifp,
 						      sizeof(ns_client_t));
+			if (result != ISC_R_SUCCESS) {
+				break;
+			}
 		}
 	}
 
