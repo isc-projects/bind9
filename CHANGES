@@ -1,3 +1,7 @@
+5678.	[bug]		The "check DS" code failed to release all resources upon
+			named shutdown when a refresh was in progress. This has
+			been fixed. [GL #2811]
+
 5677.	[func]		Only accept FORMERR without a OPT record as an
 			indication that the server does net support EDNS.
 			This will break communication with servers that
