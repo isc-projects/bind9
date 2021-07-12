@@ -21231,7 +21231,6 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			checkds->zone, ISC_LOG_DEBUG(3),
 			"checkds: dns_request_createvia() to %s failed: %s",
 			addrbuf, dns_result_totext(result));
-		goto cleanup;
 	}
 
 cleanup_key:
