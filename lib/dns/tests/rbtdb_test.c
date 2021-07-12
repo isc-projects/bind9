@@ -108,6 +108,7 @@ const char *ownercase_vectors[12][2] = {
 
 static bool
 ownercase_test_one(const char *str1, const char *str2) {
+	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
@@ -132,12 +133,14 @@ ownercase_test_one(const char *str1, const char *str2) {
 	name1 = dns_fixedname_initname(&fname1);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	name2 = dns_fixedname_initname(&fname2);
 	isc_buffer_constinit(&b, str2, strlen(str2));
 	isc_buffer_add(&b, strlen(str2));
-	dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Store the case from name1 */
 	dns_rdataset_setownercase(&rdataset, name1);
@@ -169,6 +172,7 @@ ownercase_test(void **state) {
 
 static void
 setownercase_test(void **state) {
+	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
@@ -197,12 +201,14 @@ setownercase_test(void **state) {
 	name1 = dns_fixedname_initname(&fname1);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	name2 = dns_fixedname_initname(&fname2);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(CASESET(&header));
 
