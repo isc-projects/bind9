@@ -106,7 +106,7 @@ static inline void *
 rallocx(void *ptr, size_t size, int flags) {
 	UNUSED(flags);
 
-	size_t *__ptr = realloc(&((size_t *)ptr)[-1], size);
+	size_t *__ptr = realloc(&((size_t *)ptr)[-1], size + sizeof(size_t));
 	REQUIRE(__ptr != NULL);
 	__ptr[0] = size;
 
