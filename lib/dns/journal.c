@@ -2042,6 +2042,14 @@ read_one_rr(dns_journal_t *j) {
 	ttl = isc_buffer_getuint32(&j->it.source);
 	rdlen = isc_buffer_getuint16(&j->it.source);
 
+	if (rdlen > DNS_RDATA_MAXLENGTH) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal corrupt: impossible rdlen "
+			      "(%u bytes)",
+			      j->filename, rdlen);
+		FAIL(ISC_R_FAILURE);
+	}
+
 	/*
 	 * Parse the rdata.
 	 */
@@ -2612,6 +2620,14 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			CHECK(result);
 
 			size = xhdr.size;
+			if (size > len) {
+				isc_log_write(JOURNAL_COMMON_LOGARGS,
+					      ISC_LOG_ERROR,
+					      "%s: journal file corrupt, "
+					      "transaction too large",
+					      j1->filename);
+				CHECK(ISC_R_FAILURE);
+			}
 			buf = isc_mem_get(mctx, size);
 			result = journal_read(j1, buf, size);
 
@@ -2636,6 +2652,15 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 				/* Check again */
 				isc_mem_put(mctx, buf, size);
 				size = xhdr.size;
+				if (size > len) {
+					isc_log_write(
+						JOURNAL_COMMON_LOGARGS,
+						ISC_LOG_ERROR,
+						"%s: journal file corrupt, "
+						"transaction too large",
+						j1->filename);
+					CHECK(ISC_R_FAILURE);
+				}
 				buf = isc_mem_get(mctx, size);
 				CHECK(journal_read(j1, buf, size));
 
