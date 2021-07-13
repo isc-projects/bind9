@@ -64,6 +64,12 @@ Feature Changes
   that incorrectly echo back the query message with the RCODE field
   set to FORMERR and the QR bit set to 1. :gl:`#2249`
 
+- CDS and CDNSKEY records may now be published in a zone without the
+  requirement that they exactly match an existing DNSKEY record, so long
+  the zone is signed with an algorithm represented in the CDS or CDNSKEY
+  record.  This allows a clean rollover from one DNS provider to another
+  when using a multiple-signer DNSSEC configuration. :gl:`#2710`
+
 Bug Fixes
 ~~~~~~~~~
 
