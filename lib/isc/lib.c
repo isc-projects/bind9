@@ -14,6 +14,7 @@
 #include <isc/bind9.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
+#include <isc/os.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 
@@ -45,6 +46,7 @@ isc__initialize(void) {
 	isc__mem_initialize();
 	isc__tls_initialize();
 	isc__trampoline_initialize();
+	(void)isc_os_ncpus();
 }
 
 void
