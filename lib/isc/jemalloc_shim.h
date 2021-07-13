@@ -13,6 +13,8 @@
 
 #if !defined(HAVE_JEMALLOC)
 
+#include <stddef.h>
+
 #include <isc/util.h>
 
 const char *malloc_conf = NULL;
@@ -76,41 +78,58 @@ sallocx(void *ptr, int flags) {
 
 #include <stdlib.h>
 
+typedef union {
+	size_t size;
+	max_align_t __alignment;
+} size_info;
+
 static inline void *
 mallocx(size_t size, int flags) {
+	void *ptr = NULL;
+
 	UNUSED(flags);
 
-	size_t *__ptr = malloc(size + sizeof(size_t));
-	REQUIRE(__ptr != NULL);
-	__ptr[0] = size;
+	size_info *si = malloc(size + sizeof(*si));
+	REQUIRE(si != NULL);
 
-	return (&__ptr[1]);
+	si->size = size;
+	ptr = &si[1];
+
+	return (ptr);
 }
 
 static inline void
 sdallocx(void *ptr, size_t size, int flags) {
+	size_info *si = &(((size_info *)ptr)[-1]);
+
 	UNUSED(size);
 	UNUSED(flags);
 
-	free(&((size_t *)ptr)[-1]);
+	free(si);
 }
 
 static inline size_t
 sallocx(void *ptr, int flags) {
+	size_info *si = &(((size_info *)ptr)[-1]);
+
 	UNUSED(flags);
 
-	return (((size_t *)ptr)[-1]);
+	return (si[0].size);
 }
 
 static inline void *
 rallocx(void *ptr, size_t size, int flags) {
+	size_info *si = &(((size_info *)ptr)[-1]);
+
 	UNUSED(flags);
 
-	size_t *__ptr = realloc(&((size_t *)ptr)[-1], size + sizeof(size_t));
-	REQUIRE(__ptr != NULL);
-	__ptr[0] = size;
+	si = realloc(si, size + sizeof(*si));
+	REQUIRE(si != NULL);
 
-	return (&__ptr[1]);
+	si->size = size;
+	ptr = &si[1];
+
+	return (ptr);
 }
 
 #endif /* defined(HAVE_MALLOC_SIZE) || defined (HAVE_MALLOC_USABLE_SIZE) */
