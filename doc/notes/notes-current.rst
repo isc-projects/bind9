@@ -68,3 +68,12 @@ Bug Fixes
 
 - Fix a race condition where two threads are competing for the same set of key
   file locks, that could lead to a deadlock. This has been fixed. :gl:`#2786`
+
+- Testing revealed that setting the thread affinity on both the netmgr
+  and netthread threads led to inconsistent recursive performance, as
+  sometimes the netmgr and netthread threads competed over a single
+  resource.
+
+  When the affinity is not set, tests show a slight dip in the authoritative
+  performance of around 5% (ranging from 3.8% to 7.8%), but
+  the recursive performance is now consistently improved. :gl:`#2822`

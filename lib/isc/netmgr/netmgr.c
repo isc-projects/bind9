@@ -722,7 +722,6 @@ nm_thread(isc_threadarg_t worker0) {
 	isc_nm_t *mgr = worker->mgr;
 
 	isc__nm_tid_v = worker->id;
-	isc_thread_setaffinity(isc__nm_tid_v);
 
 	while (true) {
 		/*
