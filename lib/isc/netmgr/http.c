@@ -1706,6 +1706,11 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		socket->h2.request_path = NULL;
 		return (ISC_HTTP_ERROR_NOT_FOUND);
 	}
+	/* The spec does not mention which value the query string for POST
+	 * should have. For GET we use its value to decode a DNS message
+	 * from it, for POST the message is transferred in the body of the
+	 * request. Taking it into account, it is much safer to treat POST
+	 * requests with query strings as malformed ones. */
 	if (qstr != NULL) {
 		const char *dns_value = NULL;
 		size_t dns_value_len = 0;
@@ -1734,6 +1739,9 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		} else {
 			return (ISC_HTTP_ERROR_BAD_REQUEST);
 		}
+	} else if (qstr == NULL && socket->h2.request_type == ISC_HTTP_REQ_GET)
+	{
+		return (ISC_HTTP_ERROR_BAD_REQUEST);
 	}
 	return (ISC_HTTP_ERROR_SUCCESS);
 }
