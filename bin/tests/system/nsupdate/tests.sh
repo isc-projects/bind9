@@ -52,6 +52,16 @@ while true; do
     fi
 done
 
+has_positive_response() {
+	zone=$1
+	type=$2
+	ns=$3
+	$DIG $DIGOPTS +tcp +norec $zone $type @$ns > dig.out.post.test$n || return 1
+	grep "status: NOERROR" dig.out.post.test$n > /dev/null || return 1
+	grep "ANSWER: 0," dig.out.post.test$n > /dev/null && return 1
+	return 0
+}
+
 ret=0
 echo_i "fetching first copy of zone before update"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
@@ -1225,6 +1235,75 @@ nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
 $DIG $DIGOPTS +tcp +norec example DS @10.53.0.3 > dig.out.post.test$n || ret=1
 grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that CDS with mismatched algorithm to DNSSEC multisigner zone is not allowed ($n)"
+$DIG $DIGOPTS +tcp +norec multisigner.test CDS @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.pre.test$n > /dev/null || ret=1
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone multisigner.test
+update add multisigner.test 3600 IN CDS 14364 14 2 FD03B2312C8F0FE72C1751EFA1007D743C94EC91594FF0047C23C37CE119BA0C
+send
+END
+msg=": bad CDS RRset"
+nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
+$DIG $DIGOPTS +tcp +norec multisigner.test CDS @10.53.0.3 > dig.out.post.test$n || ret=1
+grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that CDNSKEY with mismatched algorithm to DNSSEC multisigner zone is not allowed ($n)"
+$DIG $DIGOPTS +tcp +norec multisigner.test CDNSKEY @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.pre.test$n > /dev/null || ret=1
+nextpart ns3/named.run > /dev/null
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone multisigner.test
+update add multisigner.test 3600 IN CDNSKEY 257 3 14 d0NQ5PKmDz6P0B1WPMH9/UKRux/toSFwV2nTJYPA1Cx8pB0sJGTXbVhG U+6gye7VCHDhGIn9CjVfb2RJPW7GnQ==
+send
+END
+msg=": bad CDNSKEY RRset"
+nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
+$DIG $DIGOPTS +tcp +norec multisigner.test CDNSKEY @10.53.0.3 > dig.out.post.test$n || ret=1
+grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that CDS to DNSSEC multisigner zone is allowed ($n)"
+$DIG $DIGOPTS +tcp +norec multisigner.test CDS @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.pre.test$n > /dev/null || ret=1
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone multisigner.test
+update add multisigner.test 3600 IN CDS 14364 13 2 FD03B2312C8F0FE72C1751EFA1007D743C94EC91594FF0047C23C37CE119BA0C
+send
+END
+retry_quiet 5 has_positive_response multisigner.test CDS 10.53.0.3 || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that CDNSKEY to DNSSEC multisigner zone is allowed ($n)"
+$DIG $DIGOPTS +tcp +norec multisigner.test CDNSKEY @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.pre.test$n > /dev/null || ret=1
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone multisigner.test
+update add multisigner.test 3600 IN CDNSKEY 257 3 13 d0NQ5PKmDz6P0B1WPMH9/UKRux/toSFwV2nTJYPA1Cx8pB0sJGTXbVhG U+6gye7VCHDhGIn9CjVfb2RJPW7GnQ==
+send
+END
+retry_quiet 5 has_positive_response multisigner.test CDNSKEY 10.53.0.3 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=`expr $n + 1`
