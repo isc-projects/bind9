@@ -552,7 +552,12 @@ log_response(ns_client_t *client, dns_rcode_t rcode) {
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	char rcodebuf[20];
+	char onbuf[ISC_NETADDR_FORMATSIZE];
+	char ecsbuf[DNS_ECS_FORMATSIZE + sizeof(" [ECS ]") - 1] = { 0 };
+	char ednsbuf[sizeof("E(65535)")] = { 0 };
 	isc_buffer_t b;
+	uint16_t extflags;
+	unsigned int flags;
 	int level = ISC_LOG_INFO;
 
 	if (!isc_log_wouldlog(level))
@@ -564,10 +569,38 @@ log_response(ns_client_t *client, dns_rcode_t rcode) {
 	dns_rdatatype_format(client->query.qtype, typebuf, sizeof(typebuf));
 	isc_buffer_init(&b, rcodebuf, sizeof(rcodebuf));
 	dns_rcode_totext(rcode, &b);
+	isc_buffer_putuint8(&b, 0);
+	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
-	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY, level,
-		      "response: %s %s %s %.*s", namebuf, classbuf, typebuf,
-		      (int)isc_buffer_usedlength(&b), rcodebuf);
+	if (client->ednsversion >= 0) {
+		snprintf(ednsbuf, sizeof(ednsbuf), "E(%hd)",
+			 client->ednsversion);
+	}
+
+	if (HAVEECS(client)) {
+		strlcpy(ecsbuf, " [ECS ", sizeof(ecsbuf));
+		dns_ecs_format(&client->ecs, ecsbuf + 6, sizeof(ecsbuf) - 6);
+		strlcat(ecsbuf, "]", sizeof(ecsbuf));
+	}
+
+	extflags = client->extflags;
+	flags = client->message->flags;
+	ns_client_log(client, NS_LOGCATEGORY_RESPONSES, NS_LOGMODULE_QUERY,
+		      level,
+		      "response: %s %s %s %s %d %d %d %s%s%s%s%s%s%s (%s)%s",
+		      namebuf, classbuf, typebuf, rcodebuf,
+		      client->message->counts[DNS_SECTION_ANSWER],
+		      client->message->counts[DNS_SECTION_AUTHORITY],
+		      client->message->counts[DNS_SECTION_ADDITIONAL],
+		      RECURSIONOK(client) ? "+" : "-",
+		      (client->signer != NULL) ? "S" : "", ednsbuf,
+		      TCP(client) ? "T" : "",
+		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
+		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
+		      HAVECOOKIE(client)   ? "V"
+		      : WANTCOOKIE(client) ? "K"
+					   : "",
+		      onbuf, ecsbuf);
 }
 
 static void
@@ -599,12 +632,12 @@ query_send(ns_client_t *client) {
 		counter = ns_statscounter_failure;
 	}
 
+	inc_stats(client, counter);
+	ns_client_send(client);
+
 	if ((client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0) {
 		log_response(client, client->message->rcode);
 	}
-
-	inc_stats(client, counter);
-	ns_client_send(client);
 
 	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
@@ -636,13 +669,13 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 
 	log_queryerror(client, result, line, loglevel);
 
+	ns_client_error(client, result);
+
 	if (client->query.origqname != NULL &&
 	    (client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0)
 	{
 		log_response(client, rcode);
 	}
-
-	ns_client_error(client, result);
 
 	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
