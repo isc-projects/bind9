@@ -21787,7 +21787,6 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t dnskey, cds, cdnskey;
-	unsigned char buffer[DNS_DS_BUFFERSIZE];
 	unsigned char algorithms[256];
 	unsigned int i;
 	bool empty = false;
@@ -21872,16 +21871,14 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			     result = dns_rdataset_next(&dnskey))
 			{
 				dns_rdata_t rdata = DNS_RDATA_INIT;
-				dns_rdata_t dsrdata = DNS_RDATA_INIT;
+				dns_rdata_dnskey_t structdnskey;
 
 				dns_rdataset_current(&dnskey, &rdata);
-				CHECK(dns_ds_buildrdata(&zone->origin, &rdata,
-							structcds.digest_type,
-							buffer, &dsrdata));
-				if (crdata.length == dsrdata.length &&
-				    memcmp(crdata.data, dsrdata.data,
-					   dsrdata.length) == 0)
-				{
+				CHECK(dns_rdata_tostruct(&rdata, &structdnskey,
+							 NULL));
+
+				if (structdnskey.algorithm ==
+				    structcds.algorithm) {
 					algorithms[structcds.algorithm] = found;
 				}
 			}
@@ -21946,12 +21943,14 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			     result = dns_rdataset_next(&dnskey))
 			{
 				dns_rdata_t rdata = DNS_RDATA_INIT;
+				dns_rdata_dnskey_t structdnskey;
 
 				dns_rdataset_current(&dnskey, &rdata);
-				if (crdata.length == rdata.length &&
-				    memcmp(crdata.data, rdata.data,
-					   rdata.length) == 0)
-				{
+				CHECK(dns_rdata_tostruct(&rdata, &structdnskey,
+							 NULL));
+
+				if (structdnskey.algorithm ==
+				    structcdnskey.algorithm) {
 					algorithms[structcdnskey.algorithm] =
 						found;
 				}
