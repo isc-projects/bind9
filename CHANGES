@@ -1,4 +1,8 @@
+5680.	[bug]		Fix a crash in DoH code caused by GET requests without
+			query strings. [GL !5268]
+
 5679.	[bug]		Disable setting the thread affinity. [GL #2822]
+
 
 5678.	[bug]		The "check DS" code failed to release all resources upon
 			named shutdown when a refresh was in progress. This has
