@@ -238,5 +238,42 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+echo_i "Check that 'zone-statistics full;' is processed by 'rndc reconfig' ($n)"
+ret=0
+# off by default
+rm -f ns2/named.stats
+$RNDCCMD -s 10.53.0.2 stats 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+cp ns2/named.stats ns2/named.stats-stage1-$n
+sed -n '/Per Zone Query Statistics/,/^++/p' ns2/named.stats-stage1-$n | grep -F '[example]' > /dev/null && ret=0
+# turn on
+copy_setports ns2/named2.conf.in ns2/named.conf
+rndc_reconfig ns2 10.53.0.2
+rm -f ns2/named.stats
+$RNDCCMD -s 10.53.0.2 stats 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+cp ns2/named.stats ns2/named.stats-stage2-$n
+sed -n '/Per Zone Query Statistics/,/^++/p' ns2/named.stats-stage2-$n | grep -F '[example]' > /dev/null || ret=1
+# turn off
+copy_setports ns2/named.conf.in ns2/named.conf
+rndc_reconfig ns2 10.53.0.2
+rm -f ns2/named.stats
+$RNDCCMD -s 10.53.0.2 stats 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+cp ns2/named.stats ns2/named.stats-stage3-$n
+sed -n '/Per Zone Query Statistics/,/^++/p' ns2/named.stats-stage3-$n | grep -F '[example]' > /dev/null && ret=0
+# turn on
+copy_setports ns2/named2.conf.in ns2/named.conf
+rndc_reconfig ns2 10.53.0.2
+rm -f ns2/named.stats
+$RNDCCMD -s 10.53.0.2 stats 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+cp ns2/named.stats ns2/named.stats-stage4-$n
+sed -n '/Per Zone Query Statistics/,/^++/p' ns2/named.stats-stage4-$n | grep -F '[example]' > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
