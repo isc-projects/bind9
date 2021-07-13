@@ -31,7 +31,6 @@
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
-#include <isc/rwlock.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/thread.h>
@@ -783,6 +782,16 @@ typedef struct isc_nm_httpcbarg {
 	LINK(struct isc_nm_httpcbarg) link;
 } isc_nm_httpcbarg_t;
 
+struct isc_nm_http_endpoints {
+	isc_mem_t *mctx;
+
+	ISC_LIST(isc_nm_httphandler_t) handlers;
+	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
+
+	isc_refcount_t references;
+	atomic_bool in_use;
+};
+
 typedef struct isc_nmsocket_h2 {
 	isc_nmsocket_t *psock; /* owner of the structure */
 	char *request_path;
@@ -816,9 +825,7 @@ typedef struct isc_nmsocket_h2 {
 	void *cbarg;
 	LINK(struct isc_nmsocket_h2) link;
 
-	ISC_LIST(isc_nm_httphandler_t) handlers;
-	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
-	isc_rwlock_t lock;
+	isc_nm_http_endpoints_t *listener_endpoints;
 
 	bool response_submitted;
 	struct {

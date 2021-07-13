@@ -286,15 +286,19 @@ run(void) {
 	case HTTPS:
 	case HTTP: {
 		bool is_https = protocol == HTTPS;
+		isc_nm_http_endpoints_t *eps = NULL;
 		if (is_https) {
 			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 		}
-		result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL, tls_ctx,
-					   0, &sock);
+		eps = isc_nm_http_endpoints_new(mctx);
+		result = isc_nm_http_endpoints_add(eps, DEFAULT_DOH_PATH,
+						   read_cb, NULL, 0);
+
 		if (result == ISC_R_SUCCESS) {
-			result = isc_nm_http_endpoint(sock, DEFAULT_DOH_PATH,
-						      read_cb, NULL, 0);
+			result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL,
+						   tls_ctx, eps, 0, &sock);
 		}
+		isc_nm_http_endpoints_detach(&eps);
 	} break;
 #endif
 	default:

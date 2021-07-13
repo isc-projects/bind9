@@ -499,11 +499,56 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 		  isc_quota_t *quota, isc_tlsctx_t *ctx,
-		  uint32_t max_concurrent_streams, isc_nmsocket_t **sockp);
+		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
+		  isc_nmsocket_t **sockp);
+
+isc_nm_http_endpoints_t *
+isc_nm_http_endpoints_new(isc_mem_t *mctx);
+/*%<
+ * Create a new, empty HTTP endpoints set object.
+ *
+ * Requires:
+ * \li 'mctx' a valid memory context object.
+ */
 
 isc_result_t
-isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
-		     void *cbarg, size_t extrahandlesize);
+isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
+			  const char *uri, const isc_nm_recv_cb_t cb,
+			  void *cbarg, const size_t extrahandlesize);
+/*%< Adds a new endpoint to the given HTTP endpoints set object.
+ *
+ * NOTE: adding an endpoint is allowed only if the endpoint object has
+ * not been passed to isc_nm_listenhttp() yet.
+ *
+ * Requires:
+ * \li 'eps' is a valid pointer to a valid isc_nm_http_endpoints_t
+ * object;
+ * \li 'uri' is a valid pointer to a string of length > 0;
+ * \li 'cb' is a valid pointer to a read callback function.
+ */
+
+void
+isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t * source,
+			     isc_nm_http_endpoints_t **targetp);
+/*%<
+ * Attaches to an HTTP endpoints set object.
+ *
+ * Requires:
+ * \li 'source' is a non-NULL pointer to a valid
+ * isc_nm_http_endpoints_t object;
+ * \li 'target' is a pointer to a pointer, containing NULL.
+ */
+
+void
+isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp);
+/*%<
+ * Detaches from an HTTP endpoints set object. When reference count
+ * reaches 0, the object get deleted.
+ *
+ * Requires:
+ * \li 'epsp' is a pointer to a pointer to a valid
+ * isc_nm_http_endpoints_t object.
+ */
 
 bool
 isc_nm_is_http_handle(isc_nmhandle_t *handle);
