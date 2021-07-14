@@ -16,3 +16,4 @@ rm -f nslookup.out.test*
 rm -f */named.memstats
 rm -f */named.run
 rm -f */named.conf
+rm -f ./nsupdate.out.test*
