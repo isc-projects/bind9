@@ -1,3 +1,6 @@
+5682.	[bug]		Not all changes to zone-statistics settings were
+			properly processed. [GL #2820]
+
 5681.	[func]		Relax the "zone_cdscheck" function to allow CDS and
 			CDNSKEY records in the zone that do not match an
 			existing DNSKEY record, so long as the algorithm
