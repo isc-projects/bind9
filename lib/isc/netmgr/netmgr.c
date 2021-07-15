@@ -2286,16 +2286,24 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 
 void
 isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
-	REQUIRE(VALID_NMHANDLE(handle));
+	isc_nmsocket_t *sock = NULL;
 
-	switch (handle->sock->type) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
-		isc__nm_tcpdns_keepalive(handle, value);
-		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_keepalive(handle, value);
+		atomic_store(&sock->keepalive, value);
+		sock->read_timeout = value ? atomic_load(&sock->mgr->keepalive)
+					   : atomic_load(&sock->mgr->idle);
 		break;
 	default:
+		/*
+		 * For any other protocol, this is a no-op.
+		 */
 		return;
 	}
 }

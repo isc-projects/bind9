@@ -1332,15 +1332,6 @@ isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
  * Stop reading on a connected TCPDNS handle.
  */
 
-void
-isc__nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value);
-/*%<
- * Enable/disable keepalive on this connection by setting it to 'value'.
- *
- * When keepalive is active, we switch to using the keepalive timeout
- * to determine when to close a connection, rather than the idle timeout.
- */
-
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
 isc_result_t
