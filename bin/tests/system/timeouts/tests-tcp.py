@@ -24,7 +24,6 @@ def create_msg(qname, qtype):
     import dns.message
     msg = dns.message.make_query(qname, qtype, want_dnssec=True,
                                  use_edns=0, payload=4096)
-
     return msg
 
 
@@ -59,7 +58,7 @@ def test_initial_timeout(port):
 @pytest.mark.dnspython2
 def test_idle_timeout(port):
     #
-    # The idle timeout is 5 second, so sending the second message must fail
+    # The idle timeout is 5 seconds, so the third message should fail
     #
     import dns.rcode
 
@@ -72,7 +71,7 @@ def test_idle_timeout(port):
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
         (response, rtime) = dns.query.receive_tcp(sock, timeout())
 
-        time.sleep(3)
+        time.sleep(2)
 
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
         (response, rtime) = dns.query.receive_tcp(sock, timeout())
@@ -85,6 +84,37 @@ def test_idle_timeout(port):
                 (response, rtime) = dns.query.receive_tcp(sock, timeout())
             except ConnectionResetError as e:
                 raise EOFError from e
+
+
+@pytest.mark.dnspython
+@pytest.mark.dnspython2
+def test_keepalive_timeout(port):
+    #
+    # Keepalive is 7 seconds, so the third message should succeed.
+    #
+    import dns.rcode
+
+    msg = create_msg("example.", "A")
+    kopt = dns.edns.GenericOption(11, b'\x00')
+    msg.use_edns(edns=True, payload=4096, options=[kopt])
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect(("10.53.0.1", port))
+
+        time.sleep(1)
+
+        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+
+        time.sleep(2)
+
+        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+
+        time.sleep(6)
+
+        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        (response, rtime) = dns.query.receive_tcp(sock, timeout())
 
 
 @pytest.mark.dnspython
