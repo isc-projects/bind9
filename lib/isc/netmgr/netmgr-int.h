@@ -1518,15 +1518,6 @@ isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
  */
 
 void
-isc__nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value);
-/*%<
- * Enable/disable keepalive on this connection by setting it to 'value'.
- *
- * When keepalive is active, we switch to using the keepalive timeout
- * to determine when to close a connection, rather than the idle timeout.
- */
-
-void
 isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 
@@ -1562,15 +1553,6 @@ void
 isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
 /*%<
  * Stop reading on a connected TLSDNS handle.
- */
-
-void
-isc__nm_tlsdns_keepalive(isc_nmhandle_t *handle, bool value);
-/*%<
- * Enable/disable keepalive on this connection by setting it to 'value'.
- *
- * When keepalive is active, we switch to using the keepalive timeout
- * to determine when to close a connection, rather than the idle timeout.
  */
 
 void
@@ -1648,6 +1630,12 @@ isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
  */
 
 void
+isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value);
+/*%<
+ * Set the keepalive value on the underlying TCP handle.
+ */
+
+void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
 
 void
@@ -1658,6 +1646,12 @@ isc__nm_http_cleartimeout(isc_nmhandle_t *handle);
  * Set the read timeout and reset the timer for the socket
  * associated with 'handle', and the TLS/TCP socket it wraps
  * around.
+ */
+
+void
+isc__nmhandle_http_keepalive(isc_nmhandle_t *handle, bool value);
+/*%<
+ * Set the keepalive value on the underlying session handle
  */
 
 void

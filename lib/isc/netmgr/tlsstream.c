@@ -1043,3 +1043,19 @@ isc__nm_tls_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 		isc_nmhandle_settimeout(sock->outerhandle, timeout);
 	}
 }
+
+void
+isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlssocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+
+		isc_nmhandle_keepalive(sock->outerhandle, value);
+	}
+}
