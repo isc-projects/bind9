@@ -1166,7 +1166,6 @@ unit:clang:freebsd12:amd64:
 clang:freebsd13:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT}"
     USER: gitlab-runner
   <<: *freebsd_13_amd64_image
   <<: *build_job
