@@ -3351,26 +3351,6 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that a lone non matching CDS record is rejected ($n)"
-ret=0
-(
-echo zone cds-update.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cds-update.secure CDS
-dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
-grep "DNSKEY.257" | sed 's/DNSKEY.257/DNSKEY 258/' |
-$DSFROMKEY -C -A -f - -T 1 cds-update.secure |
-sed "s/^/update add /"
-echo send
-) | $NSUPDATE > nsupdate.out.test$n 2>&1 || true
-grep "update failed: REFUSED" nsupdate.out.test$n > /dev/null || ret=1
-dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
-lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
-test "${lines:-10}" -eq 0 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
 echo_i "check that a CDS deletion record is accepted ($n)"
 ret=0
 (
@@ -3583,25 +3563,6 @@ status=$((status+ret))
 # algorithm, apply a fixed rrset order such that the unsupported algorithm
 # precedes the supported one in the DNSKEY RRset, and verify the result still
 # validates succesfully.
-
-echo_i "check that a lone non matching CDNSKEY record is rejected ($n)"
-ret=0
-(
-echo zone cdnskey-update.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cdnskey-update.secure CDNSKEY
-echo send
-dig_with_opts +noall +answer @10.53.0.2 dnskey cdnskey-update.secure |
-sed -n -e "s/^/update add /" -e 's/DNSKEY.257/CDNSKEY 258/p'
-echo send
-) | $NSUPDATE > nsupdate.out.test$n 2>&1 || true
-grep "update failed: REFUSED" nsupdate.out.test$n > /dev/null || ret=1
-dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
-lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "${lines:-10}" -eq 0 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
 
 echo_i "check that a CDNSKEY deletion record is accepted ($n)"
 ret=0

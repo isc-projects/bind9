@@ -1,3 +1,10 @@
+5681.	[func]		Relax the "zone_cdscheck" function to allow CDS and
+			CDNSKEY records in the zone that do not match an
+			existing DNSKEY record, so long as the algorithm
+			does match. This allows a clean rollover from one
+			provider to another in a multi-signer DNSSEC
+			configuration. [GL #2710].
+
 5679.	[bug]		Disable setting the thread affinity. [GL #2822]
 
 5678.	[bug]		The "check DS" code failed to release all resources upon
