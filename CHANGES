@@ -1,3 +1,6 @@
+5683.	[func]		The configuration checking code now verifies
+			HTTP paths. [GL !5231]
+
 5682.	[bug]		Not all changes to zone-statistics settings were
 			properly processed. [GL #2820]
 

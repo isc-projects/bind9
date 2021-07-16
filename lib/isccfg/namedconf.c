@@ -90,7 +90,7 @@ static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
 static cfg_type_t cfg_type_bracketed_netaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
-static cfg_type_t cfg_type_bracketed_qstring_list;
+static cfg_type_t cfg_type_bracketed_http_endpoint_list;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
@@ -3891,15 +3891,17 @@ static cfg_type_t cfg_type_optional_tls = {
 
 /* http and https */
 
-static cfg_type_t cfg_type_bracketed_qstring_list = { "bracketed_qstring_list",
-						      cfg_parse_bracketed_list,
-						      cfg_print_bracketed_list,
-						      cfg_doc_bracketed_list,
-						      &cfg_rep_list,
-						      &cfg_type_qstring };
+static cfg_type_t cfg_type_bracketed_http_endpoint_list = {
+	"bracketed_http_endpoint_list",
+	cfg_parse_bracketed_list,
+	cfg_print_bracketed_list,
+	cfg_doc_bracketed_list,
+	&cfg_rep_list,
+	&cfg_type_qstring
+};
 
 static cfg_clausedef_t cfg_http_description_clauses[] = {
-	{ "endpoints", &cfg_type_bracketed_qstring_list, 0 }, { NULL, NULL, 0 }
+	{ "endpoints", &cfg_type_bracketed_http_endpoint_list, 0 },
 };
 
 static cfg_clausedef_t *http_description_clausesets[] = {

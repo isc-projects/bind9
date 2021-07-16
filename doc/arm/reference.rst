@@ -4766,10 +4766,11 @@ cause ``named`` to listen for incoming requests over HTTPS.
 The following options can be specified in an ``http`` statement:
 
   ``endpoints``
-    A list of HTTP query paths on which to listen. A typical path
-    is "/dns-query".
+    A list of HTTP query paths on which to listen. This is the portion
+    of an :rfc:`3986`-compliant URI following the hostname; it must be
+    an absolute path, beginning with "/".  A typical endpoint is "/dns-query".
 
-for example, the following configuration enables DNS-over-HTTPS queries on
+For example, the following configuration enables DNS-over-HTTPS queries on
 all local addresses:
 
 ::
