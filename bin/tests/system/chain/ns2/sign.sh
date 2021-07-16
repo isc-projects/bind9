@@ -19,6 +19,14 @@ ksk=`$KEYGEN -q -a RSASHA256 -b 2048 -fk $zone`
 zsk=`$KEYGEN -q -a RSASHA256 -b 1024 $zone`
 $SIGNER -S -o $zone -f $signedfile $zonefile > /dev/null
 
+zone=wildcard-secure.example.
+zonefile=wildcard-secure.db
+signedfile=wildcard-secure.example.db.signed
+
+ksk=`$KEYGEN -q -a RSASHA256 -b 2048 -fk $zone`
+zsk=`$KEYGEN -q -a RSASHA256 -b 1024 $zone`
+$SIGNER -S -o $zone -f $signedfile $zonefile > /dev/null
+
 zone=wildcard-nsec.example.
 zonefile=wildcard.db
 signedfile=wildcard-nsec.example.db.signed
