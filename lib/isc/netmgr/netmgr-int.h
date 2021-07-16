@@ -314,15 +314,6 @@ typedef union {
 	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
 
-typedef struct isc_nm_httphandler isc_nm_httphandler_t;
-struct isc_nm_httphandler {
-	char *path;
-	isc_nm_recv_cb_t cb;
-	void *cbarg;
-	size_t extrahandlesize;
-	LINK(isc_nm_httphandler_t) link;
-};
-
 /*
  * Wrapper around uv_req_t with 'our' fields in it.  req->data should
  * always point to its parent.  Note that we always allocate more than
@@ -755,6 +746,7 @@ enum {
 	STATID_ACTIVE = 10
 };
 
+#if HAVE_LIBNGHTTP2
 typedef struct isc_nmsocket_tls_send_req {
 	isc_nmsocket_t *tlssock;
 	isc_region_t data;
@@ -781,6 +773,14 @@ typedef struct isc_nm_httpcbarg {
 	void *cbarg;
 	LINK(struct isc_nm_httpcbarg) link;
 } isc_nm_httpcbarg_t;
+
+typedef struct isc_nm_httphandler {
+	char *path;
+	isc_nm_recv_cb_t cb;
+	void *cbarg;
+	size_t extrahandlesize;
+	LINK(struct isc_nm_httphandler) link;
+} isc_nm_httphandler_t;
 
 struct isc_nm_http_endpoints {
 	isc_mem_t *mctx;
@@ -836,6 +836,7 @@ typedef struct isc_nmsocket_h2 {
 		void *cstream;
 	} connect;
 } isc_nmsocket_h2_t;
+#endif /* HAVE_LIBNGHTTP2 */
 
 typedef void (*isc_nm_closehandlecb_t)(void *arg);
 /*%<
@@ -882,6 +883,7 @@ struct isc_nmsocket {
 		isc__nm_uvreq_t *pending_req;
 	} tls;
 
+#if HAVE_LIBNGHTTP2
 	/*% TLS stuff */
 	struct tlsstream {
 		bool server;
@@ -902,6 +904,7 @@ struct isc_nmsocket {
 	} tlsstream;
 
 	isc_nmsocket_h2_t h2;
+#endif /* HAVE_LIBNGHTTP2 */
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the

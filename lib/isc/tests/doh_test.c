@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
+#if defined(HAVE_CMOCKA) && defined(HAVE_LIBNGHTTP2)
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -2192,7 +2192,11 @@ main(void) {
 
 int
 main(void) {
+#if HAVE_LIBNGHTTP2
 	printf("1..0 # Skipped: cmocka not available\n");
+#else
+	printf("1..0 # Skipped: libnghttp2 is not available\n");
+#endif
 	return (SKIPPED_TEST_EXIT_CODE);
 }
 
