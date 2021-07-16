@@ -225,22 +225,22 @@ stages:
     untracked: true
     expire_in: "1 day"
 
-.configure: &configure |
-    ${CONFIGURE} \
-    --enable-developer \
-    --with-randomdev=/dev/urandom \
-    --with-libtool \
-    --with-geoip2=auto \
-    --disable-static \
-    --enable-option-checking=fatal \
-    --enable-dnstap \
-    --with-cmocka \
-    --with-libxml2 \
-    --with-libjson \
-    --prefix=/usr/local \
-    --without-make-clean \
-    $EXTRA_CONFIGURE \
-    || (test -s config.log && cat config.log; exit 1)
+.configure: &configure
+    - ${CONFIGURE}
+      --enable-developer
+      --with-randomdev=/dev/urandom
+      --with-libtool
+      --with-geoip2=auto
+      --disable-static
+      --enable-option-checking=fatal
+      --enable-dnstap
+      --with-cmocka
+      --with-libxml2
+      --with-libjson
+      --prefix=/usr/local
+      --without-make-clean
+      $EXTRA_CONFIGURE
+      || (test -s config.log && cat config.log; exit 1)
 
 .build: &build_job
   <<: *default_triggering_rules
@@ -287,16 +287,16 @@ stages:
     untracked: true
     expire_in: "1 day"
 
-.setup_interfaces: &setup_interfaces |
-    if [ "$(id -u)" -eq "0" ]; then
-      sh -x bin/tests/system/ifconfig.sh up;
-    else
-      sudo sh -x bin/tests/system/ifconfig.sh up;
-    fi
+.setup_interfaces: &setup_interfaces
+    - if [ "$(id -u)" -eq "0" ]; then
+        sh -x bin/tests/system/ifconfig.sh up;
+      else
+        sudo sh -x bin/tests/system/ifconfig.sh up;
+      fi
 
-.setup_softhsm: &setup_softhsm |
-    export SLOT=$(sh -x bin/tests/prepare-softhsm2.sh)
-    test -n "${SLOT}" && test "${SLOT}" -gt 0
+.setup_softhsm: &setup_softhsm
+    - export SLOT=$(sh -x bin/tests/prepare-softhsm2.sh)
+    - test -n "${SLOT}" && test "${SLOT}" -gt 0
 
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
@@ -333,12 +333,12 @@ stages:
     untracked: true
     when: on_failure
 
-.kyua_report: &kyua_report_html |
-  kyua --logfile /dev/null report-html \
-       --force \
-       --results-file "$KYUA_RESULT" \
-       --results-filter "" \
-       --output kyua_html > /dev/null
+.kyua_report: &kyua_report_html
+  - kyua --logfile /dev/null report-html
+         --force
+         --results-file "$KYUA_RESULT"
+         --results-filter ""
+         --output kyua_html > /dev/null
 
 .windows_system_test: &windows_system_test_job
   <<: *schedules_tags_web_triggering_rules
@@ -398,11 +398,11 @@ stages:
       - kyua_html/
     when: on_failure
 
-.cppcheck_args: &run_cppcheck |
-  cppcheck --enable=warning,performance,portability,information,missingInclude --include=config.h --std=c11 --language=c --project=compile_commands.json --error-exitcode=2 -j ${TEST_PARALLEL_JOBS:-1} --xml --output-file=cppcheck.results --relative-paths="$CI_PROJECT_DIR" --inline-suppr --suppressions-list=util/suppressions.txt
+.cppcheck_args: &run_cppcheck
+  - cppcheck --enable=warning,performance,portability,information,missingInclude --include=config.h --std=c11 --language=c --project=compile_commands.json --error-exitcode=2 -j ${TEST_PARALLEL_JOBS:-1} --xml --output-file=cppcheck.results --relative-paths="$CI_PROJECT_DIR" --inline-suppr --suppressions-list=util/suppressions.txt
 
-.cppcheck_report: &cppcheck_report_html |
-  cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" --file=cppcheck.results --report-dir=cppcheck_html/
+.cppcheck_report: &cppcheck_report_html
+  - cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" --file=cppcheck.results --report-dir=cppcheck_html/
 
 .cppcheck: &cppcheck_job
   <<: *default_triggering_rules
@@ -731,13 +731,12 @@ unit:gcc:buster:amd64:
 
 # Jobs for scan-build builds on Debian Buster (amd64)
 
-.scan_build: &scan_build |
-  ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)" \
-                --keep-cc \
-                --status-bugs \
-                --keep-going \
-                -o scan-build.reports \
-                make -j${BUILD_PARALLEL_JOBS:-1} all V=1
+.scan_build: &scan_build
+  - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
+                  --keep-cc
+                  --status-bugs
+                  --keep-going
+                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} all V=1
 
 scan-build:
   <<: *default_triggering_rules
@@ -1387,31 +1386,31 @@ release:
 
 # Coverity Scan analysis upload
 
-.coverity_cache_prep: &coverity_cache_prep |
-  test -f cov-analysis-linux64.md5 && test -f cov-analysis-linux64.tgz || (
-  curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64 \
-       --form project=$COVERITY_SCAN_PROJECT_NAME \
-       --form token=$COVERITY_SCAN_TOKEN \
-       --form md5=1
-  curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64 \
-       --form project=$COVERITY_SCAN_PROJECT_NAME \
-       --form token=$COVERITY_SCAN_TOKEN
-  )
-  test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
-  tar --extract --gzip --file=cov-analysis-linux64.tgz
-  test -d cov-analysis-linux64-2020.09
+.coverity_cache_prep: &coverity_cache_prep
+  - test -f cov-analysis-linux64.md5 && test -f cov-analysis-linux64.tgz || (
+    curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64
+         --form project=$COVERITY_SCAN_PROJECT_NAME
+         --form token=$COVERITY_SCAN_TOKEN
+         --form md5=1;
+    curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64
+         --form project=$COVERITY_SCAN_PROJECT_NAME
+         --form token=$COVERITY_SCAN_TOKEN;
+    )
+  - test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
+  - tar --extract --gzip --file=cov-analysis-linux64.tgz
+  - test -d cov-analysis-linux64-2020.09
 
-.coverity_build: &coverity_build |
-  cov-analysis-linux64-2020.09/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
-  tar --create --gzip --file=cov-int.tar.gz cov-int/
-  curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME \
-       --form token=$COVERITY_SCAN_TOKEN \
-       --form email=bind-changes@isc.org \
-       --form file=@cov-int.tar.gz \
-       --form version="$(git rev-parse --short HEAD)" \
-       --form description="$(git rev-parse --short HEAD) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID" 2>&1 \
-       | tee curl-response.txt
-  grep -q 'Build successfully submitted' curl-response.txt
+.coverity_build: &coverity_build
+  - cov-analysis-linux64-2020.09/bin/cov-build --dir cov-int sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
+  - tar --create --gzip --file=cov-int.tar.gz cov-int/
+  - curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME
+        --form token=$COVERITY_SCAN_TOKEN
+        --form email=bind-changes@isc.org
+        --form file=@cov-int.tar.gz
+        --form version="$(git rev-parse --short HEAD)"
+        --form description="$(git rev-parse --short HEAD) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID" 2>&1
+        | tee curl-response.txt
+  - grep -q 'Build successfully submitted' curl-response.txt
 
 coverity:
   <<: *base_image
