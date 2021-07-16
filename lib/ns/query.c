@@ -8413,7 +8413,7 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * Add a DS if needed.
+	 * Add DS/NSEC(3) record(s) if needed.
 	 */
 	query_addds(qctx);
 
@@ -8671,7 +8671,7 @@ cleanup:
 }
 
 /*%
- * Add a DS record if needed.
+ * Add DS/NSEC(3) record(s) if needed.
  */
 static void
 query_addds(query_ctx_t *qctx) {
@@ -8757,7 +8757,7 @@ query_addds(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * Add the NSEC record to the delegation.
+	 * Add the relevant RRset (DS or NSEC) to the delegation.
 	 */
 	query_addrrset(qctx, &rname, &rdataset, &sigrdataset, NULL,
 		       DNS_SECTION_AUTHORITY);
