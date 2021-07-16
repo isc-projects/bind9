@@ -68,3 +68,15 @@ zone "step1.csk-algorithm-roll.kasp" {
 	file "step1.csk-algorithm-roll.kasp.db";
 	dnssec-policy "csk-algoroll";
 };
+
+dnssec-policy "modified" {
+	keys {
+		csk lifetime unlimited algorithm rsasha256 2048;
+	};
+};
+
+zone example {
+	type primary;
+	dnssec-policy modified;
+	file "example.db";
+};
