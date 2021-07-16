@@ -119,13 +119,44 @@ ensure_no_ds_in_bitmap() {
 }
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using CNAME chaining, NSEC ($n)"
+echo_i "checking secure delegation prepared using CNAME chaining ($n)"
+ret=0
+# QNAME exists, so the AUTHORITY section should only contain an NS RRset and a
+# DS RRset.
+$DIG $DIGOPTS @10.53.0.2 cname.wildcard-secure.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains the expected NS and DS RRsets.
+exactly_one_record_exists_for "delegation.wildcard-secure.example." NS dig.out.2.$n || ret=1
+exactly_one_record_exists_for "delegation.wildcard-secure.example." DS dig.out.2.$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking secure delegation prepared using wildcard expansion + CNAME chaining ($n)"
+ret=0
+# QNAME does not exist, so the AUTHORITY section should contain an NS RRset, an
+# NSEC record proving nonexistence of QNAME, and a DS RRset at the zone cut.
+$DIG $DIGOPTS @10.53.0.2 a-nonexistent-name.wildcard-secure.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains the expected NS and DS RRsets.
+exactly_one_record_exists_for "delegation.wildcard-secure.example." NS dig.out.2.$n || ret=1
+exactly_one_record_exists_for "delegation.wildcard-secure.example." DS dig.out.2.$n || ret=1
+# Check NSEC records in the AUTHORITY section.
+no_records_exist_for "wildcard-secure.example." NSEC dig.out.2.$n || ret=1
+exactly_one_record_exists_for "*.wildcard-secure.example." NSEC dig.out.2.$n || ret=1
+no_records_exist_for "cname.wildcard-secure.example." NSEC dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-secure.example." NSEC dig.out.2.$n || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking insecure delegation prepared using CNAME chaining, NSEC ($n)"
 ret=0
 # QNAME exists, so the AUTHORITY section should only contain an NS RRset and a
 # single NSEC record proving nonexistence of a DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec.example." DS dig.out.2.$n || ret=1
 # Check NSEC records in the AUTHORITY section.
 no_records_exist_for "wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
 no_records_exist_for "*.wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
@@ -138,14 +169,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC, QNAME #1 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC, QNAME #1 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, these two NSEC records are different.
-$DIG $DIGOPTS @10.53.0.2 a-nonexistent-name.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 a-nonexistent-name.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec.example." DS dig.out.2.$n || ret=1
 # Check NSEC records in the AUTHORITY section.
 no_records_exist_for "wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
 exactly_one_record_exists_for "*.wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
@@ -158,15 +191,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC, QNAME #2 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC, QNAME #2 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, the same NSEC record proves nonexistence of both the
 # QNAME and the DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec.example." DS dig.out.2.$n || ret=1
 # Check NSEC records in the AUTHORITY section.
 no_records_exist_for "wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
 no_records_exist_for "*.wildcard-nsec.example." NSEC dig.out.2.$n || ret=1
@@ -199,13 +234,15 @@ status=`expr $status + $ret`
 #       SG2DEHEAOGCKP7FTNQAUVC3I3TIPJH0J (salt=-, hash=1, iterations=0)
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using CNAME chaining, NSEC3 ($n)"
+echo_i "checking insecure delegation prepared using CNAME chaining, NSEC3 ($n)"
 ret=0
 # QNAME exists, so the AUTHORITY section should only contain an NS RRset and a
 # single NSEC3 record proving nonexistence of a DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 no_records_exist_for "38IVP9CN0LBISO6H3V5REQCKMTHLI5AN.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "3DV6GNNVR0O8LA4DC4CHL2JTVNHT8Q1D.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
@@ -218,14 +255,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC3, QNAME #1 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC3, QNAME #1 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC3 records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, these two NSEC3 records are different.
-$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 no_records_exist_for "38IVP9CN0LBISO6H3V5REQCKMTHLI5AN.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "3DV6GNNVR0O8LA4DC4CHL2JTVNHT8Q1D.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
@@ -238,15 +277,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC3, QNAME #2 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC3, QNAME #2 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC3 records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, the same NSEC3 record proves nonexistence of both the
 # QNAME and the DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 a-nonexistent-name.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 a-nonexistent-name.wildcard-nsec3.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 no_records_exist_for "38IVP9CN0LBISO6H3V5REQCKMTHLI5AN.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "3DV6GNNVR0O8LA4DC4CHL2JTVNHT8Q1D.wildcard-nsec3.example." NSEC3 dig.out.2.$n || ret=1
@@ -282,13 +323,15 @@ status=`expr $status + $ret`
 #       V7OTS4791T9SU0HKVL93EVNAJ9JH2CH3 (salt=-, hash=1, iterations=0)
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using CNAME chaining, NSEC3 with opt-out ($n)"
+echo_i "checking insecure delegation prepared using CNAME chaining, NSEC3 with opt-out ($n)"
 ret=0
 # QNAME exists, so the AUTHORITY section should only contain an NS RRset and a
 # single NSEC3 record proving nonexistence of a DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 cname.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3-optout.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3-optout.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 no_records_exist_for "2JGSPT59VJ7R9SQB5B9P6HPM5JBATOOO.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "OKRFKC9SS1O60E8U2980UD62MUSMKGUG.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
@@ -300,14 +343,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC3 with opt-out, QNAME #1 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC3 with opt-out, QNAME #1 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC3 records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, these two NSEC3 records are different.
-$DIG $DIGOPTS @10.53.0.2 b-nonexistent-name.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 b-nonexistent-name.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3-optout.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3-optout.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 exactly_one_record_exists_for "2JGSPT59VJ7R9SQB5B9P6HPM5JBATOOO.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "OKRFKC9SS1O60E8U2980UD62MUSMKGUG.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
@@ -319,15 +364,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking delegation prepared using wildcard expansion + CNAME chaining, NSEC3 with opt-out, QNAME #2 ($n)"
+echo_i "checking insecure delegation prepared using wildcard expansion + CNAME chaining, NSEC3 with opt-out, QNAME #2 ($n)"
 ret=0
 # QNAME does not exist, so the AUTHORITY section should contain an NS RRset and
 # NSEC3 records proving nonexistence of both QNAME and a DS RRset at the zone
 # cut.  In this test case, the same NSEC3 record proves nonexistence of both the
 # QNAME and the DS RRset at the zone cut.
-$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1
-# Ensure that the AUTHORITY section contains an NS RRset.
+$DIG $DIGOPTS @10.53.0.2 z-nonexistent-name.wildcard-nsec3-optout.example A +norec +dnssec > dig.out.2.$n 2>&1 || ret=1
+# Ensure that the AUTHORITY section contains an NS RRset without an associated
+# DS RRset.
 exactly_one_record_exists_for "delegation.wildcard-nsec3-optout.example." NS dig.out.2.$n || ret=1
+no_records_exist_for "delegation.wildcard-nsec3-optout.example." DS dig.out.2.$n || ret=1
 # Check NSEC3 records in the AUTHORITY section.
 no_records_exist_for "2JGSPT59VJ7R9SQB5B9P6HPM5JBATOOO.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
 no_records_exist_for "OKRFKC9SS1O60E8U2980UD62MUSMKGUG.wildcard-nsec3-optout.example." NSEC3 dig.out.2.$n || ret=1
