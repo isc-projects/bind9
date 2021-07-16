@@ -20,6 +20,7 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f */ans.run
 rm -f */named.stats
+rm -f */named.stats-stage*
 rm -f dig.out*
 rm -f curl.out.*
 rm -f ns*/named.lock
