@@ -295,6 +295,9 @@ The following statements are supported:
     ``tls``
         Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file`` and ``hostname``.
 
+    ``http``
+        Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
+
     ``trust-anchors``
         Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
 
@@ -1291,6 +1294,17 @@ default is used.
    unencrypted DNS traffic via HTTP (a configuration that may be useful
    when encryption is handled by third-party software or by a reverse
    proxy).
+
+``http-listener-clients``
+   This sets the hard quota on the number of active concurrent connections
+   on a per-listener basis. The default value is 300; setting it to 0
+   removes the quota.
+
+``http-streams-per-connection``
+   This sets the hard limit on the number of active concurrent HTTP/2
+   streams on a per-connection basis. The default value is 100;
+   setting it to 0 removes the limit. Once the limit is exceeded, the
+   server finishes the HTTP session.
 
 ``dscp``
    This is the global Differentiated Services Code Point (DSCP) value to
@@ -4768,7 +4782,19 @@ The following options can be specified in an ``http`` statement:
   ``endpoints``
     A list of HTTP query paths on which to listen. This is the portion
     of an :rfc:`3986`-compliant URI following the hostname; it must be
-    an absolute path, beginning with "/".  A typical endpoint is "/dns-query".
+    an absolute path, beginning with "/". The default value
+    is ``"/dns-query"``, if omitted.
+
+    ``listener-clients``
+    The option specifies a per-listener quota for active connections.
+
+  ``streams-per-connection``
+    The option specifies the hard limit on the number of concurrent
+    HTTP/2 streams over an HTTP/2 connection.
+
+Any of the options above could be omitted. In such a case, a global value
+specified in the ``options`` statement is used
+(see ``http-listener-clients``, ``http-streams-per-connection``.
 
 For example, the following configuration enables DNS-over-HTTPS queries on
 all local addresses:

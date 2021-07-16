@@ -290,7 +290,7 @@ run(void) {
 			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 		}
 		result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL, tls_ctx,
-					   &sock);
+					   0, &sock);
 		if (result == ISC_R_SUCCESS) {
 			result = isc_nm_http_endpoint(sock, DEFAULT_DOH_PATH,
 						      read_cb, NULL, 0);

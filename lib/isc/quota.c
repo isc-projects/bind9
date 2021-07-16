@@ -31,6 +31,7 @@ isc_quota_init(isc_quota_t *quota, unsigned int max) {
 	atomic_init(&quota->waiting, 0);
 	ISC_LIST_INIT(quota->cbs);
 	isc_mutex_init(&quota->cblock);
+	ISC_LINK_INIT(quota, link);
 	quota->magic = QUOTA_MAGIC;
 }
 

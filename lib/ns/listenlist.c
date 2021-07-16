@@ -51,6 +51,7 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	elt->sslctx = sslctx;
 	elt->http_endpoints = NULL;
 	elt->http_endpoints_number = 0;
+	elt->http_quota = NULL;
 
 	*target = elt;
 	return (ISC_R_SUCCESS);
@@ -60,6 +61,7 @@ isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
 			 dns_acl_t *acl, bool tls, const char *key,
 			 const char *cert, char **endpoints, size_t nendpoints,
+			 isc_quota_t *quota, const uint32_t max_streams,
 			 ns_listenelt_t **target) {
 	isc_result_t result;
 
@@ -73,6 +75,8 @@ ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
 		(*target)->is_http = true;
 		(*target)->http_endpoints = endpoints;
 		(*target)->http_endpoints_number = nendpoints;
+		(*target)->http_quota = quota;
+		(*target)->max_concurrent_streams = max_streams;
 	} else {
 		size_t i;
 		for (i = 0; i < nendpoints; i++) {

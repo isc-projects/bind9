@@ -800,6 +800,9 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nmsocket_t *httpserver;
 
+	/* maximum concurrent streams (server-side) */
+	uint32_t max_concurrent_streams;
+
 	isc_http_request_type_t request_type;
 	isc_http_scheme_type_t request_scheme;
 

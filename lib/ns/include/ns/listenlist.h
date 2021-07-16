@@ -48,6 +48,8 @@ struct ns_listenelt {
 	isc_tlsctx_t *sslctx;
 	char **	      http_endpoints;
 	size_t	      http_endpoints_number;
+	isc_quota_t * http_quota;
+	uint32_t      max_concurrent_streams;
 	ISC_LINK(ns_listenelt_t) link;
 };
 
@@ -73,6 +75,7 @@ isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
 			 dns_acl_t *acl, bool tls, const char *key,
 			 const char *cert, char **endpoints, size_t nendpoints,
+			 isc_quota_t *quota, const uint32_t max_streams,
 			 ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element for HTTP(S).
