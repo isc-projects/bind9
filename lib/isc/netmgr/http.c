@@ -139,8 +139,7 @@ struct isc_nm_http_session {
 	isc_nmhandle_t *client_httphandle;
 	isc_nmsocket_t *serversocket;
 
-	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
-	size_t bufsize;
+	isc_buffer_t *buf;
 
 	isc_tlsctx_t *tlsctx;
 	uint32_t max_concurrent_streams;
@@ -320,6 +319,10 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp) {
 	if (session->ngsession != NULL) {
 		nghttp2_session_del(session->ngsession);
 		session->ngsession = NULL;
+	}
+
+	if (session->buf != NULL) {
+		isc_buffer_free(&session->buf);
 	}
 
 	/* We need an acquire memory barrier here */
@@ -956,10 +959,14 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	}
 
 	if ((size_t)readlen < region->length) {
-		INSIST(session->bufsize == 0);
-		INSIST(region->length - readlen < MAX_DNS_MESSAGE_SIZE);
-		memmove(session->buf, region->base, region->length - readlen);
-		session->bufsize = region->length - readlen;
+		size_t unread_size = region->length - readlen;
+		if (session->buf == NULL) {
+			isc_buffer_allocate(session->mctx, &session->buf,
+					    unread_size);
+			isc_buffer_setautorealloc(session->buf, true);
+		}
+		isc_buffer_putmem(session->buf, region->base + readlen,
+				  unread_size);
 		isc_nm_pauseread(session->handle);
 	}
 
@@ -1244,18 +1251,18 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			/* We have not yet started reading from this handle */
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
-		} else if (session->bufsize > 0) {
+		} else if (session->buf != NULL) {
+			size_t remaining =
+				isc_buffer_remaininglength(session->buf);
 			/* Leftover data in the buffer, use it */
 			size_t readlen = nghttp2_session_mem_recv(
-				session->ngsession, session->buf,
-				session->bufsize);
+				session->ngsession,
+				isc_buffer_current(session->buf), remaining);
 
-			if (readlen == session->bufsize) {
-				session->bufsize = 0;
+			if (readlen == remaining) {
+				isc_buffer_free(&session->buf);
 			} else {
-				memmove(session->buf, session->buf + readlen,
-					session->bufsize - readlen);
-				session->bufsize -= readlen;
+				isc_buffer_forward(session->buf, readlen);
 			}
 
 			http_do_bio(session, send_httphandle, send_cb,
