@@ -74,6 +74,8 @@
 	((code) >= MIN_SUCCESSFUL_HTTP_STATUS && \
 	 (code) <= MAX_SUCCESSFUL_HTTP_STATUS)
 
+#define INITIAL_DNS_MESSAGE_BUFFER_SIZE (512)
+
 typedef struct isc_nm_http_response_status {
 	size_t code;
 	size_t content_length;
@@ -96,8 +98,7 @@ typedef struct http_cstream {
 	size_t authoritylen;
 	char *path;
 
-	uint8_t rbuf[MAX_DNS_MESSAGE_SIZE];
-	size_t rbufsize;
+	isc_buffer_t *rbuf;
 
 	size_t pathlen;
 	int32_t stream_id;
@@ -426,6 +427,10 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 			stream->up.field_data[ISC_UF_QUERY].len);
 	}
 
+	isc_buffer_allocate(mctx, &stream->rbuf,
+			    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
+	isc_buffer_setautorealloc(stream->rbuf, true);
+
 	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
 
@@ -455,6 +460,8 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 				link);
 	}
 	isc__nmsocket_detach(&stream->httpsock);
+
+	isc_buffer_free(&stream->rbuf);
 	isc_mem_put(mctx, stream, sizeof(http_cstream_t));
 }
 
@@ -506,12 +513,13 @@ on_client_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 	http_cstream_t *cstream = find_http_cstream(stream_id, session);
 
 	if (cstream != NULL) {
-		size_t new_rbufsize = cstream->rbufsize + len;
+		size_t new_rbufsize = len;
+		INSIST(cstream->rbuf != NULL);
+		new_rbufsize += isc_buffer_usedlength(cstream->rbuf);
 		if (new_rbufsize <= MAX_DNS_MESSAGE_SIZE &&
 		    new_rbufsize <= cstream->response_status.content_length)
 		{
-			memmove(cstream->rbuf + cstream->rbufsize, data, len);
-			cstream->rbufsize = new_rbufsize;
+			isc_buffer_putmem(cstream->rbuf, data, len);
 		} else {
 			return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 		}
@@ -572,12 +580,13 @@ static void
 call_unlink_cstream_readcb(http_cstream_t *cstream,
 			   isc_nm_http_session_t *session,
 			   isc_result_t result) {
+	isc_region_t read_data;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(cstream != NULL);
 	ISC_LIST_UNLINK(session->cstreams, cstream, link);
 	INSIST(VALID_NMHANDLE(session->client_httphandle));
-	cstream->read_cb(session->client_httphandle, result,
-			 &(isc_region_t){ cstream->rbuf, cstream->rbufsize },
+	isc_buffer_usedregion(cstream->rbuf, &read_data);
+	cstream->read_cb(session->client_httphandle, result, &read_data,
 			 cstream->read_cbarg);
 	put_http_cstream(session->mctx, cstream);
 }
@@ -2760,10 +2769,10 @@ client_call_failed_read_cb(isc_result_t result,
 		 * in such a case.
 		 */
 		if (cstream->read_cb != NULL) {
+			isc_region_t read_data;
+			isc_buffer_usedregion(cstream->rbuf, &read_data);
 			cstream->read_cb(session->client_httphandle, result,
-					 &(isc_region_t){ cstream->rbuf,
-							  cstream->rbufsize },
-					 cstream->read_cbarg);
+					 &read_data, cstream->read_cbarg);
 		}
 
 		if (result != ISC_R_TIMEDOUT || cstream->read_cb == NULL ||
