@@ -1,3 +1,6 @@
+5686.	[func]		The number of internal data structures allocated for
+			each zone was reduced. [GL #2829]
+
 5685.	[bug]		Check the opcodes of messages returned by
 			dns_request_getresponse.  [GL #2762]
 
