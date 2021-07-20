@@ -1,3 +1,10 @@
+5693.	[func]		Restore support for reading 'timeout' and 'attempts'
+			options from /etc/resolv.conf, and use their values
+			in dig, host and nslookup. (Previously this was
+			supported by liblwres, and was still mentioned
+			in man pages, but had stopped working after liblwres
+			was deprecated in favor of libirs.) [GL #2785]
+
 5692.	[bug]		Fix a rare crash in the DoH code caused by
 			detaching from an HTTP/2 session handle too early when
 			sending data. [GL #2851]
