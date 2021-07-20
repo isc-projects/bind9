@@ -42,6 +42,43 @@ setup_test(void) {
 	assert_return_code(chdir(TESTS_DIR), 0);
 }
 
+static isc_result_t
+check_number(unsigned int n, unsigned int expected) {
+	return ((n == expected) ? ISC_R_SUCCESS : ISC_R_BADNUMBER);
+}
+
+static isc_result_t
+check_attempts(irs_resconf_t *resconf) {
+	return (check_number(irs_resconf_getattempts(resconf), 4));
+}
+
+static isc_result_t
+check_timeout(irs_resconf_t *resconf) {
+	return (check_number(irs_resconf_gettimeout(resconf), 1));
+}
+
+static isc_result_t
+check_ndots(irs_resconf_t *resconf) {
+	return (check_number(irs_resconf_getndots(resconf), 2));
+}
+
+static isc_result_t
+check_options(irs_resconf_t *resconf) {
+	if (irs_resconf_getattempts(resconf) != 3) {
+		return ISC_R_BADNUMBER; /* default value only */
+	}
+
+	if (irs_resconf_getndots(resconf) != 2) {
+		return ISC_R_BADNUMBER;
+	}
+
+	if (irs_resconf_gettimeout(resconf) != 1) {
+		return ISC_R_BADNUMBER;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 /* test irs_resconf_load() */
 static void
 irs_resconf_load_test(void **state) {
@@ -61,15 +98,18 @@ irs_resconf_load_test(void **state) {
 		  ISC_R_SUCCESS },
 		{ "testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS, NULL,
 		  ISC_R_SUCCESS },
+		{ "testdata/options-attempts.conf", ISC_R_SUCCESS,
+		  check_attempts, ISC_R_SUCCESS },
 		{ "testdata/options-debug.conf", ISC_R_SUCCESS, NULL,
 		  ISC_R_SUCCESS },
-		{ "testdata/options-ndots.conf", ISC_R_SUCCESS, NULL,
+		{ "testdata/options-ndots.conf", ISC_R_SUCCESS, check_ndots,
 		  ISC_R_SUCCESS },
-		{ "testdata/options-timeout.conf", ISC_R_SUCCESS, NULL,
+		{ "testdata/options-timeout.conf", ISC_R_SUCCESS, check_timeout,
 		  ISC_R_SUCCESS },
 		{ "testdata/options-unknown.conf", ISC_R_SUCCESS, NULL,
 		  ISC_R_SUCCESS },
-		{ "testdata/options.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/options.conf", ISC_R_SUCCESS, check_options,
+		  ISC_R_SUCCESS },
 		{ "testdata/options-bad-ndots.conf", ISC_R_RANGE, NULL,
 		  ISC_R_SUCCESS },
 		{ "testdata/options-empty.conf", ISC_R_UNEXPECTEDEND, NULL,
