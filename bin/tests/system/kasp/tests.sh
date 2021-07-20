@@ -3899,9 +3899,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-echo_i "status: $status"
-exit $status
-
 #
 # Testing KSK/ZSK algorithm rollover.
 #
