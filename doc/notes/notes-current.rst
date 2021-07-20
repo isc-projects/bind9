@@ -66,6 +66,11 @@ Feature Changes
   record.  This allows a clean rollover from one DNS provider to another
   when using a multiple-signer DNSSEC configuration. :gl:`#2710`
 
+- ``dnssec-signzone`` is now able to retain signatures from inactive
+  predecessor keys without introducing additional signatures from the successor
+  key. This allows for a gradual replacement of RRSIGs as they reach expiry.
+  :gl:`#1551`
+
 Bug Fixes
 ~~~~~~~~~
 

@@ -1,3 +1,10 @@
+5690.	[func]		Change "dnssec-signzone" to honor the Predecessor and
+			Successor metadata values, and allow for gradual
+			replacement of RRSIGs. In other words, don't sign
+			with the successor key if there is an RRSIG from the
+			predecessor key that does not need to be refreshed.
+			[GL #1551]
+
 5689.	[placeholder]
 
 5688.	[bug]		Inline and dnssec-policy zones could fail to apply
