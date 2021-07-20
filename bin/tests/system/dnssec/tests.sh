@@ -1418,6 +1418,93 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+get_rsasha1_key_ids_from_sigs() {
+	zone=$1
+
+	tr -d '\r' < signer/$zone.db.signed | \
+	awk '
+		NF < 8 { next }
+		$(NF-5) != "RRSIG" { next }
+		$(NF-3) != "5" { next }
+		$NF != "(" { next }
+		{
+			getline;
+			print $3;
+		}
+	' | \
+	sort -u
+}
+
+# Test dnssec-signzone ZSK prepublish smooth rollover.
+echo_i "check dnssec-signzone doesn't sign with prepublished zsk ($n)"
+ret=0
+zone=prepub
+# Generate keys.
+ksk=$("$KEYGEN" -K signer -f KSK -q -a RSASHA1 -b 1024 -n zone "$zone")
+zsk1=$("$KEYGEN" -K signer -q -a RSASHA1 -b 1024 -n zone "$zone")
+zsk2=$("$KEYGEN" -K signer -q -a RSASHA1 -b 1024 -n zone "$zone")
+zskid1=$(keyfile_to_key_id "$zsk1")
+zskid2=$(keyfile_to_key_id "$zsk2")
+(
+cd signer || exit 1
+# Set times such that the current set of keys are introduced 60 days ago and
+# start signing now. The successor key is prepublished now and will be active
+# next day.
+$SETTIME -P now-60d -A now $ksk > /dev/null
+$SETTIME -P now-60d -A now -I now+1d -D now+60d $zsk1 > /dev/null
+$SETTIME -S $zsk1 -i 1h $zsk2.key > /dev/null
+$SETTIME -P now -A now+1d $zsk2.key > /dev/null
+# Sign the zone with initial keys and prepublish successor. The zone signatures
+# are valid for 30 days and the DNSKEY signature is valid for 60 days.
+cp -f $zone.db.in $zone.db
+$SIGNER -SDx -e +2592000 -X +5184000 -o $zone $zone.db > /dev/null
+echo "\$INCLUDE \"$zone.db.signed\"" >> $zone.db
+)
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed: missing signatures from key $zskid1"
+status=$((status+ret))
+
+echo_i "check dnssec-signzone retains signatures of predecessor zsk ($n)"
+ret=0
+zone=prepub
+(
+cd signer || exit 1
+# Roll the ZSK. The predecessor is inactive from now on and the successor is
+# activated. The zone signatures are valid for 30 days and the DNSKEY
+# signature is valid for 60 days. Because of the predecessor/successor
+# relationship, the signatures of the predecessor are retained and no new
+# signatures with the successor should be generated.
+$SETTIME -A now-30d -I now -D now+30d $zsk1 > /dev/null
+$SETTIME -A now $zsk2 > /dev/null
+$SIGNER -SDx -e +2592000 -X +5184000 -o $zone $zone.db > /dev/null
+)
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check dnssec-signzone swaps zone signatures after interval ($n)"
+ret=0
+zone=prepub
+(
+cd signer || exit 1
+# After some time the signatures should be replaced. When signing, set the
+# interval to 30 days plus one second, meaning all predecessor signatures
+# are within the refresh interval and should be replaced with successor
+# signatures.
+$SETTIME -A now-50d -I now-20d -D now+10d $zsk1 > /dev/null
+$SETTIME -A now-20d $zsk2 > /dev/null
+$SIGNER -SDx -e +2592000 -X +5184000 -i 2592001 -o $zone $zone.db > /dev/null
+)
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null && ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking that a key using an unsupported algorithm cannot be generated ($n)"
 ret=0
 zone=example
@@ -1458,21 +1545,6 @@ grep -q "algorithm is unsupported" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
-
-get_rsasha1_key_ids_from_sigs() {
-	tr -d '\r' < signer/example.db.signed | \
-	awk '
-		NF < 8 { next }
-		$(NF-5) != "RRSIG" { next }
-		$(NF-3) != "5" { next }
-		$NF != "(" { next }
-		{
-			getline;
-			print $3;
-		}
-	' | \
-	sort -u
-}
 
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
@@ -1574,8 +1646,8 @@ cat example.db.in "$key1.key" "$key3.key" > example.db
 echo "\$INCLUDE \"example.db.signed\"" >> example.db
 $SIGNER -D -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1586,8 +1658,8 @@ ret=0
 cd signer || exit 1
 $SIGNER -RD -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null && ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1604,8 +1676,8 @@ echo "\$INCLUDE \"example.db.signed\"" >> example.db
 $SETTIME -I now "$key2" > /dev/null 2>&1
 $SIGNER -SD -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1616,8 +1688,8 @@ ret=0
 cd signer || exit 1
 $SIGNER -SDQ -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null && ret=1
-get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
+get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
