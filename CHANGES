@@ -1,3 +1,6 @@
+5687.	[bug]		Update the load time of touched inline zones.
+			[GL #2542]
+
 5686.	[func]		The number of internal data structures allocated for
 			each zone was reduced. [GL #2829]
 
