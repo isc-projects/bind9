@@ -73,6 +73,24 @@ if [ -x "$HOST" -a $checkupdate -eq 1 ] ; then
 
 fi
 
+if [ -x "$NSUPDATE" -a $checkupdate -eq 1 ] ; then
+
+  n=$((n+1))
+  echo_i "check nsupdate handles UPDATE response to QUERY ($n)"
+  ret=0
+  res=0
+  $NSUPDATE << EOF > nsupdate.out.test$n 2>&1 || res=$?
+server 10.53.0.7 ${PORT}
+add x.example.com 300 in a 1.2.3.4
+send
+EOF
+  test $res -eq 1 || ret=1
+  grep "invalid OPCODE in response to SOA query" nsupdate.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+fi
+
 if [ -x "$DIG" ] ; then
 
   if [ $checkupdate -eq 1 ] ; then

@@ -1,3 +1,6 @@
+5685.	[bug]		Check the opcodes of messages returned by
+			dns_request_getresponse.  [GL #2762]
+
 	--- 9.11.33 released ---
 
 	--- 9.11.32 released ---
