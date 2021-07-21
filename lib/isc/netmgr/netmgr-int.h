@@ -803,6 +803,7 @@ typedef struct isc_nmsocket_h2 {
 	uint8_t *buf;
 	size_t bufsize;
 	size_t bufpos;
+	isc_buffer_t rbuf;
 
 	int32_t stream_id;
 	isc_nm_http_session_t *session;
