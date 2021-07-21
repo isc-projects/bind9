@@ -20,6 +20,12 @@ Security Fixes
   ISC would like to thank Ville Heikkila of Synopsys Cybersecurity Research
   Center for responsibly disclosing the vulnerability to us. :gl:`#2787`
 
+- Named failed to check the opcode of responses when performing refresh,
+  stub updates, and UPDATE forwarding.  This could lead to an assertion
+  failure under particular conditions.  This has been addressed by checking
+  the opcode of those responses and rejecting the messages if they don't
+  match the expected value. :gl:`#2762`
+
 Known Issues
 ~~~~~~~~~~~~
 
