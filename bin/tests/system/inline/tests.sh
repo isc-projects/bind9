@@ -1387,8 +1387,8 @@ $RNDCCMD 10.53.0.3 zonestatus delayedkeys > rndc.out.ns3.post.test$n 2>&1 || ret
 grep "next resign node:" rndc.out.ns3.post.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
+n=`expr $n + 1`
 echo_i "check that zonestatus reports 'type: primary' for an inline primary zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 zonestatus master > rndc.out.ns3.test$n
@@ -1406,6 +1406,7 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "checking reload of touched inline zones ($n)"
+ret=0
 echo_ic "pre-reload 'next key event'"
 nextpart ns8/named.run > nextpart.pre$n.out
 count=`grep "zone example[0-9][0-9].com/IN (signed): next key event:" nextpart.pre$n.out | wc -l`
@@ -1420,6 +1421,17 @@ nextpart ns8/named.run > nextpart.post$n.out
 count=`grep "zone example[0-9][0-9].com/IN (signed): next key event:" nextpart.post$n.out | wc -l`
 echo_ic "found: $count/16"
 [ $count -eq 16 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking second reload of touched inline zones ($n)"
+ret=0
+nextpart ns8/named.run > nextpart.pre$n.out
+$RNDCCMD 10.53.0.8 reload 2>&1 | sed 's/^/ns3 /' | cat_i
+sleep 5
+nextpart ns8/named.run > nextpart.post$n.out
+grep "ixfr-from-differences: unchanged" nextpart.post$n.out && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
