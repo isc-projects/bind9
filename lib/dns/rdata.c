@@ -1222,6 +1222,7 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	REQUIRE((rdata->flags & DNS_RDATA_UPDATE) == 0);
 
 	TOSTRUCTSWITCH
 
