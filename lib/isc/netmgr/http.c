@@ -1661,13 +1661,12 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 			   isc_nm_httpsocket,
 			   (isc_sockaddr_t *)&session->handle->sock->iface);
 	socket->peer = session->handle->sock->peer;
-	socket->h2 = (isc_nmsocket_h2_t){
-		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
-		.psock = socket,
-		.stream_id = frame->hd.stream_id,
-		.headers_error_code = ISC_HTTP_ERROR_SUCCESS
-	};
+	socket->h2 = (isc_nmsocket_h2_t){ .psock = socket,
+					  .stream_id = frame->hd.stream_id,
+					  .headers_error_code =
+						  ISC_HTTP_ERROR_SUCCESS };
 	isc_buffer_initnull(&socket->h2.rbuf);
+	isc_buffer_initnull(&socket->h2.wbuf);
 	session->nsstreams++;
 	isc__nm_httpsession_attach(session, &socket->h2.session);
 	socket->tid = session->handle->sock->tid;
@@ -1928,14 +1927,18 @@ server_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 	UNUSED(ngsession);
 	UNUSED(session);
 
-	buflen = socket->h2.bufsize - socket->h2.bufpos;
+	buflen = isc_buffer_remaininglength(&socket->h2.wbuf);
 	if (buflen > length) {
 		buflen = length;
 	}
 
-	memmove(buf, socket->h2.buf + socket->h2.bufpos, buflen);
-	socket->h2.bufpos += buflen;
-	if (socket->h2.bufpos == socket->h2.bufsize) {
+	if (buflen > 0) {
+		(void)memmove(buf, isc_buffer_current(&socket->h2.wbuf),
+			      buflen);
+		isc_buffer_forward(&socket->h2.wbuf, buflen);
+	}
+
+	if (isc_buffer_remaininglength(&socket->h2.wbuf) == 0) {
 		*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 	}
 
@@ -2055,6 +2058,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 	isc_result_t result;
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
 	isc_region_t data;
+	uint8_t tmp_buf[MAX_DNS_MESSAGE_SIZE];
 
 	code = socket->h2.headers_error_code;
 	if (code != ISC_HTTP_ERROR_SUCCESS) {
@@ -2081,15 +2085,14 @@ server_on_request_recv(nghttp2_session *ngsession,
 
 	if (socket->h2.request_type == ISC_HTTP_REQ_GET) {
 		isc_buffer_t decoded_buf;
-		isc__buffer_init(&decoded_buf, socket->h2.buf,
-				 MAX_DNS_MESSAGE_SIZE);
+		isc_buffer_init(&decoded_buf, tmp_buf, sizeof(tmp_buf));
 		if (isc_base64_decodestring(socket->h2.query_data,
 					    &decoded_buf) != ISC_R_SUCCESS)
 		{
 			code = ISC_HTTP_ERROR_BAD_REQUEST;
 			goto error;
 		}
-		isc__buffer_usedregion(&decoded_buf, &data);
+		isc_buffer_usedregion(&decoded_buf, &data);
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST) {
 		INSIST(socket->h2.content_length > 0);
 		isc_buffer_usedregion(&socket->h2.rbuf, &data);
@@ -2184,8 +2187,8 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	INSIST(VALID_NMHANDLE(handle->httpsession->handle));
 	INSIST(VALID_NMSOCK(handle->httpsession->handle->sock));
 
-	memmove(sock->h2.buf, req->uvbuf.base, req->uvbuf.len);
-	sock->h2.bufsize = req->uvbuf.len;
+	isc_buffer_init(&sock->h2.wbuf, req->uvbuf.base, req->uvbuf.len);
+	isc_buffer_add(&sock->h2.wbuf, req->uvbuf.len);
 
 	len = snprintf(sock->h2.clenbuf, sizeof(sock->h2.clenbuf), "%lu",
 		       (unsigned long)req->uvbuf.len);
@@ -3024,11 +3027,6 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 		}
 
 		INSIST(sock->h2.connect.cstream == NULL);
-
-		if (sock->h2.buf != NULL) {
-			isc_mem_free(sock->mgr->mctx, sock->h2.buf);
-			sock->h2.buf = NULL;
-		}
 
 		if (isc_buffer_base(&sock->h2.rbuf) != NULL) {
 			void *base = isc_buffer_base(&sock->h2.rbuf);
