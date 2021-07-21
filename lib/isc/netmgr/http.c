@@ -1054,6 +1054,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	size_t total = 0;
 	uint8_t tmp_data[8192] = { 0 };
 	uint8_t *prepared_data = &tmp_data[0];
+	isc_nmhandle_t *transphandle = NULL;
 #ifdef ENABLE_HTTP_WRITE_BUFFERING
 	size_t max_total_write_size = 0;
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
@@ -1064,6 +1065,14 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	{
 		return (false);
 	}
+
+	/* We need to attach to the session->handle earlier because as an
+	 * indirect result of the nghttp2_session_mem_send() the session
+	 * might get closed and the handle detached. However, there is
+	 * still some outgoing data to handle and we need to call it
+	 * anyway if only to get the write callback passed here to get
+	 * called properly. */
+	isc_nmhandle_attach(session->handle, &transphandle);
 
 	while (nghttp2_session_want_write(session->ngsession)) {
 		const uint8_t *data = NULL;
@@ -1159,7 +1168,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		if (prepared_data != &tmp_data[0]) {
 			isc_mem_put(session->mctx, prepared_data, total);
 		}
-		return (false);
+		goto failure;
 	} else if (session->sending == 0 && total == 0 &&
 		   session->pending_write_data != NULL)
 	{
@@ -1198,7 +1207,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	if (total == 0) {
 		INSIST(prepared_data == &tmp_data[0]);
 		/* No data returned */
-		return (false);
+		goto failure;
 	}
 
 	send = isc_mem_get(session->mctx, sizeof(*send));
@@ -1222,7 +1231,8 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			.data.length = total,
 		};
 	}
-	isc_nmhandle_attach(session->handle, &send->transphandle);
+
+	send->transphandle = transphandle;
 	isc__nm_httpsession_attach(session, &send->session);
 
 	if (cb != NULL) {
@@ -1235,8 +1245,11 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	move_pending_send_callbacks(session, send);
 
 	session->sending++;
-	isc_nm_send(session->handle, &send->data, http_writecb, send);
+	isc_nm_send(transphandle, &send->data, http_writecb, send);
 	return (true);
+failure:
+	isc_nmhandle_detach(&transphandle);
+	return (false);
 }
 
 static void
