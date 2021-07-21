@@ -1560,7 +1560,7 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 			goto error;
 		}
 
-		isc__buffer_usedregion(buf, &base64_region);
+		isc_buffer_usedregion(buf, &base64_region);
 		INSIST(base64_region.length == base64_len);
 
 		base64url_data = isc__nm_base64_to_base64url(
