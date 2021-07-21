@@ -3592,11 +3592,14 @@ Tuning
    query is terminated and returns SERVFAIL. The default is 100.
 
 ``notify-delay``
-   This sets the delay, in seconds, between sending sets of NOTIFY messages for a
-   zone. The default is 5 seconds.
+   This sets the delay, in seconds, between sending sets of NOTIFY messages
+   for a zone. Whenever a NOTIFY message is sent for a zone, a timer will
+   be set for this duration. If the zone is updated again before the timer
+   expires, the NOTIFY for that update will be postponed. The default is 5
+   seconds.
 
    The overall rate at which NOTIFY messages are sent for all zones is
-   controlled by ``serial-query-rate``.
+   controlled by ``notify-rate``.
 
 ``max-rsa-exponent-size``
    This sets the maximum RSA exponent size, in bits, that is accepted when
