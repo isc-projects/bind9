@@ -167,6 +167,9 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
 static void
 overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 
+static void
+water(void *arg, int mark);
+
 static inline isc_result_t
 cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	isc_result_t result;
@@ -328,7 +331,7 @@ cache_free(dns_cache_t *cache) {
 	isc_refcount_destroy(&cache->references);
 	isc_refcount_destroy(&cache->live_tasks);
 
-	isc_mem_setwater(cache->mctx, NULL, NULL, 0, 0);
+	isc_mem_clearwater(cache->mctx);
 
 	if (cache->cleaner.task != NULL) {
 		isc_task_detach(&cache->cleaner.task);
@@ -950,7 +953,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 		/*
 		 * Disable cache memory limiting.
 		 */
-		isc_mem_setwater(cache->mctx, NULL, NULL, 0, 0);
+		isc_mem_clearwater(cache->mctx);
 	} else {
 		/*
 		 * Establish new cache memory limits (either for the first
