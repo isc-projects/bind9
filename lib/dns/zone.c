@@ -5034,6 +5034,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 						      ISC_LOG_INFO,
 						      "ixfr-from-differences: "
 						      "unchanged");
+					zone->loadtime = loadtime;
 					goto done;
 				}
 
