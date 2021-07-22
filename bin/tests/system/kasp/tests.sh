@@ -3900,9 +3900,6 @@ check_apex
 check_subdomain
 dnssec_verify
 
-echo_i "status: $status"
-exit $status
-
 #
 # Testing KSK/ZSK algorithm rollover.
 #
@@ -4623,6 +4620,51 @@ dnssec_verify
 # Next key event is never since we established the policy and the keys have
 # an unlimited lifetime.  Fallback to the default loadkeys interval.
 check_next_key_event 3600
+
+echo_i "Check that 'rndc reload' of just the serial updates the signed instance ($n)"
+TSIG=
+ret=0
+dig_with_opts @10.53.0.6 example SOA > dig.out.ns6.test$n.soa1 || ret=1
+cp ns6/example2.db.in ns6/example.db || ret=1
+nextpart ns6/named.run > /dev/null
+rndccmd 10.53.0.6 reload || ret=1
+wait_for_log 3 "all zones loaded" ns6/named.run
+sleep 1
+dig_with_opts @10.53.0.6 example SOA > dig.out.ns6.test$n.soa2 || ret=1
+soa1=$(awk '$4 == "SOA" { print $7 }' dig.out.ns6.test$n.soa1)
+soa2=$(awk '$4 == "SOA" { print $7 }' dig.out.ns6.test$n.soa2)
+ttl1=$(awk '$4 == "SOA" { print $2 }' dig.out.ns6.test$n.soa1)
+ttl2=$(awk '$4 == "SOA" { print $2 }' dig.out.ns6.test$n.soa2)
+test ${soa1:-1000} -lt ${soa2:-0} || ret=1
+test ${ttl1:-0} -eq 300 || ret=1
+test ${ttl2:-0} -eq 300 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+n=$((n+1))
+
+echo_i "Check that restart with zone changes and deleted journal works ($n)"
+TSIG=
+ret=0
+dig_with_opts @10.53.0.6 example SOA > dig.out.ns6.test$n.soa1 || ret=1
+stop_server --use-rndc --port ${CONTROLPORT} kasp ns6
+# TTL of all records change from 300 to 400
+cp ns6/example3.db.in ns6/example.db || ret=1
+rm ns6/example.db.jnl
+nextpart ns6/named.run > /dev/null
+start_server --noclean --restart --port ${PORT} kasp ns6
+wait_for_log 3 "all zones loaded" ns6/named.run
+sleep 1
+dig_with_opts @10.53.0.6 example SOA > dig.out.ns6.test$n.soa2 || ret=1
+soa1=$(awk '$4 == "SOA" { print $7 }' dig.out.ns6.test$n.soa1)
+soa2=$(awk '$4 == "SOA" { print $7 }' dig.out.ns6.test$n.soa2)
+ttl1=$(awk '$4 == "SOA" { print $2 }' dig.out.ns6.test$n.soa1)
+ttl2=$(awk '$4 == "SOA" { print $2 }' dig.out.ns6.test$n.soa2)
+test ${soa1:-1000} -lt ${soa2:-0} || ret=1
+test ${ttl1:-0} -eq 300 || ret=1
+test ${ttl2:-0} -eq 400 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+n=$((n+1))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
