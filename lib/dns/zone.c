@@ -16424,7 +16424,8 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		 * If the SOA records are the same except for the serial
 		 * remove them from the diff.
 		 */
-		if (oldsoa.refresh == newsoa.refresh &&
+		if (oldtuple->ttl == newtuple->ttl &&
+		    oldsoa.refresh == newsoa.refresh &&
 		    oldsoa.retry == newsoa.retry &&
 		    oldsoa.minimum == newsoa.minimum &&
 		    oldsoa.expire == newsoa.expire &&

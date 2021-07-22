@@ -1,3 +1,7 @@
+5688.	[bug]		Inline and dnssec-policy zones could fail to apply
+			changes from the unsigned zone to the signed zone
+			under certain cirumstances. [GL #2735]
+
 5687.	[bug]		Update the load time of touched inline zones.
 			[GL #2542]
 
