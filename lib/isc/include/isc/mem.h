@@ -257,6 +257,8 @@ isc_mem_isovermem(isc_mem_t *mctx);
  */
 
 void
+isc_mem_clearwater(isc_mem_t *mctx);
+void
 isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 		 size_t hiwater, size_t lowater);
 /*%<
@@ -264,12 +266,12 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  * When the memory usage of 'mctx' exceeds 'hiwater',
  * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs
- *to call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the
- *state change.  'water' may be called multiple times.
+ * to call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the
+ * state change.  'water' may be called multiple times.
  *
  * When the usage drops below 'lowater', 'water' will again be called,
- *this time with #ISC_MEM_LOWATER.  'water' need to calls
- *isc_mem_waterack() with #ISC_MEM_LOWATER to acknowledge the change.
+ * this time with #ISC_MEM_LOWATER.  'water' need to calls
+ * isc_mem_waterack() with #ISC_MEM_LOWATER to acknowledge the change.
  *
  *	static void
  *	water(void *arg, int mark) {
@@ -277,20 +279,23 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  *		LOCK(&foo->marklock);
  *		if (foo->mark != mark) {
- * 			foo->mark = mark;
+ *			foo->mark = mark;
  *			....
  *			isc_mem_waterack(foo->mctx, mark);
  *		}
  *		UNLOCK(&foo->marklock);
  *	}
  *
- * If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
- * ignored and the state is reset.
+ * if 'water' is set to NULL, the 'hiwater' and 'lowater' must set to 0, and
+ * high- and low-water processing are disabled for this memory context.  There's
+ * a convenient function isc_mem_clearwater().
  *
  * Requires:
  *
- *	'water' is not NULL.
- *	hi_water >= lo_water
+ *\li   If 'water' is NULL, 'hiwater' and 'lowater' must be set to 0.
+ *\li	If 'water' and 'water_arg' have previously been set, they are
+	unchanged.
+ *\li	'hiwater' >= 'lowater'
  */
 
 void
