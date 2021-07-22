@@ -1281,11 +1281,13 @@ coverity:
 
 respdiff:
   <<: *base_image
+  <<: *schedules_tags_web_triggering_rules
   stage: system
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     BIND_BASELINE_VERSION: v9_11_24
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - autoreconf -fi
     - ./configure
@@ -1301,14 +1303,13 @@ respdiff:
   needs:
     - job: tarball-create
       artifacts: true
-  only:
-    - tags
   artifacts:
     paths:
       - refbind
+      - bind-qa/bind9/respdiff
     untracked: true
     expire_in: "1 day"
-    when: on_failure
+    when: always
 
 # "Stress" tests
 
