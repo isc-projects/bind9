@@ -24,7 +24,7 @@ Feature Changes
   incoming queries among multiple threads). However, the only operating
   systems currently known to support load-balanced sockets are Linux and
   FreeBSD 12, which means both UDP and TCP performance were limited to a
-  single thread on other systems. As of BIND 9.17.8, ``named`` attempts
+  single thread on other systems. As of BIND 9.16.11, ``named`` attempts
   to distribute incoming queries among multiple threads on systems which
   lack support for load-balanced sockets (except Windows). :gl:`#2137`
 
