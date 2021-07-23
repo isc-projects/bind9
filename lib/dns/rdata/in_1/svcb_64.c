@@ -533,9 +533,7 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 	bool alias;
-#if 0
 	bool ok = true;
-#endif
 	unsigned int used;
 
 	UNUSED(type);
@@ -565,7 +563,6 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 		origin = dns_rootname;
 	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
-#if 0
 	if (!alias && (options & DNS_RDATA_CHECKNAMES) != 0) {
 		ok = dns_name_ishostname(&name, false);
 	}
@@ -575,7 +572,6 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	if (!ok && callbacks != NULL) {
 		warn_badname(&name, lexer, callbacks);
 	}
-#endif
 
 	if (alias) {
 		return (ISC_R_SUCCESS);
@@ -1180,27 +1176,24 @@ checkowner_in_svcb(ARGS_CHECKOWNER) {
 
 static inline bool
 generic_checknames_in_svcb(ARGS_CHECKNAMES) {
-#if 0
 	isc_region_t region;
 	dns_name_t name;
-#endif
+	bool alias;
 
-	UNUSED(rdata);
-	UNUSED(bad);
 	UNUSED(owner);
 
-#if 0
 	dns_rdata_toregion(rdata, &region);
+	INSIST(region.length > 1);
+	alias = uint16_fromregion(&region) == 0;
 	isc_region_consume(&region, 2);
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
-	if (!dns_name_ishostname(&name, false)) {
+	if (!alias && !dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
 		return (false);
 	}
-#endif
 	return (true);
 }
 
