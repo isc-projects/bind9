@@ -83,7 +83,7 @@ inactive(isc_nmsocket_t *sock) {
 		atomic_load(&sock->outerhandle->sock->closing) ||
 		(sock->listener != NULL &&
 		 !isc__nmsocket_active(sock->listener)) ||
-		atomic_load(&sock->mgr->closing));
+		isc__nm_closing(sock));
 }
 
 static void
@@ -913,7 +913,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->iface = handle->sock->iface;
 	tlssock->peer = handle->sock->peer;
 	if (isc__nm_closing(tlssock)) {
-		result = ISC_R_CANCELED;
+		result = ISC_R_SHUTTINGDOWN;
 		goto error;
 	}
 

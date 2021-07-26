@@ -222,13 +222,6 @@ http_session_active(isc_nm_http_session_t *session) {
 	return (!session->closed && !session->closing);
 }
 
-static bool
-inactive(isc_nmsocket_t *sock) {
-	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
-		atomic_load(&sock->mgr->closing) ||
-		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
-}
-
 static void *
 http_malloc(size_t sz, isc_mem_t *mctx) {
 	return (isc_mem_allocate(mctx, sz));
@@ -1461,7 +1454,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		}
 
 		isc__nmsocket_clearcb(sock);
-		isc__nm_connectcb(sock, req, ISC_R_CANCELED, true);
+		isc__nm_connectcb(sock, req, ISC_R_SHUTTINGDOWN, true);
 		isc__nmsocket_prep_destroy(sock);
 		isc__nmsocket_detach(&sock);
 		return;
@@ -2154,7 +2147,8 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nm_cb_t cb = req->cb.send;
 	void *cbarg = req->cbarg;
-	if (inactive(sock) || !http_session_active(handle->httpsession)) {
+	if (isc__nmsocket_closing(sock) ||
+	    !http_session_active(handle->httpsession)) {
 		failed_send_cb(sock, req, ISC_R_CANCELED);
 		return;
 	}
@@ -2381,7 +2375,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 * function gets invoked, so we need to do extra sanity checks to
 	 * detect this case.
 	 */
-	if (inactive(handle->sock) || httpserver == NULL) {
+	if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -2393,8 +2387,9 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(httplistensock));
 	INSIST(httplistensock == httpserver);
 
-	if (inactive(httplistensock) ||
-	    !atomic_load(&httplistensock->listening)) {
+	if (isc__nmsocket_closing(httplistensock) ||
+	    !atomic_load(&httplistensock->listening))
+	{
 		return (ISC_R_CANCELED);
 	}
 
@@ -3041,7 +3036,7 @@ isc__nm_http_cleartimeout(isc_nmhandle_t *handle) {
 	REQUIRE(handle->sock->type == isc_nm_httpsocket);
 
 	sock = handle->sock;
-	if (sock->h2.session != NULL && sock->h2.session->handle) {
+	if (sock->h2.session != NULL && sock->h2.session->handle != NULL) {
 		INSIST(VALID_HTTP2_SESSION(sock->h2.session));
 		INSIST(VALID_NMHANDLE(sock->h2.session->handle));
 		isc_nmhandle_cleartimeout(sock->h2.session->handle);
@@ -3057,7 +3052,7 @@ isc__nm_http_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 	REQUIRE(handle->sock->type == isc_nm_httpsocket);
 
 	sock = handle->sock;
-	if (sock->h2.session != NULL && sock->h2.session->handle) {
+	if (sock->h2.session != NULL && sock->h2.session->handle != NULL) {
 		INSIST(VALID_HTTP2_SESSION(sock->h2.session));
 		INSIST(VALID_NMHANDLE(sock->h2.session->handle));
 		isc_nmhandle_settimeout(sock->h2.session->handle, timeout);
