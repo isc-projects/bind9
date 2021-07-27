@@ -19,8 +19,6 @@ import time
 
 from functools import reduce
 
-# this number should exceed default HTTP quota value
-NCONNECTIONS = 320
 MULTIDIG_INSTANCES = 10
 CONNECT_TRIES = 5
 
@@ -61,8 +59,7 @@ def get_dig_path():
 # A simple class which creates the given number of TCP connections to
 # the given host in order to stress the BIND's quota facility
 class TCPConnector:
-    def __init__(self, nconnections, host, port):
-        self.number_of_connections = nconnections
+    def __init__(self, host, port):
         self.host = host
         self.port = port
         self.connections = []
@@ -84,10 +81,6 @@ class TCPConnector:
                 continue
             finally:
                 tries -= 1
-
-    def connect_all(self):
-        for _ in range(1, self.number_of_connections + 1):
-            self.connect_one()
 
     # Close an established connection (randomly)
     def disconnect_random(self):
@@ -138,7 +131,6 @@ class SubDIG:
         with open(os.devnull, 'w') as devnull:
             self.sub_process = subprocess.Popen(self.get_command(), shell=True,
                                                 stdout=devnull)
-        jitter()
 
     def wait(self, timeout=None):
         res = None
@@ -185,6 +177,13 @@ class MultiDIG:
         return reduce(lambda a, b: (a and b), map(lambda p: (p.alive()),
                                                   self.digs))
 
+    def completed(self):
+        total = 0
+        for p in self.digs:
+            if not p.alive():
+                total += 1
+        return total
+
 
 # The test's main logic
 def run_test(http_secure=True):
@@ -195,19 +194,17 @@ def run_test(http_secure=True):
     assert subdig.wait() == 0, "DIG was expected to succeed"
     # Let's create a lot of TCP connections to the server stress the
     # HTTP quota
-    connector = TCPConnector(NCONNECTIONS, get_http_host(),
+    connector = TCPConnector(get_http_host(),
                              get_http_port(http_secure=http_secure))
     # Let's make queries until the quota kicks in
     subdig = SubDIG(http_secure=http_secure, extra_args=query_args)
     subdig.run()
     while True:
+        connector.connect_one()
         subdig = SubDIG(http_secure=http_secure, extra_args=query_args)
-        connector.connect_all()
-        time.sleep(2)
         subdig.run()
-        if subdig.wait(timeout=2) is None:
+        if subdig.wait(timeout=5) is None:
             break
-        connector.disconnect_all()
 
     # At this point quota has kicked in.  Additionally, let's create a
     # bunch of dig processes all trying to make a query against the
@@ -218,9 +215,12 @@ def run_test(http_secure=True):
     # Wait for the dig instance to complete. Not a single instance has
     # a chance to complete successfully because of the exceeded quota
     assert subdig.wait(timeout=5) is None,\
-        "Single DIG instance has stopped prematurely"
-    assert subdig.alive(), "Single DIG instance is expected to be alive"
-    assert multidig.alive(), "Multiple DIG instances are expected to be alive"
+        "The single DIG instance has stopped prematurely"
+    assert subdig.alive(), "The single DIG instance is expected to be alive"
+    assert multidig.alive(), \
+        ("The DIG instances from the set are all expected to "
+         "be alive, but {} of them have completed")\
+        .format(multidig.completed())
     # Let's close opened connections (in random order) to let all dig
     # processes to complete
     connector.disconnect_all()
