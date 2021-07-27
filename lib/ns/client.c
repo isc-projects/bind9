@@ -771,8 +771,6 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		dns_rrl_result_t rrl_result;
 		int loglevel;
 
-		INSIST(rcode != dns_rcode_noerror &&
-		       rcode != dns_rcode_nxdomain);
 		if ((client->sctx->options & NS_SERVER_LOGQUERIES) != 0) {
 			loglevel = DNS_RRL_LOG_DROP;
 		} else {
