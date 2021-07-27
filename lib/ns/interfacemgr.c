@@ -698,10 +698,6 @@ ns_interface_destroy(ns_interface_t *ifp) {
 
 	ns_interface_shutdown(ifp);
 
-	if (ifp->tcpsocket != NULL) {
-		isc_socket_detach(&ifp->tcpsocket);
-	}
-
 	isc_mutex_destroy(&ifp->lock);
 
 	ns_interfacemgr_detach(&ifp->mgr);

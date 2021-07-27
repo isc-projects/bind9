@@ -202,8 +202,7 @@ cleanup:
 
 static isc_result_t
 getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
-	       isc_taskmgr_t *taskmgr, dns_dispatch_t **dispp,
-	       const isc_sockaddr_t *localaddr) {
+	       dns_dispatch_t **dispp, const isc_sockaddr_t *localaddr) {
 	dns_dispatch_t *disp = NULL;
 	isc_result_t result;
 	isc_sockaddr_t anyaddr;
@@ -213,8 +212,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		localaddr = &anyaddr;
 	}
 
-	result = dns_dispatch_createudp(dispatchmgr, taskmgr, localaddr, 0,
-					&disp);
+	result = dns_dispatch_createudp(dispatchmgr, localaddr, 0, &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}
@@ -304,7 +302,7 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	 */
 	client->dispatchv4 = NULL;
 	if (localaddr4 != NULL || localaddr6 == NULL) {
-		result = getudpdispatch(AF_INET, client->dispatchmgr, taskmgr,
+		result = getudpdispatch(AF_INET, client->dispatchmgr,
 					&dispatchv4, localaddr4);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv4 = dispatchv4;
@@ -313,7 +311,7 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	client->dispatchv6 = NULL;
 	if (localaddr6 != NULL || localaddr4 == NULL) {
-		result = getudpdispatch(AF_INET6, client->dispatchmgr, taskmgr,
+		result = getudpdispatch(AF_INET6, client->dispatchmgr,
 					&dispatchv6, localaddr6);
 		if (result == ISC_R_SUCCESS) {
 			client->dispatchv6 = dispatchv6;

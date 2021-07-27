@@ -45,7 +45,6 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
-#include <isc/socket.h>
 
 #include <dns/geoip.h>
 #include <dns/result.h>
@@ -74,7 +73,6 @@ struct ns_interface {
 	isc_sockaddr_t	   addr;       /*%< Address and port. */
 	unsigned int	   flags;      /*%< Interface flags */
 	char		   name[32];   /*%< Null terminated. */
-	isc_socket_t *	   tcpsocket;  /*%< TCP socket. */
 	isc_nmsocket_t *   udplistensocket;
 	isc_nmsocket_t *   tcplistensocket;
 	isc_nmsocket_t *   http_listensocket;

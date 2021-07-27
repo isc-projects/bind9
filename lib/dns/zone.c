@@ -590,7 +590,6 @@ struct dns_zonemgr {
 	isc_refcount_t refs;
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_socketmgr_t *socketmgr;
 	isc_nm_t *netmgr;
 	isc_taskpool_t *zonetasks;
 	isc_taskpool_t *loadtasks;
@@ -18735,8 +18734,8 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
+		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
+		   dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 
@@ -18746,7 +18745,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_mem_attach(mctx, &zmgr->mctx);
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
-	zmgr->socketmgr = socketmgr;
 	zmgr->netmgr = netmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->loadtasks = NULL;

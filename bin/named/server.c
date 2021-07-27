@@ -1315,8 +1315,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		}
 	}
 
-	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_taskmgr,
-					&sa, attrs, &disp);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, &sa, attrs, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_sockaddr_t any;
 		char buf[ISC_SOCKADDR_FORMATSIZE];
@@ -10145,8 +10144,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->heartbeat_interval = 0;
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
-				      named_g_timermgr, named_g_socketmgr,
-				      named_g_netmgr, &server->zonemgr),
+				      named_g_timermgr, named_g_netmgr,
+				      &server->zonemgr),
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
 							       "setsize");
@@ -10358,9 +10357,8 @@ named_add_reserved_dispatch(named_server_t *server,
 	dispatch->dispatchgen = server->dispatchgen;
 	dispatch->dispatch = NULL;
 
-	result = dns_dispatch_createudp(named_g_dispatchmgr, named_g_taskmgr,
-					&dispatch->addr, attrs,
-					&dispatch->dispatch);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, &dispatch->addr,
+					attrs, &dispatch->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

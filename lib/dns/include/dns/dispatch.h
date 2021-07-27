@@ -61,31 +61,6 @@
 ISC_LANG_BEGINDECLS
 
 /*%
- * This event is sent to a task when a response comes in.
- * No part of this structure should ever be modified by the caller,
- * other than parts of the buffer.  The holy parts of the buffer are
- * the base and size of the buffer.  All other parts of the buffer may
- * be used.  On event delivery the used region contains the packet.
- *
- * "id" is the received message id,
- *
- * "addr" is the host that sent it to us,
- *
- * "buffer" holds state on the received data.
- *
- * The "free" routine for this event will clean up itself as well as
- * any buffer space allocated from common pools.
- */
-
-struct dns_dispatchevent {
-	ISC_EVENT_COMMON(dns_dispatchevent_t); /*%< standard event common */
-	isc_result_t	result;		       /*%< result code */
-	isc_region_t	region;		       /*%< data region */
-	isc_buffer_t	buffer;		       /*%< data buffer */
-	dns_dispatch_t *dispatch;
-};
-
-/*%
  * This is a set of one or more dispatches which can be retrieved
  * round-robin fashion.
  */
@@ -219,9 +194,8 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
  */
 
 isc_result_t
-dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
-		       const isc_sockaddr_t *localaddr, unsigned int attributes,
-		       dns_dispatch_t **dispp);
+dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
+		       unsigned int attributes, dns_dispatch_t **dispp);
 /*%<
  * Create a new UDP dispatch.
  *
@@ -237,8 +211,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
  */
 
 isc_result_t
-dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
-		       const isc_sockaddr_t *localaddr,
+dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, unsigned int attributes,
 		       isc_dscp_t dscp, dns_dispatch_t **dispp);
 /*%<
@@ -249,8 +222,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
  *\li	mgr is a valid dispatch manager.
  *
  *\li	sock is a valid.
- *
- *\li	task is a valid task that can be used internally to this dispatcher.
  *
  * Returns:
  *\li	ISC_R_SUCCESS	-- success.
@@ -320,33 +291,28 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 			 unsigned int timeout, const isc_sockaddr_t *dest,
-			 isc_task_t *task, isc_nm_cb_t connected,
-			 isc_nm_cb_t sent, isc_taskaction_t action,
-			 isc_nm_cb_t timedout, void *arg, dns_messageid_t *idp,
+			 isc_nm_cb_t connected, isc_nm_cb_t sent,
+			 isc_nm_recv_cb_t response, isc_nm_cb_t timedout,
+			 void *arg, dns_messageid_t *idp,
 			 dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *
  * "*idp" is filled in with the assigned message ID, and *resp is filled in
- * to contain the magic token used to request event flow stop.
+ * with the dispatch entry object.
  *
  * The 'connected' and 'sent' callbacks are run to inform the caller when
  * the connect and send functions are complete. The 'timedout' callback
  * is run to inform the caller that a read has timed out; it may optionally
- * reset the read timer.
+ * reset the read timer. The 'response' callback is run for recv results
+ * (response packets, timeouts, or cancellations).
  *
- * The specified 'task' is sent the 'action' callback for response packets.
- * (Later, this should be updated to a network manager callback function,
- * but for now we still use isc_task for this.) When the event is delivered,
- * it must be returned using dns_dispatch_freeevent() or through
- * dns_dispatch_removeresponse() for another to be delivered.
- *
- * All three callback functions are sent 'arg' as a parameter.
+ * All the callback functions are sent 'arg' as a parameter.
  *
  * Requires:
  *\li	"idp" be non-NULL.
  *
- *\li	"task" "action" and "arg" be set as appropriate.
+ *\li	"response" and "arg" be set as appropriate.
  *
  *\li	"dest" be non-NULL and valid.
  *
@@ -366,19 +332,13 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
  */
 
 void
-dns_dispatch_removeresponse(dns_dispentry_t **	  resp,
-			    dns_dispatchevent_t **sockevent);
+dns_dispatch_removeresponse(dns_dispentry_t **resp);
 /*%<
  * Stops the flow of responses for the provided id and destination.
- * If "sockevent" is non-NULL, the dispatch event and associated buffer is
- * also returned to the system.
  *
  * Requires:
  *\li	"resp" != NULL and "*resp" contain a value previously allocated
  *	by dns_dispatch_addresponse();
- *
- *\li	May only be called from within the task given as the 'task'
- * 	argument to dns_dispatch_addresponse() when allocating '*resp'.
  */
 
 isc_result_t
@@ -456,9 +416,8 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
  */
 
 isc_result_t
-dns_dispatchset_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		       dns_dispatch_t *source, dns_dispatchset_t **dsetp,
-		       int n);
+dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
+		       dns_dispatchset_t **dsetp, int n);
 /*%<
  * Given a valid dispatch 'source', create a dispatch set containing
  * 'n' UDP dispatches, with the remainder filled out by clones of the
@@ -480,14 +439,12 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp);
  */
 
 isc_result_t
-dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent);
+dns_dispatch_getnext(dns_dispentry_t *resp);
 /*%<
- * Free the sockevent and trigger the sending of the next item off the
- * dispatch queue if present.
+ * Trigger the sending of the next item off the dispatch queue if present.
  *
  * Requires:
  *\li	resp is valid
- *\li	*sockevent to be valid
  */
 
 ISC_LANG_ENDDECLS
