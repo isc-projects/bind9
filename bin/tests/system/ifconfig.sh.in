@@ -19,6 +19,9 @@
 #       fd92:7065:b8e:99ff::{1..2}
 #       fd92:7065:b8e:ff::{1..2}
 #
+# On Linux, we also set the MTU on the 1500 bytes to match the default MTU on
+# physical interfaces, so we can properly test the cases with packets bigger
+# than interface MTU.
 
 top_srcdir=@abs_top_srcdir@
 
@@ -73,12 +76,14 @@ case "$1" in
                                 if [ $use_ip ]; then
                                         ip address add 10.53.$i.$ns/24 \
                                             dev lo:$int
+                                        ip link set dev lo:$int mtu 1500
                                         [ "$ipv6" ] && ip address add \
                                             fd92:7065:b8e:${ipv6}ff::$ns/64 \
                                             dev lo
                                 else
                                         ifconfig lo:$int 10.53.$i.$ns up \
-                                                netmask 255.255.255.0
+                                                netmask 255.255.255.0 \
+                                                mtu 1500
                                         [ "$ipv6" ] && ifconfig lo inet6 add \
                                                 fd92:7065:b8e:${ipv6}ff::$ns/64
                                 fi
