@@ -725,7 +725,7 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
 		atomic_fetch_add(&csends, 1);
 		atomic_fetch_add(&creads, 1);
-		if (sends > 0) {
+		if (sends > 0 && cbarg == NULL) {
 			size_t i;
 			for (i = 0; i < NWRITES / 2; i++) {
 				eresult = isc__nm_http_request(
@@ -733,7 +733,7 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 					&(isc_region_t){
 						.base = (uint8_t *)send_msg.base,
 						.length = send_msg.len },
-					doh_receive_send_reply_cb, cbarg);
+					doh_receive_send_reply_cb, (void *)1);
 				if (eresult == ISC_R_CANCELED) {
 					break;
 				}
