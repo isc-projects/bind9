@@ -1625,6 +1625,7 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->tid == isc_nm_tid());
+	REQUIRE(atomic_load(&handle->sock->client));
 
 	REQUIRE(cb != NULL);
 
@@ -1640,7 +1641,6 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 		goto error;
 	}
 
-	http_do_bio(sock->h2.session, NULL, NULL, NULL);
 	return (ISC_R_SUCCESS);
 
 error:
