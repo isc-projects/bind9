@@ -104,8 +104,7 @@ typedef struct http_cstream {
 	int32_t stream_id;
 
 	bool post; /* POST or GET */
-	isc_region_t postdata;
-	size_t postdata_pos;
+	isc_buffer_t *postdata;
 	char *GET_path;
 	size_t GET_path_len;
 
@@ -448,10 +447,12 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 		stream->GET_path = NULL;
 		stream->GET_path_len = 0;
 	}
-	if (stream->postdata.base != NULL) {
-		isc_mem_put(mctx, stream->postdata.base,
-			    stream->postdata.length);
+
+	if (stream->postdata != NULL) {
+		INSIST(stream->post);
+		isc_buffer_free(&stream->postdata);
 	}
+
 	if (stream == stream->httpsock->h2.connect.cstream) {
 		stream->httpsock->h2.connect.cstream = NULL;
 	}
@@ -863,17 +864,19 @@ client_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 	}
 
 	if (cstream->post) {
-		size_t len = cstream->postdata.length - cstream->postdata_pos;
+		size_t len = isc_buffer_remaininglength(cstream->postdata);
 
 		if (len > length) {
 			len = length;
 		}
 
-		memmove(buf, cstream->postdata.base + cstream->postdata_pos,
-			len);
-		cstream->postdata_pos += len;
+		if (len > 0) {
+			memmove(buf, isc_buffer_current(cstream->postdata),
+				len);
+			isc_buffer_forward(cstream->postdata, len);
+		}
 
-		if (cstream->postdata_pos == cstream->postdata.length) {
+		if (isc_buffer_remaininglength(cstream->postdata) == 0) {
 			*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 		}
 
@@ -898,7 +901,8 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
 
 	if (stream->post) {
 		char p[64];
-		snprintf(p, sizeof(p), "%u", stream->postdata.length);
+		snprintf(p, sizeof(p), "%u",
+			 isc_buffer_usedlength(stream->postdata));
 		nghttp2_nv hdrs[] = {
 			MAKE_NV2(":method", "POST"),
 			MAKE_NV(":scheme",
@@ -1559,12 +1563,9 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 
 	if (cstream->post) {
 		/* POST */
-		cstream->postdata = (isc_region_t){
-			.base = isc_mem_get(mctx, region->length),
-			.length = region->length
-		};
-		memmove(cstream->postdata.base, region->base, region->length);
-		cstream->postdata_pos = 0;
+		isc_buffer_allocate(mctx, &cstream->postdata, region->length);
+		isc_buffer_putmem(cstream->postdata, region->base,
+				  region->length);
 	} else {
 		/* GET */
 		size_t path_size = 0;
