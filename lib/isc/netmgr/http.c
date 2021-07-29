@@ -616,6 +616,9 @@ on_client_stream_close_callback(int32_t stream_id,
 			if (rv != 0) {
 				return (rv);
 			}
+			/* Mark the session as closing one to finish it on a
+			 * subsequent call to http_do_bio() */
+			session->closing = true;
 		}
 	} else {
 		return (NGHTTP2_ERR_CALLBACK_FAILURE);
