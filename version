@@ -2,7 +2,7 @@
 # configure.
 #
 PRODUCT=BIND
-DESCRIPTION="(Stable Release)"
+DESCRIPTION="(Extended Support Version)"
 MAJORVER=9
 MINORVER=16
 PATCHVER=19
