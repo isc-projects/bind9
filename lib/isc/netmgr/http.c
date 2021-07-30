@@ -164,9 +164,9 @@ typedef struct isc_http_send_req {
 	isc_nm_http_session_t *session;
 	isc_nmhandle_t *transphandle;
 	isc_nmhandle_t *httphandle;
-	isc_region_t data;
 	isc_nm_cb_t cb;
 	void *cbarg;
+	isc_buffer_t *pending_write_data;
 	isc__nm_http_pending_callbacks_t pending_write_callbacks;
 } isc_http_send_req_t;
 
@@ -1029,7 +1029,7 @@ http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		isc_nmhandle_detach(&req->httphandle);
 	}
 
-	isc_mem_put(session->mctx, req->data.base, req->data.length);
+	isc_buffer_free(&req->pending_write_data);
 	isc_mem_put(session->mctx, req, sizeof(*req));
 
 	session->sending--;
@@ -1059,8 +1059,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg) {
 	isc_http_send_req_t *send = NULL;
 	size_t total = 0;
-	uint8_t tmp_data[8192] = { 0 };
-	uint8_t *prepared_data = &tmp_data[0];
+	isc_region_t send_data = { 0 };
 	isc_nmhandle_t *transphandle = NULL;
 #ifdef ENABLE_HTTP_WRITE_BUFFERING
 	size_t max_total_write_size = 0;
@@ -1095,25 +1094,20 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		}
 
 		/* reallocate buffer if required */
-		if (new_total > sizeof(tmp_data)) {
-			uint8_t *old_prepared_data = prepared_data;
-			const bool allocated = prepared_data != tmp_data;
-
-			prepared_data = isc_mem_get(session->mctx, new_total);
-			memmove(prepared_data, old_prepared_data, total);
-			if (allocated) {
-				isc_mem_put(session->mctx, old_prepared_data,
-					    total);
-			}
+		if (session->pending_write_data == NULL) {
+			isc_buffer_allocate(session->mctx,
+					    &session->pending_write_data,
+					    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
+			isc_buffer_setautorealloc(session->pending_write_data,
+						  true);
 		}
-		memmove(&prepared_data[total], data, pending);
+		isc_buffer_putmem(session->pending_write_data, data, pending);
 		total = new_total;
 	}
 
 #ifdef ENABLE_HTTP_WRITE_BUFFERING
-	max_total_write_size = total;
 	if (session->pending_write_data != NULL) {
-		max_total_write_size +=
+		max_total_write_size =
 			isc_buffer_usedlength(session->pending_write_data);
 	}
 
@@ -1122,31 +1116,14 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	 * within some tools (e.g. flamethrower). */
 	if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
 		/* Case 1: We have equal or more than
-		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's put the
-		 * data which we have just obtained from nghttp2 into the
-		 * pending write buffer and flush it. */
-
-		/* Let's allocate a new write buffer if there is none. */
-		if (session->pending_write_data == NULL) {
-			isc_buffer_allocate(session->mctx,
-					    &session->pending_write_data,
-					    max_total_write_size);
-		}
-
-		isc_buffer_putmem(session->pending_write_data, prepared_data,
-				  total);
-		if (prepared_data != &tmp_data[0]) {
-			isc_mem_put(session->mctx, prepared_data, total);
-		}
-
+		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's flush it.
+		 */
 		total = max_total_write_size;
-		prepared_data = isc_buffer_base(session->pending_write_data);
 	} else if (session->sending > 0 && total > 0) {
 		/* Case 2: There is one or more write requests in flight and
 		 * we have some new data form nghttp2 to send. Let's put the
 		 * write callback (if any) into the pending write callbacks
-		 * list and add the new data into the pending write
-		 * buffer. Then let's return from the function: as soon as the
+		 * list. Then let's return from the function: as soon as the
 		 * "in-flight" write callback get's called or we have reached
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes in the write buffer, we
 		 * will flush the buffer. */
@@ -1161,21 +1138,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			ISC_LIST_APPEND(session->pending_write_callbacks, newcb,
 					link);
 		}
-
-		if (session->pending_write_data == NULL) {
-			isc_buffer_allocate(session->mctx,
-					    &session->pending_write_data,
-					    total);
-			isc_buffer_setautorealloc(session->pending_write_data,
-						  true);
-		}
-
-		isc_buffer_putmem(session->pending_write_data, prepared_data,
-				  total);
-		if (prepared_data != &tmp_data[0]) {
-			isc_mem_put(session->mctx, prepared_data, total);
-		}
-		goto failure;
+		goto nothing_to_send;
 	} else if (session->sending == 0 && total == 0 &&
 		   session->pending_write_data != NULL)
 	{
@@ -1185,10 +1148,8 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		isc_region_t region = { 0 };
 		total = isc_buffer_usedlength(session->pending_write_data);
 		INSIST(total > 0);
-		INSIST(prepared_data == &tmp_data[0]);
 		isc_buffer_usedregion(session->pending_write_data, &region);
 		INSIST(total == region.length);
-		prepared_data = region.base;
 	} else {
 		/* The other cases are, uninteresting, fall-through ones. */
 		/* In the following cases (4-6) we will just bail out. */
@@ -1207,54 +1168,38 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		       (total > 0 && session->sending == 0));
 	}
 #else
-	INSIST(session->pending_write_data == NULL);
 	INSIST(ISC_LIST_EMPTY(session->pending_write_callbacks));
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
 
 	if (total == 0) {
-		INSIST(prepared_data == &tmp_data[0]);
 		/* No data returned */
-		goto failure;
+		goto nothing_to_send;
 	}
 
+	/* If we have reached the point it means that we need to send some
+	 * data and flush the outgoing buffer. The code below does that. */
 	send = isc_mem_get(session->mctx, sizeof(*send));
-	if (prepared_data == &tmp_data[0]) {
-		*send = (isc_http_send_req_t){
-			.data.base = isc_mem_get(session->mctx, total),
-			.data.length = total,
-		};
-		memmove(send->data.base, tmp_data, total);
-	} else if (session->pending_write_data != NULL) {
-		*send = (isc_http_send_req_t){
-			.data.base = isc_mem_get(session->mctx, total),
-			.data.length = total,
-		};
-		memmove(send->data.base,
-			isc_buffer_base(session->pending_write_data), total);
-		isc_buffer_free(&session->pending_write_data);
-	} else {
-		*send = (isc_http_send_req_t){
-			.data.base = prepared_data,
-			.data.length = total,
-		};
-	}
+
+	*send = (isc_http_send_req_t){ .pending_write_data =
+					       session->pending_write_data,
+				       .cb = cb,
+				       .cbarg = cbarg };
+	session->pending_write_data = NULL;
+	move_pending_send_callbacks(session, send);
 
 	send->transphandle = transphandle;
 	isc__nm_httpsession_attach(session, &send->session);
 
 	if (cb != NULL) {
 		INSIST(VALID_NMHANDLE(httphandle));
-		send->cb = cb;
-		send->cbarg = cbarg;
 		isc_nmhandle_attach(httphandle, &send->httphandle);
 	}
 
-	move_pending_send_callbacks(session, send);
-
 	session->sending++;
-	isc_nm_send(transphandle, &send->data, http_writecb, send);
+	isc_buffer_usedregion(send->pending_write_data, &send_data);
+	isc_nm_send(transphandle, &send_data, http_writecb, send);
 	return (true);
-failure:
+nothing_to_send:
 	isc_nmhandle_detach(&transphandle);
 	return (false);
 }
