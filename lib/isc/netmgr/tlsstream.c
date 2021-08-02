@@ -676,7 +676,6 @@ isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	tls_do_bio(sock, NULL, req, false);
 done:
-	isc_mem_free(sock->mgr->mctx, req->uvbuf.base);
 	isc__nm_uvreq_put(&req, sock);
 	return;
 }
@@ -704,9 +703,7 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
-
-	uvreq->uvbuf.base = isc_mem_allocate(sock->mgr->mctx, region->length);
-	memmove(uvreq->uvbuf.base, region->base, region->length);
+	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
 	/*
