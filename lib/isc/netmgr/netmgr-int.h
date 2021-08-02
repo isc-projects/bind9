@@ -754,6 +754,7 @@ typedef struct isc_nmsocket_tls_send_req {
 	void *cbarg;
 	isc_nmhandle_t *handle;
 	bool finish;
+	uint8_t smallbuf[512];
 } isc_nmsocket_tls_send_req_t;
 
 typedef enum isc_http_request_type {
