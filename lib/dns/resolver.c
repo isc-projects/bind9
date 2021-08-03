@@ -609,10 +609,9 @@ empty_bucket(dns_resolver_t *res);
 static isc_result_t
 resquery_send(resquery_t *query);
 static void
-resquery_response(isc_nmhandle_t *handle, isc_result_t eresult,
-		  isc_region_t *region, void *arg);
+resquery_response(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
-resquery_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
+resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
 static isc_result_t
@@ -1391,11 +1390,8 @@ fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
 	}
 
 	/*
-	 * Check for any outstanding socket events.  If they exist,
-	 * cancel them and let the event handlers finish the cleanup.
-	 * (XXX: Currently the resolver, rather than dispatch, tracks
-	 * whether it's sending or connecting; this will be moved into
-	 * dispatch later.)
+	 * Check for any outstanding dispatch responses.  If they exist,
+	 * cancel them and let their callbacks finish the cleanup.
 	 */
 	if (query->dispentry != NULL) {
 		dns_dispatch_cancel(query->dispentry);
@@ -1406,7 +1402,6 @@ fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
 		ISC_LIST_UNLINK(fctx->queries, query, link);
 	}
 
-	/* This is the final detach matching the "init" */
 	resquery_detach(&query);
 }
 
@@ -1479,12 +1474,6 @@ fctx_cleanupaltaddrs(fetchctx_t *fctx) {
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
-}
-
-static inline void
-fctx_stopqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
-	FCTXTRACE("stopqueries");
-	fctx_cancelqueries(fctx, no_response, age_untried);
 }
 
 static inline void
@@ -1741,7 +1730,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 
 	fctx->qmin_warning = ISC_R_SUCCESS;
 
-	fctx_stopqueries(fctx, no_response, age_untried);
+	fctx_cancelqueries(fctx, no_response, age_untried);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
@@ -1753,13 +1742,13 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 }
 
 static void
-resquery_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	resquery_t *query = (resquery_t *)arg;
 	fetchctx_t *fctx = NULL;
 
 	QTRACE("senddone");
 
-	UNUSED(handle);
+	UNUSED(region);
 
 	fctx = query->fctx;
 
@@ -1802,7 +1791,7 @@ resquery_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 detach:
-	resquery_detach(&query); /* Detach dispatch query */
+	resquery_detach(&query);
 }
 
 static inline isc_result_t
@@ -1893,25 +1882,20 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	isc_time_nowplusinterval(&fctx->next_timeout, &fctx->interval);
 }
 
-static void
-resquery_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
-	resquery_t *query = (resquery_t *)arg;
+static isc_result_t
+resquery_timeout(resquery_t *query) {
 	fetchctx_t *fctx = query->fctx;
 	dns_fetchevent_t *event = NULL, *next = NULL;
 	uint64_t timeleft;
 	isc_time_t now;
-
-	REQUIRE(VALID_FCTX(fctx));
 
 	FCTXTRACE("timeout");
 
 	/*
 	 * If not configured for serve-stale, do nothing.
 	 */
-	if (eresult == ISC_R_CANCELED ||
-	    (fctx->options & DNS_FETCHOPT_TRYSTALE_ONTIMEOUT) == 0)
-	{
-		return;
+	if ((fctx->options & DNS_FETCHOPT_TRYSTALE_ONTIMEOUT) == 0) {
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -1922,7 +1906,7 @@ resquery_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	isc_time_now(&now);
 	timeleft = isc_time_microdiff(&fctx->expires_try_stale, &now);
 	if (timeleft >= US_PER_MSEC) {
-		return;
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -1950,9 +1934,12 @@ resquery_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	 * resume waiting.
 	 */
 	timeleft = isc_time_microdiff(&fctx->next_timeout, &now);
-	if (timeleft < US_PER_MSEC) {
-		isc_nmhandle_settimeout(handle, (timeleft / US_PER_MSEC));
+	if (timeleft >= US_PER_MSEC) {
+		dns_dispatch_read(query->dispentry, (timeleft / US_PER_MSEC));
+		return (ISC_R_COMPLETE);
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -2154,14 +2141,14 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	result = dns_dispatch_addresponse(
 		query->dispatch, 0, isc_interval_ms(&fctx->interval),
 		&query->addrinfo->sockaddr, resquery_connected,
-		resquery_senddone, resquery_response, resquery_timeout, query,
-		&query->id, &query->dispentry);
+		resquery_senddone, resquery_response, query, &query->id,
+		&query->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_dispatch;
 	}
 
 	/* Connect the socket */
-	resquery_attach(query, &(resquery_t *){ NULL }); /* dispatch query */
+	resquery_attach(query, &(resquery_t *){ NULL });
 	result = dns_dispatch_connect(query->dispentry);
 
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -2772,7 +2759,7 @@ cleanup_temps:
 }
 
 static void
-resquery_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	resquery_t *query = (resquery_t *)arg;
 	isc_result_t result;
 	fetchctx_t *fctx = NULL;
@@ -2783,7 +2770,7 @@ resquery_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	QTRACE("connected");
 
-	UNUSED(handle);
+	UNUSED(region);
 
 	fctx = query->fctx;
 	res = fctx->res;
@@ -2881,7 +2868,7 @@ resquery_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 detach:
-	resquery_detach(&query); /* Detach dispatch query */
+	resquery_detach(&query);
 }
 
 static void
@@ -4405,7 +4392,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	 * fetch, and clean up finds and addresses.  To avoid deadlock
 	 * with the ADB, we must do this before we lock the bucket lock.
 	 */
-	fctx_stopqueries(fctx, false, false);
+	fctx_cancelqueries(fctx, false, false);
 	fctx_cleanupall(fctx);
 
 	LOCK(&res->buckets[bucketnum].lock);
@@ -7206,14 +7193,11 @@ betterreferral(respctx_t *rctx) {
  * resquery_send(). Sets up a response context (respctx_t).
  */
 static void
-resquery_response(isc_nmhandle_t *handle, isc_result_t eresult,
-		  isc_region_t *region, void *arg) {
+resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	isc_result_t result;
 	resquery_t *query = (resquery_t *)arg;
 	fetchctx_t *fctx = NULL;
 	respctx_t rctx;
-
-	UNUSED(handle);
 
 	if (eresult == ISC_R_CANCELED) {
 		return;
@@ -7224,6 +7208,13 @@ resquery_response(isc_nmhandle_t *handle, isc_result_t eresult,
 	REQUIRE(VALID_FCTX(fctx));
 
 	QTRACE("response");
+
+	if (eresult == ISC_R_TIMEDOUT) {
+		result = resquery_timeout(query);
+		if (result == ISC_R_COMPLETE) {
+			return;
+		}
+	}
 
 	if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET) {
 		inc_stats(fctx->res, dns_resstatscounter_responsev4);

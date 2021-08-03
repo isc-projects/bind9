@@ -279,6 +279,9 @@ dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp);
  *\li	'resp' is valid.
  */
 
+void
+dns_dispatch_read(dns_dispentry_t *resp, uint16_t timeout);
+
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		    const isc_sockaddr_t *localaddr, bool *connected,
@@ -288,13 +291,15 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
  * if connected == NULL).
  */
 
+typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
+			      void *cbarg);
+
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 			 unsigned int timeout, const isc_sockaddr_t *dest,
-			 isc_nm_cb_t connected, isc_nm_cb_t sent,
-			 isc_nm_recv_cb_t response, isc_nm_cb_t timedout,
-			 void *arg, dns_messageid_t *idp,
-			 dns_dispentry_t **resp);
+			 dispatch_cb_t connected, dispatch_cb_t sent,
+			 dispatch_cb_t response, void *arg,
+			 dns_messageid_t *idp, dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *

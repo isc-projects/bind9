@@ -741,8 +741,9 @@ doshutdown(void) {
 static void
 maybeshutdown(void) {
 	/* when called from getinput, doshutdown might be already finished */
-	if (requestmgr == NULL)
+	if (requestmgr == NULL) {
 		return;
+	}
 
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);

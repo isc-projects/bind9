@@ -108,16 +108,13 @@ static isc_result_t
 req_render(dns_message_t *message, isc_buffer_t **buffer, unsigned int options,
 	   isc_mem_t *mctx);
 static void
-req_response(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
-	     void *arg);
+req_response(isc_result_t result, isc_region_t *region, void *arg);
 static void
-req_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
+req_senddone(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
 req_sendevent(dns_request_t *request, isc_result_t result);
 static void
-req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
-static void
-req_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
+req_connected(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
 req_attach(dns_request_t *source, dns_request_t **targetp);
 static void
@@ -567,8 +564,8 @@ again:
 	req_attach(request, &rclone);
 	result = dns_dispatch_addresponse(
 		request->dispatch, dispopt, request->timeout, destaddr,
-		req_connected, req_senddone, req_response, req_timeout, request,
-		&id, &request->dispentry);
+		req_connected, req_senddone, req_response, request, &id,
+		&request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -723,8 +720,7 @@ use_tcp:
 	req_attach(request, &rclone);
 	result = dns_dispatch_addresponse(
 		request->dispatch, 0, request->timeout, destaddr, req_connected,
-		req_senddone, req_response, req_timeout, request, &id,
-		&request->dispentry);
+		req_senddone, req_response, request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1007,10 +1003,10 @@ dns_request_destroy(dns_request_t **requestp) {
  *** Private: request.
  ***/
 static void
-req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 
-	UNUSED(handle);
+	UNUSED(region);
 
 	req_log(ISC_LOG_DEBUG(3), "req_connected: request %p: %s", request,
 		isc_result_totext(eresult));
@@ -1044,13 +1040,13 @@ req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 }
 
 static void
-req_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+req_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(DNS_REQUEST_SENDING(request));
 
-	UNUSED(handle);
+	UNUSED(region);
 
 	req_log(ISC_LOG_DEBUG(3), "req_senddone: request %p", request);
 
@@ -1072,34 +1068,28 @@ req_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 }
 
 static void
-req_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
-
-	REQUIRE(VALID_REQUEST(request));
-
-	UNUSED(eresult);
-
-	req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);
-
-	LOCK(&request->requestmgr->locks[request->hash]);
-	if (--request->udpcount != 0) {
-		isc_nmhandle_settimeout(handle, request->timeout);
-		if (!DNS_REQUEST_SENDING(request)) {
-			req_send(request);
-		}
-	}
-	UNLOCK(&request->requestmgr->locks[request->hash]);
-}
-
-static void
-req_response(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
-	     void *arg) {
-	dns_request_t *request = (dns_request_t *)arg;
-
-	UNUSED(handle);
 
 	if (result == ISC_R_CANCELED) {
 		return;
+	}
+
+	if (result == ISC_R_TIMEDOUT) {
+		req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);
+
+		LOCK(&request->requestmgr->locks[request->hash]);
+		if (--request->udpcount != 0) {
+			dns_dispatch_read(request->dispentry, request->timeout);
+			if (!DNS_REQUEST_SENDING(request)) {
+				req_send(request);
+			}
+			UNLOCK(&request->requestmgr->locks[request->hash]);
+			return;
+		}
+
+		/* The lock is unlocked below */
+		goto done;
 	}
 
 	REQUIRE(VALID_REQUEST(request));
@@ -1108,6 +1098,7 @@ req_response(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		dns_result_totext(result));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
+
 	if (result != ISC_R_SUCCESS) {
 		goto done;
 	}
