@@ -41,7 +41,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "rndc freeze"
-$RNDCCMD 10.53.0.2 freeze | sed 's/^/ns2 /' | cat_i | cat_i
+$RNDCCMD 10.53.0.2 freeze | sed 's/^/ns2 /' | cat_i
 
 n=`expr $n + 1`
 echo_i "checking zone was dumped ($n)"
@@ -427,7 +427,7 @@ n=`expr $n + 1`
 echo_i "testing automatic zones are reported ($n)"
 ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf status > rndc.out.1.test$n || ret=1
-grep "number of zones: 200 (198 automatic)" rndc.out.1.test$n > /dev/null || ret=1
+grep "number of zones: 201 (198 automatic)" rndc.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -715,6 +715,50 @@ lines=`cat rndc.out.test$n | wc -l`
 [ ${lines:-0} -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+n=$((n+1))
+echo_i "check 'rndc freeze' with in-view zones works ($n)"
+ret=0
+$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf freeze > rndc.out.test$n 2>&1 || ret=1
+test -s rndc.out.test$n && sed 's/^/ns2 /' rndc.out.test$n | cat_i
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking non in-view zone instance is not writable ($n)"
+ret=0
+$NSUPDATE -p ${PORT} > /dev/null 2>&1 <<END && ret=1
+server 10.53.0.4
+zone example.
+update add text2.example. 600 IN TXT "addition 3"
+send
+END
+$DIG $DIGOPTS @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+grep 'addition 3' dig.out.1.test$n >/dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check 'rndc thaw' with in-view zones works ($n)"
+ret=0
+$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf thaw > rndc.out.test$n 2>&1 || ret=1
+test -s rndc.out.test$n && sed 's/^/ns2 /' rndc.out.test$n | cat_i
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking non in-view zone instance is now writable ($n)"
+ret=0
+$NSUPDATE -p ${PORT} > nsupdate.out.test$n 2>&1 <<END || ret=1
+server 10.53.0.4
+zone example.
+update add text2.example. 600 IN TXT "addition 3"
+send
+END
+$DIG $DIGOPTS @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+grep 'addition 3' dig.out.1.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
