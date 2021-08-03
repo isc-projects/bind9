@@ -27,3 +27,4 @@ rm -f ns*/named.lock
 rm -f stats*out
 rm -f ns*/managed-keys.bind*
 rm -f xsltproc.out.*
+rm -f named.stats.*
