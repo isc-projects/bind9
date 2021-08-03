@@ -1,3 +1,6 @@
+5691.	[bug]		'rndc freeze' with in-view zones present would
+			spuriously report failures. [GL #2844]
+
 5690.	[func]		Change "dnssec-signzone" to honor the Predecessor and
 			Successor metadata values, and allow for gradual
 			replacement of RRSIGs. In other words, don't sign
