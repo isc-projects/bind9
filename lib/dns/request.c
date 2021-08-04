@@ -590,14 +590,14 @@ again:
 		req_send(request);
 		req_detach(&rclone);
 	} else {
+		request->flags |= DNS_REQUEST_F_CONNECTING;
+		if (tcp) {
+			request->flags |= DNS_REQUEST_F_TCP;
+		}
+
 		result = dns_dispatch_connect(request->dispentry);
 		if (result != ISC_R_SUCCESS) {
 			goto unlink;
-		}
-		request->flags |= DNS_REQUEST_F_CONNECTING;
-
-		if (tcp) {
-			request->flags |= DNS_REQUEST_F_TCP;
 		}
 	}
 
@@ -763,13 +763,14 @@ use_tcp:
 		req_send(request);
 		req_detach(&rclone);
 	} else {
-		result = dns_dispatch_connect(request->dispentry);
-		if (result != ISC_R_SUCCESS) {
-			goto unlink;
-		}
 		request->flags |= DNS_REQUEST_F_CONNECTING;
 		if (tcp) {
 			request->flags |= DNS_REQUEST_F_TCP;
+		}
+
+		result = dns_dispatch_connect(request->dispentry);
+		if (result != ISC_R_SUCCESS) {
+			goto unlink;
 		}
 	}
 
@@ -908,7 +909,8 @@ send_if_done(dns_request_t *request, isc_result_t result) {
 void
 request_cancel(dns_request_t *request) {
 	if (!DNS_REQUEST_CANCELED(request)) {
-		req_log(ISC_LOG_DEBUG(3), "do_cancel: request %p", request);
+		req_log(ISC_LOG_DEBUG(3), "request_cancel: request %p",
+			request);
 
 		request->flags |= DNS_REQUEST_F_CANCELED;
 		request->flags &= ~DNS_REQUEST_F_CONNECTING;
@@ -1006,9 +1008,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	req_detach(&request);
 }
 
-/***
- *** Private: request.
- ***/
 static void
 req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
@@ -1018,13 +1017,9 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	req_log(ISC_LOG_DEBUG(3), "req_connected: request %p: %s", request,
 		isc_result_totext(eresult));
 
-	if (eresult == ISC_R_CANCELED) {
-		req_detach(&request);
-		return;
-	}
-
 	REQUIRE(VALID_REQUEST(request));
-	REQUIRE(DNS_REQUEST_CONNECTING(request));
+	REQUIRE(DNS_REQUEST_CONNECTING(request) ||
+		DNS_REQUEST_CANCELED(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
@@ -1078,13 +1073,14 @@ static void
 req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 
-	if (result == ISC_R_CANCELED) {
+	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
+		dns_result_totext(result));
+
+	if (result == ISC_R_CANCELED || result == ISC_R_EOF) {
 		return;
 	}
 
 	if (result == ISC_R_TIMEDOUT) {
-		req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);
-
 		LOCK(&request->requestmgr->locks[request->hash]);
 		if (--request->udpcount != 0) {
 			dns_dispatch_resume(request->dispentry,
@@ -1102,9 +1098,6 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 
 	REQUIRE(VALID_REQUEST(request));
 
-	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
-		dns_result_totext(result));
-
 	LOCK(&request->requestmgr->locks[request->hash]);
 
 	if (result != ISC_R_SUCCESS) {
@@ -1119,11 +1112,14 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	if (result != ISC_R_SUCCESS) {
 		isc_buffer_free(&request->answer);
 	}
+
 done:
 	/*
 	 * Cleanup.
 	 */
-	dns_dispatch_removeresponse(&request->dispentry);
+	if (request->dispentry != NULL) {
+		dns_dispatch_removeresponse(&request->dispentry);
+	}
 	request_cancel(request);
 
 	/*

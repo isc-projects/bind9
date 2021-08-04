@@ -57,8 +57,7 @@ _setup(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_sockaddr_any(&local);
-	result = dns_dispatch_createudp(dispatchmgr, taskmgr, &local, 0,
-					&dispatch);
+	result = dns_dispatch_createudp(dispatchmgr, &local, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	return (0);

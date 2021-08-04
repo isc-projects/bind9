@@ -1388,8 +1388,8 @@ fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
 	}
 
 	/*
-	 * Check for any outstanding dispatch responses.  If they exist,
-	 * cancel them and let their callbacks finish the cleanup.
+	 * Check for any outstanding dispatch responses and if they
+	 * exist, cancel them.
 	 */
 	if (query->dispentry != NULL) {
 		dns_dispatch_cancel(query->dispentry);
@@ -1756,6 +1756,7 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
+	case ISC_R_SHUTTINGDOWN:
 		goto detach;
 
 	case ISC_R_HOSTUNREACH:
@@ -1777,8 +1778,10 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 		fctx_try(fctx, true, false);
 		break;
+
 	case ISC_R_CANCELED:
 		break;
+
 	default:
 		FCTXTRACE3("query canceled in resquery_senddone() "
 			   "due to unexpected result; responding",
@@ -2821,6 +2824,13 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 						     fctx->type);
 		}
 		goto detach;
+
+	case ISC_R_SHUTTINGDOWN:
+		FCTXTRACE3("shutdown in resquery_connected(): no response",
+			   eresult);
+		fctx_cancelquery(query, NULL, true, false);
+		fctx_done(fctx, eresult, __LINE__);
+		break;
 
 	case ISC_R_NETUNREACH:
 	case ISC_R_HOSTUNREACH:
@@ -7193,7 +7203,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	fetchctx_t *fctx = NULL;
 	respctx_t rctx;
 
-	if (eresult == ISC_R_CANCELED) {
+	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
 		return;
 	}
 
@@ -7697,7 +7707,8 @@ rctx_dispfail(respctx_t *rctx) {
 		if (rctx->result == ISC_R_HOSTUNREACH ||
 		    rctx->result == ISC_R_NETUNREACH ||
 		    rctx->result == ISC_R_CONNREFUSED ||
-		    rctx->result == ISC_R_CANCELED)
+		    rctx->result == ISC_R_CANCELED ||
+		    rctx->result == ISC_R_SHUTTINGDOWN)
 		{
 			rctx->broken_server = rctx->result;
 			rctx->broken_type = badns_unreachable;
@@ -10827,8 +10838,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 				memmove(tmp, algorithms, *algorithms);
 			}
 			tmp[len - 1] |= mask;
-			/* 'tmp[0]' should contain the length of 'tmp'.
-			 */
+			/* tmp[0] should contain the length of 'tmp'. */
 			*tmp = len;
 			node->data = tmp;
 			/* Free the older bitfield. */
