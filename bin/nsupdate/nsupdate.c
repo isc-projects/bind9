@@ -936,14 +936,14 @@ setup_system(void) {
 
 	if (have_ipv6) {
 		isc_sockaddr_any6(&bind_any6);
-		result = dns_dispatch_createudp(dispatchmgr, &bind_any6, 0,
+		result = dns_dispatch_createudp(dispatchmgr, &bind_any6,
 						&dispatchv6);
 		check_result(result, "dns_dispatch_createudp (v6)");
 	}
 
 	if (have_ipv4) {
 		isc_sockaddr_any(&bind_any);
-		result = dns_dispatch_createudp(dispatchmgr, &bind_any, 0,
+		result = dns_dispatch_createudp(dispatchmgr, &bind_any,
 						&dispatchv4);
 		check_result(result, "dns_dispatch_createudp (v4)");
 	}

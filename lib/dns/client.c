@@ -212,7 +212,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		localaddr = &anyaddr;
 	}
 
-	result = dns_dispatch_createudp(dispatchmgr, localaddr, 0, &disp);
+	result = dns_dispatch_createudp(dispatchmgr, localaddr, &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}

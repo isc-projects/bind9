@@ -9,10 +9,9 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/netmgr.h>
+#pragma once
 
-#ifndef DNS_DISPATCH_H
-#define DNS_DISPATCH_H 1
+#include <isc/netmgr.h>
 
 /*****
 ***** Module Info
@@ -21,12 +20,12 @@
 /*! \file dns/dispatch.h
  * \brief
  * DNS Dispatch Management
- * 	Shared UDP and single-use TCP dispatches for queries and responses.
+ *	Shared UDP and single-use TCP dispatches for queries and responses.
  *
  * MP:
  *
- *\li     	All locking is performed internally to each dispatch.
- * 	Restrictions apply to dns_dispatch_removeresponse().
+ *\li	All locking is performed internally to each dispatch.
+ *	Restrictions apply to dns_dispatch_removeresponse().
  *
  * Reliability:
  *
@@ -71,33 +70,6 @@ struct dns_dispatchset {
 	int		 cur;
 	isc_mutex_t	 lock;
 };
-
-/*@{*/
-/*%
- * Attributes for added dispatchers.
- *
- * Values with the mask 0xffff0000 are application defined.
- * Values with the mask 0x0000ffff are library defined.
- *
- * Insane values (like setting both TCP and UDP) are not caught.  Don't
- * do that.
- *
- * _PRIVATE
- *	The dispatcher cannot be shared.
- *
- * _TCP, _UDP
- *	The dispatcher is a TCP or UDP socket.
- *
- * _IPV4, _IPV6
- *	The dispatcher uses an IPv4 or IPv6 socket.
- */
-#define DNS_DISPATCHATTR_PRIVATE   0x00000001U
-#define DNS_DISPATCHATTR_TCP	   0x00000002U
-#define DNS_DISPATCHATTR_UDP	   0x00000004U
-#define DNS_DISPATCHATTR_IPV4	   0x00000008U
-#define DNS_DISPATCHATTR_IPV6	   0x00000010U
-#define DNS_DISPATCHATTR_CONNECTED 0x00000080U
-/*@}*/
 
 /*
  */
@@ -161,7 +133,7 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
  * without incrementing its reference count.
  *
  * Requires:
- *\li 	mgr is a valid dispatchmgr
+ *\li	mgr is a valid dispatchmgr
  * Returns:
  *\li	A pointer to the current blackhole list, or NULL.
  */
@@ -195,7 +167,7 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
 
 isc_result_t
 dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       unsigned int attributes, dns_dispatch_t **dispp);
+		       dns_dispatch_t **dispp);
 /*%<
  * Create a new UDP dispatch.
  *
@@ -212,8 +184,8 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr, unsigned int attributes,
-		       isc_dscp_t dscp, dns_dispatch_t **dispp);
+		       const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		       dns_dispatch_t **dispp);
 /*%<
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
@@ -280,7 +252,14 @@ dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp);
  */
 
 void
-dns_dispatch_read(dns_dispentry_t *resp, uint16_t timeout);
+dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout);
+/*%<
+ * Reset the read timeout in the socket associated with 'resp' and
+ * continue reading.
+ *
+ * Requires:
+ *\li	'resp' is valid.
+ */
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
@@ -375,41 +354,6 @@ dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp);
  *\li	ISC_R_NOTIMPLEMENTED
  */
 
-unsigned int
-dns_dispatch_getattributes(dns_dispatch_t *disp);
-/*%<
- * Return the attributes (DNS_DISPATCHATTR_xxx) of this dispatch.  Only the
- * non-changeable attributes are expected to be referenced by the caller.
- *
- * Requires:
- *\li	disp is valid.
- */
-
-void
-dns_dispatch_changeattributes(dns_dispatch_t *disp, unsigned int attributes,
-			      unsigned int mask);
-/*%<
- * Set the bits described by "mask" to the corresponding values in
- * "attributes".
- *
- * That is:
- *
- * \code
- *	new = (old & ~mask) | (attributes & mask)
- * \endcode
- *
- * This function has a side effect when #DNS_DISPATCHATTR_NOLISTEN changes.
- * When the flag becomes off, the dispatch will start receiving on the
- * corresponding socket.  When the flag becomes on, receive events on the
- * corresponding socket will be canceled.
- *
- * Requires:
- *\li	disp is valid.
- *
- *\li	attributes are reasonable for the dispatch.  That is, setting the UDP
- *	attribute on a TCP socket isn't reasonable.
- */
-
 dns_dispatch_t *
 dns_dispatchset_get(dns_dispatchset_t *dset);
 /*%<
@@ -417,7 +361,7 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
  * the round-robin counter.
  *
  * Requires:
- *\li 	dset != NULL
+ *\li	dset != NULL
  */
 
 isc_result_t
@@ -429,8 +373,8 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
  * source.
  *
  * Requires:
- *\li 	source is a valid UDP dispatcher
- *\li 	dsetp != NULL, *dsetp == NULL
+ *\li	source is a valid UDP dispatcher
+ *\li	dsetp != NULL, *dsetp == NULL
  */
 
 void
@@ -440,7 +384,7 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp);
  * memory, and set *dsetp to NULL.
  *
  * Requires:
- *\li 	dset is valid
+ *\li	dset is valid
  */
 
 isc_result_t
@@ -453,5 +397,3 @@ dns_dispatch_getnext(dns_dispentry_t *resp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DISPATCH_H */
