@@ -2114,10 +2114,12 @@ resume:
 		const char *listname;
 		const cfg_obj_t *addr;
 		const cfg_obj_t *key;
+		const cfg_obj_t *tls;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
 				     "remoteselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
+		tls = cfg_tuple_get(cfg_listelt_value(element), "tls");
 
 		if (cfg_obj_issockaddr(addr)) {
 			count++;
@@ -2135,12 +2137,34 @@ resume:
 					}
 				}
 			}
+			if (cfg_obj_isstring(tls)) {
+				const char *str = cfg_obj_asstring(tls);
+				dns_fixedname_t fname;
+				dns_name_t *nm = dns_fixedname_initname(&fname);
+				tresult = dns_name_fromstring(nm, str, 0, NULL);
+				if (tresult != ISC_R_SUCCESS) {
+					cfg_obj_log(tls, logctx, ISC_LOG_ERROR,
+						    "'%s' is not a valid name",
+						    str);
+					if (result == ISC_R_SUCCESS) {
+						result = tresult;
+					}
+				}
+			}
 			continue;
 		}
 		if (!cfg_obj_isvoid(key)) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "unexpected token '%s'",
 				    cfg_obj_asstring(key));
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+		if (!cfg_obj_isvoid(tls)) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "unexpected token '%s'",
+				    cfg_obj_asstring(tls));
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
