@@ -92,6 +92,11 @@ typedef struct isc_time	      isc_time_t;	/*%< Time */
 typedef struct isc_timer      isc_timer_t;	/*%< Timer */
 typedef struct isc_timermgr   isc_timermgr_t;	/*%< Timer Manager */
 
+#if HAVE_LIBNGHTTP2
+typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
+/*%< HTTP endpoints set */
+#endif /* HAVE_LIBNGHTTP2 */
+
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 

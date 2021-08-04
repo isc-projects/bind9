@@ -1515,7 +1515,9 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_condition_init(&sock->scond);
 	isc_refcount_init(&sock->references, 1);
 
+#if HAVE_LIBNGHTTP2
 	memset(&sock->tlsstream, 0, sizeof(sock->tlsstream));
+#endif /* HAVE_LIBNGHTTP2 */
 
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",

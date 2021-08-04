@@ -213,6 +213,10 @@ static void
 server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
 	       const isc_result_t result, isc_region_t *data);
 
+static isc_nm_httphandler_t *
+http_endpoints_find(const char *request_path,
+		    const isc_nm_http_endpoints_t *restrict eps);
+
 static bool
 http_session_active(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
@@ -1653,27 +1657,15 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 
 static isc_nm_httphandler_t *
 find_server_request_handler(const char *request_path,
-			    isc_nmsocket_t *serversocket) {
+			    const isc_nmsocket_t *serversocket) {
 	isc_nm_httphandler_t *handler = NULL;
 
 	REQUIRE(VALID_NMSOCK(serversocket));
 
-	if (request_path == NULL || *request_path == '\0') {
-		return (NULL);
-	}
-
-	RWLOCK(&serversocket->h2.lock, isc_rwlocktype_read);
 	if (atomic_load(&serversocket->listening)) {
-		for (handler = ISC_LIST_HEAD(serversocket->h2.handlers);
-		     handler != NULL; handler = ISC_LIST_NEXT(handler, link))
-		{
-			if (!strcmp(request_path, handler->path)) {
-				break;
-			}
-		}
+		handler = http_endpoints_find(
+			request_path, serversocket->h2.listener_endpoints);
 	}
-	RWUNLOCK(&serversocket->h2.lock, isc_rwlocktype_read);
-
 	return (handler);
 }
 
@@ -2418,9 +2410,14 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 		  isc_quota_t *quota, isc_tlsctx_t *ctx,
-		  uint32_t max_concurrent_streams, isc_nmsocket_t **sockp) {
+		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
+		  isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
+
+	REQUIRE(!ISC_LIST_EMPTY(eps->handlers));
+	REQUIRE(!ISC_LIST_EMPTY(eps->handler_cbargs));
+	REQUIRE(atomic_load(&eps->in_use) == false);
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_httplistener, iface);
@@ -2432,6 +2429,9 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	{
 		sock->h2.max_concurrent_streams = max_concurrent_streams;
 	}
+
+	atomic_store(&eps->in_use, true);
+	isc_nm_http_endpoints_attach(eps, &sock->h2.listener_endpoints);
 
 	if (ctx != NULL) {
 		isc_tlsctx_enable_http2server_alpn(ctx);
@@ -2462,6 +2462,96 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	return (ISC_R_SUCCESS);
 }
 
+isc_nm_http_endpoints_t *
+isc_nm_http_endpoints_new(isc_mem_t *mctx) {
+	isc_nm_http_endpoints_t *restrict eps;
+	REQUIRE(mctx != NULL);
+
+	eps = isc_mem_get(mctx, sizeof(*eps));
+	*eps = (isc_nm_http_endpoints_t){ .mctx = NULL };
+
+	isc_mem_attach(mctx, &eps->mctx);
+	ISC_LIST_INIT(eps->handler_cbargs);
+	ISC_LIST_INIT(eps->handlers);
+	isc_refcount_init(&eps->references, 1);
+	atomic_init(&eps->in_use, false);
+
+	return eps;
+}
+
+void
+isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
+	isc_nm_http_endpoints_t *restrict eps;
+	isc_mem_t *mctx;
+	isc_nm_httphandler_t *handler = NULL;
+	isc_nm_httpcbarg_t *httpcbarg = NULL;
+
+	REQUIRE(epsp != NULL);
+	eps = *epsp;
+	REQUIRE(eps != NULL);
+
+	if (isc_refcount_decrement(&eps->references) > 1) {
+		return;
+	}
+
+	mctx = eps->mctx;
+
+	/* Delete all handlers */
+	handler = ISC_LIST_HEAD(eps->handlers);
+	while (handler != NULL) {
+		isc_nm_httphandler_t *next = NULL;
+
+		next = ISC_LIST_NEXT(handler, link);
+		ISC_LIST_DEQUEUE(eps->handlers, handler, link);
+		isc_mem_free(mctx, handler->path);
+		isc_mem_put(mctx, handler, sizeof(*handler));
+		handler = next;
+	}
+
+	httpcbarg = ISC_LIST_HEAD(eps->handler_cbargs);
+	while (httpcbarg != NULL) {
+		isc_nm_httpcbarg_t *next = NULL;
+
+		next = ISC_LIST_NEXT(httpcbarg, link);
+		ISC_LIST_DEQUEUE(eps->handler_cbargs, httpcbarg, link);
+		isc_mem_put(mctx, httpcbarg, sizeof(isc_nm_httpcbarg_t));
+		httpcbarg = next;
+	}
+
+	isc_mem_putanddetach(&mctx, eps, sizeof(*eps));
+	*epsp = NULL;
+}
+
+void
+isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t *source,
+			     isc_nm_http_endpoints_t **targetp) {
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	isc_refcount_increment(&source->references);
+
+	*targetp = source;
+}
+
+static isc_nm_httphandler_t *
+http_endpoints_find(const char *request_path,
+		    const isc_nm_http_endpoints_t *restrict eps) {
+	isc_nm_httphandler_t *handler = NULL;
+
+	if (request_path == NULL || *request_path == '\0') {
+		return (NULL);
+	}
+
+	for (handler = ISC_LIST_HEAD(eps->handlers); handler != NULL;
+	     handler = ISC_LIST_NEXT(handler, link))
+	{
+		if (!strcmp(request_path, handler->path)) {
+			break;
+		}
+	}
+
+	return (handler);
+}
+
 /*
  * In DoH we just need to intercept the request - the response can be sent
  * to the client code via the nmhandle directly as it's always just the
@@ -2484,40 +2574,41 @@ http_callback(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *data,
 }
 
 isc_result_t
-isc_nm_http_endpoint(isc_nmsocket_t *sock, const char *uri, isc_nm_recv_cb_t cb,
-		     void *cbarg, size_t extrahandlesize) {
-	isc_nm_httphandler_t *handler = NULL;
-	isc_nm_httpcbarg_t *httpcbarg = NULL;
+isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
+			  const char *uri, const isc_nm_recv_cb_t cb,
+			  void *cbarg, const size_t extrahandlesize) {
+	isc_mem_t *mctx;
+	isc_nm_httphandler_t *restrict handler = NULL;
+	isc_nm_httpcbarg_t *restrict httpcbarg = NULL;
 	bool newhandler = false;
 
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_httplistener);
+	REQUIRE(eps != NULL);
 	REQUIRE(isc_nm_http_path_isvalid(uri));
+	REQUIRE(atomic_load(&eps->in_use) == false);
 
-	httpcbarg = isc_mem_get(sock->mgr->mctx, sizeof(isc_nm_httpcbarg_t));
+	mctx = eps->mctx;
+
+	httpcbarg = isc_mem_get(mctx, sizeof(isc_nm_httpcbarg_t));
 	*httpcbarg = (isc_nm_httpcbarg_t){ .cb = cb, .cbarg = cbarg };
 	ISC_LINK_INIT(httpcbarg, link);
 
-	if (find_server_request_handler(uri, sock) == NULL) {
-		handler = isc_mem_get(sock->mgr->mctx, sizeof(*handler));
+	if (http_endpoints_find(uri, eps) == NULL) {
+		handler = isc_mem_get(mctx, sizeof(*handler));
 		*handler = (isc_nm_httphandler_t){
 			.cb = http_callback,
 			.cbarg = httpcbarg,
 			.extrahandlesize = extrahandlesize,
-			.path = isc_mem_strdup(sock->mgr->mctx, uri)
+			.path = isc_mem_strdup(mctx, uri)
 		};
 		ISC_LINK_INIT(handler, link);
 
 		newhandler = true;
 	}
 
-	RWLOCK(&sock->h2.lock, isc_rwlocktype_write);
 	if (newhandler) {
-		ISC_LIST_APPEND(sock->h2.handlers, handler, link);
+		ISC_LIST_APPEND(eps->handlers, handler, link);
 	}
-	ISC_LIST_APPEND(sock->h2.handler_cbargs, httpcbarg, link);
-	RWUNLOCK(&sock->h2.lock, isc_rwlocktype_write);
-
+	ISC_LIST_APPEND(eps->handler_cbargs, httpcbarg, link);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2542,37 +2633,6 @@ isc__nm_http_stoplistening(isc_nmsocket_t *sock) {
 		isc__netievent_httpstop_t ievent = { .sock = sock };
 		isc__nm_async_httpstop(NULL, (isc__netievent_t *)&ievent);
 	}
-}
-
-static void
-clear_handlers(isc_nmsocket_t *sock) {
-	isc_nm_httphandler_t *handler = NULL;
-	isc_nm_httpcbarg_t *httpcbarg = NULL;
-
-	/* Delete all handlers */
-	RWLOCK(&sock->h2.lock, isc_rwlocktype_write);
-	handler = ISC_LIST_HEAD(sock->h2.handlers);
-	while (handler != NULL) {
-		isc_nm_httphandler_t *next = NULL;
-
-		next = ISC_LIST_NEXT(handler, link);
-		ISC_LIST_DEQUEUE(sock->h2.handlers, handler, link);
-		isc_mem_free(sock->mgr->mctx, handler->path);
-		isc_mem_put(sock->mgr->mctx, handler, sizeof(*handler));
-		handler = next;
-	}
-
-	httpcbarg = ISC_LIST_HEAD(sock->h2.handler_cbargs);
-	while (httpcbarg != NULL) {
-		isc_nm_httpcbarg_t *next = NULL;
-
-		next = ISC_LIST_NEXT(httpcbarg, link);
-		ISC_LIST_DEQUEUE(sock->h2.handler_cbargs, httpcbarg, link);
-		isc_mem_put(sock->mgr->mctx, httpcbarg,
-			    sizeof(isc_nm_httpcbarg_t));
-		httpcbarg = next;
-	}
-	RWUNLOCK(&sock->h2.lock, isc_rwlocktype_write);
 }
 
 void
@@ -2903,12 +2963,6 @@ isc__nm_http_initsocket(isc_nmsocket_t *sock) {
 		.request_type = ISC_HTTP_REQ_UNSUPPORTED,
 		.request_scheme = ISC_HTTP_SCHEME_UNSUPPORTED,
 	};
-
-	if (sock->type == isc_nm_httplistener) {
-		ISC_LIST_INIT(sock->h2.handlers);
-		ISC_LIST_INIT(sock->h2.handler_cbargs);
-		isc_rwlock_init(&sock->h2.lock, 0, 1);
-	}
 }
 
 void
@@ -2922,9 +2976,11 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 
 	if (sock->type == isc_nm_httplistener ||
 	    sock->type == isc_nm_httpsocket) {
-		if (sock->type == isc_nm_httplistener) {
-			clear_handlers(sock);
-			isc_rwlock_destroy(&sock->h2.lock);
+		if (sock->type == isc_nm_httplistener &&
+		    sock->h2.listener_endpoints != NULL) {
+			/* Delete all handlers */
+			isc_nm_http_endpoints_detach(
+				&sock->h2.listener_endpoints);
 		}
 
 		if (sock->h2.request_path != NULL) {

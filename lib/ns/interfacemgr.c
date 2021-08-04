@@ -542,24 +542,28 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 			size_t neps, isc_quota_t *quota,
 			uint32_t max_concurrent_streams) {
 #if HAVE_LIBNGHTTP2
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	isc_nmsocket_t *sock = NULL;
+	isc_nm_http_endpoints_t *epset = NULL;
 
-	result = isc_nm_listenhttp(ifp->mgr->nm, &ifp->addr, ifp->mgr->backlog,
-				   quota, sslctx, max_concurrent_streams,
-				   &sock);
+	epset = isc_nm_http_endpoints_new(ifp->mgr->mctx);
 
-	if (result == ISC_R_SUCCESS) {
-		for (size_t i = 0; i < neps; i++) {
-			INSIST(isc_nm_http_path_isvalid(eps[i]));
-			result = isc_nm_http_endpoint(sock, eps[i],
-						      ns__client_request, ifp,
-						      sizeof(ns_client_t));
-			if (result != ISC_R_SUCCESS) {
-				break;
-			}
+	for (size_t i = 0; i < neps; i++) {
+		result = isc_nm_http_endpoints_add(epset, eps[i],
+						   ns__client_request, ifp,
+						   sizeof(ns_client_t));
+		if (result != ISC_R_SUCCESS) {
+			break;
 		}
 	}
+
+	if (result == ISC_R_SUCCESS) {
+		result = isc_nm_listenhttp(
+			ifp->mgr->nm, &ifp->addr, ifp->mgr->backlog, quota,
+			sslctx, epset, max_concurrent_streams, &sock);
+	}
+
+	isc_nm_http_endpoints_detach(&epset);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
