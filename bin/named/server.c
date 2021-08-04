@@ -2900,6 +2900,10 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
+		file = dns_zone_getjournal(zone);
+		if (file != NULL) {
+			isc_file_remove(file);
+		}
 	}
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
