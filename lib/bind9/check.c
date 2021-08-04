@@ -2121,6 +2121,20 @@ resume:
 
 		if (cfg_obj_issockaddr(addr)) {
 			count++;
+			if (cfg_obj_isstring(key)) {
+				const char *str = cfg_obj_asstring(key);
+				dns_fixedname_t fname;
+				dns_name_t *nm = dns_fixedname_initname(&fname);
+				tresult = dns_name_fromstring(nm, str, 0, NULL);
+				if (tresult != ISC_R_SUCCESS) {
+					cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+						    "'%s' is not a valid name",
+						    str);
+					if (result == ISC_R_SUCCESS) {
+						result = tresult;
+					}
+				}
+			}
 			continue;
 		}
 		if (!cfg_obj_isvoid(key)) {
