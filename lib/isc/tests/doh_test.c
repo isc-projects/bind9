@@ -1075,6 +1075,14 @@ doh_recv_send(void **state) {
 		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
 	}
 
+	/* wait for the all responses from the server */
+	while (atomic_load(&ssends) < atomic_load(&total_sends)) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
+		isc_test_nap(100);
+	}
+
 	for (size_t i = 0; i < nthreads; i++) {
 		isc_thread_join(threads[i], NULL);
 	}
