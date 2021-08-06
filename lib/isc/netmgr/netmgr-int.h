@@ -1779,9 +1779,10 @@ isc__nm_socket_incoming_cpu(uv_os_sock_t fd);
  */
 
 isc_result_t
-isc__nm_socket_dontfrag(uv_os_sock_t fd, sa_family_t sa_family);
+isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family);
 /*%<
- * Set the SO_IP_DONTFRAG (or equivalent) socket option of the fd if available
+ * Disable the Path MTU Discovery, either by disabling IP(V6)_DONTFRAG socket
+ * option, or setting the IP(V6)_MTU_DISCOVER socket option to IP_PMTUDISC_OMIT
  */
 
 isc_result_t
