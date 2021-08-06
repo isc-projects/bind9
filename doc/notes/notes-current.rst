@@ -20,6 +20,10 @@ Security Fixes
   the opcode of those responses and rejecting the messages if they don't
   match the expected value. :gl:`#2762`
 
+- Fix an assertion failure that occured in ``named`` when attempting to send
+  a UDP packet exceeding the MTU size if rate-limiting was enabled.
+  (CVE-2021-25218) :gl:`#2839`
+
 Known Issues
 ~~~~~~~~~~~~
 

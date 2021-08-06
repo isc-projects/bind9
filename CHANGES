@@ -29,7 +29,9 @@
 			predecessor key that does not need to be refreshed.
 			[GL #1551]
 
-5689.	[placeholder]
+5689.	[security]	An assertion failure occurred when rate-limiting
+			was applied to a UDP packet exceeding the link MTU
+			size. (CVE-2021-25218) [GL #2839]
 
 5688.	[bug]		Inline and dnssec-policy zones could fail to apply
 			changes from the unsigned zone to the signed zone
