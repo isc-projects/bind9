@@ -800,7 +800,7 @@ DNSSEC policy, using 10 iterations, no opt-out, and a random string that is
 ::
 
     dnssec-policy "standard" {
-        nsec3param iterations optout no salt-length 16;
+        nsec3param iterations 10 optout no salt-length 16;
     };
 
 Then reconfigure the server with ``rndc``. You can tell that it worked if you
