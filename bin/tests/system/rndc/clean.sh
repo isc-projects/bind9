@@ -21,6 +21,8 @@ rm -f ns4/*.nta
 rm -f ns4/example.db ns4/example.db.jnl
 rm -f ns4/key?.conf
 rm -f ns6/huge.zone.db
+rm -f ns7/include.db ns7/test.db ns7/*.jnl
+rm -f ns7/named_dump.db*
 rm -f ns*/named.conf
 rm -f nsupdate.out.*.test*
 rm -f python.out.*.test*
