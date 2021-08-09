@@ -1,3 +1,5 @@
+5689.	[placeholder]
+
 5688.	[bug]		Inline and dnssec-policy zones could fail to apply
 			changes from the unsigned zone to the signed zone
 			under certain cirumstances. [GL #2735]
