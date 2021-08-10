@@ -1,3 +1,5 @@
+	--- 9.11.35 released ---
+
 5685.	[bug]		named failed to check the opcode of responses when
 			performing zone refreshes, stub zone updates, and UPDATE
 			forwarding. This has been fixed. [GL #2762]
