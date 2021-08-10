@@ -24,21 +24,6 @@ Security Fixes
   addressed by rejecting responses whose opcode does not match the
   expected value. :gl:`#2762`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
