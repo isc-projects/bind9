@@ -66,6 +66,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Authentication of ``rndc`` messages could fail if a ``controls``
+  statement was configured with multiple key algorithms for the same
+  listener. This has been fixed. :gl:`#2756`
+
 - When following QNAME minimization, BIND could use a stale zonecut from cache 
   to resolve the query, resulting in a non-minimized query. This has been
   fixed :gl:`#2665`
