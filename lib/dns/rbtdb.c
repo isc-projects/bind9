@@ -3537,7 +3537,9 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 		for (header = node->data; header != NULL; header = header->next)
 		{
 			if (header->serial <= search->serial &&
-			    !IGNORE(header) && EXISTS(header)) {
+			    !IGNORE(header) && EXISTS(header) &&
+			    !ANCIENT(header))
+			{
 				break;
 			}
 		}
@@ -3596,7 +3598,9 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 				for (header = wnode->data; header != NULL;
 				     header = header->next) {
 					if (header->serial <= search->serial &&
-					    !IGNORE(header) && EXISTS(header)) {
+					    !IGNORE(header) && EXISTS(header) &&
+					    !ANCIENT(header))
+					{
 						break;
 					}
 				}
@@ -4691,11 +4695,13 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 				       &header_prev)) {
 			/* Do nothing. */
 		} else if (header->type == dns_rdatatype_dname &&
-			   EXISTS(header)) {
+			   EXISTS(header) && !ANCIENT(header))
+		{
 			dname_header = header;
 			header_prev = header;
 		} else if (header->type == RBTDB_RDATATYPE_SIGDNAME &&
-			   EXISTS(header)) {
+			   EXISTS(header) && !ANCIENT(header))
+		{
 			sigdname_header = header;
 			header_prev = header;
 		} else {
@@ -4765,7 +4771,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			if (check_stale_header(node, header, &locktype, lock,
 					       search, &header_prev)) {
 				/* Do nothing. */
-			} else if (EXISTS(header)) {
+			} else if (EXISTS(header) && !ANCIENT(header)) {
 				/*
 				 * We've found an extant rdataset.  See if
 				 * we're interested in it.
@@ -5387,7 +5393,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		if (check_stale_header(node, header, &locktype, lock, &search,
 				       &header_prev)) {
 			/* Do nothing. */
-		} else if (EXISTS(header)) {
+		} else if (EXISTS(header) && !ANCIENT(header)) {
 			/*
 			 * If we found a type we were looking for, remember
 			 * it.
