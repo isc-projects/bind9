@@ -1,3 +1,5 @@
+	--- 9.17.17 released ---
+
 5689.	[security]	An assertion failure occurred when named attempted to
 			send a UDP packet that exceeded the MTU size, if
 			Response Rate Limiting (RRL) was enabled.
