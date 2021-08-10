@@ -1489,6 +1489,66 @@ doh_half_recv_half_send_GET_TLS_quota(void **state) {
 	doh_half_recv_half_send(state);
 }
 
+/* See: GL #2858, !5319 */
+static void
+doh_bad_connect_uri(void **state) {
+	isc_nm_t **nm = (isc_nm_t **)*state;
+	isc_nm_t *listen_nm = nm[0];
+	isc_nm_t *connect_nm = nm[1];
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	char req_url[256];
+	isc_quota_t *quotap = init_listener_quota(workers);
+
+	atomic_store(&total_sends, 1);
+
+	atomic_store(&nsends, atomic_load(&total_sends));
+
+	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+					   doh_receive_request_cb, NULL, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, quotap,
+				   server_tlsctx, endpoints, 0, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * "https://::1:XXXX/dns-query" is a bad URI, it should be
+	 * "https://[::1]:XXXX/dns-query"
+	 */
+	(void)snprintf(req_url, sizeof(req_url), "https://::1:%u/%s",
+		       isc_sockaddr_getport(&tcp_listen_addr), DOH_PATH);
+	connect_send_request(connect_nm, req_url, atomic_load(&POST),
+			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
+					      .length = send_msg.len },
+			     doh_receive_reply_cb, NULL, true, 30000);
+
+	while (atomic_load(&nsends) > 0) {
+		if (atomic_load(&was_error)) {
+			break;
+		}
+		isc_thread_yield();
+	}
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc__netmgr_shutdown(connect_nm);
+
+	X(total_sends);
+	X(csends);
+	X(creads);
+	X(sreads);
+	X(ssends);
+
+	/* As we used an ill-formed URI, there ought to be an error. */
+	assert_true(atomic_load(&was_error));
+	assert_int_equal(atomic_load(&csends), 0);
+	assert_int_equal(atomic_load(&creads), 0);
+	assert_int_equal(atomic_load(&sreads), 0);
+	assert_int_equal(atomic_load(&ssends), 0);
+}
+
 static void
 doh_parse_GET_query_string(void **state) {
 	UNUSED(state);
@@ -2046,6 +2106,8 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(doh_noresponse_GET, nm_setup,
 						nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_bad_connect_uri, nm_setup,
+						nm_teardown),
 	};
 
 	const struct CMUnitTest tests_long[] = {
@@ -2176,6 +2238,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(
 			doh_half_recv_half_send_POST_TLS_quota, nm_setup,
 			nm_teardown),
+		cmocka_unit_test_setup_teardown(doh_bad_connect_uri, nm_setup,
+						nm_teardown),
 	};
 	int result = 0;
 
