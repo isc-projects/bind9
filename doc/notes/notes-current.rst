@@ -14,15 +14,15 @@ Notes for BIND 9.16.20
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- Named failed to check the opcode of responses when performing refresh,
-  stub updates, and UPDATE forwarding.  This could lead to an assertion
-  failure under particular conditions.  This has been addressed by checking
-  the opcode of those responses and rejecting the messages if they don't
-  match the expected value. :gl:`#2762`
+- ``named`` failed to check the opcode of responses when performing zone
+  refreshes, stub zone updates, and UPDATE forwarding. This could lead
+  to an assertion failure under certain conditions and has been
+  addressed by rejecting responses whose opcode does not match the
+  expected value. :gl:`#2762`
 
-- Fix an assertion failure that occured in ``named`` when attempting to send
-  a UDP packet exceeding the MTU size if rate-limiting was enabled.
-  (CVE-2021-25218) :gl:`#2839`
+- Fixed an assertion failure that occurred in ``named`` when it
+  attempted to send a UDP packet that exceeded the MTU size, if
+  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
 
 Known Issues
 ~~~~~~~~~~~~
@@ -44,11 +44,11 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- CDS and CDNSKEY records may now be published in a zone without the
-  requirement that they exactly match an existing DNSKEY record, so long
-  the zone is signed with an algorithm represented in the CDS or CDNSKEY
-  record.  This allows a clean rollover from one DNS provider to another
-  when using a multiple-signer DNSSEC configuration. :gl:`#2710`
+- CDS and CDNSKEY records can now be published in a zone without the
+  requirement that they exactly match an existing DNSKEY record, as long
+  as the zone is signed with an algorithm represented in the CDS or
+  CDNSKEY record. This allows a clean rollover from one DNS provider to
+  another when using a multiple-signer DNSSEC configuration. :gl:`#2710`
 
 - ``dnssec-signzone`` is now able to retain signatures from inactive
   predecessor keys without introducing additional signatures from the successor
@@ -58,14 +58,13 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Testing revealed that setting the thread affinity on both the netmgr
-  and netthread threads led to inconsistent recursive performance, as
-  sometimes the netmgr and netthread threads competed over a single
-  resource.
+- Testing revealed that setting the thread affinity for various types of
+  ``named`` threads led to inconsistent recursive performance, as
+  sometimes multiple sets of threads competed over a single resource.
 
-  When the affinity is not set, tests show a slight dip in the authoritative
-  performance of around 5% (ranging from 3.8% to 7.8%), but
-  the recursive performance is now consistently improved. :gl:`#2822`
+  Due to the above, ``named`` no longer sets thread affinity. This
+  causes a slight dip of around 5% in authoritative performance, but
+  recursive performance is now consistently improved. :gl:`#2822`
 
 - When following QNAME minimization, BIND could use a stale zonecut from cache 
   to resolve the query, resulting in a non-minimized query. This has been
