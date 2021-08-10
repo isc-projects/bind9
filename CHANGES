@@ -1,3 +1,6 @@
+5703.	[bug]		Fix a crash in dig caused by closing an HTTP/2
+			socket with an unused HTTP/2 session. [GL #2735]
+
 5702.	[bug]		Improve compatibility with DNS-over-HTTPS clients by
 			allowing HTTP/2 request headers in any order. [GL #2875]
 
