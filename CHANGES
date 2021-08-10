@@ -1,39 +1,45 @@
-5689.	[security]	An assertion failure occurred when rate-limiting
-			was applied to a UDP packet exceeding the link MTU
-			size. (CVE-2021-25218) [GL #2839]
+5689.	[security]	An assertion failure occurred when named attempted to
+			send a UDP packet that exceeded the MTU size, if
+			Response Rate Limiting (RRL) was enabled.
+			(CVE-2021-25218) [GL #2856]
 
-5688.	[bug]		Inline and dnssec-policy zones could fail to apply
-			changes from the unsigned zone to the signed zone
-			under certain cirumstances. [GL #2735]
+5688.	[bug]		Zones using KASP and inline-signed zones failed to apply
+			changes from the unsigned zone to the signed zone under
+			certain circumstances. This has been fixed. [GL #2735]
 
-5687.	[bug]		Update the load time of touched inline zones.
-			[GL #2542]
+5687.	[bug]		"rndc reload <zonename>" could trigger a redundant
+			reload for an inline-signed zone whose zone file was not
+			modified since the last "rndc reload". This has been
+			fixed. [GL #2855]
 
 5686.	[func]		The number of internal data structures allocated for
 			each zone was reduced. [GL #2829]
 
-5685.	[bug]		Check the opcodes of messages returned by
-			dns_request_getresponse.  [GL #2762]
+5685.	[bug]		named failed to check the opcode of responses when
+			performing zone refreshes, stub zone updates, and UPDATE
+			forwarding. This has been fixed. [GL #2762]
 
-5682.	[bug]		Not all changes to zone-statistics settings were
-			properly processed. [GL #2820]
+5682.	[bug]		Some changes to "zone-statistics" settings were not
+			properly processed by "rndc reconfig". This has been
+			fixed. [GL #2820]
 
-5681.	[func]		Relax the "zone_cdscheck" function to allow CDS and
-			CDNSKEY records in the zone that do not match an
-			existing DNSKEY record, so long as the algorithm
-			does match. This allows a clean rollover from one
+5681.	[func]		Relax the checks in the dns_zone_cdscheck() function to
+			allow CDS and CDNSKEY records in the zone that do not
+			match an existing DNSKEY record, as long as the
+			algorithm matches. This allows a clean rollover from one
 			provider to another in a multi-signer DNSSEC
-			configuration. [GL #2710].
+			configuration. [GL #2710]
 
-5679.	[bug]		Disable setting the thread affinity. [GL #2822]
+5679.	[func]		Thread affinity is no longer set. [GL #2822]
 
 5678.	[bug]		The "check DS" code failed to release all resources upon
 			named shutdown when a refresh was in progress. This has
 			been fixed. [GL #2811]
 
 5672.	[bug]		Authentication of rndc messages could fail if a
-			"controls" statement was configured with multiple
-			key algorithms in the same listener. [GL #2756]
+			"controls" statement was configured with multiple key
+			algorithms for the same listener. This has been fixed.
+			[GL #2756]
 
 	--- 9.16.19 released ---
 
