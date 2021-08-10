@@ -14,15 +14,15 @@ Notes for BIND 9.17.17
 Security Fixes
 ~~~~~~~~~~~~~~
 
+- Fixed an assertion failure that occurred in ``named`` when it
+  attempted to send a UDP packet that exceeded the MTU size, if
+  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
+
 - ``named`` failed to check the opcode of responses when performing zone
   refreshes, stub zone updates, and UPDATE forwarding. This could lead
   to an assertion failure under certain conditions and has been
   addressed by rejecting responses whose opcode does not match the
   expected value. :gl:`#2762`
-
-- Fixed an assertion failure that occurred in ``named`` when it
-  attempted to send a UDP packet that exceeded the MTU size, if
-  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
 
 Known Issues
 ~~~~~~~~~~~~
@@ -31,6 +31,10 @@ Known Issues
 
 New Features
 ~~~~~~~~~~~~
+
+- DNS-over-HTTPS (DoH) support can now be disabled at compile time using
+  a new build-time option, ``--disable-doh``. This allows BIND 9 to be
+  built without the libnghttp2 library. :gl:`#2478`
 
 - It is now possible to set a hard quota on both the number of
   concurrent DNS-over-HTTPS (DoH) connections and the number of active
@@ -48,16 +52,6 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- DNS-over-HTTPS (DoH) support can now be disabled at compile time using
-  a new build-time option, ``--disable-doh``. This allows BIND 9 to be
-  built without the libnghttp2 library. :gl:`#2478`
-
-- Memory allocation has been substantially refactored; it is now based
-  on the memory allocation API provided by the jemalloc library, on
-  platforms where it is available. Use of this library is now
-  recommended when building BIND 9; although it is optional, it is
-  enabled by default. :gl:`#2433`
-
 - Previously, ``named`` accepted FORMERR responses both with and without
   an OPT record, as an indication that a given server did not support
   EDNS. To implement full compliance with :rfc:`6891`, only FORMERR
@@ -65,6 +59,20 @@ Feature Changes
   breaks communication with servers that do not support EDNS and that
   incorrectly echo back the query message with the RCODE field set to
   FORMERR and the QR bit set to 1. :gl:`#2249`
+
+- Memory allocation has been substantially refactored; it is now based
+  on the memory allocation API provided by the jemalloc library, on
+  platforms where it is available. Use of this library is now
+  recommended when building BIND 9; although it is optional, it is
+  enabled by default. :gl:`#2433`
+
+- Testing revealed that setting the thread affinity for various types of
+  ``named`` threads led to inconsistent recursive performance, as
+  sometimes multiple sets of threads competed over a single resource.
+
+  Due to the above, ``named`` no longer sets thread affinity. This
+  causes a slight dip of around 5% in authoritative performance, but
+  recursive performance is now consistently improved. :gl:`#2822`
 
 - CDS and CDNSKEY records can now be published in a zone without the
   requirement that they exactly match an existing DNSKEY record, as long
@@ -75,10 +83,3 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Testing revealed that setting the thread affinity for various types of
-  ``named`` threads led to inconsistent recursive performance, as
-  sometimes multiple sets of threads competed over a single resource.
-
-  Due to the above, ``named`` no longer sets thread affinity. This
-  causes a slight dip of around 5% in authoritative performance, but
-  recursive performance is now consistently improved. :gl:`#2822`
