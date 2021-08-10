@@ -24,11 +24,6 @@ Security Fixes
   addressed by rejecting responses whose opcode does not match the
   expected value. :gl:`#2762`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -43,11 +38,6 @@ New Features
   ``listener-clients`` and ``streams-per-connection`` parameters in an
   ``http`` statement. The defaults are 300 and 100, respectively.
   :gl:`#2809`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
