@@ -24,23 +24,6 @@ Security Fixes
   addressed by rejecting responses whose opcode does not match the
   expected value. :gl:`#2762`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-- Add support for HTTPS and SVCB record types. :gl:`#1132`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -58,18 +41,9 @@ Feature Changes
   CDNSKEY record. This allows a clean rollover from one DNS provider to
   another when using a multiple-signer DNSSEC configuration. :gl:`#2710`
 
-- ``dnssec-signzone`` is now able to retain signatures from inactive
-  predecessor keys without introducing additional signatures from the successor
-  key. This allows for a gradual replacement of RRSIGs as they reach expiry.
-  :gl:`#1551`
-
 Bug Fixes
 ~~~~~~~~~
 
 - Authentication of ``rndc`` messages could fail if a ``controls``
   statement was configured with multiple key algorithms for the same
   listener. This has been fixed. :gl:`#2756`
-
-- When following QNAME minimization, BIND could use a stale zonecut from cache 
-  to resolve the query, resulting in a non-minimized query. This has been
-  fixed :gl:`#2665`
