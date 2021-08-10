@@ -14,15 +14,15 @@ Notes for BIND 9.16.20
 Security Fixes
 ~~~~~~~~~~~~~~
 
+- Fixed an assertion failure that occurred in ``named`` when it
+  attempted to send a UDP packet that exceeded the MTU size, if
+  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
+
 - ``named`` failed to check the opcode of responses when performing zone
   refreshes, stub zone updates, and UPDATE forwarding. This could lead
   to an assertion failure under certain conditions and has been
   addressed by rejecting responses whose opcode does not match the
   expected value. :gl:`#2762`
-
-- Fixed an assertion failure that occurred in ``named`` when it
-  attempted to send a UDP packet that exceeded the MTU size, if
-  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
 
 Known Issues
 ~~~~~~~~~~~~
@@ -42,6 +42,14 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Testing revealed that setting the thread affinity for various types of
+  ``named`` threads led to inconsistent recursive performance, as
+  sometimes multiple sets of threads competed over a single resource.
+
+  Due to the above, ``named`` no longer sets thread affinity. This
+  causes a slight dip of around 5% in authoritative performance, but
+  recursive performance is now consistently improved. :gl:`#2822`
+
 - CDS and CDNSKEY records can now be published in a zone without the
   requirement that they exactly match an existing DNSKEY record, as long
   as the zone is signed with an algorithm represented in the CDS or
@@ -51,10 +59,3 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Testing revealed that setting the thread affinity for various types of
-  ``named`` threads led to inconsistent recursive performance, as
-  sometimes multiple sets of threads competed over a single resource.
-
-  Due to the above, ``named`` no longer sets thread affinity. This
-  causes a slight dip of around 5% in authoritative performance, but
-  recursive performance is now consistently improved. :gl:`#2822`
