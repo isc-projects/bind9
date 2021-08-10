@@ -1770,11 +1770,18 @@ report() {
     echo "Features disabled or unavailable on this platform:"
     if test "no" = "$with_jemalloc"; then
       echo "    Memory allocator: system"
-      echo "    WARNING: This is not a recommended configuration"
-      echo "    WARNING: Using system memory allocator causes"
-      echo "    WARNING: reduced performance and increased memory"
-      echo "    WARNING: fragmentation.  Installing jemalloc >= 4.0.0"
-      echo "    WARNING: memory allocator is strongly recommended."
+      echo
+      echo "    +------------------------------------------+"
+      echo "    |             ==== WARNING ====            |"
+      echo "    |                                          |"
+      echo "    | This is NOT a recommended configuration. |"
+      echo "    | Using the system memory allocator causes |"
+      echo "    | reduced performance and increased memory |"
+      echo "    | fragmentation. Installing the jemalloc   |"
+      echo "    | memory allocator (version >= 4.0.0) is   |"
+      echo "    | strongly recommended.                    |"
+      echo "    +------------------------------------------+"
+      echo
     fi
     test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
