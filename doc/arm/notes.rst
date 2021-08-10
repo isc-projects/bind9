@@ -51,7 +51,7 @@ The latest versions of BIND 9 software can always be found at
 https://www.isc.org/download/. There you will find additional
 information about each release, and source code.
 
-.. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.17.17.rst
 .. include:: ../notes/notes-9.17.16.rst
 .. include:: ../notes/notes-9.17.15.rst
 .. include:: ../notes/notes-9.17.14.rst
