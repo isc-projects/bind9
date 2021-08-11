@@ -2708,7 +2708,7 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from) {
 		if (result == ISC_R_SUCCESS) {
 			dst_key_setbool(to, i, yesno);
 		} else {
-			dst_key_unsetnum(to, i);
+			dst_key_unsetbool(to, i);
 		}
 	}
 

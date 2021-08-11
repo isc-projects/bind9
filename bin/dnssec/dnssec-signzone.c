@@ -555,11 +555,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 
 		key = keythatsigned(&rrsig);
 		sig_format(&rrsig, sigstr, sizeof(sigstr));
-		if (key != NULL && issigningkey(key)) {
-			expired = isc_serial_gt(now + cycle, rrsig.timeexpire);
-		} else {
-			expired = isc_serial_gt(now, rrsig.timeexpire);
-		}
+		expired = isc_serial_gt(now + cycle, rrsig.timeexpire);
 
 		if (isc_serial_gt(rrsig.timesigned, rrsig.timeexpire)) {
 			/* rrsig is dropped and not replaced */
@@ -649,7 +645,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			}
 		} else {
 			tuple = NULL;
-			vbprintf(2, "removing signature by %s\n", sigstr);
+			vbprintf(2, "\tremoving signature by %s\n", sigstr);
 			result = dns_difftuple_create(
 				mctx, DNS_DIFFOP_DELRESIGN, name, sigset.ttl,
 				&sigrdata, &tuple);
@@ -695,20 +691,20 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		    dns_name_equal(name, gorigin))
 		{
 			bool have_ksk;
-			dns_dnsseckey_t *tmpkey;
+			dns_dnsseckey_t *curr;
 
 			have_ksk = isksk(key);
-			for (tmpkey = ISC_LIST_HEAD(keylist); tmpkey != NULL;
-			     tmpkey = ISC_LIST_NEXT(tmpkey, link))
+			for (curr = ISC_LIST_HEAD(keylist); curr != NULL;
+			     curr = ISC_LIST_NEXT(curr, link))
 			{
 				if (dst_key_alg(key->key) !=
-				    dst_key_alg(tmpkey->key)) {
+				    dst_key_alg(curr->key)) {
 					continue;
 				}
-				if (REVOKE(tmpkey->key)) {
+				if (REVOKE(curr->key)) {
 					continue;
 				}
-				if (isksk(tmpkey)) {
+				if (isksk(curr)) {
 					have_ksk = true;
 				}
 			}
@@ -718,8 +714,65 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 					    "signing with dnskey");
 			}
 		} else if (iszsk(key)) {
-			signwithkey(name, set, key->key, ttl, add,
-				    "signing with dnskey");
+			/*
+			 * Sign with the ZSK unless there is a predecessor
+			 * key that already signs this RRset.
+			 */
+			bool have_pre_sig = false;
+			dns_dnsseckey_t *curr;
+			uint32_t pre;
+			isc_result_t ret = dst_key_getnum(
+				key->key, DST_NUM_PREDECESSOR, &pre);
+			if (ret == ISC_R_SUCCESS) {
+				/*
+				 * This key has a predecessor, look for the
+				 * corresponding key in the keylist. The
+				 * key we are looking for must be:
+				 * - From the same cryptographic algorithm.
+				 * - Have the ZSK type (iszsk).
+				 * - Have key ID equal to the predecessor id.
+				 * - Have a successor that matches 'key' id.
+				 */
+				for (curr = ISC_LIST_HEAD(keylist);
+				     curr != NULL;
+				     curr = ISC_LIST_NEXT(curr, link))
+				{
+					uint32_t suc;
+
+					if (dst_key_alg(key->key) !=
+						    dst_key_alg(curr->key) ||
+					    !iszsk(curr) ||
+					    dst_key_id(curr->key) != pre)
+					{
+						continue;
+					}
+					ret = dst_key_getnum(curr->key,
+							     DST_NUM_SUCCESSOR,
+							     &suc);
+					if (ret != ISC_R_SUCCESS ||
+					    dst_key_id(key->key) != suc) {
+						continue;
+					}
+
+					/*
+					 * curr is the predecessor we were
+					 * looking for. Check if this key
+					 * signs this RRset.
+					 */
+					if (nowsignedby[curr->index]) {
+						have_pre_sig = true;
+					}
+				}
+			}
+
+			/*
+			 * If we have a signature of a predecessor key,
+			 * skip signing with this key.
+			 */
+			if (!have_pre_sig) {
+				signwithkey(name, set, key->key, ttl, add,
+					    "signing with dnskey");
+			}
 		}
 	}
 
@@ -3012,7 +3065,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	isc_buffer_t namebuf;
 	isc_region_t r;
 	isc_result_t result;
-	dns_dnsseckey_t *key, *tmpkey;
+	dns_dnsseckey_t *key, *curr;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	unsigned int filenamelen;
@@ -3053,16 +3106,16 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 			have_ksk = false;
 			have_non_ksk = true;
 		}
-		for (tmpkey = ISC_LIST_HEAD(keylist); tmpkey != NULL;
-		     tmpkey = ISC_LIST_NEXT(tmpkey, link))
+		for (curr = ISC_LIST_HEAD(keylist); curr != NULL;
+		     curr = ISC_LIST_NEXT(curr, link))
 		{
-			if (dst_key_alg(key->key) != dst_key_alg(tmpkey->key)) {
+			if (dst_key_alg(key->key) != dst_key_alg(curr->key)) {
 				continue;
 			}
-			if (REVOKE(tmpkey->key)) {
+			if (REVOKE(curr->key)) {
 				continue;
 			}
-			if (isksk(tmpkey)) {
+			if (isksk(curr)) {
 				have_ksk = true;
 			} else {
 				have_non_ksk = true;
