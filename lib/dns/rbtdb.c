@@ -5363,6 +5363,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	} else if (!dcnull) {
 		dns_name_copy(dcname, foundname);
 	}
+
 	/*
 	 * We now go looking for an NS rdataset at the node.
 	 */
@@ -5378,7 +5379,22 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		header_next = header->next;
 		if (check_stale_header(node, header, &locktype, lock, &search,
 				       &header_prev)) {
-			/* Do nothing. */
+			/*
+			 * The function dns_rbt_findnode found us the a matching
+			 * node for 'name' and stored the result in 'dcname'.
+			 * This is the deepest known zonecut in our database.
+			 * However, this node may be stale and if serve-stale
+			 * is not enabled (in other words 'stale-answer-enable'
+			 * is set to no), this node may not be used as a
+			 * zonecut we know about. If so, find the deepest
+			 * zonecut from this node up and return that instead.
+			 */
+			NODE_UNLOCK(lock, locktype);
+			result = find_deepest_zonecut(&search, node, nodep,
+						      foundname, rdataset,
+						      sigrdataset);
+			dns_name_copy(foundname, dcname);
+			goto tree_exit;
 		} else if (EXISTS(header) && !ANCIENT(header)) {
 			/*
 			 * If we found a type we were looking for, remember
