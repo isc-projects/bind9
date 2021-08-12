@@ -1,3 +1,9 @@
+5706.	[cleanup]	Remove support for external applications to register
+			and use libisc. Export versions of BIND 9 libraries
+			have not been supported for some time, but the
+			isc_lib_register() function was still available;
+			it has now been removed. [GL !2420]
+
 5705.	[bug]		Change #5686 altered the internal memory structure
 			of zone databases, but neglected to update the
 			MAPAPI value for map-format zone files. This caused
