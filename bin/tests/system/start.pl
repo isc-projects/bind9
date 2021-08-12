@@ -202,12 +202,12 @@ sub start_server {
 	my $child = `$command`;
 	chomp($child);
 
-	# wait up to 14 seconds for the server to start and to write the
+	# wait up to 25 seconds for the server to start and to write the
 	# pid file otherwise kill this server and any others that have
 	# already been started
 	my $tries = 0;
 	while (!-s $pid_file) {
-		if (++$tries > 140) {
+		if (++$tries > 250) {
 			print "I:$test:Couldn't start server $command (pid=$child)\n";
 			print "I:$test:failed\n";
 			kill "ABRT", $child if ("$child" ne "");
