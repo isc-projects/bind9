@@ -123,8 +123,15 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		}
 	}
 
-	isc_mem_put(handle->sock->mgr->mctx, send_req->data.base,
-		    send_req->data.length);
+	/* We are tying to avoid a memory allocation for small write
+	 * requests. See the mirroring code in the tls_send_outgoing()
+	 * function. */
+	if (ISC_UNLIKELY(send_req->data.length > sizeof(send_req->smallbuf))) {
+		isc_mem_put(handle->sock->mgr->mctx, send_req->data.base,
+			    send_req->data.length);
+	} else {
+		INSIST(&send_req->smallbuf[0] == send_req->data.base);
+	}
 	isc_mem_put(handle->sock->mgr->mctx, send_req, sizeof(*send_req));
 	tlssock->tlsstream.nsending--;
 
@@ -236,11 +243,15 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 	}
 
 	send_req = isc_mem_get(sock->mgr->mctx, sizeof(*send_req));
-	*send_req = (isc_nmsocket_tls_send_req_t){
-		.finish = finish,
-		.data.base = isc_mem_get(sock->mgr->mctx, pending),
-		.data.length = pending
-	};
+	*send_req = (isc_nmsocket_tls_send_req_t){ .finish = finish,
+						   .data.length = pending };
+
+	/* Let's try to avoid a memory allocation for small write requests */
+	if (ISC_UNLIKELY((size_t)pending > sizeof(send_req->smallbuf))) {
+		send_req->data.base = isc_mem_get(sock->mgr->mctx, pending);
+	} else {
+		send_req->data.base = &send_req->smallbuf[0];
+	}
 
 	isc__nmsocket_attach(sock, &send_req->tlssock);
 	if (cb != NULL) {
@@ -676,7 +687,6 @@ isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	tls_do_bio(sock, NULL, req, false);
 done:
-	isc_mem_free(sock->mgr->mctx, req->uvbuf.base);
 	isc__nm_uvreq_put(&req, sock);
 	return;
 }
@@ -704,9 +714,7 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
-
-	uvreq->uvbuf.base = isc_mem_allocate(sock->mgr->mctx, region->length);
-	memmove(uvreq->uvbuf.base, region->base, region->length);
+	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
 	/*

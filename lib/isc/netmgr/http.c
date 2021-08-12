@@ -74,6 +74,8 @@
 	((code) >= MIN_SUCCESSFUL_HTTP_STATUS && \
 	 (code) <= MAX_SUCCESSFUL_HTTP_STATUS)
 
+#define INITIAL_DNS_MESSAGE_BUFFER_SIZE (512)
+
 typedef struct isc_nm_http_response_status {
 	size_t code;
 	size_t content_length;
@@ -96,15 +98,13 @@ typedef struct http_cstream {
 	size_t authoritylen;
 	char *path;
 
-	uint8_t rbuf[MAX_DNS_MESSAGE_SIZE];
-	size_t rbufsize;
+	isc_buffer_t *rbuf;
 
 	size_t pathlen;
 	int32_t stream_id;
 
 	bool post; /* POST or GET */
-	isc_region_t postdata;
-	size_t postdata_pos;
+	isc_buffer_t *postdata;
 	char *GET_path;
 	size_t GET_path_len;
 
@@ -139,8 +139,7 @@ struct isc_nm_http_session {
 	isc_nmhandle_t *client_httphandle;
 	isc_nmsocket_t *serversocket;
 
-	uint8_t buf[MAX_DNS_MESSAGE_SIZE];
-	size_t bufsize;
+	isc_buffer_t *buf;
 
 	isc_tlsctx_t *tlsctx;
 	uint32_t max_concurrent_streams;
@@ -165,9 +164,9 @@ typedef struct isc_http_send_req {
 	isc_nm_http_session_t *session;
 	isc_nmhandle_t *transphandle;
 	isc_nmhandle_t *httphandle;
-	isc_region_t data;
 	isc_nm_cb_t cb;
 	void *cbarg;
+	isc_buffer_t *pending_write_data;
 	isc__nm_http_pending_callbacks_t pending_write_callbacks;
 } isc_http_send_req_t;
 
@@ -322,6 +321,10 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp) {
 		session->ngsession = NULL;
 	}
 
+	if (session->buf != NULL) {
+		isc_buffer_free(&session->buf);
+	}
+
 	/* We need an acquire memory barrier here */
 	(void)isc_refcount_current(&session->references);
 
@@ -423,6 +426,10 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 			stream->up.field_data[ISC_UF_QUERY].len);
 	}
 
+	isc_buffer_allocate(mctx, &stream->rbuf,
+			    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
+	isc_buffer_setautorealloc(stream->rbuf, true);
+
 	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
 
@@ -440,10 +447,12 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 		stream->GET_path = NULL;
 		stream->GET_path_len = 0;
 	}
-	if (stream->postdata.base != NULL) {
-		isc_mem_put(mctx, stream->postdata.base,
-			    stream->postdata.length);
+
+	if (stream->postdata != NULL) {
+		INSIST(stream->post);
+		isc_buffer_free(&stream->postdata);
 	}
+
 	if (stream == stream->httpsock->h2.connect.cstream) {
 		stream->httpsock->h2.connect.cstream = NULL;
 	}
@@ -452,6 +461,8 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 				link);
 	}
 	isc__nmsocket_detach(&stream->httpsock);
+
+	isc_buffer_free(&stream->rbuf);
 	isc_mem_put(mctx, stream, sizeof(http_cstream_t));
 }
 
@@ -503,12 +514,13 @@ on_client_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 	http_cstream_t *cstream = find_http_cstream(stream_id, session);
 
 	if (cstream != NULL) {
-		size_t new_rbufsize = cstream->rbufsize + len;
+		size_t new_rbufsize = len;
+		INSIST(cstream->rbuf != NULL);
+		new_rbufsize += isc_buffer_usedlength(cstream->rbuf);
 		if (new_rbufsize <= MAX_DNS_MESSAGE_SIZE &&
 		    new_rbufsize <= cstream->response_status.content_length)
 		{
-			memmove(cstream->rbuf + cstream->rbufsize, data, len);
-			cstream->rbufsize = new_rbufsize;
+			isc_buffer_putmem(cstream->rbuf, data, len);
 		} else {
 			return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
 		}
@@ -525,11 +537,18 @@ on_server_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 	isc_nmsocket_h2_t *h2 = ISC_LIST_HEAD(session->sstreams);
 	while (h2 != NULL) {
 		if (stream_id == h2->stream_id) {
-			size_t new_bufsize = h2->bufsize + len;
+			if (isc_buffer_base(&h2->rbuf) == NULL) {
+				isc_buffer_init(
+					&h2->rbuf,
+					isc_mem_allocate(session->mctx,
+							 h2->content_length),
+					MAX_DNS_MESSAGE_SIZE);
+			}
+			size_t new_bufsize = isc_buffer_usedlength(&h2->rbuf) +
+					     len;
 			if (new_bufsize <= MAX_DNS_MESSAGE_SIZE &&
 			    new_bufsize <= h2->content_length) {
-				memmove(h2->buf + h2->bufsize, data, len);
-				h2->bufsize = new_bufsize;
+				isc_buffer_putmem(&h2->rbuf, data, len);
 				break;
 			}
 
@@ -569,12 +588,13 @@ static void
 call_unlink_cstream_readcb(http_cstream_t *cstream,
 			   isc_nm_http_session_t *session,
 			   isc_result_t result) {
+	isc_region_t read_data;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(cstream != NULL);
 	ISC_LIST_UNLINK(session->cstreams, cstream, link);
 	INSIST(VALID_NMHANDLE(session->client_httphandle));
-	cstream->read_cb(session->client_httphandle, result,
-			 &(isc_region_t){ cstream->rbuf, cstream->rbufsize },
+	isc_buffer_usedregion(cstream->rbuf, &read_data);
+	cstream->read_cb(session->client_httphandle, result, &read_data,
 			 cstream->read_cbarg);
 	put_http_cstream(session->mctx, cstream);
 }
@@ -597,6 +617,9 @@ on_client_stream_close_callback(int32_t stream_id,
 			if (rv != 0) {
 				return (rv);
 			}
+			/* Mark the session as closing one to finish it on a
+			 * subsequent call to http_do_bio() */
+			session->closing = true;
 		}
 	} else {
 		return (NGHTTP2_ERR_CALLBACK_FAILURE);
@@ -841,17 +864,19 @@ client_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 	}
 
 	if (cstream->post) {
-		size_t len = cstream->postdata.length - cstream->postdata_pos;
+		size_t len = isc_buffer_remaininglength(cstream->postdata);
 
 		if (len > length) {
 			len = length;
 		}
 
-		memmove(buf, cstream->postdata.base + cstream->postdata_pos,
-			len);
-		cstream->postdata_pos += len;
+		if (len > 0) {
+			memmove(buf, isc_buffer_current(cstream->postdata),
+				len);
+			isc_buffer_forward(cstream->postdata, len);
+		}
 
-		if (cstream->postdata_pos == cstream->postdata.length) {
+		if (isc_buffer_remaininglength(cstream->postdata) == 0) {
 			*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 		}
 
@@ -876,7 +901,8 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
 
 	if (stream->post) {
 		char p[64];
-		snprintf(p, sizeof(p), "%u", stream->postdata.length);
+		snprintf(p, sizeof(p), "%u",
+			 isc_buffer_usedlength(stream->postdata));
 		nghttp2_nv hdrs[] = {
 			MAKE_NV2(":method", "POST"),
 			MAKE_NV(":scheme",
@@ -956,10 +982,14 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	}
 
 	if ((size_t)readlen < region->length) {
-		INSIST(session->bufsize == 0);
-		INSIST(region->length - readlen < MAX_DNS_MESSAGE_SIZE);
-		memmove(session->buf, region->base, region->length - readlen);
-		session->bufsize = region->length - readlen;
+		size_t unread_size = region->length - readlen;
+		if (session->buf == NULL) {
+			isc_buffer_allocate(session->mctx, &session->buf,
+					    unread_size);
+			isc_buffer_setautorealloc(session->buf, true);
+		}
+		isc_buffer_putmem(session->buf, region->base + readlen,
+				  unread_size);
 		isc_nm_pauseread(session->handle);
 	}
 
@@ -999,7 +1029,7 @@ http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		isc_nmhandle_detach(&req->httphandle);
 	}
 
-	isc_mem_put(session->mctx, req->data.base, req->data.length);
+	isc_buffer_free(&req->pending_write_data);
 	isc_mem_put(session->mctx, req, sizeof(*req));
 
 	session->sending--;
@@ -1029,8 +1059,8 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg) {
 	isc_http_send_req_t *send = NULL;
 	size_t total = 0;
-	uint8_t tmp_data[8192] = { 0 };
-	uint8_t *prepared_data = &tmp_data[0];
+	isc_region_t send_data = { 0 };
+	isc_nmhandle_t *transphandle = NULL;
 #ifdef ENABLE_HTTP_WRITE_BUFFERING
 	size_t max_total_write_size = 0;
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
@@ -1041,6 +1071,14 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	{
 		return (false);
 	}
+
+	/* We need to attach to the session->handle earlier because as an
+	 * indirect result of the nghttp2_session_mem_send() the session
+	 * might get closed and the handle detached. However, there is
+	 * still some outgoing data to handle and we need to call it
+	 * anyway if only to get the write callback passed here to get
+	 * called properly. */
+	isc_nmhandle_attach(session->handle, &transphandle);
 
 	while (nghttp2_session_want_write(session->ngsession)) {
 		const uint8_t *data = NULL;
@@ -1056,25 +1094,20 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		}
 
 		/* reallocate buffer if required */
-		if (new_total > sizeof(tmp_data)) {
-			uint8_t *old_prepared_data = prepared_data;
-			const bool allocated = prepared_data != tmp_data;
-
-			prepared_data = isc_mem_get(session->mctx, new_total);
-			memmove(prepared_data, old_prepared_data, total);
-			if (allocated) {
-				isc_mem_put(session->mctx, old_prepared_data,
-					    total);
-			}
+		if (session->pending_write_data == NULL) {
+			isc_buffer_allocate(session->mctx,
+					    &session->pending_write_data,
+					    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
+			isc_buffer_setautorealloc(session->pending_write_data,
+						  true);
 		}
-		memmove(&prepared_data[total], data, pending);
+		isc_buffer_putmem(session->pending_write_data, data, pending);
 		total = new_total;
 	}
 
 #ifdef ENABLE_HTTP_WRITE_BUFFERING
-	max_total_write_size = total;
 	if (session->pending_write_data != NULL) {
-		max_total_write_size +=
+		max_total_write_size =
 			isc_buffer_usedlength(session->pending_write_data);
 	}
 
@@ -1083,31 +1116,14 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	 * within some tools (e.g. flamethrower). */
 	if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
 		/* Case 1: We have equal or more than
-		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's put the
-		 * data which we have just obtained from nghttp2 into the
-		 * pending write buffer and flush it. */
-
-		/* Let's allocate a new write buffer if there is none. */
-		if (session->pending_write_data == NULL) {
-			isc_buffer_allocate(session->mctx,
-					    &session->pending_write_data,
-					    max_total_write_size);
-		}
-
-		isc_buffer_putmem(session->pending_write_data, prepared_data,
-				  total);
-		if (prepared_data != &tmp_data[0]) {
-			isc_mem_put(session->mctx, prepared_data, total);
-		}
-
+		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's flush it.
+		 */
 		total = max_total_write_size;
-		prepared_data = isc_buffer_base(session->pending_write_data);
 	} else if (session->sending > 0 && total > 0) {
 		/* Case 2: There is one or more write requests in flight and
 		 * we have some new data form nghttp2 to send. Let's put the
 		 * write callback (if any) into the pending write callbacks
-		 * list and add the new data into the pending write
-		 * buffer. Then let's return from the function: as soon as the
+		 * list. Then let's return from the function: as soon as the
 		 * "in-flight" write callback get's called or we have reached
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes in the write buffer, we
 		 * will flush the buffer. */
@@ -1122,21 +1138,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			ISC_LIST_APPEND(session->pending_write_callbacks, newcb,
 					link);
 		}
-
-		if (session->pending_write_data == NULL) {
-			isc_buffer_allocate(session->mctx,
-					    &session->pending_write_data,
-					    total);
-			isc_buffer_setautorealloc(session->pending_write_data,
-						  true);
-		}
-
-		isc_buffer_putmem(session->pending_write_data, prepared_data,
-				  total);
-		if (prepared_data != &tmp_data[0]) {
-			isc_mem_put(session->mctx, prepared_data, total);
-		}
-		return (false);
+		goto nothing_to_send;
 	} else if (session->sending == 0 && total == 0 &&
 		   session->pending_write_data != NULL)
 	{
@@ -1146,10 +1148,8 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		isc_region_t region = { 0 };
 		total = isc_buffer_usedlength(session->pending_write_data);
 		INSIST(total > 0);
-		INSIST(prepared_data == &tmp_data[0]);
 		isc_buffer_usedregion(session->pending_write_data, &region);
 		INSIST(total == region.length);
-		prepared_data = region.base;
 	} else {
 		/* The other cases are, uninteresting, fall-through ones. */
 		/* In the following cases (4-6) we will just bail out. */
@@ -1168,52 +1168,40 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		       (total > 0 && session->sending == 0));
 	}
 #else
-	INSIST(session->pending_write_data == NULL);
 	INSIST(ISC_LIST_EMPTY(session->pending_write_callbacks));
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
 
 	if (total == 0) {
-		INSIST(prepared_data == &tmp_data[0]);
 		/* No data returned */
-		return (false);
+		goto nothing_to_send;
 	}
 
+	/* If we have reached the point it means that we need to send some
+	 * data and flush the outgoing buffer. The code below does that. */
 	send = isc_mem_get(session->mctx, sizeof(*send));
-	if (prepared_data == &tmp_data[0]) {
-		*send = (isc_http_send_req_t){
-			.data.base = isc_mem_get(session->mctx, total),
-			.data.length = total,
-		};
-		memmove(send->data.base, tmp_data, total);
-	} else if (session->pending_write_data != NULL) {
-		*send = (isc_http_send_req_t){
-			.data.base = isc_mem_get(session->mctx, total),
-			.data.length = total,
-		};
-		memmove(send->data.base,
-			isc_buffer_base(session->pending_write_data), total);
-		isc_buffer_free(&session->pending_write_data);
-	} else {
-		*send = (isc_http_send_req_t){
-			.data.base = prepared_data,
-			.data.length = total,
-		};
-	}
-	isc_nmhandle_attach(session->handle, &send->transphandle);
+
+	*send = (isc_http_send_req_t){ .pending_write_data =
+					       session->pending_write_data,
+				       .cb = cb,
+				       .cbarg = cbarg };
+	session->pending_write_data = NULL;
+	move_pending_send_callbacks(session, send);
+
+	send->transphandle = transphandle;
 	isc__nm_httpsession_attach(session, &send->session);
 
 	if (cb != NULL) {
 		INSIST(VALID_NMHANDLE(httphandle));
-		send->cb = cb;
-		send->cbarg = cbarg;
 		isc_nmhandle_attach(httphandle, &send->httphandle);
 	}
 
-	move_pending_send_callbacks(session, send);
-
 	session->sending++;
-	isc_nm_send(session->handle, &send->data, http_writecb, send);
+	isc_buffer_usedregion(send->pending_write_data, &send_data);
+	isc_nm_send(transphandle, &send_data, http_writecb, send);
 	return (true);
+nothing_to_send:
+	isc_nmhandle_detach(&transphandle);
+	return (false);
 }
 
 static void
@@ -1244,18 +1232,18 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			/* We have not yet started reading from this handle */
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
-		} else if (session->bufsize > 0) {
+		} else if (session->buf != NULL) {
+			size_t remaining =
+				isc_buffer_remaininglength(session->buf);
 			/* Leftover data in the buffer, use it */
 			size_t readlen = nghttp2_session_mem_recv(
-				session->ngsession, session->buf,
-				session->bufsize);
+				session->ngsession,
+				isc_buffer_current(session->buf), remaining);
 
-			if (readlen == session->bufsize) {
-				session->bufsize = 0;
+			if (readlen == remaining) {
+				isc_buffer_free(&session->buf);
 			} else {
-				memmove(session->buf, session->buf + readlen,
-					session->bufsize - readlen);
-				session->bufsize -= readlen;
+				isc_buffer_forward(session->buf, readlen);
 			}
 
 			http_do_bio(session, send_httphandle, send_cb,
@@ -1520,12 +1508,9 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 
 	if (cstream->post) {
 		/* POST */
-		cstream->postdata = (isc_region_t){
-			.base = isc_mem_get(mctx, region->length),
-			.length = region->length
-		};
-		memmove(cstream->postdata.base, region->base, region->length);
-		cstream->postdata_pos = 0;
+		isc_buffer_allocate(mctx, &cstream->postdata, region->length);
+		isc_buffer_putmem(cstream->postdata, region->base,
+				  region->length);
 	} else {
 		/* GET */
 		size_t path_size = 0;
@@ -1544,7 +1529,7 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 			goto error;
 		}
 
-		isc__buffer_usedregion(buf, &base64_region);
+		isc_buffer_usedregion(buf, &base64_region);
 		INSIST(base64_region.length == base64_len);
 
 		base64url_data = isc__nm_base64_to_base64url(
@@ -1589,6 +1574,7 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->tid == isc_nm_tid());
+	REQUIRE(atomic_load(&handle->sock->client));
 
 	REQUIRE(cb != NULL);
 
@@ -1604,7 +1590,6 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 		goto error;
 	}
 
-	http_do_bio(sock->h2.session, NULL, NULL, NULL);
 	return (ISC_R_SUCCESS);
 
 error:
@@ -1638,12 +1623,12 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 			   isc_nm_httpsocket,
 			   (isc_sockaddr_t *)&session->handle->sock->iface);
 	socket->peer = session->handle->sock->peer;
-	socket->h2 = (isc_nmsocket_h2_t){
-		.buf = isc_mem_allocate(session->mctx, MAX_DNS_MESSAGE_SIZE),
-		.psock = socket,
-		.stream_id = frame->hd.stream_id,
-		.headers_error_code = ISC_HTTP_ERROR_SUCCESS
-	};
+	socket->h2 = (isc_nmsocket_h2_t){ .psock = socket,
+					  .stream_id = frame->hd.stream_id,
+					  .headers_error_code =
+						  ISC_HTTP_ERROR_SUCCESS };
+	isc_buffer_initnull(&socket->h2.rbuf);
+	isc_buffer_initnull(&socket->h2.wbuf);
 	session->nsstreams++;
 	isc__nm_httpsession_attach(session, &socket->h2.session);
 	socket->tid = session->handle->sock->tid;
@@ -1904,14 +1889,18 @@ server_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 	UNUSED(ngsession);
 	UNUSED(session);
 
-	buflen = socket->h2.bufsize - socket->h2.bufpos;
+	buflen = isc_buffer_remaininglength(&socket->h2.wbuf);
 	if (buflen > length) {
 		buflen = length;
 	}
 
-	memmove(buf, socket->h2.buf + socket->h2.bufpos, buflen);
-	socket->h2.bufpos += buflen;
-	if (socket->h2.bufpos == socket->h2.bufsize) {
+	if (buflen > 0) {
+		(void)memmove(buf, isc_buffer_current(&socket->h2.wbuf),
+			      buflen);
+		isc_buffer_forward(&socket->h2.wbuf, buflen);
+	}
+
+	if (isc_buffer_remaininglength(&socket->h2.wbuf) == 0) {
 		*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 	}
 
@@ -1974,8 +1963,11 @@ static struct http_error_responses {
 static isc_result_t
 server_send_error_response(const isc_http_error_responses_t error,
 			   nghttp2_session *ngsession, isc_nmsocket_t *socket) {
-	socket->h2.bufsize = 0;
-	socket->h2.bufpos = 0;
+	void *base = isc_buffer_base(&socket->h2.rbuf);
+	if (base != NULL) {
+		isc_mem_free(socket->h2.session->mctx, base);
+		isc_buffer_initnull(&socket->h2.rbuf);
+	}
 
 	for (size_t i = 0;
 	     i < sizeof(error_responses) / sizeof(error_responses[0]); i++)
@@ -2028,6 +2020,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 	isc_result_t result;
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
 	isc_region_t data;
+	uint8_t tmp_buf[MAX_DNS_MESSAGE_SIZE];
 
 	code = socket->h2.headers_error_code;
 	if (code != ISC_HTTP_ERROR_SUCCESS) {
@@ -2037,11 +2030,13 @@ server_on_request_recv(nghttp2_session *ngsession,
 	if (socket->h2.request_path == NULL || socket->h2.cb == NULL) {
 		code = ISC_HTTP_ERROR_NOT_FOUND;
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
-		   socket->h2.bufsize > socket->h2.content_length)
+		   isc_buffer_usedlength(&socket->h2.rbuf) >
+			   socket->h2.content_length)
 	{
 		code = ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE;
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
-		   socket->h2.bufsize != socket->h2.content_length)
+		   isc_buffer_usedlength(&socket->h2.rbuf) !=
+			   socket->h2.content_length)
 	{
 		code = ISC_HTTP_ERROR_BAD_REQUEST;
 	}
@@ -2052,18 +2047,17 @@ server_on_request_recv(nghttp2_session *ngsession,
 
 	if (socket->h2.request_type == ISC_HTTP_REQ_GET) {
 		isc_buffer_t decoded_buf;
-		isc__buffer_init(&decoded_buf, socket->h2.buf,
-				 MAX_DNS_MESSAGE_SIZE);
+		isc_buffer_init(&decoded_buf, tmp_buf, sizeof(tmp_buf));
 		if (isc_base64_decodestring(socket->h2.query_data,
 					    &decoded_buf) != ISC_R_SUCCESS)
 		{
 			code = ISC_HTTP_ERROR_BAD_REQUEST;
 			goto error;
 		}
-		isc__buffer_usedregion(&decoded_buf, &data);
+		isc_buffer_usedregion(&decoded_buf, &data);
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST) {
 		INSIST(socket->h2.content_length > 0);
-		data = (isc_region_t){ socket->h2.buf, socket->h2.bufsize };
+		isc_buffer_usedregion(&socket->h2.rbuf, &data);
 	} else {
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -2155,8 +2149,8 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	INSIST(VALID_NMHANDLE(handle->httpsession->handle));
 	INSIST(VALID_NMSOCK(handle->httpsession->handle->sock));
 
-	memmove(sock->h2.buf, req->uvbuf.base, req->uvbuf.len);
-	sock->h2.bufsize = req->uvbuf.len;
+	isc_buffer_init(&sock->h2.wbuf, req->uvbuf.base, req->uvbuf.len);
+	isc_buffer_add(&sock->h2.wbuf, req->uvbuf.len);
 
 	len = snprintf(sock->h2.clenbuf, sizeof(sock->h2.clenbuf), "%lu",
 		       (unsigned long)req->uvbuf.len);
@@ -2718,6 +2712,7 @@ isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 static void
 failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			  isc_nm_http_session_t *session) {
+	isc_region_t data;
 	REQUIRE(VALID_NMSOCK(sock));
 	INSIST(sock->type == isc_nm_httpsocket);
 
@@ -2730,8 +2725,8 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	(void)nghttp2_submit_rst_stream(
 		session->ngsession, NGHTTP2_FLAG_END_STREAM, sock->h2.stream_id,
 		NGHTTP2_REFUSED_STREAM);
-	server_call_cb(sock, session, result,
-		       &(isc_region_t){ sock->h2.buf, sock->h2.bufsize });
+	isc_buffer_usedregion(&sock->h2.rbuf, &data);
+	server_call_cb(sock, session, result, &data);
 }
 
 static void
@@ -2753,10 +2748,10 @@ client_call_failed_read_cb(isc_result_t result,
 		 * in such a case.
 		 */
 		if (cstream->read_cb != NULL) {
+			isc_region_t read_data;
+			isc_buffer_usedregion(cstream->rbuf, &read_data);
 			cstream->read_cb(session->client_httphandle, result,
-					 &(isc_region_t){ cstream->rbuf,
-							  cstream->rbufsize },
-					 cstream->read_cbarg);
+					 &read_data, cstream->read_cbarg);
 		}
 
 		if (result != ISC_R_TIMEDOUT || cstream->read_cb == NULL ||
@@ -2995,9 +2990,10 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 
 		INSIST(sock->h2.connect.cstream == NULL);
 
-		if (sock->h2.buf != NULL) {
-			isc_mem_free(sock->mgr->mctx, sock->h2.buf);
-			sock->h2.buf = NULL;
+		if (isc_buffer_base(&sock->h2.rbuf) != NULL) {
+			void *base = isc_buffer_base(&sock->h2.rbuf);
+			isc_mem_free(sock->mgr->mctx, base);
+			isc_buffer_initnull(&sock->h2.rbuf);
 		}
 	}
 

@@ -754,6 +754,7 @@ typedef struct isc_nmsocket_tls_send_req {
 	void *cbarg;
 	isc_nmhandle_t *handle;
 	bool finish;
+	uint8_t smallbuf[512];
 } isc_nmsocket_tls_send_req_t;
 
 typedef enum isc_http_request_type {
@@ -800,9 +801,8 @@ typedef struct isc_nmsocket_h2 {
 	bool query_too_large;
 	isc_nm_httphandler_t *handler;
 
-	uint8_t *buf;
-	size_t bufsize;
-	size_t bufpos;
+	isc_buffer_t rbuf;
+	isc_buffer_t wbuf;
 
 	int32_t stream_id;
 	isc_nm_http_session_t *session;
