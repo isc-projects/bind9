@@ -114,7 +114,7 @@ isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
 isc_refcount_t recvcount = ATOMIC_VAR_INIT(0);
 int ndots = -1;
-int tries = 3;
+int tries = -1;
 int lookup_counter = 0;
 
 static char servercookie[256];
@@ -1275,6 +1275,17 @@ setup_system(bool ipv4only, bool ipv6only) {
 	if (ndots == -1) {
 		ndots = irs_resconf_getndots(resconf);
 		debug("ndots is %d.", ndots);
+	}
+	if (timeout == 0) {
+		timeout = irs_resconf_gettimeout(resconf);
+		debug("timeout is %d.", timeout);
+	}
+	if (tries == -1) {
+		tries = irs_resconf_getattempts(resconf);
+		if (tries == 0) {
+			tries = 3;
+		}
+		debug("retries is %d.", tries);
 	}
 
 	/* If user doesn't specify server use nameservers from resolv.conf. */
