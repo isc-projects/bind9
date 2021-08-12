@@ -153,6 +153,10 @@ typedef struct resarg {
 
 static void
 client_resfind(resctx_t *rctx, dns_fetchevent_t *event);
+static void
+cancelresolve(dns_clientrestrans_t *trans);
+static void
+destroyrestrans(dns_clientrestrans_t **transp);
 
 /*
  * Try honoring the operating system's preferred ephemeral port range.
@@ -406,7 +410,7 @@ cleanup_lock:
 
 static void
 destroyclient(dns_client_t *client) {
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 
 	isc_refcount_destroy(&client->references);
 
@@ -433,13 +437,14 @@ destroyclient(dns_client_t *client) {
 }
 
 void
-dns_client_destroy(dns_client_t **clientp) {
-	dns_client_t *client;
+dns_client_detach(dns_client_t **clientp) {
+	dns_client_t *client = NULL;
 
 	REQUIRE(clientp != NULL);
+	REQUIRE(DNS_CLIENT_VALID(*clientp));
+
 	client = *clientp;
 	*clientp = NULL;
-	REQUIRE(DNS_CLIENT_VALID(client));
 
 	if (isc_refcount_decrement(&client->references) == 1) {
 		destroyclient(client);
@@ -974,7 +979,8 @@ static void
 resolve_done(isc_task_t *task, isc_event_t *event) {
 	resarg_t *resarg = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
+	dns_client_t *client = resarg->client;
 	isc_result_t result;
 
 	UNUSED(task);
@@ -988,8 +994,9 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 		ISC_LIST_APPEND(*resarg->namelist, name, link);
 	}
 
-	dns_client_destroyrestrans(&resarg->trans);
+	destroyrestrans(&resarg->trans);
 	isc_event_free(&event);
+	resarg->client = NULL;
 
 	if (!resarg->canceled) {
 		UNLOCK(&resarg->lock);
@@ -1000,8 +1007,8 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 		 * action to call isc_app_ctxsuspend when we do start
 		 * running.
 		 */
-		result = isc_app_ctxonrun(resarg->actx, resarg->client->mctx,
-					  task, suspend, resarg->actx);
+		result = isc_app_ctxonrun(resarg->actx, client->mctx, task,
+					  suspend, resarg->actx);
 		if (result == ISC_R_ALREADYRUNNING) {
 			isc_app_ctxsuspend(resarg->actx);
 		}
@@ -1012,8 +1019,10 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 		 */
 		UNLOCK(&resarg->lock);
 		isc_mutex_destroy(&resarg->lock);
-		isc_mem_put(resarg->client->mctx, resarg, sizeof(*resarg));
+		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
 	}
+
+	dns_client_detach(&client);
 }
 
 isc_result_t
@@ -1021,7 +1030,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   unsigned int options, dns_namelist_t *namelist) {
 	isc_result_t result;
-	resarg_t *resarg;
+	resarg_t *resarg = NULL;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(client->actx != NULL);
@@ -1071,7 +1080,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		 * tricky cleanup process.
 		 */
 		resarg->canceled = true;
-		dns_client_cancelresolve(resarg->trans);
+		cancelresolve(resarg->trans);
 
 		UNLOCK(&resarg->lock);
 
@@ -1194,9 +1203,16 @@ cleanup:
 	return (result);
 }
 
-void
-dns_client_cancelresolve(dns_clientrestrans_t *trans) {
-	resctx_t *rctx;
+/*%<
+ * Cancel an ongoing resolution procedure started via
+ * dns_client_startresolve().
+ *
+ * If the resolution procedure has not completed, post its CLIENTRESDONE
+ * event with a result code of #ISC_R_CANCELED.
+ */
+static void
+cancelresolve(dns_clientrestrans_t *trans) {
+	resctx_t *rctx = NULL;
 
 	REQUIRE(trans != NULL);
 	rctx = (resctx_t *)trans;
@@ -1233,19 +1249,29 @@ dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
 	}
 }
 
-void
-dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
-	resctx_t *rctx;
-	isc_mem_t *mctx;
-	dns_client_t *client;
+/*%
+ * Destroy name resolution transaction state identified by '*transp'.
+ *
+ * The caller must have received the CLIENTRESDONE event (either because the
+ * resolution completed or because cancelresolve() was called).
+ */
+static void
+destroyrestrans(dns_clientrestrans_t **transp) {
+	resctx_t *rctx = NULL;
+	isc_mem_t *mctx = NULL;
+	dns_client_t *client = NULL;
 
 	REQUIRE(transp != NULL);
+
 	rctx = (resctx_t *)*transp;
 	*transp = NULL;
+
 	REQUIRE(RCTX_VALID(rctx));
 	REQUIRE(rctx->fetch == NULL);
 	REQUIRE(rctx->event == NULL);
+
 	client = rctx->client;
+
 	REQUIRE(DNS_CLIENT_VALID(client));
 
 	mctx = client->mctx;
@@ -1271,8 +1297,6 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 	rctx->magic = 0;
 
 	isc_mem_put(mctx, rctx, sizeof(*rctx));
-
-	dns_client_destroy(&client);
 }
 
 isc_result_t

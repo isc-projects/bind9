@@ -1844,7 +1844,7 @@ cleanup:
 		dns_master_styledestroy(&style, mctx);
 	}
 	if (client != NULL) {
-		dns_client_destroy(&client);
+		dns_client_detach(&client);
 	}
 	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
 	if (actx != NULL) {

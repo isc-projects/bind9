@@ -493,7 +493,7 @@ main(int argc, char *argv[]) {
 	/* Cleanup */
 cleanup:
 	if (client != NULL) {
-		dns_client_destroy(&client);
+		dns_client_detach(&client);
 	}
 
 	ctxs_destroy();
