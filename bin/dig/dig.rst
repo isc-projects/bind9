@@ -615,6 +615,26 @@ To turn off IDN support, use the parameters
 ``+noidnin`` and ``+noidnout``, or define the ``IDN_DISABLE`` environment
 variable.
 
+Return Codes
+~~~~~~~~~~~~
+
+``dig`` return codes are:
+
+``0``
+   DNS response received, including NXDOMAIN status
+
+``1``
+   Usage error
+
+``8``
+   Couldn't open batch file
+
+``9``
+   No reply from server
+
+``10``
+   Internal error
+
 Files
 ~~~~~
 
