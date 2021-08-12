@@ -15,6 +15,7 @@ SYSTEMTESTTOP=..
 $SHELL ../genzone.sh 2 >ns2/nil.db
 $SHELL ../genzone.sh 2 >ns2/other.db
 $SHELL ../genzone.sh 2 >ns2/static.db
+$SHELL ../genzone.sh 2 >ns4/example.db
 
 $SHELL ../genzone.sh 2 >ns6/huge.zone.db
 awk 'END { for (i = 1; i <= 1000000; i++)

@@ -15,13 +15,22 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion yes;
-    dnssec-validation yes;
+	dnssec-validation yes;
 };
 
 view normal {
 	match-clients { any; };
+
+	zone example {
+		type primary;
+		file "example.db";
+		allow-update { any; };
+	};
 };
 
 view "view with a space" {
 	match-clients { none; };
+	zone example {
+		in-view normal;
+	};
 };
