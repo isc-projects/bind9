@@ -26,8 +26,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define DEFAULT_DOH_PATH "/dns-query"
-
 typedef enum { UDP, TCP, DOT, HTTPS, HTTP } protocol_t;
 
 static const char *protocols[] = { "udp", "tcp", "dot", "https", "http-plain" };
@@ -291,8 +289,8 @@ run(void) {
 			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 		}
 		eps = isc_nm_http_endpoints_new(mctx);
-		result = isc_nm_http_endpoints_add(eps, DEFAULT_DOH_PATH,
-						   read_cb, NULL, 0);
+		result = isc_nm_http_endpoints_add(
+			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL, 0);
 
 		if (result == ISC_R_SUCCESS) {
 			result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL,

@@ -33,8 +33,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define DEFAULT_DOH_PATH "/dns-query"
-
 typedef enum {
 	UDP,
 	TCP,
@@ -421,7 +419,8 @@ run(void) {
 				protocol == HTTP_POST);
 		char req_url[256];
 		isc_nm_http_makeuri(is_https, &sockaddr_remote, NULL, 0,
-				    DEFAULT_DOH_PATH, req_url, sizeof(req_url));
+				    ISC_NM_HTTP_DEFAULT_PATH, req_url,
+				    sizeof(req_url));
 		if (is_https) {
 			isc_tlsctx_createclient(&tls_ctx);
 		}

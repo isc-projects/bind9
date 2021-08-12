@@ -91,8 +91,6 @@ static isc_nm_http_endpoints_t *endpoints = NULL;
 #define NSENDS	100
 #define NWRITES 10
 
-#define DOH_PATH "/dns-query"
-
 #define CHECK_RANGE_FULL(v)                                    \
 	{                                                      \
 		int __v = atomic_load(&v);                     \
@@ -470,8 +468,8 @@ mock_doh_uv_tcp_bind(void **state) {
 
 	WILL_RETURN(uv_tcp_bind, UV_EADDRINUSE);
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH, noop_read_cb,
-					   NULL, 0);
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
+					   noop_read_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
 				   endpoints, 0, &listen_sock);
@@ -490,8 +488,8 @@ doh_noop(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH, noop_read_cb,
-					   NULL, 0);
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
+					   noop_read_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
@@ -503,7 +501,7 @@ doh_noop(void **state) {
 	assert_null(listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
-			DOH_PATH);
+			ISC_NM_HTTP_DEFAULT_PATH);
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
 			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
 					      .length = send_msg.len },
@@ -538,8 +536,8 @@ doh_noresponse(void **state) {
 	isc_nmsocket_t *listen_sock = NULL;
 	char req_url[256];
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH, noop_read_cb,
-					   NULL, 0);
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
+					   noop_read_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_listenhttp(listen_nm, &tcp_listen_addr, 0, NULL, NULL,
@@ -547,7 +545,7 @@ doh_noresponse(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
-			DOH_PATH);
+			ISC_NM_HTTP_DEFAULT_PATH);
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
 			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
 					      .length = send_msg.len },
@@ -639,7 +637,7 @@ doh_timeout_recovery(void **state) {
 	isc_tlsctx_t *ctx = atomic_load(&use_TLS) ? server_tlsctx : NULL;
 	char req_url[256];
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -659,7 +657,7 @@ doh_timeout_recovery(void **state) {
 	 */
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
-			DOH_PATH);
+			ISC_NM_HTTP_DEFAULT_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
 			   T_SOFT, 0);
@@ -733,7 +731,7 @@ doh_connect_thread(isc_threadarg_t arg) {
 	int64_t sends = atomic_load(&nsends);
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
-			sizeof(req_url), DOH_PATH);
+			sizeof(req_url), ISC_NM_HTTP_DEFAULT_PATH);
 
 	while (sends > 0) {
 		/*
@@ -771,7 +769,7 @@ doh_recv_one(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -781,7 +779,7 @@ doh_recv_one(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
-			sizeof(req_url), DOH_PATH);
+			sizeof(req_url), ISC_NM_HTTP_DEFAULT_PATH);
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
 			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
 					      .length = send_msg.len },
@@ -922,7 +920,7 @@ doh_recv_two(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -932,7 +930,7 @@ doh_recv_two(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
-			sizeof(req_url), DOH_PATH);
+			sizeof(req_url), ISC_NM_HTTP_DEFAULT_PATH);
 
 	if (atomic_load(&use_TLS)) {
 		ctx = client_tlsctx;
@@ -1042,7 +1040,7 @@ doh_recv_send(void **state) {
 	isc_thread_t threads[32] = { 0 };
 	isc_quota_t *quotap = init_listener_quota(workers);
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1155,7 +1153,7 @@ doh_recv_half_send(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1265,7 +1263,7 @@ doh_half_recv_send(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1375,7 +1373,7 @@ doh_half_recv_half_send(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1484,7 +1482,7 @@ doh_bad_connect_uri(void **state) {
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
-	result = isc_nm_http_endpoints_add(endpoints, DOH_PATH,
+	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1497,7 +1495,8 @@ doh_bad_connect_uri(void **state) {
 	 * "https://[::1]:XXXX/dns-query"
 	 */
 	(void)snprintf(req_url, sizeof(req_url), "https://::1:%u/%s",
-		       isc_sockaddr_getport(&tcp_listen_addr), DOH_PATH);
+		       isc_sockaddr_getport(&tcp_listen_addr),
+		       ISC_NM_HTTP_DEFAULT_PATH);
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
 			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
 					      .length = send_msg.len },
@@ -2035,7 +2034,7 @@ doh_path_validation(void **state) {
 	UNUSED(state);
 
 	assert_true(isc_nm_http_path_isvalid("/"));
-	assert_true(isc_nm_http_path_isvalid(DOH_PATH));
+	assert_true(isc_nm_http_path_isvalid(ISC_NM_HTTP_DEFAULT_PATH));
 	assert_false(isc_nm_http_path_isvalid("laaaa"));
 	assert_false(isc_nm_http_path_isvalid(""));
 	assert_false(isc_nm_http_path_isvalid("//"));
@@ -2075,11 +2074,13 @@ doh_connect_makeuri(void **state) {
 	/* Firstly, test URI generation using isc_sockaddr_t */
 	isc_sockaddr_fromin(&sa, &localhostv4, 0);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("https://127.0.0.1:443/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("http://127.0.0.1:80/dns-query", uri) == 0);
 
 	/*
@@ -2087,21 +2088,25 @@ doh_connect_makeuri(void **state) {
 	 * the isc_sockaddr_t object.
 	 */
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, NULL, 44343, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, NULL, 44343, ISC_NM_HTTP_DEFAULT_PATH,
+			    uri, sizeof(uri));
 	assert_true(strcmp("https://127.0.0.1:443/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, NULL, 8080, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, NULL, 8080, ISC_NM_HTTP_DEFAULT_PATH,
+			    uri, sizeof(uri));
 	assert_true(strcmp("http://127.0.0.1:80/dns-query", uri) == 0);
 
 	/* IPv6 */
 	isc_sockaddr_fromin6(&sa, &in6addr_loopback, 0);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("https://[::1]:443/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("http://[::1]:80/dns-query", uri) == 0);
 
 	/*
@@ -2109,22 +2114,26 @@ doh_connect_makeuri(void **state) {
 	 * the isc_sockaddr_t object.
 	 */
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, NULL, 44343, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, NULL, 44343, ISC_NM_HTTP_DEFAULT_PATH,
+			    uri, sizeof(uri));
 	assert_true(strcmp("https://[::1]:443/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, NULL, 8080, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, NULL, 8080, ISC_NM_HTTP_DEFAULT_PATH,
+			    uri, sizeof(uri));
 	assert_true(strcmp("http://[::1]:80/dns-query", uri) == 0);
 
 	/* Try to set the port numbers. */
 	isc_sockaddr_setport(&sa, 44343);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("https://[::1]:44343/dns-query", uri) == 0);
 
 	isc_sockaddr_setport(&sa, 8080);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, NULL, 0, ISC_NM_HTTP_DEFAULT_PATH, uri,
+			    sizeof(uri));
 	assert_true(strcmp("http://[::1]:8080/dns-query", uri) == 0);
 
 	/*
@@ -2133,37 +2142,37 @@ doh_connect_makeuri(void **state) {
 	 */
 	isc_sockaddr_any(&sa);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, "example.com", 0, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, "example.com", 0,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("https://example.com:443/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, "example.com", 0, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, "example.com", 0,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("http://example.com:80/dns-query", uri) == 0);
 
 	/* Try to set the port numbers. */
 	isc_sockaddr_setport(&sa, 443);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, &sa, "example.com", 44343, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(true, &sa, "example.com", 44343,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("https://example.com:44343/dns-query", uri) == 0);
 
 	isc_sockaddr_setport(&sa, 80);
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, &sa, "example.com", 8080, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(false, &sa, "example.com", 8080,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("http://example.com:8080/dns-query", uri) == 0);
 
 	/* IPv4 as the hostname - nothing fancy here */
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, NULL, "127.0.0.1", 8080, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(false, NULL, "127.0.0.1", 8080,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("http://127.0.0.1:8080/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, NULL, "127.0.0.1", 44343, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(true, NULL, "127.0.0.1", 44343,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("https://127.0.0.1:44343/dns-query", uri) == 0);
 
 	/*
@@ -2171,13 +2180,13 @@ doh_connect_makeuri(void **state) {
 	 * the brackets)
 	 */
 	uri[0] = '\0';
-	isc_nm_http_makeuri(false, NULL, "::1", 8080, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(false, NULL, "::1", 8080, ISC_NM_HTTP_DEFAULT_PATH,
+			    uri, sizeof(uri));
 	assert_true(strcmp("http://[::1]:8080/dns-query", uri) == 0);
 
 	uri[0] = '\0';
-	isc_nm_http_makeuri(true, NULL, "[::1]", 44343, DOH_PATH, uri,
-			    sizeof(uri));
+	isc_nm_http_makeuri(true, NULL, "[::1]", 44343,
+			    ISC_NM_HTTP_DEFAULT_PATH, uri, sizeof(uri));
 	assert_true(strcmp("https://[::1]:44343/dns-query", uri) == 0);
 }
 

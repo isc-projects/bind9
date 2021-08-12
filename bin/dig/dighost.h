@@ -76,7 +76,6 @@
 #define DEFAULT_EDNS_VERSION 0
 #define DEFAULT_EDNS_BUFSIZE 1232
 
-#define DEFAULT_HTTPS_PATH  "/dns-query"
 #define DEFAULT_HTTPS_QUERY "?dns="
 
 /*%
