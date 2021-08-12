@@ -1855,7 +1855,7 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	return (dns_zt_freezezones(view->zonetable, value));
+	return (dns_zt_freezezones(view->zonetable, view, value));
 }
 
 void

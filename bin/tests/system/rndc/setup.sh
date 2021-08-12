@@ -15,6 +15,8 @@ $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/nil.db
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/other.db
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns2/static.db
 
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns4/example.db
+
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns6/huge.zone.db
 
 # we make the huge zone less huge if we're running under
