@@ -2799,9 +2799,10 @@ start_tcp(dig_query_t *query) {
 #if HAVE_LIBNGHTTP2
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
-			snprintf(uri, sizeof(uri), "https://%s:%u%s",
-				 query->userarg, (uint16_t)port,
-				 query->lookup->https_path);
+			isc_nm_http_makeuri(!query->lookup->http_plain,
+					    &query->sockaddr, query->userarg,
+					    port, query->lookup->https_path,
+					    uri, sizeof(uri));
 
 			if (!query->lookup->http_plain) {
 				result =
