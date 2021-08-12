@@ -266,7 +266,7 @@ get_core_dumps() {
 }
 
 core_dumps=$(get_core_dumps | tr '\n' ' ')
-assertion_failures=$(find "$systest/" -name named.run -print0 | xargs -0 grep "assertion failure" | wc -l)
+assertion_failures=$(find "$systest/" -name named.run -exec grep "assertion failure" {} + | wc -l)
 sanitizer_summaries=$(find "$systest/" -name 'tsan.*' | wc -l)
 if [ -n "$core_dumps" ]; then
     echoinfo "I:$systest:Core dump(s) found: $core_dumps"
@@ -301,7 +301,7 @@ if [ -n "$core_dumps" ]; then
 elif [ "$assertion_failures" -ne 0 ]; then
     SYSTESTDIR="$systest"
     echoinfo "I:$systest:$assertion_failures assertion failure(s) found"
-    find "$systest/" -name 'tsan.*' -print0 | xargs -0 grep "SUMMARY: " | sort -u | cat_d
+    find "$systest/" -name 'tsan.*' -exec grep "SUMMARY: " {} + | sort -u | cat_d
     echofail "R:$systest:FAIL"
     status=$((status+1))
 elif [ "$sanitizer_summaries" -ne 0 ]; then
