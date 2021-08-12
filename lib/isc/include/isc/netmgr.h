@@ -549,6 +549,21 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
 
 bool
 isc_nm_http_path_isvalid(const char *path);
+
+void
+isc_nm_http_makeuri(const bool https, const isc_sockaddr_t *sa,
+		    const char *hostname, const uint16_t http_port,
+		    const char *abs_path, char *outbuf,
+		    const size_t outbuf_len);
+/*%<
+ * Makes a URI connection string out of na isc_sockaddr_t object 'sa'
+ * or the specified 'hostname' and 'http_port'.
+ *
+ * Requires:
+ * \li 'abs_path' is a valid absolute HTTP path string;
+ * \li 'outbuf' is a valid pointer to a buffer which will get the result;
+ * \li 'outbuf_len' is a size of the result buffer and is greater than zero.
+ */
 #endif /* HAVE_LIBNGHTTP2 */
 
 void

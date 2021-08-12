@@ -375,27 +375,7 @@ thread_local size_t nwrites = NWRITES;
 static void
 sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
 		size_t outbuf_len, const char *append) {
-	uint16_t port;
-	char saddr[INET6_ADDRSTRLEN] = { 0 };
-	int family;
-
-	if (sa == NULL || outbuf == NULL || outbuf_len == 0) {
-		return;
-	}
-
-	family = ((struct sockaddr *)&sa->type.sa)->sa_family;
-
-	port = ntohs(family == AF_INET ? sa->type.sin.sin_port
-				       : sa->type.sin6.sin6_port);
-	inet_ntop(family,
-		  family == AF_INET
-			  ? (struct sockaddr *)&sa->type.sin.sin_addr
-			  : (struct sockaddr *)&sa->type.sin6.sin6_addr,
-		  saddr, sizeof(saddr));
-
-	snprintf(outbuf, outbuf_len, "%s://%s%s%s:%u%s",
-		 https ? "https" : "http", family == AF_INET ? "" : "[", saddr,
-		 family == AF_INET ? "" : "]", port, append ? append : "");
+	isc_nm_http_makeuri(https, sa, NULL, 0, append, outbuf, outbuf_len);
 }
 
 static isc_quota_t *
@@ -2085,6 +2065,122 @@ doh_path_validation(void **state) {
 	assert_true(isc_nm_http_path_isvalid("/123"));
 }
 
+static void
+doh_connect_makeuri(void **state) {
+	struct in_addr localhostv4 = { ntohl(INADDR_LOOPBACK) };
+	isc_sockaddr_t sa;
+	char uri[256];
+	UNUSED(state);
+
+	/* Firstly, test URI generation using isc_sockaddr_t */
+	isc_sockaddr_fromin(&sa, &localhostv4, 0);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("https://127.0.0.1:443/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("http://127.0.0.1:80/dns-query", uri) == 0);
+
+	/*
+	 * The port value should be ignored, because we can get one from
+	 * the isc_sockaddr_t object.
+	 */
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, NULL, 44343, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("https://127.0.0.1:443/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, NULL, 8080, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("http://127.0.0.1:80/dns-query", uri) == 0);
+
+	/* IPv6 */
+	isc_sockaddr_fromin6(&sa, &in6addr_loopback, 0);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("https://[::1]:443/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("http://[::1]:80/dns-query", uri) == 0);
+
+	/*
+	 * The port value should be ignored, because we can get one from
+	 * the isc_sockaddr_t object.
+	 */
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, NULL, 44343, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("https://[::1]:443/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, NULL, 8080, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("http://[::1]:80/dns-query", uri) == 0);
+
+	/* Try to set the port numbers. */
+	isc_sockaddr_setport(&sa, 44343);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("https://[::1]:44343/dns-query", uri) == 0);
+
+	isc_sockaddr_setport(&sa, 8080);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, NULL, 0, DOH_PATH, uri, sizeof(uri));
+	assert_true(strcmp("http://[::1]:8080/dns-query", uri) == 0);
+
+	/*
+	 * Try to make a URI using a hostname and a port number. The
+	 * isc_sockaddr_t object will be ignored.
+	 */
+	isc_sockaddr_any(&sa);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, "example.com", 0, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("https://example.com:443/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, "example.com", 0, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("http://example.com:80/dns-query", uri) == 0);
+
+	/* Try to set the port numbers. */
+	isc_sockaddr_setport(&sa, 443);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, &sa, "example.com", 44343, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("https://example.com:44343/dns-query", uri) == 0);
+
+	isc_sockaddr_setport(&sa, 80);
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, &sa, "example.com", 8080, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("http://example.com:8080/dns-query", uri) == 0);
+
+	/* IPv4 as the hostname - nothing fancy here */
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, NULL, "127.0.0.1", 8080, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("http://127.0.0.1:8080/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, NULL, "127.0.0.1", 44343, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("https://127.0.0.1:44343/dns-query", uri) == 0);
+
+	/*
+	 * A peculiar edge case: IPv6 given as the hostname (notice
+	 * the brackets)
+	 */
+	uri[0] = '\0';
+	isc_nm_http_makeuri(false, NULL, "::1", 8080, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("http://[::1]:8080/dns-query", uri) == 0);
+
+	uri[0] = '\0';
+	isc_nm_http_makeuri(true, NULL, "[::1]", 44343, DOH_PATH, uri,
+			    sizeof(uri));
+	assert_true(strcmp("https://[::1]:44343/dns-query", uri) == 0);
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests_short[] = {
@@ -2097,6 +2193,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_connect_makeuri, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
 						nm_teardown),
@@ -2120,6 +2218,8 @@ main(void) {
 		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
+						NULL),
+		cmocka_unit_test_setup_teardown(doh_connect_makeuri, NULL,
 						NULL),
 		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
 						nm_teardown),
