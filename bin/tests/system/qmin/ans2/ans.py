@@ -51,6 +51,12 @@ def logquery(type, qname):
 # 8.2.6.0.1.0.0.2.ip6.arpa IN NS ns3.good
 # 1.0.0.2.ip6.arpa. IN NS ns2.good
 # ip6.arpa. IN NS ns2.good
+#
+# For stale. it serves:
+# a.b. NS ns.a.b.stale.
+# ns.a.b.stale. IN A 10.53.0.3
+# b. NS ns.b.stale.
+# ns.b.stale. IN A 10.53.0.4
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -108,6 +114,31 @@ def create_response(msg):
         else:
             # NXDOMAIN
             r.authority.append(dns.rrset.from_text("ip6.arpa.", 30, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
+            r.set_rcode(NXDOMAIN)
+        return r
+    elif lqname.endswith("stale."):
+        if lqname.endswith("a.b.stale."):
+            # Delegate to ns.a.b.stale.
+            r.authority.append(dns.rrset.from_text("a.b.stale.", 2, IN, NS, "ns.a.b.stale."))
+            r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 2, IN, A, "10.53.0.3"))
+        elif lqname.endswith("b.stale."):
+            # Delegate to ns.b.stale.
+            r.authority.append(dns.rrset.from_text("b.stale.", 2, IN, NS, "ns.b.stale."))
+            r.additional.append(dns.rrset.from_text("ns.b.stale.", 2, IN, A, "10.53.0.4"))
+        elif lqname == "stale." and rrtype == NS:
+            # NS query at the apex.
+            r.answer.append(dns.rrset.from_text("stale.", 2, IN, NS, "ns2.stale."))
+            r.flags |= dns.flags.AA
+        elif lqname == "stale." and rrtype == SOA:
+            # SOA query at the apex.
+            r.answer.append(dns.rrset.from_text("stale.", 2, IN, SOA, "ns2.stale. hostmaster.stale. 1 2 3 4 5"))
+            r.flags |= dns.flags.AA
+        elif lqname == "stale.":
+            # NODATA answer
+            r.authority.append(dns.rrset.from_text("stale.", 2, IN, SOA, "ns2.stale. hostmaster.arpa. 1 2 3 4 5"))
+        else:
+            # NXDOMAIN
+            r.authority.append(dns.rrset.from_text("stale.", 2, IN, SOA, "ns2.stale. hostmaster.arpa. 1 2 3 4 5"))
             r.set_rcode(NXDOMAIN)
         return r
     elif lqname.endswith("bad."):
