@@ -392,6 +392,146 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 # ;; ANSWER SECTION:
 # test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa. 1 IN TXT "long_ip6_name"
 grep 'ip6\.arpa.*TXT.*long_ip6_name' dig.out.test$n > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+# Below are test cases for GL #2665: The QNAME minimization (if enabled) should
+# also occur on the second query, after the RRsets have expired from cache.
+# BIND will still have the entries in cache, but marked stale. These stale
+# entries should not prevent the resolver from minimizing the QNAME.
+# We query for the test domain a.b.stale. in all cases (QNAME minimization off,
+# strict mode, and relaxed mode) and expect it to behave the same the second
+# time when we have a stale delegation structure in cache.
+n=`expr $n + 1`
+echo_i "query for .stale is not minimized when qname-minimization is off ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.5 flush
+$DIG $DIGOPTS @10.53.0.5 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*peekaboo" dig.out.test$n > /dev/null || ret=1
+sleep 1
+echo "TXT a.b.stale." | $DIFF ans2/query.log - > /dev/null || ret=1
+echo "TXT a.b.stale." | $DIFF ans3/query.log - > /dev/null || ret=1
+test -f  ans4/query.log && ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "query for .stale is properly minimized when qname-minimization is in strict mode ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.6 flush
+$DIG $DIGOPTS @10.53.0.6 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
+sleep 1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
+ADDR ns.b.stale.
+ADDR ns2.stale.
+NS b.stale.
+NS stale.
+__EOF
+test -f  ans3/query.log && ret=1
+sort ans4/query.log > ans4/query.log.sorted
+cat << __EOF | $DIFF ans4/query.log.sorted - > /dev/null || ret=1
+ADDR ns.b.stale.
+NS b.stale.
+TXT a.b.stale.
+__EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "query for .stale is properly minimized when qname-minimization is in relaxed mode ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.7 flush
+$DIG $DIGOPTS @10.53.0.7 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
+sleep 1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
+ADDR _.b.stale.
+ADDR ns.b.stale.
+ADDR ns2.stale.
+__EOF
+test -f  ans3/query.log && ret=1
+sort ans4/query.log > ans4/query.log.sorted
+cat << __EOF | $DIFF ans4/query.log.sorted - > /dev/null || ret=1
+ADDR ns.b.stale.
+TXT a.b.stale.
+__EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "sleep 2, allow entries in cache to go stale"
+sleep 2
+
+n=`expr $n + 1`
+echo_i "query for .stale is not minimized when qname-minimization is off (stale cache) ($n)"
+ret=0
+$CLEANQL
+$DIG $DIGOPTS @10.53.0.5 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*peekaboo" dig.out.test$n > /dev/null || ret=1
+sleep 1
+echo "TXT a.b.stale." | $DIFF ans2/query.log - > /dev/null || ret=1
+echo "TXT a.b.stale." | $DIFF ans3/query.log - > /dev/null || ret=1
+test -f  ans4/query.log && ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "query for .stale is properly minimized when qname-minimization is in strict mode (stale cache) ($n)"
+ret=0
+$CLEANQL
+$DIG $DIGOPTS @10.53.0.6 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
+sleep 1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
+NS b.stale.
+NS stale.
+__EOF
+test -f  ans3/query.log && ret=1
+sort ans4/query.log > ans4/query.log.sorted
+cat << __EOF | $DIFF ans4/query.log.sorted - > /dev/null || ret=1
+NS b.stale.
+TXT a.b.stale.
+__EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "query for .stale is properly minimized when qname-minimization is in relaxed mode (stale cache) ($n)"
+ret=0
+$CLEANQL
+$DIG $DIGOPTS @10.53.0.7 txt a.b.stale. > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
+sleep 1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
+ADDR _.b.stale.
+__EOF
+test -f  ans3/query.log && ret=1
+sort ans4/query.log > ans4/query.log.sorted
+cat << __EOF | $DIFF ans4/query.log.sorted - > /dev/null || ret=1
+TXT a.b.stale.
+__EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

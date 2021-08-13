@@ -43,6 +43,9 @@ def logquery(type, qname):
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
 #
 # For ugly. it works the same as for good., but returns garbage to non-empty terminals
+#
+# For stale. it serves:
+# a.b.stale. IN TXT peekaboo (resolver did not do qname minimization)
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -85,7 +88,30 @@ def create_response(msg):
         suffix = "slow."
         lqname = lqname[:-5]
     elif lqname.endswith("8.2.6.0.1.0.0.2.ip6.arpa."):
-        ip6req = True 
+        ip6req = True
+    elif lqname.endswith("a.b.stale."):
+        if lqname == "a.b.stale.":
+            if rrtype == TXT:
+                # Direct query.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, TXT, "peekaboo"))
+                r.flags |= dns.flags.AA
+            elif rrtype == NS:
+                # NS a.b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
+                r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3"))
+                r.flags |= dns.flags.AA
+            elif rrtype == SOA:
+                # SOA a.b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.flags |= dns.flags.AA
+            else:
+                # NODATA.
+                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+        else:
+            r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+            r.set_rcode(NXDOMAIN)
+            # NXDOMAIN.
+        return r
     else:
         r.set_rcode(REFUSED)
         return r
