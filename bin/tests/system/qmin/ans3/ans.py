@@ -31,6 +31,9 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+def endswith(domain, labels):
+    return domain.endswith("." + labels) or domain == labels
+
 ############################################################################
 # Respond to a DNS query.
 # For good. it serves:
@@ -72,24 +75,24 @@ def create_response(msg):
 
     ip6req = False
 
-    if lqname.endswith("bad."):
+    if endswith(lqname, "bad."):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
-    elif lqname.endswith("ugly."):
+    elif endswith(lqname, "ugly."):
         ugly = True
         suffix = "ugly."
         lqname = lqname[:-5]
-    elif lqname.endswith("good."):
+    elif endswith(lqname, "good."):
         suffix = "good."
         lqname = lqname[:-5]
-    elif lqname.endswith("slow."):
+    elif endswith(lqname, "slow."):
         slow = True
         suffix = "slow."
         lqname = lqname[:-5]
-    elif lqname.endswith("8.2.6.0.1.0.0.2.ip6.arpa."):
+    elif endswith(lqname, "8.2.6.0.1.0.0.2.ip6.arpa."):
         ip6req = True
-    elif lqname.endswith("a.b.stale."):
+    elif endswith(lqname, "a.b.stale."):
         if lqname == "a.b.stale.":
             if rrtype == TXT:
                 # Direct query.
@@ -120,15 +123,15 @@ def create_response(msg):
     if lqname == "zoop.boing." and rrtype == NS:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "ns3."+suffix))
         r.flags |= dns.flags.AA
-    elif lqname.endswith("icky.ptang.zoop.boing."):
+    elif endswith(lqname, "icky.ptang.zoop.boing."):
         r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, NS, "a.bit.longer.ns.name." + suffix))
-    elif "icky.ptang.zoop.boing.".endswith(lqname):
+    elif endswith("icky.ptang.zoop.boing.", lqname):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         if bad:
             r.set_rcode(NXDOMAIN)
         if ugly:
             r.set_rcode(FORMERR)
-    elif lqname.endswith("zoop.boing."):
+    elif endswith(lqname, "zoop.boing."):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         r.set_rcode(NXDOMAIN)
     elif ip6req:

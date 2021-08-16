@@ -31,6 +31,9 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+def endswith(domain, labels):
+    return domain.endswith("." + labels) or domain == labels
+
 ############################################################################
 # Respond to a DNS query.
 # For good. it serves:
@@ -81,9 +84,9 @@ def create_response(msg):
     r = dns.message.make_response(m)
     r.set_rcode(NOERROR)
 
-    if lqname.endswith("1.0.0.2.ip6.arpa."):
+    if endswith(lqname, "1.0.0.2.ip6.arpa."):
         # Direct query - give direct answer
-        if lqname.endswith("8.2.6.0.1.0.0.2.ip6.arpa."):
+        if endswith(lqname, "8.2.6.0.1.0.0.2.ip6.arpa."):
             # Delegate to ns3
             r.authority.append(dns.rrset.from_text("8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, NS, "ns3.good."))
             r.additional.append(dns.rrset.from_text("ns3.good.", 60, IN, A, "10.53.0.3"))
@@ -95,7 +98,7 @@ def create_response(msg):
             # NS query at the apex
             r.answer.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 30, IN, NS, "ns2.good."))
             r.flags |= dns.flags.AA
-        elif "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.".endswith(lqname):
+        elif endswith("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.", lqname):
             # NODATA answer
             r.authority.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 30, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
         else:
@@ -103,12 +106,12 @@ def create_response(msg):
             r.authority.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 30, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
             r.set_rcode(NXDOMAIN)
         return r
-    elif lqname.endswith("ip6.arpa."):
+    elif endswith(lqname, "ip6.arpa."):
         if lqname == "ip6.arpa." and rrtype == NS:
             # NS query at the apex
             r.answer.append(dns.rrset.from_text("ip6.arpa.", 30, IN, NS, "ns2.good."))
             r.flags |= dns.flags.AA
-        elif "1.0.0.2.ip6.arpa.".endswith(lqname):
+        elif endswith("1.0.0.2.ip6.arpa.", lqname):
             # NODATA answer
             r.authority.append(dns.rrset.from_text("ip6.arpa.", 30, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
         else:
@@ -116,12 +119,12 @@ def create_response(msg):
             r.authority.append(dns.rrset.from_text("ip6.arpa.", 30, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
             r.set_rcode(NXDOMAIN)
         return r
-    elif lqname.endswith("stale."):
-        if lqname.endswith("a.b.stale."):
+    elif endswith(lqname, "stale."):
+        if endswith(lqname, "a.b.stale."):
             # Delegate to ns.a.b.stale.
             r.authority.append(dns.rrset.from_text("a.b.stale.", 2, IN, NS, "ns.a.b.stale."))
             r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 2, IN, A, "10.53.0.3"))
-        elif lqname.endswith("b.stale."):
+        elif endswith(lqname, "b.stale."):
             # Delegate to ns.b.stale.
             r.authority.append(dns.rrset.from_text("b.stale.", 2, IN, NS, "ns.b.stale."))
             r.additional.append(dns.rrset.from_text("ns.b.stale.", 2, IN, A, "10.53.0.4"))
@@ -141,22 +144,22 @@ def create_response(msg):
             r.authority.append(dns.rrset.from_text("stale.", 2, IN, SOA, "ns2.stale. hostmaster.arpa. 1 2 3 4 5"))
             r.set_rcode(NXDOMAIN)
         return r
-    elif lqname.endswith("bad."):
+    elif endswith(lqname, "bad."):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
-    elif lqname.endswith("ugly."):
+    elif endswith(lqname, "ugly."):
         ugly = True
         suffix = "ugly."
         lqname = lqname[:-5]
-    elif lqname.endswith("good."):
+    elif endswith(lqname, "good."):
         suffix = "good."
         lqname = lqname[:-5]
-    elif lqname.endswith("slow."):
+    elif endswith(lqname, "slow."):
         slow = True
         suffix = "slow."
         lqname = lqname[:-5]
-    elif lqname.endswith("fwd."):
+    elif endswith(lqname, "fwd."):
         suffix = "fwd."
         lqname = lqname[:-4]
     else:
@@ -164,7 +167,7 @@ def create_response(msg):
         return r
 
     # Good/bad/ugly differs only in how we treat non-empty terminals
-    if lqname.endswith("zoop.boing."):
+    if endswith(lqname, "zoop.boing."):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, NS, "ns3." + suffix))
     elif lqname == "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z." and rrtype == A:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, A, "192.0.2.2"))
@@ -199,9 +202,9 @@ def create_response(msg):
     else:
         r.authority.append(dns.rrset.from_text(suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         if bad or not \
-            ("icky.icky.icky.ptang.zoop.boing.".endswith(lqname) or \
-             "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.".endswith(lqname) or \
-             "a.bit.longer.ns.name.".endswith(lqname)):
+            (endswith("icky.icky.icky.ptang.zoop.boing.", lqname) or \
+             endswith("many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.", lqname) or \
+             endswith("a.bit.longer.ns.name.", lqname)):
             r.set_rcode(NXDOMAIN)
         if ugly:
             r.set_rcode(FORMERR)
