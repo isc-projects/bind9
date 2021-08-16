@@ -31,6 +31,9 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+def endswith(domain, labels):
+    return domain.endswith("." + labels) or domain == labels
+
 ############################################################################
 # Respond to a DNS query.
 # For good. it serves:
@@ -44,6 +47,9 @@ def logquery(type, qname):
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
 #
 # For ugly. it works the same as for good., but returns garbage to non-empty terminals
+#
+# For stale. it serves:
+# a.b.stale. IN TXT hooray (resolver did do qname minimization)
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -70,23 +76,59 @@ def create_response(msg):
 
     ip6req = False
 
-    if lqname.endswith("bad."):
+    if endswith(lqname, "bad."):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
-    elif lqname.endswith("ugly."):
+    elif endswith(lqname, "ugly."):
         ugly = True
         suffix = "ugly."
         lqname = lqname[:-5]
-    elif lqname.endswith("good."):
+    elif endswith(lqname, "good."):
         suffix = "good."
         lqname = lqname[:-5]
-    elif lqname.endswith("slow."):
+    elif endswith(lqname, "slow."):
         slow = True
         suffix = "slow."
         lqname = lqname[:-5]
-    elif lqname.endswith("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa."):
+    elif endswith(lqname, "1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa."):
         ip6req = True
+    elif endswith(lqname, "b.stale."):
+        if lqname == "a.b.stale.":
+            if rrtype == TXT:
+                # Direct query.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, TXT, "hooray"))
+                r.flags |= dns.flags.AA
+            elif rrtype == NS:
+                # NS a.b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
+                r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3"))
+                r.flags |= dns.flags.AA
+            elif rrtype == SOA:
+                # SOA a.b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.flags |= dns.flags.AA
+            else:
+                # NODATA.
+                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+        elif lqname == "b.stale.":
+            if rrtype == NS:
+                # NS b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.b.stale."))
+                r.additional.append(dns.rrset.from_text("ns.b.stale.", 1, IN, A, "10.53.0.4"))
+                r.flags |= dns.flags.AA
+            elif rrtype == SOA:
+                # SOA b.
+                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+                r.flags |= dns.flags.AA
+            else:
+                # NODATA.
+                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+        else:
+            r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+            r.set_rcode(NXDOMAIN)
+            # NXDOMAIN.
+        return r
     else:
         r.set_rcode(REFUSED)
         return r
@@ -101,9 +143,9 @@ def create_response(msg):
     elif lqname == "icky.ptang.zoop.boing." and rrtype == NS:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "a.bit.longer.ns.name."+suffix))
         r.flags |= dns.flags.AA
-    elif lqname.endswith("icky.ptang.zoop.boing."):
+    elif endswith(lqname, "icky.ptang.zoop.boing."):
         r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
-        if bad or not "more.icky.icky.icky.ptang.zoop.boing.".endswith(lqname):
+        if bad or not endswith("more.icky.icky.icky.ptang.zoop.boing.", lqname):
             r.set_rcode(NXDOMAIN)
         if ugly:
             r.set_rcode(FORMERR)
@@ -111,7 +153,7 @@ def create_response(msg):
         r.flags |= dns.flags.AA
         if lqname == "test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa." and rrtype == TXT:
             r.answer.append(dns.rrset.from_text("test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 1, IN, TXT, "long_ip6_name"))
-        elif "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.".endswith(lqname):
+        elif endswith("0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", lqname):
             #NODATA answer
             r.authority.append(dns.rrset.from_text("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, SOA, "ns4.good. hostmaster.arpa. 2018050100 120 30 320 16"))
         else:

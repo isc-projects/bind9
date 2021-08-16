@@ -33,3 +33,7 @@ ns2.ugly.		A	10.53.0.2
 
 fwd.			NS	ns2.fwd.
 ns2.fwd.		A	10.53.0.2
+
+$TTL 2
+stale.			NS	ns2.stale.
+ns2.stale.		A	10.53.0.2
