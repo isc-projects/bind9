@@ -1,3 +1,8 @@
+5694.	[bug]		BIND looks up the deepest zone cut in cache in order
+			to iterate a query. When this node is stale, it may
+			bypass QNAME minimization. This has been fixed.
+			[GL #2665]
+
 5691.	[bug]		'rndc freeze' with in-view zones present would
 			spuriously report failures. [GL #2844]
 

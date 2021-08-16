@@ -60,3 +60,7 @@ Bug Fixes
   When the affinity is not set, tests show a slight dip in the authoritative
   performance of around 5% (ranging from 3.8% to 7.8%), but
   the recursive performance is now consistently improved. :gl:`#2822`
+
+- When following QNAME minimization, BIND could use a stale zonecut from cache 
+  to resolve the query, resulting in a non-minimized query. This has been
+  fixed :gl:`#2665`
