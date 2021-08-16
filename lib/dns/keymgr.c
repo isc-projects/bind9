@@ -1531,7 +1531,8 @@ transition:
  *
  */
 static void
-keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
+keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now,
+		bool csk) {
 	bool ksk, zsk;
 	isc_result_t ret;
 	isc_stdtime_t active = 0, pub = 0, syncpub = 0, retire = 0, remove = 0;
@@ -1547,12 +1548,12 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret != ISC_R_SUCCESS) {
 		ksk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) != 0);
-		dst_key_setbool(key->key, DST_BOOL_KSK, ksk);
+		dst_key_setbool(key->key, DST_BOOL_KSK, (ksk || csk));
 	}
 	ret = dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
 	if (ret != ISC_R_SUCCESS) {
 		zsk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) == 0);
-		dst_key_setbool(key->key, DST_BOOL_ZSK, zsk);
+		dst_key_setbool(key->key, DST_BOOL_ZSK, (zsk || csk));
 	}
 
 	/* Get time metadata. */
@@ -1624,13 +1625,13 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	/* Set key states for all keys that do not have them. */
 	INITIALIZE_STATE(key->key, DST_KEY_DNSKEY, DST_TIME_DNSKEY,
 			 dnskey_state, now);
-	if (ksk) {
+	if (ksk || csk) {
 		INITIALIZE_STATE(key->key, DST_KEY_KRRSIG, DST_TIME_KRRSIG,
 				 dnskey_state, now);
 		INITIALIZE_STATE(key->key, DST_KEY_DS, DST_TIME_DS, ds_state,
 				 now);
 	}
-	if (zsk) {
+	if (zsk || csk) {
 		INITIALIZE_STATE(key->key, DST_KEY_ZRRSIG, DST_TIME_ZRRSIG,
 				 zrrsig_state, now);
 	}
@@ -1755,6 +1756,9 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 	if (candidate == NULL) {
 		/* No key available in keyring, create a new one. */
+		bool csk = (dns_kasp_key_ksk(kaspkey) &&
+			    dns_kasp_key_zsk(kaspkey));
+
 		isc_result_t result = keymgr_createkey(kaspkey, origin, rdclass,
 						       mctx, keyring, newkeys,
 						       &dst_key);
@@ -1767,7 +1771,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
-		keymgr_key_init(new_key, kasp, now);
+		keymgr_key_init(new_key, kasp, now, csk);
 	} else {
 		new_key = candidate;
 	}
@@ -1953,6 +1957,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	isc_dir_t dir;
 	bool dir_open = false;
 	bool secure_to_insecure = false;
+	int numkeys = 0;
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	char keystr[DST_KEY_FORMATSIZE];
 
@@ -2003,13 +2008,19 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		}
 	}
 
+	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*dnskeys); dkey != NULL;
+	     dkey = ISC_LIST_NEXT(dkey, link))
+	{
+		numkeys++;
+	}
+
 	/* Do we need to remove keys? */
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
 		bool found_match = false;
 
-		keymgr_key_init(dkey, kasp, now);
+		keymgr_key_init(dkey, kasp, now, (numkeys == 1));
 
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
