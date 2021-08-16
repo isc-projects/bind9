@@ -1,3 +1,6 @@
+5698.	[bug]		Migrate a single key to CSK when reconfiguring a zone
+			to use 'dnssec-policy'. [GL #2857]
+
 5697.	[protocol]	SHA-1 CDS records are no longer used by dnssec-cds to
 			make DS records. Thanks to Tony Finch. [GL !2946]
 
