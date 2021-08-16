@@ -19,6 +19,9 @@ $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns4/example.db
 
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 2 >ns6/huge.zone.db
 
+cp ns7/test.db.in ns7/test.db
+cp ns7/include.db.in ns7/include.db
+
 # we make the huge zone less huge if we're running under
 # TSAN, to give the test a fighting chance not to time out.
 size=1000000
@@ -33,6 +36,7 @@ copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns4/named.conf.in ns4/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf
 
 make_key () {
     $RNDCCONFGEN -k key$1 -A $3 -s 10.53.0.4 -p $2 \
