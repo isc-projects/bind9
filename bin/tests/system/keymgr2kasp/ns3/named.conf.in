@@ -51,6 +51,14 @@ zone "csk.kasp" {
 	dnssec-dnskey-kskonly no;
 };
 
+zone "csk-nosep.kasp" {
+	type primary;
+	file "csk-nosep.kasp.db";
+	auto-dnssec maintain;
+	allow-update { any; };
+	dnssec-dnskey-kskonly no;
+};
+
 zone "rumoured.kasp" {
 	type primary;
 	file "rumoured.kasp.db";
