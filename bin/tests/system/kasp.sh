@@ -42,6 +42,7 @@ VIEW3="C1Azf+gGPMmxrUg/WQINP6eV9Y0="
 # ROLE
 # KSK
 # ZSK
+# FLAGS
 # LIFETIME
 # ALG_NUM
 # ALG_STR
@@ -115,6 +116,7 @@ key_clear() {
 	key_set "$1" "EXPECT_KRRSIG" 'no'
 	key_set "$1" "LEGACY" 'no'
 	key_set "$1" "PRIVATE" 'yes'
+	key_set "$1" "FLAGS" '0'
 }
 
 # Start clear.
@@ -213,10 +215,17 @@ set_keyrole() {
 	key_set "$1" "ROLE" "$2"
 	key_set "$1" "KSK" "no"
 	key_set "$1" "ZSK" "no"
+	key_set "$1" "FLAGS" "0"
+
 	test "$2" = "ksk" && key_set "$1" "KSK" "yes"
+	test "$2" = "ksk" && key_set "$1" "FLAGS" "257"
+
 	test "$2" = "zsk" && key_set "$1" "ZSK" "yes"
+	test "$2" = "zsk" && key_set "$1" "FLAGS" "256"
+
 	test "$2" = "csk" && key_set "$1" "KSK" "yes"
 	test "$2" = "csk" && key_set "$1" "ZSK" "yes"
+	test "$2" = "csk" && key_set "$1" "FLAGS" "257"
 }
 set_keylifetime() {
 	key_set "$1" "EXPECT" "yes"
@@ -307,6 +316,7 @@ check_key() {
 	_lifetime=$(key_get "$1" LIFETIME)
 	_legacy=$(key_get "$1" LEGACY)
 	_private=$(key_get "$1" PRIVATE)
+	_flags=$(key_get "$1" FLAGS)
 
 	_published=$(key_get "$1" PUBLISHED)
 	_active=$(key_get "$1" ACTIVE)
@@ -323,18 +333,19 @@ check_key() {
 	_ksk="no"
 	_zsk="no"
 	if [ "$_role" = "ksk" ]; then
-		_role2="key-signing"
 		_ksk="yes"
-		_flags="257"
 	elif [ "$_role" = "zsk" ]; then
-		_role2="zone-signing"
 		_zsk="yes"
-		_flags="256"
 	elif [ "$_role" = "csk" ]; then
-		_role2="key-signing"
 		_zsk="yes"
 		_ksk="yes"
-		_flags="257"
+	fi
+
+	_role2="none"
+	if [ "$_flags" = "257" ]; then
+		_role2="key-signing"
+	elif [ "$_flags" = "256" ]; then
+		_role2="zone-signing"
 	fi
 
 	BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
@@ -904,10 +915,11 @@ response_has_cds_for_key() (
 )
 
 response_has_cdnskey_for_key() (
+
 	awk -v zone="${ZONE%%.}." \
 	    -v ttl="${DNSKEY_TTL}" \
 	    -v qtype="CDNSKEY" \
-	    -v flags="257" \
+	    -v flags="$(key_get "${1}" FLAGS)" \
 	    -v keyalg="$(key_get "${1}" ALG_NUM)" \
 	    'BEGIN { ret=1; }
 	     $1 == zone && $2 == ttl && $4 == qtype && $5 == flags && $7 == keyalg { ret=0; exit; }
@@ -1001,33 +1013,40 @@ _check_apex_dnskey() {
 	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || return 1
 
 	_checksig=0
+	_flags="$(key_get KEY1 FLAGS)"
 
 	if [ "$(key_get KEY1 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
+
+	_flags="$(key_get KEY2 FLAGS)"
 
 	if [ "$(key_get KEY2 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
+
+	_flags="$(key_get KEY3 FLAGS)"
 
 	if [ "$(key_get KEY3 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
+	_flags="$(key_get KEY4 FLAGS)"
+
 	if [ "$(key_get KEY4 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*257.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
 	test "$_checksig" -eq 0 && return 0
