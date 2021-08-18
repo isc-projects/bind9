@@ -216,11 +216,12 @@ freestruct_talink(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_talink(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_talink);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_talink);
 
 	return (ISC_R_SUCCESS);
 }

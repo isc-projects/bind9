@@ -308,6 +308,7 @@ additionaldata_in_px(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

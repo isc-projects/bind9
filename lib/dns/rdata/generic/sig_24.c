@@ -528,6 +528,7 @@ additionaldata_sig(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_sig);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

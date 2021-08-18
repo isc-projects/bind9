@@ -845,5 +845,49 @@ grep "status: NXDOMAIN" dig.ns1.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check that the addition section for HTTPS is populated on initial query to a recursive server ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 www.example.net https > dig.out.ns7.${n} || ret=1
+grep "status: NOERROR" dig.out.ns7.${n} > /dev/null || ret=1
+grep "flags:[^;]* ra[ ;]" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ADDITIONAL: 2" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns7.${n} > /dev/null || ret=1
+grep "http-server\.example\.net\..*A.*10\.53\.0\.6" dig.out.ns7.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check HTTPS loop is handled properly ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 https-loop.example.net https > dig.out.ns7.${n} || ret=1
+grep "status: NOERROR" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns7.${n} > /dev/null || ret=1
+grep "ADDITIONAL: 2" dig.out.ns7.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check HTTPS -> CNAME loop is handled properly ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 https-cname-loop.example.net https > dig.out.ns7.${n} || ret=1
+grep "status: NOERROR" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ADDITIONAL: 2" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns7.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check HTTPS cname chains are followed ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 https-cname.example.net https > dig.out.ns7.${n} || ret=1
+grep "status: NOERROR" dig.out.ns7.${n} > /dev/null || ret=1
+grep "ADDITIONAL: 4" dig.out.ns7.${n} > /dev/null || ret=1
+grep 'http-server\.example\.net\..*A.10\.53\.0\.6' dig.out.ns7.${n} > /dev/null || ret=1
+grep 'cname-server\.example\.net\..*CNAME.cname-next\.example\.net\.' dig.out.ns7.${n} > /dev/null || ret=1
+grep 'cname-next\.example\.net\..*CNAME.http-server\.example\.net\.' dig.out.ns7.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

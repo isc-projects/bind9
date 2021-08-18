@@ -187,6 +187,7 @@ additionaldata_openpgpkey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

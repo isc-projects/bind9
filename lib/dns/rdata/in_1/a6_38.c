@@ -401,6 +401,7 @@ additionaldata_in_a6(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

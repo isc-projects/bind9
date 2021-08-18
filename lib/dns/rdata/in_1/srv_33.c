@@ -14,7 +14,7 @@
 #ifndef RDATA_IN_1_SRV_33_C
 #define RDATA_IN_1_SRV_33_C
 
-#define RRTYPE_SRV_ATTRIBUTES (0)
+#define RRTYPE_SRV_ATTRIBUTES (DNS_RDATATYPEATTR_FOLLOWADDITIONAL)
 
 static inline isc_result_t
 fromtext_in_srv(ARGS_FROMTEXT) {
@@ -313,6 +313,8 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 4);
@@ -324,7 +326,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = (add)(arg, &name, dns_rdatatype_a);
+	result = (add)(arg, &name, dns_rdatatype_a, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -343,7 +345,8 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 		return (ISC_R_SUCCESS);
 	}
 
-	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
+	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
+		      NULL));
 }
 
 static inline isc_result_t

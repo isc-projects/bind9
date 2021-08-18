@@ -300,6 +300,7 @@ additionaldata_zonemd(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

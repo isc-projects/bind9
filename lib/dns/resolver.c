@@ -7026,7 +7026,7 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 
 static isc_result_t
 check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
-	      dns_section_t section) {
+	      dns_rdataset_t *found, dns_section_t section) {
 	respctx_t *rctx = arg;
 	fetchctx_t *fctx = rctx->fctx;
 	isc_result_t result;
@@ -7071,6 +7071,9 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 			result = dns_message_findtype(name, type, 0, &rdataset);
 			if (result == ISC_R_SUCCESS) {
 				mark_related(name, rdataset, external, gluing);
+				if (found != NULL) {
+					dns_rdataset_clone(rdataset, found);
+				}
 				/*
 				 * Do we have its SIG too?
 				 */
@@ -7090,8 +7093,10 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 }
 
 static isc_result_t
-check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type) {
-	return (check_section(arg, addname, type, DNS_SECTION_ADDITIONAL));
+check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
+	      dns_rdataset_t *found) {
+	return (check_section(arg, addname, type, found,
+			      DNS_SECTION_ADDITIONAL));
 }
 
 #ifndef CHECK_FOR_GLUE_IN_ANSWER
@@ -7100,8 +7105,9 @@ check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type) {
 
 #if CHECK_FOR_GLUE_IN_ANSWER
 static isc_result_t
-check_answer(void *arg, const dns_name_t *addname, dns_rdatatype_t type) {
-	return (check_section(arg, addname, type, DNS_SECTION_ANSWER));
+check_answer(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
+	     dns_rdataset_t *found) {
+	return (check_section(arg, addname, type, found, DNS_SECTION_ANSWER));
 }
 #endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 
@@ -8774,8 +8780,8 @@ rctx_answer_any(respctx_t *rctx) {
 		rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 		rdataset->trust = rctx->trust;
 
-		(void)dns_rdataset_additionaldata(rdataset, check_related,
-						  rctx);
+		(void)dns_rdataset_additionaldata(rdataset, rctx->aname,
+						  check_related, rctx);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -8822,7 +8828,8 @@ rctx_answer_match(respctx_t *rctx) {
 	rctx->ardataset->attributes |= DNS_RDATASETATTR_ANSWER;
 	rctx->ardataset->attributes |= DNS_RDATASETATTR_CACHE;
 	rctx->ardataset->trust = rctx->trust;
-	(void)dns_rdataset_additionaldata(rctx->ardataset, check_related, rctx);
+	(void)dns_rdataset_additionaldata(rctx->ardataset, rctx->aname,
+					  check_related, rctx);
 
 	for (sigrdataset = ISC_LIST_HEAD(rctx->aname->list);
 	     sigrdataset != NULL;
@@ -9030,7 +9037,8 @@ rctx_authority_positive(respctx_t *rctx) {
 					 * to this rdataset.
 					 */
 					(void)dns_rdataset_additionaldata(
-						rdataset, check_related, rctx);
+						rdataset, name, check_related,
+						rctx);
 					done = true;
 				}
 			}
@@ -9531,8 +9539,8 @@ rctx_referral(respctx_t *rctx) {
 	 */
 	INSIST(rctx->ns_rdataset != NULL);
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_GLUING);
-	(void)dns_rdataset_additionaldata(rctx->ns_rdataset, check_related,
-					  rctx);
+	(void)dns_rdataset_additionaldata(rctx->ns_rdataset, rctx->ns_name,
+					  check_related, rctx);
 #if CHECK_FOR_GLUE_IN_ANSWER
 	/*
 	 * Look in the answer section for "glue" that is incorrectly
@@ -9544,8 +9552,8 @@ rctx_referral(respctx_t *rctx) {
 	if (rctx->glue_in_answer &&
 	    (fctx->type == dns_rdatatype_aaaa || fctx->type == dns_rdatatype_a))
 	{
-		(void)dns_rdataset_additionaldata(rctx->ns_rdataset,
-						  check_answer, fctx);
+		(void)dns_rdataset_additionaldata(
+			rctx->ns_rdataset, rctx->ns_name, check_answer, fctx);
 	}
 #endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_GLUING);
@@ -9655,7 +9663,7 @@ again:
 			if (CHASE(rdataset)) {
 				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
 				(void)dns_rdataset_additionaldata(
-					rdataset, check_related, rctx);
+					rdataset, name, check_related, rctx);
 				rescan = true;
 			}
 		}

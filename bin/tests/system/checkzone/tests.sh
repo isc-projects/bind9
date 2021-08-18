@@ -37,7 +37,7 @@ do
 	echo_i "checking $db ($n)"
 	ret=0 v=0
 	case $db in
-	zones/bad-dns-sd-reverse.db)
+	zones/bad-dns-sd-reverse.db|zones/bad-svcb-servername.db)
 		$CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db > test.out.$n 2>&1 || v=$?
 		;;
 	*)

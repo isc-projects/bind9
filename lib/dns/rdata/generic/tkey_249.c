@@ -527,11 +527,12 @@ freestruct_tkey(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_tkey(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_tkey);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_tkey);
 
 	return (ISC_R_SUCCESS);
 }

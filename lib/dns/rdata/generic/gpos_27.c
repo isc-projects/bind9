@@ -205,6 +205,7 @@ additionaldata_gpos(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

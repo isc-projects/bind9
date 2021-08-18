@@ -178,6 +178,7 @@ additionaldata_mg(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 	UNUSED(rdata);
+	UNUSED(owner);
 
 	return (ISC_R_SUCCESS);
 }

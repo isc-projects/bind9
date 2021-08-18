@@ -1,3 +1,5 @@
+5696.	[protocol]	Add support for HTTPS and SVCB record types. [GL #1132]
+
 5695.	[func]		Dig can now display the BADCOOKIE message as part of
 			processing it (+showbadcookie). [GL #2319]
 

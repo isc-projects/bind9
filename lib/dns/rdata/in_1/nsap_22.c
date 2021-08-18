@@ -206,6 +206,7 @@ additionaldata_in_nsap(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

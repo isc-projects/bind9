@@ -261,6 +261,7 @@ additionaldata_ch_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

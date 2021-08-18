@@ -193,16 +193,18 @@ additionaldata_lp(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	result = (add)(arg, &name, dns_rdatatype_l32);
+	result = (add)(arg, &name, dns_rdatatype_l32, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	return ((add)(arg, &name, dns_rdatatype_l64));
+	return ((add)(arg, &name, dns_rdatatype_l64, NULL));
 }
 
 static inline isc_result_t

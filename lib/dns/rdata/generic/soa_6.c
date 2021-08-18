@@ -370,11 +370,12 @@ freestruct_soa(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_soa(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_soa);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_soa);
 
 	return (ISC_R_SUCCESS);
 }

@@ -246,6 +246,7 @@ additionaldata_sshfp(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

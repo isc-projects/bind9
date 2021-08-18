@@ -440,6 +440,7 @@ additionaldata_ipseckey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 
