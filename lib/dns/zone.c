@@ -16573,7 +16573,6 @@ nextevent:
 					     start, end, &soatuple,
 					     &zone->rss_diff);
 		if (result == DNS_R_UNCHANGED) {
-			level = ISC_LOG_INFO;
 			goto failure;
 		} else if (result != ISC_R_SUCCESS) {
 			CHECK(sync_secure_db(zone, zone->rss_raw, zone->rss_db,
@@ -16681,6 +16680,9 @@ failure:
 		TIME_NOW(&timenow);
 		zone_settimer(zone, &timenow);
 		UNLOCK_ZONE(zone);
+		if (result == DNS_R_UNCHANGED) {
+			level = ISC_LOG_INFO;
+		}
 		dns_zone_log(zone, level, "receive_secure_serial: %s",
 			     dns_result_totext(result));
 	}
