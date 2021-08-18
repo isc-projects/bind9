@@ -14,7 +14,7 @@
 #ifndef RDATA_IN_1_SRV_33_C
 #define RDATA_IN_1_SRV_33_C
 
-#define RRTYPE_SRV_ATTRIBUTES (0)
+#define RRTYPE_SRV_ATTRIBUTES (DNS_RDATATYPEATTR_FOLLOWADDITIONAL)
 
 static inline isc_result_t
 fromtext_in_srv(ARGS_FROMTEXT) {

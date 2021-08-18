@@ -493,6 +493,12 @@ dlv			DLV	30795 1 1 (
 
 ; type 65280-65534 (private use)
 
+https0			HTTPS	0 example.net.
+https1			HTTPS	1 . port=60
+
+svcb0			SVCB	0 example.net.
+svcb1			SVCB	1 . port=60
+
 ; keydata (internal type used for managed keys)
 keydata			TYPE65533	\# 0
 keydata			TYPE65533	\# 6 010203040506 

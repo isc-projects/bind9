@@ -884,6 +884,7 @@ dns_rdataslab_subtract
 dns_rdatatype_atcname
 dns_rdatatype_atparent
 dns_rdatatype_attributes
+dns_rdatatype_followadditional
 dns_rdatatype_format
 dns_rdatatype_fromtext
 dns_rdatatype_isdnssec

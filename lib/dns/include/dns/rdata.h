@@ -695,6 +695,21 @@ dns_rdatatype_atcname(dns_rdatatype_t type);
  *
  */
 
+bool
+dns_rdatatype_followadditional(dns_rdatatype_t type);
+/*%<
+ * Return true if adding a record of type 'type' to the ADDITIONAL section
+ * of a message can itself trigger the addition of still more data to the
+ * additional section.
+ *
+ * (For example: adding SRV to the ADDITIONAL section may trigger
+ * the addition of address records associated with that SRV.)
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+
 unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 /*%<
@@ -729,6 +744,8 @@ dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 #define DNS_RDATATYPEATTR_ATPARENT 0x00000200U
 /*% Can exist along side a CNAME */
 #define DNS_RDATATYPEATTR_ATCNAME 0x00000400U
+/*% Follow additional */
+#define DNS_RDATATYPEATTR_FOLLOWADDITIONAL 0x00000800U
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata);
