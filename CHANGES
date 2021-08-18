@@ -1,3 +1,6 @@
+5695.	[func]		Dig can now display the BADCOOKIE message as part of
+			processing it (+showbadcookie). [GL #2319]
+
 5694.	[bug]		BIND looks up the deepest zone cut in cache in order
 			to iterate a query. When this node is stale, it may
 			bypass QNAME minimization. This has been fixed.

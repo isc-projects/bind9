@@ -735,6 +735,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	}
 	looknew->https_get = lookold->https_get;
 	looknew->http_plain = lookold->http_plain;
+
+	looknew->showbadcookie = lookold->showbadcookie;
 	looknew->sendcookie = lookold->sendcookie;
 	looknew->seenbadcookie = lookold->seenbadcookie;
 	looknew->badcookie = lookold->badcookie;
@@ -3852,6 +3854,11 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	{
 		process_opt(l, msg);
 		if (msg->cc_ok) {
+			if (l->showbadcookie) {
+				dighost_printmessage(query, &b, msg, true);
+				dighost_received(isc_buffer_usedlength(&b),
+						 &peer, query);
+			}
 			dighost_comments(l, "BADCOOKIE, retrying%s.",
 					 l->seenbadcookie ? " in TCP mode"
 							  : "");

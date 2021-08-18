@@ -168,6 +168,40 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking +qr +showbadcookie ($n)"
+ret=0
+$DIG $DIGOPTS +qr +cookie +showbadcookie soa @10.53.0.3 > dig.out.test$n
+noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
+badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
+server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
+good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $noerror != 3 ]; then ret=1; fi
+if [ $badcookie != 1 ]; then ret=1; fi
+if [ $server != 3 ]; then ret=1; fi
+if [ $good != 2 ]; then ret=1; fi
+if [ $linecount != 4 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo_i "checking +showbadcookie ($n)"
+ret=0
+$DIG $DIGOPTS +cookie +showbadcookie soa @10.53.0.3 > dig.out.test$n
+noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
+badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
+server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
+good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $noerror != 1 ]; then ret=1; fi
+if [ $badcookie != 1 ]; then ret=1; fi
+if [ $server != 2 ]; then ret=1; fi
+if [ $good != 2 ]; then ret=1; fi
+if [ $linecount != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking require-server-cookie yes with rate-limit ($n)"
 ret=0
 $DIG $DIGOPTS +qr +cookie +nobadcookie soa example @10.53.0.8 > dig.out.test$n

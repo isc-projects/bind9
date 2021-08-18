@@ -503,6 +503,11 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    form. This option always has a global effect; it cannot be set globally and
    then overridden on a per-lookup basis.
 
+``+[no]showbadcookie``
+   This option toggles whether to show the message containing the
+   BADCOOKIE rcode before retrying the request or not. The default
+   is to not show the messages.
+
 ``+[no]showsearch``
    This option performs [or does not perform] a search showing intermediate results.
 

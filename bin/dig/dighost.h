@@ -120,9 +120,9 @@ struct dig_lookup {
 		section_answer, section_authority, section_question,
 		seenbadcookie, sendcookie, servfail_stops,
 		setqid, /*% use a speciied query ID */
-		stats, tcflag, tcp_keepalive, tcp_mode, tcp_mode_set,
-		tls_mode,   /*% connect using TLS */
-		trace,	    /*% dig +trace */
+		showbadcookie, stats, tcflag, tcp_keepalive, tcp_mode,
+		tcp_mode_set, tls_mode, /*% connect using TLS */
+		trace,			/*% dig +trace */
 		trace_root, /*% initial query for either +trace or +nssearch */
 		ttlunits, use_usec, waiting_connect, zflag;
 	char textname[MXNAME]; /*% Name we're going to be looking up */
