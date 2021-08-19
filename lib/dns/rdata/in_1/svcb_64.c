@@ -754,7 +754,7 @@ static inline isc_result_t
 generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	dns_name_t name;
 	isc_region_t region, man = { .base = NULL, .length = 0 };
-	bool alias, first = true;
+	bool alias, first = true, have_alpn = false;
 	uint16_t lastkey = 0, mankey = 0;
 
 	UNUSED(type);
@@ -826,6 +826,15 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 					mankey = 0;
 				}
 			}
+		}
+
+		/*
+		 * Check alpn present when no-default-alpn is set.
+		 */
+		if (key == SVCB_ALPN_KEY) {
+			have_alpn = true;
+		} else if (key == SVCB_NO_DEFAULT_ALPN_KEY && !have_alpn) {
+			return (DNS_R_FORMERR);
 		}
 
 		first = false;
