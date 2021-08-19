@@ -16,9 +16,12 @@ IPv6 support, and POSIX-compliant threads, plus the following mandatory
 libraries:
 
 - `libuv` for asynchronous I/O operations and event loops
-- `libssl` and `libcrpyto` from OpenSSL for cryptography
-- `libjemalloc` for memory allocation
-- `libnghttp2` for HTTP/2
+- `libssl` and `libcrypto` from OpenSSL for cryptography
+
+Use of the following libraries is optional:
+
+- `libjemalloc` for improved memory allocation performance
+- `libnghttp2` for DNS-over-HTTPS (DoH) support
 
 The following C11 features are used in BIND 9:
 

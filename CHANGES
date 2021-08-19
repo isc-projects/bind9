@@ -29,88 +29,97 @@
 			predecessor key that does not need to be refreshed.
 			[GL #1551]
 
-5689.	[placeholder]
+	--- 9.17.17 released ---
 
-5688.	[bug]		Inline and dnssec-policy zones could fail to apply
-			changes from the unsigned zone to the signed zone
-			under certain cirumstances. [GL #2735]
+5689.	[security]	An assertion failure occurred when named attempted to
+			send a UDP packet that exceeded the MTU size, if
+			Response Rate Limiting (RRL) was enabled.
+			(CVE-2021-25218) [GL #2856]
 
-5687.	[bug]		Update the load time of touched inline zones.
-			[GL #2542]
+5688.	[bug]		Zones using KASP and inline-signed zones failed to apply
+			changes from the unsigned zone to the signed zone under
+			certain circumstances. This has been fixed. [GL #2735]
+
+5687.	[bug]		"rndc reload <zonename>" could trigger a redundant
+			reload for an inline-signed zone whose zone file was not
+			modified since the last "rndc reload". This has been
+			fixed. [GL #2855]
 
 5686.	[func]		The number of internal data structures allocated for
 			each zone was reduced. [GL #2829]
 
-5685.	[bug]		Check the opcodes of messages returned by
-			dns_request_getresponse.  [GL #2762]
+5685.	[bug]		named failed to check the opcode of responses when
+			performing zone refreshes, stub zone updates, and UPDATE
+			forwarding. This has been fixed. [GL #2762]
 
-5684.	[func]		Changes to the DNS-over-HTTP (DoH) configuration
-			syntax:
-
-			- The maximum number of active DoH connections
-			  can now be set using the "http-listener-clients"
-			  option. The default is 300.
-			- The maximum number of concurrent HTTP/2 streams
-			  per connection can be set using via the
-			  "http-streams-per-connection" option. The default
-			  is 100.
-			- Both of these values also can be set on a per-
-			  listener basis using the "listener-clients" and
-			  "streams-per-connection" parameters in an
-			  "http" statement. For example:
-			  http <name> {
-			      listener-clients <number>;
-			      streams-per-connection <number>;
-			  };
+5684.	[func]		The DNS-over-HTTP (DoH) configuration syntax was
+			extended:
+			- The maximum number of active DoH connections can now
+			  be set using the "http-listener-clients" option. The
+			  default is 300.
+			- The maximum number of concurrent HTTP/2 streams per
+			  connection can now be set using the
+			  "http-streams-per-connection" option. The default is
+			  100.
+			- Both of these values can also be set on a per-listener
+			  basis using the "listener-clients" and
+			  "streams-per-connection" parameters in an "http"
+			  statement.
 			[GL #2809]
 
-5683.	[func]		The configuration checking code now verifies
-			HTTP paths. [GL !5231]
+5683.	[bug]		The configuration-checking code now verifies HTTP paths.
+			[GL !5231]
 
-5682.	[bug]		Not all changes to zone-statistics settings were
-			properly processed. [GL #2820]
+5682.	[bug]		Some changes to "zone-statistics" settings were not
+			properly processed by "rndc reconfig". This has been
+			fixed. [GL #2820]
 
-5681.	[func]		Relax the "zone_cdscheck" function to allow CDS and
-			CDNSKEY records in the zone that do not match an
-			existing DNSKEY record, so long as the algorithm
-			does match. This allows a clean rollover from one
+5681.	[func]		Relax the checks in the dns_zone_cdscheck() function to
+			allow CDS and CDNSKEY records in the zone that do not
+			match an existing DNSKEY record, as long as the
+			algorithm matches. This allows a clean rollover from one
 			provider to another in a multi-signer DNSSEC
-			configuration. [GL #2710].
+			configuration. [GL #2710]
 
-5680.	[bug]		Fix a crash in DoH code caused by GET requests without
-			query strings. [GL !5268]
+5680.	[bug]		HTTP GET requests without query strings caused a crash
+			in DoH code. This has been fixed. [GL !5268]
 
-5679.	[bug]		Disable setting the thread affinity. [GL #2822]
+5679.	[func]		Thread affinity is no longer set. [GL #2822]
 
 5678.	[bug]		The "check DS" code failed to release all resources upon
 			named shutdown when a refresh was in progress. This has
 			been fixed. [GL #2811]
 
-5677.	[func]		Only accept FORMERR without a OPT record as an
-			indication that the server does net support EDNS.
-			This will break communication with servers that
-			don't understand EDNS and incorrectly echo back
-			the request message with the rcode field set to
-			FORMERR and the QR bit set to 1. [GL #2249]
+5677.	[func]		Previously, named accepted FORMERR responses both with
+			and without an OPT record, as an indication that a given
+			server did not support EDNS. To implement full
+			compliance with RFC 6891, only FORMERR responses without
+			an OPT record are now accepted. This intentionally
+			breaks communication with servers that do not support
+			EDNS and that incorrectly echo back the query message
+			with the RCODE field set to FORMERR and the QR bit set
+			to 1. [GL #2249]
 
-5676.	[func]		Memory allocation has been substantially refactored,
-			and is now based on the memory allocation API
-			provided by 'libjemalloc'. This is now a build
-			dependency for BIND. [GL #2433]
+5676.	[func]		Memory allocation has been substantially refactored; it
+			is now based on the memory allocation API provided by
+			the jemalloc library, which is a new optional build
+			dependency for BIND 9. [GL #2433]
 
-5675.	[bug]		Improve BIND's compatibility with DoH clients by
-			ignoring an "Accept" HTTP header value. [GL !5246]
+5675.	[bug]		Compatibility with DoH clients has been improved by
+			ignoring the value of the "Accept" HTTP header.
+			[GL !5246]
 
-5674.	[bug]		Fix BIND hanging when HTTP/2 streams are aborted
-			prematurely by web browsers. [GL !5245]
+5674.	[bug]		A shutdown hang was triggered by DoH clients prematurely
+			aborting HTTP/2 streams. This has been fixed. [GL !5245]
 
-5673.	[func]		Add "--disable-doh" configuration option to allow
-			BIND 9 to compile without libnghttp2 library.
+5673.	[func]		Add a new build-time option, --disable-doh, to allow
+			building BIND 9 without the libnghttp2 library.
 			[GL #2478]
 
 5672.	[bug]		Authentication of rndc messages could fail if a
-			"controls" statement was configured with multiple
-			key algorithms in the same listener. [GL #2756]
+			"controls" statement was configured with multiple key
+			algorithms for the same listener. This has been fixed.
+			[GL #2756]
 
 	--- 9.17.16 released ---
 

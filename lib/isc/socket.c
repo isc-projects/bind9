@@ -2098,27 +2098,27 @@ set_tcp_maxseg(isc_socket_t *sock, int size) {
 }
 
 static void
-set_ip_dontfrag(isc_socket_t *sock) {
+set_ip_disable_pmtud(isc_socket_t *sock) {
 	/*
-	 * Set the Don't Fragment flag on IP packets
+	 * Disable Path MTU Discover on IP packets
 	 */
 	if (sock->pf == AF_INET6) {
 #if defined(IPV6_DONTFRAG)
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_DONTFRAG,
-				 &(int){ 1 }, sizeof(int));
+				 &(int){ 0 }, sizeof(int));
 #endif
-#if defined(IPV6_MTU_DISCOVER)
+#if defined(IPV6_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
-				 &(int){ IP_PMTUDISC_DO }, sizeof(int));
+				 &(int){ IP_PMTUDISC_OMIT }, sizeof(int));
 #endif
 	} else if (sock->pf == AF_INET) {
 #if defined(IP_DONTFRAG)
-		(void)setsockopt(sock->fd, IPPROTO_IP, IP_DONTFRAG, &(int){ 1 },
+		(void)setsockopt(sock->fd, IPPROTO_IP, IP_DONTFRAG, &(int){ 0 },
 				 sizeof(int));
 #endif
-#if defined(IP_MTU_DISCOVER)
+#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
 		(void)setsockopt(sock->fd, IPPROTO_IP, IP_MTU_DISCOVER,
-				 &(int){ IP_PMTUDISC_DO }, sizeof(int));
+				 &(int){ IP_PMTUDISC_OMIT }, sizeof(int));
 #endif
 	}
 }
@@ -2409,7 +2409,7 @@ again:
 #endif /* ifdef IP_RECVTOS */
 #endif /* defined(USE_CMSG) || defined(SET_RCVBUF) || defined(SET_SNDBUF) */
 
-	set_ip_dontfrag(sock);
+	set_ip_disable_pmtud(sock);
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
