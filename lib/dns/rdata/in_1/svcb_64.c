@@ -121,7 +121,7 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				}
 				while (region->length != 0) {
 					size_t l = *region->base + 1;
-					if (l > region->length) {
+					if (l == 1U || l > region->length) {
 						return (DNS_R_FORMERR);
 					}
 					isc_region_consume(region, l);
