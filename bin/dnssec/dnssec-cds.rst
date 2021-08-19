@@ -83,14 +83,19 @@ Options
 ~~~~~~~
 
 ``-a algorithm``
-   This option specifies a digest algorithm to use when converting CDNSKEY records to
-   DS records. This option can be repeated, so that multiple DS records
-   are created for each CDNSKEY record. This option has no effect when
-   using CDS records.
+   When converting CDS records to DS records, this option specifies
+   the acceptable digest algorithms. This option can be repeated, so
+   that multiple digest types are allowed. If none of the CDS records
+   use an acceptable digest type, ``dnssec-cds`` will try to use CDNSKEY
+   records instead; if there are no CDNSKEY records, it reports an error.
+
+   When converting CDNSKEY records to DS records, this option specifies the
+   digest algorithm to use. It can be repeated, so that multiple DS records
+   are created for each CDNSKEY records.
 
    The algorithm must be one of SHA-1, SHA-256, or SHA-384. These values
    are case-insensitive, and the hyphen may be omitted. If no algorithm
-   is specified, the default is SHA-256.
+   is specified, the default is SHA-256 only.
 
 ``-c class``
    This option specifies the DNS class of the zones.

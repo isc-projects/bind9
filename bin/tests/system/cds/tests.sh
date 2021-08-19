@@ -117,7 +117,7 @@ $CDS -v3 -s -7200 -f sig.cds.1 -d DS.1 $Z 1>xout 2>xerr
 testcase 0 $PERL checktime.pl 3600 xerr
 
 name='in-place reads modification time'
-testcase 0 $CDS -f sig.cds.1 -i.bak -d DS.inplace $Z
+testcase 0 $CDS -a1 -a2 -f sig.cds.1 -i.bak -d DS.inplace $Z
 
 name='in-place output correct modification time'
 testcase 0 $PERL checkmtime.pl 3600 DS.inplace
@@ -134,21 +134,21 @@ testcase 0 $DIFF DS.1 DS.inplace.bak
 name='one mangled DS'
 err='found RRSIG by key'
 out=DS.1
-testcase 0 $CDS -v1 -s -7200 -f sig.cds.1 -d DS.broke1 $Z
+testcase 0 $CDS -v1 -a1 -a2 -s -7200 -f sig.cds.1 -d DS.broke1 $Z
 
 name='other mangled DS'
 err='found RRSIG by key'
 out=DS.1
-testcase 0 $CDS -v1 -s -7200 -f sig.cds.1 -d DS.broke2 $Z
+testcase 0 $CDS -v1 -a1 -a2 -s -7200 -f sig.cds.1 -d DS.broke2 $Z
 
 name='both mangled DS'
 err='could not validate child DNSKEY RRset'
-testcase 1 $CDS -v1 -s -7200 -f sig.cds.1 -d DS.broke12 $Z
+testcase 1 $CDS -v1 -a1 -a2 -s -7200 -f sig.cds.1 -d DS.broke12 $Z
 
 name='mangle RRSIG CDS by ZSK'
 err='found RRSIG by key'
 out=DS.1
-testcase 0 $CDS -v1 -s -7200 -f brk.rrsig.cds.zsk -d DS.1 $Z
+testcase 0 $CDS -v1 -a1 -a2 -s -7200 -f brk.rrsig.cds.zsk -d DS.1 $Z
 
 name='mangle RRSIG CDS by KSK'
 err='could not validate child CDS RRset'
@@ -156,11 +156,11 @@ testcase 1 $CDS -v1 -s -7200 -f brk.rrsig.cds.ksk -d DS.1 $Z
 
 name='mangle CDS 1'
 err='could not validate child DNSKEY RRset with new DS records'
-testcase 1 $CDS -s -7200 -f sig.cds-mangled -d DS.1 $Z
+testcase 1 $CDS -a1 -a2 -s -7200 -f sig.cds-mangled -d DS.1 $Z
 
 name='inconsistent digests'
 err='do not cover each key with the same set of digest types'
-testcase 1 $CDS -s -7200 -f sig.bad-digests -d DS.1 $Z
+testcase 1 $CDS -a1 -a2 -s -7200 -f sig.bad-digests -d DS.1 $Z
 
 name='inconsistent algorithms'
 err='missing signature for algorithm'
@@ -168,49 +168,49 @@ testcase 1 $CDS -s -7200 -f sig.bad-algos -d DS.1 $Z
 
 name='add DS records'
 out=DS.both
-$CDS -s -7200 -f sig.cds.both -d DS.1 $Z >DS.out
+$CDS -a1 -a2 -s -7200 -f sig.cds.both -d DS.1 $Z >DS.out
 # sort to allow for numerical vs lexical order of key tags
 testcase 0 sort DS.out
 
 name='update add'
 out=UP.add2
-testcase 0 $CDS -u -s -7200 -f sig.cds.both -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -u -s -7200 -f sig.cds.both -d DS.1 $Z
 
 name='remove DS records'
 out=DS.2
-testcase 0 $CDS -s -7200 -f sig.cds.2 -d DS.both $Z
+testcase 0 $CDS -a1 -a2 -s -7200 -f sig.cds.2 -d DS.both $Z
 
 name='update del'
 out=UP.del1
-testcase 0 $CDS -u -s -7200 -f sig.cds.2 -d DS.both $Z
+testcase 0 $CDS -a1 -a2 -u -s -7200 -f sig.cds.2 -d DS.both $Z
 
 name='swap DS records'
 out=DS.2
-testcase 0 $CDS -s -7200 -f sig.cds.2 -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -s -7200 -f sig.cds.2 -d DS.1 $Z
 
 name='update swap'
 out=UP.swap
-testcase 0 $CDS -u -s -7200 -f sig.cds.2 -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -u -s -7200 -f sig.cds.2 -d DS.1 $Z
 
 name='TTL from -T'
 out=DS.ttl2
-testcase 0 $CDS -T 3600 -s -7200 -f sig.cds.2 -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -T 3600 -s -7200 -f sig.cds.2 -d DS.1 $Z
 
 name='update TTL from -T'
 out=UP.swapttl
-testcase 0 $CDS -u -T 3600 -s -7200 -f sig.cds.2 -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -u -T 3600 -s -7200 -f sig.cds.2 -d DS.1 $Z
 
 name='update TTL from dsset'
 out=UP.swapttl
-testcase 0 $CDS -u -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
+testcase 0 $CDS -a1 -a2 -u -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
 
 name='TTL from -T overrides dsset'
 out=DS.ttlong2
-testcase 0 $CDS -T 7200 -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
+testcase 0 $CDS -a1 -a2 -T 7200 -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
 
 name='stable DS record order (changes)'
 out=DS.1
-testcase 0 $CDS -s -7200 -f sig.cds.rev1 -d DS.2 $Z
+testcase 0 $CDS -a1 -a2 -s -7200 -f sig.cds.rev1 -d DS.2 $Z
 
 name='CDNSKEY default algorithm'
 out=DS.2-2
@@ -230,11 +230,28 @@ testcase 0 $CDS -a SHA256 -a SHA1 -s -7200 -f sig.cdnskey.2 -d DS.1 $Z
 
 name='CDNSKEY and CDS'
 out=DS.2
-testcase 0 $CDS -s -7200 -f sig.cds.cdnskey.2 -d DS.1 $Z
+testcase 0 $CDS -a1 -a2 -s -7200 -f sig.cds.cdnskey.2 -d DS.1 $Z
 
 name='prefer CDNSKEY'
 out=DS.2-2
-testcase 0 $CDS -D -s -7200 -f sig.cds.cdnskey.2 -d DS.1 $Z
+testcase 0 $CDS -D -s -7200 -f sig.cds1.cdnskey2 -d DS.1 $Z
+
+name='CDS subset default (SHA-256)'
+out=DS.2-2
+testcase 0 $CDS -s -7200 -f sig.cds.2 -d DS.1 $Z
+
+name='CDS subset replace SHA1 with SHA2'
+out=DS.2-2
+testcase 0 $CDS -s -7200 -f sig.cds.cdnskey.2.sha1 -d DS.1 $Z
+
+name='CDS subset mismatch'
+err='do not match any -a digest types'
+testcase 1 $CDS -s -7200 -f sig.cds.2.sha1 -d DS.1 $Z
+
+name='CDS algorithm unavailable, use CDNSKEY'
+err='using CDNSKEY instead'
+out=DS.2-2
+testcase 0 $CDS -v1 -a SHA256 -s -7200 -f sig.cds.cdnskey.2.sha1 -d DS.1 $Z
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
