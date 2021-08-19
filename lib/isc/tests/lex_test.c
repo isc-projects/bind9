@@ -235,7 +235,7 @@ lex_string(void **state) {
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_string, true);
 		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%u/%u\n",
+			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
 				parse_tests[i].text, isc_result_toid(result),
 				isc_result_toid(parse_tests[i].string_result),
 				token.type, parse_tests[i].string_type);
@@ -300,7 +300,7 @@ lex_qstring(void **state) {
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_qstring, true);
 		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%u/%u\n",
+			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
 				parse_tests[i].text, isc_result_toid(result),
 				isc_result_toid(parse_tests[i].qstring_result),
 				token.type, parse_tests[i].qstring_type);
@@ -366,7 +366,7 @@ lex_keypair(void **state) {
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_qvpair, true);
 		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%u/%u\n",
+			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
 				parse_tests[i].text, isc_result_toid(result),
 				isc_result_toid(parse_tests[i].qvpair_result),
 				token.type, parse_tests[i].qvpair_type);
