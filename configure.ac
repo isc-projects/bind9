@@ -48,7 +48,7 @@ AC_DEFINE([PACKAGE_SRCID], ["][bind_SRCID]["], [A short hash from git])
 # Whenever releasing a new major release of BIND9, set this value
 # back to 1.0 when releasing the first alpha.  Map files are *never*
 # compatible across major releases.
-AC_DEFINE([MAPAPI], ["2.0"], [BIND 9 MAPAPI Version])
+AC_DEFINE([MAPAPI], ["3.0"], [BIND 9 MAPAPI Version])
 
 bind_CONFIGARGS="${ac_configure_args:-default}"
 AC_DEFINE_UNQUOTED([PACKAGE_CONFIGARGS], ["$bind_CONFIGARGS"], [Either 'defaults' or used ./configure options])
