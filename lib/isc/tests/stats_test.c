@@ -96,6 +96,23 @@ isc_stats_basic_test(void **state) {
 		assert_int_equal(isc_stats_get_counter(stats, i), i + 1);
 	}
 
+	/* Test resize. */
+	isc_stats_resize(&stats, 3);
+	assert_int_equal(isc_stats_ncounters(stats), 4);
+	isc_stats_resize(&stats, 4);
+	assert_int_equal(isc_stats_ncounters(stats), 4);
+	isc_stats_resize(&stats, 5);
+	assert_int_equal(isc_stats_ncounters(stats), 5);
+
+	/* Existing counters are retained */
+	for (int i = 0; i < isc_stats_ncounters(stats); i++) {
+		uint32_t expect = i + 1;
+		if (i == 4) {
+			expect = 0;
+		}
+		assert_int_equal(isc_stats_get_counter(stats, i), expect);
+	}
+
 	isc_stats_detach(&stats);
 }
 
