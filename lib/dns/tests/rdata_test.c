@@ -2716,6 +2716,10 @@ https_svcb(void **state) {
 		 */
 		WIRE_VALID_LOOP(0x01, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x09,
 				5, 'h', '1', '\\', 'h', '2', 2, 'h', '3'),
+		/*
+		 * no-default-alpn (0x00 0x02) without alpn, alpn is required.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x00),
 		WIRE_SENTINEL()
 	};
 	/* Test vectors from RFCXXXX */
