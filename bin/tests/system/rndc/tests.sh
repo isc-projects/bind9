@@ -13,7 +13,8 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
-DIGCMD="$DIG $DIGOPTS @10.53.0.2 -p ${PORT}"
+DIGOPTS=""
+DIGCMD="$DIG $DIGOPTS -p ${PORT}"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf -s"
 
 status=0
@@ -74,7 +75,7 @@ update add text2.nil. 600 IN TXT "addition 2"
 send
 END
 
-$DIGCMD text2.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text2.nil. TXT > dig.out.1.test$n
 grep 'addition 2' dig.out.1.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -91,7 +92,7 @@ zone nil.
 update add text3.nil. 600 IN TXT "addition 3"
 send
 END
-$DIGCMD text3.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text3.nil. TXT > dig.out.1.test$n
 grep 'addition 3' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -131,7 +132,7 @@ update add text4.nil. 600 IN TXT "addition 4"
 send
 END
 
-$DIGCMD text4.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n
 grep 'addition 4' dig.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -171,7 +172,7 @@ update add text5.nil. 600 IN TXT "addition 5"
 send
 END
 
-$DIGCMD text4.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n
 grep 'addition 4' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -243,11 +244,11 @@ zone other.
 update add text7.other. 600 IN TXT "addition 7"
 send
 END
-$DIGCMD text6.other. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text6.other. TXT > dig.out.1.test$n
 grep 'addition 6' dig.out.1.test$n >/dev/null || ret=1
-$DIGCMD text7.other. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.2 text7.other. TXT > dig.out.2.test$n
 grep 'addition 7' dig.out.2.test$n >/dev/null || ret=1
-$DIGCMD frozen.other. TXT > dig.out.3.test$n
+$DIGCMD @10.53.0.2 frozen.other. TXT > dig.out.3.test$n
 grep 'frozen addition' dig.out.3.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -286,11 +287,11 @@ zone nil.
 update add text7.nil. 600 IN TXT "addition 7"
 send
 END
-$DIGCMD text6.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text6.nil. TXT > dig.out.1.test$n
 grep 'addition 6' dig.out.1.test$n > /dev/null || ret=1
-$DIGCMD text7.nil. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.2 text7.nil. TXT > dig.out.2.test$n
 grep 'addition 7' dig.out.2.test$n > /dev/null || ret=1
-$DIGCMD frozen.nil. TXT > dig.out.3.test$n
+$DIGCMD @10.53.0.2 frozen.nil. TXT > dig.out.3.test$n
 grep 'frozen addition' dig.out.3.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -733,7 +734,7 @@ zone example.
 update add text2.example. 600 IN TXT "addition 3"
 send
 END
-$DIG $DIGOPTS @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
 grep 'addition 3' dig.out.1.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -755,8 +756,74 @@ zone example.
 update add text2.example. 600 IN TXT "addition 3"
 send
 END
-$DIG $DIGOPTS @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
 grep 'addition 3' dig.out.1.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking initial in-view zone file is loaded ($n)"
+ret=0
+TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
+grep 'include 1' dig.out.1.test$n >/dev/null || ret=1
+TSIG="hmac-sha1:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
+grep 'include 1' dig.out.2.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "update in-view zone ($n)"
+ret=0
+TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$NSUPDATE -p ${PORT} -y "$TSIG" > /dev/null 2>&1 <<END || ret=1
+server 10.53.0.7
+zone test.
+update add text2.test. 600 IN TXT "addition 1"
+send
+END
+[ -s ns7/test.db.jnl ] || {
+	echo_i "'test -s ns7/test.db.jnl' failed when it shouldn't have"; ret=1;
+}
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "checking update ($n)"
+ret=0
+TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$DIGCMD @10.53.0.7 -y "$TSIG" text2.test. TXT > dig.out.1.test$n
+grep 'addition 1' dig.out.1.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "rndc freeze"
+$RNDCCMD 10.53.0.7 freeze | sed 's/^/ns7 /' | cat_i | cat_i
+
+echo_i "edit zone files"
+cp ns7/test.db.in ns7/test.db
+cp ns7/include2.db.in ns7/include.db
+
+nextpart ns7/named.run > /dev/null
+
+echo_i "rndc thaw"
+$RNDCCMD 10.53.0.7 thaw | sed 's/^/ns7 /' | cat_i
+
+wait_for_log 3 "zone_postload: zone test/IN/internal: done" ns7/named.run
+
+echo_i "rndc reload"
+$RNDCCMD 10.53.0.7 reload | sed 's/^/ns7 /' | cat_i
+
+wait_for_log 3 "all zones loaded" ns7/named.run
+
+n=$((n+1))
+echo_i "checking zone file edits are loaded ($n)"
+ret=0
+TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
+grep 'include 2' dig.out.1.test$n >/dev/null || ret=1
+TSIG="hmac-sha1:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
+grep 'include 2' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
