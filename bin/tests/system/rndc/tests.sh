@@ -803,11 +803,17 @@ echo_i "edit zone files"
 cp ns7/test.db.in ns7/test.db
 cp ns7/include2.db.in ns7/include.db
 
+nextpart ns7/named.run > /dev/null
+
 echo_i "rndc thaw"
 $RNDCCMD 10.53.0.7 thaw | sed 's/^/ns7 /' | cat_i
 
+wait_for_log 3 "zone_postload: zone test/IN/internal: done" ns7/named.run
+
 echo_i "rndc reload"
 $RNDCCMD 10.53.0.7 reload | sed 's/^/ns7 /' | cat_i
+
+wait_for_log 3 "all zones loaded" ns7/named.run
 
 n=$((n+1))
 echo_i "checking zone file edits are loaded ($n)"
