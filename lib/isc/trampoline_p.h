@@ -31,8 +31,8 @@
  * that slot can use the same thread ID that its predecessor did.
  *
  * The trampoline table initially has space for 64 worker threads in
- * addition to the main thread. if more threads than that in concurrent
- * concurrently, the table is reallocated with twice as much space.
+ * addition to the main thread. If more threads than that are in
+ * concurrent use, the table is reallocated with twice as much space.
  * (Note that the number of concurrent threads is currently capped at
  * 128 by the queue and hazard pointer implementations.)
  */
