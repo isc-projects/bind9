@@ -15,62 +15,11 @@
     <itemizedlist>
       <listitem>
         <para>
-          Named failed to check the opcode of responses when
-          performing refresh, stub updates, and UPDATE forwarding.
-          This could lead to an assertion failure under particular
-          conditions.  This has been addressed by checking the
-          opcode of those responses and rejecting the messages if
-          they don't match the expected value. [GL #2762]
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.35-known"><info><title>Known Issues</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.35-new"><info><title>New Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.35-removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.35-changes"><info><title>Feature Changes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
-        </para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes-9.11.35-bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-        <para>
-          None.
+          <command>named</command> failed to check the opcode of responses when
+          performing zone refreshes, stub zone updates, and UPDATE forwarding.
+          This could lead to an assertion failure under certain conditions and
+          has been addressed by rejecting responses whose opcode does not match
+          the expected value. [GL #2762]
         </para>
       </listitem>
     </itemizedlist>
