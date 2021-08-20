@@ -21560,6 +21560,8 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (commit) {
 		dns_difftuple_t *tuple;
+		dns_stats_t *dnssecsignstats =
+			dns_zone_getdnssecsignstats(zone);
 
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
@@ -21579,6 +21581,22 @@ zone_rekey(dns_zone_t *zone) {
 						   "zone_signwithkey failed: "
 						   "%s",
 						   dns_result_totext(result));
+				}
+
+				/* Clear DNSSEC sign statistics. */
+				if (dnssecsignstats != NULL) {
+					dns_dnssecsignstats_clear(
+						dnssecsignstats,
+						dst_key_id(key->key),
+						dst_key_alg(key->key));
+					/*
+					 * Also clear the dnssec-sign
+					 * statistics of the revoked key id.
+					 */
+					dns_dnssecsignstats_clear(
+						dnssecsignstats,
+						dst_key_rid(key->key),
+						dst_key_alg(key->key));
 				}
 			}
 		}

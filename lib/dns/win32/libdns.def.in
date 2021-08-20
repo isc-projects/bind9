@@ -339,6 +339,7 @@ dns_dnssec_verify
 dns_dnssec_verifymessage
 dns_dnsseckey_create
 dns_dnsseckey_destroy
+dns_dnssecsignstats_clear
 dns_dnssecsignstats_create
 dns_dnssecsignstats_dump
 dns_dnssecsignstats_increment

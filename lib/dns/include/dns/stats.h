@@ -698,8 +698,17 @@ void
 dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 			      dnssecsignstats_type_t operation);
 /*%<
- * Increment the statistics counter for the DNSKEY 'id'. The 'operation'
- * determines what counter is incremented.
+ * Increment the statistics counter for the DNSKEY 'id' with algorithm 'alg'.
+ * The 'operation' determines what counter is incremented.
+ *
+ * Requires:
+ *\li	'stats' is a valid dns_stats_t created by dns_dnssecsignstats_create().
+ */
+
+void
+dns_dnssecsignstats_clear(dns_stats_t *stats, dns_keytag_t id, uint8_t alg);
+/*%<
+ * Clear the statistics counter for the DNSKEY 'id' with algorithm 'alg'.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_dnssecsignstats_create().
