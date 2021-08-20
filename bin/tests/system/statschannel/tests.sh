@@ -345,5 +345,34 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+# Test sign operations after dnssec-policy change (removing keys).
+ret=0
+copy_setports ns2/named2.conf.in ns2/named.conf
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+# This should trigger the resign of DNSKEY (+1 ksk), and SOA, NSEC,
+# TYPE65534 (+3 zsk). The dnssec-sign statistics for the removed keys should
+# be cleared and thus no longer visible. But NSEC and SOA are (mistakenly)
+# counted double, one time because of zone_resigninc and one time because of
+# zone_nsec3chain. So +5 zsk in total.
+echo "${refresh_prefix} ${zsk8_id}: 15" > zones.expect
+echo "${refresh_prefix} ${ksk8_id}: 2" >> zones.expect
+echo "${sign_prefix} ${zsk8_id}: 18" >> zones.expect
+echo "${sign_prefix} ${ksk8_id}: 2" >> zones.expect
+cat zones.expect | sort > zones.expect.$n
+rm -f zones.expect
+# Fetch and check the dnssec sign statistics.
+echo_i "fetching zone '$zone' stats data after dnssec-policy change ($n)"
+if [ $PERL_XML ]; then
+    getzones xml $zone x$n || ret=1
+    cmp zones.out.x$n zones.expect.$n || ret=1
+fi
+if [ $PERL_JSON ]; then
+    getzones json 2 j$n || ret=1
+    cmp zones.out.j$n zones.expect.$n || ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
