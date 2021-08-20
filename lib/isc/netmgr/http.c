@@ -1623,10 +1623,13 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 			   isc_nm_httpsocket,
 			   (isc_sockaddr_t *)&session->handle->sock->iface);
 	socket->peer = session->handle->sock->peer;
-	socket->h2 = (isc_nmsocket_h2_t){ .psock = socket,
-					  .stream_id = frame->hd.stream_id,
-					  .headers_error_code =
-						  ISC_HTTP_ERROR_SUCCESS };
+	socket->h2 = (isc_nmsocket_h2_t){
+		.psock = socket,
+		.stream_id = frame->hd.stream_id,
+		.headers_error_code = ISC_HTTP_ERROR_SUCCESS,
+		.request_type = ISC_HTTP_REQ_UNSUPPORTED,
+		.request_scheme = ISC_HTTP_SCHEME_UNSUPPORTED
+	};
 	isc_buffer_initnull(&socket->h2.rbuf);
 	isc_buffer_initnull(&socket->h2.wbuf);
 	session->nsstreams++;
@@ -1689,18 +1692,10 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		socket->h2.request_path = NULL;
 		return (ISC_HTTP_ERROR_NOT_FOUND);
 	}
-	/* The spec does not mention which value the query string for POST
-	 * should have. For GET we use its value to decode a DNS message
-	 * from it, for POST the message is transferred in the body of the
-	 * request. Taking it into account, it is much safer to treat POST
-	 * requests with query strings as malformed ones. */
+
 	if (qstr != NULL) {
 		const char *dns_value = NULL;
 		size_t dns_value_len = 0;
-
-		if (socket->h2.request_type != ISC_HTTP_REQ_GET) {
-			return (ISC_HTTP_ERROR_BAD_REQUEST);
-		}
 
 		if (isc__nm_parse_httpquery((const char *)qstr, &dns_value,
 					    &dns_value_len)) {
@@ -1722,9 +1717,6 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		} else {
 			return (ISC_HTTP_ERROR_BAD_REQUEST);
 		}
-	} else if (qstr == NULL && socket->h2.request_type == ISC_HTTP_REQ_GET)
-	{
-		return (ISC_HTTP_ERROR_BAD_REQUEST);
 	}
 	return (ISC_HTTP_ERROR_SUCCESS);
 }
@@ -1768,9 +1760,6 @@ server_handle_content_length_header(isc_nmsocket_t *socket,
 	char tmp[32] = { 0 };
 	const size_t tmplen = sizeof(tmp) - 1;
 
-	if (socket->h2.request_type != ISC_HTTP_REQ_POST) {
-		return (ISC_HTTP_ERROR_BAD_REQUEST);
-	}
 	strncpy(tmp, (const char *)value,
 		valuelen > tmplen ? tmplen : valuelen);
 	socket->h2.content_length = strtoul(tmp, NULL, 10);
@@ -2030,6 +2019,10 @@ server_on_request_recv(nghttp2_session *ngsession,
 	if (socket->h2.request_path == NULL || socket->h2.cb == NULL) {
 		code = ISC_HTTP_ERROR_NOT_FOUND;
 	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
+		   socket->h2.content_length == 0)
+	{
+		code = ISC_HTTP_ERROR_BAD_REQUEST;
+	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
 		   isc_buffer_usedlength(&socket->h2.rbuf) >
 			   socket->h2.content_length)
 	{
@@ -2038,6 +2031,27 @@ server_on_request_recv(nghttp2_session *ngsession,
 		   isc_buffer_usedlength(&socket->h2.rbuf) !=
 			   socket->h2.content_length)
 	{
+		code = ISC_HTTP_ERROR_BAD_REQUEST;
+	} else if (socket->h2.request_type == ISC_HTTP_REQ_POST &&
+		   socket->h2.query_data != NULL)
+	{
+		/* The spec does not mention which value the query string for
+		 * POST should have. For GET we use its value to decode a DNS
+		 * message from it, for POST the message is transferred in the
+		 * body of the request. Taking it into account, it is much safer
+		 * to treat POST
+		 * requests with query strings as malformed ones. */
+		code = ISC_HTTP_ERROR_BAD_REQUEST;
+	} else if (socket->h2.request_type == ISC_HTTP_REQ_GET &&
+		   socket->h2.content_length > 0)
+	{
+		code = ISC_HTTP_ERROR_BAD_REQUEST;
+	} else if (socket->h2.request_type == ISC_HTTP_REQ_GET &&
+		   socket->h2.query_data == NULL)
+	{
+		/* A GET request without any query data - there is nothing to
+		 * decode. */
+		INSIST(socket->h2.query_data_len == 0);
 		code = ISC_HTTP_ERROR_BAD_REQUEST;
 	}
 
