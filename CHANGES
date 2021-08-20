@@ -1,3 +1,6 @@
+5702.	[bug]		Improve compatibility with DNS-over-HTTPS clients by
+			allowing HTTP/2 request headers in any order. [GL #2875]
+
 5701.	[bug]		named-checkconf failed to detect syntactically invalid
 			key and tls names. [GL #2461]
 
