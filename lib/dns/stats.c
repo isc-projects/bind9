@@ -406,6 +406,33 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 	isc_stats_increment(stats->counters, (nidx + operation));
 }
 
+void
+dns_dnssecsignstats_clear(dns_stats_t *stats, dns_keytag_t id, uint8_t alg) {
+	uint32_t kval;
+	int num_keys = isc_stats_ncounters(stats->counters) /
+		       dnssecsign_block_size;
+
+	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
+
+	/* Shift algorithm in front of key tag, which is 16 bits */
+	kval = (uint32_t)(alg << 16 | id);
+
+	/* Look up correct counter. */
+	for (int i = 0; i < num_keys; i++) {
+		int idx = i * dnssecsign_block_size;
+		uint32_t counter = isc_stats_get_counter(stats->counters, idx);
+		if (counter == kval) {
+			/* Match */
+			isc_stats_set(stats->counters, 0, idx);
+			isc_stats_set(stats->counters, 0,
+				      (idx + dns_dnssecsignstats_sign));
+			isc_stats_set(stats->counters, 0,
+				      (idx + dns_dnssecsignstats_refresh));
+			return;
+		}
+	}
+}
+
 /*%
  * Dump methods
  */
