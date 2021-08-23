@@ -42,6 +42,20 @@ zone "migrate.kasp" {
 	dnssec-policy "migrate";
 };
 
+zone "csk.kasp" {
+	type primary;
+	file "csk.kasp.db";
+	allow-update { any; };
+	dnssec-policy "default";
+};
+
+zone "csk-nosep.kasp" {
+	type primary;
+	file "csk-nosep.kasp.db";
+	allow-update { any; };
+	dnssec-policy "default";
+};
+
 zone "rumoured.kasp" {
 	type primary;
 	file "rumoured.kasp.db";

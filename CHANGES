@@ -1,3 +1,6 @@
+5698.	[bug]		Migrate a single key to CSK when reconfiguring a zone
+			to use 'dnssec-policy'. [GL #2857]
+
 5696.	[protocol]	Add support for HTTPS and SVCB record types. [GL #1132]
 
 5694.	[bug]		BIND looks up the deepest zone cut in cache in order

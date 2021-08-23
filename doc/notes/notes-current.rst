@@ -45,3 +45,6 @@ Bug Fixes
 - When following QNAME minimization, BIND could use a stale zonecut from cache 
   to resolve the query, resulting in a non-minimized query. This has been
   fixed :gl:`#2665`
+
+- Migrate a single key to CSK when reconfiguring a zone to make use of
+  'dnssec-policy' :gl:`#2857`
