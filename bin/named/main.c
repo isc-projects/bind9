@@ -101,7 +101,9 @@
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif /* ifdef HAVE_ZLIB */
+#ifdef HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
+#endif
 /*
  * Include header files for database drivers here.
  */
