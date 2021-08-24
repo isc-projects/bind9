@@ -23,7 +23,6 @@ close(INPUT);
 
 my $ref = decode_json($text);
 
-
 my $dnssecsign = $ref->{views}->{_default}->{zones}[$zone]->{"dnssec-sign"};
 my $type = "dnssec-sign operations ";
 foreach $key (keys %{$dnssecsign}) {

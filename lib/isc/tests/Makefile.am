@@ -41,6 +41,7 @@ check_PROGRAMS =	\
 	siphash_test	\
 	sockaddr_test	\
 	socket_test	\
+	stats_test	\
 	symtab_test	\
 	task_test	\
 	taskpool_test	\

@@ -5,10 +5,10 @@ perl util/merge_copyrights
 diff util/copyrights util/newcopyrights
 ... examine output, particularly any files with the "?" type, and
 ... then edit util/newcopyrights if necessary
-$ mv util/newcopyrights util/copyrights
-$ perl util/update_copyrights < util/copyrights
-$ git diff
+mv util/newcopyrights util/copyrights
+perl util/update_copyrights < util/copyrights
+git diff
 ... examine output, edit as necessary.  mail me about anything that
 ... the script should have been able to do itself. :-)
-$ git add util/copyrights
-$ git commit -m 'update_copyrights'
+git add util/copyrights
+git commit -m 'update_copyrights'
