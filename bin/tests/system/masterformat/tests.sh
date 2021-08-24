@@ -330,5 +330,22 @@ n=$((n+1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status+ret))
 
+# The following test is disabled by default because it is very slow.
+if [ -n "${TEST_LARGE_MAP}" ]; then
+    echo_i "checking map file size > 2GB can be loaded ($n)"
+    ret=0
+    $PERL ../../startperf/mkzonefile.pl test 9000000 > text.$n
+    # convert to map
+    $CHECKZONE -D -f text -F map -o map.$n test text.$n > /dev/null || ret=1
+    # check map file size is over 2GB to ensure the test is valid
+    size=$(ls -l map.$n | awk '{print $5}')
+    [ "$size" -gt 2147483648 ] || ret=1
+    # convert back to text
+    $CHECKZONE -f map test map.$n > /dev/null || ret=1
+    n=$((n+1))
+    [ $ret -eq 0 ] || echo_i "failed"
+    status=$((status+ret))
+fi
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

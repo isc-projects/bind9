@@ -26,7 +26,7 @@ rm -f ./ns2/formerly-text.db
 rm -f ./ns2/db-*
 rm -f ./ns2/large.bk
 rm -f ./ns3/example.db.map ./ns3/dynamic.db.map
-rm -f ./baseline.txt ./text.1 ./text.2 ./raw.1 ./raw.2 ./map.1 ./map.2 ./map.5 ./text.5 ./badmap
+rm -f ./baseline.txt ./text.* ./raw.* ./map.* ./badmap
 rm -f ./ns1/Ksigned.* ./ns1/dsset-signed. ./ns1/signed.db.signed
 rm -f ./rndc.out
 rm -f ./ns*/named.lock
