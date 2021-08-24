@@ -1,3 +1,7 @@
+5711.	[bug]		"map" files exceeding 2GB in size could fail to
+			load due to a size comparison that incorrectly
+			treated the file size as a signed integer. [GL #2878]
+
 5710.	[port]		win32: incorrect parentheses resulted in incorrect
 			sizeof tests being used to pick correct Windows
 			atomic operations for the object's size. [GL #2891]
@@ -22,7 +26,7 @@
 5701.	[bug]		named-checkconf failed to detect syntactically invalid
 			key names. [GL #2461]
 
-5700.	[bug]		Journals where not being removed when a catalog zone
+5700.	[bug]		Journals were not being removed when a catalog zone
 			was removed. [GL #2842]
 
 5699.	[func]		Grow and shrink dnssec-sign statistics on key rollover
