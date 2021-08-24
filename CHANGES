@@ -1,3 +1,6 @@
+5699.	[func]		Grow and shrink dnssec-sign statistics on key rollover
+			events. [GL #1721]
+
 5698.	[bug]		Migrate a single key to CSK when reconfiguring a zone
 			to use 'dnssec-policy'. [GL #2857]
 
