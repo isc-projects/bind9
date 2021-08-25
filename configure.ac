@@ -1500,7 +1500,12 @@ AC_ARG_ENABLE(native-pkcs11,
 #
 # was --with-openssl specified?
 #
-# [pairwise: --with-openssl --enable-openssl-hash, --with-openssl --disable-openssl-hash, --without-openssl]
+# "--enable-openssl-hash" is on purpose not being tested because it fails
+# linking when either of --with-ecdsa, --with-gost, --with-eddsa, or --with-aes
+# is used as well because it can't find f.e. HMAC_CTX_new() as "-lcrypto" is
+# missing.
+#
+# [pairwise: --with-openssl, --with-openssl --disable-openssl-hash, --without-openssl]
 AC_ARG_WITH(openssl,
 	    AS_HELP_STRING([--with-openssl[=PATH]],
 			   [Build with OpenSSL [yes|no|path].
@@ -1546,6 +1551,9 @@ AC_ARG_WITH(aes, AS_HELP_STRING([--with-aes], [Crypto AES]),
 
 #
 # was --enable-openssl-hash specified?
+#
+# "--enable-openssl-hash" is not being tested, see the reasoning in
+# "--with-openssl" pairwise section.
 #
 # [pairwise: skip]
 AC_ARG_ENABLE(openssl-hash,
