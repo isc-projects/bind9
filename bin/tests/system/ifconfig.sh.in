@@ -19,9 +19,9 @@
 #       fd92:7065:b8e:99ff::{1..2}
 #       fd92:7065:b8e:ff::{1..2}
 #
-# On Linux, we also set the MTU on the 1500 bytes to match the default MTU on
-# physical interfaces, so we can properly test the cases with packets bigger
-# than interface MTU.
+# We also set the MTU on the 1500 bytes to match the default MTU on physical
+# interfaces, so we can properly test the cases with packets bigger than
+# interface MTU.
 
 top_srcdir=@abs_top_srcdir@
 
@@ -68,6 +68,7 @@ case "$1" in
 			    *-*-solaris2.[8-9]|*-*-solaris2.1[0-9])
 				/sbin/ifconfig lo0:$int plumb
 				/sbin/ifconfig lo0:$int 10.53.$i.$ns up
+				/sbin/ifconfig lo0:$int mtu 1500
 				/sbin/ifconfig lo0:$int inet6 plumb
 				[ "$ipv6" ] && /sbin/ifconfig lo0:$int \
 					inet6 fd92:7065:b8e:${ipv6}ff::$ns up
@@ -90,13 +91,15 @@ case "$1" in
 				;;
 			    *-unknown-freebsd*)
 				ifconfig lo0 10.53.$i.$ns alias \
-					netmask 0xffffffff
+					netmask 0xffffffff \
+					mtu 1500
 				[ "$ipv6" ] && ifconfig lo0 inet6 \
 					fd92:7065:b8e:${ipv6}ff::$ns alias
 				;;
 			    *-unknown-dragonfly*|*-unknown-netbsd*|*-unknown-openbsd*)
 				ifconfig lo0 10.53.$i.$ns alias \
-					netmask 255.255.255.0
+					netmask 255.255.255.0 \
+					mtu 1500
 				[ "$ipv6" ] && ifconfig lo0 inet6 \
 					fd92:7065:b8e:${ipv6}ff::$ns alias
 				;;
