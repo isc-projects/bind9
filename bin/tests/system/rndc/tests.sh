@@ -769,14 +769,16 @@ grep 'addition 1' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+nextpart ns7/named.run > /dev/null
+
 echo_i "rndc freeze"
 $RNDCCMD 10.53.0.7 freeze | sed 's/^/ns7 /' | cat_i | cat_i
+
+wait_for_log 3 "dump_done: zone test/IN/internal: enter" ns7/named.run
 
 echo_i "edit zone files"
 cp ns7/test.db.in ns7/test.db
 cp ns7/include2.db.in ns7/include.db
-
-nextpart ns7/named.run > /dev/null
 
 echo_i "rndc thaw"
 $RNDCCMD 10.53.0.7 thaw | sed 's/^/ns7 /' | cat_i
