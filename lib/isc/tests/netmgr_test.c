@@ -226,6 +226,8 @@ _setup(void **state __attribute__((unused))) {
 		return (-1);
 	}
 
+	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
+
 	return (0);
 }
 

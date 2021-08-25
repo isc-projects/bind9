@@ -881,6 +881,7 @@ struct isc_nmsocket {
 		isc_result_t pending_error;
 		/* List of active send requests. */
 		isc__nm_uvreq_t *pending_req;
+		bool alpn_negotiated;
 	} tls;
 
 #if HAVE_LIBNGHTTP2

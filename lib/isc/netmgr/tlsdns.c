@@ -496,6 +496,8 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->tid = 0;
 	sock->fd = -1;
 
+	isc_tlsctx_enable_dot_server_alpn(sslctx);
+
 #if !HAVE_SO_REUSEPORT_LB
 	fd = isc__nm_tlsdns_lb_socket(iface->type.sa.sa_family);
 #endif
@@ -1071,6 +1073,17 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 	if (sock->tls.state == TLS_STATE_HANDSHAKE &&
 	    SSL_is_init_finished(sock->tls.tls))
 	{
+		const unsigned char *alpn = NULL;
+		unsigned int alpnlen = 0;
+
+		isc_tls_get_selected_alpn(sock->tls.tls, &alpn, &alpnlen);
+		if (alpn != NULL && alpnlen == ISC_TLS_DOT_PROTO_ALPN_ID_LEN &&
+		    memcmp(ISC_TLS_DOT_PROTO_ALPN_ID, alpn,
+			   ISC_TLS_DOT_PROTO_ALPN_ID_LEN) == 0)
+		{
+			sock->tls.alpn_negotiated = true;
+		}
+
 		sock->tls.state = TLS_STATE_IO;
 
 		if (SSL_is_server(sock->tls.tls)) {
