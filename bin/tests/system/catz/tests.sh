@@ -90,9 +90,14 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "Adding a domain dom1.example. to primary via RNDC ($n)"
 ret=0
+# enough initial content for IXFR response when TXT record is added below
 echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom1.example.db
-echo "@ IN NS invalid." >> ns1/dom1.example.db
-rndccmd 10.53.0.1 addzone dom1.example. '{type primary; file "dom1.example.db";};' || ret=1
+echo "@ 3600 IN NS invalid." >> ns1/dom1.example.db
+echo "foo 3600 IN TXT some content here" >> ns1/dom1.example.db
+echo "bar 3600 IN TXT some content here" >> ns1/dom1.example.db
+echo "xxx 3600 IN TXT some content here" >> ns1/dom1.example.db
+echo "yyy 3600 IN TXT some content here" >> ns1/dom1.example.db
+rndccmd 10.53.0.1 addzone dom1.example. '{ type primary; file "dom1.example.db"; allow-update { any; }; notify explicit; also-notify { 10.53.0.2; }; };' || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -139,6 +144,37 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "update dom1.example. ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+   server 10.53.0.1 ${PORT}
+   update add dom1.example 0 IN TXT added record
+   send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "wait for secondary to be updated ($n)"
+ret=0
+wait_for_txt() {
+	dig_with_opts @10.53.0.2 TXT dom1.example. > dig.out.test$n || return 1
+	grep "ANSWER: 1," dig.out.test$n > /dev/null || return 1
+	grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
+	grep "IN.TXT." dig.out.test$n > /dev/null || return 1
+}
+retry_quiet 10 wait_for_txt || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check that journal was created for cleanup test ($n)"
+ret=0
+test -f ns2/zonedir/__catz___default_catalog1.example_dom1.example.db.jnl || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "removing domain dom1.example. from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
@@ -167,6 +203,7 @@ n=$((n+1))
 echo_i "checking that zone-directory is emptied ($n)"
 ret=0
 wait_for_no_zonefile "ns2/zonedir/__catz___default_catalog1.example_dom1.example.db" || ret=1
+wait_for_no_zonefile "ns2/zonedir/__catz___default_catalog1.example_dom1.example.db.jnl" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -876,6 +913,7 @@ END
     echo_i "checking that zone-directory is emptied ($n)"
     ret=0
     wait_for_no_zonefile "ns2/zonedir/$db" || ret=1
+    wait_for_no_zonefile "ns2/zonedir/$db.jnl" || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 done

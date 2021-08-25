@@ -1,3 +1,6 @@
+5700.	[bug]		Journals where not being removed when a catalog zone
+			was removed. [GL #2842]
+
 5699.	[func]		Grow and shrink dnssec-sign statistics on key rollover
 			events. [GL #1721]
 
