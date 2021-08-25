@@ -30,6 +30,7 @@ while (<>) {
 	m!^( *)!;
 	my $indent = $1;
 	my $comment = "";
+	$line =~ s! // not configured,! //! if $strip_not_configured;
 	$line =~ s! // not configured!! if $strip_not_configured;
 	if ( $line =~ m!//.*! ) {
 		$comment = $&;

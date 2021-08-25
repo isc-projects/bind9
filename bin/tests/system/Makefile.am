@@ -84,6 +84,11 @@ TESTS +=		\
 	rpzrecurse
 endif HAVE_PERLMOD_NET_DNS
 
+if HAVE_LIBNGHTTP2
+TESTS +=		\
+	doth
+endif
+
 TESTS +=			\
 	acl			\
 	additional		\
@@ -103,7 +108,6 @@ TESTS +=			\
 	dlz			\
 	dlzexternal		\
 	dns64			\
-	doth			\
 	dscp			\
 	dsdigest		\
 	dyndb			\

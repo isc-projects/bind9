@@ -78,7 +78,8 @@ do
 	if ! $FEATURETEST --with-libnghttp2
 	then
 		case $good in
-		good-doh-*.conf) continue;
+		good-doh-*.conf) continue;;
+		good-dot-*.conf) continue;;
 		esac
 	fi
 	$CHECKCONF $good > checkconf.out$n 2>&1
