@@ -2029,3 +2029,26 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }
+
+/* Zone transfers/updates over TLS are allowed only when "dot" ALPN
+ * was negotiated.
+ *
+ * Per the XoT spec, we must also check that the TLS version is >=
+ * 1.3. The check could be added here. However, we still need to
+ * support platforms where no cryptographic library with TLSv1.3
+ * support is available. As a result of this we cannot be too strict
+ * regarding the minimal TLS protocol version in order to make it
+ * possible to do encrypted zone transfers over TLSv1.2, as it would
+ * not be right to leave users on these platforms without means for
+ * encrypted zone transfers using BIND only.
+ *
+ * The ones requiring strict compatibility with the specification
+ * could disable TLSv1.2 in the configuration file.
+ */
+bool
+isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tlsdnssocket);
+
+	return (sock->tls.alpn_negotiated);
+}

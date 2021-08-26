@@ -597,6 +597,15 @@ isc_nm_bad_request(isc_nmhandle_t *handle);
  *  \li 'handle' is a valid netmgr handle object.
  */
 
+bool
+isc_nm_xfr_allowed(isc_nmhandle_t *handle);
+/*%<
+ * Check if it is possible to do a zone transfer over the given handle.
+ *
+ * Requires:
+ * \li	'handle' is a valid connection handle.
+ */
+
 void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
 /*%<

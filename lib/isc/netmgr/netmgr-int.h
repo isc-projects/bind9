@@ -1580,6 +1580,16 @@ isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
  * Callback handlers for asynchronous TLSDNS events.
  */
 
+bool
+isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
+/*%<
+ * Check if it is possible to do a zone transfer over the given TLSDNS
+ * socket.
+ *
+ * Requires:
+ * \li	'sock' is a valid TLSDNS socket.
+ */
+
 #if HAVE_LIBNGHTTP2
 void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
