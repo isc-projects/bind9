@@ -2783,6 +2783,7 @@ start_tcp(dig_query_t *query) {
 		if (query->lookup->tls_mode) {
 			result = isc_tlsctx_createclient(&query->tlsctx);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			isc_tlsctx_enable_dot_client_alpn(query->tlsctx);
 			isc_nm_tlsdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,
 					     query, local_timeout, 0,
