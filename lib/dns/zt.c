@@ -418,7 +418,7 @@ freezezones(dns_zone_t *zone, void *uap) {
 		}
 		return (ISC_R_SUCCESS);
 	}
-	if (dns_zone_gettype(zone) != dns_zone_master) {
+	if (dns_zone_gettype(zone) != dns_zone_primary) {
 		if (raw != NULL) {
 			dns_zone_detach(&raw);
 		}

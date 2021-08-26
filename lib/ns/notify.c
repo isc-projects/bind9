@@ -148,8 +148,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	if (result == ISC_R_SUCCESS) {
 		dns_zonetype_t zonetype = dns_zone_gettype(zone);
 
-		if ((zonetype == dns_zone_master) ||
-		    (zonetype == dns_zone_slave) ||
+		if ((zonetype == dns_zone_primary) ||
+		    (zonetype == dns_zone_secondary) ||
 		    (zonetype == dns_zone_mirror) ||
 		    (zonetype == dns_zone_stub))
 		{

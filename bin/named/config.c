@@ -454,10 +454,10 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 
 	str = cfg_obj_asstring(zonetypeobj);
 	if (strcasecmp(str, "primary") == 0 || strcasecmp(str, "master") == 0) {
-		ztype = dns_zone_master;
+		ztype = dns_zone_primary;
 	} else if (strcasecmp(str, "secondary") == 0 ||
 		   strcasecmp(str, "slave") == 0) {
-		ztype = dns_zone_slave;
+		ztype = dns_zone_secondary;
 	} else if (strcasecmp(str, "mirror") == 0) {
 		ztype = dns_zone_mirror;
 	} else if (strcasecmp(str, "stub") == 0) {

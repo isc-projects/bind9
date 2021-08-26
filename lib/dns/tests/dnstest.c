@@ -245,7 +245,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Set zone type and origin.
 	 */
-	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_settype(zone, dns_zone_primary);
 	origin = dns_fixedname_initname(&fixed_origin);
 	result = dns_name_fromstring(origin, name, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
