@@ -2283,10 +2283,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	};
 
 	static optionstable dialups[] = {
-		{ "notify", CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
-		{ "notify-passive", CFG_ZONE_SLAVE },
-		{ "passive", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
-		{ "refresh", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
+		{ "notify", CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
+		{ "notify-passive", CFG_ZONE_SECONDARY },
+		{ "passive", CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
+		{ "refresh", CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
 	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
@@ -2314,11 +2314,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		typestr = cfg_obj_asstring(obj);
 		if (strcasecmp(typestr, "master") == 0 ||
 		    strcasecmp(typestr, "primary") == 0) {
-			ztype = CFG_ZONE_MASTER;
+			ztype = CFG_ZONE_PRIMARY;
 		} else if (strcasecmp(typestr, "slave") == 0 ||
 			   strcasecmp(typestr, "secondary") == 0)
 		{
-			ztype = CFG_ZONE_SLAVE;
+			ztype = CFG_ZONE_SECONDARY;
 		} else if (strcasecmp(typestr, "mirror") == 0) {
 			ztype = CFG_ZONE_MIRROR;
 		} else if (strcasecmp(typestr, "stub") == 0) {
@@ -2436,8 +2436,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		case CFG_ZONE_DELEGATION:
 			break;
 
-		case CFG_ZONE_MASTER:
-		case CFG_ZONE_SLAVE:
+		case CFG_ZONE_PRIMARY:
+		case CFG_ZONE_SECONDARY:
 		case CFG_ZONE_MIRROR:
 		case CFG_ZONE_HINT:
 		case CFG_ZONE_STUB:
@@ -2587,7 +2587,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Master, slave, and mirror zones may have an "also-notify" field, but
 	 * shouldn't if notify is disabled.
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY ||
 	    ztype == CFG_ZONE_MIRROR)
 	{
 		bool donotify = true;
@@ -2605,7 +2605,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				donotify = cfg_obj_asboolean(obj);
 			} else {
 				const char *str = cfg_obj_asstring(obj);
-				if (ztype != CFG_ZONE_MASTER &&
+				if (ztype != CFG_ZONE_PRIMARY &&
 				    (strcasecmp(str, "master-only") == 0 ||
 				     strcasecmp(str, "primary-only") == 0))
 				{
@@ -2644,7 +2644,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * exception: when mirroring the root zone, a default, built-in master
 	 * server list is used in the absence of one explicitly specified.
 	 */
-	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB ||
+	if (ztype == CFG_ZONE_SECONDARY || ztype == CFG_ZONE_STUB ||
 	    (ztype == CFG_ZONE_MIRROR && zname != NULL &&
 	     !dns_name_equal(zname, dns_rootname)))
 	{
@@ -2692,7 +2692,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Primary and secondary zones that have a "parental-agents" field,
 	 * must have a corresponding "parental-agents" clause.
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "parental-agents", &obj);
 		if (obj != NULL) {
@@ -2731,7 +2731,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
 		bool signing = false;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
@@ -2812,11 +2812,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    "inline-signing to be configured "
 					    "for the zone",
 					    arg,
-					    (ztype == CFG_ZONE_MASTER) ? " dyna"
-									 "mic "
-									 "DNS "
-									 "or"
-								       : "");
+					    (ztype == CFG_ZONE_PRIMARY)
+						    ? " dynamic DNS or"
+						    : "");
 				result = ISC_R_FAILURE;
 			}
 
@@ -2845,7 +2843,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-dnskey-kskonly: requires "
@@ -2870,7 +2868,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-loadkeys-interval: requires "
@@ -2880,7 +2878,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "update-check-ksk: requires "
@@ -2907,7 +2905,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check the excessively complicated "dialup" option.
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY ||
 	    ztype == CFG_ZONE_STUB)
 	{
 		obj = NULL;
@@ -3178,8 +3176,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if ((tresult != ISC_R_SUCCESS &&
-		     (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT ||
-		      (ztype == CFG_ZONE_SLAVE && res1 == ISC_R_SUCCESS &&
+		     (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_HINT ||
+		      (ztype == CFG_ZONE_SECONDARY && res1 == ISC_R_SUCCESS &&
 		       cfg_obj_asboolean(obj)))))
 		{
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
@@ -3187,7 +3185,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    znamestr);
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == CFG_ZONE_SLAVE ||
+			   (ztype == CFG_ZONE_SECONDARY ||
 			    ztype == CFG_ZONE_MIRROR || ddns ||
 			    has_dnssecpolicy))
 		{
@@ -3196,7 +3194,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				result = tresult;
 			}
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT))
+			   (ztype == CFG_ZONE_PRIMARY ||
+			    ztype == CFG_ZONE_HINT))
 		{
 			tresult = fileexist(fileobj, files, false, logctx);
 			if (tresult != ISC_R_SUCCESS) {
