@@ -488,6 +488,9 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  * 'cb'.
  */
 
+bool
+isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle);
+
 #if HAVE_LIBNGHTTP2
 
 #define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"

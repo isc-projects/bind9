@@ -3418,6 +3418,14 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 	return (false);
 }
 
+bool
+isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->type == isc_nm_tlsdnssocket);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

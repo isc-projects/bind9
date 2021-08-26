@@ -12054,6 +12054,16 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 				return;
 			}
 #endif
+			if (isc_nm_is_tlsdns_handle(handle) &&
+			    !isc_nm_xfr_allowed(handle)) {
+				/* Currently this code is here for DoT, which
+				 * has more complex requirements for zone
+				 * transfers compared to
+				 * other stream protocols. See RFC9103 for
+				 * the details. */
+				query_error(client, DNS_R_REFUSED, __LINE__);
+				return;
+			}
 			ns_xfr_start(client, rdataset->type);
 			return;
 		case dns_rdatatype_maila:
