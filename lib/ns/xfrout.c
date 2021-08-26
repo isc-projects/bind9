@@ -841,8 +841,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/*
 		 * Master, slave, and mirror zones are OK for transfer.
 		 */
-		case dns_zone_master:
-		case dns_zone_slave:
+		case dns_zone_primary:
+		case dns_zone_secondary:
 		case dns_zone_mirror:
 		case dns_zone_dlz:
 			break;
@@ -1144,7 +1144,7 @@ have_stream:
 		dns_zone_getraw(zone, &raw);
 		mayberaw = (raw != NULL) ? raw : zone;
 		if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
-		    (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+		    (dns_zone_gettype(mayberaw) == dns_zone_secondary ||
 		     dns_zone_gettype(mayberaw) == dns_zone_mirror))
 		{
 			isc_time_t expiretime;

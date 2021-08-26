@@ -438,7 +438,7 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
 	CHECK(dns_zone_setorigin(zone, origin));
 	dns_zone_setview(zone, view);
-	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_settype(zone, dns_zone_primary);
 	dns_zone_setclass(zone, view->rdclass);
 	dns_view_addzone(view, zone);
 

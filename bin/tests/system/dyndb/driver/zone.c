@@ -54,7 +54,7 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 		goto cleanup;
 	}
 	dns_zone_setclass(raw, dns_rdataclass_in);
-	dns_zone_settype(raw, dns_zone_master);
+	dns_zone_settype(raw, dns_zone_primary);
 	dns_zone_setdbtype(raw, 1, zone_argv);
 
 	result = dns_zonemgr_managezone(inst->zmgr, raw);

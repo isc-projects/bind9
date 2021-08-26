@@ -687,7 +687,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 	CHECK(dns_zone_create(&zone, mctx));
 
-	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_settype(zone, dns_zone_primary);
 
 	isc_buffer_constinit(&buffer, zonename, strlen(zonename));
 	isc_buffer_add(&buffer, strlen(zonename));

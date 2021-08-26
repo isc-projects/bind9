@@ -45,7 +45,7 @@
 static int quiet = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
-dns_zonetype_t zonetype = dns_zone_master;
+dns_zonetype_t zonetype = dns_zone_primary;
 static int dumpzone = 0;
 static const char *output_filename;
 static const char *prog_name = NULL;

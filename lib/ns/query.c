@@ -7690,7 +7690,7 @@ query_getexpire(query_ctx_t *qctx) {
 	dns_zone_getraw(qctx->zone, &raw);
 	mayberaw = (raw != NULL) ? raw : qctx->zone;
 
-	if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+	if (dns_zone_gettype(mayberaw) == dns_zone_secondary ||
 	    dns_zone_gettype(mayberaw) == dns_zone_mirror)
 	{
 		isc_time_t expiretime;
@@ -7702,7 +7702,7 @@ query_getexpire(query_ctx_t *qctx) {
 			qctx->client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
 			qctx->client->expire = secs - qctx->client->now;
 		}
-	} else if (dns_zone_gettype(mayberaw) == dns_zone_master) {
+	} else if (dns_zone_gettype(mayberaw) == dns_zone_primary) {
 		isc_result_t result;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_soa_t soa;
