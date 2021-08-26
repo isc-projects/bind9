@@ -1,3 +1,9 @@
+5705.	[bug]		Change #5686 altered the internal memory structure
+			of zone databases, but neglected to update the
+			MAPAPI value for map-format zone files. This caused
+			named to attempt to load incompatible map files,
+			triggering an assertion failure on startup. [GL #2872]
+
 5704.	[bug]		TCP keepalive settings were not being applied
 			correctly. [GL #1927]
 
