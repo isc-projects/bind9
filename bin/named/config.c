@@ -148,9 +148,9 @@ options {\n\
 	auth-nxdomain false;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
-	check-names master fail;\n\
+	check-names primary fail;\n\
 	check-names response ignore;\n\
-	check-names slave warn;\n\
+	check-names secondary warn;\n\
 	check-spf warn;\n\
 	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
@@ -280,22 +280,22 @@ view \"_bind\" chaos {\n\
 	};\n\
 \n\
 	zone \"version.bind\" chaos {\n\
-		type master;\n\
+		type primary;\n\
 		database \"_builtin version\";\n\
 	};\n\
 \n\
 	zone \"hostname.bind\" chaos {\n\
-		type master;\n\
+		type primary;\n\
 		database \"_builtin hostname\";\n\
 	};\n\
 \n\
 	zone \"authors.bind\" chaos {\n\
-		type master;\n\
+		type primary;\n\
 		database \"_builtin authors\";\n\
 	};\n\
 \n\
 	zone \"id.server\" chaos {\n\
-		type master;\n\
+		type primary;\n\
 		database \"_builtin id\";\n\
 	};\n\
 };\n\
