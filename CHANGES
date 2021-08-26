@@ -1,3 +1,8 @@
+5709.	[func]		Zone types are now reported in the statistics channel
+			using "primary" and "secondary". Enum values
+			throughout the code have been updated to use this
+			terminology as well. [GL #1944]
+
 5708.	[placeholder]
 
 5707.	[bug]		Fix a bug preventing dig from qurying DoH servers
