@@ -104,8 +104,8 @@ user_zonetype(dns_zone_t *zone) {
 		const dns_zonetype_t type;
 		const char *const string;
 	} typemap[] = { { dns_zone_none, "none" },
-			{ dns_zone_primary, "master" },
-			{ dns_zone_secondary, "slave" },
+			{ dns_zone_primary, "primary" },
+			{ dns_zone_secondary, "secondary" },
 			{ dns_zone_mirror, "mirror" },
 			{ dns_zone_stub, "stub" },
 			{ dns_zone_staticstub, "static-stub" },
