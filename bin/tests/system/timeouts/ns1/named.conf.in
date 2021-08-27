@@ -27,6 +27,7 @@ options {
 	notify no;
 	tcp-initial-timeout 20;
 	tcp-idle-timeout 50;
+	tcp-keepalive-timeout 70;
 };
 
 zone "." {

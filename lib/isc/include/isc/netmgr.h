@@ -160,6 +160,18 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle);
  * both socket layers.
  */
 
+void
+isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value);
+/*%<
+ * Enable/disable keepalive on this connection by setting it to 'value'.
+ *
+ * When keepalive is active, we switch to using the keepalive timeout
+ * to determine when to close a connection, rather than the idle timeout.
+ *
+ * This applies only to TCP-based DNS connections (i.e., TCPDNS).
+ * On other types of connection it has no effect.
+ */
+
 isc_sockaddr_t
 isc_nmhandle_peeraddr(isc_nmhandle_t *handle);
 /*%<
@@ -386,7 +398,7 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
  * Sets the initial, idle, and keepalive timeout values (in milliseconds) to use
  * for TCP connections, and the timeout value to advertise in responses using
  * the EDNS TCP Keepalive option (which should ordinarily be the same
- * as 'keepalive').
+ * as 'keepalive'), in milliseconds.
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.

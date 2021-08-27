@@ -451,6 +451,7 @@ isc_nmhandle_cleartimeout
 isc_nmhandle_getdata
 isc_nmhandle_getextra
 isc_nmhandle_is_stream
+isc_nmhandle_keepalive
 isc_nmhandle_netmgr
 isc_nmhandle_localaddr
 isc_nmhandle_peeraddr
@@ -476,7 +477,6 @@ isc_nm_stoplistening
 isc_nm_task_enqueue
 isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
-isc_nm_tcpdns_keepalive
 isc_nm_tcpdns_sequential
 isc_nm_tid
 isc_nm_udpconnect

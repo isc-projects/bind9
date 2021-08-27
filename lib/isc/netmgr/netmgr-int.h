@@ -1270,6 +1270,7 @@ void
 isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
+
 void
 isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
@@ -1300,9 +1301,11 @@ isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
  */
 
 void
-isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
-void
 isc__nm_async_tcpdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
 void
@@ -1311,12 +1314,17 @@ void
 isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
-
 void
 isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
+/*%<
+ * Callback handlers for asynchronous TCPDNS events.
+ */
 
 void
 isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+/*
+ * Back-end implementation of isc_nm_read() for TCPDNS handles.
+ */
 
 void
 isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
