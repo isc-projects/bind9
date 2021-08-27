@@ -2671,7 +2671,14 @@ http_close_direct(isc_nmsocket_t *sock) {
 	atomic_store(&sock->active, false);
 	session = sock->h2.session;
 
-	if (session != NULL && session->handle) {
+	if (session != NULL && session->sending == 0 && !session->reading) {
+		/*
+		 * The socket is going to be closed too early without been
+		 * used even once (might happen in a case of low level
+		 * error).
+		 */
+		finish_http_session(session);
+	} else if (session != NULL && session->handle) {
 		http_do_bio(session, NULL, NULL, NULL);
 	}
 }
