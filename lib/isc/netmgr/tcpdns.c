@@ -1435,16 +1435,3 @@ isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
 }
-
-void
-isc_nm_tcpdns_keepalive(isc_nmhandle_t *handle, bool value) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->type != isc_nm_tcpdnssocket);
-
-	sock = handle->sock;
-
-	atomic_store(&sock->keepalive, value);
-}

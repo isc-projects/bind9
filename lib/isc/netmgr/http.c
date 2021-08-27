@@ -3064,6 +3064,23 @@ isc__nm_http_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 	}
 }
 
+void
+isc__nmhandle_http_keepalive(isc_nmhandle_t *handle, bool value) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_httpsocket);
+
+	sock = handle->sock;
+	if (sock->h2.session != NULL && sock->h2.session->handle) {
+		INSIST(VALID_HTTP2_SESSION(sock->h2.session));
+		INSIST(VALID_NMHANDLE(sock->h2.session->handle));
+
+		isc_nmhandle_keepalive(sock->h2.session->handle, value);
+	}
+}
+
 /*
  * DoH GET Query String Scanner-less Recursive Descent Parser/Verifier
  *
