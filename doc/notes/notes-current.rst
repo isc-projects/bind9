@@ -48,3 +48,10 @@ Bug Fixes
 
 - Migrate a single key to CSK when reconfiguring a zone to make use of
   'dnssec-policy' :gl:`#2857`
+
+- A recent change to the internal memory structure of zone databases
+  inadvertently neglected to update the MAPAPI value for ``map``-format
+  zone files. This caused ``named`` to attempt to load files into memory
+  that were no longer compatible, triggering an assertion failure on
+  startup. The MAPAPI value has now been updated, so ``named`` will
+  reject outdated files when encountering them. :gl:`#2872`
