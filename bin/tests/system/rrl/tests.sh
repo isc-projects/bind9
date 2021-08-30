@@ -272,6 +272,10 @@ $DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
 $DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
 $DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
 
+# regression test for GL #2839
+DIGOPTS="+bufsize=4096 +ignore -p ${PORT}"
+$DIG $DIGOPTS @$ns4 TXT big.tld4 > /dev/null 2>&1
+
 grep "would limit" ns4/named.run >/dev/null 2>&1 ||
 setret "\"would limit\" not found in log file."
 

@@ -40,3 +40,6 @@ a8		A	192.0.2.8
 
 ; a9 for all-per-second limit
 $GENERATE 101-180 all$.a9 A 192.0.2.8
+
+; oversized TXT record
+$GENERATE 1-100    big    1    TXT    "txt$"
