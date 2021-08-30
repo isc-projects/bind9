@@ -1482,7 +1482,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			if (value == NULL) {
 				lookup->https_path = isc_mem_strdup(
-					mctx, DEFAULT_HTTPS_PATH);
+					mctx, ISC_NM_HTTP_DEFAULT_PATH);
 			} else {
 				lookup->https_path = isc_mem_strdup(mctx,
 								    value);

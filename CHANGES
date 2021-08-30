@@ -1,3 +1,6 @@
+5707.	[bug]		Fix a bug preventing dig from qurying DoH servers
+			via IPv6 adresses. [GL #2860]
+
 5706.	[cleanup]	Remove support for external applications to register
 			and use libisc. Export versions of BIND 9 libraries
 			have not been supported for some time, but the

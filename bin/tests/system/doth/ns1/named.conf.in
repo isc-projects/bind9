@@ -27,8 +27,11 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on tls ephemeral { 10.53.0.1; };             // DoT
+	listen-on-v6 tls ephemeral { fd92:7065:b8e:ffff::1;};
 	listen-on tls ephemeral http local { 10.53.0.1; };  // DoH
+	listen-on-v6 tls ephemeral http local { fd92:7065:b8e:ffff::1; };
 	listen-on tls none http local { 10.53.0.1; };       // unencrypted DoH
+	listen-on-v6 tls none http local { fd92:7065:b8e:ffff::1; };
 	listen-on-v6 { none; };
 	recursion no;
 	notify explicit;

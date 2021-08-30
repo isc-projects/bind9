@@ -11389,7 +11389,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 			endpoints[i++] = isc_mem_strdup(mctx, path);
 		}
 	} else {
-		endpoints[i++] = isc_mem_strdup(mctx, "/dns-query");
+		endpoints[i++] = isc_mem_strdup(mctx, ISC_NM_HTTP_DEFAULT_PATH);
 	}
 
 	INSIST(i == len);

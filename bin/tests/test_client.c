@@ -33,8 +33,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define DEFAULT_DOH_PATH "/dns-query"
-
 typedef enum {
 	UDP,
 	TCP,
@@ -392,35 +390,6 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nm_send(handle, &message, send_cb, NULL);
 }
 
-#if HAVE_LIBNGHTTP2
-static void
-sockaddr_to_url(isc_sockaddr_t *sa, const bool https, char *outbuf,
-		size_t outbuf_len, const char *append) {
-	uint16_t sa_port;
-	char saddr[INET6_ADDRSTRLEN] = { 0 };
-	int sa_family;
-
-	if (sa == NULL || outbuf == NULL || outbuf_len == 0) {
-		return;
-	}
-
-	sa_family = ((struct sockaddr *)&sa->type.sa)->sa_family;
-
-	sa_port = ntohs(sa_family == AF_INET ? sa->type.sin.sin_port
-					     : sa->type.sin6.sin6_port);
-	inet_ntop(sa_family,
-		  sa_family == AF_INET
-			  ? (struct sockaddr *)&sa->type.sin.sin_addr
-			  : (struct sockaddr *)&sa->type.sin6.sin6_addr,
-		  saddr, sizeof(saddr));
-
-	snprintf(outbuf, outbuf_len, "%s://%s%s%s:%u%s",
-		 https ? "https" : "http", sa_family == AF_INET ? "" : "[",
-		 saddr, sa_family == AF_INET ? "" : "]", sa_port,
-		 append ? append : "");
-}
-#endif
-
 static void
 run(void) {
 	switch (protocol) {
@@ -449,8 +418,9 @@ run(void) {
 		bool is_post = (protocol == HTTPS_POST ||
 				protocol == HTTP_POST);
 		char req_url[256];
-		sockaddr_to_url(&sockaddr_remote, is_https, req_url,
-				sizeof(req_url), DEFAULT_DOH_PATH);
+		isc_nm_http_makeuri(is_https, &sockaddr_remote, NULL, 0,
+				    ISC_NM_HTTP_DEFAULT_PATH, req_url,
+				    sizeof(req_url));
 		if (is_https) {
 			isc_tlsctx_createclient(&tls_ctx);
 		}

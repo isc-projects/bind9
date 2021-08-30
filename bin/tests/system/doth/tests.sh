@@ -64,9 +64,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoT query via IPv6 (ephemeral key) ($n)"
+ret=0
+dig_with_tls_opts -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoT query (static key) ($n)"
 ret=0
 dig_with_tls_opts @10.53.0.2 example SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query via IPv6 (static key) ($n)"
+ret=0
+dig_with_tls_opts -6 @fd92:7065:b8e:ffff::2 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -88,9 +104,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoH query via IPv6 (POST) ($n)"
+ret=0
+dig_with_https_opts -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoH query (POST, static key) ($n)"
 ret=0
 dig_with_https_opts @10.53.0.2 example SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query via IPv6 (POST, static key) ($n)"
+ret=0
+dig_with_https_opts -6 @fd92:7065:b8e:ffff::2 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -104,9 +136,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoH query via IPv6 (POST, nonstandard endpoint) ($n)"
+ret=0
+dig_with_https_opts -6 +https=/alter @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoH query (POST, undefined endpoint, failure expected) ($n)"
 ret=0
 dig_with_https_opts +tries=1 +time=1 +https=/fake @10.53.0.1 . SOA > dig.out.test$n
+grep "communications error" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query via IPv6 (POST, undefined endpoint, failure expected) ($n)"
+ret=0
+dig_with_https_opts -6 +tries=1 +time=1 +https=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -128,9 +176,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoH query via IPv6 (GET) ($n)"
+ret=0
+dig_with_https_opts -6 +https-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoH query (GET, static key) ($n)"
 ret=0
 dig_with_https_opts +https-get @10.53.0.2 example SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query via IPv6 (GET, static key) ($n)"
+ret=0
+dig_with_https_opts -6 +https-get @fd92:7065:b8e:ffff::2 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -144,9 +208,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoH query via IPv6 (GET, nonstandard endpoint) ($n)"
+ret=0
+dig_with_https_opts -6 +https-get=/alter @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoH query (GET, undefined endpoint, failure expected) ($n)"
 ret=0
 dig_with_https_opts +tries=1 +time=1 +https-get=/fake @10.53.0.1 . SOA > dig.out.test$n
+grep "communications error" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query via IPv6 (GET, undefined endpoint, failure expected) ($n)"
+ret=0
+dig_with_https_opts -6 +tries=1 +time=1 +https-get=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -168,9 +248,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking unencrypted DoH query via IPv6 (POST) ($n)"
+ret=0
+dig_with_http_opts -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking unencrypted DoH query (GET) ($n)"
 ret=0
 dig_with_http_opts +http-plain-get @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking unencrypted DoH query via IPv6 (GET) ($n)"
+ret=0
+dig_with_http_opts -6 +http-plain-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -193,9 +289,27 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking DoH query via IPv6 for a large answer (POST) ($n)"
+ret=0
+dig_with_https_opts -6 @fd92:7065:b8e:ffff::1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoH query for a large answer (GET) ($n)"
 ret=0
 dig_with_https_opts +https-get @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query via IPv6 for a large answer (GET) ($n)"
+ret=0
+dig_with_https_opts -6 +https-get @fd92:7065:b8e:ffff::1 biganswer.example A > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -211,9 +325,27 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "checking unencrypted DoH query for a large answer (POST) ($n)"
+echo_i "checking unencrypted DoH query via IPv6 for a large answer (POST) ($n)"
+ret=0
+dig_with_http_opts -6 @fd92:7065:b8e:ffff::1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking unencrypted DoH query for a large answer (GET) ($n)"
 ret=0
 dig_with_http_opts +http-plain-get @10.53.0.1 biganswer.example A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking unencrypted DoH query via IPv6 for a large answer (GET) ($n)"
+ret=0
+dig_with_http_opts -6 +http-plain-get @fd92:7065:b8e:ffff::1 biganswer.example A > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -233,6 +365,14 @@ test_opcodes() {
 		status=$((status + ret))
 
 		n=$((n + 1))
+		echo_i "checking unexpected opcode query over DoH via IPv6 for opcode $op ($n)"
+		ret=0
+		dig_with_https_opts -6 +https @fd92:7065:b8e:ffff::1 +opcode="$op" > dig.out.test$n
+		grep "status: $EXPECT_STATUS" dig.out.test$n > /dev/null || ret=1
+		if [ $ret != 0 ]; then echo_i "failed"; fi
+		status=$((status + ret))
+
+		n=$((n + 1))
 		echo_i "checking unexpected opcode query over DoH without encryption for opcode $op ($n)"
 		ret=0
 		dig_with_http_opts +http-plain @10.53.0.1 +opcode="$op" > dig.out.test$n
@@ -241,9 +381,25 @@ test_opcodes() {
 		status=$((status + ret))
 
 		n=$((n + 1))
+		echo_i "checking unexpected opcode query over DoH via IPv6 without encryption for opcode $op ($n)"
+		ret=0
+		dig_with_http_opts -6 +http-plain @fd92:7065:b8e:ffff::1 +opcode="$op" > dig.out.test$n
+		grep "status: $EXPECT_STATUS" dig.out.test$n > /dev/null || ret=1
+		if [ $ret != 0 ]; then echo_i "failed"; fi
+		status=$((status + ret))
+
+		n=$((n + 1))
 		echo_i "checking unexpected opcode query over DoT for opcode $op ($n)"
 		ret=0
 		dig_with_tls_opts +tls @10.53.0.1 +opcode="$op" > dig.out.test$n
+		grep "status: $EXPECT_STATUS" dig.out.test$n > /dev/null || ret=1
+		if [ $ret != 0 ]; then echo_i "failed"; fi
+		status=$((status + ret))
+
+		n=$((n + 1))
+		echo_i "checking unexpected opcode query over DoT via IPv6 for opcode $op ($n)"
+		ret=0
+		dig_with_tls_opts -6 +tls @fd92:7065:b8e:ffff::1 +opcode="$op" > dig.out.test$n
 		grep "status: $EXPECT_STATUS" dig.out.test$n > /dev/null || ret=1
 		if [ $ret != 0 ]; then echo_i "failed"; fi
 		status=$((status + ret))
