@@ -20,7 +20,6 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/ht.h>
-#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>

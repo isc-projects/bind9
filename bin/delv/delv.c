@@ -28,7 +28,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/hex.h>
-#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/managers.h>
 #include <isc/md.h>
@@ -1737,7 +1736,6 @@ main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 
-	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
 		fatal("dns_lib_init failed: %d", result);
@@ -1846,7 +1844,7 @@ cleanup:
 		dns_master_styledestroy(&style, mctx);
 	}
 	if (client != NULL) {
-		dns_client_destroy(&client);
+		dns_client_detach(&client);
 	}
 	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
 	if (actx != NULL) {

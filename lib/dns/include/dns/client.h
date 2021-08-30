@@ -46,15 +46,6 @@
 
 #include <dst/dst.h>
 
-typedef enum {
-	updateop_none = 0,
-	updateop_add = 1,
-	updateop_delete = 2,
-	updateop_exist = 3,
-	updateop_notexist = 4,
-	updateop_max = 5
-} dns_client_updateop_t;
-
 ISC_LANG_BEGINDECLS
 
 /***
@@ -76,22 +67,6 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTRESOPT_TCP 0x10
 
 /*%
- * Optional flags for dns_client_(start)request.
- */
-/*%< Allow running external context. */
-#define DNS_CLIENTREQOPT_RESERVED 0x01
-/*%< Use TCP transport. */
-#define DNS_CLIENTREQOPT_TCP 0x02
-
-/*%
- * Optional flags for dns_client_(start)update.
- */
-/*%< Allow running external context. */
-#define DNS_CLIENTUPDOPT_RESERVED 0x01
-/*%< Use TCP transport. */
-#define DNS_CLIENTUPDOPT_TCP 0x02
-
-/*%
  * View name used in dns_client.
  */
 #define DNS_CLIENTVIEW_NAME "_dnsclient"
@@ -111,20 +86,6 @@ typedef struct dns_clientresevent {
 	isc_result_t   vresult;
 	dns_namelist_t answerlist;
 } dns_clientresevent_t; /* too long? */
-
-/*%
- * A dns_clientreqevent_t is sent when a DNS request is completed by a client.
- * 'result' stores the result code of the entire transaction.
- * If the transaction is successfully completed but the response packet cannot
- * be parsed, 'result' will store the result code of dns_message_parse().
- * If the response packet is received, 'rmessage' will contain the response
- * message, whether it is successfully parsed or not.
- */
-typedef struct dns_clientreqevent {
-	ISC_EVENT_COMMON(struct dns_clientreqevent);
-	isc_result_t   result;
-	dns_message_t *rmessage;
-} dns_clientreqevent_t; /* too long? */
 
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
@@ -166,9 +127,9 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
  */
 
 void
-dns_client_destroy(dns_client_t **clientp);
+dns_client_detach(dns_client_t **clientp);
 /*%<
- * Destroy 'client'.
+ * Detach 'client' and destroy it if there are no more references.
  *
  * Requires:
  *
@@ -293,39 +254,6 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  */
 
 void
-dns_client_cancelresolve(dns_clientrestrans_t *trans);
-/*%<
- * Cancel an ongoing resolution procedure started via
- * dns_client_startresolve().
- *
- * Notes:
- *
- *\li	If the resolution procedure has not completed, post its CLIENTRESDONE
- *	event with a result code of #ISC_R_CANCELED.
- *
- * Requires:
- *
- *\li	'trans' is a valid transaction ID.
- */
-
-void
-dns_client_destroyrestrans(dns_clientrestrans_t **transp);
-/*%<
- * Destroy name resolution transaction state identified by '*transp'.
- *
- * Requires:
- *
- *\li	'*transp' is a valid transaction ID.
- *
- *\li	The caller has received the CLIENTRESDONE event (either because the
- *	resolution completed or because dns_client_cancelresolve() was called).
- *
- * Ensures:
- *
- *\li	*transp == NULL.
- */
-
-void
 dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist);
 /*%<
  * Free resources allocated for the content of 'namelist'.
@@ -360,107 +288,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
  *\li	#ISC_R_SUCCESS				On success.
  *
  *\li	Anything else				Failure.
- */
-
-isc_result_t
-dns_client_request(dns_client_t *client, dns_message_t *qmessage,
-		   dns_message_t *rmessage, const isc_sockaddr_t *server,
-		   unsigned int options, unsigned int parseoptions,
-		   dns_tsec_t *tsec, unsigned int timeout,
-		   unsigned int udptimeout, unsigned int udpretries);
-
-isc_result_t
-dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
-			dns_message_t *rmessage, const isc_sockaddr_t *server,
-			unsigned int options, unsigned int parseoptions,
-			dns_tsec_t *tsec, unsigned int timeout,
-			unsigned int udptimeout, unsigned int udpretries,
-			isc_task_t *task, isc_taskaction_t action, void *arg,
-			dns_clientreqtrans_t **transp);
-
-/*%<
- * Send a DNS request containing a query message 'query' to 'server'.
- *
- * 'parseoptions' will be used when the response packet is parsed, and will be
- * passed to dns_message_parse() via dns_request_getresponse().  See
- * dns_message_parse() for more details.
- *
- * 'tsec' is a transaction security object containing, e.g. a TSIG key for
- * authenticating the request/response transaction.  This is optional and can
- * be NULL, in which case this library performs the transaction  without any
- * transaction authentication.
- *
- * 'timeout', 'udptimeout', and 'udpretries' are passed to
- * dns_request_createvia3().  See dns_request_createvia3() for more details.
- *
- * dns_client_request() provides a synchronous service.  This function sends
- * the request and blocks until a response is received.  On success,
- * 'rmessage' will contain the response message.  The caller must provide a
- * valid initialized message.
- *
- * It is expected that the client object passed to dns_client_request() was
- * created via dns_client_create() and has external managers and contexts.
- *
- * dns_client_startrequest() is an asynchronous version of dns_client_request()
- * and does not block.  When the transaction is completed, 'action' will be
- * called with the argument of a 'dns_clientreqevent_t' object, which contains
- * the response message (on success).  On return, '*transp' is set to an opaque
- * transaction ID so that the caller can cancel this request.
- *
- * DNS_CLIENTREQOPT_TCP switches to the TCP (vs. UDP) transport.
- *
- * Requires:
- *
- *\li	'client' is a valid client.
- *
- *\li	'qmessage' and 'rmessage' are valid initialized message.
- *
- *\li	'server' is a valid socket address structure.
- *
- *\li	'task' is a valid task.
- *
- *\li	'transp' != NULL && *transp == NULL;
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS				On success.
- *
- *\li	Anything else				Failure.
- *
- *\li	Any result that dns_message_parse() can return.
- */
-
-void
-dns_client_cancelrequest(dns_clientreqtrans_t *transp);
-/*%<
- * Cancel an ongoing DNS request procedure started via
- * dns_client_startrequest().
- *
- * Notes:
- *
- *\li	If the request procedure has not completed, post its CLIENTREQDONE
- *	event with a result code of #ISC_R_CANCELED.
- *
- * Requires:
- *
- *\li	'trans' is a valid transaction ID.
- */
-
-void
-dns_client_destroyreqtrans(dns_clientreqtrans_t **transp);
-/*%
- * Destroy DNS request transaction state identified by '*transp'.
- *
- * Requires:
- *
- *\li	'*transp' is a valid transaction ID.
- *
- *\li	The caller has received the CLIENTREQDONE event (either because the
- *	request completed or because dns_client_cancelrequest() was called).
- *
- * Ensures:
- *
- *\li	*transp == NULL.
  */
 
 ISC_LANG_ENDDECLS

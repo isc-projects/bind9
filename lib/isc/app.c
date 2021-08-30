@@ -36,8 +36,8 @@
 #include <isc/util.h>
 
 /*%
- * For BIND9 internal applications built with threads, we use a single app
- * context and let multiple worker, I/O, timer threads do actual jobs.
+ * For BIND9 applications built with threads, we use a single app
+ * context and let multiple taskmgr and netmgr threads do actual jobs.
  */
 
 static isc_thread_t blockedthread;
@@ -207,24 +207,16 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	}
 
 	/*
-	 * BIND9 internal tools using multiple contexts do not
-	 * rely on signal. */
-	if (isc_bind9 && ctx != &isc_g_appctx) {
-		return (ISC_R_SUCCESS);
-	}
-
-	/*
 	 * There is no danger if isc_app_shutdown() is called before we
 	 * wait for signals.  Signals are blocked, so any such signal will
 	 * simply be made pending and we will get it when we call
 	 * sigwait().
 	 */
 	while (!atomic_load_acquire(&ctx->want_shutdown)) {
-		if (isc_bind9) {
+		if (ctx == &isc_g_appctx) {
 			sigset_t sset;
 			int sig;
 			/*
-			 * BIND9 internal; single context:
 			 * Wait for SIGHUP, SIGINT, or SIGTERM.
 			 */
 			if (sigemptyset(&sset) != 0 ||
@@ -257,8 +249,9 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 			}
 		} else {
 			/*
-			 * External, or BIND9 using multiple contexts:
-			 * wait until woken up.
+			 * Tools using multiple contexts don't
+			 * rely on a signal, just wait until woken
+			 * up.
 			 */
 			if (atomic_load_acquire(&ctx->want_shutdown)) {
 				break;
@@ -314,11 +307,12 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 	if (atomic_compare_exchange_strong_acq_rel(&ctx->shutdown_requested,
 						   &(bool){ false }, true))
 	{
-		if (isc_bind9 && ctx != &isc_g_appctx) {
-			/* BIND9 internal, but using multiple contexts */
+		if (ctx != &isc_g_appctx) {
+			/* Tool using multiple contexts */
 			atomic_store_release(&ctx->want_shutdown, true);
-		} else if (isc_bind9) {
-			/* BIND9 internal, single context */
+			SIGNAL(&ctx->ready);
+		} else {
+			/* Normal single BIND9 context */
 			if (kill(getpid(), SIGTERM) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
@@ -327,10 +321,6 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 						"kill: %s",
 						strbuf);
 			}
-		} else {
-			/* External, multiple contexts */
-			atomic_store_release(&ctx->want_shutdown, true);
-			SIGNAL(&ctx->ready);
 		}
 	}
 }
@@ -350,11 +340,12 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	 * Don't send the reload signal if we're shutting down.
 	 */
 	if (!atomic_load_acquire(&ctx->shutdown_requested)) {
-		if (isc_bind9 && ctx != &isc_g_appctx) {
-			/* BIND9 internal, but using multiple contexts */
+		if (ctx != &isc_g_appctx) {
+			/* Tool using multiple contexts */
 			atomic_store_release(&ctx->want_reload, true);
-		} else if (isc_bind9) {
-			/* BIND9 internal, single context */
+			SIGNAL(&ctx->ready);
+		} else {
+			/* Normal single BIND9 context */
 			if (kill(getpid(), SIGHUP) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
@@ -363,10 +354,6 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 						"kill: %s",
 						strbuf);
 			}
-		} else {
-			/* External, multiple contexts */
-			atomic_store_release(&ctx->want_reload, true);
-			SIGNAL(&ctx->ready);
 		}
 	}
 }

@@ -25,7 +25,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/lib.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -394,7 +393,6 @@ main(int argc, char *argv[]) {
 		altserveraddr = cp + 1;
 	}
 
-	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);
@@ -495,7 +493,7 @@ main(int argc, char *argv[]) {
 	/* Cleanup */
 cleanup:
 	if (client != NULL) {
-		dns_client_destroy(&client);
+		dns_client_detach(&client);
 	}
 
 	ctxs_destroy();
