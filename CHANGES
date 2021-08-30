@@ -1,3 +1,5 @@
+5708.	[placeholder]
+
 5707.	[bug]		Fix a bug preventing dig from qurying DoH servers
 			via IPv6 adresses. [GL #2860]
 
