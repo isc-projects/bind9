@@ -22,6 +22,7 @@ options {
 	notify no;
 	recursion yes;
 	dnssec-validation yes;
+	max-udp-size 4096;
 
 	rate-limit {
 	    responses-per-second 2;
