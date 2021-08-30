@@ -1657,7 +1657,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	}
 
 	switch (dns_zone_gettype(zone)) {
-	case dns_zone_master:
+	case dns_zone_primary:
 	case dns_zone_dlz:
 		/*
 		 * We can now fail due to a bad signature as we now know
@@ -1669,7 +1669,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		dns_message_clonebuffer(client->message);
 		CHECK(send_update_event(client, zone));
 		break;
-	case dns_zone_slave:
+	case dns_zone_secondary:
 	case dns_zone_mirror:
 		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
 				     "update forwarding", zonename, true,
@@ -1685,7 +1685,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 
 failure:
 	if (result == DNS_R_REFUSED) {
-		INSIST(dns_zone_gettype(zone) == dns_zone_slave ||
+		INSIST(dns_zone_gettype(zone) == dns_zone_secondary ||
 		       dns_zone_gettype(zone) == dns_zone_mirror);
 		inc_stats(client, zone, ns_statscounter_updaterej);
 	}

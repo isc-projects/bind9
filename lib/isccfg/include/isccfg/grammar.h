@@ -60,8 +60,8 @@
  * These share space with CFG_CLAUSEFLAG values, but count
  * down from the top.
  */
-#define CFG_ZONE_MASTER	    0x80000000
-#define CFG_ZONE_SLAVE	    0x40000000
+#define CFG_ZONE_PRIMARY    0x80000000
+#define CFG_ZONE_SECONDARY  0x40000000
 #define CFG_ZONE_STUB	    0x20000000
 #define CFG_ZONE_HINT	    0x10000000
 #define CFG_ZONE_FORWARD    0x08000000

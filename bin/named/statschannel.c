@@ -104,8 +104,8 @@ user_zonetype(dns_zone_t *zone) {
 		const dns_zonetype_t type;
 		const char *const string;
 	} typemap[] = { { dns_zone_none, "none" },
-			{ dns_zone_master, "master" },
-			{ dns_zone_slave, "slave" },
+			{ dns_zone_primary, "primary" },
+			{ dns_zone_secondary, "secondary" },
 			{ dns_zone_mirror, "mirror" },
 			{ dns_zone_stub, "stub" },
 			{ dns_zone_staticstub, "static-stub" },
@@ -1830,7 +1830,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR buf));
 	TRY0(xmlTextWriterEndElement(writer));
 
-	if (dns_zone_gettype(zone) == dns_zone_slave) {
+	if (dns_zone_gettype(zone) == dns_zone_secondary) {
 		CHECK(dns_zone_getexpiretime(zone, &timestamp));
 		isc_time_formatISO8601(&timestamp, buf, 64);
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "expires"));
@@ -2591,7 +2591,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	isc_time_formatISO8601(&timestamp, buf, 64);
 	json_object_object_add(zoneobj, "loaded", json_object_new_string(buf));
 
-	if (dns_zone_gettype(zone) == dns_zone_slave) {
+	if (dns_zone_gettype(zone) == dns_zone_secondary) {
 		CHECK(dns_zone_getexpiretime(zone, &timestamp));
 		isc_time_formatISO8601(&timestamp, buf, 64);
 		json_object_object_add(zoneobj, "expires",
