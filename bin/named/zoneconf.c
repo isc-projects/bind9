@@ -735,14 +735,14 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	isc_result_t result;
 
 	switch (ztype) {
-	case dns_zone_slave:
+	case dns_zone_secondary:
 	case dns_zone_mirror:
 		result = named_checknames_get(maps, "secondary", objp);
 		if (result != ISC_R_SUCCESS) {
 			result = named_checknames_get(maps, "slave", objp);
 		}
 		break;
-	case dns_zone_master:
+	case dns_zone_primary:
 		result = named_checknames_get(maps, "primary", objp);
 		if (result != ISC_R_SUCCESS) {
 			result = named_checknames_get(maps, "master", objp);
@@ -947,7 +947,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	ztype = zonetype_fromconfig(zoptions);
 	if (raw != NULL) {
 		dns_zone_settype(raw, ztype);
-		dns_zone_settype(zone, dns_zone_master);
+		dns_zone_settype(zone, dns_zone_primary);
 	} else {
 		dns_zone_settype(zone, ztype);
 	}
@@ -1008,7 +1008,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Unless we're using some alternative database, a master zone
 	 * will be needing a master file.
 	 */
-	if (ztype == dns_zone_master && cpval == default_dbtype &&
+	if (ztype == dns_zone_primary && cpval == default_dbtype &&
 	    filename == NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -1016,7 +1016,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		return (ISC_R_FAILURE);
 	}
 
-	if (ztype == dns_zone_slave || ztype == dns_zone_mirror) {
+	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {
 		masterformat = dns_masterformat_raw;
 	} else {
 		masterformat = dns_masterformat_text;
@@ -1121,7 +1121,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	/*
 	 * Notify messages are processed by the raw zone if it exists.
 	 */
-	if (ztype == dns_zone_slave || ztype == dns_zone_mirror) {
+	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {
 		RETERR(configure_zone_acl(
 			zconfig, vconfig, config, allow_notify, ac, mayberaw,
 			dns_zone_setnotifyacl, dns_zone_clearnotifyacl));
@@ -1282,7 +1282,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		    (notifytype == dns_notifytype_yes ||
 		     notifytype == dns_notifytype_explicit ||
 		     (notifytype == dns_notifytype_masteronly &&
-		      ztype == dns_zone_master)))
+		      ztype == dns_zone_primary)))
 		{
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
@@ -1408,13 +1408,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			ixfrdiff = cfg_obj_asboolean(obj);
 		} else if ((strcasecmp(cfg_obj_asstring(obj), "primary") == 0 ||
 			    strcasecmp(cfg_obj_asstring(obj), "master") == 0) &&
-			   ztype == dns_zone_master)
+			   ztype == dns_zone_primary)
 		{
 			ixfrdiff = true;
 		} else if ((strcasecmp(cfg_obj_asstring(obj), "secondary") ==
 				    0 ||
 			    strcasecmp(cfg_obj_asstring(obj), "slave") == 0) &&
-			   ztype == dns_zone_slave)
+			   ztype == dns_zone_secondary)
 		{
 			ixfrdiff = true;
 		} else {
@@ -1545,7 +1545,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Configure update-related options.  These apply to
 	 * primary servers only.
 	 */
-	if (ztype == dns_zone_master) {
+	if (ztype == dns_zone_primary) {
 		dns_acl_t *updateacl;
 
 		RETERR(configure_zone_acl(
@@ -1564,7 +1564,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		RETERR(configure_zone_ssutable(zoptions, mayberaw, zname));
 	}
 
-	if (ztype == dns_zone_master || raw != NULL) {
+	if (ztype == dns_zone_primary || raw != NULL) {
 		const cfg_obj_t *validity, *resign;
 		bool allow = false, maint = false;
 		bool sigvalinsecs;
@@ -1705,7 +1705,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 	}
 
-	if (ztype == dns_zone_slave || ztype == dns_zone_mirror) {
+	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_update_forwarding, ac, mayberaw,
 					  dns_zone_setforwardacl,
@@ -1715,7 +1715,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	/*%
 	 * Configure parental agents, applies to primary and secondary zones.
 	 */
-	if (ztype == dns_zone_master || ztype == dns_zone_slave) {
+	if (ztype == dns_zone_primary || ztype == dns_zone_secondary) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "parental-agents", &obj);
 		if (obj != NULL) {
@@ -1735,7 +1735,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	/*%
 	 * Primary master functionality.
 	 */
-	if (ztype == dns_zone_master) {
+	if (ztype == dns_zone_primary) {
 		obj = NULL;
 		result = named_config_get(maps, "check-wildcard", &obj);
 		if (result == ISC_R_SUCCESS) {
@@ -1909,7 +1909,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_acl_detach(&none);
 		}
 	/* FALLTHROUGH */
-	case dns_zone_slave:
+	case dns_zone_secondary:
 	case dns_zone_stub:
 	case dns_zone_redirect:
 		count = 0;

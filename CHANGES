@@ -1,3 +1,7 @@
+5709.	[cleanup]	Enum values throughout the code have been updated
+			to use "primary" and "secondary" terminology.
+			[GL #1944]
+
 5705.	[bug]		Change #5686 altered the internal memory structure
 			of zone databases, but neglected to update the
 			MAPAPI value for map-format zone files. This caused
