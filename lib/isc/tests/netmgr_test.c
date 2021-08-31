@@ -2727,6 +2727,148 @@ tlsdns_half_recv_half_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
+static void
+tlsdns_connect_connect_noalpn(isc_nmhandle_t *handle, isc_result_t eresult,
+			      void *cbarg) {
+	isc_nmhandle_t *readhandle = NULL;
+
+	UNUSED(cbarg);
+
+	F();
+
+	isc_refcount_decrement(&active_cconnects);
+
+	if (eresult != ISC_R_SUCCESS || connect_readcb == NULL ||
+	    !isc_nm_xfr_allowed(handle))
+	{
+		return;
+	}
+
+	atomic_fetch_add(&cconnects, 1);
+
+	isc_refcount_increment0(&active_creads);
+	isc_nmhandle_attach(handle, &readhandle);
+	isc_nm_read(handle, connect_readcb, NULL);
+
+	connect_send(handle);
+}
+
+static void
+tlsdns_connect_noalpn(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_sockaddr_t connect_addr;
+	isc_tlsctx_t *connect_tlsctx_noalpn = NULL;
+
+	result = isc_tlsctx_createclient(&connect_tlsctx_noalpn);
+	assert_true(result == ISC_R_SUCCESS);
+
+	connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
+
+	result = isc_nm_listentlsdns(listen_nm, &tcp_listen_addr, noop_recv_cb,
+				     NULL, noop_accept_cb, NULL, 0, 0, NULL,
+				     tcp_listen_tlsctx, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
+			     tlsdns_connect_connect_noalpn, NULL, T_CONNECT, 0,
+			     connect_tlsctx_noalpn);
+
+	WAIT_FOR_EQ(active_cconnects, 0);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc__netmgr_shutdown(connect_nm);
+
+	X(cconnects);
+	X(csends);
+	X(creads);
+	X(sreads);
+	X(ssends);
+
+	atomic_assert_int_eq(cconnects, 0);
+	atomic_assert_int_eq(csends, 0);
+	atomic_assert_int_eq(creads, 0);
+	atomic_assert_int_eq(sreads, 0);
+	atomic_assert_int_eq(ssends, 0);
+
+	isc_tlsctx_free(&connect_tlsctx_noalpn);
+}
+
+#ifdef HAVE_LIBNGHTTP2
+
+static isc_result_t
+tls_accept_cb_noalpn(isc_nmhandle_t *handle, isc_result_t eresult,
+		     void *cbarg) {
+	F();
+
+	if (eresult != ISC_R_SUCCESS) {
+		return (eresult);
+	}
+
+	atomic_fetch_add(&saccepts, 1);
+
+	if (!isc_nm_xfr_allowed(handle)) {
+		return (ISC_R_FAILURE);
+	}
+
+	return (stream_accept_cb(handle, eresult, cbarg));
+}
+
+static void
+tlsdns_listen_noalpn(void **state __attribute__((unused))) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	isc_sockaddr_t connect_addr;
+	isc_tlsctx_t *server_tlsctx_noalpn = NULL;
+
+	result = isc_tlsctx_createserver(NULL, NULL, &server_tlsctx_noalpn);
+	assert_true(result == ISC_R_SUCCESS);
+
+	connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
+
+	/* We use TLS stream listener here intentionally, as it does not
+	 * try to do ALPN. */
+	result = isc_nm_listentls(listen_nm, &tcp_listen_addr,
+				  tls_accept_cb_noalpn, NULL, 0, 0, NULL,
+				  server_tlsctx_noalpn, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0,
+			     tcp_connect_tlsctx);
+
+	WAIT_FOR_EQ(saccepts, 1);
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_EQ(csends, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc__netmgr_shutdown(connect_nm);
+
+	X(cconnects);
+	X(csends);
+	X(creads);
+	X(sreads);
+	X(ssends);
+
+	atomic_assert_int_eq(saccepts, 1);
+	atomic_assert_int_eq(cconnects, 1);
+	atomic_assert_int_eq(csends, 1);
+	atomic_assert_int_eq(creads, 0);
+	atomic_assert_int_eq(sreads, 0);
+	atomic_assert_int_eq(ssends, 0);
+
+	isc_tlsctx_free(&server_tlsctx_noalpn);
+}
+#endif /* HAVE_LIBNGHTTP2 */
+
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
@@ -2920,6 +3062,12 @@ main(void) {
 						nm_teardown),
 		cmocka_unit_test_setup_teardown(tlsdns_half_recv_half_send,
 						nm_setup, nm_teardown),
+		cmocka_unit_test_setup_teardown(tlsdns_connect_noalpn, nm_setup,
+						nm_teardown),
+#ifdef HAVE_LIBNGHTTP2
+		cmocka_unit_test_setup_teardown(tlsdns_listen_noalpn, nm_setup,
+						nm_teardown),
+#endif
 	};
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
