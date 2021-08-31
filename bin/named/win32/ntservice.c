@@ -30,10 +30,21 @@ static char ConsoleTitle[128];
 /*
  * Forward declarations
  */
+static int
+bindmain_service_wrapper(int argc, char *argv[]);
 void
 ServiceControl(DWORD dwCtrlCode);
 int
 bindmain(int, char *[]); /* From main.c */
+
+/*
+ * Initialize the ISC library running as a Windows Service before calling
+ * bindmain()
+ */
+static int
+bindmain_service_wrapper(int argc, char *argv[]) {
+	return (isc_lib_ntservice(bindmain, argc, argv));
+}
 
 /*
  * Initialize the Service by registering it.
@@ -60,6 +71,7 @@ void
 ntservice_shutdown(void) {
 	UpdateSCM(SERVICE_STOPPED);
 }
+
 /*
  * Routine to check if this is a service or a foreground program
  */
@@ -67,6 +79,7 @@ BOOL
 ntservice_isservice(void) {
 	return (!foreground);
 }
+
 /*
  * ServiceControl(): Handles requests from the SCM and passes them on
  * to named.
@@ -159,7 +172,7 @@ main(int argc, char *argv[]) {
 
 		SERVICE_TABLE_ENTRY dispatchTable[] = {
 			{ TEXT(SERVICE_NAME),
-			  (LPSERVICE_MAIN_FUNCTION)bindmain },
+			  (LPSERVICE_MAIN_FUNCTION)bindmain_service_wrapper },
 			{ NULL, NULL }
 		};
 
