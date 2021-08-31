@@ -34,6 +34,23 @@ isc_lib_register(void) {
 	isc_bind9 = false;
 }
 
+#ifdef WIN32
+int
+isc_lib_ntservice(int(WINAPI *mainfunc)(int argc, char *argv[]), int argc,
+		  char *argv[]) {
+	isc__trampoline_t *trampoline = isc__trampoline_get(NULL, NULL);
+	int r;
+
+	isc__trampoline_attach(trampoline);
+
+	r = mainfunc(argc, argv);
+
+	isc__trampoline_detach(trampoline);
+
+	return (r);
+}
+#endif /* ifdef WIN32 */
+
 void
 isc__initialize(void) ISC_CONSTRUCTOR;
 void

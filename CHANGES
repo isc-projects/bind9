@@ -2,6 +2,10 @@
 			to use "primary" and "secondary" terminology.
 			[GL #1944]
 
+5708.	[bug]		The thread-local isc_tid_v variable hasn't been properly
+			initialized when running BIND 9 as a Windows Service
+			leading to out-of-bounds access. [GL #2837]
+
 5705.	[bug]		Change #5686 altered the internal memory structure
 			of zone databases, but neglected to update the
 			MAPAPI value for map-format zone files. This caused

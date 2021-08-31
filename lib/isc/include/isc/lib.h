@@ -27,10 +27,19 @@ isc_lib_register(void);
  * function very early in main().
  */
 
+#ifdef WIN32
+int
+isc_lib_ntservice(int(WINAPI *mainfunc)(int argc, char *argv[]), int argc,
+		  char *argv[]);
+/*!<
+ * \brief Execute a special routine needed when running as a Windows Service.
+ */
+#endif /* ifdef WIN32 */
+
 extern void
 isc_enable_constructors(void);
 /*!<
- * \bried Enable constructor linkage in non-libtool static builds
+ * \brief Enable constructor linkage in non-libtool static builds.
  */
 
 ISC_LANG_ENDDECLS

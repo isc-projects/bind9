@@ -63,6 +63,17 @@ isc__trampoline_get(isc_threadfunc_t start_routine, isc_threadarg_t arg);
  *\li	'start_routine' is a valid non-NULL thread start_routine
  */
 
+void
+isc__trampoline_attach(isc__trampoline_t *trampoline);
+void
+isc__trampoline_detach(isc__trampoline_t *trampoline);
+/*%<
+ * Attach/detach the trampoline to/from the current thread.
+ *
+ * Requires:
+ * \li  'trampoline' is a valid isc__trampoline_t
+ */
+
 isc_threadresult_t
 isc__trampoline_run(isc_threadarg_t arg);
 /*%<
