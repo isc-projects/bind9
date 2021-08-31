@@ -411,10 +411,12 @@ fatal(named_server_t *server, const char *msg, isc_result_t result);
 static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
 
+#ifdef HAVE_LIBNGHTTP2
 static isc_result_t
 listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	       const char *cert, in_port_t port, isc_mem_t *mctx,
 	       ns_listenelt_t **target);
+#endif
 
 static isc_result_t
 listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
@@ -11311,10 +11313,14 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
+#ifdef HAVE_LIBNGHTTP2
 	if (http) {
 		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
 				     &delt));
-	} else {
+	}
+#endif /* HAVE_LIBNGHTTP2 */
+
+	if (!http) {
 		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls, key,
 					  cert, &delt));
 	}
@@ -11332,6 +11338,7 @@ cleanup:
 	return (result);
 }
 
+#ifdef HAVE_LIBNGHTTP2
 static isc_result_t
 listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	       const char *cert, in_port_t port, isc_mem_t *mctx,
@@ -11431,6 +11438,7 @@ error:
 	}
 	return (result);
 }
+#endif /* HAVE_LIBNGHTTP2 */
 
 isc_result_t
 named_server_dumpstats(named_server_t *server) {
