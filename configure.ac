@@ -638,39 +638,35 @@ AC_CHECK_FUNCS([SSL_CTX_set_min_proto_version])
 # Check for algorithm support in OpenSSL
 #
 
-AC_CHECK_FUNCS([ECDSA_sign ECDSA_verify], [:],
-	       [AC_MSG_FAILURE([ECDSA support in OpenSSL is mandatory.])])
+AC_CHECK_FUNCS([EVP_DigestSignInit EVP_DigestVerifyInit], [:],
+	       [AC_MSG_FAILURE([EVP_DigestSignInit/EVP_DigestVerifyInit support in OpenSSL is mandatory.])])
 
 AC_MSG_CHECKING([for ECDSA P-256 support])
 AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-		       #include <openssl/ec.h>]],
-		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);]])],
+    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
+		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_X9_62_prime256v1, NULL);]])],
     [AC_MSG_RESULT([yes])],
     [AC_MSG_FAILURE([not found.  ECDSA P-256 support in OpenSSL is mandatory.])])
 
 AC_MSG_CHECKING([for ECDSA P-384 support])
 AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-		       #include <openssl/ec.h>]],
-		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_secp384r1);]])],
+    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
+		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_secp384r1, NULL);]])],
     [AC_MSG_RESULT([yes])],
     [AC_MSG_FAILURE([not found.  ECDSA P-384 support in OpenSSL is mandatory.])])
 
 AC_MSG_CHECKING([for Ed25519 support])
 AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-		       #include <openssl/ec.h>]],
-		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED25519);]])],
+    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
+		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);]])],
     [AC_DEFINE([HAVE_OPENSSL_ED25519], [1], [define if OpenSSL supports Ed25519])
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
 
 AC_MSG_CHECKING([for Ed448 support])
 AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-		       #include <openssl/ec.h>]],
-		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED448);]])],
+    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
+		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);]])],
     [AC_DEFINE([HAVE_OPENSSL_ED448], [1], [define if OpenSSL supports Ed448])
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
