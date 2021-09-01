@@ -1,3 +1,7 @@
+5710.	[port]		win32: incorrect parentheses resulted in incorrect
+			sizeof tests being used to pick correct Windows
+			atomic operations for the object's size. [GL #2891]
+
 5709.	[cleanup]	Enum values throughout the code have been updated
 			to use "primary" and "secondary" terminology.
 			[GL #1944]

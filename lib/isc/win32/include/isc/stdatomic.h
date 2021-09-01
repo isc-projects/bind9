@@ -212,23 +212,23 @@ atomic_load_abort() {
 }
 
 #define atomic_load_explicit(obj, order)                                       \
-	((sizeof(*(obj)) == 8                                                  \
+	(((sizeof(*(obj)) == 8)                                                \
 		  ? atomic_load_explicit64(obj, order)                         \
-		  : (sizeof(*(obj) == 4)                                       \
+		  : ((sizeof(*(obj)) == 4)                                     \
 			     ? atomic_load_explicit32(obj, order)              \
-			     : (sizeof(*(obj) == 2)                            \
+			     : ((sizeof(*(obj)) == 2)                          \
 					? atomic_load_explicit16(obj, order)   \
-					: (sizeof(*(obj) == 1)                 \
+					: ((sizeof(*(obj)) == 1)               \
 						   ? atomic_load_explicit8(    \
 							     obj, order)       \
 						   : atomic_load_abort())))) & \
-	 (sizeof(*(obj)) == 8                                                  \
+	 ((sizeof(*(obj)) == 8)                                                \
 		  ? 0xffffffffffffffffULL                                      \
-		  : (sizeof(*(obj)) == 4                                       \
+		  : ((sizeof(*(obj)) == 4)                                     \
 			     ? 0xffffffffULL                                   \
-			     : (sizeof(*(obj)) == 2                            \
+			     : ((sizeof(*(obj)) == 2)                          \
 					? 0xffffULL                            \
-					: (sizeof(*(obj)) == 1                 \
+					: ((sizeof(*(obj)) == 1)               \
 						   ? 0xffULL                   \
 						   : atomic_load_abort())))))
 
