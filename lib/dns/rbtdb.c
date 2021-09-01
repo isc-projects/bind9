@@ -7579,7 +7579,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize, void *arg,
  * Load the RBT database from the image in 'f'
  */
 static isc_result_t
-deserialize32(void *arg, FILE *f, off_t offset) {
+deserialize(void *arg, FILE *f, off_t offset) {
 	isc_result_t result;
 	rbtdb_load_t *loadctx = arg;
 	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
@@ -7724,7 +7724,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 	callbacks->add = loading_addrdataset;
 	callbacks->add_private = loadctx;
-	callbacks->deserialize = deserialize32;
+	callbacks->deserialize = deserialize;
 	callbacks->deserialize_private = loadctx;
 
 	return (ISC_R_SUCCESS);

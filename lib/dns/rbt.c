@@ -775,17 +775,18 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	uint64_t *crc) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_fixedname_t fixed;
-	dns_name_t nodename, *fullname;
-	unsigned char *node_data;
+	dns_name_t nodename, *fullname = NULL;
+	unsigned char *node_data = NULL;
 	dns_rbtnode_t header;
-	size_t datasize, nodemax = filesize - sizeof(dns_rbtnode_t);
+	size_t nodemax = filesize - sizeof(dns_rbtnode_t);
+	size_t datasize;
 
 	if (n == NULL) {
 		return (ISC_R_SUCCESS);
 	}
 
 	CONFIRM((void *)n >= base);
-	CONFIRM((char *)n - (char *)base <= (int)nodemax);
+	CONFIRM((size_t)((char *)n - (char *)base) <= nodemax);
 	CONFIRM(DNS_RBTNODE_VALID(n));
 
 	dns_name_init(&nodename, NULL);
