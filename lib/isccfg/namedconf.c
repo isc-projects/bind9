@@ -161,11 +161,10 @@ static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
 static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_uint32, 0 },
-#if HAVE_LIBNGHTTP2
 	{ "tls", &cfg_type_astring, 0 },
+#if HAVE_LIBNGHTTP2
 	{ "http", &cfg_type_astring, 0 },
 #else
-	{ "tls", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "http", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ NULL, NULL, 0 }
@@ -219,11 +218,7 @@ static cfg_type_t cfg_type_remoteservers = { "remote-servers", cfg_parse_tuple,
 static cfg_tuplefielddef_t namesockaddrkey_fields[] = {
 	{ "remoteselement", &cfg_type_remoteselement, 0 },
 	{ "key", &cfg_type_optional_keyref, 0 },
-#if HAVE_LIBNGHTTP2
 	{ "tls", &cfg_type_optional_tls, 0 },
-#else
-	{ "tls", &cfg_type_optional_tls, CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif
 	{ NULL, NULL, 0 },
 };
 
@@ -1132,12 +1127,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
-#if HAVE_LIBNGHTTP2
 	{ "tls", &cfg_type_tlsconf, CFG_CLAUSEFLAG_MULTI },
-#else
-	{ "tls", &cfg_type_tlsconf,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
