@@ -52,6 +52,10 @@ int
 EVP_MD_CTX_reset(EVP_MD_CTX *ctx);
 #endif /* if !HAVE_EVP_MD_CTX_RESET */
 
+#if !HAVE_EVP_MD_CTX_GET0_MD
+#define EVP_MD_CTX_get0_md EVP_MD_CTX_md
+#endif /* if !HAVE_EVP_MD_CTX_GET0_MD */
+
 #if !HAVE_HMAC_CTX_NEW
 HMAC_CTX *
 HMAC_CTX_new(void);
