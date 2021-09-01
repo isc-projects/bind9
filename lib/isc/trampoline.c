@@ -143,8 +143,8 @@ done:
 	return (trampoline);
 }
 
-static void
-trampoline_put(isc__trampoline_t *trampoline) {
+void
+isc__trampoline_detach(isc__trampoline_t *trampoline) {
 	LOCK(&isc__trampoline_lock);
 	REQUIRE(trampoline->tid > 0 &&
 		(size_t)trampoline->tid < isc__trampoline_max);
@@ -163,11 +163,8 @@ trampoline_put(isc__trampoline_t *trampoline) {
 	return;
 }
 
-isc_threadresult_t
-isc__trampoline_run(isc_threadarg_t arg) {
-	isc__trampoline_t *trampoline = (isc__trampoline_t *)arg;
-	isc_threadresult_t result;
-
+void
+isc__trampoline_attach(isc__trampoline_t *trampoline) {
 	REQUIRE(trampoline->tid > 0 &&
 		(size_t)trampoline->tid < isc__trampoline_max);
 	REQUIRE(trampoline->self == ISC__TRAMPOLINE_UNUSED);
@@ -175,11 +172,19 @@ isc__trampoline_run(isc_threadarg_t arg) {
 	/* Initialize the trampoline */
 	isc_tid_v = trampoline->tid;
 	trampoline->self = isc_thread_self();
+}
+
+isc_threadresult_t
+isc__trampoline_run(isc_threadarg_t arg) {
+	isc__trampoline_t *trampoline = (isc__trampoline_t *)arg;
+	isc_threadresult_t result;
+
+	isc__trampoline_attach(trampoline);
 
 	/* Run the main function */
 	result = (trampoline->start)(trampoline->arg);
 
-	trampoline_put(trampoline);
+	isc__trampoline_detach(trampoline);
 
 	return (result);
 }
