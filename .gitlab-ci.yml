@@ -897,7 +897,7 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --disable-dnstap"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --disable-dnstap --with-gssapi"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
 
@@ -921,7 +921,7 @@ gcc:focal:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr"
   <<: *ubuntu_focal_amd64_image
   <<: *build_job
 
@@ -1212,6 +1212,7 @@ unit:clang:freebsd11:amd64:
 clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-gssapi=krb5-config"
     USER: gitlab-runner
   <<: *freebsd_12_amd64_image
   <<: *build_job
@@ -1238,7 +1239,7 @@ unit:clang:freebsd12:amd64:
 clang:freebsd13:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT}"
+    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT} --with-gssapi=/usr/bin/krb5-config"
     USER: gitlab-runner
   <<: *freebsd_13_amd64_image
   <<: *build_job
