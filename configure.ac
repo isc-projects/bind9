@@ -653,24 +653,13 @@ CRYPTO=OpenSSL
 #
 # OpenSSL/LibreSSL is mandatory
 #
-PKG_CHECK_MODULES([OPENSSL], [libssl >= 1.1.1 libcrypto >= 1.1.1], [PKG_CHECK_VERSION([OPENSSL_VERSION], [openssl])],
-		  [AX_CHECK_OPENSSL([:], [AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])])
+PKG_CHECK_MODULES([OPENSSL], [libssl >= 1.1.1 libcrypto >= 1.1.1])
+PKG_CHECK_VERSION([OPENSSL_VERSION], [openssl])
 
 AX_SAVE_FLAGS([openssl])
 
 CFLAGS="$OPENSSL_CFLAGS $CFLAGS"
 LIBS="$OPENSSL_LIBS $LIBS"
-
-AC_MSG_CHECKING([for OpenSSL >= 1.1.1 or LibreSSL >= 2.7.0])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/opensslv.h>]],
-		     [[#if (!defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x01010100fL)) || \\
-			   (defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER < 0x02070000fL))
-		       #error OpenSSL >= 1.1.1 or LibreSSL >= 2.7.0 required
-		       #endif
-		      ]])],
-    [AC_MSG_RESULT([yes])],
-    [AC_MSG_FAILURE([not found])])
 
 #
 # Check for functions added in OpenSSL or LibreSSL
