@@ -12,16 +12,22 @@
 # shellcheck disable=SC1091
 . ../conf.sh
 
+common_dig_options="+noadd +nosea +nostat +noquest +nocmd"
+msg_xfrs_not_allowed=";; zone transfers over the established TLS connection are not allowed"
+
 dig_with_tls_opts() {
-	"$DIG" +tls +noadd +nosea +nostat +noquest +nocmd -p "${TLSPORT}" "$@"
+	# shellcheck disable=SC2086
+	"$DIG" +tls $common_dig_options -p "${TLSPORT}" "$@"
 }
 
 dig_with_https_opts() {
-	"$DIG" +https +noadd +nosea +nostat +noquest +nocmd -p "${HTTPSPORT}" "$@"
+	# shellcheck disable=SC2086
+	"$DIG" +https $common_dig_options -p "${HTTPSPORT}" "$@"
 }
 
 dig_with_http_opts() {
-	"$DIG" +http-plain +noadd +nosea +nostat +noquest +nocmd -p "${HTTPPORT}" "$@"
+	# shellcheck disable=SC2086
+	"$DIG" +http-plain $common_dig_options -p "${HTTPPORT}" "$@"
 }
 
 wait_for_tls_xfer() (
@@ -92,6 +98,21 @@ echo_i "checking DoT XFR ($n)"
 ret=0
 dig_with_tls_opts +comm @10.53.0.1 . AXFR > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# In this test we are trying to establish a DoT connection over the
+# DoH port. That is intentional, as dig should fail right after
+# handshake has happened and before sending any queries, as XFRs, per
+# the RFC, could happen only over a connection where "dot" ALPN token
+# was negotiated.  over DoH it cannot happen, as only "h2" token could
+# be selected for a DoH connection.
+n=$((n + 1))
+echo_i "checking DoT XFR with wrong ALPN token (h2, failure expected) ($n)"
+ret=0
+# shellcheck disable=SC2086
+"$DIG" +tls $common_dig_options -p "${HTTPSPORT}" +comm @10.53.0.1 . AXFR > dig.out.test$n
+grep "$msg_xfrs_not_allowed" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

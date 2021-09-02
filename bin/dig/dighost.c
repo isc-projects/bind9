@@ -3121,6 +3121,7 @@ launch_next_query(dig_query_t *query) {
 	int local_timeout = timeout * 1000;
 	dig_lookup_t *l = NULL;
 	isc_region_t r;
+	bool xfr;
 
 	REQUIRE(DIG_VALID_QUERY(query));
 	INSIST(!free_now);
@@ -3149,6 +3150,25 @@ launch_next_query(dig_query_t *query) {
 	isc_nmhandle_settimeout(query->handle, local_timeout);
 
 	query_attach(query, &readquery);
+
+	xfr = query->lookup->rdtype == dns_rdatatype_ixfr ||
+	      query->lookup->rdtype == dns_rdatatype_axfr;
+	if (xfr && isc_nm_is_tlsdns_handle(query->handle) &&
+	    !isc_nm_xfr_allowed(query->handle))
+	{
+		dighost_error("zone transfers over the "
+			      "established TLS connection are not allowed");
+		dighost_error("as the "
+			      "connection does not meet the requirements "
+			      "enforced by the RFC 9103");
+		isc_refcount_decrement0(&recvcount);
+		isc_nmhandle_detach(&query->readhandle);
+		cancel_lookup(l);
+		lookup_detach(&l);
+		clear_current_lookup();
+		return;
+	}
+
 	isc_nm_read(query->handle, recv_done, readquery);
 
 	if (!query->first_soa_rcvd) {
