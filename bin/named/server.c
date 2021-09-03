@@ -3085,6 +3085,9 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 	opts = dns_catz_zone_getdefoptions(zone);
 
 	obj = cfg_tuple_get(catz_obj, "default-masters");
+	if (obj == NULL || !cfg_obj_istuple(obj)) {
+		obj = cfg_tuple_get(catz_obj, "default-primaries");
+	}
 	if (obj != NULL && cfg_obj_istuple(obj)) {
 		result = named_config_getipandkeylist(
 			config, "primaries", obj, view->mctx, &opts->masters);

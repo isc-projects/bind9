@@ -184,6 +184,9 @@ OPTIONS
   	catalog-zones { zone string [ default-masters [ port integer ]
   	    [ dscp integer ] { ( masters | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
+  	    string ]; ... } ] [ default-primaries [ port integer ]
+  	    [ dscp integer ] { ( masters | ipv4_address [ port
+  	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ]; ... } ] [ zone-directory quoted_string ] [
   	    in-memory boolean ] [ min-update-interval duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
@@ -557,6 +560,9 @@ VIEW
   	auto-dnssec ( allow | maintain | off );
   	cache-file quoted_string;
   	catalog-zones { zone string [ default-masters [ port integer ]
+  	    [ dscp integer ] { ( masters | ipv4_address [ port
+  	    integer ] | ipv6_address [ port integer ] ) [ key
+  	    string ]; ... } ] [ default-primaries [ port integer ]
   	    [ dscp integer ] { ( masters | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
   	    string ]; ... } ] [ zone-directory quoted_string ] [

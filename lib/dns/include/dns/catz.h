@@ -48,7 +48,7 @@ struct dns_catz_entry_options {
 	/*
 	 * Options that can be overridden in catalog zone
 	 */
-	/* default-masters definition */
+	/* default-masters/default-primaries definition */
 	dns_ipkeylist_t masters;
 
 	/* both as text in config format, NULL if none */

@@ -32,7 +32,7 @@ options {
 			in-memory no
 			zone-directory "zonedir";
 		zone "catalog2.example"
-			default-masters { 10.53.0.1 port @EXTRAPORT1@; }
+			default-primaries { 10.53.0.1 port @EXTRAPORT1@; }
 			in-memory yes;
 		zone "catalog3.example"
 			default-masters { 10.53.0.1; }
@@ -40,7 +40,7 @@ options {
 #T1		zone "catalog4.example"
 #T1			default-masters { 10.53.0.1; };
 #T2		zone "catalog5.example"
-#T2			default-masters { 10.53.0.1; };
+#T2			default-primaries { 10.53.0.1; };
 	};
 };
 

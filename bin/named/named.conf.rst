@@ -190,9 +190,12 @@ OPTIONS
   	catalog-zones { zone string [ default-masters [ port integer ]
   	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ zone-directory
-  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
-  	    duration ]; ... };
+  	    string ] [ tls string ]; ... } ] [ default-primaries [ port
+  	    integer ] [ dscp integer ] { ( remote-servers |
+  	    ipv4_address [ port integer ] | ipv6_address [ port
+  	    integer ] ) [ key string ] [ tls string ]; ... } ] [
+  	    zone-directory quoted_string ] [ in-memory boolean ] [
+  	    min-update-interval duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );
@@ -621,9 +624,12 @@ VIEW
   	catalog-zones { zone string [ default-masters [ port integer ]
   	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ zone-directory
-  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
-  	    duration ]; ... };
+  	    string ] [ tls string ]; ... } ] [ default-primaries [ port
+  	    integer ] [ dscp integer ] { ( remote-servers |
+  	    ipv4_address [ port integer ] | ipv6_address [ port
+  	    integer ] ) [ key string ] [ tls string ]; ... } ] [
+  	    zone-directory quoted_string ] [ in-memory boolean ] [
+  	    min-update-interval duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );

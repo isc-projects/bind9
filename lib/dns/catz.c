@@ -899,7 +899,8 @@ static catz_opt_t
 catz_get_option(const dns_label_t *option) {
 	if (catz_opt_cmp(option, "zones")) {
 		return (CATZ_OPT_ZONES);
-	} else if (catz_opt_cmp(option, "masters")) {
+	} else if (catz_opt_cmp(option, "masters") ||
+		   catz_opt_cmp(option, "primaries")) {
 		return (CATZ_OPT_MASTERS);
 	} else if (catz_opt_cmp(option, "allow-query")) {
 		return (CATZ_OPT_ALLOW_QUERY);

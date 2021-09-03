@@ -470,7 +470,7 @@ echo_i "adding dom6.example. and an invalid global masters option (TSIG without 
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
-    update add label1.masters.catalog1.example. 3600 IN TXT "tsig_key"
+    update add label1.primaries.catalog1.example. 3600 IN TXT "tsig_key"
     update add 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example. 3600 IN PTR dom6.example.
     send
 END
@@ -490,7 +490,7 @@ echo_i "removing dom6.example. ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
-    update delete label1.masters.catalog1.example. 3600 IN TXT "tsig_key"
+    update delete label1.primaries.catalog1.example. 3600 IN TXT "tsig_key"
     update delete 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example. 3600 IN PTR dom6.example.
     send
 END
@@ -704,8 +704,8 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update add f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN PTR dom9.example.
-    update add label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN A 10.53.0.1
-    update add label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update add label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update add label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -732,8 +732,8 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN PTR dom9.example.
-    update delete label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN A 10.53.0.1
-    update delete label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update delete label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update delete label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -761,7 +761,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update add f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN PTR dom9.example.
-    update add label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update add label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -781,7 +781,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN PTR dom9.example.
-    update delete label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update delete label1.primaries.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

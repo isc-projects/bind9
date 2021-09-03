@@ -1842,6 +1842,7 @@ static cfg_type_t cfg_type_catz_zone = { "zone",	  parse_keyvalue,
 static cfg_tuplefielddef_t catz_zone_fields[] = {
 	{ "zone name", &cfg_type_catz_zone, 0 },
 	{ "default-masters", &cfg_type_namesockaddrkeylist, 0 },
+	{ "default-primaries", &cfg_type_namesockaddrkeylist, 0 },
 	{ "zone-directory", &cfg_type_qstring, 0 },
 	{ "in-memory", &cfg_type_boolean, 0 },
 	{ "min-update-interval", &cfg_type_duration, 0 },
