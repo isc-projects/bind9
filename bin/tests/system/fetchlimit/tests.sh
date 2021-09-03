@@ -161,7 +161,7 @@ success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
-    $DIGCMD a ${try}.example > dig.out.ns3.$try
+    $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$try
     stat 400 || exceeded=`expr $exceeded + 1`
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=`expr $success + 1`
