@@ -886,9 +886,10 @@ typedef enum {
 
 static bool
 catz_opt_cmp(const dns_label_t *option, const char *opt) {
-	unsigned int l = strlen(opt);
-	if (option->length - 1 == l &&
-	    memcmp(opt, option->base + 1, l - 1) == 0) {
+	size_t len = strlen(opt);
+
+	if (option->length - 1 == len &&
+	    memcmp(opt, option->base + 1, len) == 0) {
 		return (true);
 	} else {
 		return (false);
