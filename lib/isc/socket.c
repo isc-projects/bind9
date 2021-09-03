@@ -803,7 +803,6 @@ unwatch_fd(isc__socketthread_t *thread, int fd, int msg) {
 #elif defined(USE_DEVPOLL)
 	struct pollfd pfds[2];
 	size_t writelen = sizeof(pfds[0]);
-	int lockid = FDLOCK_ID(fd);
 
 	memset(pfds, 0, sizeof(pfds));
 	pfds[0].events = POLLREMOVE;
