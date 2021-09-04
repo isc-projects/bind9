@@ -51,27 +51,6 @@ EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx) {
 }
 #endif /* if !HAVE_EVP_CIPHER_CTX_FREE */
 
-#if !HAVE_EVP_MD_CTX_NEW
-EVP_MD_CTX *
-EVP_MD_CTX_new(void) {
-	EVP_MD_CTX *ctx = OPENSSL_malloc(sizeof(*ctx));
-	if (ctx != NULL) {
-		memset(ctx, 0, sizeof(*ctx));
-	}
-	return (ctx);
-}
-#endif /* if !HAVE_EVP_MD_CTX_NEW */
-
-#if !HAVE_EVP_MD_CTX_FREE
-void
-EVP_MD_CTX_free(EVP_MD_CTX *ctx) {
-	if (ctx != NULL) {
-		EVP_MD_CTX_cleanup(ctx);
-		OPENSSL_free(ctx);
-	}
-}
-#endif /* if !HAVE_EVP_MD_CTX_FREE */
-
 #if !HAVE_EVP_MD_CTX_RESET
 int
 EVP_MD_CTX_reset(EVP_MD_CTX *ctx) {

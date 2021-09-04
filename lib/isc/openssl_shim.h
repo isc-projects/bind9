@@ -38,13 +38,11 @@ EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx);
 #endif /* if !HAVE_EVP_CIPHER_CTX_FREE */
 
 #if !HAVE_EVP_MD_CTX_NEW
-EVP_MD_CTX *
-EVP_MD_CTX_new(void);
+#define EVP_MD_CTX_new EVP_MD_CTX_create
 #endif /* if !HAVE_EVP_MD_CTX_NEW */
 
 #if !HAVE_EVP_MD_CTX_FREE
-void
-EVP_MD_CTX_free(EVP_MD_CTX *ctx);
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
 #endif /* if !HAVE_EVP_MD_CTX_FREE */
 
 #if !HAVE_EVP_MD_CTX_RESET
