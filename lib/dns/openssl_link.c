@@ -41,6 +41,8 @@
 #include <openssl/engine.h>
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
 
+#include "openssl_shim.h"
+
 #if !defined(OPENSSL_NO_ENGINE)
 static ENGINE *e = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
@@ -160,7 +162,7 @@ dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
 		       isc_result_t fallback) {
 	isc_result_t result;
 	unsigned long err;
-	const char *file, *data;
+	const char *file, *func, *data;
 	int line, flags;
 	char buf[256];
 
@@ -174,7 +176,7 @@ dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
 	}
 
 	for (;;) {
-		err = ERR_get_error_line_data(&file, &line, &data, &flags);
+		err = ERR_get_error_all(&file, &line, &func, &data, &flags);
 		if (err == 0U) {
 			goto done;
 		}
