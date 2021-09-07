@@ -19,6 +19,8 @@
 5712.	[func]		Remove native PKCS#11 support in favor of OpenSSL
 			engine_pkcs11 from the OpenSC project. [GL #2691]
 
+	--- 9.17.18 released ---
+
 5711.	[bug]		"map" files exceeding 2GB in size failed to load due to
 			a size comparison that incorrectly treated the file size
 			as a signed integer. [GL #2878]
