@@ -11,26 +11,10 @@
 Notes for BIND 9.17.18
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - Support for HTTPS and SVCB record types has been added. :gl:`#1132`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- Native PKCS#11 support has been removed; BIND 9 now uses OpenSSL engine_pkcs11 from the
-  OpenSC project. :gl:`#2691`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -54,18 +38,6 @@ Feature Changes
 - When reporting zone types in the statistics channel, the terms
   ``primary`` and ``secondary`` are now used instead of ``master`` and
   ``slave``, respectively. :gl:`#1944`
-
-- ``named`` and ``named-checkconf`` now issue a warning when there is a single
-  configured port in the ``query-source``, ``transfer-source``,
-  ``notify-source``, and ``parental-source``, and/or in their respective IPv6 counterparts.
-  :gl:`#2888`
-
-- ``named`` and ``named-checkconf`` now return an error when the single configured
-  port in the ``query-source``, ``transfer-source``, ``notify-source``,
-  ``parental-source``, and/or their respective IPv6 counterparts clashes with the
-  global listening port. This configuration is no longer supported as of BIND
-  9.16.0 but no error was reported, although sending UDP messages
-  (such as notifies) would fail. :gl:`#2888`
 
 Bug Fixes
 ~~~~~~~~~
@@ -93,7 +65,3 @@ Bug Fixes
   ``in-view`` statement, running ``rndc freeze`` always reported an
   ``already frozen`` error even though the zone was successfully
   frozen. This has been fixed. :gl:`#2844`
-
-- When new IP addresses were added to the system during ``named``
-  startup, ``named`` failed to listen on TCP for the newly added
-  interfaces. :gl:`#2852`
