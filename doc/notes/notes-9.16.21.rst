@@ -11,27 +11,12 @@
 Notes for BIND 9.16.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - Support for HTTPS and SVCB record types has been added. (This does not
   include ADDITIONAL section processing for these record types, only
   basic support for RR type parsing and printing.) :gl:`#1132`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -43,25 +28,6 @@ Feature Changes
   allows ``dnssec-signzone`` to gradually replace signatures in a zone
   whose ZSK is being rolled over (similarly to what ``auto-dnssec
   maintain;`` does). :gl:`#1551`
-
-- The use of native PKCS#11 for Public-Key Cryptography in BIND 9 has been
-  deprecated in favor of OpenSSL engine_pkcs11 from the OpenSC project.
-  The ``--with-native-pkcs11`` configuration option will be removed from the
-  next major BIND 9 release.  The option to use the engine_pkcs11 OpenSSL
-  engine is already available in BIND 9; please see the ARM section on
-  PKCS#11 for details. :gl:`#2691`
-
-- ``named`` and ``named-checkconf`` now issue a warning when there is a single
-  configured port in the ``query-source``, ``transfer-source``,
-  ``notify-source``, and ``parental-source``, and/or in their respective IPv6 counterparts.
-  :gl:`#2888`
-
-- ``named`` and ``named-checkconf`` now return an error when the single configured
-  port in the ``query-source``, ``transfer-source``, ``notify-source``,
-  ``parental-source``, and/or their respective IPv6 counterparts clashes with the
-  global listening port. This configuration is no longer supported as of BIND
-  9.16.0 but no error was reported, although sending UDP messages
-  (such as notifies) would fail. :gl:`#2888`
 
 Bug Fixes
 ~~~~~~~~~
@@ -92,7 +58,3 @@ Bug Fixes
   ``in-view`` statement, running ``rndc freeze`` always reported an
   ``already frozen`` error even though the zone was successfully
   frozen. This has been fixed. :gl:`#2844`
-
-- When new IP addresses were added to the system during ``named``
-  startup, ``named`` failed to listen on TCP for the newly added
-  interfaces. :gl:`#2852`
