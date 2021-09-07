@@ -19,88 +19,110 @@
 5712.	[func]		Remove native PKCS#11 support in favor of OpenSSL
 			engine_pkcs11 from the OpenSC project. [GL #2691]
 
-5711.	[bug]		"map" files exceeding 2GB in size could fail to
-			load due to a size comparison that incorrectly
-			treated the file size as a signed integer. [GL #2878]
+5711.	[bug]		"map" files exceeding 2GB in size failed to load due to
+			a size comparison that incorrectly treated the file size
+			as a signed integer. [GL #2878]
 
 5710.	[placeholder]
 
-5709.	[func]		Zone types are now reported in the statistics channel
-			using "primary" and "secondary". Enum values
+5709.	[func]		When reporting zone types in the statistics channel, the
+			terms "primary" and "secondary" are now used instead of
+			"master" and "slave", respectively. Enum values
 			throughout the code have been updated to use this
 			terminology as well. [GL #1944]
 
 5708.	[placeholder]
 
-5707.	[bug]		Fix a bug preventing dig from qurying DoH servers
-			via IPv6 adresses. [GL #2860]
+5707.	[bug]		A bug was fixed which prevented dig from querying
+			DNS-over-HTTPS (DoH) servers via IPv6. [GL #2860]
 
-5706.	[cleanup]	Remove support for external applications to register
-			and use libisc. Export versions of BIND 9 libraries
-			have not been supported for some time, but the
-			isc_lib_register() function was still available;
+5706.	[cleanup]	Support for external applications to register with
+			libisc and use it has been removed. Export versions of
+			BIND 9 libraries have not been supported for some time,
+			but the isc_lib_register() function was still available;
 			it has now been removed. [GL !2420]
 
-5705.	[bug]		Change #5686 altered the internal memory structure
-			of zone databases, but neglected to update the
-			MAPAPI value for map-format zone files. This caused
-			named to attempt to load incompatible map files,
-			triggering an assertion failure on startup. [GL #2872]
+5705.	[bug]		Change #5686 altered the internal memory structure of
+			zone databases, but neglected to update the MAPAPI value
+			for zone files in "map" format. This caused named to
+			attempt to load incompatible map files, triggering an
+			assertion failure on startup. The MAPAPI value has now
+			been updated, so named rejects outdated files when
+			encountering them. [GL #2872]
 
-5704.	[bug]		TCP keepalive settings were not being applied
-			correctly. [GL #1927]
+5704.	[bug]		Change #5317 caused the EDNS TCP Keepalive option to be
+			ignored inadvertently in client requests. It has now
+			been fixed and this option is handled properly again.
+			[GL #1927]
 
-5703.	[bug]		Fix a crash in dig caused by closing an HTTP/2
-			socket with an unused HTTP/2 session. [GL #2735]
+5703.	[bug]		Fix a crash in dig caused by closing an HTTP/2 socket
+			associated with an unused HTTP/2 session. [GL #2858]
 
-5702.	[bug]		Improve compatibility with DNS-over-HTTPS clients by
-			allowing HTTP/2 request headers in any order. [GL #2875]
+5702.	[bug]		Improve compatibility with DNS-over-HTTPS (DoH) clients
+			by allowing HTTP/2 request headers in any order.
+			[GL #2875]
 
 5701.	[bug]		named-checkconf failed to detect syntactically invalid
-			key and tls names. [GL #2461]
+			values of the "key" and "tls" parameters used to define
+			members of remote server lists. [GL #2461]
 
-5700.	[bug]		Journals were not being removed when a catalog zone
-			was removed. [GL #2842]
+5700.	[bug]		When a member zone was removed from a catalog zone,
+			journal files for the former were not deleted.
+			[GL #2842]
 
-5699.	[func]		Grow and shrink dnssec-sign statistics on key rollover
+5699.	[func]		Data structures holding DNSSEC signing statistics are
+			now grown and shrunk as necessary upon key rollover
 			events. [GL #1721]
 
-5698.	[bug]		Migrate a single key to CSK when reconfiguring a zone
-			to use 'dnssec-policy'. [GL #2857]
+5698.	[bug]		When a DNSSEC-signed zone which only has a single
+			signing key available is migrated to use KASP, that key
+			is now treated as a Combined Signing Key (CSK).
+			[GL #2857]
 
-5697.	[protocol]	SHA-1 CDS records are no longer used by dnssec-cds to
-			make DS records. Thanks to Tony Finch. [GL !2946]
+5697.	[func]		dnssec-cds now only generates SHA-2 DS records by
+			default and avoids copying deprecated SHA-1 records from
+			a child zone to its delegation in the parent. If the
+			child zone does not publish SHA-2 CDS records,
+			dnssec-cds will generate them from the CDNSKEY records.
+			The "-a algorithm" option now affects the process of
+			generating DS digest records from both CDS and CDNSKEY
+			records. Thanks to Tony Finch. [GL #2871]
 
-5696.	[protocol]	Add support for HTTPS and SVCB record types. [GL #1132]
+5696.	[protocol]	Support for HTTPS and SVCB record types has been added.
+			[GL #1132]
 
-5695.	[func]		Dig can now display the BADCOOKIE message as part of
-			processing it (+showbadcookie). [GL #2319]
+5695.	[func]		Add a new dig command-line option, "+showbadcookie",
+			which causes a BADCOOKIE response message to be
+			displayed when it is received from the server.
+			[GL #2319]
 
-5694.	[bug]		BIND looks up the deepest zone cut in cache in order
-			to iterate a query. When this node is stale, it may
-			bypass QNAME minimization. This has been fixed.
-			[GL #2665]
+5694.	[bug]		Stale data in the cache could cause named to send
+			non-minimized queries despite QNAME minimization being
+			enabled. [GL #2665]
 
-5693.	[func]		Restore support for reading 'timeout' and 'attempts'
-			options from /etc/resolv.conf, and use their values
-			in dig, host and nslookup. (Previously this was
-			supported by liblwres, and was still mentioned
-			in man pages, but had stopped working after liblwres
-			was deprecated in favor of libirs.) [GL #2785]
+5693.	[func]		Restore support for reading "timeout" and "attempts"
+			options from /etc/resolv.conf, and use their values in
+			dig, host, and nslookup. (This was previously supported
+			by liblwres, and was still mentioned in the man pages,
+			but had stopped working after liblwres was deprecated in
+			favor of libirs.) [GL #2785]
 
-5692.	[bug]		Fix a rare crash in the DoH code caused by
+5692.	[bug]		Fix a rare crash in DNS-over-HTTPS (DoH) code caused by
 			detaching from an HTTP/2 session handle too early when
 			sending data. [GL #2851]
 
-5691.	[bug]		'rndc freeze' with in-view zones present would
-			spuriously report failures. [GL #2844]
+5691.	[bug]		When a dynamic zone was made available in another view
+			using the "in-view" statement, running "rndc freeze"
+			always reported an "already frozen" error even though
+			the zone was successfully frozen. [GL #2844]
 
-5690.	[func]		Change "dnssec-signzone" to honor the Predecessor and
-			Successor metadata values, and allow for gradual
-			replacement of RRSIGs. In other words, don't sign
-			with the successor key if there is an RRSIG from the
-			predecessor key that does not need to be refreshed.
-			[GL #1551]
+5690.	[func]		dnssec-signzone now honors Predecessor and Successor
+			metadata found in private key files: if a signature for
+			an RRset generated by the inactive predecessor exists
+			and does not need to be replaced, no additional
+			signature is now created for that RRset using the
+			successor key. This enables dnssec-signzone to gradually
+			replace RRSIGs during a ZSK rollover. [GL #1551]
 
 	--- 9.17.17 released ---
 
