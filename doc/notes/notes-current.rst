@@ -82,6 +82,11 @@ Bug Fixes
   available is migrated to ``dnssec-policy``, that key is now treated as
   a Combined Signing Key (CSK). :gl:`#2857`
 
+- When a dynamic zone was made available in another view using the
+  ``in-view`` statement, running ``rndc freeze`` always reported an
+  ``already frozen`` error even though the zone was successfully
+  frozen. This has been fixed. :gl:`#2844`
+
 - When new IP addresses were added to the system during ``named``
   startup, ``named`` failed to listen on TCP for the newly added
   interfaces. :gl:`#2852`
