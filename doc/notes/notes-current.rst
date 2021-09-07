@@ -62,3 +62,8 @@ Bug Fixes
 - When a DNSSEC-signed zone which only has a single signing key
   available is migrated to ``dnssec-policy``, that key is now treated as
   a Combined Signing Key (CSK). :gl:`#2857`
+
+- When a dynamic zone was made available in another view using the
+  ``in-view`` statement, running ``rndc freeze`` always reported an
+  ``already frozen`` error even though the zone was successfully
+  frozen. This has been fixed. :gl:`#2844`
