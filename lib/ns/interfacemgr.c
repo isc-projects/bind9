@@ -503,8 +503,8 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 
 static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		   const char *name, ns_interface_t **ifpret, bool accept_tcp,
-		   isc_dscp_t dscp, bool *addr_in_use) {
+		   const char *name, ns_interface_t **ifpret, isc_dscp_t dscp,
+		   bool *addr_in_use) {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
@@ -525,7 +525,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto cleanup_interface;
 	}
 
-	if (((mgr->sctx->options & NS_SERVER_NOTCP) == 0) && accept_tcp) {
+	if (((mgr->sctx->options & NS_SERVER_NOTCP) == 0)) {
 		result = ns_interface_listentcp(ifp);
 		if (result != ISC_R_SUCCESS) {
 			if ((result == ISC_R_ADDRINUSE) &&
@@ -774,11 +774,10 @@ clearlistenon(ns_interfacemgr_t *mgr) {
 }
 
 static isc_result_t
-do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
+do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 	isc_interfaceiter_t *iter = NULL;
 	bool scan_ipv4 = false;
 	bool scan_ipv6 = false;
-	bool adjusting = false;
 	bool ipv6only = true;
 	bool ipv6pktinfo = true;
 	isc_result_t result;
@@ -791,10 +790,6 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
 	bool tried_listening;
 	bool all_addresses_in_use;
-
-	if (ext_listen != NULL) {
-		adjusting = true;
-	}
 
 	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 		scan_ipv6 = true;
@@ -864,7 +859,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 					      "interfaces, port %u",
 					      le->port);
 				result = ns_interface_setup(mgr, &listen_addr,
-							    "<any>", &ifp, true,
+							    "<any>", &ifp,
 							    le->dscp, NULL);
 				if (result == ISC_R_SUCCESS) {
 					ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
@@ -887,17 +882,15 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 		return (result);
 	}
 
-	if (!adjusting) {
-		result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_iter;
-		}
-		result = clearacl(mgr->mctx, &mgr->aclenv.localnets);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_iter;
-		}
-		clearlistenon(mgr);
+	result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_iter;
 	}
+	result = clearacl(mgr->mctx, &mgr->aclenv.localnets);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_iter;
+	}
+	clearlistenon(mgr);
 
 	tried_listening = false;
 	all_addresses_in_use = true;
@@ -940,22 +933,19 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			continue;
 		}
 
-		if (!adjusting) {
-			/*
-			 * If running with -T fixedlocal, then we only
-			 * want 127.0.0.1 and ::1 in the localhost ACL.
-			 */
-			if (((mgr->sctx->options & NS_SERVER_FIXEDLOCAL) !=
-			     0) &&
-			    !isc_netaddr_isloopback(&interface.address))
-			{
-				goto listenon;
-			}
+		/*
+		 * If running with -T fixedlocal, then we only
+		 * want 127.0.0.1 and ::1 in the localhost ACL.
+		 */
+		if (((mgr->sctx->options & NS_SERVER_FIXEDLOCAL) != 0) &&
+		    !isc_netaddr_isloopback(&interface.address))
+		{
+			goto listenon;
+		}
 
-			result = setup_locals(mgr, &interface);
-			if (result != ISC_R_SUCCESS) {
-				goto ignore_interface;
-			}
+		result = setup_locals(mgr, &interface);
+		if (result != ISC_R_SUCCESS) {
+			goto ignore_interface;
 		}
 
 	listenon:
@@ -995,7 +985,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 				continue;
 			}
 
-			if (!adjusting && dolistenon) {
+			if (dolistenon) {
 				setup_listenon(mgr, &interface, le->port);
 				dolistenon = false;
 			}
@@ -1007,37 +997,6 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			if (family == AF_INET6 && ipv6only && ipv6pktinfo &&
 			    listenon_is_ip6_any(le)) {
 				ipv6_wildcard = true;
-			}
-
-			/*
-			 * When adjusting interfaces with extra a listening
-			 * list, see if the address matches the extra list.
-			 * If it does, and is also covered by a wildcard
-			 * interface, we need to listen on the address
-			 * explicitly.
-			 */
-			if (adjusting) {
-				ns_listenelt_t *ele;
-
-				match = 0;
-				for (ele = ISC_LIST_HEAD(ext_listen->elts);
-				     ele != NULL;
-				     ele = ISC_LIST_NEXT(ele, link))
-				{
-					(void)dns_acl_match(&listen_netaddr,
-							    NULL, ele->acl,
-							    NULL, &match, NULL);
-					if (match > 0 &&
-					    (ele->port == le->port ||
-					     ele->port == 0)) {
-						break;
-					} else {
-						match = 0;
-					}
-				}
-				if (ipv6_wildcard && match == 0) {
-					continue;
-				}
 			}
 
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
@@ -1058,12 +1017,12 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 			} else {
 				bool addr_in_use = false;
 
-				if (!adjusting && ipv6_wildcard) {
+				if (ipv6_wildcard) {
 					continue;
 				}
 
 				if (log_explicit && family == AF_INET6 &&
-				    !adjusting && listenon_is_ip6_any(le)) {
+				    listenon_is_ip6_any(le)) {
 					isc_log_write(
 						IFMGR_COMMON_LOGARGS,
 						verbose ? ISC_LOG_INFO
@@ -1078,17 +1037,14 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen, bool verbose) {
 						    sizeof(sabuf));
 				isc_log_write(
 					IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-					"%s"
 					"listening on %s interface "
 					"%s, %s",
-					(adjusting) ? "additionally " : "",
 					(family == AF_INET) ? "IPv4" : "IPv6",
 					interface.name, sabuf);
 
 				result = ns_interface_setup(
 					mgr, &listen_sockaddr, interface.name,
-					&ifp, (adjusting) ? false : true,
-					le->dscp, &addr_in_use);
+					&ifp, le->dscp, &addr_in_use);
 
 				tried_listening = true;
 				if (!addr_in_use) {
@@ -1135,8 +1091,7 @@ cleanup_iter:
 }
 
 static isc_result_t
-ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
-		      bool verbose) {
+ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, bool verbose) {
 	isc_result_t result;
 	bool purge = true;
 
@@ -1144,7 +1099,7 @@ ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 
 	mgr->generation++; /* Increment the generation count. */
 
-	result = do_scan(mgr, ext_listen, verbose);
+	result = do_scan(mgr, verbose);
 	if ((result != ISC_R_SUCCESS) && (result != ISC_R_ADDRINUSE)) {
 		purge = false;
 	}
@@ -1162,7 +1117,7 @@ ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	/*
 	 * Warn if we are not listening on any interface.
 	 */
-	if (ext_listen == NULL && ISC_LIST_EMPTY(mgr->interfaces)) {
+	if (ISC_LIST_EMPTY(mgr->interfaces)) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "not listening on any interfaces");
 	}
@@ -1192,19 +1147,13 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose) {
 		unlock = true;
 	}
 
-	result = ns_interfacemgr_scan0(mgr, NULL, verbose);
+	result = ns_interfacemgr_scan0(mgr, verbose);
 
 	if (unlock) {
 		isc_task_endexclusive(mgr->excl);
 	}
 
 	return (result);
-}
-
-isc_result_t
-ns_interfacemgr_adjust(ns_interfacemgr_t *mgr, ns_listenlist_t *list,
-		       bool verbose) {
-	return (ns_interfacemgr_scan0(mgr, list, verbose));
 }
 
 void
