@@ -19,6 +19,8 @@
 5712.	[func]		Add deprecation notice about removing native PKCS#11
 			support in the next major BIND 9.18 release. [GL #2691]
 
+	--- 9.16.21 released ---
+
 5711.	[bug]		"map" files exceeding 2GB in size failed to load due to
 			a size comparison that incorrectly treated the file size
 			as a signed integer. [GL #2878]
