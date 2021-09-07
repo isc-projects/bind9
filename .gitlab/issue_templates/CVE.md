@@ -31,3 +31,7 @@ email to [security-officer@isc.org](security-officer@isc.org).
   - [ ] Create/update the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
   - [ ] Reserve a block of `CHANGES` placeholders once the complete set of vulnerabilities fixed in a given release cycle is determined
   - [ ] Ensure the merge requests containing CVE fixes are merged into `security-*` branches in CVE identifier order
+
+### Post-disclosure actions
+
+  - [ ] Merge a regression test reproducing the bug into all affected (and still maintained) BIND branches
