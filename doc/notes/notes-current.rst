@@ -58,6 +58,9 @@ Bug Fixes
 - Zone files in ``map`` format whose size exceeded 2 GB failed to load.
   This has been fixed. :gl:`#2878`
 
+- ``named`` was unable to run as a Windows Service under certain
+  circumstances. This has been fixed. :gl:`#2837`
+
 - Stale data in the cache could cause ``named`` to send non-minimized
   queries despite QNAME minimization being enabled. This has been fixed.
   :gl:`#2665`
