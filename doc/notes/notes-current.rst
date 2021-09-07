@@ -74,6 +74,9 @@ Bug Fixes
   so ``named`` rejects outdated files when encountering them.
   :gl:`#2872`
 
+- Zone files in ``map`` format whose size exceeded 2 GB failed to load.
+  This has been fixed. :gl:`#2878`
+
 - Stale data in the cache could cause ``named`` to send non-minimized
   queries despite QNAME minimization being enabled. This has been fixed.
   :gl:`#2665`
