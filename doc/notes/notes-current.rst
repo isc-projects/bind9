@@ -59,3 +59,7 @@ Bug Fixes
   that were no longer compatible, triggering an assertion failure on
   startup. The MAPAPI value has now been updated, so ``named`` will
   reject outdated files when encountering them. :gl:`#2872`
+
+- When new IP addresses were added to the system during ``named``
+  startup, ``named`` failed to listen on TCP for the newly added
+  interfaces. :gl:`#2852`

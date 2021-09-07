@@ -1,3 +1,11 @@
+5714.	[bug]		Remove the "adjust interface" mechanism that
+			set up a listener on interfaces where the *-source(-v6)
+			address and port were the same as the listening
+			address and port. Such a configuration is no longer
+			supported; in practice, this would disable
+			listening on TCP ports under certain timing conditions.
+			[GL #2852]
+
 5713.	[func]		Added "primaries" as a synonym for "masters" and
 			"default-primaries" as a synonym for "default-masters"
 			for catalog zones configuration options. [GL #2818]
