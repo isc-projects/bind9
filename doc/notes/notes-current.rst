@@ -50,6 +50,10 @@ Feature Changes
   digest records from both CDS and CDNSKEY records. Thanks to Tony
   Finch. :gl:`#2871`
 
+- When reporting zone types in the statistics channel, the terms
+  ``primary`` and ``secondary`` are now used instead of ``master`` and
+  ``slave``, respectively. :gl:`#1944`
+
 Bug Fixes
 ~~~~~~~~~
 
