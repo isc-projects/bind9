@@ -47,14 +47,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Stale data in the cache could cause ``named`` to send non-minimized
-  queries despite QNAME minimization being enabled. This has been fixed.
-  :gl:`#2665`
-
-- When a DNSSEC-signed zone which only has a single signing key
-  available is migrated to ``dnssec-policy``, that key is now treated as
-  a Combined Signing Key (CSK). :gl:`#2857`
-
 - A recent change to the internal memory structure of zone databases
   inadvertently neglected to update the MAPAPI value for zone files in
   ``map`` format. This caused version 9.16.20 of ``named`` to attempt to
@@ -62,3 +54,11 @@ Bug Fixes
   assertion failure on startup. The MAPAPI value has now been updated,
   so ``named`` rejects outdated files when encountering them.
   :gl:`#2872`
+
+- Stale data in the cache could cause ``named`` to send non-minimized
+  queries despite QNAME minimization being enabled. This has been fixed.
+  :gl:`#2665`
+
+- When a DNSSEC-signed zone which only has a single signing key
+  available is migrated to ``dnssec-policy``, that key is now treated as
+  a Combined Signing Key (CSK). :gl:`#2857`
