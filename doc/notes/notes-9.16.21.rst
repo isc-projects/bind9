@@ -11,27 +11,12 @@
 Notes for BIND 9.16.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - Support for HTTPS and SVCB record types has been added. (This does not
   include ADDITIONAL section processing for these record types, only
   basic support for RR type parsing and printing.) :gl:`#1132`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
