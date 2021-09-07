@@ -51,6 +51,10 @@ Feature Changes
   digest records from both CDS and CDNSKEY records. Thanks to Tony
   Finch. :gl:`#2871`
 
+- When reporting zone types in the statistics channel, the terms
+  ``primary`` and ``secondary`` are now used instead of ``master`` and
+  ``slave``, respectively. :gl:`#1944`
+
 - ``named`` and ``named-checkconf`` now issue a warning when there is a single
   configured port in the ``query-source``, ``transfer-source``,
   ``notify-source``, and ``parental-source``, and/or in their respective IPv6 counterparts.
