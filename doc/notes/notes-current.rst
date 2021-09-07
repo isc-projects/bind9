@@ -24,7 +24,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Add support for HTTPS and SVCB record types. :gl:`#1132`
+- Support for HTTPS and SVCB record types has been added. :gl:`#1132`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -34,27 +34,37 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- ``dnssec-signzone`` is now able to retain signatures from inactive
-  predecessor keys without introducing additional signatures from the successor
-  key. This allows for a gradual replacement of RRSIGs as they reach expiry.
-  :gl:`#1551`
+- When ``dnssec-signzone`` signs a zone using a successor key whose
+  predecessor is still published, it now only refreshes signatures for
+  RRsets which have an invalid signature, an expired signature, or a
+  signature which expires within the provided cycle interval. This
+  allows ``dnssec-signzone`` to gradually replace signatures in a zone
+  whose ZSK is being rolled over (similarly to what ``auto-dnssec
+  maintain;`` does). :gl:`#1551`
 
-- SHA-1 CDS records are no longer used by ``dnssec-cds`` to make DS
-  records. Thanks to Tony Finch. :gl:`!2946`
+- ``dnssec-cds`` now only generates SHA-2 DS records by default and
+  avoids copying deprecated SHA-1 records from a child zone to its
+  delegation in the parent. If the child zone does not publish SHA-2 CDS
+  records, ``dnssec-cds`` will generate them from the CDNSKEY records.
+  The ``-a algorithm`` option now affects the process of generating DS
+  digest records from both CDS and CDNSKEY records. Thanks to Tony
+  Finch. :gl:`#2871`
 
 Bug Fixes
 ~~~~~~~~~
 
-- When following QNAME minimization, BIND could use a stale zonecut from cache 
-  to resolve the query, resulting in a non-minimized query. This has been
-  fixed :gl:`#2665`
+- Stale data in the cache could cause ``named`` to send non-minimized
+  queries despite QNAME minimization being enabled. This has been fixed.
+  :gl:`#2665`
 
-- Migrate a single key to CSK when reconfiguring a zone to make use of
-  'dnssec-policy' :gl:`#2857`
+- When a DNSSEC-signed zone which only has a single signing key
+  available is migrated to ``dnssec-policy``, that key is now treated as
+  a Combined Signing Key (CSK). :gl:`#2857`
 
 - A recent change to the internal memory structure of zone databases
-  inadvertently neglected to update the MAPAPI value for ``map``-format
-  zone files. This caused ``named`` to attempt to load files into memory
-  that were no longer compatible, triggering an assertion failure on
-  startup. The MAPAPI value has now been updated, so ``named`` will
-  reject outdated files when encountering them. :gl:`#2872`
+  inadvertently neglected to update the MAPAPI value for zone files in
+  ``map`` format. This caused version 9.17.17 of ``named`` to attempt to
+  load files into memory that were no longer compatible, triggering an
+  assertion failure on startup. The MAPAPI value has now been updated,
+  so ``named`` rejects outdated files when encountering them.
+  :gl:`#2872`
