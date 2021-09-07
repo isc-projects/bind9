@@ -221,9 +221,11 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 	bool ephemeral = (keyfile == NULL && certfile == NULL);
 	X509 *cert = NULL;
 	EVP_PKEY *pkey = NULL;
-	BIGNUM *bn = NULL;
 	SSL_CTX *ctx = NULL;
+#ifndef EVP_RSA_gen
+	BIGNUM *bn = NULL;
 	RSA *rsa = NULL;
+#endif
 	char errbuf[256];
 	const SSL_METHOD *method = NULL;
 
@@ -250,6 +252,12 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 #endif
 
 	if (ephemeral) {
+#ifdef EVP_RSA_gen
+		pkey = EVP_RSA_gen(4096);
+		if (pkey == NULL) {
+			goto ssl_error;
+		}
+#else
 		rsa = RSA_new();
 		if (rsa == NULL) {
 			goto ssl_error;
@@ -261,10 +269,6 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		BN_set_word(bn, RSA_F4);
 		rv = RSA_generate_key_ex(rsa, 4096, bn, NULL);
 		if (rv != 1) {
-			goto ssl_error;
-		}
-		cert = X509_new();
-		if (cert == NULL) {
 			goto ssl_error;
 		}
 		pkey = EVP_PKEY_new();
@@ -279,6 +283,11 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		 */
 		EVP_PKEY_assign(pkey, EVP_PKEY_RSA, rsa);
 		rsa = NULL;
+#endif
+		cert = X509_new();
+		if (cert == NULL) {
+			goto ssl_error;
+		}
 		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
 
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
@@ -324,7 +333,9 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 
 		X509_free(cert);
 		EVP_PKEY_free(pkey);
+#ifndef EVP_RSA_gen
 		BN_free(bn);
+#endif
 	} else {
 		rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
 		if (rv != 1) {
@@ -356,12 +367,14 @@ ssl_error:
 	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
 	}
+#ifndef EVP_RSA_gen
 	if (bn != NULL) {
 		BN_free(bn);
 	}
 	if (rsa != NULL) {
 		RSA_free(rsa);
 	}
+#endif
 
 	return (ISC_R_TLSERROR);
 }
