@@ -1,3 +1,9 @@
+5716.	[bug]		Multiple library names were mistakenly passed to the
+			krb5-config utility when ./configure was invoked with
+			the --with-gssapi=[/path/to/]krb5-config option. This
+			has been fixed by invoking krb5-config separately for
+			each required library. [GL #2866]
+
 5715.	[func]		Add a check when the *-source(-v6) clashes with the
 			global listening port. Such a configuration was already
 			forbidden, but it failed silently. [GL #2888]
