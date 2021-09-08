@@ -1,3 +1,5 @@
+5716.	[placeholder]
+
 5715.	[func]		Add a check when the *-source(-v6) clashes with the
 			global listening port. Such a configuration was already
 			forbidden, but it failed silently. [GL #2888]
