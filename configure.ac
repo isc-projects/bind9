@@ -1011,10 +1011,12 @@ case "$use_gssapi" in
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
-    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi krb5`
-    gssapi_libs=`$KRB5_CONFIG --libs gssapi krb5`
+    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
+    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
+    krb5_cflags=`$KRB5_CONFIG --cflags krb5`
+    krb5_libs=`$KRB5_CONFIG --libs krb5`
     saved_cppflags="$CPPFLAGS"
-    CPPFLAGS="$gssapi_cflags $CPPFLAGS"
+    CPPFLAGS="$gssapi_cflags $krb5_cflags $CPPFLAGS"
     AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
 	[ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
     if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
@@ -1031,7 +1033,7 @@ case "$use_gssapi" in
 	else
 	    CPPFLAGS="$saved_cppflags"
 	    saved_libs="$LIBS"
-	    LIBS=$gssapi_libs
+	    LIBS="$gssapi_libs $krb5_libs $LIBS"
 	    AC_MSG_CHECKING([krb5-config linking as $LIBS])
 	    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
 		gssapi_linked=yes, gssapi_linked=no)
@@ -1107,8 +1109,8 @@ case "$use_gssapi" in
 		;;
 	*/krb5-config|krb5-config)
 		USE_GSSAPI='-DGSSAPI'
-		DST_GSSAPI_INC="$gssapi_cflags"
-		DNS_GSSAPI_LIBS="$gssapi_libs"
+		DST_GSSAPI_INC="$gssapi_cflags $krb5_cflags"
+		DNS_GSSAPI_LIBS="$gssapi_libs $krb5_libs"
 		;;
 	framework)
 		USE_GSSAPI='-DGSSAPI'
