@@ -34,6 +34,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
+#include "openssl_shim.h"
 
 #define DST_RET(a)        \
 	{                 \
@@ -281,7 +282,7 @@ openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (false);
 	}
 
-	status = EVP_PKEY_cmp(pkey1, pkey2);
+	status = EVP_PKEY_eq(pkey1, pkey2);
 	if (status == 1) {
 		return (true);
 	}
@@ -491,7 +492,7 @@ eddsa_check(EVP_PKEY *pkey, EVP_PKEY *pubpkey) {
 	if (pubpkey == NULL) {
 		return (ISC_R_SUCCESS);
 	}
-	if (EVP_PKEY_cmp(pkey, pubpkey) == 1) {
+	if (EVP_PKEY_eq(pkey, pubpkey) == 1) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_FAILURE);

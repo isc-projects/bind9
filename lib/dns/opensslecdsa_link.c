@@ -32,6 +32,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
+#include "openssl_shim.h"
 
 #ifndef NID_X9_62_prime256v1
 #error "P-256 group is not known (NID_X9_62_prime256v1)"
@@ -289,7 +290,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		DST_RET(false);
 	}
 
-	status = EVP_PKEY_cmp(pkey1, pkey2);
+	status = EVP_PKEY_eq(pkey1, pkey2);
 	if (status != 1) {
 		DST_RET(false);
 	}
