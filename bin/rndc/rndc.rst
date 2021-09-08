@@ -370,11 +370,24 @@ Currently supported commands are:
    avoids the need to examine the modification times of the zone files.
 
 ``recursing``
-   This command dumps the list of queries ``named`` is currently recursing on, and the
-   list of domains to which iterative queries are currently being sent.
-   The second list includes the number of fetches currently active for
-   the given domain, and how many have been passed or dropped because of
-   the ``fetches-per-zone`` option.
+   This command dumps the list of queries ``named`` is currently
+   recursing on, and the list of domains to which iterative queries
+   are currently being sent.
+
+   The first list includes all unique clients that are waiting for
+   recursion to complete, including the query that is awaiting a
+   response and the timestamp (seconds since the Unix epoch) of
+   when named started processing this client query.
+
+   The second list comprises of domains for which there are active
+   (or recently active) fetches in progress.  It reports the number
+   of active fetches for each domain and the number of queries that
+   have been passed (allowed) or dropped (spilled) as a result of
+   the ``fetches-per-zone`` limit.  (Note: these counters are not
+   cumulative over time; whenever the number of active fetches for
+   a domain drops to zero, the counter for that domain is deleted,
+   and the next time a fetch is sent to that domain, it is recreated
+   with the counters set to zero).
 
 ``refresh`` *zone* [*class* [*view*]]
    This command schedules zone maintenance for the given zone.
