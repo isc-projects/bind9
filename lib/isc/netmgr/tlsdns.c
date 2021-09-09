@@ -940,6 +940,12 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 		return (ISC_R_NOMORE);
 	}
 
+	if (sock->recv_cb == NULL) {
+		/* recv_cb has been cleared - there is
+		 * nothing to do */
+		return (ISC_R_CANCELED);
+	}
+
 	req = isc__nm_get_read_req(sock, NULL);
 	REQUIRE(VALID_UVREQ(req));
 
