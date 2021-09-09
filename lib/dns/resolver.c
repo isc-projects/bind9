@@ -62,10 +62,6 @@
 #include <dns/tsig.h>
 #include <dns/validator.h>
 
-#define RESOLVER_TRACE 1
-
-#define WANT_QUERYTRACE 1
-
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)                                                             \
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                     \
@@ -1169,37 +1165,18 @@ resquery_destroy(resquery_t *query) {
 	}
 }
 
-#define resquery_attach(s, t) \
-	__resquery_attach(s, t, __FILE__, __LINE__, __func__)
-
-static void __attribute__((unused))
-__resquery_attach(resquery_t *source, resquery_t **targetp, const char *file,
-		  unsigned int line, const char *func) {
-	uint_fast32_t ref;
-
+static void
+resquery_attach(resquery_t *source, resquery_t **targetp) {
 	REQUIRE(VALID_QUERY(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	ref = isc_refcount_increment(&source->references);
-
-#ifdef RESOLVER_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, source, targetp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* RESOLVER_TRACE */
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
 
-#define resquery_detach(q) __resquery_detach(q, __FILE__, __LINE__, __func__)
-
 static void
-__resquery_detach(resquery_t **queryp, const char *file, unsigned int line,
-		  const char *func) {
+resquery_detach(resquery_t **queryp) {
 	uint_fast32_t ref;
 	resquery_t *query = NULL;
 
@@ -1209,16 +1186,6 @@ __resquery_detach(resquery_t **queryp, const char *file, unsigned int line,
 	*queryp = NULL;
 
 	ref = isc_refcount_decrement(&query->references);
-
-#ifdef RESOLVER_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, query, queryp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif /* RESOLVER_TRACE */
-
 	if (ref == 1) {
 		resquery_destroy(query);
 	}
@@ -1243,13 +1210,9 @@ update_edns_stats(resquery_t *query) {
 	}
 }
 
-#define fctx_cancelquery(q, d, f, n, a) \
-	__fctx_cancelquery(q, d, f, n, a, __FILE__, __LINE__, __func__)
-
 static void
-__fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp,
-		   isc_time_t *finish, bool no_response, bool age_untried,
-		   const char *file, unsigned int line, const char *func) {
+fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp,
+		 isc_time_t *finish, bool no_response, bool age_untried) {
 	fetchctx_t *fctx = NULL;
 	unsigned int rtt, rttms;
 	unsigned int factor;
@@ -1258,15 +1221,6 @@ __fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp,
 	isc_stdtime_t now;
 
 	fctx = query->fctx;
-
-#ifdef RESOLVER_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(query = %p, ...)\n", func, file, line,
-		__func__, query);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif /* RESOLVER_TRACE */
 
 	FCTXTRACE("cancelquery");
 

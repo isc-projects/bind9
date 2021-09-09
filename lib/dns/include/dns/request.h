@@ -124,12 +124,8 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr);
  *\li	'requestmgr' is a valid requestmgr.
  */
 
-#define dns_requestmgr_attach(source, targetp) \
-	dns__requestmgr_attach(source, targetp, __FILE__, __LINE__, __func__)
-
 void
-dns__requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp,
-		       const char *file, unsigned int line, const char *func);
+dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp);
 /*%<
  *	Attach to the request manager.  dns_requestmgr_shutdown() must not
  *	have been called on 'source' prior to calling dns_requestmgr_attach().
@@ -141,12 +137,8 @@ dns__requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp,
  *\li	'targetp' to be non NULL and '*targetp' to be NULL.
  */
 
-#define dns_requestmgr_detach(requestmgrp) \
-	dns__requestmgr_detach(requestmgrp, __FILE__, __LINE__, __func__)
-
 void
-dns__requestmgr_detach(dns_requestmgr_t **requestmgrp, const char *file,
-		       unsigned int line, const char *func);
+dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 /*%<
  *	Detach from the given requestmgr.  If this is the final detach
  *	requestmgr will be destroyed.  dns_requestmgr_shutdown() must

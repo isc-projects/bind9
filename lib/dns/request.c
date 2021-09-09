@@ -32,8 +32,6 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 
-#define REQ_TRACE
-
 #define REQUESTMGR_MAGIC      ISC_MAGIC('R', 'q', 'u', 'M')
 #define VALID_REQUESTMGR(mgr) ISC_MAGIC_VALID(mgr, REQUESTMGR_MAGIC)
 
@@ -120,22 +118,15 @@ req_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 static void
 req_timeout(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 static void
-__req_attach(dns_request_t *source, dns_request_t **targetp, const char *file,
-	     unsigned int line, const char *func);
+req_attach(dns_request_t *source, dns_request_t **targetp);
 static void
-__req_detach(dns_request_t **requestp, const char *file, unsigned int line,
-	     const char *func);
+req_detach(dns_request_t **requestp);
 static void
 req_destroy(dns_request_t *request);
 static void
 req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 void
 request_cancel(dns_request_t *request);
-
-#define req_attach(source, targetp) \
-	__req_attach(source, targetp, __FILE__, __LINE__, __func__)
-#define req_detach(requestp) \
-	__req_detach(requestp, __FILE__, __LINE__, __func__)
 
 /***
  *** Public
@@ -257,8 +248,7 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 }
 
 void
-dns__requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp,
-		       const char *file, unsigned int line, const char *func) {
+dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
 	uint_fast32_t ref;
 
 	REQUIRE(VALID_REQUESTMGR(source));
@@ -268,16 +258,6 @@ dns__requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp,
 
 	ref = isc_refcount_increment(&source->references);
 
-#ifdef REQ_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, source, targetp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* REQ_TRACE */
-
 	req_log(ISC_LOG_DEBUG(3),
 		"dns_requestmgr_attach: %p: references = %" PRIuFAST32, source,
 		ref + 1);
@@ -286,8 +266,7 @@ dns__requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp,
 }
 
 void
-dns__requestmgr_detach(dns_requestmgr_t **requestmgrp, const char *file,
-		       unsigned int line, const char *func) {
+dns_requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 	dns_requestmgr_t *requestmgr = NULL;
 	uint_fast32_t ref;
 
@@ -297,16 +276,6 @@ dns__requestmgr_detach(dns_requestmgr_t **requestmgrp, const char *file,
 	*requestmgrp = NULL;
 
 	ref = isc_refcount_decrement(&requestmgr->references);
-
-#ifdef REQ_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, requestmgr, requestmgrp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* REQ_TRACE */
 
 	req_log(ISC_LOG_DEBUG(3),
 		"dns_requestmgr_detach: %p: references = %" PRIuFAST32,
@@ -1181,31 +1150,17 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 }
 
 static void
-__req_attach(dns_request_t *source, dns_request_t **targetp, const char *file,
-	     unsigned int line, const char *func) {
-	uint_fast32_t ref;
-
+req_attach(dns_request_t *source, dns_request_t **targetp) {
 	REQUIRE(VALID_REQUEST(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	ref = isc_refcount_increment(&source->references);
-
-#ifdef REQ_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, source, targetp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* REQ_TRACE */
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
 
 static void
-__req_detach(dns_request_t **requestp, const char *file, unsigned int line,
-	     const char *func) {
+req_detach(dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	uint_fast32_t ref;
 
@@ -1215,16 +1170,6 @@ __req_detach(dns_request_t **requestp, const char *file, unsigned int line,
 	*requestp = NULL;
 
 	ref = isc_refcount_decrement(&request->references);
-
-#ifdef REQ_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, request, requestp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* REQ_TRACE */
 
 	if (request->requestmgr != NULL &&
 	    atomic_load_acquire(&request->requestmgr->exiting))

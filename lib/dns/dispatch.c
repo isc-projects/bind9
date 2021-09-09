@@ -37,8 +37,6 @@
 #include <dns/stats.h>
 #include <dns/types.h>
 
-#define DISPATCH_TRACE
-
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
 
 typedef struct dns_qid {
@@ -489,34 +487,18 @@ allocate_devent(dns_dispatch_t *disp) {
 	return (ev);
 }
 
-#define dispentry_attach(r, rp) \
-	__dispentry_attach(r, rp, __func__, __FILE__, __LINE__)
-
 static void
-__dispentry_attach(dns_dispentry_t *resp, dns_dispentry_t **respp,
-		   const char *func, const char *file, unsigned int line) {
-	uint_fast32_t ref;
-
+dispentry_attach(dns_dispentry_t *resp, dns_dispentry_t **respp) {
 	REQUIRE(VALID_RESPONSE(resp));
 	REQUIRE(respp != NULL && *respp == NULL);
 
-	ref = isc_refcount_increment(&resp->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, resp, respp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* DISPATCH_TRACE */
+	isc_refcount_increment(&resp->references);
 
 	*respp = resp;
 }
 
 static void
-__dispentry_destroy(dns_dispentry_t *resp) {
+dispentry_destroy(dns_dispentry_t *resp) {
 	dns_dispatch_t *disp = resp->disp;
 
 	resp->magic = 0;
@@ -527,23 +509,14 @@ __dispentry_destroy(dns_dispentry_t *resp) {
 
 	isc_refcount_destroy(&resp->references);
 
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%d:%s:isc_task_detach(%p) -> %p\n", __FILE__,
-		__LINE__, __func__, &resp->task, resp->task);
-#endif /* DISPATCH_TRACE */
-
 	isc_task_detach(&resp->task);
 	isc_mem_put(disp->mgr->mctx, resp, sizeof(*resp));
 
 	dns_dispatch_detach(&disp);
 }
 
-#define dispentry_detach(rp) \
-	__dispentry_detach(rp, __func__, __FILE__, __LINE__)
-
 static void
-__dispentry_detach(dns_dispentry_t **respp, const char *func, const char *file,
-		   unsigned int line) {
+dispentry_detach(dns_dispentry_t **respp) {
 	dns_dispentry_t *resp = NULL;
 	uint_fast32_t ref;
 
@@ -553,18 +526,8 @@ __dispentry_detach(dns_dispentry_t **respp, const char *func, const char *file,
 	*respp = NULL;
 
 	ref = isc_refcount_decrement(&resp->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, resp, respp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif /* DISPATCH_TRACE */
-
 	if (ref == 1) {
-		__dispentry_destroy(resp);
+		dispentry_destroy(resp);
 	}
 }
 
@@ -1016,31 +979,17 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 }
 
 void
-dns__dispatchmgr_attach(dns_dispatchmgr_t *mgr, dns_dispatchmgr_t **mgrp,
-			const char *func, const char *file, unsigned int line) {
-	uint_fast32_t ref;
-
+dns_dispatchmgr_attach(dns_dispatchmgr_t *mgr, dns_dispatchmgr_t **mgrp) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(mgrp != NULL && *mgrp == NULL);
 
-	ref = isc_refcount_increment(&mgr->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, mgr, mgrp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* DISPATCH_TRACE */
+	isc_refcount_increment(&mgr->references);
 
 	*mgrp = mgr;
 }
 
 void
-dns__dispatchmgr_detach(dns_dispatchmgr_t **mgrp, const char *func,
-			const char *file, unsigned int line) {
+dns_dispatchmgr_detach(dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr = NULL;
 	uint_fast32_t ref;
 
@@ -1050,16 +999,6 @@ dns__dispatchmgr_detach(dns_dispatchmgr_t **mgrp, const char *func,
 	*mgrp = NULL;
 
 	ref = isc_refcount_decrement(&mgr->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, mgr, mgrp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif /* DISPATCH_TRACE */
-
 	if (ref == 1) {
 		dispatchmgr_destroy(mgr);
 	}
@@ -1293,12 +1232,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
 	}
 
 	result = isc_task_create(taskmgr, 50, &disp->task);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%d:%s:isc_task_create() -> %p\n", __FILE__,
-		__LINE__, __func__, disp->task);
-#endif /* DISPATCH_TRACE */
-
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1456,12 +1389,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_taskmgr_t *taskmgr,
 
 	disp->local = *localaddr;
 	result = isc_task_create(taskmgr, 0, &disp->task);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%d:%s:isc_task_create() -> %p\n", __FILE__,
-		__LINE__, __func__, disp->task);
-#endif /* DISPATCH_TRACE */
-
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1502,11 +1429,6 @@ dns_dispatch_destroy(dns_dispatch_t *disp) {
 		isc_nmhandle_detach(&disp->handle);
 	}
 
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%d:%s:isc_task_detach(%p) -> %p\n", __FILE__,
-		__LINE__, __func__, &disp->task, disp->task);
-#endif /* DISPATCH_TRACE */
-
 	isc_task_detach(&disp->task);
 
 	dispatch_free(&disp);
@@ -1518,31 +1440,17 @@ dns_dispatch_destroy(dns_dispatch_t *disp) {
 }
 
 void
-dns__dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp,
-		     const char *func, const char *file, unsigned int line) {
-	uint_fast32_t ref;
-
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
-	ref = isc_refcount_increment(&disp->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, disp, dispp, ref + 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-	UNUSED(ref);
-#endif /* DISPATCH_TRACE */
+	isc_refcount_increment(&disp->references);
 
 	*dispp = disp;
 }
 
 void
-dns__dispatch_detach(dns_dispatch_t **dispp, const char *func, const char *file,
-		     unsigned int line) {
+dns_dispatch_detach(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 	uint_fast32_t ref;
 
@@ -1552,18 +1460,7 @@ dns__dispatch_detach(dns_dispatch_t **dispp, const char *func, const char *file,
 	*dispp = NULL;
 
 	ref = isc_refcount_decrement(&disp->references);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
-		line, __func__, disp, dispp, ref - 1);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif /* DISPATCH_TRACE */
-
 	dispatch_log(disp, LVL(90), "detach: refcount %" PRIuFAST32, ref - 1);
-
 	if (ref == 1) {
 		LOCK(&disp->lock);
 		REQUIRE(disp->recv_pending == 0);
@@ -1695,11 +1592,6 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 	}
 
 	dns_dispatch_attach(disp, &res->disp);
-
-#ifdef DISPATCH_TRACE
-	fprintf(stderr, "%s:%d:%s:isc_task_attach(%p, %p)\n", __FILE__,
-		__LINE__, __func__, task, &res->task);
-#endif /* DISPATCH_TRACE */
 
 	isc_task_attach(task, &res->task);
 
