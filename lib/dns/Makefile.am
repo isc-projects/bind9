@@ -176,7 +176,6 @@ libdns_la_SOURCES =			\
 	dst_openssl.h			\
 	dst_parse.c			\
 	dst_parse.h			\
-	dst_pkcs11.h			\
 	dst_result.c			\
 	dyndb.c				\
 	ecs.c				\
@@ -205,6 +204,9 @@ libdns_la_SOURCES =			\
 	nta.c				\
 	openssl_link.c			\
 	openssldh_link.c		\
+	opensslecdsa_link.c		\
+	openssleddsa_link.c		\
+	opensslrsa_link.c		\
 	order.c				\
 	peer.c				\
 	private.c			\
@@ -254,19 +256,6 @@ libdns_la_SOURCES =			\
 if HAVE_GSSAPI
 libdns_la_SOURCES +=			\
 	gssapi_link.c
-endif
-
-if HAVE_PKCS11
-libdns_la_SOURCES +=		\
-	pkcs11.c		\
-	pkcs11ecdsa_link.c	\
-	pkcs11eddsa_link.c	\
-	pkcs11rsa_link.c
-else !HAVE_PKCS11
-libdns_la_SOURCES +=		\
-	opensslecdsa_link.c	\
-	openssleddsa_link.c	\
-	opensslrsa_link.c
 endif
 
 if HAVE_GEOIP2

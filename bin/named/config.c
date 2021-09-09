@@ -25,8 +25,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>

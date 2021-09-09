@@ -53,9 +53,6 @@
 #include <dst/result.h>
 
 #include <isccc/result.h>
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
 
 #include <dlz/dlz_dlopen_driver.h>
 
@@ -1463,9 +1460,6 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 
 	parse_command_line(argc, argv);
 

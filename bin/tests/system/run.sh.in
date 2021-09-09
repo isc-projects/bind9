@@ -161,18 +161,6 @@ else
     exit 77
 fi
 
-# Check for PKCS#11 support
-if
-    test ! -f "$systest/usepkcs11" || $SHELL cleanpkcs11.sh
-then
-    : pkcs11 ok
-else
-    echowarn "I:$systest:Need PKCS#11, skipping test."
-    echowarn "R:$systest:PKCS11ONLY"
-    echoend  "E:$systest:$(date_with_args)"
-    exit 0
-fi
-
 # Clean up files left from any potential previous runs except when
 # started with the --restart option.
 if ! $restart; then

@@ -40,8 +40,6 @@
 #include <isc/symtab.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>

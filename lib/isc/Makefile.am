@@ -106,22 +106,8 @@ libisc_la_HEADERS =			\
 	include/isc/utf8.h		\
 	include/isc/util.h
 
-pk11dir = $(includedir)/pk11
-pk11_HEADERS =				\
-	include/pk11/constants.h	\
-	include/pk11/internal.h		\
-	include/pk11/pk11.h		\
-	include/pk11/result.h		\
-	include/pk11/site.h
-
-pkcs11dir = $(includedir)/pkcs11
-pkcs11_HEADERS =		\
-	include/pkcs11/pkcs11.h
-
 libisc_la_SOURCES =		\
 	$(libisc_la_HEADERS)	\
-	$(pk11_HEADERS)		\
-	$(pkcs11_HEADERS)	\
 	netmgr/netmgr-int.h	\
 	netmgr/netmgr.c		\
 	netmgr/tcp.c		\
@@ -186,9 +172,6 @@ libisc_la_SOURCES =		\
 	openssl_shim.h		\
 	os.c			\
 	parseint.c		\
-	pk11.c			\
-	pk11_api.c		\
-	pk11_result.c		\
 	pool.c			\
 	portset.c		\
 	queue.c			\

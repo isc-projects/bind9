@@ -78,10 +78,7 @@ Options
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
    engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``). When BIND is
-   built with native PKCS#11 cryptography (``--enable-native-pkcs11``), it
-   defaults to the path of the PKCS#11 provider library specified via
-   ``--with-pkcs11``.
+   hardware service module (usually ``pkcs11``).
 
 ``-l label``
    This option specifies the label for a key pair in the crypto hardware.
@@ -90,21 +87,6 @@ Options
    an arbitrary string that identifies a particular key. It may be
    preceded by an optional OpenSSL engine name, followed by a colon, as
    in ``pkcs11:keylabel``.
-
-   When BIND 9 is built with native PKCS#11 support, the label is a
-   PKCS#11 URI string in the format
-   ``pkcs11:keyword\ =value[;\ keyword\ =value;...]``. Keywords
-   include ``token``, which identifies the HSM; ``object``, which identifies
-   the key; and ``pin-source``, which identifies a file from which the
-   HSM's PIN code can be obtained. The label is stored in the
-   on-disk ``private`` file.
-
-   If the label contains a ``pin-source`` field, tools using the
-   generated key files are able to use the HSM for signing and other
-   operations without any need for an operator to manually enter a PIN.
-   Note: Making the HSM's PIN accessible in this manner may reduce the
-   security advantage of using an HSM; use caution
-   with this feature.
 
 ``-n nametype``
    This option specifies the owner type of the key. The value of ``nametype`` must

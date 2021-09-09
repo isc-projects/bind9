@@ -31,8 +31,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #define TEST_INPUT(x) (x), sizeof(x) - 1
 
 /*Hash function test */

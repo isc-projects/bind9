@@ -23,8 +23,6 @@
 #include <isc/result.h>
 #include <isc/string.h>
 
-#include <pk11/site.h>
-
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 

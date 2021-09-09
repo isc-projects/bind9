@@ -24,8 +24,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/dnssec.h>

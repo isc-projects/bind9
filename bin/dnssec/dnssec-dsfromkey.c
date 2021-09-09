@@ -43,10 +43,6 @@
 
 #include <dst/dst.h>
 
-#if USE_PKCS11
-#include <pk11/result.h>
-#endif /* if USE_PKCS11 */
-
 #include "dnssectool.h"
 
 const char *program = "dnssec-dsfromkey";
@@ -377,9 +373,6 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-#if USE_PKCS11
-	pk11_result_register();
-#endif /* if USE_PKCS11 */
 	dns_result_register();
 
 	isc_commandline_errprint = false;

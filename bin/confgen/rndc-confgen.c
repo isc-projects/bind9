@@ -38,8 +38,6 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 

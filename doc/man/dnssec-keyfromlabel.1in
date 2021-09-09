@@ -78,10 +78,7 @@ This option specifies the cryptographic hardware to use.
 .sp
 When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
 engine identifier that drives the cryptographic accelerator or
-hardware service module (usually \fBpkcs11\fP). When BIND is
-built with native PKCS#11 cryptography (\fB\-\-enable\-native\-pkcs11\fP), it
-defaults to the path of the PKCS#11 provider library specified via
-\fB\-\-with\-pkcs11\fP\&.
+hardware service module (usually \fBpkcs11\fP).
 .TP
 .B \fB\-l label\fP
 This option specifies the label for a key pair in the crypto hardware.
@@ -90,21 +87,6 @@ When BIND 9 is built with OpenSSL\-based PKCS#11 support, the label is
 an arbitrary string that identifies a particular key. It may be
 preceded by an optional OpenSSL engine name, followed by a colon, as
 in \fBpkcs11:keylabel\fP\&.
-.sp
-When BIND 9 is built with native PKCS#11 support, the label is a
-PKCS#11 URI string in the format
-\fBpkcs11:keyword\e =value[;\e keyword\e =value;...]\fP\&. Keywords
-include \fBtoken\fP, which identifies the HSM; \fBobject\fP, which identifies
-the key; and \fBpin\-source\fP, which identifies a file from which the
-HSM\(aqs PIN code can be obtained. The label is stored in the
-on\-disk \fBprivate\fP file.
-.sp
-If the label contains a \fBpin\-source\fP field, tools using the
-generated key files are able to use the HSM for signing and other
-operations without any need for an operator to manually enter a PIN.
-Note: Making the HSM\(aqs PIN accessible in this manner may reduce the
-security advantage of using an HSM; use caution
-with this feature.
 .TP
 .B \fB\-n nametype\fP
 This option specifies the owner type of the key. The value of \fBnametype\fP must

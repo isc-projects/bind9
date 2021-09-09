@@ -45,8 +45,6 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #define DST_KEY_INTERNAL
 
 #include <dns/fixedname.h>
@@ -203,7 +201,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 	RETERR(dst__openssl_init(engine));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
-#if USE_OPENSSL
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
 				    DST_ALG_RSASHA1));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
@@ -220,19 +217,7 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifdef HAVE_OPENSSL_ED448
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448]));
 #endif /* ifdef HAVE_OPENSSL_ED448 */
-#endif /* USE_OPENSSL */
 
-#if USE_PKCS11
-	RETERR(dst__pkcs11_init(mctx, engine));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
-	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
-	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
-	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED25519]));
-	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED448]));
-#endif /* USE_PKCS11 */
 #if HAVE_GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif /* HAVE_GSSAPI */
@@ -259,9 +244,6 @@ dst_lib_destroy(void) {
 		}
 	}
 	dst__openssl_destroy();
-#if USE_PKCS11
-	(void)dst__pkcs11_destroy();
-#endif /* USE_PKCS11 */
 }
 
 bool

@@ -26,8 +26,6 @@
 #include <isc/print.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #include "../dst_internal.h"
 #include "dnstest.h"
 
