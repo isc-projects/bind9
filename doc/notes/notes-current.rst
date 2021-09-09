@@ -39,6 +39,13 @@ Feature Changes
   key. This allows for a gradual replacement of RRSIGs as they reach expiry.
   :gl:`#1551`
 
+- The use of native PKCS#11 for Public-Key Cryptography in BIND 9 has been
+  deprecated in favor of OpenSSL engine_pkcs11 from the OpenSC project.
+  The ``--with-native-pkcs11`` configuration option will be removed from the
+  next major BIND 9 release.  The option to use the engine_pkcs11 OpenSSL
+  engine is already available in BIND 9; please see the ARM section on
+  PKCS#11 for details. :gl:`#2691`
+
 Bug Fixes
 ~~~~~~~~~
 

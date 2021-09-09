@@ -26364,6 +26364,19 @@ report() {
     test "$CRYPTO" = "pkcs11" && (
 	echo "    Using PKCS#11 for Public-Key Cryptography (--with-native-pkcs11)"
 	echo "    PKCS#11 module (--with-pkcs11): $with_pkcs11"
+	echo "    +--------------------------------------------+"
+	echo "    |             ==== WARNING ====              |"
+	echo "    |                                            |"
+	echo "    | The use of native PKCS#11 for Public-Key   |"
+	echo "    | Cryptography in BIND 9 has been deprecated |"
+	echo "    | in favor of OpenSSL engine_pkcs11 from the |"
+	echo "    | OpenSC project. The --with-native-pkcs11   |"
+	echo "    | configuration option will be removed from  |"
+	echo "    | the next major BIND 9 release. The option  |"
+	echo "    | to use the engine_pkcs11 OpenSSL engine is |"
+	echo "    | already available in BIND 9; please see    |"
+	echo "    | the ARM section on PKCS#11 for details.    |"
+	echo "    +--------------------------------------------+"
     )
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
