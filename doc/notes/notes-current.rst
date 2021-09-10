@@ -70,6 +70,9 @@ Feature Changes
   including ``nsupdate``, ``delv``, ``mdig``, to send all outgoing DNS
   queries and requests. :gl:`#2401`
 
+- Zone transfers over TLS (XoT) now need "dot" Application-Layer Protocol
+  Negotiation (ALPN) tag to be negotiated, as required by the RFC 9103. :gl: `#2794`
+
 Bug Fixes
 ~~~~~~~~~
 
