@@ -50,6 +50,40 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp);
  *\li	'ctxp' != NULL and '*ctxp' == NULL.
  */
 
+typedef enum isc_tls_protocol_version {
+	/* these must be the powers of two */
+	ISC_TLS_PROTO_VER_1_2 = 1 << 0,
+	ISC_TLS_PROTO_VER_1_3 = 1 << 1,
+	ISC_TLS_PROTO_VER_UNDEFINED,
+} isc_tls_protocol_version_t;
+
+void
+isc_tlsctx_set_protocols(isc_tlsctx_t *ctx, const uint32_t tls_versions);
+/*%<
+ * Sets the supported TLS protocol versions via the 'tls_versions' bit
+ * set argument (see `isc_tls_protocol_version_t` enum for the
+ * expected values).
+ *
+ * Requires:
+ *\li	'ctx' != NULL;
+ *\li	'tls_versions' != 0.
+ */
+
+bool
+isc_tls_protocol_supported(const isc_tls_protocol_version_t tls_ver);
+/*%<
+ * Check in runtime that the specified TLS protocol versions is supported.
+ */
+
+isc_tls_protocol_version_t
+isc_tls_protocol_name_to_version(const char *name);
+/*%<
+ * Convert the protocol version string into the version of
+ * 'isc_tls_protocol_version_t' type.
+ * Requires:
+ *\li	'name' != NULL.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<

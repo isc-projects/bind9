@@ -10,6 +10,7 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 #if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
 #endif /* HAVE_LIBNGHTTP2 */
@@ -362,6 +363,101 @@ ssl_error:
 	}
 
 	return (ISC_R_TLSERROR);
+}
+
+static long
+get_tls_version_disable_bit(const isc_tls_protocol_version_t tls_ver) {
+	long bit = 0;
+
+	switch (tls_ver) {
+	case ISC_TLS_PROTO_VER_1_2:
+#ifdef SSL_OP_NO_TLSv1_2
+		bit = SSL_OP_NO_TLSv1_2;
+#else
+		bit = 0;
+#endif
+		break;
+	case ISC_TLS_PROTO_VER_1_3:
+#ifdef SSL_OP_NO_TLSv1_3
+		bit = SSL_OP_NO_TLSv1_3;
+#else
+		bit = 0;
+#endif
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	};
+
+	return (bit);
+}
+
+bool
+isc_tls_protocol_supported(const isc_tls_protocol_version_t tls_ver) {
+	return (get_tls_version_disable_bit(tls_ver) != 0);
+}
+
+isc_tls_protocol_version_t
+isc_tls_protocol_name_to_version(const char *name) {
+	REQUIRE(name != NULL);
+
+	if (strcasecmp(name, "TLSv1.2") == 0) {
+		return (ISC_TLS_PROTO_VER_1_2);
+	} else if (strcasecmp(name, "TLSv1.3") == 0) {
+		return (ISC_TLS_PROTO_VER_1_3);
+	}
+
+	return (ISC_TLS_PROTO_VER_UNDEFINED);
+}
+
+void
+isc_tlsctx_set_protocols(isc_tlsctx_t *ctx, const uint32_t tls_versions) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(tls_versions != 0);
+	long set_options = 0;
+	long clear_options = 0;
+	uint32_t versions = tls_versions;
+
+	/*
+	 * The code below might be initially hard to follow because of the
+	 * double negation that OpenSSL enforces.
+	 *
+	 * Taking into account that OpenSSL provides bits to *disable*
+	 * specific protocol versions, like SSL_OP_NO_TLSv1_2,
+	 * SSL_OP_NO_TLSv1_3, etc., the code has the following logic:
+	 *
+	 * If a protocol version is not specified in the bitmask, get the
+	 * bit that disables it and add it to the set of TLS options to
+	 * set ('set_options'). Otherwise, if a protocol version is set,
+	 * add the bit to the set of options to clear ('clear_options').
+	 */
+
+	/* TLS protocol versions are defined as powers of two. */
+	for (uint32_t tls_ver = ISC_TLS_PROTO_VER_1_2;
+	     tls_ver < ISC_TLS_PROTO_VER_UNDEFINED; tls_ver <<= 1)
+	{
+		/* Only supported versions should ever be passed to the
+		 * function. The configuration file was not verified
+		 * properly, if we are trying to enable an unsupported
+		 * TLS version */
+		INSIST(isc_tls_protocol_supported(tls_ver));
+		if ((tls_versions & tls_ver) == 0) {
+			set_options |= get_tls_version_disable_bit(tls_ver);
+		} else {
+			clear_options |= get_tls_version_disable_bit(tls_ver);
+		}
+		versions &= ~(tls_ver);
+	}
+
+	/* All versions should be processed at this point, thus the value
+	 * must equal zero. If it is not, then some garbage has been
+	 * passed to the function; this situation is worth
+	 * investigation. */
+	INSIST(versions == 0);
+
+	(void)SSL_CTX_set_options(ctx, set_options);
+	(void)SSL_CTX_clear_options(ctx, clear_options);
 }
 
 isc_tls_t *
