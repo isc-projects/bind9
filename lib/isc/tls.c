@@ -33,6 +33,9 @@
 #include "openssl_shim.h"
 #include "tls_p.h"
 
+#define COMMON_SSL_OPTIONS \
+	(SSL_OP_NO_COMPRESSION | SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION)
+
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
 static atomic_bool init_done = ATOMIC_VAR_INIT(false);
@@ -185,13 +188,13 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 		goto ssl_error;
 	}
 
+	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
+
 #if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
 #else
-	SSL_CTX_set_options(
-		ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 |
-			     SSL_OP_NO_TLSv1_1 | SSL_OP_NO_COMPRESSION |
-			     SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
+					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
 #endif
 
 	*ctxp = ctx;
@@ -234,6 +237,8 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		goto ssl_error;
 	}
 	RUNTIME_CHECK(ctx != NULL);
+
+	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
 
 #if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
