@@ -11107,7 +11107,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			}
 		} else if (http && !do_tls) {
 			if (named_g_httpport != 0) {
-				port = named_g_port;
+				port = named_g_httpport;
 			} else {
 				result = named_config_getport(
 					config, "http-port", &port);
