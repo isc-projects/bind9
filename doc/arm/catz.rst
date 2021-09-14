@@ -104,6 +104,9 @@ The options following the zone name are not required, and may be
 specified in any order.
 
 ``default-masters``
+   Synonym for ``default-primaries``.
+
+``default-primaries``
    This option defines the default primaries for member
    zones listed in a catalog zone, and can be overridden by options within
    a catalog zone. If no such options are included, then member zones
@@ -182,6 +185,8 @@ BIND currently supports the following options:
    either an A or AAAA record. If multiple primaries are set, the order in
    which they are used is random.
 
+   Note: ``masters`` can be used as a synonym for ``primaries``.
+
 -  A ``primaries`` with a TSIG key defined:
 
    ::
@@ -193,6 +198,8 @@ BIND currently supports the following options:
    This option defines a primary server for the member zone with a TSIG
    key set. The TSIG key must be configured in the configuration file.
    ``label`` can be any valid DNS label.
+
+   Note: ``masters`` can be used as a synonym for ``primaries``.
 
 -  ``allow-query`` and ``allow-transfer`` ACLs:
 

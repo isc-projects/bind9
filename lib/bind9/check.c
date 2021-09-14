@@ -4557,6 +4557,50 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	return (result);
 }
 
+static isc_result_t
+check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_log_t *logctx) {
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj, *nameobj, *primariesobj;
+	const char *zonename;
+	const char *forview = " for view ";
+	isc_result_t result;
+
+	if (viewname == NULL) {
+		viewname = "";
+		forview = "";
+	}
+
+	result = ISC_R_SUCCESS;
+
+	obj = cfg_tuple_get(catz_obj, "zone list");
+
+	for (element = cfg_list_first(obj); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		nameobj = cfg_tuple_get(obj, "zone name");
+		zonename = cfg_obj_asstring(nameobj);
+
+		primariesobj = cfg_tuple_get(obj, "default-primaries");
+		if (primariesobj != NULL && cfg_obj_istuple(primariesobj)) {
+			primariesobj = cfg_tuple_get(obj, "default-masters");
+			if (primariesobj != NULL &&
+			    cfg_obj_istuple(primariesobj)) {
+				cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
+					    "catalog zone '%s'%s%s: "
+					    "'default-primaries' and "
+					    "'default-masters' can not be both "
+					    "defined",
+					    zonename, forview, viewname);
+				result = ISC_R_FAILURE;
+				break;
+			}
+		}
+	}
+
+	return (result);
+}
+
 /*%
  * Data structure used for the 'callback_data' argument to check_one_plugin().
  */
@@ -4731,6 +4775,19 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		    (check_rpz_catz("catalog zone", obj, viewname, symtab,
 				    logctx,
 				    special_zonetype_catz) != ISC_R_SUCCESS))
+		{
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/*
+	 * Check catalog-zones configuration.
+	 */
+	if (opts != NULL) {
+		obj = NULL;
+		if ((cfg_map_get(opts, "catalog-zones", &obj) ==
+		     ISC_R_SUCCESS) &&
+		    (check_catz(obj, viewname, logctx) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
 		}

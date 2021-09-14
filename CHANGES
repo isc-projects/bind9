@@ -1,3 +1,7 @@
+5713.	[func]		Added "primaries" as a synonym for "masters" and
+			"default-primaries" as a synonym for "default-masters"
+			for catalog zones configuration options. [GL #2818]
+
 5712.	[func]		Remove native PKCS#11 support in favor of OpenSSL
 			engine_pkcs11 from the OpenSC project. [GL #2691]
 

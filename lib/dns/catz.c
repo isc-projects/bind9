@@ -886,9 +886,10 @@ typedef enum {
 
 static bool
 catz_opt_cmp(const dns_label_t *option, const char *opt) {
-	unsigned int l = strlen(opt);
-	if (option->length - 1 == l &&
-	    memcmp(opt, option->base + 1, l - 1) == 0) {
+	size_t len = strlen(opt);
+
+	if (option->length - 1 == len &&
+	    memcmp(opt, option->base + 1, len) == 0) {
 		return (true);
 	} else {
 		return (false);
@@ -899,7 +900,8 @@ static catz_opt_t
 catz_get_option(const dns_label_t *option) {
 	if (catz_opt_cmp(option, "zones")) {
 		return (CATZ_OPT_ZONES);
-	} else if (catz_opt_cmp(option, "masters")) {
+	} else if (catz_opt_cmp(option, "masters") ||
+		   catz_opt_cmp(option, "primaries")) {
 		return (CATZ_OPT_MASTERS);
 	} else if (catz_opt_cmp(option, "allow-query")) {
 		return (CATZ_OPT_ALLOW_QUERY);
