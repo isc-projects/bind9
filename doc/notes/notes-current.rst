@@ -43,6 +43,18 @@ Feature Changes
 - SHA-1 CDS records are no longer used by ``dnssec-cds`` to make DS
   records. Thanks to Tony Finch. :gl:`!2946`
 
+- ``named`` and ``named-checkconf`` now issue a warning when there is a single
+  configured port in the ``query-source``, ``transfer-source``,
+  ``notify-source``, and ``parental-source``, and/or in their respective IPv6 counterparts.
+  :gl:`#2888`
+
+- ``named`` and ``named-checkconf`` now return an error when the single configured
+  port in the ``query-source``, ``transfer-source``, ``notify-source``,
+  ``parental-source``, and/or their respective IPv6 counterparts clashes with the
+  global listening port. This configuration is no longer supported as of BIND
+  9.16.0 but no error was reported, although sending UDP messages
+  (such as notifies) would fail. :gl:`#2888`
+
 Bug Fixes
 ~~~~~~~~~
 
