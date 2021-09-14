@@ -1,3 +1,11 @@
+5714.	[bug]		Remove the "adjust interface" mechanism that
+			set up a listener on interfaces where the *-source(-v6)
+			address and port were the same as the listening
+			address and port. Such a configuration is no longer
+			supported; in practice, this would disable
+			listening on TCP ports under certain timing conditions.
+			[GL #2852]
+
 5712.	[func]		Add deprecation notice about removing native PKCS#11
 			support in the next major BIND 9.18 release. [GL #2691]
 
