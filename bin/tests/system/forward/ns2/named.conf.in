@@ -11,12 +11,15 @@
 
 options {
 	query-source address 10.53.0.2;
+	query-source-v6 address fd92:7065:b8e:ffff::2;
 	notify-source 10.53.0.2;
+	notify-source-v6 fd92:7065:b8e:ffff::2;
 	transfer-source 10.53.0.2;
+	transfer-source-v6 fd92:7065:b8e:ffff::2;
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
+	listen-on-v6 { fd92:7065:b8e:ffff::2; };
 	recursion no;
 	dnssec-validation no;
 };

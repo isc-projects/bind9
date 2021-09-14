@@ -147,20 +147,6 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose);
  * in named.conf.
  */
 
-isc_result_t
-ns_interfacemgr_adjust(ns_interfacemgr_t *mgr, ns_listenlist_t *list,
-		       bool verbose);
-/*%<
- * Similar to ns_interfacemgr_scan(), but this function also tries to see the
- * need for an explicit listen-on when a list element in 'list' is going to
- * override an already-listening a wildcard interface.
- *
- * This function does not update localhost and localnets ACLs.
- *
- * This should be called once on server startup, after configuring views and
- * zones.
- */
-
 void
 ns_interfacemgr_setlistenon4(ns_interfacemgr_t *mgr, ns_listenlist_t *value);
 /*%<
