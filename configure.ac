@@ -903,7 +903,7 @@ AC_SUBST(GEOIPLINKOBJS)
 
 AC_MSG_CHECKING(for GSSAPI library)
 
-# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --with-gssapi=krb5-config, --without-gssapi]
+# [pairwise: --with-gssapi=yes, --with-gssapi=auto, --without-gssapi]
 AC_ARG_WITH(gssapi,
 	    AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
 			   [Specify path for system-supplied GSSAPI
@@ -913,89 +913,48 @@ AC_ARG_WITH(gssapi,
 # first try using krb5-config, if that does not work then fall back to "yes" method.
 
 case "$use_gssapi" in
-*/krb5-config|krb5-config|auto|yes)
+*/krb5-config|krb5-config)
     AC_MSG_RESULT(trying $use_gssapi)
-    if test krb5-config = "$use_gssapi" -o auto = "$use_gssapi" -o yes = "$use_gssapi"
+    if test krb5-config = "$use_gssapi"
     then
-	AC_PATH_PROG(KRB5_CONFIG, krb5-config)
+	AC_PATH_PROG(KRB5_CONFIG, $use_gssapi)
     else
 	KRB5_CONFIG="$use_gssapi"
     fi
-    if test -n "$KRB5_CONFIG"
-    then
-        gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
-        gssapi_libs=`$KRB5_CONFIG --libs gssapi`
-        saved_cppflags="$CPPFLAGS"
-        CPPFLAGS="$gssapi_cflags $CPPFLAGS"
-        AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
-	    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
-	     gssapi_hack="#include <$ac_header>"])
-        if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
-	    case "$use_gssapi" in
-	    auto|yes)
-	        AC_MSG_RESULT([krb5-config: gssapi.h not found]);;
-            *)
-	        AC_MSG_ERROR([krb5-config: gssapi.h not found]);;
-	    esac
+    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
+    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
+    krb5_cflags=`$KRB5_CONFIG --cflags krb5`
+    krb5_libs=`$KRB5_CONFIG --libs krb5`
+    saved_cppflags="$CPPFLAGS"
+    CPPFLAGS="$gssapi_cflags $krb5_cflags $CPPFLAGS"
+    AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
+	[ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
+    if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
+	AC_MSG_RESULT([krb5-config: gssapi.h not found])
+	CPPFLAGS="$saved_cppflags"
+	use_gssapi="yes"
+    else
+	AC_CHECK_HEADERS(krb5/krb5.h krb5.h,
+	    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
+	if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
+	    AC_MSG_RESULT([krb5-config: krb5.h not found])
 	    CPPFLAGS="$saved_cppflags"
 	    use_gssapi="yes"
-        else
-	    AC_CHECK_HEADERS(krb5/krb5.h krb5.h,
-	        [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
-		 gssapi_krb5_hack="#include <$ac_header>"])
-	    if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
-		case "$use_gssapi" in
-		auto|yes)
-	            AC_MSG_RESULT([krb5-config: krb5.h not found]);;
-		*)
-	            AC_MSG_ERROR([krb5-config: krb5.h not found]);;
-		esac
-	        CPPFLAGS="$saved_cppflags"
-	        use_gssapi="yes"
-	    else
-		AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h,
-		    [ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
-		     gssapi_krb5_hack="#include <$ac_header>"])
-	        CPPFLAGS="$saved_cppflags"
-	        saved_libs="$LIBS"
-	        LIBS=$gssapi_libs
-	        AC_MSG_CHECKING([krb5-config linking as $LIBS])
-	        AC_TRY_LINK([
-#include <sys/types.h>
-$gssapi_hack
-$gssapi_krb5_hack
-$krb5_hack
-				] , [gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);
-#if defined(HAVE_GSSAPI_KRB5_H) || defined(HAVE_GSSAPI_GSSAPI_KRB5_H)
-gsskrb5_register_acceptor_identity(NULL);
-#endif],
-		    gssapi_linked=yes, gssapi_linked=no)
-	        case $gssapi_linked in
-		    yes)
-			use_gssapi=krb5-config
-			AC_MSG_RESULT([krb5-config: linked])
-			;;
-		    no)
-			case "$use_gssapi" in
-			auto|yes)
-			    AC_MSG_RESULT([krb5-config: could not determine proper GSSAPI linkage]);;
-			*)
-			    AC_MSG_ERROR([krb5-config: could not determine proper GSSAPI linkage]);;
-			esac
-		        ;;
-	        esac
-	        LIBS=$saved_libs
-	    fi
-        fi
-    else
-	case "$use_gssapi" in
-	auto|yes)
-	    AC_MSG_RESULT([krb5-config: not found])
-	    ;;
-	*)
-            AC_MSG_ERROR([krb5-config: not found])
-	    ;;
-	esac
+	else
+	    CPPFLAGS="$saved_cppflags"
+	    saved_libs="$LIBS"
+	    LIBS="$gssapi_libs $krb5_libs $LIBS"
+	    AC_MSG_CHECKING([krb5-config linking as $LIBS])
+	    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
+		gssapi_linked=yes, gssapi_linked=no)
+	    case $gssapi_linked in
+		yes) AC_MSG_RESULT([krb5-config: linked]);;
+		no)  AC_MSG_RESULT([krb5-config: could not determine proper GSSAPI linkage])
+		    use_gssapi="yes"
+		    ;;
+	    esac
+	    LIBS=$saved_libs
+	fi
     fi
     if test "yes" = "$use_gssapi"; then
 	AC_MSG_CHECKING([for GSSAPI library, non krb5-config method])
@@ -1060,8 +1019,8 @@ case "$use_gssapi" in
 		;;
 	*/krb5-config|krb5-config)
 		USE_GSSAPI='-DGSSAPI'
-		DST_GSSAPI_INC="$gssapi_cflags"
-		DNS_GSSAPI_LIBS="$gssapi_libs"
+		DST_GSSAPI_INC="$gssapi_cflags $krb5_cflags"
+		DNS_GSSAPI_LIBS="$gssapi_libs $krb5_libs"
 		;;
 	framework)
 		USE_GSSAPI='-DGSSAPI'

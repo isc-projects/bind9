@@ -1,3 +1,9 @@
+5716.	[bug]		Multiple library names were mistakenly passed to the
+			krb5-config utility when ./configure was invoked with
+			the --with-gssapi=[/path/to/]krb5-config option. This
+			has been fixed by invoking krb5-config separately for
+			each required library. [GL #2866]
+
 	--- 9.11.35 released ---
 
 5685.	[bug]		named failed to check the opcode of responses when
