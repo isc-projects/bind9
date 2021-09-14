@@ -11,7 +11,36 @@
 
 #include "openssl_shim.h"
 
+#include <openssl/bn.h>
+#include <openssl/ecdsa.h>
 #include <openssl/err.h>
+
+#if !HAVE_ECDSA_SIG_GET0
+/* From OpenSSL 1.1 */
+void
+ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
+	if (pr != NULL) {
+		*pr = sig->r;
+	}
+	if (ps != NULL) {
+		*ps = sig->s;
+	}
+}
+
+int
+ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
+	if (r == NULL || s == NULL) {
+		return (0);
+	}
+
+	BN_clear_free(sig->r);
+	BN_clear_free(sig->s);
+	sig->r = r;
+	sig->s = s;
+
+	return (1);
+}
+#endif /* !HAVE_ECDSA_SIG_GET0 */
 
 #if !HAVE_ERR_GET_ERROR_ALL
 static const char err_empty_string = '\0';
