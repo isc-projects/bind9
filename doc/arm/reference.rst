@@ -2643,6 +2643,11 @@ options are:
 .. note:: Solaris 2.5.1 and earlier does not support setting the source address
    for TCP sockets.
 
+.. warning:: Specifying a single port is discouraged, as it removes a layer of
+   protection against spoofing errors.
+
+.. warning:: The configured ``port`` must not be same as the listening port.
+
 .. note:: See also ``transfer-source``, ``notify-source`` and ``parental-source``.
 
 .. _zone_transfers:
@@ -2781,6 +2786,11 @@ options apply to zone transfers.
    .. note:: Solaris 2.5.1 and earlier does not support setting the source
       address for TCP sockets.
 
+   .. warning:: Specifying a single port is discouraged, as it removes a layer of
+      protection against spoofing errors.
+
+   .. warning:: The configured ``port`` must not be same as the listening port.
+
 ``transfer-source-v6``
    This option is the same as ``transfer-source``, except zone transfers are performed
    using IPv6.
@@ -2813,6 +2823,11 @@ options apply to zone transfers.
 
    .. note:: Solaris 2.5.1 and earlier does not support setting the source
       address for TCP sockets.
+
+   .. warning:: Specifying a single port is discouraged, as it removes a layer of
+      protection against spoofing errors.
+
+   .. warning:: The configured ``port`` must not be same as the listening port.
 
 ``notify-source-v6``
    This option acts like ``notify-source``, but applies to notify messages sent to IPv6
@@ -5207,6 +5222,11 @@ The following options apply to DS queries sent to ``parental-agents``:
 
    .. note:: Solaris 2.5.1 and earlier does not support setting the source
       address for TCP sockets.
+
+   .. warning:: Specifying a single port is discouraged, as it removes a layer of
+      protection against spoofing errors.
+
+   .. warning:: The configured ``port`` must not be same as the listening port.
 
 ``parental-source-v6``
    This option acts like ``parental-source``, but applies to parental DS
