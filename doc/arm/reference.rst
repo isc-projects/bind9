@@ -6478,6 +6478,11 @@ some cases to convert ``map`` files to ``text`` format using
 ``named-compilezone`` before an upgrade, then back to ``map`` format with
 the new version of ``named-compilezone`` afterward.)
 
+The use of ``map`` format may also be limited by operating system
+mmap(2) limits like ``sysctl vm.max_map_count``.  For Linux, this
+defaults to 65536, which limits the number of mapped zones that can
+be used without increasing ``vm.max_map_count``.
+
 ``raw`` format uses network byte order and avoids architecture-
 dependent data alignment so that it is as portable as possible, but it is
 still primarily expected to be used inside the same single system. To
