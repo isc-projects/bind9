@@ -400,6 +400,7 @@ echo_i "check that named-checkconf -l prints out the zone list ($n)"
 ret=0
 $CHECKCONF -l good.conf |
 grep -v "is not implemented" |
+grep -v "is not recommended" |
 grep -v "no longer exists" |
 grep -v "is obsolete" > checkconf.out$n || ret=1
 diff good.zonelist checkconf.out$n > diff.out$n || ret=1
@@ -567,6 +568,18 @@ echo_i "check that max-ixfr-ratio 100% generates a warning ($n)"
 ret=0
 $CHECKCONF warn-maxratio1.conf > checkconf.out$n 2>/dev/null || ret=1
 grep "exceeds 100%" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that *-source options with specified port generate warnings ($n)"
+ret=0
+$CHECKCONF warn-transfer-source.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "not recommended" < checkconf.out$n > /dev/null || ret=1
+$CHECKCONF warn-notify-source.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "not recommended" < checkconf.out$n > /dev/null || ret=1
+$CHECKCONF warn-parental-source.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "not recommended" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

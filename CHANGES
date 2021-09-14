@@ -1,3 +1,7 @@
+5715.	[func]		Add a check when the *-source(-v6) clashes with the
+			global listening port. Such a configuration was already
+			forbidden, but it failed silently. [GL #2888]
+
 5714.	[bug]		Remove the "adjust interface" mechanism that
 			set up a listener on interfaces where the *-source(-v6)
 			address and port were the same as the listening
