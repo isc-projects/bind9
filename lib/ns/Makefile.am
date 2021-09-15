@@ -12,7 +12,6 @@ libns_la_HEADERS =			\
 	include/ns/events.h		\
 	include/ns/hooks.h		\
 	include/ns/interfacemgr.h	\
-	include/ns/lib.h		\
 	include/ns/listenlist.h		\
 	include/ns/log.h		\
 	include/ns/notify.h		\
@@ -29,7 +28,6 @@ libns_la_SOURCES =		\
 	client.c		\
 	hooks.c			\
 	interfacemgr.c		\
-	lib.c			\
 	listenlist.c		\
 	log.c			\
 	notify.c		\

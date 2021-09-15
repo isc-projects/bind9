@@ -1862,7 +1862,6 @@
 ./lib/ns/include/ns/events.h			C	2020,2021
 ./lib/ns/include/ns/hooks.h			C	2017,2018,2019,2020,2021
 ./lib/ns/include/ns/interfacemgr.h		C	2017,2018,2019,2020,2021
-./lib/ns/include/ns/lib.h			C	2017,2018,2019,2020,2021
 ./lib/ns/include/ns/listenlist.h		C	2017,2018,2019,2020,2021
 ./lib/ns/include/ns/log.h			C	2017,2018,2019,2020,2021
 ./lib/ns/include/ns/notify.h			C	2017,2018,2019,2020,2021
@@ -1874,7 +1873,6 @@
 ./lib/ns/include/ns/update.h			C	2017,2018,2019,2020,2021
 ./lib/ns/include/ns/xfrout.h			C	2017,2018,2019,2020,2021
 ./lib/ns/interfacemgr.c				C	2017,2018,2019,2020,2021
-./lib/ns/lib.c					C	2017,2018,2019,2020,2021
 ./lib/ns/listenlist.c				C	2017,2018,2019,2020,2021
 ./lib/ns/log.c					C	2017,2018,2019,2020,2021
 ./lib/ns/notify.c				C	2017,2018,2019,2020,2021
