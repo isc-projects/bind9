@@ -1,3 +1,7 @@
+5732.	[cleanup]	Remove dns_lib_init() and _shutdown() and
+			ns_lib_init() and _shutdown() functions, as they
+			no longer served any useful purpose. [GL #88]
+
 5731.	[bug]		Do not allow defining "http" clauses named
 			"default". [GL #2925]
 
