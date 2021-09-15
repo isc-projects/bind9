@@ -186,7 +186,7 @@ OPTIONS
   	avoid-v6-udp-ports { portrange; ... };
   	bindkeys-file quoted_string;
   	blackhole { address_match_element; ... };
-  	cache-file quoted_string;
+  	cache-file quoted_string;// deprecated
   	catalog-zones { zone string [ default-masters [ port integer ]
   	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
@@ -620,7 +620,7 @@ VIEW
   	attach-cache string;
   	auth-nxdomain boolean;
   	auto-dnssec ( allow | maintain | off );
-  	cache-file quoted_string;
+  	cache-file quoted_string;// deprecated
   	catalog-zones { zone string [ default-masters [ port integer ]
   	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
   	    integer ] | ipv6_address [ port integer ] ) [ key
