@@ -14,7 +14,6 @@
 #include <isc/once.h>
 #include <isc/util.h>
 
-#include <dns/lib.h>
 #include <dns/result.h>
 
 static const char *text[DNS_R_NRESULTS] = {

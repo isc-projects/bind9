@@ -28,7 +28,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/events.h>
-#include <dns/lib.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/rdata.h>

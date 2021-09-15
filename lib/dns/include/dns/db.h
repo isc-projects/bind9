@@ -64,6 +64,11 @@
 
 ISC_LANG_BEGINDECLS
 
+/*%
+ * Tuning: external query load in packets per seconds.
+ */
+extern unsigned int dns_pps;
+
 /*****
 ***** Types
 *****/

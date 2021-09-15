@@ -22,7 +22,6 @@
 
 #include <dns/db.h>
 #include <dns/dyndb.h>
-#include <dns/lib.h>
 #include <dns/types.h>
 
 #include "db.h"
