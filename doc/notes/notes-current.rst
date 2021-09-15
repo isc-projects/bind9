@@ -24,7 +24,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Add support for HTTPS and SVCB record types. :gl:`#1132`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -34,14 +34,6 @@ Removed Features
 
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- ``dnssec-signzone`` is now able to retain signatures from inactive
-  predecessor keys without introducing additional signatures from the successor
-  key. This allows for a gradual replacement of RRSIGs as they reach expiry.
-  :gl:`#1551`
-
-- SHA-1 CDS records are no longer used by ``dnssec-cds`` to make DS
-  records. Thanks to Tony Finch. :gl:`!2946`
 
 - ``named`` and ``named-checkconf`` now issue a warning when there is a single
   configured port in the ``query-source``, ``transfer-source``,
@@ -57,20 +49,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- When following QNAME minimization, BIND could use a stale zonecut from cache 
-  to resolve the query, resulting in a non-minimized query. This has been
-  fixed :gl:`#2665`
-
-- Migrate a single key to CSK when reconfiguring a zone to make use of
-  'dnssec-policy' :gl:`#2857`
-
-- A recent change to the internal memory structure of zone databases
-  inadvertently neglected to update the MAPAPI value for ``map``-format
-  zone files. This caused ``named`` to attempt to load files into memory
-  that were no longer compatible, triggering an assertion failure on
-  startup. The MAPAPI value has now been updated, so ``named`` will
-  reject outdated files when encountering them. :gl:`#2872`
 
 - When new IP addresses were added to the system during ``named``
   startup, ``named`` failed to listen on TCP for the newly added
