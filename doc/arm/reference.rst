@@ -1641,10 +1641,6 @@ Boolean Options
    even if the server is not actually authoritative. The default is
    ``no``.
 
-``deallocate-on-exit``
-   This option was used in BIND 8 to enable checking for memory leaks on
-   exit. BIND 9 ignores the option and always performs the checks.
-
 ``memstatistics``
    This writes memory statistics to the file specified by
    ``memstatistics-file`` at exit. The default is ``no`` unless ``-m
