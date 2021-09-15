@@ -4052,7 +4052,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
-	bool reused_cache = false;
 	bool shared_cache = false;
 	int i = 0, j = 0, k = 0;
 	const char *str;
@@ -4648,7 +4647,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 						      NAMED_LOGMODULE_SERVER,
 						      ISC_LOG_DEBUG(3),
 						      "reusing existing cache");
-					reused_cache = true;
 					dns_cache_attach(pview->cache, &cache);
 				}
 				dns_view_getresstats(pview, &resstats);
@@ -4692,19 +4690,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
 	dns_view_setcache(view, cache, shared_cache);
-
-	/*
-	 * cache-file cannot be inherited if views are present, but this
-	 * should be caught by the configuration checking stage.
-	 */
-	obj = NULL;
-	result = named_config_get(maps, "cache-file", &obj);
-	if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0) {
-		CHECK(dns_cache_setfilename(cache, cfg_obj_asstring(obj)));
-		if (!reused_cache && !shared_cache) {
-			CHECK(dns_cache_load(cache));
-		}
-	}
 
 	dns_cache_setcachesize(cache, max_cache_size);
 	dns_cache_setservestalettl(cache, max_stale_ttl);

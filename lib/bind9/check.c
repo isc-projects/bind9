@@ -5493,7 +5493,6 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *acls = NULL;
-	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -5672,17 +5671,6 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 						 inview, logctx, mctx);
 		}
 		if (tresult != ISC_R_SUCCESS) {
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	if (views != NULL && options != NULL) {
-		obj = NULL;
-		tresult = cfg_map_get(options, "cache-file", &obj);
-		if (tresult == ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'cache-file' cannot be a global "
-				    "option if views are present");
 			result = ISC_R_FAILURE;
 		}
 	}

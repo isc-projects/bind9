@@ -126,7 +126,6 @@ struct dns_cache {
 	/* Unlocked. */
 	unsigned int magic;
 	isc_mutex_t lock;
-	isc_mutex_t filelock;
 	isc_mem_t *mctx;  /* Main cache memory */
 	isc_mem_t *hmctx; /* Heap memory */
 	char *name;
@@ -144,10 +143,6 @@ struct dns_cache {
 	dns_ttl_t serve_stale_ttl;
 	dns_ttl_t serve_stale_refresh;
 	isc_stats_t *stats;
-
-	/* Locked by 'filelock'. */
-	char *filename;
-	/* Access to the on-disk cache file is also locked by 'filelock'. */
 };
 
 /***
@@ -210,7 +205,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	}
 
 	isc_mutex_init(&cache->lock);
-	isc_mutex_init(&cache->filelock);
 
 	isc_refcount_init(&cache->references, 1);
 	isc_refcount_init(&cache->live_tasks, 1);
@@ -221,7 +215,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	result = isc_stats_create(cmctx, &cache->stats,
 				  dns_cachestatscounter_max);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_filelock;
+		goto cleanup_lock;
 	}
 
 	cache->db_type = isc_mem_strdup(cmctx, db_type);
@@ -273,8 +267,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		isc_task_detach(&dbtask);
 	}
 
-	cache->filename = NULL;
-
 	cache->magic = CACHE_MAGIC;
 
 	/*
@@ -312,9 +304,8 @@ cleanup_dbargv:
 			    cache->db_argc * sizeof(char *));
 	}
 	isc_mem_free(cmctx, cache->db_type);
-cleanup_filelock:
-	isc_mutex_destroy(&cache->filelock);
 	isc_stats_detach(&cache->stats);
+cleanup_lock:
 	isc_mutex_destroy(&cache->lock);
 	if (cache->name != NULL) {
 		isc_mem_free(cmctx, cache->name);
@@ -351,11 +342,6 @@ cache_free(dns_cache_t *cache) {
 
 	isc_mutex_destroy(&cache->cleaner.lock);
 
-	if (cache->filename) {
-		isc_mem_free(cache->mctx, cache->filename);
-		cache->filename = NULL;
-	}
-
 	if (cache->db != NULL) {
 		dns_db_detach(&cache->db);
 	}
@@ -391,7 +377,6 @@ cache_free(dns_cache_t *cache) {
 	}
 
 	isc_mutex_destroy(&cache->lock);
-	isc_mutex_destroy(&cache->filelock);
 
 	cache->magic = 0;
 	isc_mem_detach(&cache->hmctx);
@@ -419,17 +404,6 @@ dns_cache_detach(dns_cache_t **cachep) {
 
 	if (isc_refcount_decrement(&cache->references) == 1) {
 		cache->cleaner.overmem = false;
-		/*
-		 * When the cache is shut down, dump it to a file if one is
-		 * specified.
-		 */
-		isc_result_t result = dns_cache_dump(cache);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-				      "error dumping cache: %s ",
-				      isc_result_totext(result));
-		}
 
 		/*
 		 * If the cleaner task exists, let it free the cache.
@@ -451,61 +425,6 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 	LOCK(&cache->lock);
 	dns_db_attach(cache->db, dbp);
 	UNLOCK(&cache->lock);
-}
-
-isc_result_t
-dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
-	char *newname;
-
-	REQUIRE(VALID_CACHE(cache));
-	REQUIRE(filename != NULL);
-
-	newname = isc_mem_strdup(cache->mctx, filename);
-
-	LOCK(&cache->filelock);
-	if (cache->filename) {
-		isc_mem_free(cache->mctx, cache->filename);
-	}
-	cache->filename = newname;
-	UNLOCK(&cache->filelock);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_cache_load(dns_cache_t *cache) {
-	isc_result_t result;
-
-	REQUIRE(VALID_CACHE(cache));
-
-	if (cache->filename == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-	LOCK(&cache->filelock);
-	result = dns_db_load(cache->db, cache->filename, dns_masterformat_text,
-			     0);
-	UNLOCK(&cache->filelock);
-
-	return (result);
-}
-
-isc_result_t
-dns_cache_dump(dns_cache_t *cache) {
-	isc_result_t result;
-
-	REQUIRE(VALID_CACHE(cache));
-
-	if (cache->filename == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-	LOCK(&cache->filelock);
-	result = dns_master_dump(cache->mctx, cache->db, NULL,
-				 &dns_master_style_cache, cache->filename,
-				 dns_masterformat_text, NULL);
-	UNLOCK(&cache->filelock);
-	return (result);
 }
 
 const char *

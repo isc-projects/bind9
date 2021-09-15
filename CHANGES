@@ -1,5 +1,6 @@
-5717.	[func]		The "cache-file" option has been marked as
-			deprecated. [GL #2903]
+5717.	[func]		The "cache-file" option, which was documented as
+			for testing purposes only and not to be used,
+			has been removed. [GL #2903]
 
 5716.	[placeholder]
 

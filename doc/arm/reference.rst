@@ -1204,9 +1204,6 @@ default is used.
    working directory. In most cases, the ``key_name`` should be the
    server's host name.
 
-``cache-file``
-   This is for testing only. Do not use.
-
 ``dump-file``
    This is the pathname of the file the server dumps the database to, when
    instructed to do so with ``rndc dumpdb``. If not specified, the
