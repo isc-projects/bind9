@@ -1991,7 +1991,7 @@ static cfg_clausedef_t view_clauses[] = {
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
-	{ "cache-file", &cfg_type_qstring, 0 },
+	{ "cache-file", &cfg_type_qstring, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cleaning-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
