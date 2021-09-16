@@ -1,3 +1,7 @@
+5719.	[func]		The "masterfile-format" format "map" has been marked
+			as deprecated.  The "map" format will be permanently
+			removed in a future release. [GL #2882]
+
 5717.	[func]		The "cache-file" option has been marked as
 			deprecated. [GL #2903]
 

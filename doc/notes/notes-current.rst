@@ -53,6 +53,9 @@ Feature Changes
   9.16.0 but no error was reported, although sending UDP messages
   (such as notifies) would fail. :gl:`#2888`
 
+- The ``masterfile-format`` format ``map`` has been marked as deprecated and
+  will be removed in a future release. :gl:`#2882`
+
 Bug Fixes
 ~~~~~~~~~
 
