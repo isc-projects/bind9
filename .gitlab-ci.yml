@@ -97,14 +97,14 @@ stages:
   image: "$CI_REGISTRY_IMAGE:alpine-3.14-amd64"
   <<: *linux_amd64
 
-# CentOS
+# Oracle Linux
 
-.centos-centos7-amd64: &centos_centos7_amd64_image
-  image: "$CI_REGISTRY_IMAGE:centos-centos7-amd64"
+.oraclelinux-7-amd64: &oraclelinux_7_amd64_image
+  image: "$CI_REGISTRY_IMAGE:oraclelinux-7-amd64"
   <<: *linux_amd64
 
-.centos-centos8-amd64: &centos_centos8_amd64_image
-  image: "$CI_REGISTRY_IMAGE:centos-centos8-amd64"
+.oraclelinux-8-amd64: &oraclelinux_8_amd64_image
+  image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
   <<: *linux_amd64
 
 # Debian
@@ -590,52 +590,52 @@ unit:gcc:alpine3.14:amd64:
     - job: gcc:alpine3.14:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on CentOS 7 (amd64)
+# Jobs for regular GCC builds on Oracle Linux 7 (amd64)
 
-gcc:centos7:amd64:
+gcc:oraclelinux7:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *centos_centos7_amd64_image
+  <<: *oraclelinux_7_amd64_image
   <<: *build_job
 
-system:gcc:centos7:amd64:
-  <<: *centos_centos7_amd64_image
+system:gcc:oraclelinux7:amd64:
+  <<: *oraclelinux_7_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:centos7:amd64
+    - job: gcc:oraclelinux7:amd64
       artifacts: true
 
-unit:gcc:centos7:amd64:
-  <<: *centos_centos7_amd64_image
+unit:gcc:oraclelinux7:amd64:
+  <<: *oraclelinux_7_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:centos7:amd64
+    - job: gcc:oraclelinux7:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on CentOS 8 (amd64)
+# Jobs for regular GCC builds on Oracle Linux 8 (amd64)
 
-gcc:centos8:amd64:
+gcc:oraclelinux8:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-buffer-useinline --with-libidn2"
-  <<: *centos_centos8_amd64_image
+  <<: *oraclelinux_8_amd64_image
   <<: *build_job
 
-system:gcc:centos8:amd64:
-  <<: *centos_centos8_amd64_image
+system:gcc:oraclelinux8:amd64:
+  <<: *oraclelinux_8_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:centos8:amd64
+    - job: gcc:oraclelinux8:amd64
       artifacts: true
 
-unit:gcc:centos8:amd64:
-  <<: *centos_centos8_amd64_image
+unit:gcc:oraclelinux8:amd64:
+  <<: *oraclelinux_8_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:centos8:amd64
+    - job: gcc:oraclelinux8:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 9 "stretch" (amd64)
