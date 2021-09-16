@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fBnamed\fP [ [\fB\-4\fP] | [\fB\-6\fP] ] [\fB\-c\fP config\-file] [\fB\-d\fP debug\-level] [\fB\-D\fP string] [\fB\-E\fP engine\-name] [\fB\-f\fP] [\fB\-g\fP] [\fB\-L\fP logfile] [\fB\-M\fP option] [\fB\-m\fP flag] [\fB\-n\fP #cpus] [\fB\-p\fP port] [\fB\-s\fP] [\fB\-S\fP #max\-socks] [\fB\-t\fP directory] [\fB\-U\fP #listeners] [\fB\-u\fP user] [\fB\-v\fP] [\fB\-V\fP] [\fB\-X\fP lock\-file] [\fB\-x\fP cache\-file]
+\fBnamed\fP [ [\fB\-4\fP] | [\fB\-6\fP] ] [\fB\-c\fP config\-file] [\fB\-d\fP debug\-level] [\fB\-D\fP string] [\fB\-E\fP engine\-name] [\fB\-f\fP] [\fB\-g\fP] [\fB\-L\fP logfile] [\fB\-M\fP option] [\fB\-m\fP flag] [\fB\-n\fP #cpus] [\fB\-p\fP port] [\fB\-s\fP] [\fB\-S\fP #max\-socks] [\fB\-t\fP directory] [\fB\-U\fP #listeners] [\fB\-u\fP user] [\fB\-v\fP] [\fB\-V\fP] [\fB\-X\fP lock\-file]
 .SH DESCRIPTION
 .sp
 \fBnamed\fP is a Domain Name System (DNS) server, part of the BIND 9
@@ -208,17 +208,6 @@ This option acquires a lock on the specified file at runtime; this helps to
 prevent duplicate \fBnamed\fP instances from running simultaneously.
 Use of this option overrides the \fBlock\-file\fP option in
 \fBnamed.conf\fP\&. If set to \fBnone\fP, the lock file check is disabled.
-.TP
-.B \fB\-x cache\-file\fP
-This option loads data from \fBcache\-file\fP into the cache of the default view.
-.UNINDENT
-.sp
-\fBWARNING:\fP
-.INDENT 0.0
-.INDENT 3.5
-This option must not be used in normal operations. It is only of interest to BIND 9
-developers and may be removed or changed in a future release.
-.UNINDENT
 .UNINDENT
 .SH SIGNALS
 .sp
