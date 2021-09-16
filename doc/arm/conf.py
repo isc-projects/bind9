@@ -87,10 +87,10 @@ def setup(_):
 
 # -- Project information -----------------------------------------------------
 
-project = u'BIND 9'
+project = 'BIND 9'
 # pylint: disable=redefined-builtin
-copyright = u'2021, Internet Systems Consortium'
-author = u'Internet Systems Consortium'
+copyright = '2021, Internet Systems Consortium'
+author = 'Internet Systems Consortium'
 
 # -- General configuration ---------------------------------------------------
 
@@ -136,7 +136,7 @@ latex_engine = 'xelatex'
 
 # pylint disable=line-too-long
 latex_documents = [
-    (master_doc, 'Bv9ARM.tex', u'BIND 9 Administrator Reference Manual', author, 'manual'),
+    (master_doc, 'Bv9ARM.tex', 'BIND 9 Administrator Reference Manual', author, 'manual'),
     ]
 
 latex_logo = "isc-logo.pdf"

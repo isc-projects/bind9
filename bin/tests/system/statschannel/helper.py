@@ -78,13 +78,6 @@ def zone_mtime(zonedir, name):
     return mtime
 
 
-def zone_keyid(nameserver, zone, key):
-    with open('{}/{}.{}.id'.format(nameserver, zone, key)) as f:
-        keyid = f.read().strip()
-        print('{}-{} ID: {}'.format(zone, key, keyid))
-    return keyid
-
-
 def create_msg(qname, qtype):
     msg = dns.message.make_query(qname, qtype, want_dnssec=True,
                                  use_edns=0, payload=4096)
