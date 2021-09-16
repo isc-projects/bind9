@@ -46,6 +46,7 @@ zone "example" {
 	allow-transfer { any; };
 	allow-update { any; };
 	auto-dnssec maintain;
+	sig-signing-type 65280;
 };
 
 zone "bar" {
