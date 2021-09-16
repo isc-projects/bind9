@@ -31,7 +31,6 @@ check_PROGRAMS =		\
 	nsec3param_test		\
 	peer_test		\
 	private_test		\
-	rbt_serialize_test	\
 	rbt_test		\
 	rbtdb_test		\
 	rdata_test		\

@@ -6,7 +6,7 @@
   	allow-query-on { <address_match_element>; ... };
   	dlz <string>;
   	file <quoted_string>;
-  	masterfile-format ( map | raw | text );
+  	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	masters [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
   	max-records <integer>;

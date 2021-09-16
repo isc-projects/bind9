@@ -74,8 +74,6 @@ typedef struct dns_dbmethods {
 	isc_result_t (*beginload)(dns_db_t *		db,
 				  dns_rdatacallbacks_t *callbacks);
 	isc_result_t (*endload)(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
-	isc_result_t (*serialize)(dns_db_t *db, dns_dbversion_t *version,
-				  FILE *file);
 	isc_result_t (*dump)(dns_db_t *db, dns_dbversion_t *version,
 			     const char *	filename,
 			     dns_masterformat_t masterformat);
@@ -499,8 +497,6 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  *      suitable for loading records into 'db' from a raw or text zone
  *      file. callbacks->add_private will be a valid DB load context
  *      which should be used as 'arg' when callbacks->add is called.
- *      callbacks->deserialize will be a valid dns_deserialize_func_t
- *      suitable for loading 'db' from a map format zone file.
  *
  * Returns:
  *
@@ -565,26 +561,6 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
- */
-
-isc_result_t
-dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
-/*%<
- * Dump version 'version' of 'db' to map-format file 'filename'.
- *
- * Requires:
- *
- * \li	'db' is a valid database.
- *
- * \li	'version' is a valid version.
- *
- * Returns:
- *
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
- *
- * \li	Other results are possible, depending upon the database
- *	implementation used, OS file errors, etc.
  */
 
 isc_result_t

@@ -335,15 +335,6 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 }
 
 isc_result_t
-dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file) {
-	REQUIRE(DNS_DB_VALID(db));
-	if (db->methods->serialize == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
-	return ((db->methods->serialize)(db, version, file));
-}
-
-isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	return ((db->methods->dump)(db, version, filename,
 				    dns_masterformat_text));

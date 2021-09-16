@@ -435,8 +435,6 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 			masterformat = dns_masterformat_text;
 		} else if (strcasecmp(masterformatstr, "raw") == 0) {
 			masterformat = dns_masterformat_raw;
-		} else if (strcasecmp(masterformatstr, "map") == 0) {
-			masterformat = dns_masterformat_map;
 		} else {
 			INSIST(0);
 			ISC_UNREACHABLE();

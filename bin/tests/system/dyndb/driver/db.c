@@ -129,15 +129,6 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 }
 
 static isc_result_t
-serialize(dns_db_t *db, dns_dbversion_t *version, FILE *file) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	return (dns_db_serialize(sampledb->rbtdb, version, file));
-}
-
-static isc_result_t
 dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
      dns_masterformat_t masterformat) {
 	UNUSED(db);
@@ -546,7 +537,6 @@ static dns_dbmethods_t sampledb_methods = {
 	detach,
 	beginload,
 	endload,
-	serialize,
 	dump,
 	currentversion,
 	newversion,

@@ -98,21 +98,6 @@ struct dns_rbtnode {
 	unsigned int oldnamelen	   : 8; /*%< range is 1..255 */
 	/*@}*/
 
-	/* flags needed for serialization to file */
-	unsigned int is_mmapped		: 1;
-	unsigned int parent_is_relative : 1;
-	unsigned int left_is_relative	: 1;
-	unsigned int right_is_relative	: 1;
-	unsigned int down_is_relative	: 1;
-	unsigned int data_is_relative	: 1;
-
-	/*
-	 * full name length; set during serialization, and used
-	 * during deserialization to calculate database size.
-	 * should be cleared after use.
-	 */
-	unsigned int fullnamelen : 8; /*%< range is 1..255 */
-
 	/* node needs to be cleaned from rpz */
 	unsigned int rpz : 1;
 	unsigned int	 : 0; /* end of bitfields c/o tree lock */
@@ -720,42 +705,6 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  * Returns:
  * \li  ISC_R_SUCCESS
  * \li  ISC_R_QUOTA if 'quantum' nodes have been destroyed.
- */
-
-off_t
-dns_rbt_serialize_align(off_t target);
-/*%<
- * Align the provided integer to a pointer-size boundary.
- * This should be used if, during serialization of data to a will-be
- * mmap()ed file, a pointer alignment is needed for some data.
- */
-
-isc_result_t
-dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
-		       dns_rbtdatawriter_t datawriter, void *writer_arg,
-		       off_t *offset);
-/*%<
- * Write out the RBT structure and its data to a file.
- *
- * Notes:
- * \li  The file must be an actual file which allows seek() calls, so it cannot
- *      be a stream.  Returns ISC_R_INVALIDFILE if not.
- */
-
-isc_result_t
-dns_rbt_deserialize_tree(void *base_address, size_t filesize,
-			 off_t header_offset, isc_mem_t *mctx,
-			 dns_rbtdeleter_t deleter, void *deleter_arg,
-			 dns_rbtdatafixer_t datafixer, void *fixer_arg,
-			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
-/*%<
- * Read a RBT structure and its data from a file.
- *
- * If 'originp' is not NULL, then it is pointed to the root node of the RBT.
- *
- * Notes:
- * \li  The file must be an actual file which allows seek() calls, so it cannot
- *      be a stream.  This condition is not checked in the code.
  */
 
 void

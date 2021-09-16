@@ -924,7 +924,6 @@ static dns_dbmethods_t rpsdb_db_methods = {
 	rpsdb_detach,
 	NULL, /* beginload */
 	NULL, /* endload */
-	NULL, /* serialize */
 	NULL, /* dump */
 	NULL, /* currentversion */
 	NULL, /* newversion */

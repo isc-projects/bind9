@@ -291,7 +291,7 @@ OPTIONS
   	lmdb-mapsize sizeval;
   	lock-file ( quoted_string | none );
   	managed-keys-directory quoted_string;
-  	masterfile-format ( map | raw | text );
+  	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	match-mapped-addresses boolean;
   	max-cache-size ( default | unlimited | sizeval | percentage );
@@ -648,7 +648,7 @@ VIEW
   	    ) integer integer
   	    integer
   	    quoted_string; ... };, deprecated
-  	masterfile-format ( map | raw | text );
+  	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	match-clients { address_match_element; ... };
   	match-destinations { address_match_element; ... };
@@ -860,7 +860,7 @@ VIEW
   		ixfr-from-differences boolean;
   		journal quoted_string;
   		key-directory quoted_string;
-  		masterfile-format ( map | raw | text );
+  		masterfile-format ( raw | text );
   		masterfile-style ( full | relative );
   		masters [ port integer ] [ dscp integer ] { ( masters
   		    | ipv4_address [ port integer ] | ipv6_address [
@@ -963,7 +963,7 @@ ZONE
   	ixfr-from-differences boolean;
   	journal quoted_string;
   	key-directory quoted_string;
-  	masterfile-format ( map | raw | text );
+  	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	masters [ port integer ] [ dscp integer ] { ( masters |
   	    ipv4_address [ port integer ] | ipv6_address [ port

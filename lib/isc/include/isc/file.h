@@ -342,22 +342,6 @@ isc_file_getsizefd(int fd, off_t *size);
  * - ISC_R_SUCCESS on success
  */
 
-void *
-isc_file_mmap(void *addr, size_t len, int prot, int flags, int fd,
-	      off_t offset);
-/*%<
- * Portable front-end to mmap().  If mmap() is not defined on this
- * platform, then we simulate it by calling malloc() and read().
- * (In this event, the addr, prot, and flags parameters are ignored).
- */
-
-int
-isc_file_munmap(void *addr, size_t len);
-/*%<
- * Portable front-end to munmap().  If munmap() is not defined on
- * this platform, then we simply free the memory.
- */
-
 isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		  char *path, size_t length);

@@ -14,9 +14,9 @@
 
 $CHECKZONE -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1
-$CHECKZONE -D -F map -o ../ns3/example.db.map example \
+$CHECKZONE -D -F raw -o ../ns3/example.db.raw example \
         example.db > /dev/null 2>&1
-$CHECKZONE -D -F map -o ../ns3/dynamic.db.map dynamic \
+$CHECKZONE -D -F raw -o ../ns3/dynamic.db.raw dynamic \
         example.db > /dev/null 2>&1
 $CHECKZONE -D -F raw=1 -o example.db.raw1 example-explicit \
         example.db > /dev/null 2>&1
@@ -25,10 +25,8 @@ $CHECKZONE -D -F raw=0 -o example.db.compat example-compat \
 $CHECKZONE -D -F raw -L 3333 -o example.db.serial.raw example \
         example.db > /dev/null 2>&1
 $CHECKZONE -D -F raw -o large.db.raw large large.db > /dev/null 2>&1
-$CHECKZONE -D -F map -o example.db.map example-map \
-        example.db > /dev/null 2>&1
 
 $KEYGEN -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK signed > /dev/null 2>&1
 $KEYGEN -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" signed > /dev/null 2>&1
 $SIGNER -S -f signed.db.signed -o signed signed.db > /dev/null
-$CHECKZONE -D -F map -o signed.db.map signed signed.db.signed > /dev/null 2>&1
+$CHECKZONE -D -F raw -o signed.db.raw signed signed.db.signed > /dev/null 2>&1

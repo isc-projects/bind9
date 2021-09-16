@@ -2636,7 +2636,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool ula = false;
 	const cfg_listelt_t *element;
 	bool dlz;
-	dns_masterformat_t masterformat;
 	bool ddns = false;
 	bool has_dnssecpolicy = false;
 	const void *clauses = NULL;
@@ -3442,47 +3441,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    snamestr, znamestr);
 				result = ISC_R_FAILURE;
 			}
-		}
-	}
-
-	/*
-	 * Check that max-zone-ttl isn't used with masterfile-format map
-	 */
-	masterformat = dns_masterformat_text;
-	obj = NULL;
-	(void)cfg_map_get(zoptions, "masterfile-format", &obj);
-	if (obj != NULL) {
-		const char *masterformatstr = cfg_obj_asstring(obj);
-		if (strcasecmp(masterformatstr, "text") == 0) {
-			masterformat = dns_masterformat_text;
-		} else if (strcasecmp(masterformatstr, "raw") == 0) {
-			masterformat = dns_masterformat_raw;
-		} else if (strcasecmp(masterformatstr, "map") == 0) {
-			masterformat = dns_masterformat_map;
-			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "masterfile-format: format 'map' is "
-				    "deprecated");
-		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-	}
-
-	if (masterformat == dns_masterformat_map) {
-		obj = NULL;
-		(void)cfg_map_get(zoptions, "max-zone-ttl", &obj);
-		if (obj == NULL && voptions != NULL) {
-			(void)cfg_map_get(voptions, "max-zone-ttl", &obj);
-		}
-		if (obj == NULL && goptions != NULL) {
-			(void)cfg_map_get(goptions, "max-zone-ttl", &obj);
-		}
-		if (obj != NULL) {
-			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': 'max-zone-ttl' is not "
-				    "compatible with 'masterfile-format map'",
-				    znamestr);
-			result = ISC_R_FAILURE;
 		}
 	}
 

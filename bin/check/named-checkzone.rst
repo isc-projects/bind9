@@ -101,8 +101,8 @@ Options
    Mode ``none`` disables the checks.
 
 ``-f format``
-   This option specifies the format of the zone file. Possible formats are ``text``
-   (the default), ``raw``, and ``map``.
+   This option specifies the format of the zone file. Possible formats are
+   ``text`` (the default), and ``raw``.
 
 ``-F format``
    This option specifies the format of the output file specified. For
@@ -110,12 +110,11 @@ Options
    the zone contents.
 
    Possible formats are ``text`` (the default), which is the standard
-   textual representation of the zone, and ``map``, ``raw``, and
-   ``raw=N``, which store the zone in a binary format for rapid
-   loading by ``named``. ``raw=N`` specifies the format version of the
-   raw zone file: if ``N`` is 0, the raw file can be read by any version of
-   ``named``; if N is 1, the file can only be read by release 9.9.0 or
-   higher. The default is 1.
+   textual representation of the zone, and ``raw`` and ``raw=N``, which
+   store the zone in a binary format for rapid loading by ``named``.
+   ``raw=N`` specifies the format version of the raw zone file: if ``N`` is
+   0, the raw file can be read by any version of ``named``; if N is 1, the
+   file can only be read by release 9.9.0 or higher. The default is 1.
 
 ``-k mode``
    This option performs ``check-names`` checks with the specified failure mode.
@@ -128,7 +127,7 @@ Options
    is similar to using the ``max-zone-ttl`` option in ``named.conf``.
 
 ``-L serial``
-   When compiling a zone to ``raw`` or ``map`` format, this option sets the "source
+   When compiling a zone to ``raw`` format, this option sets the "source
    serial" value in the header to the specified serial number. This is
    expected to be used primarily for testing purposes.
 
