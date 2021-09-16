@@ -1,6 +1,5 @@
-5719.	[func]		The "masterfile-format" format "map" has been marked
-			as deprecated.  The "map" format will be permanently
-			removed in a future release. [GL #2882]
+5719.	[func]		The "masterfile-format" format "map" has been removed.
+			[GL #2882]
 
 5718.	[bug]		Changing the sig signing type, by specifing
 			sig-signing-type, failed as the configuration was
