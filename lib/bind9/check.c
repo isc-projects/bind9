@@ -3237,8 +3237,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    "sig-signing-type: %u out of "
 					    "range [%u..%u]",
 					    type, 0xff00U, 0xffffU);
+				result = ISC_R_FAILURE;
 			}
-			result = ISC_R_FAILURE;
 		}
 
 		obj = NULL;
