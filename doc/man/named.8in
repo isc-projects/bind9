@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "NAMED" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
-.SH NAME
-named \- Internet domain name server
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "NAMED" "8" "@RELEASE_DATE@" "@PACKAGE_VERSION@" "BIND 9"
+.SH NAME
+named \- Internet domain name server
 .SH SYNOPSIS
 .sp
 \fBnamed\fP [ [\fB\-4\fP] | [\fB\-6\fP] ] [\fB\-c\fP config\-file] [\fB\-d\fP debug\-level] [\fB\-D\fP string] [\fB\-E\fP engine\-name] [\fB\-f\fP] [\fB\-g\fP] [\fB\-L\fP logfile] [\fB\-M\fP option] [\fB\-m\fP flag] [\fB\-n\fP #cpus] [\fB\-p\fP port] [\fB\-s\fP] [\fB\-S\fP #max\-socks] [\fB\-t\fP directory] [\fB\-U\fP #listeners] [\fB\-u\fP user] [\fB\-v\fP] [\fB\-V\fP] [\fB\-X\fP lock\-file]
