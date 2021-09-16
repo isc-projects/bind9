@@ -1,3 +1,6 @@
+5717.	[func]		The "cache-file" option has been marked as
+			deprecated. [GL #2903]
+
 5716.	[bug]		Multiple library names were mistakenly passed to the
 			krb5-config utility when ./configure was invoked with
 			the --with-gssapi=[/path/to/]krb5-config option. This
