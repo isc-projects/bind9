@@ -3887,7 +3887,7 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "cert-file", &cfg_type_qstring, 0 },
 	{ "ca-file", &cfg_type_qstring, 0 },
 	{ "hostname", &cfg_type_qstring, 0 },
-	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_EXPERIMENTAL },
+	{ "dhparam-file", &cfg_type_qstring, 0 },
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ NULL, NULL, 0 }

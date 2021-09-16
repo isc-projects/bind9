@@ -46,6 +46,15 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		if (tls_params->protocols != 0) {
 			isc_tlsctx_set_protocols(sslctx, tls_params->protocols);
 		}
+
+		if (tls_params->dhparam_file != NULL) {
+			if (!isc_tlsctx_load_dhparams(sslctx,
+						      tls_params->dhparam_file))
+			{
+				isc_tlsctx_free(&sslctx);
+				return (ISC_R_FAILURE);
+			}
+		}
 	}
 
 	elt = isc_mem_get(mctx, sizeof(*elt));

@@ -17,6 +17,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
+#include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
@@ -458,6 +459,71 @@ isc_tlsctx_set_protocols(isc_tlsctx_t *ctx, const uint32_t tls_versions) {
 
 	(void)SSL_CTX_set_options(ctx, set_options);
 	(void)SSL_CTX_clear_options(ctx, clear_options);
+}
+
+bool
+isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(dhparams_file != NULL);
+	REQUIRE(*dhparams_file != '\0');
+
+#ifdef SSL_CTX_set_tmp_dh
+	/* OpenSSL < 3.0 */
+	DH *dh = NULL;
+	FILE *paramfile;
+
+	paramfile = fopen(dhparams_file, "r");
+
+	if (paramfile) {
+		int check = 0;
+		dh = PEM_read_DHparams(paramfile, NULL, NULL, NULL);
+		fclose(paramfile);
+
+		if (dh == NULL) {
+			return (false);
+		} else if (DH_check(dh, &check) != 1 || check != 0) {
+			DH_free(dh);
+			return (false);
+		}
+	} else {
+		return (false);
+	}
+
+	if (SSL_CTX_set_tmp_dh(ctx, dh) != 1) {
+		DH_free(dh);
+		return (false);
+	}
+
+	DH_free(dh);
+#else
+	/* OpenSSL >= 3.0: SSL_CTX_set_tmp_dh() is deprecated in OpenSSL 3.0 */
+	EVP_PKEY *dh = NULL;
+	BIO *bio = NULL;
+
+	bio = BIO_new_file(dhparams_file, "r");
+	if (bio == NULL) {
+		return (false);
+	}
+
+	dh = PEM_read_bio_Parameters(bio, NULL);
+	if (dh == NULL) {
+		BIO_free(bio);
+		return (false);
+	}
+
+	if (SSL_CTX_set0_tmp_dh_pkey(ctx, dh) != 1) {
+		BIO_free(bio);
+		EVP_PKEY_free(dh);
+		return (false);
+	}
+
+	/* No need to call EVP_PKEY_free(dh) as the "dh" is owned by the
+	 * SSL context at this point. */
+
+	BIO_free(bio);
+#endif
+
+	return (true);
 }
 
 isc_tls_t *

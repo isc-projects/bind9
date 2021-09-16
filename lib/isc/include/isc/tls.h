@@ -84,6 +84,17 @@ isc_tls_protocol_name_to_version(const char *name);
  *\li	'name' != NULL.
  */
 
+bool
+isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file);
+/*%<
+ * Load Diffie-Hellman parameters file and apply it to the given TLS context
+ * 'ctx'.
+ *
+ * Requires:
+ * \li	'ctx' != NULL;
+ * \li	'dhaprams_file' a valid pointer to a non empty string.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<

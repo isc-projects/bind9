@@ -293,7 +293,7 @@ The following statements are supported:
         Declares communication channels to get access to ``named`` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``hostname``, and ``protocols``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, and ``protocols``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -4768,6 +4768,13 @@ The following options can be specified in a ``tls`` statement:
 
   ``ca-file``
     Path to a file containing trusted TLS certificates.
+
+  ``dhparam-file``
+    Path to a file containing Diffie-Hellman parameters,
+    which is needed to enable the cipher suites depending on the
+    Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
+    specified is essential for enabling perfect forward secrecy capable
+    ciphers in TLSv1.2.
 
   ``hostname``
     The hostname associated with the certificate.

@@ -4,7 +4,7 @@
   	ca-file <quoted_string>;
   	cert-file <quoted_string>;
   	ciphers <string>; // experimental
-  	dh-param <quoted_string>; // experimental
+  	dhparam-file <quoted_string>;
   	hostname <quoted_string>;
   	key-file <quoted_string>;
   	protocols { <string>; ... };
