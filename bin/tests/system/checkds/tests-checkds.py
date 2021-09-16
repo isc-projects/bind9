@@ -67,7 +67,7 @@ def verify_zone(zone, transfer):
     assert verify is not None
 
     filename = "{}out".format(zone)
-    with open(filename, 'w') as file:
+    with open(filename, 'w', encoding='utf-8') as file:
         for rr in transfer.answer:
             file.write(rr.to_text())
             file.write('\n')
@@ -117,7 +117,7 @@ def read_statefile(server, zone):
     print("read state file {}".format(filename))
 
     try:
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
                 if line.startswith(';'):
                     continue
@@ -203,7 +203,7 @@ def wait_for_log(filename, log):
         print("read log file {}".format(filename))
 
         try:
-            with open(filename, 'r') as file:
+            with open(filename, 'r', encoding='utf-8') as file:
                 s = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
                 if s.find(bytes(log, "ascii")) != -1:
                     found = True

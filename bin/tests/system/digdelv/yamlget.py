@@ -19,7 +19,7 @@ except:
     print("No python yaml module, skipping")
     sys.exit(1)
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1], "r", encoding="utf-8") as f:
     for item in yaml.safe_load_all(f):
         for key in sys.argv[2:]:
             try:
