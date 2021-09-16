@@ -37,11 +37,11 @@ def test_rpz_passthru_logging(named_port):
     assert os.path.isfile(rpz_passthru_logfile)
     assert os.path.isfile(rpz_logfile)
 
-    with open(rpz_passthru_logfile) as log_file:
+    with open(rpz_passthru_logfile, encoding='utf-8') as log_file:
         line = log_file.read()
         assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" in line
 
-    with open(rpz_logfile) as log_file:
+    with open(rpz_logfile, encoding='utf-8') as log_file:
         line = log_file.read()
         assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" not in line
         assert "rpz QNAME NXDOMAIN rewrite baddomain/A/IN" in line
