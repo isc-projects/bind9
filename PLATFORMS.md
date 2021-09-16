@@ -63,7 +63,7 @@ following systems:
 * Debian 9, 10
 * Ubuntu LTS 18.04, 20.04
 * Fedora 34
-* Red Hat Enterprise Linux / CentOS 7, 8
+* Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8
 * FreeBSD 11.4, 12.2, 13.0
 * OpenBSD 6.9
 * Alpine Linux 3.14
