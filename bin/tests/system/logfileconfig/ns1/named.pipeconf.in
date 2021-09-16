@@ -17,37 +17,25 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
+	dnssec-validation no;
 	recursion no;
 	notify yes;
 };
 
 logging {
 	channel default_log {
-	  buffered no;
-	  file "named_unlimited" versions unlimited size 1000;
-	  severity debug 100;
+	  file "named_pipe";
 	  print-time yes;
 	};
 	category default { default_log; default_debug; };
 	category lame-servers { null; };
-
-	channel query_log {
-	  file "query_log";
-	  print-time yes;
-	  buffered yes;
-	};
-	category queries { query_log; };
 };
 
-include "controls.conf";
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { "rndc-key"; };
+};
 
-key "rndc-key" {
+key rndc-key {
+	secret "1234abcd8765";
 	algorithm hmac-sha256;
-	secret "Am9vCg==";
-};
-
-
-zone "." {
-	type primary;
-	file "root.db";
 };

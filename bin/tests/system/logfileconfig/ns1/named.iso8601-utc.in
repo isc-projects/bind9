@@ -17,27 +17,25 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
+	dnssec-validation no;
 	recursion no;
 	notify yes;
 };
 
 logging {
 	channel default_log {
-		file "named_iso8601";
-		print-time iso8601;
+		file "named_iso8601_utc";
+		print-time iso8601-utc;
 		severity debug 9;
 	};
 	category default { default_log; default_debug; };
 };
 
-include "controls.conf";
-
-key "rndc-key" {
-	algorithm hmac-sha256;
-	secret "Am9vCg==";
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { "rndc-key"; };
 };
 
-zone "." {
-	type primary;
-	file "root.db";
+key rndc-key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
 };
