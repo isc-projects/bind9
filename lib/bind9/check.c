@@ -3172,6 +3172,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			masterformat = dns_masterformat_raw;
 		} else if (strcasecmp(masterformatstr, "map") == 0) {
 			masterformat = dns_masterformat_map;
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "masterfile-format: format 'map' is "
+				    "deprecated");
 		} else {
 			INSIST(0);
 			ISC_UNREACHABLE();

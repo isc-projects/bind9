@@ -583,6 +583,24 @@ grep "not recommended" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=$((n+1))
+echo_i "check that masterfile-format map generates deprecation warning ($n)"
+ret=0
+$CHECKCONF deprecated-masterfile-format-map.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "is deprecated" < checkconf.out$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check that masterfile-format text and raw don't generate deprecation warning ($n)"
+ret=0
+$CHECKCONF good-masterfile-format-text.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "is deprecated" < checkconf.out$n >/dev/null && ret=1
+$CHECKCONF good-masterfile-format-raw.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "is deprecated" < checkconf.out$n >/dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=$((status+ret))
+
 rmdir keys
 
 echo_i "exit status: $status"
