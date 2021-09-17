@@ -12,6 +12,8 @@
 
 from datetime import datetime
 
+import os
+
 import pytest
 import requests
 
@@ -72,6 +74,8 @@ def load_zone_json(zone):
 
 @pytest.mark.json
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEJSONSTATS", "unset") != "1",
+                    reason="JSON not configured")
 def test_zone_timers_primary_json(statsport):
     generic.test_zone_timers_primary(fetch_zones_json, load_timers_json,
                                      statsip="10.53.0.1", statsport=statsport,
@@ -80,6 +84,8 @@ def test_zone_timers_primary_json(statsport):
 
 @pytest.mark.json
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEJSONSTATS", "unset") != "1",
+                    reason="JSON not configured")
 def test_zone_timers_secondary_json(statsport):
     generic.test_zone_timers_secondary(fetch_zones_json, load_timers_json,
                                        statsip="10.53.0.3", statsport=statsport,
@@ -88,6 +94,8 @@ def test_zone_timers_secondary_json(statsport):
 
 @pytest.mark.json
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEJSONSTATS", "unset") != "1",
+                    reason="JSON not configured")
 def test_zone_with_many_keys_json(statsport):
     generic.test_zone_with_many_keys(fetch_zones_json, load_zone_json,
                                      statsip="10.53.0.2", statsport=statsport)
@@ -96,6 +104,8 @@ def test_zone_with_many_keys_json(statsport):
 @pytest.mark.json
 @pytest.mark.requests
 @pytest.mark.dnspython
+@pytest.mark.skipif(os.getenv("HAVEJSONSTATS", "unset") != "1",
+                    reason="JSON not configured")
 def test_traffic_json(port, statsport):
     generic.test_traffic(fetch_traffic_json,
                          statsip="10.53.0.2", statsport=statsport,
