@@ -1053,6 +1053,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			masterformat = dns_masterformat_raw;
 		} else if (strcasecmp(masterformatstr, "map") == 0) {
 			masterformat = dns_masterformat_map;
+			cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+				    "masterfile-format: format 'map' is "
+				    "deprecated");
 		} else {
 			INSIST(0);
 			ISC_UNREACHABLE();
