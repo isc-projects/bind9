@@ -571,96 +571,6 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	return (ISC_R_SUCCESS);
 }
 
-/*% scan the zone for oversize TTLs */
-static isc_result_t
-check_ttls(dns_zone_t *zone, dns_ttl_t maxttl) {
-	isc_result_t result;
-	dns_db_t *db = NULL;
-	dns_dbversion_t *version = NULL;
-	dns_dbnode_t *node = NULL;
-	dns_dbiterator_t *dbiter = NULL;
-	dns_rdatasetiter_t *rdsiter = NULL;
-	dns_rdataset_t rdataset;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	name = dns_fixedname_initname(&fname);
-	dns_rdataset_init(&rdataset);
-
-	CHECK(dns_zone_getdb(zone, &db));
-	INSIST(db != NULL);
-
-	CHECK(dns_db_newversion(db, &version));
-	CHECK(dns_db_createiterator(db, 0, &dbiter));
-
-	for (result = dns_dbiterator_first(dbiter); result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiter))
-	{
-		result = dns_dbiterator_current(dbiter, &node, name);
-		if (result == DNS_R_NEWORIGIN) {
-			result = ISC_R_SUCCESS;
-		}
-		CHECK(result);
-
-		CHECK(dns_db_allrdatasets(db, node, version, 0, &rdsiter));
-		for (result = dns_rdatasetiter_first(rdsiter);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(rdsiter))
-		{
-			dns_rdatasetiter_current(rdsiter, &rdataset);
-			if (rdataset.ttl > maxttl) {
-				char nbuf[DNS_NAME_FORMATSIZE];
-				char tbuf[255];
-				isc_buffer_t b;
-				isc_region_t r;
-
-				dns_name_format(name, nbuf, sizeof(nbuf));
-				isc_buffer_init(&b, tbuf, sizeof(tbuf) - 1);
-				CHECK(dns_rdatatype_totext(rdataset.type, &b));
-				isc_buffer_usedregion(&b, &r);
-				r.base[r.length] = 0;
-
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "%s/%s TTL %d exceeds "
-					     "maximum TTL %d",
-					     nbuf, tbuf, rdataset.ttl, maxttl);
-				dns_rdataset_disassociate(&rdataset);
-				CHECK(ISC_R_RANGE);
-			}
-			dns_rdataset_disassociate(&rdataset);
-		}
-		if (result == ISC_R_NOMORE) {
-			result = ISC_R_SUCCESS;
-		}
-		CHECK(result);
-
-		dns_rdatasetiter_destroy(&rdsiter);
-		dns_db_detachnode(db, &node);
-	}
-
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-
-cleanup:
-	if (node != NULL) {
-		dns_db_detachnode(db, &node);
-	}
-	if (rdsiter != NULL) {
-		dns_rdatasetiter_destroy(&rdsiter);
-	}
-	if (dbiter != NULL) {
-		dns_dbiterator_destroy(&dbiter);
-	}
-	if (version != NULL) {
-		dns_db_closeversion(db, &version, false);
-	}
-	if (db != NULL) {
-		dns_db_detach(&db);
-	}
-
-	return (result);
-}
-
 /*% load the zone */
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
@@ -723,14 +633,6 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	}
 
 	CHECK(dns_zone_load(zone, false));
-
-	/*
-	 * When loading map files we can't catch oversize TTLs during
-	 * load, so we check for them here.
-	 */
-	if (fileformat == dns_masterformat_map && maxttl != 0) {
-		CHECK(check_ttls(zone, maxttl));
-	}
 
 	if (zonep != NULL) {
 		*zonep = zone;

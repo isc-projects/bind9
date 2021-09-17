@@ -62,8 +62,8 @@ This option indicates that only those record types automatically managed by
 \fBdnssec\-signzone\fP, i.e., RRSIG, NSEC, NSEC3 and NSEC3PARAM records, should be included in the output.
 If smart signing (\fB\-S\fP) is used, DNSKEY records are also included.
 The resulting file can be included in the original zone file with
-\fB$INCLUDE\fP\&. This option cannot be combined with \fB\-O raw\fP,
-\fB\-O map\fP, or serial\-number updating.
+\fB$INCLUDE\fP\&. This option cannot be combined with \fB\-O raw\fP
+or serial\-number updating.
 .TP
 .B \fB\-E engine\fP
 This option specifies the hardware to use for cryptographic
@@ -157,8 +157,8 @@ days. Therefore, if any existing RRSIG records are due to expire in
 less than 7.5 days, they are replaced.
 .TP
 .B \fB\-I input\-format\fP
-This option sets the format of the input zone file. Possible formats are \fBtext\fP
-(the default), \fBraw\fP, and \fBmap\fP\&. This option is primarily
+This option sets the format of the input zone file. Possible formats are
+\fBtext\fP (the default), and \fBraw\fP\&. This option is primarily
 intended to be used for dynamic signed zones, so that the dumped zone
 file in a non\-text format containing updates can be signed directly.
 This option is not useful for non\-dynamic zones.
@@ -179,7 +179,7 @@ less congestion than if all validators need to refetch at around the
 same time.
 .TP
 .B \fB\-L serial\fP
-When writing a signed zone to "raw" or "map" format, this option sets the "source
+When writing a signed zone to "raw" format, this option sets the "source
 serial" value in the header to the specified \fBserial\fP number. (This is
 expected to be used primarily for testing purposes.)
 .TP
@@ -217,15 +217,14 @@ This option sets the zone origin. If not specified, the name of the zone file is
 assumed to be the origin.
 .TP
 .B \fB\-O output\-format\fP
-This option sets the format of the output file containing the signed zone. Possible
-formats are \fBtext\fP (the default), which is the standard textual
-representation of the zone; \fBfull\fP, which is text output in a
-format suitable for processing by external scripts; and \fBmap\fP,
-\fBraw\fP, and \fBraw=N\fP, which store the zone in binary formats
-for rapid loading by \fBnamed\fP\&. \fBraw=N\fP specifies the format
-version of the raw zone file: if N is 0, the raw file can be read by
-any version of \fBnamed\fP; if N is 1, the file can be read by release
-9.9.0 or higher. The default is 1.
+This option sets the format of the output file containing the signed
+zone. Possible formats are \fBtext\fP (the default), which is the standard
+textual representation of the zone; \fBfull\fP, which is text output in a
+format suitable for processing by external scripts; and \fBraw\fP and
+\fBraw=N\fP, which store the zone in binary formats for rapid loading by
+\fBnamed\fP\&. \fBraw=N\fP specifies the format version of the raw zone file:
+if N is 0, the raw file can be read by any version of \fBnamed\fP; if N is
+1, the file can be read by release 9.9.0 or higher. The default is 1.
 .TP
 .B \fB\-P\fP
 This option disables post\-sign verification tests.

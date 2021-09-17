@@ -208,7 +208,6 @@ typedef enum {
 	dns_masterformat_none = 0,
 	dns_masterformat_text = 1,
 	dns_masterformat_raw = 2,
-	dns_masterformat_map = 3
 } dns_masterformat_t;
 
 /*
@@ -420,8 +419,6 @@ typedef bool (*dns_checknsfunc_t)(dns_zone_t *, const dns_name_t *,
 typedef bool (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *,
 				 const isc_sockaddr_t *, const isc_sockaddr_t *,
 				 dns_rdataclass_t, void *);
-
-typedef isc_result_t (*dns_deserializefunc_t)(void *, FILE *, off_t);
 
 typedef void (*dns_nseclog_t)(void *val, int, const char *, ...);
 

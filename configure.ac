@@ -33,23 +33,6 @@ AC_DEFINE([PACKAGE_VERSION_EXTRA], ["][bind_VERSION_EXTRA]["], [BIND 9 Extra par
 AC_DEFINE([PACKAGE_DESCRIPTION], [m4_ifnblank(bind_DESCRIPTION, [" ]bind_DESCRIPTION["], [])], [An extra string to print after PACKAGE_STRING])
 AC_DEFINE([PACKAGE_SRCID], ["][bind_SRCID]["], [A short hash from git])
 
-# This value should be increased whenever changing the structure of
-# any object that will appear in a type 'map' master file (which
-# contains a working memory image of an RBT database), as loading 
-# an incorrect memory image produces an inconsistent and probably
-# nonfunctional database.  These structures include but are not
-# necessarily limited to dns_masterrawheader, rbtdb_file_header,
-# rbt_file_header, dns_rbtdb, dns_rbt, dns_rbtnode, rdatasetheader.
-#
-# Err on the side of caution: if anything in the RBTDB is changed,
-# bump the value.  Making map files unreadable protects the system
-# from instability; it's a feature not a bug.
-#
-# Whenever releasing a new major release of BIND9, set this value
-# back to 1.0 when releasing the first alpha.  Map files are *never*
-# compatible across major releases.
-AC_DEFINE([MAPAPI], ["3.0"], [BIND 9 MAPAPI Version])
-
 bind_CONFIGARGS="${ac_configure_args:-default}"
 AC_DEFINE_UNQUOTED([PACKAGE_CONFIGARGS], ["$bind_CONFIGARGS"], [Either 'defaults' or used ./configure options])
 
@@ -357,11 +340,6 @@ AS_CASE([$host],
 	     [AC_MSG_RESULT([no])])])
 
 AC_CHECK_FUNCS([sysctlbyname])
-
-#
-# Check for the existence of mmap to enable the fast format zones
-#
-AC_CHECK_FUNCS(mmap)
 
 #
 # Older versions of HP/UX don't define seteuid() and setegid()

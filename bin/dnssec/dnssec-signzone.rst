@@ -62,8 +62,8 @@ Options
    ``dnssec-signzone``, i.e., RRSIG, NSEC, NSEC3 and NSEC3PARAM records, should be included in the output.
    If smart signing (``-S``) is used, DNSKEY records are also included.
    The resulting file can be included in the original zone file with
-   ``$INCLUDE``. This option cannot be combined with ``-O raw``,
-   ``-O map``, or serial-number updating.
+   ``$INCLUDE``. This option cannot be combined with ``-O raw``
+   or serial-number updating.
 
 ``-E engine``
    This option specifies the hardware to use for cryptographic
@@ -157,8 +157,8 @@ Options
    less than 7.5 days, they are replaced.
 
 ``-I input-format``
-   This option sets the format of the input zone file. Possible formats are ``text``
-   (the default), ``raw``, and ``map``. This option is primarily
+   This option sets the format of the input zone file. Possible formats are
+   ``text`` (the default), and ``raw``. This option is primarily
    intended to be used for dynamic signed zones, so that the dumped zone
    file in a non-text format containing updates can be signed directly.
    This option is not useful for non-dynamic zones.
@@ -179,7 +179,7 @@ Options
    same time.
 
 ``-L serial``
-   When writing a signed zone to "raw" or "map" format, this option sets the "source
+   When writing a signed zone to "raw" format, this option sets the "source
    serial" value in the header to the specified ``serial`` number. (This is
    expected to be used primarily for testing purposes.)
 
@@ -215,15 +215,14 @@ Options
    assumed to be the origin.
 
 ``-O output-format``
-   This option sets the format of the output file containing the signed zone. Possible
-   formats are ``text`` (the default), which is the standard textual
-   representation of the zone; ``full``, which is text output in a
-   format suitable for processing by external scripts; and ``map``,
-   ``raw``, and ``raw=N``, which store the zone in binary formats
-   for rapid loading by ``named``. ``raw=N`` specifies the format
-   version of the raw zone file: if N is 0, the raw file can be read by
-   any version of ``named``; if N is 1, the file can be read by release
-   9.9.0 or higher. The default is 1.
+   This option sets the format of the output file containing the signed
+   zone. Possible formats are ``text`` (the default), which is the standard
+   textual representation of the zone; ``full``, which is text output in a
+   format suitable for processing by external scripts; and ``raw`` and
+   ``raw=N``, which store the zone in binary formats for rapid loading by
+   ``named``. ``raw=N`` specifies the format version of the raw zone file:
+   if N is 0, the raw file can be read by any version of ``named``; if N is
+   1, the file can be read by release 9.9.0 or higher. The default is 1.
 
 ``-P``
    This option disables post-sign verification tests.

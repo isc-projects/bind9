@@ -74,28 +74,6 @@
 			goto failure;        \
 	} while (0)
 
-/*
- * This is the map file header for RBTDB images.  It is populated, and then
- * written, as the LAST thing done to the file.  Writing this last (with
- * zeros in the header area initially) will ensure that the header is only
- * valid when the RBTDB image is also valid.
- */
-typedef struct rbtdb_file_header rbtdb_file_header_t;
-
-/* Header length, always the same size regardless of structure size */
-#define RBTDB_HEADER_LENGTH 1024
-
-struct rbtdb_file_header {
-	char version1[32];
-	uint32_t ptrsize;
-	unsigned int bigendian : 1;
-	uint64_t tree;
-	uint64_t nsec;
-	uint64_t nsec3;
-
-	char version2[32]; /* repeated; must match version1 */
-};
-
 /*%
  * Note that "impmagic" is not the first four bytes of the struct, so
  * ISC_MAGIC_VALID cannot be used.
@@ -200,10 +178,7 @@ typedef struct rdatasetheader {
 	atomic_uint_fast32_t last_refresh_fail_ts;
 	struct noqname *noqname;
 	struct noqname *closest;
-	unsigned int is_mmapped	      : 1;
-	unsigned int next_is_relative : 1;
-	unsigned int node_is_relative : 1;
-	unsigned int resign_lsb	      : 1;
+	unsigned int resign_lsb : 1;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -512,12 +487,6 @@ struct dns_rbtdb {
 	isc_mem_t *hmctx;
 	isc_heap_t **heaps;
 
-	/*
-	 * Base values for the mmap() code.
-	 */
-	void *mmap_location;
-	size_t mmap_size;
-
 	/* Locked by tree_lock. */
 	dns_rbt_t *tree;
 	dns_rbt_t *nsec;
@@ -739,12 +708,6 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
 static void
 setownercase(rdatasetheader_t *header, const dns_name_t *name);
 
-static bool
-match_header_version(rbtdb_file_header_t *header);
-
-/* Pad to 32 bytes */
-static char FILE_VERSION[32] = "\0";
-
 /*%
  * 'init_count' is used to initialize 'newheader->count' which inturn
  * is used to determine where in the cycle rrset-order cyclic starts.
@@ -779,34 +742,6 @@ static atomic_uint_fast32_t init_count = ATOMIC_VAR_INIT(0);
  *
  * For zone databases the node for the origin of the zone MUST NOT be deleted.
  */
-
-/*
- * Debugging routines
- */
-#ifdef DEBUG
-static void
-hexdump(const char *desc, unsigned char *data, size_t size) {
-	char hexdump[BUFSIZ * 2 + 1];
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	size_t bytes;
-
-	fprintf(stderr, "%s: ", desc);
-	do {
-		isc_buffer_init(&b, hexdump, sizeof(hexdump));
-		r.base = data;
-		r.length = bytes = (size > BUFSIZ) ? BUFSIZ : size;
-		result = isc_hex_totext(&r, 0, "", &b);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		isc_buffer_putuint8(&b, 0);
-		fprintf(stderr, "%s", hexdump);
-		data += bytes;
-		size -= bytes;
-	} while (size > 0);
-	fprintf(stderr, "\n");
-}
-#endif /* ifdef DEBUG */
 
 /* Fixed RRSet helper macros */
 
@@ -1203,10 +1138,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 	rbtdb->common.impmagic = 0;
 	isc_mem_detach(&rbtdb->hmctx);
 
-	if (rbtdb->mmap_location != NULL) {
-		isc_file_munmap(rbtdb->mmap_location, (size_t)rbtdb->mmap_size);
-	}
-
 	for (listener = ISC_LIST_HEAD(rbtdb->common.update_listeners);
 	     listener != NULL; listener = listener_next)
 	{
@@ -1444,9 +1375,6 @@ static inline void
 init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
-	h->is_mmapped = 0;
-	h->next_is_relative = 0;
-	h->node_is_relative = 0;
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
@@ -1463,23 +1391,8 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 #endif /* if TRACE_HEADER */
 }
 
-/*
- * Update the copied values of 'next' and 'node' if they are relative.
- */
 static void
 update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
-	char *p;
-
-	if (old->next_is_relative) {
-		p = (char *)old;
-		p += (uintptr_t)old->next;
-		newh->next = (rdatasetheader_t *)p;
-	}
-	if (old->node_is_relative) {
-		p = (char *)old;
-		p += (uintptr_t)old->node;
-		newh->node = (dns_rbtnode_t *)p;
-	}
 	if (CASESET(old)) {
 		uint_least16_t attr = RDATASET_ATTR_GET(
 			old,
@@ -1537,10 +1450,6 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	} else {
 		size = dns_rdataslab_size((unsigned char *)rdataset,
 					  sizeof(*rdataset));
-	}
-
-	if (rdataset->is_mmapped == 1) {
-		return;
 	}
 
 	isc_mem_put(mctx, rdataset, size);
@@ -7517,186 +7426,6 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 }
 
 static isc_result_t
-rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize, void *arg,
-	      uint64_t *crc) {
-	isc_result_t result;
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)arg;
-	rdatasetheader_t *header;
-	unsigned char *limit = ((unsigned char *)base) + filesize;
-
-	REQUIRE(rbtnode != NULL);
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	for (header = rbtnode->data; header != NULL; header = header->next) {
-		unsigned char *p = (unsigned char *)header;
-		size_t size = dns_rdataslab_size(p, sizeof(*header));
-		isc_crc64_update(crc, p, size);
-#ifdef DEBUG
-		hexdump("hashing header", p, sizeof(rdatasetheader_t));
-		hexdump("hashing slab", p + sizeof(rdatasetheader_t),
-			size - sizeof(rdatasetheader_t));
-#endif /* ifdef DEBUG */
-		header->serial = 1;
-		header->is_mmapped = 1;
-		header->node = rbtnode;
-		header->node_is_relative = 0;
-
-		if (RESIGN(header) &&
-		    (header->resign != 0 || header->resign_lsb != 0)) {
-			int idx = header->node->locknum;
-			result = isc_heap_insert(rbtdb->heaps[idx], header);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
-		}
-
-		if (header->next != NULL) {
-			size_t cooked = dns_rbt_serialize_align(size);
-			if ((uintptr_t)header->next !=
-			    (p - (unsigned char *)base) + cooked) {
-				return (ISC_R_INVALIDFILE);
-			}
-			header->next = (rdatasetheader_t *)(p + cooked);
-			header->next_is_relative = 0;
-			if ((header->next < (rdatasetheader_t *)base) ||
-			    (header->next > (rdatasetheader_t *)limit))
-			{
-				return (ISC_R_INVALIDFILE);
-			}
-		}
-
-		update_recordsandxfrsize(true, rbtdb->current_version, header,
-					 rbtnode->fullnamelen);
-	}
-
-	/* We're done deserializing; clear fullnamelen */
-	rbtnode->fullnamelen = 0;
-
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * Load the RBT database from the image in 'f'
- */
-static isc_result_t
-deserialize(void *arg, FILE *f, off_t offset) {
-	isc_result_t result;
-	rbtdb_load_t *loadctx = arg;
-	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
-	rbtdb_file_header_t *header;
-	int fd;
-	off_t filesize = 0;
-	char *base;
-	dns_rbt_t *tree = NULL, *nsec = NULL, *nsec3 = NULL;
-	int protect, flags;
-	dns_rbtnode_t *origin_node = NULL;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	/*
-	 * TODO CKB: since this is read-write (had to be to add nodes later)
-	 * we will need to lock the file or the nodes in it before modifying
-	 * the nodes in the file.
-	 */
-
-	/* Map in the whole file in one go */
-	fd = fileno(f);
-	isc_file_getsizefd(fd, &filesize);
-	protect = PROT_READ | PROT_WRITE;
-	flags = MAP_PRIVATE;
-#ifdef MAP_FILE
-	flags |= MAP_FILE;
-#endif /* ifdef MAP_FILE */
-
-	base = isc_file_mmap(NULL, filesize, protect, flags, fd, 0);
-	if (base == NULL || base == MAP_FAILED) {
-		return (ISC_R_FAILURE);
-	}
-
-	header = (rbtdb_file_header_t *)(base + offset);
-	if (!match_header_version(header)) {
-		result = ISC_R_INVALIDFILE;
-		goto cleanup;
-	}
-
-	if (header->tree != 0) {
-		result = dns_rbt_deserialize_tree(
-			base, filesize, (off_t)header->tree, rbtdb->common.mctx,
-			delete_callback, rbtdb, rbt_datafixer, rbtdb, NULL,
-			&tree);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-
-		result = dns_rbt_findnode(tree, &rbtdb->common.origin, NULL,
-					  &origin_node, NULL,
-					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-
-	if (header->nsec != 0) {
-		result = dns_rbt_deserialize_tree(
-			base, filesize, (off_t)header->nsec, rbtdb->common.mctx,
-			delete_callback, rbtdb, rbt_datafixer, rbtdb, NULL,
-			&nsec);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-
-	if (header->nsec3 != 0) {
-		result = dns_rbt_deserialize_tree(
-			base, filesize, (off_t)header->nsec3,
-			rbtdb->common.mctx, delete_callback, rbtdb,
-			rbt_datafixer, rbtdb, NULL, &nsec3);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-
-	/*
-	 * We have a successfully loaded all the rbt trees now update
-	 * rbtdb to use them.
-	 */
-
-	rbtdb->mmap_location = base;
-	rbtdb->mmap_size = (size_t)filesize;
-
-	if (tree != NULL) {
-		dns_rbt_destroy(&rbtdb->tree);
-		rbtdb->tree = tree;
-		rbtdb->origin_node = origin_node;
-	}
-
-	if (nsec != NULL) {
-		dns_rbt_destroy(&rbtdb->nsec);
-		rbtdb->nsec = nsec;
-	}
-
-	if (nsec3 != NULL) {
-		dns_rbt_destroy(&rbtdb->nsec3);
-		rbtdb->nsec3 = nsec3;
-	}
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (tree != NULL) {
-		dns_rbt_destroy(&tree);
-	}
-	if (nsec != NULL) {
-		dns_rbt_destroy(&nsec);
-	}
-	if (nsec3 != NULL) {
-		dns_rbt_destroy(&nsec3);
-	}
-	isc_file_munmap(base, (size_t)filesize);
-	return (result);
-}
-
-static isc_result_t
 beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	rbtdb_load_t *loadctx;
 	dns_rbtdb_t *rbtdb;
@@ -7724,8 +7453,6 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 	callbacks->add = loading_addrdataset;
 	callbacks->add_private = loadctx;
-	callbacks->deserialize = deserialize;
-	callbacks->deserialize_private = loadctx;
 
 	return (ISC_R_SUCCESS);
 }
@@ -7763,224 +7490,10 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 	callbacks->add = NULL;
 	callbacks->add_private = NULL;
-	callbacks->deserialize = NULL;
-	callbacks->deserialize_private = NULL;
 
 	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof(*loadctx));
 
 	return (ISC_R_SUCCESS);
-}
-
-/*
- * helper function to handle writing out the rdataset data pointed to
- * by the void *data pointer in the dns_rbtnode
- */
-static isc_result_t
-rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg, uint64_t *crc) {
-	rbtdb_version_t *version = (rbtdb_version_t *)arg;
-	rbtdb_serial_t serial;
-	rdatasetheader_t newheader;
-	rdatasetheader_t *header = (rdatasetheader_t *)data, *next;
-	off_t where;
-	size_t cooked, size;
-	unsigned char *p;
-	isc_result_t result = ISC_R_SUCCESS;
-	char pad[sizeof(char *)];
-	uintptr_t off;
-
-	REQUIRE(rbtfile != NULL);
-	REQUIRE(data != NULL);
-	REQUIRE(version != NULL);
-
-	serial = version->serial;
-
-	for (; header != NULL; header = next) {
-		next = header->next;
-		do {
-			if (header->serial <= serial && !IGNORE(header)) {
-				if (NONEXISTENT(header)) {
-					header = NULL;
-				}
-				break;
-			} else {
-				header = header->down;
-			}
-		} while (header != NULL);
-
-		if (header == NULL) {
-			continue;
-		}
-
-		CHECK(isc_stdio_tell(rbtfile, &where));
-		size = dns_rdataslab_size((unsigned char *)header,
-					  sizeof(rdatasetheader_t));
-
-		p = (unsigned char *)header;
-		memmove(&newheader, p, sizeof(rdatasetheader_t));
-		newheader.down = NULL;
-		newheader.next = NULL;
-		off = where;
-		if ((off_t)off != where) {
-			return (ISC_R_RANGE);
-		}
-		newheader.node = (dns_rbtnode_t *)off;
-		newheader.node_is_relative = 1;
-		newheader.serial = 1;
-
-		/*
-		 * Round size up to the next pointer sized offset so it
-		 * will be properly aligned when read back in.
-		 */
-		cooked = dns_rbt_serialize_align(size);
-		if (next != NULL) {
-			newheader.next = (rdatasetheader_t *)(off + cooked);
-			newheader.next_is_relative = 1;
-		}
-
-#ifdef DEBUG
-		hexdump("writing header", (unsigned char *)&newheader,
-			sizeof(rdatasetheader_t));
-		hexdump("writing slab", p + sizeof(rdatasetheader_t),
-			size - sizeof(rdatasetheader_t));
-#endif /* ifdef DEBUG */
-		isc_crc64_update(crc, (unsigned char *)&newheader,
-				 sizeof(rdatasetheader_t));
-		CHECK(isc_stdio_write(&newheader, sizeof(rdatasetheader_t), 1,
-				      rbtfile, NULL));
-
-		isc_crc64_update(crc, p + sizeof(rdatasetheader_t),
-				 size - sizeof(rdatasetheader_t));
-		CHECK(isc_stdio_write(p + sizeof(rdatasetheader_t),
-				      size - sizeof(rdatasetheader_t), 1,
-				      rbtfile, NULL));
-		/*
-		 * Pad to force alignment.
-		 */
-		if (size != (size_t)cooked) {
-			memset(pad, 0, sizeof(pad));
-			CHECK(isc_stdio_write(pad, cooked - size, 1, rbtfile,
-					      NULL));
-		}
-	}
-
-failure:
-	return (result);
-}
-
-/*
- * Write out a zeroed header as a placeholder.  Doing this ensures
- * that the file will not read while it is partially written, should
- * writing fail or be interrupted.
- */
-static isc_result_t
-rbtdb_zero_header(FILE *rbtfile) {
-	char buffer[RBTDB_HEADER_LENGTH];
-	isc_result_t result;
-
-	memset(buffer, 0, RBTDB_HEADER_LENGTH);
-	result = isc_stdio_write(buffer, 1, RBTDB_HEADER_LENGTH, rbtfile, NULL);
-	fflush(rbtfile);
-
-	return (result);
-}
-
-static isc_once_t once = ISC_ONCE_INIT;
-
-static void
-init_file_version(void) {
-	int n;
-
-	memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
-	n = snprintf(FILE_VERSION, sizeof(FILE_VERSION), "RBTDB Image %s %s",
-		     PACKAGE_VERSION_MAJOR, MAPAPI);
-	INSIST(n > 0 && (unsigned int)n < sizeof(FILE_VERSION));
-}
-
-/*
- * Write the file header out, recording the locations of the three
- * RBT's used in the rbtdb: tree, nsec, and nsec3, and including NodeDump
- * version information and any information stored in the rbtdb object
- * itself that should be stored here.
- */
-static isc_result_t
-rbtdb_write_header(FILE *rbtfile, off_t tree_location, off_t nsec_location,
-		   off_t nsec3_location) {
-	rbtdb_file_header_t header;
-	isc_result_t result;
-
-	RUNTIME_CHECK(isc_once_do(&once, init_file_version) == ISC_R_SUCCESS);
-
-	memset(&header, 0, sizeof(rbtdb_file_header_t));
-	memmove(header.version1, FILE_VERSION, sizeof(header.version1));
-	memmove(header.version2, FILE_VERSION, sizeof(header.version2));
-	header.ptrsize = (uint32_t)sizeof(void *);
-	header.bigendian = (1 == htonl(1)) ? 1 : 0;
-	header.tree = (uint64_t)tree_location;
-	header.nsec = (uint64_t)nsec_location;
-	header.nsec3 = (uint64_t)nsec3_location;
-	result = isc_stdio_write(&header, 1, sizeof(rbtdb_file_header_t),
-				 rbtfile, NULL);
-	fflush(rbtfile);
-
-	return (result);
-}
-
-static bool
-match_header_version(rbtdb_file_header_t *header) {
-	RUNTIME_CHECK(isc_once_do(&once, init_file_version) == ISC_R_SUCCESS);
-
-	if (memcmp(header->version1, FILE_VERSION, sizeof(header->version1)) !=
-		    0 ||
-	    memcmp(header->version2, FILE_VERSION, sizeof(header->version1)) !=
-		    0)
-	{
-		return (false);
-	}
-
-	return (true);
-}
-
-static isc_result_t
-serialize(dns_db_t *db, dns_dbversion_t *ver, FILE *rbtfile) {
-	rbtdb_version_t *version = (rbtdb_version_t *)ver;
-	dns_rbtdb_t *rbtdb;
-	isc_result_t result;
-	off_t tree_location, nsec_location, nsec3_location, header_location;
-
-	rbtdb = (dns_rbtdb_t *)db;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(rbtfile != NULL);
-
-	/* Ensure we're writing to a plain file */
-	CHECK(isc_file_isplainfilefd(fileno(rbtfile)));
-
-	/*
-	 * first, write out a zeroed header to store rbtdb information
-	 *
-	 * then for each of the three trees, store the current position
-	 * in the file and call dns_rbt_serialize_tree
-	 *
-	 * finally, write out the rbtdb header, storing the locations of the
-	 * rbtheaders
-	 *
-	 * NOTE: need to do something better with the return codes, &= will
-	 * not work.
-	 */
-	CHECK(isc_stdio_tell(rbtfile, &header_location));
-	CHECK(rbtdb_zero_header(rbtfile));
-	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->tree, rbt_datawriter,
-				     version, &tree_location));
-	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->nsec, rbt_datawriter,
-				     version, &nsec_location));
-	CHECK(dns_rbt_serialize_tree(rbtfile, rbtdb->nsec3, rbt_datawriter,
-				     version, &nsec3_location));
-
-	CHECK(isc_stdio_seek(rbtfile, header_location, SEEK_SET));
-	CHECK(rbtdb_write_header(rbtfile, tree_location, nsec_location,
-				 nsec3_location));
-failure:
-	return (result);
 }
 
 static isc_result_t
@@ -8481,7 +7994,6 @@ static dns_dbmethods_t zone_methods = { attach,
 					detach,
 					beginload,
 					endload,
-					serialize,
 					dump,
 					currentversion,
 					newversion,
@@ -8533,7 +8045,6 @@ static dns_dbmethods_t cache_methods = { attach,
 					 detach,
 					 beginload,
 					 endload,
-					 NULL, /* serialize */
 					 dump,
 					 currentversion,
 					 newversion,

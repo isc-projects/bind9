@@ -31,13 +31,13 @@ controls {
 
 zone "example" {
 	type primary;
-	masterfile-format map;
-	file "example.db.map";
+	masterfile-format raw;
+	file "example.db.raw";
 };
 
 zone "dynamic" {
 	type primary;
-	masterfile-format map;
-	file "dynamic.db.map";
+	masterfile-format raw;
+	file "dynamic.db.raw";
 	allow-update { any; };
 };

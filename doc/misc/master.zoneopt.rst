@@ -35,7 +35,7 @@
   	ixfr-from-differences <boolean>;
   	journal <quoted_string>;
   	key-directory <quoted_string>;
-  	masterfile-format ( map | raw | text );
+  	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	max-ixfr-ratio ( unlimited | <percentage> );
   	max-journal-size ( default | unlimited | <sizeval> );

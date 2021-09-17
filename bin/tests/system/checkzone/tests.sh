@@ -96,14 +96,6 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking with max ttl (map) ($n)"
-ret=0
-$CHECKZONE -f map -l 300 example good1.db.map > test.out1.$n 2>&1 && ret=1
-$CHECKZONE -f map -l 600 example good1.db.map > test.out2.$n 2>&1 || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
 echo_i "checking for no 'inherited owner' warning on '\$INCLUDE file' with no new \$ORIGIN ($n)"
 ret=0
 $CHECKZONE example zones/nowarn.inherited.owner.db > test.out1.$n 2>&1 || ret=1

@@ -1909,9 +1909,6 @@ dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
 	{
 		return (ISC_R_NOTIMPLEMENTED);
 	}
-	if (zone->masterformat == dns_masterformat_map) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
 
 	/*
 	 * This must happen only once or be redundant.

@@ -3741,8 +3741,6 @@ main(int argc, char *argv[]) {
 	if (inputformatstr != NULL) {
 		if (strcasecmp(inputformatstr, "text") == 0) {
 			inputformat = dns_masterformat_text;
-		} else if (strcasecmp(inputformatstr, "map") == 0) {
-			inputformat = dns_masterformat_map;
 		} else if (strcasecmp(inputformatstr, "raw") == 0) {
 			inputformat = dns_masterformat_raw;
 		} else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
@@ -3760,8 +3758,6 @@ main(int argc, char *argv[]) {
 		} else if (strcasecmp(outputformatstr, "full") == 0) {
 			outputformat = dns_masterformat_text;
 			masterstyle = &dns_master_style_full;
-		} else if (strcasecmp(outputformatstr, "map") == 0) {
-			outputformat = dns_masterformat_map;
 		} else if (strcasecmp(outputformatstr, "raw") == 0) {
 			outputformat = dns_masterformat_raw;
 		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {

@@ -41,12 +41,6 @@ struct dns_rdatacallbacks {
 	dns_addrdatasetfunc_t add;
 
 	/*%
-	 * This is called when reading in a database image from a 'map'
-	 * format zone file.
-	 */
-	dns_deserializefunc_t deserialize;
-
-	/*%
 	 * dns_master_load*() call this when loading a raw zonefile,
 	 * to pass back information obtained from the file header
 	 */
@@ -65,7 +59,6 @@ struct dns_rdatacallbacks {
 	 * Private data handles for use by the above callback functions.
 	 */
 	void *add_private;
-	void *deserialize_private;
 	void *error_private;
 	void *warn_private;
 };

@@ -77,8 +77,8 @@ zone "large" {
 
 zone "signed" {
 	type primary;
-	file "signed.db.map";
-	masterfile-format map;
+	file "signed.db.raw";
+	masterfile-format raw;
 	allow-transfer { any; };
 	update-policy local;
 	auto-dnssec maintain;

@@ -186,12 +186,6 @@ static isc_result_t
 load_raw(dns_loadctx_t *lctx);
 
 static isc_result_t
-openfile_map(dns_loadctx_t *lctx, const char *master_file);
-
-static isc_result_t
-load_map(dns_loadctx_t *lctx);
-
-static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
 
 static isc_result_t
@@ -542,10 +536,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 	case dns_masterformat_raw:
 		lctx->openfile = openfile_raw;
 		lctx->load = load_raw;
-		break;
-	case dns_masterformat_map:
-		lctx->openfile = openfile_map;
-		lctx->load = load_map;
 		break;
 	default:
 		INSIST(0);
@@ -2251,9 +2241,7 @@ load_header(dns_loadctx_t *lctx) {
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
-	if (lctx->format != dns_masterformat_raw &&
-	    lctx->format != dns_masterformat_map)
-	{
+	if (lctx->format != dns_masterformat_raw) {
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
@@ -2276,10 +2264,7 @@ load_header(dns_loadctx_t *lctx) {
 	if (header.format != lctx->format) {
 		(*callbacks->error)(callbacks,
 				    "dns_master_load: "
-				    "file format mismatch (not %s)",
-				    lctx->format == dns_masterformat_map ? "map"
-									 : "ra"
-									   "w");
+				    "file format mismatch (not raw)");
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
@@ -2319,46 +2304,6 @@ load_header(dns_loadctx_t *lctx) {
 	lctx->header = header;
 
 	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-openfile_map(dns_loadctx_t *lctx, const char *master_file) {
-	isc_result_t result;
-
-	result = isc_stdio_open(master_file, "rb", &lctx->f);
-	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_open() failed: %s",
-				 isc_result_totext(result));
-	}
-
-	return (result);
-}
-
-/*
- * Load a map format file, using mmap() to access RBT trees directly
- */
-static isc_result_t
-load_map(dns_loadctx_t *lctx) {
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdatacallbacks_t *callbacks;
-
-	REQUIRE(DNS_LCTX_VALID(lctx));
-
-	callbacks = lctx->callbacks;
-
-	if (lctx->first) {
-		result = load_header(lctx);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-
-		result = (*callbacks->deserialize)(
-			callbacks->deserialize_private, lctx->f,
-			sizeof(dns_masterrawheader_t));
-	}
-
-	return (result);
 }
 
 static isc_result_t

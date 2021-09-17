@@ -32,6 +32,11 @@ Removed Features
 - Native PKCS#11 support has been removed; BIND 9 now uses OpenSSL engine_pkcs11 from the
   OpenSC project. :gl:`#2691`
 
+- The ``masterfile-format`` format ``map`` has removed.  If you are using the
+  ``map`` format, you are advised to convert the zones to ``raw`` format with
+  ``named-compilezone`` and change the configuration prior to BIND 9
+  upgrade. :gl:`#2882`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -46,9 +51,6 @@ Feature Changes
   global listening port. This configuration is no longer supported as of BIND
   9.16.0 but no error was reported, although sending UDP messages
   (such as notifies) would fail. :gl:`#2888`
-
-- The ``masterfile-format`` format ``map`` has been marked as deprecated and
-  will be removed in a future release. :gl:`#2882`
 
 Bug Fixes
 ~~~~~~~~~

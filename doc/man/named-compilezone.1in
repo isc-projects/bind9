@@ -103,8 +103,8 @@ respectively.
 Mode \fBnone\fP disables the checks.
 .TP
 .B \fB\-f format\fP
-This option specifies the format of the zone file. Possible formats are \fBtext\fP
-(the default), \fBraw\fP, and \fBmap\fP\&.
+This option specifies the format of the zone file. Possible formats are
+\fBtext\fP (the default), and \fBraw\fP\&.
 .TP
 .B \fB\-F format\fP
 This option specifies the format of the output file specified. For
@@ -112,12 +112,11 @@ This option specifies the format of the output file specified. For
 the zone contents.
 .sp
 Possible formats are \fBtext\fP (the default), which is the standard
-textual representation of the zone, and \fBmap\fP, \fBraw\fP, and
-\fBraw=N\fP, which store the zone in a binary format for rapid
-loading by \fBnamed\fP\&. \fBraw=N\fP specifies the format version of the
-raw zone file: if \fBN\fP is 0, the raw file can be read by any version of
-\fBnamed\fP; if N is 1, the file can only be read by release 9.9.0 or
-higher. The default is 1.
+textual representation of the zone, and \fBraw\fP and \fBraw=N\fP, which
+store the zone in a binary format for rapid loading by \fBnamed\fP\&.
+\fBraw=N\fP specifies the format version of the raw zone file: if \fBN\fP is
+0, the raw file can be read by any version of \fBnamed\fP; if N is 1, the
+file can only be read by release 9.9.0 or higher. The default is 1.
 .TP
 .B \fB\-k mode\fP
 This option performs \fBcheck\-names\fP checks with the specified failure mode.
@@ -130,7 +129,7 @@ TTL higher than this value causes the zone to be rejected. This
 is similar to using the \fBmax\-zone\-ttl\fP option in \fBnamed.conf\fP\&.
 .TP
 .B \fB\-L serial\fP
-When compiling a zone to \fBraw\fP or \fBmap\fP format, this option sets the "source
+When compiling a zone to \fBraw\fP format, this option sets the "source
 serial" value in the header to the specified serial number. This is
 expected to be used primarily for testing purposes.
 .TP
