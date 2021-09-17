@@ -13,6 +13,8 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
+import os
+
 import pytest
 import requests
 
@@ -102,6 +104,8 @@ def load_zone_xml(zone):
 
 @pytest.mark.xml
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEXMLSTATS", "unset") != "1",
+                    reason="XML not configured")
 def test_zone_timers_primary_xml(statsport):
     generic.test_zone_timers_primary(fetch_zones_xml, load_timers_xml,
                                      statsip="10.53.0.1", statsport=statsport,
@@ -110,6 +114,8 @@ def test_zone_timers_primary_xml(statsport):
 
 @pytest.mark.xml
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEXMLSTATS", "unset") != "1",
+                    reason="XML not configured")
 def test_zone_timers_secondary_xml(statsport):
     generic.test_zone_timers_secondary(fetch_zones_xml, load_timers_xml,
                                        statsip="10.53.0.3", statsport=statsport,
@@ -118,6 +124,8 @@ def test_zone_timers_secondary_xml(statsport):
 
 @pytest.mark.xml
 @pytest.mark.requests
+@pytest.mark.skipif(os.getenv("HAVEXMLSTATS", "unset") != "1",
+                    reason="XML not configured")
 def test_zone_with_many_keys_xml(statsport):
     generic.test_zone_with_many_keys(fetch_zones_xml, load_zone_xml,
                                      statsip="10.53.0.2", statsport=statsport)
@@ -126,6 +134,8 @@ def test_zone_with_many_keys_xml(statsport):
 @pytest.mark.xml
 @pytest.mark.requests
 @pytest.mark.dnspython
+@pytest.mark.skipif(os.getenv("HAVEXMLSTATS", "unset") != "1",
+                    reason="XML not configured")
 def test_traffic_xml(port, statsport):
     generic.test_traffic(fetch_traffic_xml,
                          statsip="10.53.0.2", statsport=statsport,
