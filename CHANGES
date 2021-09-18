@@ -1,3 +1,6 @@
+5723.	[bug]		Backwards compatiblity for 'check-names master' and
+			'check-names slave' was accidentally broken. [GL #2911]
+
 5720.	[contrib]	The DLZ drivers have been marked as deprecated and
 			will be removed in a future release. [GL #2814]
 
