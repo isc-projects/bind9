@@ -750,6 +750,10 @@ strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 	return (strtoargvsub(mctx, s, argcp, argvp, 0));
 }
 
+static const char *const primary_synonyms[] = { "primary", "master", NULL };
+
+static const char *const secondary_synonyms[] = { "secondary", "slave", NULL };
+
 static void
 checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	   const cfg_obj_t **objp) {
@@ -758,16 +762,10 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	switch (ztype) {
 	case dns_zone_secondary:
 	case dns_zone_mirror:
-		result = named_checknames_get(maps, "secondary", objp);
-		if (result != ISC_R_SUCCESS) {
-			result = named_checknames_get(maps, "slave", objp);
-		}
+		result = named_checknames_get(maps, secondary_synonyms, objp);
 		break;
 	case dns_zone_primary:
-		result = named_checknames_get(maps, "primary", objp);
-		if (result != ISC_R_SUCCESS) {
-			result = named_checknames_get(maps, "master", objp);
-		}
+		result = named_checknames_get(maps, primary_synonyms, objp);
 		break;
 	default:
 		INSIST(0);
