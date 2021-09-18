@@ -1,3 +1,6 @@
+5723.	[bug]		Backwards compatiblity for 'check-names master' and
+			'check-names slave' was accidentally broken. [GL #2911]
+
 5722.	[bug]		Preserve the contents of TCPDNS and TLSDNS receive
 			buffer when growing the buffer size. [GL #2917]
 
