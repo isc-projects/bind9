@@ -15,6 +15,7 @@ copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns4/named.conf.in ns4/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
 
 cp ns1/ignore.example.db.in ns1/ignore.example.db
 cp ns1/warn.example.db.in ns1/warn.example.db
@@ -24,4 +25,6 @@ cp ns1/ignore.update.db.in ns1/ignore.update.db
 cp ns1/warn.update.db.in ns1/warn.update.db
 cp ns1/fail.update.db.in ns1/fail.update.db
 
-cp ns4/master-ignore.update.db.in ns4/master-ignore.update.db
+cp ns4/primary-ignore.update.db.in ns4/primary-ignore.update.db
+
+cp ns5/master-ignore.update.db.in ns5/master-ignore.update.db
