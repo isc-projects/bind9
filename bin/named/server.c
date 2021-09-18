@@ -3921,6 +3921,8 @@ minimal_cache_allowed(const cfg_obj_t *maps[4],
 	return (true);
 }
 
+static const char *const response_synonyms[] = { "response", NULL };
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -4236,7 +4238,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	/* Check-names. */
 	obj = NULL;
-	result = named_checknames_get(maps, "response", &obj);
+	result = named_checknames_get(maps, response_synonyms, &obj);
 	INSIST(result == ISC_R_SUCCESS);
 
 	str = cfg_obj_asstring(obj);
