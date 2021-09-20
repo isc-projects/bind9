@@ -105,7 +105,6 @@ TESTS +=			\
 	checknames		\
 	checkzone		\
 	database		\
-	dlz			\
 	dlzexternal		\
 	dns64			\
 	dscp			\

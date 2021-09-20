@@ -1,3 +1,6 @@
+5720.	[contrib]	Remove old-style DLZ drivers that had to be enabled
+			during compile time. [GL #2814]
+
 5719.	[func]		The "masterfile-format" format "map" has been removed.
 			[GL #2882]
 
