@@ -8,11 +8,6 @@ be fixed as time permits.
       named and restarts it in the event of a crash, 'zone-edit'
       which enables editing of a dynamic zone, and others.
 
-    - dane/
-
-      mkdane.sh generates TLSA records for use with DNS-based
-      Authentication of Named Entities (DANE).
-
     - dnspriv/
 
       Sample configuration for setting up a DNS-over-TLS server

@@ -923,8 +923,6 @@
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001,2004,2007,2012,2016,2018,2019,2020,2021
 ./contrib/README				X	2014,2015,2016,2017,2018,2019,2020,2021
-./contrib/dane/mkdane.sh			X	2012,2018,2019,2020,2021
-./contrib/dane/tlsa6698.pem			X	2012,2018,2019,2020,2021
 ./contrib/dlz/example/Makefile			X	2010,2013,2018,2019,2020,2021
 ./contrib/dlz/example/README			X	2011,2012,2013,2014,2018,2019,2020,2021
 ./contrib/dlz/example/dlz_example.c		X	2010,2011,2012,2013,2014,2018,2019,2020,2021
