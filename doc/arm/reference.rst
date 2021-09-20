@@ -4960,7 +4960,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
     An optional second token determines where the key is stored.
     Currently, keys can only be stored in the configured
     ``key-directory``.  This token may be used in the future to store
-    keys in hardware service modules or separate directories.
+    keys in hardware security modules or separate directories.
 
     The ``lifetime`` parameter specifies how long a key may be used
     before rolling over.  In the example above, the first key has an
