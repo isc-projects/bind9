@@ -8,11 +8,6 @@ be fixed as time permits.
       named and restarts it in the event of a crash, 'zone-edit'
       which enables editing of a dynamic zone, and others.
 
-    - dnspriv/
-
-      Sample configuration for setting up a DNS-over-TLS server
-      using BIND with Nginx as a TLS proxy.
-
     - kasp/
 
       Scripts for converting key and signature policies from OpenDNSSEC
