@@ -5047,7 +5047,9 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
     The default is to use NSEC.  The ``iterations``, ``optout`` and
     ``salt-length`` parts are optional, but if not set, the values in
-    the example above are the default NSEC3 parameters.
+    the example above are the default NSEC3 parameters. Note that you don't
+    specify a specific salt string, ``named`` will create a salt for you
+    of the provided salt length.
 
   ``zone-propagation-delay``
     This is the expected propagation delay from the time when a zone is
