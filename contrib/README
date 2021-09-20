@@ -8,11 +8,6 @@ be fixed as time permits.
       named and restarts it in the event of a crash, 'zone-edit'
       which enables editing of a dynamic zone, and others.
 
-    - kasp/
-
-      Scripts for converting key and signature policies from OpenDNSSEC
-      KASP format to the policy.conf format used by dnssec-keymgr.
-
     - dlz/modules
 
       Dynamically linkable DLZ modules that can be configured into

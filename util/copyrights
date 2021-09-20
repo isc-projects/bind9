@@ -980,9 +980,6 @@
 ./contrib/dlz/modules/wildcard/README		X	2013,2018,2019,2020,2021
 ./contrib/dlz/modules/wildcard/dlz_wildcard_dynamic.c	X	2013,2015,2016,2018,2019,2020,2021
 ./contrib/dlz/modules/wildcard/testing/named.conf	X	2013,2018,2019
-./contrib/kasp/README				X	2020,2021
-./contrib/kasp/kasp.xml				X	2020,2021
-./contrib/kasp/policy.good			X	2020,2021
 ./contrib/scripts/catzhash.py			X	2020,2021
 ./contrib/scripts/check-secure-delegation.pl.in	PERL	2010,2012,2014,2016,2018,2019,2020
 ./contrib/scripts/check5011.pl			X	2013,2014,2017,2018,2019,2020,2021
