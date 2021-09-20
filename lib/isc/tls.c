@@ -562,6 +562,18 @@ isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist) {
 	RUNTIME_CHECK(SSL_CTX_set_cipher_list(ctx, cipherlist) == 1);
 }
 
+void
+isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer) {
+	REQUIRE(ctx != NULL);
+
+	if (prefer) {
+		(void)SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	} else {
+		(void)SSL_CTX_clear_options(ctx,
+					    SSL_OP_CIPHER_SERVER_PREFERENCE);
+	}
+}
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx) {
 	isc_tls_t *newctx = NULL;

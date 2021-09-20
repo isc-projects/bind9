@@ -7,5 +7,6 @@
   	dhparam-file <quoted_string>;
   	hostname <quoted_string>;
   	key-file <quoted_string>;
+  	prefer-server-ciphers <boolean>;
   	protocols { <string>; ... };
   };

@@ -293,7 +293,7 @@ The following statements are supported:
         Declares communication channels to get access to ``named`` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, and ``protocols``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, ``protocols``, and ``prefer-server-ciphers``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -4791,6 +4791,9 @@ The following options can be specified in a ``tls`` statement:
     formed according to the rules specified in the OpenSSL documentation
     (see https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
     for details).
+
+  ``prefer-server-ciphers``
+    Specifies that server ciphers should be preferred over client ones.
 
 There are two built-in TLS connection configurations: ``ephemeral``,
 uses a temporary key and certificate created for the current ``named``

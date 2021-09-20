@@ -59,6 +59,11 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		if (tls_params->ciphers != NULL) {
 			isc_tlsctx_set_cipherlist(sslctx, tls_params->ciphers);
 		}
+
+		if (tls_params->prefer_server_ciphers_set) {
+			isc_tlsctx_prefer_server_ciphers(
+				sslctx, tls_params->prefer_server_ciphers);
+		}
 	}
 
 	elt = isc_mem_get(mctx, sizeof(*elt));

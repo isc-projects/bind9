@@ -3890,6 +3890,7 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "dhparam-file", &cfg_type_qstring, 0 },
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, 0 },
+	{ "prefer-server-ciphers", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

@@ -11025,6 +11025,8 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL, *dhparam_file = NULL,
 		   *ciphers = NULL;
+	bool tls_prefer_server_ciphers = false,
+	     tls_prefer_server_ciphers_set = false;
 	bool do_tls = false, no_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
 	uint32_t tls_protos = 0;
@@ -11049,6 +11051,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			const cfg_obj_t *tlsmap = NULL;
 			const cfg_obj_t *tls_proto_list = NULL;
 			const cfg_obj_t *ciphers_obj = NULL;
+			const cfg_obj_t *prefer_server_ciphers_obj = NULL;
 
 			do_tls = true;
 
@@ -11097,14 +11100,27 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			    ISC_R_SUCCESS) {
 				ciphers = cfg_obj_asstring(ciphers_obj);
 			}
+
+			if (cfg_map_get(tlsmap, "prefer-server-ciphers",
+					&prefer_server_ciphers_obj) ==
+			    ISC_R_SUCCESS)
+			{
+				tls_prefer_server_ciphers = cfg_obj_asboolean(
+					prefer_server_ciphers_obj);
+				tls_prefer_server_ciphers_set = true;
+			}
 		}
 	}
 
-	tls_params = (ns_listen_tls_params_t){ .key = key,
-					       .cert = cert,
-					       .protocols = tls_protos,
-					       .dhparam_file = dhparam_file,
-					       .ciphers = ciphers };
+	tls_params = (ns_listen_tls_params_t){
+		.key = key,
+		.cert = cert,
+		.protocols = tls_protos,
+		.dhparam_file = dhparam_file,
+		.ciphers = ciphers,
+		.prefer_server_ciphers = tls_prefer_server_ciphers,
+		.prefer_server_ciphers_set = tls_prefer_server_ciphers_set,
+	};
 
 	httpobj = cfg_tuple_get(ltup, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {

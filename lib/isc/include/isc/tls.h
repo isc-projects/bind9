@@ -114,6 +114,16 @@ isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist);
  * \li	'cipherlist' a valid pointer to a non empty string.
  */
 
+void
+isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer);
+/*%<
+ * Make the given TLS context 'ctx' to prefer or to not prefer
+ * server side ciphers during the ciphers negotiation.
+ *
+ * Requires:
+ * \li	'ctx' != NULL.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<
