@@ -29,11 +29,5 @@ be fixed as time permits.
       named at runtime, enabling access to external data sources including
       LDAP, MySQL, Berkeley DB, perl scripts, etc.
 
-    - dlz/drivers
-
-      Old-style DLZ drivers that can be linked into named at compile
-      time. (These are no longer actively maintained and are expected
-      to be removed eventually.)
-
 Some links to useful software and other resources related to BIND 9 and
 DNS can be found at https://www.isc.org/dns-tools-and-resources.

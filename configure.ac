@@ -150,7 +150,6 @@ AS_IF([test "$enable_developer" = "yes"],
        test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
-       test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
        test "${with_zlib+set}" = set || with_zlib=yes
        test "${enable_warn_error+set}" = set || enable_warn_error=yes
        ])
@@ -1417,24 +1416,6 @@ AS_IF([test "$enable_auto_validation" = "no"],[validation_default=yes])
 AC_DEFINE_UNQUOTED([VALIDATION_DEFAULT], ["$validation_default"], [the default value of dnssec-validation option])
 
 #
-# Configure any DLZ drivers.
-#
-# If config.dlz.in selects one or more DLZ drivers, it will set
-# CONTRIB_DLZ to a non-empty value, which will be our clue to
-# build DLZ drivers in contrib.
-#
-# This section has to come after the libtool stuff because it needs to
-# know how to name the driver object files.
-#
-
-CONTRIB_DLZ=""
-DLZ_DRIVER_INCLUDES=""
-DLZ_DRIVER_LIBS=""
-DLZ_DRIVER_SRCS=""
-DLZ_DRIVER_OBJS=""
-DLZ_SYSTEM_TEST=""
-
-#
 #
 # Response policy rewriting using DNS Response Policy Service (DNSRPS)
 # interface.
@@ -1512,39 +1493,6 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
 	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
       ])
-
-# FIXME BEGIN
-#sinclude(contrib/dlz/config.dlz.in)
-# AC_MSG_CHECKING(contributed DLZ drivers)
-#
-# if test -n "$CONTRIB_DLZ"
-# then
-# 	AC_MSG_RESULT(yes)
-# 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
-# 	AC_CONFIG_FILES([$DLZ_DRIVER_RULES
-# 		contrib/dlz/modules/mysql/Makefile
-# 		contrib/dlz/modules/mysqldyn/Makefile])
-# else
-# 	AC_MSG_RESULT(no)
-# 	DLZ_DRIVER_RULES=/dev/null
-# fi
-#
-# AC_SUBST(CONTRIB_DLZ)
-# AC_SUBST(DLZ_DRIVER_INCLUDES)
-# AC_SUBST(DLZ_DRIVER_LIBS)
-# AC_SUBST(DLZ_DRIVER_SRCS)
-# AC_SUBST(DLZ_DRIVER_OBJS)
-# AC_SUBST(DLZ_SYSTEM_TEST)
-# AC_SUBST_FILE(DLZ_DRIVER_RULES)
-# this ensures the configure summary report comes out right
-test -z "$with_dlz_bdb" && with_dlz_bdb=no
-test -z "$with_dlz_ldap" && with_dlz_ldap=no
-test -z "$with_dlz_mysql" && with_dlz_mysql=no
-test -z "$with_dlz_odbc" && with_dlz_odbc=no
-test -z "$with_dlz_postgres" && with_dlz_postgres=no
-test -z "$with_dlz_filesystem" && with_dlz_filesystem=no
-test -z "$with_dlz_stub" && with_dlz_stub=no
-# FIXME END
 
 AC_CHECK_HEADERS([glob.h])
 
@@ -1681,24 +1629,6 @@ report() {
     test -z "$HAVE_CMOCKA" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "auto" = "$validation_default" && echo "    DNSSEC validation active by default (--enable-auto-validation)"
-
-    echo "    Dynamically loadable zone (DLZ) drivers:"
-    test "no" = "$with_dlz_bdb" || \
-	echo "        Berkeley DB (--with-dlz-bdb)"
-    test "no" = "$with_dlz_ldap" || \
-	echo "        LDAP (--with-dlz-ldap)"
-    test "no" = "$with_dlz_mysql" || \
-	echo "        MySQL (--with-dlz-mysql)"
-    test "no" = "$with_dlz_odbc" || \
-	echo "        ODBC (--with-dlz-odbc)"
-    test "no" = "$with_dlz_postgres" || \
-	echo "        Postgres (--with-dlz-postgres)"
-    test "no" = "$with_dlz_filesystem" || \
-	echo "        Filesystem (--with-dlz-filesystem)"
-    test "no" = "$with_dlz_stub" || \
-	echo "        Stub (--with-dlz-stub)"
-    test "$with_dlz_bdb $with_dlz_ldap $with_dlz_mysql $with_dlz_odbc $with_dlz_postgres $with_dlz_filesystem $with_dlz_stub" = "no no no no no no no" && \
-	    echo "        None"
 
     echo "-------------------------------------------------------------------------------"
 
