@@ -2123,7 +2123,7 @@ bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 			  isc_log_t *logctx, isc_symtab_t *symtab) {
 	isc_result_t result, tresult;
 	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
-			*tls_cert = NULL;
+			*tls_cert = NULL, *tls_ciphers = NULL;
 	uint32_t tls_protos = 0;
 	isc_symvalue_t symvalue;
 
@@ -2219,6 +2219,20 @@ bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 			cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
 				    "tls '%s' does not contain any valid "
 				    "TLS protocol versions definitions",
+				    name);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/* Check cipher list string is valid */
+	tresult = cfg_map_get(tlsobj, "ciphers", &tls_ciphers);
+	if (tresult == ISC_R_SUCCESS) {
+		const char *ciphers = cfg_obj_asstring(tls_ciphers);
+		if (!isc_tls_cipherlist_valid(ciphers)) {
+			cfg_obj_log(tls_ciphers, logctx, ISC_LOG_ERROR,
+				    "'ciphers' in the 'tls' clause '%s' is "
+				    "not a "
+				    "valid cipher list string",
 				    name);
 			result = ISC_R_FAILURE;
 		}

@@ -55,6 +55,10 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 				return (ISC_R_FAILURE);
 			}
 		}
+
+		if (tls_params->ciphers != NULL) {
+			isc_tlsctx_set_cipherlist(sslctx, tls_params->ciphers);
+		}
 	}
 
 	elt = isc_mem_get(mctx, sizeof(*elt));

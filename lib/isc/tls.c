@@ -526,6 +526,42 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 	return (true);
 }
 
+bool
+isc_tls_cipherlist_valid(const char *cipherlist) {
+	isc_tlsctx_t *tmp_ctx = NULL;
+	const SSL_METHOD *method = NULL;
+	bool result;
+	REQUIRE(cipherlist != NULL);
+
+	if (*cipherlist == '\0') {
+		return (false);
+	}
+
+	method = TLS_server_method();
+	if (method == NULL) {
+		return (false);
+	}
+	tmp_ctx = SSL_CTX_new(method);
+	if (tmp_ctx == NULL) {
+		return (false);
+	}
+
+	result = SSL_CTX_set_cipher_list(tmp_ctx, cipherlist) == 1;
+
+	isc_tlsctx_free(&tmp_ctx);
+
+	return (result);
+}
+
+void
+isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(cipherlist != NULL);
+	REQUIRE(*cipherlist != '\0');
+
+	RUNTIME_CHECK(SSL_CTX_set_cipher_list(ctx, cipherlist) == 1);
+}
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx) {
 	isc_tls_t *newctx = NULL;

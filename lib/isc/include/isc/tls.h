@@ -95,6 +95,25 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file);
  * \li	'dhaprams_file' a valid pointer to a non empty string.
  */
 
+bool
+isc_tls_cipherlist_valid(const char *cipherlist);
+/*%<
+ * Check if cipher list string is valid.
+ *
+ * Requires:
+ * \li	'cipherlist' a valid pointer to a non empty string.
+ */
+
+void
+isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist);
+/*%<
+ * Set cipher list string for on the given TLS context 'ctx'.
+ *
+ * Requires:
+ * \li	'ctx' != NULL;
+ * \li	'cipherlist' a valid pointer to a non empty string.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<

@@ -11023,7 +11023,8 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *http_server = NULL;
 	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
-	const char *key = NULL, *cert = NULL, *dhparam_file = NULL;
+	const char *key = NULL, *cert = NULL, *dhparam_file = NULL,
+		   *ciphers = NULL;
 	bool do_tls = false, no_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
 	uint32_t tls_protos = 0;
@@ -11047,6 +11048,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 					*dhparam_obj = NULL;
 			const cfg_obj_t *tlsmap = NULL;
 			const cfg_obj_t *tls_proto_list = NULL;
+			const cfg_obj_t *ciphers_obj = NULL;
 
 			do_tls = true;
 
@@ -11090,13 +11092,19 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			    ISC_R_SUCCESS) {
 				dhparam_file = cfg_obj_asstring(dhparam_obj);
 			}
+
+			if (cfg_map_get(tlsmap, "ciphers", &ciphers_obj) ==
+			    ISC_R_SUCCESS) {
+				ciphers = cfg_obj_asstring(ciphers_obj);
+			}
 		}
 	}
 
 	tls_params = (ns_listen_tls_params_t){ .key = key,
 					       .cert = cert,
 					       .protocols = tls_protos,
-					       .dhparam_file = dhparam_file };
+					       .dhparam_file = dhparam_file,
+					       .ciphers = ciphers };
 
 	httpobj = cfg_tuple_get(ltup, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
