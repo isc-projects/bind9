@@ -37,6 +37,10 @@ Removed Features
   ``named-compilezone`` and change the configuration prior to BIND 9
   upgrade. :gl:`#2882`
 
+- Remove old-style DLZ drivers that had to be enabled in ``named`` during the
+  compile time.  The new-style dynamically loaded DLZ modules should be used
+  as a replacement. :gl:`#2814`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
