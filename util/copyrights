@@ -951,11 +951,13 @@
 ./contrib/dlz/modules/ldap/testing/example.ldif	X	2013,2018,2019,2020,2021
 ./contrib/dlz/modules/ldap/testing/named.conf	X	2013,2018,2019
 ./contrib/dlz/modules/ldap/testing/slapd.conf	X	2013,2018,2019
+./contrib/dlz/modules/mysql/Makefile		X	2021
 ./contrib/dlz/modules/mysql/dlz_mysql_dynamic.c	X	2013,2016,2018,2019,2020,2021
 ./contrib/dlz/modules/mysql/testing/README	X	2013,2018,2019,2020,2021
 ./contrib/dlz/modules/mysql/testing/dlz.data	X	2013,2017,2018,2019
 ./contrib/dlz/modules/mysql/testing/dlz.schema	X	2013,2018,2019,2020,2021
 ./contrib/dlz/modules/mysql/testing/named.conf	X	2013,2018,2019
+./contrib/dlz/modules/mysqldyn/Makefile		X	2021
 ./contrib/dlz/modules/mysqldyn/README		X	2014,2018,2019,2020,2021
 ./contrib/dlz/modules/mysqldyn/dlz_mysqldyn_mod.c	X	2014,2015,2018,2019,2020,2021
 ./contrib/dlz/modules/mysqldyn/testing/README	X	2014,2018,2019,2020,2021
