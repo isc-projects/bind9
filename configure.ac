@@ -3008,22 +3008,44 @@ report() {
 	echo "    +--------------------------------------------+"
     )
 
+    dlz_enabled=no
+
     echo "    Dynamically loadable zone (DLZ) drivers:"
-    test "no" = "$use_dlz_bdb" || \
-	echo "        Berkeley DB (--with-dlz-bdb)"
-    test "no" = "$use_dlz_ldap" || \
-	echo "        LDAP (--with-dlz-ldap)"
-    test "no" = "$use_dlz_mysql" || \
-	echo "        MySQL (--with-dlz-mysql)"
-    test "no" = "$use_dlz_odbc" || \
-	echo "        ODBC (--with-dlz-odbc)"
-    test "no" = "$use_dlz_postgres" || \
-	echo "        Postgres (--with-dlz-postgres)"
-    test "no" = "$use_dlz_filesystem" || \
-	echo "        Filesystem (--with-dlz-filesystem)"
-    test "no" = "$use_dlz_stub" || \
-	echo "        Stub (--with-dlz-stub)"
-    test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+    AS_IF([test "$use_dlz_bdb" != "no"],
+	  [AS_ECHO(["        Berkeley DB (--with-dlz-bdb)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_ldap" != "no"],
+	  [AS_ECHO(["        LDAP (--with-dlz-ldap)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_mysql" != "no"],
+	  [AS_ECHO(["        MySQL (--with-dlz-mysql)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_odbc" != "no"],
+	  [AS_ECHO(["        ODBC (--with-dlz-odbc)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_postgres" != "no"],
+	  [AS_ECHO(["        Postgres (--with-dlz-postgres)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_filesystem" != "no"],
+	  [AS_ECHO(["        Filesystem (--with-dlz-filesystem)"])
+	   dlz_enabled=yes])
+    AS_IF([test "$use_dlz_stub" != "no"],
+	  [AS_ECHO(["        Stub (--with-dlz-stub)"])
+	   dlz_enabled=yes])
+
+    AS_IF([test "$dlz_enabled" = "no"],
+	  [AS_ECHO(["        None"])],
+	  [AS_ECHO(["    +--------------------------------------------------------+"])
+	   AS_ECHO(["    |             ==== DEPRECATION WARNING ====              |"])
+	   AS_ECHO(["    +--------------------------------------------------------+"])
+	   AS_ECHO(["    | Old-style DLZ drivers has been deprecated in favor of  |"])
+	   AS_ECHO(["    | DLZ modules. The DLZ drivers configuration option will |"])
+	   AS_ECHO(["    | be removed from the next major BIND 9 release.         |"])
+	   AS_ECHO(["    |                                                        |"])
+	   AS_ECHO(["    | The option to use the DLZ modules is already available |"])
+	   AS_ECHO(["    | in BIND 9; please see the ARM section on DLZ modules.  |"])
+	   AS_ECHO(["    +--------------------------------------------------------+"])
+	  ])
 
     echo "-------------------------------------------------------------------------------"
 

@@ -56,6 +56,10 @@ Feature Changes
 - The ``masterfile-format`` format ``map`` has been marked as deprecated and
   will be removed in a future release. :gl:`#2882`
 
+- The statically compiled DLZ drivers have been marked as deprecated in favor of
+  dynamically loaded DLZ modules and will be removed in a future major
+  release. :gl:`#2814`
+
 Bug Fixes
 ~~~~~~~~~
 
