@@ -15,23 +15,9 @@ Dynamically Loadable Zones (DLZ)
 
 Dynamically Loadable Zones (DLZ) are an extension to BIND 9 that allows
 zone data to be retrieved directly from an external database. There is
-no required format or schema. DLZ drivers exist for several different
-database backends, including PostgreSQL, MySQL, and LDAP, and can be
+no required format or schema. DLZ modules exist for several different
+database backends, including MySQL and LDAP, and can be
 written for any other.
-
-Historically, DLZ drivers had to be statically linked with the ``named``
-binary and were turned on via a configure option at compile time (for
-example, ``configure --with-dlz-ldap``). The drivers
-provided in the BIND 9 tarball in ``contrib/dlz/drivers`` are still
-linked this way.
-
-In BIND 9.8 and higher, it is possible to link some DLZ modules
-dynamically at runtime, via the DLZ "dlopen" driver, which acts as a
-generic wrapper around a shared object implementing the DLZ API. The
-"dlopen" driver is linked into ``named`` by default, so configure
-options are no longer necessary when using these dynamically linkable
-drivers; they are still needed for the older drivers in
-``contrib/dlz/drivers``.
 
 The DLZ module provides data to ``named`` in text
 format, which is then converted to DNS wire format by ``named``. This
@@ -87,7 +73,7 @@ backend storage of redirection rules:
        };
 
 
-Sample DLZ Driver
+Sample DLZ Module
 ~~~~~~~~~~~~~~~~~
 
 For guidance in the implementation of DLZ modules, the directory
