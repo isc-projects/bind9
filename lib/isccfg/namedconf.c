@@ -3891,6 +3891,7 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, 0 },
 	{ "prefer-server-ciphers", &cfg_type_boolean, 0 },
+	{ "session-tickets", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

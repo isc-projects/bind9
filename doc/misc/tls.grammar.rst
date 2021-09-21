@@ -9,4 +9,5 @@
   	key-file <quoted_string>;
   	prefer-server-ciphers <boolean>;
   	protocols { <string>; ... };
+  	session-tickets <boolean>;
   };

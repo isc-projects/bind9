@@ -64,6 +64,11 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			isc_tlsctx_prefer_server_ciphers(
 				sslctx, tls_params->prefer_server_ciphers);
 		}
+
+		if (tls_params->session_tickets_set) {
+			isc_tlsctx_session_tickets(sslctx,
+						   tls_params->session_tickets);
+		}
 	}
 
 	elt = isc_mem_get(mctx, sizeof(*elt));

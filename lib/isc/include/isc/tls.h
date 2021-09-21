@@ -124,6 +124,16 @@ isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer);
  * \li	'ctx' != NULL.
  */
 
+void
+isc_tlsctx_session_tickets(isc_tlsctx_t *ctx, const bool use);
+/*%<
+ * Enable/Disable stateless session resumptions tickets on the given
+ * TLS context 'ctx' (see RFC5077).
+ *
+ * Requires:
+ * \li	'ctx' != NULL.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<

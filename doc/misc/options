@@ -465,6 +465,7 @@ tls <string> {
         key-file <quoted_string>;
         prefer-server-ciphers <boolean>;
         protocols { <string>; ... };
+        session-tickets <boolean>;
 }; // may occur multiple times
 
 trust-anchors { <string> ( static-key |

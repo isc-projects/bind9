@@ -67,6 +67,8 @@ typedef struct ns_listen_tls_params {
 	const char *ciphers;
 	bool	    prefer_server_ciphers;
 	bool	    prefer_server_ciphers_set;
+	bool	    session_tickets;
+	bool	    session_tickets_set;
 } ns_listen_tls_params_t;
 
 /***

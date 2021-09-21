@@ -574,6 +574,17 @@ isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer) {
 	}
 }
 
+void
+isc_tlsctx_session_tickets(isc_tlsctx_t *ctx, const bool use) {
+	REQUIRE(ctx != NULL);
+
+	if (!use) {
+		(void)SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
+	} else {
+		(void)SSL_CTX_clear_options(ctx, SSL_OP_NO_TICKET);
+	}
+}
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx) {
 	isc_tls_t *newctx = NULL;
