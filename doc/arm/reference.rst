@@ -5019,10 +5019,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
   ``max-zone-ttl``
     Like the ``max-zone-ttl`` zone option, this specifies the maximum
-    permissible TTL value, in seconds, for the zone.  When loading a
-    zone file using a ``masterfile-format`` of ``text`` or ``raw``, any
-    record encountered with a TTL higher than ``max-zone-ttl`` is capped
-    at the maximum permissible TTL value.
+    permissible TTL value, in seconds, for the zone.
 
     This is needed in DNSSEC-maintained zones because when rolling to a
     new DNSKEY, the old key needs to remain available until RRSIG
