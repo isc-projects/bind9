@@ -553,8 +553,7 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 
 isc_result_t
 isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
-	unsigned char *bdata;
-	uint64_t len;
+	size_t len;
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
@@ -581,18 +580,9 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 		return (ISC_R_NOMEMORY);
 	}
 
-	/*
-	 * XXXMUKS: This is far more expensive than plain realloc() as
-	 * it doesn't remap pages, but does ordinary copy. So is
-	 * isc_mem_reallocate(), which has additional issues.
-	 */
-	bdata = isc_mem_get((*dynbuffer)->mctx, (unsigned int)len);
-
-	memmove(bdata, (*dynbuffer)->base, (*dynbuffer)->length);
-	isc_mem_put((*dynbuffer)->mctx, (*dynbuffer)->base,
-		    (*dynbuffer)->length);
-
-	(*dynbuffer)->base = bdata;
+	(*dynbuffer)->base = isc_mem_reget((*dynbuffer)->mctx,
+					   (*dynbuffer)->base,
+					   (*dynbuffer)->length, len);
 	(*dynbuffer)->length = (unsigned int)len;
 
 	return (ISC_R_SUCCESS);
