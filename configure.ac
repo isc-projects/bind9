@@ -3038,7 +3038,7 @@ report() {
 	  [AS_ECHO(["    +--------------------------------------------------------+"])
 	   AS_ECHO(["    |             ==== DEPRECATION WARNING ====              |"])
 	   AS_ECHO(["    +--------------------------------------------------------+"])
-	   AS_ECHO(["    | Old-style DLZ drivers has been deprecated in favor of  |"])
+	   AS_ECHO(["    | Old-style DLZ drivers have been deprecated in favor of |"])
 	   AS_ECHO(["    | DLZ modules. The DLZ drivers configuration option will |"])
 	   AS_ECHO(["    | be removed from the next major BIND 9 release.         |"])
 	   AS_ECHO(["    |                                                        |"])
