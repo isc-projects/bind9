@@ -349,6 +349,24 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	sdallocx(mem, size, 0);
 }
 
+static inline void *
+mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size) {
+	void *new_ptr = NULL;
+
+	new_ptr = rallocx(old_ptr, new_size, 0);
+
+	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+		ssize_t diff_size = new_size - old_size;
+		void *diff_ptr = (uint8_t *)new_ptr + old_size;
+		if (diff_size > 0) {
+			/* Mnemonic for "beef". */
+			memset(diff_ptr, 0xbe, diff_size);
+		}
+	}
+
+	return (new_ptr);
+}
+
 #define stats_bucket(ctx, size)                      \
 	((size / STATS_BUCKET_SIZE) >= STATS_BUCKETS \
 		 ? &ctx->stats[STATS_BUCKETS]        \
@@ -873,6 +891,37 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 }
 
 void *
+isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size,
+	       size_t new_size FLARG) {
+	void *new_ptr = NULL;
+
+	if (ISC_UNLIKELY(old_ptr == NULL)) {
+		REQUIRE(old_size == 0);
+		new_ptr = isc__mem_get(ctx, new_size FLARG_PASS);
+	} else if (ISC_UNLIKELY(new_size == 0)) {
+		isc__mem_put(ctx, old_ptr, old_size FLARG_PASS);
+	} else {
+		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
+		mem_putstats(ctx, old_ptr, old_size);
+
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size);
+
+		mem_getstats(ctx, new_size);
+		ADD_TRACE(ctx, new_ptr, new_size, file, line);
+
+		/*
+		 * We want to postpone the call to water in edge case
+		 * where the realloc will exactly hit on the boundary of
+		 * the water and we would call water twice.
+		 */
+		CALL_LO_WATER(ctx);
+		CALL_HI_WATER(ctx);
+	}
+
+	return (new_ptr);
+}
+
+void *
 isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 	void *new_ptr = NULL;
 
@@ -888,16 +937,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_ptr, old_size);
 
-		new_ptr = rallocx(old_ptr, new_size, 0);
-
-		if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
-			ssize_t diff_size = new_size - old_size;
-			void *diff_ptr = (uint8_t *)new_ptr + old_size;
-			if (diff_size >= 0) {
-				/* Mnemonic for "beef". */
-				memset(diff_ptr, 0xbe, diff_size);
-			}
-		}
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size);
 
 		/* Recalculate the real allocated size */
 		new_size = sallocx(new_ptr, 0);

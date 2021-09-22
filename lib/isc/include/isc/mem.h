@@ -134,7 +134,9 @@ extern unsigned int isc_mem_defaultflags;
 #define ISCMEMFUNC(sfx)	    isc__mem_##sfx
 #define ISCMEMPOOLFUNC(sfx) isc__mempool_##sfx
 
-#define isc_mem_get(c, s)      ISCMEMFUNC(get)((c), (s)_ISC_MEM_FILELINE)
+#define isc_mem_get(c, s) ISCMEMFUNC(get)((c), (s)_ISC_MEM_FILELINE)
+#define isc_mem_reget(c, p, o, n) \
+	ISCMEMFUNC(reget)((c), (p), (o), (n)_ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s) ISCMEMFUNC(allocate)((c), (s)_ISC_MEM_FILELINE)
 #define isc_mem_reallocate(c, p, s) \
 	ISCMEMFUNC(reallocate)((c), (p), (s)_ISC_MEM_FILELINE)
@@ -482,6 +484,9 @@ void ISCMEMFUNC(free)(isc_mem_t *, void *_ISC_MEM_FLARG);
 
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(put), 2)
 void *ISCMEMFUNC(get)(isc_mem_t *, size_t _ISC_MEM_FLARG);
+
+ISC_ATTR_DEALLOCATOR_IDX(ISCMEMFUNC(put), 2)
+void *ISCMEMFUNC(reget)(isc_mem_t *, void *, size_t, size_t _ISC_MEM_FLARG);
 
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
 void *ISCMEMFUNC(allocate)(isc_mem_t *, size_t _ISC_MEM_FLARG);
