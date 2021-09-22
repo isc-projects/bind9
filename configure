@@ -26419,7 +26419,7 @@ else
   $as_echo "    +--------------------------------------------------------+"
 	   $as_echo "    |             ==== DEPRECATION WARNING ====              |"
 	   $as_echo "    +--------------------------------------------------------+"
-	   $as_echo "    | Old-style DLZ drivers has been deprecated in favor of  |"
+	   $as_echo "    | Old-style DLZ drivers have been deprecated in favor of |"
 	   $as_echo "    | DLZ modules. The DLZ drivers configuration option will |"
 	   $as_echo "    | be removed from the next major BIND 9 release.         |"
 	   $as_echo "    |                                                        |"
