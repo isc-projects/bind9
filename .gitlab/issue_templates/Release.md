@@ -76,7 +76,10 @@
  - [ ] ***(Support)*** Send eligible customers updated links to the Subscription Edition (update the -S edition delivery tickets, even if those links were provided earlier via an ASN ticket).
  - [ ] ***(Support)*** Update tickets in case of waiting support customers.
  - [ ] ***(QA)*** Build and test any outstanding private packages.
- - [ ] ***(QA)*** Build public packages (`*.deb`, RPMs).
+ - [ ] ***(QA)*** Build RPMs, update Cloudsmith repos
+ - [ ] ***(Ondrej/Sweng) *** Build/update Ubuntu launchpad
+ - [ ] ***(Ondrej/Sweng) *** Build/update Debian images
+ - [ ] ***(Ondrej/Sweng) *** Build/update Docker files
  - [ ] ***(QA)*** Inform Marketing of the release.
  - [ ] ***(QA)*** Update the internal [BIND release dates wiki page](https://wiki.isc.org/bin/view/Main/BindReleaseDates) when public announcement has been made.
  - [ ] ***(Marketing)*** Post short note to Twitter.
