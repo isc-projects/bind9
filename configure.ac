@@ -272,7 +272,7 @@ except: exit(1)'
 testsetup='try: from distutils.core import setup
 except: exit(1)'
 
-default_with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+default_with_python="python python3 python3.8 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
 AC_ARG_VAR([PYTHON], [path to python executable])
 
