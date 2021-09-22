@@ -1465,15 +1465,17 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 					    &symtab);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
-		}
-		for (element = cfg_list_first(obj); element != NULL;
-		     element = cfg_list_next(element))
-		{
-			obj = cfg_listelt_value(element);
-			tresult = mustbesecure(obj, symtab, logctx, mctx);
-			if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
+		} else {
+			for (element = cfg_list_first(obj); element != NULL;
+			     element = cfg_list_next(element))
 			{
-				result = tresult;
+				obj = cfg_listelt_value(element);
+				tresult = mustbesecure(obj, symtab, logctx,
+						       mctx);
+				if (result == ISC_R_SUCCESS &&
+				    tresult != ISC_R_SUCCESS) {
+					result = tresult;
+				}
 			}
 		}
 		if (symtab != NULL) {
@@ -4829,28 +4831,57 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 }
 
 static isc_result_t
-check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_log_t *logctx) {
+check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx,
+	   isc_log_t *logctx) {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj, *nameobj, *primariesobj;
 	const char *zonename;
 	const char *forview = " for view ";
-	isc_result_t result;
+	isc_result_t result, tresult;
+	isc_symtab_t *symtab = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
 
 	if (viewname == NULL) {
 		viewname = "";
 		forview = "";
 	}
 
-	result = ISC_R_SUCCESS;
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	obj = cfg_tuple_get(catz_obj, "zone list");
 
 	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
 	{
+		char namebuf[DNS_NAME_FORMATSIZE];
+
 		obj = cfg_listelt_value(element);
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
+
+		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "bad domain name '%s'", zonename);
+			if (result == ISC_R_SUCCESS) {
+				result = tresult;
+				continue;
+			}
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		tresult =
+			nameexist(nameobj, namebuf, 1, symtab,
+				  "catalog zone '%s': already added here %s:%u",
+				  logctx, mctx);
+		if (tresult != ISC_R_SUCCESS) {
+			result = tresult;
+			continue;
+		}
 
 		primariesobj = cfg_tuple_get(obj, "default-primaries");
 		if (primariesobj != NULL && cfg_obj_istuple(primariesobj)) {
@@ -4867,6 +4898,10 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_log_t *logctx) {
 				break;
 			}
 		}
+	}
+
+	if (symtab != NULL) {
+		isc_symtab_destroy(&symtab);
 	}
 
 	return (result);
@@ -5058,7 +5093,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		obj = NULL;
 		if ((cfg_map_get(opts, "catalog-zones", &obj) ==
 		     ISC_R_SUCCESS) &&
-		    (check_catz(obj, viewname, logctx) != ISC_R_SUCCESS))
+		    (check_catz(obj, viewname, mctx, logctx) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
 		}
