@@ -5079,7 +5079,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
     An optional second token determines where the key is stored.
     Currently, keys can only be stored in the configured
     ``key-directory``.  This token may be used in the future to store
-    keys in hardware service modules or separate directories.
+    keys in hardware security modules or separate directories.
 
     The ``lifetime`` parameter specifies how long a key may be used
     before rolling over.  In the example above, the first key has an
@@ -5138,10 +5138,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
   ``max-zone-ttl``
     Like the ``max-zone-ttl`` zone option, this specifies the maximum
-    permissible TTL value, in seconds, for the zone.  When loading a
-    zone file using a ``masterfile-format`` of ``text`` or ``raw``, any
-    record encountered with a TTL higher than ``max-zone-ttl`` is capped
-    at the maximum permissible TTL value.
+    permissible TTL value, in seconds, for the zone.
 
     This is needed in DNSSEC-maintained zones because when rolling to a
     new DNSKEY, the old key needs to remain available until RRSIG
@@ -5163,7 +5160,9 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
     The default is to use NSEC.  The ``iterations``, ``optout`` and
     ``salt-length`` parts are optional, but if not set, the values in
-    the example above are the default NSEC3 parameters.
+    the example above are the default NSEC3 parameters. Note that you don't
+    specify a specific salt string, ``named`` will create a salt for you
+    of the provided salt length.
 
   ``zone-propagation-delay``
     This is the expected propagation delay from the time when a zone is
