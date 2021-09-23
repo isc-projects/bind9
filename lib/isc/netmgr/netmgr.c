@@ -1894,8 +1894,8 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 		sock->buf_size = alloc_len;
 	} else {
 		/* We have the buffer but it's too small */
-		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
-		sock->buf = isc_mem_get(sock->mgr->mctx, NM_BIG_BUF);
+		sock->buf = isc_mem_reget(sock->mgr->mctx, sock->buf,
+					  sock->buf_size, NM_BIG_BUF);
 		sock->buf_size = NM_BIG_BUF;
 	}
 }

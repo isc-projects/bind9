@@ -1,3 +1,6 @@
+5722.	[bug]		Preserve the contents of TCPDNS and TLSDNS receive
+			buffer when growing the buffer size. [GL #2917]
+
 5721.	[func]		New isc_mem_reget() realloc-like function was
 			introduced into the libisc API, and zero-sized
 			allocations now return non-NULL pointers. [GL !5440]

@@ -62,3 +62,6 @@ Bug Fixes
 - When new IP addresses were added to the system during ``named``
   startup, ``named`` failed to listen on TCP for the newly added
   interfaces. :gl:`#2852`
+
+- Under specific circumstances, zone transfers over TCP and TLS could be
+  interrupted prematurely. This has been fixed. :gl:`#2917`
