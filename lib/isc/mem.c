@@ -70,11 +70,12 @@ unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
  * Constants.
  */
 
-#define ALIGNMENT	  8U /*%< must be a power of 2 */
-#define ALIGNMENT_SIZE	  sizeof(size_info)
-#define DEBUG_TABLE_COUNT 512U
-#define STATS_BUCKETS	  512U
-#define STATS_BUCKET_SIZE 32U
+#define ZERO_ALLOCATION_SIZE sizeof(void *)
+#define ALIGNMENT	     8U /*%< must be a power of 2 */
+#define ALIGNMENT_SIZE	     sizeof(size_info)
+#define DEBUG_TABLE_COUNT    512U
+#define STATS_BUCKETS	     512U
+#define STATS_BUCKET_SIZE    32U
 
 /*
  * Types.
@@ -323,12 +324,21 @@ unlock:
 }
 #endif /* ISC_MEM_TRACKLINES */
 
+#define ADJUST_ZERO_ALLOCATION_SIZE(s)    \
+	if (ISC_UNLIKELY(s == 0)) {       \
+		s = ZERO_ALLOCATION_SIZE; \
+	}
+
 /*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
 static inline void *
 mem_get(isc_mem_t *ctx, size_t size) {
-	char *ret = mallocx(size, 0);
+	char *ret = NULL;
+
+	ADJUST_ZERO_ALLOCATION_SIZE(size);
+
+	ret = mallocx(size, 0);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
@@ -343,6 +353,8 @@ mem_get(isc_mem_t *ctx, size_t size) {
 /* coverity[+free : arg-1] */
 static inline void
 mem_put(isc_mem_t *ctx, void *mem, size_t size) {
+	ADJUST_ZERO_ALLOCATION_SIZE(size);
+
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
@@ -352,6 +364,8 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 static inline void *
 mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size) {
 	void *new_ptr = NULL;
+
+	ADJUST_ZERO_ALLOCATION_SIZE(new_size);
 
 	new_ptr = rallocx(old_ptr, new_size, 0);
 
@@ -607,7 +621,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 	REQUIRE(ptr != NULL);
-	REQUIRE(size > 0);
+	REQUIRE(size != 0);
 
 	ctx = *ctxp;
 	*ctxp = NULL;
@@ -735,9 +749,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ISC_LIKELY(size != 0)) {
-		ptr = mem_get(ctx, size);
-	}
+	ptr = mem_get(ctx, size);
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -750,15 +762,11 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 void
 isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(ISC_LIKELY(ptr != NULL && size != 0) ||
-		ISC_UNLIKELY(ptr == NULL && size == 0));
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	if (ISC_LIKELY(ptr != NULL)) {
-		mem_put(ctx, ptr, size);
-	}
+	mem_put(ctx, ptr, size);
 
 	CALL_LO_WATER(ctx);
 }
@@ -875,12 +883,10 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ISC_LIKELY(size != 0)) {
-		ptr = mem_get(ctx, size);
+	ptr = mem_get(ctx, size);
 
-		/* Recalculate the real allocated size */
-		size = sallocx(ptr, 0);
-	}
+	/* Recalculate the real allocated size */
+	size = sallocx(ptr, 0);
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -963,16 +969,12 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ISC_LIKELY(ptr != NULL)) {
-		size = sallocx(ptr, 0);
-	}
+	size = sallocx(ptr, 0);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	if (ISC_LIKELY(ptr != NULL)) {
-		mem_put(ctx, ptr, size);
-	}
+	mem_put(ctx, ptr, size);
 
 	CALL_LO_WATER(ctx);
 }
