@@ -4802,6 +4802,13 @@ The following options can be specified in a ``tls`` statement:
     or the TLS certificate and key pair is planned to be used across
     multiple BIND instances.
 
+The options described above are used to control different aspects of
+TLS functioning. Thus, most of them have no well-defined default
+values, as these depend on the cryptographic library version in use
+and system-wide cryptographic policy. On the other hand, by specifying
+the needed options one could have a uniform configuration deployable
+across a range of platforms.
+
 There are two built-in TLS connection configurations: ``ephemeral``,
 uses a temporary key and certificate created for the current ``named``
 session only, and ``none``, which can be used when setting up an HTTP
