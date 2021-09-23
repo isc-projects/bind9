@@ -1,3 +1,7 @@
+5721.	[func]		New isc_mem_reget() realloc-like function was
+			introduced into the libisc API, and zero-sized
+			allocations now return non-NULL pointers. [GL !5440]
+
 5720.	[contrib]	Remove old-style DLZ drivers that had to be enabled
 			during compile time. [GL #2814]
 

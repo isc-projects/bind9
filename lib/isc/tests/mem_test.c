@@ -220,6 +220,64 @@ isc_mem_inuse_test(void **state) {
 	isc_mem_destroy(&mctx2);
 }
 
+static void
+isc_mem_zeroget_test(void **state) {
+	uint8_t *data = NULL;
+	UNUSED(state);
+
+	data = isc_mem_get(test_mctx, 0);
+	assert_non_null(data);
+	isc_mem_put(test_mctx, data, 0);
+}
+
+#define REGET_INIT_SIZE	  1024
+#define REGET_GROW_SIZE	  2048
+#define REGET_SHRINK_SIZE 512
+
+static void
+isc_mem_reget_test(void **state) {
+	uint8_t *data = NULL;
+
+	UNUSED(state);
+
+	/* test that we can reget NULL */
+	data = isc_mem_reget(test_mctx, NULL, 0, REGET_INIT_SIZE);
+	assert_non_null(data);
+	isc_mem_put(test_mctx, data, REGET_INIT_SIZE);
+
+	/* test that we can re-get a zero-length allocation */
+	data = isc_mem_get(test_mctx, 0);
+	assert_non_null(data);
+
+	data = isc_mem_reget(test_mctx, data, 0, REGET_INIT_SIZE);
+	assert_non_null(data);
+
+	for (size_t i = 0; i < REGET_INIT_SIZE; i++) {
+		data[i] = i % UINT8_MAX;
+	}
+
+	data = isc_mem_reget(test_mctx, data, REGET_INIT_SIZE, REGET_GROW_SIZE);
+	assert_non_null(data);
+
+	for (size_t i = 0; i < REGET_INIT_SIZE; i++) {
+		assert_int_equal(data[i], i % UINT8_MAX);
+	}
+
+	for (size_t i = REGET_GROW_SIZE; i > 0; i--) {
+		data[i - 1] = i % UINT8_MAX;
+	}
+
+	data = isc_mem_reget(test_mctx, data, REGET_GROW_SIZE,
+			     REGET_SHRINK_SIZE);
+	assert_non_null(data);
+
+	for (size_t i = REGET_SHRINK_SIZE; i > 0; i--) {
+		assert_int_equal(data[i - 1], i % UINT8_MAX);
+	}
+
+	isc_mem_put(test_mctx, data, REGET_SHRINK_SIZE);
+}
+
 #if ISC_MEM_TRACKLINES
 
 /* test mem with no flags */
@@ -435,6 +493,10 @@ main(void) {
 		cmocka_unit_test_setup_teardown(isc_mem_total_test, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(isc_mem_inuse_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_zeroget_test, _setup,
+						_teardown),
+		cmocka_unit_test_setup_teardown(isc_mem_reget_test, _setup,
 						_teardown),
 
 #if !defined(__SANITIZE_THREAD__)
