@@ -38,7 +38,7 @@ options {
 	stale-answer-ttl 3;
 	stale-refresh-time 0;
 	max-stale-ttl 3600;
-	resolver-query-timeout 10;
+	resolver-query-timeout 10000; # 10 seconds
 };
 
 zone "." {

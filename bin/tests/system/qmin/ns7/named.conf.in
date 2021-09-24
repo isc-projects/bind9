@@ -22,7 +22,7 @@ options {
 	recursion yes;
 	qname-minimization relaxed;
 	querylog yes;
-	resolver-query-timeout 30;
+	resolver-query-timeout 30000; # 30 seconds
 	dnssec-validation no;
 };
 

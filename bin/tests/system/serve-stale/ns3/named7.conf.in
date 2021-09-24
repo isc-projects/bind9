@@ -41,7 +41,7 @@ options {
 	stale-cache-enable yes;
 	stale-answer-ttl 3;
 	stale-refresh-time 4;
-	resolver-query-timeout 10;
+	resolver-query-timeout 10000; # 10 seconds
 	fetches-per-zone 1 fail;
 	fetches-per-server 1 fail;
 	max-stale-ttl 3600;
