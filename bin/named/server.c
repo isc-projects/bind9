@@ -3061,7 +3061,9 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 			name = dns_catz_entry_getname(entry);
 
 			tresult = dns_view_findzone(pview, name, &dnszone);
-			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+			if (tresult != ISC_R_SUCCESS) {
+				continue;
+			}
 
 			dns_zone_setview(dnszone, view);
 			dns_view_addzone(view, dnszone);
