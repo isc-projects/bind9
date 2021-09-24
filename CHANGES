@@ -1,3 +1,7 @@
+5727.	[bug]		Ignore the missing zones when doing a reload on a
+			catalog zone, and make sure to restore them later on.
+			[GL #2308]
+
 5726.	[bug]		Fix heap use after free when cheking for "http"
 			clauses duplicates. [GL #2924]
 
