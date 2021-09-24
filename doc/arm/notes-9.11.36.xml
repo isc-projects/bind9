@@ -15,7 +15,24 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          The <command>lame-ttl</command> option controls how long
+          <command>named</command> caches certain types of broken responses from
+          authoritative servers (see the <link xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="https://kb.isc.org/docs/cve-2021-25219">security advisory</link>
+          for details). This caching mechanism could be abused by an attacker to
+          significantly degrade resolver performance. The vulnerability has been
+          mitigated by changing the default value of <command>lame-ttl</command>
+          to <command>0</command> and overriding any explicitly set value with
+          <command>0</command>, effectively disabling this mechanism altogether.
+          ISC's testing has determined that doing that has a negligible impact
+          on resolver performance while also preventing abuse. Administrators
+          may observe more traffic towards servers issuing certain types of
+          broken responses than in previous BIND 9 releases, depending on client
+          query patterns. (CVE-2021-25219)
+        </para>
+        <para>
+          ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
+          bringing this vulnerability to our attention. [GL #2899]
         </para>
       </listitem>
     </itemizedlist>
