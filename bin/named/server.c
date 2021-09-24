@@ -4806,8 +4806,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	result = named_config_get(maps, "lame-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	lame_ttl = cfg_obj_asduration(obj);
-	if (lame_ttl > 1800) {
-		lame_ttl = 1800;
+	if (lame_ttl > 0) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "disabling lame cache despite lame-ttl > 0 as it "
+			    "may cause performance issues");
+		lame_ttl = 0;
 	}
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 
