@@ -65,7 +65,11 @@
 5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 			[GL #2935]
 
-5736.	[placeholder]
+5736.	[security]	The "lame-ttl" option is now forcibly set to 0. This
+			effectively disables the lame server cache, as it could
+			previously be abused by an attacker to significantly
+			degrade resolver performance. (CVE-2021-25219)
+			[GL #2899]
 
 5735.	[cleanup]	The result codes which BIND 9 uses internally are now
 			all defined as a single list of enum values rather than

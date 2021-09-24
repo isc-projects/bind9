@@ -14,7 +14,21 @@ Notes for BIND 9.17.18
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- The ``lame-ttl`` option controls how long ``named`` caches certain
+  types of broken responses from authoritative servers (see the
+  `security advisory <https://kb.isc.org/docs/cve-2021-25219>`_ for
+  details). This caching mechanism could be abused by an attacker to
+  significantly degrade resolver performance. The vulnerability has been
+  mitigated by changing the default value of ``lame-ttl`` to ``0`` and
+  overriding any explicitly set value with ``0``, effectively disabling
+  this mechanism altogether. ISC's testing has determined that doing
+  that has a negligible impact on resolver performance while also
+  preventing abuse. Administrators may observe more traffic towards
+  servers issuing certain types of broken responses than in previous
+  BIND 9 releases, depending on client query patterns. (CVE-2021-25219)
+
+  ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
+  bringing this vulnerability to our attention. :gl:`#2899`
 
 Known Issues
 ~~~~~~~~~~~~
