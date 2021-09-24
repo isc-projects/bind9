@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f dig.out check.out
+rm -f dig.out* check.out
 rm -f */named.memstats
 rm -f */named.conf
 rm -f */named.run
