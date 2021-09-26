@@ -14,6 +14,40 @@
 #include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
+#include <openssl/rsa.h>
+
+/*
+ * Limit the size of public exponents.
+ */
+#ifndef RSA_MAX_PUBEXP_BITS
+#define RSA_MAX_PUBEXP_BITS 35
+#endif /* ifndef RSA_MAX_PUBEXP_BITS */
+
+#if !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L
+int
+RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
+
+int
+RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
+
+int
+RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
+
+void
+RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e,
+	     const BIGNUM **d);
+
+void
+RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
+
+void
+RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1,
+		    const BIGNUM **iqmp);
+
+int
+RSA_test_flags(const RSA *r, int flags);
+#endif /* !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 #if !HAVE_ECDSA_SIG_GET0
 void
