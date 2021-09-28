@@ -1,3 +1,7 @@
+5728.	[func]		Allow specifying supported TLS protocol
+			versions within "tls" clauses
+			(e.g. protocols { TLSv1.2; TLSv1.3; };). [GL #2795]
+
 5727.	[bug]		Ignore the missing zones when doing a reload on a
 			catalog zone, and make sure to restore them later on.
 			[GL #2308]
