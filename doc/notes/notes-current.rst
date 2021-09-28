@@ -27,6 +27,15 @@ New Features
 - Ability to specify supported TLS protocol versions within ``tls``
   clauses (e.g. ``protocols { TLSv1.2; TLSv1.3; };``). :gl:`#2795`
 
+- New options within ``tls`` clauses were implemented, namely:
+  - ``dhparam-file "<path_to_file>";`` to specify Diffie-Hellman parameters;
+  - ``ciphers "<cipher_list>";`` to specify OpenSSL ciphers list;
+  - ``prefer-server-ciphers yes|no;`` to assert server or client ciphers preference;
+  - ``session-tickets yes|no;`` to explicitly enable or disable stateless TLS session tickets (see RFC5077).
+  These options allow finer control over TLS protocol features and make it
+  possible to achieve perfect forward secrecy for DNS-over-TLS and
+  DNS-over-HTTPS. :gl:`#2796`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
