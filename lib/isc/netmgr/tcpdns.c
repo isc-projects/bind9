@@ -1110,10 +1110,9 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpdnssend_t *ievent =
 		(isc__netievent_tcpdnssend_t *)ev0;
 
-	REQUIRE(ievent->sock->type == isc_nm_tcpdnssocket);
-	REQUIRE(ievent->sock->tid == isc_nm_tid());
-	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(VALID_UVREQ(ievent->req));
+	REQUIRE(VALID_NMSOCK(ievent->sock));
+	REQUIRE(ievent->sock->type == isc_nm_tcpdnssocket);
 	REQUIRE(ievent->sock->tid == isc_nm_tid());
 
 	isc_result_t result;
