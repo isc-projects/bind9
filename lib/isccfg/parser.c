@@ -2264,11 +2264,13 @@ cleanup:
 
 void
 cfg_print_spacelist(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	const cfg_list_t *list = &obj->value.list;
-	const cfg_listelt_t *elt;
+	const cfg_list_t *list = NULL;
+	const cfg_listelt_t *elt = NULL;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(obj != NULL);
+
+	list = &obj->value.list;
 
 	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
 	     elt = ISC_LIST_NEXT(elt, link)) {
