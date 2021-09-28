@@ -20,6 +20,7 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	check-names primary ignore;
+	check-names secondary ignore;
 	notify yes;
 };
 
@@ -32,4 +33,10 @@ zone "primary-ignore.update" {
 	type primary;
 	file "primary-ignore.update.db";
 	allow-update { any; };
+};
+
+zone "master-ignore.update" {
+	type secondary;
+	primaries { 10.53.0.5; };
+	file "secondary-ignore.update.db";
 };
