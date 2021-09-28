@@ -24,7 +24,8 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Ability to specify supported TLS protocol versions within ``tls``
+  clauses (e.g. ``protocols { TLSv1.2; TLSv1.3; };``). :gl:`#2795`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
