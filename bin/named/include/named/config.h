@@ -31,7 +31,7 @@ named_config_get(cfg_obj_t const *const *maps, const char *name,
 		 const cfg_obj_t **obj);
 
 isc_result_t
-named_checknames_get(const cfg_obj_t **maps, const char *name,
+named_checknames_get(const cfg_obj_t **maps, const char *const names[],
 		     const cfg_obj_t **obj);
 
 int

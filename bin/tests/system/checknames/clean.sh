@@ -17,6 +17,8 @@ rm -f ns1/*.update.db
 rm -f ns1/*.update.db.jnl
 rm -f ns4/*.update.db
 rm -f ns4/*.update.db.jnl
+rm -f ns5/*.update.db
+rm -f ns5/*.update.db.jnl
 rm -f */named.memstats
 rm -f */named.run
 rm -f ns*/named.lock
