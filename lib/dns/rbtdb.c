@@ -4764,94 +4764,116 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 	return (result);
 }
 
+/*
+ * Look for a potentially covering NSEC in the cache where `name`
+ * is known to not exist.  This uses the auxiliary NSEC tree to find
+ * the potential NSEC owner.
+ */
 static isc_result_t
-find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
-		  isc_stdtime_t now, dns_name_t *foundname,
-		  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
-	dns_rbtnode_t *node;
-	rdatasetheader_t *header, *header_next, *header_prev;
-	rdatasetheader_t *found, *foundsig;
-	bool empty_node;
-	isc_result_t result;
-	dns_fixedname_t fname, forigin;
-	dns_name_t *name, *origin;
-	rbtdb_rdatatype_t matchtype, sigmatchtype;
-	nodelock_t *lock;
-	isc_rwlocktype_t locktype;
+find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
+		  dns_dbnode_t **nodep, isc_stdtime_t now,
+		  dns_name_t *foundname, dns_rdataset_t *rdataset,
+		  dns_rdataset_t *sigrdataset) {
+	dns_fixedname_t fprefix, forigin, ftarget;
+	dns_name_t *prefix, *origin, *target;
+	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
+	isc_result_t result;
+	isc_rwlocktype_t locktype;
+	nodelock_t *lock;
+	rbtdb_rdatatype_t matchtype, sigmatchtype;
+	rdatasetheader_t *found, *foundsig;
+	rdatasetheader_t *header, *header_next, *header_prev;
 
-	chain = search->chain;
+	/*
+	 * Look for the node in the auxilary tree.
+	 */
+	dns_rbtnodechain_init(&chain);
+	target = dns_fixedname_initname(&ftarget);
+	result = dns_rbt_findnode(search->rbtdb->nsec, name, target, &node,
+				  &chain, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	if (result != DNS_R_PARTIALMATCH) {
+		dns_rbtnodechain_reset(&chain);
+		return (ISC_R_NOTFOUND);
+	}
 
+	prefix = dns_fixedname_initname(&fprefix);
+	origin = dns_fixedname_initname(&forigin);
+	target = dns_fixedname_initname(&ftarget);
+
+	locktype = isc_rwlocktype_read;
 	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
 	sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
 					     dns_rdatatype_nsec);
 
-	do {
-		node = NULL;
-		name = dns_fixedname_initname(&fname);
-		origin = dns_fixedname_initname(&forigin);
-		result = dns_rbtnodechain_current(&chain, name, origin, &node);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
+	/*
+	 * Extract predecessor from chain.
+	 */
+	result = dns_rbtnodechain_current(&chain, prefix, origin, NULL);
+	dns_rbtnodechain_reset(&chain);
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	result = dns_name_concatenate(prefix, origin, target, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	/*
+	 * Lookup the predecessor in the main tree.
+	 */
+	node = NULL;
+	result = dns_rbt_findnode(search->rbtdb->tree, target, foundname, &node,
+				  NULL, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	found = NULL;
+	foundsig = NULL;
+	header_prev = NULL;
+
+	lock = &(search->rbtdb->node_locks[node->locknum].lock);
+	NODE_LOCK(lock, locktype);
+	for (header = node->data; header != NULL; header = header_next) {
+		header_next = header->next;
+		if (check_stale_header(node, header, &locktype, lock, search,
+				       &header_prev)) {
+			continue;
 		}
-		locktype = isc_rwlocktype_read;
-		lock = &(search->rbtdb->node_locks[node->locknum].lock);
-		NODE_LOCK(lock, locktype);
-		found = NULL;
-		foundsig = NULL;
-		empty_node = true;
-		header_prev = NULL;
-		for (header = node->data; header != NULL; header = header_next)
-		{
-			header_next = header->next;
-			if (check_stale_header(node, header, &locktype, lock,
-					       search, &header_prev)) {
-				continue;
-			}
-			if (NONEXISTENT(header) ||
-			    RBTDB_RDATATYPE_BASE(header->type) == 0) {
-				header_prev = header;
-				continue;
-			}
-			/*
-			 * Don't stop on provable noqname / RRSIG.
-			 */
-			if (header->noqname == NULL &&
-			    RBTDB_RDATATYPE_BASE(header->type) !=
-				    dns_rdatatype_rrsig)
-			{
-				empty_node = false;
-			}
-			if (header->type == matchtype) {
-				found = header;
-			} else if (header->type == sigmatchtype) {
-				foundsig = header;
-			}
+		if (NONEXISTENT(header) ||
+		    RBTDB_RDATATYPE_BASE(header->type) == 0) {
 			header_prev = header;
+			continue;
 		}
-		if (found != NULL) {
-			result = dns_name_concatenate(name, origin, foundname,
-						      NULL);
-			if (result != ISC_R_SUCCESS) {
-				goto unlock_node;
-			}
-			bind_rdataset(search->rbtdb, node, found, now, locktype,
-				      rdataset);
+		if (header->type == matchtype) {
+			found = header;
 			if (foundsig != NULL) {
-				bind_rdataset(search->rbtdb, node, foundsig,
-					      now, locktype, sigrdataset);
+				break;
 			}
-			new_reference(search->rbtdb, node, locktype);
-			*nodep = node;
-			result = DNS_R_COVERINGNSEC;
-		} else if (!empty_node) {
-			result = ISC_R_NOTFOUND;
-		} else {
-			result = dns_rbtnodechain_prev(&chain, NULL, NULL);
+		} else if (header->type == sigmatchtype) {
+			foundsig = header;
+			if (found != NULL) {
+				break;
+			}
 		}
-	unlock_node:
-		NODE_UNLOCK(lock, locktype);
-	} while (empty_node && result == ISC_R_SUCCESS);
+		header_prev = header;
+	}
+	if (found != NULL) {
+		bind_rdataset(search->rbtdb, node, found, now, locktype,
+			      rdataset);
+		if (foundsig != NULL) {
+			bind_rdataset(search->rbtdb, node, foundsig, now,
+				      locktype, sigrdataset);
+		}
+		new_reference(search->rbtdb, node, locktype);
+		*nodep = node;
+		result = DNS_R_COVERINGNSEC;
+	} else {
+		result = ISC_R_NOTFOUND;
+	}
+	NODE_UNLOCK(lock, locktype);
 	return (result);
 }
 
@@ -4911,7 +4933,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	if (result == DNS_R_PARTIALMATCH) {
 		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
-			result = find_coveringnsec(&search, nodep, now,
+			result = find_coveringnsec(&search, name, nodep, now,
 						   foundname, rdataset,
 						   sigrdataset);
 			if (result == DNS_R_COVERINGNSEC) {
