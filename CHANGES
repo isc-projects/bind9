@@ -1,3 +1,6 @@
+5724.	[bug]		Address potential dead lock when checking zone
+			content consistency. [GL #2908]
+
 5723.	[bug]		Backwards compatiblity for 'check-names master' and
 			'check-names slave' was accidentally broken. [GL #2911]
 
