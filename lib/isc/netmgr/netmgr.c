@@ -2585,8 +2585,7 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 	isc__nm_uvreq_t *uvreq = ievent->req;
 	isc_result_t eresult = ievent->result;
-	isc_region_t region = { .base = (unsigned char *)uvreq->uvbuf.base,
-				.length = uvreq->uvbuf.len };
+	isc_region_t region;
 
 	UNUSED(worker);
 
@@ -2594,6 +2593,9 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 	REQUIRE(sock->tid == isc_nm_tid());
+
+	region.base = (unsigned char *)uvreq->uvbuf.base;
+	region.length = uvreq->uvbuf.len;
 
 	uvreq->cb.recv(uvreq->handle, eresult, &region, uvreq->cbarg);
 
