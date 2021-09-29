@@ -3326,6 +3326,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			goto next;
 		}
 
+		dns_dbiterator_pause(dbiterator);
+
 		/*
 		 * Don't check the NS records at the origin.
 		 */
