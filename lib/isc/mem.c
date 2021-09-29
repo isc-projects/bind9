@@ -339,6 +339,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
 
 	ret = mallocx(size, 0);
+	INSIST(ret != NULL);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
@@ -368,6 +369,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size) {
 	ADJUST_ZERO_ALLOCATION_SIZE(new_size);
 
 	new_ptr = rallocx(old_ptr, new_size, 0);
+	INSIST(new_ptr != NULL);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		ssize_t diff_size = new_size - old_size;
@@ -424,9 +426,6 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 
 static void
 mem_initialize(void) {
-	malloc_conf = "xmalloc:true,background_thread:true,metadata_thp:auto,"
-		      "dirty_decay_ms:30000,muzzy_decay_ms:30000";
-
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
@@ -456,6 +455,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = mallocx(sizeof(*ctx), 0);
+	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
 		.magic = MEM_MAGIC,
@@ -488,6 +488,8 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 		ctx->debuglist =
 			mallocx((DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
+		INSIST(ctx->debuglist != NULL);
+
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			ISC_LIST_INIT(ctx->debuglist[i]);
 		}
