@@ -1482,6 +1482,14 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				lookup->https_path = isc_mem_strdup(
 					mctx, ISC_NM_HTTP_DEFAULT_PATH);
 			} else {
+				if (!isc_nm_http_path_isvalid(value)) {
+					fprintf(stderr,
+						";; The given HTTP path \"%s\" "
+						"is not "
+						"a valid absolute path\n",
+						value);
+					goto invalid_option;
+				}
 				lookup->https_path = isc_mem_strdup(mctx,
 								    value);
 			}
