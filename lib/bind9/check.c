@@ -2040,27 +2040,35 @@ bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
 	const cfg_listelt_t *elt = NULL;
 	isc_symvalue_t symvalue;
 
-	/* Check for duplicates */
-	symvalue.as_cpointer = http;
-	result = isc_symtab_define(symtab, name, 1, symvalue,
-				   isc_symexists_reject);
-	if (result == ISC_R_EXISTS) {
-		const char *file = NULL;
-		unsigned int line;
-
-		tresult = isc_symtab_lookup(symtab, name, 1, &symvalue);
-		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
-
-		line = cfg_obj_line(symvalue.as_cpointer);
-		file = cfg_obj_file(symvalue.as_cpointer);
-		if (file == NULL) {
-			file = "<unknown file>";
-		}
-
+	if (strcasecmp(name, "default") == 0) {
 		cfg_obj_log(http, logctx, ISC_LOG_ERROR,
-			    "http '%s' is duplicated: "
-			    "also defined at %s:%u",
-			    name, file, line);
+			    "'http' name cannot be '%s' (which is a "
+			    "built-in configuration)",
+			    name);
+		result = ISC_R_FAILURE;
+	} else {
+		/* Check for duplicates */
+		symvalue.as_cpointer = http;
+		result = isc_symtab_define(symtab, name, 1, symvalue,
+					   isc_symexists_reject);
+		if (result == ISC_R_EXISTS) {
+			const char *file = NULL;
+			unsigned int line;
+
+			tresult = isc_symtab_lookup(symtab, name, 1, &symvalue);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+
+			line = cfg_obj_line(symvalue.as_cpointer);
+			file = cfg_obj_file(symvalue.as_cpointer);
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+
+			cfg_obj_log(http, logctx, ISC_LOG_ERROR,
+				    "http '%s' is duplicated: "
+				    "also defined at %s:%u",
+				    name, file, line);
+		}
 	}
 
 	/* Check endpoints are valid */
