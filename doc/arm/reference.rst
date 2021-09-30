@@ -4809,6 +4809,32 @@ and system-wide cryptographic policy. On the other hand, by specifying
 the needed options one could have a uniform configuration deployable
 across a range of platforms.
 
+An example of privacy-oriented, perfect forward secrecy enabled
+configuration can be found below. It can be used as a
+starting point.
+
+::
+
+   tls local-tls {
+       key-file "/path/to/key.pem";
+       cert-file "/path/to/fullchain_cert.pem";
+       dhparam-file "/path/to/dhparam.pem";
+       ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+       prefer-server-ciphers yes;
+       session-tickets no;
+   };
+
+A Diffie-Hellman parameters file can be generated using e.g. OpenSSL,
+like follows:
+
+::
+   openssl dhparam -out /path/to/dhparam.pem <3072_or_4096>
+
+Ensure that it gets generated on a machine with enough entropy from
+external sources (e.g. the computer you work on should be fine,
+the remote virtual machine or server might be not). These files do
+not contain any sensitive data and can be shared if required.
+
 There are two built-in TLS connection configurations: ``ephemeral``,
 uses a temporary key and certificate created for the current ``named``
 session only, and ``none``, which can be used when setting up an HTTP
