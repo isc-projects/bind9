@@ -66,3 +66,6 @@ Bug Fixes
 - When new IP addresses were added to the system during ``named``
   startup, ``named`` failed to listen on TCP for the newly added
   interfaces. :gl:`#2852`
+
+- Reloading a catalog zone that referenced a missing/deleted zone
+  caused a crash. This has been fixed. :gl:`#2308`
