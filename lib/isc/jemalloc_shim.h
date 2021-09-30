@@ -26,9 +26,8 @@ const char *malloc_conf = NULL;
 static inline void *
 mallocx(size_t size, int flags) {
 	UNUSED(flags);
-	void *__ptr = malloc(size);
-	REQUIRE(__ptr != NULL);
-	return (__ptr);
+
+	return (malloc(size));
 }
 
 static inline void
@@ -44,10 +43,7 @@ rallocx(void *ptr, size_t size, int flags) {
 	UNUSED(flags);
 	REQUIRE(size != 0);
 
-	void *__ptr = realloc(ptr, size);
-	REQUIRE(__ptr != NULL);
-
-	return (__ptr);
+	return (realloc(ptr, size));
 }
 
 #ifdef HAVE_MALLOC_SIZE
@@ -90,7 +86,7 @@ mallocx(size_t size, int flags) {
 	UNUSED(flags);
 
 	size_info *si = malloc(size + sizeof(*si));
-	REQUIRE(si != NULL);
+	INSIST(si != NULL);
 
 	si->size = size;
 	ptr = &si[1];
@@ -124,7 +120,7 @@ rallocx(void *ptr, size_t size, int flags) {
 	UNUSED(flags);
 
 	si = realloc(si, size + sizeof(*si));
-	REQUIRE(si != NULL);
+	INSIST(si != NULL);
 
 	si->size = size;
 	ptr = &si[1];
