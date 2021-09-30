@@ -2031,23 +2031,22 @@ bind9_check_parentalagentlists(const cfg_obj_t *cctx, isc_log_t *logctx,
 #if HAVE_LIBNGHTTP2
 static isc_result_t
 bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
-		       isc_symtab_t *symtab, isc_mem_t *mctx) {
+		       isc_symtab_t *symtab) {
 	isc_result_t result, tresult;
 	const char *name = cfg_obj_asstring(cfg_map_getname(http));
-	char *tmp = isc_mem_strdup(mctx, name);
 	const cfg_obj_t *eps = NULL;
 	const cfg_listelt_t *elt = NULL;
 	isc_symvalue_t symvalue;
 
 	/* Check for duplicates */
 	symvalue.as_cpointer = http;
-	result = isc_symtab_define(symtab, tmp, 1, symvalue,
+	result = isc_symtab_define(symtab, name, 1, symvalue,
 				   isc_symexists_reject);
 	if (result == ISC_R_EXISTS) {
 		const char *file = NULL;
 		unsigned int line;
 
-		tresult = isc_symtab_lookup(symtab, tmp, 1, &symvalue);
+		tresult = isc_symtab_lookup(symtab, name, 1, &symvalue);
 		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 
 		line = cfg_obj_line(symvalue.as_cpointer);
@@ -2061,7 +2060,6 @@ bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
 			    "also defined at %s:%u",
 			    name, file, line);
 	}
-	isc_mem_free(mctx, tmp);
 
 	/* Check endpoints are valid */
 	tresult = cfg_map_get(http, "endpoints", &eps);
@@ -2106,7 +2104,7 @@ bind9_check_httpservers(const cfg_obj_t *config, isc_log_t *logctx,
 
 	for (elt = cfg_list_first(obj); elt != NULL; elt = cfg_list_next(elt)) {
 		obj = cfg_listelt_value(elt);
-		tresult = bind9_check_httpserver(obj, logctx, symtab, mctx);
+		tresult = bind9_check_httpserver(obj, logctx, symtab);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}

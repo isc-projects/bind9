@@ -1,3 +1,6 @@
+5726.	[bug]		Fix heap use after free when cheking for "http"
+			clauses duplicates. [GL #2924]
+
 5725.	[bug]		Validate HTTP path passed to dig. [GL #2923]
 
 5724.	[bug]		Address potential dead lock when checking zone
