@@ -1,3 +1,6 @@
+5731.	[bug]		Do not allow defining "http" clauses named
+			"default". [GL #2925]
+
 5730.	[func]		The resolver and the request and dispatch managers
 			have been substantially refactored, and are now
 			based on the network manager instead of the old
