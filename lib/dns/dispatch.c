@@ -77,8 +77,9 @@ struct dns_dispentry {
 	dns_dispatch_t *disp;
 	isc_nmhandle_t *handle; /*%< netmgr handle for UDP connection */
 	unsigned int bucket;
-	unsigned int timeout;
 	unsigned int retries;
+	unsigned int timeout;
+	isc_time_t start;
 	isc_sockaddr_t local;
 	isc_sockaddr_t peer;
 	in_port_t port;
@@ -428,6 +429,23 @@ dispentry_detach(dns_dispentry_t **respp) {
 }
 
 /*
+ * How long in milliseconds has it been since this dispentry
+ * started reading? (Only used for UDP, to adjust the timeout
+ * downward when running getnext.)
+ */
+static unsigned int
+dispentry_runtime(dns_dispentry_t *resp) {
+	isc_time_t now;
+
+	if (isc_time_isepoch(&resp->start)) {
+		return (0);
+	}
+
+	TIME_NOW(&now);
+	return (isc_time_microdiff(&now, &resp->start) / 1000);
+}
+
+/*
  * General flow:
  *
  * If I/O result == CANCELED or error, free the buffer.
@@ -452,7 +470,7 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	unsigned int flags;
 	isc_sockaddr_t peer;
 	isc_netaddr_t netaddr;
-	int match;
+	int match, timeout;
 	dispatch_cb_t response = NULL;
 
 	REQUIRE(VALID_RESPONSE(resp));
@@ -549,7 +567,13 @@ next:
 	 * but keep listening.
 	 */
 	response = NULL;
-	dispatch_getnext(disp, resp, resp->timeout);
+
+	timeout = resp->timeout - dispentry_runtime(resp);
+	if (timeout <= 0) {
+		eresult = ISC_R_TIMEDOUT;
+		goto done;
+	}
+	dispatch_getnext(disp, resp, resp->timeout - dispentry_runtime(resp));
 
 done:
 	UNLOCK(&disp->lock);
@@ -1402,12 +1426,6 @@ void
 dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 	REQUIRE(timeout <= UINT16_MAX);
 
-	/*
-	 * FIXME: Since there's no global timeout now, any call to getnext will
-	 * always restart the read timer, so it's possible to keep the client
-	 * connecting until end of times by just feeding it with invalid
-	 * packets.
-	 */
 	switch (disp->socktype) {
 	case isc_socktype_udp:
 		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
@@ -1434,6 +1452,7 @@ dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 isc_result_t
 dns_dispatch_getnext(dns_dispentry_t *resp) {
 	dns_dispatch_t *disp = NULL;
+	int32_t timeout;
 
 	REQUIRE(VALID_RESPONSE(resp));
 
@@ -1441,8 +1460,17 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 
 	REQUIRE(VALID_DISPATCH(disp));
 
+	if (disp->socktype == isc_socktype_udp) {
+		timeout = resp->timeout - dispentry_runtime(resp);
+		if (timeout <= 0) {
+			return (ISC_R_TIMEDOUT);
+		}
+	} else {
+		timeout = -1;
+	}
+
 	LOCK(&disp->lock);
-	dispatch_getnext(disp, resp, resp->timeout);
+	dispatch_getnext(disp, resp, timeout);
 	UNLOCK(&disp->lock);
 	return (ISC_R_SUCCESS);
 }
@@ -1497,6 +1525,7 @@ startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	case isc_socktype_udp:
 		REQUIRE(resp != NULL && resp->handle == NULL);
 
+		TIME_NOW(&resp->start);
 		isc_nmhandle_attach(handle, &resp->handle);
 		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 		isc_nm_read(resp->handle, udp_recv, resp);
