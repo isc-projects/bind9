@@ -59,22 +59,40 @@ struct ns_listenlist {
 	ISC_LIST(ns_listenelt_t) elts;
 };
 
+typedef struct ns_listen_tls_params {
+	const char *key;
+	const char *cert;
+	uint32_t    protocols;
+	const char *dhparam_file;
+	const char *ciphers;
+	bool	    prefer_server_ciphers;
+	bool	    prefer_server_ciphers_set;
+	bool	    session_tickets;
+	bool	    session_tickets_set;
+} ns_listen_tls_params_t;
+
 /***
  *** Functions
  ***/
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, bool tls, const char *key, const char *cert,
-		    ns_listenelt_t **target);
+		    dns_acl_t *acl, bool tls,
+		    const ns_listen_tls_params_t *tls_params,
+		    ns_listenelt_t **		  target);
 /*%<
  * Create a listen-on list element.
+ *
+ * Requires:
+ * \li	'targetp' is a valid pointer to a pointer containing 'NULL';
+ * \li	'tls_params' is a valid, non-'NULL' pointer if 'tls' equals 'true'.
  */
 
 isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, bool tls, const char *key,
-			 const char *cert, char **endpoints, size_t nendpoints,
+			 dns_acl_t *acl, bool tls,
+			 const ns_listen_tls_params_t *tls_params,
+			 char **endpoints, size_t nendpoints,
 			 isc_quota_t *quota, const uint32_t max_streams,
 			 ns_listenelt_t **target);
 /*%<

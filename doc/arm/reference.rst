@@ -293,7 +293,7 @@ The following statements are supported:
         Declares communication channels to get access to ``named`` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file`` and ``hostname``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -4769,8 +4769,71 @@ The following options can be specified in a ``tls`` statement:
   ``ca-file``
     Path to a file containing trusted TLS certificates.
 
+  ``dhparam-file``
+    Path to a file containing Diffie-Hellman parameters,
+    which is needed to enable the cipher suites depending on the
+    Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
+    specified is essential for enabling perfect forward secrecy capable
+    ciphers in TLSv1.2.
+
   ``hostname``
     The hostname associated with the certificate.
+
+  ``protocols``
+    Allowed versions of the TLS protocol. TLS version 1.2 and higher are
+    supported, depending on the cryptographic library in use. Multiple
+    versions might be specified (e.g.
+    ``protocols { TLSv1.2; TLSv1.3; };``).
+
+  ``ciphers``
+    Cipher list which defines allowed ciphers, such as
+    ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
+    formed according to the rules specified in the OpenSSL documentation
+    (see https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
+    for details).
+
+  ``prefer-server-ciphers``
+    Specifies that server ciphers should be preferred over client ones.
+
+  ``session-tickets``
+    Enables or disables session resumption through TLS session tickets,
+    as defined in RFC5077. Disabling the stateless session tickets
+    might be required in the cases when forward secrecy is needed,
+    or the TLS certificate and key pair is planned to be used across
+    multiple BIND instances.
+
+The options described above are used to control different aspects of
+TLS functioning. Thus, most of them have no well-defined default
+values, as these depend on the cryptographic library version in use
+and system-wide cryptographic policy. On the other hand, by specifying
+the needed options one could have a uniform configuration deployable
+across a range of platforms.
+
+An example of privacy-oriented, perfect forward secrecy enabled
+configuration can be found below. It can be used as a
+starting point.
+
+::
+
+   tls local-tls {
+       key-file "/path/to/key.pem";
+       cert-file "/path/to/fullchain_cert.pem";
+       dhparam-file "/path/to/dhparam.pem";
+       ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+       prefer-server-ciphers yes;
+       session-tickets no;
+   };
+
+A Diffie-Hellman parameters file can be generated using e.g. OpenSSL,
+like follows:
+
+::
+   openssl dhparam -out /path/to/dhparam.pem <3072_or_4096>
+
+Ensure that it gets generated on a machine with enough entropy from
+external sources (e.g. the computer you work on should be fine,
+the remote virtual machine or server might be not). These files do
+not contain any sensitive data and can be shared if required.
 
 There are two built-in TLS connection configurations: ``ephemeral``,
 uses a temporary key and certificate created for the current ``named``

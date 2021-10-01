@@ -16,6 +16,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <openssl/opensslv.h>
+
 #ifdef HAVE_DNSTAP
 #include <fstrm.h>
 #endif
@@ -2115,6 +2117,163 @@ done:
 	return (result);
 }
 #endif /* HAVE_LIBNGHTTP2 */
+
+static isc_result_t
+bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
+			  isc_log_t *logctx, isc_symtab_t *symtab) {
+	isc_result_t result, tresult;
+	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
+			*tls_cert = NULL, *tls_ciphers = NULL;
+	uint32_t tls_protos = 0;
+	isc_symvalue_t symvalue;
+
+	if (strcasecmp(name, "ephemeral") == 0 || strcasecmp(name, "none") == 0)
+	{
+		cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+			    "tls clause name '%s' is reserved for internal use",
+			    name);
+		result = ISC_R_FAILURE;
+	} else {
+		/* Check for duplicates */
+		symvalue.as_cpointer = tlsobj;
+		result = isc_symtab_define(symtab, name, 1, symvalue,
+					   isc_symexists_reject);
+		if (result == ISC_R_EXISTS) {
+			const char *file = NULL;
+			unsigned int line;
+
+			tresult = isc_symtab_lookup(symtab, name, 1, &symvalue);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+
+			line = cfg_obj_line(symvalue.as_cpointer);
+			file = cfg_obj_file(symvalue.as_cpointer);
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+
+			cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+				    "tls clause '%s' is duplicated: "
+				    "also defined at %s:%u",
+				    name, file, line);
+		}
+	}
+
+	if (cfg_map_get(tlsobj, "key-file", &tls_key) != ISC_R_SUCCESS) {
+		cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+			    "'key-file' is required in tls clause '%s'", name);
+		result = ISC_R_FAILURE;
+	}
+
+	if (cfg_map_get(tlsobj, "cert-file", &tls_cert) != ISC_R_SUCCESS) {
+		cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+			    "'cert-file' is required in tls clause '%s'", name);
+		result = ISC_R_FAILURE;
+	}
+
+	/* Check protocols are valid */
+	tresult = cfg_map_get(tlsobj, "protocols", &tls_proto_list);
+	if (tresult == ISC_R_SUCCESS) {
+		const cfg_listelt_t *proto = NULL;
+		INSIST(tls_proto_list != NULL);
+		for (proto = cfg_list_first(tls_proto_list); proto != 0;
+		     proto = cfg_list_next(proto))
+		{
+			const cfg_obj_t *tls_proto_obj =
+				cfg_listelt_value(proto);
+			const char *tls_sver = cfg_obj_asstring(tls_proto_obj);
+			const isc_tls_protocol_version_t ver =
+				isc_tls_protocol_name_to_version(tls_sver);
+
+			if (ver == ISC_TLS_PROTO_VER_UNDEFINED) {
+				cfg_obj_log(tls_proto_obj, logctx,
+					    ISC_LOG_ERROR,
+					    "'%s' is not a valid "
+					    "TLS protocol version",
+					    tls_sver);
+				result = ISC_R_FAILURE;
+				continue;
+			} else if (!isc_tls_protocol_supported(ver)) {
+				cfg_obj_log(tls_proto_obj, logctx,
+					    ISC_LOG_ERROR,
+					    "'%s' is not "
+					    "supported by the "
+					    "cryptographic library version in "
+					    "use (%s)",
+					    tls_sver, OPENSSL_VERSION_TEXT);
+				result = ISC_R_FAILURE;
+			}
+
+			if ((tls_protos & ver) != 0) {
+				cfg_obj_log(tls_proto_obj, logctx,
+					    ISC_LOG_WARNING,
+					    "'%s' is specified more than once "
+					    "in '%s'",
+					    tls_sver, name);
+				result = ISC_R_FAILURE;
+			}
+
+			tls_protos |= ver;
+		}
+
+		if (tls_protos == 0) {
+			cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
+				    "tls '%s' does not contain any valid "
+				    "TLS protocol versions definitions",
+				    name);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/* Check cipher list string is valid */
+	tresult = cfg_map_get(tlsobj, "ciphers", &tls_ciphers);
+	if (tresult == ISC_R_SUCCESS) {
+		const char *ciphers = cfg_obj_asstring(tls_ciphers);
+		if (!isc_tls_cipherlist_valid(ciphers)) {
+			cfg_obj_log(tls_ciphers, logctx, ISC_LOG_ERROR,
+				    "'ciphers' in the 'tls' clause '%s' is "
+				    "not a "
+				    "valid cipher list string",
+				    name);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	return (result);
+}
+
+static isc_result_t
+bind9_check_tls_definitions(const cfg_obj_t *config, isc_log_t *logctx,
+			    isc_mem_t *mctx) {
+	isc_result_t result, tresult;
+	const cfg_obj_t *obj = NULL;
+	const cfg_listelt_t *elt = NULL;
+	isc_symtab_t *symtab = NULL;
+
+	result = cfg_map_get(config, "tls", &obj);
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_SUCCESS;
+		return (result);
+	}
+
+	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	for (elt = cfg_list_first(obj); elt != NULL; elt = cfg_list_next(elt)) {
+		const char *name;
+		obj = cfg_listelt_value(elt);
+		name = cfg_obj_asstring(cfg_map_getname(obj));
+		tresult = bind9_check_tls_defintion(obj, name, logctx, symtab);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	isc_symtab_destroy(&symtab);
+
+	return (result);
+}
 
 static isc_result_t
 get_remotes(const cfg_obj_t *cctx, const char *list, const char *name,
@@ -5493,6 +5652,11 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		result = ISC_R_FAILURE;
 	}
 #endif /* HAVE_LIBNGHTTP2 */
+
+	if (bind9_check_tls_definitions(config, logctx, mctx) != ISC_R_SUCCESS)
+	{
+		result = ISC_R_FAILURE;
+	}
 
 	(void)cfg_map_get(config, "view", &views);
 

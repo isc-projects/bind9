@@ -10,12 +10,14 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 #if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
 #endif /* HAVE_LIBNGHTTP2 */
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
+#include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
@@ -32,6 +34,9 @@
 
 #include "openssl_shim.h"
 #include "tls_p.h"
+
+#define COMMON_SSL_OPTIONS \
+	(SSL_OP_NO_COMPRESSION | SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION)
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
@@ -185,13 +190,13 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 		goto ssl_error;
 	}
 
+	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
+
 #if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
 #else
-	SSL_CTX_set_options(
-		ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 |
-			     SSL_OP_NO_TLSv1_1 | SSL_OP_NO_COMPRESSION |
-			     SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
+					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
 #endif
 
 	*ctxp = ctx;
@@ -234,6 +239,8 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		goto ssl_error;
 	}
 	RUNTIME_CHECK(ctx != NULL);
+
+	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
 
 #if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
@@ -357,6 +364,225 @@ ssl_error:
 	}
 
 	return (ISC_R_TLSERROR);
+}
+
+static long
+get_tls_version_disable_bit(const isc_tls_protocol_version_t tls_ver) {
+	long bit = 0;
+
+	switch (tls_ver) {
+	case ISC_TLS_PROTO_VER_1_2:
+#ifdef SSL_OP_NO_TLSv1_2
+		bit = SSL_OP_NO_TLSv1_2;
+#else
+		bit = 0;
+#endif
+		break;
+	case ISC_TLS_PROTO_VER_1_3:
+#ifdef SSL_OP_NO_TLSv1_3
+		bit = SSL_OP_NO_TLSv1_3;
+#else
+		bit = 0;
+#endif
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	};
+
+	return (bit);
+}
+
+bool
+isc_tls_protocol_supported(const isc_tls_protocol_version_t tls_ver) {
+	return (get_tls_version_disable_bit(tls_ver) != 0);
+}
+
+isc_tls_protocol_version_t
+isc_tls_protocol_name_to_version(const char *name) {
+	REQUIRE(name != NULL);
+
+	if (strcasecmp(name, "TLSv1.2") == 0) {
+		return (ISC_TLS_PROTO_VER_1_2);
+	} else if (strcasecmp(name, "TLSv1.3") == 0) {
+		return (ISC_TLS_PROTO_VER_1_3);
+	}
+
+	return (ISC_TLS_PROTO_VER_UNDEFINED);
+}
+
+void
+isc_tlsctx_set_protocols(isc_tlsctx_t *ctx, const uint32_t tls_versions) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(tls_versions != 0);
+	long set_options = 0;
+	long clear_options = 0;
+	uint32_t versions = tls_versions;
+
+	/*
+	 * The code below might be initially hard to follow because of the
+	 * double negation that OpenSSL enforces.
+	 *
+	 * Taking into account that OpenSSL provides bits to *disable*
+	 * specific protocol versions, like SSL_OP_NO_TLSv1_2,
+	 * SSL_OP_NO_TLSv1_3, etc., the code has the following logic:
+	 *
+	 * If a protocol version is not specified in the bitmask, get the
+	 * bit that disables it and add it to the set of TLS options to
+	 * set ('set_options'). Otherwise, if a protocol version is set,
+	 * add the bit to the set of options to clear ('clear_options').
+	 */
+
+	/* TLS protocol versions are defined as powers of two. */
+	for (uint32_t tls_ver = ISC_TLS_PROTO_VER_1_2;
+	     tls_ver < ISC_TLS_PROTO_VER_UNDEFINED; tls_ver <<= 1)
+	{
+		/* Only supported versions should ever be passed to the
+		 * function. The configuration file was not verified
+		 * properly, if we are trying to enable an unsupported
+		 * TLS version */
+		INSIST(isc_tls_protocol_supported(tls_ver));
+		if ((tls_versions & tls_ver) == 0) {
+			set_options |= get_tls_version_disable_bit(tls_ver);
+		} else {
+			clear_options |= get_tls_version_disable_bit(tls_ver);
+		}
+		versions &= ~(tls_ver);
+	}
+
+	/* All versions should be processed at this point, thus the value
+	 * must equal zero. If it is not, then some garbage has been
+	 * passed to the function; this situation is worth
+	 * investigation. */
+	INSIST(versions == 0);
+
+	(void)SSL_CTX_set_options(ctx, set_options);
+	(void)SSL_CTX_clear_options(ctx, clear_options);
+}
+
+bool
+isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(dhparams_file != NULL);
+	REQUIRE(*dhparams_file != '\0');
+
+#ifdef SSL_CTX_set_tmp_dh
+	/* OpenSSL < 3.0 */
+	DH *dh = NULL;
+	FILE *paramfile;
+
+	paramfile = fopen(dhparams_file, "r");
+
+	if (paramfile) {
+		int check = 0;
+		dh = PEM_read_DHparams(paramfile, NULL, NULL, NULL);
+		fclose(paramfile);
+
+		if (dh == NULL) {
+			return (false);
+		} else if (DH_check(dh, &check) != 1 || check != 0) {
+			DH_free(dh);
+			return (false);
+		}
+	} else {
+		return (false);
+	}
+
+	if (SSL_CTX_set_tmp_dh(ctx, dh) != 1) {
+		DH_free(dh);
+		return (false);
+	}
+
+	DH_free(dh);
+#else
+	/* OpenSSL >= 3.0: SSL_CTX_set_tmp_dh() is deprecated in OpenSSL 3.0 */
+	EVP_PKEY *dh = NULL;
+	BIO *bio = NULL;
+
+	bio = BIO_new_file(dhparams_file, "r");
+	if (bio == NULL) {
+		return (false);
+	}
+
+	dh = PEM_read_bio_Parameters(bio, NULL);
+	if (dh == NULL) {
+		BIO_free(bio);
+		return (false);
+	}
+
+	if (SSL_CTX_set0_tmp_dh_pkey(ctx, dh) != 1) {
+		BIO_free(bio);
+		EVP_PKEY_free(dh);
+		return (false);
+	}
+
+	/* No need to call EVP_PKEY_free(dh) as the "dh" is owned by the
+	 * SSL context at this point. */
+
+	BIO_free(bio);
+#endif
+
+	return (true);
+}
+
+bool
+isc_tls_cipherlist_valid(const char *cipherlist) {
+	isc_tlsctx_t *tmp_ctx = NULL;
+	const SSL_METHOD *method = NULL;
+	bool result;
+	REQUIRE(cipherlist != NULL);
+
+	if (*cipherlist == '\0') {
+		return (false);
+	}
+
+	method = TLS_server_method();
+	if (method == NULL) {
+		return (false);
+	}
+	tmp_ctx = SSL_CTX_new(method);
+	if (tmp_ctx == NULL) {
+		return (false);
+	}
+
+	result = SSL_CTX_set_cipher_list(tmp_ctx, cipherlist) == 1;
+
+	isc_tlsctx_free(&tmp_ctx);
+
+	return (result);
+}
+
+void
+isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist) {
+	REQUIRE(ctx != NULL);
+	REQUIRE(cipherlist != NULL);
+	REQUIRE(*cipherlist != '\0');
+
+	RUNTIME_CHECK(SSL_CTX_set_cipher_list(ctx, cipherlist) == 1);
+}
+
+void
+isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer) {
+	REQUIRE(ctx != NULL);
+
+	if (prefer) {
+		(void)SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	} else {
+		(void)SSL_CTX_clear_options(ctx,
+					    SSL_OP_CIPHER_SERVER_PREFERENCE);
+	}
+}
+
+void
+isc_tlsctx_session_tickets(isc_tlsctx_t *ctx, const bool use) {
+	REQUIRE(ctx != NULL);
+
+	if (!use) {
+		(void)SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
+	} else {
+		(void)SSL_CTX_clear_options(ctx, SSL_OP_NO_TICKET);
+	}
 }
 
 isc_tls_t *

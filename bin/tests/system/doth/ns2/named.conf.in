@@ -18,6 +18,7 @@ controls {
 tls local {
 	key-file "key.pem";
 	cert-file "cert.pem";
+	dhparam-file "dhparam3072.pem";
 };
 
 http local {

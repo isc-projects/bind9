@@ -1,3 +1,22 @@
+5729.	[func]		Allow finer control over the TLS protocol by
+			implementing more options within "tls" clauses, namely:
+			- Diffie-Hellman parameters via
+			  'dhparam-file "<path_to_file>";'
+			- OpenSSL cipher list string via
+			  'ciphers "<cipher_list>";'
+			- Server or client ciphers preference via
+			  'prefer-server-ciphers yes|no;'
+			- Ability to explicitly enable or disable stateless
+			  TLS session tickets via 'session-tickets yes|no;'
+			The options are enough to implement perfect forward
+			secrecy in DNS-over-TLS, DNS-over-HTTPS transports.
+			Most of these options were no-op before this
+			change. [GL #2796]
+
+5728.	[func]		Allow specifying supported TLS protocol
+			versions within "tls" clauses
+			(e.g. protocols { TLSv1.2; TLSv1.3; };). [GL #2795]
+
 5727.	[bug]		Ignore the missing zones when doing a reload on a
 			catalog zone, and make sure to restore them later on.
 			[GL #2308]

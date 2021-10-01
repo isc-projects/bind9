@@ -3875,19 +3875,23 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 /*%
  * "tls" and related statement syntax.
  */
-static cfg_type_t cfg_type_sslprotos = {
-	"sslprotos",	  cfg_parse_spacelist, cfg_print_spacelist,
-	cfg_doc_terminal, &cfg_rep_list,       &cfg_type_astring
-};
+static cfg_type_t cfg_type_tlsprotos = { "tls_protocols",
+					 cfg_parse_bracketed_list,
+					 cfg_print_bracketed_list,
+					 cfg_doc_bracketed_list,
+					 &cfg_rep_list,
+					 &cfg_type_astring };
 
 static cfg_clausedef_t tls_clauses[] = {
 	{ "key-file", &cfg_type_qstring, 0 },
 	{ "cert-file", &cfg_type_qstring, 0 },
 	{ "ca-file", &cfg_type_qstring, 0 },
 	{ "hostname", &cfg_type_qstring, 0 },
-	{ "dh-param", &cfg_type_qstring, CFG_CLAUSEFLAG_EXPERIMENTAL },
-	{ "protocols", &cfg_type_sslprotos, CFG_CLAUSEFLAG_EXPERIMENTAL },
-	{ "ciphers", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
+	{ "dhparam-file", &cfg_type_qstring, 0 },
+	{ "protocols", &cfg_type_tlsprotos, 0 },
+	{ "ciphers", &cfg_type_astring, 0 },
+	{ "prefer-server-ciphers", &cfg_type_boolean, 0 },
+	{ "session-tickets", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

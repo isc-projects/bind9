@@ -50,6 +50,90 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp);
  *\li	'ctxp' != NULL and '*ctxp' == NULL.
  */
 
+typedef enum isc_tls_protocol_version {
+	/* these must be the powers of two */
+	ISC_TLS_PROTO_VER_1_2 = 1 << 0,
+	ISC_TLS_PROTO_VER_1_3 = 1 << 1,
+	ISC_TLS_PROTO_VER_UNDEFINED,
+} isc_tls_protocol_version_t;
+
+void
+isc_tlsctx_set_protocols(isc_tlsctx_t *ctx, const uint32_t tls_versions);
+/*%<
+ * Sets the supported TLS protocol versions via the 'tls_versions' bit
+ * set argument (see `isc_tls_protocol_version_t` enum for the
+ * expected values).
+ *
+ * Requires:
+ *\li	'ctx' != NULL;
+ *\li	'tls_versions' != 0.
+ */
+
+bool
+isc_tls_protocol_supported(const isc_tls_protocol_version_t tls_ver);
+/*%<
+ * Check in runtime that the specified TLS protocol versions is supported.
+ */
+
+isc_tls_protocol_version_t
+isc_tls_protocol_name_to_version(const char *name);
+/*%<
+ * Convert the protocol version string into the version of
+ * 'isc_tls_protocol_version_t' type.
+ * Requires:
+ *\li	'name' != NULL.
+ */
+
+bool
+isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file);
+/*%<
+ * Load Diffie-Hellman parameters file and apply it to the given TLS context
+ * 'ctx'.
+ *
+ * Requires:
+ * \li	'ctx' != NULL;
+ * \li	'dhaprams_file' a valid pointer to a non empty string.
+ */
+
+bool
+isc_tls_cipherlist_valid(const char *cipherlist);
+/*%<
+ * Check if cipher list string is valid.
+ *
+ * Requires:
+ * \li	'cipherlist' a valid pointer to a non empty string.
+ */
+
+void
+isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist);
+/*%<
+ * Set cipher list string for on the given TLS context 'ctx'.
+ *
+ * Requires:
+ * \li	'ctx' != NULL;
+ * \li	'cipherlist' a valid pointer to a non empty string.
+ */
+
+void
+isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer);
+/*%<
+ * Make the given TLS context 'ctx' to prefer or to not prefer
+ * server side ciphers during the ciphers negotiation.
+ *
+ * Requires:
+ * \li	'ctx' != NULL.
+ */
+
+void
+isc_tlsctx_session_tickets(isc_tlsctx_t *ctx, const bool use);
+/*%<
+ * Enable/Disable stateless session resumptions tickets on the given
+ * TLS context 'ctx' (see RFC5077).
+ *
+ * Requires:
+ * \li	'ctx' != NULL.
+ */
+
 isc_tls_t *
 isc_tls_create(isc_tlsctx_t *ctx);
 /*%<

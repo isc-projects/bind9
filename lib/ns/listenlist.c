@@ -26,18 +26,48 @@ destroy(ns_listenlist_t *list);
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, bool tls, const char *key, const char *cert,
+		    dns_acl_t *acl, bool tls,
+		    const ns_listen_tls_params_t *tls_params,
 		    ns_listenelt_t **target) {
 	ns_listenelt_t *elt = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_tlsctx_t *sslctx = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(!tls || tls_params != NULL);
 
 	if (tls) {
-		result = isc_tlsctx_createserver(key, cert, &sslctx);
+		result = isc_tlsctx_createserver(tls_params->key,
+						 tls_params->cert, &sslctx);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
+
+		if (tls_params->protocols != 0) {
+			isc_tlsctx_set_protocols(sslctx, tls_params->protocols);
+		}
+
+		if (tls_params->dhparam_file != NULL) {
+			if (!isc_tlsctx_load_dhparams(sslctx,
+						      tls_params->dhparam_file))
+			{
+				isc_tlsctx_free(&sslctx);
+				return (ISC_R_FAILURE);
+			}
+		}
+
+		if (tls_params->ciphers != NULL) {
+			isc_tlsctx_set_cipherlist(sslctx, tls_params->ciphers);
+		}
+
+		if (tls_params->prefer_server_ciphers_set) {
+			isc_tlsctx_prefer_server_ciphers(
+				sslctx, tls_params->prefer_server_ciphers);
+		}
+
+		if (tls_params->session_tickets_set) {
+			isc_tlsctx_session_tickets(sslctx,
+						   tls_params->session_tickets);
 		}
 	}
 
@@ -59,8 +89,9 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, bool tls, const char *key,
-			 const char *cert, char **endpoints, size_t nendpoints,
+			 dns_acl_t *acl, bool tls,
+			 const ns_listen_tls_params_t *tls_params,
+			 char **endpoints, size_t nendpoints,
 			 isc_quota_t *quota, const uint32_t max_streams,
 			 ns_listenelt_t **target) {
 	isc_result_t result;
@@ -69,8 +100,8 @@ ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
 	REQUIRE(endpoints != NULL && *endpoints != NULL);
 	REQUIRE(nendpoints > 0);
 
-	result = ns_listenelt_create(mctx, http_port, dscp, acl, tls, key, cert,
-				     target);
+	result = ns_listenelt_create(mctx, http_port, dscp, acl, tls,
+				     tls_params, target);
 	if (result == ISC_R_SUCCESS) {
 		(*target)->is_http = true;
 		(*target)->http_endpoints = endpoints;
@@ -164,8 +195,7 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		goto cleanup;
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, acl, false, NULL, NULL,
-				     &elt);
+	result = ns_listenelt_create(mctx, port, dscp, acl, false, NULL, &elt);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_acl;
 	}

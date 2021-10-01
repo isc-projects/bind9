@@ -413,9 +413,9 @@ named_server_reload(isc_task_t *task, isc_event_t *event);
 
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
-	       const char *cert, in_port_t port, isc_mem_t *mctx,
-	       ns_listenelt_t **target);
+listenelt_http(const cfg_obj_t *http, bool tls,
+	       const ns_listen_tls_params_t *tls_params, in_port_t port,
+	       isc_mem_t *mctx, ns_listenelt_t **target);
 #endif
 
 static isc_result_t
@@ -11023,9 +11023,15 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *http_server = NULL;
 	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
-	const char *key = NULL, *cert = NULL;
+	const char *key = NULL, *cert = NULL, *dhparam_file = NULL,
+		   *ciphers = NULL;
+	bool tls_prefer_server_ciphers = false,
+	     tls_prefer_server_ciphers_set = false;
+	bool tls_session_tickets = false, tls_session_tickets_set = false;
 	bool do_tls = false, no_tls = false, http = false;
 	ns_listenelt_t *delt = NULL;
+	uint32_t tls_protos = 0;
+	ns_listen_tls_params_t tls_params = { 0 };
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -11041,8 +11047,13 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		} else if (strcasecmp(tlsname, "ephemeral") == 0) {
 			do_tls = true;
 		} else {
-			const cfg_obj_t *keyobj = NULL, *certobj = NULL;
+			const cfg_obj_t *keyobj = NULL, *certobj = NULL,
+					*dhparam_obj = NULL;
 			const cfg_obj_t *tlsmap = NULL;
+			const cfg_obj_t *tls_proto_list = NULL;
+			const cfg_obj_t *ciphers_obj = NULL;
+			const cfg_obj_t *prefer_server_ciphers_obj = NULL;
+			const cfg_obj_t *session_tickets_obj = NULL;
 
 			do_tls = true;
 
@@ -11059,8 +11070,69 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 			CHECK(cfg_map_get(tlsmap, "cert-file", &certobj));
 			cert = cfg_obj_asstring(certobj);
+
+			if (cfg_map_get(tlsmap, "protocols", &tls_proto_list) ==
+			    ISC_R_SUCCESS) {
+				const cfg_listelt_t *proto = NULL;
+				INSIST(tls_proto_list != NULL);
+				for (proto = cfg_list_first(tls_proto_list);
+				     proto != 0; proto = cfg_list_next(proto))
+				{
+					const cfg_obj_t *tls_proto_obj =
+						cfg_listelt_value(proto);
+					const char *tls_sver =
+						cfg_obj_asstring(tls_proto_obj);
+					const isc_tls_protocol_version_t ver =
+						isc_tls_protocol_name_to_version(
+							tls_sver);
+
+					INSIST(ver !=
+					       ISC_TLS_PROTO_VER_UNDEFINED);
+					INSIST(isc_tls_protocol_supported(ver));
+					tls_protos |= ver;
+				}
+			}
+
+			if (cfg_map_get(tlsmap, "dhparam-file", &dhparam_obj) ==
+			    ISC_R_SUCCESS) {
+				dhparam_file = cfg_obj_asstring(dhparam_obj);
+			}
+
+			if (cfg_map_get(tlsmap, "ciphers", &ciphers_obj) ==
+			    ISC_R_SUCCESS) {
+				ciphers = cfg_obj_asstring(ciphers_obj);
+			}
+
+			if (cfg_map_get(tlsmap, "prefer-server-ciphers",
+					&prefer_server_ciphers_obj) ==
+			    ISC_R_SUCCESS)
+			{
+				tls_prefer_server_ciphers = cfg_obj_asboolean(
+					prefer_server_ciphers_obj);
+				tls_prefer_server_ciphers_set = true;
+			}
+
+			if (cfg_map_get(tlsmap, "session-tickets",
+					&session_tickets_obj) == ISC_R_SUCCESS)
+			{
+				tls_session_tickets =
+					cfg_obj_asboolean(session_tickets_obj);
+				tls_session_tickets_set = true;
+			}
 		}
 	}
+
+	tls_params = (ns_listen_tls_params_t){
+		.key = key,
+		.cert = cert,
+		.protocols = tls_protos,
+		.dhparam_file = dhparam_file,
+		.ciphers = ciphers,
+		.prefer_server_ciphers = tls_prefer_server_ciphers,
+		.prefer_server_ciphers_set = tls_prefer_server_ciphers_set,
+		.session_tickets = tls_session_tickets,
+		.session_tickets_set = tls_session_tickets_set
+	};
 
 	httpobj = cfg_tuple_get(ltup, "http");
 	if (httpobj != NULL && cfg_obj_isstring(httpobj)) {
@@ -11144,14 +11216,14 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 #ifdef HAVE_LIBNGHTTP2
 	if (http) {
-		CHECK(listenelt_http(http_server, do_tls, key, cert, port, mctx,
-				     &delt));
+		CHECK(listenelt_http(http_server, do_tls, &tls_params, port,
+				     mctx, &delt));
 	}
 #endif /* HAVE_LIBNGHTTP2 */
 
 	if (!http) {
-		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls, key,
-					  cert, &delt));
+		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls,
+					  &tls_params, &delt));
 	}
 
 	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"), config,
@@ -11169,9 +11241,9 @@ cleanup:
 
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
-	       const char *cert, in_port_t port, isc_mem_t *mctx,
-	       ns_listenelt_t **target) {
+listenelt_http(const cfg_obj_t *http, bool tls,
+	       const ns_listen_tls_params_t *tls_params, in_port_t port,
+	       isc_mem_t *mctx, ns_listenelt_t **target) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_listenelt_t *delt = NULL;
 	char **endpoints = NULL;
@@ -11184,7 +11256,11 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 	isc_quota_t *quota = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
-	REQUIRE((key == NULL) == (cert == NULL));
+
+	if (tls) {
+		INSIST(tls_params != NULL);
+		INSIST((tls_params->key == NULL) == (tls_params->cert == NULL));
+	}
 
 	if (port == 0) {
 		port = tls ? named_g_httpsport : named_g_httpport;
@@ -11239,7 +11315,7 @@ listenelt_http(const cfg_obj_t *http, bool tls, const char *key,
 		isc_quota_init(quota, max_clients);
 	}
 	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
-					  key, cert, endpoints, len, quota,
+					  tls_params, endpoints, len, quota,
 					  max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;

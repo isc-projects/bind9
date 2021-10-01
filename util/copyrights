@@ -276,6 +276,7 @@
 ./bin/tests/system/doth/clean.sh		SH	2020,2021
 ./bin/tests/system/doth/example.axfr.good	X	2021
 ./bin/tests/system/doth/ns2/cert.pem		X	2021
+./bin/tests/system/doth/ns2/dhparam3072.pem	X	2021
 ./bin/tests/system/doth/ns2/key.pem		X	2021
 ./bin/tests/system/doth/setup.sh		SH	2021
 ./bin/tests/system/doth/stress_http_quota.py	PYTHON-BIN	2021
