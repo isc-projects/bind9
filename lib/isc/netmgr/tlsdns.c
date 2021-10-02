@@ -131,10 +131,10 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r != 0) {
 		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
+	isc__nm_incstats(sock, STATID_OPEN);
 
 	if (req->local.length != 0) {
 		r = uv_tcp_bind(&sock->uv_handle.tcp, &req->local.type.sa, 0);
@@ -143,8 +143,7 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		 * to be ignored
 		 */
 		if (r != 0 && r != UV_EINVAL) {
-			isc__nm_incstats(sock->mgr,
-					 sock->statsindex[STATID_BINDFAIL]);
+			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
 	}
@@ -155,11 +154,10 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_tcp_connect(&req->uv_req.connect, &sock->uv_handle.tcp,
 			   &req->peer.type.sa, tlsdns_connect_cb);
 	if (r != 0) {
-		isc__nm_incstats(sock->mgr,
-				 sock->statsindex[STATID_CONNECTFAIL]);
+		isc__nm_incstats(sock, STATID_CONNECTFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
+	isc__nm_incstats(sock, STATID_CONNECT);
 
 	uv_handle_set_data((uv_handle_t *)&sock->timer, &req->uv_req.connect);
 	isc__nmsocket_timer_start(sock);
@@ -249,7 +247,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 		goto error;
 	}
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
+	isc__nm_incstats(sock, STATID_CONNECT);
 	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
 			       &(int){ sizeof(ss) });
 	if (r != 0) {
@@ -579,10 +577,10 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r < 0) {
 		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
+	isc__nm_incstats(sock, STATID_OPEN);
 
 	if (sa_family == AF_INET6) {
 		flags = UV_TCP_IPV6ONLY;
@@ -592,7 +590,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = isc_uv_tcp_freebind(&sock->uv_handle.tcp, &sock->iface.type.sa,
 				flags);
 	if (r < 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
 #else
@@ -600,8 +598,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
 					&sock->iface.type.sa, flags);
 		if (r < 0) {
-			isc__nm_incstats(sock->mgr,
-					 sock->statsindex[STATID_BINDFAIL]);
+			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
 		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
@@ -626,7 +623,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
 			      "uv_listen failed: %s",
 			      isc_result_totext(isc__nm_uverr2result(r)));
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
 
@@ -671,8 +668,7 @@ tlsdns_connection_cb(uv_stream_t *server, int status) {
 		result = isc_quota_attach_cb(ssock->pquota, &quota,
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
-			isc__nm_incstats(ssock->mgr,
-					 ssock->statsindex[STATID_ACCEPTFAIL]);
+			isc__nm_incstats(ssock, STATID_ACCEPTFAIL);
 			return;
 		}
 	}
@@ -1354,8 +1350,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 
 	if (nread < 0) {
 		if (nread != UV_EOF) {
-			isc__nm_incstats(sock->mgr,
-					 sock->statsindex[STATID_RECVFAIL]);
+			isc__nm_incstats(sock, STATID_RECVFAIL);
 		}
 
 		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
@@ -1555,7 +1550,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	atomic_store(&csock->accepting, false);
 
-	isc__nm_incstats(csock->mgr, csock->statsindex[STATID_ACCEPT]);
+	isc__nm_incstats(csock, STATID_ACCEPT);
 
 	csock->read_timeout = atomic_load(&csock->mgr->init);
 
@@ -1647,7 +1642,7 @@ isc__nm_async_tlsdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = tlsdns_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		isc__nm_incstats(sock, STATID_SENDFAIL);
 		isc__nm_failed_send_cb(sock, uvreq, result);
 	}
 }
@@ -1747,7 +1742,7 @@ tlsdns_stop_cb(uv_handle_t *handle) {
 		ISC_UNREACHABLE();
 	}
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
+	isc__nm_incstats(sock, STATID_CLOSE);
 
 	atomic_store(&sock->listening, false);
 
@@ -1771,7 +1766,7 @@ tlsdns_close_sock(isc_nmsocket_t *sock) {
 		ISC_UNREACHABLE();
 	}
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
+	isc__nm_incstats(sock, STATID_CLOSE);
 
 	if (sock->server != NULL) {
 		isc__nmsocket_detach(&sock->server);

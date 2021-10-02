@@ -1192,6 +1192,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
 
+	isc__nm_decstats(sock, STATID_ACTIVE);
+
 	atomic_store(&sock->destroying, true);
 
 	if (sock->parent == NULL && sock->children != NULL) {
@@ -1220,9 +1222,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 			    sock->nchildren * sizeof(*sock));
 		sock->children = NULL;
 		sock->nchildren = 0;
-	}
-	if (sock->statsindex != NULL) {
-		isc__nm_decstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
 	sock->statichandle = NULL;
@@ -1486,12 +1485,17 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	switch (type) {
 	case isc_nm_udpsocket:
 	case isc_nm_udplistener:
-		if (family == AF_INET) {
+		switch (family) {
+		case AF_INET:
 			sock->statsindex = udp4statsindex;
-		} else {
+			break;
+		case AF_INET6:
 			sock->statsindex = udp6statsindex;
+			break;
+		default:
+			INSIST(0);
+			ISC_UNREACHABLE();
 		}
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
@@ -1501,12 +1505,17 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	case isc_nm_tlsdnslistener:
 	case isc_nm_httpsocket:
 	case isc_nm_httplistener:
-		if (family == AF_INET) {
+		switch (family) {
+		case AF_INET:
 			sock->statsindex = tcp4statsindex;
-		} else {
+			break;
+		case AF_INET6:
 			sock->statsindex = tcp6statsindex;
+			break;
+		default:
+			INSIST(0);
+			ISC_UNREACHABLE();
 		}
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 		break;
 	default:
 		break;
@@ -1545,6 +1554,8 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 #endif
 
 	sock->magic = NMSOCK_MAGIC;
+
+	isc__nm_incstats(sock, STATID_ACTIVE);
 }
 
 void
@@ -2926,22 +2937,22 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats) {
 }
 
 void
-isc__nm_incstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(counterid != -1);
+isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(id < STATID_MAX);
 
-	if (mgr->stats != NULL) {
-		isc_stats_increment(mgr->stats, counterid);
+	if (sock->statsindex != NULL && sock->mgr->stats != NULL) {
+		isc_stats_increment(sock->mgr->stats, sock->statsindex[id]);
 	}
 }
 
 void
-isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(counterid != -1);
+isc__nm_decstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(id < STATID_MAX);
 
-	if (mgr->stats != NULL) {
-		isc_stats_decrement(mgr->stats, counterid);
+	if (sock->statsindex != NULL && sock->mgr->stats != NULL) {
+		isc_stats_decrement(sock->mgr->stats, sock->statsindex[id]);
 	}
 }
 

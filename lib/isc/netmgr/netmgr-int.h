@@ -732,7 +732,7 @@ typedef enum isc_nmsocket_type {
 /*%
  * Index into socket stat counter arrays.
  */
-enum {
+typedef enum {
 	STATID_OPEN = 0,
 	STATID_OPENFAIL = 1,
 	STATID_CLOSE = 2,
@@ -743,8 +743,9 @@ enum {
 	STATID_ACCEPT = 7,
 	STATID_SENDFAIL = 8,
 	STATID_RECVFAIL = 9,
-	STATID_ACTIVE = 10
-};
+	STATID_ACTIVE = 10,
+	STATID_MAX = 11,
+} isc__nm_statid_t;
 
 #if HAVE_LIBNGHTTP2
 typedef struct isc_nmsocket_tls_send_req {
@@ -1755,13 +1756,13 @@ isc__nm_acquire_interlocked_force(isc_nm_t *mgr);
  */
 
 void
-isc__nm_incstats(isc_nm_t *mgr, isc_statscounter_t counterid);
+isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
  * Increment socket-related statistics counters.
  */
 
 void
-isc__nm_decstats(isc_nm_t *mgr, isc_statscounter_t counterid);
+isc__nm_decstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
  * Decrement socket-related statistics counters.
  */

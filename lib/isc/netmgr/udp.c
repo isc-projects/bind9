@@ -230,10 +230,10 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r < 0) {
 		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
+	isc__nm_incstats(sock, STATID_OPEN);
 
 	if (sa_family == AF_INET6) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
@@ -243,7 +243,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = isc_uv_udp_freebind(&sock->uv_handle.udp,
 				&sock->parent->iface.type.sa, uv_bind_flags);
 	if (r < 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
 #else
@@ -253,8 +253,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 					&sock->parent->iface.type.sa,
 					uv_bind_flags);
 		if (r < 0) {
-			isc__nm_incstats(sock->mgr,
-					 sock->statsindex[STATID_BINDFAIL]);
+			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
 		sock->parent->uv_handle.udp.flags = sock->uv_handle.udp.flags;
@@ -270,7 +269,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 			      udp_recv_cb);
 	if (r != 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
 
@@ -526,7 +525,7 @@ isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = udp_send_direct(sock, uvreq, &ievent->peer);
 	if (result != ISC_R_SUCCESS) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		isc__nm_incstats(sock, STATID_SENDFAIL);
 		isc__nm_failed_send_cb(sock, uvreq, result);
 	}
 }
@@ -546,7 +545,7 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 
 	if (status < 0) {
 		result = isc__nm_uverr2result(status);
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
+		isc__nm_incstats(sock, STATID_SENDFAIL);
 	}
 
 	isc__nm_sendcb(sock, uvreq, result, false);
@@ -622,10 +621,10 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPEN]);
+	isc__nm_incstats(sock, STATID_OPEN);
 
 	if (sock->iface.type.sa.sa_family == AF_INET6) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
@@ -634,7 +633,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_udp_bind(&sock->uv_handle.udp, &sock->iface.type.sa,
 			uv_bind_flags);
 	if (r != 0) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
 
@@ -650,11 +649,10 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 				       &req->peer.type.sa);
 	} while (r == UV_EADDRINUSE && --tries > 0);
 	if (r != 0) {
-		isc__nm_incstats(sock->mgr,
-				 sock->statsindex[STATID_CONNECTFAIL]);
+		isc__nm_incstats(sock, STATID_CONNECTFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CONNECT]);
+	isc__nm_incstats(sock, STATID_CONNECT);
 
 	atomic_store(&sock->connecting, false);
 	atomic_store(&sock->connected, true);
@@ -930,7 +928,7 @@ udp_stop_cb(uv_handle_t *handle) {
 		ISC_UNREACHABLE();
 	}
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
+	isc__nm_incstats(sock, STATID_CLOSE);
 
 	atomic_store(&sock->listening, false);
 
@@ -952,7 +950,7 @@ udp_close_cb(uv_handle_t *handle) {
 		ISC_UNREACHABLE();
 	}
 
-	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
+	isc__nm_incstats(sock, STATID_CLOSE);
 
 	if (sock->server != NULL) {
 		isc__nmsocket_detach(&sock->server);
