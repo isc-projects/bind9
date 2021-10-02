@@ -913,6 +913,8 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(udpcancel);
 		NETIEVENT_CASE(udpclose);
 
+		NETIEVENT_CASE(routeconnect);
+
 		NETIEVENT_CASE(tcpaccept);
 		NETIEVENT_CASE(tcpconnect);
 		NETIEVENT_CASE(tcplisten);
@@ -1072,6 +1074,7 @@ NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
 NETIEVENT_SOCKET_REQ_DEF(tcpsend);
 NETIEVENT_SOCKET_REQ_DEF(tlssend);
 NETIEVENT_SOCKET_REQ_DEF(udpconnect);
+NETIEVENT_SOCKET_REQ_DEF(routeconnect);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(sendcb);
@@ -1447,18 +1450,21 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 
 	REQUIRE(sock != NULL);
 	REQUIRE(mgr != NULL);
-	REQUIRE(iface != NULL);
-
-	family = iface->type.sa.sa_family;
 
 	*sock = (isc_nmsocket_t){ .type = type,
-				  .iface = *iface,
 				  .fd = -1,
 				  .ah_size = 32,
 				  .inactivehandles = isc_astack_new(
 					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
 				  .inactivereqs = isc_astack_new(
 					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
+
+	if (iface != NULL) {
+		family = iface->type.sa.sa_family;
+		sock->iface = *iface;
+	} else {
+		family = AF_UNSPEC;
+	}
 
 #if NETMGR_TRACE
 	sock->backtrace_size = isc_backtrace(sock->backtrace, TRACE_SIZE);
@@ -1492,6 +1498,12 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		case AF_INET6:
 			sock->statsindex = udp6statsindex;
 			break;
+		case AF_UNSPEC:
+			/*
+			 * Route sockets are AF_UNSPEC, and don't
+			 * have stats counters.
+			 */
+			break;
 		default:
 			INSIST(0);
 			ISC_UNREACHABLE();
@@ -1519,6 +1531,10 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		break;
 	default:
 		break;
+	}
+
+	if (sock->statsindex != NULL) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
 	}
 
 	isc_mutex_init(&sock->lock);
