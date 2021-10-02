@@ -2413,6 +2413,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	result = isc_task_create_bound(manager->taskmgr, 20, &manager->task,
 				       manager->tid);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_task_setname(manager->task, "clientmgr", NULL);
 
 	isc_refcount_init(&manager->references, 1);
 	manager->sctx = NULL;

@@ -160,12 +160,8 @@
 
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS_PERCPU 32
-#define UDPBUFFERS	       32768
-#define EXCLBUFFERS	       32768
 #else
 #define RESOLVER_NTASKS_PERCPU 8
-#define UDPBUFFERS	       1000
-#define EXCLBUFFERS	       4096
 #endif /* TUNE_LARGE */
 
 /* RFC7828 defines timeout as 16-bit value specified in units of 100
@@ -1260,11 +1256,9 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 			      dns_dispatch_t **dispatchp, isc_dscp_t *dscpp,
 			      bool is_firstview) {
 	isc_result_t result = ISC_R_FAILURE;
-	dns_dispatch_t *disp;
+	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa;
-	unsigned int attrs;
 	const cfg_obj_t *obj = NULL;
-	unsigned int maxdispatchbuffers = UDPBUFFERS;
 	isc_dscp_t dscp = -1;
 
 	switch (af) {
@@ -1310,20 +1304,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 	/*
 	 * Try to find a dispatcher that we can share.
 	 */
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
-	switch (af) {
-	case AF_INET:
-		attrs |= DNS_DISPATCHATTR_IPV4;
-		break;
-	case AF_INET6:
-		attrs |= DNS_DISPATCHATTR_IPV6;
-		break;
-	}
-	if (isc_sockaddr_getport(&sa) == 0) {
-		attrs |= DNS_DISPATCHATTR_EXCLUSIVE;
-		maxdispatchbuffers = EXCLBUFFERS;
-	} else {
+	if (isc_sockaddr_getport(&sa) != 0) {
 		INSIST(obj != NULL);
 		if (is_firstview) {
 			cfg_obj_log(obj, named_g_lctx, ISC_LOG_INFO,
@@ -1333,10 +1314,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		}
 	}
 
-	disp = NULL;
-	result = dns_dispatch_getudp(
-		named_g_dispatchmgr, named_g_socketmgr, named_g_taskmgr, &sa,
-		4096, maxdispatchbuffers, 32768, 16411, 16433, attrs, &disp);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, &sa, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_sockaddr_t any;
 		char buf[ISC_SOCKADDR_FORMATSIZE];
@@ -4708,8 +4686,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	/*
 	 * Resolver.
-	 *
-	 * XXXRTH  Hardwired number of tasks.
 	 */
 	CHECK(get_view_querysource_dispatch(
 		maps, AF_INET, &dispatch4, &dscp4,
@@ -4719,7 +4695,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(ISC_LIST_PREV(view, link) == NULL)));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to obtain neither an IPv4 nor"
+				 "unable to obtain either an IPv4 or"
 				 " an IPv6 dispatch");
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
@@ -4738,7 +4714,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
 		view, named_g_taskmgr, RESOLVER_NTASKS_PERCPU * named_g_cpus,
-		ndisp, named_g_socketmgr, named_g_timermgr, resopts,
+		ndisp, named_g_netmgr, named_g_timermgr, resopts,
 		named_g_dispatchmgr, dispatch4, dispatch6));
 
 	if (dscp4 == -1) {
@@ -9884,7 +9860,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
+					  &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
@@ -9898,8 +9875,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(ns_interfacemgr_create(
 			   named_g_mctx, server->sctx, named_g_taskmgr,
 			   named_g_timermgr, named_g_socketmgr, named_g_netmgr,
-			   named_g_dispatchmgr, server->task, named_g_udpdisp,
-			   geoip, named_g_cpus, &server->interfacemgr),
+			   named_g_dispatchmgr, server->task, geoip,
+			   named_g_cpus, &server->interfacemgr),
 		   "creating interface manager");
 
 	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
@@ -10024,7 +10001,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	ns_interfacemgr_detach(&server->interfacemgr);
 
-	dns_dispatchmgr_destroy(&named_g_dispatchmgr);
+	dns_dispatchmgr_detach(&named_g_dispatchmgr);
 
 	dns_zonemgr_shutdown(server->zonemgr);
 
@@ -10166,8 +10143,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->heartbeat_interval = 0;
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
-				      named_g_timermgr, named_g_socketmgr,
-				      named_g_netmgr, &server->zonemgr),
+				      named_g_timermgr, named_g_netmgr,
+				      &server->zonemgr),
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
 							       "setsize");
@@ -10352,7 +10329,6 @@ named_add_reserved_dispatch(named_server_t *server,
 	in_port_t port;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_result_t result;
-	unsigned int attrs;
 
 	REQUIRE(NAMED_SERVER_VALID(server));
 
@@ -10379,24 +10355,8 @@ named_add_reserved_dispatch(named_server_t *server,
 	dispatch->dispatchgen = server->dispatchgen;
 	dispatch->dispatch = NULL;
 
-	attrs = 0;
-	attrs |= DNS_DISPATCHATTR_UDP;
-	switch (isc_sockaddr_pf(addr)) {
-	case AF_INET:
-		attrs |= DNS_DISPATCHATTR_IPV4;
-		break;
-	case AF_INET6:
-		attrs |= DNS_DISPATCHATTR_IPV6;
-		break;
-	default:
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
-
-	result = dns_dispatch_getudp(named_g_dispatchmgr, named_g_socketmgr,
-				     named_g_taskmgr, &dispatch->addr, 4096,
-				     UDPBUFFERS, 32768, 16411, 16433, attrs,
-				     &dispatch->dispatch);
+	result = dns_dispatch_createudp(named_g_dispatchmgr, &dispatch->addr,
+					&dispatch->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

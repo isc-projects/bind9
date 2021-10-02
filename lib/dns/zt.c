@@ -483,6 +483,7 @@ dns_zt_setviewcommit(dns_zt_t *zt) {
 
 	REQUIRE(VALID_ZT(zt));
 
+	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain);
 
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
@@ -496,6 +497,7 @@ dns_zt_setviewcommit(dns_zt_t *zt) {
 	}
 
 	dns_rbtnodechain_invalidate(&chain);
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 }
 
 void

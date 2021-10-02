@@ -1,3 +1,11 @@
+5730.	[func]		The resolver and the request and dispatch managers
+			have been substantially refactored, and are now
+			based on the network manager instead of the old
+			isc_socket API. All outgoing DNS queries and
+			requests now use the new API; isc_socket is only
+			used to monitor for network interface changes.
+			[GL #2401]
+
 5729.	[func]		Allow finer control over the TLS protocol by
 			implementing more options within "tls" clauses, namely:
 			- Diffie-Hellman parameters via

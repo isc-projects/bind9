@@ -65,7 +65,6 @@ typedef struct dns_dyndbctx	      dns_dyndbctx_t;
 typedef struct dns_sdlzimplementation dns_sdlzimplementation_t;
 typedef struct dns_decompress	      dns_decompress_t;
 typedef struct dns_dispatch	      dns_dispatch_t;
-typedef struct dns_dispatchevent      dns_dispatchevent_t;
 typedef struct dns_dispatchlist	      dns_dispatchlist_t;
 typedef struct dns_dispatchset	      dns_dispatchset_t;
 typedef struct dns_dispatchmgr	      dns_dispatchmgr_t;

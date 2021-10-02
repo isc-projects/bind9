@@ -976,8 +976,8 @@ struct isc_nmsocket {
 	atomic_bool listening;
 	atomic_bool connecting;
 	atomic_bool connected;
-	bool accepting;
-	bool reading;
+	atomic_bool accepting;
+	atomic_bool reading;
 	isc_refcount_t references;
 
 	/*%

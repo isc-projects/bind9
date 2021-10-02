@@ -1915,7 +1915,7 @@ isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 
 void
 isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
-	REQUIRE(sock->accepting);
+	REQUIRE(atomic_load(&sock->accepting));
 	REQUIRE(sock->server);
 
 	/*
@@ -1929,7 +1929,7 @@ isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 
 	isc__nmsocket_detach(&sock->server);
 
-	sock->accepting = false;
+	atomic_store(&sock->accepting, false);
 
 	switch (eresult) {
 	case ISC_R_NOTCONNECTED:
@@ -2024,10 +2024,12 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
+	REQUIRE(atomic_load(&sock->reading));
 
 	if (atomic_load(&sock->client)) {
 		uv_timer_stop(timer);
+
+		sock->recv_read = false;
 
 		if (sock->recv_cb != NULL) {
 			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
@@ -2172,7 +2174,7 @@ void
 isc__nm_start_reading(isc_nmsocket_t *sock) {
 	int r;
 
-	if (sock->reading) {
+	if (atomic_load(&sock->reading)) {
 		return;
 	}
 
@@ -2198,14 +2200,14 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		ISC_UNREACHABLE();
 	}
 	RUNTIME_CHECK(r == 0);
-	sock->reading = true;
+	atomic_store(&sock->reading, true);
 }
 
 void
 isc__nm_stop_reading(isc_nmsocket_t *sock) {
 	int r;
 
-	if (!sock->reading) {
+	if (!atomic_load(&sock->reading)) {
 		return;
 	}
 
@@ -2223,7 +2225,7 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 		ISC_UNREACHABLE();
 	}
 	RUNTIME_CHECK(r == 0);
-	sock->reading = false;
+	atomic_store(&sock->reading, false);
 }
 
 bool
@@ -2234,7 +2236,7 @@ isc__nm_closing(isc_nmsocket_t *sock) {
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock) {
 	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
-		atomic_load(&sock->mgr->closing) ||
+		isc__nm_closing(sock) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
 }
 
@@ -2260,8 +2262,8 @@ processbuffer(isc_nmsocket_t *sock) {
  * Stop reading if this is a client socket, or if the server socket
  * has been set to sequential mode, or the number of queries we are
  * processing simultaneously has reached the clients-per-connection
- * limit. In this case we'll be called again by resume_processing()
- * later.
+ * limit. In this case we'll be called again later by
+ * isc__nm_resume_processing().
  */
 void
 isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
@@ -2402,6 +2404,14 @@ isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 	}
 }
 
+bool
+isc_nmhandle_timer_running(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (isc__nmsocket_timer_running(handle->sock));
+}
+
 void *
 isc_nmhandle_getextra(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -2526,13 +2536,6 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
-
-	/*
-	 * This is always called via callback (from accept or connect), and
-	 * caller must attach to the handle, so the references always need to be
-	 * at least 2.
-	 */
-	REQUIRE(isc_refcount_current(&handle->references) >= 2);
 
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
@@ -3130,6 +3133,45 @@ isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
+isc_result_t
+isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
+	int proto, pf, addrlen, fd, r;
+
+	REQUIRE(addr != NULL);
+
+	switch (type) {
+	case isc_socktype_tcp:
+		proto = SOCK_STREAM;
+		break;
+	case isc_socktype_udp:
+		proto = SOCK_DGRAM;
+		break;
+	default:
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+
+	pf = isc_sockaddr_pf(addr);
+	if (pf == AF_INET) {
+		addrlen = sizeof(struct sockaddr_in);
+	} else {
+		addrlen = sizeof(struct sockaddr_in6);
+	}
+
+	fd = socket(pf, proto, 0);
+	if (fd < 0) {
+		return (isc_errno_toresult(errno));
+	}
+
+	r = bind(fd, (const struct sockaddr *)&addr->type.sa, addrlen);
+	if (r < 0) {
+		close(fd);
+		return (isc_errno_toresult(errno));
+	}
+
+	close(fd);
+	return (ISC_R_SUCCESS);
+}
+
 #if defined(TCP_CONNECTIONTIMEOUT)
 #define TIMEOUT_TYPE	int
 #define TIMEOUT_DIV	1000
@@ -3311,11 +3353,10 @@ isc_nm_sequential(isc_nmhandle_t *handle) {
 	 * We don't want pipelining on this connection. That means
 	 * that we need to pause after reading each request, and
 	 * resume only after the request has been processed. This
-	 * is done in resume_processing(), which is the socket's
-	 * closehandle_cb callback, called whenever a handle
+	 * is done in isc__nm_resume_processing(), which is the
+	 * socket's closehandle_cb callback, called whenever a handle
 	 * is released.
 	 */
-
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 	atomic_store(&sock->sequential, true);
@@ -3421,7 +3462,7 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 		atomic_load(&sock->closing) ? " closing" : "",
 		atomic_load(&sock->destroying) ? " destroying" : "",
 		atomic_load(&sock->connecting) ? " connecting" : "",
-		sock->accepting ? " accepting" : "");
+		atomic_load(&sock->accepting) ? " accepting" : "");
 	fprintf(stderr, "Created by:\n");
 	isc_backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
 				 STDERR_FILENO);

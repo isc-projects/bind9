@@ -165,7 +165,7 @@ shutdown_managers(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (dispatchmgr != NULL) {
-		dns_dispatchmgr_destroy(&dispatchmgr);
+		dns_dispatchmgr_detach(&dispatchmgr);
 	}
 
 	atomic_store(&shutdown_done, true);
@@ -233,11 +233,11 @@ create_managers(void) {
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));
 
-	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, socketmgr,
-				     netmgr, dispatchmgr, maintask, ncpus, NULL,
-				     ncpus, &interfacemgr));
+				     netmgr, dispatchmgr, maintask, NULL, ncpus,
+				     &interfacemgr));
 
 	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
@@ -442,8 +442,7 @@ ns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr, NULL,
-				    &zonemgr);
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, NULL, &zonemgr);
 	return (result);
 }
 

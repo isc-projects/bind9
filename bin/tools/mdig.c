@@ -24,15 +24,14 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
@@ -752,14 +751,14 @@ sendquery(struct query *query, isc_task_t *task) {
 
 	options = 0;
 	if (tcp_mode) {
-		options |= DNS_REQUESTOPT_TCP | DNS_REQUESTOPT_SHARE;
+		options |= DNS_REQUESTOPT_TCP;
 	}
 	request = NULL;
 	result = dns_request_createvia(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, dscp,
 		options, NULL, query->timeout, query->udptimeout,
 		query->udpretries, task, recvresponse, message, &request);
-	CHECK("dns_request_createvia4", result);
+	CHECK("dns_request_createvia", result);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2068,14 +2067,11 @@ main(int argc, char *argv[]) {
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
-	unsigned int attrs;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
-	int ns;
 	unsigned int i;
+	int ns;
 
 	RUNCHECK(isc_app_start());
 
@@ -2094,7 +2090,6 @@ main(int argc, char *argv[]) {
 	preparse_args(argc, argv);
 
 	isc_mem_create(&mctx);
-
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -2124,29 +2119,21 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
-
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
-
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY;
 	if (have_ipv4) {
 		isc_sockaddr_any(&bind_any);
-		attrs |= DNS_DISPATCHATTR_IPV4;
 	} else {
 		isc_sockaddr_any6(&bind_any);
-		attrs |= DNS_DISPATCHATTR_IPV6;
 	}
-	dispatchvx = NULL;
-	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     have_src ? &srcaddr : &bind_any, 4096, 100,
-				     100, 17, 19, attrs, &dispatchvx));
+	RUNCHECK(dns_dispatch_createudp(
+		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchvx));
+
 	RUNCHECK(dns_requestmgr_create(
-		mctx, timermgr, socketmgr, taskmgr, dispatchmgr,
-		have_ipv4 ? dispatchvx : NULL, have_ipv6 ? dispatchvx : NULL,
-		&requestmgr));
+		mctx, taskmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
+		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
@@ -2187,12 +2174,12 @@ main(int argc, char *argv[]) {
 	dns_requestmgr_detach(&requestmgr);
 
 	dns_dispatch_detach(&dispatchvx);
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	dst_lib_destroy();
 

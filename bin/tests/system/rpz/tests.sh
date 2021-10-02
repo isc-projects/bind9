@@ -453,6 +453,9 @@ make_proto_nodata() {
   return 0
 }
 
+# ensure that the fast-expire zone is populated before we begin testing
+$RNDCCMD $ns3 retransfer fast-expire
+
 for mode in native dnsrps; do
   status=0
   case ${mode} in

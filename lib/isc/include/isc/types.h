@@ -98,7 +98,6 @@ typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
 #endif /* HAVE_LIBNGHTTP2 */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
-typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 
 /* The following cannot be listed alphabetically due to forward reference */
 typedef isc_result_t(isc_httpdaction_t)(

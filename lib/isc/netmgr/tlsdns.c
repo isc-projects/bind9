@@ -124,7 +124,7 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	if (isc__nm_closing(sock)) {
-		result = ISC_R_CANCELED;
+		result = ISC_R_SHUTTINGDOWN;
 		goto error;
 	}
 
@@ -233,7 +233,11 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
 	if (isc__nmsocket_closing(sock)) {
-		/* Socket was closed midflight by isc__nm_tlsdns_shutdown() */
+		/* Network manager shutting down */
+		result = ISC_R_SHUTTINGDOWN;
+		goto error;
+	} else if (isc__nmsocket_closing(sock)) {
+		/* Connection canceled */
 		result = ISC_R_CANCELED;
 		goto error;
 	} else if (status == UV_ETIMEDOUT) {
@@ -344,6 +348,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	if (isc__nm_closing(sock)) {
+		result = ISC_R_SHUTTINGDOWN;
 		goto failure;
 	}
 
@@ -373,6 +378,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
 	return;
+
 failure:
 	if (isc__nm_in_netthread()) {
 		sock->tid = isc_nm_tid();
@@ -843,8 +849,6 @@ isc__nm_tlsdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 	REQUIRE(sock->statichandle == handle);
-	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(!sock->recv_read);
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
@@ -884,7 +888,7 @@ isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (isc__nmsocket_closing(sock)) {
-		sock->reading = true;
+		atomic_store(&sock->reading, true);
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
@@ -938,9 +942,8 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_UVREQ(req));
 
 	/*
-	 * We need to launch the resume_processing after the buffer has
-	 * been consumed, thus we need to delay the detaching the
-	 * handle.
+	 * We need to launch isc__nm_resume_processing() after the buffer
+	 * has been consumed, thus we must delay detaching the handle.
 	 */
 	isc_nmhandle_attach(req->handle, &handle);
 
@@ -959,10 +962,10 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 	sock->recv_read = false;
 
 	/*
-	 * The assertion failure here means that there's a errnoneous
+	 * An assertion failure here means that there's an erroneous
 	 * extra nmhandle detach happening in the callback and
-	 * resume_processing gets called while we are still processing
-	 * the buffer.
+	 * isc__nm_resume_processing() is called while we're
+	 * processing the buffer.
 	 */
 	REQUIRE(sock->processing == false);
 	sock->processing = true;
@@ -1278,6 +1281,8 @@ done:
 
 static void
 async_tlsdns_cycle(isc_nmsocket_t *sock) {
+	isc__netievent_tlsdnscycle_t *ievent = NULL;
+
 	REQUIRE(VALID_NMSOCK(sock));
 
 	/* Socket was closed midflight by isc__nm_tlsdns_shutdown() */
@@ -1285,8 +1290,7 @@ async_tlsdns_cycle(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	isc__netievent_tlsdnscycle_t *ievent =
-		isc__nm_get_netievent_tlsdnscycle(sock->mgr, sock);
+	ievent = isc__nm_get_netievent_tlsdnscycle(sock->mgr, sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *)ievent);
 }
@@ -1321,7 +1325,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
+	REQUIRE(atomic_load(&sock->reading));
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {
@@ -1441,7 +1445,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	csock->recv_cb = ssock->recv_cb;
 	csock->recv_cbarg = ssock->recv_cbarg;
 	csock->quota = quota;
-	csock->accepting = true;
+	atomic_init(&csock->accepting, true);
 
 	worker = &csock->mgr->workers[csock->tid];
 
@@ -1530,7 +1534,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	/* FIXME: Set SSL_MODE_RELEASE_BUFFERS */
 
-	csock->accepting = false;
+	atomic_store(&csock->accepting, false);
 
 	isc__nm_incstats(csock->mgr, csock->statsindex[STATID_ACCEPT]);
 
@@ -1579,13 +1583,15 @@ failure:
 void
 isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	isc_nmsocket_t *sock = handle->sock;
 	isc__netievent_tlsdnssend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
+	isc_nmsocket_t *sock = NULL;
 
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
+
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
@@ -1936,12 +1942,14 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 		(void)SSL_shutdown(sock->tls.tls);
 	}
 
-	if (sock->accepting) {
+	if (atomic_load(&sock->accepting)) {
 		return;
 	}
 
 	/* TLS handshake hasn't been completed yet */
 	if (atomic_load(&sock->connecting)) {
+		isc_nmsocket_t *tsock = NULL;
+
 		/*
 		 * TCP connection has been established, now waiting on
 		 * TLS handshake to complete
@@ -1956,14 +1964,17 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 		}
 
 		/* The TCP connection hasn't been established yet */
-		isc_nmsocket_t *tsock = NULL;
 		isc__nmsocket_attach(sock, &tsock);
 		uv_close(&sock->uv_handle.handle, tlsdns_close_connect_cb);
 		return;
 	}
 
 	if (sock->statichandle != NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+		if (isc__nm_closing(sock)) {
+			isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
+		} else {
+			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+		}
 		return;
 	}
 

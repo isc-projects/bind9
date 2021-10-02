@@ -124,7 +124,7 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 longttl.example TXT > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+4)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+5))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+5)) &
 
 wait
 
@@ -282,7 +282,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -336,7 +336,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -402,7 +402,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -594,7 +594,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -672,7 +672,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.1 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -1006,7 +1006,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -1094,7 +1094,7 @@ $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4)) &
-$DIG -p ${PORT} @10.53.0.3 notfound.example TXT > dig.out.test$((n+5))
+$DIG -p ${PORT} @10.53.0.3 notfound.example TXT > dig.out.test$((n+5)) &
 
 wait
 
@@ -1247,7 +1247,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.4 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.4 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.4 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -1453,7 +1453,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.5 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.5 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.5 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 
@@ -1651,8 +1651,8 @@ nextpart ns3/named.run > /dev/null
 
 echo_i "sending queries for tests $((n+1))-$((n+2))..."
 t1=`$PERL -e 'print time()'`
-$DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
-$DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2))
+$DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
+$DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2)) &
 wait
 t2=`$PERL -e 'print time()'`
 
@@ -1687,14 +1687,14 @@ status=$((status+ret))
 nextpart ns3/named.run > /dev/null
 
 echo_i "sending queries for tests $((n+2))-$((n+3))..."
-$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2)) &
+# first dig runs in background for 3 seconds, second in foreground for 3
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 longttl.example TXT > dig.out.test$((n+3)) &
+$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2))
 
 # Enable the authoritative name server after stale-answer-client-timeout.
 n=$((n+1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-sleep 4
 $DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
@@ -1705,25 +1705,17 @@ n=$((n+1))
 echo_i "check not in cache longttl.example times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
 wait_for_log 4 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
-check_results() {
-    [ -s "$1" ] || return 1
-    grep "connection timed out" "$1" > /dev/null || return 1
-    return 0
-}
-retry_quiet 4 check_results dig.out.test$n || ret=1
+grep "connection timed out" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
+
+wait
 
 n=$((n+1))
 echo_i "check not in cache longttl.example comes from authoritative (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-check_results() {
-    [ -s "$1" ] || return 1
-    grep "status: NOERROR" "$1" > /dev/null || return 1
-    grep "ANSWER: 1," "$1" > /dev/null || return 1
-    return 0
-}
-retry_quiet 8 check_results dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2214,7 +2206,7 @@ echo_i "sending queries for tests $((n+1))-$((n+4))..."
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} @10.53.0.3 othertype.example CAA > dig.out.test$((n+2)) &
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$((n+3)) &
-$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4))
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$((n+4)) &
 
 wait
 

@@ -590,7 +590,6 @@ struct dns_zonemgr {
 	isc_refcount_t refs;
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_socketmgr_t *socketmgr;
 	isc_nm_t *netmgr;
 	isc_taskpool_t *zonetasks;
 	isc_taskpool_t *loadtasks;
@@ -14011,8 +14010,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying master "
-			     "%s (source %s): %s",
+			     "refresh: unable to get response, master "
+			     "%s, source %s: %s",
 			     master, source, dns_result_totext(result));
 		goto next_master;
 	}
@@ -14603,8 +14602,7 @@ again:
 		zone->task, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
-		zone_debuglog(zone, me, 1,
-			      "dns_request_createvia4() failed: %s",
+		zone_debuglog(zone, me, 1, "dns_request_createvia() failed: %s",
 			      dns_result_totext(result));
 		goto skip_master;
 	} else {
@@ -18736,8 +18734,8 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
+		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
+		   dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 
@@ -18747,7 +18745,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_mem_attach(mctx, &zmgr->mctx);
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
-	zmgr->socketmgr = socketmgr;
 	zmgr->netmgr = netmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->loadtasks = NULL;

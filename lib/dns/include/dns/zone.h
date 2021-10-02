@@ -1780,8 +1780,8 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   isc_nm_t *netmgr, dns_zonemgr_t **zmgrp);
+		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
+		   dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.  Note: the zone manager will not be able to
  * manage any zones until dns_zonemgr_setsize() has been run.

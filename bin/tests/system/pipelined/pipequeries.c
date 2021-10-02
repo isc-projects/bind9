@@ -23,12 +23,11 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/netmgr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
@@ -59,8 +58,8 @@
 #define PORT	5300
 #define TIMEOUT 30
 
-static isc_mem_t *mctx;
-static dns_requestmgr_t *requestmgr;
+static isc_mem_t *mctx = NULL;
+static dns_requestmgr_t *requestmgr = NULL;
 static bool have_src = false;
 static isc_sockaddr_t srcaddr;
 static isc_sockaddr_t dstaddr;
@@ -70,7 +69,8 @@ static void
 recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result;
-	dns_message_t *query, *response;
+	dns_message_t *query = NULL;
+	dns_message_t *response = NULL;
 	isc_buffer_t outbuf;
 	char output[1024];
 
@@ -86,7 +86,6 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	query = reqev->ev_arg;
 
-	response = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
@@ -126,10 +125,10 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 sendquery(isc_task_t *task) {
-	dns_request_t *request;
-	dns_message_t *message;
-	dns_name_t *qname;
-	dns_rdataset_t *qrdataset;
+	dns_request_t *request = NULL;
+	dns_message_t *message = NULL;
+	dns_name_t *qname = NULL;
+	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 	dns_fixedname_t queryname;
 	isc_buffer_t buf;
@@ -150,7 +149,6 @@ sendquery(isc_task_t *task) {
 				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
-	message = NULL;
 	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
@@ -158,11 +156,9 @@ sendquery(isc_task_t *task) {
 	message->rdclass = dns_rdataclass_in;
 	message->id = (unsigned short)(random() & 0xFFFF);
 
-	qname = NULL;
 	result = dns_message_gettempname(message, &qname);
 	CHECK("dns_message_gettempname", result);
 
-	qrdataset = NULL;
 	result = dns_message_gettemprdataset(message, &qrdataset);
 	CHECK("dns_message_gettemprdataset", result);
 
@@ -172,11 +168,10 @@ sendquery(isc_task_t *task) {
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
-	request = NULL;
-	result = dns_request_createvia(
-		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, -1,
-		DNS_REQUESTOPT_TCP | DNS_REQUESTOPT_SHARE, NULL, TIMEOUT, 0, 0,
-		task, recvresponse, message, &request);
+	result = dns_request_createvia(requestmgr, message,
+				       have_src ? &srcaddr : NULL, &dstaddr, -1,
+				       DNS_REQUESTOPT_TCP, NULL, TIMEOUT, 0, 0,
+				       task, recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
 	return (ISC_R_SUCCESS);
@@ -203,17 +198,14 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
 	struct in_addr inaddr;
 	isc_result_t result;
-	isc_log_t *lctx;
-	isc_logconfig_t *lcfg;
+	isc_log_t *lctx = NULL;
+	isc_logconfig_t *lcfg = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
-	unsigned int attrs;
-	dns_dispatch_t *dispatchv4;
-	dns_view_t *view;
+	dns_dispatch_t *dispatchv4 = NULL;
+	dns_view_t *view = NULL;
 	uint16_t port = PORT;
 	int c;
 
@@ -267,35 +259,22 @@ main(int argc, char *argv[]) {
 	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
-	mctx = NULL;
 	isc_mem_create(&mctx);
 
-	lctx = NULL;
-	lcfg = NULL;
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
-
+	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
-	attrs = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_MAKEQUERY |
-		DNS_DISPATCHATTR_IPV4;
-	dispatchv4 = NULL;
-	RUNCHECK(dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     have_src ? &srcaddr : &bind_any, 4096, 4,
-				     2, 3, 5, attrs, &dispatchv4));
-	requestmgr = NULL;
-	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
-				       dispatchmgr, dispatchv4, NULL,
-				       &requestmgr));
+	RUNCHECK(dns_dispatch_createudp(
+		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchv4));
+	RUNCHECK(dns_requestmgr_create(mctx, taskmgr, dispatchmgr, dispatchv4,
+				       NULL, &requestmgr));
 
-	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
-
 	RUNCHECK(isc_app_onrun(mctx, task, sendqueries, NULL));
 
 	(void)isc_app_run();
@@ -306,12 +285,12 @@ main(int argc, char *argv[]) {
 	dns_requestmgr_detach(&requestmgr);
 
 	dns_dispatch_detach(&dispatchv4);
-	dns_dispatchmgr_destroy(&dispatchmgr);
+	dns_dispatchmgr_detach(&dispatchmgr);
 
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, &socketmgr);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
 
 	dst_lib_destroy();
 

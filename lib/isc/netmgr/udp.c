@@ -89,7 +89,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	isc__nmsocket_init(csock, mgr, isc_nm_udpsocket, iface);
 	csock->parent = sock;
 	csock->iface = sock->iface;
-	csock->reading = true;
+	atomic_init(&csock->reading, true);
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
 	csock->extrahandlesize = sock->extrahandlesize;
@@ -344,7 +344,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->reading);
+	REQUIRE(atomic_load(&sock->reading));
 
 #ifdef UV_UDP_MMSG_FREE
 	free_buf = ((flags & UV_UDP_MMSG_FREE) == UV_UDP_MMSG_FREE);
@@ -356,7 +356,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 #endif
 
 	/*
-	 * Three possible reasons to return now without processing:
+	 * Four possible reasons to return now without processing:
 	 */
 
 	/*
@@ -374,6 +374,15 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	}
 
 	/*
+	 * - If there was a networking error.
+	 */
+	if (nrecv < 0) {
+		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nrecv),
+				       false);
+		goto free;
+	}
+
+	/*
 	 * - If addr == NULL, in which case it's the end of stream;
 	 *   we can free the buffer and bail.
 	 */
@@ -387,12 +396,6 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 */
 	if (!isc__nmsocket_active(sock)) {
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
-		goto free;
-	}
-
-	if (nrecv < 0) {
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nrecv),
-				       false);
 		goto free;
 	}
 
@@ -612,6 +615,11 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	RUNTIME_CHECK(r == 0);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
+	if (isc__nm_closing(sock)) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto error;
+	}
+
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
@@ -653,6 +661,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 done:
 	result = isc__nm_uverr2result(r);
+error:
 
 	LOCK(&sock->lock);
 	sock->result = result;
@@ -800,6 +809,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 * does not.
 	 */
 	if (!sock->parent) {
+		isc__nmsocket_timer_stop(sock);
 		isc__nm_stop_reading(sock);
 	}
 }
@@ -856,15 +866,22 @@ void
 isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udpread_t *ievent = (isc__netievent_udpread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	UNUSED(worker);
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	if (isc__nmsocket_closing(sock)) {
-		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+	if (isc__nm_closing(sock)) {
+		result = ISC_R_SHUTTINGDOWN;
+	} else if (isc__nmsocket_closing(sock)) {
+		result = ISC_R_CANCELED;
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		atomic_store(&sock->reading, true);
+		isc__nm_failed_read_cb(sock, result, false);
 		return;
 	}
 
@@ -881,14 +898,13 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->statichandle == handle);
-	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(!sock->recv_read);
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 	sock->recv_read = true;
 
-	if (!sock->reading && sock->tid == isc_nm_tid()) {
+	if (!atomic_load(&sock->reading) && sock->tid == isc_nm_tid()) {
 		isc__netievent_udpread_t ievent = { .sock = sock };
 		isc__nm_async_udpread(NULL, (isc__netievent_t *)&ievent);
 	} else {
@@ -1079,7 +1095,11 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	 * interested in the callback.
 	 */
 	if (sock->statichandle != NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+		if (isc__nm_closing(sock)) {
+			isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
+		} else {
+			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+		}
 		return;
 	}
 

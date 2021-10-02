@@ -2237,11 +2237,9 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv4;
 			}
+
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
-			if (addrinfo == NULL) {
-				find->partial_result |= DNS_ADBFIND_INET;
-				goto out;
-			}
+
 			/*
 			 * Found a valid entry.  Add it to the find's list.
 			 */
@@ -2275,10 +2273,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 				goto nextv6;
 			}
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
-			if (addrinfo == NULL) {
-				find->partial_result |= DNS_ADBFIND_INET6;
-				goto out;
-			}
+
 			/*
 			 * Found a valid entry.  Add it to the find's list.
 			 */
@@ -2292,7 +2287,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 		}
 	}
 
-out:
 	if (bucket != DNS_ADB_INVALIDBUCKET) {
 		UNLOCK(&adb->entrylocks[bucket]);
 	}
@@ -3962,8 +3956,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 		clean_target(adb, &name->target);
 		name->expire_target = INT_MAX;
-		result = set_target(adb, &name->name,
-				    dns_fixedname_name(&dev->foundname),
+		result = set_target(adb, &name->name, dev->foundname,
 				    dev->rdataset, &name->target);
 		if (result == ISC_R_SUCCESS) {
 			DP(NCACHE_LEVEL,
@@ -4533,12 +4526,8 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 
 	port = isc_sockaddr_getport(sa);
 	addr = new_adbaddrinfo(adb, entry, port);
-	if (addr == NULL) {
-		result = ISC_R_NOMEMORY;
-	} else {
-		inc_entry_refcnt(adb, entry, false);
-		*addrp = addr;
-	}
+	inc_entry_refcnt(adb, entry, false);
+	*addrp = addr;
 
 unlock:
 	UNLOCK(&adb->entrylocks[bucket]);

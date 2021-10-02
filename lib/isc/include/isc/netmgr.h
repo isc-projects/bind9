@@ -160,6 +160,12 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle);
  * a TCPDNS socket wrapping a TCP connection), the timer is set for
  * both socket layers.
  */
+bool
+isc_nmhandle_timer_running(isc_nmhandle_t *handle);
+/*%<
+ * Return true if the timer for the socket connected to 'handle'
+ * is running.
+ */
 
 void
 isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value);
@@ -448,6 +454,16 @@ isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
  *
  *\li	stats is a valid set of statistics counters supporting the
  *	full range of socket-related stats counter numbers.
+ */
+
+isc_result_t
+isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
+/*%<
+ * Check whether the specified address is available on the local system
+ * by opening a socket and immediately closing it.
+ *
+ * Requires:
+ *\li	'addr' is not NULL.
  */
 
 void

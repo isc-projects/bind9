@@ -66,6 +66,10 @@ Feature Changes
   9.16.0 but no error was reported, although sending UDP messages
   (such as notifies) would fail. :gl:`#2888`
 
+- The network manager API is now used by ``named`` and related tools,
+  including ``nsupdate``, ``delv``, ``mdig``, to send all outgoing DNS
+  queries and requests. :gl:`#2401`
+
 Bug Fixes
 ~~~~~~~~~
 
