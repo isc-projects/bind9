@@ -1533,10 +1533,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		break;
 	}
 
-	if (sock->statsindex != NULL) {
-		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_ACTIVE]);
-	}
-
 	isc_mutex_init(&sock->lock);
 	isc_condition_init(&sock->cond);
 	isc_condition_init(&sock->scond);
