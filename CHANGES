@@ -1,3 +1,12 @@
+5744.	[func]		The network manager is now used for netlink sockets
+			to monitor network interface changes. This was the
+			last remaining use of the old isc_socket and
+			isc_socketmgr APIs, so they have now been removed.
+			The "named -S" argument and the "reserved-sockets"
+			option in named.conf have no function now, and are
+			deprecated. "socketmgr" statistics are no longer
+			reported in the statistics channel. [GL #2926]
+
 5743.	[func]		Add finer-grained "update-policy" rules,
 			"krb5-subdomain-self-rhs" and "ms-subdomain-self-rhs",
 			which restrict SRV and PTR record changes, allowing

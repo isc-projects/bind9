@@ -79,6 +79,9 @@ Feature Changes
   including ``nsupdate``, ``delv``, ``mdig``, to send all outgoing DNS
   queries and requests. :gl:`#2401`
 
+- Because the old socket manager API has been removed, "socketmgr"
+  statistics are no longer reported by the statistics channel. :gl:`#2926`
+
 - Zone transfers over TLS (XoT) now need "dot" Application-Layer Protocol
   Negotiation (ALPN) tag to be negotiated, as required by the RFC 9103. :gl: `#2794`
 
