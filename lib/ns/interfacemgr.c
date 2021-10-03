@@ -190,7 +190,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
 		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
 		       isc_task_t *task, dns_geoip_databases_t *geoip,
-		       int ncpus, ns_interfacemgr_t **mgrp) {
+		       int ncpus, bool scan, ns_interfacemgr_t **mgrp) {
 	isc_result_t result;
 	ns_interfacemgr_t *mgr = NULL;
 
@@ -242,11 +242,13 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	UNUSED(geoip);
 #endif /* if defined(HAVE_GEOIP2) */
 
-	result = isc_nm_routeconnect(nm, route_connected, mgr, 0);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-			      "unable to open route socket: %s",
-			      isc_result_totext(result));
+	if (scan) {
+		result = isc_nm_routeconnect(nm, route_connected, mgr, 0);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "unable to open route socket: %s",
+				      isc_result_totext(result));
+		}
 	}
 
 	isc_refcount_init(&mgr->references, 1);

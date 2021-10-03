@@ -233,7 +233,7 @@ create_managers(void) {
 	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
-				     dispatchmgr, maintask, NULL, ncpus,
+				     dispatchmgr, maintask, NULL, ncpus, false,
 				     &interfacemgr));
 
 	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
@@ -244,12 +244,6 @@ create_managers(void) {
 				   scan_interfaces, NULL, sizeof(isc_event_t));
 	isc_task_send(maintask, &event);
 
-	/*
-	 * There's no straightforward way to determine
-	 * whether the interfaces have been scanned,
-	 * we'll just sleep for a bit and hope.
-	 */
-	ns_test_nap(500000);
 	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
 
 	atomic_store(&run_managers, true);
