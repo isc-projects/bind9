@@ -9,7 +9,6 @@ LDADD +=			\
 
 check_LTLIBRARIES = libisctest.la
 libisctest_la_SOURCES =		\
-	../socket_p.h		\
 	isctest.c		\
 	isctest.h		\
 	uv_wrap.h
@@ -40,7 +39,6 @@ check_PROGRAMS =	\
 	safe_test	\
 	siphash_test	\
 	sockaddr_test	\
-	socket_test	\
 	stats_test	\
 	symtab_test	\
 	task_test	\

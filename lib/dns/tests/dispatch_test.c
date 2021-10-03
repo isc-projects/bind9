@@ -28,7 +28,6 @@
 #include <isc/buffer.h>
 #include <isc/managers.h>
 #include <isc/refcount.h>
-#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -143,8 +142,7 @@ _setup(void **state) {
 	close(sock);
 
 	/* Create a secondary network manager */
-	isc_managers_create(dt_mctx, ncpus, 0, 0, &connect_nm, NULL, NULL,
-			    NULL);
+	isc_managers_create(dt_mctx, ncpus, 0, &connect_nm, NULL, NULL);
 
 	isc_nm_settimeouts(netmgr, T_SERVER_INIT, T_SERVER_IDLE,
 			   T_SERVER_KEEPALIVE, T_SERVER_ADVERTISED);
@@ -170,7 +168,7 @@ _teardown(void **state) {
 
 	uv_sem_destroy(&sem);
 
-	isc_managers_destroy(&connect_nm, NULL, NULL, NULL);
+	isc_managers_destroy(&connect_nm, NULL, NULL);
 	assert_null(connect_nm);
 
 	dns_test_end();

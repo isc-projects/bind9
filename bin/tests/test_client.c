@@ -306,7 +306,7 @@ setup(void) {
 
 	isc_mem_create(&mctx);
 
-	isc_managers_create(mctx, workers, 0, 0, &netmgr, NULL, NULL, NULL);
+	isc_managers_create(mctx, workers, 0, &netmgr, NULL, NULL);
 }
 
 static void
@@ -315,7 +315,7 @@ teardown(void) {
 		close(out);
 	}
 
-	isc_managers_destroy(&netmgr, NULL, NULL, NULL);
+	isc_managers_destroy(&netmgr, NULL, NULL);
 	isc_mem_destroy(&mctx);
 	if (tls_ctx) {
 		isc_tlsctx_free(&tls_ctx);

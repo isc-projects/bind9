@@ -34,7 +34,6 @@
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>

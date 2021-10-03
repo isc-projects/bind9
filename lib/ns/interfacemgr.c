@@ -66,14 +66,13 @@ struct ns_interfacemgr {
 	unsigned int magic; /*%< Magic number */
 	isc_refcount_t references;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;	    /*%< Memory context */
-	ns_server_t *sctx;	    /*%< Server context */
-	isc_taskmgr_t *taskmgr;	    /*%< Task manager */
-	isc_task_t *excl;	    /*%< Exclusive task */
-	isc_timermgr_t *timermgr;   /*%< Timer manager */
-	isc_socketmgr_t *socketmgr; /*%< Socket manager */
-	isc_nm_t *nm;		    /*%< Net manager */
-	int ncpus;		    /*%< Number of workers */
+	isc_mem_t *mctx;	  /*%< Memory context */
+	ns_server_t *sctx;	  /*%< Server context */
+	isc_taskmgr_t *taskmgr;	  /*%< Task manager */
+	isc_task_t *excl;	  /*%< Exclusive task */
+	isc_timermgr_t *timermgr; /*%< Timer manager */
+	isc_nm_t *nm;		  /*%< Net manager */
+	int ncpus;		  /*%< Number of workers */
 	dns_dispatchmgr_t *dispatchmgr;
 	unsigned int generation; /*%< Current generation no */
 	ns_listenlist_t *listenon4;
@@ -189,10 +188,9 @@ route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
-		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
-		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
-		       dns_geoip_databases_t *geoip, int ncpus,
-		       ns_interfacemgr_t **mgrp) {
+		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
+		       isc_task_t *task, dns_geoip_databases_t *geoip,
+		       int ncpus, ns_interfacemgr_t **mgrp) {
 	isc_result_t result;
 	ns_interfacemgr_t *mgr = NULL;
 
@@ -205,7 +203,6 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (ns_interfacemgr_t){ .taskmgr = taskmgr,
 				    .timermgr = timermgr,
-				    .socketmgr = socketmgr,
 				    .nm = nm,
 				    .dispatchmgr = dispatchmgr,
 				    .generation = 1,

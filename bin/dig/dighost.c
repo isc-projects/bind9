@@ -1356,7 +1356,7 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
+	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
@@ -4248,7 +4248,7 @@ destroy_libs(void) {
 		isc_task_detach(&global_task);
 	}
 
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	LOCK_LOOKUP;
 	isc_refcount_destroy(&recvcount);

@@ -36,7 +36,6 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>

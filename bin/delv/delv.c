@@ -37,7 +37,6 @@
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -1742,7 +1741,7 @@ main(int argc, char *argv[]) {
 
 	CHECK(isc_appctx_create(mctx, &actx));
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, &timermgr, NULL);
+	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, &timermgr);
 
 	parse_args(argc, argv);
 
@@ -1844,7 +1843,7 @@ cleanup:
 		dns_client_detach(&client);
 	}
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, &timermgr);
 
 	if (actx != NULL) {
 		isc_appctx_destroy(&actx);

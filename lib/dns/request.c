@@ -77,7 +77,6 @@ struct dns_request {
 	dns_requestmgr_t *requestmgr;
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
-	isc_socketevent_t sendevent;
 	isc_sockaddr_t destaddr;
 	unsigned int timeout;
 	unsigned int udpcount;

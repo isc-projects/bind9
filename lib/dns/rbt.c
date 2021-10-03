@@ -22,7 +22,6 @@
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>

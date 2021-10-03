@@ -1370,32 +1370,6 @@ queue, the specified function will be called.
 
 Examples:
 
-`isc_socket_recv()` calls the `recv()` system call asynchronously: rather
-than waiting for data, it returns immediately, but it sets up an event to
-be triggered when the `recv()` call completes; BIND can now do other work
-instead of waiting for I/O.  Once the `recv()` is finished, the
-associated event is triggered.
-
-
-        /*
-         * Function to handle a completed recv()
-         */
-        static void
-        recvdone(isc_task_t *task, isc_event_t *event) {
-                /* Arguments are in event->ev_arg. */
-        }
-
-        ...
-
-        /*
-         * Call recv() on socket 'sock', put results into 'region',
-         * minimum read size 1, and call recvdone() with NULL as
-         * argument.  (Note: 'sock' is already associated with a
-         * particular task, so that doesn't need to be specified
-         * here.)
-         */
-        isc_socket_recv(sock, &region, 1, recvdone, NULL);
-
 A timer is set for a specified time in the future, and the event will
 be triggered at that time.
 

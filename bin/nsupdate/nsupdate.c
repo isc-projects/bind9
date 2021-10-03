@@ -913,8 +913,7 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = isc_managers_create(gmctx, 1, 0, 0, &netmgr, &taskmgr, NULL,
-				     NULL);
+	result = isc_managers_create(gmctx, 1, 0, &netmgr, &taskmgr, NULL);
 	check_result(result, "isc_managers_create");
 
 	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
@@ -3320,7 +3319,7 @@ cleanup(void) {
 	}
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	ddebug("Destroying event");
 	isc_event_free(&global_event);

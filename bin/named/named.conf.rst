@@ -391,7 +391,7 @@ OPTIONS
   	request-ixfr boolean;
   	request-nsid boolean;
   	require-server-cookie boolean;
-  	reserved-sockets integer;
+  	reserved-sockets integer;// deprecated
   	resolver-nonbackoff-tries integer;
   	resolver-query-timeout integer;
   	resolver-retry-interval integer;

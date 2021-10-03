@@ -46,8 +46,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/event.h>
 #include <isc/lang.h>
-#include <isc/socket.h>
 #include <isc/stats.h>
 
 #include <dns/fixedname.h>

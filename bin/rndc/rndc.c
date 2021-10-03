@@ -30,7 +30,6 @@
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
-#include <isc/socket.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1029,7 +1028,7 @@ main(int argc, char **argv) {
 	serial = isc_random32();
 
 	isc_mem_create(&rndc_mctx);
-	isc_managers_create(rndc_mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
+	isc_managers_create(rndc_mctx, 1, 0, &netmgr, &taskmgr, NULL);
 	DO("create task", isc_task_create(taskmgr, 0, &rndc_task));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
@@ -1084,7 +1083,7 @@ main(int argc, char **argv) {
 	}
 
 	isc_task_detach(&rndc_task);
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	/*
 	 * Note: when TCP connections are shut down, there will be a final

@@ -14,18 +14,15 @@
 #include <isc/util.h>
 
 #include "netmgr_p.h"
-#include "socket_p.h"
 #include "task_p.h"
 #include "timer_p.h"
 
 isc_result_t
 isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
-		    size_t sockets, isc_nm_t **netmgrp,
-		    isc_taskmgr_t **taskmgrp, isc_timermgr_t **timermgrp,
-		    isc_socketmgr_t **socketmgrp) {
+		    isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
+		    isc_timermgr_t **timermgrp) {
 	isc_result_t result;
 	isc_nm_t *netmgr = NULL;
-	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
 
@@ -65,29 +62,16 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 		*timermgrp = timermgr;
 	}
 
-	REQUIRE(socketmgrp == NULL || *socketmgrp == NULL);
-	if (socketmgrp != NULL) {
-		result = isc__socketmgr_create(mctx, &socketmgr, sockets,
-					       workers);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_socketmgr_create() failed: %s",
-					 isc_result_totext(result));
-			goto fail;
-		}
-		*socketmgrp = socketmgr;
-	}
-
 	return (ISC_R_SUCCESS);
 fail:
-	isc_managers_destroy(netmgrp, taskmgrp, timermgrp, socketmgrp);
+	isc_managers_destroy(netmgrp, taskmgrp, timermgrp);
 
 	return (result);
 }
 
 void
 isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
-		     isc_timermgr_t **timermgrp, isc_socketmgr_t **socketmgrp) {
+		     isc_timermgr_t **timermgrp) {
 	/*
 	 * If we have a taskmgr to clean up, then we must also have a netmgr.
 	 */
@@ -136,9 +120,5 @@ isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
 	if (timermgrp != NULL) {
 		INSIST(*timermgrp != NULL);
 		isc__timermgr_destroy(timermgrp);
-	}
-	if (socketmgrp != NULL) {
-		INSIST(*socketmgrp != NULL);
-		isc__socketmgr_destroy(socketmgrp);
 	}
 }

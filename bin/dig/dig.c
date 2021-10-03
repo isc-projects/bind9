@@ -26,6 +26,7 @@
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
