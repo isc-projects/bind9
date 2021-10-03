@@ -1142,7 +1142,7 @@ resquery_destroy(resquery_t *query) {
 	}
 
 	if (query->dispentry != NULL) {
-		dns_dispatch_removeresponse(&query->dispentry);
+		dns_dispatch_done(&query->dispentry);
 	}
 
 	if (query->dispatch != NULL) {
@@ -1229,11 +1229,11 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	query = *queryp;
 	fctx = query->fctx;
 
-	FCTXTRACE("cancelquery");
-
 	if (RESQUERY_CANCELED(query)) {
 		return;
 	}
+
+	FCTXTRACE("cancelquery");
 
 	query->attributes |= RESQUERY_ATTR_CANCELED;
 
@@ -1397,8 +1397,7 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	 * exist, cancel them.
 	 */
 	if (query->dispentry != NULL) {
-		dns_dispatch_cancel(query->dispentry);
-		dns_dispatch_removeresponse(&query->dispentry);
+		dns_dispatch_cancel(&query->dispentry);
 	}
 
 	if (ISC_LINK_LINKED(query, link)) {
@@ -2126,7 +2125,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 
 	/* Set up the dispatch and set the query ID */
-	result = dns_dispatch_addresponse(
+	result = dns_dispatch_add(
 		query->dispatch, 0, isc_interval_ms(&fctx->interval),
 		&query->addrinfo->sockaddr, resquery_connected,
 		resquery_senddone, resquery_response, query, &query->id,
@@ -2733,7 +2732,7 @@ cleanup_message:
 	/*
 	 * Stop the dispatcher from listening.
 	 */
-	dns_dispatch_removeresponse(&query->dispentry);
+	dns_dispatch_done(&query->dispentry);
 
 cleanup_temps:
 	if (qname != NULL) {
@@ -4390,7 +4389,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_cleanup(fctx);
 
 	LOCK(&res->buckets[bucketnum].lock);
-	fctx_decreference(fctx);
+	RUNTIME_CHECK(!fctx_decreference(fctx));
 
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_SHUTTINGDOWN);
 

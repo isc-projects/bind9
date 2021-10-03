@@ -1288,11 +1288,11 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 }
 
 isc_result_t
-dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
-			 unsigned int timeout, const isc_sockaddr_t *dest,
-			 dispatch_cb_t connected, dispatch_cb_t sent,
-			 dispatch_cb_t response, void *arg,
-			 dns_messageid_t *idp, dns_dispentry_t **resp) {
+dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
+		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dispatch_cb_t connected, dispatch_cb_t sent,
+		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
+		 dns_dispentry_t **resp) {
 	dns_dispentry_t *res = NULL;
 	dns_qid_t *qid = NULL;
 	in_port_t localport = 0;
@@ -1476,7 +1476,65 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 }
 
 void
-dns_dispatch_removeresponse(dns_dispentry_t **respp) {
+dns_dispatch_cancel(dns_dispentry_t **respp) {
+	dns_dispentry_t *resp = NULL;
+
+	REQUIRE(respp != NULL);
+
+	resp = *respp;
+
+	REQUIRE(VALID_RESPONSE(resp));
+
+	resp->canceled = true;
+
+	/* Connected UDP. */
+	if (resp->handle != NULL) {
+		isc_nm_cancelread(resp->handle);
+		goto done;
+	}
+
+	/* TCP pending connection. */
+	if (ISC_LINK_LINKED(resp, plink)) {
+		dns_dispentry_t *copy = resp;
+
+		ISC_LIST_UNLINK(resp->disp->pending, resp, plink);
+		if (resp->connected != NULL) {
+			resp->connected(ISC_R_CANCELED, NULL, resp->arg);
+		}
+
+		/*
+		 * We need to detach twice if we were pending
+		 * connection - once to take the place of the
+		 * detach in tcp_connected() or udp_connected()
+		 * that we won't reach, and again later in
+		 * dns_dispatch_done().
+		 */
+		dispentry_detach(&copy);
+		goto done;
+	}
+
+	/*
+	 * Connected TCP, or unconnected UDP.
+	 *
+	 * If TCP, we don't want to cancel the dispatch
+	 * unless this is the last resp waiting.
+	 */
+	if (ISC_LINK_LINKED(resp, alink)) {
+		ISC_LIST_UNLINK(resp->disp->active, resp, alink);
+		if (ISC_LIST_EMPTY(resp->disp->active) &&
+		    resp->disp->handle != NULL) {
+			isc_nm_cancelread(resp->disp->handle);
+		} else if (resp->response != NULL) {
+			resp->response(ISC_R_CANCELED, NULL, resp->arg);
+		}
+	}
+
+done:
+	dns_dispatch_done(respp);
+}
+
+void
+dns_dispatch_done(dns_dispentry_t **respp) {
 	dns_dispatchmgr_t *mgr = NULL;
 	dns_dispatch_t *disp = NULL;
 	dns_dispentry_t *resp = NULL;
@@ -1760,45 +1818,6 @@ dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp) {
 
 	dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 	isc_nm_send(handle, r, send_done, resp);
-}
-
-void
-dns_dispatch_cancel(dns_dispentry_t *resp) {
-	REQUIRE(VALID_RESPONSE(resp));
-
-	resp->canceled = true;
-
-	/* Connected UDP */
-	if (resp->handle != NULL) {
-		isc_nm_cancelread(resp->handle);
-		return;
-	}
-
-	/* TCP pending connection. */
-	if (ISC_LINK_LINKED(resp, plink)) {
-		ISC_LIST_UNLINK(resp->disp->pending, resp, plink);
-		if (resp->connected != NULL) {
-			resp->connected(ISC_R_CANCELED, NULL, resp->arg);
-			dispentry_detach(&resp);
-		}
-		return;
-	}
-
-	/*
-	 * Connected TCP, or unconnected UDP.
-	 *
-	 * If TCP, we don't want to cancel the dispatch
-	 * unless this is the last resp waiting.
-	 */
-	if (ISC_LINK_LINKED(resp, alink)) {
-		ISC_LIST_UNLINK(resp->disp->active, resp, alink);
-		if (ISC_LIST_EMPTY(resp->disp->active) &&
-		    resp->disp->handle != NULL) {
-			isc_nm_cancelread(resp->disp->handle);
-		} else if (resp->response != NULL) {
-			resp->response(ISC_R_CANCELED, NULL, resp->arg);
-		}
-	}
 }
 
 isc_result_t

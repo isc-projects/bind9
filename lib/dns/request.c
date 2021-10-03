@@ -559,10 +559,10 @@ again:
 	}
 
 	req_attach(request, &rclone);
-	result = dns_dispatch_addresponse(
-		request->dispatch, dispopt, request->timeout, destaddr,
-		req_connected, req_senddone, req_response, request, &id,
-		&request->dispentry);
+	result = dns_dispatch_add(request->dispatch, dispopt, request->timeout,
+				  destaddr, req_connected, req_senddone,
+				  req_response, request, &id,
+				  &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -722,7 +722,7 @@ use_tcp:
 	}
 
 	req_attach(request, &rclone);
-	result = dns_dispatch_addresponse(
+	result = dns_dispatch_add(
 		request->dispatch, 0, request->timeout, destaddr, req_connected,
 		req_senddone, req_response, request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
@@ -737,7 +737,7 @@ use_tcp:
 		 */
 		req_detach(&rclone);
 		dns_message_renderreset(message);
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
 		options |= DNS_REQUESTOPT_TCP;
 		tcp = true;
@@ -901,8 +901,7 @@ request_cancel(dns_request_t *request) {
 		request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 		if (request->dispentry != NULL) {
-			dns_dispatch_cancel(request->dispentry);
-			dns_dispatch_removeresponse(&request->dispentry);
+			dns_dispatch_cancel(&request->dispentry);
 		}
 
 		dns_dispatch_detach(&request->dispatch);
@@ -977,8 +976,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	LOCK(&request->requestmgr->lock);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
-	INSIST(!DNS_REQUEST_CONNECTING(request));
-	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 	UNLOCK(&request->requestmgr->lock);
 
@@ -986,7 +983,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	 * These should have been cleaned up before the completion
 	 * event was sent.
 	 */
-	INSIST(!ISC_LINK_LINKED(request, link));
 	INSIST(request->dispentry == NULL);
 	INSIST(request->dispatch == NULL);
 
@@ -1010,7 +1006,7 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 	if (eresult == ISC_R_TIMEDOUT) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
 		req_sendevent(request, eresult);
 	} else if (DNS_REQUEST_CANCELED(request)) {
@@ -1103,7 +1099,7 @@ done:
 	 * Cleanup.
 	 */
 	if (request->dispentry != NULL) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 	}
 	request_cancel(request);
 
@@ -1192,7 +1188,7 @@ req_destroy(dns_request_t *request) {
 		isc_event_free((isc_event_t **)&request->event);
 	}
 	if (request->dispentry != NULL) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 	}
 	if (request->dispatch != NULL) {
 		dns_dispatch_detach(&request->dispatch);

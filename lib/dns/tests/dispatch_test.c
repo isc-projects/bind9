@@ -456,10 +456,10 @@ dispatch_timeout_tcp_connect(void **state) {
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
 
-	result = dns_dispatch_addresponse(dispatch, 0, T_CLIENT_CONNECT,
-					  &tcp_server_addr, timeout_connected,
-					  client_senddone, response, &region,
-					  &id, &dispentry);
+	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
+				  &tcp_server_addr, timeout_connected,
+				  client_senddone, response, &region, &id,
+				  &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
@@ -473,7 +473,7 @@ dispatch_timeout_tcp_connect(void **state) {
 
 	uv_sem_wait(&sem);
 
-	dns_dispatch_removeresponse(&dispentry);
+	dns_dispatch_done(&dispentry);
 
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_detach(&dispatchmgr);
@@ -517,9 +517,9 @@ dispatch_timeout_tcp_response(void **state __attribute__((unused))) {
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
 
-	result = dns_dispatch_addresponse(
-		dispatch, 0, T_CLIENT_CONNECT, &tcp_server_addr, connected,
-		client_senddone, response_timeout, &region, &id, &dispentry);
+	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
+				  &tcp_server_addr, connected, client_senddone,
+				  response_timeout, &region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
@@ -539,7 +539,7 @@ dispatch_timeout_tcp_response(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&sock);
 	assert_null(sock);
 
-	dns_dispatch_removeresponse(&dispentry);
+	dns_dispatch_done(&dispentry);
 
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_detach(&dispatchmgr);
@@ -573,9 +573,9 @@ dispatch_tcp_response(void **state __attribute__((unused))) {
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
 
-	result = dns_dispatch_addresponse(
-		dispatch, 0, T_CLIENT_CONNECT, &tcp_server_addr, connected,
-		client_senddone, response, &region, &id, &dispentry);
+	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
+				  &tcp_server_addr, connected, client_senddone,
+				  response, &region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
@@ -598,7 +598,7 @@ dispatch_tcp_response(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&sock);
 	assert_null(sock);
 
-	dns_dispatch_removeresponse(&dispentry);
+	dns_dispatch_done(&dispentry);
 
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_detach(&dispatchmgr);
@@ -632,9 +632,9 @@ dispatch_timeout_udp_response(void **state __attribute__((unused))) {
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
 
-	result = dns_dispatch_addresponse(
-		dispatch, 0, T_CLIENT_CONNECT, &udp_server_addr, connected,
-		client_senddone, response_timeout, &region, &id, &dispentry);
+	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
+				  &udp_server_addr, connected, client_senddone,
+				  response_timeout, &region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
@@ -654,7 +654,7 @@ dispatch_timeout_udp_response(void **state __attribute__((unused))) {
 	isc_nmsocket_close(&sock);
 	assert_null(sock);
 
-	dns_dispatch_removeresponse(&dispentry);
+	dns_dispatch_done(&dispentry);
 
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_detach(&dispatchmgr);
@@ -688,9 +688,9 @@ dispatch_getnext(void **state) {
 
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
-	result = dns_dispatch_addresponse(
-		dispatch, 0, T_CLIENT_CONNECT, &udp_server_addr, connected,
-		client_senddone, response_getnext, &region, &id, &dispentry);
+	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
+				  &udp_server_addr, connected, client_senddone,
+				  response_getnext, &region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
@@ -711,7 +711,7 @@ dispatch_getnext(void **state) {
 	isc_nmsocket_close(&sock);
 	assert_null(sock);
 
-	dns_dispatch_removeresponse(&dispentry);
+	dns_dispatch_done(&dispentry);
 	dns_dispatch_detach(&dispatch);
 	dns_dispatchmgr_detach(&dispatchmgr);
 }
