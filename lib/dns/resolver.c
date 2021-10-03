@@ -1214,8 +1214,9 @@ update_edns_stats(resquery_t *query) {
 }
 
 static void
-fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
+fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 		 bool age_untried) {
+	resquery_t *query = NULL;
 	fetchctx_t *fctx = NULL;
 	unsigned int rtt, rttms;
 	unsigned int factor;
@@ -1223,6 +1224,9 @@ fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
 	dns_adbaddrinfo_t *addrinfo;
 	isc_stdtime_t now;
 
+	REQUIRE(queryp != NULL);
+
+	query = *queryp;
 	fctx = query->fctx;
 
 	FCTXTRACE("cancelquery");
@@ -1401,7 +1405,7 @@ fctx_cancelquery(resquery_t *query, isc_time_t *finish, bool no_response,
 		ISC_LIST_UNLINK(fctx->queries, query, link);
 	}
 
-	resquery_detach(&query);
+	resquery_detach(queryp);
 }
 
 static void
@@ -1451,7 +1455,7 @@ fctx_cancelqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
 	for (query = ISC_LIST_HEAD(fctx->queries); query != NULL;
 	     query = next_query) {
 		next_query = ISC_LIST_NEXT(query, link);
-		fctx_cancelquery(query, NULL, no_response, age_untried);
+		fctx_cancelquery(&query, NULL, no_response, age_untried);
 	}
 }
 
@@ -1725,6 +1729,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 static void
 resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	resquery_t *query = (resquery_t *)arg;
+	resquery_t *copy = query;
 	fetchctx_t *fctx = NULL;
 
 	QTRACE("senddone");
@@ -1737,6 +1742,10 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 		goto detach;
 	}
 
+	/*
+	 * See the note in resquery_connected() about reference
+	 * counting on error conditions.
+	 */
 	switch (eresult) {
 	case ISC_R_SUCCESS:
 	case ISC_R_CANCELED:
@@ -1748,17 +1757,13 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	case ISC_R_NOPERM:
 	case ISC_R_ADDRNOTAVAIL:
 	case ISC_R_CONNREFUSED:
+		/* No route to remote.  */
 		FCTXTRACE3("query canceled in resquery_senddone(): "
 			   "no route to host; no response",
 			   eresult);
-
-		/*
-		 * No route to remote.
-		 */
 		add_bad(fctx, query->rmessage, query->addrinfo, eresult,
 			badns_unreachable);
-		fctx_cancelquery(query, NULL, true, false);
-
+		fctx_cancelquery(&copy, NULL, true, false);
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 		fctx_try(fctx, true, false);
 		break;
@@ -1767,7 +1772,7 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 		FCTXTRACE3("query canceled in resquery_senddone() "
 			   "due to unexpected result; responding",
 			   eresult);
-		fctx_cancelquery(query, NULL, false, false);
+		fctx_cancelquery(&copy, NULL, false, false);
 		fctx_done(fctx, eresult, __LINE__);
 		break;
 	}
@@ -2744,6 +2749,7 @@ cleanup_temps:
 static void
 resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	resquery_t *query = (resquery_t *)arg;
+	resquery_t *copy = query;
 	isc_result_t result;
 	fetchctx_t *fctx = NULL;
 	dns_resolver_t *res = NULL;
@@ -2766,6 +2772,22 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		eresult = ISC_R_SHUTTINGDOWN;
 	}
 
+	/*
+	 * The reference counting of resquery objects is complex:
+	 *
+	 * 1. attached in fctx_query()
+	 * 2. attached prior to dns_dispatch_connect(), detached in
+	 *    resquery_connected()
+	 * 3. attached prior to dns_dispatch_send(), detached in
+	 *    resquery_senddone()
+	 * 4. finally detached in fctx_cancelquery()
+	 *
+	 * On error conditions, it's necessary to call fctx_cancelquery()
+	 * from resquery_connected() or _senddone(), detaching twice
+	 * within the same function. To make it clear that's what's
+	 * happening, we cancel-and-detach 'copy' and detach 'query',
+	 * which are both pointing to the same object.
+	 */
 	switch (eresult) {
 	case ISC_R_SUCCESS:
 		/*
@@ -2777,7 +2799,7 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 			FCTXTRACE("query canceled: resquery_send() failed; "
 				  "responding");
 
-			fctx_cancelquery(query, NULL, false, false);
+			fctx_cancelquery(&copy, NULL, false, false);
 			fctx_done(fctx, result, __LINE__);
 			break;
 		}
@@ -2797,12 +2819,9 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		break;
 
 	case ISC_R_CANCELED:
-		break;
-
 	case ISC_R_SHUTTINGDOWN:
-		FCTXTRACE3("shutdown in resquery_connected(): no response",
-			   eresult);
-		fctx_cancelquery(query, NULL, true, false);
+		FCTXTRACE3("shutdown in resquery_connected()", eresult);
+		fctx_cancelquery(&copy, NULL, true, false);
 		fctx_done(fctx, eresult, __LINE__);
 		break;
 
@@ -2813,31 +2832,26 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	case ISC_R_ADDRNOTAVAIL:
 	case ISC_R_CONNECTIONRESET:
 	case ISC_R_TIMEDOUT:
-		FCTXTRACE3("query canceled in "
-			   "resquery_connected(): "
-			   "no route to host; no response",
-			   eresult);
-
 		/*
-		 * Do not query this server again in this fetch
-		 * context if the server is unavailable over
-		 * TCP.
+		 * Do not query this server again in this fetch context.
 		 */
+		FCTXTRACE3("query failed in resquery_connected(): "
+			   "no response",
+			   eresult);
 		add_bad(fctx, query->rmessage, query->addrinfo, eresult,
 			badns_unreachable);
-		fctx_cancelquery(query, NULL, true, false);
+		fctx_cancelquery(&copy, NULL, true, false);
 
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 		fctx_try(fctx, true, false);
 		break;
 
 	default:
-		FCTXTRACE3("query canceled in "
-			   "resquery_connected() "
+		FCTXTRACE3("query canceled in resquery_connected() "
 			   "due to unexpected result; responding",
 			   eresult);
 
-		fctx_cancelquery(query, NULL, false, false);
+		fctx_cancelquery(&copy, NULL, false, false);
 		fctx_done(fctx, eresult, __LINE__);
 		break;
 	}
@@ -9421,7 +9435,8 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 	if (dns_fuzzing_resolver &&
 	    (rctx->next_server || rctx->resend || rctx->nextitem))
 	{
-		fctx_cancelquery(query, rctx->finish, rctx->no_response, false);
+		fctx_cancelquery(&query, rctx->finish, rctx->no_response,
+				 false);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		goto detach;
 	}
@@ -9438,7 +9453,7 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 	}
 
 	/* Cancel the query */
-	fctx_cancelquery(query, rctx->finish, rctx->no_response, false);
+	fctx_cancelquery(&query, rctx->finish, rctx->no_response, false);
 
 	/*
 	 * If nobody's waiting for results, don't resend.
