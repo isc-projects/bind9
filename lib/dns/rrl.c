@@ -1113,7 +1113,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 			}
 		}
 		UNLOCK(&rrl->lock);
-		return (ISC_R_SUCCESS);
+		return (DNS_RRL_RESULT_OK);
 	}
 
 	/*
