@@ -1549,7 +1549,6 @@ AC_CONFIG_FILES([lib/isc/tests/Makefile
 		 lib/dns/tests/Makefile
 		 lib/ns/tests/Makefile
 		 lib/irs/tests/Makefile
-		 lib/isccc/tests/Makefile
 		 lib/isccfg/tests/Makefile])
 
 AC_CONFIG_FILES([lib/unit-test-driver.sh],

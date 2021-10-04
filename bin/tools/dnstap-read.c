@@ -39,6 +39,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -47,7 +48,6 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
-#include <dns/result.h>
 
 #include "dnstap.pb-c.h"
 
@@ -359,8 +359,6 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
 	       "dns_dt_openfile");

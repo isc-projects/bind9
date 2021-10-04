@@ -22,6 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/utf8.h>
 #include <isc/util.h>
@@ -37,7 +38,6 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
 #include <dns/ttl.h>
 #include <dns/view.h>

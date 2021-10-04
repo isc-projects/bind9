@@ -20,6 +20,7 @@
 #include <isc/dir.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -36,11 +37,8 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/stats.h>
 #include <dns/tsig.h> /* for DNS_TSIG_FUDGE */
-
-#include <dst/result.h>
 
 isc_stats_t *dns_dnssec_stats;
 

@@ -25,7 +25,8 @@
  *** Imports
  ***/
 
-#include <dns/result.h>
+#include <isc/result.h>
+
 #include <dns/types.h>
 
 /***

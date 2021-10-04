@@ -22,6 +22,7 @@
 #include <isc/netdb.h>
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
@@ -38,7 +39,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/zone.h>
 

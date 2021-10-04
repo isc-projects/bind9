@@ -32,11 +32,10 @@
 #include <openssl/opensslv.h>
 
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_openssl.h"

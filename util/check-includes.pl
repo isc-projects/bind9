@@ -89,12 +89,6 @@ for (<>) {
       unless $file =~ m%isc/eventclass.h%;
   }
 
-  if (/$nocomment.*ISC_RESULTCLASS_/m &&
-      ! m%^#include <isc/resultclass\.h>%m) {
-    print "$file has ISC_RESULTCLASS_ without <isc/resultclass.h>\n"
-      unless $file =~ m%isc/resultclass.h%;
-  }
-
   if ($file !~ m%isc/magic\.h$%) {
     print "$file has ISC_MAGIC_VALID without <isc/magic.h>\n"
       if /$nocomment.*ISC_MAGIC_VALID/m && ! m%^#include <isc/magic.h>%m;

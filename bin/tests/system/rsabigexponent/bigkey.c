@@ -28,17 +28,17 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 
+#include <isc/result.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 dst_key_t *key;
 dns_fixedname_t fname;
@@ -99,8 +99,6 @@ main(int argc, char **argv) {
 			__FILE__, __LINE__);
 		exit(1);
 	}
-
-	dns_result_register();
 
 	isc_mem_create(&mctx);
 	CHECK(dst_lib_init(mctx, NULL), "dst_lib_init()");

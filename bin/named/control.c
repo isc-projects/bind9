@@ -17,15 +17,13 @@
 #include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
-
 #include <isccc/alist.h>
 #include <isccc/cc.h>
-#include <isccc/result.h>
 
 #include <named/control.h>
 #include <named/globals.h>

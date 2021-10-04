@@ -50,13 +50,11 @@
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/rrl.h>
 #include <dns/secalg.h>
 #include <dns/ssu.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>

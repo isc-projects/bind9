@@ -68,11 +68,9 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #include <isccfg/namedconf.h>
 
@@ -1331,8 +1329,6 @@ setup_libs(void) {
 	isc_logconfig_t *logconfig = NULL;
 
 	debug("setup_libs()");
-
-	dns_result_register();
 
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS) {

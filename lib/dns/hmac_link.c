@@ -32,11 +32,10 @@
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #ifdef HAVE_FIPS_MODE

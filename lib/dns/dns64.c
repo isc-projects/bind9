@@ -15,6 +15,7 @@
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -22,7 +23,6 @@
 #include <dns/dns64.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 
 struct dns_dns64 {
 	unsigned char bits[16]; /*

@@ -17,6 +17,7 @@
 
 #include <inttypes.h>
 
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -25,7 +26,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/rriterator.h>
 
 /***

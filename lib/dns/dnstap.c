@@ -59,6 +59,7 @@
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -72,7 +73,6 @@
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 #include <dns/stats.h>
 #include <dns/types.h>
 #include <dns/view.h>

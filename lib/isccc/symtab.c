@@ -31,9 +31,9 @@
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/result.h>
 #include <isc/string.h>
 
-#include <isccc/result.h>
 #include <isccc/symtab.h>
 #include <isccc/util.h>
 

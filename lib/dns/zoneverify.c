@@ -43,7 +43,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/types.h>
 #include <dns/zone.h>
@@ -2045,7 +2044,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	result = vresult;
 	if (result != ISC_R_SUCCESS) {
 		report("DNSSEC completeness test failed (%s).",
-		       dns_result_totext(result));
+		       isc_result_totext(result));
 		goto done;
 	}
 

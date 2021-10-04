@@ -82,6 +82,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 /***
  *** Types

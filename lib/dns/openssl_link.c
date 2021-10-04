@@ -26,14 +26,13 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_openssl.h"

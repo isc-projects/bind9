@@ -19,6 +19,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/time.h>
@@ -33,10 +34,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
-
-#include <dst/result.h>
 
 #include "tsig_p.h"
 

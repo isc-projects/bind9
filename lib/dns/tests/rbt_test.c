@@ -35,6 +35,7 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -49,7 +50,6 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rbt.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
 

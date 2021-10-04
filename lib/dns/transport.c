@@ -20,7 +20,6 @@
 
 #include <dns/name.h>
 #include <dns/rbt.h>
-#include <dns/result.h>
 #include <dns/transport.h>
 
 #define TRANSPORT_MAGIC	     ISC_MAGIC('T', 'r', 'n', 's')

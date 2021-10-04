@@ -19,6 +19,7 @@
 #include <isc/mutex.h>
 #include <isc/portset.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -43,7 +44,6 @@
 #include <dns/rdatatype.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/tsec.h>
 #include <dns/tsig.h>
 #include <dns/view.h>

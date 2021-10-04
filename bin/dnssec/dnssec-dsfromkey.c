@@ -22,6 +22,7 @@
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -39,7 +40,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
 
@@ -372,8 +372,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	isc_commandline_errprint = false;
 

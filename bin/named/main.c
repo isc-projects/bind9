@@ -37,6 +37,7 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/resource.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -47,12 +48,7 @@
 #include <dns/dyndb.h>
 #include <dns/name.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/view.h>
-
-#include <dst/result.h>
-
-#include <isccc/result.h>
 
 #include <dlz/dlz_dlopen_driver.h>
 
@@ -1432,10 +1428,6 @@ main(int argc, char *argv[]) {
 	isc_error_setunexpected(library_unexpected_error);
 
 	named_os_init(program_name);
-
-	dns_result_register();
-	dst_result_register();
-	isccc_result_register();
 
 	parse_command_line(argc, argv);
 

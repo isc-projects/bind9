@@ -23,7 +23,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/ttl.h>
 
 #include <isccfg/cfg.h>

@@ -20,6 +20,7 @@
 #include <isc/dir.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -28,10 +29,8 @@
 #include <dns/keymgr.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #define RETERR(x)                            \
 	do {                                 \

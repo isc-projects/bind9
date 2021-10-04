@@ -19,6 +19,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -30,7 +31,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/time.h>
 
 #define CHECK(op)                            \
@@ -616,7 +616,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "diff_tuple_tordataset failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}

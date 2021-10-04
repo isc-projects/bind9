@@ -31,6 +31,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/socket.h>
@@ -55,7 +56,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdataslab.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/stats.h>
 #include <dns/time.h>
 #include <dns/view.h>
@@ -2594,7 +2594,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 					      DNS_LOGMODULE_ZONE, ISC_LOG_ERROR,
 					      "Unable to reinsert header to "
 					      "re-signing heap: %s",
-					      dns_result_totext(result));
+					      isc_result_totext(result));
 			}
 		}
 		decrement_reference(rbtdb, header->node, least_serial,

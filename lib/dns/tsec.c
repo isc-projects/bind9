@@ -10,9 +10,9 @@
  */
 
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/tsec.h>
 #include <dns/tsig.h>
 

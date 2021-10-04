@@ -24,6 +24,7 @@
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -36,7 +37,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/sdb.h>
 #include <dns/types.h>
 

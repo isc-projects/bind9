@@ -24,10 +24,11 @@
 
 #include <dns/db.h>
 #define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN
+#include <isc/result.h>
+
 #include <dns/dnsrps.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/rpz.h>
 
 librpz_t *librpz;

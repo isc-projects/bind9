@@ -35,10 +35,11 @@
 
 #include <unistd.h>
 
+#include <isc/result.h>
+
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rbt.h>
-#include <dns/result.h>
 
 #define CHECK(x)                             \
 	do {                                 \
@@ -1545,7 +1546,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
 		dns_name_format(name, printname, size);
 	} else {
 		snprintf(printname, size, "<error building name: %s>",
-			 dns_result_totext(result));
+			 isc_result_totext(result));
 	}
 
 	return (printname);

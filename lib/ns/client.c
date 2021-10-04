@@ -50,6 +50,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/view.h>

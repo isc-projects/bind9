@@ -16,6 +16,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
@@ -28,7 +29,6 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 
 #define KEYTABLE_MAGIC	   ISC_MAGIC('K', 'T', 'b', 'l')
 #define VALID_KEYTABLE(kt) ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)

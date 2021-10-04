@@ -18,6 +18,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -25,7 +26,6 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/name.h>
-#include <dns/result.h>
 #include <dns/types.h>
 
 #define CHECK(r)                             \
@@ -114,8 +114,6 @@ main(int argc, char **argv) {
 			      ISC_LOG_DYNAMIC, &destination, 0);
 
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
-
-	dns_result_register();
 
 	result = loadzone(&olddb, origin, file1);
 	if (result != ISC_R_SUCCESS) {

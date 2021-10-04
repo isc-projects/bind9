@@ -18,6 +18,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -33,7 +34,6 @@
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/time.h>
 
 struct dns_nta {

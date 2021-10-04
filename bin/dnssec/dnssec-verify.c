@@ -28,6 +28,7 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
@@ -54,7 +55,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/time.h>
 #include <dns/zoneverify.h>
@@ -207,8 +207,6 @@ main(int argc, char *argv[]) {
 	check_result(isc_app_start(), "isc_app_start");
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	isc_commandline_errprint = false;
 
