@@ -12,6 +12,7 @@
 #pragma once
 
 #include <openssl/bn.h>
+#include <openssl/dh.h>
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
@@ -56,6 +57,22 @@ ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
 int
 ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s);
 #endif /* !HAVE_ECDSA_SIG_GET0 */
+
+#if !HAVE_DH_GET0_KEY
+void
+DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key);
+
+int
+DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key);
+
+void
+DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
+
+int
+DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g);
+
+#define DH_clear_flags(d, f) ((d)->flags &= ~(f))
+#endif /* !HAVE_DH_GET0_KEY */
 
 #if !HAVE_ERR_GET_ERROR_ALL
 unsigned long

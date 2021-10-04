@@ -40,6 +40,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
+#include "openssl_shim.h"
 
 #define PRIME2 "02"
 
@@ -66,83 +67,6 @@
 	"670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF"
 
 static BIGNUM *bn2 = NULL, *bn768 = NULL, *bn1024 = NULL, *bn1536 = NULL;
-
-#if !HAVE_DH_GET0_KEY
-/*
- * DH_get0_key, DH_set0_key, DH_get0_pqg and DH_set0_pqg
- * are from OpenSSL 1.1.0.
- */
-static void
-DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key) {
-	if (pub_key != NULL) {
-		*pub_key = dh->pub_key;
-	}
-	if (priv_key != NULL) {
-		*priv_key = dh->priv_key;
-	}
-}
-
-static int
-DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key) {
-	if (pub_key != NULL) {
-		BN_free(dh->pub_key);
-		dh->pub_key = pub_key;
-	}
-
-	if (priv_key != NULL) {
-		BN_free(dh->priv_key);
-		dh->priv_key = priv_key;
-	}
-
-	return (1);
-}
-
-static void
-DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q,
-	    const BIGNUM **g) {
-	if (p != NULL) {
-		*p = dh->p;
-	}
-	if (q != NULL) {
-		*q = dh->q;
-	}
-	if (g != NULL) {
-		*g = dh->g;
-	}
-}
-
-static int
-DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
-	/* If the fields p and g in d are NULL, the corresponding input
-	 * parameters MUST be non-NULL.  q may remain NULL.
-	 */
-	if ((dh->p == NULL && p == NULL) || (dh->g == NULL && g == NULL)) {
-		return (0);
-	}
-
-	if (p != NULL) {
-		BN_free(dh->p);
-		dh->p = p;
-	}
-	if (q != NULL) {
-		BN_free(dh->q);
-		dh->q = q;
-	}
-	if (g != NULL) {
-		BN_free(dh->g);
-		dh->g = g;
-	}
-
-	if (q != NULL) {
-		dh->length = BN_num_bits(q);
-	}
-
-	return (1);
-}
-
-#define DH_clear_flags(d, f) (d)->flags &= ~(f)
-
-#endif /* !HAVE_DH_GET0_KEY */
 
 static isc_result_t
 openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
