@@ -44,6 +44,10 @@ dnssec-dsfromkey \- DNSSEC DS RR generation tool
 The \fBdnssec\-dsfromkey\fP command outputs DS (Delegation Signer) resource records
 (RRs), or CDS (Child DS) RRs with the \fB\-C\fP option.
 .sp
+By default, only KSKs are converted (keys with flags = 257).  The
+\fB\-A\fP option includes ZSKs (flags = 256).  Revoked keys are never
+included.
+.sp
 The input keys can be specified in a number of ways:
 .sp
 By default, \fBdnssec\-dsfromkey\fP reads a key file named in the format
