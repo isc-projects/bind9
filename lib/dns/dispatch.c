@@ -20,6 +20,7 @@
 #include <isc/atomic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/net.h>
 #include <isc/netmgr.h>
 #include <isc/portset.h>
 #include <isc/print.h>
@@ -749,14 +750,18 @@ done:
 
 /*%
  * Create a temporary port list to set the initial default set of dispatch
- * ports: [1024, 65535].  This is almost meaningless as the application will
+ * ephemeral ports.  This is almost meaningless as the application will
  * normally set the ports explicitly, but is provided to fill some minor corner
  * cases.
  */
 static void
-create_default_portset(isc_mem_t *mctx, isc_portset_t **portsetp) {
+create_default_portset(isc_mem_t *mctx, int family, isc_portset_t **portsetp) {
+	in_port_t low, high;
+
+	isc_net_getudpportrange(family, &low, &high);
+
 	isc_portset_create(mctx, portsetp);
-	isc_portset_addrange(*portsetp, 1024, 65535);
+	isc_portset_addrange(*portsetp, low, high);
 }
 
 static isc_result_t
@@ -832,8 +837,8 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 
 	ISC_LIST_INIT(mgr->list);
 
-	create_default_portset(mctx, &v4portset);
-	create_default_portset(mctx, &v6portset);
+	create_default_portset(mctx, AF_INET, &v4portset);
+	create_default_portset(mctx, AF_INET6, &v6portset);
 
 	setavailports(mgr, v4portset, v6portset);
 
