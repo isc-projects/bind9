@@ -58,6 +58,8 @@ struct dns_dbimplementation {
 
 #include "rbtdb.h"
 
+unsigned int dns_pps = 0U;
+
 static ISC_LIST(dns_dbimplementation_t) implementations;
 static isc_rwlock_t implock;
 static isc_once_t once = ISC_ONCE_INIT;

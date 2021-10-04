@@ -73,7 +73,6 @@
 #include <dns/keymgr.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/nsec3.h>

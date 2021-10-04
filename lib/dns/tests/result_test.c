@@ -23,7 +23,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/lib.h>
 #include <dns/result.h>
 
 #include <dst/result.h>
