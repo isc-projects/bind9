@@ -43,6 +43,10 @@ Description
 The ``dnssec-dsfromkey`` command outputs DS (Delegation Signer) resource records
 (RRs), or CDS (Child DS) RRs with the ``-C`` option.
 
+By default, only KSKs are converted (keys with flags = 257).  The
+``-A`` option includes ZSKs (flags = 256).  Revoked keys are never
+included.
+
 The input keys can be specified in a number of ways:
 
 By default, ``dnssec-dsfromkey`` reads a key file named in the format
