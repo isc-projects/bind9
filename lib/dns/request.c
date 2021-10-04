@@ -891,21 +891,6 @@ cleanup:
 	return (result);
 }
 
-/*
- * If this request is no longer waiting for events,
- * send the completion event.  This will ultimately
- * cause the request to be destroyed.
- *
- * Requires:
- *	'request' is locked by the caller.
- */
-static void
-send_if_done(dns_request_t *request, isc_result_t result) {
-	if (request->event != NULL) {
-		req_sendevent(request, result);
-	}
-}
-
 void
 request_cancel(dns_request_t *request) {
 	if (!DNS_REQUEST_CANCELED(request)) {
@@ -931,7 +916,7 @@ dns_request_cancel(dns_request_t *request) {
 	req_log(ISC_LOG_DEBUG(3), "dns_request_cancel: request %p", request);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request_cancel(request);
-	send_if_done(request, ISC_R_CANCELED);
+	req_sendevent(request, ISC_R_CANCELED);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
@@ -1027,14 +1012,14 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	if (eresult == ISC_R_TIMEDOUT) {
 		dns_dispatch_removeresponse(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
-		send_if_done(request, eresult);
+		req_sendevent(request, eresult);
 	} else if (DNS_REQUEST_CANCELED(request)) {
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		req_send(request);
 	} else {
 		request_cancel(request);
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
@@ -1057,13 +1042,13 @@ req_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	if (DNS_REQUEST_CANCELED(request)) {
 		if (eresult == ISC_R_TIMEDOUT) {
-			send_if_done(request, eresult);
+			req_sendevent(request, eresult);
 		} else {
-			send_if_done(request, ISC_R_CANCELED);
+			req_sendevent(request, ISC_R_CANCELED);
 		}
 	} else if (eresult != ISC_R_SUCCESS) {
 		request_cancel(request);
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	}
 
 	UNLOCK(&request->requestmgr->locks[request->hash]);
@@ -1125,15 +1110,19 @@ done:
 	/*
 	 * Send completion event.
 	 */
-	send_if_done(request, result);
+	req_sendevent(request, result);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
 static void
 req_sendevent(dns_request_t *request, isc_result_t result) {
-	isc_task_t *task;
+	isc_task_t *task = NULL;
 
 	REQUIRE(VALID_REQUEST(request));
+
+	if (request->event == NULL) {
+		return;
+	}
 
 	req_log(ISC_LOG_DEBUG(3), "req_sendevent: request %p", request);
 
