@@ -228,7 +228,12 @@
 #elif __has_feature(c_static_assert)
 #define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #else /* if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6) */
-#define STATIC_ASSERT(cond, msg) INSIST(cond)
+
+/* Courtesy of Joseph Quinsey: https://godbolt.org/z/K9RvWS */
+#define TOKENPASTE(a, b)	a##b /* "##" is the "Token Pasting Operator" */
+#define EXPAND_THEN_PASTE(a, b) TOKENPASTE(a, b) /* expand then paste */
+#define STATIC_ASSERT(x, msg) \
+	enum { EXPAND_THEN_PASTE(ASSERT_line_, __LINE__) = 1 / ((msg) && (x)) }
 #endif /* if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6) */
 
 #ifdef UNIT_TESTING
