@@ -12,8 +12,7 @@
 /*!
  *  \brief Per RFC 4255 */
 
-#ifndef GENERIC_SSHFP_44_H
-#define GENERIC_SSHFP_44_H 1
+#pragma once
 
 typedef struct dns_rdata_sshfp {
 	dns_rdatacommon_t common;
@@ -23,5 +22,3 @@ typedef struct dns_rdata_sshfp {
 	uint16_t length;
 	unsigned char *digest;
 } dns_rdata_sshfp_t;
-
-#endif /* GENERIC_SSHFP_44_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_NXT_30_H
-#define GENERIC_NXT_30_H 1
+#pragma once
 
 /*!
  *  \brief RFC2535 */
@@ -22,5 +21,3 @@ typedef struct dns_rdata_nxt {
 	unsigned char *typebits;
 	uint16_t len;
 } dns_rdata_nxt_t;
-
-#endif /* GENERIC_NXT_30_H */

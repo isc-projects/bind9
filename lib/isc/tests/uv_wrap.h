@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #if HAVE_CMOCKA
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SAFE_H
-#define ISC_SAFE_H 1
+#pragma once
 
 /*! \file isc/safe.h */
 
@@ -41,5 +40,3 @@ isc_safe_memwipe(void *, size_t);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SAFE_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_OPT_41_H
-#define GENERIC_OPT_41_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC2671 */
@@ -43,5 +42,3 @@ dns_rdata_opt_next(dns_rdata_opt_t *);
 
 isc_result_t
 dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
-
-#endif /* GENERIC_OPT_41_H */

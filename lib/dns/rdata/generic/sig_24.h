@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_SIG_24_H
-#define GENERIC_SIG_24_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC2535 */
@@ -29,5 +28,3 @@ typedef struct dns_rdata_sig_t {
 	uint16_t siglen;
 	unsigned char *signature;
 } dns_rdata_sig_t;
-
-#endif /* GENERIC_SIG_24_H */

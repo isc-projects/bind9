@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DNS64_H
-#define DNS_DNS64_H 1
+#pragma once
 
 #include <stdbool.h>
 
@@ -189,5 +188,3 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DNS64_H */

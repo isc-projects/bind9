@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_PEER_H
-#define DNS_PEER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -223,5 +222,3 @@ dns_peer_setednsversion(dns_peer_t *peer, uint8_t ednsversion);
 isc_result_t
 dns_peer_getednsversion(dns_peer_t *peer, uint8_t *ednsversion);
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_PEER_H */

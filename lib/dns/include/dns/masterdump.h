@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_MASTERDUMP_H
-#define DNS_MASTERDUMP_H 1
+#pragma once
 
 /*! \file dns/masterdump.h */
 
@@ -356,5 +355,3 @@ void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_MASTERDUMP_H */

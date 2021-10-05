@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_GRAMMAR_H
-#define ISCCFG_GRAMMAR_H 1
+#pragma once
 
 /*! \file isccfg/grammar.h */
 
@@ -609,5 +608,3 @@ cfg_print_indent(cfg_printer_t *pctx);
 /*%<
  * Print the necessary indent required by the current settings of 'pctx'.
  */
-
-#endif /* ISCCFG_GRAMMAR_H */

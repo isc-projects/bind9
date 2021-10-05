@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef CHECK_TOOL_H
-#define CHECK_TOOL_H
+#pragma once
 
 /*! \file */
 
@@ -49,5 +48,3 @@ extern bool dochecksrv;
 extern dns_zoneopt_t zone_options;
 
 ISC_LANG_ENDDECLS
-
-#endif /* ifndef CHECK_TOOL_H */

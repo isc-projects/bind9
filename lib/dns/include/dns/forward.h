@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_FORWARD_H
-#define DNS_FORWARD_H 1
+#pragma once
 
 /*! \file dns/forward.h */
 
@@ -118,5 +117,3 @@ dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_FORWARD_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_MEM_H
-#define ISC_MEM_H 1
+#pragma once
 
 /*! \file isc/mem.h */
 
@@ -515,5 +514,3 @@ void ISCMEMPOOLFUNC(put)(isc_mempool_t *, void *_ISC_MEM_FLARG);
 #endif
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_MEM_H */

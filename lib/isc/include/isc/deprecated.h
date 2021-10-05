@@ -9,13 +9,10 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_DEPRECATED_H
-#define ISC_DEPRECATED_H
+#pragma once
 
 #if (__GNUC__ + 0) > 3
 #define ISC_DEPRECATED __attribute__((deprecated))
 #else		       /* if (__GNUC__ + 0) > 3 */
 #define ISC_DEPRECATED /* none */
 #endif		       /* __GNUC__ > 3*/
-
-#endif /* ifndef ISC_DEPRECATED_H */

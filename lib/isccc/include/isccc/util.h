@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_UTIL_H
-#define ISCCC_UTIL_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -203,5 +202,3 @@
 		(r).rstart = (unsigned char *)s;   \
 		(r).rend = (r).rstart + strlen(s); \
 	} while (0)
-
-#endif /* ISCCC_UTIL_H */

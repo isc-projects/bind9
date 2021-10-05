@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_ONCE_H
-#define ISC_ONCE_H 1
+#pragma once
 
 /*! \file */
 
@@ -26,5 +25,3 @@ typedef pthread_once_t isc_once_t;
 
 #define isc_once_do(op, f) \
 	((pthread_once((op), (f)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-
-#endif /* ISC_ONCE_H */

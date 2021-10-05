@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_STAT_H
-#define ISC_STAT_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -41,5 +40,3 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#endif /* ISC_STAT_H */

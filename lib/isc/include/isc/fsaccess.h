@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_FSACCESS_H
-#define ISC_FSACCESS_H 1
+#pragma once
 
 /*! \file isc/fsaccess.h
  * \brief The ISC filesystem access module encapsulates the setting of file
@@ -168,5 +167,3 @@ isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_FSACCESS_H */

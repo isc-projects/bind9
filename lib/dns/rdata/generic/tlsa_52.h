@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_TLSA_52_H
-#define GENERIC_TLSA_52_H 1
+#pragma once
 
 /*!
  *  \brief per rfc6698.txt
@@ -24,5 +23,3 @@ typedef struct dns_rdata_tlsa {
 	uint16_t length;
 	unsigned char *data;
 } dns_rdata_tlsa_t;
-
-#endif /* GENERIC_TLSA_52_H */

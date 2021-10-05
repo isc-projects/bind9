@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TYPES_H
-#define DNS_TYPES_H 1
+#pragma once
 
 /*! \file dns/types.h
  * \brief
@@ -420,5 +419,3 @@ typedef bool (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *,
 				 dns_rdataclass_t, void *);
 
 typedef void (*dns_nseclog_t)(void *val, int, const char *, ...);
-
-#endif /* DNS_TYPES_H */

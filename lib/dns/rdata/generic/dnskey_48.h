@@ -9,13 +9,10 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_DNSKEY_48_H
-#define GENERIC_DNSKEY_48_H 1
+#pragma once
 
 /*!
  *  \brief per RFC2535
  */
 
 typedef struct dns_rdata_key dns_rdata_dnskey_t;
-
-#endif /* GENERIC_DNSKEY_48_H */

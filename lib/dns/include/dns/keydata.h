@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KEYDATA_H
-#define DNS_KEYDATA_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -45,5 +44,3 @@ dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
 		       isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_KEYDATA_H */

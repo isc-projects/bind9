@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_SECALG_H
-#define DNS_SECALG_H 1
+#pragma once
 
 /*! \file dns/secalg.h */
 
@@ -66,5 +65,3 @@ dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_SECALG_H */

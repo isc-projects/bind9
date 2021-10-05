@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RDATA_GENERIC_HINFO_13_C
-#define RDATA_GENERIC_HINFO_13_C
+#pragma once
 
 #define RRTYPE_HINFO_ATTRIBUTES (0)
 
@@ -215,4 +214,3 @@ static inline int
 casecompare_hinfo(ARGS_COMPARE) {
 	return (compare_hinfo(rdata1, rdata2));
 }
-#endif /* RDATA_GENERIC_HINFO_13_C */

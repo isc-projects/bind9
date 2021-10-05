@@ -46,8 +46,7 @@
 
 /*! \file dns/dlz.h */
 
-#ifndef DLZ_H
-#define DLZ_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -330,5 +329,3 @@ dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DLZ_H */

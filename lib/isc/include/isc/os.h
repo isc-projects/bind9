@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_OS_H
-#define ISC_OS_H 1
+#pragma once
 
 /*! \file isc/os.h */
 
@@ -26,5 +25,3 @@ isc_os_ncpus(void);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_OS_H */

@@ -10,8 +10,7 @@
  */
 
 /* */
-#ifndef GENERIC_TXT_16_H
-#define GENERIC_TXT_16_H 1
+#pragma once
 
 typedef struct dns_rdata_txt_string {
 	uint8_t length;
@@ -40,5 +39,3 @@ dns_rdata_txt_next(dns_rdata_txt_t *);
 
 isc_result_t
 dns_rdata_txt_current(dns_rdata_txt_t *, dns_rdata_txt_string_t *);
-
-#endif /* GENERIC_TXT_16_H */

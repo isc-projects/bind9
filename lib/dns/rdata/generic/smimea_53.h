@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_SMIMEA_53_H
-#define GENERIC_SMIMEA_53_H 1
+#pragma once
 
 typedef struct dns_rdata_tlsa dns_rdata_smimea_t;
-
-#endif /* GENERIC_SMIMEA_53_H */

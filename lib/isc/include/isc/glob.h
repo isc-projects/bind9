@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_GLOB_H
-#define ISC_GLOB_H
+#pragma once
 
 #include <isc/lang.h>
 #include <isc/result.h>
@@ -40,5 +39,3 @@ void
 isc_globfree(glob_t *pglob);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_GLOB_H */

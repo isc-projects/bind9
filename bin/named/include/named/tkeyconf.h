@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_TKEYCONF_H
-#define NAMED_TKEYCONF_H 1
+#pragma once
 
 /*! \file */
 
@@ -40,5 +39,3 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* NAMED_TKEYCONF_H */

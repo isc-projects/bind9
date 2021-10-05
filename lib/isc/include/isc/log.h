@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LOG_H
-#define ISC_LOG_H 1
+#pragma once
 
 /*! \file isc/log.h */
 
@@ -849,5 +848,3 @@ isc_log_setforcelog(bool v);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_LOG_H */

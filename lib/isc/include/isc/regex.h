@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_REGEX_H
-#define ISC_REGEX_H 1
+#pragma once
 
 /*! \file isc/regex.h */
 
@@ -30,5 +29,3 @@ isc_regex_validate(const char *expression);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_REGEX_H */

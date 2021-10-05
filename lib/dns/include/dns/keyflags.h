@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KEYFLAGS_H
-#define DNS_KEYFLAGS_H 1
+#pragma once
 
 /*! \file dns/keyflags.h */
 
@@ -42,5 +41,3 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_KEYFLAGS_H */

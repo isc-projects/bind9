@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ECS_H
-#define DNS_ECS_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -53,5 +52,3 @@ dns_ecs_format(dns_ecs_t *ecs, char *buf, size_t size);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ECS_H */

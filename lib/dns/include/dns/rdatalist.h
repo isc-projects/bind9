@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATALIST_H
-#define DNS_RDATALIST_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -117,5 +116,3 @@ dns_rdatalist_fromrdataset(dns_rdataset_t	  *rdataset,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATALIST_H */

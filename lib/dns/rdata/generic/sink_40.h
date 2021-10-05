@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_SINK_40_H
-#define GENERIC_SINK_40_H 1
+#pragma once
 
 typedef struct dns_rdata_sink_t {
 	dns_rdatacommon_t common;
@@ -21,5 +20,3 @@ typedef struct dns_rdata_sink_t {
 	uint16_t datalen;
 	unsigned char *data;
 } dns_rdata_sink_t;
-
-#endif /* GENERIC_SINK_40_H */

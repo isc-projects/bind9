@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_CAA_257_H
-#define GENERIC_CAA_257_H 1
+#pragma once
 
 typedef struct dns_rdata_caa {
 	dns_rdatacommon_t common;
@@ -21,5 +20,3 @@ typedef struct dns_rdata_caa {
 	unsigned char *value;
 	uint16_t value_len;
 } dns_rdata_caa_t;
-
-#endif /* GENERIC_CAA_257_H */

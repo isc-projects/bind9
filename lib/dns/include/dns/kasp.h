@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KASP_H
-#define DNS_KASP_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -711,5 +710,3 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_KASP_H */

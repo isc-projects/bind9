@@ -46,8 +46,7 @@
 
 /*! \file dns/sdlz.h */
 
-#ifndef SDLZ_H
-#define SDLZ_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -353,5 +352,3 @@ dns_sdlz_setdb_t dns_sdlz_setdb;
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* SDLZ_H */

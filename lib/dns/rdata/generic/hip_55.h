@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_HIP_5_H
-#define GENERIC_HIP_5_H 1
+#pragma once
 
 /* RFC 5205 */
 
@@ -36,5 +35,3 @@ dns_rdata_hip_next(dns_rdata_hip_t *);
 
 void
 dns_rdata_hip_current(dns_rdata_hip_t *, dns_name_t *);
-
-#endif /* GENERIC_HIP_5_H */

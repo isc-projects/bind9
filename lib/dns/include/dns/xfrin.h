@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_XFRIN_H
-#define DNS_XFRIN_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -91,5 +90,3 @@ dns_xfrin_attach(dns_xfrin_ctx_t *source, dns_xfrin_ctx_t **target);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_XFRIN_H */

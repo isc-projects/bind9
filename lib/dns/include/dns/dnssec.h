@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DNSSEC_H
-#define DNS_DNSSEC_H 1
+#pragma once
 
 /*! \file dns/dnssec.h */
 
@@ -392,5 +391,3 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
  *\li	Other values indicate error
  */
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DNSSEC_H */

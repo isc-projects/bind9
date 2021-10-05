@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_STDTIME_H
-#define ISC_STDTIME_H 1
+#pragma once
 
 /*! \file */
 
@@ -58,5 +57,3 @@ isc_stdtime_tostring(isc_stdtime_t t, char *out, size_t outlen);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_STDTIME_H */

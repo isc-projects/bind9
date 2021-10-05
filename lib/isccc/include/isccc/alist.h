@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_ALIST_H
-#define ISCCC_ALIST_H 1
+#pragma once
 
 /*! \file isccc/alist.h */
 
@@ -81,5 +80,3 @@ isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent,
 			FILE *stream);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_ALIST_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_NSEC_47_H
-#define GENERIC_NSEC_47_H 1
+#pragma once
 
 /*!
  * \brief Per RFC 3845 */
@@ -22,5 +21,3 @@ typedef struct dns_rdata_nsec {
 	unsigned char *typebits;
 	uint16_t len;
 } dns_rdata_nsec_t;
-
-#endif /* GENERIC_NSEC_47_H */

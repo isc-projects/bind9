@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_APP_H
-#define ISC_APP_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -278,5 +277,3 @@ isc_appctx_destroy(isc_appctx_t **ctxp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_APP_H */

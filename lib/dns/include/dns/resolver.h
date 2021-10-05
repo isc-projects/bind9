@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RESOLVER_H
-#define DNS_RESOLVER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -736,5 +735,3 @@ dns_resolver_setfuzzing(void);
 #endif /* ifdef ENABLE_AFL */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RESOLVER_H */

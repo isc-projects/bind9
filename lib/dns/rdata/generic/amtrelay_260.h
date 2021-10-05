@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_AMTRELAY_260_H
-#define GENERIC_AMTRELAY_260_H 1
+#pragma once
 
 typedef struct dns_rdata_amtrelay {
 	dns_rdatacommon_t common;
@@ -24,5 +23,3 @@ typedef struct dns_rdata_amtrelay {
 	unsigned char *data;	  /* gateway type > 3 */
 	uint16_t length;
 } dns_rdata_amtrelay_t;
-
-#endif /* GENERIC_AMTRELAY_260_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_BUFFER_H
-#define ISC_BUFFER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -1061,5 +1060,3 @@ ISC_LANG_ENDDECLS
  * No inline method for this one (yet).
  */
 #define isc_buffer_putuint48 isc__buffer_putuint48
-
-#endif /* ISC_BUFFER_H */

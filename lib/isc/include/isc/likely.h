@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LIKELY_H
-#define ISC_LIKELY_H 1
+#pragma once
 
 /*%
  * Performance
@@ -27,5 +26,3 @@
 #define ISC_UNLIKELY(x) (x)
 #endif /* ifdef HAVE_BUILTIN_EXPECT */
 #endif /* ifdef CPPCHECK */
-
-#endif /* ISC_LIKELY_H */

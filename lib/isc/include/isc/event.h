@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_EVENT_H
-#define ISC_EVENT_H 1
+#pragma once
 
 /*! \file isc/event.h */
 
@@ -114,5 +113,3 @@ void
 isc_event_free(isc_event_t **);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_EVENT_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_WKS_11_H
-#define IN_1_WKS_11_H 1
+#pragma once
 
 typedef struct dns_rdata_in_wks {
 	dns_rdatacommon_t common;
@@ -20,5 +19,3 @@ typedef struct dns_rdata_in_wks {
 	unsigned char *map;
 	uint16_t map_len;
 } dns_rdata_in_wks_t;
-
-#endif /* IN_1_WKS_11_H */

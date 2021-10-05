@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_QUOTA_H
-#define ISC_QUOTA_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -151,5 +150,3 @@ isc_quota_detach(isc_quota_t **p);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_QUOTA_H */

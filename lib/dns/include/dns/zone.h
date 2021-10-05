@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ZONE_H
-#define DNS_ZONE_H 1
+#pragma once
 
 /*! \file dns/zone.h */
 
@@ -2730,5 +2729,3 @@ dns_zonetype_name(dns_zonetype_t type);
 /*%<
  * Return the name of the zone type 'type'.
  */
-
-#endif /* DNS_ZONE_H */

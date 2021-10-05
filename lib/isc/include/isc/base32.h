@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_BASE32_H
-#define ISC_BASE32_H 1
+#pragma once
 
 /*! \file */
 
@@ -140,5 +139,3 @@ isc_base32hexnp_decoderegion(isc_region_t *source, isc_buffer_t *target);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_BASE32_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RNDC_KEYGEN_H
-#define RNDC_KEYGEN_H 1
+#pragma once
 
 /*! \file */
 
@@ -38,5 +37,3 @@ int
 alg_bits(dns_secalg_t alg);
 
 ISC_LANG_ENDDECLS
-
-#endif /* RNDC_KEYGEN_H */

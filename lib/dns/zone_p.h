@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ZONE_P_H
-#define DNS_ZONE_P_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -47,5 +46,3 @@ dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 			    unsigned char saltbuf[255], bool resalt);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ZONE_P_H */

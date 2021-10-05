@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DIG_H
-#define DIG_H
+#pragma once
 
 /*! \file */
 
@@ -446,5 +445,3 @@ void
 dig_shutdown(void);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ifndef DIG_H */

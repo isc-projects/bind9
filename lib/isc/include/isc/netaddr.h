@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_NETADDR_H
-#define ISC_NETADDR_H 1
+#pragma once
 
 /*! \file isc/netaddr.h */
 
@@ -190,5 +189,3 @@ isc_netaddr_isloopback(const isc_netaddr_t *na);
  * 127.0.0.0/8 or ::1).
  */
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_NETADDR_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef UNIX_ERRNO2RESULT_H
-#define UNIX_ERRNO2RESULT_H 1
+#pragma once
 
 /*! \file */
 
@@ -31,5 +30,3 @@ isc___errno2result(int posixerrno, bool dolog, const char *file,
 		   unsigned int line);
 
 ISC_LANG_ENDDECLS
-
-#endif /* UNIX_ERRNO2RESULT_H */

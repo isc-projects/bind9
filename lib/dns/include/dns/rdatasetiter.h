@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATASETITER_H
-#define DNS_RDATASETITER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -157,5 +156,3 @@ dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATASETITER_H */

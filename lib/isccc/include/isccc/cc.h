@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_CC_H
-#define ISCCC_CC_H 1
+#pragma once
 
 /*! \file isccc/cc.h */
 
@@ -123,5 +122,3 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		  isccc_time_t now);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_CC_H */

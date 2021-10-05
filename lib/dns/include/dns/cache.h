@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CACHE_H
-#define DNS_CACHE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -299,5 +298,3 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0);
 #endif /* HAVE_JSON_C */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CACHE_H */

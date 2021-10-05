@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_SOA_H
-#define DNS_SOA_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -90,5 +89,3 @@ dns_soa_setminimum(uint32_t val, dns_rdata_t *rdata);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_SOA_H */

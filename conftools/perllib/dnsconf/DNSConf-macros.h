@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #define CONCAT(a, b) a##b
 #define DNSCONF_SET_STRING(FIELD)                                         \
 	void CONCAT(DNSConf_set, FIELD)(DNSConf * cfg, const char *arg) { \

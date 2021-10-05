@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_SYMTAB_H
-#define ISCCC_SYMTAB_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -128,5 +127,3 @@ isccc_symtab_foreach(isccc_symtab_t *symtab, isccc_symtabforeachaction_t action,
 		     void *arg);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_SYMTAB_H */

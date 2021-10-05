@@ -2,8 +2,7 @@
  * Copyright (C) 2009--2015  Red Hat ; see COPYRIGHT for license
  */
 
-#ifndef _LD_LOG_H_
-#define _LD_LOG_H_
+#pragma once
 
 #include <isc/error.h>
 #include <isc/result.h>
@@ -21,5 +20,3 @@
 
 void
 log_write(int level, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
-
-#endif /* !_LD_LOG_H_ */

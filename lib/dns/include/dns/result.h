@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RESULT_H
-#define DNS_RESULT_H 1
+#pragma once
 
 /*! \file dns/result.h */
 
@@ -28,5 +27,3 @@ isc_result_t
 dns_result_fromrcode(dns_rcode_t rcode);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RESULT_H */

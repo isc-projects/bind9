@@ -7,8 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef DLZ_LIST_H
-#define DLZ_LIST_H 1
+#pragma once
 
 #define DLZ_LIST(type)             \
 	struct {                   \
@@ -46,5 +45,3 @@
 
 #define DLZ_LIST_PREV(elt, link) ((elt)->link.prev)
 #define DLZ_LIST_NEXT(elt, link) ((elt)->link.next)
-
-#endif /* DLZ_LIST_H */

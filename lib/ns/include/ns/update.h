@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_UPDATE_H
-#define NS_UPDATE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -40,5 +39,3 @@
 void
 ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		isc_result_t sigresult);
-
-#endif /* NS_UPDATE_H */

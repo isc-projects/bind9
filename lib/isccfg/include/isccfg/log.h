@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_LOG_H
-#define ISCCFG_LOG_H 1
+#pragma once
 
 /*! \file isccfg/log.h */
 
@@ -43,5 +42,3 @@ cfg_log_init(isc_log_t *lctx);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCFG_LOG_H */

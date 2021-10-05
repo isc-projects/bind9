@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ORDER_H
-#define DNS_ORDER_H 1
+#pragma once
 
 /*! \file dns/order.h */
 
@@ -87,5 +86,3 @@ dns_order_detach(dns_order_t **orderp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ORDER_H */

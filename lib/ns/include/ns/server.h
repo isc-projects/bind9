@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_SERVER_H
-#define NS_SERVER_H 1
+#pragma once
 
 /*! \file */
 
@@ -183,4 +182,3 @@ ns_server_getoption(ns_server_t *sctx, unsigned int option);
  * Requires:
  *\li	'sctx' is valid.
  */
-#endif /* NS_SERVER_H */

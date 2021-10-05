@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_STDIO_H
-#define ISC_STDIO_H 1
+#pragma once
 
 /*! \file isc/stdio.h */
 
@@ -68,5 +67,3 @@ isc_stdio_sync(FILE *f);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_STDIO_H */

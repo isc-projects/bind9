@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_MASTER_H
-#define DNS_MASTER_H 1
+#pragma once
 
 /*! \file dns/master.h */
 
@@ -256,5 +255,3 @@ dns_master_initrawheader(dns_masterrawheader_t *header);
  * values to zero.
  */
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_MASTER_H */

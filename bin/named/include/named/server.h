@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_SERVER_H
-#define NAMED_SERVER_H 1
+#pragma once
 
 /*! \file */
 
@@ -389,5 +388,3 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text);
 isc_result_t
 named_server_servestale(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text);
-
-#endif /* NAMED_SERVER_H */

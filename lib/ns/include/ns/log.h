@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_LOG_H
-#define NS_LOG_H 1
+#pragma once
 
 /*! \file */
 
@@ -69,4 +68,3 @@ ns_log_setcontext(isc_log_t *lctx);
  * Requires:
  *\li	lctx is a valid logging context.
  */
-#endif /* NS_LOG_H */

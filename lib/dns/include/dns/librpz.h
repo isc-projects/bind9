@@ -32,8 +32,7 @@
  * version 1.2.12
  */
 
-#ifndef LIBRPZ_H
-#define LIBRPZ_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdarg.h>
@@ -950,5 +949,3 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 #endif /* LIBRPZ_LIB_OPEN */
 }
 #endif /* LIBRPZ_LIB_OPEN */
-
-#endif /* LIBRPZ_H */

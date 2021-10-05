@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_ZONEMD_63_H
-#define GENERIC_ZONEMD_63_H 1
+#pragma once
 
 /* Known digest type(s). */
 #define DNS_ZONEMD_DIGEST_SHA384 (1)
@@ -28,5 +27,3 @@ typedef struct dns_rdata_zonemd {
 	unsigned char *digest;
 	uint16_t length;
 } dns_rdata_zonemd_t;
-
-#endif /* GENERIC_ZONEMD_63_H */

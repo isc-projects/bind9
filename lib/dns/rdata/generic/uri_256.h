@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_URI_256_H
-#define GENERIC_URI_256_H 1
+#pragma once
 
 typedef struct dns_rdata_uri {
 	dns_rdatacommon_t common;
@@ -20,5 +19,3 @@ typedef struct dns_rdata_uri {
 	unsigned char *target;
 	uint16_t tgt_len;
 } dns_rdata_uri_t;
-
-#endif /* GENERIC_URI_256_H */

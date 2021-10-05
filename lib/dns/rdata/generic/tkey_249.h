@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_TKEY_249_H
-#define GENERIC_TKEY_249_H 1
+#pragma once
 
 /*!
  *  \brief Per draft-ietf-dnsind-tkey-00.txt */
@@ -28,5 +27,3 @@ typedef struct dns_rdata_tkey {
 	uint16_t otherlen;
 	unsigned char *other;
 } dns_rdata_tkey_t;
-
-#endif /* GENERIC_TKEY_249_H */

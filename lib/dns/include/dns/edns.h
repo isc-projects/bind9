@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_EDNS_H
-#define DNS_EDNS_H 1
+#pragma once
 
 /*%
  * The maximum version on EDNS supported by this build.
@@ -23,5 +22,3 @@
  */
 #define DNS_EDNS_VERSION 1 /* draft-andrews-edns1 */
 #endif			   /* ifdef DRAFT_ANDREWS_EDNS1 */
-
-#endif /* ifndef DNS_EDNS_H */

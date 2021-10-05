@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DB_H
-#define DNS_DB_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -1746,5 +1745,3 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DB_H */

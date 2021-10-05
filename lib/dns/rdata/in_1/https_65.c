@@ -11,8 +11,7 @@
 
 /* draft-ietf-dnsop-svcb-https-02 */
 
-#ifndef RDATA_IN_1_HTTPS_65_C
-#define RDATA_IN_1_HTTPS_65_C
+#pragma once
 
 #define RRTYPE_HTTPS_ATTRIBUTES (DNS_RDATATYPEATTR_FOLLOWADDITIONAL)
 
@@ -180,5 +179,3 @@ dns_rdata_in_https_current(dns_rdata_in_https_t *https, isc_region_t *region) {
 
 	generic_rdata_in_svcb_current(https, region);
 }
-
-#endif /* RDATA_IN_1_HTTPS_65_C */

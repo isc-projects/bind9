@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TKEY_H
-#define DNS_TKEY_H 1
+#pragma once
 
 /*! \file dns/tkey.h */
 
@@ -240,5 +239,3 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TKEY_H */

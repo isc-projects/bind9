@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_TASKPOOL_H
-#define ISC_TASKPOOL_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -132,5 +131,3 @@ isc_taskpool_destroy(isc_taskpool_t **poolp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_TASKPOOL_H */

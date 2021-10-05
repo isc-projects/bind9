@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_HINFO_13_H
-#define GENERIC_HINFO_13_H 1
+#pragma once
 
 typedef struct dns_rdata_hinfo {
 	dns_rdatacommon_t common;
@@ -20,5 +19,3 @@ typedef struct dns_rdata_hinfo {
 	uint8_t cpu_len;
 	uint8_t os_len;
 } dns_rdata_hinfo_t;
-
-#endif /* GENERIC_HINFO_13_H */

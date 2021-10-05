@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_TM_H
-#define ISC_TM_H 1
+#pragma once
 
 /*! \file isc/tm.h
  * Provides portable conversion routines for struct tm.
@@ -36,5 +35,3 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_TIMER_H */

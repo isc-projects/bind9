@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_OS_H
-#define NAMED_OS_H 1
+#pragma once
 
 /*! \file */
 
@@ -75,5 +74,3 @@ named_os_started(void);
 
 const char *
 named_os_uname(void);
-
-#endif /* NAMED_OS_H */

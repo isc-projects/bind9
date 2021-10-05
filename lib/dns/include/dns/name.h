@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_NAME_H
-#define DNS_NAME_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -1383,5 +1382,3 @@ ISC_LANG_ENDDECLS
 #define dns_name_split(n, l, p, s) DNS_NAME_SPLIT(n, l, p, s)
 
 #endif /* DNS_NAME_USEINLINE */
-
-#endif /* DNS_NAME_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RDATA_HS_4_A_1_C
-#define RDATA_HS_4_A_1_C
+#pragma once
 
 #include <isc/net.h>
 
@@ -230,5 +229,3 @@ static inline int
 casecompare_hs_a(ARGS_COMPARE) {
 	return (compare_hs_a(rdata1, rdata2));
 }
-
-#endif /* RDATA_HS_4_A_1_C */

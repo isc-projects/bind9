@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_SMF_GLOBALS_H
-#define NAMED_SMF_GLOBALS_H 1
+#pragma once
 
 #include <libscf.h>
 
@@ -35,5 +34,3 @@ named_smf_get_instance(char **name, int debug, isc_mem_t *mctx);
 
 #undef EXTERN
 #undef INIT
-
-#endif /* NAMED_SMF_GLOBALS_H */

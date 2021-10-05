@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TSIG_H
-#define DNS_TSIG_H 1
+#pragma once
 
 /*! \file dns/tsig.h */
 
@@ -290,5 +289,3 @@ void
 dns_keyring_restore(dns_tsig_keyring_t *ring, FILE *fp);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TSIG_H */

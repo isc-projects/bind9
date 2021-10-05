@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KEYTABLE_H
-#define DNS_KEYTABLE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -344,5 +343,3 @@ dns_keytable_forall(dns_keytable_t *keytable,
 				 dns_name_t *, void *),
 		    void *arg);
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_KEYTABLE_H */

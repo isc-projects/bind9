@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_GLOBALS_H
-#define NAMED_GLOBALS_H 1
+#pragma once
 
 /*! \file */
 
@@ -162,5 +161,3 @@ EXTERN dns_acl_t *named_g_mapped INIT(NULL);
 
 #undef EXTERN
 #undef INIT
-
-#endif /* NAMED_GLOBALS_H */

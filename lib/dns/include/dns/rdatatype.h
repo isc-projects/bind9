@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATATYPE_H
-#define DNS_RDATATYPE_H 1
+#pragma once
 
 /*! \file dns/rdatatype.h */
 
@@ -91,5 +90,3 @@ dns_rdatatype_format(dns_rdatatype_t rdtype, char *array, unsigned int size);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATATYPE_H */

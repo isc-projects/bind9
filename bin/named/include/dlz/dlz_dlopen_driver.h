@@ -9,12 +9,10 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DLZ_DLOPEN_DRIVER_H
-#define DLZ_DLOPEN_DRIVER_H
+#pragma once
 
 isc_result_t
 dlz_dlopen_init(isc_mem_t *mctx);
 
 void
 dlz_dlopen_clear(void);
-#endif /* ifndef DLZ_DLOPEN_DRIVER_H */

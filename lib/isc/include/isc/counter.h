@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_COUNTER_H
-#define ISC_COUNTER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -81,5 +80,3 @@ isc_counter_detach(isc_counter_t **counterp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_COUNTER_H */

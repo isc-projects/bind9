@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_EVENTS_H
-#define ISCCC_EVENTS_H 1
+#pragma once
 
 /*! \file isccc/events.h */
 
@@ -38,5 +37,3 @@
 
 #define ISCCC_EVENT_FIRSTEVENT (ISC_EVENTCLASS_ISCCC + 0)
 #define ISCCC_EVENT_LASTEVENT  (ISC_EVENTCLASS_ISCCC + 65535)
-
-#endif /* ISCCC_EVENTS_H */

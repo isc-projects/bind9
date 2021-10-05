@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DYNDB_H
-#define DNS_DYNDB_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -156,5 +155,3 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DYNDB_H */

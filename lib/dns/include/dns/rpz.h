@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RPZ_H
-#define DNS_RPZ_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -430,5 +429,3 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		  dns_rpz_zbits_t zbits, dns_name_t *trig_name);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RPZ_H */

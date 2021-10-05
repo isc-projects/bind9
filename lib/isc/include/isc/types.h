@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_TYPES_H
-#define ISC_TYPES_H 1
+#pragma once
 
 #include <isc/bind9.h>
 #include <isc/result.h>
@@ -126,5 +125,3 @@ typedef enum {
 	isc_statsformat_xml,
 	isc_statsformat_json
 } isc_statsformat_t;
-
-#endif /* ISC_TYPES_H */

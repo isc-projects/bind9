@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CATZ_H
-#define DNS_CATZ_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -470,5 +469,3 @@ dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CATZ_H_ */

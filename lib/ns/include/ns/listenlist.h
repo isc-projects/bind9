@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_LISTENLIST_H
-#define NS_LISTENLIST_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -131,5 +130,3 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
  * all addresses with port 'port' (if 'enabled' is true),
  * or no addresses (if 'enabled' is false).
  */
-
-#endif /* NS_LISTENLIST_H */

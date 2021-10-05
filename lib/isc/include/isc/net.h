@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_NET_H
-#define ISC_NET_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -303,5 +302,3 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_NET_H */

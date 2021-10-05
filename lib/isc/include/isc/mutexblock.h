@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_MUTEXBLOCK_H
-#define ISC_MUTEXBLOCK_H 1
+#pragma once
 
 /*! \file isc/mutexblock.h */
 
@@ -51,5 +50,3 @@ isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_MUTEXBLOCK_H */

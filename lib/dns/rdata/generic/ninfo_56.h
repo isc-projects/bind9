@@ -10,8 +10,7 @@
  */
 
 /* */
-#ifndef GENERIC_NINFO_56_H
-#define GENERIC_NINFO_56_H 1
+#pragma once
 
 typedef struct dns_rdata_txt_string dns_rdata_ninfo_string_t;
 
@@ -30,5 +29,3 @@ dns_rdata_ninfo_next(dns_rdata_ninfo_t *);
 
 isc_result_t
 dns_rdata_ninfo_current(dns_rdata_ninfo_t *, dns_rdata_ninfo_string_t *);
-
-#endif /* GENERIC_NINFO_16_H */

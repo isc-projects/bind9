@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_JOURNAL_H
-#define DNS_JOURNAL_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -335,5 +334,3 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_JOURNAL_H */
