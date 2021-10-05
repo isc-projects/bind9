@@ -4153,8 +4153,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 					      NAMED_LOGCATEGORY_GENERAL,
 					      NAMED_LOGMODULE_SERVER,
 					      DNS_RPZ_ERROR_LEVEL,
-					      "rpz '%s'"
-					      " is not a master or slave zone",
+					      "rpz '%s' is not a primary or a "
+					      "secondary zone",
 					      namebuf);
 				result = ISC_R_NOTFOUND;
 				goto cleanup;
@@ -10829,7 +10829,7 @@ named_server_refreshcommand(named_server_t *server, isc_lex_t *lex,
 	isc_result_t result;
 	dns_zone_t *zone = NULL, *raw = NULL;
 	const char msg1[] = "zone refresh queued";
-	const char msg2[] = "not a slave, mirror, or stub zone";
+	const char msg2[] = "not a secondary, mirror, or stub zone";
 	dns_zonetype_t type;
 
 	REQUIRE(text != NULL);
@@ -12627,7 +12627,7 @@ named_server_rekey(named_server_t *server, isc_lex_t *lex,
 	type = dns_zone_gettype(zone);
 	if (type != dns_zone_primary) {
 		dns_zone_detach(&zone);
-		return (DNS_R_NOTMASTER);
+		return (DNS_R_NOTPRIMARY);
 	}
 
 	keyopts = dns_zone_getkeyopts(zone);
@@ -12807,7 +12807,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 	type = dns_zone_gettype(mayberaw);
 	if (type != dns_zone_primary) {
 		dns_zone_detach(&mayberaw);
-		return (DNS_R_NOTMASTER);
+		return (DNS_R_NOTPRIMARY);
 	}
 
 	if (freeze && !dns_zone_isdynamic(mayberaw, true)) {

@@ -1069,8 +1069,8 @@ cleanup:
 }
 
 static isc_result_t
-catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
-		     dns_rdataset_t *value, dns_name_t *name) {
+catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
+		       dns_rdataset_t *value, dns_name_t *name) {
 	isc_result_t result;
 	dns_rdata_t rdata;
 	dns_rdata_in_a_t rdata_a;
@@ -1370,8 +1370,8 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	dns_name_split(name, 1, &prefix, NULL);
 	switch (opt) {
 	case CATZ_OPT_MASTERS:
-		return (catz_process_masters(zone, &entry->opts.masters, value,
-					     &prefix));
+		return (catz_process_primaries(zone, &entry->opts.masters,
+					       value, &prefix));
 	case CATZ_OPT_ALLOW_QUERY:
 		if (prefix.labels != 0) {
 			return (ISC_R_FAILURE);
@@ -1430,8 +1430,8 @@ catz_process_value(dns_catz_zone_t *zone, dns_name_t *name,
 	case CATZ_OPT_ZONES:
 		return (catz_process_zones(zone, rdataset, &prefix));
 	case CATZ_OPT_MASTERS:
-		return (catz_process_masters(zone, &zone->zoneoptions.masters,
-					     rdataset, &prefix));
+		return (catz_process_primaries(zone, &zone->zoneoptions.masters,
+					       rdataset, &prefix));
 	case CATZ_OPT_ALLOW_QUERY:
 		if (prefix.labels != 0) {
 			return (ISC_R_FAILURE);
@@ -1636,7 +1636,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_setautorealloc(buffer, true);
 	isc_buffer_putstr(buffer, "zone \"");
 	dns_name_totext(&entry->name, true, buffer);
-	isc_buffer_putstr(buffer, "\" { type slave; masters");
+	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
 
 	/*
 	 * DSCP value has no default, but when it is specified, it is
@@ -1666,7 +1666,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 					DNS_NAME_FORMATSIZE);
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-				      "catz: zone '%s' uses an invalid master "
+				      "catz: zone '%s' uses an invalid primary "
 				      "(no IP address assigned)",
 				      zname);
 			result = ISC_R_FAILURE;

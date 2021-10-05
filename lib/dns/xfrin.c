@@ -120,7 +120,7 @@ struct dns_xfrin_ctx {
 	dns_rdatatype_t reqtype;
 	isc_dscp_t dscp;
 
-	isc_sockaddr_t masteraddr;
+	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
 
 	isc_nmhandle_t *handle;
@@ -196,7 +196,7 @@ struct dns_xfrin_ctx {
 static void
 xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
-	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
+	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
 	     dns_xfrin_ctx_t **xfrp);
@@ -251,11 +251,11 @@ static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
 	   const char *fmt, va_list ap) ISC_FORMAT_PRINTF(4, 0);
 
 static void
-xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
 	   const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
@@ -529,7 +529,7 @@ redo:
 		{
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
-				  "master has %u, not updating",
+				  "primary has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
 		}
@@ -564,7 +564,7 @@ redo:
 			 */
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
-				  "master has %u, not updating",
+				  "primary has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
 		}
@@ -690,7 +690,7 @@ failure:
 
 isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		 const isc_sockaddr_t *masteraddr,
+		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 		 dns_tsigkey_t *tsigkey, dns_transport_t *transport,
 		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
@@ -702,7 +702,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 	REQUIRE(done != NULL);
-	REQUIRE(isc_sockaddr_getport(masteraddr) != 0);
+	REQUIRE(isc_sockaddr_getport(primaryaddr) != 0);
 
 	(void)dns_zone_getdb(zone, &db);
 
@@ -711,7 +711,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	}
 
 	xfrin_create(mctx, zone, db, netmgr, zonename, dns_zone_getclass(zone),
-		     xfrtype, masteraddr, sourceaddr, dscp, tsigkey, transport,
+		     xfrtype, primaryaddr, sourceaddr, dscp, tsigkey, transport,
 		     &xfr);
 
 	if (db != NULL) {
@@ -745,7 +745,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	if (result != ISC_R_SUCCESS) {
 		char zonetext[DNS_NAME_MAXTEXT + 32];
 		dns_zone_name(zone, zonetext, sizeof(zonetext));
-		xfrin_log1(ISC_LOG_ERROR, zonetext, masteraddr,
+		xfrin_log1(ISC_LOG_ERROR, zonetext, primaryaddr,
 			   "zone transfer setup failed");
 	}
 
@@ -857,7 +857,7 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 static void
 xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
-	     dns_rdatatype_t reqtype, const isc_sockaddr_t *masteraddr,
+	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
 	     dns_xfrin_ctx_t **xfrp) {
@@ -871,7 +871,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 				  .dscp = dscp,
 				  .id = (dns_messageid_t)isc_random16(),
 				  .maxrecords = dns_zone_getmaxrecords(zone),
-				  .masteraddr = *masteraddr,
+				  .primaryaddr = *primaryaddr,
 				  .sourceaddr = *sourceaddr,
 				  .firstsoa = DNS_RDATA_INIT };
 
@@ -909,7 +909,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 
 	dns_name_dup(zonename, mctx, &xfr->name);
 
-	INSIST(isc_sockaddr_pf(masteraddr) == isc_sockaddr_pf(sourceaddr));
+	INSIST(isc_sockaddr_pf(primaryaddr) == isc_sockaddr_pf(sourceaddr));
 	isc_sockaddr_setport(&xfr->sourceaddr, 0);
 
 	/*
@@ -943,14 +943,14 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	switch (transport_type) {
 	case DNS_TRANSPORT_TCP:
 		isc_nm_tcpdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-				     &xfr->masteraddr, xfrin_connect_done,
+				     &xfr->primaryaddr, xfrin_connect_done,
 				     connect_xfr, 30000, 0);
 		break;
 	case DNS_TRANSPORT_TLS:
 		CHECK(isc_tlsctx_createclient(&xfr->tlsctx));
 		isc_tlsctx_enable_dot_client_alpn(xfr->tlsctx);
 		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-				     &xfr->masteraddr, xfrin_connect_done,
+				     &xfr->primaryaddr, xfrin_connect_done,
 				     connect_xfr, 30000, 0, xfr->tlsctx);
 		break;
 	default:
@@ -1028,11 +1028,11 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	if (zmgr != NULL) {
 		if (result != ISC_R_SUCCESS) {
 			TIME_NOW(&now);
-			dns_zonemgr_unreachableadd(zmgr, &xfr->masteraddr,
+			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
 						   &xfr->sourceaddr, &now);
 			CHECK(result);
 		} else {
-			dns_zonemgr_unreachabledel(zmgr, &xfr->masteraddr,
+			dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
 						   &xfr->sourceaddr);
 		}
 	}
@@ -1656,17 +1656,17 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message>
  */
 static void
-xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
 	   const char *fmt, va_list ap) {
-	char mastertext[ISC_SOCKADDR_FORMATSIZE];
+	char primarytext[ISC_SOCKADDR_FORMATSIZE];
 	char msgtext[2048];
 
-	isc_sockaddr_format(masteraddr, mastertext, sizeof(mastertext));
+	isc_sockaddr_format(primaryaddr, primarytext, sizeof(primarytext));
 	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
 		      level, "transfer of '%s' from %s: %s", zonetext,
-		      mastertext, msgtext);
+		      primarytext, msgtext);
 }
 
 /*
@@ -1674,7 +1674,7 @@ xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
  */
 
 static void
-xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
+xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
 	   const char *fmt, ...) {
 	va_list ap;
 
@@ -1683,7 +1683,7 @@ xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	}
 
 	va_start(ap, fmt);
-	xfrin_logv(level, zonetext, masteraddr, fmt, ap);
+	xfrin_logv(level, zonetext, primaryaddr, fmt, ap);
 	va_end(ap);
 }
 
@@ -1703,6 +1703,6 @@ xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...) {
 	dns_zone_name(xfr->zone, zonetext, sizeof(zonetext));
 
 	va_start(ap, fmt);
-	xfrin_logv(level, zonetext, &xfr->masteraddr, fmt, ap);
+	xfrin_logv(level, zonetext, &xfr->primaryaddr, fmt, ap);
 	va_end(ap);
 }

@@ -111,7 +111,7 @@ main(int argc, char **argv) {
 			    strcmp(argv[1], "primary") == 0) {
 				zonetype = CFG_ZONE_PRIMARY;
 			} else if (strcmp(argv[1], "slave") == 0 ||
-				   strcmp(argv[1], "seconary") == 0) {
+				   strcmp(argv[1], "secondary") == 0) {
 				zonetype = CFG_ZONE_SECONDARY;
 			} else if (strcmp(argv[1], "mirror") == 0) {
 				zonetype = CFG_ZONE_MIRROR;

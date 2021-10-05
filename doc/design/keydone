@@ -19,7 +19,7 @@ See COPYRIGHT in the source root or https://isc.org/copyright.html for terms.
 
         zone must be a primary (signed inline == primary) or normal
         dynamic zone.
-                Err: DNS_R_NOTMASTER
+                Err: DNS_R_NOTPRIMARY
 
         dns_zone_<something>(zone, text) which will send a event
         to the zone so that the deletion gets run in the zone's

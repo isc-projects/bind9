@@ -388,14 +388,14 @@ checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
  */
 static isc_result_t
 checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
-	       dns_name_t *zonename, bool slave, bool has_ssutable) {
+	       dns_name_t *zonename, bool secondary, bool has_ssutable) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	int level = ISC_LOG_ERROR;
 	const char *msg = "denied";
 	isc_result_t result;
 
-	if (slave && acl == NULL) {
+	if (secondary && acl == NULL) {
 		result = DNS_R_NOTIMP;
 		level = ISC_LOG_DEBUG(3);
 		msg = "disabled";
