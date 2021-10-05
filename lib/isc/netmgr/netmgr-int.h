@@ -103,6 +103,14 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  */
 #define NM_BIG_BUF ISC_NETMGR_TCP_RECVBUF_SIZE * 2
 
+/*%
+ * Maximum segment size (MSS) of TCP socket on which the server responds to
+ * queries. Value lower than common MSS on Ethernet (1220, that is 1280 (IPv6
+ * minimum link MTU) - 40 (IPv6 fixed header) - 20 (TCP fixed header)) will
+ * address path MTU problem.
+ */
+#define NM_MAXSEG (1280 - 20 - 40)
+
 #if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
 #define HAVE_SO_REUSEPORT_LB 1
 #endif
@@ -1866,6 +1874,12 @@ isc_result_t
 isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
 /*%<
  * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
+ */
+
+isc_result_t
+isc__nm_socket_tcp_maxseg(uv_os_sock_t fd, int size);
+/*%<
+ * Set the TCP maximum segment size
  */
 
 isc_result_t
