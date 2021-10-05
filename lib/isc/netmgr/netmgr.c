@@ -3263,6 +3263,27 @@ isc__nm_socket_tcp_nodelay(uv_os_sock_t fd) {
 #endif
 }
 
+isc_result_t
+isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family) {
+	if (sa_family != AF_INET6) {
+		return (ISC_R_SUCCESS);
+	}
+#ifdef IPV6_USE_MIN_MTU
+	if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU) == -1) {
+		return (ISC_R_FAILURE);
+	}
+#elif defined(IPV6_MTU)
+	if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &(int){ 1280 },
+		       sizeof(int)) == -1) {
+		return (ISC_R_FAILURE);
+	}
+#else
+	UNUSED(fd);
+#endif
+
+	return (ISC_R_SUCCESS);
+}
+
 void
 isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
 	int32_t recv_buffer_size = 0;
