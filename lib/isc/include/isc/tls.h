@@ -152,6 +152,7 @@ isc_tls_free(isc_tls_t **tlsp);
  *\li	'tlsp' != NULL and '*tlsp' != NULL.
  */
 
+#if HAVE_LIBNGHTTP2
 void
 isc_tlsctx_enable_http2client_alpn(isc_tlsctx_t *ctx);
 void
@@ -163,7 +164,23 @@ isc_tlsctx_enable_http2server_alpn(isc_tlsctx_t *ctx);
  * Requires:
  *\li	'ctx' is not NULL.
  */
+#endif /* HAVE_LIBNGHTTP2 */
 
 void
-isc_tls_get_http2_alpn(isc_tls_t *tls, const unsigned char **alpn,
-		       unsigned int *alpnlen);
+isc_tls_get_selected_alpn(isc_tls_t *tls, const unsigned char **alpn,
+			  unsigned int *alpnlen);
+
+#define ISC_TLS_DOT_PROTO_ALPN_ID     "dot"
+#define ISC_TLS_DOT_PROTO_ALPN_ID_LEN 3
+
+void
+isc_tlsctx_enable_dot_client_alpn(isc_tlsctx_t *ctx);
+void
+isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
+/*%<
+ *
+ * Enable DoT Application Layer Protocol Negotation for 'ctx'.
+ *
+ * Requires:
+ *\li	'ctx' is not NULL.
+ */

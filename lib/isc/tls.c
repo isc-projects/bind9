@@ -688,10 +688,11 @@ isc_tlsctx_enable_http2server_alpn(isc_tlsctx_t *tls) {
 	SSL_CTX_set_alpn_select_cb(tls, alpn_select_proto_cb, NULL);
 #endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
 }
+#endif /* HAVE_LIBNGHTTP2 */
 
 void
-isc_tls_get_http2_alpn(isc_tls_t *tls, const unsigned char **alpn,
-		       unsigned int *alpnlen) {
+isc_tls_get_selected_alpn(isc_tls_t *tls, const unsigned char **alpn,
+			  unsigned int *alpnlen) {
 	REQUIRE(tls != NULL);
 	REQUIRE(alpn != NULL);
 	REQUIRE(alpnlen != NULL);
@@ -705,4 +706,68 @@ isc_tls_get_http2_alpn(isc_tls_t *tls, const unsigned char **alpn,
 	}
 #endif
 }
-#endif /* HAVE_LIBNGHTTP2 */
+
+static bool
+protoneg_check_protocol(const uint8_t **pout, uint8_t *pout_len,
+			const uint8_t *in, size_t in_len, const uint8_t *key,
+			size_t key_len) {
+	for (size_t i = 0; i + key_len <= in_len; i += (size_t)(in[i] + 1)) {
+		if (memcmp(&in[i], key, key_len) == 0) {
+			*pout = (const uint8_t *)(&in[i + 1]);
+			*pout_len = in[i];
+			return (true);
+		}
+	}
+	return (false);
+}
+
+/* dot prepended by its length (3 bytes) */
+#define DOT_PROTO_ALPN	   "\x3" ISC_TLS_DOT_PROTO_ALPN_ID
+#define DOT_PROTO_ALPN_LEN (sizeof(DOT_PROTO_ALPN) - 1)
+
+static bool
+dot_select_next_protocol(const uint8_t **pout, uint8_t *pout_len,
+			 const uint8_t *in, size_t in_len) {
+	return (protoneg_check_protocol(pout, pout_len, in, in_len,
+					(const uint8_t *)DOT_PROTO_ALPN,
+					DOT_PROTO_ALPN_LEN));
+}
+
+void
+isc_tlsctx_enable_dot_client_alpn(isc_tlsctx_t *ctx) {
+	REQUIRE(ctx != NULL);
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+	SSL_CTX_set_alpn_protos(ctx, (const uint8_t *)DOT_PROTO_ALPN,
+				DOT_PROTO_ALPN_LEN);
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
+}
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+static int
+dot_alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
+			 unsigned char *outlen, const unsigned char *in,
+			 unsigned int inlen, void *arg) {
+	bool ret;
+
+	UNUSED(ssl);
+	UNUSED(arg);
+
+	ret = dot_select_next_protocol(out, outlen, in, inlen);
+
+	if (!ret) {
+		return (SSL_TLSEXT_ERR_NOACK);
+	}
+
+	return (SSL_TLSEXT_ERR_OK);
+}
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
+
+void
+isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
+	REQUIRE(tls != NULL);
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+	SSL_CTX_set_alpn_select_cb(tls, dot_alpn_select_proto_cb, NULL);
+#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+}

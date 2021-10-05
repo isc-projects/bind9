@@ -496,6 +496,8 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->tid = 0;
 	sock->fd = -1;
 
+	isc_tlsctx_enable_dot_server_alpn(sslctx);
+
 #if !HAVE_SO_REUSEPORT_LB
 	fd = isc__nm_tlsdns_lb_socket(iface->type.sa.sa_family);
 #endif
@@ -938,6 +940,12 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 		return (ISC_R_NOMORE);
 	}
 
+	if (sock->recv_cb == NULL) {
+		/* recv_cb has been cleared - there is
+		 * nothing to do */
+		return (ISC_R_CANCELED);
+	}
+
 	req = isc__nm_get_read_req(sock, NULL);
 	REQUIRE(VALID_UVREQ(req));
 
@@ -1071,6 +1079,17 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 	if (sock->tls.state == TLS_STATE_HANDSHAKE &&
 	    SSL_is_init_finished(sock->tls.tls))
 	{
+		const unsigned char *alpn = NULL;
+		unsigned int alpnlen = 0;
+
+		isc_tls_get_selected_alpn(sock->tls.tls, &alpn, &alpnlen);
+		if (alpn != NULL && alpnlen == ISC_TLS_DOT_PROTO_ALPN_ID_LEN &&
+		    memcmp(ISC_TLS_DOT_PROTO_ALPN_ID, alpn,
+			   ISC_TLS_DOT_PROTO_ALPN_ID_LEN) == 0)
+		{
+			sock->tls.alpn_negotiated = true;
+		}
+
 		sock->tls.state = TLS_STATE_IO;
 
 		if (SSL_is_server(sock->tls.tls)) {
@@ -2015,4 +2034,27 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
+}
+
+/* Zone transfers/updates over TLS are allowed only when "dot" ALPN
+ * was negotiated.
+ *
+ * Per the XoT spec, we must also check that the TLS version is >=
+ * 1.3. The check could be added here. However, we still need to
+ * support platforms where no cryptographic library with TLSv1.3
+ * support is available. As a result of this we cannot be too strict
+ * regarding the minimal TLS protocol version in order to make it
+ * possible to do encrypted zone transfers over TLSv1.2, as it would
+ * not be right to leave users on these platforms without means for
+ * encrypted zone transfers using BIND only.
+ *
+ * The ones requiring strict compatibility with the specification
+ * could disable TLSv1.2 in the configuration file.
+ */
+bool
+isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tlsdnssocket);
+
+	return (sock->tls.alpn_negotiated);
 }

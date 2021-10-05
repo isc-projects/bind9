@@ -1,3 +1,10 @@
+5734.	[bug]		Fix "dig" aborting with error in some cases
+			like when doing zone transfers. [GL #2884]
+
+5733.	[func]		Require "dot" ALPN token to be negotiated for
+			zone transfers over TLS (XoT), as required by RFC9103.
+			[GL #2794]
+
 5732.	[cleanup]	Remove dns_lib_init() and _shutdown() and
 			ns_lib_init() and _shutdown() functions, as they
 			no longer served any useful purpose. [GL #88]

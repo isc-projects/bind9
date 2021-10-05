@@ -1362,8 +1362,8 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 		INSIST(transp_sock->type == isc_nm_tlssocket);
 
-		isc_tls_get_http2_alpn(transp_sock->tlsstream.tls, &alpn,
-				       &alpnlen);
+		isc_tls_get_selected_alpn(transp_sock->tlsstream.tls, &alpn,
+					  &alpnlen);
 		if (alpn == NULL || alpnlen != NGHTTP2_PROTO_VERSION_ID_LEN ||
 		    memcmp(NGHTTP2_PROTO_VERSION_ID, alpn,
 			   NGHTTP2_PROTO_VERSION_ID_LEN) != 0)
