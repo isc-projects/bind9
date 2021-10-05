@@ -21,15 +21,15 @@ cp ns2/bits.db.in ns2/removedkeys-secondary.db
 cp ns2/bits.db.in ns2/retransfer.db
 cp ns2/bits.db.in ns2/retransfer3.db
 
-cp ns3/master.db.in ns3/master.db
-cp ns3/master.db.in ns3/dynamic.db
-cp ns3/master.db.in ns3/updated.db
-cp ns3/master.db.in ns3/unsupported.db
-cp ns3/master.db.in ns3/expired.db
-cp ns3/master.db.in ns3/nsec3.db
-cp ns3/master.db.in ns3/externalkey.db
-cp ns3/master.db.in ns3/delayedkeys.db
-cp ns3/master.db.in ns3/removedkeys-primary.db
+cp ns3/primary.db.in ns3/primary.db
+cp ns3/primary.db.in ns3/dynamic.db
+cp ns3/primary.db.in ns3/updated.db
+cp ns3/primary.db.in ns3/unsupported.db
+cp ns3/primary.db.in ns3/expired.db
+cp ns3/primary.db.in ns3/nsec3.db
+cp ns3/primary.db.in ns3/externalkey.db
+cp ns3/primary.db.in ns3/delayedkeys.db
+cp ns3/primary.db.in ns3/removedkeys-primary.db
 cp ns3/include.db.in ns3/include.db
 
 mkdir ns3/removedkeys

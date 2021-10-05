@@ -38,20 +38,20 @@ controls {
 
 /* These zones are going insecure. */
 zone "step1.going-insecure.kasp" {
-	type master;
+	type primary;
 	file "step1.going-insecure.kasp.db";
 	dnssec-policy "unsigning";
 };
 
 zone "step1.going-insecure-dynamic.kasp" {
-	type master;
+	type primary;
 	file "step1.going-insecure-dynamic.kasp.db";
 	dnssec-policy "unsigning";
 	allow-update { any; };
 };
 
 zone "step1.going-straight-to-none.kasp" {
-	type master;
+	type primary;
 	file "step1.going-straight-to-none.kasp.db";
 	dnssec-policy "default";
 };

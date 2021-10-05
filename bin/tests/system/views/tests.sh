@@ -154,7 +154,7 @@ while [ $i -lt 50 ]; do
 	# Add a new zone to the configuration.
 	cat >> ns2/zones.conf <<-EOF
 	zone "${zone_name}" {
-	    type master;
+	    type primary;
 	    file "db.${zone_name}";
 	    dnssec-dnskey-kskonly yes;
 	    auto-dnssec maintain;

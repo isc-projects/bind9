@@ -53,7 +53,7 @@ zone "example.com" {
 };
 
 zone "denyname.example" {
-	type master;
+	type primary;
 	file "denyname.example.db";
 	update-policy {
 		deny subkey name denyname.example;

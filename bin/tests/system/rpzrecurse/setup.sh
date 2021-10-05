@@ -72,9 +72,9 @@ PID-FILE $CWD/dnsrpzd.pid;
 
 include $CWD/dnsrpzd-license-cur.conf
 
-zone "policy" { type master; file "`pwd`/ns3/policy.db"; };
+zone "policy" { type primary; file "`pwd`/ns3/policy.db"; };
 EOF
-sed -n -e 's/^ *//' -e "/zone.*.*master/s@file \"@&$CWD/ns2/@p" ns2/*.conf \
+sed -n -e 's/^ *//' -e "/zone.*.*primary/s@file \"@&$CWD/ns2/@p" ns2/*.conf \
     >>dnsrpzd.conf
 
 # Run dnsrpzd to get the license and prime the static policy zones

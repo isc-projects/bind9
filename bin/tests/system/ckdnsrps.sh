@@ -12,8 +12,8 @@
 set -e
 
 # Say on stdout whether to test DNSRPS
-#	and create dnsrps.conf and dnsrps-slave.conf
-# Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
+#	and create dnsrps.conf and dnsrps-secondary.conf
+# Note that dnsrps.conf and dnsrps-secondary.conf are included in named.conf
 #	and differ from dnsrpz.conf which is used by dnsrpzd.
 
 
@@ -24,8 +24,8 @@ DNSRPS_CMD=../rpz/dnsrps
 AS_NS=
 TEST_DNSRPS=
 MCONF=dnsrps.conf
-SCONF=dnsrps-slave.conf
-USAGE="$0: [-xAD] [-M dnsrps.conf] [-S dnsrps-slave.conf]"
+SCONF=dnsrps-secondary.conf
+USAGE="$0: [-xAD] [-M dnsrps.conf] [-S dnsrps-secondary.conf]"
 while getopts "xADM:S:" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
@@ -86,16 +86,16 @@ CMN="	dnsrps-options { dnsrpzd-conf ../dnsrpzd.conf
 			 dnsrpzd-args '-dddd -L stdout'
 			 log-level 3"
 
-MASTER="$CMN"
+PRIMARY="$CMN"
 if [ -n "$AS_NS" ]; then
-    MASTER="$MASTER
+    PRIMARY="$PRIMARY
 			qname-as-ns yes
 			ip-as-ns yes"
 fi
 
-# write dnsrps settings for master resolver
+# write dnsrps settings for primary resolver
 cat <<EOF >>$MCONF
-$MASTER };
+$PRIMARY };
 EOF
 
 # write dnsrps settings for resolvers that should not start dnsrpzd
@@ -123,7 +123,7 @@ else
 fi
 cp $SRC_L $CUR_L
 
-# parse $CUR_L for the license zone name, master IP addresses, and optional
+# parse $CUR_L for the license zone name, primary IP addresses, and optional
 #   transfer-source IP addresses
 eval `sed -n -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'\
     -e 's/.*zone *\([-a-z0-9]*.license.fastrpz.com\).*/NAME=\1/p'	\

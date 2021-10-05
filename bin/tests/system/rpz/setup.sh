@@ -55,7 +55,7 @@ copy_setports ns9/named.conf.in ns9/named.conf
 copy_setports dnsrpzd.conf.in dnsrpzd.conf
 
 # decide whether to test DNSRPS
-# Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
+# Note that dnsrps.conf and dnsrps-secondary.conf are included in named.conf
 # and differ from dnsrpz.conf which is used by dnsrpzd.
 $SHELL ../ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
 test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=

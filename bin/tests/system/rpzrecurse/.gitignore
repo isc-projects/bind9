@@ -6,7 +6,7 @@
 /ns4/named.conf
 /ans5/ans.pl
 /ans5/ans.pid
-/dnsrps-slave.conf
+/dnsrps-secondary.conf
 /dnsrps.conf
 /dnsrpzd.conf
 session.key

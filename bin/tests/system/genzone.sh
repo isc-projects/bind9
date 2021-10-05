@@ -12,18 +12,18 @@
 #
 # Set up a test zone
 #
-# Usage: genzone.sh master-server-number secondary-server-number...
+# Usage: genzone.sh primary-server-number secondary-server-number...
 #
-# e.g., "genzone.sh 2 3 4" means ns2 is the master and ns3, ns4
+# e.g., "genzone.sh 2 3 4" means ns2 is the primary and ns3, ns4
 # are secondaries.
 #
 
-master="$1"
+primary="$1"
 
 cat <<EOF
 \$TTL 3600
 
-@		86400	IN SOA	ns${master} hostmaster (
+@		86400	IN SOA	ns${primary} hostmaster (
 					1397051952 ; "SER0"
 					5
 					5

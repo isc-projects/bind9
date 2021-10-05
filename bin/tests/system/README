@@ -187,7 +187,7 @@ structure:
 
 e.g.
 
-    I:catz:checking that dom1.example is not served by master (1)
+    I:catz:checking that dom1.example is not served by primary (1)
 
 The meanings of the fields are as follows:
 

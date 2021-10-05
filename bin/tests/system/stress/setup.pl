@@ -47,16 +47,17 @@ for ($z = 0; $z < $n_zones; $z++) {
 close $rootdelegations;
 	
 sub make_zones {
-	my ($nsno, $slaved_from) = @_;
+	my ($nsno, $secondaried_from) = @_;
 	my $namedconf = new FileHandle("ns$nsno/zones.conf", "w") or die;
 	for ($z = 0; $z < $n_zones; $z++) {
 		my $zn = sprintf("zone%06d.example", $z);
-		if (defined($slaved_from)) {
-			print $namedconf "zone \"$zn\" { type slave; " .
-			    "file \"$zn.bk\"; masters { $slaved_from; }; };\n";
+		if (defined($secondaried_from)) {
+			print $namedconf "zone \"$zn\" { type secondary; " .
+			    "file \"$zn.bk\"; primaries " .
+			    "{ $secondaried_from; }; };\n";
 		} else {
 			print $namedconf "zone \"$zn\" { " .
-			    "type master; " .
+			    "type primary; " .
 			    "allow-update { any; }; " .
 			    "file \"$zn.db\"; };\n";
 
