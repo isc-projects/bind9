@@ -343,6 +343,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
 	ievent = isc__nm_get_netievent_tcpconnect(mgr, sock, req);
 
@@ -528,6 +529,7 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	UV_RUNTIME_CHECK(uv_tcp_init, r);

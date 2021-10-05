@@ -298,6 +298,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
 	/* 2 minute timeout */
 	result = isc__nm_socket_connectiontimeout(sock->fd, 120 * 1000);
@@ -492,6 +493,7 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	UV_RUNTIME_CHECK(uv_tcp_init, r);
