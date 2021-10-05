@@ -18,7 +18,8 @@ libbind9_la_CPPFLAGS =		\
 	$(LIBDNS_CFLAGS)	\
 	$(LIBISCCFG_CFLAGS)	\
 	$(LIBNS_CFLAGS)		\
-	$(LIBBIND9_CFLAGS)
+	$(LIBBIND9_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 libbind9_la_LIBADD =		\
 	$(LIBNS_LIBS)		\
