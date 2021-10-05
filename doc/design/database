@@ -35,8 +35,8 @@ validation status, may change.
 
 Database Updates
 
-A master zone is updated by a Dynamic Update message.  A slave zone is
-updated by IXFR or AXFR.  AXFR provides the entire contents of the new
+A primary zone is updated by a Dynamic Update message.  A secondary zone
+is updated by IXFR or AXFR.  AXFR provides the entire contents of the new
 zone version, and replaces the entire contents of the database.  IXFR
 and Dynamic Update, although completely different protocols, have the
 same basic database requirements.  They are differential update

@@ -96,7 +96,7 @@ the primary server for ``example.com`` and a secondary server for the subdomain
         type secondary;
         file "eng.example.com.bk";
         // IP address of eng.example.com primary server
-        masters { 192.168.4.12; };
+        primaries { 192.168.4.12; };
    };
 
 .. _load_balancing:

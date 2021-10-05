@@ -243,5 +243,5 @@ configuration file.
 
 Note that none of the global records for an option are inherited if any
 records are defined for that option for the specific zone. For example,
-if the zone had a ``masters`` record of type A but not AAAA, it
+if the zone had a ``primaries`` record of type A but not AAAA, it
 would *not* inherit the type AAAA record from the global option.

@@ -353,7 +353,7 @@ External (bastion host) DNS server configuration:
    zone "site2.example.com" {
      type secondary;
      file "s/site2.foo.com";
-     masters { another_bastion_host_maybe; };
+     primaries { another_bastion_host_maybe; };
      allow-transfer { internals; externals; }
    };
 

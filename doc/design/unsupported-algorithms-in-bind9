@@ -37,7 +37,7 @@ as it is not used for *signing* that zone.
 BIND 9 also does not allow unsupported algorithms to be used with `auto-dnssec`:
 
     zone "example" IN {
-        type master;
+        type primary;
         file "db/example.db";
         key-directory "keys/example";
         inline-signing yes;

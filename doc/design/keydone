@@ -17,7 +17,7 @@ See COPYRIGHT in the source root or https://isc.org/copyright.html for terms.
         [view]]'.
                 Err: DNS_R_NOTFOUND
 
-        zone must be a master (signed inline == master) or normal
+        zone must be a primary (signed inline == primary) or normal
         dynamic zone.
                 Err: DNS_R_NOTMASTER
 
