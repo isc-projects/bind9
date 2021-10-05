@@ -1017,7 +1017,7 @@ dns_view_getrootdelonly(dns_view_t *view);
 isc_result_t
 dns_view_freezezones(dns_view_t *view, bool freeze);
 /*%<
- * Freeze/thaw updates to master zones.
+ * Freeze/thaw updates to primary zones.
  *
  * Requires:
  * \li	'view' is valid.

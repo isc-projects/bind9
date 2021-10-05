@@ -1858,7 +1858,7 @@ dns_zone_getjournal(dns_zone_t *zone) {
  * master file (if any) is written by the server, rather than being
  * updated manually and read by the server.
  *
- * This is true for slave zones, mirror zones, stub zones, key zones,
+ * This is true for secondary zones, mirror zones, stub zones, key zones,
  * and zones that allow dynamic updates either by having an update
  * policy ("ssutable") or an "allow-update" ACL with a value other than
  * exactly "{ none; }".
@@ -2124,8 +2124,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 	is_dynamic = dns_zone_isdynamic(zone, false);
 	if (zone->db != NULL && is_dynamic) {
 		/*
-		 * This is a slave, stub, or dynamically updated zone being
-		 * reloaded.  Do nothing - the database we already
+		 * This is a secondary, stub, or dynamically updated zone
+		 * being reloaded.  Do nothing - the database we already
 		 * have is guaranteed to be up-to-date.
 		 */
 		if (zone->type == dns_zone_primary && !hasraw) {
@@ -4983,8 +4983,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		      "loaded; checking validity");
 
 	/*
-	 * Master / Slave / Mirror / Stub zones require both NS and SOA records
-	 * at the top of the zone.
+	 * Primary / Secondary / Mirror / Stub zones require both NS and SOA
+	 * records at the top of the zone.
 	 */
 
 	switch (zone->type) {
@@ -5053,8 +5053,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			unsigned int oldsoacount;
 
 			/*
-			 * This is checked in zone_replacedb() for slave zones
-			 * as they don't reload from disk.
+			 * This is checked in zone_replacedb() for
+			 * secondary zones as they don't reload from disk.
 			 */
 			result = zone_get_from_db(
 				zone, zone->db, NULL, &oldsoacount, NULL,
@@ -11371,7 +11371,7 @@ zone_maintenance(dns_zone_t *zone) {
 	}
 
 	/*
-	 * Master/redirect zones send notifies now, if needed
+	 * Primary/redirect zones send notifies now, if needed
 	 */
 	switch (zone->type) {
 	case dns_zone_primary:
@@ -12821,7 +12821,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	}
 
 	/*
-	 * Find serial and master server's name.
+	 * Find serial and primary server's name.
 	 */
 	dns_name_init(&master, NULL);
 	result = dns_rdataset_first(&soardset);
@@ -12940,7 +12940,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
 		/*
-		 * Don't notify the master server unless explicitly
+		 * Don't notify the primary server unless explicitly
 		 * configured to do so.
 		 */
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYTOSOA) &&
@@ -13072,7 +13072,7 @@ add_opt(dns_message_t *message, uint16_t udpsize, bool reqnsid,
 /*
  * Called when stub zone update is finished.
  * Update zone refresh, retry, expire values accordingly with
- * SOA received from master, sync database to file, restart
+ * SOA received from primary, sync database to file, restart
  * zone management timer.
  */
 static void
@@ -13329,7 +13329,7 @@ cleanup:
 }
 
 /*
- * Create and send an A or AAAA query to the master
+ * Create and send an A or AAAA query to the primary
  * server of the stub zone given.
  */
 static isc_result_t
@@ -13673,7 +13673,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * If non-auth log and next master.
+	 * If non-auth log and next primary.
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -13752,7 +13752,7 @@ next_master:
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	/*
-	 * Skip to next failed / untried master.
+	 * Skip to next failed / untried primary.
 	 */
 	do {
 		zone->curmaster++;
@@ -13952,7 +13952,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * if timeout log and next master;
+	 * if timeout log and next primary;
 	 */
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
@@ -14111,7 +14111,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * if non-auth log and next master;
+	 * if non-auth log and next primary;
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -14138,7 +14138,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * if referral log and next master;
+	 * if referral log and next primary;
 	 */
 	if (soacnt == 0 && soacount == 0 && nscount != 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -14149,7 +14149,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * if nodata log and next master;
+	 * if nodata log and next primary;
 	 */
 	if (soacnt == 0 && (nscount == 0 || soacount != 0)) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -14292,7 +14292,7 @@ next_master:
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	/*
-	 * Skip to next failed / untried master.
+	 * Skip to next failed / untried primary.
 	 */
 	do {
 		zone->curmaster++;
@@ -14322,7 +14322,7 @@ next_master:
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 			zone->curmaster = 0;
 			/*
-			 * Find the next failed master.
+			 * Find the next failed primary.
 			 */
 			while (zone->curmaster < zone->masterscnt &&
 			       zone->mastersok[zone->curmaster]) {
@@ -14441,7 +14441,7 @@ again:
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	/*
-	 * First, look for a tsig key in the master statement, then
+	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
 	 */
 	if ((zone->masterkeynames != NULL) &&
@@ -14648,7 +14648,7 @@ skip_master:
 		dns_message_detach(&message);
 	}
 	/*
-	 * Skip to next failed / untried master.
+	 * Skip to next failed / untried primary.
 	 */
 	do {
 		zone->curmaster++;
@@ -14771,7 +14771,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	/*
-	 * First, look for a tsig key in the master statement, then
+	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
 	 */
 	if ((zone->masterkeynames != NULL) &&
@@ -15479,7 +15479,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	}
 
 	/*
-	 * If we are a master zone just succeed.
+	 * If we are a primary zone just succeed.
 	 */
 	if (zone->type == dns_zone_primary) {
 		UNLOCK_ZONE(zone);
@@ -15505,7 +15505,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	}
 
 	/*
-	 * Accept notify requests from non masters if they are on
+	 * Accept notify requests from non primaries if they are on
 	 * 'zone->notify_acl'.
 	 */
 	tsigkey = dns_message_gettsigkey(msg);
@@ -17320,7 +17320,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 	dns_db_currentversion(db, &ver);
 
 	/*
-	 * The initial version of a slave zone is always dumped;
+	 * The initial version of a secondary zone is always dumped;
 	 * subsequent versions may be journaled instead if this
 	 * is enabled in the configuration.
 	 */
@@ -17341,7 +17341,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		}
 
 		/*
-		 * This is checked in zone_postload() for master zones.
+		 * This is checked in zone_postload() for primary zones.
 		 */
 		result = zone_get_from_db(zone, zone->db, NULL, &soacount, NULL,
 					  &oldserial, NULL, NULL, NULL, NULL,
@@ -17668,7 +17668,7 @@ again:
 	default:
 	next_master:
 		/*
-		 * Skip to next failed / untried master.
+		 * Skip to next failed / untried primary.
 		 */
 		do {
 			zone->curmaster++;
@@ -18057,7 +18057,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	result = ISC_R_NOTFOUND;
 
 	/*
-	 * First, look for a tsig key in the master statement, then
+	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
 	 */
 	if ((zone->masterkeynames != NULL) &&
@@ -18206,7 +18206,7 @@ sendtomaster(dns_forward_t *forward) {
 	 * Always use TCP regardless of whether the original update
 	 * used TCP.
 	 * XXX The timeout may but a bit small if we are far down a
-	 * transfer graph and the master has to try several masters.
+	 * transfer graph and have to try several primaries.
 	 */
 	switch (isc_sockaddr_pf(&forward->addr)) {
 	case PF_INET:
@@ -19252,7 +19252,7 @@ zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi) {
 			 * Not enough quota.  This is probably the per-server
 			 * quota, because we usually get called when a unit of
 			 * global quota has just been freed.  Try the next
-			 * zone, it may succeed if it uses another master.
+			 * zone, it may succeed if it uses another primary.
 			 */
 			continue;
 		} else {
@@ -19318,9 +19318,9 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	/*
 	 * Count the total number of transfers that are in progress,
-	 * and the number of transfers in progress from this master.
+	 * and the number of transfers in progress from this primary.
 	 * We linearly scan a list of all transfers; if this turns
-	 * out to be too slow, we could hash on the master address.
+	 * out to be too slow, we could hash on the primary address.
 	 */
 	nxfrsin = nxfrsperns = 0;
 	for (x = ISC_LIST_HEAD(zmgr->xfrin_in_progress); x != NULL;

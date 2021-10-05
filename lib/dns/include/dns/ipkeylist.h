@@ -20,7 +20,7 @@
 
 /*%
  * A structure holding a list of addresses, dscps and keys.  Used to
- * store masters for a slave zone, created by parsing config options.
+ * store primaries for a secondary zone, created by parsing config options.
  */
 struct dns_ipkeylist {
 	isc_sockaddr_t *addrs;

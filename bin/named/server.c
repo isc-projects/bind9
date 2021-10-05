@@ -4136,9 +4136,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	}
 
 	/*
-	 * Check that a master or slave zone was found for each
-	 * zone named in the response policy statement
-	 * unless we are using RPZ service interface.
+	 * Check that a primary or secondary zone was found for each
+	 * zone named in the response policy statement, unless we are
+	 * using RPZ service interface.
 	 */
 	if (view->rpzs != NULL && !view->rpzs->p.dnsrps_enabled) {
 		dns_rpz_num_t n;
@@ -6597,8 +6597,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 *   - The zone's view exists
 	 *   - A zone with the right name exists in the view
 	 *   - The zone is compatible with the config
-	 *     options (e.g., an existing master zone cannot
-	 *     be reused if the options specify a slave zone)
+	 *     options (e.g., an existing primary zone cannot
+	 *     be reused if the options specify a secondary zone)
 	 *   - The zone was not and is still not a response policy zone
 	 *     or the zone is a policy zone with an unchanged number
 	 *     and we are using the old policy zone summary data.
@@ -9718,7 +9718,7 @@ view_loaded(void *arg) {
 	/*
 	 * Force zone maintenance.  Do this after loading
 	 * so that we know when we need to force AXFR of
-	 * slave zones whose master files are missing.
+	 * secondary zones whose master files are missing.
 	 *
 	 * We use the zoneload reference counter to let us
 	 * know when all views are finished.
@@ -14368,7 +14368,7 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 		dns_zone_unload(zone);
 	}
 
-	/* Clean up stub/slave zone files if requested to do so */
+	/* Clean up stub/secondary zone files if requested to do so */
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;
 
@@ -14500,7 +14500,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	isc_task_send(task, &dzevent);
 	dz = NULL;
 
-	/* Inform user about cleaning up stub/slave zone files */
+	/* Inform user about cleaning up stub/secondary zone files */
 	dns_zone_getraw(zone, &raw);
 	mayberaw = (raw != NULL) ? raw : zone;
 

@@ -1111,7 +1111,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 
 		/*
 		 * We're pre-preparing the data once, we'll put it into
-		 * the right spot in the masters array once we find it.
+		 * the right spot in the primaries array once we find it.
 		 */
 		result = dns_rdataset_first(value);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1165,10 +1165,9 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 		}
 
 		/*
-		 * We have to find the appropriate labeled record in masters
-		 * if it exists.
-		 * In common case we'll have no more than 3-4 records here so
-		 * no optimization.
+		 * We have to find the appropriate labeled record in
+		 * primaries if it exists.  In the common case we'll
+		 * have no more than 3-4 records here, so no optimization.
 		 */
 		for (i = 0; i < ipkl->count; i++) {
 			if (ipkl->labels[i] != NULL &&
@@ -1606,16 +1605,16 @@ cleanup:
 	return (result);
 }
 
+/*
+ * We have to generate a text buffer with regular zone config:
+ * zone "foo.bar" {
+ * 	type secondary;
+ * 	primaries [ dscp X ] { ip1 port port1; ip2 port port2; };
+ * }
+ */
 isc_result_t
 dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 			  isc_buffer_t **buf) {
-	/*
-	 * We have to generate a text buffer with regular zone config:
-	 * zone "foo.bar" {
-	 * 	type slave;
-	 * 	masters [ dscp X ] { ip1 port port1; ip2 port port2; };
-	 * }
-	 */
 	isc_buffer_t *buffer = NULL;
 	isc_region_t region;
 	isc_result_t result;
@@ -1640,9 +1639,10 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_putstr(buffer, "\" { type slave; masters");
 
 	/*
-	 * DSCP value has no default, but when it is specified, it is identical
-	 * for all masters and cannot be overridden for a specific master IP, so
-	 * use the DSCP value set for the first master
+	 * DSCP value has no default, but when it is specified, it is
+	 * identical for all primaries and cannot be overridden for a
+	 * specific primary IP, so use the DSCP value set for the first
+	 * primary.
 	 */
 	if (entry->opts.masters.count > 0 && entry->opts.masters.dscps[0] >= 0)
 	{
@@ -1655,7 +1655,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_putstr(buffer, " { ");
 	for (i = 0; i < entry->opts.masters.count; i++) {
 		/*
-		 * Every master must have an IP address assigned.
+		 * Every primary must have an IP address assigned.
 		 */
 		switch (entry->opts.masters.addrs[i].type.sa.sa_family) {
 		case AF_INET:

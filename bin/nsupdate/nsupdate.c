@@ -682,7 +682,7 @@ doshutdown(void) {
 	isc_task_detach(&global_task);
 
 	/*
-	 * The isc_mem_put of master_servers must be before the
+	 * The isc_mem_put of primary_servers must be before the
 	 * isc_mem_put of servers as it sets the servers pointer
 	 * to NULL.
 	 */
@@ -3225,7 +3225,7 @@ start_update(void) {
 	/*
 	 * If we have both the zone and the servers we have enough information
 	 * to send the update straight away otherwise we need to discover
-	 * the zone and / or the master server.
+	 * the zone and / or the primary server.
 	 */
 	if (userzone != NULL && !default_servers && !usegsstsig) {
 		master_from_servers();

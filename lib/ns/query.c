@@ -7964,8 +7964,8 @@ cleanup:
 }
 
 /*
- * Set the expire time, if requested, when answering from a slave, mirror, or
- * master zone.
+ * Set the expire time, if requested, when answering from a secondary,
+ * mirror, or primary zone.
  */
 static void
 query_getexpire(query_ctx_t *qctx) {

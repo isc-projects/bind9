@@ -35,7 +35,7 @@
 #define DNS_MASTER_NOINCLUDE 0x00000004 /*%< Disallow $INCLUDE directives. */
 #define DNS_MASTER_ZONE	     0x00000008 /*%< Loading a zone master file. */
 #define DNS_MASTER_HINT	     0x00000010 /*%< Loading a hint master file. */
-#define DNS_MASTER_SLAVE     0x00000020 /*%< Loading a slave master file. */
+#define DNS_MASTER_SLAVE     0x00000020 /*%< Loading a secondary master file. */
 #define DNS_MASTER_CHECKNS                    \
 	0x00000040 /*%<                       \
 		    * Check NS records to see \
@@ -88,7 +88,7 @@ struct dns_masterrawheader {
 	uint32_t sourceserial; /* Source serial number (used
 				* by inline-signing zones) */
 	uint32_t lastxfrin;    /* timestamp of last transfer
-				* (used by slave zones) */
+				* (used by secondary zones) */
 };
 
 /* The structure for each RRset */

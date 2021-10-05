@@ -1580,7 +1580,7 @@ signapex(void) {
 }
 
 /*%
- * Assigns a node to a worker thread.  This is protected by the master task's
+ * Assigns a node to a worker thread.  This is protected by the primary task's
  * lock.
  */
 static void

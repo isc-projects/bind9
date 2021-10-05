@@ -559,7 +559,7 @@ redo:
 		{
 			/*
 			 * This must be the single SOA record that is
-			 * sent when the current version on the master
+			 * sent when the current version on the primary
 			 * is not newer than the version in the request.
 			 */
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
