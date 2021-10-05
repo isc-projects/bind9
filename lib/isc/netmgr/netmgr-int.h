@@ -1868,6 +1868,12 @@ isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
  * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
  */
 
+isc_result_t
+isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family);
+/*%<
+ * Use minimum MTU on IPv6 sockets
+ */
+
 void
 isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
 /*%>

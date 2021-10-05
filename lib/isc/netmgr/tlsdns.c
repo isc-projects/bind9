@@ -351,6 +351,8 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		goto failure;
 	}
 
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+
 	/* 2 minute timeout */
 	result = isc__nm_socket_connectiontimeout(sock->fd, 120 * 1000);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -560,7 +562,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	/* TODO: set min mss */
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
 	UV_RUNTIME_CHECK(uv_tcp_init, r);
