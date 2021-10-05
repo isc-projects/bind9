@@ -28,6 +28,7 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/resource.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -295,6 +296,22 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 	test_running = true;
 
 	if (start_managers) {
+		isc_resourcevalue_t files;
+
+		/*
+		 * The 'listenlist_test', 'notify_test', and 'query_test'
+		 * tests need more than 256 descriptors with 8 cpus.
+		 * Bump up to at least 1024.
+		 */
+		result = isc_resource_getcurlimit(isc_resource_openfiles,
+						  &files);
+		if (result == ISC_R_SUCCESS) {
+			if (files < 1024) {
+				files = 1024;
+				(void)isc_resource_setlimit(
+					isc_resource_openfiles, files);
+			}
+		}
 		CHECK(isc_app_start());
 	}
 	if (debug_mem_record) {
