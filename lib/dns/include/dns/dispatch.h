@@ -25,7 +25,7 @@
  * MP:
  *
  *\li	All locking is performed internally to each dispatch.
- *	Restrictions apply to dns_dispatch_removeresponse().
+ *	Restrictions apply to dns_dispatch_done().
  *
  * Reliability:
  *
@@ -225,17 +225,7 @@ isc_result_t
 dns_dispatch_connect(dns_dispentry_t *resp);
 /*%<
  * Connect to the remote server configured in 'resp' and run the
- * connect callback that was set up via dns_dispatch_addresponse().
- *
- * Requires:
- *\li	'resp' is valid.
- */
-
-void
-dns_dispatch_cancel(dns_dispentry_t *resp);
-/*%<
- * Cancel pending connects in 'resp', by setting a flag so that
- * a read is not started when the connect handler runs.
+ * connect callback that was set up via dns_dispatch_add().
  *
  * Requires:
  *\li	'resp' is valid.
@@ -274,11 +264,11 @@ typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
 			      void *cbarg);
 
 isc_result_t
-dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
-			 unsigned int timeout, const isc_sockaddr_t *dest,
-			 dispatch_cb_t connected, dispatch_cb_t sent,
-			 dispatch_cb_t response, void *arg,
-			 dns_messageid_t *idp, dns_dispentry_t **resp);
+dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
+		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dispatch_cb_t connected, dispatch_cb_t sent,
+		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
+		 dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *
@@ -316,13 +306,27 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
  */
 
 void
-dns_dispatch_removeresponse(dns_dispentry_t **resp);
+dns_dispatch_done(dns_dispentry_t **respp);
 /*%<
- * Stops the flow of responses for the provided id and destination.
+ * Disconnects a dispatch response entry from its dispatch and shuts it
+ * down. This is called when the dispatch is complete; use
+ * dns_dispatch_cancel() if it is still pending.
  *
  * Requires:
  *\li	"resp" != NULL and "*resp" contain a value previously allocated
- *	by dns_dispatch_addresponse();
+ *	by dns_dispatch_add();
+ */
+
+void
+dns_dispatch_cancel(dns_dispentry_t **respp);
+/*%<
+ * Cancel all pending connects and reads in a dispatch entry,
+ * then call dns_dispatch_done(). This is used when the caller
+ * cancels a dispatch response before it has completed.
+ *
+ * Requires:
+ *\li	"resp" != NULL and "*resp" contain a value previously allocated
+ *	by dns_dispatch_add();
  */
 
 isc_result_t

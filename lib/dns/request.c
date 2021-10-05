@@ -559,10 +559,10 @@ again:
 	}
 
 	req_attach(request, &rclone);
-	result = dns_dispatch_addresponse(
-		request->dispatch, dispopt, request->timeout, destaddr,
-		req_connected, req_senddone, req_response, request, &id,
-		&request->dispentry);
+	result = dns_dispatch_add(request->dispatch, dispopt, request->timeout,
+				  destaddr, req_connected, req_senddone,
+				  req_response, request, &id,
+				  &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -722,7 +722,7 @@ use_tcp:
 	}
 
 	req_attach(request, &rclone);
-	result = dns_dispatch_addresponse(
+	result = dns_dispatch_add(
 		request->dispatch, 0, request->timeout, destaddr, req_connected,
 		req_senddone, req_response, request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
@@ -737,7 +737,7 @@ use_tcp:
 		 */
 		req_detach(&rclone);
 		dns_message_renderreset(message);
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
 		options |= DNS_REQUESTOPT_TCP;
 		tcp = true;
@@ -891,21 +891,6 @@ cleanup:
 	return (result);
 }
 
-/*
- * If this request is no longer waiting for events,
- * send the completion event.  This will ultimately
- * cause the request to be destroyed.
- *
- * Requires:
- *	'request' is locked by the caller.
- */
-static void
-send_if_done(dns_request_t *request, isc_result_t result) {
-	if (request->event != NULL) {
-		req_sendevent(request, result);
-	}
-}
-
 void
 request_cancel(dns_request_t *request) {
 	if (!DNS_REQUEST_CANCELED(request)) {
@@ -916,8 +901,7 @@ request_cancel(dns_request_t *request) {
 		request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 		if (request->dispentry != NULL) {
-			dns_dispatch_cancel(request->dispentry);
-			dns_dispatch_removeresponse(&request->dispentry);
+			dns_dispatch_cancel(&request->dispentry);
 		}
 
 		dns_dispatch_detach(&request->dispatch);
@@ -931,7 +915,7 @@ dns_request_cancel(dns_request_t *request) {
 	req_log(ISC_LOG_DEBUG(3), "dns_request_cancel: request %p", request);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request_cancel(request);
-	send_if_done(request, ISC_R_CANCELED);
+	req_sendevent(request, ISC_R_CANCELED);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
@@ -992,8 +976,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	LOCK(&request->requestmgr->lock);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
-	INSIST(!DNS_REQUEST_CONNECTING(request));
-	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 	UNLOCK(&request->requestmgr->lock);
 
@@ -1001,7 +983,6 @@ dns_request_destroy(dns_request_t **requestp) {
 	 * These should have been cleaned up before the completion
 	 * event was sent.
 	 */
-	INSIST(!ISC_LINK_LINKED(request, link));
 	INSIST(request->dispentry == NULL);
 	INSIST(request->dispatch == NULL);
 
@@ -1025,16 +1006,16 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 	if (eresult == ISC_R_TIMEDOUT) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
-		send_if_done(request, eresult);
+		req_sendevent(request, eresult);
 	} else if (DNS_REQUEST_CANCELED(request)) {
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		req_send(request);
 	} else {
 		request_cancel(request);
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
@@ -1057,13 +1038,13 @@ req_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	if (DNS_REQUEST_CANCELED(request)) {
 		if (eresult == ISC_R_TIMEDOUT) {
-			send_if_done(request, eresult);
+			req_sendevent(request, eresult);
 		} else {
-			send_if_done(request, ISC_R_CANCELED);
+			req_sendevent(request, ISC_R_CANCELED);
 		}
 	} else if (eresult != ISC_R_SUCCESS) {
 		request_cancel(request);
-		send_if_done(request, ISC_R_CANCELED);
+		req_sendevent(request, ISC_R_CANCELED);
 	}
 
 	UNLOCK(&request->requestmgr->locks[request->hash]);
@@ -1118,22 +1099,26 @@ done:
 	 * Cleanup.
 	 */
 	if (request->dispentry != NULL) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 	}
 	request_cancel(request);
 
 	/*
 	 * Send completion event.
 	 */
-	send_if_done(request, result);
+	req_sendevent(request, result);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
 static void
 req_sendevent(dns_request_t *request, isc_result_t result) {
-	isc_task_t *task;
+	isc_task_t *task = NULL;
 
 	REQUIRE(VALID_REQUEST(request));
+
+	if (request->event == NULL) {
+		return;
+	}
 
 	req_log(ISC_LOG_DEBUG(3), "req_sendevent: request %p", request);
 
@@ -1203,7 +1188,7 @@ req_destroy(dns_request_t *request) {
 		isc_event_free((isc_event_t **)&request->event);
 	}
 	if (request->dispentry != NULL) {
-		dns_dispatch_removeresponse(&request->dispentry);
+		dns_dispatch_done(&request->dispentry);
 	}
 	if (request->dispatch != NULL) {
 		dns_dispatch_detach(&request->dispatch);
