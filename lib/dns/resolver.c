@@ -916,6 +916,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 			INSIST(fctx->validator == NULL);
 			fctx->validator = validator;
 		}
+		fctx_increference(fctx);
 		ISC_LIST_APPEND(fctx->validators, validator, link);
 	} else {
 		dns_message_detach(&valarg->message);
@@ -5222,6 +5223,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	LOCK(&res->buckets[bucketnum].lock);
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
+	RUNTIME_CHECK(!fctx_decreference(fctx));
+
 	/*
 	 * If shutting down, ignore the results.  Check to see if we're
 	 * done waiting for validator completions and ADB pending
@@ -5334,8 +5337,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = fctx->vresult;
 		add_bad(fctx, message, addrinfo, result, badns_validation);
 		isc_event_free(&event);
+
 		UNLOCK(&res->buckets[bucketnum].lock);
 		INSIST(fctx->validator == NULL);
+
 		fctx->validator = ISC_LIST_HEAD(fctx->validators);
 		if (fctx->validator != NULL) {
 			dns_validator_send(fctx->validator);
