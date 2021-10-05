@@ -1,3 +1,6 @@
+5738.	[bug]		Enable idn2 UseSTD3ASCIIRules=true to implement
+			additional unicode validity checks. [GL #1610]
+
 5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 			[GL #2935]
 
