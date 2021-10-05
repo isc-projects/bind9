@@ -4365,7 +4365,9 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	 * We trust libidn2 to return an error if 'src' is too large to be a
 	 * valid domain name.
 	 */
-	res = idn2_to_ascii_lz(src, &ascii_src, IDN2_NONTRANSITIONAL);
+	res = idn2_to_ascii_lz(src, &ascii_src,
+			       IDN2_NONTRANSITIONAL |
+				       IDN2_USE_STD3_ASCII_RULES);
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin",
 		      src, idn2_strerror(res));
@@ -4420,7 +4422,7 @@ idn_ace_to_locale(const char *src, char **dst) {
 	 *
 	 * First, convert 'src' to UTF-8, ignoring the current locale.
 	 */
-	res = idn2_to_unicode_8z8z(src, &utf8_src, 0);
+	res = idn2_to_unicode_8z8z(src, &utf8_src, IDN2_USE_STD3_ASCII_RULES);
 	if (res != IDN2_OK) {
 		fatal("Bad ACE string '%s' (%s), use +noidnout", src,
 		      idn2_strerror(res));
@@ -4429,7 +4431,9 @@ idn_ace_to_locale(const char *src, char **dst) {
 	/*
 	 * Then, check whether decoded 'src' is a valid IDNA2008 name.
 	 */
-	res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_NONTRANSITIONAL);
+	res = idn2_to_ascii_8z(utf8_src, NULL,
+			       IDN2_NONTRANSITIONAL |
+				       IDN2_USE_STD3_ASCII_RULES);
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
 		      src, idn2_strerror(res));
@@ -4439,11 +4443,13 @@ idn_ace_to_locale(const char *src, char **dst) {
 	 * Finally, try converting the decoded 'src' into the current locale's
 	 * character encoding.
 	 */
-	res = idn2_to_unicode_8zlz(utf8_src, &local_src, 0);
+	res = idn2_to_unicode_8zlz(utf8_src, &local_src,
+				   IDN2_USE_STD3_ASCII_RULES);
 	if (res != IDN2_OK) {
 		static bool warned = false;
 
-		res = idn2_to_ascii_8z(utf8_src, &local_src, 0);
+		res = idn2_to_ascii_8z(utf8_src, &local_src,
+				       IDN2_USE_STD3_ASCII_RULES);
 		if (res != IDN2_OK) {
 			fatal("Cannot represent '%s' "
 			      "in the current locale nor ascii (%s), "
