@@ -434,7 +434,7 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl);
  *\li	'resolver' to be valid.
  */
 
-isc_result_t
+void
 dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 			  const dns_name_t *name, in_port_t port);
 /*%<

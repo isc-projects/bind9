@@ -6074,8 +6074,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 				}
 				myport = (in_port_t)val;
 			}
-			CHECK(dns_resolver_addalternate(view->resolver, NULL,
-							name, myport));
+			dns_resolver_addalternate(view->resolver, NULL, name,
+						  myport);
 			continue;
 		}
 
@@ -6083,7 +6083,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		if (isc_sockaddr_getport(&sa) == 0) {
 			isc_sockaddr_setport(&sa, port);
 		}
-		CHECK(dns_resolver_addalternate(view->resolver, &sa, NULL, 0));
+		dns_resolver_addalternate(view->resolver, &sa, NULL, 0);
 	}
 
 cleanup:
