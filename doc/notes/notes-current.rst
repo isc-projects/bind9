@@ -78,6 +78,12 @@ Feature Changes
 
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
+- The default for ``dnssec-dnskey-kskonly`` is changed to ``yes``. This means
+  that DNSKEY, CDNSKEY, and CDS RRsets are now only signed with the KSK by
+  default. The additional signatures from the ZSK that are added if the option
+  is set to ``no`` add to the DNS response payload without offering added value.
+  :gl:`#1316`
+
 Bug Fixes
 ~~~~~~~~~
 
