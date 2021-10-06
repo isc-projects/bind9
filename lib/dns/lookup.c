@@ -90,7 +90,7 @@ start_fetch(dns_lookup_t *lookup) {
 	return (result);
 }
 
-static isc_result_t
+static void
 build_event(dns_lookup_t *lookup) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
@@ -115,8 +115,6 @@ build_event(dns_lookup_t *lookup) {
 	lookup->event->name = name;
 	lookup->event->rdataset = rdataset;
 	lookup->event->sigrdataset = sigrdataset;
-
-	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -216,7 +214,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 
 		switch (result) {
 		case ISC_R_SUCCESS:
-			result = build_event(lookup);
+			build_event(lookup);
 			if (event == NULL) {
 				break;
 			}
