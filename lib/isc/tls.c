@@ -480,7 +480,7 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 	REQUIRE(dhparams_file != NULL);
 	REQUIRE(*dhparams_file != '\0');
 
-#ifdef SSL_CTX_set_tmp_dh
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	/* OpenSSL < 3.0 */
 	DH *dh = NULL;
 	FILE *paramfile;
@@ -509,7 +509,7 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 
 	DH_free(dh);
 #else
-	/* OpenSSL >= 3.0: SSL_CTX_set_tmp_dh() is deprecated in OpenSSL 3.0 */
+	/* OpenSSL >= 3.0: low level DH APIs are deprecated in OpenSSL 3.0 */
 	EVP_PKEY *dh = NULL;
 	BIO *bio = NULL;
 
@@ -534,7 +534,7 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 	 * SSL context at this point. */
 
 	BIO_free(bio);
-#endif
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	return (true);
 }
