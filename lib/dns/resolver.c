@@ -408,8 +408,8 @@ struct fetchctx {
 	/*%
 	 * Fetch-local statistics for detailed logging.
 	 */
-	isc_result_t result;  /*%< fetch result  */
-	isc_result_t vresult; /*%< validation result  */
+	isc_result_t result;  /*%< fetch result */
+	isc_result_t vresult; /*%< validation result */
 	int exitline;
 	isc_time_t start;
 	uint64_t duration;
@@ -1786,7 +1786,7 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	case ISC_R_NOPERM:
 	case ISC_R_ADDRNOTAVAIL:
 	case ISC_R_CONNREFUSED:
-		/* No route to remote.  */
+		/* No route to remote. */
 		FCTXTRACE3("query canceled in resquery_senddone(): "
 			   "no route to host; no response",
 			   eresult);
@@ -3209,20 +3209,51 @@ sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
 	*findlist = sorted;
 }
 
+/*
+ * Return true iff the ADB find has a pending fetch for 'type'.  This is
+ * used to find out whether we're in a loop, where a fetch is waiting for a
+ * find which is waiting for that same fetch.
+ *
+ * Note: This could be done with either an equivalence check (e.g.,
+ * query_pending == DNS_ADBFIND_INET) or with a bit check, as below.  If
+ * we checked for equivalence, that would mean we could only detect a loop
+ * when there is exactly one pending fetch, and we're it. If there were
+ * pending fetches for *both* address families, then a loop would be
+ * undetected.
+ *
+ * However, using a bit check means that in theory, an ADB find might be
+ * aborted that could have succeeded, if the other fetch had returned an
+ * answer.
+ *
+ * Since there's a good chance the server is broken and won't answer either
+ * query, and since an ADB find with two pending fetches is a very rare
+ * occurrance anyway, we regard this theoretical SERVFAIL as the lesser
+ * evil.
+ */
+static inline bool
+waiting_for(dns_adbfind_t *find, dns_rdatatype_t type) {
+	switch (type) {
+	case dns_rdatatype_a:
+		return ((find->query_pending & DNS_ADBFIND_INET) != 0);
+	case dns_rdatatype_aaaa:
+		return ((find->query_pending & DNS_ADBFIND_INET6) != 0);
+	default:
+		return (false);
+	}
+}
+
 static void
 findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 unsigned int options, unsigned int flags, isc_stdtime_t now,
 	 bool *overquota, bool *need_alternate, unsigned int *no_addresses) {
-	dns_adbaddrinfo_t *ai;
-	dns_adbfind_t *find;
-	dns_resolver_t *res;
-	bool unshared;
+	dns_adbaddrinfo_t *ai = NULL;
+	dns_adbfind_t *find = NULL;
+	dns_resolver_t *res = fctx->res;
+	bool unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	isc_result_t result;
-	fetchctx_t *ev_fctx = NULL;
 
 	FCTXTRACE("FINDNAME");
-	res = fctx->res;
-	unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
+
 	/*
 	 * If this name is a subdomain of the query domain, tell
 	 * the ADB to start looking using zone/hint data. This keeps us
@@ -3239,11 +3270,10 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	/*
 	 * See what we know about this address.
 	 */
-	find = NULL;
-	fctx_attach(fctx, &ev_fctx);
+	fctx_attach(fctx, &(fetchctx_t *){ NULL });
 	result = dns_adb_createfind(
 		fctx->adb, res->buckets[fctx->bucketnum].task, fctx_finddone,
-		ev_fctx, name, fctx->name, fctx->type, options, now, NULL,
+		fctx, name, fctx->name, fctx->type, options, now, NULL,
 		res->view->dstport, fctx->depth + 1, fctx->qc, &find);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
@@ -3267,7 +3297,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				      "is a CNAME, while resolving '%s'",
 				      namebuf, fctx->info);
 		}
-		fctx_detach(&ev_fctx);
+		fctx_detach(&fctx);
 		return;
 	}
 
@@ -3298,12 +3328,33 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 
 	/*
 	 * We don't know any of the addresses for this name.
+	 *
+	 * The find may be waiting on a resolver fetch for a server
+	 * address. We need to make sure it isn't waiting on *this*
+	 * fetch, because if it is, we won't be answering it and it
+	 * won't be answering us.
+	 */
+	if (waiting_for(find, fctx->type) && dns_name_equal(name, fctx->name)) {
+		fctx->adberr++;
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "loop detected resolving '%s'", fctx->info);
+
+		if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+			atomic_fetch_add_relaxed(&fctx->pending, 1);
+			dns_adb_cancelfind(find);
+		} else {
+			dns_adb_destroyfind(&find);
+			fctx_detach(&fctx);
+		}
+		return;
+	}
+
+	/*
+	 * We may be waiting for another fetch to complete, and
+	 * we'll get an event later when the find has what it needs.
 	 */
 	if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		/*
-		 * We're looking for them and will get an
-		 * event about it later.
-		 */
 		atomic_fetch_add_relaxed(&fctx->pending, 1);
 
 		/*
@@ -3323,17 +3374,18 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 		return;
 	}
 
+	/*
+	 * No addresses and no pending events: the find failed.
+	 */
 	if ((find->options & DNS_ADBFIND_OVERQUOTA) != 0) {
 		if (overquota != NULL) {
 			*overquota = true;
 		}
 		fctx->quotacount++; /* quota exceeded */
 	} else if ((find->options & DNS_ADBFIND_LAMEPRUNED) != 0) {
-		fctx->lamecount++; /* cached lame server
-				    */
+		fctx->lamecount++; /* cached lame server */
 	} else {
-		fctx->adberr++; /* unreachable server,
-				   etc. */
+		fctx->adberr++; /* unreachable server, etc. */
 	}
 
 	/*
@@ -3347,7 +3399,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 		*need_alternate = true;
 	}
 	dns_adb_destroyfind(&find);
-	fctx_detach(&ev_fctx);
+	fctx_detach(&fctx);
 }
 
 static bool
