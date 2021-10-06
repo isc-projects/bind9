@@ -1,3 +1,6 @@
+5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
+			[GL #2935]
+
 5727.	[bug]		Ignore the missing zones when doing a reload on a
 			catalog zone, and make sure to restore them later on.
 			[GL #2308]
