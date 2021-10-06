@@ -3456,6 +3456,38 @@ isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle) {
 	return (handle->sock->type == isc_nm_tlsdnssocket);
 }
 
+void
+isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(!atomic_load(&handle->sock->client));
+
+	sock = handle->sock;
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httpsocket:
+		isc__nm_http_set_maxage(handle, ttl);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_udpsocket:
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		return;
+		break;
+
+	case isc_nm_tcpsocket:
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	}
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

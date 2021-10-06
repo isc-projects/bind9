@@ -622,6 +622,20 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle);
  */
 
 void
+isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
+/*%<
+ * Set the minimal time to live from the server's response Answer
+ * section as a hint to the underlying transport.
+ *
+ * NOTE: The function currently is no-op for any protocol except HTTP/2.
+ *
+ * Requires:
+ *
+ * \li 'handle' is a valid netmgr handle object associated with an accepted
+ * connection.
+ */
+
+void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
 /*%<
  * Enqueue the 'task' onto the netmgr ievents queue.

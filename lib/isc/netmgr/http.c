@@ -32,7 +32,12 @@
 
 #define DNS_MEDIA_TYPE "application/dns-message"
 
-#define DEFAULT_CACHE_CONTROL "no-cache, no-store"
+/*
+ * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+ * for additional details. Basically it means "avoid caching by any
+ * means."
+ */
+#define DEFAULT_CACHE_CONTROL "no-cache, no-store, must-revalidate"
 
 /*
  * If server during request processing surpasses any of the limits
@@ -1952,6 +1957,9 @@ server_send_error_response(const isc_http_error_responses_t error,
 		isc_buffer_initnull(&socket->h2.rbuf);
 	}
 
+	/* We do not want the error response to be cached anywhere. */
+	socket->h2.min_ttl = 0;
+
 	for (size_t i = 0;
 	     i < sizeof(error_responses) / sizeof(error_responses[0]); i++)
 	{
@@ -2144,7 +2152,7 @@ client_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 static void
 server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 		isc__nm_uvreq_t *req) {
-	size_t len;
+	size_t content_len_buf_len, cache_control_buf_len;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nm_cb_t cb = req->cb.send;
 	void *cbarg = req->cbarg;
@@ -2161,18 +2169,27 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc_buffer_init(&sock->h2.wbuf, req->uvbuf.base, req->uvbuf.len);
 	isc_buffer_add(&sock->h2.wbuf, req->uvbuf.len);
 
-	len = snprintf(sock->h2.clenbuf, sizeof(sock->h2.clenbuf), "%lu",
-		       (unsigned long)req->uvbuf.len);
-	const nghttp2_nv hdrs[] = {
-		MAKE_NV2(":status", "200"),
-		MAKE_NV2("Content-Type", DNS_MEDIA_TYPE),
-		MAKE_NV("Content-Length", sock->h2.clenbuf, len),
-		/*
-		 * TODO: implement Cache-Control: max-age=<seconds>
-		 * (https://tools.ietf.org/html/rfc8484#section-5.1)
-		 */
-		MAKE_NV2("cache-control", DEFAULT_CACHE_CONTROL)
-	};
+	content_len_buf_len = snprintf(sock->h2.clenbuf,
+				       sizeof(sock->h2.clenbuf), "%lu",
+				       (unsigned long)req->uvbuf.len);
+	if (sock->h2.min_ttl == 0) {
+		cache_control_buf_len =
+			snprintf(sock->h2.cache_control_buf,
+				 sizeof(sock->h2.cache_control_buf), "%s",
+				 DEFAULT_CACHE_CONTROL);
+	} else {
+		cache_control_buf_len =
+			snprintf(sock->h2.cache_control_buf,
+				 sizeof(sock->h2.cache_control_buf),
+				 "max-age=%" PRIu32, sock->h2.min_ttl);
+	}
+	const nghttp2_nv hdrs[] = { MAKE_NV2(":status", "200"),
+				    MAKE_NV2("Content-Type", DNS_MEDIA_TYPE),
+				    MAKE_NV("Content-Length", sock->h2.clenbuf,
+					    content_len_buf_len),
+				    MAKE_NV("Cache-Control",
+					    sock->h2.cache_control_buf,
+					    cache_control_buf_len) };
 
 	result = server_send_response(handle->httpsession->ngsession,
 				      sock->h2.stream_id, hdrs,
@@ -2836,6 +2853,23 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	return (handle->sock->type == isc_nm_httpsocket);
+}
+
+void
+isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
+	isc_nm_http_session_t *session;
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+	session = sock->h2.session;
+
+	INSIST(VALID_HTTP2_SESSION(session));
+	INSIST(!session->client);
+
+	sock->h2.min_ttl = ttl;
 }
 
 static const bool base64url_validation_table[256] = {
