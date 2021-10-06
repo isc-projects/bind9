@@ -1288,14 +1288,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			RETERR(named_config_getipandkeylist(config, "primaries",
 							    obj, mctx, &ipkl));
-			result = dns_zone_setalsonotify(zone, ipkl.addrs,
-							ipkl.dscps, ipkl.keys,
-							ipkl.tlss, ipkl.count);
+			dns_zone_setalsonotify(zone, ipkl.addrs, ipkl.dscps,
+					       ipkl.keys, ipkl.tlss,
+					       ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
 		} else {
-			RETERR(dns_zone_setalsonotify(zone, NULL, NULL, NULL,
-						      NULL, 0));
+			dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0);
 		}
 
 		obj = NULL;
@@ -1723,14 +1721,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_init(&ipkl);
 			RETERR(named_config_getipandkeylist(
 				config, "parental-agents", obj, mctx, &ipkl));
-			result = dns_zone_setparentals(zone, ipkl.addrs,
-						       ipkl.keys, ipkl.tlss,
-						       ipkl.count);
+			dns_zone_setparentals(zone, ipkl.addrs, ipkl.keys,
+					      ipkl.tlss, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
 		} else {
-			RETERR(dns_zone_setparentals(zone, NULL, NULL, NULL,
-						     0));
+			dns_zone_setparentals(zone, NULL, NULL, NULL, 0);
 		}
 	}
 
@@ -1906,17 +1901,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			RETERR(named_config_getipandkeylist(config, "primaries",
 							    obj, mctx, &ipkl));
-			result = dns_zone_setprimaries(mayberaw, ipkl.addrs,
-						       ipkl.keys, ipkl.tlss,
-						       ipkl.count);
+			dns_zone_setprimaries(mayberaw, ipkl.addrs, ipkl.keys,
+					      ipkl.tlss, ipkl.count);
 			count = ipkl.count;
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
 		} else {
-			result = dns_zone_setprimaries(mayberaw, NULL, NULL,
-						       NULL, 0);
+			dns_zone_setprimaries(mayberaw, NULL, NULL, NULL, 0);
 		}
-		RETERR(result);
 
 		multi = false;
 		if (count > 1) {
