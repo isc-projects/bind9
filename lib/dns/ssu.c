@@ -57,7 +57,7 @@ struct dns_ssutable {
 	ISC_LIST(dns_ssurule_t) rules;
 };
 
-isc_result_t
+void
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	dns_ssutable_t *table;
 
@@ -71,7 +71,6 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	ISC_LIST_INIT(table->rules);
 	table->magic = SSUTABLEMAGIC;
 	*tablep = table;
-	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -129,7 +128,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep) {
 	}
 }
 
-isc_result_t
+void
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
@@ -177,8 +176,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 
 	rule->magic = SSURULEMAGIC;
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
-
-	return (ISC_R_SUCCESS);
 }
 
 static inline bool
@@ -599,19 +596,15 @@ dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
 /*
  * Create a specialised SSU table that points at an external DLZ database
  */
-isc_result_t
+void
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 		       dns_dlzdb_t *dlzdatabase) {
-	isc_result_t result;
 	dns_ssurule_t *rule;
 	dns_ssutable_t *table = NULL;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
 
-	result = dns_ssutable_create(mctx, &table);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_ssutable_create(mctx, &table);
 
 	table->dlzdatabase = dlzdatabase;
 
@@ -627,7 +620,6 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
 	*tablep = table;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

@@ -202,7 +202,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	bool autoddns = false;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
 
@@ -218,10 +218,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		updatepolicy = NULL;
 	}
 
-	result = dns_ssutable_create(mctx, &table);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_ssutable_create(mctx, &table);
 
 	for (element = cfg_list_first(updatepolicy); element != NULL;
 	     element = cfg_list_next(element))
@@ -342,14 +339,11 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 		INSIST(i == n);
 
-		result = dns_ssutable_addrule(
-			table, grant, dns_fixedname_name(&fident), mtype,
-			dns_fixedname_name(&fname), n, types);
+		dns_ssutable_addrule(table, grant, dns_fixedname_name(&fident),
+				     mtype, dns_fixedname_name(&fname), n,
+				     types);
 		if (types != NULL) {
 			isc_mem_put(mctx, types, n * sizeof(*types));
-		}
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
 		}
 	}
 
@@ -371,17 +365,12 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			goto cleanup;
 		}
 
-		result = dns_ssutable_addrule(
-			table, true, named_g_server->session_keyname,
-			dns_ssumatchtype_local, dns_zone_getorigin(zone), 1,
-			&any);
-
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_ssutable_addrule(table, true,
+				     named_g_server->session_keyname,
+				     dns_ssumatchtype_local,
+				     dns_zone_getorigin(zone), 1, &any);
 	}
 
-	result = ISC_R_SUCCESS;
 	dns_zone_setssutable(zone, table);
 
 cleanup:

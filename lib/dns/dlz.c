@@ -464,11 +464,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	dns_zone_setadded(zone, true);
 
 	if (dlzdb->ssutable == NULL) {
-		result = dns_ssutable_createdlz(dlzdb->mctx, &dlzdb->ssutable,
-						dlzdb);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_ssutable_createdlz(dlzdb->mctx, &dlzdb->ssutable, dlzdb);
 	}
 	dns_zone_setssutable(zone, dlzdb->ssutable);
 
