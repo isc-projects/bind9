@@ -253,6 +253,7 @@ zone "sync.example" {
 	type primary;
 	file "sync.example.db";
 	allow-update { any; };
+	dnssec-dnskey-kskonly no;
 	auto-dnssec maintain;
 };
 

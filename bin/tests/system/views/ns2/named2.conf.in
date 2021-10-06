@@ -62,6 +62,7 @@ view "internal" {
 		key-directory "internal";
 		auto-dnssec maintain;
 		inline-signing yes;
+		dnssec-dnskey-kskonly no;
 	};
 };
 
@@ -94,5 +95,6 @@ view "external" {
 		key-directory "external";
 		auto-dnssec maintain;
 		inline-signing yes;
+		dnssec-dnskey-kskonly no;
 	};
 };

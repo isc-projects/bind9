@@ -48,4 +48,5 @@ zone "inline" {
 	key-directory "external";
 	auto-dnssec maintain;
 	inline-signing yes;
+	dnssec-dnskey-kskonly no;
 };
