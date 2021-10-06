@@ -18,6 +18,7 @@
 #include <isc/iterated_hash.h>
 #include <isc/md.h>
 #include <isc/nonce.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -34,7 +35,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/zone.h>
 
 #include <dst/dst.h>

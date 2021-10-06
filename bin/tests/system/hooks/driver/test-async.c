@@ -27,8 +27,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
-
 #include <ns/client.h>
 #include <ns/events.h>
 #include <ns/hooks.h>

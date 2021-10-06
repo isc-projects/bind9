@@ -39,7 +39,6 @@ check_PROGRAMS =		\
 	rdataset_test		\
 	rdatasetstats_test	\
 	resolver_test		\
-	result_test		\
 	rsa_test		\
 	sigs_test		\
 	time_test		\

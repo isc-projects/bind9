@@ -23,6 +23,7 @@
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
@@ -38,7 +39,6 @@
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
 
 #include "dighost.h"

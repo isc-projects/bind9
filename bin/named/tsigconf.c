@@ -16,10 +16,10 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/tsig.h>
 
 #include <isccfg/cfg.h>

@@ -25,6 +25,7 @@
 #include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/task.h>
@@ -52,7 +53,6 @@
 #include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/rpz.h>
 #include <dns/rrl.h>
 #include <dns/stats.h>

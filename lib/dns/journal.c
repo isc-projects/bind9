@@ -19,6 +19,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -33,7 +34,6 @@
 #include <dns/log.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/soa.h>
 
 /*! \file

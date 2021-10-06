@@ -22,6 +22,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -31,7 +32,6 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
@@ -156,8 +156,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	isc_commandline_errprint = false;
 

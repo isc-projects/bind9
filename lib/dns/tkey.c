@@ -26,6 +26,7 @@
 #include <isc/nonce.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -95,7 +96,7 @@ dumpmessage(dns_message_t *msg) {
 				 (char *)isc_buffer_base(&outbuf));
 		} else {
 			tkey_log("Warning: dns_message_totext: %s",
-				 dns_result_totext(result));
+				 isc_result_totext(result));
 		}
 		break;
 	}
@@ -1221,7 +1222,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	}
 
 	if (rmsg->rcode != dns_rcode_noerror) {
-		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
+		return (dns_result_fromrcode(rmsg->rcode));
 	}
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, NULL));
@@ -1349,7 +1350,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	}
 
 	if (rmsg->rcode != dns_rcode_noerror) {
-		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
+		return (dns_result_fromrcode(rmsg->rcode));
 	}
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, NULL));
@@ -1422,7 +1423,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(rmsg != NULL);
 
 	if (rmsg->rcode != dns_rcode_noerror) {
-		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
+		return (dns_result_fromrcode(rmsg->rcode));
 	}
 
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
@@ -1485,7 +1486,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	}
 
 	if (rmsg->rcode != dns_rcode_noerror) {
-		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
+		return (dns_result_fromrcode(rmsg->rcode));
 	}
 
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));

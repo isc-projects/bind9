@@ -26,6 +26,7 @@
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/task.h>
@@ -40,7 +41,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/stats.h>
 
 #define DNS_ADB_MAGIC		 ISC_MAGIC('D', 'a', 'd', 'b')
@@ -3825,6 +3825,8 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 			adbname->fetch6_err = FIND_ERR_SUCCESS;
 		}
 		break;
+	default:
+		break;
 	}
 
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -3976,7 +3978,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		dns_name_format(&name->name, buf, sizeof(buf));
 		DP(DEF_LEVEL, "adb: fetch of '%s' %s failed: %s", buf,
 		   address_type == DNS_ADBFIND_INET ? "A" : "AAAA",
-		   dns_result_totext(dev->result));
+		   isc_result_totext(dev->result));
 		/*
 		 * Don't record a failure unless this is the initial
 		 * fetch of a chain.

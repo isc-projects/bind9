@@ -13,12 +13,12 @@
 
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
 #include <dns/forward.h>
 #include <dns/rbt.h>
-#include <dns/result.h>
 #include <dns/types.h>
 
 struct dns_fwdtable {

@@ -18,6 +18,7 @@
 #include <isc/file.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
@@ -26,7 +27,6 @@
 #include <dns/name.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
-#include <dns/result.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>

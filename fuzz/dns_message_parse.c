@@ -18,11 +18,11 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/message.h>
-#include <dns/result.h>
 
 #include "fuzz.h"
 

@@ -48,6 +48,7 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/safe.h>
 #include <isc/serial.h>
@@ -76,7 +77,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/time.h>
 #include <dns/update.h>
@@ -455,6 +455,8 @@ expecttofindkey(dns_name_t *name) {
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
 		return (false);
+	default:
+		break;
 	}
 	dns_name_format(name, namestr, sizeof(namestr));
 	fatal("failure looking for '%s DNSKEY' in database: %s", namestr,
@@ -3389,8 +3391,6 @@ main(int argc, char *argv[]) {
 	check_result(isc_app_start(), "isc_app_start");
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	isc_commandline_errprint = false;
 

@@ -21,6 +21,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/siphash.h>
 #include <isc/stats.h>
 #include <isc/string.h>
@@ -56,7 +57,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/stats.h>
 #include <dns/tsig.h>
@@ -3107,7 +3107,7 @@ add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	isc_log_write(
 		dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS, DNS_LOGMODULE_RESOLVER,
 		ISC_LOG_INFO, "%s%s%s resolving '%s/%s/%s': %s", code, spc,
-		dns_result_totext(reason), namebuf, typebuf, classbuf, addrbuf);
+		isc_result_totext(reason), namebuf, typebuf, classbuf, addrbuf);
 }
 
 /*

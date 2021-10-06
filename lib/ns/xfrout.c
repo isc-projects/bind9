@@ -15,6 +15,7 @@
 #include <isc/formatcheck.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/util.h>
 
@@ -29,7 +30,6 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/rriterator.h>
 #include <dns/soa.h>
 #include <dns/stats.h>

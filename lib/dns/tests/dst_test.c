@@ -24,12 +24,12 @@
 
 #include <isc/file.h>
 #include <isc/hex.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #include "../dst_internal.h"
 #include "dnstest.h"

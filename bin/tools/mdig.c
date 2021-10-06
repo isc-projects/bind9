@@ -29,6 +29,7 @@
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -46,11 +47,8 @@
 #include <dns/rdatatype.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/view.h>
-
-#include <dst/result.h>
 
 #include <bind9/getaddresses.h>
 
@@ -2074,8 +2072,6 @@ main(int argc, char *argv[]) {
 	int ns;
 
 	RUNCHECK(isc_app_start());
-
-	dns_result_register();
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 		have_ipv4 = true;

@@ -18,11 +18,11 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/message.h>
-#include <dns/result.h>
 
 int parseflags = 0;
 isc_mem_t *mctx = NULL;
@@ -38,7 +38,7 @@ printmessage(dns_message_t *msg);
 static inline void
 CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
-		printf("%s: %s\n", msg, dns_result_totext(result));
+		printf("%s: %s\n", msg, isc_result_totext(result));
 
 		exit(1);
 	}

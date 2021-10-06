@@ -22,13 +22,12 @@
 #endif
 
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_openssl.h"

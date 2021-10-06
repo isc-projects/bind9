@@ -18,12 +18,12 @@
 
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/time.h>
 
 static const int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };

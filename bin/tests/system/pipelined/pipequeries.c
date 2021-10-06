@@ -26,6 +26,7 @@
 #include <isc/netmgr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>
 #include <isc/util.h>
@@ -41,8 +42,6 @@
 #include <dns/result.h>
 #include <dns/types.h>
 #include <dns/view.h>
-
-#include <dst/result.h>
 
 #define CHECK(str, x)                                        \
 	{                                                    \
@@ -93,7 +92,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_request_getresponse", result);
 
 	if (response->rcode != dns_rcode_noerror) {
-		result = ISC_RESULTCLASS_DNSRCODE + response->rcode;
+		result = dns_result_fromrcode(response->rcode);
 		fprintf(stderr, "I:response rcode: %s\n",
 			isc_result_totext(result));
 		exit(-1);
@@ -242,8 +241,6 @@ main(int argc, char *argv[]) {
 	if (argc > 0) {
 		have_src = true;
 	}
-
-	dns_result_register();
 
 	isc_sockaddr_any(&bind_any);
 

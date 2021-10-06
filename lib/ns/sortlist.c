@@ -12,11 +12,11 @@
 /*! \file */
 
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/message.h>
-#include <dns/result.h>
 
 #include <ns/server.h>
 #include <ns/sortlist.h>

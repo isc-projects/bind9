@@ -398,7 +398,7 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 		if (debug && result != ISC_R_SUCCESS) {
 			fprintf(stdout, "# '%s'\n", text_ok->text_in);
 			fprintf(stdout, "# result=%s\n",
-				dns_result_totext(result));
+				isc_result_totext(result));
 		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 	} else {
@@ -425,7 +425,7 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS && debug) {
 		size_t i;
 		fprintf(stdout, "# dns_rdata_totext -> %s",
-			dns_result_totext(result));
+			isc_result_totext(result));
 		for (i = 0; i < rdata.length; i++) {
 			if ((i % 16) == 0) {
 				fprintf(stdout, "\n#");
@@ -528,7 +528,7 @@ check_text_conversions(dns_rdata_t *rdata) {
 					  buf_fromtext, sizeof(buf_fromtext),
 					  buf_totext, false);
 	if (debug && result != ISC_R_SUCCESS) {
-		fprintf(stdout, "# result = %s\n", dns_result_totext(result));
+		fprintf(stdout, "# result = %s\n", isc_result_totext(result));
 		fprintf(stdout, "# '%s'\n", buf_fromtext);
 	}
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -809,7 +809,7 @@ check_textvsunknown_single(const textvsunknown_t *textvsunknown,
 					  false);
 	if (debug && result != ISC_R_SUCCESS) {
 		fprintf(stdout, "# '%s'\n", textvsunknown->text1);
-		fprintf(stdout, "# result=%s\n", dns_result_totext(result));
+		fprintf(stdout, "# result=%s\n", isc_result_totext(result));
 	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_test_rdatafromstring(&rdata2, rdclass, type, buf2,
@@ -817,7 +817,7 @@ check_textvsunknown_single(const textvsunknown_t *textvsunknown,
 					  false);
 	if (debug && result != ISC_R_SUCCESS) {
 		fprintf(stdout, "# '%s'\n", textvsunknown->text2);
-		fprintf(stdout, "# result=%s\n", dns_result_totext(result));
+		fprintf(stdout, "# result=%s\n", isc_result_totext(result));
 	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 	if (debug && rdata1.length != rdata2.length) {

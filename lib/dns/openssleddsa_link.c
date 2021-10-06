@@ -31,8 +31,6 @@
 
 #include <dns/keyvalues.h>
 
-#include <dst/result.h>
-
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"

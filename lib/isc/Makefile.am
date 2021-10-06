@@ -78,7 +78,6 @@ libisc_la_HEADERS =			\
 	include/isc/region.h		\
 	include/isc/resource.h		\
 	include/isc/result.h		\
-	include/isc/resultclass.h	\
 	include/isc/rwlock.h		\
 	include/isc/safe.h		\
 	include/isc/serial.h		\

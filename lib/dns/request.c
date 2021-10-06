@@ -17,6 +17,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
+#include <isc/result.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -29,7 +30,6 @@
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
 #include <dns/request.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
 
 #define REQUESTMGR_MAGIC      ISC_MAGIC('R', 'q', 'u', 'M')
@@ -619,7 +619,7 @@ cleanup:
 	}
 	req_detach(&request);
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw: failed %s",
-		dns_result_totext(result));
+		isc_result_totext(result));
 	return (result);
 }
 
@@ -792,7 +792,7 @@ cleanup:
 	}
 	req_detach(&request);
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: failed %s",
-		dns_result_totext(result));
+		isc_result_totext(result));
 	return (result);
 }
 
@@ -1055,7 +1055,7 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 
 	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
-		dns_result_totext(result));
+		isc_result_totext(result));
 
 	if (result == ISC_R_CANCELED || result == ISC_R_EOF) {
 		return;

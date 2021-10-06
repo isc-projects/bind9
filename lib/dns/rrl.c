@@ -24,13 +24,13 @@
 #include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/rrl.h>
 #include <dns/view.h>
 
@@ -1113,7 +1113,7 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 			}
 		}
 		UNLOCK(&rrl->lock);
-		return (ISC_R_SUCCESS);
+		return (DNS_RRL_RESULT_OK);
 	}
 
 	/*

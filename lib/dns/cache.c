@@ -17,6 +17,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -33,7 +34,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/stats.h>
 
 #ifdef HAVE_JSON_C
@@ -467,7 +467,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_task_create() failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -481,7 +481,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: "
 					 "isc_task_onshutdown() failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 			goto cleanup;
 		}
 
@@ -548,7 +548,7 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: "
 					 "dns_dbiterator_first() failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 			dns_dbiterator_destroy(&cleaner->iterator);
 		} else if (cleaner->iterator != NULL) {
 			result = dns_dbiterator_pause(cleaner->iterator);
@@ -689,7 +689,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 					 "cache cleaner: "
 					 "dns_dbiterator_current() "
 					 "failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 
 			end_cleaning(cleaner, event);
 			return;
@@ -718,7 +718,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 						 "cache cleaner: "
 						 "dns_dbiterator_next() "
 						 "failed: %s",
-						 dns_result_totext(result));
+						 isc_result_totext(result));
 			} else if (cleaner->overmem) {
 				result =
 					dns_dbiterator_first(cleaner->iterator);
@@ -793,7 +793,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: dns_db_expirenode() "
 					 "failed: %s",
-					 dns_result_totext(result));
+					 isc_result_totext(result));
 			/*
 			 * Continue anyway.
 			 */

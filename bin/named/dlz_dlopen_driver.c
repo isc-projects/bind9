@@ -23,7 +23,6 @@
 
 #include <dns/dlz_dlopen.h>
 #include <dns/log.h>
-#include <dns/result.h>
 
 #include <dlz/dlz_dlopen_driver.h>
 #include <named/globals.h>

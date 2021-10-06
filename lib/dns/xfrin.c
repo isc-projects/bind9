@@ -18,6 +18,7 @@
 #include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -1295,7 +1296,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 				      xfr->mctx);
 	} else {
 		xfrin_log(xfr, ISC_LOG_DEBUG(10), "dns_message_parse: %s",
-			  dns_result_totext(result));
+			  isc_result_totext(result));
 	}
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
@@ -1304,7 +1305,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	{
 		if (result == ISC_R_SUCCESS && msg->rcode != dns_rcode_noerror)
 		{
-			result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /*XXX*/
+			result = dns_result_fromrcode(msg->rcode);
 		} else if (result == ISC_R_SUCCESS &&
 			   msg->opcode != dns_opcode_query) {
 			result = DNS_R_UNEXPECTEDOPCODE;

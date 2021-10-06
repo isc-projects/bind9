@@ -18,13 +18,13 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/diff.h>
-#include <dns/result.h>
 #include <dns/zone.h>
 
 typedef struct {

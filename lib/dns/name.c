@@ -22,6 +22,7 @@
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -29,7 +30,6 @@
 #include <dns/compress.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
-#include <dns/result.h>
 
 #define VALID_NAME(n) ISC_MAGIC_VALID(n, DNS_NAME_MAGIC)
 

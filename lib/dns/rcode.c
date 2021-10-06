@@ -31,7 +31,6 @@
 #include <dns/keyvalues.h>
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/secproto.h>
 

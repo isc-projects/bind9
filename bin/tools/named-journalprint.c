@@ -17,11 +17,11 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/journal.h>
 #include <dns/log.h>
-#include <dns/result.h>
 #include <dns/types.h>
 
 const char *progname = NULL;
@@ -123,7 +123,7 @@ main(int argc, char **argv) {
 	} else {
 		result = dns_journal_print(mctx, flags, file, stdout);
 		if (result == DNS_R_NOJOURNAL) {
-			fprintf(stderr, "%s\n", dns_result_totext(result));
+			fprintf(stderr, "%s\n", isc_result_totext(result));
 		}
 	}
 	isc_log_destroy(&lctx);

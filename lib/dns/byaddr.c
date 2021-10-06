@@ -16,6 +16,7 @@
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -28,7 +29,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/view.h>
 
 /*

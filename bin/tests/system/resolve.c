@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -42,7 +43,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
@@ -471,7 +471,7 @@ main(int argc, char *argv[]) {
 				    resopt, &namelist);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "resolution failed: %s\n",
-			dns_result_totext(result));
+			isc_result_totext(result));
 	}
 	for (name = ISC_LIST_HEAD(namelist); name != NULL;
 	     name = ISC_LIST_NEXT(name, link))

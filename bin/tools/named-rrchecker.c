@@ -18,6 +18,7 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -26,7 +27,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 
 static isc_mem_t *mctx;
 static isc_lex_t *lex;
@@ -175,7 +175,7 @@ main(int argc, char *argv[]) {
 		result = dns_name_fromstring(name, origin, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_name_fromstring: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 	}
 
@@ -209,7 +209,7 @@ main(int argc, char *argv[]) {
 				&rdclass, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdataclass_fromtext: %s",
-				      dns_result_totext(result));
+				      isc_result_totext(result));
 			}
 			if (dns_rdataclass_ismeta(rdclass)) {
 				fatal("class %.*s(%d) is a meta value",
@@ -250,7 +250,7 @@ main(int argc, char *argv[]) {
 				&rdtype, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdatatype_fromtext: %s",
-				      dns_result_totext(result));
+				      isc_result_totext(result));
 			}
 			if (dns_rdatatype_ismeta(rdtype)) {
 				fatal("type %.*s(%d) is a meta value",
@@ -266,7 +266,7 @@ main(int argc, char *argv[]) {
 					    0, mctx, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_fromtext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		once = true;
 	}
@@ -282,19 +282,19 @@ main(int argc, char *argv[]) {
 		result = dns_rdataclass_totext(rdclass, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdataclass_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdatatype_totext(rdtype, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdatatype_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_totext(&rdata, NULL, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 
 		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);
@@ -306,13 +306,13 @@ main(int argc, char *argv[]) {
 		result = dns_rdataclass_tounknowntext(rdclass, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdataclass_tounknowntext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdatatype_tounknowntext(rdtype, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdatatype_tounknowntext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_tofmttext(&rdata, NULL,
@@ -320,7 +320,7 @@ main(int argc, char *argv[]) {
 					     "", &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_tofmttext: %sn",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 
 		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);

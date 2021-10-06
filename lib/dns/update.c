@@ -19,6 +19,7 @@
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
@@ -46,7 +47,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/stats.h>

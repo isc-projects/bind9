@@ -52,42 +52,11 @@ isc_result_totext_test(void **state) {
 	assert_string_equal("failure", str);
 }
 
-/* check tables are populated */
-static void
-tables(void **state) {
-	const char *str;
-	isc_result_t result;
-
-	UNUSED(state);
-
-	for (result = 0; result < ISC_R_NRESULTS; result++) {
-		str = isc_result_toid(result);
-		assert_non_null(str);
-		assert_string_not_equal(str, "(result code text not "
-					     "available)");
-
-		str = isc_result_totext(result);
-		assert_non_null(str);
-		assert_string_not_equal(str, "(result code text not "
-					     "available)");
-		fprintf(stderr, "%u < %u\n", result, (unsigned)ISC_R_NRESULTS);
-	}
-
-	str = isc_result_toid(result);
-	assert_non_null(str);
-	assert_string_equal(str, "(result code text not available)");
-
-	str = isc_result_totext(result);
-	assert_non_null(str);
-	assert_string_equal(str, "(result code text not available)");
-}
-
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_result_toid_test),
 		cmocka_unit_test(isc_result_totext_test),
-		cmocka_unit_test(tables),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));

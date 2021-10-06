@@ -23,12 +23,12 @@
 #include <cmocka.h>
 
 #include <isc/hex.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/nsec3.h>
-#include <dns/result.h>
 
 #include "../zone_p.h"
 #include "dnstest.h"

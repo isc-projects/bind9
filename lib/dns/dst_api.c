@@ -47,6 +47,8 @@
 
 #define DST_KEY_INTERNAL
 
+#include <isc/result.h>
+
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/name.h>
@@ -54,8 +56,6 @@
 #include <dns/rdataclass.h>
 #include <dns/ttl.h>
 #include <dns/types.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 
@@ -189,8 +189,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	REQUIRE(!dst_initialized);
 
 	UNUSED(engine);
-
-	dst_result_register();
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));

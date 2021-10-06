@@ -35,6 +35,7 @@
 #include <isc/netmgr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/string.h>
@@ -55,12 +56,10 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/view.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #include <isccfg/log.h>
 #include <isccfg/namedconf.h>
@@ -1735,8 +1734,6 @@ main(int argc, char *argv[]) {
 	argv++;
 
 	isc_mem_create(&mctx);
-
-	dns_result_register();
 
 	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS) {

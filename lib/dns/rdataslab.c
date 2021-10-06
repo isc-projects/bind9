@@ -16,13 +16,13 @@
 
 #include <isc/mem.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
-#include <dns/result.h>
 
 /*
  * The rdataslab structure allows iteration to occur in both load order

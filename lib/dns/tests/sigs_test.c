@@ -38,7 +38,6 @@
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/zone.h>
 

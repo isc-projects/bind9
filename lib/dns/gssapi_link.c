@@ -29,11 +29,11 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dst/gssapi.h>
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"

@@ -33,7 +33,6 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/view.h>
 

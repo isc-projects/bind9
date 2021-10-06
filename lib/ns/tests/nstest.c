@@ -29,6 +29,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/resource.h>
+#include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -42,7 +43,6 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
-#include <dns/result.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 
@@ -323,8 +323,6 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 				      ISC_LOG_DYNAMIC, &destination, 0);
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
-
-	dns_result_register();
 
 	if (start_managers) {
 		CHECK(create_managers());

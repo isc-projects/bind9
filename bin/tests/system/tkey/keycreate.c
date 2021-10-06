@@ -22,6 +22,7 @@
 #include <isc/nonce.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>
 #include <isc/util.h>
@@ -36,8 +37,6 @@
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
-
-#include <dst/result.h>
 
 #define CHECK(str, x)                                        \
 	{                                                    \
@@ -92,7 +91,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_request_getresponse", result);
 
 	if (response->rcode != dns_rcode_noerror) {
-		result = ISC_RESULTCLASS_DNSRCODE + response->rcode;
+		result = dns_result_fromrcode(response->rcode);
 		fprintf(stderr, "I:response rcode: %s\n",
 			isc_result_totext(result));
 		exit(-1);
@@ -212,8 +211,6 @@ main(int argc, char *argv[]) {
 	if (argc >= 5) {
 		ownername_str = argv[4];
 	}
-
-	dns_result_register();
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);

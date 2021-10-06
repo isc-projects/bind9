@@ -479,7 +479,7 @@ differentiate very similar messages in the same module.
 
 When available, include standard library return codes via %s in the
 format string, with strerrr(errno) from the system library or functions
-like isc_result_totext(result) and dns_result_totext(result).
+like isc_result_totext(result) and isc_result_totext(result).
 
 THINGS I AM NOT KEEN ABOUT
 

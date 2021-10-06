@@ -22,7 +22,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/sdb.h>
 
 #include <named/builtin.h>

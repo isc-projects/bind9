@@ -16,6 +16,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -23,7 +24,6 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/nsec3.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 
 #include <isccfg/cfg.h>

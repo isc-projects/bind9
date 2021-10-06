@@ -45,9 +45,9 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 
 #include <dns/geoip.h>
-#include <dns/result.h>
 
 #include <ns/listenlist.h>
 #include <ns/types.h>

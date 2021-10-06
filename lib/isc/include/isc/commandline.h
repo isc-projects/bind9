@@ -18,6 +18,7 @@
 
 #include <isc/lang.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 /*% Index into parent argv vector. */
 extern int isc_commandline_index;

@@ -38,6 +38,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -63,7 +64,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/request.h>
-#include <dns/result.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 
@@ -532,7 +532,7 @@ setup_keystr(void) {
 				    false, NULL, 0, 0, gmctx, NULL, &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s: %s\n", keystr,
-			dns_result_totext(result));
+			isc_result_totext(result));
 	} else {
 		dst_key_setbits(tsigkey->key, digestbits);
 	}
@@ -804,8 +804,6 @@ setup_system(void) {
 	irs_resconf_t *resconf = NULL;
 
 	ddebug("setup_system()");
-
-	dns_result_register();
 
 	isc_log_create(gmctx, &glctx, &logconfig);
 	isc_log_setcontext(glctx);
@@ -1642,7 +1640,7 @@ evaluate_key(char *cmdline) {
 	isc_mem_free(gmctx, secret);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s %s: %s\n",
-			namestr, secretstr, dns_result_totext(result));
+			namestr, secretstr, isc_result_totext(result));
 		return (STATUS_SYNTAX);
 	}
 	dst_key_setbits(tsigkey->key, digestbits);
@@ -3184,7 +3182,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		result = dns_message_settsigkey(rcvmsg, tsigkey);
 		check_result(result, "dns_message_settsigkey");
 		result = dns_message_checksig(rcvmsg, NULL);
-		ddebug("tsig verification: %s", dns_result_totext(result));
+		ddebug("tsig verification: %s", isc_result_totext(result));
 		check_result(result, "dns_message_checksig");
 #endif /* 0 */
 
