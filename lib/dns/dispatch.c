@@ -1482,6 +1482,7 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 	REQUIRE(respp != NULL);
 
 	resp = *respp;
+	*respp = NULL;
 
 	REQUIRE(VALID_RESPONSE(resp));
 
@@ -1530,7 +1531,7 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 	}
 
 done:
-	dns_dispatch_done(respp);
+	dns_dispatch_done(&resp);
 }
 
 void
