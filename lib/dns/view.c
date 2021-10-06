@@ -1739,7 +1739,7 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 	return (result);
 }
 
-isc_result_t
+void
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
 	unsigned int hash;
@@ -1760,16 +1760,15 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 		item = ISC_LIST_NEXT(item, link);
 	}
 	if (item != NULL) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 	item = isc_mem_get(view->mctx, sizeof(*item));
 	dns_name_init(item, NULL);
 	dns_name_dup(name, view->mctx, item);
 	ISC_LIST_APPEND(view->delonly[hash], item, link);
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
 	unsigned int hash;
@@ -1790,13 +1789,12 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 		item = ISC_LIST_NEXT(item, link);
 	}
 	if (item != NULL) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 	item = isc_mem_get(view->mctx, sizeof(*item));
 	dns_name_init(item, NULL);
 	dns_name_dup(name, view->mctx, item);
 	ISC_LIST_APPEND(view->rootexclude[hash], item, link);
-	return (ISC_R_SUCCESS);
 }
 
 bool

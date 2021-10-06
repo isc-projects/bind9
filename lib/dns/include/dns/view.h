@@ -952,7 +952,7 @@ dns_view_flushname(dns_view_t *view, const dns_name_t *name);
  *	other returns are failures.
  */
 
-isc_result_t
+void
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
@@ -966,7 +966,7 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
  *\li	#ISC_R_NOMEMORY
  */
 
-isc_result_t
+void
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
