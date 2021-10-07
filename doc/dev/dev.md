@@ -392,12 +392,11 @@ A result code can be converted to a human-readable error message by
 calling `isc_result_totext(result)`.
 
 Many result codes have been defined and can be found in the source tree
-in header files called `result.h` (for example, the result codes defined
-for the ISC library are in `lib/isc/include/isc/result.h`.
+in `lib/isc/include/isc/result.h`.
 
 ISC library result codes (many of which are generically useful elsewhere)
 begin with `ISC_R`: examples include `ISC_R_SUCCESS`, `ISC_R_FAILURE`,
-`ISC_R_NOMEMORY`, etc. 
+`ISC_R_NOMEMORY`, etc.
 
 DNS library result codes begin with `DNS_R`: `DNS_R_SERVFAIL`, `DNS_R_NXRRSET`,
 etc).  Other sets of result codes are defined for crypto functions (`DST_R`
