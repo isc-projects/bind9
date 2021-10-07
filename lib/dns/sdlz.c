@@ -1234,56 +1234,34 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	attach,
-	detach,
-	beginload,
-	endload,
-	dump,
-	currentversion,
-	newversion,
-	attachversion,
-	closeversion,
-	findnode,
-	find,
-	findzonecut,
-	attachnode,
-	detachnode,
-	expirenode,
-	printnode,
-	createiterator,
-	findrdataset,
-	allrdatasets,
-	addrdataset,
-	subtractrdataset,
-	deleterdataset,
-	issecure,
-	nodecount,
-	ispersistent,
-	overmem,
-	settask,
-	getoriginnode,
-	NULL, /* transfernode */
-	NULL, /* getnsec3parameters */
-	NULL, /* findnsec3node */
-	NULL, /* setsigningtime */
-	NULL, /* getsigningtime */
-	NULL, /* resigned */
-	NULL, /* isdnssec */
-	NULL, /* getrrsetstats */
-	NULL, /* rpz_attach */
-	NULL, /* rpz_ready */
-	findnodeext,
-	findext,
-	NULL, /* setcachestats */
-	NULL, /* hashsize */
-	NULL, /* nodefullname */
-	NULL, /* getsize */
-	NULL, /* setservestalettl */
-	NULL, /* getservestalettl */
-	NULL, /* setservestalerefresh */
-	NULL, /* getservestalerefresh */
-	NULL, /* setgluecachestats */
-	NULL  /* adjusthashsize */
+	attach,		detach,		beginload,
+	endload,	dump,		currentversion,
+	newversion,	attachversion,	closeversion,
+	findnode,	find,		findzonecut,
+	attachnode,	detachnode,	expirenode,
+	printnode,	createiterator, findrdataset,
+	allrdatasets,	addrdataset,	subtractrdataset,
+	deleterdataset, issecure,	nodecount,
+	ispersistent,	overmem,	settask,
+	getoriginnode,	NULL,		      /* transfernode */
+	NULL,				      /* getnsec3parameters */
+	NULL,				      /* findnsec3node */
+	NULL,				      /* setsigningtime */
+	NULL,				      /* getsigningtime */
+	NULL,				      /* resigned */
+	NULL,				      /* isdnssec */
+	NULL,				      /* getrrsetstats */
+	NULL,				      /* rpz_attach */
+	NULL,				      /* rpz_ready */
+	findnodeext,	findext,	NULL, /* setcachestats */
+	NULL,				      /* hashsize */
+	NULL,				      /* nodefullname */
+	NULL,				      /* getsize */
+	NULL,				      /* setservestalettl */
+	NULL,				      /* getservestalettl */
+	NULL,				      /* setservestalerefresh */
+	NULL,				      /* getservestalerefresh */
+	NULL,				      /* setgluecachestats */
 };
 
 /*
