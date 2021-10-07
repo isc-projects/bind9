@@ -143,9 +143,9 @@ retrieve unknown keys.
 
 [6] Section 4 is ignored.
 
-[7] Requires --with-idn to enable entry of IDN labels within dig,
+[7] Requires --with-libidn2 to enable entry of IDN labels within dig,
 host and nslookup at compile time.  ACE labels are supported
-everywhere with or without --with-idn.
+everywhere with or without --with-libidn2.
 
 [8] Section 5.1 - DNAME records are fully supported.
 

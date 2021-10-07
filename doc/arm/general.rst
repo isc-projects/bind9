@@ -585,9 +585,9 @@ is accepted but not returned in responses.
 and NXTs in responses, rather than relying on the resolving server
 to perform separate queries for missing SIGs and NXTs.
 
-[19] BIND 9 requires ``--with-idn`` to enable entry of IDN labels within dig,
-host, and nslookup at compile time.  ACE labels are supported
-everywhere with or without ``--with-idn``.
+[19] BIND 9 requires ``--with-libidn2`` to enable entry of IDN labels within
+dig, host, and nslookup at compile time.  ACE labels are supported
+everywhere with or without ``--with-libidn2``.
 
 [20] Section 5.1 - DNAME records are fully supported.
 

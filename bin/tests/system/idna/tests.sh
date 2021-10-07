@@ -383,7 +383,7 @@ idna_disabled_test() {
 
 # Main test begins here
 
-$FEATURETEST --with-idn
+$FEATURETEST --with-libidn2
 if [ $? -eq 0 ]; then
     idna_enabled_test
 else
