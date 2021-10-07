@@ -1,3 +1,10 @@
+5735.	[cleanup]	The result codes which BIND 9 uses internally are now
+			all defined as a single list of enum values rather than
+			as multiple sets of integers scattered around shared
+			libraries. This prevents the need for locking in some
+			functions operating on result codes, and makes result
+			codes more debugger-friendly. [GL #719]
+
 5734.	[bug]		Fix "dig" aborting with error in some cases
 			like when doing zone transfers. [GL #2884]
 
