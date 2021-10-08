@@ -19,9 +19,9 @@
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/core_names.h>
 #endif
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
@@ -1092,9 +1092,9 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	EVP_PKEY_CTX *ctx = NULL;
 	BIGNUM *ex = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	ENGINE *ep = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	isc_mem_t *mctx = key->mctx;
 	const char *engine = NULL, *label = NULL;
 	EVP_PKEY *pkey = NULL;
@@ -1147,7 +1147,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * See if we can fetch it.
 	 */
 	if (label != NULL) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 		if (engine == NULL) {
 			DST_RET(DST_R_NOENGINE);
 		}
@@ -1195,10 +1195,11 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->keydata.pkey = pkey;
 		pkey = NULL;
 		DST_RET(ISC_R_SUCCESS);
-#else  /* if !defined(OPENSSL_NO_ENGINE) */
+#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
+		UNUSED(engine);
 		UNUSED(ex);
 		DST_RET(DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	}
 
 	for (i = 0; i < priv.nelements; i++) {
@@ -1429,7 +1430,7 @@ err:
 static isc_result_t
 opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		     const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	ENGINE *e = NULL;
 	isc_result_t ret = ISC_R_SUCCESS;
 	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
@@ -1520,13 +1521,13 @@ err:
 		EVP_PKEY_free(pubpkey);
 	}
 	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) */
+#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	UNUSED(key);
 	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
 	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t opensslrsa_functions = {

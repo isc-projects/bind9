@@ -25,7 +25,7 @@
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/param_build.h>
 #endif
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
 #endif
 
@@ -1322,7 +1322,7 @@ err:
 static isc_result_t
 opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		       const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	isc_result_t ret = ISC_R_SUCCESS;
 	ENGINE *e;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
@@ -1472,7 +1472,7 @@ err:
 	UNUSED(label);
 	UNUSED(pin);
 	return (DST_R_NOENGINE);
-#endif /* !defined(OPENSSL_NO_ENGINE) */
+#endif /* !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t opensslecdsa_functions = {

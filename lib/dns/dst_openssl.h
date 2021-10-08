@@ -58,11 +58,9 @@ isc_result_t
 dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
 		       isc_result_t fallback);
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 ENGINE *
 dst__openssl_getengine(const char *engine);
-#else /* if !defined(OPENSSL_NO_ENGINE) */
-#define dst__openssl_getengine(x) NULL
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 ISC_LANG_ENDDECLS

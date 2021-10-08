@@ -93,7 +93,7 @@ tls_initialize(void) {
 	SSL_load_error_strings();
 	SSL_library_init();
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	ENGINE_load_builtin_engines();
 #endif
 	OpenSSL_add_all_algorithms();
@@ -133,7 +133,7 @@ tls_shutdown(void) {
 	CONF_modules_unload(1);
 	OBJ_cleanup();
 	EVP_cleanup();
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	ENGINE_cleanup();
 #endif
 	CRYPTO_cleanup_all_ex_data();

@@ -19,9 +19,9 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/x509.h>
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -589,7 +589,7 @@ err:
 static isc_result_t
 openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		       const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	isc_result_t ret;
 	ENGINE *e;
 	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
@@ -650,13 +650,13 @@ err:
 		EVP_PKEY_free(pkey);
 	}
 	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) */
+#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	UNUSED(key);
 	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
 	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t openssleddsa_functions = {

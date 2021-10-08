@@ -37,15 +37,15 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 #include "openssl_shim.h"
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 static ENGINE *e = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 static void
 enable_fips_mode(void) {
@@ -70,7 +70,7 @@ dst__openssl_init(const char *engine) {
 
 	enable_fips_mode();
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	if (engine != NULL && *engine == '\0') {
 		engine = NULL;
 	}
@@ -96,18 +96,18 @@ cleanup_rm:
 	e = NULL;
 #else
 	UNUSED(engine);
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	return (result);
 }
 
 void
 dst__openssl_destroy(void) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	if (e != NULL) {
 		ENGINE_free(e);
 	}
 	e = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static isc_result_t
@@ -191,7 +191,7 @@ done:
 	return (result);
 }
 
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 ENGINE *
 dst__openssl_getengine(const char *engine) {
 	if (engine == NULL) {
@@ -205,6 +205,6 @@ dst__openssl_getengine(const char *engine) {
 	}
 	return (NULL);
 }
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 /*! \file */
