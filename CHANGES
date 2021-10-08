@@ -1,3 +1,9 @@
+5751.	[port]		Add support for OpenSSL 3.0.0.  OpenSSL 3.0.0
+			deprecated 'engine' support.  If OpenSSL 3.0.0 has
+			been built without support for deprecated functionality
+			pkcs11 via engine_pkcs11 is no longer available.
+			[GL #2843]
+
 5750.	[bug]		Fix a bug when comparing two RSA keys. There was a typo
 			which caused the "p" prime factors to not being
 			compared. [GL #2972]
