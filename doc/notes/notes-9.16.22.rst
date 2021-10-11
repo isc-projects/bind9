@@ -30,21 +30,6 @@ Security Fixes
   ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
   bringing this vulnerability to our attention. :gl:`#2899`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
