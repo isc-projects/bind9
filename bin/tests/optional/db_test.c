@@ -845,7 +845,7 @@ main(int argc, char *argv[]) {
 			if (dns_rdataset_isassociated(&rdataset)) {
 				break;
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			if (dbi == NULL) {
 				dns_db_detach(&db);

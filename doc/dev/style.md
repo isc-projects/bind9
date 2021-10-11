@@ -146,7 +146,7 @@ Good:
 The following lint and lint-like comments should be used where appropriate:
 
     	/* ARGSUSED */
-    	/* FALLTHROUGH */
+    	FALLTHROUGH;
     	/* NOTREACHED */
     	/* VARARGS */
 

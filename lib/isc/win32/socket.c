@@ -791,7 +791,7 @@ retry:
 				need_retry = true;
 				break;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 
 		default:
 			isc_result = isc__errno2result(Error);

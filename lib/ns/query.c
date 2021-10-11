@@ -2522,7 +2522,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 			break;
 		case ISC_R_SOFTQUOTA:
 			isc_quota_detach(&client->recursionquota);
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			return;
 		}
@@ -2740,7 +2740,7 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 			break;
 		case ISC_R_SOFTQUOTA:
 			isc_quota_detach(&client->recursionquota);
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			return;
 		}
@@ -6927,7 +6927,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			break;
 		case DNS_RPZ_POLICY_NODATA:
 			qctx->nxrewrite = true;
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case DNS_RPZ_POLICY_DNS64:
 			result = DNS_R_NXRRSET;
 			qctx->rpz = true;
@@ -9830,7 +9830,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 		{
 			goto cleanup;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_R_CNAME:
 		if (!qctx->resuming && !STALE(&rdataset) && rdataset.ttl == 0 &&
 		    RECURSIONOK(qctx->client))

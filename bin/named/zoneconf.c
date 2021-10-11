@@ -1911,7 +1911,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setxfracl(zone, none);
 			dns_acl_detach(&none);
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_zone_secondary:
 	case dns_zone_stub:
 	case dns_zone_redirect:

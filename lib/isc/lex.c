@@ -684,7 +684,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				state = lexstate_vpairstart;
 				break;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		case lexstate_vpairstart:
 			if (state == lexstate_vpairstart) {
 				if (c == '"' &&
@@ -695,7 +695,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				}
 				state = lexstate_vpair;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		case lexstate_vpair:
 			/*
 			 * EOF needs to be checked before lex->specials[c]

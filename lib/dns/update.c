@@ -1712,7 +1712,7 @@ next_state:
 
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "updated data signatures");
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case remove_orphaned:
 		state->state = remove_orphaned;
 
@@ -1744,7 +1744,7 @@ next_state:
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "rebuilding NSEC chain");
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case build_chain:
 		state->state = build_chain;
 		/*
@@ -1834,7 +1834,7 @@ next_state:
 
 		CHECK(uniqify_name_list(&state->affected));
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case process_nsec:
 		state->state = process_nsec;
 
@@ -1950,7 +1950,7 @@ next_state:
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "signing rebuilt NSEC chain");
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case sign_nsec:
 		state->state = sign_nsec;
 		/* Update RRSIG NSECs. */
@@ -1982,7 +1982,7 @@ next_state:
 		}
 		ISC_LIST_APPENDLIST(state->nsec_mindiff.tuples,
 				    state->work.tuples, link);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case update_nsec3:
 		state->state = update_nsec3;
 
@@ -2074,7 +2074,7 @@ next_state:
 			}
 		}
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case process_nsec3:
 		state->state = process_nsec3;
 		while ((t = ISC_LIST_HEAD(state->affected.tuples)) != NULL) {
@@ -2125,7 +2125,7 @@ next_state:
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "signing rebuilt NSEC3 chain");
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case sign_nsec3:
 		state->state = sign_nsec3;
 		/* Update RRSIG NSEC3s. */

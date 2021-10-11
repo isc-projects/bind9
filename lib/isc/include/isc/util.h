@@ -29,6 +29,18 @@
  */
 
 /***
+ *** Clang Compatibility Macros
+ ***/
+
+#if !defined(__has_attribute)
+#define __has_attribute(x) 0
+#endif /* if !defined(__has_attribute) */
+
+#if !defined(__has_feature)
+#define __has_feature(x) 0
+#endif /* if !defined(__has_feature) */
+
+/***
  *** General Macros.
  ***/
 
@@ -49,6 +61,14 @@
 #else /* if __GNUC__ >= 8 && !defined(__clang__) */
 #define ISC_NONSTRING
 #endif /* __GNUC__ */
+
+#if __GNUC__ >= 7 || __has_attribute(fallthrough)
+#define FALLTHROUGH __attribute__((fallthrough))
+#else
+/* clang-format off */
+#define FALLTHROUGH do {} while (0) /* FALLTHROUGH */
+/* clang-format on */
+#endif
 
 #if HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR && HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
 #define ISC_CONSTRUCTOR __attribute__((constructor))
@@ -205,10 +225,6 @@
 #else /* ifdef HAVE_BUILTIN_UNREACHABLE */
 #define ISC_UNREACHABLE()
 #endif /* ifdef HAVE_BUILTIN_UNREACHABLE */
-
-#if !defined(__has_feature)
-#define __has_feature(x) 0
-#endif /* if !defined(__has_feature) */
 
 /* GCC defines __SANITIZE_ADDRESS__, so reuse the macro for clang */
 #if __has_feature(address_sanitizer)

@@ -1600,7 +1600,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		if (!atomic_load(&sock->client)) {
 			break;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	case isc_nm_tcpsocket:
 		INSIST(sock->statichandle == NULL);
 
@@ -2768,7 +2768,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 				isc__nmsocket_reset(sock);
 				return;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			isc__nmsocket_shutdown(sock);
 		}
