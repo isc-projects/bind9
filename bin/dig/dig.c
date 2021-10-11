@@ -113,7 +113,7 @@ usage(void) {
 	fprintf(stderr, "Press <Help> for complete list of options\n");
 }
 #else  /* if TARGET_OS_IPHONE */
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

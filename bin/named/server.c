@@ -397,7 +397,7 @@ const char *empty_zones[] = {
 	NULL
 };
 
-ISC_NORETURN static void
+noreturn static void
 fatal(named_server_t *server, const char *msg, isc_result_t result);
 
 static void

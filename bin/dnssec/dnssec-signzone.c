@@ -3192,7 +3192,7 @@ print_version(FILE *fp) {
 	fprintf(fp, "; %s version %s\n", program, PACKAGE_VERSION);
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void
