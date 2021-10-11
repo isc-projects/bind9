@@ -4818,6 +4818,7 @@ A Diffie-Hellman parameters file can be generated using e.g. OpenSSL,
 like follows:
 
 ::
+
    openssl dhparam -out /path/to/dhparam.pem <3072_or_4096>
 
 Ensure that it gets generated on a machine with enough entropy from
@@ -6654,6 +6655,7 @@ be converted to ``text`` format by the ``named-compilezone`` command,
 then converted back after editing.  For example:
 
 ::
+
     named-compilezone -f raw -F text -o zonefile.text <origin> zonefile.raw
     [edit zonefile.text]
     named-compilezone -f text -F raw -o zonefile.raw <origin> zonefile.text
