@@ -43,7 +43,7 @@ const char *program = "dnssec-settime";
 
 static isc_mem_t *mctx = NULL;
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

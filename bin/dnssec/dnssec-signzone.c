@@ -3194,7 +3194,7 @@ print_version(FILE *fp) {
 	fprintf(fp, "; dnssec_signzone version %s\n", PACKAGE_VERSION);
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

@@ -208,7 +208,7 @@ usage(void) {
 	exit(1);
 }
 
-ISC_NORETURN static void
+noreturn static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void

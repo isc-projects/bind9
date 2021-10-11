@@ -58,7 +58,7 @@ isc_log_t *logc = NULL;
 	} while (0)
 
 /*% usage */
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

@@ -139,7 +139,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	}
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

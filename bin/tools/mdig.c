@@ -783,7 +783,7 @@ sendqueries(isc_task_t *task, isc_event_t *event) {
 	return;
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void
@@ -894,7 +894,7 @@ help(void) {
 	       "Server ID)\n");
 }
 
-ISC_NORETURN static void
+noreturn static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void

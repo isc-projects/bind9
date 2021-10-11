@@ -185,7 +185,7 @@ named_main_earlyfatal(const char *format, ...) {
 	exit(1);
 }
 
-ISC_NORETURN static void
+noreturn static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond);
 
@@ -239,7 +239,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	exit(1);
 }
 
-ISC_NORETURN static void
+noreturn static void
 library_fatal_error(const char *file, int line, const char *format,
 		    va_list args) ISC_FORMAT_PRINTF(3, 0);
 
