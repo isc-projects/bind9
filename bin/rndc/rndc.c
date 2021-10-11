@@ -1001,7 +1001,7 @@ main(int argc, char **argv) {
 					program, isc_commandline_option);
 				usage(1);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case 'h':
 			usage(0);
 			break;

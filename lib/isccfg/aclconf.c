@@ -426,8 +426,8 @@ geoip_can_answer(dns_aclelement_t *elt, cfg_aclconfctx_t *ctx) {
 		if (ctx->geoip->country != NULL) {
 			return (true);
 		}
-	/* city db can answer these too, so: */
-	/* FALLTHROUGH */
+		/* city db can answer these too, so: */
+		FALLTHROUGH;
 	case dns_geoip_region:
 	case dns_geoip_regionname:
 	case dns_geoip_city_countrycode:

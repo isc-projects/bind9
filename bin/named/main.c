@@ -860,8 +860,8 @@ parse_command_line(int argc, char *argv[]) {
 			}
 			break;
 		case 'F':
-		/* Reserved for FIPS mode */
-		/* FALLTHROUGH */
+			/* Reserved for FIPS mode */
+			FALLTHROUGH;
 		case '?':
 			usage();
 			if (isc_commandline_option == '?') {
@@ -876,7 +876,7 @@ parse_command_line(int argc, char *argv[]) {
 						      "an argument",
 						      isc_commandline_option);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			named_main_earlyfatal("parsing options returned %d",
 					      ch);

@@ -680,8 +680,7 @@ redo:
 	case XFRST_AXFR_END:
 	case XFRST_IXFR_END:
 		FAIL(DNS_R_EXTRADATA);
-	/* NOTREACHED */
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -1574,7 +1573,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		break;
 	case XFRST_AXFR_END:
 		CHECK(axfr_finalize(xfr));
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case XFRST_IXFR_END:
 		/*
 		 * Close the journal.

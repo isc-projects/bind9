@@ -11307,7 +11307,7 @@ zone_maintenance(dns_zone_t *zone) {
 		if (zone->primaries == NULL) {
 			break;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_zone_secondary:
 	case dns_zone_mirror:
 	case dns_zone_stub:
@@ -11332,7 +11332,7 @@ zone_maintenance(dns_zone_t *zone) {
 		if (zone->primaries == NULL) {
 			break;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_zone_secondary:
 	case dns_zone_mirror:
 	case dns_zone_stub:
@@ -11704,7 +11704,7 @@ zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
 	switch (result) {
 	case ISC_R_SUCCESS:
 		*needdump = true;
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_R_UPTODATE:
 		if (dns_journal_recovered(journal)) {
 			*fixjournal = true;
@@ -13639,7 +13639,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 				     primary, source);
 			goto same_primary;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	default:
 		dns_zonemgr_unreachableadd(zone->zmgr, &zone->primaryaddr,
 					   &zone->sourceaddr, &now);
@@ -14049,7 +14049,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			}
 			goto next_primary;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	default:
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: failure trying primary "
@@ -15147,8 +15147,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		if (zone->primaries != NULL) {
 			goto treat_as_secondary;
 		}
-		/* FALLTHROUGH */
-
+		FALLTHROUGH;
 	case dns_zone_primary:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
@@ -15211,8 +15210,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		{
 			next = zone->notifytime;
 		}
-		/* FALLTHROUGH */
-
+		FALLTHROUGH;
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOPRIMARIES) &&
@@ -17577,7 +17575,7 @@ again:
 	switch (xfrresult) {
 	case ISC_R_SUCCESS:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_R_UPTODATE:
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER);
 		/*
@@ -17735,7 +17733,6 @@ again:
 			zone->curprimary++;
 		} while (zone->curprimary < zone->primariescnt &&
 			 zone->primariesok[zone->curprimary]);
-		/* FALLTHROUGH */
 	same_primary:
 		if (zone->curprimary >= zone->primariescnt) {
 			zone->curprimary = 0;

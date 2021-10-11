@@ -7697,7 +7697,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		if (query->rmessage->counts[DNS_SECTION_QUESTION] == 0) {
 			break;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_rcode_nxrrset: /* Not expected. */
 	case dns_rcode_badcookie:
 	case dns_rcode_noerror:

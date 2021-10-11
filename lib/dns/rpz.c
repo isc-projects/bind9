@@ -2715,7 +2715,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 				found_zbits = nm_data->set.ns;
 			}
 		}
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 
 	case DNS_R_PARTIALMATCH:
 		i = chain.level_matches;

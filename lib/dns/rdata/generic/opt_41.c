@@ -233,7 +233,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_CLIENT_TAG:
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case DNS_OPT_SERVER_TAG:
 			if (length != 2) {
 				return (DNS_R_OPTERR);
