@@ -120,8 +120,7 @@ entry_exists(dns_geoip_subtype_t subtype, const char *addr) {
 	} else if (inet_pton(AF_INET, addr, &in4) == 1) {
 		isc_netaddr_fromin(&na, &in4);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	db = geoip2_database(&geoip, fix_subtype(&geoip, subtype));

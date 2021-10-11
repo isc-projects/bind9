@@ -592,8 +592,7 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 		 */
 		fatal("UNIX domain sockets not currently supported");
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	atomic_fetch_add_relaxed(&connects, 1);

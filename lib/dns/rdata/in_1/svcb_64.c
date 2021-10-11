@@ -322,8 +322,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			RETERR(svcsortkeylist(target, used));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		len = isc_buffer_usedlength(target) -
@@ -732,8 +731,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 			}
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 	return (ISC_R_SUCCESS);

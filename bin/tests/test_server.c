@@ -302,8 +302,7 @@ run(void) {
 	} break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	REQUIRE(result == ISC_R_SUCCESS);
 

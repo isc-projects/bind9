@@ -521,8 +521,7 @@ isc__netmgr_destroy(isc_nm_t **netmgrp) {
 #ifdef NETMGR_TRACE
 	if (isc_refcount_current(&mgr->references) > 1) {
 		isc__nm_dump_active(mgr);
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 #endif
 
@@ -720,8 +719,7 @@ process_all_queues(isc__networker_t *worker) {
 			reschedule = true;
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -793,8 +791,7 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 	case ISC_R_SUCCESS:
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -922,8 +919,7 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(resume);
 		NETIEVENT_CASE_NOMORE(pause);
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	return (true);
 }
@@ -1074,8 +1070,7 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
 	} else {
 		switch (event->type) {
 		case netievent_prio:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 			break;
 		case netievent_privilegedtask:
 			type = NETIEVENT_PRIVILEGED;
@@ -1462,8 +1457,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 			 */
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		break;
 	case isc_nm_tcpsocket:
@@ -1482,8 +1476,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 			sock->statsindex = tcp6statsindex;
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		break;
 	default:
@@ -1921,8 +1914,7 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 		isc__nm_tlsdns_failed_read_cb(sock, result, async);
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2142,8 +2134,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 		buf->len = ISC_NETMGR_TCP_RECVBUF_SIZE;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	REQUIRE(buf->len <= ISC_NETMGR_RECVBUF_SIZE);
@@ -2182,8 +2173,7 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	atomic_store(&sock->reading, true);
 }
@@ -2208,8 +2198,7 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 		UV_RUNTIME_CHECK(uv_read_stop, r);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	atomic_store(&sock->reading, false);
 }
@@ -2234,8 +2223,7 @@ processbuffer(isc_nmsocket_t *sock) {
 	case isc_nm_tlsdnssocket:
 		return (isc__nm_tlsdns_processbuffer(sock));
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2514,8 +2502,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2545,8 +2532,7 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2573,8 +2559,7 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2594,8 +2579,7 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2615,8 +2599,7 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2646,8 +2629,7 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		break;
 #endif
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2828,7 +2810,7 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		break;
 	default:
 		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 		break;
 	}
 
@@ -2870,8 +2852,7 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	case isc_nm_tlsdnslistener:
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -3348,8 +3329,7 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
 			atomic_load_relaxed(&nm->send_udp_buffer_size);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (recv_buffer_size > 0) {
@@ -3457,8 +3437,7 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 	case isc_nm_tlssocket:
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 		break;
 	}
 }
@@ -3481,8 +3460,7 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 		return (false);
 	}
 
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 
 	return (false);
 }
@@ -3526,7 +3504,7 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
 		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 		break;
 	}
 }
@@ -3602,8 +3580,7 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 	case isc_nm_httpsocket:
 		return ("isc_nm_httpsocket");
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 

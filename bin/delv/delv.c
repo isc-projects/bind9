@@ -1325,7 +1325,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		case 'h':
 			usage();
 			exit(0);
-		/* NOTREACHED */
+			UNREACHABLE();
 		case 'i':
 			no_sigs = true;
 			root_validation = false;
@@ -1336,10 +1336,9 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		case 'v':
 			printf("delv %s\n", PACKAGE_VERSION);
 			exit(0);
-		/* NOTREACHED */
+			UNREACHABLE();
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		if (strlen(option) > 1U) {
 			option = &option[1];
@@ -1477,7 +1476,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		fprintf(stderr, "Invalid option: -%s\n", option);
 		usage();
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (false);
 }
 

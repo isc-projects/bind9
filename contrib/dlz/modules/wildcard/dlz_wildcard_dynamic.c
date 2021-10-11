@@ -699,7 +699,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 			break;
 		}
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 }
 
 static int

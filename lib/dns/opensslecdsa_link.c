@@ -1153,8 +1153,7 @@ dst__key_to_eckey(dst_key_t *key, EC_KEY **eckey) {
 		group_nid = NID_secp384r1;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	*eckey = EC_KEY_new_by_curve_name(group_nid);

@@ -678,8 +678,7 @@ renderend:
 					    ISC_MIN((int)respsize / 16, 256));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	} else {
 #ifdef HAVE_DNSTAP
@@ -708,8 +707,7 @@ renderend:
 					    ISC_MIN((int)respsize / 16, 256));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -1072,8 +1070,7 @@ no_nsid:
 			memmove(addr, &client->ecs.addr.type, addrl);
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		isc_buffer_init(&buf, ecs, sizeof(ecs));
@@ -1193,8 +1190,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 			inputlen = 32;
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		isc_siphash24(secret, input, inputlen, digest);
@@ -1235,8 +1231,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 					 digest);
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		for (i = 0; i < 8; i++) {
 			digest[i] ^= digest[i + 8];
@@ -1246,8 +1241,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 	}
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -1871,8 +1865,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 					    ISC_MIN((int)reqsize / 16, 18));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	} else {
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
@@ -1885,8 +1878,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 					    ISC_MIN((int)reqsize / 16, 18));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
