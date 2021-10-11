@@ -3358,9 +3358,9 @@ Tuning
 ^^^^^^
 
 ``lame-ttl``
-   This sets the number of seconds to cache a lame server indication. 0
-   disables caching. (This is **NOT** recommended.) The default is
-   ``600`` (10 minutes) and the maximum value is ``1800`` (30 minutes).
+   This is always set to 0. More information is available in the
+   `security advisory for CVE-2021-25219
+   <https://kb.isc.org/docs/cve-2021-25219>`_.
 
 ``servfail-ttl``
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
