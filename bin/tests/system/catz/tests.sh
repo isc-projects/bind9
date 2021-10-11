@@ -1179,7 +1179,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "reconfiguring secondary - adding catalog4 catalog zone ($n)"
 ret=0
-sed -e "s/^#T1//g" <  ns2/named.conf.in > ns2/named.conf.tmp
+sed -e "s/^#T1//g" <  ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
 rndccmd 10.53.0.2 reconfig || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1210,7 +1210,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "reconfiguring secondary - removing catalog4 catalog zone, adding non-existent catalog5 catalog zone ($n)"
 ret=0
-sed -e "s/^#T2//" < ns2/named.conf.in > ns2/named.conf.tmp
+sed -e "s/^#T2//" < ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > /dev/null 2>&1 && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1219,7 +1219,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "reconfiguring secondary - removing non-existent catalog5 catalog zone ($n)"
 ret=0
-copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
 rndccmd 10.53.0.2 reconfig || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -1727,6 +1727,16 @@ n=$((n+1))
 echo_i "checking that dom16.example. is no longer served by secondary ($n)"
 ret=0
 wait_for_no_soa @10.53.0.2 dom16.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that reconfig can delete and restore catalog zone configuration ($n)"
+ret=0
+copy_setports ns2/named2.conf.in ns2/named.conf
+rndccmd 10.53.0.2 reconfig || ret=1
+copy_setports ns2/named1.conf.in ns2/named.conf
+rndccmd 10.53.0.2 reconfig || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
