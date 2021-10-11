@@ -1,3 +1,6 @@
+5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
+			[GL #2935]
+
 5736.	[placeholder]
 
 5735.	[cleanup]	The result codes which BIND 9 uses internally are now

@@ -943,7 +943,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dst_context_t *ctx = NULL;
 	isc_mem_t *mctx;
 	isc_result_t result;
-	bool signeedsfree = true;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
@@ -1032,7 +1031,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 				    dynbuf));
 
 	isc_mem_put(mctx, sig.signature, sig.siglen);
-	signeedsfree = false;
 
 	dns_message_takebuffer(msg, &dynbuf);
 
@@ -1053,7 +1051,7 @@ failure:
 	if (dynbuf != NULL) {
 		isc_buffer_free(&dynbuf);
 	}
-	if (signeedsfree) {
+	if (sig.signature != NULL) {
 		isc_mem_put(mctx, sig.signature, sig.siglen);
 	}
 	if (ctx != NULL) {
