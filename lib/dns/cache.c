@@ -166,7 +166,7 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 static void
 water(void *arg, int mark);
 
-static inline isc_result_t
+static isc_result_t
 cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	isc_result_t result;
 	result = dns_db_create(cache->mctx, cache->db_type, dns_rootname,

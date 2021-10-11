@@ -20,7 +20,7 @@
 
 #define RRTYPE_A_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_in_a(ARGS_FROMTEXT) {
 	isc_token_t token;
 	struct in_addr addr;
@@ -50,7 +50,7 @@ fromtext_in_a(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_in_a(ARGS_TOTEXT) {
 	isc_region_t region;
 
@@ -64,7 +64,7 @@ totext_in_a(ARGS_TOTEXT) {
 	return (inet_totext(AF_INET, tctx->flags, &region, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_in_a(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
@@ -92,7 +92,7 @@ fromwire_in_a(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_in_a(ARGS_TOWIRE) {
 	isc_region_t region;
 
@@ -111,7 +111,7 @@ towire_in_a(ARGS_TOWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline int
+static int
 compare_in_a(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -128,7 +128,7 @@ compare_in_a(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_in_a(ARGS_FROMSTRUCT) {
 	dns_rdata_in_a_t *a = source;
 	uint32_t n;
@@ -147,7 +147,7 @@ fromstruct_in_a(ARGS_FROMSTRUCT) {
 	return (uint32_tobuffer(n, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_in_a(ARGS_TOSTRUCT) {
 	dns_rdata_in_a_t *a = target;
 	uint32_t n;
@@ -171,7 +171,7 @@ tostruct_in_a(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_in_a(ARGS_FREESTRUCT) {
 	dns_rdata_in_a_t *a = source;
 
@@ -182,7 +182,7 @@ freestruct_in_a(ARGS_FREESTRUCT) {
 	UNUSED(a);
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_in_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -195,7 +195,7 @@ additionaldata_in_a(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_in_a(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -207,7 +207,7 @@ digest_in_a(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_in_a(ARGS_CHECKOWNER) {
 	dns_name_t prefix, suffix;
 	unsigned int labels, i;
@@ -258,7 +258,7 @@ checkowner_in_a(ARGS_CHECKOWNER) {
 	return (dns_name_ishostname(name, wildcard));
 }
 
-static inline bool
+static bool
 checknames_in_a(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -270,7 +270,7 @@ checknames_in_a(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_in_a(ARGS_COMPARE) {
 	return (compare_in_a(rdata1, rdata2));
 }

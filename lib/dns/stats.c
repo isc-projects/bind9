@@ -261,7 +261,7 @@ dns_generalstats_increment(dns_stats_t *stats, isc_statscounter_t counter) {
 	isc_stats_increment(stats->counters, counter);
 }
 
-inline static isc_statscounter_t
+static isc_statscounter_t
 rdatatype2counter(dns_rdatatype_t type) {
 	if (type > (dns_rdatatype_t)RDTYPECOUNTER_MAXTYPE) {
 		return (0);
@@ -279,7 +279,7 @@ dns_rdatatypestats_increment(dns_stats_t *stats, dns_rdatatype_t type) {
 	isc_stats_increment(stats->counters, counter);
 }
 
-static inline void
+static void
 update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
 		     bool increment) {
 	isc_statscounter_t counter;

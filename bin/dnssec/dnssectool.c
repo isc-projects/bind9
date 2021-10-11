@@ -239,7 +239,7 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	return (0); /* silence compiler warning */
 }
 
-static inline bool
+static bool
 isnone(const char *str) {
 	return ((strcasecmp(str, "none") == 0) ||
 		(strcasecmp(str, "never") == 0));

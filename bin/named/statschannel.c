@@ -211,7 +211,7 @@ static int tcpoutsizestats_index[dns_sizecounter_out_max];
 static int dnstapstats_index[dns_dnstapcounter_max];
 static int gluecachestats_index[dns_gluecachestatscounter_max];
 
-static inline void
+static void
 set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
 	 const char *xdesc, const char **xdescs) {
 	REQUIRE(counter < maxcounter);

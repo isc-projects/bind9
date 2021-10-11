@@ -335,14 +335,14 @@ static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
 static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
 							 ip6_arpa_offsets);
 
-static inline bool
+static bool
 dns_master_isprimary(dns_loadctx_t *lctx) {
 	return ((lctx->options & DNS_MASTER_ZONE) != 0 &&
 		(lctx->options & DNS_MASTER_SECONDARY) == 0 &&
 		(lctx->options & DNS_MASTER_KEY) == 0);
 }
 
-static inline isc_result_t
+static isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 	 dns_rdatacallbacks_t *callbacks) {
 	isc_result_t result;
@@ -2204,7 +2204,7 @@ cleanup:
  * Fill/check exists buffer with 'len' bytes.  Track remaining bytes to be
  * read when incrementally filling the buffer.
  */
-static inline isc_result_t
+static isc_result_t
 read_and_check(bool do_read, isc_buffer_t *buffer, size_t len, FILE *f,
 	       uint32_t *totallen) {
 	isc_result_t result;

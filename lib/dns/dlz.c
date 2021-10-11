@@ -88,7 +88,7 @@ dlz_initialize(void) {
 /*%
  * Searches the dlz_implementations list for a driver matching name.
  */
-static inline dns_dlzimplementation_t *
+static dns_dlzimplementation_t *
 dlz_impfind(const char *name) {
 	dns_dlzimplementation_t *imp;
 

@@ -34,12 +34,12 @@ struct isc_portset {
 	uint32_t buf[ISC_PORTSET_BUFSIZE];
 };
 
-static inline bool
+static bool
 portset_isset(isc_portset_t *portset, in_port_t port) {
 	return ((portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0);
 }
 
-static inline void
+static void
 portset_add(isc_portset_t *portset, in_port_t port) {
 	if (!portset_isset(portset, port)) {
 		portset->nports++;
@@ -47,7 +47,7 @@ portset_add(isc_portset_t *portset, in_port_t port) {
 	}
 }
 
-static inline void
+static void
 portset_remove(isc_portset_t *portset, in_port_t port) {
 	if (portset_isset(portset, port)) {
 		portset->nports--;

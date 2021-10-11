@@ -59,7 +59,7 @@ getcommand(isc_lex_t *lex, char **cmdp) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline bool
+static bool
 command_compare(const char *str, const char *command) {
 	return (strcasecmp(str, command) == 0);
 }

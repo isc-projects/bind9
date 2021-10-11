@@ -100,7 +100,7 @@ static gss_OID_desc __gss_spnego_mechanism_oid_desc = {
 			goto out;            \
 	} while (0)
 
-static inline void
+static void
 name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		gss_buffer_desc *gbuffer) {
 	dns_name_t tname;

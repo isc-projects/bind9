@@ -80,7 +80,7 @@ dns_kasp_attach(dns_kasp_t *source, dns_kasp_t **targetp) {
 	*targetp = source;
 }
 
-static inline void
+static void
 destroy(dns_kasp_t *kasp) {
 	dns_kasp_key_t *key;
 	dns_kasp_key_t *key_next;
