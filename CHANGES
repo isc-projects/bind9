@@ -7,25 +7,25 @@
 			degrade resolver performance. (CVE-2021-25219)
 			[GL #2899]
 
-5727.	[bug]		Ignore the missing zones when doing a reload on a
-			catalog zone, and make sure to restore them later on.
-			[GL #2308]
+5727.	[bug]		Fix an assertion failure caused by missing member zones
+			during a reload of a catalog zone. [GL #2308]
 
-5724.	[bug]		Address potential dead lock when checking zone
-			content consistency. [GL #2908]
+5724.	[bug]		Address a potential deadlock when checking zone content
+			consistency. [GL #2908]
 
-5723.	[bug]		Backwards compatiblity for 'check-names master' and
-			'check-names slave' was accidentally broken. [GL #2911]
+5723.	[bug]		Change 5709 broke backward compatibility for the
+			"check-names master ..." and "check-names slave ..."
+			options. This has been fixed. [GL #2911]
 
-5720.	[contrib]	The DLZ drivers have been marked as deprecated and
-			will be removed in a future release. [GL #2814]
+5720.	[contrib]	Old-style DLZ drivers that had to be enabled at
+			build-time have been marked as deprecated. [GL #2814]
 
-5719.	[func]		The "masterfile-format" format "map" has been marked
-			as deprecated.  The "map" format will be permanently
-			removed in a future release. [GL #2882]
+5719.	[func]		The "map" zone file format has been marked as
+			deprecated. [GL #2882]
 
-5717.	[func]		The "cache-file" option has been marked as
-			deprecated. [GL #2903]
+5717.	[func]		The "cache-file" option, which was documented as "for
+			testing purposes only" and not to be used, has been
+			removed. [GL #2903]
 
 5716.	[bug]		Multiple library names were mistakenly passed to the
 			krb5-config utility when ./configure was invoked with
@@ -33,20 +33,22 @@
 			has been fixed by invoking krb5-config separately for
 			each required library. [GL #2866]
 
-5715.	[func]		Add a check when the *-source(-v6) clashes with the
-			global listening port. Such a configuration was already
-			forbidden, but it failed silently. [GL #2888]
+5715.	[func]		Add a check for ports specified in "*-source(-v6)"
+			options clashing with a global listening port. Such a
+			configuration was already unsupported, but it failed
+			silently; it is now treated as an error. [GL #2888]
 
-5714.	[bug]		Remove the "adjust interface" mechanism that
-			set up a listener on interfaces where the *-source(-v6)
-			address and port were the same as the listening
-			address and port. Such a configuration is no longer
-			supported; in practice, this would disable
-			listening on TCP ports under certain timing conditions.
+5714.	[bug]		Remove the "adjust interface" mechanism which was
+			responsible for setting up listeners on interfaces when
+			the "*-source(-v6)" address and port were the same as
+			the "listen-on(-v6)" address and port. Such a
+			configuration is no longer supported; under certain
+			timing conditions, that mechanism could prevent named
+			from listening on some TCP ports. This has been fixed.
 			[GL #2852]
 
-5712.	[func]		Add deprecation notice about removing native PKCS#11
-			support in the next major BIND 9.18 release. [GL #2691]
+5712.	[doc]		Add deprecation notice about removing native PKCS#11
+			support in the next major BIND 9 release. [GL #2691]
 
 	--- 9.16.21 released ---
 
