@@ -6523,6 +6523,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 
 	if (zone_is_catz) {
 		dns_zone_catz_enable(zone, view->catzs);
+	} else if (dns_zone_catz_is_enabled(zone)) {
+		dns_zone_catz_disable(zone);
 	}
 
 	/*
