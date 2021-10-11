@@ -51,6 +51,12 @@ Removed Features
 - Native PKCS#11 support has been removed; BIND 9 now uses OpenSSL engine_pkcs11 from the
   OpenSC project. :gl:`#2691`
 
+- Add support for OpenSSL 3.0.0.  OpenSSL 3.0.0 deprecated 'engine' support.
+  If OpenSSL 3.0.0 has been built without support for deprecated functionality
+  pkcs11 via engine_pkcs11 is no longer available.  At this point in time
+  there is no replacement ``provider`` for pkcs11 which is the replacement to
+  the ``engine API``. :gl:`#2843`
+
 - The ``masterfile-format`` format ``map`` has removed.  If you are using the
   ``map`` format, you are advised to convert the zones to ``raw`` format with
   ``named-compilezone`` and change the configuration prior to BIND 9
