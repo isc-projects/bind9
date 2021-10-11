@@ -1,3 +1,7 @@
+5762.	[bug]		Fix a "named" crash related to removing and restoring a
+			`catalog-zone` entry in the configuration file and
+			running `rndc reconfig`. [GL #1608]
+
 5761.	[bug]		OpenSSL 3.0.0 support could fail to correctly read
 			ECDSA private keys leading to incorrect signatures
 			being generated. [GL #3014]

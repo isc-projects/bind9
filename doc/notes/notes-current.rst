@@ -40,4 +40,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Removing a configured ``catalog-zone`` clause from the configuration, running
+  ``rndc reconfig``, then bringing back the removed ``catalog-zone`` clause and
+  running ``rndc reconfig`` again caused ``named`` to crash. This has been fixed.
+  :gl:`#1608`
