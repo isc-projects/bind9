@@ -56,10 +56,13 @@ Feature Changes
   please see the :ref:`ARM section on PKCS#11 <pkcs11>` for details.
   :gl:`#2691`
 
-- ``named`` and ``named-checkconf`` now issue a warning when there is a
-  single port configured for ``query-source``, ``transfer-source``,
-  ``notify-source``, ``parental-source``, and/or for their respective
-  IPv6 counterparts. :gl:`#2888`
+- Old-style Dynamically Loadable Zones (DLZ) drivers that had to be
+  enabled in ``named`` at build time have been marked as deprecated in
+  favor of new-style DLZ modules. Old-style DLZ drivers will be removed
+  in the next major BIND 9 release. :gl:`#2814`
+
+- The ``map`` zone file format has been marked as deprecated and will be
+  removed in the next major BIND 9 release. :gl:`#2882`
 
 - ``named`` and ``named-checkconf`` now exit with an error when a single
   port configured for ``query-source``, ``transfer-source``,
@@ -69,13 +72,10 @@ Feature Changes
   until now (even though sending UDP messages such as NOTIFY failed).
   :gl:`#2888`
 
-- The ``map`` zone file format has been marked as deprecated and will be
-  removed in the next major BIND 9 release. :gl:`#2882`
-
-- Old-style Dynamically Loadable Zones (DLZ) drivers that had to be
-  enabled in ``named`` at build time have been marked as deprecated in
-  favor of new-style DLZ modules. Old-style DLZ drivers will be removed
-  in the next major BIND 9 release. :gl:`#2814`
+- ``named`` and ``named-checkconf`` now issue a warning when there is a
+  single port configured for ``query-source``, ``transfer-source``,
+  ``notify-source``, ``parental-source``, and/or for their respective
+  IPv6 counterparts. :gl:`#2888`
 
 .. _OpenSC: https://github.com/OpenSC/libp11
 
