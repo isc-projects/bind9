@@ -5728,7 +5728,7 @@ report() {
     echo "    localstatedir: $localstatedir"
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
-    if test "yes" == "$GCC"; then
+    if test "yes" = "$GCC"; then
 	$CC --version 2>&1 | sed 's/^/    /'
     else
 	case "$host_os" in

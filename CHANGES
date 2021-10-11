@@ -1,3 +1,5 @@
+	--- 9.11.36 released ---
+
 5736.	[security]	The "lame-ttl" option is now forcibly set to 0. This
 			effectively disables the lame server cache, as it could
 			previously be abused by an attacker to significantly
