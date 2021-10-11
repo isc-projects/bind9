@@ -20,14 +20,14 @@
 
 #include <dns/ds.h>
 
-static inline isc_result_t
+static isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromtext_ds(CALL_FROMTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_dlv(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
@@ -35,14 +35,14 @@ totext_dlv(ARGS_TOTEXT) {
 	return (generic_totext_ds(CALL_TOTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_dlv(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromwire_ds(CALL_FROMWIRE));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_dlv(ARGS_TOWIRE) {
 	isc_region_t sr;
 
@@ -55,7 +55,7 @@ towire_dlv(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
+static int
 compare_dlv(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -71,14 +71,14 @@ compare_dlv(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_dlv(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
 	return (generic_fromstruct_ds(CALL_FROMSTRUCT));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_dlv(ARGS_TOSTRUCT) {
 	dns_rdata_dlv_t *dlv = target;
 
@@ -92,7 +92,7 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	return (generic_tostruct_ds(CALL_TOSTRUCT));
 }
 
-static inline void
+static void
 freestruct_dlv(ARGS_FREESTRUCT) {
 	dns_rdata_dlv_t *dlv = source;
 
@@ -109,7 +109,7 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 	dlv->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_dlv(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
@@ -121,7 +121,7 @@ additionaldata_dlv(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_dlv(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -132,7 +132,7 @@ digest_dlv(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_dlv(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_dlv);
 
@@ -144,7 +144,7 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_dlv(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
 
@@ -155,7 +155,7 @@ checknames_dlv(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_dlv(ARGS_COMPARE) {
 	return (compare_dlv(rdata1, rdata2));
 }

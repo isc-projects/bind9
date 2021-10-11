@@ -18,7 +18,7 @@
 
 #define RRTYPE_SINK_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_sink(ARGS_FROMTEXT) {
 	isc_token_t token;
 
@@ -57,7 +57,7 @@ fromtext_sink(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_sink(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof("255 255 255")];
@@ -103,7 +103,7 @@ totext_sink(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_sink(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
@@ -124,7 +124,7 @@ fromwire_sink(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_sink(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 	REQUIRE(rdata->length >= 3);
@@ -134,7 +134,7 @@ towire_sink(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
+static int
 compare_sink(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -150,7 +150,7 @@ compare_sink(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_sink(ARGS_FROMSTRUCT) {
 	dns_rdata_sink_t *sink = source;
 
@@ -175,7 +175,7 @@ fromstruct_sink(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, sink->data, sink->datalen));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_sink(ARGS_TOSTRUCT) {
 	dns_rdata_sink_t *sink = target;
 	isc_region_t sr;
@@ -222,7 +222,7 @@ tostruct_sink(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_sink(ARGS_FREESTRUCT) {
 	dns_rdata_sink_t *sink = (dns_rdata_sink_t *)source;
 
@@ -239,7 +239,7 @@ freestruct_sink(ARGS_FREESTRUCT) {
 	sink->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_sink(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 
@@ -251,7 +251,7 @@ additionaldata_sink(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_sink(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -262,7 +262,7 @@ digest_sink(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_sink(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_sink);
 
@@ -274,7 +274,7 @@ checkowner_sink(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_sink(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_sink);
 
@@ -285,7 +285,7 @@ checknames_sink(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_sink(ARGS_COMPARE) {
 	return (compare_sink(rdata1, rdata2));
 }

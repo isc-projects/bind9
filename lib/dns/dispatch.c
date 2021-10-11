@@ -240,14 +240,14 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 		      msgbuf);
 }
 
-static inline void
+static void
 inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_increment(mgr->stats, counter);
 	}
 }
 
-static inline void
+static void
 dec_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_decrement(mgr->stats, counter);

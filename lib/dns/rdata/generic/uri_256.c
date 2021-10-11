@@ -16,7 +16,7 @@
 
 #define RRTYPE_URI_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_uri(ARGS_FROMTEXT) {
 	isc_token_t token;
 
@@ -60,7 +60,7 @@ fromtext_uri(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_uri(ARGS_TOTEXT) {
 	isc_region_t region;
 	unsigned short priority, weight;
@@ -96,7 +96,7 @@ totext_uri(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_uri(ARGS_FROMWIRE) {
 	isc_region_t region;
 
@@ -122,7 +122,7 @@ fromwire_uri(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_uri(ARGS_TOWIRE) {
 	isc_region_t region;
 
@@ -135,7 +135,7 @@ towire_uri(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline int
+static int
 compare_uri(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -173,7 +173,7 @@ compare_uri(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_uri(ARGS_FROMSTRUCT) {
 	dns_rdata_uri_t *uri = source;
 
@@ -202,7 +202,7 @@ fromstruct_uri(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, uri->target, uri->tgt_len));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_uri(ARGS_TOSTRUCT) {
 	dns_rdata_uri_t *uri = target;
 	isc_region_t sr;
@@ -248,7 +248,7 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_uri(ARGS_FREESTRUCT) {
 	dns_rdata_uri_t *uri = (dns_rdata_uri_t *)source;
 
@@ -265,7 +265,7 @@ freestruct_uri(ARGS_FREESTRUCT) {
 	uri->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_uri(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 
@@ -277,7 +277,7 @@ additionaldata_uri(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_uri(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -288,7 +288,7 @@ digest_uri(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_uri(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_uri);
 
@@ -300,7 +300,7 @@ checkowner_uri(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_uri(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 
@@ -311,7 +311,7 @@ checknames_uri(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_uri(ARGS_COMPARE) {
 	return (compare_uri(rdata1, rdata2));
 }

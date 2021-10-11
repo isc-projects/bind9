@@ -269,7 +269,7 @@ specifying the implementation of the function.  The opening curly brace
 should occur on the same line as the argument list, unless the argument
 list is more than one line long:
 
-    	static inline void
+    	static void
     	func1(int i) {
     		/* whatever */
     	}

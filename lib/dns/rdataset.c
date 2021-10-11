@@ -297,7 +297,7 @@ towire_compare(const void *av, const void *bv) {
 	return (a->key - b->key);
 }
 
-static inline void
+static void
 swap_rdata(dns_rdata_t *in, unsigned int a, unsigned int b) {
 	dns_rdata_t rdata = in[a];
 	in[a] = in[b];

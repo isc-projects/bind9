@@ -135,7 +135,7 @@ hash_divisor(unsigned int initial) {
 /*
  * Convert a timestamp to a number of seconds in the past.
  */
-static inline int
+static int
 delta_rrl_time(isc_stdtime_t ts, isc_stdtime_t now) {
 	int delta;
 
@@ -157,7 +157,7 @@ delta_rrl_time(isc_stdtime_t ts, isc_stdtime_t now) {
 	return (0);
 }
 
-static inline int
+static int
 get_age(const dns_rrl_t *rrl, const dns_rrl_entry_t *e, isc_stdtime_t now) {
 	if (!e->ts_valid) {
 		return (DNS_RRL_FOREVER);
@@ -165,7 +165,7 @@ get_age(const dns_rrl_t *rrl, const dns_rrl_entry_t *e, isc_stdtime_t now) {
 	return (delta_rrl_time(e->ts + rrl->ts_bases[e->ts_gen], now));
 }
 
-static inline void
+static void
 set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 	dns_rrl_entry_t *e_old;
 	unsigned int ts_gen;
@@ -273,7 +273,7 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline dns_rrl_bin_t *
+static dns_rrl_bin_t *
 get_bin(dns_rrl_hash_t *hash, unsigned int hval) {
 	INSIST(hash != NULL);
 	return (&hash->bins[hval % hash->length]);
@@ -382,7 +382,7 @@ ref_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, int probes, isc_stdtime_t now) {
 	}
 }
 
-static inline bool
+static bool
 key_cmp(const dns_rrl_key_t *a, const dns_rrl_key_t *b) {
 	if (memcmp(a, b, sizeof(dns_rrl_key_t)) == 0) {
 		return (true);
@@ -390,7 +390,7 @@ key_cmp(const dns_rrl_key_t *a, const dns_rrl_key_t *b) {
 	return (false);
 }
 
-static inline uint32_t
+static uint32_t
 hash_key(const dns_rrl_key_t *key) {
 	uint32_t hval;
 	int i;
@@ -466,7 +466,7 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 	}
 }
 
-static inline dns_rrl_rate_t *
+static dns_rrl_rate_t *
 get_rate(dns_rrl_t *rrl, dns_rrl_rtype_t rtype) {
 	switch (rtype) {
 	case DNS_RRL_RTYPE_QUERY:
@@ -628,7 +628,7 @@ debit_log(const dns_rrl_entry_t *e, int age, const char *action) {
 		      hash_key(&e->key), age_str, e->responses, action);
 }
 
-static inline dns_rrl_result_t
+static dns_rrl_result_t
 debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		const isc_sockaddr_t *client_addr, isc_stdtime_t now,
 		char *log_buf, unsigned int log_buf_len) {
@@ -771,7 +771,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	return (DNS_RRL_RESULT_DROP);
 }
 
-static inline dns_rrl_qname_buf_t *
+static dns_rrl_qname_buf_t *
 get_qname(dns_rrl_t *rrl, const dns_rrl_entry_t *e) {
 	dns_rrl_qname_buf_t *qbuf;
 
@@ -782,7 +782,7 @@ get_qname(dns_rrl_t *rrl, const dns_rrl_entry_t *e) {
 	return (qbuf);
 }
 
-static inline void
+static void
 free_qname(dns_rrl_t *rrl, dns_rrl_entry_t *e) {
 	dns_rrl_qname_buf_t *qbuf;
 

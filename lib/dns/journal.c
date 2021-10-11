@@ -110,13 +110,13 @@
 static isc_result_t
 index_to_disk(dns_journal_t *);
 
-static inline uint32_t
+static uint32_t
 decode_uint32(unsigned char *p) {
 	return (((uint32_t)p[0] << 24) + ((uint32_t)p[1] << 16) +
 		((uint32_t)p[2] << 8) + ((uint32_t)p[3] << 0));
 }
 
-static inline void
+static void
 encode_uint32(uint32_t val, unsigned char *p) {
 	p[0] = (uint8_t)(val >> 24);
 	p[1] = (uint8_t)(val >> 16);

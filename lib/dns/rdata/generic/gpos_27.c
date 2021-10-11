@@ -18,7 +18,7 @@
 
 #define RRTYPE_GPOS_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_gpos(ARGS_FROMTEXT) {
 	isc_token_t token;
 	int i;
@@ -39,7 +39,7 @@ fromtext_gpos(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_gpos(ARGS_TOTEXT) {
 	isc_region_t region;
 	int i;
@@ -61,7 +61,7 @@ totext_gpos(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_gpos(ARGS_FROMWIRE) {
 	int i;
 
@@ -78,7 +78,7 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_gpos(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 	REQUIRE(rdata->length != 0);
@@ -88,7 +88,7 @@ towire_gpos(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
+static int
 compare_gpos(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -104,7 +104,7 @@ compare_gpos(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_gpos(ARGS_FROMSTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
@@ -124,7 +124,7 @@ fromstruct_gpos(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, gpos->altitude, gpos->alt_len));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_gpos(ARGS_TOSTRUCT) {
 	dns_rdata_gpos_t *gpos = target;
 	isc_region_t region;
@@ -180,7 +180,7 @@ cleanup_longitude:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void
+static void
 freestruct_gpos(ARGS_FREESTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
@@ -203,7 +203,7 @@ freestruct_gpos(ARGS_FREESTRUCT) {
 	gpos->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_gpos(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 
@@ -215,7 +215,7 @@ additionaldata_gpos(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_gpos(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -226,7 +226,7 @@ digest_gpos(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_gpos(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_gpos);
 
@@ -238,7 +238,7 @@ checkowner_gpos(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_gpos(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
 
@@ -249,7 +249,7 @@ checknames_gpos(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_gpos(ARGS_COMPARE) {
 	return (compare_gpos(rdata1, rdata2));
 }

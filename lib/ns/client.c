@@ -2983,7 +2983,7 @@ ns_client_newdbversion(ns_client_t *client, unsigned int n) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline ns_dbversion_t *
+static ns_dbversion_t *
 client_getdbversion(ns_client_t *client) {
 	ns_dbversion_t *dbversion = NULL;
 

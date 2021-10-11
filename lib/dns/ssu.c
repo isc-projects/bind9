@@ -75,7 +75,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	*tablep = table;
 }
 
-static inline void
+static void
 destroy(dns_ssutable_t *table) {
 	isc_mem_t *mctx;
 
@@ -180,7 +180,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
 }
 
-static inline bool
+static bool
 isusertype(dns_rdatatype_t type) {
 	return (type != dns_rdatatype_ns && type != dns_rdatatype_soa &&
 		type != dns_rdatatype_rrsig);
