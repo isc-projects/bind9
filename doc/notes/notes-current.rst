@@ -77,6 +77,10 @@ Removed Features
   engine_pkcs11 for PKCS#11<pkcs11>`. engine_pkcs11 is an OpenSSL engine
   which is part of the `OpenSC`_ project. :gl:`#2691`
 
+- Old-style Dynamically Loadable Zones (DLZ) drivers that had to be
+  enabled in ``named`` at build time have been removed. New-style DLZ
+  modules should be used as a replacement. :gl:`#2814`
+
 - Add support for OpenSSL 3.0.0.  OpenSSL 3.0.0 deprecated 'engine' support.
   If OpenSSL 3.0.0 has been built without support for deprecated functionality
   pkcs11 via engine_pkcs11 is no longer available.  At this point in time
@@ -89,19 +93,14 @@ Removed Features
   and change the configuration appropriately prior to upgrading BIND 9.
   :gl:`#2882`
 
-- Old-style Dynamically Loadable Zones (DLZ) drivers that had to be
-  enabled in ``named`` at build time have been removed. New-style DLZ
-  modules should be used as a replacement. :gl:`#2814`
-
 .. _OpenSC: https://github.com/OpenSC/libp11
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- ``named`` and ``named-checkconf`` now issue a warning when there is a
-  single port configured for ``query-source``, ``transfer-source``,
-  ``notify-source``, ``parental-source``, and/or for their respective
-  IPv6 counterparts. :gl:`#2888`
+- The network manager API is now used for sending all outgoing DNS
+  queries and requests from ``named`` and related tools, including
+  ``delv``, ``mdig``, and ``nsupdate``. :gl:`#2401`
 
 - ``named`` and ``named-checkconf`` now exit with an error when a single
   port configured for ``query-source``, ``transfer-source``,
@@ -111,9 +110,10 @@ Feature Changes
   until now (even though sending UDP messages such as NOTIFY failed).
   :gl:`#2888`
 
-- The network manager API is now used for sending all outgoing DNS
-  queries and requests from ``named`` and related tools, including
-  ``delv``, ``mdig``, and ``nsupdate``. :gl:`#2401`
+- ``named`` and ``named-checkconf`` now issue a warning when there is a
+  single port configured for ``query-source``, ``transfer-source``,
+  ``notify-source``, ``parental-source``, and/or for their respective
+  IPv6 counterparts. :gl:`#2888`
 
 - Because the old socket manager API has been removed, "socketmgr"
   statistics are no longer reported by the statistics channel. :gl:`#2926`
@@ -148,12 +148,12 @@ Bug Fixes
   ``named`` startup, it could fail to listen for TCP connections on the
   newly added interfaces. :gl:`#2852`
 
-- Under specific circumstances, zone transfers over TCP and TLS could be
-  interrupted prematurely. This has been fixed. :gl:`#2917`
-
 - Reloading a catalog zone which referenced a missing/deleted member
   zone triggered a runtime check failure, causing ``named`` to exit
   prematurely. This has been fixed. :gl:`#2308`
+
+- Under specific circumstances, zone transfers over TCP and TLS could be
+  interrupted prematurely. This has been fixed. :gl:`#2917`
 
 - Logfiles using ``timestamp``-style suffixes were not always correctly
   removed when the number of files exceeded the limit set by ``versions``.
