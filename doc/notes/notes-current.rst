@@ -107,6 +107,12 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- A recent change introduced in BIND 9.17.18 inadvertently broke
+  backward compatibility for the ``check-names master ...`` and
+  ``check-names slave ...`` options, causing them to be silently
+  ignored. This has been fixed and these options now work properly
+  again. :gl:`#2911`
+
 - When new IP addresses were set up by the operating system during
   ``named`` startup, it could fail to listen for TCP connections on the
   newly added interfaces. :gl:`#2852`
