@@ -8,7 +8,7 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.17.18
+Notes for BIND 9.17.19
 ----------------------
 
 Security Fixes
@@ -29,11 +29,6 @@ Security Fixes
 
   ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
   bringing this vulnerability to our attention. :gl:`#2899`
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
 
 New Features
 ~~~~~~~~~~~~
