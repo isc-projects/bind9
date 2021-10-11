@@ -801,7 +801,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		}
 
 		/* Got an invalid DNS response, terminate the connection */
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		isc_sockaddr_format(&peer, buf, sizeof(buf));
 		dispatch_log(disp, ISC_LOG_ERROR,

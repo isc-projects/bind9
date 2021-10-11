@@ -791,7 +791,7 @@ update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 	case DNS_R_COVERINGNSEC:
 		isc_stats_increment(rbtdb->cachestats,
 				    dns_cachestatscounter_coveringnsec);
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case ISC_R_SUCCESS:
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:

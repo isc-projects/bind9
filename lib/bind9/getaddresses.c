@@ -132,7 +132,7 @@ again:
 			goto again;
 		}
 #endif /* ifdef AI_ADDRCONFIG */
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		return (ISC_R_FAILURE);
 	}

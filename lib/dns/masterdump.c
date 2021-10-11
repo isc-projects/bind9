@@ -703,7 +703,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				isc_buffer_putstr(target, KEYDATA);
 				break;
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) !=
 			    0) {

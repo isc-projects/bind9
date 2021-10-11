@@ -130,7 +130,7 @@ check_node(dns_rdataset_t *rootns, dns_name_t *name,
 			if (dns_name_compare(name, dns_rootname) == 0) {
 				break;
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			result = ISC_R_FAILURE;
 			goto cleanup;

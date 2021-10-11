@@ -1145,7 +1145,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				break;
 			}
 
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case ft_start:
 			label = ndata;
 			ndata++;
@@ -1160,7 +1160,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (nrem == 0) {
 				return (ISC_R_NOSPACE);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case ft_ordinary:
 			if (c == '.') {
 				if (count == 0) {
@@ -1204,7 +1204,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			state = ft_escape;
 			POST(state);
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case ft_escape:
 			if (!isdigit((unsigned char)c)) {
 				if (count >= 63) {
@@ -1224,7 +1224,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			digits = 0;
 			value = 0;
 			state = ft_escdecimal;
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case ft_escdecimal:
 			if (!isdigit((unsigned char)c)) {
 				return (DNS_R_BADESCAPE);
@@ -1427,7 +1427,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 					    0) {
 						goto no_escape;
 					}
-				/* FALLTHROUGH */
+					FALLTHROUGH;
 				case 0x22: /* '"' */
 				case 0x28: /* '(' */
 				case 0x29: /* ')' */

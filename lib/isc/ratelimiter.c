@@ -325,7 +325,7 @@ isc_ratelimiter_stall(isc_ratelimiter_t *rl) {
 		result = isc_timer_reset(rl->timer, isc_timertype_inactive,
 					 NULL, NULL, false);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case isc_ratelimiter_idle:
 	case isc_ratelimiter_stalled:
 		rl->state = isc_ratelimiter_stalled;
