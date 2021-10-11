@@ -413,7 +413,7 @@ mgr_gethash(dns_requestmgr_t *requestmgr) {
 	return (requestmgr->hash % DNS_REQUEST_NLOCKS);
 }
 
-static inline isc_result_t
+static isc_result_t
 req_send(dns_request_t *request, isc_task_t *task,
 	 const isc_sockaddr_t *address) {
 	isc_region_t r;

@@ -290,9 +290,9 @@ static void
 free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *
 allocate_udp_buffer(dns_dispatch_t *disp);
-static inline void
+static void
 free_devent(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
-static inline dns_dispatchevent_t *
+static dns_dispatchevent_t *
 allocate_devent(dns_dispatch_t *disp);
 static void
 do_cancel(dns_dispatch_t *disp);
@@ -352,14 +352,14 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 		      msgbuf);
 }
 
-static inline void
+static void
 inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_increment(mgr->stats, counter);
 	}
 }
 
-static inline void
+static void
 dec_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_decrement(mgr->stats, counter);
@@ -936,14 +936,14 @@ allocate_udp_buffer(dns_dispatch_t *disp) {
 	return (isc_mem_get(disp->mgr->mctx, buffersize));
 }
 
-static inline void
+static void
 free_sevent(isc_event_t *ev) {
 	isc_mem_t *pool = ev->ev_destroy_arg;
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
 	isc_mem_put(pool, sev, sizeof(*sev));
 }
 
-static inline isc_socketevent_t *
+static isc_socketevent_t *
 allocate_sevent(dns_dispatch_t *disp, isc_socket_t *sock, isc_eventtype_t type,
 		isc_taskaction_t action, const void *arg) {
 	isc_socketevent_t *ev;
@@ -963,7 +963,7 @@ allocate_sevent(dns_dispatch_t *disp, isc_socket_t *sock, isc_eventtype_t type,
 	return (ev);
 }
 
-static inline void
+static void
 free_devent(dns_dispatch_t *disp, dns_dispatchevent_t *ev) {
 	if (disp->failsafe_ev == ev) {
 		INSIST(disp->shutdown_out == 1);
@@ -976,7 +976,7 @@ free_devent(dns_dispatch_t *disp, dns_dispatchevent_t *ev) {
 	isc_mem_put(disp->mgr->mctx, ev, sizeof(*ev));
 }
 
-static inline dns_dispatchevent_t *
+static dns_dispatchevent_t *
 allocate_devent(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 

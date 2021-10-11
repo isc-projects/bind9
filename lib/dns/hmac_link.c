@@ -147,7 +147,7 @@ struct dst_hmac_key {
 	uint8_t key[ISC_MAX_BLOCK_SIZE];
 };
 
-static inline isc_result_t
+static isc_result_t
 getkeybits(dst_key_t *key, struct dst_private_element *element) {
 	uint16_t *bits = (uint16_t *)element->data;
 
@@ -160,7 +160,7 @@ getkeybits(dst_key_t *key, struct dst_private_element *element) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_createctx(const isc_md_type_t *type, const dst_key_t *key,
 	       dst_context_t *dctx) {
 	isc_result_t result;
@@ -177,7 +177,7 @@ hmac_createctx(const isc_md_type_t *type, const dst_key_t *key,
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 hmac_destroyctx(dst_context_t *dctx) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	REQUIRE(ctx != NULL);
@@ -186,7 +186,7 @@ hmac_destroyctx(dst_context_t *dctx) {
 	dctx->ctxdata.hmac_ctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_adddata(const dst_context_t *dctx, const isc_region_t *data) {
 	isc_result_t result;
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
@@ -201,7 +201,7 @@ hmac_adddata(const dst_context_t *dctx, const isc_region_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	REQUIRE(ctx != NULL);
@@ -225,7 +225,7 @@ hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	unsigned int digestlen;
@@ -250,7 +250,7 @@ hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 			: DST_R_VERIFYFAILURE);
 }
 
-static inline bool
+static bool
 hmac_compare(const isc_md_type_t *type, const dst_key_t *key1,
 	     const dst_key_t *key2) {
 	dst_hmac_key_t *hkey1, *hkey2;
@@ -268,7 +268,7 @@ hmac_compare(const isc_md_type_t *type, const dst_key_t *key1,
 				  isc_md_type_get_block_size(type)));
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_generate(const isc_md_type_t *type, dst_key_t *key) {
 	isc_buffer_t b;
 	isc_result_t ret;
@@ -296,13 +296,13 @@ hmac_generate(const isc_md_type_t *type, dst_key_t *key) {
 	return (ret);
 }
 
-static inline bool
+static bool
 hmac_isprivate(const dst_key_t *key) {
 	UNUSED(key);
 	return (true);
 }
 
-static inline void
+static void
 hmac_destroy(dst_key_t *key) {
 	dst_hmac_key_t *hkey = key->keydata.hmac_key;
 	isc_safe_memwipe(hkey, sizeof(*hkey));
@@ -310,7 +310,7 @@ hmac_destroy(dst_key_t *key) {
 	key->keydata.hmac_key = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_todns(const dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(key != NULL && key->keydata.hmac_key != NULL);
 	dst_hmac_key_t *hkey = key->keydata.hmac_key;
@@ -325,7 +325,7 @@ hmac_todns(const dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 	dst_hmac_key_t *hkey;
 	unsigned int keylen;
@@ -360,7 +360,7 @@ hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline int
+static int
 hmac__get_tag_key(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
 		return (TAG_HMACMD5_KEY);
@@ -379,7 +379,7 @@ hmac__get_tag_key(const isc_md_type_t *type) {
 	}
 }
 
-static inline int
+static int
 hmac__get_tag_bits(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
 		return (TAG_HMACMD5_BITS);
@@ -398,7 +398,7 @@ hmac__get_tag_bits(const isc_md_type_t *type) {
 	}
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_tofile(const isc_md_type_t *type, const dst_key_t *key,
 	    const char *directory) {
 	dst_hmac_key_t *hkey;
@@ -431,7 +431,7 @@ hmac_tofile(const isc_md_type_t *type, const dst_key_t *key,
 	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
-static inline int
+static int
 hmac__to_dst_alg(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
 		return (DST_ALG_HMACMD5);
@@ -450,7 +450,7 @@ hmac__to_dst_alg(const isc_md_type_t *type) {
 	}
 }
 
-static inline isc_result_t
+static isc_result_t
 hmac_parse(const isc_md_type_t *type, dst_key_t *key, isc_lex_t *lexer,
 	   dst_key_t *pub) {
 	dst_private_t priv;

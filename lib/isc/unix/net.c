@@ -361,7 +361,7 @@ isc_net_probe_ipv6pktinfo(void) {
 
 #if ISC_CMSG_IP_TOS || defined(IPV6_TCLASS)
 
-static inline socklen_t
+static socklen_t
 cmsg_len(socklen_t len) {
 #ifdef CMSG_LEN
 	return (CMSG_LEN(len));
@@ -377,7 +377,7 @@ cmsg_len(socklen_t len) {
 #endif /* ifdef CMSG_LEN */
 }
 
-static inline socklen_t
+static socklen_t
 cmsg_space(socklen_t len) {
 #ifdef CMSG_SPACE
 	return (CMSG_SPACE(len));

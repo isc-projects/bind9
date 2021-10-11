@@ -149,7 +149,7 @@ typedef struct {
 	bool pad;	  /*%< Expect padding */
 } base32_decode_ctx_t;
 
-static inline void
+static void
 base32_decode_init(base32_decode_ctx_t *ctx, int length, const char base[],
 		   bool pad, isc_buffer_t *target) {
 	ctx->digits = 0;
@@ -161,7 +161,7 @@ base32_decode_init(base32_decode_ctx_t *ctx, int length, const char base[],
 	ctx->pad = pad;
 }
 
-static inline isc_result_t
+static isc_result_t
 base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 	const char *s;
 	unsigned int last;
@@ -269,7 +269,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 base32_decode_finish(base32_decode_ctx_t *ctx) {
 	if (ctx->length > 0) {
 		return (ISC_R_UNEXPECTEDEND);

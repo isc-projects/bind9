@@ -1033,7 +1033,7 @@ name2data(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_rpz_type_t rpz_type,
  * \brief Count Leading Zeros: Find the location of the left-most set
  * bit.
  */
-static inline unsigned int
+static unsigned int
 clz(dns_rpz_cidr_word_t w) {
 	unsigned int bit;
 
@@ -1101,7 +1101,7 @@ diff_keys(const dns_rpz_cidr_key_t *key1, dns_rpz_prefix_t prefix1,
  * Given a hit while searching the radix trees,
  * clear all bits for higher numbered zones.
  */
-static inline dns_rpz_zbits_t
+static dns_rpz_zbits_t
 trim_zbits(dns_rpz_zbits_t zbits, dns_rpz_zbits_t found) {
 	dns_rpz_zbits_t x;
 

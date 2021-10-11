@@ -349,7 +349,7 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 }
 #endif /* ISC_MEM_TRACKLINES */
 
-static inline size_t
+static size_t
 rmsize(size_t size) {
 	/*
 	 * round down to ALIGNMENT_SIZE
@@ -357,7 +357,7 @@ rmsize(size_t size) {
 	return (size & (~(ALIGNMENT_SIZE - 1)));
 }
 
-static inline size_t
+static size_t
 quantize(size_t size) {
 	/*!
 	 * Round up the result in order to get a size big
@@ -371,7 +371,7 @@ quantize(size_t size) {
 	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
 
-static inline void
+static void
 more_basic_blocks(isc__mem_t *ctx) {
 	void *tmp;
 	unsigned char *curr, *next;
@@ -433,7 +433,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 	ctx->basic_blocks = tmp;
 }
 
-static inline void
+static void
 more_frags(isc__mem_t *ctx, size_t new_size) {
 	int frags;
 	size_t total_size;
@@ -485,7 +485,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	ctx->freelists[new_size] = tmp;
 }
 
-static inline void *
+static void *
 mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
@@ -550,7 +550,7 @@ done:
 }
 
 #if ISC_MEM_CHECKOVERRUN
-static inline void
+static void
 check_overrun(void *mem, size_t size, size_t new_size) {
 	unsigned char *cp;
 
@@ -565,7 +565,7 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 #endif /* if ISC_MEM_CHECKOVERRUN */
 
 /* coverity[+free : arg-1] */
-static inline void
+static void
 mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
@@ -614,7 +614,7 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 /*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
-static inline void *
+static void *
 mem_get(isc__mem_t *ctx, size_t size) {
 	char *ret;
 
@@ -644,7 +644,7 @@ mem_get(isc__mem_t *ctx, size_t size) {
  * Perform a free, doing memory filling and overrun detection as necessary.
  */
 /* coverity[+free : arg-1] */
-static inline void
+static void
 mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
 	INSIST(((unsigned char *)mem)[size] == 0xbe);
@@ -659,7 +659,7 @@ mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 /*!
  * Update internal counters after a memory get.
  */
-static inline void
+static void
 mem_getstats(isc__mem_t *ctx, size_t size) {
 	ctx->total += size;
 	ctx->inuse += size;
@@ -684,7 +684,7 @@ mem_getstats(isc__mem_t *ctx, size_t size) {
 /*!
  * Update internal counters after a memory put.
  */
-static inline void
+static void
 mem_putstats(isc__mem_t *ctx, void *ptr, size_t size) {
 	UNUSED(ptr);
 

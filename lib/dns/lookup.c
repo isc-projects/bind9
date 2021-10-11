@@ -73,7 +73,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	lookup_find(lookup, fevent);
 }
 
-static inline isc_result_t
+static isc_result_t
 start_fetch(dns_lookup_t *lookup) {
 	isc_result_t result;
 

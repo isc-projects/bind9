@@ -120,7 +120,7 @@ isc_time_isepoch(const isc_time_t *t) {
 	return (false);
 }
 
-static inline isc_result_t
+static isc_result_t
 time_now(isc_time_t *t, clockid_t clock) {
 	struct timespec ts;
 	char strbuf[ISC_STRERRORSIZE];

@@ -63,7 +63,7 @@ struct isc_lex {
 	LIST(struct inputsource) sources;
 };
 
-static inline isc_result_t
+static isc_result_t
 grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	char *tmp;
 
@@ -180,7 +180,7 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials) {
 	memmove(lex->specials, specials, 256);
 }
 
-static inline isc_result_t
+static isc_result_t
 new_source(isc_lex_t *lex, bool is_file, bool need_close, void *input,
 	   const char *name) {
 	inputsource *source;

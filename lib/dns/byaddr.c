@@ -108,7 +108,7 @@ struct dns_byaddr {
 
 #define MAX_RESTARTS 16
 
-static inline isc_result_t
+static isc_result_t
 copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_name_t *name;

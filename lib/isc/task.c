@@ -289,7 +289,7 @@ isc_task_attach(isc_task_t *source, isc_task_t **targetp) {
 	*targetp = source;
 }
 
-static inline bool
+static bool
 task_shutdown(isc_task_t *task) {
 	bool was_idle = false;
 	isc_event_t *event, *prev;
@@ -333,7 +333,7 @@ task_shutdown(isc_task_t *task) {
  *
  * Caller must NOT hold queue lock.
  */
-static inline void
+static void
 task_ready(isc_task_t *task) {
 	isc_taskmgr_t *manager = task->manager;
 	REQUIRE(VALID_MANAGER(manager));
@@ -351,7 +351,7 @@ isc_task_ready(isc_task_t *task) {
 	task_ready(task);
 }
 
-static inline bool
+static bool
 task_detach(isc_task_t *task) {
 	/*
 	 * Caller must be holding the task lock.
@@ -404,7 +404,7 @@ isc_task_detach(isc_task_t **taskp) {
 	*taskp = NULL;
 }
 
-static inline bool
+static bool
 task_send(isc_task_t *task, isc_event_t **eventp, int c) {
 	bool was_idle = false;
 	isc_event_t *event;

@@ -80,7 +80,7 @@ initialize(void) {
 	ISC_LIST_APPEND(implementations, &rbtimp, link);
 }
 
-static inline dns_dbimplementation_t *
+static dns_dbimplementation_t *
 impfind(const char *name) {
 	dns_dbimplementation_t *imp;
 

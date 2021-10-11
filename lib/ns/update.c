@@ -314,7 +314,7 @@ update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
 /*%
  * Increment updated-related statistics counters.
  */
-static inline void
+static void
 inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
 	ns_stats_increment(client->sctx->nsstats, counter);
 

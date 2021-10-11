@@ -158,7 +158,7 @@
 #define STALE_WINDOW(r) (((r)->attributes & DNS_RDATASETATTR_STALE_WINDOW) != 0)
 
 #ifdef WANT_QUERYTRACE
-static inline void
+static void
 client_trace(ns_client_t *client, int level, const char *message) {
 	if (client != NULL && client->query.qname != NULL) {
 		if (isc_log_wouldlog(ns_lctx, level)) {
@@ -228,7 +228,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		       dns_name_t *fname, bool exact, dns_name_t *found);
 
-static inline void
+static void
 log_queryerror(ns_client_t *client, isc_result_t result, int line, int level);
 
 static void
@@ -246,7 +246,7 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
  * Return the hooktable in use with 'qctx', or if there isn't one
  * set, return the default hooktable.
  */
-static inline ns_hooktable_t *
+static ns_hooktable_t *
 get_hooktab(query_ctx_t *qctx) {
 	if (qctx == NULL || qctx->view == NULL || qctx->view->hooktable == NULL)
 	{
@@ -263,7 +263,7 @@ get_hooktab(query_ctx_t *qctx) {
  *
  * (Note that a hook function may set the 'result' to ISC_R_SUCCESS but
  * still terminate processing within the calling function. That's why this
- * is a macro instead of an inline function; it needs to be able to use
+ * is a macro instead of a static function; it needs to be able to use
  * 'goto cleanup' regardless of the return value.)
  */
 #define CALL_HOOK(_id, _qctx)                                       \
@@ -295,7 +295,7 @@ get_hooktab(query_ctx_t *qctx) {
  * codes are ignored. This is intended for use with initialization and
  * destruction calls which *must* run in every configured module.
  *
- * (This could be implemented as an inline void function, but is left as a
+ * (This could be implemented as a static void function, but is left as a
  * macro for symmetry with CALL_HOOK above.)
  */
 #define CALL_HOOK_NORETURN(_id, _qctx)                          \
@@ -503,7 +503,7 @@ query_clear_stale(ns_client_t *client);
 /*
  * Increment query statistics counters.
  */
-static inline void
+static void
 inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
 	dns_rdatatype_t qtype;
@@ -624,7 +624,7 @@ query_next(ns_client_t *client, isc_result_t result) {
 	}
 }
 
-static inline void
+static void
 query_freefreeversions(ns_client_t *client, bool everything) {
 	ns_dbversion_t *dbversion, *dbversion_next;
 	unsigned int i;
@@ -659,7 +659,7 @@ ns_query_cancel(ns_client_t *client) {
 	UNLOCK(&client->query.fetchlock);
 }
 
-static inline void
+static void
 query_reset(ns_client_t *client, bool everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
@@ -906,7 +906,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 			: DNS_R_REFUSED);
 }
 
-static inline isc_result_t
+static isc_result_t
 query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		     dns_rdatatype_t qtype, unsigned int options,
 		     dns_zone_t *zone, dns_db_t *db,
@@ -1069,7 +1069,7 @@ approved:
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 query_getzonedb(ns_client_t *client, const dns_name_t *name,
 		dns_rdatatype_t qtype, unsigned int options, dns_zone_t **zonep,
 		dns_db_t **dbp, dns_dbversion_t **versionp) {
@@ -1297,7 +1297,7 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
  * Find a cache database to answer the query.  This may fail with DNS_R_REFUSED
  * if the client is not allowed to use the cache.
  */
-static inline isc_result_t
+static isc_result_t
 query_getcachedb(ns_client_t *client, const dns_name_t *name,
 		 dns_rdatatype_t qtype, dns_db_t **dbp, unsigned int options) {
 	isc_result_t result;
@@ -1325,7 +1325,7 @@ query_getcachedb(ns_client_t *client, const dns_name_t *name,
 	return (result);
 }
 
-static inline isc_result_t
+static isc_result_t
 query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	    unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
 	    dns_dbversion_t **versionp, bool *is_zonep) {
@@ -1427,7 +1427,7 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	return (result);
 }
 
-static inline bool
+static bool
 query_isduplicate(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		  dns_name_t **mnamep) {
 	dns_section_t section;
@@ -2059,7 +2059,7 @@ cleanup:
 /*
  * Add 'rdataset' to 'name'.
  */
-static inline void
+static void
 query_addtoname(dns_name_t *name, dns_rdataset_t *rdataset) {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
@@ -2555,7 +2555,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	ns_stats_increment(client->sctx->nsstats, ns_statscounter_prefetch);
 }
 
-static inline void
+static void
 rpz_clean(dns_zone_t **zonep, dns_db_t **dbp, dns_dbnode_t **nodep,
 	  dns_rdataset_t **rdatasetp) {
 	if (nodep != NULL && *nodep != NULL) {
@@ -2575,13 +2575,13 @@ rpz_clean(dns_zone_t **zonep, dns_db_t **dbp, dns_dbnode_t **nodep,
 	}
 }
 
-static inline void
+static void
 rpz_match_clear(dns_rpz_st_t *st) {
 	rpz_clean(&st->m.zone, &st->m.db, &st->m.node, &st->m.rdataset);
 	st->m.version = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 rpz_ready(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 	REQUIRE(rdatasetp != NULL);
 
@@ -5994,7 +5994,7 @@ query_clear_stale(ns_client_t *client) {
  * answered, in order to avoid answering the query twice, when the original
  * fetch finishes.
  */
-static inline void
+static void
 query_lookup_stale(ns_client_t *client) {
 	query_ctx_t qctx;
 
@@ -11276,7 +11276,7 @@ query_setup_sortlist(query_ctx_t *qctx) {
  * When sending a referral, if the answer to the question is
  * in the glue, sort it to the start of the additional section.
  */
-static inline void
+static void
 query_glueanswer(query_ctx_t *qctx) {
 	const dns_namelist_t *secs = qctx->client->message->sections;
 	const dns_section_t section = DNS_SECTION_ADDITIONAL;
@@ -11442,7 +11442,7 @@ cleanup:
 	return (result);
 }
 
-static inline void
+static void
 log_tat(ns_client_t *client) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char clientbuf[ISC_NETADDR_FORMATSIZE];
@@ -11502,7 +11502,7 @@ log_tat(ns_client_t *client) {
 	}
 }
 
-static inline void
+static void
 log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -11548,7 +11548,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 		      onbuf, ecsbuf);
 }
 
-static inline void
+static void
 log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];

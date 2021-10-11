@@ -672,7 +672,7 @@ cleanup:
 /*%
  * Convert a config file zone type into a server zone type.
  */
-static inline dns_zonetype_t
+static dns_zonetype_t
 zonetype_fromconfig(const cfg_obj_t *map) {
 	const cfg_obj_t *obj = NULL;
 	isc_result_t result;

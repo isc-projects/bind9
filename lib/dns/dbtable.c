@@ -82,7 +82,7 @@ clean1:
 	return (result);
 }
 
-static inline void
+static void
 dbtable_free(dns_dbtable_t *dbtable) {
 	/*
 	 * Caller must ensure that it is safe to call.

@@ -646,7 +646,7 @@ socket_log(isc_socket_t *sock, const isc_sockaddr_t *address,
 /*%
  * Increment socket-related statistics counters.
  */
-static inline void
+static void
 inc_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 	REQUIRE(counterid != -1);
 
@@ -658,7 +658,7 @@ inc_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 /*%
  * Decrement socket-related statistics counters.
  */
-static inline void
+static void
 dec_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 	REQUIRE(counterid != -1);
 
@@ -667,7 +667,7 @@ dec_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 	}
 }
 
-static inline isc_result_t
+static isc_result_t
 watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -759,7 +759,7 @@ watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 #endif /* ifdef USE_KQUEUE */
 }
 
-static inline isc_result_t
+static isc_result_t
 unwatch_fd(isc__socketthread_t *thread, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -1028,7 +1028,7 @@ make_nonblock(int fd) {
  * Note that cmsg_space() could run slow on OSes that do not have
  * CMSG_SPACE.
  */
-static inline socklen_t
+static socklen_t
 cmsg_len(socklen_t len) {
 #ifdef CMSG_LEN
 	return (CMSG_LEN(len));
@@ -1044,7 +1044,7 @@ cmsg_len(socklen_t len) {
 #endif /* ifdef CMSG_LEN */
 }
 
-static inline socklen_t
+static socklen_t
 cmsg_space(socklen_t len) {
 #ifdef CMSG_SPACE
 	return (CMSG_SPACE(len));
