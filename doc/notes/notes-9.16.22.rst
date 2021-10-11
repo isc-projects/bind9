@@ -30,21 +30,6 @@ Security Fixes
   ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
   bringing this vulnerability to our attention. :gl:`#2899`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -91,7 +76,3 @@ Bug Fixes
 - When new IP addresses were set up by the operating system during
   ``named`` startup, it could fail to listen for TCP connections on the
   newly added interfaces. :gl:`#2852`
-
-- Reloading a catalog zone which referenced a missing/deleted member
-  zone triggered a runtime check failure, causing ``named`` to exit
-  prematurely. This has been fixed. :gl:`#2308`
