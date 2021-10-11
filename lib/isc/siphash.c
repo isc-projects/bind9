@@ -142,8 +142,7 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	case 0:
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	v3 ^= b;
@@ -208,8 +207,7 @@ isc_halfsiphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	case 0:
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	v3 ^= b;

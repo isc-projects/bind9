@@ -463,7 +463,7 @@ expecttofindkey(dns_name_t *name) {
 	dns_name_format(name, namestr, sizeof(namestr));
 	fatal("failure looking for '%s DNSKEY' in database: %s", namestr,
 	      isc_result_totext(result));
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (false); /* removes a warning */
 }
 

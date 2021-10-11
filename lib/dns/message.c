@@ -883,8 +883,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		}
 	}
 
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 }
 
 static isc_result_t

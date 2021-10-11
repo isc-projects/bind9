@@ -707,8 +707,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	ISC_LIST_PREPEND(lcfg->channels, channel, link);

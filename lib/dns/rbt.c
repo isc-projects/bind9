@@ -1805,8 +1805,7 @@ nexttable:
 	}
 
 	/* We haven't found any matching node, this should not be possible. */
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 }
 
 static inline void

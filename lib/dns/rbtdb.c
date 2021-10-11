@@ -4440,7 +4440,7 @@ zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 
 	FATAL_ERROR(__FILE__, __LINE__, "zone_findzonecut() called!");
 
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
@@ -7606,8 +7606,7 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 		count = dns_rbt_nodecount(rbtdb->nsec3);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 

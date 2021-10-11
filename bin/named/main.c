@@ -728,8 +728,7 @@ parse_port(char *arg) {
 		named_g_httpport = port;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 

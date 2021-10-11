@@ -2656,8 +2656,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			}
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		for (element2 = cfg_list_first(typelist); element2 != NULL;
@@ -3056,8 +3055,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			break;
 
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 

@@ -1970,8 +1970,7 @@ next_state:
 					       state->keyset_kskonly));
 				sigs++;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -2145,8 +2144,7 @@ next_state:
 					       state->keyset_kskonly));
 				sigs++;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -2173,8 +2171,7 @@ next_state:
 		INSIST(ISC_LIST_EMPTY(state->nsec_mindiff.tuples));
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 failure:
@@ -2234,8 +2231,7 @@ dns__update_soaserial(uint32_t serial, dns_updatemethod_t method) {
 		}
 		return (serial);
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2266,8 +2262,7 @@ dns_update_soaserial(uint32_t serial, dns_updatemethod_t method,
 		}
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (used != NULL) {

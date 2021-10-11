@@ -2731,8 +2731,7 @@ rpz_get_zbits(ns_client_t *client, dns_rdatatype_t ip_type,
 		}
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*
@@ -2969,8 +2968,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 		suffix = &rpz->nsip;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*
@@ -3404,8 +3402,7 @@ dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		recursed = true;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	do {
@@ -3455,8 +3452,7 @@ dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name, bool recursed,
 		trig = LIBRPZ_TRIG_NSDNAME;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	dns_name_toregion(trig_name, &r);
@@ -7306,8 +7302,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			qctx->want_restart = true;
 			return (ISC_R_COMPLETE);
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		/*
@@ -9202,8 +9197,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 				dns64_ttl(qctx->db, qctx->version);
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		SAVE(qctx->client->query.dns64_aaaa, qctx->rdataset);
@@ -11602,8 +11596,7 @@ query_setup_sortlist(query_ctx_t *qctx) {
 	case NS_SORTLISTTYPE_NONE:
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 

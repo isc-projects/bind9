@@ -596,8 +596,7 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 			break;
 
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		/* Nothing's changed; soldier on */

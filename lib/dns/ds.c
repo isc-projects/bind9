@@ -63,8 +63,7 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	name = dns_fixedname_initname(&fname);
