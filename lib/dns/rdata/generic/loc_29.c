@@ -272,8 +272,7 @@ loc_getlatitude(isc_lex_t *lexer, unsigned long *latitude) {
 		*latitude = 0x80000000 - (d1 * 3600 + m1 * 60) * 1000 - s1;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -294,8 +293,7 @@ loc_getlongitude(isc_lex_t *lexer, unsigned long *longitude) {
 		*longitude = 0x80000000 - (d2 * 3600 + m2 * 60) * 1000 - s2;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);

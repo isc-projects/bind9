@@ -92,7 +92,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		dst->zone = ((struct sockaddr_in6 *)src)->sin6_scope_id;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 }

@@ -375,8 +375,7 @@ hmac__get_tag_key(const isc_md_type_t *type) {
 	} else if (type == ISC_MD_SHA512) {
 		return (TAG_HMACSHA512_KEY);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -395,8 +394,7 @@ hmac__get_tag_bits(const isc_md_type_t *type) {
 	} else if (type == ISC_MD_SHA512) {
 		return (TAG_HMACSHA512_BITS);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -448,8 +446,7 @@ hmac__to_dst_alg(const isc_md_type_t *type) {
 	} else if (type == ISC_MD_SHA512) {
 		return (DST_ALG_HMACSHA512);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 

@@ -684,8 +684,7 @@ redo:
 		FAIL(DNS_R_EXTRADATA);
 		FALLTHROUGH;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	result = ISC_R_SUCCESS;
 failure:

@@ -3126,8 +3126,7 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		isc_netaddr_any6(&netaddr);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	for (;;) {
@@ -3212,8 +3211,7 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv6_address>");
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	cfg_print_cstr(pctx, " | * ) [ port ( <integer> | * ) ] ) | "
 			     "( [ [ address ] ( ");
@@ -3222,8 +3220,7 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv6_address>");
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	cfg_print_cstr(pctx, " | * ) ] port ( <integer> | * ) ) )"
 			     " [ dscp <integer> ]");
@@ -3850,8 +3847,7 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		/* no zone type is specified for these */
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	for (clause = clauses; clause->name != NULL; clause++) {

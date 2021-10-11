@@ -508,8 +508,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		break;
 #endif /* ifdef IPV6_TCLASS */
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (sendmsg(s, &msg, 0) < 0) {

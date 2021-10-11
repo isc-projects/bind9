@@ -133,8 +133,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		aclname = "allow-update-forwarding";
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/* First check to see if ACL is defined within the zone */
@@ -249,8 +248,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		} else if (strcasecmp(str, "deny") == 0) {
 			grant = false;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		str = cfg_obj_asstring(matchtype);
@@ -749,8 +747,7 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 		result = named_checknames_get(maps, primary_synonyms, objp);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	INSIST(result == ISC_R_SUCCESS && objp != NULL && *objp != NULL);
@@ -1036,8 +1033,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				    "masterfile-format: format 'map' is "
 				    "deprecated");
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -1060,8 +1056,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(masterstylestr, "relative") == 0) {
 			masterstyle = &dns_master_style_default;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -1161,8 +1156,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(dialupstr, "passive") == 0) {
 			dialup = dns_dialuptype_passive;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 	if (raw != NULL) {
@@ -1188,8 +1182,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(levelstr, "none") == 0) {
 			statlevel = dns_zonestat_none;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 	dns_zone_setstatlevel(zone, statlevel);
@@ -1268,8 +1261,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			{
 				notifytype = dns_notifytype_masteronly;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 		}
 		notifytype = process_notifytype(notifytype, ztype, zname,
@@ -1463,8 +1455,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			fail = check = false;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		if (raw != NULL) {
 			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNAMES, check);
@@ -1498,8 +1489,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			check = false;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSPF, check);
 
@@ -1699,8 +1689,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			} else if (strcasecmp(arg, "off") == 0) {
 				/* Default */
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, false);
@@ -1776,8 +1765,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(dupcheck, "ignore") == 0) {
 			fail = check = false;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRR, check);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRRFAIL, fail);
@@ -1793,8 +1781,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			fail = check = false;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMX, check);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMXFAIL, fail);
@@ -1833,8 +1820,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			warn = ignore = true;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNMXCNAME, warn);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNOREMXCNAME, ignore);
@@ -1850,8 +1836,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			warn = ignore = true;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNORESRVCNAME,
@@ -1874,8 +1859,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			} else if (strcasecmp(arg, "maintain") == 0) {
 				/* Default */
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 		}
 

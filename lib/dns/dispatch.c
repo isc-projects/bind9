@@ -915,7 +915,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 		isc_mem_put(disp->mgr->mctx, buf, buffersize);
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 }
@@ -1586,7 +1586,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		disp->recv_pending = 1;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 

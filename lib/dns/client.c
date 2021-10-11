@@ -219,7 +219,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		attrs |= DNS_DISPATCHATTR_IPV6;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 	attrmask = 0;

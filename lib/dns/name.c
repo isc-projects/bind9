@@ -1475,7 +1475,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 		} else {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected label type %02x", count);
-			/* NOTREACHED */
+			UNREACHABLE();
 		}
 
 		/*
@@ -1599,7 +1599,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 		} else {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected label type %02x", count);
-			/* NOTREACHED */
+			UNREACHABLE();
 		}
 
 		/*

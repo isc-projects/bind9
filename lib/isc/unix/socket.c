@@ -1576,7 +1576,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	case isc_sockettype_raw:
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -2465,7 +2465,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->statsindex = rawstatsindex;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 

@@ -449,8 +449,7 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	} else if (strcasecmp(str, "redirect") == 0) {
 		ztype = dns_zone_redirect;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	return (ztype);
 }
@@ -1059,8 +1058,7 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			*name = dns_tsig_hmacsha512_name;
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 	if (typep != NULL) {

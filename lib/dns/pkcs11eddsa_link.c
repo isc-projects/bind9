@@ -150,7 +150,7 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		siglen = DNS_SIG_ED448SIZE;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -425,7 +425,7 @@ pkcs11eddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		attr->ulValueLen = sizeof(PK11_ECX_ED448);                     \
 		break;                                                         \
 	default:                                                               \
-		INSIST(0);                                                     \
+		UNREACHABLE();                                                 \
 		ISC_UNREACHABLE();                                             \
 	}
 
@@ -535,7 +535,7 @@ pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -618,7 +618,7 @@ pkcs11eddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		len = DNS_KEY_ED448SIZE;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -659,7 +659,7 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		len = DNS_KEY_ED448SIZE;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -954,7 +954,7 @@ pkcs11eddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -1076,7 +1076,7 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		key->key_size = DNS_KEY_ED448SIZE * 8;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 

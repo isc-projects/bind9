@@ -1874,7 +1874,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				have_ipv6 = false;
 			} else {
 				fatal("can't find IPv4 networking");
-				/* NOTREACHED */
+				UNREACHABLE();
 				return (false);
 			}
 			break;
@@ -1884,7 +1884,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				have_ipv4 = false;
 			} else {
 				fatal("can't find IPv6 networking");
-				/* NOTREACHED */
+				UNREACHABLE();
 				return (false);
 			}
 			break;
@@ -2135,7 +2135,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		fprintf(stderr, "Invalid option: -%s\n", option);
 		usage();
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (false);
 }
 

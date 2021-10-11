@@ -638,7 +638,7 @@ main(int argc, char **argv) {
 		dns_secalg_format(alg, algstr, sizeof(algstr));
 		fatal("failed to get key %s/%s: %s", namestr, algstr,
 		      isc_result_totext(ret));
-		/* NOTREACHED */
+		UNREACHABLE();
 		exit(-1);
 	}
 

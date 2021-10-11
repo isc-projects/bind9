@@ -1701,7 +1701,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 				have_ipv6 = false;
 			} else {
 				fatal("can't find IPv4 networking");
-				/* NOTREACHED */
+				UNREACHABLE();
 				return (false);
 			}
 			break;
@@ -1712,7 +1712,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 				have_ipv4 = false;
 			} else {
 				fatal("can't find IPv6 networking");
-				/* NOTREACHED */
+				UNREACHABLE();
 				return (false);
 			}
 			break;
@@ -1820,7 +1820,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 		fprintf(stderr, "Invalid option: -%s\n", option);
 		usage();
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (false);
 }
 

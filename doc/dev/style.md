@@ -143,12 +143,10 @@ Good:
     	static char *	c	       /* Description of 'c'. */
 
 
-The following lint and lint-like comments should be used where appropriate:
+The following macros should be used where appropriate:
 
-    	/* ARGSUSED */
     	FALLTHROUGH;
-    	/* NOTREACHED */
-    	/* VARARGS */
+    	UNREACHABLE();
 
 #### Header files
 

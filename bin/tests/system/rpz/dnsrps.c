@@ -83,8 +83,7 @@ main(int argc, char **argv) {
 #ifdef USE_DNSRPS
 			printf("%s\n", librpz->dnsrpzd_path);
 #else  /* ifdef USE_DNSRPS */
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 #endif /* ifdef USE_DNSRPS */
 			return (0);
 
@@ -134,8 +133,7 @@ main(int argc, char **argv) {
 			librpz->client_detach(&client);
 			printf("%u\n", serial);
 #else  /* ifdef USE_DNSRPS */
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 #endif /* ifdef USE_DNSRPS */
 			return (0);
 

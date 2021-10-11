@@ -191,7 +191,7 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		dgstlen = ISC_SHA384_DIGESTLENGTH;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -311,7 +311,7 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		dgstlen = ISC_SHA384_DIGESTLENGTH;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -453,7 +453,7 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		attr->ulValueLen = sizeof(PK11_ECC_SECP384R1);           \
 		break;                                                   \
 	default:                                                         \
-		INSIST(0);                                               \
+		UNREACHABLE();                                           \
 		ISC_UNREACHABLE();                                       \
 	}
 
@@ -563,7 +563,7 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -646,7 +646,7 @@ pkcs11ecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		len = DNS_KEY_ECDSA384SIZE;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -688,7 +688,7 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		len = DNS_KEY_ECDSA384SIZE;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -984,7 +984,7 @@ pkcs11ecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 
@@ -1106,7 +1106,7 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 

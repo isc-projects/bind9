@@ -482,8 +482,7 @@ get_rate(dns_rrl_t *rrl, dns_rrl_rtype_t rtype) {
 	case DNS_RRL_RTYPE_ALL:
 		return (&rrl->all_per_second);
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -852,8 +851,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 		ADD_LOG_CSTR(&lb, "slip ");
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	switch (e->key.s.rtype) {
@@ -881,8 +879,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 		ADD_LOG_CSTR(&lb, "all ");
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (plural) {

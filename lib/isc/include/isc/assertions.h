@@ -69,6 +69,11 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 					isc_assertiontype_invariant, #cond), \
 		 0)))
 
+#define ISC_UNREACHABLE()                                                   \
+	(isc_assertion_failed(__FILE__, __LINE__, isc_assertiontype_insist, \
+			      "unreachable"),                               \
+	 __builtin_unreachable())
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_ASSERTIONS_H */
