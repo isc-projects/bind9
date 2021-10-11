@@ -1,3 +1,9 @@
+5736.	[security]	The "lame-ttl" option is now forcibly set to 0. This
+			effectively disables the lame server cache, as it could
+			previously be abused by an attacker to significantly
+			degrade resolver performance. (CVE-2021-25219)
+			[GL #2899]
+
 5716.	[bug]		Multiple library names were mistakenly passed to the
 			krb5-config utility when ./configure was invoked with
 			the --with-gssapi=[/path/to/]krb5-config option. This
