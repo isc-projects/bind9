@@ -194,10 +194,22 @@ ret=0
 copy_setports ns1/named.tsconf.in ns1/named.conf
 # a seconds since epoch version number
 touch ns1/named_ts.1480039317
+# a timestamp version number
+touch ns1/named_ts.20150101120000120
 rndc_reconfig ns1 10.53.0.1 > rndc.out.test$n
-$DIG version.bind txt ch @10.53.0.1 -p ${PORT} > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-test_with_retry -f ns1/named_ts.1480039317 && ret=1
+_found2() (
+        $DIG version.bind txt ch @10.53.0.1 -p ${PORT} > dig.out.test$n
+        grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+
+        # we are configured to keep three versions, so the oldest
+        # timestamped versions should be gone, and there should
+        # be two new ones.
+        [ -f ns1/named_ts.1480039317 ] && return 1
+        [ -f ns1/named_ts.20150101120000120 ] && return 1
+        set -- ns1/named_ts.*
+        [ "$#" -eq 2 ] || return 1
+)
+retry_quiet 5 _found2 || ret=1
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

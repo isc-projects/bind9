@@ -27,7 +27,7 @@ options {
 logging {
 	channel default_log {
 	  buffered no;
-	  file "named_ts" versions 10 size 1000 suffix timestamp; # small size
+	  file "named_ts" versions 3 size 1000 suffix timestamp; # small size
 	  severity debug 100;
 	  print-time yes;
 	};

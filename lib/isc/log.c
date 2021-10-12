@@ -1103,7 +1103,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 }
 
 static void
-insert_sort(int64_t to_keep[], int64_t versions, int version) {
+insert_sort(int64_t to_keep[], int64_t versions, int64_t version) {
 	int i = 0;
 	while (i < versions && version < to_keep[i]) {
 		i++;
@@ -1120,12 +1120,13 @@ insert_sort(int64_t to_keep[], int64_t versions, int version) {
 
 static int64_t
 last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
-	if (versions <= 0) {
-		return INT64_MAX;
-	}
-
 	int64_t to_keep[ISC_LOG_MAX_VERSIONS] = { 0 };
 	int64_t version = 0;
+
+	if (versions <= 0) {
+		return (INT64_MAX);
+	}
+
 	if (versions > ISC_LOG_MAX_VERSIONS) {
 		versions = ISC_LOG_MAX_VERSIONS;
 	}
@@ -1134,6 +1135,9 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 	 */
 	memset(to_keep, 0, sizeof(to_keep));
 	while (isc_dir_read(dirp) == ISC_R_SUCCESS) {
+		char *digit_end = NULL;
+		char *ename = NULL;
+
 		if (dirp->entry.length <= bnamelen ||
 		    strncmp(dirp->entry.name, bname, bnamelen) != 0 ||
 		    dirp->entry.name[bnamelen] != '.')
@@ -1141,8 +1145,7 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 			continue;
 		}
 
-		char *digit_end;
-		char *ename = &dirp->entry.name[bnamelen + 1];
+		ename = &dirp->entry.name[bnamelen + 1];
 		version = strtoull(ename, &digit_end, 10);
 		if (*digit_end == '\0') {
 			insert_sort(to_keep, versions, version);
@@ -1160,8 +1163,8 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 static isc_result_t
 remove_old_tsversions(isc_logfile_t *file, int versions) {
 	isc_result_t result;
-	char *bname, *digit_end;
-	const char *dirname;
+	char *bname = NULL, *digit_end = NULL;
+	const char *dirname = NULL;
 	int64_t version, last = INT64_MAX;
 	size_t bnamelen;
 	isc_dir_t dir;
