@@ -1,3 +1,6 @@
+5740.	[func]		Implement incremental resizing of RBT hash table to
+			perform the rehashing gradually. [GL #2941]
+
 5739.	[func]		Change default of 'dnssec-dnskey-kskonly' to 'yes'.
 			[GL #1316]
 

@@ -59,10 +59,12 @@
 #define CHAIN_MAGIC	   ISC_MAGIC('0', '-', '0', '-')
 #define VALID_CHAIN(chain) ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
 
+#define RBT_HASH_NO_BITS    0
 #define RBT_HASH_MIN_BITS   4
 #define RBT_HASH_MAX_BITS   32
 #define RBT_HASH_OVERCOMMIT 3
-#define RBT_HASH_BUCKETSIZE 4096 /* FIXME: What would be a good value here? */
+
+#define RBT_HASH_NEXTTABLE(hindex) ((hindex == 0) ? 1 : 0)
 
 #ifdef RBT_MEM_TEST
 #undef RBT_HASH_SIZE
@@ -87,10 +89,10 @@ struct dns_rbt {
 	void (*data_deleter)(void *, void *);
 	void *deleter_arg;
 	unsigned int nodecount;
-	uint16_t hashbits;
-	uint16_t maxhashbits;
-	dns_rbtnode_t **hashtable;
-	void *mmap_location;
+	uint8_t hashbits[2];
+	dns_rbtnode_t **hashtable[2];
+	uint8_t hindex;
+	uint32_t hiter;
 };
 
 #define RED   0
@@ -234,8 +236,10 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 static isc_result_t
 create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep);
 
-static isc_result_t
-inithash(dns_rbt_t *rbt);
+static inline void
+hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits);
+static inline void
+hashtable_free(dns_rbt_t *rbt, uint8_t index);
 
 static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name);
@@ -246,9 +250,17 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 static uint32_t
 rehash_bits(dns_rbt_t *rbt, size_t newcount);
 static void
-rehash(dns_rbt_t *rbt, uint32_t newbits);
+hashtable_rehash(dns_rbt_t *rbt, uint32_t newbits);
+static void
+hashtable_rehash_one(dns_rbt_t *rbt);
 static void
 maybe_rehash(dns_rbt_t *rbt, size_t size);
+static inline bool
+rehashing_in_progress(dns_rbt_t *rbt);
+
+#define TRY_NEXTTABLE(hindex, rbt)            \
+	(ISC_LIKELY(hindex == rbt->hindex) && \
+	 ISC_UNLIKELY(rehashing_in_progress(rbt)))
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
@@ -302,7 +314,6 @@ dns__rbtnode_namelen(dns_rbtnode_t *node) {
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
 	       dns_rbt_t **rbtp) {
-	isc_result_t result;
 	dns_rbt_t *rbt;
 
 	REQUIRE(mctx != NULL);
@@ -310,23 +321,14 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
 	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
 
 	rbt = isc_mem_get(mctx, sizeof(*rbt));
+	*rbt = (dns_rbt_t){
+		.data_deleter = deleter,
+		.deleter_arg = deleter_arg,
+	};
 
-	rbt->mctx = NULL;
 	isc_mem_attach(mctx, &rbt->mctx);
-	rbt->data_deleter = deleter;
-	rbt->deleter_arg = deleter_arg;
-	rbt->root = NULL;
-	rbt->nodecount = 0;
-	rbt->hashtable = NULL;
-	rbt->hashbits = 0;
-	rbt->maxhashbits = RBT_HASH_MAX_BITS;
-	rbt->mmap_location = NULL;
 
-	result = inithash(rbt);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&rbt->mctx, rbt, sizeof(*rbt));
-		return (result);
-	}
+	hashtable_new(rbt, 0, RBT_HASH_MIN_BITS);
 
 	rbt->magic = RBT_MAGIC;
 
@@ -360,11 +362,11 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 
 	INSIST(rbt->nodecount == 0);
 
-	rbt->mmap_location = NULL;
-
-	if (rbt->hashtable != NULL) {
-		size_t size = HASHSIZE(rbt->hashbits) * sizeof(dns_rbtnode_t *);
-		isc_mem_put(rbt->mctx, rbt->hashtable, size);
+	if (rbt->hashtable[0] != NULL) {
+		hashtable_free(rbt, 0);
+	}
+	if (rbt->hashtable[1] != NULL) {
+		hashtable_free(rbt, 1);
 	}
 
 	rbt->magic = 0;
@@ -384,37 +386,11 @@ size_t
 dns_rbt_hashsize(dns_rbt_t *rbt) {
 	REQUIRE(VALID_RBT(rbt));
 
-	return (1 << rbt->hashbits);
-}
+	uint8_t hashbits = (rbt->hashbits[0] > rbt->hashbits[1])
+				   ? rbt->hashbits[0]
+				   : rbt->hashbits[1];
 
-isc_result_t
-dns_rbt_adjusthashsize(dns_rbt_t *rbt, size_t size) {
-	REQUIRE(VALID_RBT(rbt));
-
-	if (size > 0) {
-		/*
-		 * Setting a new, finite size limit was requested for the RBT.
-		 * Estimate how many hash table slots are needed for the
-		 * requested size and how many bits would be needed to index
-		 * those hash table slots, then rehash the RBT if necessary.
-		 * Note that the hash table can only grow, it is not shrunk if
-		 * the requested size limit is lower than the current one.
-		 */
-		size_t newsize = size / RBT_HASH_BUCKETSIZE;
-		rbt->maxhashbits = rehash_bits(rbt, newsize);
-		maybe_rehash(rbt, newsize);
-	} else {
-		/*
-		 * Setting an infinite size limit was requested for the RBT.
-		 * Increase the maximum allowed number of hash table slots to
-		 * 2^32, which enables the hash table to grow as nodes are
-		 * added to the RBT without immediately preallocating 2^32 hash
-		 * table slots.
-		 */
-		rbt->maxhashbits = RBT_HASH_MAX_BITS;
-	}
-
-	return (ISC_R_SUCCESS);
+	return (1 << hashbits);
 }
 
 static inline isc_result_t
@@ -831,6 +807,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	unsigned int common_labels;
 	unsigned int hlabels = 0;
 	int order;
+	uint8_t hindex;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(dns_name_isabsolute(name));
@@ -913,6 +890,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			dns_rbtnode_t *up_current;
 			unsigned int nlabels;
 			unsigned int tlabels = 1;
+			uint32_t hashval;
 			uint32_t hash;
 
 			/*
@@ -936,6 +914,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
+			hindex = rbt->hindex;
 			/*
 			 * Compute the hash over the full absolute
 			 * name. Look for the smallest suffix match at
@@ -947,30 +926,33 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			dns_name_getlabelsequence(name, nlabels - tlabels,
 						  hlabels + tlabels,
 						  &hash_name);
-			hash = dns_name_fullhash(&hash_name, false);
+			hashval = dns_name_fullhash(&hash_name, false);
+
 			dns_name_getlabelsequence(search_name,
 						  nlabels - tlabels, tlabels,
 						  &hash_name);
 
+		nexttable:
 			/*
 			 * Walk all the nodes in the hash bucket pointed
 			 * by the computed hash value.
 			 */
-			for (hnode = rbt->hashtable[hash_32(hash,
-							    rbt->hashbits)];
-			     hnode != NULL; hnode = hnode->hashnext)
+
+			hash = hash_32(hashval, rbt->hashbits[hindex]);
+
+			for (hnode = rbt->hashtable[hindex][hash];
+			     hnode != NULL; hnode = HASHNEXT(hnode))
 			{
 				dns_name_t hnode_name;
 
-				if (ISC_LIKELY(hash != HASHVAL(hnode))) {
+				if (ISC_LIKELY(hashval != HASHVAL(hnode))) {
 					continue;
 				}
 				/*
-				 * This checks that the hashed label
-				 * sequence being looked up is at the
-				 * same tree level, so that we don't
-				 * match a labelsequence from some other
-				 * subdomain.
+				 * This checks that the hashed label sequence
+				 * being looked up is at the same tree level, so
+				 * that we don't match a labelsequence from some
+				 * other subdomain.
 				 */
 				if (ISC_LIKELY(get_upper_node(hnode) !=
 					       up_current)) {
@@ -1005,6 +987,14 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 					compared = dns_namereln_subdomain;
 					goto subdomain;
 				}
+			}
+
+			if (TRY_NEXTTABLE(hindex, rbt)) {
+				/*
+				 * Rehashing in progress, check the other table
+				 */
+				hindex = RBT_HASH_NEXTTABLE(rbt->hindex);
+				goto nexttable;
 			}
 
 			if (tlabels++ < nlabels) {
@@ -1634,30 +1624,43 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 
 	HASHVAL(node) = dns_name_fullhash(name, false);
 
-	hash = hash_32(HASHVAL(node), rbt->hashbits);
-	HASHNEXT(node) = rbt->hashtable[hash];
+	hash = hash_32(HASHVAL(node), rbt->hashbits[rbt->hindex]);
+	HASHNEXT(node) = rbt->hashtable[rbt->hindex][hash];
 
-	rbt->hashtable[hash] = node;
+	rbt->hashtable[rbt->hindex][hash] = node;
 }
 
 /*
  * Initialize hash table
  */
-static isc_result_t
-inithash(dns_rbt_t *rbt) {
+static inline void
+hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits) {
 	size_t size;
 
-	rbt->hashbits = RBT_HASH_MIN_BITS;
-	size = HASHSIZE(rbt->hashbits) * sizeof(dns_rbtnode_t *);
-	rbt->hashtable = isc_mem_get(rbt->mctx, size);
-	memset(rbt->hashtable, 0, size);
+	REQUIRE(rbt->hashbits[index] == RBT_HASH_NO_BITS);
+	REQUIRE(rbt->hashtable[index] == NULL);
+	REQUIRE(bits >= RBT_HASH_MIN_BITS);
+	REQUIRE(bits < RBT_HASH_MAX_BITS);
 
-	return (ISC_R_SUCCESS);
+	rbt->hashbits[index] = bits;
+
+	size = HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
+	rbt->hashtable[index] = isc_mem_get(rbt->mctx, size);
+	memset(rbt->hashtable[index], 0, size);
+}
+
+static inline void
+hashtable_free(dns_rbt_t *rbt, uint8_t index) {
+	size_t size = HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
+	isc_mem_put(rbt->mctx, rbt->hashtable[index], size);
+
+	rbt->hashbits[index] = RBT_HASH_NO_BITS;
+	rbt->hashtable[index] = NULL;
 }
 
 static uint32_t
 rehash_bits(dns_rbt_t *rbt, size_t newcount) {
-	uint32_t newbits = rbt->hashbits;
+	uint32_t newbits = rbt->hashbits[rbt->hindex];
 
 	while (newcount >= HASHSIZE(newbits) && newbits < RBT_HASH_MAX_BITS) {
 		newbits += 1;
@@ -1670,45 +1673,83 @@ rehash_bits(dns_rbt_t *rbt, size_t newcount) {
  * Rebuild the hashtable to reduce the load factor
  */
 static void
-rehash(dns_rbt_t *rbt, uint32_t newbits) {
-	uint32_t oldbits;
-	size_t oldsize;
-	dns_rbtnode_t **oldtable;
-	size_t newsize;
+hashtable_rehash(dns_rbt_t *rbt, uint32_t newbits) {
+	uint8_t oldindex = rbt->hindex;
+	uint32_t oldbits = rbt->hashbits[oldindex];
+	uint8_t newindex = RBT_HASH_NEXTTABLE(oldindex);
 
-	REQUIRE(rbt->hashbits <= rbt->maxhashbits);
-	REQUIRE(newbits <= rbt->maxhashbits);
+	REQUIRE(rbt->hashbits[oldindex] >= RBT_HASH_MIN_BITS);
+	REQUIRE(rbt->hashbits[oldindex] <= RBT_HASH_MAX_BITS);
+	REQUIRE(rbt->hashtable[oldindex] != NULL);
 
-	oldbits = rbt->hashbits;
-	oldsize = HASHSIZE(oldbits);
-	oldtable = rbt->hashtable;
+	REQUIRE(newbits <= RBT_HASH_MAX_BITS);
+	REQUIRE(rbt->hashbits[newindex] == RBT_HASH_NO_BITS);
+	REQUIRE(rbt->hashtable[newindex] == NULL);
 
-	rbt->hashbits = newbits;
-	newsize = HASHSIZE(rbt->hashbits);
-	rbt->hashtable = isc_mem_get(rbt->mctx,
-				     newsize * sizeof(dns_rbtnode_t *));
-	memset(rbt->hashtable, 0, newsize * sizeof(dns_rbtnode_t *));
+	REQUIRE(newbits > oldbits);
 
-	for (size_t i = 0; i < oldsize; i++) {
-		dns_rbtnode_t *node;
-		dns_rbtnode_t *nextnode;
-		for (node = oldtable[i]; node != NULL; node = nextnode) {
-			uint32_t hash = hash_32(HASHVAL(node), rbt->hashbits);
-			nextnode = HASHNEXT(node);
-			HASHNEXT(node) = rbt->hashtable[hash];
-			rbt->hashtable[hash] = node;
-		}
+	hashtable_new(rbt, newindex, newbits);
+
+	rbt->hindex = newindex;
+
+	hashtable_rehash_one(rbt);
+}
+
+static void
+hashtable_rehash_one(dns_rbt_t *rbt) {
+	dns_rbtnode_t **newtable = rbt->hashtable[rbt->hindex];
+	uint32_t oldsize =
+		HASHSIZE(rbt->hashbits[RBT_HASH_NEXTTABLE(rbt->hindex)]);
+	dns_rbtnode_t **oldtable =
+		rbt->hashtable[RBT_HASH_NEXTTABLE(rbt->hindex)];
+	dns_rbtnode_t *node = NULL;
+	dns_rbtnode_t *nextnode;
+
+	/* Find first non-empty node */
+	while (rbt->hiter < oldsize && oldtable[rbt->hiter] == NULL) {
+		rbt->hiter++;
 	}
 
-	isc_mem_put(rbt->mctx, oldtable, oldsize * sizeof(dns_rbtnode_t *));
+	/* Rehashing complete */
+	if (rbt->hiter == oldsize) {
+		hashtable_free(rbt, RBT_HASH_NEXTTABLE(rbt->hindex));
+		rbt->hiter = 0;
+		return;
+	}
+
+	/* Move the first non-empty node from old hashtable to new hashtable */
+	for (node = oldtable[rbt->hiter]; node != NULL; node = nextnode) {
+		uint32_t hash = hash_32(HASHVAL(node),
+					rbt->hashbits[rbt->hindex]);
+		nextnode = HASHNEXT(node);
+		HASHNEXT(node) = newtable[hash];
+		newtable[hash] = node;
+	}
+
+	oldtable[rbt->hiter] = NULL;
+
+	rbt->hiter++;
 }
 
 static void
 maybe_rehash(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rehash_bits(rbt, newcount);
-	if (rbt->hashbits < newbits && newbits <= rbt->maxhashbits) {
-		rehash(rbt, newbits);
+
+	if (rbt->hashbits[rbt->hindex] < newbits &&
+	    newbits <= RBT_HASH_MAX_BITS) {
+		hashtable_rehash(rbt, newbits);
 	}
+}
+
+static inline bool
+rehashing_in_progress(dns_rbt_t *rbt) {
+	return (rbt->hashtable[RBT_HASH_NEXTTABLE(rbt->hindex)] != NULL);
+}
+
+static inline bool
+hashtable_is_overcommited(dns_rbt_t *rbt) {
+	return (rbt->nodecount >=
+		(HASHSIZE(rbt->hashbits[rbt->hindex]) * RBT_HASH_OVERCOMMIT));
 }
 
 /*
@@ -1719,7 +1760,11 @@ static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	if (rbt->nodecount >= (HASHSIZE(rbt->hashbits) * RBT_HASH_OVERCOMMIT)) {
+	if (ISC_UNLIKELY(rehashing_in_progress(rbt))) {
+		/* Rehash in progress */
+		hashtable_rehash_one(rbt);
+	} else if (ISC_UNLIKELY(hashtable_is_overcommited(rbt))) {
+		/* Rehash requested */
 		maybe_rehash(rbt, rbt->nodecount);
 	}
 
@@ -1730,24 +1775,45 @@ hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
  * Remove a node from the hash table
  */
 static inline void
-unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
-	uint32_t bucket;
-	dns_rbtnode_t *bucket_node;
+unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *dnode) {
+	uint32_t hash;
+	uint8_t hindex = rbt->hindex;
+	dns_rbtnode_t *hnode;
 
-	REQUIRE(DNS_RBTNODE_VALID(node));
+	REQUIRE(DNS_RBTNODE_VALID(dnode));
 
-	bucket = hash_32(HASHVAL(node), rbt->hashbits);
-	bucket_node = rbt->hashtable[bucket];
+	/*
+	 * The node could be either in:
+	 *  a) current table: no rehashing in progress, or
+	 *  b) current table: the node has been already moved, or
+	 *  c) other table: the node hasn't been moved yet.
+	 */
+nexttable:
+	hash = hash_32(HASHVAL(dnode), rbt->hashbits[hindex]);
 
-	if (bucket_node == node) {
-		rbt->hashtable[bucket] = HASHNEXT(node);
+	hnode = rbt->hashtable[hindex][hash];
+
+	if (hnode == dnode) {
+		rbt->hashtable[hindex][hash] = HASHNEXT(hnode);
+		return;
 	} else {
-		while (HASHNEXT(bucket_node) != node) {
-			INSIST(HASHNEXT(bucket_node) != NULL);
-			bucket_node = HASHNEXT(bucket_node);
+		for (; hnode != NULL; hnode = HASHNEXT(hnode)) {
+			if (HASHNEXT(hnode) == dnode) {
+				HASHNEXT(hnode) = HASHNEXT(dnode);
+				return;
+			}
 		}
-		HASHNEXT(bucket_node) = HASHNEXT(node);
 	}
+
+	if (TRY_NEXTTABLE(hindex, rbt)) {
+		/* Rehashing in progress, delete from the other table */
+		hindex = RBT_HASH_NEXTTABLE(hindex);
+		goto nexttable;
+	}
+
+	/* We haven't found any matching node, this should not be possible. */
+	INSIST(0);
+	ISC_UNREACHABLE();
 }
 
 static inline void
@@ -2532,7 +2598,6 @@ print_dot_helper(dns_rbtnode_t *node, unsigned int *nodecount,
 		fprintf(f, "\"node%u\":f1 -> \"node%u\":f1 [penwidth=5];\n",
 			*nodecount, d);
 	}
-
 	if (RIGHT(node) != NULL) {
 		fprintf(f, "\"node%u\":f2 -> \"node%u\":f1;\n", *nodecount, r);
 	}
@@ -2597,7 +2662,8 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			INSIST(dns_name_isabsolute(name));
 
 			/*
-			 * This is cheaper than dns_name_getlabelsequence().
+			 * This is cheaper than
+			 * dns_name_getlabelsequence().
 			 */
 			name->labels--;
 			name->length--;
@@ -2643,10 +2709,10 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		predecessor = current;
 	} else {
 		/*
-		 * No left links, so move toward the root.  If at any point on
-		 * the way there the link from parent to child is a right
-		 * link, then the parent is the previous node, at least
-		 * for this level.
+		 * No left links, so move toward the root.  If at any
+		 * point on the way there the link from parent to child
+		 * is a right link, then the parent is the previous
+		 * node, at least for this level.
 		 */
 		while (!IS_ROOT(current)) {
 			previous = current;
@@ -2666,16 +2732,17 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 */
 		if (DOWN(predecessor) != NULL) {
 			/*
-			 * The predecessor is really down at least one level.
-			 * Go down and as far right as possible, and repeat
-			 * as long as the rightmost node has a down pointer.
+			 * The predecessor is really down at least one
+			 * level. Go down and as far right as possible,
+			 * and repeat as long as the rightmost node has
+			 * a down pointer.
 			 */
 			do {
 				/*
-				 * XXX DCL Need to do something about origins
-				 * here. See whether to go down, and if so
-				 * whether it is truly what Bob calls a
-				 * new origin.
+				 * XXX DCL Need to do something about
+				 * origins here. See whether to go down,
+				 * and if so whether it is truly what
+				 * Bob calls a new origin.
 				 */
 				ADD_LEVEL(chain, predecessor);
 				predecessor = DOWN(predecessor);
@@ -2696,18 +2763,19 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 	} else if (chain->level_count > 0) {
 		/*
 		 * Dang, didn't find a predecessor in this level.
-		 * Got to the root of this level without having traversed
-		 * any right links.  Ascend the tree one level; the
-		 * node that points to this tree is the predecessor.
+		 * Got to the root of this level without having
+		 * traversed any right links.  Ascend the tree one
+		 * level; the node that points to this tree is the
+		 * predecessor.
 		 */
 		INSIST(chain->level_count > 0 && IS_ROOT(current));
 		predecessor = chain->levels[--chain->level_count];
 
 		/* XXX DCL probably needs work on the concept */
 		/*
-		 * Don't declare an origin change when the new origin is "."
-		 * at the top level tree, because "." is declared as the origin
-		 * for the second level tree.
+		 * Don't declare an origin change when the new origin is
+		 * "." at the top level tree, because "." is declared as
+		 * the origin for the second level tree.
 		 */
 		if (origin != NULL &&
 		    (chain->level_count > 0 || OFFSETLEN(predecessor) > 1)) {
@@ -2750,9 +2818,9 @@ dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	if (DOWN(current) != NULL) {
 		/*
-		 * Don't declare an origin change when the new origin is "."
-		 * at the second level tree, because "." is already declared
-		 * as the origin for the top level tree.
+		 * Don't declare an origin change when the new origin is
+		 * "." at the second level tree, because "." is already
+		 * declared as the origin for the top level tree.
 		 */
 		if (chain->level_count > 0 || OFFSETLEN(current) > 1) {
 			new_origin = true;
@@ -2772,12 +2840,12 @@ dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
 		chain->end = successor;
 
 		/*
-		 * It is not necessary to use dns_rbtnodechain_current like
-		 * the other functions because this function will never
-		 * find a node in the topmost level.  This is because the
-		 * root level will never be more than one name, and everything
-		 * in the megatree is a successor to that node, down at
-		 * the second level or below.
+		 * It is not necessary to use dns_rbtnodechain_current
+		 * like the other functions because this function will
+		 * never find a node in the topmost level.  This is
+		 * because the root level will never be more than one
+		 * name, and everything in the megatree is a successor
+		 * to that node, down at the second level or below.
 		 */
 
 		if (name != NULL) {
@@ -2862,14 +2930,14 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	current = chain->end;
 
 	/*
-	 * If there is a level below this node, the next node is the leftmost
-	 * node of the next level.
+	 * If there is a level below this node, the next node is the
+	 * leftmost node of the next level.
 	 */
 	if (DOWN(current) != NULL) {
 		/*
-		 * Don't declare an origin change when the new origin is "."
-		 * at the second level tree, because "." is already declared
-		 * as the origin for the top level tree.
+		 * Don't declare an origin change when the new origin is
+		 * "." at the second level tree, because "." is already
+		 * declared as the origin for the top level tree.
 		 */
 		if (chain->level_count > 0 || OFFSETLEN(current) > 1) {
 			new_origin = true;
@@ -2885,13 +2953,14 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		successor = current;
 	} else if (RIGHT(current) == NULL) {
 		/*
-		 * The successor is up, either in this level or a previous one.
-		 * Head back toward the root of the tree, looking for any path
-		 * that was via a left link; the successor is the node that has
-		 * that left link.  In the event the root of the level is
-		 * reached without having traversed any left links, ascend one
-		 * level and look for either a right link off the point of
-		 * ascent, or search for a left link upward again, repeating
+		 * The successor is up, either in this level or a
+		 * previous one. Head back toward the root of the tree,
+		 * looking for any path that was via a left link; the
+		 * successor is the node that has that left link.  In
+		 * the event the root of the level is reached without
+		 * having traversed any left links, ascend one level and
+		 * look for either a right link off the point of ascent,
+		 * or search for a left link upward again, repeating
 		 * ascends until either case is true.
 		 */
 		do {
@@ -2907,21 +2976,25 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 			if (successor == NULL) {
 				/*
-				 * Reached the root without having traversed
-				 * any left pointers, so this level is done.
+				 * Reached the root without having
+				 * traversed any left pointers, so this
+				 * level is done.
 				 */
 				if (chain->level_count == 0) {
 					/*
-					 * If the tree we are iterating over
-					 * was modified since this chain was
-					 * initialized in a way that caused
-					 * node splits to occur, "current" may
-					 * now be pointing to a root node which
-					 * appears to be at level 0, but still
-					 * has a parent.  If that happens,
-					 * abort.  Otherwise, we are done
-					 * looking for a successor as we really
-					 * reached the root node on level 0.
+					 * If the tree we are iterating
+					 * over was modified since this
+					 * chain was initialized in a
+					 * way that caused node splits
+					 * to occur, "current" may now
+					 * be pointing to a root node
+					 * which appears to be at level
+					 * 0, but still has a parent. If
+					 * that happens, abort.
+					 * Otherwise, we are done
+					 * looking for a successor as we
+					 * really reached the root node
+					 * on level 0.
 					 */
 					INSIST(PARENT(current) == NULL);
 					break;
@@ -2949,20 +3022,21 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	if (successor != NULL) {
 		/*
-		 * If we determine that the current node is the successor to
-		 * itself, we will run into an infinite loop, so abort instead.
+		 * If we determine that the current node is the
+		 * successor to itself, we will run into an infinite
+		 * loop, so abort instead.
 		 */
 		INSIST(chain->end != successor);
 
 		chain->end = successor;
 
 		/*
-		 * It is not necessary to use dns_rbtnodechain_current like
-		 * the other functions because this function will never
-		 * find a node in the topmost level.  This is because the
-		 * root level will never be more than one name, and everything
-		 * in the megatree is a successor to that node, down at
-		 * the second level or below.
+		 * It is not necessary to use dns_rbtnodechain_current
+		 * like the other functions because this function will
+		 * never find a node in the topmost level.  This is
+		 * because the root level will never be more than one
+		 * name, and everything in the megatree is a successor
+		 * to that node, down at the second level or below.
 		 */
 
 		if (name != NULL) {

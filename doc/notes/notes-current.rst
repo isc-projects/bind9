@@ -36,6 +36,10 @@ New Features
   possible to achieve perfect forward secrecy for DNS-over-TLS and
   DNS-over-HTTPS. :gl:`#2796`
 
+- Implement incremental resizing of RBT hash tables to perform the rehashing
+  gradually instead all-at-once to be able to grow the memory usage gradually
+  while keeping steady response rate during the rehashing. :gl:`#2941`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

@@ -7592,22 +7592,6 @@ hashsize(dns_db_t *db) {
 	return (size);
 }
 
-static isc_result_t
-adjusthashsize(dns_db_t *db, size_t size) {
-	isc_result_t result;
-	dns_rbtdb_t *rbtdb;
-
-	rbtdb = (dns_rbtdb_t *)db;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-	result = dns_rbt_adjusthashsize(rbtdb->tree, size);
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-
-	return (result);
-}
-
 static void
 settask(dns_db_t *db, isc_task_t *task) {
 	dns_rbtdb_t *rbtdb;
@@ -8037,8 +8021,7 @@ static dns_dbmethods_t zone_methods = { attach,
 					NULL, /* getservestalettl */
 					NULL, /* setservestalerefresh */
 					NULL, /* getservestalerefresh */
-					setgluecachestats,
-					adjusthashsize };
+					setgluecachestats };
 
 static dns_dbmethods_t cache_methods = { attach,
 					 detach,
@@ -8088,8 +8071,7 @@ static dns_dbmethods_t cache_methods = { attach,
 					 getservestalettl,
 					 setservestalerefresh,
 					 getservestalerefresh,
-					 NULL,
-					 adjusthashsize };
+					 NULL };
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
