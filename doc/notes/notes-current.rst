@@ -73,6 +73,11 @@ Feature Changes
 - Zone transfers over TLS (XoT) now need "dot" Application-Layer Protocol
   Negotiation (ALPN) tag to be negotiated, as required by the RFC 9103. :gl: `#2794`
 
+- `UseSTD3ASCIIRules`_ is now enabled for IDN support. This enables additional
+  validation rules for domains and hostnames within dig.  :gl:`#1610`
+
+.. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
+
 Bug Fixes
 ~~~~~~~~~
 

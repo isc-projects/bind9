@@ -42,7 +42,7 @@ usage(void) {
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--tsan\n");
 	fprintf(stderr, "\t--with-dlz-filesystem\n");
-	fprintf(stderr, "\t--with-idn\n");
+	fprintf(stderr, "\t--with-libidn2\n");
 	fprintf(stderr, "\t--with-lmdb\n");
 	fprintf(stderr, "\t--with-libnghttp2\n");
 }
@@ -156,7 +156,7 @@ main(int argc, char **argv) {
 #endif /* ifdef DLZ_FILESYSTEM */
 	}
 
-	if (strcmp(argv[1], "--with-idn") == 0) {
+	if (strcmp(argv[1], "--with-libidn2") == 0) {
 #ifdef HAVE_LIBIDN2
 		return (0);
 #else  /* ifdef HAVE_LIBIDN2 */

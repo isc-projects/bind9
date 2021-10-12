@@ -90,7 +90,7 @@ qname() {
 #        parameter should have that period as well.
 
 idna_test() {
-    n=`expr $n + 1`
+    n=$((n+1))
     description=$1
     if [ "$2" != "" ]; then
         description="${description}: $2"
@@ -109,7 +109,7 @@ idna_test() {
             ret=1
         fi
     fi
-    status=`expr $status + $ret`
+    status=$((status+ret))
 }
 
 # Function for performing a test where "dig" is expected to fail
@@ -119,7 +119,7 @@ idna_test() {
 #   $3 - Name being queried
 
 idna_fail() {
-    n=`expr $n + 1`
+    n=$((n+1))
     description=$1
     if [ "$2" != "" ]; then
         description="${description}: $2"
@@ -132,7 +132,7 @@ idna_fail() {
         echo_i "failed: dig command unexpectedly succeeded"
         ret=1
     fi
-    status=`expr $status + $ret`
+    status=$((status+ret))
 }
 
 # Function to check that case is preserved for an all-ASCII label.
@@ -306,9 +306,6 @@ idna_enabled_test() {
     idna_fail "$text" "+idnin   +noidnout" "$label"
     idna_fail "$text" "+idnin     +idnout" "$label"
 
-
-
-
     # Tests of a valid unicode string but an invalid U-label (input)
     #
     # Symbols are not valid IDNA2008 names.  Check whether dig rejects them
@@ -350,6 +347,29 @@ idna_enabled_test() {
     idna_test "$text" "+noidnin +noidnout" "xn--19g" "xn--19g."
     idna_fail "$text" "+noidnin +idnout"   "xn--19g"
     idna_fail "$text" "+idnin   +idnout"   "xn--19g"
+
+    # Test that the UseSTD3ASCIIRules is being used
+    #
+    # Note that "+noidnin +idnout" is not tested because libidn2 2.2.0+ parses
+    # Punycode more strictly than older versions and thus dig succeeds with that
+    # combination of options with libidn2 2.2.0+ but fails with older
+    # versions.
+    #
+    # Note that "+idnin +idnout" is not tested because libidn2 2.2.0+ parses
+    # Punycode more strictly than older versions and thus dig fails with that
+    # combination of options with libidn2 2.2.0+ but succeeds with older
+    # versions.
+    #
+    # With UseSTD13ASCIIRules=false, 'â˜º' produces 'xn--\032o-oia59s'
+    #
+    # With UseSTD13ASCIIRules=true, 'â˜º' produces 'xn--o-vfa'
+
+    text="Check that UseSTD3ASCIIRules is being used"
+    idna_test "$text" ""                   "â˜º" "\195\162\203\156\194\186."
+    idna_test "$text" "+noidnin +noidnout" "â˜º" "\195\162\203\156\194\186."
+    # idna_test "$text" "+noidnin +idnout"   "â˜º" "xn--o-vfa."
+    idna_test "$text" "+idnin   +noidnout" "â˜º" "xn--o-vfa."
+    # idna_fail "$text" "+idnin   +idnout"   "â˜º" "âo."
 }
 
 
@@ -363,7 +383,7 @@ idna_disabled_test() {
 
 # Main test begins here
 
-$FEATURETEST --with-idn
+$FEATURETEST --with-libidn2
 if [ $? -eq 0 ]; then
     idna_enabled_test
 else
