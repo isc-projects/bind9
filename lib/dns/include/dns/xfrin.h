@@ -47,14 +47,14 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		 const isc_sockaddr_t *masteraddr,
+		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 		 dns_tsigkey_t *tsigkey, dns_transport_t *transport,
 		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
 		 dns_xfrin_ctx_t **xfrp);
 /*%<
  * Attempt to start an incoming zone transfer of 'zone'
- * from 'masteraddr', creating a dns_xfrin_ctx_t object to
+ * from 'primaryaddr', creating a dns_xfrin_ctx_t object to
  * manage it.  Attach '*xfrp' to the newly created object.
  *
  * Iff ISC_R_SUCCESS is returned, '*done' is called with

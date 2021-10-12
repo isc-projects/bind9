@@ -59,6 +59,6 @@ zone "signed" {
 };
 
 zone "ipv4only.arpa" {
-	type master;
+	type primary;
 	file "ipv4only.arpa.db";
 };

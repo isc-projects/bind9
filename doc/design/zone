@@ -15,14 +15,14 @@ Overview
 
 	* name
 	* class
-	* master / slave / stub / hint / cache / forward
+	* primary / secondary / stub / hint / cache / forward
 	* serial number
 	* signed / unsigned
-	* update periods (refresh / retry) (slave / stub)
+	* update periods (refresh / retry) (secondary / stub)
 	* last update time (slave / stub)
 	* access restrictions
-	* transfer restrictions (master / slave)
-	* update restictions (master / slave)
+	* transfer restrictions (primary / slave)
+	* update restictions (primary / slave)
 	* expire period (slave / stub)
 	* children => bottom
 	* glue
@@ -30,8 +30,8 @@ Overview
 	* transfer "in" in progress
 	* transfers "out" in progress
 	* "current" check in progress
-	* our masters
-	* primary master name (required to auto generate our masters)
+	* our primaries
+	* primary server name (required to auto generate our primaries)
 	* master file name
 	* database name
 	* database type
@@ -96,7 +96,7 @@ Overview
 	slave setups are continual and ongoing sources of problems in the
 	DNS.  Periodic checks to ensure parent and child servers agree on
 	the list of nameservers and that slaves are tracking the changes
-	made in the master server's zone will allow problems in
+	made in the primary server's zone will allow problems in
 	configurations to be identified earlier providing for a more stable
 	DNS.
 
@@ -175,7 +175,7 @@ Functions:
     dns_zone_axfrin(dns_zone_t *zone, isc_sockaddr_t *addr);
 
 	Initiate transfer of the zone from the given server or the
-	masters masters listed in the zone structure.
+	primary servers listed in the zone structure.
 
     dns_zone_maintenance(dns_zone_t *zone);
 
@@ -186,15 +186,15 @@ Functions:
 
     dns_zone_locateprimary(dns_zone_t *zone);
 
-	Working from the root zone locate the primary master for the zone.
-	Used if masters are not given in named.conf.
+	Working from the root zone locate the primary server for the zone.
+	Used if primaries are not given in named.conf.
 
     dns_zone_locateservers(dns_zone_t *zone);
 
 	Working from the root zone locate the servers for the zone.
-	Primary master moved to first in list if in NS set.  Remove self
+	Primary server moved to first in list if in NS set.  Remove self
 	from list.
-	Used if masters are not given in named.conf.
+	Used if primaries are not given in named.conf.
 
     dns_zone_notify(dns_zone_t *);
 
@@ -204,7 +204,7 @@ Functions:
 
 	check that the parent nameservers NS lists for this zone agree with
 	the NS list this zone, check glue A records. Warn if not identical.
-	This operation is performed on master zones.
+	This operation is performed on primary zones.
 
     dns_zone_checkchildren(dns_zone_t *);
 
@@ -229,11 +229,11 @@ Functions:
 
     dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *addr);
 
-	Add addr to the set of masters for the zone.
+	Add addr to the set of primaries for the zone.
 
     dns_zone_clearmasters(dns_zone_t *zone);
 
-	Clear the master set.
+	Clear the primary set.
 
     dns_zone_setreadacl(dns_zone_t *, dns_acl_t *)
 

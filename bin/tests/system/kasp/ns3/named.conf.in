@@ -80,7 +80,7 @@ zone "manual-rollover.kasp" {
 	dnssec-policy "manual-rollover";
 };
 
-/* A master zone with dnssec-policy, no keys created. */
+/* A primary zone with dnssec-policy, no keys created. */
 zone "rsasha1.kasp" {
 	type primary;
 	file "rsasha1.kasp.db";
@@ -107,7 +107,7 @@ zone "insecure.kasp" {
 	dnssec-policy "insecure";
 };
 
-/* A master zone with dnssec-policy but keys already created. */
+/* A primary zone with dnssec-policy but keys already created. */
 zone "dnssec-keygen.kasp" {
 	type primary;
 	file "dnssec-keygen.kasp.db";

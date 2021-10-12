@@ -2076,7 +2076,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		/*
 		 * Accept update messages signed by unknown keys so that
 		 * update forwarding works transparently through slaves
-		 * that don't have all the same keys as the master.
+		 * that don't have all the same keys as the primary.
 		 */
 		if (!(client->message->tsigstatus == dns_tsigerror_badkey &&
 		      client->message->opcode == dns_opcode_update))

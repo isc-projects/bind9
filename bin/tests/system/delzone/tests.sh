@@ -35,7 +35,7 @@ sys.path.insert(0, '../../../../bin/python')
 from isc import rndc
 r = rndc(('10.53.0.2', 9953), 'hmac-sha256', '1234abcd8765')
 for i in range(20000):
-    res = r.call('addzone z%d.example { type master; file "added.db"; };' % i)
+    res = r.call('addzone z%d.example { type primary; file "added.db"; };' % i)
     if 'text' in res:
         print ('I:n2:' + res['text'])
 EOF

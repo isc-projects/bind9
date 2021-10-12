@@ -71,10 +71,10 @@ EOF
 
 $PERL makenames.pl $nzones | while read zonename; do
     if [ $single_file ]; then
-        echo "zone $zonename { type master; file \"smallzone.db\"; };"
+        echo "zone $zonename { type primary; file \"smallzone.db\"; };"
     else
         [ -d zones ] || mkdir zones
         $PERL mkzonefile.pl $zonename $nrecords > zones/$zonename.db
-        echo "zone $zonename { type master; file \"zones/$zonename.db\"; };"
+        echo "zone $zonename { type primary; file \"zones/$zonename.db\"; };"
     fi
 done

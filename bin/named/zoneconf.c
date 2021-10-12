@@ -1024,7 +1024,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*
-	 * Unless we're using some alternative database, a master zone
+	 * Unless we're using some alternative database, a primary zone
 	 * will be needing a master file.
 	 */
 	if (ztype == dns_zone_primary && cpval == default_dbtype &&
@@ -1227,7 +1227,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*
-	 * Configure master functionality.  This applies
+	 * Configure authoritative zone functionality.  This applies
 	 * to primary servers (type "primary") and secondaries
 	 * acting as primaries (type "secondary"), but not to stubs.
 	 */
@@ -1746,7 +1746,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*%
-	 * Primary master functionality.
+	 * Configure primary zone functionality.
 	 */
 	if (ztype == dns_zone_primary) {
 		obj = NULL;
@@ -1872,7 +1872,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	/*
-	 * Configure slave functionality.
+	 * Configure secondary zone functionality.
 	 */
 	switch (ztype) {
 	case dns_zone_mirror:
@@ -1888,7 +1888,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setxfracl(zone, none);
 			dns_acl_detach(&none);
 		}
-	/* FALLTHROUGH */
+		/* FALLTHROUGH */
 	case dns_zone_secondary:
 	case dns_zone_stub:
 	case dns_zone_redirect:

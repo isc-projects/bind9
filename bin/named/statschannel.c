@@ -1819,10 +1819,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	/*
 	 * Export zone timers to the statistics channel in XML format.  For
-	 * master zones, only include the loaded time.  For slave zones, also
-	 * include the expires and refresh times.
+	 * primary zones, only include the loaded time.  For secondary zones,
+	 * also include the expire and refresh times.
 	 */
-
 	CHECK(dns_zone_getloadtime(zone, &timestamp));
 
 	isc_time_formatISO8601(&timestamp, buf, 64);
@@ -2553,6 +2552,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	json_object *zonearray = (json_object *)arg;
 	json_object *zoneobj = NULL;
 	dns_zonestat_level_t statlevel;
+	isc_time_t timestamp;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none) {
@@ -2579,12 +2579,10 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	/*
-	 * Export zone timers to the statistics channel in JSON format.  For
-	 * master zones, only include the loaded time.  For slave zones, also
-	 * include the expires and refresh times.
+	 * Export zone timers to the statistics channel in JSON format.
+	 * For primary zones, only include the loaded time.  For secondary
+	 * zones, also include the expire and refresh times.
 	 */
-
-	isc_time_t timestamp;
 
 	CHECK(dns_zone_getloadtime(zone, &timestamp));
 

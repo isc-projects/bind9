@@ -154,7 +154,7 @@ static dns_iterations_t nsec3iter = 10U;
 static unsigned char saltbuf[255];
 static unsigned char *gsalt = saltbuf;
 static size_t salt_length = 0;
-static isc_task_t *master = NULL;
+static isc_task_t *main_task = NULL;
 static unsigned int ntasks = 0;
 static atomic_bool shuttingdown;
 static atomic_bool finished;
@@ -1580,7 +1580,7 @@ signapex(void) {
 }
 
 /*%
- * Assigns a node to a worker thread.  This is protected by the master task's
+ * Assigns a node to a worker thread.  This is protected by the main task's
  * lock.
  */
 static void
@@ -1744,7 +1744,7 @@ sign(isc_task_t *task, isc_event_t *event) {
 						sizeof(sevent_t));
 	wevent->node = node;
 	wevent->fname = fname;
-	isc_task_send(master, ISC_EVENT_PTR(&wevent));
+	isc_task_send(main_task, ISC_EVENT_PTR(&wevent));
 }
 
 /*%
@@ -3992,8 +3992,8 @@ main(int argc, char *argv[]) {
 
 	isc_managers_create(mctx, ntasks, 0, 0, &netmgr, &taskmgr, NULL, NULL);
 
-	master = NULL;
-	result = isc_task_create(taskmgr, 0, &master);
+	main_task = NULL;
+	result = isc_task_create(taskmgr, 0, &main_task);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to create task: %s", isc_result_totext(result));
 	}
@@ -4023,7 +4023,7 @@ main(int argc, char *argv[]) {
 		 * processors if possible.
 		 */
 		for (i = 0; i < (int)ntasks; i++) {
-			result = isc_app_onrun(mctx, master, startworker,
+			result = isc_app_onrun(mctx, main_task, startworker,
 					       tasks[i]);
 			if (result != ISC_R_SUCCESS) {
 				fatal("failed to start task: %s",
@@ -4035,7 +4035,7 @@ main(int argc, char *argv[]) {
 			fatal("process aborted by user");
 		}
 	} else {
-		isc_task_detach(&master);
+		isc_task_detach(&main_task);
 	}
 	atomic_store(&shuttingdown, true);
 	for (i = 0; i < (int)ntasks; i++) {

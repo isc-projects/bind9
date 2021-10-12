@@ -201,7 +201,7 @@ dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
 /*%<
  * This function may optionally be called from the 'authority' callback
  * to simplify construction of the SOA record for 'zone'.  It will
- * provide a SOA listing 'mname' as as the master server and 'rname' as
+ * provide a SOA listing 'mname' as as the primary server and 'rname' as
  * the responsible person mailbox.  It is the responsibility of the
  * driver to increment the serial number between responses if necessary.
  * All other SOA fields will have reasonable default values.

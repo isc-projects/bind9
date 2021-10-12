@@ -34,7 +34,7 @@ options {
 	# turn rpz on or off
 	include "rpz-switch";
 
-	include "../dnsrps-slave.conf";
+	include "../dnsrps-secondary.conf";
 };
 
 key rndc_key {

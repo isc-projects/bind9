@@ -275,7 +275,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	}
 
 	/*
-	 * Is the redirect zone configured as a slave?
+	 * Is the redirect zone configured as a secondary?
 	 */
 	if (strcasecmp(cfg_obj_asstring(typeobj), "redirect") == 0) {
 		cfg_map_get(zoptions, "primaries", &primariesobj);

@@ -130,13 +130,13 @@ addzoneconf(void **state) {
 	isc_buffer_t b;
 	cfg_parser_t *p = NULL;
 	const char *tests[] = {
-		"zone \"test4.baz\" { type master; file \"e.db\"; };",
-		"zone \"test/.baz\" { type master; file \"e.db\"; };",
-		"zone \"test\\\".baz\" { type master; file \"e.db\"; };",
-		"zone \"test\\.baz\" { type master; file \"e.db\"; };",
-		"zone \"test\\\\.baz\" { type master; file \"e.db\"; };",
-		"zone \"test\\032.baz\" { type master; file \"e.db\"; };",
-		"zone \"test\\010.baz\" { type master; file \"e.db\"; };"
+		"zone \"test4.baz\" { type primary; file \"e.db\"; };",
+		"zone \"test/.baz\" { type primary; file \"e.db\"; };",
+		"zone \"test\\\".baz\" { type primary; file \"e.db\"; };",
+		"zone \"test\\.baz\" { type primary; file \"e.db\"; };",
+		"zone \"test\\\\.baz\" { type primary; file \"e.db\"; };",
+		"zone \"test\\032.baz\" { type primary; file \"e.db\"; };",
+		"zone \"test\\010.baz\" { type primary; file \"e.db\"; };"
 	};
 	char buf[1024];
 

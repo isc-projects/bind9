@@ -839,7 +839,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/* zone table has a match */
 		switch (dns_zone_gettype(zone)) {
 		/*
-		 * Master, slave, and mirror zones are OK for transfer.
+		 * Primary, secondary, and mirror zones are OK for transfer.
 		 */
 		case dns_zone_primary:
 		case dns_zone_secondary:
@@ -1453,7 +1453,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			 * when compressed even if they do not fit when
 			 * uncompressed, but surely we don't want
 			 * to send such monstrosities to an unsuspecting
-			 * slave.
+			 * secondary.
 			 */
 			if (n_rrs == 0) {
 				xfrout_log(xfr, ISC_LOG_WARNING,

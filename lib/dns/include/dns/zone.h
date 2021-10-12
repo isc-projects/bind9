@@ -644,7 +644,7 @@ dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count);
 /*%<
- *	Set the list of master servers for the zone.
+ *	Set the list of primary servers for the zone.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -1456,7 +1456,7 @@ dns_zone_getjournal(dns_zone_t *zone);
 dns_zonetype_t
 dns_zone_gettype(dns_zone_t *zone);
 /*%<
- * Returns the type of the zone (master/slave/etc.)
+ * Returns the type of the zone (primary/secondary/etc.)
  *
  * Requires:
  *\li	'zone' to be valid initialised zone.
@@ -1465,8 +1465,8 @@ dns_zone_gettype(dns_zone_t *zone);
 dns_zonetype_t
 dns_zone_getredirecttype(dns_zone_t *zone);
 /*%<
- * Returns whether the redirect zone is configured as a master or a
- * slave zone.
+ * Returns whether the redirect zone is configured as a primary or a
+ * secondary zone.
  *
  * Requires:
  *\li	'zone' to be valid initialised zone.
@@ -1685,7 +1685,7 @@ isc_result_t
 dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		       dns_updatecallback_t callback, void *callback_arg);
 /*%<
- * Forward 'msg' to each master in turn until we get an answer or we
+ * Forward 'msg' to each primary in turn until we get an answer or we
  * have exhausted the list of primaries. 'callback' will be called with
  * ISC_R_SUCCESS if we get an answer and the returned message will be
  * passed as 'answer_message', otherwise a non ISC_R_SUCCESS result code
@@ -2434,7 +2434,7 @@ dns_zone_isdynamic(dns_zone_t *zone, bool ignore_freeze);
  * master file (if any) is written by the server, rather than being
  * updated manually and read by the server.
  *
- * This is true for slave zones, stub zones, key zones, and zones that
+ * This is true for secondary zones, stub zones, key zones, and zones that
  * allow dynamic updates either by having an update policy ("ssutable")
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
  *
@@ -2583,13 +2583,13 @@ dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime);
 isc_result_t
 dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime);
 /*%
- * Return the time when the (slave) zone will need to be refreshed.
+ * Return the time when the (secondary) zone will need to be refreshed.
  */
 
 isc_result_t
 dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime);
 /*%
- * Return the time when the (slave) zone will expire.
+ * Return the time when the (secondary) zone will expire.
  */
 
 isc_result_t

@@ -53,11 +53,11 @@ zone "noixfr" {
 	file "noixfr.bk";
 };
 
-zone "master" {
+zone "primary" {
 	type primary;
 	inline-signing yes;
 	auto-dnssec maintain;
-	file "master.db";
+	file "primary.db";
 	notify explicit;
 	also-notify {
 		10.53.0.3;

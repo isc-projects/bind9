@@ -139,7 +139,7 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`
 
-echo_i "stopping master and restarting with example4 then waiting up to 45 seconds"
+echo_i "stopping primary and restarting with example4 then waiting up to 45 seconds"
 stop_server notify ns2
 
 rm -f ns2/example.db
@@ -187,7 +187,7 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 status=`expr $ret + $status`
 
 n=`expr $n + 1`
-echo_i "checking notify to alternate port with master inheritance ($n)"
+echo_i "checking notify to alternate port with primary server inheritance ($n)"
 $NSUPDATE << EOF
 server 10.53.0.2 ${PORT}
 zone x21

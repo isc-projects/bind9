@@ -401,7 +401,7 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 /*
  * Create a writeable DLZ zone. This can be called by DLZ drivers
  * during configure() to create a zone that can be updated. The zone
- * type is set to dns_zone_dlz, which is equivalent to a master zone
+ * type is set to dns_zone_dlz, which is equivalent to a primary zone
  *
  * This function uses a callback setup in dns_dlzconfigure() to call
  * into the server zone code to setup the remaining pieces of server

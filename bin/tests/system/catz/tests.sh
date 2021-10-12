@@ -351,14 +351,14 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 ##########################################################################
-echo_i "Testing masters suboption and random labels"
+echo_i "Testing primaries suboption and random labels"
 n=$((n+1))
-echo_i "adding dom5.example. with a valid masters suboption (IP without TSIG) and a random label ($n)"
+echo_i "adding dom5.example. with a valid primaries suboption (IP without TSIG) and a random label ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update add somerandomlabel.zones.catalog1.example. 3600 IN PTR dom5.example.
-    update add masters.somerandomlabel.zones.catalog1.example. 3600 IN A 10.53.0.3
+    update add primaries.somerandomlabel.zones.catalog1.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -385,7 +385,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete somerandomlabel.zones.catalog1.example. 3600 IN PTR dom5.example.
-    update delete masters.somerandomlabel.zones.catalog1.example. 3600 IN A 10.53.0.3
+    update delete primaries.somerandomlabel.zones.catalog1.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -407,14 +407,14 @@ status=$((status+ret))
 
 
 ##########################################################################
-echo_i "Testing masters global option"
+echo_i "Testing primaries global option"
 n=$((n+1))
-echo_i "adding dom6.example. and a valid global masters option (IP without TSIG) ($n)"
+echo_i "adding dom6.example. and a valid global primaries option (IP without TSIG) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
-    update add masters.catalog1.example. 3600 IN A 10.53.0.3
-    update add masters.catalog1.example. 3600 IN AAAA fd92:7065:b8e:ffff::3
+    update add primaries.catalog1.example. 3600 IN A 10.53.0.3
+    update add primaries.catalog1.example. 3600 IN AAAA fd92:7065:b8e:ffff::3
     update add 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example. 3600 IN PTR dom6.example.
     send
 END
@@ -441,8 +441,8 @@ echo_i "removing dom6.example. ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
-    update delete masters.catalog1.example. 3600 IN A 10.53.0.3
-    update delete masters.catalog1.example. 3600 IN AAAA  fd92:7065:b8e:ffff::3
+    update delete primaries.catalog1.example. 3600 IN A 10.53.0.3
+    update delete primaries.catalog1.example. 3600 IN AAAA  fd92:7065:b8e:ffff::3
     update delete 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example. 3600 IN PTR dom6.example.
     send
 END
@@ -466,7 +466,7 @@ status=$((status+ret))
 nextpart ns2/named.run >/dev/null
 
 n=$((n+1))
-echo_i "adding dom6.example. and an invalid global masters option (TSIG without IP) ($n)"
+echo_i "adding dom6.example. and an invalid global primaries option (TSIG without IP) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
@@ -679,7 +679,7 @@ status=$((status+ret))
 
 
 ##########################################################################
-echo_i "Testing TSIG keys for masters set per-domain"
+echo_i "Testing TSIG keys for primaries set per-domain"
 n=$((n+1))
 echo_i "adding a domain dom9.example. to primary via RNDC, with transfers allowed only with TSIG key ($n)"
 ret=0
@@ -699,7 +699,7 @@ status=$((status+ret))
 nextpart ns2/named.run >/dev/null
 
 n=$((n+1))
-echo_i "adding domain dom9.example. to catalog1 zone with a valid masters suboption (IP with TSIG) ($n)"
+echo_i "adding domain dom9.example. to catalog1 zone with a valid primaries suboption (IP with TSIG) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
@@ -756,7 +756,7 @@ status=$((status+ret))
 nextpart ns2/named.run >/dev/null
 
 n=$((n+1))
-echo_i "adding domain dom9.example. to catalog1 zone with an invalid masters suboption (TSIG without IP) ($n)"
+echo_i "adding domain dom9.example. to catalog1 zone with an invalid primaries suboption (TSIG without IP) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
@@ -1243,7 +1243,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update add 8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN PTR dom13.example.
-    update add masters.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update add primaries.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN A 10.53.0.1
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1273,7 +1273,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 ${PORT}
     update add 8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN PTR dom13.example.
-    update add masters.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN A 10.53.0.3
+    update add primaries.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1302,7 +1302,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 ${PORT}
     update delete 8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN PTR dom13.example.
-    update delete masters.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN A 10.53.0.3
+    update delete primaries.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog2.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1329,7 +1329,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete 8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN PTR dom13.example.
-    update delete masters.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN A 10.53.0.2
+    update delete primaries.8d7989c746b3f92b3bba2479e72afd977198363f.zones.catalog1.example. 3600 IN A 10.53.0.2
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1424,7 +1424,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 ${PORT}
     update add 45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN PTR dom14.example.
-    update add masters.45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN A 10.53.0.3
+    update add primaries.45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1453,7 +1453,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 ${PORT}
     update delete 45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN PTR dom14.example.
-    update delete masters.45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN A 10.53.0.3
+    update delete primaries.45e3d45ea5f7bd01c395ccbde6ae2e750a3ee8ab.zones.catalog2.example. 3600 IN A 10.53.0.3
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

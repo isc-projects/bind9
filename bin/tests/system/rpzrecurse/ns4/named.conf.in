@@ -33,4 +33,4 @@ controls {
 	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-zone "child.example.tld" { type master; file "child.example.db"; };
+zone "child.example.tld" { type primary; file "child.example.db"; };

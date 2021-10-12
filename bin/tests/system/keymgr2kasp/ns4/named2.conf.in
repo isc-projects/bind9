@@ -68,7 +68,7 @@ view "ext" {
         match-clients { key "external"; };
 
 	zone "view-rsasha256.kasp" {
-		type master;
+		type primary;
 		file "view-rsasha256.kasp.ext.db";
 		dnssec-policy "rsasha256";
 	};
@@ -78,7 +78,7 @@ view "int" {
         match-clients { key "internal"; };
 
 	zone "view-rsasha256.kasp" {
-		type master;
+		type primary;
 		file "view-rsasha256.kasp.int.db";
 		dnssec-policy "rsasha256";
 	};

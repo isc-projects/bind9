@@ -30,7 +30,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "adding a new zone into default NZD using rndc addzone ($n)"
-rndccmd 10.53.0.1 addzone "added.example { type master; file \"added.db\";
+rndccmd 10.53.0.1 addzone "added.example { type primary; file \"added.db\";
 };" 2>&1 | sed 's/^/I:ns1 /' | cat_i
 sleep 2
 
@@ -53,7 +53,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "checking that _default.nzf contains the expected content ($n)"
-grep 'zone "added.example" { type master; file "added.db"; };' ns1/_default.nzf > /dev/null || ret=1
+grep 'zone "added.example" { type primary; file "added.db"; };' ns1/_default.nzf > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

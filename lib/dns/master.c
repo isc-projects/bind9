@@ -336,7 +336,7 @@ static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
 static inline bool
 dns_master_isprimary(dns_loadctx_t *lctx) {
 	return ((lctx->options & DNS_MASTER_ZONE) != 0 &&
-		(lctx->options & DNS_MASTER_SLAVE) == 0 &&
+		(lctx->options & DNS_MASTER_SECONDARY) == 0 &&
 		(lctx->options & DNS_MASTER_KEY) == 0);
 }
 

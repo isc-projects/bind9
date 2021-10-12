@@ -23,7 +23,7 @@ options {
 
 # Delegate .test domain to 10.53.0.2
 zone "." {
-    type master;
+    type primary;
     file "root.db";
     allow-transfer { none; };
 };

@@ -138,19 +138,19 @@ static dns_fixedname_t fzname;
 static dns_name_t *userzone = NULL;
 static dns_name_t *zname = NULL;
 static dns_name_t tmpzonename = DNS_NAME_INITEMPTY;
-static dns_name_t restart_master = DNS_NAME_INITEMPTY;
+static dns_name_t restart_primary = DNS_NAME_INITEMPTY;
 static dns_tsig_keyring_t *gssring = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dst_key_t *sig0key = NULL;
 static isc_sockaddr_t *servers = NULL;
-static isc_sockaddr_t *master_servers = NULL;
+static isc_sockaddr_t *primary_servers = NULL;
 static bool default_servers = true;
 static int ns_inuse = 0;
-static int master_inuse = 0;
+static int primary_inuse = 0;
 static int ns_total = 0;
 static int ns_alloc = 0;
-static int master_total = 0;
-static int master_alloc = 0;
+static int primary_total = 0;
+static int primary_alloc = 0;
 static isc_sockaddr_t *localaddr4 = NULL;
 static isc_sockaddr_t *localaddr6 = NULL;
 static const char *keyfile = NULL;
@@ -183,7 +183,7 @@ static void
 sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	    dns_request_t **request);
 static void
-send_update(dns_name_t *zonename, isc_sockaddr_t *master);
+send_update(dns_name_t *zonename, isc_sockaddr_t *primary);
 
 ISC_NORETURN static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -209,7 +209,7 @@ typedef struct nsu_gssinfo {
 static void
 failed_gssrequest(void);
 static void
-start_gssrequest(dns_name_t *master);
+start_gssrequest(dns_name_t *primary);
 static void
 send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		dns_request_t **request, gss_ctx_id_t context);
@@ -226,15 +226,15 @@ error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 #define STATUS_SYNTAX (uint16_t)3
 
 static void
-master_from_servers(void) {
-	if (master_servers != NULL && master_servers != servers) {
-		isc_mem_put(gmctx, master_servers,
-			    master_alloc * sizeof(isc_sockaddr_t));
+primary_from_servers(void) {
+	if (primary_servers != NULL && primary_servers != servers) {
+		isc_mem_put(gmctx, primary_servers,
+			    primary_alloc * sizeof(isc_sockaddr_t));
 	}
-	master_servers = servers;
-	master_total = ns_total;
-	master_alloc = ns_alloc;
-	master_inuse = ns_inuse;
+	primary_servers = servers;
+	primary_total = ns_total;
+	primary_alloc = ns_alloc;
+	primary_inuse = ns_inuse;
 }
 
 static dns_rdataclass_t
@@ -682,13 +682,13 @@ doshutdown(void) {
 	isc_task_detach(&global_task);
 
 	/*
-	 * The isc_mem_put of master_servers must be before the
+	 * The isc_mem_put of primary_servers must be before the
 	 * isc_mem_put of servers as it sets the servers pointer
 	 * to NULL.
 	 */
-	if (master_servers != NULL && master_servers != servers) {
-		isc_mem_put(gmctx, master_servers,
-			    master_alloc * sizeof(isc_sockaddr_t));
+	if (primary_servers != NULL && primary_servers != servers) {
+		isc_mem_put(gmctx, primary_servers,
+			    primary_alloc * sizeof(isc_sockaddr_t));
 	}
 
 	if (servers != NULL) {
@@ -823,8 +823,8 @@ setup_system(void) {
 	nslist = irs_resconf_getnameservers(resconf);
 
 	if (servers != NULL) {
-		if (master_servers == servers) {
-			master_servers = NULL;
+		if (primary_servers == servers) {
+			primary_servers = NULL;
 		}
 		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 	}
@@ -1502,8 +1502,8 @@ evaluate_server(char *cmdline) {
 	}
 
 	if (servers != NULL) {
-		if (master_servers == servers) {
-			master_servers = NULL;
+		if (primary_servers == servers) {
+			primary_servers = NULL;
 		}
 		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 	}
@@ -2212,7 +2212,7 @@ do_next_command(char *cmdline) {
 		fprintf(stdout, "nsupdate " PACKAGE_VERSION ":\n"
 				"local address [port]      (set local "
 				"resolver)\n"
-				"server address [port]     (set master server "
+				"server address [port]     (set primary server "
 				"for zone)\n"
 				"send                      (send the update "
 				"request)\n"
@@ -2344,13 +2344,13 @@ check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
 }
 
 static bool
-next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
+next_primary(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
 	fprintf(stderr, "; Communication with %s failed: %s\n", addrbuf,
 		isc_result_totext(eresult));
-	if (++master_inuse >= master_total) {
+	if (++primary_inuse >= primary_total) {
 		return (false);
 	}
 	ddebug("%s: trying next server", caller);
@@ -2381,8 +2381,9 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (reqev->result != ISC_R_SUCCESS) {
-		if (!next_master("update_completed",
-				 &master_servers[master_inuse], reqev->result))
+		if (!next_primary("update_completed",
+				  &primary_servers[primary_inuse],
+				  reqev->result))
 		{
 			seenerror = true;
 			goto done;
@@ -2392,7 +2393,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		dns_request_destroy(&request);
 		dns_message_renderreset(updatemsg);
 		dns_message_settsigkey(updatemsg, NULL);
-		send_update(zname, &master_servers[master_inuse]);
+		send_update(zname, &primary_servers[primary_inuse]);
 		isc_event_free(&event);
 		return;
 	}
@@ -2460,16 +2461,16 @@ done:
 	dns_request_destroy(&request);
 	if (usegsstsig) {
 		dns_name_free(&tmpzonename, gmctx);
-		dns_name_free(&restart_master, gmctx);
+		dns_name_free(&restart_primary, gmctx);
 		dns_name_init(&tmpzonename, 0);
-		dns_name_init(&restart_master, 0);
+		dns_name_init(&restart_primary, 0);
 	}
 	isc_event_free(&event);
 	done_update();
 }
 
 static void
-send_update(dns_name_t *zone, isc_sockaddr_t *master) {
+send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 	isc_result_t result;
 	dns_request_t *request = NULL;
 	unsigned int options = DNS_REQUESTOPT_CASE;
@@ -2489,11 +2490,11 @@ send_update(dns_name_t *zone, isc_sockaddr_t *master) {
 	if (debugging) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
-		isc_sockaddr_format(master, addrbuf, sizeof(addrbuf));
+		isc_sockaddr_format(primary, addrbuf, sizeof(addrbuf));
 		fprintf(stderr, "Sending update to %s\n", addrbuf);
 	}
 
-	if (isc_sockaddr_pf(master) == AF_INET6) {
+	if (isc_sockaddr_pf(primary) == AF_INET6) {
 		srcaddr = localaddr6;
 	} else {
 		srcaddr = localaddr4;
@@ -2504,7 +2505,7 @@ send_update(dns_name_t *zone, isc_sockaddr_t *master) {
 		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 	}
 
-	result = dns_request_createvia(requestmgr, updatemsg, srcaddr, master,
+	result = dns_request_createvia(requestmgr, updatemsg, srcaddr, primary,
 				       -1, options, tsigkey, timeout,
 				       udp_timeout, udp_retries, global_task,
 				       update_completed, NULL, &request);
@@ -2543,7 +2544,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_soa_t soa;
 	dns_rdata_t soarr = DNS_RDATA_INIT;
 	int pass = 0;
-	dns_name_t master;
+	dns_name_t primary;
 	nsu_requestinfo_t *reqinfo;
 	dns_message_t *soaquery = NULL;
 	isc_sockaddr_t *addr;
@@ -2722,8 +2723,8 @@ lookforsoa:
 	result = dns_rdata_tostruct(&soarr, &soa, NULL);
 	check_result(result, "dns_rdata_tostruct");
 
-	dns_name_init(&master, NULL);
-	dns_name_clone(&soa.origin, &master);
+	dns_name_init(&primary, NULL);
+	dns_name_clone(&soa.origin, &primary);
 
 	if (userzone != NULL) {
 		zname = userzone;
@@ -2738,8 +2739,8 @@ lookforsoa:
 
 	if (debugging) {
 		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(&master, namestr, sizeof(namestr));
-		fprintf(stderr, "The master is: %s\n", namestr);
+		dns_name_format(&primary, namestr, sizeof(namestr));
+		fprintf(stderr, "The primary is: %s\n", namestr);
 	}
 
 	if (default_servers) {
@@ -2748,27 +2749,27 @@ lookforsoa:
 		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
-		result = dns_name_totext(&master, true, &buf);
+		result = dns_name_totext(&primary, true, &buf);
 		check_result(result, "dns_name_totext");
 		serverstr[isc_buffer_usedlength(&buf)] = 0;
 
-		if (master_servers != NULL && master_servers != servers) {
-			isc_mem_put(gmctx, master_servers,
-				    master_alloc * sizeof(isc_sockaddr_t));
+		if (primary_servers != NULL && primary_servers != servers) {
+			isc_mem_put(gmctx, primary_servers,
+				    primary_alloc * sizeof(isc_sockaddr_t));
 		}
-		master_alloc = MAX_SERVERADDRS;
-		size = master_alloc * sizeof(isc_sockaddr_t);
-		master_servers = isc_mem_get(gmctx, size);
+		primary_alloc = MAX_SERVERADDRS;
+		size = primary_alloc * sizeof(isc_sockaddr_t);
+		primary_servers = isc_mem_get(gmctx, size);
 
-		memset(master_servers, 0, size);
-		master_total = get_addresses(serverstr, dnsport, master_servers,
-					     master_alloc);
-		if (master_total == 0) {
+		memset(primary_servers, 0, size);
+		primary_total = get_addresses(serverstr, dnsport,
+					      primary_servers, primary_alloc);
+		if (primary_total == 0) {
 			exit(1);
 		}
-		master_inuse = 0;
+		primary_inuse = 0;
 	} else {
-		master_from_servers();
+		primary_from_servers();
 	}
 	dns_rdata_freestruct(&soa);
 
@@ -2776,15 +2777,15 @@ lookforsoa:
 	if (usegsstsig) {
 		dns_name_init(&tmpzonename, NULL);
 		dns_name_dup(zname, gmctx, &tmpzonename);
-		dns_name_init(&restart_master, NULL);
-		dns_name_dup(&master, gmctx, &restart_master);
-		start_gssrequest(&master);
+		dns_name_init(&restart_primary, NULL);
+		dns_name_dup(&primary, gmctx, &restart_primary);
+		start_gssrequest(&primary);
 	} else {
-		send_update(zname, &master_servers[master_inuse]);
+		send_update(zname, &primary_servers[primary_inuse]);
 		setzoneclass(dns_rdataclass_none);
 	}
 #else  /* HAVE_GSSAPI */
-	send_update(zname, &master_servers[master_inuse]);
+	send_update(zname, &primary_servers[primary_inuse]);
 	setzoneclass(dns_rdataclass_none);
 #endif /* HAVE_GSSAPI */
 
@@ -2899,15 +2900,15 @@ failed_gssrequest(void) {
 	seenerror = true;
 
 	dns_name_free(&tmpzonename, gmctx);
-	dns_name_free(&restart_master, gmctx);
+	dns_name_free(&restart_primary, gmctx);
 	dns_name_init(&tmpzonename, NULL);
-	dns_name_init(&restart_master, NULL);
+	dns_name_init(&restart_primary, NULL);
 
 	done_update();
 }
 
 static void
-start_gssrequest(dns_name_t *master) {
+start_gssrequest(dns_name_t *primary) {
 	dns_gss_ctx_id_t context;
 	isc_buffer_t buf;
 	isc_result_t result;
@@ -2934,12 +2935,13 @@ start_gssrequest(dns_name_t *master) {
 		      isc_result_totext(result));
 	}
 
-	dns_name_format(master, namestr, sizeof(namestr));
+	dns_name_format(primary, namestr, sizeof(namestr));
 	if (kserver == NULL) {
 		kserver = isc_mem_get(gmctx, sizeof(isc_sockaddr_t));
 	}
 
-	memmove(kserver, &master_servers[master_inuse], sizeof(isc_sockaddr_t));
+	memmove(kserver, &primary_servers[primary_inuse],
+		sizeof(isc_sockaddr_t));
 
 	servname = dns_fixedname_initname(&fname);
 
@@ -3086,12 +3088,12 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	if (eresult != ISC_R_SUCCESS) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
-		if (!next_master("recvgss", addr, eresult)) {
+		if (!next_primary("recvgss", addr, eresult)) {
 			dns_message_detach(&tsigquery);
 			failed_gssrequest();
 		} else {
 			dns_message_renderreset(tsigquery);
-			memmove(kserver, &master_servers[master_inuse],
+			memmove(kserver, &primary_servers[primary_inuse],
 				sizeof(isc_sockaddr_t));
 			send_gssrequest(kserver, tsigquery, &request, context);
 		}
@@ -3129,7 +3131,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 			use_win2k_gsstsig = true;
 		}
 		tried_other_gsstsig = true;
-		start_gssrequest(&restart_master);
+		start_gssrequest(&restart_primary);
 		goto done;
 	}
 
@@ -3186,7 +3188,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_message_checksig");
 #endif /* 0 */
 
-		send_update(&tmpzonename, &master_servers[master_inuse]);
+		send_update(&tmpzonename, &primary_servers[primary_inuse]);
 		setzoneclass(dns_rdataclass_none);
 		break;
 
@@ -3225,11 +3227,11 @@ start_update(void) {
 	/*
 	 * If we have both the zone and the servers we have enough information
 	 * to send the update straight away otherwise we need to discover
-	 * the zone and / or the master server.
+	 * the zone and / or the primary server.
 	 */
 	if (userzone != NULL && !default_servers && !usegsstsig) {
-		master_from_servers();
-		send_update(userzone, &master_servers[master_inuse]);
+		primary_from_servers();
+		send_update(userzone, &primary_servers[primary_inuse]);
 		setzoneclass(dns_rdataclass_none);
 		return;
 	}
@@ -3338,8 +3340,8 @@ cleanup(void) {
 	if (dns_name_dynamic(&tmpzonename)) {
 		dns_name_free(&tmpzonename, gmctx);
 	}
-	if (dns_name_dynamic(&restart_master)) {
-		dns_name_free(&restart_master, gmctx);
+	if (dns_name_dynamic(&restart_primary)) {
+		dns_name_free(&restart_primary, gmctx);
 	}
 #endif /* ifdef HAVE_GSSAPI */
 

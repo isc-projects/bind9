@@ -289,7 +289,7 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$RNDCCMD 10.53.0.3 signing -list master  > signing.out.test$n 2>&1
+	$RNDCCMD 10.53.0.3 signing -list primary  > signing.out.test$n 2>&1
 	keys=`grep '^Done signing' signing.out.test$n | wc -l`
 	[ $keys = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
@@ -301,17 +301,17 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking removal of private type record via 'rndc signing -clear' (primary) ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n 2>&1
+$RNDCCMD 10.53.0.3 signing -list primary > signing.out.test$n 2>&1
 keys=`sed -n -e 's/Done signing with key \(.*\)$/\1/p' signing.out.test$n`
 for key in $keys; do
-	$RNDCCMD 10.53.0.3 signing -clear ${key} master > /dev/null || ret=1
+	$RNDCCMD 10.53.0.3 signing -clear ${key} primary > /dev/null || ret=1
 	break;	# We only want to remove 1 record for now.
 done 2>&1 |sed 's/^/ns3 /' | cat_i
 
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n 2>&1
+	$RNDCCMD 10.53.0.3 signing -list primary > signing.out.test$n 2>&1
         num=`grep "Done signing with" signing.out.test$n | wc -l`
 	[ $num = 1 ] && break
 	sleep 1
@@ -324,7 +324,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking private type was properly signed (primary) ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.6 master TYPE65534 > dig.out.ns6.test$n
+$DIG $DIGOPTS @10.53.0.6 primary TYPE65534 > dig.out.ns6.test$n
 grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ret=1
 
@@ -334,11 +334,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking removal of remaining private type record via 'rndc signing -clear' (primary) ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 signing -clear all master > /dev/null || ret=1
+$RNDCCMD 10.53.0.3 signing -clear all primary > /dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n 2>&1
+	$RNDCCMD 10.53.0.3 signing -list primary > signing.out.test$n 2>&1
 	grep "No signing records found" signing.out.test$n > /dev/null || ans=1
 	[ $ans = 1 ] || break
 	sleep 1
@@ -351,12 +351,12 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check adding of record to unsigned primary ($n)"
 ret=0
-cp ns3/master2.db.in ns3/master.db
-rndc_reload ns3 10.53.0.3 master
+cp ns3/primary2.db.in ns3/primary.db
+rndc_reload ns3 10.53.0.3 primary
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 e.master A > dig.out.ns3.test$n
+	$DIG $DIGOPTS @10.53.0.3 e.primary A > dig.out.ns3.test$n
 	grep "10.0.0.5" dig.out.ns3.test$n > /dev/null || ans=1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
 	[ $ans = 1 ] || break
@@ -369,10 +369,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check adding record fails when SOA serial not changed ($n)"
 ret=0
-echo "c A 10.0.0.3" >> ns3/master.db
+echo "c A 10.0.0.3" >> ns3/primary.db
 rndc_reload ns3 10.53.0.3
 sleep 1
-$DIG $DIGOPTS @10.53.0.3 c.master A > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 c.primary A > dig.out.ns3.test$n
 grep "NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -380,12 +380,12 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check adding record works after updating SOA serial ($n)"
 ret=0
-cp ns3/master3.db.in ns3/master.db
-$RNDCCMD 10.53.0.3 reload master 2>&1 | sed 's/^/ns3 /' | cat_i
+cp ns3/primary3.db.in ns3/primary.db
+$RNDCCMD 10.53.0.3 reload primary 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 c.master A > dig.out.ns3.test$n
+	$DIG $DIGOPTS @10.53.0.3 c.primary A > dig.out.ns3.test$n
 	grep "10.0.0.3" dig.out.ns3.test$n > /dev/null || ans=1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
 	[ $ans = 1 ] || break
@@ -398,7 +398,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check the added record was properly signed ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 e.master A > dig.out.ns6.test$n
+$DIG $DIGOPTS @10.53.0.3 e.primary A > dig.out.ns6.test$n
 grep "10.0.0.5" dig.out.ns6.test$n > /dev/null || ans=1
 grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ans=1
 grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ans=1
@@ -432,7 +432,7 @@ $DIG $DIGOPTS @10.53.0.3 e.updated A > dig.out.ns3.test$n
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
 # updated.db.signed.jnl should exist, should have the source serial
-# of master2.db, and should show a minimal diff: no more than 8 added
+# of primary2.db, and should show a minimal diff: no more than 8 added
 # records (SOA/RRSIG, 2 x NSEC/RRSIG, A/RRSIG), and 4 removed records
 # (SOA/RRSIG, NSEC/RRSIG).
 $JOURNALPRINT ns3/updated.db.signed.jnl >journalprint.out.test$n
@@ -895,8 +895,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "update SOA record while stopped"
-cp ns3/master4.db.in ns3/master.db
-rm ns3/master.db.jnl
+cp ns3/primary4.db.in ns3/primary.db
+rm ns3/primary.db.jnl
 
 n=`expr $n + 1`
 echo_i "restart bump in the wire signer server ($n)"
@@ -911,7 +911,7 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 master SOA > dig.out.ns3.test$n
+	$DIG $DIGOPTS @10.53.0.3 primary SOA > dig.out.ns3.test$n
 	grep "hostmaster" dig.out.ns3.test$n > /dev/null || ans=1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
 	[ $ans = 1 ] || break
@@ -924,16 +924,16 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check that reloading all zones does not cause zone maintenance to cease for inline-signed zones ($n)"
 ret=1
-# Ensure "rndc reload" attempts to load ns3/master.db by waiting 1 second so
+# Ensure "rndc reload" attempts to load ns3/primary.db by waiting 1 second so
 # that the file modification time has no possibility of being equal to
 # the one stored during server startup.
 sleep 1
 nextpart ns3/named.run > /dev/null
-cp ns3/master5.db.in ns3/master.db
+cp ns3/primary5.db.in ns3/primary.db
 rndc_reload ns3 10.53.0.3
 for i in 1 2 3 4 5 6 7 8 9 10
 do
-	if nextpart ns3/named.run | grep "zone master.*sending notifies" > /dev/null; then
+	if nextpart ns3/named.run | grep "zone primary.*sending notifies" > /dev/null; then
 		ret=0
 		break
 	fi
@@ -941,7 +941,7 @@ do
 done
 # Sanity check: file updates should be reflected in the signed zone,
 # i.e. SOA RNAME should no longer be set to "hostmaster".
-$DIG $DIGOPTS @10.53.0.3 master SOA > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 primary SOA > dig.out.ns3.test$n || ret=1
 grep "hostmaster" dig.out.ns3.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -949,10 +949,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check that reloading errors prevent synchronization ($n)"
 ret=1
-$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.1 || ret=1
 sleep 1
 nextpart ns3/named.run > /dev/null
-cp ns3/master6.db.in ns3/master.db
+cp ns3/primary6.db.in ns3/primary.db
 rndc_reload ns3 10.53.0.3
 for i in 1 2 3 4 5 6 7 8 9 10
 do
@@ -964,7 +964,7 @@ do
 	sleep 1
 done
 # Sanity check: the SOA record should be unchanged
-$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.2 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
 $DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -972,15 +972,15 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check inline-signing with an include file ($n)"
 ret=0
-$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 sleep 1
 nextpart ns3/named.run > /dev/null
-cp ns3/master7.db.in ns3/master.db
+cp ns3/primary7.db.in ns3/primary.db
 rndc_reload ns3 10.53.0.3
 _includefile_loaded() {
-	$DIG $DIGOPTS @10.53.0.3 f.master A > dig.out.ns3.test$n
+	$DIG $DIGOPTS @10.53.0.3 f.primary A > dig.out.ns3.test$n
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || return 1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || return 1
 	grep "10\.0\.0\.7" dig.out.ns3.test$n > /dev/null || return 1
@@ -988,7 +988,7 @@ _includefile_loaded() {
 }
 retry_quiet 10 _includefile_loaded
 # Sanity check: the SOA record should be changed
-$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.2 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
 $DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1398,7 +1398,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check that zonestatus reports 'type: primary' for an inline primary zone ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 zonestatus master > rndc.out.ns3.test$n
+$RNDCCMD 10.53.0.3 zonestatus primary > rndc.out.ns3.test$n
 grep "type: primary" rndc.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

@@ -113,7 +113,7 @@ done
 grep "2nd sub test data" dig.out.ns2.test2.$n > /dev/null || ret=1
 # re-enable the parent
 copy_setports ns3/named.conf.in tmp
-sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' tmp > ns3/named.conf
+sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type primary; file "example.db.signed"; };/' tmp > ns3/named.conf
 rndc_reload ns3 10.53.0.3
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

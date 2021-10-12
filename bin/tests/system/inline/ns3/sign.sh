@@ -30,7 +30,7 @@ keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone $zone`
 keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
 
-zone=master
+zone=primary
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
 keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone $zone`
@@ -51,7 +51,7 @@ keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone $zone`
 keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
 $SIGNER -S -O raw -L 2000042407 -o ${zone} ${zone}.db > /dev/null
-cp master2.db.in updated.db
+cp primary2.db.in updated.db
 
 # signatures are expired and should be regenerated on startup
 zone=expired
