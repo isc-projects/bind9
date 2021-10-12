@@ -45,10 +45,10 @@
 #define NAMED_RUN_PID_DIR 1
 #endif /* ifndef NAMED_RUN_PID_DIR */
 
-EXTERN isc_mem_t *named_g_mctx	    INIT(NULL);
-EXTERN unsigned int named_g_cpus    INIT(0);
-EXTERN unsigned int named_g_udpdisp INIT(0);
-EXTERN isc_taskmgr_t *named_g_taskmgr INIT(NULL);
+EXTERN isc_mem_t *named_g_mctx		      INIT(NULL);
+EXTERN unsigned int named_g_cpus	      INIT(0);
+EXTERN unsigned int named_g_udpdisp	      INIT(0);
+EXTERN isc_taskmgr_t *named_g_taskmgr	      INIT(NULL);
 EXTERN dns_dispatchmgr_t *named_g_dispatchmgr INIT(NULL);
 EXTERN unsigned int named_g_cpus_detected     INIT(1);
 
@@ -60,42 +60,42 @@ EXTERN bool named_g_run_done INIT(false);
  *         for really short timers, another for client timers, and one
  *         for zone timers.
  */
-EXTERN isc_timermgr_t *named_g_timermgr INIT(NULL);
+EXTERN isc_timermgr_t *named_g_timermgr	  INIT(NULL);
 EXTERN isc_socketmgr_t *named_g_socketmgr INIT(NULL);
-EXTERN isc_nm_t *named_g_nm INIT(NULL);
-EXTERN cfg_parser_t *named_g_parser INIT(NULL);
-EXTERN cfg_parser_t *named_g_addparser INIT(NULL);
-EXTERN const char *named_g_version     INIT(VERSION);
-EXTERN const char *named_g_product     INIT(PRODUCT);
-EXTERN const char *named_g_description INIT(DESCRIPTION);
-EXTERN const char *named_g_srcid       INIT(SRCID);
-EXTERN const char *named_g_configargs  INIT(CONFIGARGS);
-EXTERN const char *named_g_builder     INIT(BUILDER);
-EXTERN in_port_t named_g_port	       INIT(0);
-EXTERN isc_dscp_t named_g_dscp	       INIT(-1);
+EXTERN isc_nm_t *named_g_nm		  INIT(NULL);
+EXTERN cfg_parser_t *named_g_parser	  INIT(NULL);
+EXTERN cfg_parser_t *named_g_addparser	  INIT(NULL);
+EXTERN const char *named_g_version	  INIT(VERSION);
+EXTERN const char *named_g_product	  INIT(PRODUCT);
+EXTERN const char *named_g_description	  INIT(DESCRIPTION);
+EXTERN const char *named_g_srcid	  INIT(SRCID);
+EXTERN const char *named_g_configargs	  INIT(CONFIGARGS);
+EXTERN const char *named_g_builder	  INIT(BUILDER);
+EXTERN in_port_t named_g_port		  INIT(0);
+EXTERN isc_dscp_t named_g_dscp		  INIT(-1);
 
 EXTERN named_server_t *named_g_server INIT(NULL);
 
 /*
  * Logging.
  */
-EXTERN isc_log_t *named_g_lctx INIT(NULL);
+EXTERN isc_log_t *named_g_lctx		     INIT(NULL);
 EXTERN isc_logcategory_t *named_g_categories INIT(NULL);
-EXTERN isc_logmodule_t *named_g_modules INIT(NULL);
-EXTERN unsigned int named_g_debuglevel	INIT(0);
+EXTERN isc_logmodule_t *named_g_modules	     INIT(NULL);
+EXTERN unsigned int named_g_debuglevel	     INIT(0);
 
 /*
  * Current configuration information.
  */
-EXTERN cfg_obj_t *named_g_config INIT(NULL);
+EXTERN cfg_obj_t *named_g_config	   INIT(NULL);
 EXTERN const cfg_obj_t *named_g_defaults   INIT(NULL);
 EXTERN const char *named_g_conffile	   INIT(NAMED_SYSCONFDIR "/named.conf");
 EXTERN const char *named_g_defaultbindkeys INIT(NAMED_SYSCONFDIR "/bind.keys");
 EXTERN const char *named_g_keyfile	   INIT(NAMED_SYSCONFDIR "/rndc.key");
 
-EXTERN dns_tsigkey_t *named_g_sessionkey INIT(NULL);
-EXTERN dns_name_t			 named_g_sessionkeyname;
-EXTERN bool named_g_conffileset		 INIT(false);
+EXTERN dns_tsigkey_t *named_g_sessionkey    INIT(NULL);
+EXTERN dns_name_t			    named_g_sessionkeyname;
+EXTERN bool named_g_conffileset		    INIT(false);
 EXTERN cfg_aclconfctx_t *named_g_aclconfctx INIT(NULL);
 
 /*

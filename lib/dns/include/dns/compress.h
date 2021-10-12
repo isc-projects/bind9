@@ -76,7 +76,7 @@ struct dns_compress {
 	/*% Preallocated nodes for the table. */
 	dns_compressnode_t initialnodes[DNS_COMPRESS_INITIALNODES];
 	uint16_t	   count; /*%< Number of nodes. */
-	isc_mem_t *	   mctx;  /*%< Memory context. */
+	isc_mem_t	  *mctx;  /*%< Memory context. */
 };
 
 typedef enum {

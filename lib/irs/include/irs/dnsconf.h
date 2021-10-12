@@ -37,7 +37,7 @@
  * 'keydatabuf' members with the dst_key_fromdns() function.
  */
 typedef struct irs_dnsconf_dnskey {
-	dns_name_t *  keyname;
+	dns_name_t   *keyname;
 	isc_buffer_t *keydatabuf;
 	ISC_LINK(struct irs_dnsconf_dnskey) link;
 } irs_dnsconf_dnskey_t;
