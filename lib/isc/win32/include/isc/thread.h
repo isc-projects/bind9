@@ -66,7 +66,7 @@ WaitAbandonedIndex(DWORD dwWaitResult) {
 
 typedef HANDLE isc_thread_t;
 typedef DWORD  isc_threadresult_t;
-typedef void * isc_threadarg_t;
+typedef void  *isc_threadarg_t;
 typedef isc_threadresult_t(WINAPI *isc_threadfunc_t)(isc_threadarg_t);
 
 #define isc_thread_self (uintptr_t) GetCurrentThreadId

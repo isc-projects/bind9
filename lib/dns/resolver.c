@@ -9985,36 +9985,35 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 		return;
 	} else
 #endif /* ifdef ENABLE_AFL */
-		if (rctx->next_server)
-	{
-		rctx_nextserver(rctx, message, addrinfo, result);
-	} else if (rctx->resend) {
-		rctx_resend(rctx, addrinfo);
-	} else if (rctx->nextitem) {
-		rctx_next(rctx);
-	} else if (result == DNS_R_CHASEDSSERVERS) {
-		rctx_chaseds(rctx, message, addrinfo, result);
-	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
-		/*
-		 * All has gone well so far, but we are waiting for the
-		 * DNSSEC validator to validate the answer.
-		 */
-		FCTXTRACE("wait for validator");
-		fctx_cancelqueries(fctx, true, false);
-		/*
-		 * We must not retransmit while the validator is working;
-		 * it has references to the current rmessage.
-		 */
-		result = fctx_stopidletimer(fctx);
-		if (result != ISC_R_SUCCESS) {
+		if (rctx->next_server) {
+			rctx_nextserver(rctx, message, addrinfo, result);
+		} else if (rctx->resend) {
+			rctx_resend(rctx, addrinfo);
+		} else if (rctx->nextitem) {
+			rctx_next(rctx);
+		} else if (result == DNS_R_CHASEDSSERVERS) {
+			rctx_chaseds(rctx, message, addrinfo, result);
+		} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
+			/*
+			 * All has gone well so far, but we are waiting for the
+			 * DNSSEC validator to validate the answer.
+			 */
+			FCTXTRACE("wait for validator");
+			fctx_cancelqueries(fctx, true, false);
+			/*
+			 * We must not retransmit while the validator is
+			 * working; it has references to the current rmessage.
+			 */
+			result = fctx_stopidletimer(fctx);
+			if (result != ISC_R_SUCCESS) {
+				fctx_done(fctx, result, __LINE__);
+			}
+		} else {
+			/*
+			 * We're done.
+			 */
 			fctx_done(fctx, result, __LINE__);
 		}
-	} else {
-		/*
-		 * We're done.
-		 */
-		fctx_done(fctx, result, __LINE__);
-	}
 
 	dns_message_detach(&message);
 }

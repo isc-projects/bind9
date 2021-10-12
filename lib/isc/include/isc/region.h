@@ -23,7 +23,7 @@ struct isc_region {
 };
 
 struct isc_textregion {
-	char *	     base;
+	char	     *base;
 	unsigned int length;
 };
 
@@ -31,12 +31,12 @@ struct isc_textregion {
  * discussing the region api.
  */
 struct isc_constregion {
-	const void * base;
+	const void  *base;
 	unsigned int length;
 };
 
 struct isc_consttextregion {
-	const char * base;
+	const char  *base;
 	unsigned int length;
 };
 

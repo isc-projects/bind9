@@ -133,7 +133,7 @@ struct isc_socketevent {
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;
 struct isc_socket_newconnev {
 	ISC_EVENT_COMMON(isc_socket_newconnev_t);
-	isc_socket_t * newsocket;
+	isc_socket_t  *newsocket;
 	isc_result_t   result;	/*%< OK, EOF, whatever else */
 	isc_sockaddr_t address; /*%< source address */
 };
@@ -904,7 +904,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, void *stats0);
 /*%<
  * See isc_socketmgr_create() above.
  */
-typedef isc_result_t (*isc_socketmgrcreatefunc_t)(isc_mem_t *	    mctx,
+typedef isc_result_t (*isc_socketmgrcreatefunc_t)(isc_mem_t	    *mctx,
 						  isc_socketmgr_t **managerp);
 
 ISC_LANG_ENDDECLS
