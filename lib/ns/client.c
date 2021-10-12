@@ -324,12 +324,21 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 
 static void
 client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
+	isc_result_t result;
 	isc_region_t r;
+	dns_ttl_t min_ttl = 0;
 
 	REQUIRE(client->sendhandle == NULL);
 
 	isc_buffer_usedregion(buffer, &r);
 	isc_nmhandle_attach(client->handle, &client->sendhandle);
+
+	if (isc_nm_is_http_handle(client->handle)) {
+		result = dns_message_response_minttl(client->message, &min_ttl);
+		if (result == ISC_R_SUCCESS) {
+			isc_nm_set_maxage(client->handle, min_ttl);
+		}
+	}
 	isc_nm_send(client->handle, &r, client_senddone, client);
 }
 
