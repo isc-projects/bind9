@@ -51,12 +51,10 @@ options {\n\
 			    "	coresize default;\n\
 	datasize default;\n"
 			    "\
-#	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
 	edns-udp-size 1232;\n\
-#	fake-iquery <obsolete>;\n\
 	files unlimited;\n"
 #if defined(HAVE_GEOIP2)
 			    "	geoip-directory \"" MAXMINDDB_PREFIX "/share/"
@@ -66,9 +64,7 @@ options {\n\
 			    "	geoip-directory \".\";\n"
 #endif /* if defined(HAVE_GEOIP2) */
 			    "\
-#	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
-#	host-statistics <obsolete>;\n\
 	interface-interval 60;\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
@@ -79,8 +75,6 @@ options {\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
 	max-udp-size 1232;\n\
 	memstatistics-file \"named.memstats\";\n\
-#	multiple-cnames <obsolete>;\n\
-#	named-xfer <obsolete>;\n\
 	nocookie-udp-size 4096;\n\
 	notify-rate 20;\n\
 	nta-lifetime 3600;\n\
@@ -104,7 +98,6 @@ options {\n\
 	rrset-order { order random; };\n\
 	secroots-file \"named.secroots\";\n\
 	send-cookie true;\n\
-#	serial-queries <obsolete>;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
 	session-keyalg hmac-sha256;\n\
@@ -113,7 +106,6 @@ options {\n\
 	stacksize default;\n\
 	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
-#	statistics-interval <obsolete>;\n\
 	tcp-advertised-timeout 300;\n\
 	tcp-clients 150;\n\
 	tcp-idle-timeout 300;\n\
@@ -129,9 +121,7 @@ options {\n\
 	transfers-in 10;\n\
 	transfers-out 10;\n\
 	transfers-per-ns 2;\n\
-#	treat-cr-as-space <obsolete>;\n\
 	trust-anchor-telemetry yes;\n\
-#	use-id-pool <obsolete>;\n\
 	udp-receive-buffer 0;\n\
 	udp-send-buffer 0;\n\
 \n\
@@ -157,7 +147,6 @@ options {\n\
 			    "	dnstap-identity hostname;\n"
 #endif /* ifdef HAVE_DNSTAP */
 			    "\
-#	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
 	fetches-per-server 0;\n\
 	fetches-per-zone 0;\n\
@@ -176,7 +165,6 @@ options {\n\
 	message-compression yes;\n\
 	min-ncache-ttl 0; /* 0 hours */\n\
 	min-cache-ttl 0; /* 0 seconds */\n\
-#	min-roots <obsolete>;\n\
 	minimal-any false;\n\
 	minimal-responses no-auth-recursive;\n\
 	notify-source *;\n\
@@ -194,7 +182,6 @@ options {\n\
 	require-server-cookie no;\n\
 	resolver-nonbackoff-tries 3;\n\
 	resolver-retry-interval 800; /* in milliseconds */\n\
-#	rfc2308-type1 <obsolete>;\n\
 	root-key-sentinel yes;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
@@ -230,8 +217,6 @@ options {\n\
 #	forwarders <none>\n\
 #	inline-signing no;\n\
 	ixfr-from-differences false;\n\
-#	maintain-ixfr-base <obsolete>;\n\
-#	max-ixfr-log-size <obsolete>\n\
 	max-journal-size default;\n\
 	max-records 0;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
