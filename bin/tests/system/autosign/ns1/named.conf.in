@@ -40,6 +40,7 @@ zone "." {
 	allow-query { any; };
 	allow-update { any; };
 	auto-dnssec maintain;
+	dnssec-dnskey-kskonly no;
 };
 
 include "trusted.conf";

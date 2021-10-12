@@ -2218,7 +2218,7 @@ Boolean Options
    the remainder of the zone, but not the DNSKEY RRset. This is similar
    to the ``dnssec-signzone -x`` command-line option.
 
-   The default is ``no``. If ``update-check-ksk`` is set to ``no``, this
+   The default is ``yes``. If ``update-check-ksk`` is set to ``no``, this
    option is ignored.
 
 ``try-tcp-refresh``

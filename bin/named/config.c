@@ -222,7 +222,7 @@ options {\n\
 	check-srv-cname warn;\n\
 	check-wildcard yes;\n\
 	dialup no;\n\
-	dnssec-dnskey-kskonly no;\n\
+	dnssec-dnskey-kskonly yes;\n\
 	dnssec-loadkeys-interval 60;\n\
 	dnssec-secure-to-insecure no;\n\
 	dnssec-update-mode maintain;\n\

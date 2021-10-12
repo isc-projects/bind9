@@ -117,6 +117,7 @@ zone "cds-x.secure" {
 
 zone "cds-update.secure" {
 	type primary;
+	dnssec-dnskey-kskonly no;
 	file "cds-update.secure.db.signed";
 	allow-update { any; };
 };
@@ -130,6 +131,7 @@ zone "cds-kskonly.secure" {
 
 zone "cds-auto.secure" {
 	type primary;
+	dnssec-dnskey-kskonly no;
 	file "cds-auto.secure.db.signed";
 	auto-dnssec maintain;
 	allow-update { any; };
@@ -147,6 +149,7 @@ zone "cdnskey-x.secure" {
 
 zone "cdnskey-update.secure" {
 	type primary;
+	dnssec-dnskey-kskonly no;
 	file "cdnskey-update.secure.db.signed";
 	allow-update { any; };
 };
@@ -160,6 +163,7 @@ zone "cdnskey-kskonly.secure" {
 
 zone "cdnskey-auto.secure" {
 	type primary;
+	dnssec-dnskey-kskonly no;
 	file "cdnskey-auto.secure.db.signed";
 	auto-dnssec maintain;
 	allow-update { any; };

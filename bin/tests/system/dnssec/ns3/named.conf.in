@@ -284,6 +284,7 @@ zone "publish-inactive.example" {
 	type primary;
 	file "publish-inactive.example.db";
 	auto-dnssec maintain;
+	dnssec-dnskey-kskonly no;
 	update-policy local;
 };
 
