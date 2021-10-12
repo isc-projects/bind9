@@ -2,6 +2,11 @@
 			an NSEC3 incapable DNSSEC algorithm using KASP the zone
 			could sometimes be incompletely signed. [GL #3937]
 
+5741.	[bug]		Log files with "timestamp" suffixes could be left in
+			place after rolling, even if the number of preserved
+			log files exceeded the configured "versions" limit.
+			[GL #828] [GL #3959]
+
 	--- 9.16.39 released ---
 
 6119.	[bug]		Make sure to revert the reconfigured zones to the

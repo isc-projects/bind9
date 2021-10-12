@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Logfiles using ``timestamp``-style suffixes were not always correctly
+  removed when the number of files exceeded the limit set by ``versions``.
+  :gl:`#828` :gl:`#3959`
 
 Known Issues
 ~~~~~~~~~~~~
