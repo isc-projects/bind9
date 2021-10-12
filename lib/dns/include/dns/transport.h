@@ -119,7 +119,7 @@ dns_transport_list_new(isc_mem_t *mctx);
  */
 
 void
-dns_transport_list_attach(dns_transport_list_t * source,
+dns_transport_list_attach(dns_transport_list_t  *source,
 			  dns_transport_list_t **targetp);
 /*%<
  * Attach to a transport list.

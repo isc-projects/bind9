@@ -197,7 +197,7 @@ struct dns_rrl_rate {
 typedef struct dns_rrl dns_rrl_t;
 struct dns_rrl {
 	isc_mutex_t lock;
-	isc_mem_t * mctx;
+	isc_mem_t  *mctx;
 
 	bool	       log_only;
 	dns_rrl_rate_t responses_per_second;
