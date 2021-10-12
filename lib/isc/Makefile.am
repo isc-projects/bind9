@@ -212,7 +212,6 @@ libisc_la_SOURCES =		\
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
-	$(JEMALLOC_CPPFLAGS)	\
 	$(LIBISC_CFLAGS)	\
 	$(LIBUV_CFLAGS)		\
 	$(OPENSSL_CFLAGS)	\
@@ -223,10 +222,25 @@ libisc_la_LDFLAGS =		\
 	-release "$(PACKAGE_VERSION)"
 
 libisc_la_LIBADD =		\
-	$(JEMALLOC_LIBS)	\
 	$(LIBUV_LIBS)		\
 	$(OPENSSL_LIBS)		\
 	$(ZLIB_LIBS)
+
+if HAVE_JEMALLOC
+libisc_la_CPPFLAGS +=		\
+	$(JEMALLOC_CFLAGS)
+
+libisc_la_LIBADD +=		\
+	$(JEMALLOC_LIBS)
+endif HAVE_JEMALLOC
+
+if HAVE_JSON_C
+libisc_la_CPPFLAGS +=		\
+	$(JSON_C_CFLAGS)
+
+libisc_la_LIBADD +=		\
+	$(JSON_C_LIBS)
+endif HAVE_JSON_C
 
 if HAVE_LIBNGHTTP2
 libisc_la_SOURCES +=		\
@@ -239,14 +253,6 @@ libisc_la_CPPFLAGS +=		\
 libisc_la_LIBADD +=		\
 	$(LIBNGHTTP2_LIBS)
 endif
-
-if HAVE_JSON_C
-libisc_la_CPPFLAGS +=		\
-	$(JSON_C_CFLAGS)
-
-libisc_la_LIBADD +=		\
-	$(JSON_C_LIBS)
-endif HAVE_JSON_C
 
 if HAVE_LIBXML2
 libisc_la_CPPFLAGS +=		\

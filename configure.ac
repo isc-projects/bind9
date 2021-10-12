@@ -1338,6 +1338,8 @@ AS_CASE([$with_jemalloc],
 AS_IF([test "$with_jemalloc" = "no"],
       [AC_CHECK_FUNCS([malloc_size malloc_usable_size])])
 
+AM_CONDITIONAL([HAVE_JEMALLOC], [test "$with_jemalloc" = "yes"])
+
 #
 # was --with-tuning specified?
 #
