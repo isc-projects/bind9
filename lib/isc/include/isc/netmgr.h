@@ -544,7 +544,7 @@ isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
  */
 
 void
-isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t * source,
+isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t  *source,
 			     isc_nm_http_endpoints_t **targetp);
 /*%<
  * Attaches to an HTTP endpoints set object.

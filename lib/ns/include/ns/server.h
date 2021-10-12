@@ -69,7 +69,7 @@ typedef isc_result_t (*ns_matchview_t)(
  */
 struct ns_server {
 	unsigned int magic;
-	isc_mem_t *  mctx;
+	isc_mem_t	  *mctx;
 
 	isc_refcount_t references;
 
@@ -88,15 +88,15 @@ struct ns_server {
 	/*% Test options and other configurables */
 	uint32_t options;
 
-	dns_acl_t *    blackholeacl;
-	dns_acl_t *    keepresporder;
+	dns_acl_t	  *blackholeacl;
+	dns_acl_t	  *keepresporder;
 	uint16_t       udpsize;
 	uint16_t       transfer_tcp_message_size;
 	bool	       interface_auto;
 	dns_tkeyctx_t *tkeyctx;
 
 	/*% Server id for NSID */
-	char *		server_id;
+	char	     *server_id;
 	ns_hostnamecb_t gethostname;
 
 	/*% Fuzzer callback */
@@ -107,7 +107,7 @@ struct ns_server {
 	ns_matchview_t matchingview;
 
 	/*% Stats counters */
-	ns_stats_t * nsstats;
+	ns_stats_t  *nsstats;
 	dns_stats_t *rcvquerystats;
 	dns_stats_t *opcodestats;
 	dns_stats_t *rcodestats;

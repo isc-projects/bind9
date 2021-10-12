@@ -107,7 +107,7 @@ struct dns_name {
 	unsigned int   labels;
 	unsigned int   attributes;
 	unsigned char *offsets;
-	isc_buffer_t * buffer;
+	isc_buffer_t  *buffer;
 	ISC_LINK(dns_name_t) link;
 	ISC_LIST(dns_rdataset_t) list;
 };
@@ -1361,9 +1361,9 @@ ISC_LANG_ENDDECLS
 
 #define DNS_NAME_SPLIT(n, l, p, s)                                             \
 	do {                                                                   \
-		dns_name_t * _n = (n);                                         \
-		dns_name_t * _p = (p);                                         \
-		dns_name_t * _s = (s);                                         \
+		dns_name_t  *_n = (n);                                         \
+		dns_name_t  *_p = (p);                                         \
+		dns_name_t  *_s = (s);                                         \
 		unsigned int _l = (l);                                         \
 		if (_p != NULL)                                                \
 			dns_name_getlabelsequence(_n, 0, _n->labels - _l, _p); \
