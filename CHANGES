@@ -1,3 +1,8 @@
+5741.	[bug]		Log files with "timestamp" suffixes could be left in
+			place after rolling, even if the number of preserved
+			log files exceeded the configured "versions" limit.
+			[GL #828]
+
 5740.	[func]		Implement incremental resizing of RBT hash table to
 			perform the rehashing gradually. [GL #2941]
 
