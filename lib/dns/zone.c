@@ -6454,7 +6454,6 @@ void
 dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count) {
-	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
 	dns_name_t **newkeynames = NULL;
@@ -6485,9 +6484,6 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 	set_serverslist(count, parentals, &newaddrs, NULL, &newdscps, keynames,
 			&newkeynames, tlsnames, &newtlsnames, zone->mctx);
 	INSIST(newdscps == NULL);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
 
 	/*
 	 * Everything is ok so attach to the zone.
