@@ -86,11 +86,6 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 static isc_result_t
 catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 			     dns_label_t *mhash, dns_name_t *name);
-static void
-catz_entry_add_or_mod(dns_catz_zone_t *target, isc_ht_t *ht, unsigned char *key,
-		      size_t keysize, dns_catz_entry_t *nentry,
-		      dns_catz_entry_t *oentry, const char *msg,
-		      const char *zname, const char *czname);
 
 /*%
  * Collection of catalog zones for a view
@@ -448,7 +443,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	{
 		dns_catz_entry_t *nentry = NULL;
 		dns_catz_entry_t *oentry = NULL;
-		dns_zone_t *zone = NULL;
 		unsigned char *key = NULL;
 		size_t keysize;
 		delcur = false;
@@ -480,34 +474,36 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		result = isc_ht_find(target->entries, key, (uint32_t)keysize,
 				     (void **)&oentry);
 		if (result != ISC_R_SUCCESS) {
-			catz_entry_add_or_mod(target, toadd, key, keysize,
-					      nentry, NULL, "adding", zname,
-					      czname);
+			result = isc_ht_add(toadd, key, (uint32_t)keysize,
+					    nentry);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_ERROR,
+					      "catz: error adding zone '%s' "
+					      "from catalog '%s' - %s",
+					      zname, czname,
+					      isc_result_totext(result));
+			}
 			continue;
 		}
-
-		result = dns_zt_find(target->catzs->view->zonetable,
-				     dns_catz_entry_getname(nentry), 0, NULL,
-				     &zone);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
-				      "catz: zone '%s' was expected to exist "
-				      "but can not be found, will be restored",
-				      zname);
-			catz_entry_add_or_mod(target, toadd, key, keysize,
-					      nentry, oentry, "adding", zname,
-					      czname);
-			continue;
-		}
-		dns_zone_detach(&zone);
 
 		if (dns_catz_entry_cmp(oentry, nentry) != true) {
-			catz_entry_add_or_mod(target, tomod, key, keysize,
-					      nentry, oentry, "modifying",
-					      zname, czname);
-			continue;
+			result = isc_ht_add(tomod, key, (uint32_t)keysize,
+					    nentry);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_ERROR,
+					      "catz: error modifying zone '%s' "
+					      "from catalog '%s' - %s",
+					      zname, czname,
+					      isc_result_totext(result));
+			}
 		}
+		dns_catz_entry_detach(target, &oentry);
+		result = isc_ht_delete(target->entries, key, (uint32_t)keysize);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	RUNTIME_CHECK(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter1);
@@ -1388,26 +1384,6 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	}
 
 	return (ISC_R_FAILURE);
-}
-
-static inline void
-catz_entry_add_or_mod(dns_catz_zone_t *target, isc_ht_t *ht, unsigned char *key,
-		      size_t keysize, dns_catz_entry_t *nentry,
-		      dns_catz_entry_t *oentry, const char *msg,
-		      const char *zname, const char *czname) {
-	isc_result_t result = isc_ht_add(ht, key, (uint32_t)keysize, nentry);
-
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-			      "catz: error %s zone '%s' from catalog '%s' - %s",
-			      msg, zname, czname, isc_result_totext(result));
-	}
-	if (oentry != NULL) {
-		dns_catz_entry_detach(target, &oentry);
-		result = isc_ht_delete(target->entries, key, (uint32_t)keysize);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	}
 }
 
 static isc_result_t
