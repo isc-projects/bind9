@@ -1013,7 +1013,7 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 
-	RETERR(name_duporclone(&name, mctx, &svcb->svcdomain));
+	name_duporclone(&name, mctx, &svcb->svcdomain);
 	svcb->svclen = region.length;
 	svcb->svc = mem_maybedup(mctx, region.base, region.length);
 

@@ -52,7 +52,7 @@ typedef struct dns_ssuruletype {
 	unsigned int	max;  /* maximum number of records allowed. */
 } dns_ssuruletype_t;
 
-isc_result_t
+void
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*%<
  *	Creates a table that will be used to store simple-secure-update rules.
@@ -67,7 +67,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
  *\li		ISC_R_NOMEMORY
  */
 
-isc_result_t
+void
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 		       dns_dlzdb_t *dlzdatabase);
 /*%<
@@ -104,7 +104,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep);
  *			resources used by the table will be freed.
  */
 
-isc_result_t
+void
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,

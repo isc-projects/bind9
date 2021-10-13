@@ -407,14 +407,13 @@ locator_pton(const char *src, unsigned char *dst) {
 	return (1);
 }
 
-static inline isc_result_t
+static inline void
 name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	if (mctx != NULL) {
 		dns_name_dup(source, mctx, target);
 	} else {
 		dns_name_clone(source, target);
 	}
-	return (ISC_R_SUCCESS);
 }
 
 static inline void *

@@ -90,7 +90,7 @@ dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx);
  * \li	'mctx' to be a valid memory context.
  */
 
-isc_result_t
+void
 dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *opts,
 		      dns_catz_options_t *nopts);
 /*%<
@@ -102,7 +102,7 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *opts,
  * \li	'nopts' to be non NULL.
  */
 
-isc_result_t
+void
 dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 			    dns_catz_options_t *opts);
 /*%<
@@ -126,7 +126,7 @@ dns_catz_entry_getname(dns_catz_entry_t *entry);
  * \li	domain name for entry.
  */
 
-isc_result_t
+void
 dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 		   dns_catz_entry_t **nentryp);
 /*%<
@@ -142,7 +142,7 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
  * \li	ISC_R_NOMEMORY on allocation failure
  */
 
-isc_result_t
+void
 dns_catz_entry_copy(dns_catz_zone_t *zone, const dns_catz_entry_t *entry,
 		    dns_catz_entry_t **nentryp);
 /*%<

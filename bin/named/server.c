@@ -5591,7 +5591,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			exclude = cfg_listelt_value(element);
 			CHECK(dns_name_fromstring(
 				name, cfg_obj_asstring(exclude), 0, NULL));
-			CHECK(dns_view_excludedelegationonly(view, name));
+			dns_view_excludedelegationonly(view, name);
 		}
 	} else {
 		dns_view_setrootdelonly(view, false);
@@ -6074,8 +6074,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 				}
 				myport = (in_port_t)val;
 			}
-			CHECK(dns_resolver_addalternate(view->resolver, NULL,
-							name, myport));
+			dns_resolver_addalternate(view->resolver, NULL, name,
+						  myport);
 			continue;
 		}
 
@@ -6083,7 +6083,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		if (isc_sockaddr_getport(&sa) == 0) {
 			isc_sockaddr_setport(&sa, port);
 		}
-		CHECK(dns_resolver_addalternate(view->resolver, &sa, NULL, 0));
+		dns_resolver_addalternate(view->resolver, &sa, NULL, 0);
 	}
 
 cleanup:
@@ -6337,7 +6337,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	const cfg_obj_t *ixfrfromdiffs = NULL;
 	const cfg_obj_t *only = NULL;
 	const cfg_obj_t *viewobj = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
@@ -6472,7 +6472,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 					      &only);
 			if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only))
 			{
-				CHECK(dns_view_adddelegationonly(view, origin));
+				dns_view_adddelegationonly(view, origin);
 			}
 		} else {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -6504,7 +6504,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		only = NULL;
 		tresult = cfg_map_get(zoptions, "delegation-only", &only);
 		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only)) {
-			CHECK(dns_view_adddelegationonly(view, origin));
+			dns_view_adddelegationonly(view, origin);
 		}
 		goto cleanup;
 	}
@@ -6513,7 +6513,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * "delegation-only zones" aren't zones either.
 	 */
 	if (strcasecmp(ztypestr, "delegation-only") == 0) {
-		result = dns_view_adddelegationonly(view, origin);
+		dns_view_adddelegationonly(view, origin);
 		goto cleanup;
 	}
 
@@ -6679,7 +6679,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	only = NULL;
 	if (cfg_map_get(zoptions, "delegation-only", &only) == ISC_R_SUCCESS) {
 		if (cfg_obj_asboolean(only)) {
-			CHECK(dns_view_adddelegationonly(view, origin));
+			dns_view_adddelegationonly(view, origin);
 		}
 	}
 

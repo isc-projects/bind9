@@ -145,7 +145,7 @@ dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx) {
 	}
 }
 
-isc_result_t
+void
 dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 		      dns_catz_options_t *dst) {
 	REQUIRE(mctx != NULL);
@@ -175,11 +175,9 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 	if (src->allow_transfer != NULL) {
 		isc_buffer_dup(mctx, &dst->allow_transfer, src->allow_transfer);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 			    dns_catz_options_t *opts) {
 	REQUIRE(mctx != NULL);
@@ -204,10 +202,9 @@ dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 
 	/* This option is always taken from config, so it's always 'default' */
 	opts->in_memory = defaults->in_memory;
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 		   dns_catz_entry_t **nentryp) {
 	dns_catz_entry_t *nentry;
@@ -226,7 +223,6 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 	isc_refcount_init(&nentry->refs, 1);
 	nentry->magic = DNS_CATZ_ENTRY_MAGIC;
 	*nentryp = nentry;
-	return (ISC_R_SUCCESS);
 }
 
 dns_name_t *
@@ -235,29 +231,19 @@ dns_catz_entry_getname(dns_catz_entry_t *entry) {
 	return (&entry->name);
 }
 
-isc_result_t
+void
 dns_catz_entry_copy(dns_catz_zone_t *zone, const dns_catz_entry_t *entry,
 		    dns_catz_entry_t **nentryp) {
-	isc_result_t result;
 	dns_catz_entry_t *nentry = NULL;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(DNS_CATZ_ENTRY_VALID(entry));
 	REQUIRE(nentryp != NULL && *nentryp == NULL);
 
-	result = dns_catz_entry_new(zone->catzs->mctx, &entry->name, &nentry);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_catz_entry_new(zone->catzs->mctx, &entry->name, &nentry);
 
-	result = dns_catz_options_copy(zone->catzs->mctx, &entry->opts,
-				       &nentry->opts);
-	if (result != ISC_R_SUCCESS) {
-		dns_catz_entry_detach(zone, &nentry);
-	}
-
+	dns_catz_options_copy(zone->catzs->mctx, &entry->opts, &nentry->opts);
 	*nentryp = nentry;
-	return (result);
 }
 
 void
@@ -986,12 +972,7 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 			dns_name_dup(&ptr.ptr, zone->catzs->mctx, &entry->name);
 		}
 	} else {
-		result = dns_catz_entry_new(zone->catzs->mctx, &ptr.ptr,
-					    &entry);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdata_freestruct(&ptr);
-			return (result);
-		}
+		dns_catz_entry_new(zone->catzs->mctx, &ptr.ptr, &entry);
 
 		result = isc_ht_add(zone->entries, mhash->base, mhash->length,
 				    entry);
@@ -1082,7 +1063,6 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 	char keycbuf[DNS_NAME_FORMATSIZE];
 	isc_buffer_t keybuf;
 	unsigned int rcount;
-	unsigned int i;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(ipkl != NULL);
@@ -1108,6 +1088,7 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 
 	if (name->labels > 0) {
 		isc_sockaddr_t sockaddr;
+		size_t i;
 
 		/*
 		 * We're pre-preparing the data once, we'll put it into
@@ -1354,10 +1335,7 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	result = isc_ht_find(zone->entries, mhash->base, mhash->length,
 			     (void **)&entry);
 	if (result != ISC_R_SUCCESS) {
-		result = dns_catz_entry_new(zone->catzs->mctx, NULL, &entry);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_catz_entry_new(zone->catzs->mctx, NULL, &entry);
 		result = isc_ht_add(zone->entries, mhash->base, mhash->length,
 				    entry);
 		if (result != ISC_R_SUCCESS) {
@@ -1505,10 +1483,9 @@ static isc_result_t
 digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
 	   size_t hashlen) {
 	unsigned int i;
-	int ret;
 	for (i = 0; i < digestlen; i++) {
 		size_t left = hashlen - i * 2;
-		ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
+		int ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
 		if (ret < 0 || (size_t)ret >= left) {
 			return (ISC_R_NOSPACE);
 		}

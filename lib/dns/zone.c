@@ -1342,12 +1342,9 @@ zone_free(dns_zone_t *zone) {
 		dns_catz_catzs_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
-	RUNTIME_CHECK(dns_zone_setparentals(zone, NULL, NULL, NULL, 0) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_zone_setprimaries(zone, NULL, NULL, NULL, 0) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0) ==
-		      ISC_R_SUCCESS);
+	dns_zone_setparentals(zone, NULL, NULL, NULL, 0);
+	dns_zone_setprimaries(zone, NULL, NULL, NULL, 0);
+	dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL) {
 		dns_acl_detach(&zone->update_acl);
@@ -6252,7 +6249,7 @@ clear_serverslist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 	}
 }
 
-static isc_result_t
+static void
 set_serverslist(unsigned int count, const isc_sockaddr_t *addrs,
 		isc_sockaddr_t **newaddrsp, const isc_dscp_t *dscp,
 		isc_dscp_t **newdscpp, dns_name_t **keynames,
@@ -6313,14 +6310,12 @@ set_serverslist(unsigned int count, const isc_sockaddr_t *addrs,
 	*newaddrsp = newaddrs;
 	*newkeynamesp = newkeynames;
 	*newtlsnamesp = newtlsnames;
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		       const isc_dscp_t *dscps, dns_name_t **keynames,
 		       dns_name_t **tlsnames, uint32_t count) {
-	isc_result_t result;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
 	dns_name_t **newkeynames = NULL;
@@ -6353,12 +6348,8 @@ dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	/*
 	 * Set up the notify and notifykey lists
 	 */
-	result = set_serverslist(count, notify, &newaddrs, dscps, &newdscps,
-				 keynames, &newkeynames, tlsnames, &newtlsnames,
-				 zone->mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
+	set_serverslist(count, notify, &newaddrs, dscps, &newdscps, keynames,
+			&newkeynames, tlsnames, &newtlsnames, zone->mctx);
 
 	/*
 	 * Everything is ok so attach to the zone.
@@ -6370,14 +6361,12 @@ dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	zone->notifycnt = count;
 unlock:
 	UNLOCK_ZONE(zone);
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count) {
-	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscps = NULL;
 	dns_name_t **newkeynames = NULL;
@@ -6441,14 +6430,9 @@ dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 	/*
 	 * Now set up the primaries and primary key lists
 	 */
-	result = set_serverslist(count, primaries, &newaddrs, NULL, &newdscps,
-				 keynames, &newkeynames, tlsnames, &newtlsnames,
-				 zone->mctx);
+	set_serverslist(count, primaries, &newaddrs, NULL, &newdscps, keynames,
+			&newkeynames, tlsnames, &newtlsnames, zone->mctx);
 	INSIST(newdscps == NULL);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
-		goto unlock;
-	}
 
 	/*
 	 * Everything is ok so attach to the zone.
@@ -6464,10 +6448,9 @@ dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 
 unlock:
 	UNLOCK_ZONE(zone);
-	return (result);
 }
 
-isc_result_t
+void
 dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count) {
@@ -6499,9 +6482,8 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 	/*
 	 * Now set up the parentals and parental key lists
 	 */
-	result = set_serverslist(count, parentals, &newaddrs, NULL, &newdscps,
-				 keynames, &newkeynames, tlsnames, &newtlsnames,
-				 zone->mctx);
+	set_serverslist(count, parentals, &newaddrs, NULL, &newdscps, keynames,
+			&newkeynames, tlsnames, &newtlsnames, zone->mctx);
 	INSIST(newdscps == NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
@@ -6520,7 +6502,6 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 
 unlock:
 	UNLOCK_ZONE(zone);
-	return (result);
 }
 
 isc_result_t

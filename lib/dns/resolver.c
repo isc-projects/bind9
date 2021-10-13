@@ -10708,7 +10708,7 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl) {
 	resolver->lame_ttl = lame_ttl;
 }
 
-isc_result_t
+void
 dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 			  const dns_name_t *name, in_port_t port) {
 	alternate_t *a;
@@ -10729,8 +10729,6 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 	}
 	ISC_LINK_INIT(a, link);
 	ISC_LIST_APPEND(resolver->alternates, a, link);
-
-	return (ISC_R_SUCCESS);
 }
 
 void

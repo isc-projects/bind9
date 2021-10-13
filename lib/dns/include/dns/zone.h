@@ -639,7 +639,7 @@ dns_zone_maintenance(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
-isc_result_t
+void
 dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count);
@@ -660,7 +660,7 @@ dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
  *\li      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
-isc_result_t
+void
 dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count);
@@ -681,7 +681,7 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
  *\li      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
-isc_result_t
+void
 dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count);
@@ -702,7 +702,7 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
  *\li      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
-isc_result_t
+void
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		       const isc_dscp_t *dscps, dns_name_t **keynames,
 		       dns_name_t **tlsnames, uint32_t count);
