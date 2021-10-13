@@ -1058,11 +1058,13 @@ AC_COMPILE_IFELSE(
 AC_MSG_CHECKING([for st_mtim.tv_nsec])
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM(
-     [[#include <sys/fcntl.h>]],
+     [[#include <sys/stat.h>]],
      [[struct stat s;
        return(s.st_mtim.tv_nsec);
       ]])],
-   [AC_DEFINE([HAVE_STAT_NSEC], [1], [define if struct stat has st_mtim.tv_nsec field])])
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_STAT_NSEC], [1], [define if struct stat has st_mtim.tv_nsec field])],
+  [AC_MSG_RESULT([no])])
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
