@@ -299,10 +299,6 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 					       dest.file.name,
 					       isc_result_totext(result));
 				}
-				fprintf(stderr,
-					"isc_stdio_open '%s' failed: %s\n",
-					dest.file.name,
-					isc_result_totext(result));
 			} else {
 				(void)isc_stdio_close(fp);
 			}
@@ -312,8 +308,6 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			syslog(LOG_ERR, "isc_file_isplainfile '%s' failed: %s",
 			       dest.file.name, isc_result_totext(result));
 		}
-		fprintf(stderr, "isc_file_isplainfile '%s' failed: %s\n",
-			dest.file.name, isc_result_totext(result));
 	}
 
 done:

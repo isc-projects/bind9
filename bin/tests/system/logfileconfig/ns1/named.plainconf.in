@@ -9,8 +9,24 @@
  * information regarding copyright ownership.
  */
 
+options {
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	dnssec-validation no;
+	recursion no;
+	notify yes;
+};
+
 controls {
-	inet 127.0.0.1 port @CONTROLPORT@
-		allow { 127.0.0.1/32; ::1/128; }
-		keys { "rndc-key"; };
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { "rndc-key"; };
+};
+
+key rndc-key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
 };

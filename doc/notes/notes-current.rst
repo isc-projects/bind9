@@ -100,3 +100,7 @@ Bug Fixes
 
 - Reloading a catalog zone that referenced a missing/deleted zone
   caused a crash. This has been fixed. :gl:`#2308`
+
+- Logfiles using ``timestamp``-style suffixes were not always correctly
+  removed when the number of files exceeded the limit set by ``versions``.
+  :gl:`#828`
