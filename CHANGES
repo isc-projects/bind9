@@ -1,3 +1,7 @@
+5756.	[func]		Assign HTTP freshness lifetime to responses sent
+			via DNS-over-HTTPS, according to the recommendations
+			given in RFC 8484. [GL #2854]
+
 5755.	[bug]		The statistics channel wasn't correctly handling
 			multiple HTTP requests, or pipelined or truncated
 			requests. [GL #2973]
