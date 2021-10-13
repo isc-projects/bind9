@@ -1623,10 +1623,6 @@ Boolean Options
    even if the server is not actually authoritative. The default is
    ``no``.
 
-``deallocate-on-exit``
-   This option was used in BIND 8 to enable checking for memory leaks on
-   exit. BIND 9 ignores the option and always performs the checks.
-
 ``memstatistics``
    This writes memory statistics to the file specified by
    ``memstatistics-file`` at exit. The default is ``no`` unless ``-m
@@ -2408,12 +2404,6 @@ for details on how to specify IP address lists.
    While a default value can be set at the ``options`` or ``view`` level
    and inherited by zones, this can lead to some zones unintentionally
    forwarding updates.
-
-``allow-v6-synthesis``
-   This option was introduced for the smooth transition from AAAA to A6
-   and from "nibble labels" to binary labels. However, since both A6 and
-   binary labels were then deprecated, this option was also deprecated.
-   It is now ignored with some warning messages.
 
 .. _allow-transfer-access:
 

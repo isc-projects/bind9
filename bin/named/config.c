@@ -48,33 +48,28 @@ options {\n\
 	answer-cookie true;\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
-#	blackhole {none;};\n"
-			    "	cookie-algorithm siphash24;\n"
+#	blackhole {none;};\n\
+	cookie-algorithm siphash24;\n"
 #ifndef WIN32
 			    "	coresize default;\n\
 	datasize default;\n"
 #endif /* ifndef WIN32 */
 			    "\
-#	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
-	edns-udp-size 1232;\n\
-#	fake-iquery <obsolete>;\n"
+	edns-udp-size 1232;\n"
 #ifndef WIN32
 			    "	files unlimited;\n"
 #endif /* ifndef WIN32 */
 #if defined(HAVE_GEOIP2) && !defined(WIN32)
-			    "	geoip-directory \"" MAXMINDDB_PREFIX "/share/"
-			    "GeoIP\";"
-			    "\n"
+			    "	geoip-directory \"" MAXMINDDB_PREFIX
+			    "/share/GeoIP\";\n"
 #elif defined(HAVE_GEOIP2)
 			    "	geoip-directory \".\";\n"
 #endif /* if defined(HAVE_GEOIP2) && !defined(WIN32) */
 			    "\
-#	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
-#	host-statistics <obsolete>;\n\
 	interface-interval 60;\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
@@ -85,8 +80,6 @@ options {\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
 	max-udp-size 1232;\n\
 	memstatistics-file \"named.memstats\";\n\
-#	multiple-cnames <obsolete>;\n\
-#	named-xfer <obsolete>;\n\
 	nocookie-udp-size 4096;\n\
 	notify-rate 20;\n\
 	nta-lifetime 3600;\n\
@@ -102,7 +95,6 @@ options {\n\
 	rrset-order { order random; };\n\
 	secroots-file \"named.secroots\";\n\
 	send-cookie true;\n\
-#	serial-queries <obsolete>;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
 	session-keyalg hmac-sha256;\n\
@@ -113,7 +105,6 @@ options {\n\
 #endif /* ifndef WIN32 */
 			    "	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
-#	statistics-interval <obsolete>;\n\
 	tcp-advertised-timeout 300;\n\
 	tcp-clients 150;\n\
 	tcp-idle-timeout 300;\n\
@@ -127,10 +118,7 @@ options {\n\
 	transfers-in 10;\n\
 	transfers-out 10;\n\
 	transfers-per-ns 2;\n\
-#	treat-cr-as-space <obsolete>;\n\
 	trust-anchor-telemetry yes;\n\
-#	use-id-pool <obsolete>;\n\
-#	use-ixfr <obsolete>;\n\
 \n\
 	/* view */\n\
 	allow-new-zones no;\n\
@@ -140,7 +128,6 @@ options {\n\
 	allow-recursion { localnets; localhost; };\n\
 	allow-recursion-on { any; };\n\
 	allow-update-forwarding {none;};\n\
-#	allow-v6-synthesis <obsolete>;\n\
 	auth-nxdomain false;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
@@ -155,7 +142,6 @@ options {\n\
 			    "	dnstap-identity hostname;\n"
 #endif /* ifdef HAVE_DNSTAP */
 			    "\
-#	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
 	fetches-per-server 0;\n\
 	fetches-per-zone 0;\n\
@@ -174,7 +160,6 @@ options {\n\
 	message-compression yes;\n\
 	min-ncache-ttl 0; /* 0 hours */\n\
 	min-cache-ttl 0; /* 0 seconds */\n\
-#	min-roots <obsolete>;\n\
 	minimal-any false;\n\
 	minimal-responses no-auth-recursive;\n\
 	notify-source *;\n\
@@ -192,7 +177,6 @@ options {\n\
 	require-server-cookie no;\n\
 	resolver-nonbackoff-tries 3;\n\
 	resolver-retry-interval 800; /* in milliseconds */\n\
-#	rfc2308-type1 <obsolete>;\n\
 	root-key-sentinel yes;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
@@ -228,8 +212,6 @@ options {\n\
 #	forwarders <none>\n\
 #	inline-signing no;\n\
 	ixfr-from-differences false;\n\
-#	maintain-ixfr-base <obsolete>;\n\
-#	max-ixfr-log-size <obsolete>\n\
 	max-journal-size default;\n\
 	max-records 0;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\

@@ -959,7 +959,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		{ "max-transfer-idle-out", 60, 28 * 24 * 60 }, /* 28 days */
 		{ "max-transfer-time-in", 60, 28 * 24 * 60 },  /* 28 days */
 		{ "max-transfer-time-out", 60, 28 * 24 * 60 }, /* 28 days */
-		{ "statistics-interval", 60, 28 * 24 * 60 },   /* 28 days */
 
 		/* minimum and maximum cache and negative cache TTLs */
 		{ "min-cache-ttl", 1, MAX_MIN_CACHE_TTL },   /* 90 secs */
