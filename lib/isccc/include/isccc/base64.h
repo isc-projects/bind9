@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_BASE64_H
-#define ISCCC_BASE64_H 1
+#pragma once
 
 /*! \file isccc/base64.h */
 
@@ -74,5 +73,3 @@ isccc_base64_decode(const char *cstr, isccc_region_t *target);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_BASE64_H */

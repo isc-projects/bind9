@@ -10,12 +10,9 @@
  */
 
 /* */
-#ifndef GENERIC_EUI48_108_H
-#define GENERIC_EUI48_108_H 1
+#pragma once
 
 typedef struct dns_rdata_eui48 {
 	dns_rdatacommon_t common;
 	unsigned char eui48[6];
 } dns_rdata_eui48_t;
-
-#endif /* GENERIC_EUI48_10k_H */

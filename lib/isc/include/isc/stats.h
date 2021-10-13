@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_STATS_H
-#define ISC_STATS_H 1
+#pragma once
 
 /*! \file isc/stats.h */
 
@@ -250,5 +249,3 @@ isc_stats_resize(isc_stats_t **stats, int ncounters);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_STATS_H */

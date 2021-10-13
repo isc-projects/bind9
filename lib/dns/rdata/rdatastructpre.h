@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATASTRUCT_H
-#define DNS_RDATASTRUCT_H 1
+#pragma once
 
 #include <isc/lang.h>
 #include <isc/sockaddr.h>

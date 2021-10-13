@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#pragma once
+
 #include <dirent.h>
 #include <sys/types.h>
 

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_MUTEX_H
-#define ISC_MUTEX_H 1
+#pragma once
 
 /*! \file */
 
@@ -124,4 +123,3 @@ void
 isc_mutex_init_errcheck(isc_mutex_t *mp);
 
 ISC_LANG_ENDDECLS
-#endif /* ISC_MUTEX_H */

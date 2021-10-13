@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATA_H
-#define DNS_RDATA_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -806,5 +805,3 @@ const char *
 dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATA_H */

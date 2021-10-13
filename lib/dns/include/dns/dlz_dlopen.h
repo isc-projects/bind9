@@ -11,8 +11,7 @@
 
 /*! \file dns/dlz_dlopen.h */
 
-#ifndef DLZ_DLOPEN_H
-#define DLZ_DLOPEN_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -153,5 +152,3 @@ dlz_dlopen_delrdataset_t(const char *name, const char *type, void *dbdata,
 			 void *version);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ifndef DLZ_DLOPEN_H */

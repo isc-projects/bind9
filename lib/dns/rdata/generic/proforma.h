@@ -10,8 +10,7 @@
  */
 
 /* */
-#ifndef GENERIC_PROFORMA_H
-#define GENERIC_PROFORMA_H 1
+#pragma once
 
 typedef struct dns_rdata_ #{
 	dns_rdatacommon_t common;
@@ -19,5 +18,3 @@ typedef struct dns_rdata_ #{
 			 /* type & class specific elements */
 }
 dns_rdata_ #_t;
-
-#endif /* GENERIC_PROFORMA_H */

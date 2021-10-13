@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_EVENTS_H
-#define DNS_EVENTS_H 1
+#pragma once
 
 #include <isc/eventclass.h>
 
@@ -84,5 +83,3 @@
 
 #define DNS_EVENT_FIRSTEVENT (ISC_EVENTCLASS_DNS + 0)
 #define DNS_EVENT_LASTEVENT  (ISC_EVENTCLASS_DNS + 65535)
-
-#endif /* DNS_EVENTS_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_OFFSET_H
-#define ISC_OFFSET_H 1
+#pragma once
 
 /*! \file
  * \brief
@@ -22,5 +21,3 @@
 #include <sys/types.h>
 
 typedef off_t isc_offset_t;
-
-#endif /* ISC_OFFSET_H */

@@ -11,8 +11,7 @@
 
 /* RFC 5205 */
 
-#ifndef RDATA_GENERIC_HIP_5_C
-#define RDATA_GENERIC_HIP_5_C
+#pragma once
 
 #define RRTYPE_HIP_ATTRIBUTES (0)
 
@@ -518,5 +517,3 @@ casecompare_hip(ARGS_COMPARE) {
 	}
 	return (isc_region_compare(&r1, &r2));
 }
-
-#endif /* RDATA_GENERIC_HIP_5_C */

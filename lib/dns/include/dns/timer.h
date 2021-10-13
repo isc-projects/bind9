@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TIMER_H
-#define DNS_TIMER_H 1
+#pragma once
 
 /*! \file dns/timer.h */
 
@@ -42,5 +41,3 @@ dns_timer_setidle(isc_timer_t *timer, unsigned int maxtime,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TIMER_H */

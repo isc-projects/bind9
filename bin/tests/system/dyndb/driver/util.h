@@ -4,8 +4,7 @@
  * Copyright (C) 2009-2015  Red Hat ; see COPYRIGHT for license
  */
 
-#ifndef _LD_UTIL_H_
-#define _LD_UTIL_H_
+#pragma once
 
 #include <isc/mem.h>
 
@@ -54,5 +53,3 @@
 #define MEM_PUT_AND_DETACH(target_ptr)                        \
 	isc_mem_putanddetach(&(target_ptr)->mctx, target_ptr, \
 			     sizeof(*(target_ptr)))
-
-#endif /* !_LD_UTIL_H_ */

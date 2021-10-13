@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_SDB_H
-#define DNS_SDB_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -208,5 +207,3 @@ dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_SDB_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_TSIGCONF_H
-#define NAMED_TSIGCONF_H 1
+#pragma once
 
 /*! \file */
 
@@ -38,5 +37,3 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* NAMED_TSIGCONF_H */

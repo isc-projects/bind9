@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LANG_H
-#define ISC_LANG_H 1
+#pragma once
 
 /*! \file isc/lang.h */
 
@@ -21,5 +20,3 @@
 #define ISC_LANG_BEGINDECLS
 #define ISC_LANG_ENDDECLS
 #endif /* ifdef __cplusplus */
-
-#endif /* ISC_LANG_H */

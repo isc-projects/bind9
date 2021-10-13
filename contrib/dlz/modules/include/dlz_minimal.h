@@ -23,8 +23,7 @@
  * tree.
  */
 
-#ifndef DLZ_MINIMAL_H
-#define DLZ_MINIMAL_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -287,5 +286,3 @@ dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
 isc_result_t
 dlz_delrdataset(const char *name, const char *type, void *dbdata,
 		void *version);
-
-#endif /* DLZ_MINIMAL_H */

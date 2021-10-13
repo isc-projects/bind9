@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_UTIL_H
-#define ISC_UTIL_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -359,5 +358,3 @@ mock_assert(const int result, const char *const expression,
  * Misc
  */
 #include <isc/deprecated.h>
-
-#endif /* ISC_UTIL_H */

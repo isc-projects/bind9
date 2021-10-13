@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_NSEC3PARAM_51_H
-#define GENERIC_NSEC3PARAM_51_H 1
+#pragma once
 
 /*!
  * \brief Per RFC 5155 */
@@ -26,5 +25,3 @@ typedef struct dns_rdata_nsec3param {
 	unsigned char salt_length;
 	unsigned char *salt;
 } dns_rdata_nsec3param_t;
-
-#endif /* GENERIC_NSEC3PARAM_51_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_IPSECKEY_45_H
-#define GENERIC_IPSECKEY_45_H 1
+#pragma once
 
 typedef struct dns_rdata_ipseckey {
 	dns_rdatacommon_t common;
@@ -24,5 +23,3 @@ typedef struct dns_rdata_ipseckey {
 	unsigned char *key;
 	uint16_t keylength;
 } dns_rdata_ipseckey_t;
-
-#endif /* GENERIC_IPSECKEY_45_H */

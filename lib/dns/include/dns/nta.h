@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_NTA_H
-#define DNS_NTA_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -206,5 +205,3 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_NTA_H */

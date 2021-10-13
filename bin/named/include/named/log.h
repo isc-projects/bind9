@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_LOG_H
-#define NAMED_LOG_H 1
+#pragma once
 
 /*! \file */
 
@@ -73,5 +72,3 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg);
 
 void
 named_log_shutdown(void);
-
-#endif /* NAMED_LOG_H */

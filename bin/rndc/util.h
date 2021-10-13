@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RNDC_UTIL_H
-#define RNDC_UTIL_H 1
+#pragma once
 
 /*! \file */
 
@@ -39,5 +38,3 @@ ISC_NORETURN void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 ISC_LANG_ENDDECLS
-
-#endif /* RNDC_UTIL_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_FIXEDNAME_H
-#define DNS_FIXEDNAME_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -79,5 +78,3 @@ dns_name_t *
 dns_fixedname_initname(dns_fixedname_t *fixed);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_FIXEDNAME_H */

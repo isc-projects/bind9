@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_TIME_H
-#define ISC_TIME_H 1
+#pragma once
 
 /*! \file */
 
@@ -456,5 +455,3 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_TIME_H */

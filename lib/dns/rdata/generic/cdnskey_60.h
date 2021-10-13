@@ -9,10 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_CDNSKEY_60_H
-#define GENERIC_CDNSKEY_60_H 1
+#pragma once
 
 /* CDNSKEY records have the same RDATA fields as DNSKEY records. */
 typedef struct dns_rdata_key dns_rdata_cdnskey_t;
-
-#endif /* GENERIC_CDNSKEY_60_H */

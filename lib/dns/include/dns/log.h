@@ -12,8 +12,7 @@
 /*! \file dns/log.h
  */
 
-#ifndef DNS_LOG_H
-#define DNS_LOG_H 1
+#pragma once
 
 #include <isc/lang.h>
 #include <isc/log.h>
@@ -109,5 +108,3 @@ dns_log_setcontext(isc_log_t *lctx);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_LOG_H */

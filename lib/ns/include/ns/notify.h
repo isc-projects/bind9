@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_NOTIFY_H
-#define NS_NOTIFY_H 1
+#pragma once
 
 #include <ns/client.h>
 
@@ -41,5 +40,3 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle);
  * Requires
  *\li	client to be valid.
  */
-
-#endif /* NS_NOTIFY_H */

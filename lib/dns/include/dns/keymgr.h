@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KEYMGR_H
-#define DNS_KEYMGR_H 1
+#pragma once
 
 /*! \file dns/keymgr.h */
 
@@ -128,5 +127,3 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_KEYMGR_H */

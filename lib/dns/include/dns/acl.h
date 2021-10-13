@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ACL_H
-#define DNS_ACL_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -272,5 +271,3 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ACL_H */

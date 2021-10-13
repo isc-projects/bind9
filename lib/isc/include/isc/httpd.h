@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_HTTPD_H
-#define ISC_HTTPD_H 1
+#pragma once
 
 /*! \file */
 
@@ -59,5 +58,3 @@ isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url, bool isstatic,
 
 void
 isc_httpd_setfinishhook(void (*fn)(void));
-
-#endif /* ISC_HTTPD_H */

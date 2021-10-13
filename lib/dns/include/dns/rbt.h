@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RBT_H
-#define DNS_RBT_H 1
+#pragma once
 
 /*! \file dns/rbt.h */
 
@@ -992,5 +991,3 @@ dns__rbtnode_namelen(dns_rbtnode_t *node);
  * and in unit tests.
  */
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RBT_H */

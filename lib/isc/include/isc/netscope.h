@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_NETSCOPE_H
-#define ISC_NETSCOPE_H 1
+#pragma once
 
 /*! \file isc/netscope.h */
 
@@ -33,5 +32,3 @@ isc_result_t
 isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_NETSCOPE_H */

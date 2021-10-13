@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ZONEKEY_H
-#define DNS_ZONEKEY_H 1
+#pragma once
 
 /*! \file dns/zonekey.h */
 
@@ -32,5 +31,3 @@ dns_zonekey_iszonekey(dns_rdata_t *keyrdata);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ZONEKEY_H */

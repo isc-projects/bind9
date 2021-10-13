@@ -700,8 +700,7 @@ main(int argc, char **argv) {
 	}
 
 	if (code) {
-		printf("#ifndef DNS_CODE_H\n");
-		printf("#define DNS_CODE_H 1\n\n");
+		printf("#pragma once\n");
 
 		printf("#include <stdbool.h>\n");
 		printf("#include <isc/result.h>\n\n");
@@ -868,13 +867,10 @@ main(int argc, char **argv) {
 			       i, upper(ttn->typebuf));
 		}
 		printf("\t}\n");
-
-		printf("#endif /* DNS_CODE_H */\n");
 	} else if (type_enum) {
 		char *s;
 
-		printf("#ifndef DNS_ENUMTYPE_H\n");
-		printf("#define DNS_ENUMTYPE_H 1\n\n");
+		printf("#pragma once\n");
 
 		printf("enum {\n");
 		printf("\tdns_rdatatype_none = 0,\n");
@@ -919,14 +915,11 @@ main(int argc, char **argv) {
 		       "((dns_rdatatype_t)dns_rdatatype_maila)\n");
 		printf("#define dns_rdatatype_any\t"
 		       "((dns_rdatatype_t)dns_rdatatype_any)\n");
-
-		printf("\n#endif /* DNS_ENUMTYPE_H */\n");
 	} else if (class_enum) {
 		char *s;
 		int classnum;
 
-		printf("#ifndef DNS_ENUMCLASS_H\n");
-		printf("#define DNS_ENUMCLASS_H 1\n\n");
+		printf("#pragma once\n");
 
 		printf("enum {\n");
 
@@ -957,7 +950,6 @@ main(int argc, char **argv) {
 #undef PRINTCLASS
 
 		printf("};\n\n");
-		printf("#endif /* DNS_ENUMCLASS_H */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
 			if ((fd = fopen(prefix, "r")) != NULL) {

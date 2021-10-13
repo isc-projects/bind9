@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_VALIDATOR_H
-#define DNS_VALIDATOR_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -237,5 +236,3 @@ dns_validator_destroy(dns_validator_t **validatorp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_VALIDATOR_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SOCKADDR_H
-#define ISC_SOCKADDR_H 1
+#pragma once
 
 /*! \file isc/sockaddr.h */
 
@@ -241,5 +240,3 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SOCKADDR_H */

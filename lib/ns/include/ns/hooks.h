@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_HOOKS_H
-#define NS_HOOKS_H 1
+#pragma once
 
 /*! \file */
 
@@ -609,4 +608,3 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep);
 /*%<
  * Allocate and initialize a hook table.
  */
-#endif /* NS_HOOKS_H */

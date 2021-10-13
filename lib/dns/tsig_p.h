@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TSIG_P_H
-#define DNS_TSIG_P_H
+#pragma once
 
 /*! \file */
 
@@ -37,5 +36,3 @@ bool
 dns__tsig_algallocated(const dns_name_t *algorithm);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TSIG_P_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DST_DST_H
-#define DST_DST_H 1
+#pragma once
 
 /*! \file dst/dst.h */
 
@@ -1201,5 +1200,3 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DST_DST_H */

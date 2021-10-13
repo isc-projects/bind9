@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_CCMSG_H
-#define ISCCC_CCMSG_H 1
+#pragma once
 
 /*! \file isccc/ccmsg.h */
 
@@ -132,5 +131,3 @@ isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_CCMSG_H */

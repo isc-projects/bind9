@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CALLBACKS_H
-#define DNS_CALLBACKS_H 1
+#pragma once
 
 /*! \file dns/callbacks.h */
 
@@ -90,5 +89,3 @@ dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CALLBACKS_H */

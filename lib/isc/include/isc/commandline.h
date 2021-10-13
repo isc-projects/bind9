@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_COMMANDLINE_H
-#define ISC_COMMANDLINE_H 1
+#pragma once
 
 /*! \file isc/commandline.h */
 
@@ -53,5 +52,3 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_COMMANDLINE_H */

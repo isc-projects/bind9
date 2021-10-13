@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_TYPES_H
-#define NS_TYPES_H 1
+#pragma once
 
 /*! \file */
 
@@ -30,5 +29,3 @@ typedef struct ns_hookasync    ns_hookasync_t;
 typedef enum { ns_cookiealg_aes, ns_cookiealg_siphash24 } ns_cookiealg_t;
 
 #define NS_COOKIE_VERSION_1 1
-
-#endif /* NS_TYPES_H */

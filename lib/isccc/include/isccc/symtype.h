@@ -23,8 +23,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_SYMTYPE_H
-#define ISCCC_SYMTYPE_H 1
+#pragma once
 
 /*! \file isccc/symtype.h */
 
@@ -32,5 +31,3 @@
 #define ISCCC_SYMTYPE_CCDUP	   0x0002
 #define ISCCC_SYMTYPE_TELLSERVICE  0x0003
 #define ISCCC_SYMTYPE_TELLRESPONSE 0x0004
-
-#endif /* ISCCC_SYMTYPE_H */

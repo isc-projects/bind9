@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_KASPCONF_H
-#define ISCCFG_KASPCONF_H 1
+#pragma once
 
 #include <isc/lang.h>
 
@@ -54,5 +53,3 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCFG_KASPCONF_H */

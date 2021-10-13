@@ -11,8 +11,7 @@
 
 /*! \file isc/aes.h */
 
-#ifndef ISC_AES_H
-#define ISC_AES_H 1
+#pragma once
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -37,5 +36,3 @@ isc_aes256_crypt(const unsigned char *key, const unsigned char *in,
 		 unsigned char *out);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_AES_H */

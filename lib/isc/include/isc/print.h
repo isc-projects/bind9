@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_PRINT_H
-#define ISC_PRINT_H 1
+#pragma once
 
 /*! \file isc/print.h */
 
@@ -26,5 +25,3 @@
  ***/
 
 #include <stdio.h>
-
-#endif /* ISC_PRINT_H */

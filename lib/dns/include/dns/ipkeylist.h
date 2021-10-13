@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_IPKEYLIST_H
-#define DNS_IPKEYLIST_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -85,5 +84,3 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	#ISC_R_SUCCESS if success
  * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untouched
  */
-
-#endif /* ifndef DNS_IPKEYLIST_H */

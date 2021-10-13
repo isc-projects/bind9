@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_LOOKUP_H
-#define DNS_LOOKUP_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -125,5 +124,3 @@ dns_lookup_destroy(dns_lookup_t **lookupp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_LOOKUP_H */

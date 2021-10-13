@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_CRC64_H
-#define ISC_CRC64_H 1
+#pragma once
 
 /*! \file isc/crc64.h
  * \brief CRC64 in C
@@ -52,5 +51,3 @@ isc_crc64_final(uint64_t *crc);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_CRC64_H */

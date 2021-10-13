@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_BUILTIN_H
-#define NAMED_BUILTIN_H 1
+#pragma once
 
 /*! \file */
 
@@ -21,5 +20,3 @@ named_builtin_init(void);
 
 void
 named_builtin_deinit(void);
-
-#endif /* NAMED_BUILTIN_H */

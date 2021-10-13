@@ -10,8 +10,7 @@
  */
 
 /* */
-#ifndef GENERIC_LP_107_H
-#define GENERIC_LP_107_H 1
+#pragma once
 
 typedef struct dns_rdata_lp {
 	dns_rdatacommon_t common;
@@ -19,5 +18,3 @@ typedef struct dns_rdata_lp {
 	uint16_t pref;
 	dns_name_t lp;
 } dns_rdata_lp_t;
-
-#endif /* GENERIC_LP_107_H */

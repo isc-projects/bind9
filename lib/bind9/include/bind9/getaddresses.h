@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef BIND9_GETADDRESSES_H
-#define BIND9_GETADDRESSES_H 1
+#pragma once
 
 /*! \file bind9/getaddresses.h */
 
@@ -48,5 +47,3 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* BIND9_GETADDRESSES_H */

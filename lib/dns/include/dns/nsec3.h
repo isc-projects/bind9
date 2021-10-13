@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_NSEC3_H
-#define DNS_NSEC3_H 1
+#pragma once
 
 #include <stdbool.h>
 
@@ -266,5 +265,3 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			dns_name_t *nearest, dns_nseclog_t logit, void *arg);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_NSEC3_H */

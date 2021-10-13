@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_SPF_99_H
-#define GENERIC_SPF_99_H 1
+#pragma once
 
 typedef struct dns_rdata_spf_string {
 	uint8_t length;
@@ -30,4 +29,3 @@ typedef struct dns_rdata_spf {
  * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
  * via rdatastructpre.h and rdatastructsuf.h.
  */
-#endif /* GENERIC_SPF_99_H */

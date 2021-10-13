@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#pragma once
+
 #include <dlz_minimal.h>
 
 /* This is the only part that differs from dlz_minimal.h. */

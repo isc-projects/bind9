@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_SSU_H
-#define DNS_SSU_H 1
+#pragma once
 
 /*! \file dns/ssu.h */
 
@@ -255,5 +254,3 @@ dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_SSU_H */

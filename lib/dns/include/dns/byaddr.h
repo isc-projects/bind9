@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_BYADDR_H
-#define DNS_BYADDR_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -146,5 +145,3 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_BYADDR_H */

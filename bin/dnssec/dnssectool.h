@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNSSECTOOL_H
-#define DNSSECTOOL_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -105,5 +104,3 @@ key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
 
 bool
 isoptarg(const char *arg, char **argv, void (*usage)(void));
-
-#endif /* DNSSEC_DNSSECTOOL_H */

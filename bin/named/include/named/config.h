@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_CONFIG_H
-#define NAMED_CONFIG_H 1
+#pragma once
 
 /*! \file */
 
@@ -80,5 +79,3 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 
 isc_result_t
 named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp);
-
-#endif /* NAMED_CONFIG_H */

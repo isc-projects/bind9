@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_NSEC_H
-#define DNS_NSEC_H 1
+#pragma once
 
 /*! \file dns/nsec.h */
 
@@ -108,5 +107,3 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_NSEC_H */

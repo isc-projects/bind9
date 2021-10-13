@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATASET_H
-#define DNS_RDATASET_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -605,5 +604,3 @@ dns_trust_totext(dns_trust_t trust);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATASET_H */

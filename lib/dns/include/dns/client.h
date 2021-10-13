@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CLIENT_H
-#define DNS_CLIENT_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -290,5 +289,3 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CLIENT_H */

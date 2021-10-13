@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SERIAL_H
-#define ISC_SERIAL_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -66,5 +65,3 @@ isc_serial_ne(uint32_t a, uint32_t b);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SERIAL_H */

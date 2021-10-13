@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RRITERATOR_H
-#define DNS_RRITERATOR_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -176,5 +175,3 @@ dns_rriterator_destroy(dns_rriterator_t *it);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RRITERATOR_H */

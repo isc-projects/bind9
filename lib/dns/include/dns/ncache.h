@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_NCACHE_H
-#define DNS_NCACHE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -181,5 +180,3 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_NCACHE_H */

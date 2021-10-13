@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SYSLOG_H
-#define ISC_SYSLOG_H 1
+#pragma once
 
 /*! \file */
 
@@ -35,5 +34,3 @@ isc_syslog_facilityfromstring(const char *str, int *facilityp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SYSLOG_H */

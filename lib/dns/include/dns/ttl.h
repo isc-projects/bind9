@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TTL_H
-#define DNS_TTL_H 1
+#pragma once
 
 /*! \file dns/ttl.h */
 
@@ -74,5 +73,3 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TTL_H */

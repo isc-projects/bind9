@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_FUZZ_H
-#define ISC_FUZZ_H
+#pragma once
 
 typedef enum {
 	isc_fuzz_none,
@@ -20,5 +19,3 @@ typedef enum {
 	isc_fuzz_http,
 	isc_fuzz_rndc
 } isc_fuzztype_t;
-
-#endif /* ISC_FUZZ_H */

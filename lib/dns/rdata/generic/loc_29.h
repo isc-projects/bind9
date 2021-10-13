@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_LOC_29_H
-#define GENERIC_LOC_29_H 1
+#pragma once
 
 /*!
  * \brief Per RFC1876 */
@@ -31,5 +30,3 @@ typedef struct dns_rdata_loc {
 		dns_rdata_loc_0_t v0;
 	} v;
 } dns_rdata_loc_t;
-
-#endif /* GENERIC_LOC_29_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ZT_H
-#define DNS_ZT_H 1
+#pragma once
 
 /*! \file dns/zt.h */
 
@@ -217,5 +216,3 @@ dns_zt_setviewrevert(dns_zt_t *zt);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ZT_H */

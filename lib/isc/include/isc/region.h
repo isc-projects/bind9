@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_REGION_H
-#define ISC_REGION_H 1
+#pragma once
 
 /*! \file isc/region.h */
 
@@ -92,5 +91,3 @@ isc_region_compare(isc_region_t *r1, isc_region_t *r2);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_REGION_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_FILE_H
-#define ISC_FILE_H 1
+#pragma once
 
 /*! \file isc/file.h */
 
@@ -378,5 +377,3 @@ isc_file_isdirwritable(const char *path);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_FILE_H */

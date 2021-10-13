@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/socket.h>

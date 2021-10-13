@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_STATS_H
-#define DNS_STATS_H 1
+#pragma once
 
 /*! \file dns/stats.h */
 
@@ -820,5 +819,3 @@ dns_stats_freecounters(isc_mem_t *mctx, uint64_t **ctrp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_STATS_H */

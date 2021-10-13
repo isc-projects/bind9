@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_QUERY_H
-#define NS_QUERY_H 1
+#pragma once
 
 /*! \file */
 
@@ -267,5 +266,3 @@ ns__query_start(query_ctx_t *qctx);
 /*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
-
-#endif /* NS_QUERY_H */

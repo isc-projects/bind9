@@ -14,8 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef DLZ_PTHREAD_H
-#define DLZ_PTHREAD_H 1
+#pragma once
 
 #ifndef PTHREADS
 #define PTHREADS 1
@@ -37,5 +36,3 @@
 #define dlz_mutex_trylock(a) (0)
 #define dlz_mutex_unlock(a)  (0)
 #endif /* ifdef PTHREADS */
-
-#endif /* DLZ_PTHREAD_H */

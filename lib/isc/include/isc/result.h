@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_RESULT_H
-#define ISC_RESULT_H 1
+#pragma once
 
 /*! \file isc/result.h */
 
@@ -284,5 +283,3 @@ const char *isc_result_toid(isc_result_t);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_RESULT_H */

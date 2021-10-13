@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_NAMEDCONF_H
-#define ISCCFG_NAMEDCONF_H 1
+#pragma once
 
 /*! \file isccfg/namedconf.h
  * \brief
@@ -51,5 +50,3 @@ extern cfg_type_t cfg_type_zoneopts;
 
 /*%< DNSSEC Key and Signing Policy options */
 extern cfg_type_t cfg_type_dnssecpolicyopts;
-
-#endif /* ISCCFG_NAMEDCONF_H */

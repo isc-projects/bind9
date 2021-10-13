@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_HEX_H
-#define ISC_HEX_H 1
+#pragma once
 
 /*! \file isc/hex.h */
 
@@ -95,5 +94,3 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_HEX_H */

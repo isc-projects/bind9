@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_EVENTS_H
-#define NS_EVENTS_H 1
+#pragma once
 
 #include <isc/eventclass.h>
 
@@ -21,5 +20,3 @@
 
 #define NS_EVENT_CLIENTCONTROL (ISC_EVENTCLASS_NS + 0)
 #define NS_EVENT_HOOKASYNCDONE (ISC_EVENTCLASS_NS + 1)
-
-#endif /* NS_EVENTS_H */

@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_REQUEST_H
-#define DNS_REQUEST_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -355,5 +354,3 @@ dns_request_destroy(dns_request_t **requestp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_REQUEST_H */

@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 /*! \file */
 
 #include <inttypes.h>

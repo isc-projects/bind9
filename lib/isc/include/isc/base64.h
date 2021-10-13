@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_BASE64_H
-#define ISC_BASE64_H 1
+#pragma once
 
 /*! \file isc/base64.h */
 
@@ -95,5 +94,3 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_BASE64_H */

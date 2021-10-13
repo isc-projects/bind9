@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_VIEW_H
-#define DNS_VIEW_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -1362,5 +1361,3 @@ dns_view_staleanswerenabled(dns_view_t *view);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_VIEW_H */

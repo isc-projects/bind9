@@ -39,8 +39,7 @@
 #include <dlz_minimal.h>
 #include <dlz_pthread.h>
 
-#ifndef DLZ_DBI_H
-#define DLZ_DBI_H 1
+#pragma once
 
 /*
  * Types
@@ -116,5 +115,3 @@ destroy_dbinstance(dbinstance_t *dbi);
 
 char *
 get_parameter_value(const char *input, const char *key);
-
-#endif /* DLZ_DBI_H */

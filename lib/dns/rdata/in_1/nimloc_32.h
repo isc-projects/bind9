@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_NIMLOC_32_H
-#define IN_1_NIMLOC_32_H 1
+#pragma once
 
 /*!
  *  \brief http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
@@ -22,5 +21,3 @@ typedef struct dns_rdata_in_nimloc {
 	unsigned char *nimloc;
 	uint16_t nimloc_len;
 } dns_rdata_in_nimloc_t;
-
-#endif /* IN_1_NIMLOC_32_H */

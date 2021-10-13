@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_CLIENT_H
-#define NS_CLIENT_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -569,5 +568,3 @@ ns__client_put_cb(void *client0);
  * Free all resources allocated to this client object, so that
  * it can be freed.
  */
-
-#endif /* NS_CLIENT_H */

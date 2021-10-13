@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CLIENTINFO_H
-#define DNS_CLIENTINFO_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -77,5 +76,3 @@ void
 dns_clientinfo_init(dns_clientinfo_t *ci, void *data, void *versionp);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CLIENTINFO_H */

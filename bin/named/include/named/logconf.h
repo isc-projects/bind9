@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_LOGCONF_H
-#define NAMED_LOGCONF_H 1
+#pragma once
 
 /*! \file */
 
@@ -22,5 +21,3 @@ named_logconfig(isc_logconfig_t *logconf, const cfg_obj_t *logstmt);
  * Set up the logging configuration in '*logconf' according to
  * the named.conf data in 'logstmt'.
  */
-
-#endif /* NAMED_LOGCONF_H */

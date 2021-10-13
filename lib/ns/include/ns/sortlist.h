@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_SORTLIST_H
-#define NS_SORTLIST_H 1
+#pragma once
 
 /*! \file */
 
@@ -77,5 +76,3 @@ ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, dns_aclenv_t *env,
  * '*argp' an argument to pass to said function.  If no sortlist statement
  * applies, set '*orderp' and '*argp' to NULL.
  */
-
-#endif /* NS_SORTLIST_H */

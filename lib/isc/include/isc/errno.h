@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_ERRNO_H
-#define ISC_ERRNO_H 1
+#pragma once
 
 /*! \file isc/file.h */
 
@@ -24,5 +23,3 @@ isc_errno_toresult(int err);
  * \brief Convert a POSIX errno value to an ISC result code.
  */
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_ERRNO_H */

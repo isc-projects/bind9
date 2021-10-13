@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DST_OPENSSL_H
-#define DST_OPENSSL_H 1
+#pragma once
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
@@ -67,6 +66,3 @@ dst__openssl_getengine(const char *engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DST_OPENSSL_H */
-/*! \file */
