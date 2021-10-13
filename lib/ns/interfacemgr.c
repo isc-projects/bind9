@@ -511,7 +511,6 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "creating TLS socket: %s",
 			      isc_result_totext(result));
-		isc_tlsctx_free(&sslctx);
 		return (result);
 	}
 
