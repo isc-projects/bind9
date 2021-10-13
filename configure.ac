@@ -1653,6 +1653,9 @@ report() {
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed_rrset" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+    test "yes" = "$enable_fips_mode" && \
+        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
+
     test "yes" = "$enable_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "yes" = "$enable_singletrace" && \
@@ -1692,6 +1695,9 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
+
+    test "yes" = "$enable_fips_mode" || \
+        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
 
     test "yes" = "$enable_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
