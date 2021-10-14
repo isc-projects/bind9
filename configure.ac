@@ -1156,24 +1156,6 @@ AC_LINK_IFELSE(
   ])
 
 #
-# Check for __builtin_expect
-#
-AC_MSG_CHECKING([compiler support for __builtin_expect])
-AC_LINK_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[]],
-     [[return (__builtin_expect(1, 1) ? 1 : 0);]]
-   )],
-  [have_builtin_expect=yes
-   AC_MSG_RESULT(yes)],
-  [have_builtin_expect=no
-   AC_MSG_RESULT(no)]
-)
-if test "yes" = "$have_builtin_expect"; then
-	AC_DEFINE(HAVE_BUILTIN_EXPECT, 1, [Define to 1 if the compiler supports __builtin_expect.])
-fi
-
-#
 # Check for __builtin_clz
 #
 AC_MSG_CHECKING([compiler support for __builtin_clz])

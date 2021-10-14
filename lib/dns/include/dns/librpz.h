@@ -222,14 +222,6 @@ typedef struct {
 #define LIBRPZ_NORET
 #endif /* ifdef LIBRPZ_HAVE_ATTR */
 
-#ifdef HAVE_BUILTIN_EXPECT
-#define LIBRPZ_LIKELY(c)   __builtin_expect(!!(c), 1)
-#define LIBRPZ_UNLIKELY(c) __builtin_expect(!!(c), 0)
-#else /* ifdef HAVE_BUILTIN_EXPECT */
-#define LIBRPZ_LIKELY(c)   (c)
-#define LIBRPZ_UNLIKELY(c) (c)
-#endif /* ifdef HAVE_BUILTIN_EXPECT */
-
 typedef bool(librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
 LIBDEF_F(parse_log_opt)
 
