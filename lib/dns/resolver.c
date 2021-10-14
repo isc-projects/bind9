@@ -4963,7 +4963,7 @@ same_question(fetchctx_t *fctx, dns_message_t *message) {
 	/*
 	 * XXXRTH  Currently we support only one question.
 	 */
-	if (ISC_UNLIKELY(message->counts[DNS_SECTION_QUESTION] == 0)) {
+	if (message->counts[DNS_SECTION_QUESTION] == 0) {
 		if ((message->flags & DNS_MESSAGEFLAG_TC) != 0) {
 			/*
 			 * If TC=1 and the question section is empty, we
@@ -4987,7 +4987,7 @@ same_question(fetchctx_t *fctx, dns_message_t *message) {
 			log_formerr(fctx, "empty question section");
 			return (DNS_R_FORMERR);
 		}
-	} else if (ISC_UNLIKELY(message->counts[DNS_SECTION_QUESTION] > 1)) {
+	} else if (message->counts[DNS_SECTION_QUESTION] > 1) {
 		log_formerr(fctx, "too many questions");
 		return (DNS_R_FORMERR);
 	}

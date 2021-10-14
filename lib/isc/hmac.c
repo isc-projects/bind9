@@ -31,7 +31,7 @@ isc_hmac_new(void) {
 
 void
 isc_hmac_free(isc_hmac_t *hmac) {
-	if (ISC_UNLIKELY(hmac == NULL)) {
+	if (hmac == NULL) {
 		return;
 	}
 
@@ -70,7 +70,7 @@ isc_result_t
 isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len) {
 	REQUIRE(hmac != NULL);
 
-	if (ISC_UNLIKELY(buf == NULL || len == 0)) {
+	if (buf == NULL || len == 0) {
 		return (ISC_R_SUCCESS);
 	}
 

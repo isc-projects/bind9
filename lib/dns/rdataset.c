@@ -406,18 +406,17 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 		INSIST(i == count);
 
-		if (ISC_LIKELY(want_random)) {
+		if (want_random) {
 			seed = isc_random32();
 		}
 
-		if (ISC_UNLIKELY(want_cyclic) &&
-		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED))
-		{
+		if (want_cyclic &&
+		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED)) {
 			j = rdataset->count % count;
 		}
 
 		for (i = 0; i < count; i++) {
-			if (ISC_LIKELY(want_random)) {
+			if (want_random) {
 				swap_rdata(in, j, j + seed % (count - j));
 			}
 

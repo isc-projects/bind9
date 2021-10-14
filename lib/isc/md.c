@@ -29,7 +29,7 @@ isc_md_new(void) {
 
 void
 isc_md_free(isc_md_t *md) {
-	if (ISC_UNLIKELY(md == NULL)) {
+	if (md == NULL) {
 		return;
 	}
 
@@ -66,7 +66,7 @@ isc_result_t
 isc_md_update(isc_md_t *md, const unsigned char *buf, const size_t len) {
 	REQUIRE(md != NULL);
 
-	if (ISC_UNLIKELY(buf == NULL || len == 0)) {
+	if (buf == NULL || len == 0) {
 		return (ISC_R_SUCCESS);
 	}
 

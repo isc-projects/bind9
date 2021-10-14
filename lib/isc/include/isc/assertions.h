@@ -16,7 +16,6 @@
 
 #include <isc/attributes.h>
 #include <isc/lang.h>
-#include <isc/likely.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -42,25 +41,25 @@ const char *
 isc_assertion_typetotext(isc_assertiontype_t type);
 
 #define ISC_REQUIRE(cond)                                                  \
-	((void)(ISC_LIKELY(cond) ||                                        \
+	((void)((cond) ||                                                  \
 		((isc_assertion_failed)(__FILE__, __LINE__,                \
 					isc_assertiontype_require, #cond), \
 		 0)))
 
 #define ISC_ENSURE(cond)                                                  \
-	((void)(ISC_LIKELY(cond) ||                                       \
+	((void)((cond) ||                                                 \
 		((isc_assertion_failed)(__FILE__, __LINE__,               \
 					isc_assertiontype_ensure, #cond), \
 		 0)))
 
 #define ISC_INSIST(cond)                                                  \
-	((void)(ISC_LIKELY(cond) ||                                       \
+	((void)((cond) ||                                                 \
 		((isc_assertion_failed)(__FILE__, __LINE__,               \
 					isc_assertiontype_insist, #cond), \
 		 0)))
 
 #define ISC_INVARIANT(cond)                                                  \
-	((void)(ISC_LIKELY(cond) ||                                          \
+	((void)((cond) ||                                                    \
 		((isc_assertion_failed)(__FILE__, __LINE__,                  \
 					isc_assertiontype_invariant, #cond), \
 		 0)))

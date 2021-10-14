@@ -258,9 +258,8 @@ maybe_rehash(dns_rbt_t *rbt, size_t size);
 static inline bool
 rehashing_in_progress(dns_rbt_t *rbt);
 
-#define TRY_NEXTTABLE(hindex, rbt)            \
-	(ISC_LIKELY(hindex == rbt->hindex) && \
-	 ISC_UNLIKELY(rehashing_in_progress(rbt)))
+#define TRY_NEXTTABLE(hindex, rbt) \
+	(hindex == rbt->hindex && rehashing_in_progress(rbt))
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
@@ -507,7 +506,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	INSIST(add_name != NULL);
 	dns_name_clone(name, add_name);
 
-	if (ISC_UNLIKELY(rbt->root == NULL)) {
+	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 		if (result == ISC_R_SUCCESS) {
 			rbt->nodecount++;
@@ -738,13 +737,13 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				}
 			}
 		}
-	} while (ISC_LIKELY(child != NULL));
+	} while (child != NULL);
 
-	if (ISC_LIKELY(result == ISC_R_SUCCESS)) {
+	if (result == ISC_R_SUCCESS) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 	}
 
-	if (ISC_LIKELY(result == ISC_R_SUCCESS)) {
+	if (result == ISC_R_SUCCESS) {
 		if (*root == NULL) {
 			UPPERNODE(new_current) = current;
 		} else {
@@ -828,7 +827,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 		dns_rbtnodechain_reset(chain);
 	}
 
-	if (ISC_UNLIKELY(rbt->root == NULL)) {
+	if (rbt->root == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
 
@@ -858,7 +857,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	saved_result = ISC_R_SUCCESS;
 	current = rbt->root;
 
-	while (ISC_LIKELY(current != NULL)) {
+	while (current != NULL) {
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(search_name, &current_name,
 						&order, &common_labels);
@@ -945,7 +944,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			{
 				dns_name_t hnode_name;
 
-				if (ISC_LIKELY(hashval != HASHVAL(hnode))) {
+				if (hashval != HASHVAL(hnode)) {
 					continue;
 				}
 				/*
@@ -954,15 +953,13 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				 * that we don't match a labelsequence from some
 				 * other subdomain.
 				 */
-				if (ISC_LIKELY(get_upper_node(hnode) !=
-					       up_current)) {
+				if (get_upper_node(hnode) != up_current) {
 					continue;
 				}
 
 				dns_name_init(&hnode_name, NULL);
 				NODENAME(hnode, &hnode_name);
-				if (ISC_LIKELY(dns_name_equal(&hnode_name,
-							      &hash_name))) {
+				if (dns_name_equal(&hnode_name, &hash_name)) {
 					break;
 				}
 			}
@@ -1760,10 +1757,10 @@ static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	if (ISC_UNLIKELY(rehashing_in_progress(rbt))) {
+	if (rehashing_in_progress(rbt)) {
 		/* Rehash in progress */
 		hashtable_rehash_one(rbt);
-	} else if (ISC_UNLIKELY(hashtable_is_overcommited(rbt))) {
+	} else if (hashtable_is_overcommited(rbt)) {
 		/* Rehash requested */
 		maybe_rehash(rbt, rbt->nodecount);
 	}

@@ -15,7 +15,6 @@
 
 #include "entropy_private.h"
 #include "isc/hash.h" /* IWYU pragma: keep */
-#include "isc/likely.h"
 #include "isc/once.h"
 #include "isc/random.h"
 #include "isc/result.h"
@@ -74,7 +73,7 @@ static uint8_t maptolower[] = {
 
 const void *
 isc_hash_get_initializer(void) {
-	if (ISC_UNLIKELY(!hash_initialized)) {
+	if (!hash_initialized) {
 		RUNTIME_CHECK(
 			isc_once_do(&isc_hash_once, isc_hash_initialize) ==
 			ISC_R_SUCCESS);
@@ -91,7 +90,7 @@ isc_hash_set_initializer(const void *initializer) {
 	 * Ensure that isc_hash_initialize() is not called after
 	 * isc_hash_set_initializer() is called.
 	 */
-	if (ISC_UNLIKELY(!hash_initialized)) {
+	if (!hash_initialized) {
 		RUNTIME_CHECK(
 			isc_once_do(&isc_hash_once, isc_hash_initialize) ==
 			ISC_R_SUCCESS);

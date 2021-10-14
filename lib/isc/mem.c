@@ -187,9 +187,8 @@ struct isc_mempool {
 #else /* if !ISC_MEM_TRACKLINES */
 #define TRACE_OR_RECORD (ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD)
 
-#define SHOULD_TRACE_OR_RECORD(ptr)                                  \
-	(ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0) && \
-	 ptr != NULL)
+#define SHOULD_TRACE_OR_RECORD(ptr) \
+	((isc_mem_debugging & TRACE_OR_RECORD) != 0 && ptr != NULL)
 
 #define ADD_TRACE(a, b, c, d, e)                \
 	if (SHOULD_TRACE_OR_RECORD(b)) {        \
@@ -303,8 +302,8 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);
-	while (ISC_LIKELY(dl != NULL)) {
-		if (ISC_UNLIKELY(dl->ptr == ptr)) {
+	while (dl != NULL) {
+		if (dl->ptr == ptr) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
 			decrement_malloced(mctx, sizeof(*dl));
 			sdallocx(dl, sizeof(*dl), 0);
@@ -325,7 +324,7 @@ unlock:
 #endif /* ISC_MEM_TRACKLINES */
 
 #define ADJUST_ZERO_ALLOCATION_SIZE(s)    \
-	if (ISC_UNLIKELY(s == 0)) {       \
+	if (s == 0) {                     \
 		s = ZERO_ALLOCATION_SIZE; \
 	}
 
@@ -341,7 +340,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 	ret = mallocx(size, 0);
 	INSIST(ret != NULL);
 
-	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
 
@@ -356,7 +355,7 @@ static inline void
 mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
 
-	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
 	sdallocx(mem, size, 0);
@@ -371,7 +370,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size) {
 	new_ptr = rallocx(old_ptr, new_size, 0);
 	INSIST(new_ptr != NULL);
 
-	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
 		ssize_t diff_size = new_size - old_size;
 		void *diff_ptr = (uint8_t *)new_ptr + old_size;
 		if (diff_size > 0) {
@@ -483,7 +482,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)) {
+	if ((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0) {
 		unsigned int i;
 
 		ctx->debuglist =
@@ -524,7 +523,7 @@ destroy(isc_mem_t *ctx) {
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
 #if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY(ctx->debuglist != NULL)) {
+	if (ctx->debuglist != NULL) {
 		debuglink_t *dl;
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			for (dl = ISC_LIST_HEAD(ctx->debuglist[i]); dl != NULL;
@@ -903,10 +902,10 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size,
 	       size_t new_size FLARG) {
 	void *new_ptr = NULL;
 
-	if (ISC_UNLIKELY(old_ptr == NULL)) {
+	if (old_ptr == NULL) {
 		REQUIRE(old_size == 0);
 		new_ptr = isc__mem_get(ctx, new_size FLARG_PASS);
-	} else if (ISC_UNLIKELY(new_size == 0)) {
+	} else if (new_size == 0) {
 		isc__mem_put(ctx, old_ptr, old_size FLARG_PASS);
 	} else {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
@@ -935,9 +934,9 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ISC_UNLIKELY(old_ptr == NULL)) {
+	if (old_ptr == NULL) {
 		new_ptr = isc__mem_allocate(ctx, new_size FLARG_PASS);
-	} else if (ISC_UNLIKELY(new_size == 0)) {
+	} else if (new_size == 0) {
 		isc__mem_free(ctx, old_ptr FLARG_PASS);
 	} else {
 		size_t old_size = sallocx(old_ptr, 0);
@@ -1289,7 +1288,7 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 
 	mpctx->allocated++;
 
-	if (ISC_UNLIKELY(mpctx->items == NULL)) {
+	if (mpctx->items == NULL) {
 		isc_mem_t *mctx = mpctx->mctx;
 		const size_t fillcount = mpctx->fillcount;
 		/*
@@ -1442,7 +1441,7 @@ isc__mem_checkdestroyed(void) {
 	LOCK(&contextslock);
 	if (!ISC_LIST_EMPTY(contexts)) {
 #if ISC_MEM_TRACKLINES
-		if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0)) {
+		if ((isc_mem_debugging & TRACE_OR_RECORD) != 0) {
 			print_contexts(file);
 		}
 #endif /* if ISC_MEM_TRACKLINES */

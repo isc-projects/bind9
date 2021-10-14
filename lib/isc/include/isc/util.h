@@ -195,7 +195,6 @@
 /*%
  * Performance
  */
-#include <isc/likely.h>
 
 #ifdef HAVE_BUILTIN_UNREACHABLE
 #define ISC_UNREACHABLE() __builtin_unreachable();
