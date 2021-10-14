@@ -68,15 +68,6 @@ expression V;
 
 @@
 expression V;
-statement S;
-@@
-
-- V =
-  dns_message_create(...);
-- if (ISC_UNLIKELY(V != ISC_R_SUCCESS)) S
-
-@@
-expression V;
 @@
 
 - V =

@@ -1369,9 +1369,8 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	 * If # zone labels < # name labels, try to find an even better match
 	 * Only try if DLZ drivers are loaded for this view
 	 */
-	if (ISC_UNLIKELY(zonelabels < namelabels &&
-			 !ISC_LIST_EMPTY(client->view->dlz_searched)))
-	{
+	if (zonelabels < namelabels &&
+	    !ISC_LIST_EMPTY(client->view->dlz_searched)) {
 		dns_clientinfomethods_t cm;
 		dns_clientinfo_t ci;
 		dns_db_t *tdbp;
@@ -5497,10 +5496,9 @@ ns__query_start(query_ctx_t *qctx) {
 	result = query_getdb(qctx->client, qctx->client->query.qname,
 			     qctx->qtype, qctx->options, &qctx->zone, &qctx->db,
 			     &qctx->version, &qctx->is_zone);
-	if (ISC_UNLIKELY((result != ISC_R_SUCCESS || !qctx->is_zone) &&
-			 qctx->qtype == dns_rdatatype_ds &&
-			 !RECURSIONOK(qctx->client) &&
-			 (qctx->options & DNS_GETDB_NOEXACT) != 0))
+	if ((result != ISC_R_SUCCESS || !qctx->is_zone) &&
+	    qctx->qtype == dns_rdatatype_ds && !RECURSIONOK(qctx->client) &&
+	    (qctx->options & DNS_GETDB_NOEXACT) != 0)
 	{
 		/*
 		 * This is a non-recursive QTYPE=DS query with QNAME whose
@@ -5655,7 +5653,7 @@ qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
 	REQUIRE(buffer != NULL);
 
 	qctx->dbuf = ns_client_getnamebuf(qctx->client);
-	if (ISC_UNLIKELY(qctx->dbuf == NULL)) {
+	if (qctx->dbuf == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 			"qctx_prepare_buffers: ns_client_getnamebuf "
 			"failed");
@@ -5663,7 +5661,7 @@ qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
 	}
 
 	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, buffer);
-	if (ISC_UNLIKELY(qctx->fname == NULL)) {
+	if (qctx->fname == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 			"qctx_prepare_buffers: ns_client_newname failed");
 
@@ -5671,7 +5669,7 @@ qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
 	}
 
 	qctx->rdataset = ns_client_newrdataset(qctx->client);
-	if (ISC_UNLIKELY(qctx->rdataset == NULL)) {
+	if (qctx->rdataset == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 			"qctx_prepare_buffers: ns_client_newrdataset failed");
 		goto error;

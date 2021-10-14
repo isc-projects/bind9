@@ -1087,7 +1087,7 @@ diff_keys(const dns_rpz_cidr_key_t *key1, dns_rpz_prefix_t prefix1,
 	 */
 	for (i = 0; bit < maxbit; i++, bit += DNS_RPZ_CIDR_WORD_BITS) {
 		delta = key1->w[i] ^ key2->w[i];
-		if (ISC_UNLIKELY(delta != 0)) {
+		if (delta != 0) {
 #ifdef HAVE_BUILTIN_CLZ
 			bit += __builtin_clz(delta);
 #else  /* ifdef HAVE_BUILTIN_CLZ */

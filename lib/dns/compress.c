@@ -227,7 +227,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(offset != NULL);
 
-	if (ISC_UNLIKELY((cctx->allowed & DNS_COMPRESS_ENABLED) == 0)) {
+	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
 		return (false);
 	}
 
@@ -256,16 +256,14 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		 */
 		ch = p[1];
 		i = tableindex[ch];
-		if (ISC_LIKELY((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) !=
-			       0)) {
+		if ((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0) {
 			for (node = cctx->table[i]; node != NULL;
 			     node = node->next) {
-				if (ISC_UNLIKELY(node->name.length != length)) {
+				if (node->name.length != length) {
 					continue;
 				}
 
-				if (ISC_LIKELY(memcmp(node->name.ndata, p,
-						      length) == 0)) {
+				if (memcmp(node->name.ndata, p, length) == 0) {
 					goto found;
 				}
 			}
@@ -276,18 +274,18 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 				unsigned char c;
 				unsigned char *label1, *label2;
 
-				if (ISC_UNLIKELY(node->name.length != length)) {
+				if (node->name.length != length) {
 					continue;
 				}
 
 				l = labels - n;
-				if (ISC_UNLIKELY(node->name.labels != l)) {
+				if (node->name.labels != l) {
 					continue;
 				}
 
 				label1 = node->name.ndata;
 				label2 = p;
-				while (ISC_LIKELY(l-- > 0)) {
+				while (l-- > 0) {
 					count = *label1++;
 					if (count != *label2++) {
 						goto cont1;
@@ -297,7 +295,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 					INSIST(count <= 63);
 
 					/* Loop unrolled for performance */
-					while (ISC_LIKELY(count > 3)) {
+					while (count > 3) {
 						c = maptolower[label1[0]];
 						if (c != maptolower[label2[0]])
 						{
@@ -322,7 +320,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 						label1 += 4;
 						label2 += 4;
 					}
-					while (ISC_LIKELY(count-- > 0)) {
+					while (count-- > 0) {
 						c = maptolower[*label1++];
 						if (c != maptolower[*label2++])
 						{
@@ -388,7 +386,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
-	if (ISC_UNLIKELY((cctx->allowed & DNS_COMPRESS_ENABLED) == 0)) {
+	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
 		return;
 	}
 
@@ -489,7 +487,7 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 
 	REQUIRE(VALID_CCTX(cctx));
 
-	if (ISC_UNLIKELY((cctx->allowed & DNS_COMPRESS_ENABLED) == 0)) {
+	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
 		return;
 	}
 

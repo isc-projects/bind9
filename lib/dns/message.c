@@ -835,7 +835,7 @@ dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
 	     curr = ISC_LIST_PREV(curr, link))
 	{
 		if (curr->type == type && curr->covers == covers) {
-			if (ISC_UNLIKELY(rdataset != NULL)) {
+			if (rdataset != NULL) {
 				*rdataset = curr;
 			}
 			return (ISC_R_SUCCESS);
@@ -2450,7 +2450,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	/*
 	 * And now look for the type.
 	 */
-	if (ISC_UNLIKELY(type == dns_rdatatype_any)) {
+	if (type == dns_rdatatype_any) {
 		return (ISC_R_SUCCESS);
 	}
 

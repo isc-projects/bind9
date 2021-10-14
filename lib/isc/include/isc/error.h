@@ -18,7 +18,6 @@
 #include <isc/attributes.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
-#include <isc/likely.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -44,7 +43,7 @@ ISC_NORETURN void
 isc_error_runtimecheck(const char *, int, const char *);
 
 #define ISC_ERROR_RUNTIMECHECK(cond) \
-	((void)(ISC_LIKELY(cond) ||  \
+	((void)((cond) ||            \
 		((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
 
 ISC_LANG_ENDDECLS
