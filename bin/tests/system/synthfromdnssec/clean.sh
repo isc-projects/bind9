@@ -28,3 +28,7 @@ rm -f ./ns1/root.db.signed
 rm -f ./ns1/trusted.conf
 rm -f ./ns2/named_dump.db
 rm -f ./ns*/managed-keys.bind*
+rm -f ./nodata.out
+rm -f ./nxdomain.out
+rm -f ./wild.out
+rm -f ./wildcname.out
