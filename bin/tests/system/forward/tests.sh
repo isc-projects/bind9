@@ -166,7 +166,7 @@ count_sent() (
 	logfile="$1"
 	start_pattern="$2"
 	pattern="$3"
-	nextpartpeek "$logfile" | tr -d '\r' | sed -n "/$start_pattern/,/^\$/p" | grep -c "$pattern"
+	nextpartpeek "$logfile" | sed -n "/$start_pattern/,/^\$/p" | grep -c "$pattern"
 )
 
 check_sent() (

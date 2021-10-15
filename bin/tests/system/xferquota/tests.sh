@@ -26,11 +26,7 @@ while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo_i "Changing test zone..."
 		cp -f ns1/changing2.db ns1/changing.db
-		if [ ! "$CYGWIN" ]; then
-			$KILL -HUP `cat ns1/named.pid`
-		else
-			rndc_reload ns1 10.53.0.1
-		fi
+                kill -HUP `cat ns1/named.pid`
 	fi
 	sleep 1
 	ticks=`expr $ticks + 1`

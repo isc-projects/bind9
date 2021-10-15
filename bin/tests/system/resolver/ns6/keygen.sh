@@ -28,7 +28,7 @@ infile="${zonefile}.in"
 cp $infile $zonefile
 ksk=`$KEYGEN -q -a rsasha256 -fk $zone`
 zsk=`$KEYGEN -q -a rsasha256 $zone`
-cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
+cat $ksk.key $zsk.key dsset-ds.example.net. >> $zonefile
 $SIGNER -P -o $zone $zonefile > /dev/null
 
 # Configure a static key to be used by delv

@@ -161,7 +161,7 @@ cp "$STATE_FILE" "$CMP_FILE"
 $SETTIME -P +3600 "$BASE_FILE" > /dev/null || log_error "settime failed"
 grep "; Publish: " "$KEY_FILE" > /dev/null || log_error "mismatch published in $KEY_FILE"
 grep "Publish: " "$PRIVATE_FILE" > /dev/null || log_error "mismatch published in $PRIVATE_FILE"
-$DIFF "$CMP_FILE" "$STATE_FILE" || log_error "unexpected file change in $STATE_FILE"
+diff "$CMP_FILE" "$STATE_FILE" || log_error "unexpected file change in $STATE_FILE"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 

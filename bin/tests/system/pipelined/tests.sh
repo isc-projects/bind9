@@ -23,8 +23,8 @@ ret=0
 $PIPEQUERIES -p ${PORT} < input > raw || ret=1
 awk '{ print $1 " " $5 }' < raw > output
 sort < output > output-sorted
-$DIFF ref output-sorted || { ret=1 ; echo_i "diff sorted failed"; }
-$DIFF ref output > /dev/null && { ret=1 ; echo_i "diff out of order failed"; }
+diff ref output-sorted || { ret=1 ; echo_i "diff sorted failed"; }
+diff ref output > /dev/null && { ret=1 ; echo_i "diff out of order failed"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -35,8 +35,8 @@ sleep 1
 $MDIG $MDIGOPTS +noall +answer +vc -f input -b 10.53.0.4 @10.53.0.4 > raw.mdig
 awk '{ print $1 " " $5 }' < raw.mdig > output.mdig
 sort < output.mdig > output-sorted.mdig
-$DIFF ref output-sorted.mdig || { ret=1 ; echo_i "diff sorted failed"; }
-$DIFF ref output.mdig > /dev/null && { ret=1 ; echo_i "diff out of order failed"; }
+diff ref output-sorted.mdig || { ret=1 ; echo_i "diff sorted failed"; }
+diff ref output.mdig > /dev/null && { ret=1 ; echo_i "diff out of order failed"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -46,7 +46,7 @@ $RNDCCMD 10.53.0.4 flush
 sleep 1
 $PIPEQUERIES -p ${PORT} ++ < inputb > rawb || ret=1
 awk '{ print $1 " " $5 }' < rawb > outputb
-$DIFF refb outputb || ret=1
+diff refb outputb || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -56,7 +56,7 @@ $RNDCCMD 10.53.0.4 flush
 sleep 1
 $MDIG $MDIGOPTS +noall +answer +vc -f inputb -b 10.53.0.7 @10.53.0.4 > rawb.mdig
 awk '{ print $1 " " $5 }' < rawb.mdig > outputb.mdig
-$DIFF refb outputb.mdig || ret=1
+diff refb outputb.mdig || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

@@ -27,10 +27,10 @@ kill_named() {
 
 	pid=$(cat "${pidfile}" 2>/dev/null)
 	if [ "${pid:+set}" = "set" ]; then
-		$KILL -15 "${pid}" >/dev/null 2>&1
+		kill -15 "${pid}" >/dev/null 2>&1
 		retries=10
 		while [ "$retries" -gt 0 ]; do
-			if ! $KILL -0 "${pid}" >/dev/null 2>&1; then
+			if ! kill -0 "${pid}" >/dev/null 2>&1; then
 				break
 			fi
 			sleep 1
@@ -63,7 +63,7 @@ run_named() (
 )
 
 check_pid() (
-	return $(! $KILL -0 "${1}" >/dev/null 2>&1)
+	return $(! kill -0 "${1}" >/dev/null 2>&1)
 )
 
 status=0
@@ -85,7 +85,7 @@ testpid=$(run_named ns2 named$n.run -c named-alt2.conf -D runtime-ns2-extra-2 -X
 test -n "$testpid" || ret=1
 retry_quiet 10 check_named_log "another named process" ns2/named$n.run || ret=1
 test -n "$testpid" && retry_quiet 10 check_pid $testpid || ret=1
-test -n "$testpid" && $KILL -15 $testpid > kill$n.out 2>&1 && ret=1
+test -n "$testpid" && kill -15 $testpid > kill$n.out 2>&1 && ret=1
 test -n "$testpid" && retry_quiet 10 check_pid $testpid || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -223,7 +223,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "verifying that named switches UID ($n)"
-if [ "$(id -u)" -eq 0 ] && [ -z "$CYGWIN" ]; then
+if [ "$(id -u)" -eq 0 ]; then
     ret=0
     TEMP_NAMED_DIR=$(mktemp -d "$(pwd)/ns2/tmp.XXXXXXXX")
     if [ "$?" -eq 0 ]; then

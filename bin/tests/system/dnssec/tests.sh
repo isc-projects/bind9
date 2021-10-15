@@ -109,12 +109,11 @@ stripns () {
 # Ensure there is not a blank line before "Secure roots:".
 #
 check_secroots_layout () {
-	tr -d '\r' < "$1" | \
 	awk '$0 == "" { if (empty) exit(1); empty=1; next }
 	     /Start view/ { if (!empty) exit(1) }
 	     /Secure roots:/ { if (empty) exit(1) }
 	     /Negative trust anchors:/ { if (!empty) exit(1) }
-	     { empty=0 }'
+	     { empty=0 }' $1
 	return $?
 }
 
@@ -1422,7 +1421,6 @@ status=$((status+ret))
 get_rsasha1_key_ids_from_sigs() {
 	zone=$1
 
-	tr -d '\r' < signer/$zone.db.signed | \
 	awk '
 		NF < 8 { next }
 		$(NF-5) != "RRSIG" { next }
@@ -1432,8 +1430,7 @@ get_rsasha1_key_ids_from_sigs() {
 			getline;
 			print $3;
 		}
-	' | \
-	sort -u
+	' signer/$zone.db.signed | sort -u
 }
 
 # Test dnssec-signzone ZSK prepublish smooth rollover.
@@ -2152,7 +2149,7 @@ status=$((status+ret))
 ret=0
 
 echo_i "killing ns4 with SIGTERM"
-$KILL -TERM "$(cat ns4/named.pid)"
+kill -TERM "$(cat ns4/named.pid)"
 rm -f ns4/named.pid
 
 #
@@ -2214,7 +2211,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo_i "killing ns4 with SIGTERM"
-$KILL -TERM "$(cat ns4/named.pid)"
+kill -TERM "$(cat ns4/named.pid)"
 rm -f ns4/named.pid
 
 echo_i "sleeping for an additional 4 seconds for ns4 to fully shutdown"
@@ -2272,7 +2269,7 @@ grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo_i "killing ns4 with SIGTERM"
-$KILL -TERM "$(cat ns4/named.pid)"
+kill -TERM "$(cat ns4/named.pid)"
 rm -f named.pid
 
 echo_i "sleeping for an additional 4 seconds for ns4 to fully shutdown"
@@ -2320,7 +2317,7 @@ n=$((n+1))
 echo_i "testing loading out of bounds lifetime from NTA file ($n)"
 
 echo_i "killing ns4 with SIGTERM"
-$KILL -TERM "$(cat ns4/named.pid)"
+kill -TERM "$(cat ns4/named.pid)"
 rm -f ns4/named.pid
 
 echo_i "sleeping for an additional 4 seconds for ns4 to fully shutdown"
@@ -2882,8 +2879,8 @@ awk '{
 	for (i=1;i<7;i++) printf("%s ", $i);
 	for (i=7;i<=NF;i++) printf("%s", $i);
 	printf("\n");
-}' < ns1/dsset-algroll$TP > canonical2.$n || ret=1
-$DIFF -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
+}' < ns1/dsset-algroll. > canonical2.$n || ret=1
+diff -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -2942,7 +2939,7 @@ ret=0
 dig_with_answeropts +nottlid nosign.example ns @10.53.0.3 | \
         grep RRSIG | sed 's/[ 	][ 	]*/ /g' > dig.out.ns3.test$n 2>&1
 # the NS RRSIG should not be changed
-$DIFF nosign.before dig.out.ns3.test$n > /dev/null|| ret=1
+diff nosign.before dig.out.ns3.test$n > /dev/null|| ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3460,7 +3457,7 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "${lines:-10}" -eq 1 || ret=1
-lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' | wc -l)
+lines=$(awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -3532,7 +3529,7 @@ lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}'
 test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' | wc -l)
+lines=$(awk '$4 == "CDS" && $5 == "0" && $6 == "0" && $7 == "0" && $8 == "00" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -3673,7 +3670,7 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "${lines:-10}" -eq 1 || ret=1
-lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' | wc -l)
+lines=$(awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' dig.out.test$n | wc -l)
 test "${lines:-10}" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -3750,7 +3747,7 @@ lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {pri
 test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-lines=$(tr -d '\r' < dig.out.test$n | awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' | wc -l)
+lines=$(awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' dig.out.test$n | wc -l)
 test "${lines:-10}" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"

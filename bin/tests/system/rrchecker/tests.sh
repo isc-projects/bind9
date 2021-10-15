@@ -19,17 +19,17 @@ n=0
 n=`expr $n + 1`
 echo_i "class list ($n)"
 $RRCHECKER -C > classlist.out
-$DIFF classlist.out classlist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff classlist.out classlist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 n=`expr $n + 1`
 echo_i "type list ($n)"
 $RRCHECKER -T > typelist.out
-$DIFF typelist.out typelist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff typelist.out typelist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 n=`expr $n + 1`
 echo_i "private type list ($n)"
 $RRCHECKER -P > privatelist.out
-$DIFF privatelist.out privatelist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff privatelist.out privatelist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 myecho() {
 cat << EOF

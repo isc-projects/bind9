@@ -238,112 +238,89 @@ for mode in native dnsrps; do
   expect_recurse 5a 5
   expect_recurse 5a 6
 
-  if [ ! "$CYGWIN" -o -n "$PSSUSPEND" ]
-  then
-    # Group 6
-    echo_i "check recursive behavior consistency during policy update races"
-    run_server 6a
+  # Group 6
+  echo_i "check recursive behavior consistency during policy update races"
+  run_server 6a
+  sleep 1
+  t=`expr $t + 1`
+  echo_i "running dig to cache CNAME record (${t})"
+  add_test_marker 10.53.0.1 10.53.0.2
+  $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
+  sleep 1
+  echo_i "suspending authority server"
+  PID=`cat ns1/named.pid`
+  kill -STOP $PID
+  echo_i "adding an NSDNAME policy"
+  cp ns2/db.6a.00.policy.local ns2/saved.policy.local
+  cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
+  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  sleep 1
+  t=`expr $t + 1`
+  echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
+  add_test_marker 10.53.0.2
+  $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
+  sleep 1
+  echo_i "removing the NSDNAME policy"
+  cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
+  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  sleep 1
+  echo_i "resuming authority server"
+  PID=`cat ns1/named.pid`
+  kill -CONT $PID
+  add_test_marker 10.53.0.1
+  for n in 1 2 3 4 5 6 7 8 9
+  do
     sleep 1
-    t=`expr $t + 1`
-    echo_i "running dig to cache CNAME record (${t})"
-    add_test_marker 10.53.0.1 10.53.0.2
-    $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
-    sleep 1
-    echo_i "suspending authority server"
-    PID=`cat ns1/named.pid`
-    if [ "$CYGWIN" ]
-    then
-      $PSSUSPEND $PID
-    else
-      $KILL -STOP $PID
-    fi
-    echo_i "adding an NSDNAME policy"
-    cp ns2/db.6a.00.policy.local ns2/saved.policy.local
-    cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-    test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
-    sleep 1
-    t=`expr $t + 1`
-    echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-    add_test_marker 10.53.0.2
-    $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
-    sleep 1
-    echo_i "removing the NSDNAME policy"
-    cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-    test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
-    sleep 1
-    echo_i "resuming authority server"
-    PID=`cat ns1/named.pid`
-    if [ "$CYGWIN" ]
-    then
-      $PSSUSPEND -r $PID
-    else
-      $KILL -CONT $PID
-    fi
-    add_test_marker 10.53.0.1
-    for n in 1 2 3 4 5 6 7 8 9
-    do
-      sleep 1
-      [ -s dig.out.${t} ] || continue
-      grep "status: .*," dig.out.${t} > /dev/null 2>&1 && break
-    done
-    grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
-      echo_i "test ${t} failed"
-      status=1
-    }
+    [ -s dig.out.${t} ] || continue
+    grep "status: .*," dig.out.${t} > /dev/null 2>&1 && break
+  done
+  grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
+    echo_i "test ${t} failed"
+    status=1
+  }
 
-    echo_i "check recursive behavior consistency during policy removal races"
-    cp ns2/saved.policy.local ns2/db.6a.00.policy.local
-    run_server 6a
+  echo_i "check recursive behavior consistency during policy removal races"
+  cp ns2/saved.policy.local ns2/db.6a.00.policy.local
+  run_server 6a
+  sleep 1
+  t=`expr $t + 1`
+  echo_i "running dig to cache CNAME record (${t})"
+  add_test_marker 10.53.0.1 10.53.0.2
+  $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
+  sleep 1
+  echo_i "suspending authority server"
+  PID=`cat ns1/named.pid`
+  kill -STOP $PID
+  echo_i "adding an NSDNAME policy"
+  cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
+  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  sleep 1
+  t=`expr $t + 1`
+  echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
+  add_test_marker 10.53.0.2
+  $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
+  sleep 1
+  echo_i "removing the policy zone"
+  cp ns2/named.default.conf ns2/named.conf
+  rndc_reconfig ns2 10.53.0.2
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  sleep 1
+  echo_i "resuming authority server"
+  PID=`cat ns1/named.pid`
+  kill -CONT $PID
+  add_test_marker 10.53.0.1
+  for n in 1 2 3 4 5 6 7 8 9; do
     sleep 1
-    t=`expr $t + 1`
-    echo_i "running dig to cache CNAME record (${t})"
-    add_test_marker 10.53.0.1 10.53.0.2
-    $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
-    sleep 1
-    echo_i "suspending authority server"
-    PID=`cat ns1/named.pid`
-    if [ "$CYGWIN" ]
-    then
-      $PSSUSPEND $PID
-    else
-      $KILL -STOP $PID
-    fi
-    echo_i "adding an NSDNAME policy"
-    cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-    test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
-    sleep 1
-    t=`expr $t + 1`
-    echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-    add_test_marker 10.53.0.2
-    $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
-    sleep 1
-    echo_i "removing the policy zone"
-    cp ns2/named.default.conf ns2/named.conf
-    rndc_reconfig ns2 10.53.0.2
-    test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
-    sleep 1
-    echo_i "resuming authority server"
-    PID=`cat ns1/named.pid`
-    if [ "$CYGWIN" ]
-    then
-      $PSSUSPEND -r $PID
-    else
-      $KILL -CONT $PID
-    fi
-    add_test_marker 10.53.0.1
-    for n in 1 2 3 4 5 6 7 8 9; do
-      sleep 1
-      [ -s dig.out.${t} ] || continue
-      grep "status: .*," dig.out.${t} > /dev/null 2>&1 && break
-    done
-    grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
-      echo_i "test ${t} failed"
-      status=1
-    }
-  fi
+    [ -s dig.out.${t} ] || continue
+    grep "status: .*," dig.out.${t} > /dev/null 2>&1 && break
+  done
+  grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
+    echo_i "test ${t} failed"
+    status=1
+  }
 
   # Check maximum number of RPZ zones (64)
   t=`expr $t + 1`
