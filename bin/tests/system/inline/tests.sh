@@ -967,7 +967,7 @@ do
 done
 # Sanity check: the SOA record should be unchanged
 $DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
-$DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
+diff dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -991,7 +991,7 @@ _includefile_loaded() {
 retry_quiet 10 _includefile_loaded
 # Sanity check: the SOA record should be changed
 $DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
-$DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null && ret=1
+diff dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

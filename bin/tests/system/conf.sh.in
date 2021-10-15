@@ -23,9 +23,6 @@ TOP_SRCDIR=@abs_top_srcdir@
 # Provide TMPDIR variable for tests that need it.
 TMPDIR=${TMPDIR:-/tmp}
 
-# This is not the windows build.
-CYGWIN=""
-
 # Load common values
 . $TOP_SRCDIR/bin/tests/system/conf.sh.common
 
@@ -100,14 +97,6 @@ PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
-
-# Things that are different on Windows
-KILL=kill
-DIFF=diff
-DOS2UNIX=true
-# There's no trailing period on Windows
-TP=.
-
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
 
@@ -125,9 +114,6 @@ XSLTPROC=@XSLTPROC@
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=$(command -v "@PERL@")
-
-# Windows process management leave empty
-PSSUSPEND=
 
 PYTHON=$(command -v "@PYTHON@" || true)
 PYTEST=@PYTEST@

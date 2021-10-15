@@ -90,7 +90,7 @@ signzone () {
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
     $SIGNER -P -K $1 -o $2 -f $1/$4 $1/tmp >/dev/null
     sed -n -e 's/\(.*\) IN DNSKEY \([0-9]\{1,\} [0-9]\{1,\} [0-9]\{1,\}\) \(.*\)/trust-anchors {"\1" static-key \2 "\3";};/p' $1/$KEYNAME.key >>trusted.conf
-    DSFILENAME=dsset-${2}${TP}
+    DSFILENAME=dsset-${2}.
     rm $DSFILENAME $1/tmp
 }
 signzone ns2 tld2s base-tld2s.db tld2s.db

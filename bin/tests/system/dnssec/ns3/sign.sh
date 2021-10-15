@@ -275,7 +275,7 @@ cat "$infile" "$keyname.key" > "$zonefile"
 
 awk '$4 == "DNSKEY" { $7 = 100 } $4 == "RRSIG" { $6 = 100 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE="dsset-${zone}${TP}"
+DSFILE="dsset-${zone}."
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" > "$DSFILE"
 
 #
@@ -294,7 +294,7 @@ cat "$infile" "$keyname.key" > "$zonefile"
 
 awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE="dsset-${zone}${TP}"
+DSFILE="dsset-${zone}."
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" > "$DSFILE"
 
 #
@@ -328,7 +328,7 @@ cat "$infile" "$keyname.key" > "$zonefile"
 
 awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE="dsset-${zone}${TP}"
+DSFILE="dsset-${zone}."
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" > "$DSFILE"
 
 #
@@ -606,7 +606,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 cat "$infile" "$keyname.key" > "$zonefile"
 
 "$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
-sed -e 's/bogus/badds/g' < dsset-bogus.example$TP > dsset-badds.example$TP
+sed -e 's/bogus/badds/g' < dsset-bogus.example. > dsset-badds.example.
 
 #
 # A zone with future signatures.
@@ -668,7 +668,7 @@ kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "$zone")
 zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" "$zone")
 dnskeyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "delegation.$zone")
 keyname=$("$KEYGEN" -q -a DH -b 1024 -n HOST -T KEY "delegation.$zone")
-$DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}$TP"
+$DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}."
 cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
-    "${dnskeyname}.key" "dsset-delegation.${zone}$TP" >"$zonefile"
+    "${dnskeyname}.key" "dsset-delegation.${zone}." >"$zonefile"
 "$SIGNER" -P -o "$zone" "$zonefile" > /dev/null

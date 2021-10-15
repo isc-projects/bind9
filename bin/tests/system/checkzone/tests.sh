@@ -192,7 +192,7 @@ status=`expr $status + $ret`
 
 ret=0
 # Step 3: Ensure that output conversion from stdin is the same as the output conversion from a file.
-$DIFF zones/zone1_file.txt zones/zone1_stdin.txt >/dev/null 2>&1 || ret=1
+diff zones/zone1_file.txt zones/zone1_stdin.txt >/dev/null 2>&1 || ret=1
 status=`expr $status + $ret`
 
 if [ $ret != 0 ]; then echo_i "failed"; fi

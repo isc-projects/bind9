@@ -134,8 +134,6 @@ exit($errors);
 sub server_lock_file {
 	my ( $server ) = @_;
 
-	return if (defined($ENV{'CYGWIN'}) && $ENV{'CYGWIN'});
-
 	return $testdir . "/" . $server . "/named.lock" if ($server =~ /^ns/);
 	return if ($server =~ /^ans/);
 
@@ -253,12 +251,8 @@ sub pid_file_exists {
 
 	# If we're here, the PID file hasn't been cleaned up yet
 	if (send_signal(0, $pid) == 0) {
-		# XXX: on windows this is likely to result in a
-		# false positive, so don't bother reporting the error.
-		if (!defined($ENV{'CYGWIN'}) || !$ENV{'CYGWIN'}) {
-			print "I:$test:$server crashed on shutdown\n";
-			$errors = 1;
-		}
+		print "I:$test:$server crashed on shutdown\n";
+		$errors = 1;
 		return;
 	}
 
