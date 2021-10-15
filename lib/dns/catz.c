@@ -494,6 +494,14 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					      zname, czname);
 			continue;
 		}
+
+		/*
+		 * Delete the old entry so that it won't accidentally be
+		 * removed as a non-existing entry below.
+		 */
+		dns_catz_entry_detach(target, &oentry);
+		result = isc_ht_delete(target->entries, key, (uint32_t)keysize);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	RUNTIME_CHECK(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter1);
