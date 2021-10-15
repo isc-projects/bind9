@@ -280,12 +280,14 @@ bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
-			const dst_key_t *key, const dns_ssurule_t **rulep) {
+			const dns_name_t *target, const dst_key_t *key,
+			const dns_ssurule_t **rulep) {
 	dns_fixedname_t fixed;
 	dns_name_t *stfself;
 	dns_name_t *tcpself;
 	dns_name_t *wildcard;
 	dns_ssurule_t *rule;
+	const dns_name_t *tname;
 	int match;
 	isc_result_t result;
 	unsigned int i;
@@ -303,13 +305,13 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 	     rule = ISC_LIST_NEXT(rule, link))
 	{
 		switch (rule->matchtype) {
-		case dns_ssumatchtype_name:
 		case dns_ssumatchtype_local:
-		case dns_ssumatchtype_subdomain:
-		case dns_ssumatchtype_wildcard:
+		case dns_ssumatchtype_name:
 		case dns_ssumatchtype_self:
 		case dns_ssumatchtype_selfsub:
 		case dns_ssumatchtype_selfwild:
+		case dns_ssumatchtype_subdomain:
+		case dns_ssumatchtype_wildcard:
 			if (signer == NULL) {
 				continue;
 			}
@@ -330,6 +332,8 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 		case dns_ssumatchtype_selfsubms:
 		case dns_ssumatchtype_subdomainkrb5:
 		case dns_ssumatchtype_subdomainms:
+		case dns_ssumatchtype_subdomainselfkrb5rhs:
+		case dns_ssumatchtype_subdomainselfmsrhs:
 			if (signer == NULL) {
 				continue;
 			}
@@ -430,20 +434,48 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			}
 			continue;
 		case dns_ssumatchtype_subdomainkrb5:
+		case dns_ssumatchtype_subdomainselfkrb5rhs:
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
+			tname = NULL;
+			switch (rule->matchtype) {
+			case dns_ssumatchtype_subdomainselfkrb5rhs:
+				if (type == dns_rdatatype_ptr) {
+					tname = target;
+				}
+				if (type == dns_rdatatype_srv) {
+					tname = target;
+				}
+				break;
+			default:
+				break;
+			}
 			if (dst_gssapi_identitymatchesrealmkrb5(
-				    signer, NULL, rule->identity, false)) {
+				    signer, tname, rule->identity, false)) {
 				break;
 			}
 			continue;
 		case dns_ssumatchtype_subdomainms:
+		case dns_ssumatchtype_subdomainselfmsrhs:
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
+			tname = NULL;
+			switch (rule->matchtype) {
+			case dns_ssumatchtype_subdomainselfmsrhs:
+				if (type == dns_rdatatype_ptr) {
+					tname = target;
+				}
+				if (type == dns_rdatatype_srv) {
+					tname = target;
+				}
+				break;
+			default:
+				break;
+			}
 			if (dst_gssapi_identitymatchesrealmms(
-				    signer, NULL, rule->identity, false)) {
+				    signer, tname, rule->identity, false)) {
 				break;
 			}
 			continue;
@@ -500,8 +532,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 		if (rule->ntypes == 0) {
 			/*
 			 * If this is a DLZ rule, then the DLZ ssu
-			 * checks will have already checked
-			 * the type.
+			 * checks will have already checked the type.
 			 */
 			if (rule->matchtype != dns_ssumatchtype_dlz &&
 			    !isusertype(type)) {
@@ -649,8 +680,12 @@ dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype) {
 		*mtype = dns_ssumatchtype_selfsubkrb5;
 	} else if (strcasecmp(str, "ms-subdomain") == 0) {
 		*mtype = dns_ssumatchtype_subdomainms;
+	} else if (strcasecmp(str, "ms-subdomain-self-rhs") == 0) {
+		*mtype = dns_ssumatchtype_subdomainselfmsrhs;
 	} else if (strcasecmp(str, "krb5-subdomain") == 0) {
 		*mtype = dns_ssumatchtype_subdomainkrb5;
+	} else if (strcasecmp(str, "krb5-subdomain-self-rhs") == 0) {
+		*mtype = dns_ssumatchtype_subdomainselfkrb5rhs;
 	} else if (strcasecmp(str, "tcp-self") == 0) {
 		*mtype = dns_ssumatchtype_tcpself;
 	} else if (strcasecmp(str, "6to4-self") == 0) {

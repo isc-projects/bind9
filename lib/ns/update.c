@@ -918,9 +918,8 @@ typedef struct {
 
 static isc_result_t
 ssu_checkrule(void *data, dns_rdataset_t *rrset) {
-	const dns_ssurule_t *rule = NULL;
 	ssu_check_t *ssuinfo = data;
-	bool rule_ok;
+	bool rule_ok = false;
 
 	/*
 	 * If we're deleting all records, it's ok to delete RRSIG and NSEC even
@@ -931,10 +930,58 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 		return (ISC_R_SUCCESS);
 	}
 
-	rule_ok = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
-					  ssuinfo->name, ssuinfo->addr,
-					  ssuinfo->tcp, ssuinfo->aclenv,
-					  rrset->type, ssuinfo->key, &rule);
+	/*
+	 * krb5-subdomain-self-rhs and ms-subdomain-self-rhs need
+	 * to check the PTR and SRV target names so extract them
+	 * from the resource records.
+	 */
+	if (rrset->rdclass == dns_rdataclass_in &&
+	    (rrset->type == dns_rdatatype_srv ||
+	     rrset->type == dns_rdatatype_ptr))
+	{
+		dns_name_t *target = NULL;
+		dns_rdata_ptr_t ptr;
+		dns_rdata_in_srv_t srv;
+		dns_rdataset_t rdataset;
+		isc_result_t result;
+
+		dns_rdataset_init(&rdataset);
+		dns_rdataset_clone(rrset, &rdataset);
+
+		for (result = dns_rdataset_first(&rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdataset_current(&rdataset, &rdata);
+			if (rrset->type == dns_rdatatype_ptr) {
+				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &ptr.ptr;
+			}
+			if (rrset->type == dns_rdatatype_srv) {
+				result = dns_rdata_tostruct(&rdata, &srv, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &srv.target;
+			}
+			rule_ok = dns_ssutable_checkrules(
+				ssuinfo->table, ssuinfo->signer, ssuinfo->name,
+				ssuinfo->addr, ssuinfo->tcp, ssuinfo->aclenv,
+				rrset->type, target, ssuinfo->key, NULL);
+			if (!rule_ok) {
+				break;
+			}
+		}
+		if (result != ISC_R_NOMORE) {
+			rule_ok = false;
+		}
+		dns_rdataset_disassociate(&rdataset);
+	} else {
+		rule_ok = dns_ssutable_checkrules(
+			ssuinfo->table, ssuinfo->signer, ssuinfo->name,
+			ssuinfo->addr, ssuinfo->tcp, ssuinfo->aclenv,
+			rrset->type, NULL, ssuinfo->key, NULL);
+	}
 	return (rule_ok ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
@@ -954,6 +1001,33 @@ ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	ssuinfo.key = key;
 	result = foreach_rrset(db, ver, name, ssu_checkrule, &ssuinfo);
 	return (result == ISC_R_SUCCESS);
+}
+
+static isc_result_t
+ssu_checkrr(void *data, rr_t *rr) {
+	isc_result_t result;
+	ssu_check_t *ssuinfo = data;
+	dns_name_t *target = NULL;
+	dns_rdata_ptr_t ptr;
+	dns_rdata_in_srv_t srv;
+	bool answer;
+
+	if (rr->rdata.type == dns_rdatatype_ptr) {
+		result = dns_rdata_tostruct(&rr->rdata, &ptr, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		target = &ptr.ptr;
+	}
+	if (rr->rdata.type == dns_rdatatype_srv) {
+		result = dns_rdata_tostruct(&rr->rdata, &srv, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		target = &srv.target;
+	}
+
+	answer = dns_ssutable_checkrules(
+		ssuinfo->table, ssuinfo->signer, ssuinfo->name, ssuinfo->addr,
+		ssuinfo->tcp, ssuinfo->aclenv, rr->rdata.type, target,
+		ssuinfo->key, NULL);
+	return (answer ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
 /**************************************************************************/
@@ -2848,18 +2922,77 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 		if (ssutable != NULL) {
 			isc_netaddr_t netaddr;
+			dns_name_t *target = NULL;
 			dst_key_t *tsigkey = NULL;
+			dns_rdata_ptr_t ptr;
+			dns_rdata_in_srv_t srv;
+
 			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 
 			if (client->message->tsigkey != NULL) {
 				tsigkey = client->message->tsigkey->key;
 			}
 
-			if (rdata.type != dns_rdatatype_any) {
+			if ((update_class == dns_rdataclass_in ||
+			     update_class == dns_rdataclass_none) &&
+			    rdata.type == dns_rdatatype_ptr)
+			{
+				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &ptr.ptr;
+			}
+
+			if ((update_class == dns_rdataclass_in ||
+			     update_class == dns_rdataclass_none) &&
+			    rdata.type == dns_rdatatype_srv)
+			{
+				result = dns_rdata_tostruct(&rdata, &srv, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &srv.target;
+			}
+
+			if (update_class == dns_rdataclass_any &&
+			    zoneclass == dns_rdataclass_in &&
+			    (rdata.type == dns_rdatatype_ptr ||
+			     rdata.type == dns_rdatatype_srv))
+			{
+				ssu_check_t ssuinfo;
+
+				ssuinfo.name = name;
+				ssuinfo.table = ssutable;
+				ssuinfo.signer = client->signer;
+				ssuinfo.addr = &netaddr;
+				ssuinfo.aclenv = env;
+				ssuinfo.tcp = TCPCLIENT(client);
+				ssuinfo.key = tsigkey;
+
+				result = foreach_rr(db, ver, name, rdata.type,
+						    dns_rdatatype_none,
+						    ssu_checkrr, &ssuinfo);
+				if (result != ISC_R_SUCCESS) {
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
+				}
+			} else if (target != NULL &&
+				   update_class == dns_rdataclass_none) {
+				bool flag;
+				CHECK(rr_exists(db, ver, name, &rdata, &flag));
+				if (flag &&
+				    !dns_ssutable_checkrules(
+					    ssutable, client->signer, name,
+					    &netaddr, TCPCLIENT(client), env,
+					    rdata.type, target, tsigkey,
+					    &rules[rule]))
+				{
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
+				}
+			} else if (rdata.type != dns_rdatatype_any) {
 				if (!dns_ssutable_checkrules(
 					    ssutable, client->signer, name,
 					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, tsigkey, &rules[rule]))
+					    rdata.type, target, tsigkey,
+					    &rules[rule]))
 				{
 					FAILC(DNS_R_REFUSED, "rejected by "
 							     "secure update");

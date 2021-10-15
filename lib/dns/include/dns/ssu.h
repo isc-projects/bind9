@@ -41,9 +41,11 @@ typedef enum {
 	dns_ssumatchtype_local = 13,
 	dns_ssumatchtype_selfsubms = 14,
 	dns_ssumatchtype_selfsubkrb5 = 15,
-	dns_ssumatchtype_max = 15, /* max value */
+	dns_ssumatchtype_subdomainselfkrb5rhs = 16,
+	dns_ssumatchtype_subdomainselfmsrhs = 17,
+	dns_ssumatchtype_max = 17, /* max value */
 
-	dns_ssumatchtype_dlz = 16 /* intentionally higher than _max */
+	dns_ssumatchtype_dlz = 18 /* intentionally higher than _max */
 } dns_ssumatchtype_t;
 
 typedef struct dns_ssuruletype {
@@ -140,7 +142,8 @@ bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
-			const dst_key_t *key, const dns_ssurule_t **rulep);
+			const dns_name_t *target, const dst_key_t *key,
+			const dns_ssurule_t **rulep);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
  *	to the rules specified in the simple-secure-update rule table.  If
