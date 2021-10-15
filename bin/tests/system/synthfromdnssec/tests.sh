@@ -91,7 +91,7 @@ do
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
     check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
     check_nosynth_soa example. dig.out.ns${ns}.test$n || ret=1
-    [ $ns -eq ${ns} ] && nxdomain=dig.out.ns${ns}.test$n
+    [ $ns -eq 2 ] && nxdomain=dig.out.ns${ns}.test$n
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -153,14 +153,17 @@ do
     esac
     echo_i "check synthesized NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
     ret=0
+    nextpart ns1/named.run > /dev/null
     dig_with_opts b.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
     check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	check_synth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.example/A > /dev/null && ret=1
     else
 	check_nosynth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.example/A > /dev/null || ret=1
     fi
     digcomp $nxdomain dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
@@ -169,14 +172,17 @@ do
 
     echo_i "check synthesized NODATA response (synth-from-dnssec ${description};) ($n)"
     ret=0
+    nextpart ns1/named.run > /dev/null
     dig_with_opts nodata.example. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	check_synth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep nodata.example/AAAA > /dev/null && ret=1
     else
 	check_nosynth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep nodata.example/AAAA > /dev/null || ret=1
     fi
     digcomp $nodata dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
@@ -185,14 +191,17 @@ do
 
     echo_i "check synthesized wildcard response (synth-from-dnssec ${description};) ($n)"
     ret=0
+    nextpart ns1/named.run > /dev/null
     dig_with_opts b.wild-a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	check_synth_a b.wild-a.example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-a.example/A > /dev/null && ret=1
     else
 	check_nosynth_a b.wild-a.example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-a.example/A > /dev/null || ret=1
     fi
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -200,14 +209,17 @@ do
 
     echo_i "check synthesized wildcard CNAME response (synth-from-dnssec ${description};) ($n)"
     ret=0
+    nextpart ns1/named.run > /dev/null
     dig_with_opts b.wild-cname.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	check_synth_cname b.wild-cname.example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-cname.example/A > /dev/null && ret=1
     else
 	check_nosynth_cname b.wild-cname.example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-cname.example/A > /dev/null || ret=1
     fi
     grep "ns1.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
     n=$((n+1))

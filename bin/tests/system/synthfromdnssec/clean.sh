@@ -14,6 +14,7 @@ set -e
 rm -f ./*/named.memstats
 rm -f ./*/named.conf
 rm -f ./*/named.run
+rm -f ./*/named.run.prev
 rm -f ./dig.out.*
 rm -f ./ns1/K*+*+*.key
 rm -f ./ns1/K*+*+*.private
