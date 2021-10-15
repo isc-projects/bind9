@@ -19,6 +19,7 @@
 #include <isc/base64.h>
 #include <isc/netmgr.h>
 #include <isc/print.h>
+#include <isc/sockaddr.h>
 #include <isc/tls.h>
 #include <isc/url.h>
 #include <isc/util.h>

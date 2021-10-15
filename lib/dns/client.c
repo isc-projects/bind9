@@ -22,7 +22,6 @@
 #include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -29,7 +29,7 @@ named - Internet domain name server
 Synopsis
 ~~~~~~~~
 
-:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-S** #max-socks] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] [**-X** lock-file]
+:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] [**-X** lock-file]
 
 Description
 ~~~~~~~~~~~
@@ -126,9 +126,7 @@ Options
       removed or changed in a future release.
 
 ``-S #max-socks``
-   This option allows ``named`` to use up to ``#max-socks`` sockets. The default value is
-   21000 on systems built with default configuration options, and 4096
-   on systems built with ``configure --with-tuning=small``.
+   This option is deprecated and no longer has any function.
 
 .. warning::
 

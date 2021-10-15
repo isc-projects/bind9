@@ -33,8 +33,7 @@
  *
  * Security:
  *
- *\li	Depends on the isc_socket_t and dns_message_t for prevention of
- *	buffer overruns.
+ *\li	Depends on dns_message_t for prevention of buffer overruns.
  *
  * Standards:
  *
@@ -52,7 +51,6 @@
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/netmgr.h>
-#include <isc/socket.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
@@ -187,7 +185,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
 		       dns_dispatch_t **dispp);
 /*%<
- * Create a new dns_dispatch and attach it to the provided isc_socket_t.
+ * Create a new TCP dns_dispatch.
  *
  * Requires:
  *

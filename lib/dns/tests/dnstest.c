@@ -38,7 +38,6 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -99,7 +98,7 @@ cleanup_managers(void) {
 
 	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
 			     taskmgr == NULL ? NULL : &taskmgr,
-			     timermgr == NULL ? NULL : &timermgr, NULL);
+			     timermgr == NULL ? NULL : &timermgr);
 
 	if (app_running) {
 		isc_app_finish();
@@ -111,8 +110,7 @@ create_managers(void) {
 	isc_result_t result;
 	ncpus = isc_os_ncpus();
 
-	isc_managers_create(dt_mctx, ncpus, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    NULL);
+	isc_managers_create(dt_mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	return (ISC_R_SUCCESS);
 

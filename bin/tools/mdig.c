@@ -2115,7 +2115,7 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_managers_create(mctx, 1, 0, 0, &netmgr, &taskmgr, NULL, NULL);
+	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
@@ -2175,7 +2175,7 @@ main(int argc, char *argv[]) {
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
 
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	dst_lib_destroy();
 

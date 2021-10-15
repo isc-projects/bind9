@@ -61,7 +61,7 @@ isc_timermgr_t *ctxs_timermgr = NULL;
 
 static void
 ctxs_destroy(void) {
-	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr, NULL);
+	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr);
 
 	if (ctxs_actx != NULL) {
 		isc_appctx_destroy(&ctxs_actx);
@@ -83,8 +83,8 @@ ctxs_init(void) {
 		goto fail;
 	}
 
-	isc_managers_create(ctxs_mctx, 1, 0, 0, &ctxs_netmgr, &ctxs_taskmgr,
-			    &ctxs_timermgr, NULL);
+	isc_managers_create(ctxs_mctx, 1, 0, &ctxs_netmgr, &ctxs_taskmgr,
+			    &ctxs_timermgr);
 
 	result = isc_app_ctxstart(ctxs_actx);
 	if (result != ISC_R_SUCCESS) {

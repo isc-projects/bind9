@@ -21,7 +21,7 @@
 #include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
-#include <isc/socket.h>
+#include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>

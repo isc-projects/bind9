@@ -120,7 +120,6 @@ static char absolute_conffile[PATH_MAX];
 static char saved_command_line[4096] = { 0 };
 static char ellipsis[5] = { 0 };
 static char version[512];
-static unsigned int maxsocks = 0;
 static int maxudp = 0;
 
 /*
@@ -824,8 +823,7 @@ parse_command_line(int argc, char *argv[]) {
 			want_stats = true;
 			break;
 		case 'S':
-			maxsocks = parse_int(isc_commandline_argument,
-					     "max number of sockets");
+			/* Formerly maxsocks */
 			break;
 		case 't':
 			/* XXXJAB should we make a copy? */
@@ -897,7 +895,6 @@ parse_command_line(int argc, char *argv[]) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
-	unsigned int socks;
 
 	INSIST(named_g_cpus_detected > 0);
 
@@ -921,22 +918,13 @@ create_managers(void) {
 		      named_g_udpdisp == 1 ? "" : "s");
 
 	result = isc_managers_create(named_g_mctx, named_g_cpus,
-				     0 /* quantum */, maxsocks, &named_g_netmgr,
-				     &named_g_taskmgr, &named_g_timermgr,
-				     &named_g_socketmgr);
+				     0 /* quantum */, &named_g_netmgr,
+				     &named_g_taskmgr, &named_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	isc_socketmgr_maxudp(named_g_socketmgr, maxudp);
 	isc_nm_maxudp(named_g_netmgr, maxudp);
-
-	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &socks);
-	if (result == ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "using up to %u sockets", socks);
-	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -944,7 +932,7 @@ create_managers(void) {
 static void
 destroy_managers(void) {
 	isc_managers_destroy(&named_g_netmgr, &named_g_taskmgr,
-			     &named_g_timermgr, &named_g_socketmgr);
+			     &named_g_timermgr);
 }
 
 static void

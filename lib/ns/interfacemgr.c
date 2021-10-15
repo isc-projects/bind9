@@ -33,10 +33,8 @@
 #ifdef HAVE_NET_ROUTE_H
 #include <net/route.h>
 #if defined(RTM_VERSION) && defined(RTM_NEWADDR) && defined(RTM_DELADDR)
-#define USE_ROUTE_SOCKET      1
-#define ROUTE_SOCKET_PROTOCOL PF_ROUTE
-#define MSGHDR		      rt_msghdr
-#define MSGTYPE		      rtm_type
+#define MSGHDR	rt_msghdr
+#define MSGTYPE rtm_type
 #endif /* if defined(RTM_VERSION) && defined(RTM_NEWADDR) && \
 	* defined(RTM_DELADDR) */
 #endif /* ifdef HAVE_NET_ROUTE_H */
@@ -45,10 +43,8 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #if defined(RTM_NEWADDR) && defined(RTM_DELADDR)
-#define USE_ROUTE_SOCKET      1
-#define ROUTE_SOCKET_PROTOCOL PF_NETLINK
-#define MSGHDR		      nlmsghdr
-#define MSGTYPE		      nlmsg_type
+#define MSGHDR	nlmsghdr
+#define MSGTYPE nlmsg_type
 #endif /* if defined(RTM_NEWADDR) && defined(RTM_DELADDR) */
 #endif /* if defined(HAVE_LINUX_NETLINK_H) && defined(HAVE_LINUX_RTNETLINK_H) \
 	*/
@@ -70,14 +66,13 @@ struct ns_interfacemgr {
 	unsigned int magic; /*%< Magic number */
 	isc_refcount_t references;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;	    /*%< Memory context */
-	ns_server_t *sctx;	    /*%< Server context */
-	isc_taskmgr_t *taskmgr;	    /*%< Task manager */
-	isc_task_t *excl;	    /*%< Exclusive task */
-	isc_timermgr_t *timermgr;   /*%< Timer manager */
-	isc_socketmgr_t *socketmgr; /*%< Socket manager */
-	isc_nm_t *nm;		    /*%< Net manager */
-	int ncpus;		    /*%< Number of workers */
+	isc_mem_t *mctx;	  /*%< Memory context */
+	ns_server_t *sctx;	  /*%< Server context */
+	isc_taskmgr_t *taskmgr;	  /*%< Task manager */
+	isc_task_t *excl;	  /*%< Exclusive task */
+	isc_timermgr_t *timermgr; /*%< Timer manager */
+	isc_nm_t *nm;		  /*%< Net manager */
+	int ncpus;		  /*%< Number of workers */
 	dns_dispatchmgr_t *dispatchmgr;
 	unsigned int generation; /*%< Current generation no */
 	ns_listenlist_t *listenon4;
@@ -88,11 +83,7 @@ struct ns_interfacemgr {
 	int backlog;		     /*%< Listen queue size */
 	atomic_bool shuttingdown;    /*%< Interfacemgr shutting down */
 	ns_clientmgr_t **clientmgrs; /*%< Client managers */
-#ifdef USE_ROUTE_SOCKET
-	isc_task_t *task;
-	isc_socket_t *route;
-	unsigned char buf[2048];
-#endif /* ifdef USE_ROUTE_SOCKET */
+	isc_nmhandle_t *route;
 };
 
 static void
@@ -101,35 +92,42 @@ purge_old_interfaces(ns_interfacemgr_t *mgr);
 static void
 clearlistenon(ns_interfacemgr_t *mgr);
 
-#ifdef USE_ROUTE_SOCKET
 static void
-route_event(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent = NULL;
-	ns_interfacemgr_t *mgr = NULL;
-	isc_region_t r;
-	isc_result_t result;
-	struct MSGHDR *rtm;
-	bool done = true;
+scan_event(isc_task_t *task, isc_event_t *event) {
+	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)event->ev_arg;
 
 	UNUSED(task);
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
-	mgr = event->ev_arg;
-	sevent = (isc_socketevent_t *)event;
+	ns_interfacemgr_scan(mgr, false);
+	isc_event_free(&event);
+}
 
-	if (sevent->result != ISC_R_SUCCESS) {
-		if (sevent->result != ISC_R_CANCELED) {
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-				      "automatic interface scanning "
-				      "terminated: %s",
-				      isc_result_totext(sevent->result));
-		}
-		ns_interfacemgr_detach(&mgr);
-		isc_event_free(&event);
+static void
+route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
+	   void *arg) {
+	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
+	struct MSGHDR *rtm = NULL;
+	bool done = true;
+
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(3), "route_recv: %s",
+		      isc_result_totext(eresult));
+
+	if (handle == NULL) {
 		return;
 	}
 
-	rtm = (struct MSGHDR *)mgr->buf;
+	if (eresult != ISC_R_SUCCESS) {
+		if (eresult != ISC_R_CANCELED) {
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+				      "automatic interface scanning "
+				      "terminated: %s",
+				      isc_result_totext(eresult));
+		}
+		isc_nmhandle_detach(&mgr->route);
+		return;
+	}
+
+	rtm = (struct MSGHDR *)region->base;
 #ifdef RTM_VERSION
 	if (rtm->rtm_version != RTM_VERSION) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -137,8 +135,7 @@ route_event(isc_task_t *task, isc_event_t *event) {
 			      "rtm->rtm_version mismatch (%u != %u) "
 			      "recompile required",
 			      rtm->rtm_version, RTM_VERSION);
-		ns_interfacemgr_detach(&mgr);
-		isc_event_free(&event);
+		isc_nmhandle_detach(&mgr->route);
 		return;
 	}
 #endif /* ifdef RTM_VERSION */
@@ -147,7 +144,11 @@ route_event(isc_task_t *task, isc_event_t *event) {
 	case RTM_NEWADDR:
 	case RTM_DELADDR:
 		if (mgr->route != NULL && mgr->sctx->interface_auto) {
-			ns_interfacemgr_scan(mgr, false);
+			isc_event_t *event = NULL;
+			event = isc_event_allocate(mgr->mctx, mgr,
+						   NS_EVENT_IFSCAN, scan_event,
+						   mgr, sizeof(*event));
+			isc_task_send(mgr->excl, &event);
 		}
 		break;
 	default:
@@ -156,70 +157,67 @@ route_event(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&mgr->lock);
 	if (mgr->route != NULL) {
-		/*
-		 * Look for next route event.
-		 */
-		r.base = mgr->buf;
-		r.length = sizeof(mgr->buf);
-		result = isc_socket_recv(mgr->route, &r, 1, mgr->task,
-					 route_event, mgr);
-		if (result == ISC_R_SUCCESS) {
-			done = false;
-		}
+		isc_nm_read(handle, route_recv, mgr);
+		done = false;
 	}
 	UNLOCK(&mgr->lock);
 
 	if (done) {
-		ns_interfacemgr_detach(&mgr);
+		isc_nmhandle_detach(&mgr->route);
 	}
-	isc_event_free(&event);
 	return;
 }
-#endif /* ifdef USE_ROUTE_SOCKET */
+
+static void
+route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
+	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
+
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+		      "route_connected: %s", isc_result_totext(eresult));
+
+	if (eresult != ISC_R_SUCCESS) {
+		return;
+	}
+
+	INSIST(mgr->route == NULL);
+
+	isc_nmhandle_attach(handle, &mgr->route);
+	isc_nm_read(handle, route_recv, mgr);
+}
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
-		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
-		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
-		       dns_geoip_databases_t *geoip, int ncpus,
-		       ns_interfacemgr_t **mgrp) {
+		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
+		       isc_task_t *task, dns_geoip_databases_t *geoip,
+		       int ncpus, bool scan, ns_interfacemgr_t **mgrp) {
 	isc_result_t result;
-	ns_interfacemgr_t *mgr;
+	ns_interfacemgr_t *mgr = NULL;
 
-#ifndef USE_ROUTE_SOCKET
 	UNUSED(task);
-#endif /* ifndef USE_ROUTE_SOCKET */
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(mgrp != NULL);
 	REQUIRE(*mgrp == NULL);
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
+	*mgr = (ns_interfacemgr_t){ .taskmgr = taskmgr,
+				    .timermgr = timermgr,
+				    .nm = nm,
+				    .dispatchmgr = dispatchmgr,
+				    .generation = 1,
+				    .ncpus = ncpus };
 
-	mgr->mctx = NULL;
 	isc_mem_attach(mctx, &mgr->mctx);
-
-	mgr->sctx = NULL;
 	ns_server_attach(sctx, &mgr->sctx);
 
 	isc_mutex_init(&mgr->lock);
 
-	mgr->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &mgr->excl);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
 	}
 
-	mgr->taskmgr = taskmgr;
-	mgr->timermgr = timermgr;
-	mgr->socketmgr = socketmgr;
-	mgr->nm = nm;
-	mgr->dispatchmgr = dispatchmgr;
-	mgr->generation = 1;
-	mgr->listenon4 = NULL;
-	mgr->listenon6 = NULL;
-	mgr->ncpus = ncpus;
 	atomic_init(&mgr->shuttingdown, false);
 
 	ISC_LIST_INIT(mgr->interfaces);
@@ -244,28 +242,16 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	UNUSED(geoip);
 #endif /* if defined(HAVE_GEOIP2) */
 
-#ifdef USE_ROUTE_SOCKET
-	mgr->route = NULL;
-	result = isc_socket_create(mgr->socketmgr, ROUTE_SOCKET_PROTOCOL,
-				   isc_sockettype_raw, &mgr->route);
-	switch (result) {
-	case ISC_R_NOPERM:
-	case ISC_R_SUCCESS:
-	case ISC_R_NOTIMPLEMENTED:
-	case ISC_R_FAMILYNOSUPPORT:
-		break;
-	default:
-		goto cleanup_aclenv;
+	if (scan) {
+		result = isc_nm_routeconnect(nm, route_connected, mgr, 0);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "unable to open route socket: %s",
+				      isc_result_totext(result));
+		}
 	}
 
-	mgr->task = NULL;
-	if (mgr->route != NULL) {
-		isc_task_attach(task, &mgr->task);
-	}
-	isc_refcount_init(&mgr->references, (mgr->route != NULL) ? 2 : 1);
-#else  /* ifdef USE_ROUTE_SOCKET */
 	isc_refcount_init(&mgr->references, 1);
-#endif /* ifdef USE_ROUTE_SOCKET */
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
 
@@ -278,25 +264,8 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-#ifdef USE_ROUTE_SOCKET
-	if (mgr->route != NULL) {
-		isc_region_t r = { mgr->buf, sizeof(mgr->buf) };
-
-		result = isc_socket_recv(mgr->route, &r, 1, mgr->task,
-					 route_event, mgr);
-		if (result != ISC_R_SUCCESS) {
-			isc_task_detach(&mgr->task);
-			isc_socket_detach(&mgr->route);
-			ns_interfacemgr_detach(&mgr);
-		}
-	}
-#endif /* ifdef USE_ROUTE_SOCKET */
 	return (ISC_R_SUCCESS);
 
-#ifdef USE_ROUTE_SOCKET
-cleanup_aclenv:
-	dns_aclenv_detach(&mgr->aclenv);
-#endif /* ifdef USE_ROUTE_SOCKET */
 cleanup_listenon:
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
@@ -314,14 +283,9 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 
 	isc_refcount_destroy(&mgr->references);
 
-#ifdef USE_ROUTE_SOCKET
 	if (mgr->route != NULL) {
-		isc_socket_detach(&mgr->route);
+		isc_nmhandle_detach(&mgr->route);
 	}
-	if (mgr->task != NULL) {
-		isc_task_detach(&mgr->task);
-	}
-#endif /* ifdef USE_ROUTE_SOCKET */
 	dns_aclenv_detach(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
@@ -387,15 +351,13 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	 */
 	mgr->generation++;
 	atomic_store(&mgr->shuttingdown, true);
-#ifdef USE_ROUTE_SOCKET
+
 	LOCK(&mgr->lock);
 	if (mgr->route != NULL) {
-		isc_socket_cancel(mgr->route, mgr->task, ISC_SOCKCANCEL_RECV);
-		isc_socket_detach(&mgr->route);
-		isc_task_detach(&mgr->task);
+		isc_nmhandle_detach(&mgr->route);
 	}
 	UNLOCK(&mgr->lock);
-#endif /* ifdef USE_ROUTE_SOCKET */
+
 	purge_old_interfaces(mgr);
 }
 

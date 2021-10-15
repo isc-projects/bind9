@@ -45,7 +45,6 @@
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/siphash.h>
-#include <isc/socket.h>
 #include <isc/stat.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
@@ -8348,11 +8347,9 @@ load_configuration(const char *filename, named_server_t *server,
 	isc_logconfig_t *logc = NULL;
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
-	isc_resourcevalue_t nfiles;
 	isc_result_t result, tresult;
 	uint32_t heartbeat_interval;
 	uint32_t interface_interval;
-	uint32_t reserved;
 	uint32_t udpsize;
 	uint32_t transfer_message_size;
 	uint32_t recv_tcp_buffer_size;
@@ -8363,7 +8360,6 @@ load_configuration(const char *filename, named_server_t *server,
 	named_cachelist_t cachelist, tmpcachelist;
 	ns_altsecret_t *altsecret;
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
-	unsigned int maxsocks;
 	uint32_t softquota = 0;
 	uint32_t max;
 	uint64_t initial, idle, keepalive, advertised;
@@ -8515,52 +8511,6 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Check the process lockfile.
 	 */
 	CHECK(check_lockfile(server, config, first_time));
-
-	/*
-	 * Check if max number of open sockets that the system allows is
-	 * sufficiently large.	Failing this condition is not necessarily fatal,
-	 * but may cause subsequent runtime failures for a busy recursive
-	 * server.
-	 */
-	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &maxsocks);
-	if (result != ISC_R_SUCCESS) {
-		maxsocks = 0;
-	}
-	result = isc_resource_getcurlimit(isc_resource_openfiles, &nfiles);
-	if (result == ISC_R_SUCCESS && (isc_resourcevalue_t)maxsocks > nfiles) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "max open files (%" PRIu64 ")"
-			      " is smaller than max sockets (%u)",
-			      nfiles, maxsocks);
-	}
-
-	/*
-	 * Set the number of socket reserved for TCP, stdio etc.
-	 */
-	obj = NULL;
-	result = named_config_get(maps, "reserved-sockets", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	reserved = cfg_obj_asuint32(obj);
-	if (maxsocks != 0) {
-		if (maxsocks < 128U) { /* Prevent underflow. */
-			reserved = 0;
-		} else if (reserved > maxsocks - 128U) { /* Minimum UDP space.
-							  */
-			reserved = maxsocks - 128;
-		}
-	}
-	/* Minimum TCP/stdio space. */
-	if (reserved < 128U) {
-		reserved = 128;
-	}
-	if (reserved + 128U > maxsocks && maxsocks != 0) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "less than 128 UDP sockets available after "
-			      "applying 'reserved-sockets' and 'maxsockets'");
-	}
-	isc_socketmgr_setreserved(named_g_socketmgr, reserved);
 
 #if defined(HAVE_GEOIP2)
 	/*
@@ -9871,11 +9821,11 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	geoip = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
-	CHECKFATAL(ns_interfacemgr_create(
-			   named_g_mctx, server->sctx, named_g_taskmgr,
-			   named_g_timermgr, named_g_socketmgr, named_g_netmgr,
-			   named_g_dispatchmgr, server->task, geoip,
-			   named_g_cpus, &server->interfacemgr),
+	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
+					  named_g_taskmgr, named_g_timermgr,
+					  named_g_netmgr, named_g_dispatchmgr,
+					  server->task, geoip, named_g_cpus,
+					  true, &server->interfacemgr),
 		   "creating interface manager");
 
 	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
@@ -10182,7 +10132,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
-	isc_socketmgr_setstats(named_g_socketmgr, server->sockstats);
 	isc_nm_setstats(named_g_netmgr, server->sockstats);
 
 	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,

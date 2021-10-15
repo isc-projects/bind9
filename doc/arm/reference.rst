@@ -3046,13 +3046,7 @@ system.
    most two places after the decimal point are significant.
 
 ``reserved-sockets``
-   This sets the number of file descriptors reserved for TCP, stdio, etc. This
-   needs to be big enough to cover the number of interfaces ``named``
-   listens on plus ``tcp-clients``, as well as to provide room for
-   outgoing TCP queries and incoming zone transfers. The default is
-   ``512``. The minimum value is ``128`` and the maximum value is
-   ``128`` fewer than maxsockets (-S). This option may be removed in the
-   future.
+   This option is deprecated and no longer has any effect.
 
 ``max-cache-size``
    This sets the maximum amount of memory to use for an individual cache

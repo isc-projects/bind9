@@ -30,7 +30,6 @@
 #include <isc/random.h>
 #include <isc/resource.h>
 #include <isc/result.h>
-#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -57,7 +56,6 @@ isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
 isc_timermgr_t *timermgr = NULL;
-isc_socketmgr_t *socketmgr = NULL;
 dns_zonemgr_t *zonemgr = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_clientmgr_t *clientmgr = NULL;
@@ -202,8 +200,7 @@ cleanup_managers(void) {
 
 	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
 			     taskmgr == NULL ? NULL : &taskmgr,
-			     timermgr == NULL ? NULL : &timermgr,
-			     socketmgr == NULL ? NULL : &socketmgr);
+			     timermgr == NULL ? NULL : &timermgr);
 
 	if (app_running) {
 		isc_app_finish();
@@ -226,8 +223,7 @@ create_managers(void) {
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
 
-	isc_managers_create(mctx, ncpus, 0, 0, &netmgr, &taskmgr, &timermgr,
-			    &socketmgr);
+	isc_managers_create(mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
 	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));
@@ -236,8 +232,8 @@ create_managers(void) {
 
 	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
-	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, socketmgr,
-				     netmgr, dispatchmgr, maintask, NULL, ncpus,
+	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
+				     dispatchmgr, maintask, NULL, ncpus, false,
 				     &interfacemgr));
 
 	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
@@ -248,12 +244,6 @@ create_managers(void) {
 				   scan_interfaces, NULL, sizeof(isc_event_t));
 	isc_task_send(maintask, &event);
 
-	/*
-	 * There's no straightforward way to determine
-	 * whether the interfaces have been scanned,
-	 * we'll just sleep for a bit and hope.
-	 */
-	ns_test_nap(500000);
 	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
 
 	atomic_store(&run_managers, true);

@@ -237,11 +237,10 @@ typedef struct query {
 	isc_buffer_t buffer;
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
-	isc_socketevent_t sendevent;
 	isc_dscp_t dscp;
 	int ednsversion;
 	unsigned int options;
-	isc_sockeventattr_t attributes;
+	unsigned int attributes;
 	unsigned int udpsize;
 	unsigned char data[512];
 } resquery_t;

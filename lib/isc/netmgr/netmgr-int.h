@@ -240,6 +240,8 @@ typedef enum isc__netievent_type {
 	netievent_udpread,
 	netievent_udpcancel,
 
+	netievent_routeconnect,
+
 	netievent_tcpconnect,
 	netievent_tcpclose,
 	netievent_tcpsend,
@@ -967,6 +969,8 @@ struct isc_nmsocket {
 	atomic_bool active;
 	atomic_bool destroying;
 
+	bool route_sock;
+
 	/*%
 	 * Socket is closed if it's not active and all the possible
 	 * callbacks were fired, there are no active handles, etc.
@@ -1349,6 +1353,12 @@ void
 isc__nm_async_udpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
+ */
+
+void
+isc__nm_async_routeconnect(isc__networker_t *worker, isc__netievent_t *ev0);
+/*%<
+ * Callback handler for route socket events.
  */
 
 void
@@ -1880,6 +1890,8 @@ NETIEVENT_SOCKET_TYPE(tcpstartread);
 NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 NETIEVENT_SOCKET_REQ_TYPE(udpconnect);
 
+NETIEVENT_SOCKET_REQ_TYPE(routeconnect);
+
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
@@ -1945,6 +1957,8 @@ NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
 NETIEVENT_SOCKET_REQ_DECL(udpconnect);
+
+NETIEVENT_SOCKET_REQ_DECL(routeconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(readcb);

@@ -19,7 +19,6 @@
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
-#include <isc/socket.h>
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -2313,13 +2312,6 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* /views */
 
-	if ((flags & STATS_XML_NET) != 0) {
-		TRY0(xmlTextWriterStartElement(writer,
-					       ISC_XMLCHAR "socketmgr"));
-		TRY0(isc_socketmgr_renderxml(named_g_socketmgr, writer));
-		TRY0(xmlTextWriterEndElement(writer)); /* /socketmgr */
-	}
-
 	if ((flags & STATS_XML_TASKS) != 0) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
 		TRY0(isc_taskmgr_renderxml(named_g_taskmgr, writer));
@@ -3103,7 +3095,6 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 	if ((flags & STATS_JSON_NET) != 0) {
 		/* socket stat counters */
-		json_object *sockets;
 		counters = json_object_new_object();
 
 		dumparg.result = ISC_R_SUCCESS;
@@ -3124,17 +3115,6 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 		} else {
 			json_object_put(counters);
 		}
-
-		sockets = json_object_new_object();
-		CHECKMEM(sockets);
-
-		result = isc_socketmgr_renderjson(named_g_socketmgr, sockets);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(sockets);
-			goto cleanup;
-		}
-
-		json_object_object_add(bindstats, "socketmgr", sockets);
 	}
 
 	if ((flags & STATS_JSON_TASKS) != 0) {

@@ -3990,7 +3990,7 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	isc_managers_create(mctx, ntasks, 0, 0, &netmgr, &taskmgr, NULL, NULL);
+	isc_managers_create(mctx, ntasks, 0, &netmgr, &taskmgr, NULL);
 
 	main_task = NULL;
 	result = isc_task_create(taskmgr, 0, &main_task);
@@ -4041,7 +4041,7 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < (int)ntasks; i++) {
 		isc_task_detach(&tasks[i]);
 	}
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 	TIME_NOW(&sign_finish);

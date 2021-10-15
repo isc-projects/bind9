@@ -721,7 +721,7 @@ manytasks(void **state) {
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	isc_managers_create(mctx, 4, 0, 0, &netmgr, &taskmgr, NULL, NULL);
+	isc_managers_create(mctx, 4, 0, &netmgr, &taskmgr, NULL);
 
 	atomic_init(&done, false);
 
@@ -736,7 +736,7 @@ manytasks(void **state) {
 	}
 	UNLOCK(&lock);
 
-	isc_managers_destroy(&netmgr, &taskmgr, NULL, NULL);
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&cv);

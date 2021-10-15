@@ -97,10 +97,9 @@ struct ns_interface {
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
-		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
-		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
-		       dns_geoip_databases_t *geoip, int ncpus,
-		       ns_interfacemgr_t **mgrp);
+		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
+		       isc_task_t *task, dns_geoip_databases_t *geoip,
+		       int ncpus, bool scan, ns_interfacemgr_t **mgrp);
 /*%<
  * Create a new interface manager.
  *

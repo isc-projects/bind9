@@ -82,7 +82,6 @@ libisc_la_HEADERS =			\
 	include/isc/serial.h		\
 	include/isc/siphash.h		\
 	include/isc/sockaddr.h		\
-	include/isc/socket.h		\
 	include/isc/stat.h		\
 	include/isc/stats.h		\
 	include/isc/stdatomic.h		\
@@ -186,8 +185,6 @@ libisc_la_SOURCES =		\
 	serial.c		\
 	siphash.c		\
 	sockaddr.c		\
-	socket.c		\
-	socket_p.h		\
 	stats.c			\
 	stdio.c			\
 	stdtime.c		\

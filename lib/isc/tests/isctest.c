@@ -23,7 +23,6 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/os.h>
-#include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -33,7 +32,6 @@ isc_mem_t *test_mctx = NULL;
 isc_log_t *test_lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
-isc_socketmgr_t *socketmgr = NULL;
 isc_nm_t *netmgr = NULL;
 isc_task_t *maintask = NULL;
 int ncpus;
@@ -61,8 +59,7 @@ cleanup_managers(void) {
 	}
 	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
 			     taskmgr == NULL ? NULL : &taskmgr,
-			     timermgr == NULL ? NULL : &timermgr,
-			     socketmgr == NULL ? NULL : &socketmgr);
+			     timermgr == NULL ? NULL : &timermgr);
 }
 
 static isc_result_t
@@ -80,8 +77,8 @@ create_managers(unsigned int workers) {
 	INSIST(workers != 0);
 
 	isc_hp_init(6 * workers);
-	isc_managers_create(test_mctx, workers, 0, 0, &netmgr, &taskmgr,
-			    &timermgr, &socketmgr);
+	isc_managers_create(test_mctx, workers, 0, &netmgr, &taskmgr,
+			    &timermgr);
 
 	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
