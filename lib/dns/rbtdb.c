@@ -792,6 +792,7 @@ update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 	case DNS_R_DELEGATION:
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
+	case DNS_R_COVERINGNSEC:
 		isc_stats_increment(rbtdb->cachestats,
 				    dns_cachestatscounter_hits);
 		break;

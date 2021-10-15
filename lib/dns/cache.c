@@ -1187,6 +1187,7 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result) {
 	case DNS_R_DNAME:
 	case DNS_R_GLUE:
 	case DNS_R_ZONECUT:
+	case DNS_R_COVERINGNSEC:
 		isc_stats_increment(cache->stats,
 				    dns_cachestatscounter_queryhits);
 		break;
