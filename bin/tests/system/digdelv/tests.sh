@@ -1294,7 +1294,7 @@ if [ -x "$DELV" ] ; then
     n=$((n+1))
     echo_i "check delv +yaml output ($n)"
     ret=0
-    delv_with_opts +yaml @10.53.0.3 any ns2.example > delv.out.test$n 2>&1 || ret=1
+    delv_with_opts +yaml @10.53.0.3 any ns2.example > delv.out.test$n || ret=1
     $PYTHON yamlget.py delv.out.test$n status > yamlget.out.test$n 2>&1 || ret=1
     read -r value < yamlget.out.test$n
     [ "$value" = "success" ] || ret=1
