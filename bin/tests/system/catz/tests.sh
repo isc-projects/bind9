@@ -217,7 +217,7 @@ echo_i "wait for secondary to be updated again ($n)"
 ret=0
 wait_for_txt() {
 	dig_with_opts @10.53.0.2 TXT foo.dom1.example. > dig.out.test$n || return 1
-	grep "ANSWER: 1," dig.out.test$n > /dev/null || return 1
+	grep "ANSWER: 2," dig.out.test$n > /dev/null || return 1
 	grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
 	grep "IN.TXT." dig.out.test$n > /dev/null || return 1
 }
