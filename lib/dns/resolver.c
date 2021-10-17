@@ -609,8 +609,6 @@ static const dns_name_t underscore_name =
 
 static void
 destroy(dns_resolver_t *res);
-static void
-empty_bucket(dns_resolver_t *res);
 static isc_result_t
 resquery_send(resquery_t *query);
 static void
@@ -624,9 +622,9 @@ fctx_shutdown(fetchctx_t *fctx);
 static isc_result_t
 fctx_minimize_qname(fetchctx_t *fctx);
 static void
-fctx_destroy(fetchctx_t *fctx);
-static bool
-fctx_unlink(fetchctx_t *fctx);
+fctx_destroy(fetchctx_t *fctx, bool exiting);
+static void
+send_shutdown_events(dns_resolver_t *res);
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
@@ -4195,14 +4193,13 @@ cleanup:
 	fctx_detach(&fctx);
 }
 
-static bool
-fctx_unlink(fetchctx_t *fctx) {
-	dns_resolver_t *res;
+static void
+fctx_destroy(fetchctx_t *fctx, bool exiting) {
+	dns_resolver_t *res = NULL;
+	isc_sockaddr_t *sa = NULL, *next_sa = NULL;
+	struct tried *tried = NULL;
 	unsigned int bucketnum;
-
-	/*
-	 * Caller must be holding the bucket lock.
-	 */
+	bool bucket_empty = false;
 
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(fctx->state == fetchstate_done ||
@@ -4214,16 +4211,13 @@ fctx_unlink(fetchctx_t *fctx) {
 	REQUIRE(atomic_load_acquire(&fctx->pending) == 0);
 	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
 
-	FCTXTRACE("unlink");
-
-	isc_refcount_destroy(&fctx->references);
+	FCTXTRACE("destroy");
 
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
 
 	LOCK(&res->buckets[bucketnum].lock);
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
-	UNLOCK(&res->buckets[bucketnum].lock);
 
 	INSIST(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
 
@@ -4232,29 +4226,16 @@ fctx_unlink(fetchctx_t *fctx) {
 	if (atomic_load_acquire(&res->buckets[bucketnum].exiting) &&
 	    ISC_LIST_EMPTY(res->buckets[bucketnum].fctxs))
 	{
-		return (true);
+		bucket_empty = true;
 	}
+	UNLOCK(&res->buckets[bucketnum].lock);
 
-	return (false);
-}
-
-static void
-fctx_destroy(fetchctx_t *fctx) {
-	isc_sockaddr_t *sa, *next_sa;
-	struct tried *tried;
-
-	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(fctx->state == fetchstate_done ||
-		fctx->state == fetchstate_init);
-	REQUIRE(ISC_LIST_EMPTY(fctx->events));
-	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
-	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
-	REQUIRE(ISC_LIST_EMPTY(fctx->altfinds));
-	REQUIRE(atomic_load_acquire(&fctx->pending) == 0);
-	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
-	REQUIRE(!ISC_LINK_LINKED(fctx, link));
-
-	FCTXTRACE("destroy");
+	if (bucket_empty && exiting &&
+	    isc_refcount_decrement(&res->activebuckets) == 1) {
+		LOCK(&res->lock);
+		send_shutdown_events(res);
+		UNLOCK(&res->lock);
+	}
 
 	isc_refcount_destroy(&fctx->references);
 
@@ -6856,10 +6837,7 @@ fctx__detach(fetchctx_t **fctxp, const char *file, unsigned int line,
 #endif
 
 	if (refs == 1) {
-		if (fctx_unlink(fctx)) {
-			empty_bucket(fctx->res);
-		}
-		fctx_destroy(fctx);
+		fctx_destroy(fctx, true);
 	}
 }
 
@@ -9750,17 +9728,6 @@ send_shutdown_events(dns_resolver_t *res) {
 }
 
 static void
-empty_bucket(dns_resolver_t *res) {
-	RTRACE("empty_bucket");
-
-	if (isc_refcount_decrement(&res->activebuckets) == 1) {
-		LOCK(&res->lock);
-		send_shutdown_events(res);
-		UNLOCK(&res->lock);
-	}
-}
-
-static void
 spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res = event->ev_arg;
 	isc_result_t result;
@@ -10456,13 +10423,7 @@ unlock:
 	UNLOCK(&res->buckets[bucketnum].lock);
 
 	if (dodestroy) {
-		/*
-		 * We don't care about the result of
-		 * fctx_unlink() since we know we're not
-		 * exiting.
-		 */
-		(void)fctx_unlink(fctx);
-		fctx_destroy(fctx);
+		fctx_destroy(fctx, false);
 	}
 
 	if (result == ISC_R_SUCCESS) {
