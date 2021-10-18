@@ -1745,16 +1745,13 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
+		result = dns_rbt_deletenode(rbtdb->tree, node, false);
+		break;
+	case DNS_RBT_NSEC_HAS_NSEC:
 		/*
 		 * Though this may be wasteful, it has to be done before
 		 * node is deleted.
 		 */
-		name = dns_fixedname_initname(&fname);
-		dns_rbt_fullnamefromnode(node, name);
-
-		result = dns_rbt_deletenode(rbtdb->tree, node, false);
-		break;
-	case DNS_RBT_NSEC_HAS_NSEC:
 		name = dns_fixedname_initname(&fname);
 		dns_rbt_fullnamefromnode(node, name);
 		/*
