@@ -909,7 +909,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	int addr_bucket;
 	bool new_addresses_added;
 	dns_rdatatype_t rdtype;
-	unsigned int findoptions;
 	dns_adbnamehooklist_t *hookhead;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
@@ -918,11 +917,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	rdtype = rdataset->type;
 	INSIST((rdtype == dns_rdatatype_a) || (rdtype == dns_rdatatype_aaaa));
-	if (rdtype == dns_rdatatype_a) {
-		findoptions = DNS_ADBFIND_INET;
-	} else {
-		findoptions = DNS_ADBFIND_INET6;
-	}
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = false;
@@ -946,24 +940,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 		INSIST(nh == NULL);
 		nh = new_adbnamehook(adb, NULL);
-		if (nh == NULL) {
-			adbname->partial_result |= findoptions;
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
-
 		foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket,
 						 now);
 		if (foundentry == NULL) {
 			dns_adbentry_t *entry;
 
 			entry = new_adbentry(adb);
-			if (entry == NULL) {
-				adbname->partial_result |= findoptions;
-				result = ISC_R_NOMEMORY;
-				goto fail;
-			}
-
 			entry->sockaddr = sockaddr;
 			entry->refcnt = 1;
 			entry->nh = 1;
@@ -996,7 +978,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		result = dns_rdataset_next(rdataset);
 	}
 
-fail:
 	if (nh != NULL) {
 		free_adbnamehook(adb, &nh);
 	}
@@ -2928,8 +2909,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * Possibilities:  Note that these are not always exclusive.
 	 *
 	 *      No name found.  In this case, allocate a new name header and
-	 *      an initial namehook or two.  If any of these allocations
-	 *      fail, clean up and return ISC_R_NOMEMORY.
+	 *      an initial namehook or two.
 	 *
 	 *      Name found, valid addresses present.  Allocate one addrinfo
 	 *      structure for each found and append it to the linked list
@@ -2942,9 +2922,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
 
 	find = new_adbfind(adb);
-	if (find == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	find->port = port;
 
@@ -2988,11 +2965,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		check_stale_name(adb, bucket, now);
 
 		adbname = new_adbname(adb, name);
-		if (adbname == NULL) {
-			RUNTIME_CHECK(!free_adbfind(adb, &find));
-			result = ISC_R_NOMEMORY;
-			goto out;
-		}
 		link_name(adb, bucket, adbname);
 		if (FIND_HINTOK(find)) {
 			adbname->flags |= NAME_HINT_OK;
@@ -4064,10 +4036,6 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	}
 
 	fetch = new_adbfetch(adb);
-	if (fetch == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	fetch->depth = depth;
 
 	/*
@@ -4137,11 +4105,6 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		goto unlock;
 	}
 	li = new_adblameinfo(adb, qname, qtype);
-	if (li == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto unlock;
-	}
-
 	li->lame_timer = expire_time;
 
 	ISC_LIST_PREPEND(addr->entry->lameinfo, li, plink);
@@ -4515,10 +4478,6 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 		 * We don't know anything about this address.
 		 */
 		entry = new_adbentry(adb);
-		if (entry == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto unlock;
-		}
 		entry->sockaddr = *sa;
 		link_entry(adb, bucket, entry);
 		DP(ENTER_LEVEL, "findaddrinfo: new entry %p", entry);

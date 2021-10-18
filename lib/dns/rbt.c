@@ -65,11 +65,6 @@
 
 #define RBT_HASH_NEXTTABLE(hindex) ((hindex == 0) ? 1 : 0)
 
-#ifdef RBT_MEM_TEST
-#undef RBT_HASH_SIZE
-#define RBT_HASH_SIZE 2 /*%< To give the reallocation code a workout. */
-#endif			/* ifdef RBT_MEM_TEST */
-
 #define GOLDEN_RATIO_32 0x61C88647
 
 #define HASHSIZE(bits) (UINT64_C(1) << (bits))

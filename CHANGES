@@ -1,3 +1,8 @@
+5745.	[bug]		Fetch context objects now use attach/detach
+			semantics to make it easier to find and debug
+			reference-counting errors, and several such errors
+			have been fixed. [GL #2953]
+
 5744.	[func]		The network manager is now used for netlink sockets
 			to monitor network interface changes. This was the
 			last remaining use of the old isc_socket and
