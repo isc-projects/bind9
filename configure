@@ -26474,7 +26474,17 @@ fi
     echo "    localstatedir: $localstatedir"
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
-    $CC --version 2>&1 | sed 's/^/    /'
+    if test "$GCC" = "yes"
+then :
+  $CC --version 2>&1 | sed 's/^/    /'
+else $as_nop
+  case $host in #(
+  *-solaris*) :
+    $CC -V 2>&1 | sed 's/^/    /' ;; #(
+  *) :
+    $CC --version 2>&1 | sed 's/^/    /' ;;
+esac
+fi
 
     if test "X$ac_unrecognized_opts" != "X"; then
 	echo "Unrecognized options:"

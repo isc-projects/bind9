@@ -3092,7 +3092,11 @@ report() {
     echo "    localstatedir: $localstatedir"
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
-    $CC --version 2>&1 | sed 's/^/    /'
+    AS_IF([test "$GCC" = "yes"],
+	  [$CC --version 2>&1 | sed 's/^/    /'],
+	  [AS_CASE([$host],
+		   [*-solaris*],[$CC -V 2>&1 | sed 's/^/    /'],
+		   [$CC --version 2>&1 | sed 's/^/    /'])])
 
     if test "X$ac_unrecognized_opts" != "X"; then
 	echo "Unrecognized options:"
