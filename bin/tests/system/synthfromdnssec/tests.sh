@@ -128,6 +128,50 @@ do
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    echo_i "prime insecure negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts a.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n insecure.nxdomain.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "prime insecure negative NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts nodata.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n insecure.nodata.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "prime insecure wildcard response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts a.wild-a.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_a a.wild-a.insecure.example. dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && sed 's/^a\./b./' dig.out.ns${ns}.test$n > insecure.wild.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "prime wildcard CNAME response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts a.wild-cname.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_cname a.wild-cname.insecure.example. dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && sed 's/^a\./b./' dig.out.ns${ns}.test$n > insecure.wildcname.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
 done
 
 echo_i "prime redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
@@ -226,6 +270,59 @@ do
     fi
     grep "ns1.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
     digcomp wildcname.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check insecure NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts b.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep b.insecure.example/A > /dev/null || ret=1
+    digcomp insecure.nxdomain.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check insecure NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts nodata.insecure.example. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep nodata.insecure.example/AAAA > /dev/null || ret=1
+    digcomp insecure.nodata.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check insecure wildcard response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts b.wild-a.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    grep "b\.wild-a\.insecure\.example\..*3600.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    nextpart ns1/named.run | grep b.wild-a.insecure.example/A > /dev/null || ret=1
+    digcomp insecure.wild.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check insecure wildcard CNAME response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts b.wild-cname.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_cname b.wild-cname.insecure.example dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep b.wild-cname.insecure.example/A > /dev/null || ret=1
+    grep "ns1.insecure.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    digcomp insecure.wildcname.out dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))

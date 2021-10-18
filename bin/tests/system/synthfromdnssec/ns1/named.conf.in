@@ -34,6 +34,11 @@ zone "example" {
 	file "example.db.signed";
 };
 
+zone "insecure.example" {
+	type primary;
+	file "insecure.example.db.signed";
+};
+
 zone "dnamed" {
 	type primary;
 	file "dnamed.db.signed";
