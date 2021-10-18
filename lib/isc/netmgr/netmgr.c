@@ -2144,7 +2144,7 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
 		break;
 	default:
-		if (atomic_load(&sock->client)) {
+		if (atomic_load(&sock->client) && sock->statichandle != NULL) {
 			isc_nmhandle_attach(sock->statichandle, &req->handle);
 		} else {
 			req->handle = isc__nmhandle_get(sock, sockaddr, NULL);

@@ -116,6 +116,14 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		return;
 	}
 
+	if (eresult == ISC_R_SHUTTINGDOWN) {
+		/*
+		 * The mgr->route and mgr is detached in
+		 * ns_interfacemgr_shutdown()
+		 */
+		return;
+	}
+
 	if (eresult != ISC_R_SUCCESS) {
 		if (eresult != ISC_R_CANCELED) {
 			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -124,6 +132,7 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				      isc_result_totext(eresult));
 		}
 		isc_nmhandle_detach(&mgr->route);
+		ns_interfacemgr_detach(&mgr);
 		return;
 	}
 
@@ -136,6 +145,7 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			      "recompile required",
 			      rtm->rtm_version, RTM_VERSION);
 		isc_nmhandle_detach(&mgr->route);
+		ns_interfacemgr_detach(&mgr);
 		return;
 	}
 #endif /* ifdef RTM_VERSION */
@@ -164,6 +174,7 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	if (done) {
 		isc_nmhandle_detach(&mgr->route);
+		ns_interfacemgr_detach(&mgr);
 	}
 	return;
 }
@@ -181,6 +192,7 @@ route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	INSIST(mgr->route == NULL);
 
+	ns_interfacemgr_attach(mgr, &(ns_interfacemgr_t *){ NULL });
 	isc_nmhandle_attach(handle, &mgr->route);
 	isc_nm_read(handle, route_recv, mgr);
 }
@@ -283,9 +295,6 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 
 	isc_refcount_destroy(&mgr->references);
 
-	if (mgr->route != NULL) {
-		isc_nmhandle_detach(&mgr->route);
-	}
 	dns_aclenv_detach(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
@@ -346,19 +355,18 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 
 	/*%
 	 * Shut down and detach all interfaces.
-	 * By incrementing the generation count, we make purge_old_interfaces()
-	 * consider all interfaces "old".
+	 * By incrementing the generation count, we make
+	 * purge_old_interfaces() consider all interfaces "old".
 	 */
 	mgr->generation++;
 	atomic_store(&mgr->shuttingdown, true);
 
-	LOCK(&mgr->lock);
+	purge_old_interfaces(mgr);
+
 	if (mgr->route != NULL) {
 		isc_nmhandle_detach(&mgr->route);
+		ns_interfacemgr_detach(&mgr);
 	}
-	UNLOCK(&mgr->lock);
-
-	purge_old_interfaces(mgr);
 }
 
 static isc_result_t
