@@ -1429,7 +1429,7 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 
 void
 dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
-	REQUIRE(timeout <= UINT16_MAX);
+	REQUIRE(timeout <= (int32_t)UINT16_MAX);
 
 	switch (disp->socktype) {
 	case isc_socktype_udp:
@@ -1483,6 +1483,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 void
 dns_dispatch_cancel(dns_dispentry_t **respp) {
 	dns_dispentry_t *resp = NULL;
+	dns_dispatch_t *disp = NULL;
 
 	REQUIRE(respp != NULL);
 
@@ -1491,6 +1492,7 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 
 	REQUIRE(VALID_RESPONSE(resp));
 
+	disp = resp->disp;
 	resp->canceled = true;
 
 	/* Connected UDP. */
@@ -1499,11 +1501,12 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 		goto done;
 	}
 
+	LOCK(&disp->lock);
 	/* TCP pending connection. */
 	if (ISC_LINK_LINKED(resp, plink)) {
 		dns_dispentry_t *copy = resp;
 
-		ISC_LIST_UNLINK(resp->disp->pending, resp, plink);
+		ISC_LIST_UNLINK(disp->pending, resp, plink);
 		if (resp->connected != NULL) {
 			resp->connected(ISC_R_CANCELED, NULL, resp->arg);
 		}
@@ -1516,6 +1519,7 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 		 * dns_dispatch_done().
 		 */
 		dispentry_detach(&copy);
+		UNLOCK(&disp->lock);
 		goto done;
 	}
 
@@ -1526,14 +1530,14 @@ dns_dispatch_cancel(dns_dispentry_t **respp) {
 	 * unless this is the last resp waiting.
 	 */
 	if (ISC_LINK_LINKED(resp, alink)) {
-		ISC_LIST_UNLINK(resp->disp->active, resp, alink);
-		if (ISC_LIST_EMPTY(resp->disp->active) &&
-		    resp->disp->handle != NULL) {
-			isc_nm_cancelread(resp->disp->handle);
+		ISC_LIST_UNLINK(disp->active, resp, alink);
+		if (ISC_LIST_EMPTY(disp->active) && disp->handle != NULL) {
+			isc_nm_cancelread(disp->handle);
 		} else if (resp->response != NULL) {
 			resp->response(ISC_R_CANCELED, NULL, resp->arg);
 		}
 	}
+	UNLOCK(&disp->lock);
 
 done:
 	dns_dispatch_done(&resp);
