@@ -1429,7 +1429,7 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 
 void
 dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
-	REQUIRE(timeout <= UINT16_MAX);
+	REQUIRE(timeout <= (int32_t)UINT16_MAX);
 
 	switch (disp->socktype) {
 	case isc_socktype_udp:
