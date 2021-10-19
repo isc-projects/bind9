@@ -5142,6 +5142,47 @@ unlock:
 }
 
 /*
+ * typemap with just RRSIG(46) and NSEC(47) bits set.
+ *
+ * Bitmap calculation from dns_nsec_setbit:
+ *
+ *					46	47
+ *	shift = 7 - (type % 8);		0	1
+ *	mask = 1 << shift;		0x02	0x01
+ *	array[type / 8] |= mask;
+ *
+ * Window (0), bitmap length (6), and bitmap.
+ */
+static const unsigned char minimal_typemap[] = { 0, 6, 0, 0, 0, 0, 0, 0x03 };
+
+static bool
+is_minimal_nsec(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_nsec_t nsec;
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (nsec.len == sizeof(minimal_typemap) &&
+		    memcmp(nsec.typebits, minimal_typemap, nsec.len) == 0)
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (true);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (false);
+}
+
+/*
  * The validator has finished.
  */
 static void
@@ -5528,6 +5569,10 @@ answer_response:
 			}
 			if (sigrdataset == NULL ||
 			    sigrdataset->trust != dns_trust_secure) {
+				continue;
+			}
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    is_minimal_nsec(rdataset)) {
 				continue;
 			}
 			result = dns_db_findnode(fctx->cache, name, true,
