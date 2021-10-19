@@ -173,6 +173,18 @@ do
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    echo_i "prime minimal NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts nxdomain.minimal. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
+    grep "nxdomaia.minimal.*3600.IN.NSEC.nxdomaiz.minimal. RRSIG NSEC" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n minimal.nxdomain.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
 done
 
 echo_i "prime redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
@@ -325,6 +337,19 @@ do
     nextpart ns1/named.run | grep b.wild-cname.insecure.example/A > /dev/null || ret=1
     grep "ns1.insecure.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
     digcomp insecure.wildcname.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check minimal NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts nxdomaic.minimal. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep nxdomaic.minimal/A > /dev/null || ret=1
+    digcomp minimal.nxdomain.out dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))

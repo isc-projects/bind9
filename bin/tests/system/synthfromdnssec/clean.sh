@@ -25,6 +25,8 @@ rm -f ./ns1/insecure.example.db
 rm -f ./ns1/insecure.example.db.signed
 rm -f ./ns1/dnamed.db
 rm -f ./ns1/dnamed.db.signed
+rm -f ./ns1/minimal.db
+rm -f ./ns1/minimal.db.signed
 rm -f ./ns1/root.db
 rm -f ./ns1/root.db.signed
 rm -f ./ns1/trusted.conf
@@ -34,3 +36,4 @@ rm -f ./nodata.out ./insecure.nodata.out
 rm -f ./nxdomain.out ./insecure.nxdomain.out
 rm -f ./wild.out ./insecure.wild.out
 rm -f ./wildcname.out ./insecure.wildcname.out
+rm -f ./minimal.nxdomain.out

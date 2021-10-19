@@ -1,0 +1,28 @@
+$TTL 3600
+minimal.		3600	SOA	ns1.minimal. hostmaster.minimal. (
+					1          ; serial
+					3600       ; refresh (1 hour)
+					1200       ; retry (20 minutes)
+					604800     ; expire (1 week)
+					3600       ; minimum (1 hour)
+					)
+			3600	NS	ns1.minimal.
+			3600	NSEC	dnamed.minimal. NS SOA RRSIG NSEC DNSKEY
+dnamed.minimal.		3600	DNAME	dnamed.
+			3600	NSEC	insecure.minimal. DNAME RRSIG NSEC
+insecure.minimal.	3600	NS	ns1.insecure.minimal.
+			3600	NSEC	nodata.minimal. NS RRSIG NSEC
+nodata.minimal.		3600	TXT	"nodata"
+			3600	NSEC	ns1.minimal. TXT RRSIG NSEC
+; incomplete chain pointing at non-existent ns2.minimal
+ns1.minimal.		3600	A	10.53.0.1
+			3600	NSEC	ns2.minimal. A RRSIG NSEC
+; minimal response for nxdomain.minimal.
+nxdomaia.minimal.	3600	NSEC	nxdomaiz.minimal. RRSIG NSEC
+;
+*.wild-a.minimal.	3600	A	1.2.3.4
+			3600	NSEC	*.wild-cname.minimal. A RRSIG NSEC
+*.wild-cname.minimal.	3600	CNAME	ns1.minimal.
+			3600	NSEC	minimal. CNAME RRSIG NSEC
+; glue
+ns1.insecure.minimal.	3600	A	10.53.0.1

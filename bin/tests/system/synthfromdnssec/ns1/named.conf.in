@@ -44,4 +44,9 @@ zone "dnamed" {
 	file "dnamed.db.signed";
 };
 
+zone "minimal" {
+	type primary;
+	file "minimal.db.signed";
+};
+
 include "trusted.conf";
