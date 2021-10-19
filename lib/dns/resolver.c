@@ -485,7 +485,6 @@ typedef struct fctxbucket {
 	isc_mutex_t lock;
 	ISC_LIST(fetchctx_t) fctxs;
 	atomic_bool exiting;
-	isc_mem_t *mctx;
 } fctxbucket_t;
 
 typedef struct fctxcount fctxcount_t;
@@ -4527,7 +4526,6 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
-	isc_mem_t *mctx = NULL;
 	size_t p;
 
 	/*
@@ -4536,8 +4534,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
 
-	mctx = res->buckets[bucketnum].mctx;
-	fctx = isc_mem_get(mctx, sizeof(*fctx));
+	fctx = isc_mem_get(res->mctx, sizeof(*fctx));
 	*fctx = (fetchctx_t){
 		.type = type,
 		.qmintype = type,
@@ -4573,7 +4570,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	p = strlcat(buf, "/", sizeof(buf));
 	INSIST(p + DNS_RDATATYPE_FORMATSIZE < sizeof(buf));
 	dns_rdatatype_format(type, buf + p, sizeof(buf) - p);
-	fctx->info = isc_mem_strdup(mctx, buf);
+	fctx->info = isc_mem_strdup(res->mctx, buf);
 
 	FCTXTRACE("create");
 
@@ -4708,7 +4705,8 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 		goto cleanup_fcount;
 	}
 
-	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &fctx->qmessage);
+	dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
+			   &fctx->qmessage);
 
 	/*
 	 * Compute an expiration time for the entire fetch.
@@ -4758,7 +4756,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	 */
 	dns_db_attach(res->view->cachedb, &fctx->cache);
 	dns_adb_attach(res->view->adb, &fctx->adb);
-	isc_mem_attach(mctx, &fctx->mctx);
+	isc_mem_attach(res->mctx, &fctx->mctx);
 
 	ISC_LIST_INIT(fctx->events);
 	ISC_LINK_INIT(fctx, link);
@@ -4804,12 +4802,12 @@ cleanup_nameservers:
 	if (dns_rdataset_isassociated(&fctx->nameservers)) {
 		dns_rdataset_disassociate(&fctx->nameservers);
 	}
-	isc_mem_free(mctx, fctx->info);
+	isc_mem_free(res->mctx, fctx->info);
 	isc_counter_detach(&fctx->qc);
 
 cleanup_fetch:
 	dns_resolver_detach(&fctx->res);
-	isc_mem_put(mctx, fctx, sizeof(*fctx));
+	isc_mem_put(res->mctx, fctx, sizeof(*fctx));
 
 	return (result);
 }
@@ -9690,7 +9688,6 @@ destroy(dns_resolver_t *res) {
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
 		isc_mutex_destroy(&res->buckets[i].lock);
-		isc_mem_detach(&res->buckets[i].mctx);
 	}
 	isc_mem_put(res->mctx, res->buckets,
 		    res->nbuckets * sizeof(fctxbucket_t));
@@ -9719,7 +9716,7 @@ destroy(dns_resolver_t *res) {
 	dns_resolver_resetmustbesecure(res);
 	isc_timer_detach(&res->spillattimer);
 	res->magic = 0;
-	isc_mem_put(res->mctx, res, sizeof(*res));
+	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 }
 
 static void
@@ -9800,8 +9797,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	RTRACE("create");
 	res = isc_mem_get(view->mctx, sizeof(*res));
-	*res = (dns_resolver_t){ .mctx = view->mctx,
-				 .rdclass = view->rdclass,
+	*res = (dns_resolver_t){ .rdclass = view->rdclass,
 				 .nm = nm,
 				 .timermgr = timermgr,
 				 .taskmgr = taskmgr,
@@ -9823,6 +9819,8 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 				 .querydscp6 = -1 };
 
 	atomic_init(&res->activebuckets, ntasks);
+
+	isc_mem_attach(view->mctx, &res->mctx);
 
 	res->quotaresp[dns_quotatype_zone] = DNS_R_DROP;
 	res->quotaresp[dns_quotatype_server] = DNS_R_SERVFAIL;
@@ -9865,8 +9863,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 		snprintf(name, sizeof(name), "res%" PRIu32, i);
 		isc_task_setname(res->buckets[i].task, name, res);
-
-		isc_mem_attach(view->mctx, &res->buckets[i].mctx);
 
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		atomic_init(&res->buckets[i].exiting, false);
@@ -9933,7 +9929,6 @@ cleanup_primelock:
 
 cleanup_buckets:
 	for (size_t i = 0; i < ntasks; i++) {
-		isc_mem_detach(&res->buckets[i].mctx);
 		isc_mutex_destroy(&res->buckets[i].lock);
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
