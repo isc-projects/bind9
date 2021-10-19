@@ -5571,8 +5571,15 @@ answer_response:
 			    sigrdataset->trust != dns_trust_secure) {
 				continue;
 			}
+
+			/*
+			 * Don't cache "white lies" but do cache
+			 * "black lies".
+			 */
 			if (rdataset->type == dns_rdatatype_nsec &&
-			    is_minimal_nsec(rdataset)) {
+			    !dns_name_equal(fctx->name, name) &&
+			    is_minimal_nsec(rdataset))
+			{
 				continue;
 			}
 			result = dns_db_findnode(fctx->cache, name, true,
