@@ -98,6 +98,11 @@ for (;;) {
 	} elsif ($qname =~ /^nxdomain\.example\.net$/i) {
 		$packet->header->aa(1);
 		$packet->header->rcode(NXDOMAIN);
+	} elsif ($qname =~ /lame\.example\.org/) {
+		$packet->header->ad(0);
+		$packet->header->aa(0);
+		$packet->push("authority", new Net::DNS::RR("lame.example.org 300 NS ns.lame.example.org"));
+		$packet->push("additional", new Net::DNS::RR("ns.lame.example.org 300 A 10.53.0.3"));
 	} elsif ($qname eq "cname.sub.example.org") {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname .
