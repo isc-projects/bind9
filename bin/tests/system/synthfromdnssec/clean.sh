@@ -37,3 +37,4 @@ rm -f ./nxdomain.out ./insecure.nxdomain.out
 rm -f ./wild.out ./insecure.wild.out
 rm -f ./wildcname.out ./insecure.wildcname.out
 rm -f ./minimal.nxdomain.out
+rm -f ./black.out

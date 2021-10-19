@@ -7,7 +7,10 @@ minimal.		3600	SOA	ns1.minimal. hostmaster.minimal. (
 					3600       ; minimum (1 hour)
 					)
 			3600	NS	ns1.minimal.
-			3600	NSEC	dnamed.minimal. NS SOA RRSIG NSEC DNSKEY
+			3600	NSEC	black.minimal. NS SOA RRSIG NSEC DNSKEY
+; cloudflare black lie
+black.minimal.		3600	NSEC	\000.black.minimal. RRSIG NSEC
+;
 dnamed.minimal.		3600	DNAME	dnamed.
 			3600	NSEC	insecure.minimal. DNAME RRSIG NSEC
 insecure.minimal.	3600	NS	ns1.insecure.minimal.
