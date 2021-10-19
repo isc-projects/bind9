@@ -18,7 +18,7 @@ CLEANQL="rm -f ans*/query.log"
 status=0
 n=0
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .good is not minimized when qname-minimization is off ($n)"
 ret=0
 $CLEANQL
@@ -38,9 +38,9 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.good." | $DIFF ans3/query.log - > /de
 echo "ADDR icky.icky.icky.ptang.zoop.boing.good." | $DIFF ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .bad is not minimized when qname-minimization is off ($n)"
 ret=0
 $CLEANQL
@@ -60,9 +60,9 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | $DIFF ans3/query.log - > /dev
 echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | $DIFF ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .slow is not minimized when qname-minimization is off ($n)"
 ret=0
 $CLEANQL
@@ -83,9 +83,9 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.slow." | $DIFF ans3/query.log - > /de
 echo "ADDR icky.icky.icky.ptang.zoop.boing.slow." | $DIFF ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .ugly is not minimized when qname-minimization is off ($n)"
 ret=0
 $CLEANQL
@@ -106,9 +106,9 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | $DIFF ans3/query.log - > /de
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | $DIFF ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .good is properly minimized when qname-minimization is in strict mode ($n)"
 ret=0
 $CLEANQL
@@ -140,9 +140,9 @@ ADDR icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .good is properly minimized when qname-minimization is in relaxed mode ($n)"
 ret=0
 $CLEANQL
@@ -171,9 +171,9 @@ ADDR icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .bad fails when qname-minimization is in strict mode ($n)"
 ret=0
 $CLEANQL
@@ -189,9 +189,9 @@ NS boing.bad.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .bad succeeds when qname-minimization is in relaxed mode ($n)"
 ret=0
 $CLEANQL
@@ -220,9 +220,9 @@ ADDR icky.icky.icky.ptang.zoop.boing.bad.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .ugly fails when qname-minimization is in strict mode ($n)"
 ret=0
 $CLEANQL
@@ -239,10 +239,10 @@ NS ugly.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 $RNDCCMD 10.53.0.6 flush
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .ugly succeeds when qname-minimization is in relaxed mode ($n)"
 ret=0
 $CLEANQL
@@ -253,7 +253,7 @@ grep "icky.icky.icky.ptang.zoop.boing.ugly. 1	IN A	192.0.2.1" dig.out.test$n > /
 sleep 1
 
 sort ans2/query.log > ans2/query.log.sorted
-cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || cat ans2/query.log.sorted
+cat << __EOF | $DIFF ans2/query.log.sorted - > /dev/null || ret=1
 ADDR _.boing.ugly.
 ADDR _.boing.ugly.
 ADDR a.bit.longer.ns.name.ugly.
@@ -267,17 +267,17 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | $DIFF ans3/query.log - > /de
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | $DIFF ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 $RNDCCMD 10.53.0.7 flush
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "information that minimization was unsuccessful for .ugly is logged ($n)"
 ret=0
 grep "success resolving 'icky.icky.icky.ptang.zoop.boing.ugly/A' after disabling qname minimization due to 'FORMERR'" ns7/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .slow is properly minimized when qname-minimization is on ($n)"
 ret=0
 $CLEANQL
@@ -309,9 +309,9 @@ ADDR icky.icky.icky.ptang.zoop.boing.slow.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .ip6.arpa succeeds and skips on proper boundaries when qname-minimization is on ($n)"
 ret=0
 $CLEANQL
@@ -331,9 +331,9 @@ PTR 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for multiple label name skips after 7th label ($n)"
 ret=0
 $CLEANQL
@@ -366,9 +366,9 @@ ADDR more.icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "qname minimization is disabled when forwarding ($n)"
 ret=0
 $CLEANQL
@@ -382,9 +382,9 @@ ADDR a.bit.longer.ns.name.fwd.
 __EOF
 for ans in ans2; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "qname minimization resolves unusual ip6.arpa. names ($n)"
 ret=0
 $CLEANQL
@@ -396,7 +396,7 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep 'ip6\.arpa.*TXT.*long_ip6_name' dig.out.test$n > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
 # Below are test cases for GL #2665: The QNAME minimization (if enabled) should
 # also occur on the second query, after the RRsets have expired from cache.
@@ -405,7 +405,7 @@ status=`expr $status + $ret`
 # We query for the test domain a.b.stale. in all cases (QNAME minimization off,
 # strict mode, and relaxed mode) and expect it to behave the same the second
 # time when we have a stale delegation structure in cache.
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is not minimized when qname-minimization is off ($n)"
 ret=0
 $CLEANQL
@@ -419,9 +419,9 @@ echo "TXT a.b.stale." | $DIFF ans3/query.log - > /dev/null || ret=1
 test -f  ans4/query.log && ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is properly minimized when qname-minimization is in strict mode ($n)"
 ret=0
 $CLEANQL
@@ -446,9 +446,9 @@ TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is properly minimized when qname-minimization is in relaxed mode ($n)"
 ret=0
 $CLEANQL
@@ -471,12 +471,12 @@ TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
 echo_i "sleep 2, allow entries in cache to go stale"
 sleep 2
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is not minimized when qname-minimization is off (stale cache) ($n)"
 ret=0
 $CLEANQL
@@ -489,9 +489,9 @@ echo "TXT a.b.stale." | $DIFF ans3/query.log - > /dev/null || ret=1
 test -f  ans4/query.log && ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is properly minimized when qname-minimization is in strict mode (stale cache) ($n)"
 ret=0
 $CLEANQL
@@ -512,9 +512,9 @@ TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "query for .stale is properly minimized when qname-minimization is in relaxed mode (stale cache) ($n)"
 ret=0
 $CLEANQL
@@ -533,7 +533,7 @@ TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
