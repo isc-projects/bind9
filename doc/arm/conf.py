@@ -18,7 +18,20 @@ from docutils.nodes import Node, system_message
 from docutils.parsers.rst import roles
 
 from sphinx import addnodes
-from sphinx.util.docutils import ReferenceRole
+
+try:
+    from sphinx.util.docutils import ReferenceRole
+except ImportError:
+    # pylint: disable=too-few-public-methods
+    class ReferenceRole(roles.GenericRole):
+        '''
+        The ReferenceRole class (used as a base class by GitLabRefRole
+        below) is only defined in Sphinx >= 2.0.0.  For older Sphinx
+        versions, this stub version of the ReferenceRole class is used
+        instead.
+        '''
+        def __init__(self):
+            super().__init__('', nodes.strong)
 
 
 GITLAB_BASE_URL = 'https://gitlab.isc.org/isc-projects/bind9/-/'
