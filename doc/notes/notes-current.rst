@@ -112,3 +112,8 @@ Bug Fixes
 - Logfiles using ``timestamp``-style suffixes were not always correctly
   removed when the number of files exceeded the limit set by ``versions``.
   :gl:`#828`
+
+- Some lame delegations could trigger a dependency loop, in which a
+  resolver fetch was waiting for a name server address lookup which was
+  waiting for the same resolver fetch. This could cause a recursive lookup
+  to hang until timing out. This now detected and avoided. :gl:`#2927`

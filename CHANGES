@@ -1,3 +1,10 @@
+5746.	[bug]		A lame server delegation could lead to a loop in which
+			a resolver fetch depends on an ADB find which depends
+			on the same resolver fetch. Previously, this would
+			cause the fetch to hang until timing out, but after
+			change #5730 it would hang forever. The condition is
+			now detected and avoided. [GL #2927]
+
 5745.	[bug]		Fetch context objects now use attach/detach
 			semantics to make it easier to find and debug
 			reference-counting errors, and several such errors
