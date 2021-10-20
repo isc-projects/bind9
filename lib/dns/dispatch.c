@@ -1603,6 +1603,10 @@ startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		REQUIRE(disp != NULL);
 		LOCK(&disp->lock);
 		REQUIRE(disp->handle == NULL);
+		REQUIRE(atomic_compare_exchange_strong(
+			&disp->state,
+			&(uint_fast32_t){ DNS_DISPATCHSTATE_CONNECTING },
+			DNS_DISPATCHSTATE_CONNECTED));
 
 		isc_nmhandle_attach(handle, &disp->handle);
 		dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
@@ -1633,10 +1637,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	if (eresult == ISC_R_SUCCESS) {
-		REQUIRE(atomic_compare_exchange_strong(
-			&disp->state,
-			&(uint_fast32_t){ DNS_DISPATCHSTATE_CONNECTING },
-			DNS_DISPATCHSTATE_CONNECTED));
 		startrecv(handle, disp, NULL);
 	}
 
