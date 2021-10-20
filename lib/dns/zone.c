@@ -13789,7 +13789,7 @@ setmodtime(dns_zone_t *zone, isc_time_t *expiretime) {
 	}
 	if (result == ISC_R_SUCCESS &&
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP))
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING))
 	{
 		result = isc_file_settime(zone->masterfile, &when);
 	} else if (result != ISC_R_SUCCESS) {
