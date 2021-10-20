@@ -53,8 +53,10 @@
  *** Intervals
  ***/
 
+#if !defined(UNIT_TESTING)
 static const isc_interval_t zero_interval = { 0, 0 };
 const isc_interval_t *const isc_interval_zero = &zero_interval;
+#endif
 
 void
 isc_interval_set(isc_interval_t *i, unsigned int seconds,
@@ -82,8 +84,10 @@ isc_interval_iszero(const isc_interval_t *i) {
  *** Absolute Times
  ***/
 
+#if !defined(UNIT_TESTING)
 static const isc_time_t epoch = { 0, 0 };
 const isc_time_t *const isc_time_epoch = &epoch;
+#endif
 
 void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
