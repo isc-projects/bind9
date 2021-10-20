@@ -1164,14 +1164,26 @@ AC_LINK_IFELSE(
      [[]],
      [[return (__builtin_clz(0xff) == 24 ? 1 : 0);]]
    )],
-  [have_builtin_clz=yes
-   AC_MSG_RESULT(yes)],
-  [have_builtin_clz=no
-   AC_MSG_RESULT(no)]
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE(HAVE_BUILTIN_CLZ, 1, [Define to 1 if the compiler supports __builtin_clz.])
+  ],
+  [AC_MSG_RESULT([no])]
 )
-if test "yes" = "$have_builtin_clz"; then
-	AC_DEFINE(HAVE_BUILTIN_CLZ, 1, [Define to 1 if the compiler supports __builtin_clz.])
-fi
+
+#
+# Check for __builtin_uadd_overflow
+#
+AC_MSG_CHECKING([compiler support for __builtin_*_overflow()])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <limits.h>]],
+     [[return (__builtin_uadd_overflow(UINT_MAX, UINT_MAX, &(unsigned int){ 0 }));]]
+   )],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_BUILTIN_OVERFLOW], [1], [define if the compiler supports __builtin_*_overflow().])
+  ],
+  [AC_MSG_RESULT([no])
+  ])
 
 #
 # Activate "rrset-order fixed" or not?
