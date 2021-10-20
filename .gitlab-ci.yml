@@ -21,7 +21,7 @@ variables:
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
-  ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
+  ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
   TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-12/bin/llvm-symbolizer"
 
   TARBALL_EXTENSION: xz
@@ -932,8 +932,6 @@ gcc:asan:
   <<: *build_job
 
 system:gcc:asan:
-  variables:
-    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *fedora_34_amd64_image
   <<: *system_test_job
   needs:
@@ -941,8 +939,6 @@ system:gcc:asan:
       artifacts: true
 
 unit:gcc:asan:
-  variables:
-    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *fedora_34_amd64_image
   <<: *unit_test_job
   needs:
@@ -959,8 +955,6 @@ clang:asan:
   <<: *build_job
 
 system:clang:asan:
-  variables:
-    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *base_image
   <<: *system_test_job
   needs:
@@ -968,8 +962,6 @@ system:clang:asan:
       artifacts: true
 
 unit:clang:asan:
-  variables:
-    ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
   <<: *base_image
   <<: *unit_test_job
   needs:
