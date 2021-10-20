@@ -180,6 +180,12 @@ typedef enum {
 } dns_dbtype_t;
 
 typedef enum {
+	dns_dbtree_main = 0,
+	dns_dbtree_nsec = 1,
+	dns_dbtree_nsec3 = 2
+} dns_dbtree_t;
+
+typedef enum {
 	dns_notifytype_no = 0,
 	dns_notifytype_yes = 1,
 	dns_notifytype_explicit = 2,

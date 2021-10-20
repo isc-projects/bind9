@@ -7580,7 +7580,7 @@ isdnssec(dns_db_t *db) {
 }
 
 static unsigned int
-nodecount(dns_db_t *db) {
+nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	dns_rbtdb_t *rbtdb;
 	unsigned int count;
 
@@ -7589,7 +7589,20 @@ nodecount(dns_db_t *db) {
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	count = dns_rbt_nodecount(rbtdb->tree);
+	switch (tree) {
+	case dns_dbtree_main:
+		count = dns_rbt_nodecount(rbtdb->tree);
+		break;
+	case dns_dbtree_nsec:
+		count = dns_rbt_nodecount(rbtdb->nsec);
+		break;
+	case dns_dbtree_nsec3:
+		count = dns_rbt_nodecount(rbtdb->nsec3);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 
 	return (count);

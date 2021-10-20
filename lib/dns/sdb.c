@@ -1237,8 +1237,9 @@ issecure(dns_db_t *db) {
 }
 
 static unsigned int
-nodecount(dns_db_t *db) {
+nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	UNUSED(db);
+	UNUSED(tree);
 
 	return (0);
 }

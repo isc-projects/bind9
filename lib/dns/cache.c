@@ -1260,7 +1260,7 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletettl],
 		"cache records deleted due to TTL expiration");
-	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
+	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db, dns_dbtree_main),
 		"cache database nodes");
 	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)dns_db_hashsize(cache->db),
 		"cache database hash buckets");
@@ -1327,7 +1327,8 @@ dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 	TRY0(renderstat("DeleteTTL", values[dns_cachestatscounter_deletettl],
 			writer));
 
-	TRY0(renderstat("CacheNodes", dns_db_nodecount(cache->db), writer));
+	TRY0(renderstat("CacheNodes",
+			dns_db_nodecount(cache->db, dns_dbtree_main), writer));
 	TRY0(renderstat("CacheBuckets", dns_db_hashsize(cache->db), writer));
 
 	TRY0(renderstat("TreeMemTotal", isc_mem_total(cache->mctx), writer));
@@ -1388,7 +1389,8 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "DeleteTTL", obj);
 
-	obj = json_object_new_int64(dns_db_nodecount(cache->db));
+	obj = json_object_new_int64(
+		dns_db_nodecount(cache->db, dns_dbtree_main));
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "CacheNodes", obj);
 

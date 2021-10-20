@@ -134,7 +134,7 @@ typedef struct dns_dbmethods {
 				       dns_rdatatype_t	type,
 				       dns_rdatatype_t	covers);
 	bool (*issecure)(dns_db_t *db);
-	unsigned int (*nodecount)(dns_db_t *db);
+	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
 	bool (*ispersistent)(dns_db_t *db);
 	void (*overmem)(dns_db_t *db, bool overmem);
 	void (*settask)(dns_db_t *db, isc_task_t *);
@@ -1349,9 +1349,9 @@ dns_db_overmem(dns_db_t *db, bool overmem);
  */
 
 unsigned int
-dns_db_nodecount(dns_db_t *db);
+dns_db_nodecount(dns_db_t *db, dns_dbtree_t tree);
 /*%<
- * Count the number of nodes in 'db'.
+ * Count the number of nodes in 'db' or its auxiliary trees.
  *
  * Requires:
  *
