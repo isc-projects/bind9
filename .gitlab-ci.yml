@@ -990,7 +990,7 @@ system:gcc:tsan:
 
 unit:gcc:tsan:
   variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt
+    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
   <<: *fedora_34_amd64_image
   <<: *unit_test_tsan_job
   needs:
