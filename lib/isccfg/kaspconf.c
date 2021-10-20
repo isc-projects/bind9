@@ -30,8 +30,8 @@
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
-#define DEFAULT_NSEC3PARAM_ITER	   5
-#define DEFAULT_NSEC3PARAM_SALTLEN 8
+#define DEFAULT_NSEC3PARAM_ITER	   0
+#define DEFAULT_NSEC3PARAM_SALTLEN 0
 
 /*
  * Utility function for getting a configuration option.
