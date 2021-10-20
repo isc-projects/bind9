@@ -18,11 +18,19 @@ import random
 import time
 
 from functools import reduce
+from resource import getrlimit
+from resource import setrlimit
+from resource import RLIMIT_NOFILE
 
 MULTIDIG_INSTANCES = 10
 CONNECT_TRIES = 5
 
 random.seed()
+
+# Ensure we have enough file desriptors to work
+rlimit_nofile = getrlimit(RLIMIT_NOFILE)
+if rlimit_nofile[0] < 1024:
+    setrlimit(RLIMIT_NOFILE, (1024, rlimit_nofile[1]))
 
 
 # Introduce some random delay
