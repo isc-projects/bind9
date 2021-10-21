@@ -98,6 +98,12 @@ Initial rdata hierarchy:
                 any_255/
                         tsig_250.h
 
+#### CLASSNUMBER and TYPENUMBER
+
+Class and type numbers must be unsigned integers. Permissable alphabet: 0 to 9,
+if no match than the file is silently ignored. The number can be at most 65535,
+any number higher is a build error.
+
 #### CLASSNAME and TYPENAME
 
 Class and type names must be from the following alphabet and less that 11
