@@ -1,3 +1,6 @@
+5747.	[func]		Update rndc serve-stale status output to be less
+			confusing. [GL #2742]
+
 5746.	[bug]		A lame server delegation could lead to a loop in which
 			a resolver fetch depends on an ADB find which depends
 			on the same resolver fetch. Previously, this would
