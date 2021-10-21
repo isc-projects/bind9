@@ -1,3 +1,5 @@
+5971.	[func]		Add libsystemd sd_notify() support. [GL #1176]
+
 5970.	[func]		Log the reason why a query was refused. [GL !6669]
 
 5969.	[bug]		DNSSEC signing statistics failed to identify the
