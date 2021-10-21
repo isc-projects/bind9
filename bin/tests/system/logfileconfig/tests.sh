@@ -203,11 +203,11 @@ _found2() (
 
         # we are configured to keep three versions, so the oldest
         # timestamped versions should be gone, and there should
-        # be two new ones.
+        # be two or three backup ones.
         [ -f ns1/named_ts.1480039317 ] && return 1
         [ -f ns1/named_ts.20150101120000120 ] && return 1
         set -- ns1/named_ts.*
-        [ "$#" -eq 2 ] || return 1
+        [ "$#" -eq 2 -o "$#" -eq 3 ] || return 1
 )
 retry_quiet 5 _found2 || ret=1
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
