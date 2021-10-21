@@ -416,17 +416,15 @@ Currently supported commands are:
    See also ``rndc managed-keys``.
 
 ``serve-stale`` (**on** | **off** | **reset** | **status**) [*class* [*view*]]
-   This command enables, disables, resets, or reports the current status of the serving
-   of stale answers as configured in ``named.conf``.
+   This command enables, disables, resets, or reports the current status of
+   the serving of stale answers as configured in ``named.conf``.
 
-   If serving of stale answers is disabled by ``rndc-serve-stale off``,
-   then it remains disabled even if ``named`` is reloaded or
-   reconfigured. ``rndc serve-stale reset`` restores the setting as
-   configured in ``named.conf``.
+   If serving of stale answers is disabled by ``rndc-serve-stale off``, then it
+   remains disabled even if ``named`` is reloaded or reconfigured. ``rndc
+   serve-stale reset`` restores the setting as configured in ``named.conf``.
 
-   ``rndc serve-stale status`` reports whether serving of stale
-   answers is currently enabled, disabled by the configuration, or
-   disabled by ``rndc``. It also reports the values of
+   ``rndc serve-stale status`` reports whether caching and serving of stale
+   answers is currently enabled or disabled. It also reports the values of
    ``stale-answer-ttl`` and ``max-stale-ttl``.
 
 ``showzone`` *zone* [*class* [*view*]]

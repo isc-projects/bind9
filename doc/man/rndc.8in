@@ -418,17 +418,15 @@ option in \fBnamed.conf\fP\&.
 See also \fBrndc managed\-keys\fP\&.
 .TP
 \fBserve\-stale\fP (\fBon\fP | \fBoff\fP | \fBreset\fP | \fBstatus\fP) [\fIclass\fP [\fIview\fP]]
-This command enables, disables, resets, or reports the current status of the serving
-of stale answers as configured in \fBnamed.conf\fP\&.
+This command enables, disables, resets, or reports the current status of
+the serving of stale answers as configured in \fBnamed.conf\fP\&.
 .sp
-If serving of stale answers is disabled by \fBrndc\-serve\-stale off\fP,
-then it remains disabled even if \fBnamed\fP is reloaded or
-reconfigured. \fBrndc serve\-stale reset\fP restores the setting as
-configured in \fBnamed.conf\fP\&.
+If serving of stale answers is disabled by \fBrndc\-serve\-stale off\fP, then it
+remains disabled even if \fBnamed\fP is reloaded or reconfigured. \fBrndc
+serve\-stale reset\fP restores the setting as configured in \fBnamed.conf\fP\&.
 .sp
-\fBrndc serve\-stale status\fP reports whether serving of stale
-answers is currently enabled, disabled by the configuration, or
-disabled by \fBrndc\fP\&. It also reports the values of
+\fBrndc serve\-stale status\fP reports whether caching and serving of stale
+answers is currently enabled or disabled. It also reports the values of
 \fBstale\-answer\-ttl\fP and \fBmax\-stale\-ttl\fP\&.
 .TP
 .B \fBshowzone\fP \fIzone\fP [\fIclass\fP [\fIview\fP]]
