@@ -694,10 +694,12 @@ gcc:stretch:amd64:
     EXTRA_CONFIGURE: "--without-gssapi"
   <<: *debian_stretch_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:stretch:amd64
       artifacts: true
@@ -705,6 +707,7 @@ system:gcc:stretch:amd64:
 unit:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:stretch:amd64
       artifacts: true
