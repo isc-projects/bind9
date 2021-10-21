@@ -84,6 +84,10 @@ handle_signal(int sig, void (*handler)(int)) {
 
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
+	int presult;
+	sigset_t sset;
+	char strbuf[ISC_STRERRORSIZE];
+
 	REQUIRE(VALID_APPCTX(ctx));
 
 	/*
@@ -102,10 +106,6 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	atomic_init(&ctx->want_shutdown, false);
 	atomic_init(&ctx->want_reload, false);
 	atomic_init(&ctx->blocked, false);
-
-	int presult;
-	sigset_t sset;
-	char strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * Always ignore SIGPIPE.
@@ -283,8 +283,8 @@ isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
 
-	REQUIRE(atomic_compare_exchange_strong_acq_rel(&is_running,
-						       &(bool){ false }, true));
+	atomic_compare_exchange_enforced(&is_running, &(bool){ false }, true);
+
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 
@@ -380,11 +380,13 @@ isc_app_finish(void) {
 
 void
 isc_app_block(void) {
-	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
-	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
-						       &(bool){ false }, true));
-
 	sigset_t sset;
+
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
+
+	atomic_compare_exchange_enforced(&isc_g_appctx.blocked,
+					 &(bool){ false }, true);
+
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
@@ -394,13 +396,14 @@ isc_app_block(void) {
 
 void
 isc_app_unblock(void) {
-	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
-	REQUIRE(atomic_compare_exchange_strong_acq_rel(&isc_g_appctx.blocked,
-						       &(bool){ true }, false));
+	sigset_t sset;
 
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
 	REQUIRE(blockedthread == pthread_self());
 
-	sigset_t sset;
+	atomic_compare_exchange_enforced(&isc_g_appctx.blocked, &(bool){ true },
+					 false);
+
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
