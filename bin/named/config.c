@@ -190,7 +190,7 @@ options {\n\
 	stale-answer-ttl 30; /* 30 seconds */\n\
 	stale-cache-enable false;\n\
 	stale-refresh-time 30; /* 30 seconds */\n\
-	synth-from-dnssec no;\n\
+	synth-from-dnssec yes;\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\
 	v6-bias 50;\n\

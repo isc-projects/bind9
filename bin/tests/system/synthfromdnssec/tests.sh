@@ -16,6 +16,7 @@ set -e
 
 status=0
 n=1
+synth_default=yes
 
 rm -f dig.out.*
 
@@ -217,7 +218,7 @@ sleep 1
 for ns in 2 4 5 6
 do
     case $ns in
-    2) ad=yes synth=no description="<default>";;
+    2) ad=yes synth=${synth_default} description="<default>";;
     4) ad=yes synth=no description="no";;
     5) ad=yes synth=yes description="yes";;
     6) ad=no synth=no description="yes; dnssec-validation no";;
@@ -411,7 +412,6 @@ grep 'b\.redirect\..*300.IN.A.100\.100\.100\.2' dig.out.ns3.test$n > /dev/null |
 n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
-
 
 echo_i "check DNAME handling (synth-from-dnssec yes;) ($n)"
 ret=0

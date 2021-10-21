@@ -2240,8 +2240,7 @@ Boolean Options
 
 ``synth-from-dnssec``
    This option synthesizes answers from cached NSEC, NSEC3, and other RRsets that have been
-   proved to be correct using DNSSEC. The default is ``no``, but it will become
-   ``yes`` again in future releases.
+   proved to be correct using DNSSEC. The default is ``yes``.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from
