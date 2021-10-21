@@ -889,5 +889,13 @@ grep 'cname-next\.example\.net\..*CNAME.http-server\.example\.net\.' dig.out.ns7
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check ADB find loops are detected ($n)"
+ret=0
+$DIG $DIGOPTS +tcp +tries=1 +timeout=5 @10.53.0.1 fake.lame.example.org > dig.out.ns1.${n} || ret=1
+grep "status: SERVFAIL" dig.out.ns1.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
