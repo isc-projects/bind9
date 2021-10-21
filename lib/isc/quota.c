@@ -121,6 +121,8 @@ dequeue(isc_quota_t *quota) {
 
 static void
 quota_release(isc_quota_t *quota) {
+	uint_fast32_t used;
+
 	/*
 	 * This is opportunistic - we might race with a failing quota_attach_cb
 	 * and not detect that something is waiting, but eventually someone will
@@ -141,7 +143,8 @@ quota_release(isc_quota_t *quota) {
 		}
 	}
 
-	INSIST(atomic_fetch_sub_release(&quota->used, 1) > 0);
+	used = atomic_fetch_sub_release(&quota->used, 1);
+	INSIST(used > 0);
 }
 
 static isc_result_t

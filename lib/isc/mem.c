@@ -414,12 +414,15 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
 static void
 mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 	struct stats *stats = stats_bucket(ctx, size);
+	uint_fast32_t s, g;
 
 	UNUSED(ptr);
 
-	INSIST(atomic_fetch_sub_release(&ctx->inuse, size) >= size);
+	s = atomic_fetch_sub_release(&ctx->inuse, size);
+	INSIST(s >= size);
 
-	INSIST(atomic_fetch_sub_release(&stats->gets, 1) >= 1);
+	g = atomic_fetch_sub_release(&stats->gets, 1);
+	INSIST(g >= 1);
 
 	decrement_malloced(ctx, size);
 }
