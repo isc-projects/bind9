@@ -101,6 +101,9 @@ Feature Changes
   (``stale-cache-enable``), and whether returning of such data in responses is 
   enabled (``stale-answer-enable``). :gl:`#2742`
 
+- The default for ``dnssec-policy``'s ``nsec3param`` is changed to use
+  no extra iterations and no salt. :gl:`#2956`.
+
 Bug Fixes
 ~~~~~~~~~
 

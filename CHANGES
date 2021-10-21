@@ -1,3 +1,6 @@
+5748.	[func]		Update "nsec3param" defaults to iterations 0, salt
+			length 0. [GL #2956]
+
 5747.	[func]		Update rndc serve-stale status output to be less
 			confusing. [GL #2742]
 
