@@ -1,6 +1,10 @@
 5752.	[bug]		Fix an assertion failure caused by missing member zones
 			during a reload of a catalog zone. [GL #2308]
 
+5750.	[bug]		Fix a bug when comparing two RSA keys. There was a typo
+			which caused the "p" prime factors to not being
+			compared. [GL #2972]
+
 5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 			[GL #2935]
 
