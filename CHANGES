@@ -1,3 +1,7 @@
+5755.	[bug]		The statistics channel wasn't correctly handling
+			multiple HTTP requests, or pipelined or truncated
+			requests. [GL #2973]
+
 5754.	[bug]		"tls" statements may omit "key-file" and "cert-file",
 			but if either one is specified, then both must be.
 			[GL #2986]
