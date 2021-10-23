@@ -988,6 +988,12 @@ default is used.
    absolute path, and *must* be writable by the effective user ID of the
    ``named`` process.
 
+   The option takes effect only at the time that the configuration
+   option is parsed; if other files are being included before or after specifying the
+   new ``directory``, the ``directory`` option must be listed
+   before any other directive (like ``include``) that can work with relative
+   files. The safest way to include files is to use absolute file names.
+
 ``dnstap``
    ``dnstap`` is a fast, flexible method for capturing and logging DNS
    traffic. Developed by Robert Edmonds at Farsight Security, Inc., and
