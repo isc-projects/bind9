@@ -159,56 +159,56 @@ dnssec_verify
 
 # Zone: nsec3.kasp.
 set_zone_policy "nsec3.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-dynamic.kasp.
 set_zone_policy "nsec3-dynamic.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-change.kasp.
 set_zone_policy "nsec3-change.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-dynamic-change.kasp.
 set_zone_policy "nsec3-dynamic-change.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-to-nsec.kasp.
 set_zone_policy "nsec3-to-nsec.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-to-optout.kasp.
 set_zone_policy "nsec3-to-optout.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-from-optout.kasp.
 set_zone_policy "nsec3-from-optout.kasp" "optout"
-set_nsec3param "1" "5" "8"
+set_nsec3param "1" "0" "0"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-other.kasp.
 set_zone_policy "nsec3-other.kasp" "nsec3-other"
-set_nsec3param "1" "11" "0"
+set_nsec3param "1" "11" "8"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
@@ -220,42 +220,42 @@ rndc_reconfig ns3 10.53.0.3
 
 # Zone: nsec-to-nsec3.kasp. (reconfigured)
 set_zone_policy "nsec-to-nsec3.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3.kasp. (same)
 set_zone_policy "nsec3.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-dyamic.kasp. (same)
 set_zone_policy "nsec3-dynamic.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-change.kasp. (reconfigured)
 set_zone_policy "nsec3-change.kasp" "nsec3-other"
-set_nsec3param "1" "11" "0"
+set_nsec3param "1" "11" "8"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-dynamic-change.kasp. (reconfigured)
 set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other"
-set_nsec3param "1" "11" "0"
+set_nsec3param "1" "11" "8"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
 # Zone: nsec3-to-nsec.kasp. (reconfigured)
 set_zone_policy "nsec3-to-nsec.kasp" "nsec"
-set_nsec3param "1" "11" "0"
+set_nsec3param "1" "11" "8"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec
 dnssec_verify
@@ -265,7 +265,7 @@ dnssec_verify
 # There is a bug in the nsec3param building code that thinks when the
 # optout bit is changed, the chain already exists. [GL #2216]
 #set_zone_policy "nsec3-to-optout.kasp" "optout"
-#set_nsec3param "1" "5" "8"
+#set_nsec3param "1" "0" "0"
 #echo_i "check zone ${ZONE} after reconfig"
 #check_nsec3
 #dnssec_verify
@@ -275,14 +275,14 @@ dnssec_verify
 # There is a bug in the nsec3param building code that thinks when the
 # optout bit is changed, the chain already exists. [GL #2216]
 #set_zone_policy "nsec3-from-optout.kasp" "nsec3"
-#set_nsec3param "0" "5" "8"
+#set_nsec3param "0" "0" "0"
 #echo_i "check zone ${ZONE} after reconfig"
 #check_nsec3
 #dnssec_verify
 
 # Zone: nsec3-other.kasp. (same)
 set_zone_policy "nsec3-other.kasp" "nsec3-other"
-set_nsec3param "1" "11" "0"
+set_nsec3param "1" "11" "8"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
@@ -297,7 +297,7 @@ dnssec_verify
 
 # Test NSEC3 and NSEC3PARAM is the same after restart
 set_zone_policy "nsec3.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "check zone ${ZONE} before restart"
 check_nsec3
 dnssec_verify
@@ -317,7 +317,7 @@ status=$((status+ret))
 
 prevsalt="${SALT}"
 set_zone_policy "nsec3.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 SALT="${prevsalt}"
 echo_i "check zone ${ZONE} after restart has salt ${SALT}"
 check_nsec3
@@ -328,7 +328,7 @@ cp ns3/template.db.in ns3/nsec3-fails-to-load.kasp.db
 rndc_reload ns3 10.53.0.3
 
 set_zone_policy "nsec3-fails-to-load.kasp" "nsec3"
-set_nsec3param "0" "5" "8"
+set_nsec3param "0" "0" "0"
 echo_i "check zone ${ZONE} after reload"
 check_nsec3
 dnssec_verify

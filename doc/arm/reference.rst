@@ -5209,7 +5209,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
     ::
 
-        nsec3param iterations 5 optout no salt-length 8;
+        nsec3param iterations 0 optout no salt-length 0;
 
     The default is to use NSEC.  The ``iterations``, ``optout`` and
     ``salt-length`` parts are optional, but if not set, the values in
