@@ -96,6 +96,11 @@ Feature Changes
   is set to ``no`` add to the DNS response payload without offering added value.
   :gl:`#1316`
 
+- The output of ``rndc serve-stale status`` has been clarified. It now
+  explicitly reports whether retention of stale data in the cache is enabled
+  (``stale-cache-enable``), and whether returning of such data in responses is 
+  enabled (``stale-answer-enable``). :gl:`#2742`
+
 Bug Fixes
 ~~~~~~~~~
 

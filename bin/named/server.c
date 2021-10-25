@@ -16513,21 +16513,35 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		switch (view->staleanswersok) {
 		case dns_stale_answer_yes:
 			if (stale_ttl > 0) {
-				CHECK(putstr(text, "on (rndc)"));
+				CHECK(putstr(text, "stale cache enabled; stale "
+						   "answers enabled"));
 			} else {
-				CHECK(putstr(text, "off (not-cached)"));
+				CHECK(putstr(text,
+					     "stale cache disabled; stale "
+					     "answers unavailable"));
 			}
 			break;
 		case dns_stale_answer_no:
-			CHECK(putstr(text, "off (rndc)"));
+			if (stale_ttl > 0) {
+				CHECK(putstr(text, "stale cache enabled; stale "
+						   "answers disabled"));
+			} else {
+				CHECK(putstr(text,
+					     "stale cache disabled; stale "
+					     "answers unavailable"));
+			}
 			break;
 		case dns_stale_answer_conf:
 			if (view->staleanswersenable && stale_ttl > 0) {
-				CHECK(putstr(text, "on"));
-			} else if (view->staleanswersenable) {
-				CHECK(putstr(text, "off (not-cached)"));
+				CHECK(putstr(text, "stale cache enabled; stale "
+						   "answers enabled"));
+			} else if (stale_ttl > 0) {
+				CHECK(putstr(text, "stale cache enabled; stale "
+						   "answers disabled"));
 			} else {
-				CHECK(putstr(text, "off"));
+				CHECK(putstr(text,
+					     "stale cache disabled; stale "
+					     "answers unavailable"));
 			}
 			break;
 		}
