@@ -127,7 +127,7 @@ static const char copyright[] = "/*\n"
 #define TYPENAMES     256
 #define TYPECLASSLEN  20 /* DNS mnemonic size. Must be less than 100. */
 #define TYPECLASSBUF  (TYPECLASSLEN + 1)
-#define TYPECLASSFMT  "%" STR(TYPECLASSLEN) "[-0-9a-z]_%d"
+#define TYPECLASSFMT  "%" STR(TYPECLASSLEN) "[-0-9a-z]_%u"
 #define ATTRIBUTESIZE 256
 
 static struct cc {
@@ -163,9 +163,9 @@ static void
 doswitch(const char *, const char *, const char *, const char *, const char *,
 	 const char *);
 static void
-add(int, const char *, int, const char *, const char *);
+add(unsigned int, const char *, int, const char *, const char *);
 static void
-sd(int, const char *, const char *, char);
+sd(unsigned int, const char *, const char *, char);
 static void
 insert_into_typenames(int, const char *, const char *);
 
@@ -370,7 +370,7 @@ insert_into_typenames(int type, const char *typebuf, const char *attr) {
 }
 
 static void
-add(int rdclass, const char *classbuf, int type, const char *typebuf,
+add(unsigned int rdclass, const char *classbuf, int type, const char *typebuf,
     const char *dirbuf) {
 	struct tt *newtt = (struct tt *)malloc(sizeof(*newtt));
 	struct tt *tt, *oldtt;
@@ -468,10 +468,12 @@ add(int rdclass, const char *classbuf, int type, const char *typebuf,
 }
 
 static void
-sd(int rdclass, const char *classbuf, const char *dirbuf, char filetype) {
-	char buf[TYPECLASSLEN + sizeof("_65535.h")];
+sd(unsigned int rdclass, const char *classbuf, const char *dirbuf,
+   char filetype) {
+	char buf[TYPECLASSLEN + sizeof("_4294967295.h")];
 	char typebuf[TYPECLASSBUF];
-	int type, n;
+	unsigned int type;
+	int n;
 	isc_dir_t dir;
 
 	if (!start_directory(dirbuf, &dir)) {
@@ -482,15 +484,22 @@ sd(int rdclass, const char *classbuf, const char *dirbuf, char filetype) {
 		if (sscanf(dir.filename, TYPECLASSFMT, typebuf, &type) != 2) {
 			continue;
 		}
-		if ((type > 65535) || (type < 0)) {
-			continue;
-		}
 
-		n = snprintf(buf, sizeof(buf), "%s_%d.%c", typebuf, type,
+		/*
+		 * sscanf accepts leading sign and zeros before type so
+		 * compare the scanned items against the filename. Filter
+		 * out mismatches. Also filter out bad file extensions.
+		 */
+		n = snprintf(buf, sizeof(buf), "%s_%u.%c", typebuf, type,
 			     filetype);
 		INSIST(n > 0 && (unsigned)n < sizeof(buf));
 		if (strcmp(buf, dir.filename) != 0) {
 			continue;
+		}
+		if (type > 65535) {
+			fprintf(stderr, "Error: type value > 65535 (%s)\n",
+				dir.filename);
+			exit(1);
 		}
 		add(rdclass, classbuf, type, typebuf, dirbuf);
 	}
@@ -518,7 +527,7 @@ int
 main(int argc, char **argv) {
 	char buf[PATH_MAX];
 	char srcdir[PATH_MAX];
-	int rdclass;
+	unsigned int rdclass;
 	char classbuf[TYPECLASSBUF];
 	struct tt *tt;
 	struct cc *cc;
@@ -622,15 +631,22 @@ main(int argc, char **argv) {
 		{
 			continue;
 		}
-		if ((rdclass > 65535) || (rdclass < 0)) {
-			continue;
-		}
 
-		n = snprintf(buf, sizeof(buf), "%srdata/%s_%d", srcdir,
+		/*
+		 * sscanf accepts leading sign and zeros before type so
+		 * compare the scanned items against the filename. Filter
+		 * out mismatches.
+		 */
+		n = snprintf(buf, sizeof(buf), "%srdata/%s_%u", srcdir,
 			     classbuf, rdclass);
 		INSIST(n > 0 && (unsigned)n < sizeof(buf));
 		if (strcmp(buf + 6 + strlen(srcdir), dir.filename) != 0) {
 			continue;
+		}
+		if (rdclass > 65535) {
+			fprintf(stderr, "Error: class value > 65535 (%s)\n",
+				dir.filename);
+			exit(1);
 		}
 		sd(rdclass, classbuf, buf, filetype);
 	}
