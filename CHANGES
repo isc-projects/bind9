@@ -1,3 +1,6 @@
+5749.	[bug]		Handle duplicate references to the same catalog
+			zone gracefully. [GL #2916]
+
 5748.	[func]		Update "nsec3param" defaults to iterations 0, salt
 			length 0. [GL #2956]
 
