@@ -87,6 +87,7 @@ struct isc_httpd {
 	 */
 	char recvbuf[HTTP_RECVLEN]; /*%< receive buffer */
 	uint32_t recvlen;	    /*%< length recv'd */
+	uint32_t consume;	    /*%< length of last command */
 	char *headers;		    /*%< set in process_request() */
 	method_t method;
 	char *url;
@@ -417,9 +418,12 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	if (s == NULL) {
 		s = strstr(httpd->recvbuf, "\n\n");
 		delim = 1;
-	}
-	if (s == NULL) {
-		return (ISC_R_NOTFOUND);
+		if (s == NULL) {
+			return (ISC_R_NOTFOUND);
+		}
+		httpd->consume = s + 2 - httpd->recvbuf;
+	} else {
+		httpd->consume = s + 4 - httpd->recvbuf;
 	}
 
 	/*
@@ -580,7 +584,6 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	 * to the buffer.
 	 */
 	*urlend = 0;
-	httpd->recvlen = 0;
 
 	return (ISC_R_SUCCESS);
 }
@@ -602,6 +605,7 @@ httpd_reset(void *arg) {
 
 	httpd->recvbuf[0] = 0;
 	httpd->recvlen = 0;
+	httpd->consume = 0;
 	httpd->headers = NULL;
 	httpd->method = METHOD_UNKNOWN;
 	httpd->url = NULL;
@@ -951,6 +955,17 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_buffer_usedregion(databuffer, &r);
 	result = isc_buffer_copyregion(httpd->sendbuffer, &r);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/* Consume the request from the recv buffer. */
+	if (httpd->consume != 0U) {
+		INSIST(httpd->consume <= httpd->recvlen);
+		if (httpd->consume < httpd->recvlen) {
+			memmove(httpd->recvbuf, httpd->recvbuf + httpd->consume,
+				httpd->recvlen - httpd->consume);
+		}
+		httpd->recvlen -= httpd->consume;
+		httpd->consume = 0;
+	}
 
 	/*
 	 * Determine total response size.
