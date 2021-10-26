@@ -403,11 +403,14 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 		len = limit;
 	}
 
-	memmove(httpd->recvbuf + httpd->recvlen, region->base, len);
-	httpd->recvlen += len;
-	httpd->recvbuf[httpd->recvlen] = 0;
-	*buflen = httpd->recvlen;
+	if (len > 0U) {
+		memmove(httpd->recvbuf + httpd->recvlen, region->base, len);
+		httpd->recvlen += len;
+		httpd->recvbuf[httpd->recvlen] = 0;
+		isc_region_consume(region, len);
+	}
 	httpd->headers = NULL;
+	*buflen = httpd->recvlen;
 
 	/*
 	 * If we don't find a blank line in our buffer, return that we need
@@ -858,10 +861,22 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		goto cleanup_readhandle;
 	}
 
-	result = process_request(httpd, region, &buflen);
+	result = process_request(
+		httpd, region == NULL ? &(isc_region_t){ NULL, 0 } : region,
+		&buflen);
 	if (result == ISC_R_NOTFOUND) {
 		if (buflen < HTTP_RECVLEN - 1) {
-			/* don't unref, keep reading */
+			if (region != NULL) {
+				/* don't unref, keep reading */
+				return;
+			}
+			/*
+			 * We have been called from httpd_senddone
+			 * and we need to resume reading.  Detach
+			 * readhandle before resuming.
+			 */
+			isc_nmhandle_detach(&httpd->readhandle);
+			isc_nm_resumeread(handle);
 			return;
 		}
 		goto cleanup_readhandle;
@@ -950,6 +965,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 * the response headers and store the result in httpd->sendbuffer.
 	 */
 	isc_buffer_dup(mgr->mctx, &httpd->sendbuffer, &httpd->headerbuffer);
+	isc_buffer_clear(&httpd->headerbuffer);
 	isc_buffer_setautorealloc(httpd->sendbuffer, true);
 	databuffer = (is_compressed ? &httpd->compbuffer : &httpd->bodybuffer);
 	isc_buffer_usedregion(databuffer, &r);
@@ -965,6 +981,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		}
 		httpd->recvlen -= httpd->consume;
 		httpd->consume = 0;
+		httpd->recvbuf[httpd->recvlen] = 0;
 	}
 
 	/*
@@ -1150,7 +1167,16 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	httpd->state = RECV;
-	isc_nm_resumeread(handle);
+	if (httpd->recvlen != 0) {
+		/*
+		 * Outstanding requests still exist, start processing
+		 * them.
+		 */
+		isc_nmhandle_attach(handle, &httpd->readhandle);
+		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
+	} else {
+		isc_nm_resumeread(handle);
+	}
 }
 
 isc_result_t

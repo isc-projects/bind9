@@ -374,5 +374,26 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+if [ -x "${NC}" ] ; then
+    echo_i "Check HTTP/1.1 pipelined requests are handled ($n)"
+    ret=0
+    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Connection: close
+
+EOF
+    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
+    test $lines = 2 || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=`expr $status + $ret`
+    n=`expr $n + 1`
+else
+    echo_i "skipping test as nc not found"
+fi
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

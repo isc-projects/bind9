@@ -112,6 +112,9 @@ SHELL=@SHELL@
 # CURL will be empty if no program was found by configure
 CURL=@CURL@
 
+# NC will be empty if no program was found by configure
+NC=@NC@
+
 # XMLLINT will be empty if no program was found by configure
 XMLLINT=@XMLLINT@
 
