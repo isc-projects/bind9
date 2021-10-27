@@ -1260,6 +1260,9 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletettl],
 		"cache records deleted due to TTL expiration");
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		values[dns_cachestatscounter_coveringnsec],
+		"covering nsec returned");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db, dns_dbtree_main),
 		"cache database nodes");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db, dns_dbtree_nsec),
@@ -1328,6 +1331,8 @@ dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 			writer));
 	TRY0(renderstat("DeleteTTL", values[dns_cachestatscounter_deletettl],
 			writer));
+	TRY0(renderstat("CoveringNSEC",
+			values[dns_cachestatscounter_coveringnsec], writer));
 
 	TRY0(renderstat("CacheNodes",
 			dns_db_nodecount(cache->db, dns_dbtree_main), writer));
@@ -1392,6 +1397,10 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	obj = json_object_new_int64(values[dns_cachestatscounter_deletettl]);
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "DeleteTTL", obj);
+
+	obj = json_object_new_int64(values[dns_cachestatscounter_coveringnsec]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CoveringNSEC", obj);
 
 	obj = json_object_new_int64(
 		dns_db_nodecount(cache->db, dns_dbtree_main));
