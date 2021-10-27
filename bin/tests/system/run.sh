@@ -228,6 +228,7 @@ if [ $status -eq 0 ]; then
     if [ -n "$PYTEST" ]; then
         run=$((run+1))
         for test in $(cd "${systest}" && find . -name "tests*.py"); do
+            rm -f "$systest/$test.status"
             if start_servers; then
                 rm -f "$systest/$test.status"
                 test_status=0
@@ -243,6 +244,7 @@ if [ $status -eq 0 ]; then
                 break
             fi
         done
+        rm -f "$systest/$test.status"
     else
         echoinfo "I:$systest:pytest not installed, skipping python tests"
     fi
