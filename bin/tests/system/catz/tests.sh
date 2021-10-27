@@ -176,6 +176,56 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "update catalog zone serial ($n)"
+ret=0
+# default minimum update rate is once / 5 seconds
+sleep 5
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add catalog1.example 3600 SOA . . 20 86400 3600 86400 3600
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "wait for catalog zone to transfer ($n)"
+ret=0
+wait_for_soa_equal_20() {
+	dig_with_opts @10.53.0.2 SOA catalog1.example. > dig.out.test$n || return 1
+	grep "ANSWER: 1," dig.out.test$n > /dev/null || return 1
+	grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
+	grep 'IN.SOA.\. \. 20 ' dig.out.test$n > /dev/null || return 1
+}
+retry_quiet 10 wait_for_soa_equal_20 || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "update dom1.example. again ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+   server 10.53.0.1 ${PORT}
+   update add foo.dom1.example 0 IN TXT added record
+   send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "wait for secondary to be updated again ($n)"
+ret=0
+wait_for_txt() {
+	dig_with_opts @10.53.0.2 TXT foo.dom1.example. > dig.out.test$n || return 1
+	grep "ANSWER: 1," dig.out.test$n > /dev/null || return 1
+	grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
+	grep "IN.TXT." dig.out.test$n > /dev/null || return 1
+}
+retry_quiet 10 wait_for_txt || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "removing domain dom1.example. from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
