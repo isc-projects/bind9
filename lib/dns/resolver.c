@@ -10215,25 +10215,26 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
  */
 static isc_result_t
 rctx_lameserver(respctx_t *rctx) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	fetchctx_t *fctx = rctx->fctx;
 	resquery_t *query = rctx->query;
 
-	if (fctx->res->lame_ttl == 0 || ISFORWARDER(query->addrinfo) ||
-	    !is_lame(fctx, query->rmessage))
-	{
+	if (ISFORWARDER(query->addrinfo) || !is_lame(fctx, query->rmessage)) {
 		return (ISC_R_SUCCESS);
 	}
 
 	inc_stats(fctx->res, dns_resstatscounter_lame);
 	log_lame(fctx, query->addrinfo);
-	result = dns_adb_marklame(fctx->adb, query->addrinfo, &fctx->name,
-				  fctx->type, rctx->now + fctx->res->lame_ttl);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
-			      "could not mark server as lame: %s",
-			      isc_result_totext(result));
+	if (fctx->res->lame_ttl != 0) {
+		result = dns_adb_marklame(fctx->adb, query->addrinfo,
+					  &fctx->name, fctx->type,
+					  rctx->now + fctx->res->lame_ttl);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "could not mark server as lame: %s",
+				      isc_result_totext(result));
+		}
 	}
 	rctx->broken_server = DNS_R_LAME;
 	rctx->next_server = true;
