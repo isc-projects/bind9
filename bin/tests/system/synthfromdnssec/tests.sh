@@ -405,6 +405,22 @@ do
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
+    echo_i "check 'rndc stats' output for 'cache NSEC auxiliary database nodes' (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    # 2 views, _bind should always be '0 cache NSEC auxiliary database nodes'
+    count=$(grep "cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
+    test $count = 2 || ret=1
+    zero=$(grep "0 cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
+    if [ ${ad} = yes ]
+    then
+	test $zero = 1 || ret=1
+    else
+	test $zero = 2 || ret=1
+    fi
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
     for synthesized in NXDOMAIN no-data wildcard
     do
 	case $synthesized in
