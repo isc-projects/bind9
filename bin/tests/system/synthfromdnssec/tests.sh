@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . ../conf.sh
 
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+
 set -e
 
 status=0
@@ -385,6 +387,24 @@ do
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    echo_i "check 'rndc stats' output for 'covering nsec returned' (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    ${RNDCCMD} 10.53.0.${ns} stats 2>&1 | sed 's/^/ns6 /' | cat_i
+    # 2 views, _bind should always be '0 covering nsec returned'
+    count=$(grep "covering nsec returned" ns${ns}/named.stats | wc -l)
+    test $count = 2 || ret=1
+    zero=$(grep " 0 covering nsec returned" ns${ns}/named.stats | wc -l)
+    if [ ${synth} = yes ]
+    then
+	test $zero = 1 || ret=1
+    else
+	test $zero = 2 || ret=1
+    fi
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
 done
 
 echo_i "check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"
