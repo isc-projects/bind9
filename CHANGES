@@ -1,3 +1,6 @@
+5752.	[bug]		Fix an assertion failure caused by missing member zones
+			during a reload of a catalog zone. [GL #2308]
+
 5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 			[GL #2935]
 
@@ -8,9 +11,6 @@
 			previously be abused by an attacker to significantly
 			degrade resolver performance. (CVE-2021-25219)
 			[GL #2899]
-
-5727.	[bug]		Fix an assertion failure caused by missing member zones
-			during a reload of a catalog zone. [GL #2308]
 
 5724.	[bug]		Address a potential deadlock when checking zone content
 			consistency. [GL #2908]
