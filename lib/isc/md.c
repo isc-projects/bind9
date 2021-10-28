@@ -93,7 +93,7 @@ const isc_md_type_t *
 isc_md_get_md_type(isc_md_t *md) {
 	REQUIRE(md != NULL);
 
-	return (EVP_MD_CTX_md(md));
+	return (EVP_MD_CTX_get0_md(md));
 }
 
 size_t

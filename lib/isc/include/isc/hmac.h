@@ -41,7 +41,7 @@ typedef void isc_hmac_t;
  * (i.e. the length of the digest) will be written to the @digestlen.
  */
 isc_result_t
-isc_hmac(const isc_md_type_t *type, const void *key, const int keylen,
+isc_hmac(const isc_md_type_t *type, const void *key, const size_t keylen,
 	 const unsigned char *buf, const size_t len, unsigned char *digest,
 	 unsigned int *digestlen);
 
@@ -74,7 +74,7 @@ isc_hmac_free(isc_hmac_t *hmac);
  */
 
 isc_result_t
-isc_hmac_init(isc_hmac_t *hmac, const void *key, size_t keylen,
+isc_hmac_init(isc_hmac_t *hmac, const void *key, const size_t keylen,
 	      const isc_md_type_t *type);
 
 /**

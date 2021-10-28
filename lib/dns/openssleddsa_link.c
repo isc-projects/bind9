@@ -19,9 +19,9 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/x509.h>
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -34,6 +34,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
+#include "openssl_shim.h"
 
 #define DST_RET(a)        \
 	{                 \
@@ -281,7 +282,7 @@ openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (false);
 	}
 
-	status = EVP_PKEY_cmp(pkey1, pkey2);
+	status = EVP_PKEY_eq(pkey1, pkey2);
 	if (status == 1) {
 		return (true);
 	}
@@ -491,7 +492,7 @@ eddsa_check(EVP_PKEY *pkey, EVP_PKEY *pubpkey) {
 	if (pubpkey == NULL) {
 		return (ISC_R_SUCCESS);
 	}
-	if (EVP_PKEY_cmp(pkey, pubpkey) == 1) {
+	if (EVP_PKEY_eq(pkey, pubpkey) == 1) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_FAILURE);
@@ -588,7 +589,7 @@ err:
 static isc_result_t
 openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		       const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	isc_result_t ret;
 	ENGINE *e;
 	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
@@ -649,13 +650,13 @@ err:
 		EVP_PKEY_free(pkey);
 	}
 	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) */
+#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	UNUSED(key);
 	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
 	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) */
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t openssleddsa_functions = {
