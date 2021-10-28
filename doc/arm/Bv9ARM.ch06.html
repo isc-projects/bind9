@@ -6292,12 +6292,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <div class="variablelist"><dl class="variablelist">
 <dt><span class="term"><span class="command"><strong>lame-ttl</strong></span></span></dt>
 <dd><p>
-                  This sets the number of seconds to cache a
-                  lame server indication. 0 disables caching. (This is
-                  <span class="bold"><strong>NOT</strong></span> recommended.)
-                  The default is <code class="literal">600</code> (10 minutes) and the
-                  maximum value is
-                  <code class="literal">1800</code> (30 minutes).
+                  This is always set to 0. More information is available
+                  in the <a class="link" href="https://kb.isc.org/docs/cve-2021-25219" target="_top">security advisory for CVE-2021-25219</a>.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>servfail-ttl</strong></span></span></dt>
 <dd>
@@ -12842,6 +12838,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.35 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.36 (Extended Support Version)</p>
 </body>
 </html>

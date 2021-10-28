@@ -8929,12 +8929,9 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>lame-ttl</command></term>
 	      <listitem>
 		<para>
-		  This sets the number of seconds to cache a
-		  lame server indication. 0 disables caching. (This is
-		  <emphasis role="bold">NOT</emphasis> recommended.)
-		  The default is <literal>600</literal> (10 minutes) and the
-		  maximum value is
-		  <literal>1800</literal> (30 minutes).
+		  This is always set to 0. More information is available
+		  in the <link xmlns:xlink="http://www.w3.org/1999/xlink"
+		  xlink:href="https://kb.isc.org/docs/cve-2021-25219">security advisory for CVE-2021-25219</link>.
 		</para>
 
 	      </listitem>

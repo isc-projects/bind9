@@ -175,7 +175,7 @@ options {\n\
 #if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 "	geoip-use-ecs yes;\n"
 #endif
-"	lame-ttl 600;\n"
+"	lame-ttl 0;\n"
 #ifdef HAVE_LMDB
 "	lmdb-mapsize 32M;\n"
 #endif
