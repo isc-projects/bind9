@@ -1,3 +1,6 @@
+5752.	[bug]		Fix an assertion failure caused by missing member zones
+			during a reload of a catalog zone. [GL #2308]
+
 5751.	[port]		Add support for OpenSSL 3.0.0.  OpenSSL 3.0.0
 			deprecated 'engine' support.  If OpenSSL 3.0.0 has
 			been built without support for deprecated functionality
@@ -112,8 +115,7 @@
 5728.	[func]		Allow specifying supported TLS protocol versions for
 			each "tls" configuration clause. [GL #2795]
 
-5727.	[bug]		Fix an assertion failure caused by missing member zones
-			during a reload of a catalog zone. [GL #2308]
+5727.	[placeholder]
 
 5726.	[bug]		Fix a use-after-free bug which was triggered while
 			checking for duplicate "http" configuration clauses.
