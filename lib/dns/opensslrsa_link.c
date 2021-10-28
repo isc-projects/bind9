@@ -417,7 +417,7 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		}
 		RSA_get0_factors(rsa1, &p1, &q1);
 		RSA_get0_factors(rsa2, &p2, &q2);
-		status = BN_cmp(d1, d2) || BN_cmp(p1, p1) || BN_cmp(q1, q2);
+		status = BN_cmp(d1, d2) || BN_cmp(p1, p2) || BN_cmp(q1, q2);
 
 		if (status != 0) {
 			return (false);
