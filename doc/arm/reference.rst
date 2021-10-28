@@ -3358,9 +3358,9 @@ Tuning
 ^^^^^^
 
 ``lame-ttl``
-   This sets the number of seconds to cache a lame server indication. 0
-   disables caching. (This is **NOT** recommended.) The default is
-   ``600`` (10 minutes) and the maximum value is ``1800`` (30 minutes).
+   This is always set to 0. More information is available in the
+   `security advisory for CVE-2021-25219
+   <https://kb.isc.org/docs/cve-2021-25219>`_.
 
 ``servfail-ttl``
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
@@ -4818,6 +4818,7 @@ A Diffie-Hellman parameters file can be generated using e.g. OpenSSL,
 like follows:
 
 ::
+
    openssl dhparam -out /path/to/dhparam.pem <3072_or_4096>
 
 Ensure that it gets generated on a machine with enough entropy from
@@ -6654,6 +6655,7 @@ be converted to ``text`` format by the ``named-compilezone`` command,
 then converted back after editing.  For example:
 
 ::
+
     named-compilezone -f raw -F text -o zonefile.text <origin> zonefile.raw
     [edit zonefile.text]
     named-compilezone -f text -F raw -o zonefile.raw <origin> zonefile.text

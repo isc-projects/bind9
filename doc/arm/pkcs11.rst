@@ -22,10 +22,13 @@ library which provides a low-level PKCS#11 interface to drive the HSM
 hardware. The PKCS#11 provider library comes from the HSM vendor, and it
 is specific to the HSM to be controlled.
 
-BIND 9 uses OpenSSL engine_pkcs11 from the OpenSC project.  The engine is
-dynamically loaded into OpenSSL and the HSM is operated indirectly; any
-cryptographic operations not supported by the HSM can be carried out by OpenSSL
-instead.
+BIND 9 uses engine_pkcs11 for PKCS#11. engine_pkcs11 is an OpenSSL
+engine which is part of the `OpenSC`_ project. The engine is dynamically
+loaded into OpenSSL and the HSM is operated indirectly; any
+cryptographic operations not supported by the HSM can be carried out by
+OpenSSL instead.
+
+.. _OpenSC: https://github.com/OpenSC/libp11
 
 Prerequisites
 ~~~~~~~~~~~~~
@@ -93,22 +96,26 @@ going to copy the global OpenSSL configuration (often found in
 ``etc/ssl/openssl.conf``) and customize it to use engines_pkcs11.
 
 ::
+
    cp /etc/ssl/openssl.cnf /opt/bind9/etc/openssl.cnf
 
 and export the environment variable:
 
 ::
+
    export OPENSSL_CONF=/opt/bind9/etc/openssl.cnf
 
 Now add following line at the top of file, before any sections (in square
 brackets) are defined:
 
 ::
+
    openssl_conf = openssl_init
 
 And add following lines at the bottom of the file:
 
 ::
+
    [openssl_init]
    engines=engine_section
 
@@ -153,31 +160,37 @@ name of the PKCS#11 object (called label when generating the keys using
 Convert the KSK:
 
 ::
+
    dnssec-keyfromlabel -E pkcs11 -a RSASHA256 -l "token=bind9;object=example.net-ksk;pin-value=0000" -f KSK example.net
 
 and ZSK:
 
 ::
+
    dnssec-keyfromlabel -E pkcs11 -a RSASHA256 -l "token=bind9;object=example.net-zsk;pin-value=0000" example.net
 
 NOTE: you can use PIN stored on disk, by specifying ``pin-source=<path_to>/<file>``, f.e.:
 
 ::
+
    (umask 0700 && echo -n 0000 > /opt/bind9/etc/pin.txt)
 
 and then use in the label specification:
 
 ::
+
    pin-source=/opt/bind9/etc/pin.txt
 
 Confirm that you have one KSK and one ZSK present in the current directory:
 
 ::
+
    ls -l K*
 
 The output should look like this (the second number will be different):
 
 ::
+
    Kexample.net.+008+31729.key
    Kexample.net.+008+31729.private
    Kexample.net.+008+42231.key
@@ -196,6 +209,7 @@ The zone signing commences as usual, with only one small difference.  We need to
 provide the name of the OpenSSL engine using the -E command line option.
 
 ::
+
    dnssec-signzone -E pkcs11 -S -o example.net example.net
 
 Running ``named`` With Automatic Zone Re-signing
@@ -205,11 +219,13 @@ The zone can also be signed automatically by named. Again, we need to provide
 the name of the OpenSSL engine using the -E command line option.
 
 ::
+
    named -E pkcs11 -c named.conf
 
 and the logs should have lines like:
 
 ::
+
    Fetching example.net/RSASHA256/31729 (KSK) from key repository.
    DNSKEY example.net/RSASHA256/31729 (KSK) is now published
    DNSKEY example.net/RSA256SHA256/31729 (KSK) is now active

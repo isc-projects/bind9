@@ -1,3 +1,6 @@
+5752.	[bug]		Fix an assertion failure caused by missing member zones
+			during a reload of a catalog zone. [GL #2308]
+
 5751.	[port]		Add support for OpenSSL 3.0.0.  OpenSSL 3.0.0
 			deprecated 'engine' support.  If OpenSSL 3.0.0 has
 			been built without support for deprecated functionality
@@ -65,7 +68,13 @@
 5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 			[GL #2935]
 
-5736.	[placeholder]
+	--- 9.17.19 released ---
+
+5736.	[security]	The "lame-ttl" option is now forcibly set to 0. This
+			effectively disables the lame server cache, as it could
+			previously be abused by an attacker to significantly
+			degrade resolver performance. (CVE-2021-25219)
+			[GL #2899]
 
 5735.	[cleanup]	The result codes which BIND 9 uses internally are now
 			all defined as a single list of enum values rather than
@@ -74,103 +83,99 @@
 			functions operating on result codes, and makes result
 			codes more debugger-friendly. [GL #719]
 
-5734.	[bug]		Fix "dig" aborting with error in some cases
-			like when doing zone transfers. [GL #2884]
+5734.	[bug]		Fix intermittent assertion failures in dig which were
+			triggered during zone transfers. [GL #2884]
 
-5733.	[func]		Require "dot" ALPN token to be negotiated for
-			zone transfers over TLS (XoT), as required by RFC9103.
-			[GL #2794]
+5733.	[func]		Require the "dot" Application-Layer Protocol Negotiation
+			(ALPN) token to be selected in the TLS handshake for
+			zone transfers over TLS (XoT), as required by RFC 9103
+			section 7.1. [GL #2794]
 
-5732.	[cleanup]	Remove dns_lib_init() and _shutdown() and
-			ns_lib_init() and _shutdown() functions, as they
+5732.	[cleanup]	Remove the dns_lib_init(), dns_lib_shutdown(),
+			ns_lib_init(), and ns_lib_shutdown() functions, as they
 			no longer served any useful purpose. [GL #88]
 
-5731.	[bug]		Do not allow defining "http" clauses named
-			"default". [GL #2925]
+5731.	[bug]		Disallow defining "http" configuration clauses called
+			"default" as they were silently ignored. [GL #2925]
 
-5730.	[func]		The resolver and the request and dispatch managers
-			have been substantially refactored, and are now
-			based on the network manager instead of the old
-			isc_socket API. All outgoing DNS queries and
-			requests now use the new API; isc_socket is only
-			used to monitor for network interface changes.
-			[GL #2401]
+5730.	[func]		The resolver and the request and dispatch managers have
+			been substantially refactored, and are now based on the
+			network manager instead of the old isc_socket API. All
+			outgoing DNS queries and requests now use the new API;
+			isc_socket is only used to monitor for network interface
+			changes. [GL #2401]
 
-5729.	[func]		Allow finer control over the TLS protocol by
-			implementing more options within "tls" clauses, namely:
-			- Diffie-Hellman parameters via
-			  'dhparam-file "<path_to_file>";'
-			- OpenSSL cipher list string via
-			  'ciphers "<cipher_list>";'
-			- Server or client ciphers preference via
-			  'prefer-server-ciphers yes|no;'
-			- Ability to explicitly enable or disable stateless
-			  TLS session tickets via 'session-tickets yes|no;'
-			The options are enough to implement perfect forward
-			secrecy in DNS-over-TLS, DNS-over-HTTPS transports.
-			Most of these options were no-op before this
-			change. [GL #2796]
+5729.	[func]		Allow finer control over TLS protocol configuration by
+			implementing new options for "tls" configuration clauses
+			("dhparam-file", "ciphers", "prefer-server-ciphers",
+			"session-tickets"). These options make achieving perfect
+			forward secrecy (PFS) possible for DNS-over-TLS (DoT)
+			and DNS-over-HTTPS (DoH). [GL #2796]
 
-5728.	[func]		Allow specifying supported TLS protocol
-			versions within "tls" clauses
-			(e.g. protocols { TLSv1.2; TLSv1.3; };). [GL #2795]
+5728.	[func]		Allow specifying supported TLS protocol versions for
+			each "tls" configuration clause. [GL #2795]
 
-5727.	[bug]		Ignore the missing zones when doing a reload on a
-			catalog zone, and make sure to restore them later on.
-			[GL #2308]
+5727.	[placeholder]
 
-5726.	[bug]		Fix heap use after free when cheking for "http"
-			clauses duplicates. [GL #2924]
+5726.	[bug]		Fix a use-after-free bug which was triggered while
+			checking for duplicate "http" configuration clauses.
+			[GL #2924]
 
-5725.	[bug]		Validate HTTP path passed to dig. [GL #2923]
+5725.	[bug]		Fix an assertion failure triggered by passing an invalid
+			HTTP path to dig. [GL #2923]
 
-5724.	[bug]		Address potential dead lock when checking zone
-			content consistency. [GL #2908]
+5724.	[bug]		Address a potential deadlock when checking zone content
+			consistency. [GL #2908]
 
-5723.	[bug]		Backwards compatiblity for 'check-names master' and
-			'check-names slave' was accidentally broken. [GL #2911]
+5723.	[bug]		Change 5709 broke backward compatibility for the
+			"check-names master ..." and "check-names slave ..."
+			options. This has been fixed. [GL #2911]
 
-5722.	[bug]		Preserve the contents of TCPDNS and TLSDNS receive
-			buffer when growing the buffer size. [GL #2917]
+5722.	[bug]		Preserve the contents of the receive buffer for TCPDNS
+			and TLSDNS when growing its size. [GL #2917]
 
-5721.	[func]		New isc_mem_reget() realloc-like function was
-			introduced into the libisc API, and zero-sized
-			allocations now return non-NULL pointers. [GL !5440]
+5721.	[func]		A new realloc()-like function, isc_mem_reget(), was
+			added to the libisc API for resizing memory chunks
+			allocated using isc_mem_get(). Memory (re)allocation
+			functions are now guaranteed to return non-NULL pointers
+			for zero-sized allocation requests. [GL !5440]
 
-5720.	[contrib]	Remove old-style DLZ drivers that had to be enabled
-			during compile time. [GL #2814]
+5720.	[contrib]	Remove old-style DLZ drivers that had to be enabled at
+			build time. [GL #2814]
 
-5719.	[func]		The "masterfile-format" format "map" has been removed.
+5719.	[func]		Remove support for the "map" zone file format.
 			[GL #2882]
 
-5718.	[bug]		Changing the sig signing type, by specifing
-			sig-signing-type, failed as the configuration was
-			incorrectly rejected. [GL #2906]
+5718.	[bug]		The "sig-signing-type" zone configuration option was
+			processed incorrectly, causing valid configurations to
+			be rejected. This has been fixed. [GL #2906]
 
-5717.	[func]		The "cache-file" option, which was documented as
-			for testing purposes only and not to be used,
-			has been removed. [GL #2903]
+5717.	[func]		The "cache-file" option, which was documented as "for
+			testing purposes only" and not to be used, has been
+			removed. [GL #2903]
 
 5716.	[placeholder]
 
-5715.	[func]		Add a check when the *-source(-v6) clashes with the
-			global listening port. Such a configuration was already
-			forbidden, but it failed silently. [GL #2888]
+5715.	[func]		Add a check for ports specified in "*-source(-v6)"
+			options clashing with a global listening port. Such a
+			configuration was already unsupported, but it failed
+			silently; it is now treated as an error. [GL #2888]
 
-5714.	[bug]		Remove the "adjust interface" mechanism that
-			set up a listener on interfaces where the *-source(-v6)
-			address and port were the same as the listening
-			address and port. Such a configuration is no longer
-			supported; in practice, this would disable
-			listening on TCP ports under certain timing conditions.
+5714.	[bug]		Remove the "adjust interface" mechanism which was
+			responsible for setting up listeners on interfaces when
+			the "*-source(-v6)" address and port were the same as
+			the "listen-on(-v6)" address and port. Such a
+			configuration is no longer supported; under certain
+			timing conditions, that mechanism could prevent named
+			from listening on some TCP ports. This has been fixed.
 			[GL #2852]
 
-5713.	[func]		Added "primaries" as a synonym for "masters" and
+5713.	[func]		Add "primaries" as a synonym for "masters" and
 			"default-primaries" as a synonym for "default-masters"
-			for catalog zones configuration options. [GL #2818]
+			in catalog zone configuration options. [GL #2818]
 
-5712.	[func]		Remove native PKCS#11 support in favor of OpenSSL
-			engine_pkcs11 from the OpenSC project. [GL #2691]
+5712.	[func]		Remove native PKCS#11 support in favor of engine_pkcs11
+			from the OpenSC project. [GL #2691]
 
 	--- 9.17.18 released ---
 
