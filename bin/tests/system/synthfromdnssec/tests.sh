@@ -405,6 +405,25 @@ do
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
+    for synthesized in NXDOMAIN no-data wildcard
+    do
+	case $synthesized in
+	NXDOMAIN) count=1;;
+	no-data) count=2;;
+	wildcard) count=2;;
+	esac
+	echo_i "check 'rndc stats' output for 'synthesized a ${synthesized} response' (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	if [ ${synth} = yes ]
+	then
+	    grep "$count synthesized a ${synthesized} response" ns${ns}/named.stats > /dev/null || ret=1
+	else
+	    grep "synthesized a ${synthesized} response" ns${ns}/named.stats > /dev/null && ret=1
+	fi
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+   done
 done
 
 echo_i "check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"
