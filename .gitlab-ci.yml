@@ -1630,7 +1630,7 @@ abi-check:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--with-libidn2"
-    BIND_BASELINE_VERSION: v9_11_35
+    BIND_BASELINE_VERSION: v9_11_36
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
