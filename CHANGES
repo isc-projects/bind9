@@ -1,3 +1,7 @@
+5750.	[bug]		Fix a bug when comparing two RSA keys. There was a typo
+			which caused the "p" prime factors to not being
+			compared. [GL #2972]
+
 5749.	[bug]		Handle duplicate references to the same catalog
 			zone gracefully. [GL #2916]
 
