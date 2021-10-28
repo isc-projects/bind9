@@ -33,6 +33,10 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+statistics-channels {
+	inet 10.53.0.1 port @EXTRAPORT1@ allow { any; };
+};
+
 zone "." {
 	type primary;
 	file "root.db.signed";

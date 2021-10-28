@@ -33,6 +33,10 @@ controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+statistics-channels {
+	inet 10.53.0.2 port @EXTRAPORT1@ allow { any; };
+};
+
 zone "." {
 	type hint;
 	file "root.hints";

@@ -424,6 +424,71 @@ do
 	if [ $ret != 0 ]; then echo_i "failed"; fi
 	status=$((status+ret))
    done
+
+   if ${FEATURETEST} --have-libxml2 && [ -x "${CURL}" ] ; then
+	echo_i "getting XML statisistcs for (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	xml=xml.out$n
+	${CURL} http://10.53.0.${ns}:${EXTRAPORT1}/xml/v3/server > $xml 2>/dev/null || ret=1
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	echo_i "check XML for 'CoveringNSEC' with (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	counter=$(sed -n 's;.*<view name="_default">.*\(<counter name="CoveringNSEC">[0-9]*</counter>\).*</view><view.*;\1;gp' $xml)
+	count=$(echo "$counter" | grep CoveringNSEC | wc -l)
+	test $count = 1 || ret=1
+	zero=$(echo "$counter" | grep ">0<" | wc -l)
+	if [ ${synth} = yes ]
+	then
+	    test $zero = 0 || ret=1
+	else
+	    test $zero = 1 || ret=1
+	fi
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	echo_i "check XML for 'CacheNSECNodes' with (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	counter=$(sed -n 's;.*<view name="_default">.*\(<counter name="CacheNSECNodes">[0-9]*</counter>\).*</view><view.*;\1;gp' $xml)
+	count=$(echo "$counter" | grep CacheNSECNodes | wc -l)
+	test $count = 1 || ret=1
+	zero=$(echo "$counter" | grep ">0<" | wc -l)
+	if [ ${ad} = yes ]
+	then
+	    test $zero = 0 || ret=1
+	else
+	    test $zero = 1 || ret=1
+	fi
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	for synthesized in SynthNXDOMAIN SynthNODATA SynthWILDCARD
+	do
+	    case $synthesized in
+	    SynthNXDOMAIN) count=1;;
+	    SynthNODATA) count=2;;
+	    SynthWILDCARD) count=2;;
+	    esac
+
+	    echo_i "check XML for '$synthesized}' with (synth-from-dnssec ${description};) ($n)"
+	    ret=0
+	    if [ ${synth} = yes ]
+	    then
+		grep '<counter name="'$synthesized'">'$count'</counter>' $xml > /dev/null || ret=1
+	    else
+		grep '<counter name="'$synthesized'">'0'</counter>' $xml > /dev/null || ret=1
+	    fi
+	    n=$((n+1))
+	    if [ $ret != 0 ]; then echo_i "failed"; fi
+	    status=$((status+ret))
+	done
+   else
+	echo_i "Skipping XML statistics checks"
+   fi
 done
 
 echo_i "check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"
