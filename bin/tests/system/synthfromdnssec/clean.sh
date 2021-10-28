@@ -40,3 +40,4 @@ rm -f ./wildcname.out ./insecure.wildcname.out
 rm -f ./minimal.nxdomain.out
 rm -f ./black.out
 rm -f ./xml.out*
+rm -f ./json.out*

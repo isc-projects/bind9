@@ -489,6 +489,69 @@ do
    else
 	echo_i "Skipping XML statistics checks"
    fi
+
+   if [ ${HAVEJSONSTATS} ] && [ -x "${CURL}" ] ; then
+	echo_i "getting JSON statisistcs for (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	json=json.out$n
+	${CURL} http://10.53.0.${ns}:${EXTRAPORT1}/json/v1/server > $json 2>/dev/null || ret=1
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	echo_i "check JSON for 'CoveringNSEC' with (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	count=$(grep '"CoveringNSEC":' $json | wc -l)
+	test $count = 2 || ret=1
+	zero=$(grep '"CoveringNSEC":0' $json | wc -l)
+	if [ ${synth} = yes ]
+	then
+	    test $zero = 1 || ret=1
+	else
+	    test $zero = 2 || ret=1
+	fi
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	echo_i "check JSON for 'CacheNSECNodes' with (synth-from-dnssec ${description};) ($n)"
+	ret=0
+	count=$(grep '"CacheNSECNodes":' $json | wc -l)
+	test $count = 2 || ret=1
+	zero=$(grep '"CacheNSECNodes":0' $json | wc -l)
+	if [ ${ad} = yes ]
+	then
+	    test $zero = 1 || ret=1
+	else
+	    test $zero = 2 || ret=1
+	fi
+	n=$((n+1))
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+
+	for synthesized in SynthNXDOMAIN SynthNODATA SynthWILDCARD
+	do
+	    case $synthesized in
+	    SynthNXDOMAIN) count=1;;
+	    SynthNODATA) count=2;;
+	    SynthWILDCARD) count=2;;
+	    esac
+
+	    echo_i "check JSON for '$synthesized}' with (synth-from-dnssec ${description};) ($n)"
+	    ret=0
+	    if [ ${synth} = yes ]
+	    then
+		grep '"'$synthesized'":'$count'' $json > /dev/null || ret=1
+	    else
+		grep '"'$synthesized'":' $json > /dev/null && ret=1
+	    fi
+	    n=$((n+1))
+	    if [ $ret != 0 ]; then echo_i "failed"; fi
+	    status=$((status+ret))
+	done
+   else
+	echo_i "Skipping JSON statistics checks"
+   fi
 done
 
 echo_i "check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"
