@@ -1,3 +1,7 @@
+5754.	[bug]		"tls" statements may omit "key-file" and "cert-file",
+			but if either one is specified, then both must be.
+			[GL #2986]
+
 5753.	[placeholder]
 
 5752.	[bug]		Fix an assertion failure caused by missing member zones

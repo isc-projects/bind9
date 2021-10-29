@@ -2165,15 +2165,15 @@ bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 		}
 	}
 
-	if (cfg_map_get(tlsobj, "key-file", &tls_key) != ISC_R_SUCCESS) {
+	(void)cfg_map_get(tlsobj, "key-file", &tls_key);
+	(void)cfg_map_get(tlsobj, "cert-file", &tls_cert);
+	if ((tls_key == NULL && tls_cert != NULL) ||
+	    (tls_cert == NULL && tls_key != NULL))
+	{
 		cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
-			    "'key-file' is required in tls clause '%s'", name);
-		result = ISC_R_FAILURE;
-	}
-
-	if (cfg_map_get(tlsobj, "cert-file", &tls_cert) != ISC_R_SUCCESS) {
-		cfg_obj_log(tlsobj, logctx, ISC_LOG_ERROR,
-			    "'cert-file' is required in tls clause '%s'", name);
+			    "tls '%s': 'cert-file' and 'key-file' must "
+			    "both be specified, or both omitted",
+			    name);
 		result = ISC_R_FAILURE;
 	}
 
