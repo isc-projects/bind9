@@ -2182,6 +2182,13 @@ AC_PATH_PROG(CURL, curl, curl)
 AC_SUBST(CURL)
 
 #
+# Look for xsltproc
+#
+
+AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
+AC_SUBST(XSLTPROC)
+
+#
 # IDN support using libidn2
 #
 
