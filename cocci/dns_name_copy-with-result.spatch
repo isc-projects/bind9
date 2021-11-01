@@ -25,6 +25,6 @@ statement S1, S2;
 - V = dns_name_copy(E1, E2, NULL);
 - S1
 - if (V == ISC_R_SUCCESS) S2
-+ dns_name_copy(E1, E2):
++ dns_name_copy(E1, E2);
 + S1
 + S2
