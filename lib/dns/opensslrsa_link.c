@@ -811,7 +811,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 
 	if (key->external) {
 		priv.nelements = 0;
-		DST_RET(dst__privstruct_writefile(key, &priv, directory));
+		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
 	pkey = key->keydata.pkey;
@@ -855,6 +855,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (d != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIVATEEXPONENT;
 		priv.elements[i].length = BN_num_bytes(d);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(d, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -864,6 +865,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (p != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIME1;
 		priv.elements[i].length = BN_num_bytes(p);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(p, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -873,6 +875,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (q != NULL) {
 		priv.elements[i].tag = TAG_RSA_PRIME2;
 		priv.elements[i].length = BN_num_bytes(q);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(q, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -882,6 +885,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (dmp1 != NULL) {
 		priv.elements[i].tag = TAG_RSA_EXPONENT1;
 		priv.elements[i].length = BN_num_bytes(dmp1);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(dmp1, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -891,6 +895,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (dmq1 != NULL) {
 		priv.elements[i].tag = TAG_RSA_EXPONENT2;
 		priv.elements[i].length = BN_num_bytes(dmq1);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(dmq1, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -900,6 +905,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	if (iqmp != NULL) {
 		priv.elements[i].tag = TAG_RSA_COEFFICIENT;
 		priv.elements[i].length = BN_num_bytes(iqmp);
+		INSIST(i < ARRAY_SIZE(bufs));
 		bufs[i] = isc_mem_get(key->mctx, priv.elements[i].length);
 		BN_bn2bin(iqmp, bufs[i]);
 		priv.elements[i].data = bufs[i];
@@ -926,7 +932,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	ret = dst__privstruct_writefile(key, &priv, directory);
 
 err:
-	while (i--) {
+	for (i = 0; i < ARRAY_SIZE(bufs); i++) {
 		if (bufs[i] != NULL) {
 			isc_mem_put(key->mctx, bufs[i],
 				    priv.elements[i].length);
