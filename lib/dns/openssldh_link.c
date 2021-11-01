@@ -1116,8 +1116,6 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(ISC_R_NOMEMORY);
 	}
 	DH_clear_flags(dh, DH_FLAG_CACHE_MONT_P);
-	key->keydata.dh = dh;
-	dh = NULL;
 #else
 	bld = OSSL_PARAM_BLD_new();
 	if (bld == NULL) {
@@ -1155,11 +1153,11 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
-	if (DH_set0_key(key->keydata.dh, pub_key, priv_key) != 1) {
+	if (DH_set0_key(dh, pub_key, priv_key) != 1) {
 		DST_RET(dst__openssl_toresult2("DH_set0_key",
 					       DST_R_OPENSSLFAILURE));
 	}
-	if (DH_set0_pqg(key->keydata.dh, p, NULL, g) != 1) {
+	if (DH_set0_pqg(dh, p, NULL, g) != 1) {
 		DST_RET(dst__openssl_toresult2("DH_set0_pqg",
 					       DST_R_OPENSSLFAILURE));
 	}
@@ -1169,6 +1167,9 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	priv_key = NULL;
 	p = NULL;
 	g = NULL;
+
+	key->keydata.dh = dh;
+	dh = NULL;
 #else
 	if (OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_PUB_KEY, pub_key) !=
 		    1 ||
