@@ -96,6 +96,18 @@ grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+DIGNOEDNS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +noedns -p ${PORT}"
+
+echo_i "test $n: none - query refused (no edns)"
+ret=0
+$DIG $DIGNOEDNS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null && ret=1
+grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 # Test 4 - address allowed, query allowed
 n=`expr $n + 1`
 copy_setports ns2/named04.conf.in ns2/named.conf
