@@ -109,6 +109,7 @@ rsa_test_CPPFLAGS =		\
 EXTRA_DIST =			\
 	Kdh.+002+18602.key	\
 	Krsa.+005+29235.key	\
+	comparekeys		\
 	mkraw.pl		\
 	testdata		\
 	testkeys
