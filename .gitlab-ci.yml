@@ -552,7 +552,7 @@ push:docs:
 gcc:alpine3.15:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
+    CFLAGS: "${CFLAGS_COMMON} -DOPENSSL_SUPPRESS_DEPRECATED"
   <<: *alpine_3_15_amd64_image
   <<: *build_job
 
