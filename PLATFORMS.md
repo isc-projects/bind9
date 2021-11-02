@@ -62,7 +62,7 @@ following systems:
 
 * Debian 9, 10, 11
 * Ubuntu LTS 18.04, 20.04
-* Fedora 34
+* Fedora 35
 * Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8
 * FreeBSD 12.2, 13.0
 * OpenBSD 7.0
