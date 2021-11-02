@@ -146,9 +146,7 @@ addzoneconf(void **state) {
 	result = cfg_parser_create(mctx, lctx, &p);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-#define ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
-
-	for (size_t i = 0; i < ARRAYSIZE(tests); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
 		cfg_obj_t *conf = NULL;
 		const cfg_obj_t *obj = NULL, *zlist = NULL;
 

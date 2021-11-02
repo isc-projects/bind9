@@ -152,10 +152,6 @@
 #define SIZE_AS_PERCENT ((size_t)-2)
 #endif /* ifndef SIZE_AS_PERCENT */
 
-#ifndef ARRAYSIZE
-#define ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
-#endif
-
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS_PERCPU 32
 #else
@@ -5829,7 +5825,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		}
 
 		name = dns_fixedname_initname(&fixed);
-		for (ipv4only_zone = 0; ipv4only_zone < ARRAYSIZE(zones);
+		for (ipv4only_zone = 0; ipv4only_zone < ARRAY_SIZE(zones);
 		     ipv4only_zone++) {
 			dns_forwarders_t *dnsforwarders = NULL;
 
