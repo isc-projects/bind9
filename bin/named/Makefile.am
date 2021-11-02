@@ -47,7 +47,7 @@ xsl.c: bind9.xsl Makefile
 	(echo 'const char xslmsg[] =' &&	\
 	 $(SED)	-e 's,\",\\\",g'		\
 		-e 's,^,\",'			\
-		-e 's,$$,\",' &&		\
+		-e 's,$$,\\n\",' &&		\
 	 echo ";")				\
 	< "${srcdir}/bind9.xsl" > $@
 

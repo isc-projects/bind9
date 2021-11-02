@@ -177,6 +177,7 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     $DIGCMD +notcp +recurse @10.53.0.3 soa example > dig.out.test$n.2 2>&1
     ${CURL} http://10.53.0.3:${EXTRAPORT1}/xml/v3 > curl.out.${n}.xml 2>/dev/null || ret=1
     ${CURL} http://10.53.0.3:${EXTRAPORT1}/bind9.xsl > curl.out.${n}.xsl 2>/dev/null || ret=1
+    ${DIFF} ${TOP_SRCDIR}/bin/named/bind9.xsl curl.out.${n}.xsl || ret=1
     ${XSLTPROC} curl.out.${n}.xsl - < curl.out.${n}.xml > xsltproc.out.${n} 2>/dev/null || ret=1
     cp curl.out.${n}.xml stats.xml.out || ret=1
 
