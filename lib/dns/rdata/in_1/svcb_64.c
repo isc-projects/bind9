@@ -90,12 +90,7 @@ static isc_result_t
 svcb_validate(uint16_t key, isc_region_t *region) {
 	size_t i;
 
-#ifndef ARRAYSIZE
-/* defined in winnt.h */
-#define ARRAYSIZE(x) (sizeof(x) / sizeof(*x))
-#endif
-
-	for (i = 0; i < ARRAYSIZE(sbpr); i++) {
+	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		if (sbpr[i].value == key) {
 			switch (sbpr[i].encoding) {
 			case sbpr_port:
@@ -172,7 +167,7 @@ svc_keyfromregion(isc_textregion_t *region, char sep, uint16_t *value,
 	unsigned long ul;
 
 	/* Look for known key names.  */
-	for (i = 0; i < ARRAYSIZE(sbpr); i++) {
+	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		size_t len = strlen(sbpr[i].name);
 		if (strncasecmp(region->base, sbpr[i].name, len) != 0 ||
 		    (region->base[len] != 0 && region->base[len] != sep))
@@ -235,7 +230,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 	unsigned int used;
 	unsigned long ul;
 
-	for (i = 0; i < ARRAYSIZE(sbpr); i++) {
+	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		len = strlen(sbpr[i].name);
 		if (strncmp(region->base, sbpr[i].name, len) != 0 ||
 		    (region->base[len] != 0 && region->base[len] != '='))
@@ -360,7 +355,7 @@ svcparamkey(unsigned short value, enum encoding *encoding, char *buf,
 	size_t i;
 	int n;
 
-	for (i = 0; i < ARRAYSIZE(sbpr); i++) {
+	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		if (sbpr[i].value == value && sbpr[i].initial) {
 			*encoding = sbpr[i].encoding;
 			return (sbpr[i].name);
