@@ -33,6 +33,11 @@ check_ad_flag() {
     return 0
 }
 
+check_status() {
+    grep "status: ${1}," ${2} > /dev/null || return 1
+    return 0
+}
+
 for ns in 2 4 5
 do
     case $ns in
@@ -45,7 +50,7 @@ do
     ret=0
     dig_with_opts a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NXDOMAIN," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
     grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
     [ $ns -eq ${ns} ] && nxdomain=dig.out.ns${ns}.test$n
     n=$((n+1))
@@ -56,7 +61,7 @@ do
     ret=0
     dig_with_opts nodata.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
     [ $ns -eq 2 ] && nodata=dig.out.ns${ns}.test$n
     n=$((n+1))
@@ -67,7 +72,7 @@ do
     ret=0
     dig_with_opts a.wild-a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     grep "a.wild-a.example.*3600.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -77,7 +82,7 @@ do
     ret=0
     dig_with_opts a.wild-cname.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     grep "a.wild-cname.example.*3600.IN.CNAME" dig.out.ns${ns}.test$n > /dev/null || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -88,7 +93,7 @@ echo_i "prime redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
 ret=0
 dig_with_opts +nodnssec a.redirect. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 check_ad_flag no dig.out.ns3.test$n || ret=1
-grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+check_status NOERROR dig.out.ns3.test$n || ret=1
 grep 'a\.redirect\..*300.IN.A.100\.100\.100\.2' dig.out.ns3.test$n > /dev/null || ret=1
 n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -111,7 +116,7 @@ do
     ret=0
     dig_with_opts b.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NXDOMAIN," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	grep "example.*IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
@@ -128,7 +133,7 @@ do
     ret=0
     dig_with_opts nodata.example. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	grep "example.*IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
@@ -145,7 +150,7 @@ do
     ret=0
     dig_with_opts b.wild-a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	    grep "b\.wild-a\.example\..*IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
@@ -161,7 +166,7 @@ do
     ret=0
     dig_with_opts b.wild-cname.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag yes dig.out.ns${ns}.test$n || ret=1
-    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     if [ ${synth} = yes ]
     then
 	grep "b.wild-cname.example.*IN.CNAME" dig.out.ns${ns}.test$n > /dev/null || ret=1
@@ -180,7 +185,7 @@ ret=0
 synth=${synth_default}
 dig_with_opts b.redirect. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 check_ad_flag yes dig.out.ns3.test$n || ret=1
-grep "status: NXDOMAIN," dig.out.ns3.test$n > /dev/null || ret=1
+check_status NXDOMAIN dig.out.ns3.test$n || ret=1
 if [ ${synth} = yes ]
 then
     grep "^\....[0-9]*.IN.SOA" dig.out.ns3.test$n > /dev/null || ret=1
@@ -196,7 +201,7 @@ echo_i "check redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
 ret=0
 dig_with_opts +nodnssec b.redirect. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 check_ad_flag no dig.out.ns3.test$n || ret=1
-grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+check_status NOERROR dig.out.ns3.test$n || ret=1
 grep 'b\.redirect\..*300.IN.A.100\.100\.100\.2' dig.out.ns3.test$n > /dev/null || ret=1
 n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -207,7 +212,7 @@ echo_i "check DNAME handling (synth-from-dnssec yes;) ($n)"
 ret=0
 dig_with_opts dnamed.example. ns @10.53.0.5 > dig.out.ns5.test$n || ret=1
 dig_with_opts a.dnamed.example. a @10.53.0.5 > dig.out.ns5-1.test$n || ret=1
-grep "status: NOERROR," dig.out.ns5-1.test$n > /dev/null || ret=1
+check_status NOERROR dig.out.ns5-1.test$n || ret=1
 n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
