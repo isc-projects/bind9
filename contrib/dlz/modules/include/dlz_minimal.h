@@ -153,6 +153,10 @@ typedef struct dns_clientinfomethods {
 } dns_clientinfomethods_t;
 #endif /* DLZ_DLOPEN_VERSION > 1 */
 
+#define DNS_ECS_FORMATSIZE                                                \
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS" \
+	       "/NNN/NNN")
+
 /*
  * Method definitions for callbacks provided by the dlopen driver
  */

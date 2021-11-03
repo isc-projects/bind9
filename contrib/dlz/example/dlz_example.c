@@ -438,8 +438,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "source-addr") == 0) {
-		char ecsbuf[100] = "not supported";
-		strcpy(buf, "unknown");
+		char ecsbuf[DNS_ECS_FORMATSIZE] = "not supported";
+		strncpy(buf, "unknown", sizeof(buf));
 		if (methods != NULL && methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
 		     DNS_CLIENTINFOMETHODS_VERSION) &&
@@ -453,7 +453,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 				dns_ecs_format(&clientinfo->ecs, ecsbuf,
 					       sizeof(ecsbuf));
 			} else {
-				strcpy(ecsbuf, "not present");
+				snprintf(ecsbuf, sizeof(ecsbuf), "%s",
+					 "not present");
 			}
 		}
 		i = strlen(buf);
