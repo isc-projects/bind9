@@ -790,7 +790,7 @@ err:
 static isc_result_t
 opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
-	dst_private_t priv;
+	dst_private_t priv = { 0 };
 	unsigned char *bufs[8] = { NULL };
 	unsigned short i = 0;
 	EVP_PKEY *pkey;
@@ -810,7 +810,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	}
 
 	if (key->external) {
-		priv.nelements = 0;
 		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
