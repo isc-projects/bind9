@@ -30,6 +30,10 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * Any updates to this structure should also be applied in
+ * contrib/modules/dlz/dlz_minmal.h.
+ */
 struct isc_netaddr {
 	unsigned int family;
 	union {
