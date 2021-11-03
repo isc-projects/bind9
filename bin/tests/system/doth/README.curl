@@ -1,0 +1,25 @@
+DoH query values that can be passed on the command line for testing
+with curl can be obtained by encoding binary DNS messages into
+base64url, with trailing '='s removed.
+
+For example:
+
+$ perl bin/tests/system/fromhex.pl << EOF | base64url
+    # Transaction ID
+    0001
+    # Standard query
+    0000
+    # Questions: 1, Additional: 0
+    0001 0000 0000 0000
+    # QNAME: example
+    07 6578616d706c65 00
+    # Type: SOA
+    0006
+    Class: IN
+    0001
+EOF
+
+This produces the string "AAEAAAABAAAAAAAAB2V4YW1wbGUAAAbFrMonAAE=". With
+the trailing '=' removed, this can then be passed to curl:
+
+curl "https://<server>/dns-query?dns=AAEAAAABAAAAAAAAB2V4YW1wbGUAAAbFrMonAAE"
