@@ -480,8 +480,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	 * If the DLZ only operates on 'live' data, then version
 	 * wouldn't necessarily be needed.
 	 */
-	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
-	{
+	if (clientinfo != NULL && clientinfo->version >= 2) {
 		dbversion = clientinfo->dbversion;
 		if (dbversion != NULL && *(bool *)dbversion) {
 			loginfo("dlz_example: lookup against live transaction");
