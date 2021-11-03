@@ -1128,8 +1128,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	/* Are we okay to try to find the txn version?  */
-	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
-	{
+	if (clientinfo != NULL && clientinfo->version >= 2) {
 		txn = (mysql_transaction_t *)clientinfo->dbversion;
 		if (txn != NULL && validate_txn(state, txn) == ISC_R_SUCCESS) {
 			dbi = txn->dbi;
