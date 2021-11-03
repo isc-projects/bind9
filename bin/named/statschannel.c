@@ -52,6 +52,14 @@
 
 #include "xsl_p.h"
 
+#define STATS_XML_VERSION_MAJOR "3"
+#define STATS_XML_VERSION_MINOR "12"
+#define STATS_XML_VERSION	STATS_XML_VERSION_MAJOR "." STATS_XML_VERSION_MINOR
+
+#define STATS_JSON_VERSION_MAJOR "1"
+#define STATS_JSON_VERSION_MINOR "6"
+#define STATS_JSON_VERSION	 STATS_JSON_VERSION_MAJOR "." STATS_JSON_VERSION_MINOR
+
 #define CHECK(m)                               \
 	do {                                   \
 		result = (m);                  \
@@ -1991,7 +1999,7 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 					      "href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.11"));
+					 ISC_XMLCHAR STATS_XML_VERSION));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -2778,7 +2786,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.5");
+	obj = json_object_new_string(STATS_JSON_VERSION);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 
@@ -3599,42 +3607,58 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 			    server);
 	isc_httpdmgr_addurl(listener->httpdmgr, "/xml", false, render_xml_all,
 			    server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR, false,
 			    render_xml_all, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/status", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/status", false,
 			    render_xml_status, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/server", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/server", false,
 			    render_xml_server, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/zones", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/zones", false,
 			    render_xml_zones, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/net", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/net", false,
 			    render_xml_net, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/tasks", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/tasks", false,
 			    render_xml_tasks, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/mem", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/mem", false,
 			    render_xml_mem, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/xml/v3/traffic", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/traffic", false,
 			    render_xml_traffic, server);
 #endif /* ifdef HAVE_LIBXML2 */
 #ifdef HAVE_JSON_C
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json", false, render_json_all,
 			    server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR, false,
 			    render_json_all, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/status", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/status", false,
 			    render_json_status, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/server", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/server", false,
 			    render_json_server, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/zones", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/zones", false,
 			    render_json_zones, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/tasks", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/tasks", false,
 			    render_json_tasks, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/net", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/net", false,
 			    render_json_net, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/mem", false,
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/mem", false,
 			    render_json_mem, server);
-	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/traffic", false,
-			    render_json_traffic, server);
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/traffic",
+			    false, render_json_traffic, server);
 #endif /* ifdef HAVE_JSON_C */
 	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", true, render_xsl,
 			    server);

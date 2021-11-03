@@ -46,7 +46,8 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 - Because the old socket manager API has been removed, "socketmgr"
-  statistics are no longer reported by the statistics channel. :gl:`#2926`
+  statistics are no longer reported by the
+  :ref:`statistics channel <statschannels>`. :gl:`#2926`
 
 - `UseSTD3ASCIIRules`_ is now enabled for IDN support. This enables additional
   validation rules for domains and hostnames within dig.  :gl:`#1610`
