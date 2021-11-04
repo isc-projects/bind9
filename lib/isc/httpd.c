@@ -89,6 +89,7 @@ struct isc_httpd {
 	uint32_t recvlen;	    /*%< length recv'd */
 	uint32_t consume;	    /*%< length of last command */
 	char *headers;		    /*%< set in process_request() */
+	bool truncated;
 	method_t method;
 	char *url;
 	char *querystring;
@@ -398,16 +399,24 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	size_t limit = sizeof(httpd->recvbuf) - httpd->recvlen - 1;
 	size_t len = region->length;
 	int delim;
+	bool truncated = false;
 
 	if (len > limit) {
 		len = limit;
+		truncated = true;
 	}
 
 	if (len > 0U) {
+		if (httpd->truncated) {
+			return (ISC_R_NOSPACE);
+		}
 		memmove(httpd->recvbuf + httpd->recvlen, region->base, len);
 		httpd->recvlen += len;
 		httpd->recvbuf[httpd->recvlen] = 0;
 		isc_region_consume(region, len);
+	}
+	if (truncated) {
+		httpd->truncated = true;
 	}
 	httpd->headers = NULL;
 	*buflen = httpd->recvlen;
@@ -422,7 +431,8 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 		s = strstr(httpd->recvbuf, "\n\n");
 		delim = 1;
 		if (s == NULL) {
-			return (ISC_R_NOTFOUND);
+			return (httpd->truncated ? ISC_R_NOSPACE
+						 : ISC_R_NOTFOUND);
 		}
 		httpd->consume = s + 2 - httpd->recvbuf;
 	} else {
@@ -609,6 +619,7 @@ httpd_reset(void *arg) {
 	httpd->recvbuf[0] = 0;
 	httpd->recvlen = 0;
 	httpd->consume = 0;
+	httpd->truncated = false;
 	httpd->headers = NULL;
 	httpd->method = METHOD_UNKNOWN;
 	httpd->url = NULL;
@@ -1174,7 +1185,7 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		 */
 		isc_nmhandle_attach(handle, &httpd->readhandle);
 		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
-	} else {
+	} else if (!httpd->truncated) {
 		isc_nm_resumeread(handle);
 	}
 }
