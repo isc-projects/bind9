@@ -4,7 +4,7 @@
   	type ( master | primary );
   	allow-query { <address_match_element>; ... };
   	allow-query-on { <address_match_element>; ... };
-  	allow-transfer { <address_match_element>; ... };
+  	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
   	allow-update { <address_match_element>; ... };
   	also-notify [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
   	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
