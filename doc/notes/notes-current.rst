@@ -24,11 +24,6 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Internal data structures maintained for each cache database are now
-  grown incrementally when they need to be expanded. This helps maintain
-  a steady response rate on a loaded resolver while these internal data
-  structures are resized. :gl:`#2941`
-
 - New finer-grained ``update-policy`` rule types,
   ``krb5-subdomain-self-rhs`` and ``ms-subdomain-self-rhs``, were added.
   These rule types restrict updates to SRV and PTR records so that their
@@ -47,16 +42,12 @@ Removed Features
   engine_pkcs11 which employs the new "provider" approach introduced in
   OpenSSL 3.0.0 is in the making. :gl:`#2843`
 
-Feature Changes
-~~~~~~~~~~~~~~~
-
 - Since the old socket manager API has been removed, "socketmgr"
   statistics are no longer reported by the :ref:`statistics channel
   <statschannels>`. :gl:`#2926`
 
-- The `UseSTD3ASCIIRules`_ flag is now set for libidn2 function calls.
-  This enables additional validation rules for IDN domains and hostnames
-  in ``dig``. :gl:`#1610`
+Feature Changes
+~~~~~~~~~~~~~~~
 
 - The default for ``dnssec-dnskey-kskonly`` was changed to ``yes``. This
   means that DNSKEY, CDNSKEY, and CDS RRsets are now only signed with
@@ -64,14 +55,23 @@ Feature Changes
   when the option is set to ``no`` add to the DNS response payload
   without offering added value. :gl:`#1316`
 
+- The default NSEC3 parameters for ``dnssec-policy`` were updated to no
+  extra SHA-1 iterations and no salt (``NSEC3PARAM 1 0 0 -``).
+  :gl:`#2956`
+
+- Internal data structures maintained for each cache database are now
+  grown incrementally when they need to be expanded. This helps maintain
+  a steady response rate on a loaded resolver while these internal data
+  structures are resized. :gl:`#2941`
+
 - The output of ``rndc serve-stale status`` has been clarified. It now
   explicitly reports whether retention of stale data in the cache is
   enabled (``stale-cache-enable``), and whether returning such data in
   responses is enabled (``stale-answer-enable``). :gl:`#2742`
 
-- The default NSEC3 parameters for ``dnssec-policy`` were updated to no
-  extra SHA-1 iterations and no salt (``NSEC3PARAM 1 0 0 -``).
-  :gl:`#2956`
+- The `UseSTD3ASCIIRules`_ flag is now set for libidn2 function calls.
+  This enables additional validation rules for IDN domains and hostnames
+  in ``dig``. :gl:`#1610`
 
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
@@ -82,12 +82,12 @@ Bug Fixes
   zone triggered a runtime check failure, causing ``named`` to exit
   prematurely. This has been fixed. :gl:`#2308`
 
-- Log files using ``timestamp``-style suffixes were not always correctly
-  removed when the number of files exceeded the limit set by
-  ``versions``. This has been fixed. :gl:`#828`
-
 - Some lame delegations could trigger a dependency loop, in which a
   resolver fetch waited for a name server address lookup which was
   waiting for the same resolver fetch. This could cause a recursive
   lookup to hang until timing out. This situation is now detected and
   prevented. :gl:`#2927`
+
+- Log files using ``timestamp``-style suffixes were not always correctly
+  removed when the number of files exceeded the limit set by
+  ``versions``. This has been fixed. :gl:`#828`
