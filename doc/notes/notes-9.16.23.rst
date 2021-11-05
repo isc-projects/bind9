@@ -11,33 +11,9 @@
 Notes for BIND 9.16.23
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
-- Reloading a catalog zone that referenced a missing/deleted zone
-  caused a crash. This has been fixed. :gl:`#2308`
+- Reloading a catalog zone which referenced a missing/deleted member
+  zone triggered a runtime check failure, causing ``named`` to exit
+  prematurely. This has been fixed. :gl:`#2308`
