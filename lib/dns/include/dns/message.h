@@ -199,6 +199,11 @@ struct dns_sortlist_arg {
 	const dns_aclelement_t *element;
 };
 
+typedef struct dns_minttl {
+	bool	  is_set;
+	dns_ttl_t ttl;
+} dns_minttl_t;
+
 struct dns_message {
 	/* public from here down */
 	unsigned int   magic;
@@ -279,6 +284,8 @@ struct dns_message {
 	dns_sortlist_arg_t	order_arg;
 
 	dns_indent_t indent;
+
+	dns_minttl_t minttl[DNS_SECTION_MAX];
 };
 
 struct dns_ednsopt {
@@ -1481,6 +1488,30 @@ dns_message_clonebuffer(dns_message_t *msg);
  *
  * Requires:
  * \li   msg be a valid message.
+ */
+
+isc_result_t
+dns_message_minttl(dns_message_t *msg, const dns_section_t sectionid,
+		   dns_ttl_t *pttl);
+/*%<
+ * Get the smallest TTL from the 'sectionid' section of a rendered
+ * message.
+ *
+ * Requires:
+ * \li   msg be a valid rendered message;
+ * \li   'pttl != NULL'.
+ */
+
+isc_result_t
+dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl);
+/*%<
+ * Get the smalled TTL from the Answer section of 'msg', or if empty, try
+ * the MIN(SOA TTL, SOA MINIMUM) value from an SOA record in the Authority
+ * section. If neither of these are set, return ISC_R_NOTFOUND.
+ *
+ * Requires:
+ * \li   msg be a valid rendered message;
+ * \li   'pttl != NULL'.
  */
 
 ISC_LANG_ENDDECLS

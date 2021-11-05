@@ -38,6 +38,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/soa.h>
 #include <dns/tsig.h>
 #include <dns/ttl.h>
 #include <dns/view.h>
@@ -1913,6 +1914,18 @@ maybe_clear_ad(dns_message_t *msg, dns_section_t sectionid) {
 	}
 }
 
+static void
+update_min_section_ttl(dns_message_t *restrict msg,
+		       const dns_section_t sectionid,
+		       dns_rdataset_t *restrict rdataset) {
+	if (!msg->minttl[sectionid].is_set ||
+	    rdataset->ttl < msg->minttl[sectionid].ttl)
+	{
+		msg->minttl[sectionid].is_set = true;
+		msg->minttl[sectionid].ttl = rdataset->ttl;
+	}
+}
+
 isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int options) {
@@ -2012,6 +2025,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				msg->counts[sectionid] += total;
 				return (result);
 			}
+
+			update_min_section_ttl(msg, sectionid, rdataset);
+
 			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 	}
@@ -2106,6 +2122,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (OPTOUT(rdataset)) {
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;
 				}
+
+				update_min_section_ttl(msg, sectionid,
+						       rdataset);
 
 				rdataset->attributes |=
 					DNS_RDATASETATTR_RENDERED;
@@ -4691,4 +4710,109 @@ dns_message_clonebuffer(dns_message_t *msg) {
 				msg->query.base, msg->query.length);
 		msg->free_query = 1;
 	}
+}
+
+static isc_result_t
+message_authority_soa_min(dns_message_t *msg, dns_ttl_t *pttl) {
+	isc_result_t result;
+	dns_rdataset_t *rdataset = NULL;
+	dns_name_t *name = NULL;
+
+	if (msg->counts[DNS_SECTION_AUTHORITY] == 0) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	for (result = dns_message_firstname(msg, DNS_SECTION_AUTHORITY);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(msg, DNS_SECTION_AUTHORITY))
+	{
+		name = NULL;
+		dns_message_currentname(msg, DNS_SECTION_AUTHORITY, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			isc_result_t tresult;
+
+			if ((rdataset->attributes &
+			     DNS_RDATASETATTR_RENDERED) == 0) {
+				continue;
+			}
+
+			/* loop over the rdatas */
+			for (tresult = dns_rdataset_first(rdataset);
+			     tresult == ISC_R_SUCCESS;
+			     tresult = dns_rdataset_next(rdataset))
+			{
+				dns_name_t tmp;
+				isc_region_t r = { 0 };
+				dns_rdata_t rdata = DNS_RDATA_INIT;
+
+				dns_rdataset_current(rdataset, &rdata);
+
+				switch (rdata.type) {
+				case dns_rdatatype_soa:
+					/* SOA rdataset */
+					break;
+				case dns_rdatatype_none:
+					/*
+					 * Negative cache rdataset: we need
+					 * to inspect the rdata to determine
+					 * whether it's an SOA.
+					 */
+					dns_rdata_toregion(&rdata, &r);
+					dns_name_init(&tmp, NULL);
+					dns_name_fromregion(&tmp, &r);
+					isc_region_consume(&r, tmp.length);
+					if (r.length < 2) {
+						continue;
+					}
+					rdata.type = r.base[0] << 8 | r.base[1];
+					if (rdata.type != dns_rdatatype_soa) {
+						continue;
+					}
+					break;
+				default:
+					continue;
+				}
+
+				if (rdata.type == dns_rdatatype_soa) {
+					*pttl = ISC_MIN(
+						rdataset->ttl,
+						dns_soa_getminimum(&rdata));
+					return (ISC_R_SUCCESS);
+				}
+			}
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_message_minttl(dns_message_t *msg, const dns_section_t sectionid,
+		   dns_ttl_t *pttl) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(pttl != NULL);
+
+	if (!msg->minttl[sectionid].is_set) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	*pttl = msg->minttl[sectionid].ttl;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl) {
+	isc_result_t result;
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(pttl != NULL);
+
+	result = dns_message_minttl(msg, DNS_SECTION_ANSWER, pttl);
+	if (result != ISC_R_SUCCESS) {
+		return (message_authority_soa_min(msg, pttl));
+	}
+
+	return (ISC_R_SUCCESS);
 }

@@ -815,11 +815,15 @@ typedef struct isc_nmsocket_h2 {
 	/* maximum concurrent streams (server-side) */
 	uint32_t max_concurrent_streams;
 
+	uint32_t min_ttl; /* used to set "max-age" in responses */
+
 	isc_http_request_type_t request_type;
 	isc_http_scheme_type_t request_scheme;
 
 	size_t content_length;
 	char clenbuf[128];
+
+	char cache_control_buf[128];
 
 	int headers_error_code;
 	size_t headers_data_processed;
@@ -1705,6 +1709,9 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle);
  * \li 'handle' is a valid HTTP netmgr handle object, referencing a server-side
  * socket
  */
+
+void
+isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
 
 void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
