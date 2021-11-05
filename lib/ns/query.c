@@ -10070,6 +10070,14 @@ query_coveringnsec(query_ctx_t *qctx) {
 	}
 
 	/*
+	 * If NSEC or RRSIG are missing from the type map
+	 * reject the NSEC RRset.
+	 */
+	if (!dns_nsec_requiredtypespresent(qctx->rdataset)) {
+		goto cleanup;
+	}
+
+	/*
 	 * Check that we have the correct NOQNAME NSEC record.
 	 */
 	result = dns_nsec_noexistnodata(qctx->qtype, qctx->client->query.qname,
