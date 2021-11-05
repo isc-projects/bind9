@@ -374,5 +374,53 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+if [ -x "${NC}" ] ; then
+    echo_i "Check HTTP/1.1 pipelined requests are handled ($n)"
+    ret=0
+    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Connection: close
+
+EOF
+    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
+    test $lines = 2 || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=`expr $status + $ret`
+    n=`expr $n + 1`
+else
+    echo_i "skipping test as nc not found"
+fi
+
+echo_i "Check HTTP/1.1 pipelined with truncated stream ($n)"
+ret=0
+i=0
+# build input stream.
+cp /dev/null send.in$n
+while test $i -lt 500
+do
+cat >> send.in$n << EOF
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3
+
+EOF
+i=$((i+1))
+done
+
+# send the requests then wait for named to close the socket.
+time1=$($PERL -e 'print time(), "\n";')
+${PERL} send64k.pl 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
+time2=$($PERL -e 'print time(), "\n";')
+test $((time2 - time1)) -lt 5 || ret=1
+# we expect 91 of the 500 requests to be processed.
+lines=$(grep "^HTTP/1.1" send.out$n | wc -l)
+test $lines = 91 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -38,7 +38,7 @@
 		}                              \
 	} while (0)
 
-#define HTTP_RECVLEN	 1024
+#define HTTP_RECVLEN	 4096
 #define HTTP_SENDGROW	 1024
 #define HTTP_SEND_MAXLEN 10240
 
@@ -87,7 +87,9 @@ struct isc_httpd {
 	 */
 	char recvbuf[HTTP_RECVLEN]; /*%< receive buffer */
 	uint32_t recvlen;	    /*%< length recv'd */
+	uint32_t consume;	    /*%< length of last command */
 	char *headers;		    /*%< set in process_request() */
+	bool truncated;
 	method_t method;
 	char *url;
 	char *querystring;
@@ -117,7 +119,6 @@ struct isc_httpd {
 	 * the backing store.
 	 * The third buffer is compbuffer, managed by us, that contains the
 	 * compressed HTTP data, if compression is used.
-	 *
 	 */
 	isc_buffer_t headerbuffer;
 	isc_buffer_t compbuffer;
@@ -172,7 +173,7 @@ static isc_result_t
 httpd_response(isc_httpd_t *);
 
 static isc_result_t
-process_request(isc_httpd_t *, isc_region_t *);
+process_request(isc_httpd_t *, isc_region_t *, size_t *);
 static isc_result_t
 grow_headerspace(isc_httpd_t *);
 
@@ -196,7 +197,7 @@ free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	isc_region_t r;
 
 	isc_buffer_region(buffer, &r);
-	if (r.length > 0) {
+	if (r.base != NULL) {
 		isc_mem_put(mctx, r.base, r.length);
 	}
 }
@@ -393,14 +394,32 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 }
 
 static isc_result_t
-process_request(isc_httpd_t *httpd, isc_region_t *region) {
-	char *s = NULL, *p = NULL;
+process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
+	char *s = NULL, *p = NULL, *urlend = NULL;
+	size_t limit = sizeof(httpd->recvbuf) - httpd->recvlen - 1;
+	size_t len = region->length;
 	int delim;
+	bool truncated = false;
 
-	memmove(httpd->recvbuf + httpd->recvlen, region->base, region->length);
-	httpd->recvlen += region->length;
-	httpd->recvbuf[httpd->recvlen] = 0;
+	if (len > limit) {
+		len = limit;
+		truncated = true;
+	}
+
+	if (len > 0U) {
+		if (httpd->truncated) {
+			return (ISC_R_NOSPACE);
+		}
+		memmove(httpd->recvbuf + httpd->recvlen, region->base, len);
+		httpd->recvlen += len;
+		httpd->recvbuf[httpd->recvlen] = 0;
+		isc_region_consume(region, len);
+	}
+	if (truncated) {
+		httpd->truncated = true;
+	}
 	httpd->headers = NULL;
+	*buflen = httpd->recvlen;
 
 	/*
 	 * If we don't find a blank line in our buffer, return that we need
@@ -411,13 +430,17 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 	if (s == NULL) {
 		s = strstr(httpd->recvbuf, "\n\n");
 		delim = 1;
-	}
-	if (s == NULL) {
-		return (ISC_R_NOTFOUND);
+		if (s == NULL) {
+			return (httpd->truncated ? ISC_R_NOSPACE
+						 : ISC_R_NOTFOUND);
+		}
+		httpd->consume = s + 2 - httpd->recvbuf;
+	} else {
+		httpd->consume = s + 4 - httpd->recvbuf;
 	}
 
 	/*
-	 * NUL terminate request at the blank line.
+	 * NULL terminate the request at the blank line.
 	 */
 	s[delim] = 0;
 
@@ -454,13 +477,13 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 	if (!BUFLENOK(s)) {
 		return (ISC_R_NOMEMORY);
 	}
-	*s = 0;
+	urlend = s;
 
 	/*
 	 * Make the URL relative.
 	 */
-	if ((strncmp(p, "http:/", 6) == 0) || (strncmp(p, "https:/", 7) == 0)) {
-		/* Skip first / */
+	if (strncmp(p, "http://", 7) == 0 || strncmp(p, "https://", 8) == 0) {
+		/* Skip first '/' */
 		while (*p != '/' && *p != 0) {
 			p++;
 		}
@@ -468,7 +491,7 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 			return (ISC_R_RANGE);
 		}
 		p++;
-		/* Skip second / */
+		/* Skip second '/' */
 		while (*p != '/' && *p != 0) {
 			p++;
 		}
@@ -476,7 +499,7 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 			return (ISC_R_RANGE);
 		}
 		p++;
-		/* Find third / */
+		/* Find third '/' */
 		while (*p != '/' && *p != 0) {
 			p++;
 		}
@@ -491,7 +514,7 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 	s = p;
 
 	/*
-	 * Now, see if there is a ? mark in the URL.  If so, this is
+	 * Now, see if there is a question mark in the URL.  If so, this is
 	 * part of the query string, and we will split it from the URL.
 	 */
 	httpd->querystring = strchr(httpd->url, '?');
@@ -566,6 +589,15 @@ process_request(isc_httpd_t *httpd, isc_region_t *region) {
 		return (ISC_R_RANGE);
 	}
 
+	/*
+	 * Looks like a a valid request, so now we know we won't have
+	 * to process this buffer again. We can NULL-terminate the
+	 * URL for the caller's benefit, and set recvlen to 0 so
+	 * the next read will overwrite this one instead of appending
+	 * to the buffer.
+	 */
+	*urlend = 0;
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -586,6 +618,8 @@ httpd_reset(void *arg) {
 
 	httpd->recvbuf[0] = 0;
 	httpd->recvlen = 0;
+	httpd->consume = 0;
+	httpd->truncated = false;
 	httpd->headers = NULL;
 	httpd->method = METHOD_UNKNOWN;
 	httpd->url = NULL;
@@ -596,24 +630,24 @@ httpd_reset(void *arg) {
 	isc_buffer_clear(&httpd->headerbuffer);
 	isc_buffer_clear(&httpd->compbuffer);
 	isc_buffer_invalidate(&httpd->bodybuffer);
-
-	httpdmgr_detach(&httpdmgr);
 }
 
 static void
 httpd_put(void *arg) {
 	isc_httpd_t *httpd = (isc_httpd_t *)arg;
-	isc_httpdmgr_t *httpdmgr = NULL;
+	isc_httpdmgr_t *mgr = NULL;
 
 	REQUIRE(VALID_HTTPD(httpd));
 
-	httpdmgr = httpd->mgr;
-	REQUIRE(VALID_HTTPDMGR(httpdmgr));
+	mgr = httpd->mgr;
+	REQUIRE(VALID_HTTPDMGR(mgr));
 
 	httpd->magic = 0;
+	httpd->mgr = NULL;
 
-	free_buffer(httpdmgr->mctx, &httpd->headerbuffer);
-	free_buffer(httpdmgr->mctx, &httpd->compbuffer);
+	free_buffer(mgr->mctx, &httpd->headerbuffer);
+	free_buffer(mgr->mctx, &httpd->compbuffer);
+	httpdmgr_detach(&mgr);
 
 #if ENABLE_AFL
 	if (finishhook != NULL) {
@@ -633,6 +667,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	if (httpd == NULL) {
 		httpd = isc_nmhandle_getextra(handle);
 		*httpd = (isc_httpd_t){ .handle = NULL };
+		httpdmgr_attach(httpdmgr, &httpd->mgr);
 	}
 
 	if (httpd->handle == NULL) {
@@ -641,8 +676,6 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	} else {
 		INSIST(httpd->handle == handle);
 	}
-
-	httpdmgr_attach(httpdmgr, &httpd->mgr);
 
 	/*
 	 * Initialize the buffer for our headers.
@@ -749,22 +782,15 @@ render_500(const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
 /*%<
  * Reallocates compbuffer to size, does nothing if compbuffer is already
  * larger than size.
- *
- * Requires:
- *\li	httpd a valid isc_httpd_t object
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- all is well.
- *\li	#ISC_R_NOMEMORY		-- not enough memory to extend buffer
  */
-static isc_result_t
+static void
 alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
-	char *newspace;
+	char *newspace = NULL;
 	isc_region_t r;
 
 	isc_buffer_region(&httpd->compbuffer, &r);
 	if (size < r.length) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	newspace = isc_mem_get(httpd->mgr->mctx, size);
@@ -773,8 +799,6 @@ alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
 	if (r.base != NULL) {
 		isc_mem_put(httpd->mgr->mctx, r.base, r.length);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*%<
@@ -794,15 +818,11 @@ static isc_result_t
 httpd_compress(isc_httpd_t *httpd) {
 	z_stream zstr;
 	isc_region_t r;
-	isc_result_t result;
 	int ret;
 	int inputlen;
 
 	inputlen = isc_buffer_usedlength(&httpd->bodybuffer);
-	result = alloc_compspace(httpd, inputlen);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	alloc_compspace(httpd, inputlen);
 	isc_buffer_region(&httpd->compbuffer, &r);
 
 	/*
@@ -842,6 +862,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_region_t r;
 	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	size_t buflen = 0;
 
 	httpd = isc_nmhandle_getdata(handle);
 
@@ -851,10 +872,22 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		goto cleanup_readhandle;
 	}
 
-	result = process_request(httpd, region);
+	result = process_request(
+		httpd, region == NULL ? &(isc_region_t){ NULL, 0 } : region,
+		&buflen);
 	if (result == ISC_R_NOTFOUND) {
-		if (httpd->recvlen < HTTP_RECVLEN - 1) {
-			/* don't unref, continue reading */
+		if (buflen < HTTP_RECVLEN - 1) {
+			if (region != NULL) {
+				/* don't unref, keep reading */
+				return;
+			}
+			/*
+			 * We have been called from httpd_senddone
+			 * and we need to resume reading.  Detach
+			 * readhandle before resuming.
+			 */
+			isc_nmhandle_detach(&httpd->readhandle);
+			isc_nm_resumeread(handle);
 			return;
 		}
 		goto cleanup_readhandle;
@@ -943,11 +976,24 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 * the response headers and store the result in httpd->sendbuffer.
 	 */
 	isc_buffer_dup(mgr->mctx, &httpd->sendbuffer, &httpd->headerbuffer);
+	isc_buffer_clear(&httpd->headerbuffer);
 	isc_buffer_setautorealloc(httpd->sendbuffer, true);
 	databuffer = (is_compressed ? &httpd->compbuffer : &httpd->bodybuffer);
 	isc_buffer_usedregion(databuffer, &r);
 	result = isc_buffer_copyregion(httpd->sendbuffer, &r);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/* Consume the request from the recv buffer. */
+	if (httpd->consume != 0U) {
+		INSIST(httpd->consume <= httpd->recvlen);
+		if (httpd->consume < httpd->recvlen) {
+			memmove(httpd->recvbuf, httpd->recvbuf + httpd->consume,
+				httpd->recvlen - httpd->consume);
+		}
+		httpd->recvlen -= httpd->consume;
+		httpd->consume = 0;
+		httpd->recvbuf[httpd->recvlen] = 0;
+	}
 
 	/*
 	 * Determine total response size.
@@ -960,7 +1006,6 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_attach(handle, &httpd->sendhandle);
 	isc_nm_send(handle, &r, httpd_senddone, httpd);
 
-	return;
 cleanup_readhandle:
 	isc_nmhandle_detach(&httpd->readhandle);
 }
@@ -1133,7 +1178,16 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	httpd->state = RECV;
-	isc_nm_resumeread(handle);
+	if (httpd->recvlen != 0) {
+		/*
+		 * Outstanding requests still exist, start processing
+		 * them.
+		 */
+		isc_nmhandle_attach(handle, &httpd->readhandle);
+		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
+	} else if (!httpd->truncated) {
+		isc_nm_resumeread(handle);
+	}
 }
 
 isc_result_t
