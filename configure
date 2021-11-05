@@ -26522,10 +26522,9 @@ fi
     echo "    localstatedir: $localstatedir"
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
-    if test "$GCC" = "yes"
-then :
+    if test "$GCC" = "yes"; then :
   $CC --version 2>&1 | sed 's/^/    /'
-else $as_nop
+else
   case $host in #(
   *-solaris*) :
     $CC -V 2>&1 | sed 's/^/    /' ;; #(
