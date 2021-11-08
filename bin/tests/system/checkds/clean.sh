@@ -21,5 +21,4 @@ rm -f ns*/keygen.out.* ns*/settime.out.* ns*/signer.out.*
 rm -f ns*/managed-keys.bind*
 rm -f ns*/*.mkeys
 rm -f ns*/zones
-rm -f tests-checkds.py.status
 rm -f *.checkds.out
