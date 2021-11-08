@@ -2847,14 +2847,6 @@ failed_read_cb(isc_result_t result, isc_nm_http_session_t *session) {
 	}
 }
 
-bool
-isc_nm_is_http_handle(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	return (handle->sock->type == isc_nm_httpsocket);
-}
-
 void
 isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 	isc_nm_http_session_t *session;

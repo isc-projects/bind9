@@ -3456,13 +3456,25 @@ isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle) {
 	return (handle->sock->type == isc_nm_tlsdnssocket);
 }
 
+bool
+isc_nm_is_http_handle(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->type == isc_nm_httpsocket);
+}
+
 void
 isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
-	isc_nmsocket_t *sock;
+	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(!atomic_load(&handle->sock->client));
+
+#if !HAVE_LIBNGHTTP2
+	UNUSED(ttl);
+#endif
 
 	sock = handle->sock;
 	switch (sock->type) {
