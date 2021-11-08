@@ -1,3 +1,7 @@
+5757.	[test]		Replace sed in nsupdate system test with awk to
+			construct the nsupdate command.  The sed expression
+			was not reliably changing the ttl. [GL #3003]
+
 5756.	[func]		Assign HTTP freshness lifetime to responses sent
 			via DNS-over-HTTPS, according to the recommendations
 			given in RFC 8484. [GL #2854]
