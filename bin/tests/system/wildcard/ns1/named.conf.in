@@ -27,6 +27,7 @@ zone "." { type primary; file "root.db.signed"; };
 /*
  * RFC 4592 example zone.
  */
+zone "allwild.test" { type primary; file "allwild.db"; };
 zone "example" { type primary; file "example.db"; };
 zone "nsec" { type primary; file "nsec.db.signed"; };
 zone "private.nsec" { type primary; file "private.nsec.db.signed"; };

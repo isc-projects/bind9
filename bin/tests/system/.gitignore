@@ -1,4 +1,5 @@
 .cache
+.hypothesis
 __pycache__
 dig.out*
 rndc.out*

@@ -1,0 +1,4 @@
+$ORIGIN allwild.test.
+allwild.test.                 3600 IN  SOA   . . 0 0 0 0 0
+allwild.test.                 3600     NS    ns.example.test.
+*.allwild.test.           3600     A     192.0.2.1
