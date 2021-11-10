@@ -9,7 +9,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-@				3600	SOA	. . 0 0 0 0 0
-@				3600	NS	.
-from-no-cookie-server		3600	NS	ns7.from-no-cookie-server
-ns7.from-no-cookie-server	3600	A	10.53.0.7
+@	SOA	ns7 hostmaster.isc.org. 1 600 600 1200 600
+@ 	NS	ns7
+ns7 	A	10.53.0.7
