@@ -63,4 +63,5 @@ rm -f perl.update_test.out
 rm -f nsupdate.out*
 rm -f typelist.out.*
 rm -f update.out.*
+rm -f update.in.*
 rm -f verylarge
