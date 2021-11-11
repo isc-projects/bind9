@@ -31,5 +31,3 @@ wire_test_CPPFLAGS =		\
 wire_test_LDADD =		\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)
-
-EXTRA_DIST = prepare-softhsm2.sh
