@@ -1,3 +1,7 @@
+5763.	[bug]		Fix a bug in DoT code leading to an abort when
+			a zone transfer ends with an unexpected DNS message.
+			[GL #3004]
+
 5762.	[bug]		Fix a "named" crash related to removing and restoring a
 			`catalog-zone` entry in the configuration file and
 			running `rndc reconfig`. [GL #1608]
