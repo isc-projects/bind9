@@ -2553,6 +2553,7 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 	dns_aclenv_t *env = client->manager->aclenv;
 	isc_netaddr_t tmpnetaddr;
 	int match;
+	isc_sockaddr_t local;
 
 	if (acl == NULL) {
 		if (default_allow) {
@@ -2567,7 +2568,13 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 		netaddr = &tmpnetaddr;
 	}
 
-	result = dns_acl_match(netaddr, client->signer, acl, env, &match, NULL);
+	local = isc_nmhandle_localaddr(client->handle);
+	result = dns_acl_match_port_transport(
+		netaddr, isc_sockaddr_getport(&local),
+		isc_nm_socket_type(client->handle),
+		isc_nm_has_encryption(client->handle), client->signer, acl, env,
+		&match, NULL);
+
 	if (result != ISC_R_SUCCESS) {
 		goto deny; /* Internal error, already logged. */
 	}
