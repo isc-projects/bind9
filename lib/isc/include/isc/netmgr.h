@@ -500,8 +500,6 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  * 'cb'.
  */
 
-bool
-isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle);
 /*%<
  * Returns 'true' iff 'handle' is associated with a socket of type
  * 'isc_nm_tlsdnssocket'.
@@ -645,6 +643,15 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
  *
  * \li 'handle' is a valid netmgr handle object associated with an accepted
  * connection.
+ */
+
+isc_nmsocket_type
+isc_nm_socket_type(const isc_nmhandle_t *handle);
+/*%<
+ * Returns the handle's underlying socket type.
+ *
+ * Requires:
+ *  \li 'handle' is a valid netmgr handle object.
  */
 
 void

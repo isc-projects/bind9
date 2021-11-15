@@ -3149,7 +3149,7 @@ launch_next_query(dig_query_t *query) {
 
 	xfr = query->lookup->rdtype == dns_rdatatype_ixfr ||
 	      query->lookup->rdtype == dns_rdatatype_axfr;
-	if (xfr && isc_nm_is_tlsdns_handle(query->handle) &&
+	if (xfr && isc_nm_socket_type(query->handle) == isc_nm_tlsdnssocket &&
 	    !isc_nm_xfr_allowed(query->handle))
 	{
 		dighost_error("zone transfers over the "

@@ -709,21 +709,6 @@ struct isc_nm {
 #endif
 };
 
-typedef enum isc_nmsocket_type {
-	isc_nm_udpsocket,
-	isc_nm_udplistener, /* Aggregate of nm_udpsocks */
-	isc_nm_tcpsocket,
-	isc_nm_tcplistener,
-	isc_nm_tcpdnslistener,
-	isc_nm_tcpdnssocket,
-	isc_nm_tlslistener,
-	isc_nm_tlssocket,
-	isc_nm_tlsdnslistener,
-	isc_nm_tlsdnssocket,
-	isc_nm_httplistener,
-	isc_nm_httpsocket
-} isc_nmsocket_type;
-
 /*%
  * A universal structure for either a single socket or a group of
  * dup'd/SO_REUSE_PORT-using sockets listening on the same interface.

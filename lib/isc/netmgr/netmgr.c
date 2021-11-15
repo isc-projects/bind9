@@ -3449,14 +3449,6 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 }
 
 bool
-isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	return (handle->sock->type == isc_nm_tlsdnssocket);
-}
-
-bool
 isc_nm_is_http_handle(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
@@ -3498,6 +3490,14 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 		ISC_UNREACHABLE();
 		break;
 	}
+}
+
+isc_nmsocket_type
+isc_nm_socket_type(const isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	return (handle->sock->type);
 }
 
 #ifdef NETMGR_TRACE

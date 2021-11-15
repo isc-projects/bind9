@@ -122,3 +122,23 @@ typedef enum {
 	isc_statsformat_xml,
 	isc_statsformat_json
 } isc_statsformat_t;
+
+typedef enum isc_nmsocket_type {
+	isc_nm_nonesocket = 0,
+	isc_nm_udpsocket = 1 << 1,
+	isc_nm_tcpsocket = 1 << 2,
+	isc_nm_tcpdnssocket = 1 << 3,
+	isc_nm_tlssocket = 1 << 4,
+	isc_nm_tlsdnssocket = 1 << 5,
+	isc_nm_httpsocket = 1 << 6,
+	isc_nm_maxsocket,
+
+	isc_nm_udplistener, /* Aggregate of nm_udpsocks */
+	isc_nm_tcplistener,
+	isc_nm_tlslistener,
+	isc_nm_tcpdnslistener,
+	isc_nm_tlsdnslistener,
+	isc_nm_httplistener
+} isc_nmsocket_type;
+
+typedef isc_nmsocket_type isc_nmsocket_type_t;
