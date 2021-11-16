@@ -281,7 +281,7 @@ view \"_bind\" chaos {\n\
 			    "#\n\
 #  Default trusted key(s), used if \n\
 # \"dnssec-validation auto;\" is set and\n\
-#  sysconfdir/bind.keys doesn't exist).\n\
+#  " NAMED_SYSCONFDIR "/bind.keys doesn't exist).\n\
 #\n\
 # BEGIN TRUST ANCHORS\n"
 
