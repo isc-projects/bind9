@@ -288,12 +288,12 @@ view \"_bind\" chaos {\n\
 # \"dnssec-validation auto;\" is set and\n\
 #  sysconfdir/bind.keys doesn't exist).\n\
 #\n\
-# BEGIN DNSSEC KEYS\n"
+# BEGIN TRUST ANCHORS\n"
 
 	/* Imported from bind.keys.h: */
 	TRUST_ANCHORS
 
-			    "# END MANAGED KEYS\n\
+			    "# END TRUST ANCHORS\n\
 \n\
 primaries " DEFAULT_IANA_ROOT_ZONE_PRIMARIES " {\n\
 	2001:500:200::b;	# b.root-servers.net\n\
