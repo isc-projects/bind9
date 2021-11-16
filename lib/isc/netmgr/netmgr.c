@@ -3500,6 +3500,28 @@ isc_nm_socket_type(const isc_nmhandle_t *handle) {
 	return (handle->sock->type);
 }
 
+bool
+isc_nm_has_encryption(const isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	switch (handle->sock->type) {
+	case isc_nm_tlsdnssocket:
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+#endif /* HAVE_LIBNGHTTP2 */
+		return (true);
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httpsocket:
+		return (isc__nm_http_has_encryption(handle));
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		return (false);
+	};
+
+	return (false);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

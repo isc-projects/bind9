@@ -1695,6 +1695,9 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle);
  * socket
  */
 
+bool
+isc__nm_http_has_encryption(const isc_nmhandle_t *handle);
+
 void
 isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
 

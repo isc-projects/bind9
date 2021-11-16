@@ -654,6 +654,15 @@ isc_nm_socket_type(const isc_nmhandle_t *handle);
  *  \li 'handle' is a valid netmgr handle object.
  */
 
+bool
+isc_nm_has_encryption(const isc_nmhandle_t *handle);
+/*%<
+ * Returns 'true' iff the handle's underlying transport does encryption.
+ *
+ * Requires:
+ *  \li 'handle' is a valid netmgr handle object.
+ */
+
 void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
 /*%<

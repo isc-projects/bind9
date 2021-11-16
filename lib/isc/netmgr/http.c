@@ -2863,6 +2863,22 @@ isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 	sock->h2.min_ttl = ttl;
 }
 
+bool
+isc__nm_http_has_encryption(const isc_nmhandle_t *handle) {
+	isc_nm_http_session_t *session;
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+	session = sock->h2.session;
+
+	INSIST(VALID_HTTP2_SESSION(session));
+
+	return (isc_nm_socket_type(session->handle) == isc_nm_tlssocket);
+}
+
 static const bool base64url_validation_table[256] = {
 	false, false, false, false, false, false, false, false, false, false,
 	false, false, false, false, false, false, false, false, false, false,
