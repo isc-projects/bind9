@@ -1,3 +1,6 @@
+5758.	[bug]		mdig now honors the operating system's preferred
+			ephemeral port range. [GL #2374]
+
 5757.	[test]		Replace sed in nsupdate system test with awk to
 			construct the nsupdate command.  The sed expression
 			was not reliably changing the ttl. [GL #3003]
