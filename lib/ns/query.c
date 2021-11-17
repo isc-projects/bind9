@@ -12034,32 +12034,33 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 			break; /* Let the query logic handle it. */
 		case dns_rdatatype_ixfr:
 		case dns_rdatatype_axfr:
-#if HAVE_LIBNGHTTP2
 			if (isc_nm_is_http_handle(handle)) {
-				/* We cannot use DoH for zone transfers.
-				 * According to RFC8484 a DoH request contains
+				/*
+				 * We cannot use DoH for zone transfers.
+				 * According to RFC 8484 a DoH request contains
 				 * exactly one DNS message (see Section 6:
 				 * Definition of the "application/dns-message"
-				 * Media Type,
-				 * https://datatracker.ietf.org/doc/html/rfc8484#section-6).
+				 * Media Type).
+				 *
 				 * This makes DoH unsuitable for zone transfers
 				 * as often (and usually!) these need more than
 				 * one DNS message, especially for larger zones.
 				 * As zone transfers over DoH are not (yet)
-				 * standardised, nor discussed in the RFC8484,
+				 * standardised, nor discussed in RFC 8484,
 				 * the best thing we can do is to return "not
-				 * implemented". */
+				 * implemented".
+				 */
 				query_error(client, DNS_R_NOTIMP, __LINE__);
 				return;
 			}
-#endif
 			if (isc_nm_is_tlsdns_handle(handle) &&
 			    !isc_nm_xfr_allowed(handle)) {
-				/* Currently this code is here for DoT, which
+				/*
+				 * Currently this code is here for DoT, which
 				 * has more complex requirements for zone
-				 * transfers compared to
-				 * other stream protocols. See RFC9103 for
-				 * the details. */
+				 * transfers compared to other stream
+				 * protocols. See RFC 9103 for details.
+				 */
 				query_error(client, DNS_R_REFUSED, __LINE__);
 				return;
 			}

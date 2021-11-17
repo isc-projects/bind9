@@ -502,6 +502,17 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 bool
 isc_nm_is_tlsdns_handle(isc_nmhandle_t *handle);
+/*%<
+ * Returns 'true' iff 'handle' is associated with a socket of type
+ * 'isc_nm_tlsdnssocket'.
+ */
+
+bool
+isc_nm_is_http_handle(isc_nmhandle_t *handle);
+/*%<
+ * Returns 'true' iff 'handle' is associated with a socket of type
+ * 'isc_nm_httpsocket'.
+ */
 
 #if HAVE_LIBNGHTTP2
 
@@ -579,10 +590,11 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp);
  */
 
 bool
-isc_nm_is_http_handle(isc_nmhandle_t *handle);
-
-bool
 isc_nm_http_path_isvalid(const char *path);
+/*%<
+ * Returns 'true' if 'path' matches the format requirements for
+ * the path component of a URI as defined in RFC 3986 section 3.3.
+ */
 
 void
 isc_nm_http_makeuri(const bool https, const isc_sockaddr_t *sa,
