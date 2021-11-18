@@ -1920,8 +1920,8 @@ Boolean Options
 
 ``cookie-algorithm``
    This sets the algorithm to be used when generating the server cookie; the options are
-   "aes", "sha1", or "sha256". The default is "aes" if supported by
-   the cryptographic library; otherwise, "sha256".
+   "aes" or "siphash24". The default is "siphash24". The "aes" option remains for legacy
+   purposes.
 
 ``cookie-secret``
    If set, this is a shared secret used for generating and verifying
