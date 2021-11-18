@@ -5,6 +5,8 @@
 			construct the nsupdate command.  The sed expression
 			was not reliably changing the ttl. [GL #3003]
 
+	--- 9.16.23 released ---
+
 5752.	[bug]		Fix an assertion failure caused by missing member zones
 			during a reload of a catalog zone. [GL #2308]
 

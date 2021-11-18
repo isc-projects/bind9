@@ -8,35 +8,12 @@
    See the COPYRIGHT file distributed with this work for additional
    information regarding copyright ownership.
 
-Notes for BIND 9.16.24
+Notes for BIND 9.16.23
 ----------------------
-
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Reloading a catalog zone which referenced a missing/deleted member
+  zone triggered a runtime check failure, causing ``named`` to exit
+  prematurely. This has been fixed. :gl:`#2308`
