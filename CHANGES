@@ -1,3 +1,7 @@
+5761.	[bug]		OpenSSL 3.0.0 support could fail to correctly read
+			ECDSA private keys leading to incorrect signatures
+			being generated. [GL #3014]
+
 5760.	[bug]		Prevent a possible use-after-free error in resolver.
 			[GL #3018]
 
