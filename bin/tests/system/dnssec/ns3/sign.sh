@@ -340,17 +340,18 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
-mv "$zonefile".signed "$zonefile"
-"$SIGNER" -P -u3 - -o "$zone" "$zonefile" > /dev/null
-mv "$zonefile".signed "$zonefile"
-"$SIGNER" -P -u3 AAAA -o "$zone" "$zonefile" > /dev/null
-mv "$zonefile".signed "$zonefile"
-"$SIGNER" -P -u3 BBBB -o "$zone" "$zonefile" > /dev/null
-mv "$zonefile".signed "$zonefile"
-"$SIGNER" -P -u3 CCCC -o "$zone" "$zonefile" > /dev/null
-mv "$zonefile".signed "$zonefile"
-"$SIGNER" -P -u3 DDDD -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -P -O full -o "$zone" "$zonefile" > /dev/null
+awk '$4 == "NSEC" || ( $4 == "RRSIG" && $5 == "NSEC" ) { print }' "$zonefile".signed > NSEC
+"$SIGNER" -P -O full -u3 - -o "$zone" "$zonefile" > /dev/null
+awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed > NSEC3
+"$SIGNER" -P -O full -u3 AAAA -o "$zone" "$zonefile" > /dev/null
+awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
+"$SIGNER" -P -O full -u3 BBBB -o "$zone" "$zonefile" > /dev/null
+awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
+"$SIGNER" -P -O full -u3 CCCC -o "$zone" "$zonefile" > /dev/null
+awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
+"$SIGNER" -P -O full -u3 DDDD -o "$zone" "$zonefile" > /dev/null
+cat NSEC NSEC3 >> "$zonefile".signed
 
 #
 # A RSASHA256 zone.
