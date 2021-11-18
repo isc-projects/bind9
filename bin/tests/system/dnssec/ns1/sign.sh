@@ -36,7 +36,7 @@ zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
 
-"$SIGNER" -P -g -o "$zone" "$zonefile" > /dev/null 2>&1
+"$SIGNER" -g -o "$zone" "$zonefile" > /dev/null 2>&1
 
 # Configure the resolving server with a staitc key.
 keyfile_to_static_ds "$ksk" > trusted.conf

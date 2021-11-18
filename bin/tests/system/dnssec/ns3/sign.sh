@@ -49,7 +49,7 @@ do
 
 	keyname4=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 	cat "$infile" "$keyname4.key" > "$zonefile"
-	"$SIGNER" -z -P -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
+	"$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
 	awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
 	# Make trusted-keys and managed keys conf sections for ns8.
@@ -86,7 +86,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
 zone=bogus.example.
 infile=bogus.example.db.in
@@ -96,7 +96,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
 zone=dynamic.example.
 infile=dynamic.example.db.in
@@ -107,7 +107,7 @@ keyname2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KS
 
 cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -o "$zone" "$zonefile" > /dev/null
 
 zone=keyless.example.
 infile=generic.example.db.in
@@ -117,7 +117,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
 # Change the signer field of the a.b.keyless.example SIG A
 # to point to a provably nonexistent KEY record.
@@ -138,7 +138,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
 #
 #  NSEC3/NSEC3 test zone
@@ -151,7 +151,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -o "$zone" "$zonefile" > /dev/null
 
 #
 #  OPTOUT/NSEC3 test zone
@@ -164,7 +164,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -A -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -A -o "$zone" "$zonefile" > /dev/null
 
 #
 # A nsec3 zone (non-optout).
@@ -177,7 +177,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -g -3 - -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -g -3 - -o "$zone" "$zonefile" > /dev/null
 
 #
 #  OPTOUT/NSEC test zone
@@ -190,7 +190,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
 #
 #  OPTOUT/NSEC3 test zone
@@ -203,7 +203,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -o "$zone" "$zonefile" > /dev/null
 
 #
 #  OPTOUT/OPTOUT test zone
@@ -216,7 +216,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -A -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -A -o "$zone" "$zonefile" > /dev/null
 
 #
 # A optout nsec3 zone.
@@ -229,7 +229,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -g -3 - -A -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -g -3 - -A -o "$zone" "$zonefile" > /dev/null
 
 #
 # A nsec3 zone (non-optout) with unknown nsec3 hash algorithm (-U).
@@ -242,7 +242,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -U -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -PU -o "$zone" "$zonefile" > /dev/null
 
 #
 # A optout nsec3 zone with a unknown nsec3 hash algorithm (-U).
@@ -255,7 +255,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -U -A -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -PU -A -o "$zone" "$zonefile" > /dev/null
 
 #
 # A zone that is signed with an unknown DNSKEY algorithm.
@@ -269,7 +269,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
 
 awk '$4 == "DNSKEY" { $7 = 100 } $4 == "RRSIG" { $6 = 100 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
@@ -288,7 +288,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
 
 awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
@@ -308,7 +308,7 @@ zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" unsupported-algorithm.key > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null
+"$SIGNER" -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null
 
 #
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).
@@ -322,7 +322,7 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" -U -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
+"$SIGNER" -z -3 - -o "$zone" -PU -O full -f ${zonefile}.tmp "$zonefile" > /dev/null
 
 awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
@@ -340,17 +340,17 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -O full -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -o "$zone" "$zonefile" > /dev/null
 awk '$4 == "NSEC" || ( $4 == "RRSIG" && $5 == "NSEC" ) { print }' "$zonefile".signed > NSEC
-"$SIGNER" -P -O full -u3 - -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -u3 - -o "$zone" "$zonefile" > /dev/null
 awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed > NSEC3
-"$SIGNER" -P -O full -u3 AAAA -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -u3 AAAA -o "$zone" "$zonefile" > /dev/null
 awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
-"$SIGNER" -P -O full -u3 BBBB -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -u3 BBBB -o "$zone" "$zonefile" > /dev/null
 awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
-"$SIGNER" -P -O full -u3 CCCC -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -u3 CCCC -o "$zone" "$zonefile" > /dev/null
 awk '$4 == "NSEC3" || ( $4 == "RRSIG" && $5 == "NSEC3" ) { print }' "$zonefile".signed >> NSEC3
-"$SIGNER" -P -O full -u3 DDDD -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -z -O full -u3 DDDD -o "$zone" "$zonefile" > /dev/null
 cat NSEC NSEC3 >> "$zonefile".signed
 
 #
