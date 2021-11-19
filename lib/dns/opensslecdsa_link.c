@@ -752,7 +752,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0) {
 		DST_RET(ISC_R_SUCCESS);
 	}
-	if (r.length < len) {
+	if (r.length != len) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
 	}
 
@@ -788,7 +788,6 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
 	}
 #else
-	len = r.length;
 	ret = raw_key_to_ossl(key->key_alg, 0, r.base, len, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		DST_RET(ret);
