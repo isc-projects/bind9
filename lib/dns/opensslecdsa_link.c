@@ -58,7 +58,7 @@
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 static isc_result_t
 raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
-		size_t *key_len, EVP_PKEY **pkey) {
+		size_t key_len, EVP_PKEY **pkey) {
 	isc_result_t ret;
 	int status;
 	const char *groupname;
@@ -90,7 +90,7 @@ raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
 	}
 
 	if (private) {
-		priv = BN_bin2bn(key, *key_len, NULL);
+		priv = BN_bin2bn(key, key_len, NULL);
 		if (priv == NULL) {
 			DST_RET(dst__openssl_toresult2("BN_bin2bn",
 						       DST_R_OPENSSLFAILURE));
@@ -103,12 +103,12 @@ raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
 						       DST_R_OPENSSLFAILURE));
 		}
 	} else {
-		INSIST(*key_len < sizeof(buf));
+		INSIST(key_len < sizeof(buf));
 		buf[0] = POINT_CONVERSION_UNCOMPRESSED;
-		memmove(buf + 1, key, *key_len);
+		memmove(buf + 1, key, key_len);
 
 		status = OSSL_PARAM_BLD_push_octet_string(
-			bld, OSSL_PKEY_PARAM_PUB_KEY, buf, 1 + *key_len);
+			bld, OSSL_PKEY_PARAM_PUB_KEY, buf, 1 + key_len);
 		if (status != 1) {
 			DST_RET(dst__openssl_toresult2("OSSL_PARAM_BLD_push_"
 						       "octet_string",
@@ -789,7 +789,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 #else
 	len = r.length;
-	ret = raw_key_to_ossl(key->key_alg, 0, r.base, &len, &pkey);
+	ret = raw_key_to_ossl(key->key_alg, 0, r.base, len, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		DST_RET(ret);
 	}
@@ -1249,7 +1249,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 		ret = raw_key_to_ossl(key->key_alg, 1,
 				      priv.elements[privkey_index].data,
-				      &priv.elements[privkey_index].length,
+				      priv.elements[privkey_index].length,
 				      &key->keydata.pkey);
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
