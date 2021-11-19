@@ -164,6 +164,56 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 }
 
 static void
+client_extendederror_reset(ns_client_t *client) {
+	if (client->ede == NULL) {
+		return;
+	}
+	isc_mem_put(client->mctx, client->ede->value, client->ede->length);
+	isc_mem_put(client->mctx, client->ede, sizeof(dns_ednsopt_t));
+	client->ede = NULL;
+}
+
+void
+ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
+	unsigned char ede[DNS_EDE_EXTRATEXT_LEN + 2];
+	isc_buffer_t buf;
+	uint16_t len = sizeof(uint16_t);
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	if (client->ede != NULL) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+			      "already have ede, ignoring %u %s", code,
+			      text == NULL ? "(null)" : text);
+		return;
+	}
+
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
+		      ISC_LOG_DEBUG(1), "set ede: info-code %u extra-text %s",
+		      code, text == NULL ? "(null)" : text);
+
+	isc_buffer_init(&buf, ede, sizeof(ede));
+	isc_buffer_putuint16(&buf, code);
+	if (text != NULL && strlen(text) > 0) {
+		if (strlen(text) < DNS_EDE_EXTRATEXT_LEN) {
+			isc_buffer_putstr(&buf, text);
+			len += (uint16_t)(strlen(text));
+		} else {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+				      "ede extra-text too long, ignoring");
+		}
+	}
+
+	client->ede = isc_mem_get(client->mctx, sizeof(dns_ednsopt_t));
+	client->ede->code = DNS_OPT_EDE;
+	client->ede->length = len;
+	client->ede->value = isc_mem_get(client->mctx, len);
+	memmove(client->ede->value, ede, len);
+};
+
+static void
 ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->nupdates == 0);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
@@ -200,6 +250,7 @@ ns_client_endrequest(ns_client_t *client) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
+	client_extendederror_reset(client);
 	client->signer = NULL;
 	client->udpsize = 512;
 	client->extflags = 0;
@@ -1062,6 +1113,14 @@ no_nsid:
 		count++;
 	}
 
+	if (client->ede != NULL) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_EDE;
+		ednsopts[count].length = client->ede->length;
+		ednsopts[count].value = client->ede->value;
+		count++;
+	}
+
 	/* Padding must be added last */
 	if ((view != NULL) && (view->padding > 0) && WANTPAD(client) &&
 	    (TCP_CLIENT(client) ||
@@ -1607,6 +1666,7 @@ ns__client_put_cb(void *client0) {
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
+	client_extendederror_reset(client);
 
 	dns_message_detach(&client->message);
 
@@ -1877,6 +1937,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	client->message->rcode = dns_rcode_noerror;
+	client->ede = NULL;
 
 	/*
 	 * Deal with EDNS.
@@ -1990,6 +2051,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
+		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		return;
 	}
@@ -2519,6 +2581,7 @@ allow:
 	return (ISC_R_SUCCESS);
 
 deny:
+	ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 	return (DNS_R_REFUSED);
 }
 

@@ -863,7 +863,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		/*
 		 * The view's cache ACLs have not yet been evaluated.
 		 * Do it now. Both allow-query-cache and
-		 * allow-query-cache-on must be satsified.
+		 * allow-query-cache-on must be satisfied.
 		 */
 		bool log = ((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
@@ -890,19 +890,24 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 					      ISC_LOG_DEBUG(3), "%s approved",
 					      msg);
 			}
-		} else if (log) {
+		} else {
 			/*
 			 * We were denied by the "allow-query-cache" ACL.
 			 * There is no need to clear NS_QUERYATTR_CACHEACLOK
 			 * since it is cleared by query_reset(), before query
 			 * processing starts.
 			 */
-			ns_client_aclmsg("query (cache)", name, qtype,
-					 client->view->rdclass, msg,
-					 sizeof(msg));
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s denied", msg);
+			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
+						NULL);
+
+			if (log) {
+				ns_client_aclmsg("query (cache)", name, qtype,
+						 client->view->rdclass, msg,
+						 sizeof(msg));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					      "%s denied", msg);
+			}
 		}
 
 		/*
@@ -1029,6 +1034,8 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "%s denied", msg);
+			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
+						NULL);
 		}
 	}
 
@@ -1057,6 +1064,10 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 
 		result = ns_client_checkaclsilent(client, &client->destaddr,
 						  queryonacl, true);
+		if (result != ISC_R_SUCCESS) {
+			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
+						NULL);
+		}
 		if ((options & DNS_GETDB_NOLOG) == 0 && result != ISC_R_SUCCESS)
 		{
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,

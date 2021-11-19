@@ -1,3 +1,6 @@
+5759.	[func]		Set Extended DNS Error Code 18 - Prohibited if query
+			access is denied to the specific client. [GL #1836]
+
 5758.	[bug]		mdig now honors the operating system's preferred
 			ephemeral port range. [GL #2374]
 

@@ -190,6 +190,7 @@ struct ns_client {
 	dns_message_t  *message;
 	unsigned char  *sendbuf;
 	dns_rdataset_t *opt;
+	dns_ednsopt_t  *ede;
 	uint16_t	udpsize;
 	uint16_t	extflags;
 	int16_t		ednsversion; /* -1 noedns */
@@ -309,6 +310,12 @@ ns_client_error(ns_client_t *client, isc_result_t result);
  * Finish processing the current client request and return
  * an error response to the client.  The error response
  * will have an RCODE determined by 'result'.
+ */
+
+void
+ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text);
+/*%<
+ * Set extended error with INFO-CODE <code> and EXTRA-TEXT <text>.
  */
 
 void

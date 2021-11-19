@@ -24,7 +24,8 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Set Extended DNS Error Code 18 - Prohibited if query access is denied to the
+  specific client. :gl:`#1836`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

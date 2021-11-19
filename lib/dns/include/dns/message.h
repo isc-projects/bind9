@@ -112,8 +112,49 @@
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
-/*%< The number of EDNS options we know about. */
-#define DNS_EDNSOPTIONS 7
+/*%<
+ * The maximum number of EDNS options we allow to set. Reserve space for the
+ * options we know about. Extended DNS Errors may occur multiple times, but we
+ * will set only one per message (for now).
+ */
+#define DNS_EDNSOPTIONS 8
+
+/*%< EDNS0 extended DNS errors */
+#define DNS_EDE_OTHER		     0	/*%< Other Error */
+#define DNS_EDE_DNSKEYALG	     1	/*%< Unsupported DNSKEY Algorithm */
+#define DNS_EDE_DSDIGESTTYPE	     2	/*%< Unsupported DS Digest Type */
+#define DNS_EDE_STALEANSWER	     3	/*%< Stale Answer */
+#define DNS_EDE_FORGEDANSWER	     4	/*%< Forged Answer */
+#define DNS_EDE_DNSSECINDETERMINATE  5	/*%< DNSSEC Indeterminate */
+#define DNS_EDE_DNSSECBOGUS	     6	/*%< DNSSEC Bogus */
+#define DNS_EDE_SIGNATUREEXPIRED     7	/*%< Signature Expired */
+#define DNS_EDE_SIGNATURENOTYETVALID 8	/*%< Signature Not Yet Valid */
+#define DNS_EDE_DNSKEYMISSING	     9	/*%< DNSKEY Missing */
+#define DNS_EDE_RRSIGSMISSING	     10 /*%< RRSIGs Missing */
+#define DNS_EDE_NOZONEKEYBITSET	     11 /*%< No Zone Key Bit Set */
+#define DNS_EDE_NSECMISSING	     12 /*%< NSEC Missing */
+#define DNS_EDE_CACHEDERROR	     13 /*%< Cached Error */
+#define DNS_EDE_NOTREADY	     14 /*%< Not Ready */
+#define DNS_EDE_BLOCKED		     15 /*%< Blocked */
+#define DNS_EDE_CENSORED	     16 /*%< Censored */
+#define DNS_EDE_FILTERED	     17 /*%< Filtered */
+#define DNS_EDE_PROHIBITED	     18 /*%< Prohibited */
+#define DNS_EDE_STALENXANSWER	     19 /*%< Stale NXDomain Answer */
+#define DNS_EDE_NOTAUTH		     20 /*%< Not Authoritative */
+#define DNS_EDE_NOTSUPPORTED	     21 /*%< Not Supported */
+#define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
+#define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
+#define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
+
+/*
+ * From RFC 8914:
+ * Because long EXTRA-TEXT fields may trigger truncation (which is undesirable
+ * given the supplemental nature of EDE), implementers and operators creating
+ * EDE options SHOULD avoid lengthy EXTRA-TEXT contents.
+ *
+ * Following this advice we limit the EXTRA-TEXT length to 64 characters.
+ */
+#define DNS_EDE_EXTRATEXT_LEN 64
 
 #define DNS_MESSAGE_REPLYPRESERVE	 (DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
