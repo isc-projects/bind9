@@ -1,3 +1,6 @@
+5760.	[bug]		Prevent a possible use-after-free error in resolver.
+			[GL #3018]
+
 5759.	[func]		Set Extended DNS Error Code 18 - Prohibited if query
 			access is denied to the specific client. [GL #1836]
 
