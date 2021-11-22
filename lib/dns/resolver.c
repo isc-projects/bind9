@@ -9344,10 +9344,6 @@ rctx_next(respctx_t *rctx) {
 	INSIST(rctx->query->dispentry != NULL);
 	dns_message_reset(rctx->query->rmessage, DNS_MESSAGE_INTENTPARSE);
 	result = dns_dispatch_getnext(rctx->query->dispentry);
-	if (result != ISC_R_SUCCESS) {
-		fctx_done(rctx->fctx, result, __LINE__);
-	}
-
 	return (result);
 }
 
