@@ -145,7 +145,7 @@ struct dns_adb {
 
 	isc_event_t cevent;
 	bool cevent_out;
-	bool shutting_down;
+	atomic_bool shutting_down;
 	isc_eventlist_t whenshutdown;
 	isc_event_t growentries;
 	bool growentries_sent;
@@ -1567,7 +1567,7 @@ check_exit(dns_adb_t *adb) {
 	/*
 	 * The caller must be holding the adb lock.
 	 */
-	if (adb->shutting_down) {
+	if (atomic_load(&adb->shutting_down)) {
 		/*
 		 * If there aren't any external references either, we're
 		 * done.  Send the control event to initiate shutdown.
@@ -2542,7 +2542,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL, 0, NULL,
 		       NULL, NULL, NULL, NULL);
 	adb->cevent_out = false;
-	adb->shutting_down = false;
+	atomic_init(&adb->shutting_down, false);
 	ISC_LIST_INIT(adb->whenshutdown);
 
 	adb->nentries = nbuckets[0];
@@ -2757,7 +2757,7 @@ dns_adb_detach(dns_adb_t **adbx) {
 
 	if (need_exit_check) {
 		LOCK(&adb->lock);
-		INSIST(adb->shutting_down);
+		INSIST(atomic_load(&adb->shutting_down));
 		check_exit(adb);
 		UNLOCK(&adb->lock);
 	}
@@ -2784,7 +2784,7 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 
 	zeroirefcnt = (adb->irefcnt == 0);
 
-	if (adb->shutting_down && zeroirefcnt &&
+	if (atomic_load(&adb->shutting_down) && zeroirefcnt &&
 	    isc_refcount_current(&adb->ahrefcnt) == 0)
 	{
 		/*
@@ -2813,7 +2813,7 @@ shutdown_stage2(isc_task_t *task, isc_event_t *event) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	LOCK(&adb->lock);
-	INSIST(adb->shutting_down);
+	INSIST(atomic_load(&adb->shutting_down));
 	adb->cevent_out = false;
 	(void)shutdown_names(adb);
 	(void)shutdown_entries(adb);
@@ -2833,8 +2833,8 @@ dns_adb_shutdown(dns_adb_t *adb) {
 
 	LOCK(&adb->lock);
 
-	if (!adb->shutting_down) {
-		adb->shutting_down = true;
+	if (atomic_compare_exchange_strong(&adb->shutting_down,
+					   &(bool){ false }, true)) {
 		isc_mem_clearwater(adb->mctx);
 		/*
 		 * Isolate shutdown_names and shutdown_entries calls.
@@ -2884,6 +2884,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 	result = ISC_R_UNEXPECTED;
 	POST(result);
+
+	if (atomic_load(&adb->shutting_down)) {
+		DP(DEF_LEVEL, "dns_adb_createfind: returning "
+			      "ISC_R_SHUTTINGDOWN");
+
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
 	if (now == 0) {
 		isc_stdtime_get(&now);
