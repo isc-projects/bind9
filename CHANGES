@@ -1,3 +1,5 @@
+5768.	[bug]		dnssec-dsfromkey failed to omit revoked keys. [GL #853]
+
 5767.	[func]		Extend allow-transfer option with 'port' and
 			'transport' options to restrict zone transfers to
 			a specific port and DNS transport protocol.
