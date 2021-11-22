@@ -44,11 +44,11 @@ options {
 zone "." {
 	type primary;
 	file "root.db";
-	allow-transfer { any; };
+	allow-transfer port @TLSPORT@ transport tls { any; };
 };
 
 zone "example" {
 	type primary;
 	file "example.db";
-	allow-transfer { any; };
+	allow-transfer port @TLSPORT@ transport tls { any; };
 };
