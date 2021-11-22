@@ -1,3 +1,5 @@
+5768.	[bug]		dnssec-dsfromkey failed to omit revoked keys. [GL #853]
+
 5764.	[bug]		dns_sdlz_putrr failed to process some valid resource
 			records. [GL #3021]
 
