@@ -564,16 +564,25 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 next:
 	/*
-	 * This is the wrong response. Don't call the caller back
-	 * but keep listening.
+	 * This is the wrong response.  Check whether there is still enough
+	 * time to wait for the correct one to arrive before the timeout fires.
 	 */
-	response = NULL;
-
 	timeout = resp->timeout - dispentry_runtime(resp);
 	if (timeout <= 0) {
+		/*
+		 * The time window for receiving the correct response is
+		 * already closed, libuv has just not processed the socket
+		 * timer yet.  Invoke the read callback, indicating a timeout.
+		 */
 		eresult = ISC_R_TIMEDOUT;
 		goto done;
 	}
+
+	/*
+	 * Do not invoke the read callback just yet and instead wait for the
+	 * proper response to arrive until the original timeout fires.
+	 */
+	response = NULL;
 	dispatch_getnext(disp, resp, resp->timeout - dispentry_runtime(resp));
 
 done:
