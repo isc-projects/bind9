@@ -35,7 +35,13 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The ``allow-transfers`` option was extended to accept additional
+  ``port`` and ``transport`` parameters, to further restrict zone
+  transfers to a particular port and DNS transport protocol. Either of
+  these options can be specified.
+
+  For example: ``allow-transfer port 853 transport tls { any; };``
+  :gl:`#2776`
 
 Bug Fixes
 ~~~~~~~~~
