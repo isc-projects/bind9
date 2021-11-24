@@ -1,3 +1,6 @@
+5764.	[bug]		dns_sdlz_putrr failed to process some valid resource
+			records. [GL #3021]
+
 5763.	[bug]		Fix a bug in DoT code leading to an abort when
 			a zone transfer ends with an unexpected DNS message.
 			[GL #3004]
