@@ -937,8 +937,20 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 	}
 
 	if (sock->recv_cb == NULL) {
-		/* recv_cb has been cleared - there is
-		 * nothing to do */
+		/*
+		 * recv_cb has been cleared - there is
+		 * nothing to do
+		 */
+		return (ISC_R_CANCELED);
+	} else if (sock->statichandle == NULL &&
+		   sock->tls.state == TLS_STATE_IO &&
+		   atomic_load(&sock->connected) &&
+		   !atomic_load(&sock->connecting))
+	{
+		/*
+		 * It seems that some unexpected data (a DNS message) has
+		 * arrived while we are wrapping up.
+		 */
 		return (ISC_R_CANCELED);
 	}
 
