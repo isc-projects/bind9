@@ -1379,7 +1379,6 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			 * client will fail if HTTP/2 cannot be
 			 * negotiated via ALPN.
 			 */
-			isc__nmsocket_prep_destroy(transp_sock);
 			result = ISC_R_HTTP2ALPNERROR;
 			goto error;
 		}
