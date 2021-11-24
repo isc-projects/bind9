@@ -1,3 +1,6 @@
+5764.	[bug]		dns_sdlz_putrr failed to process some valid resource
+			records. [GL #3021]
+
 5758.	[bug]		mdig now honors the operating system's preferred
 			ephemeral port range. [GL #2374]
 
