@@ -445,14 +445,12 @@ status=$((status + ret))
 
 # check whether we can use curl for sending test queries.
 if [ -x "${CURL}" ] ; then
-	CURL_VERSION="$(curl --version | cut -d ' ' -f 2 | head -n 1)"
-	CURL_MAJOR="$(echo "$CURL_VERSION" | cut -d '.' -f 1)"
-	CURL_MINOR="$(echo "$CURL_VERSION" | cut -d '.' -f 2)"
+	CURL_HTTP2="$(${CURL} --version | grep '^Features:.* HTTP2\( \|$\)')"
 
-	if [ "$CURL_MAJOR" -ge 7 ] &&  [ "$CURL_MINOR" -ge 49 ]; then
+	if [ -n "$CURL_HTTP2" ]; then
 		testcurl=1
 	else
-		echo_i "The available version of CURL is too old (it should be >= 7.49)"
+		echo_i "The available version of CURL does not have HTTP/2 support"
 	fi
 fi
 
