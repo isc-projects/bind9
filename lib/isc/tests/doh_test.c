@@ -2066,7 +2066,7 @@ doh_path_validation(void **state) {
 
 static void
 doh_connect_makeuri(void **state) {
-	struct in_addr localhostv4 = { ntohl(INADDR_LOOPBACK) };
+	struct in_addr localhostv4 = { .s_addr = ntohl(INADDR_LOOPBACK) };
 	isc_sockaddr_t sa;
 	char uri[256];
 	UNUSED(state);
