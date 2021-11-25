@@ -46,6 +46,11 @@ dlz "example three" {
 	database "dlopen ../driver/.libs/dlzexternal.so example.org";
 };
 
+dlz "example four" {
+	// Long zone name to trigger ISC_R_NOSPACE in dns_sdlz_putrr.
+        database "dlopen ../driver/.libs/dlzexternal.so 123456789.123456789.123456789.123456789.123456789.example.foo";
+};
+
 dlz "unsearched1" {
 	database "dlopen ../driver/.libs/dlzexternal.so other.nil";
 	search no;

@@ -255,10 +255,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	struct dlz_example_data *state;
 	const char *helper_name;
 	va_list ap;
-	char soa_data[1024];
-	const char *extra;
+	char soa_data[sizeof("@ hostmaster.root 123 900 600 86400 3600")];
 	isc_result_t result;
-	int n;
+	size_t n;
 
 	UNUSED(dlzname);
 
@@ -292,19 +291,19 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		sprintf(state->zone_name, "%s.", argv[1]);
 	}
 
+	/*
+	 * Use relative names to trigger ISC_R_NOSPACE in dns_sdlz_putrr.
+	 */
 	if (strcmp(state->zone_name, ".") == 0) {
-		extra = ".root";
+		n = strlcpy(soa_data,
+			    "@ hostmaster.root 123 900 600 86400 3600",
+			    sizeof(soa_data));
 	} else {
-		extra = ".";
+		n = strlcpy(soa_data, "@ hostmaster 123 900 600 86400 3600",
+			    sizeof(soa_data));
 	}
 
-	n = sprintf(soa_data, "%s hostmaster%s%s 123 900 600 86400 3600",
-		    state->zone_name, extra, state->zone_name);
-
-	if (n < 0) {
-		CHECK(ISC_R_FAILURE);
-	}
-	if ((unsigned)n >= sizeof(soa_data)) {
+	if (n >= sizeof(soa_data)) {
 		CHECK(ISC_R_NOSPACE);
 	}
 
