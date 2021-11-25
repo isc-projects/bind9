@@ -260,7 +260,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			RETERR(alpn_fromtxt(region, target));
 			break;
 		case sbpr_port:
-			if (!isdigit(*region->base)) {
+			if (!isdigit((unsigned char)*region->base)) {
 				return (DNS_R_SYNTAX);
 			}
 			ul = strtoul(region->base, &e, 10);
