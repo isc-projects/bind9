@@ -832,7 +832,7 @@ AC_COMPILE_IFELSE(
 # Check for functions added in OpenSSL or LibreSSL
 #
 
-AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto])
+AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto OPENSSL_cleanup])
 AC_CHECK_FUNCS([CRYPTO_zalloc])
 AC_CHECK_FUNCS([EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free])
 AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset])

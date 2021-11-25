@@ -119,6 +119,11 @@ OPENSSL_init_ssl(uint64_t opts, const void *settings);
 
 #endif
 
+#if !HAVE_OPENSSL_CLEANUP
+void
+OPENSSL_cleanup(void);
+#endif
+
 #if !HAVE_TLS_SERVER_METHOD
 #define TLS_server_method SSLv23_server_method
 #endif
