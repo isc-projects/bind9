@@ -7,7 +7,11 @@ minimal.		3600	SOA	ns1.minimal. hostmaster.minimal. (
 					3600       ; minimum (1 hour)
 					)
 			3600	NS	ns1.minimal.
-			3600	NSEC	black.minimal. NS SOA RRSIG NSEC DNSKEY
+			3600	NSEC	badtypemap.minimal. NS SOA RRSIG NSEC DNSKEY
+; bad NSEC type map without RRSIG or NSEC
+badtypemap.minimal.	3600	NSEC	black.minimal. A
+badtypemap.minimal.	3600	A	1.2.3.4
+badtypemap.minimal.	3600	AAAA	2002::1
 ; cloudflare black lie
 black.minimal.		3600	NSEC	\000.black.minimal. RRSIG NSEC
 ;

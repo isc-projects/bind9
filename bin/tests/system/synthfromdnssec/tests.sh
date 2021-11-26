@@ -67,6 +67,19 @@ check_nosynth_a() (
     return 0
 )
 
+check_synth_aaaa() (
+    name=$(echo "$1" | sed 's/\./\\./g')
+    grep "^${name}.*[0-9]*.IN.AAAA" ${2} > /dev/null || return 1
+    grep "^${name}.*3600.IN.A" ${2} > /dev/null && return 1
+    return 0
+)
+
+check_nosynth_aaaa() (
+    name=$(echo "$1" | sed 's/\./\\./g')
+    grep "^${name}.*3600.IN.AAAA" ${2} > /dev/null || return 1
+    return 0
+)
+
 check_synth_cname() (
     name=$(echo "$1" | sed 's/\./\\./g')
     grep "^${name}.*[0-9]*.IN.CNAME" ${2} > /dev/null || return 1
@@ -197,6 +210,17 @@ do
     check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
     grep 'black.minimal.*3600.IN.NSEC.\\000.black.minimal. RRSIG NSEC' dig.out.ns${ns}.test$n > /dev/null || ret=1
     [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n black.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "prime bad type map NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts badtypemap.minimal. @10.53.0.${ns} TXT > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
+    grep 'badtypemap.minimal.*3600.IN.NSEC.black.minimal. A$' dig.out.ns${ns}.test$n > /dev/null || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -384,6 +408,27 @@ do
 	nextpart ns1/named.run | grep black.minimal/AAAA > /dev/null || ret=1
     fi
     digcomp black.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check bad type map NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts badtypemap.minimal. @10.53.0.${ns} HINFO > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
+    grep 'badtypemap.minimal.*3600.IN.NSEC.black.minimal. A$' dig.out.ns${ns}.test$n > /dev/null || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check bad type map NODATA response with existent data (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts badtypemap.minimal. @10.53.0.${ns} AAAA > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_aaaa badtypemap.minimal. dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))

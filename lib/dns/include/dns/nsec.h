@@ -106,4 +106,14 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
  * Return ISC_R_IGNORE when the NSEC is not the appropriate one.
  */
 
+bool
+dns_nsec_requiredtypespresent(dns_rdataset_t *rdataset);
+/*
+ * Return true if all the NSEC records in rdataset have both
+ * NSEC and RRSIG present.
+ *
+ * Requires:
+ * \li	rdataset to be a NSEC rdataset.
+ */
+
 ISC_LANG_ENDDECLS

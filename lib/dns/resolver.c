@@ -5573,6 +5573,15 @@ answer_response:
 			}
 
 			/*
+			 * Don't cache NSEC if missing NSEC or RRSIG types.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    !dns_nsec_requiredtypespresent(rdataset))
+			{
+				continue;
+			}
+
+			/*
 			 * Don't cache "white lies" but do cache
 			 * "black lies".
 			 */

@@ -460,3 +460,32 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	*exists = false;
 	return (ISC_R_SUCCESS);
 }
+
+bool
+dns_nsec_requiredtypespresent(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	bool found = false;
+
+	REQUIRE(DNS_RDATASET_VALID(nsecset));
+	REQUIRE(nsecset->type == dns_rdatatype_nsec);
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (!dns_nsec_typepresent(&rdata, dns_rdatatype_nsec) ||
+		    !dns_nsec_typepresent(&rdata, dns_rdatatype_rrsig))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (false);
+		}
+		found = true;
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (found);
+}
