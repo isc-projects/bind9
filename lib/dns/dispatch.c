@@ -595,6 +595,117 @@ done:
 	dispentry_detach(&resp);
 }
 
+static isc_result_t
+tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
+		 isc_sockaddr_t *peer, dns_dispentry_t **respp) {
+	isc_buffer_t source;
+	dns_messageid_t id;
+	unsigned int flags;
+	unsigned int bucket;
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dispentry_t *resp = NULL;
+
+	dispatch_log(disp, LVL(90), "success, length == %d, addr = %p",
+		     region->length, region->base);
+
+	/*
+	 * Peek into the buffer to see what we can see.
+	 */
+	isc_buffer_init(&source, region->base, region->length);
+	isc_buffer_add(&source, region->length);
+	result = dns_message_peekheader(&source, &id, &flags);
+	if (result != ISC_R_SUCCESS) {
+		dispatch_log(disp, LVL(10), "got garbage packet");
+		result = ISC_R_UNEXPECTED;
+		goto next;
+	}
+
+	dispatch_log(disp, LVL(92),
+		     "got valid DNS message header, /QR %c, id %u",
+		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
+
+	/*
+	 * Look at the message flags.  If it's a query, ignore it and keep
+	 * reading.
+	 */
+	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
+		dispatch_log(disp, LVL(10), "got DNS query instead of answer");
+		result = ISC_R_UNEXPECTED;
+		goto next;
+	}
+
+	/*
+	 * We have a valid response; find the associated dispentry object
+	 * and call the caller back.
+	 */
+	bucket = dns_hash(qid, peer, id, disp->localport);
+	LOCK(&qid->lock);
+	resp = entry_search(qid, peer, id, disp->localport, bucket);
+	if (resp != NULL) {
+		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+		*respp = resp;
+	} else {
+		result = ISC_R_NOTFOUND;
+	}
+	dispatch_log(disp, LVL(90), "search for response in bucket %d: %s",
+		     bucket, isc_result_totext(result));
+	UNLOCK(&qid->lock);
+
+next:
+	dispatch_getnext(disp, NULL, -1);
+
+	return (result);
+}
+
+static isc_result_t
+tcp_recv_timeout(dns_dispatch_t *disp, dns_dispentry_t **respp) {
+	dns_dispentry_t *resp = ISC_LIST_HEAD(disp->active);
+	if (resp != NULL) {
+		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+		ISC_LIST_UNLINK(disp->active, resp, alink);
+		ISC_LIST_APPEND(disp->active, resp, alink);
+
+		*respp = resp;
+		return (ISC_R_TIMEDOUT);
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+static void
+tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps) {
+	dns_dispentry_t *resp = NULL, *next = NULL;
+
+	/*
+	 * If there are any active responses, shut them all down.
+	 */
+	for (resp = ISC_LIST_HEAD(disp->active); resp != NULL; resp = next) {
+		next = ISC_LIST_NEXT(resp, alink);
+		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+		ISC_LIST_UNLINK(disp->active, resp, alink);
+		ISC_LIST_APPEND(*resps, resp, rlink);
+	}
+}
+
+static void
+tcp_recv_done(dns_dispentry_t *resp, isc_result_t eresult,
+	      isc_region_t *region) {
+	resp->response(eresult, region, resp->arg);
+	dispentry_detach(&resp);
+}
+
+static void
+tcp_recv_cancelall(dns_displist_t *resps, isc_region_t *region) {
+	dns_dispentry_t *resp = NULL, *next = NULL;
+
+	for (resp = ISC_LIST_HEAD(*resps); resp != NULL; resp = next) {
+		next = ISC_LIST_NEXT(resp, rlink);
+		ISC_LIST_UNLINK(*resps, resp, rlink);
+		resp->response(ISC_R_SHUTTINGDOWN, region, resp->arg);
+		dispentry_detach(&resp);
+	}
+}
+
 /*
  * General flow:
  *
@@ -611,18 +722,12 @@ done:
  *	restart.
  */
 static void
-tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
+tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	 void *arg) {
 	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
-	dns_dispentry_t *resp = NULL, *next = NULL;
-	dns_messageid_t id;
-	isc_result_t dres;
-	unsigned int flags;
-	unsigned int bucket;
+	dns_dispentry_t *resp = NULL;
 	dns_qid_t *qid = NULL;
-	int level;
 	char buf[ISC_SOCKADDR_FORMATSIZE];
-	isc_buffer_t source;
 	isc_sockaddr_t peer;
 	dns_displist_t resps;
 
@@ -630,29 +735,26 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	qid = disp->mgr->qid;
 
+	ISC_LIST_INIT(resps);
+
 	LOCK(&disp->lock);
 
 	dispatch_log(disp, LVL(90), "TCP read:%s:requests %d, buffers %d",
-		     isc_result_totext(eresult), disp->requests,
+		     isc_result_totext(result), disp->requests,
 		     disp->tcpbuffers);
 
 	peer = isc_nmhandle_peeraddr(handle);
-	ISC_LIST_INIT(resps);
 
-	switch (eresult) {
-	case ISC_R_SUCCESS:
-		/* got our answer */
-		break;
-
+	switch (result) {
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_EOF:
-		dispatch_log(disp, LVL(90), "shutting down: %s",
-			     isc_result_totext(eresult));
-		/*
-		 * If there are any active responses, shut them all down.
-		 */
-		goto shutdown;
+	case ISC_R_CONNECTIONRESET:
+		isc_sockaddr_format(&peer, buf, sizeof(buf));
+		dispatch_log(disp, LVL(90), "shutting down TCP: %s: %s", buf,
+			     isc_result_totext(result));
+		tcp_recv_shutdown(disp, &resps);
+		break;
 
 	case ISC_R_TIMEDOUT:
 		/*
@@ -661,108 +763,53 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		 * active queue immediately, though, because the callback
 		 * might decide to keep waiting and leave it active.)
 		 */
-		resp = ISC_LIST_HEAD(disp->active);
-		if (resp != NULL) {
-			dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-			ISC_LIST_UNLINK(disp->active, resp, alink);
-			ISC_LIST_APPEND(disp->active, resp, alink);
-		}
-		goto done;
+		result = tcp_recv_timeout(disp, &resp);
+		break;
 
+	case ISC_R_SUCCESS:
+		/* We got an answer */
+		result = tcp_recv_success(disp, region, qid, &peer, &resp);
+		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
+			/*
+			 * It's a valid DNS response, which may or may not
+			 * have matched an outstanding query.
+			 */
+			break;
+		}
+
+		/* Got an invalid DNS response, terminate the connection */
+		/* FALLTHROUGH */
 	default:
-		if (eresult == ISC_R_CONNECTIONRESET) {
-			level = ISC_LOG_INFO;
-		} else {
-			level = ISC_LOG_ERROR;
-		}
-
 		isc_sockaddr_format(&peer, buf, sizeof(buf));
-		dispatch_log(disp, level,
+		dispatch_log(disp, ISC_LOG_ERROR,
 			     "shutting down due to TCP "
 			     "receive error: %s: %s",
-			     buf, isc_result_totext(eresult));
-		/*
-		 * If there are any active responses, shut them all down.
-		 */
-		for (resp = ISC_LIST_HEAD(disp->active); resp != NULL;
-		     resp = next) {
-			next = ISC_LIST_NEXT(resp, alink);
-			dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-			ISC_LIST_UNLINK(disp->active, resp, alink);
-			ISC_LIST_APPEND(resps, resp, rlink);
-		}
-		goto done;
+			     buf, isc_result_totext(result));
+		tcp_recv_shutdown(disp, &resps);
+		break;
 	}
 
-	dispatch_log(disp, LVL(90), "success, length == %d, addr = %p",
-		     region->length, region->base);
-
-	/*
-	 * Peek into the buffer to see what we can see.
-	 */
-	isc_buffer_init(&source, region->base, region->length);
-	isc_buffer_add(&source, region->length);
-	dres = dns_message_peekheader(&source, &id, &flags);
-	if (dres != ISC_R_SUCCESS) {
-		dispatch_log(disp, LVL(10), "got garbage packet");
-		eresult = ISC_R_UNEXPECTED;
-		goto shutdown;
-	}
-
-	dispatch_log(disp, LVL(92),
-		     "got valid DNS message header, /QR %c, id %u",
-		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
-
-	/*
-	 * Look at the message flags.  If it's a query, stop reading.
-	 */
-	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
-		dispatch_log(disp, LVL(10), "got DNS query instead of answer");
-		eresult = ISC_R_UNEXPECTED;
-		goto shutdown;
-	}
-
-	/*
-	 * We have a valid response; find the associated dispentry object
-	 * and call the caller back.
-	 */
-	bucket = dns_hash(qid, &peer, id, disp->localport);
-	LOCK(&qid->lock);
-	resp = entry_search(qid, &peer, id, disp->localport, bucket);
-	if (resp != NULL) {
-		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-	}
-	dispatch_log(disp, LVL(90), "search for response in bucket %d: %s",
-		     bucket, (resp == NULL ? "not found" : "found"));
-	UNLOCK(&qid->lock);
-
-	dispatch_getnext(disp, NULL, -1);
-
-	goto done;
-
-shutdown:
-	for (resp = ISC_LIST_HEAD(disp->active); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, alink);
-		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-		ISC_LIST_UNLINK(disp->active, resp, alink);
-		ISC_LIST_APPEND(resps, resp, rlink);
-	}
-
-done:
 	UNLOCK(&disp->lock);
 
-	if (resp != NULL) {
-		/* We got a matching response, or timed out */
-		resp->response(eresult, region, resp->arg);
-		dispentry_detach(&resp);
-	} else {
-		/* We're being shut down; cancel all outstanding resps */
-		for (resp = ISC_LIST_HEAD(resps); resp != NULL; resp = next) {
-			next = ISC_LIST_NEXT(resp, rlink);
-			ISC_LIST_UNLINK(resps, resp, rlink);
-			resp->response(ISC_R_SHUTTINGDOWN, region, resp->arg);
-			dispentry_detach(&resp);
-		}
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case ISC_R_TIMEDOUT:
+		/*
+		 * Either we found a matching response, or we timed out
+		 * and canceled the oldest resp.
+		 */
+		INSIST(resp != NULL);
+		tcp_recv_done(resp, result, region);
+		break;
+	case ISC_R_NOTFOUND:
+		/*
+		 * Either we got a response that didn't match any active
+		 * resps, or we timed out but there *were* no active resps.
+		 */
+		break;
+	default:
+		/* We're being shut down; cancel all outstanding resps. */
+		tcp_recv_cancelall(&resps, region);
 	}
 
 	dns_dispatch_detach(&disp);
