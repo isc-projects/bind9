@@ -93,6 +93,11 @@ check_nosynth_cname() (
     return 0
 )
 
+check_auth_count() {
+    grep "AUTHORITY: ${1}," ${2} > /dev/null || return 1
+    return 0
+}
+
 for ns in 2 4 5 6
 do
     case $ns in
@@ -146,6 +151,18 @@ do
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
+    echo_i "prime wildcard NODATA 1 NSEC response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts a.wild-1-nsec.example. @10.53.0.${ns} TXT > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa example. dig.out.ns${ns}.test$n || ret=1
+    check_auth_count 4 dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && sed 's/^a\./b./' dig.out.ns${ns}.test$n > wildnodata1nsec.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
     echo_i "prime insecure negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
     ret=0
     dig_with_opts a.insecure.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
@@ -186,6 +203,18 @@ do
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     check_nosynth_cname a.wild-cname.insecure.example. dig.out.ns${ns}.test$n || ret=1
     [ $ns -eq 2 ] && sed 's/^a\./b./' dig.out.ns${ns}.test$n > insecure.wildcname.out
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "prime insecure wildcard NODATA 1 NSEC response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts a.wild-1-nsec.insecure.example. @10.53.0.${ns} TXT > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    check_auth_count 4 dig.out.ns${ns}.test$n || ret=1
+    [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n insecure.wildnodata1nsec.out
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -327,6 +356,25 @@ do
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
+    echo_i "check synthesized wildcard NODATA 1 NSEC response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts b.wild-1-nsec.example. @10.53.0.${ns} AAAA > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    if [ ${synth} = yes ]
+    then
+	check_synth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-1-nsec.example/AAAA > /dev/null && ret=1
+    else
+	check_nosynth_soa example. dig.out.ns${ns}.test$n || ret=1
+	nextpart ns1/named.run | grep b.wild-1-nsec.example/AAAA > /dev/null || ret=1
+    fi
+    digcomp wildnodata1nsec.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
     echo_i "check insecure NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
     ret=0
     nextpart ns1/named.run > /dev/null
@@ -376,6 +424,18 @@ do
     nextpart ns1/named.run | grep b.wild-cname.insecure.example/A > /dev/null || ret=1
     grep "ns1.insecure.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
     digcomp insecure.wildcname.out dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check insecure wildcard NODATA 1 NSEC response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    nextpart ns1/named.run > /dev/null
+    dig_with_opts b.wild-1-nsec.insecure.example. @10.53.0.${ns} AAAA > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag no dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa insecure.example. dig.out.ns${ns}.test$n || ret=1
+    digcomp insecure.wildnodata1nsec.out dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -470,7 +530,7 @@ do
     do
 	case $synthesized in
 	NXDOMAIN) count=1;;
-	no-data) count=2;;
+	no-data) count=3;;
 	wildcard) count=2;;
 	esac
 	echo_i "check 'rndc stats' output for 'synthesized a ${synthesized} response' (synth-from-dnssec ${description};) ($n)"
@@ -531,7 +591,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) count=2;;
+	    SynthNODATA) count=3;;
 	    SynthWILDCARD) count=2;;
 	    esac
 
@@ -594,7 +654,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) count=2;;
+	    SynthNODATA) count=3;;
 	    SynthWILDCARD) count=2;;
 	    esac
 
