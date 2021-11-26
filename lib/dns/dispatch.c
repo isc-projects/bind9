@@ -652,14 +652,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		/*
 		 * If there are any active responses, shut them all down.
 		 */
-		for (resp = ISC_LIST_HEAD(disp->active); resp != NULL;
-		     resp = next) {
-			next = ISC_LIST_NEXT(resp, alink);
-			dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-			ISC_LIST_UNLINK(disp->active, resp, alink);
-			ISC_LIST_APPEND(resps, resp, rlink);
-		}
-		goto done;
+		goto shutdown;
 
 	case ISC_R_TIMEDOUT:
 		/*
@@ -712,7 +705,8 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	dres = dns_message_peekheader(&source, &id, &flags);
 	if (dres != ISC_R_SUCCESS) {
 		dispatch_log(disp, LVL(10), "got garbage packet");
-		goto next;
+		eresult = ISC_R_UNEXPECTED;
+		goto shutdown;
 	}
 
 	dispatch_log(disp, LVL(92),
@@ -720,14 +714,12 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
 
 	/*
-	 * Look at the message flags.  If it's a query, ignore it
-	 * and keep reading.
+	 * Look at the message flags.  If it's a query, stop reading.
 	 */
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
-		/*
-		 * Query.
-		 */
-		goto next;
+		dispatch_log(disp, LVL(10), "got DNS query instead of answer");
+		eresult = ISC_R_UNEXPECTED;
+		goto shutdown;
 	}
 
 	/*
@@ -744,8 +736,17 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		     bucket, (resp == NULL ? "not found" : "found"));
 	UNLOCK(&qid->lock);
 
-next:
 	dispatch_getnext(disp, NULL, -1);
+
+	goto done;
+
+shutdown:
+	for (resp = ISC_LIST_HEAD(disp->active); resp != NULL; resp = next) {
+		next = ISC_LIST_NEXT(resp, alink);
+		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+		ISC_LIST_UNLINK(disp->active, resp, alink);
+		ISC_LIST_APPEND(resps, resp, rlink);
+	}
 
 done:
 	UNLOCK(&disp->lock);
