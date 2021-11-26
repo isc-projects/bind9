@@ -160,3 +160,10 @@ OPENSSL_init_ssl(uint64_t opts, const void *settings) {
 	return (1);
 }
 #endif
+
+#if !HAVE_OPENSSL_CLEANUP
+void
+OPENSSL_cleanup(void) {
+	return;
+}
+#endif
