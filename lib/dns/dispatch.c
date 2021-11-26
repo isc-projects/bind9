@@ -688,6 +688,16 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			     "shutting down due to TCP "
 			     "receive error: %s: %s",
 			     buf, isc_result_totext(eresult));
+		/*
+		 * If there are any active responses, shut them all down.
+		 */
+		for (resp = ISC_LIST_HEAD(disp->active); resp != NULL;
+		     resp = next) {
+			next = ISC_LIST_NEXT(resp, alink);
+			dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+			ISC_LIST_UNLINK(disp->active, resp, alink);
+			ISC_LIST_APPEND(resps, resp, rlink);
+		}
 		goto done;
 	}
 
