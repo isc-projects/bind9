@@ -806,6 +806,14 @@ PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [],
 
 AX_SAVE_FLAGS([openssl])
 
+#
+# This maintenance branch of BIND 9 does not support new OpenSSL APIs
+# introduced in version 3.0.0.  Suppress compiler warnings about using
+# functions deprecated in newer OpenSSL versions as they will not be
+# addressed in BIND 9.16.
+#
+OPENSSL_CFLAGS="$OPENSSL_CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
+
 CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
 
