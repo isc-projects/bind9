@@ -367,7 +367,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					  received_data->length, &len);
 			if (rv <= 0 || len != received_data->length) {
 				result = ISC_R_TLSERROR;
+#if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
 				saved_errno = errno;
+#endif
 				goto error;
 			}
 
@@ -506,6 +508,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	}
 
 error:
+#if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
 	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_NOTICE,
 		      "SSL error in BIO: %d %s (errno: %d). Arguments: "
@@ -513,6 +516,7 @@ error:
 		      "send_data: %p, finish: %s",
 		      tls_status, isc_result_totext(result), saved_errno,
 		      received_data, send_data, finish ? "true" : "false");
+#endif
 	tls_failed_read_cb(sock, result);
 }
 

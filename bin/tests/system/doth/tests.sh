@@ -116,6 +116,17 @@ grep "$msg_xfrs_not_allowed" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+# Let's try to issue an HTTP/2 query over TLS port to check if dig
+# will detect ALPN token negotiation problem.
+n=$((n + 1))
+echo_i "checking DoH query when ALPN is expected to fail (dot, failure expected) ($n)"
+ret=0
+# shellcheck disable=SC2086
+"$DIG" +https $common_dig_options -p "${TLSPORT}" "$@" @10.53.0.1 . SOA > dig.out.test$n
+grep "ALPN for HTTP/2 failed." dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 n=$((n + 1))
 echo_i "checking DoH query (POST) ($n)"
 ret=0
