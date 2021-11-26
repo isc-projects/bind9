@@ -1,3 +1,6 @@
+5787.	[doc]		Update 'auto-dnssec' documentation, it may only be
+			activated at zone level. [GL #3023]
+
 5786.	[bug]		Defer detaching from zone->raw in zone_shutdown() if
 			the zone is in the process of being dumped to disk to
 			ensure that the unsigned serial number information is
