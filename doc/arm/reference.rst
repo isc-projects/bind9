@@ -2042,7 +2042,11 @@ Boolean Options
    periodically, regardless of whether ``rndc loadkeys`` is used. The
    recheck interval is defined by ``dnssec-loadkeys-interval``.
 
-   The default setting is ``auto-dnssec off``.
+   ``auto-dnssec off;`` does not allow for DNSSEC key management.
+   This is the default setting.
+
+   This option may only be activated at the zone level; if configured
+   at the view or options level, it must be set to ``off``.
 
 .. _dnssec-validation-option:
 
