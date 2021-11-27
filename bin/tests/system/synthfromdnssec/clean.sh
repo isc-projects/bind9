@@ -38,6 +38,7 @@ rm -f ./nxdomain.out ./insecure.nxdomain.out
 rm -f ./wild.out ./insecure.wild.out
 rm -f ./wildcname.out ./insecure.wildcname.out
 rm -f ./wildnodata1nsec.out ./insecure.wildnodata1nsec.out
+rm -f ./wildnodata2nsec.out ./insecure.wildnodata2nsec.out
 rm -f ./minimal.nxdomain.out
 rm -f ./black.out
 rm -f ./xml.out*
