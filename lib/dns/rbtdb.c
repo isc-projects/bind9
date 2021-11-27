@@ -4887,6 +4887,8 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_result_t result;
 	rbtdb_search_t search;
 	bool cname_ok = true;
+	bool found_noqname = false;
+	bool all_negative = true;
 	bool empty_node;
 	nodelock_t *lock;
 	isc_rwlocktype_t locktype;
@@ -4997,6 +4999,13 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 * non-stale rdataset at this node.
 			 */
 			empty_node = false;
+			if (header->noqname != NULL &&
+			    header->trust == dns_trust_secure) {
+				found_noqname = true;
+			}
+			if (!NEGATIVE(header)) {
+				all_negative = false;
+			}
 
 			/*
 			 * If we found a type we were looking for, remember
@@ -5069,6 +5078,14 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * meaningfully exist, and that we really have a partial match.
 		 */
 		NODE_UNLOCK(lock, locktype);
+		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
+			result = find_coveringnsec(&search, name, nodep, now,
+						   foundname, rdataset,
+						   sigrdataset);
+			if (result == DNS_R_COVERINGNSEC) {
+				goto tree_exit;
+			}
+		}
 		goto find_ns;
 	}
 
@@ -5107,6 +5124,22 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			}
 			result = DNS_R_COVERINGNSEC;
 			goto node_exit;
+		}
+
+		/*
+		 * This name was from a wild card.  Look for a covering NSEC.
+		 */
+		if (found == NULL && (found_noqname || all_negative) &&
+		    (search.options & DNS_DBFIND_COVERINGNSEC) != 0)
+		{
+			NODE_UNLOCK(lock, locktype);
+			result = find_coveringnsec(&search, name, nodep, now,
+						   foundname, rdataset,
+						   sigrdataset);
+			if (result == DNS_R_COVERINGNSEC) {
+				goto tree_exit;
+			}
+			goto find_ns;
 		}
 
 		/*
