@@ -37,6 +37,8 @@ isc___errno2result(int posixerrno, bool dolog, const char *file,
 	case ENAMETOOLONG:
 	case EBADF:
 		return (ISC_R_INVALIDFILE);
+	case EISDIR:
+		return (ISC_R_NOTFILE);
 	case ENOENT:
 		return (ISC_R_FILENOTFOUND);
 	case EACCES:
