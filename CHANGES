@@ -1,3 +1,6 @@
+5766.	[func]		Unused 'tls' clause options 'ca-file' and 'hostname'
+			were disabled. [GL !5600]
+
 5765.	[bug]		Fix a bug in DoH implementation making 'dig'
 			abort when ALPN negotiation fails. [GL #3022]
 
