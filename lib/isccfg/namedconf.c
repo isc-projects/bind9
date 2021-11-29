@@ -3886,8 +3886,14 @@ static cfg_type_t cfg_type_tlsprotos = { "tls_protocols",
 static cfg_clausedef_t tls_clauses[] = {
 	{ "key-file", &cfg_type_qstring, 0 },
 	{ "cert-file", &cfg_type_qstring, 0 },
+#if 0
+	/*
+	 * The following two options need to remain unavailable until TLS
+	 * certificate verification gets implemented.
+	 */
 	{ "ca-file", &cfg_type_qstring, 0 },
 	{ "hostname", &cfg_type_qstring, 0 },
+#endif
 	{ "dhparam-file", &cfg_type_qstring, 0 },
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, 0 },
