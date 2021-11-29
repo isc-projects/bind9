@@ -134,6 +134,8 @@ struct dns_dispatch {
 
 	unsigned int requests;	 /*%< how many requests we have */
 	unsigned int tcpbuffers; /*%< allocated buffers */
+
+	unsigned int timedout;
 };
 
 #define QID_MAGIC    ISC_MAGIC('Q', 'i', 'd', ' ')
@@ -644,8 +646,13 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 	if (resp != NULL) {
 		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 		*respp = resp;
-	} else {
+	} else if (disp->timedout > 0) {
+		/* There was active query that timed-out before */
+		disp->timedout--;
 		result = ISC_R_NOTFOUND;
+	} else {
+		/* We are not expecting this DNS message */
+		result = ISC_R_UNEXPECTED;
 	}
 	dispatch_log(disp, LVL(90), "search for response in bucket %d: %s",
 		     bucket, isc_result_totext(result));
@@ -664,6 +671,8 @@ tcp_recv_timeout(dns_dispatch_t *disp, dns_dispentry_t **respp) {
 		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 		ISC_LIST_UNLINK(disp->active, resp, alink);
 		ISC_LIST_APPEND(disp->active, resp, alink);
+
+		disp->timedout++;
 
 		*respp = resp;
 		return (ISC_R_TIMEDOUT);
