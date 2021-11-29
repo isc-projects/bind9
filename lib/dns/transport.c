@@ -36,6 +36,8 @@ struct dns_transport_list {
 	dns_rbt_t *transports[DNS_TRANSPORT_COUNT];
 };
 
+typedef enum ternary { ter_none = 0, ter_true = 1, ter_false = 2 } ternary_t;
+
 struct dns_transport {
 	unsigned int magic;
 	isc_refcount_t references;
@@ -46,6 +48,9 @@ struct dns_transport {
 		char *keyfile;
 		char *cafile;
 		char *hostname;
+		char *ciphers;
+		uint32_t protocol_versions;
+		ternary_t prefer_server_ciphers;
 	} tls;
 	struct {
 		char *endpoint;
@@ -151,6 +156,10 @@ dns_transport_set_certfile(dns_transport_t *transport, const char *certfile) {
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
 		transport->type == DNS_TRANSPORT_HTTP);
 
+	if (transport->tls.certfile != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.certfile);
+	}
+
 	if (certfile != NULL) {
 		transport->tls.certfile = isc_mem_strdup(transport->mctx,
 							 certfile);
@@ -162,6 +171,10 @@ dns_transport_set_keyfile(dns_transport_t *transport, const char *keyfile) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
 		transport->type == DNS_TRANSPORT_HTTP);
+
+	if (transport->tls.keyfile != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.keyfile);
+	}
 
 	if (keyfile != NULL) {
 		transport->tls.keyfile = isc_mem_strdup(transport->mctx,
@@ -175,6 +188,10 @@ dns_transport_set_cafile(dns_transport_t *transport, const char *cafile) {
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
 		transport->type == DNS_TRANSPORT_HTTP);
 
+	if (transport->tls.cafile != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.cafile);
+	}
+
 	if (cafile != NULL) {
 		transport->tls.cafile = isc_mem_strdup(transport->mctx, cafile);
 	}
@@ -186,6 +203,10 @@ dns_transport_set_hostname(dns_transport_t *transport, const char *hostname) {
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
 		transport->type == DNS_TRANSPORT_HTTP);
 
+	if (transport->tls.hostname != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.hostname);
+	}
+
 	if (hostname != NULL) {
 		transport->tls.hostname = isc_mem_strdup(transport->mctx,
 							 hostname);
@@ -196,6 +217,10 @@ void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint) {
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(transport->type == DNS_TRANSPORT_HTTP);
+
+	if (transport->doh.endpoint != NULL) {
+		isc_mem_free(transport->mctx, transport->doh.endpoint);
+	}
 
 	if (endpoint != NULL) {
 		transport->doh.endpoint = isc_mem_strdup(transport->mctx,
@@ -209,6 +234,76 @@ dns_transport_set_mode(dns_transport_t *transport, dns_http_mode_t mode) {
 	REQUIRE(transport->type == DNS_TRANSPORT_HTTP);
 
 	transport->doh.mode = mode;
+}
+
+void
+dns_transport_set_tls_versions(dns_transport_t *transport,
+			       const uint32_t tls_versions) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_HTTP ||
+		transport->type == DNS_TRANSPORT_TLS);
+
+	transport->tls.protocol_versions = tls_versions;
+}
+
+uint32_t
+dns_transport_get_tls_versions(const dns_transport_t *transport) {
+	REQUIRE(VALID_TRANSPORT(transport));
+
+	return (transport->tls.protocol_versions);
+}
+
+void
+dns_transport_set_ciphers(dns_transport_t *transport, const char *ciphers) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	if (transport->tls.ciphers != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.ciphers);
+	}
+
+	if (ciphers != NULL) {
+		transport->tls.ciphers = isc_mem_strdup(transport->mctx,
+							ciphers);
+	}
+}
+
+char *
+dns_transport_get_ciphers(dns_transport_t *transport) {
+	REQUIRE(VALID_TRANSPORT(transport));
+
+	return (transport->tls.ciphers);
+}
+
+void
+dns_transport_set_prefer_server_ciphers(dns_transport_t *transport,
+					const bool prefer) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	transport->tls.prefer_server_ciphers = prefer ? ter_true : ter_false;
+}
+
+bool
+dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
+					bool *preferp) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(preferp != NULL);
+	if (transport->tls.prefer_server_ciphers == ter_none) {
+		return (false);
+	} else if (transport->tls.prefer_server_ciphers == ter_true) {
+		*preferp = true;
+		return (true);
+	} else if (transport->tls.prefer_server_ciphers == ter_false) {
+		*preferp = false;
+		return (true);
+	}
+
+	INSIST(0);
+	ISC_UNREACHABLE();
+	return false;
 }
 
 static void
@@ -230,6 +325,9 @@ transport_destroy(dns_transport_t *transport) {
 	}
 	if (transport->tls.certfile != NULL) {
 		isc_mem_free(transport->mctx, transport->tls.certfile);
+	}
+	if (transport->tls.ciphers != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.ciphers);
 	}
 
 	isc_mem_putanddetach(&transport->mctx, transport, sizeof(*transport));
