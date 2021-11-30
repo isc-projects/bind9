@@ -19,6 +19,24 @@ http local {
 	endpoints { "/dns-query"; "/alter"; };
 };
 
+tls tls-forward-secrecy {
+	protocols { TLSv1.2; };
+	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../ns2/key.pem";
+	cert-file "../ns2/cert.pem";
+	dhparam-file "../ns2/dhparam3072.pem";
+};
+
+tls tls-pfs-aes256 {
+	protocols { TLSv1.2; };
+	ciphers "AES256:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../ns2/key.pem";
+	cert-file "../ns2/cert.pem";
+	dhparam-file "../ns2/dhparam3072.pem";
+};
+
 options {
 	port @PORT@;
 	tls-port @TLSPORT@;
@@ -26,13 +44,15 @@ options {
 	http-port @HTTPPORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
-	listen-on tls ephemeral { 10.53.0.1; };             // DoT
-	listen-on-v6 tls ephemeral { fd92:7065:b8e:ffff::1;};
+	listen-on tls tls-forward-secrecy { 10.53.0.1; };             // DoT
+	listen-on-v6 tls tls-forward-secrecy { fd92:7065:b8e:ffff::1;};
 	listen-on tls ephemeral http local { 10.53.0.1; };  // DoH
 	listen-on-v6 tls ephemeral http local { fd92:7065:b8e:ffff::1; };
 	listen-on tls none http local { 10.53.0.1; };       // unencrypted DoH
 	listen-on-v6 tls none http local { fd92:7065:b8e:ffff::1; };
 	listen-on-v6 { none; };
+	listen-on port @EXTRAPORT1@ tls tls-pfs-aes256 { 10.53.0.1; };             // DoT
+	listen-on-v6 port @EXTRAPORT1@ tls tls-pfs-aes256 { fd92:7065:b8e:ffff::1;};
 	recursion no;
 	notify explicit;
 	also-notify { 10.53.0.2 port @PORT@; };
@@ -51,4 +71,10 @@ zone "example" {
 	type primary;
 	file "example.db";
 	allow-transfer port @TLSPORT@ transport tls { any; };
+};
+
+zone "example2" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT1@ transport tls { any; };
 };

@@ -36,8 +36,12 @@ dig_with_opts() {
 }
 
 wait_for_tls_xfer() (
-	dig_with_tls_opts -b 10.53.0.3 @10.53.0.2 example. AXFR > "dig.out.ns2.test$n" || return 1
-	grep "^;" "dig.out.ns2.test$n" > /dev/null && return 1
+	srv_number="$1"
+	shift
+	zone_name="$1"
+	shift
+	dig_with_tls_opts -b 10.53.0.3 "@10.53.0.$srv_number" "${zone_name}." AXFR > "dig.out.ns$srv_number.${zone_name}.test$n" || return 1
+	grep "^;" "dig.out.ns$srv_number.${zone_name}.test$n" > /dev/null && return 1
 	return 0
 )
 
@@ -54,14 +58,39 @@ if test $ret != 0 ; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "testing incoming XoT functionality (from secondary) ($n)"
+echo_i "testing incoming XoT functionality (from the first secondary) ($n)"
 ret=0
-if retry_quiet 10 wait_for_tls_xfer; then
-	grep "^;" "dig.out.ns2.test$n" | cat_i
-	digcomp example.axfr.good "dig.out.ns2.test$n" || ret=1
+if retry_quiet 10 wait_for_tls_xfer 2 example; then
+	grep "^;" "dig.out.ns2.example.test$n" | cat_i
+	digcomp example.axfr.good "dig.out.ns2.example.test$n" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	ret=1
+fi
+if test $ret != 0 ; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "testing incoming XoT functionality (from the second secondary) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 3 example; then
+	grep "^;" "dig.out.ns3.example.test$n" | cat_i
+	digcomp example.axfr.good "dig.out.ns3.example.test$n" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
+fi
+if test $ret != 0 ; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "testing incoming XoT functionality (from the second secondary, mismatching ciphers, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 3 example2; then
+	grep "^;" "dig.out.ns3.example2.test$n" | cat_i
+	test -f "ns3/example2.db" && ret=1
+else
+	echo_i "timed out waiting for zone transfer"
 fi
 if test $ret != 0 ; then echo_i "failed"; fi
 status=$((status+ret))
