@@ -2881,6 +2881,18 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check dnssec-dsfromkey with revoked key ($n)"
+ret=0
+dig_with_opts revkey.example dnskey @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "DNSKEY.256 3 13" dig.out.ns4.test$n > /dev/null || ret=1	# ZSK
+grep "DNSKEY.385 3 13" dig.out.ns4.test$n > /dev/null || ret=1	# revoked KSK
+grep "DNSKEY.257 3 13" dig.out.ns4.test$n > /dev/null || ret=1	# KSK
+test $(awk '$4 == "DNSKEY" { print }' dig.out.ns4.test$n | wc -l) -eq 3 || ret=1
+$DSFROMKEY -f dig.out.ns4.test$n revkey.example. > dsfromkey.out.test$n || ret=1
+test $(wc -l < dsfromkey.out.test$n) -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+
 echo_i "testing soon-to-expire RRSIGs without a replacement private key ($n)"
 ret=0
 dig_with_answeropts +nottlid expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1
