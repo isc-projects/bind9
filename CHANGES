@@ -1,3 +1,10 @@
+5771.	[bug]		Use idn2 UseSTD3ASCIIRules=false to disable additional
+			unicode validity checks because enabling the additional
+			checks would break valid domain names that contains
+			non-alphanumerical characters such as underscore
+			character (_) or wildcard (*).  This reverts change
+			[GL !5738] from the previous release. [GL #1610]
+
 5770.	[func]		BIND could abort on startup on systems using old
 			OpenSSL versions when 'protocols' option is used inside
 			a 'tls' statement. [GL !5602]
