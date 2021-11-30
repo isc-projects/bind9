@@ -2998,12 +2998,13 @@ system.
 
    The current list of active fetches can be dumped by running
    ``rndc recursing``. The list includes the number of active fetches
-   for each domain and the number of queries that have been passed or
-   dropped as a result of the ``fetches-per-zone`` limit. (Note: these
-   counters are not cumulative over time; whenever the number of active
-   fetches for a domain drops to zero, the counter for that domain is
-   deleted, and the next time a fetch is sent to that domain, it is
-   recreated with the counters set to zero.)
+   for each domain and the number of queries that have been passed
+   (allowed) or dropped (spilled) as a result of the ``fetches-per-zone``
+   limit. (Note: these counters are not cumulative over time;
+   whenever the number of active fetches for a domain drops to zero,
+   the counter for that domain is deleted, and the next time a fetch
+   is sent to that domain, it is recreated with the counters set
+   to zero.)
 
 ``fetches-per-server``
    This sets the maximum number of simultaneous iterative queries that the server
