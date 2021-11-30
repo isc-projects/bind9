@@ -1,4 +1,0 @@
-unmatchedSuppression:*
-preprocessorErrorDirective:*
-unknownMacro:*
-nullPointerRedundantCheck:*

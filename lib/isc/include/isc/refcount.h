@@ -76,7 +76,6 @@ isc_refcount_increment0(isc_refcount_t *target) {
 #else /* _MSC_VER */
 #define isc_refcount_increment0(target)                    \
 	({                                                 \
-		/* cppcheck-suppress shadowVariable */     \
 		uint_fast32_t __v;                         \
 		__v = atomic_fetch_add_relaxed(target, 1); \
 		INSIST(__v < UINT32_MAX);                  \
@@ -100,7 +99,6 @@ isc_refcount_increment(isc_refcount_t *target) {
 #else /* _MSC_VER */
 #define isc_refcount_increment(target)                     \
 	({                                                 \
-		/* cppcheck-suppress shadowVariable */     \
 		uint_fast32_t __v;                         \
 		__v = atomic_fetch_add_relaxed(target, 1); \
 		INSIST(__v > 0 && __v < UINT32_MAX);       \
@@ -124,7 +122,6 @@ isc_refcount_decrement(isc_refcount_t *target) {
 #else /* _MSC_VER */
 #define isc_refcount_decrement(target)                     \
 	({                                                 \
-		/* cppcheck-suppress shadowVariable */     \
 		uint_fast32_t __v;                         \
 		__v = atomic_fetch_sub_acq_rel(target, 1); \
 		INSIST(__v > 0);                           \

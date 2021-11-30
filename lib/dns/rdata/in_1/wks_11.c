@@ -19,18 +19,6 @@
 #include <isc/netdb.h>
 #include <isc/once.h>
 
-/*
- * Redefine CHECK here so cppcheck "sees" the define.
- */
-#ifndef CHECK
-#define CHECK(op)                            \
-	do {                                 \
-		result = (op);               \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
-#endif /* ifndef CHECK */
-
 #define RRTYPE_WKS_ATTRIBUTES (0)
 
 static isc_mutex_t wks_lock;
