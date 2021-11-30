@@ -90,7 +90,8 @@ options {
         allow-query-on { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-recursion-on { <address_match_element>; ... };
-        allow-transfer { <address_match_element>; ... };
+        allow-transfer [ port <integer> ] [ transport <string> ] {
+            <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { (
@@ -484,7 +485,8 @@ view <string> [ <class> ] {
         allow-query-on { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-recursion-on { <address_match_element>; ... };
-        allow-transfer { <address_match_element>; ... };
+        allow-transfer [ port <integer> ] [ transport <string> ] {
+            <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { (
@@ -770,7 +772,8 @@ view <string> [ <class> ] {
                 allow-notify { <address_match_element>; ... };
                 allow-query { <address_match_element>; ... };
                 allow-query-on { <address_match_element>; ... };
-                allow-transfer { <address_match_element>; ... };
+                allow-transfer [ port <integer> ] [ transport <string> ] {
+                    <address_match_element>; ... };
                 allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
                 also-notify [ port <integer> ] [ dscp <integer> ] { (
@@ -886,7 +889,8 @@ zone <string> [ <class> ] {
         allow-notify { <address_match_element>; ... };
         allow-query { <address_match_element>; ... };
         allow-query-on { <address_match_element>; ... };
-        allow-transfer { <address_match_element>; ... };
+        allow-transfer [ port <integer> ] [ transport <string> ] {
+            <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         also-notify [ port <integer> ] [ dscp <integer> ] { (

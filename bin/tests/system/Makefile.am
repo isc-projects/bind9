@@ -157,6 +157,7 @@ TESTS +=			\
 	synthfromdnssec		\
 	tkey			\
 	tools			\
+	transport-acl		\
 	tsig			\
 	tsiggss			\
 	ttl			\

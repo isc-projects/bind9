@@ -71,6 +71,9 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
 	acl->alloc = n;
 	memset(acl->elements, 0, n * sizeof(dns_aclelement_t));
+	ISC_LIST_INIT(acl->ports_and_transports);
+	acl->port_proto_entries = 0;
+
 	*target = acl;
 	return (ISC_R_SUCCESS);
 }
@@ -241,6 +244,54 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	return (ISC_R_SUCCESS);
 }
 
+isc_result_t
+dns_acl_match_port_transport(const isc_netaddr_t *reqaddr,
+			     const in_port_t local_port,
+			     const isc_nmsocket_type_t transport,
+			     const bool encrypted, const dns_name_t *reqsigner,
+			     const dns_acl_t *acl, const dns_aclenv_t *env,
+			     int *match, const dns_aclelement_t **matchelt) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_acl_port_transports_t *next;
+
+	REQUIRE(reqaddr != NULL);
+	REQUIRE(DNS_ACL_VALID(acl));
+
+	if (!ISC_LIST_EMPTY(acl->ports_and_transports)) {
+		result = ISC_R_FAILURE;
+		for (next = ISC_LIST_HEAD(acl->ports_and_transports);
+		     next != NULL; next = ISC_LIST_NEXT(next, link))
+		{
+			bool match_port = true;
+			bool match_transport = true;
+
+			if (next->port != 0) {
+				/* Port is specified. */
+				match_port = (local_port == next->port);
+			}
+			if (next->transports != 0) {
+				/* Transport protocol is specified. */
+				match_transport =
+					((transport & next->transports) ==
+						 transport &&
+					 next->encrypted == encrypted);
+			}
+
+			if (match_port && match_transport) {
+				result = next->negative ? ISC_R_FAILURE
+							: ISC_R_SUCCESS;
+				break;
+			}
+		}
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	return (dns_acl_match(reqaddr, reqsigner, acl, env, match, matchelt));
+}
+
 /*
  * Merge the contents of one ACL into another.  Call dns_iptable_merge()
  * for the IP tables, then concatenate the element arrays.
@@ -347,6 +398,11 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 		dns_acl_node_count(dest) = nodes;
 	}
 
+	/*
+	 * Merge ports and transports
+	 */
+	dns_acl_merge_ports_transports(dest, source, pos);
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -449,6 +505,7 @@ dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
 static void
 destroy(dns_acl_t *dacl) {
 	unsigned int i;
+	dns_acl_port_transports_t *port_proto;
 
 	INSIST(!ISC_LINK_LINKED(dacl, nextincache));
 
@@ -470,6 +527,17 @@ destroy(dns_acl_t *dacl) {
 	if (dacl->iptable != NULL) {
 		dns_iptable_detach(&dacl->iptable);
 	}
+
+	port_proto = ISC_LIST_HEAD(dacl->ports_and_transports);
+	while (port_proto != NULL) {
+		dns_acl_port_transports_t *next = NULL;
+
+		next = ISC_LIST_NEXT(port_proto, link);
+		ISC_LIST_DEQUEUE(dacl->ports_and_transports, port_proto, link);
+		isc_mem_put(dacl->mctx, port_proto, sizeof(*port_proto));
+		port_proto = next;
+	}
+
 	isc_refcount_destroy(&dacl->refcount);
 	dacl->magic = 0;
 	isc_mem_putanddetach(&dacl->mctx, dacl, sizeof(*dacl));
@@ -705,5 +773,59 @@ dns_aclenv_detach(dns_aclenv_t **aclenvp) {
 
 	if (isc_refcount_decrement(&aclenv->references) == 1) {
 		dns__aclenv_destroy(aclenv);
+	}
+}
+
+void
+dns_acl_add_port_transports(dns_acl_t *acl, const in_port_t port,
+			    const uint32_t transports, const bool encrypted,
+			    const bool negative) {
+	dns_acl_port_transports_t *port_proto;
+	REQUIRE(DNS_ACL_VALID(acl));
+	REQUIRE(port != 0 || transports != 0);
+
+	port_proto = isc_mem_get(acl->mctx, sizeof(*port_proto));
+	*port_proto = (dns_acl_port_transports_t){ .port = port,
+						   .transports = transports,
+						   .encrypted = encrypted,
+						   .negative = negative };
+
+	ISC_LINK_INIT(port_proto, link);
+
+	ISC_LIST_APPEND(acl->ports_and_transports, port_proto, link);
+	acl->port_proto_entries++;
+}
+
+void
+dns_acl_merge_ports_transports(dns_acl_t *dest, dns_acl_t *source, bool pos) {
+	dns_acl_port_transports_t *next;
+
+	REQUIRE(DNS_ACL_VALID(dest));
+	REQUIRE(DNS_ACL_VALID(source));
+
+	const bool negative = !pos;
+
+	/*
+	 * Merge ports and transports
+	 */
+	for (next = ISC_LIST_HEAD(source->ports_and_transports); next != NULL;
+	     next = ISC_LIST_NEXT(next, link))
+	{
+		const bool next_positive = !next->negative;
+		bool add_negative;
+
+		/*
+		 * Reverse sense of positives if this is a negative acl.  The
+		 * logic is used (and, thus, enforced) by dns_acl_merge(),
+		 * from which dns_acl_merge_ports_transports() is called.
+		 */
+		if (negative && next_positive) {
+			add_negative = true;
+		} else {
+			add_negative = next->negative;
+		}
+
+		dns_acl_add_port_transports(dest, next->port, next->transports,
+					    next->encrypted, add_negative);
 	}
 }

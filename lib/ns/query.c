@@ -12064,8 +12064,9 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 				query_error(client, DNS_R_NOTIMP, __LINE__);
 				return;
 			}
-			if (isc_nm_is_tlsdns_handle(handle) &&
-			    !isc_nm_xfr_allowed(handle)) {
+			if (isc_nm_socket_type(handle) == isc_nm_tlsdnssocket &&
+			    !isc_nm_xfr_allowed(handle))
+			{
 				/*
 				 * Currently this code is here for DoT, which
 				 * has more complex requirements for zone

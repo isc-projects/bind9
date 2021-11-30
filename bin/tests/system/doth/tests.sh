@@ -30,6 +30,11 @@ dig_with_http_opts() {
 	"$DIG" +http-plain $common_dig_options -p "${HTTPPORT}" "$@"
 }
 
+dig_with_opts() {
+	# shellcheck disable=SC2086
+	"$DIG" $common_dig_options -p "${PORT}" "$@"
+}
+
 wait_for_tls_xfer() (
 	dig_with_tls_opts -b 10.53.0.3 @10.53.0.2 example. AXFR > "dig.out.ns2.test$n" || return 1
 	grep "^;" "dig.out.ns2.test$n" > /dev/null && return 1
@@ -97,6 +102,24 @@ n=$((n + 1))
 echo_i "checking DoT XFR ($n)"
 ret=0
 dig_with_tls_opts +comm @10.53.0.1 . AXFR > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# zone transfers are allowed only via TLS
+n=$((n+1))
+echo_i "testing zone transfer over Do53 server functionality (using dig, failure expected) ($n)"
+ret=0
+dig_with_opts example. -b 10.53.0.3 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
+grep "; Transfer failed." dig.out.ns1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# querying zones is still allowed via UDP/TCP
+n=$((n + 1))
+echo_i "checking Do53 query ($n)"
+ret=0
+dig_with_opts @10.53.0.1 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

@@ -52,6 +52,14 @@ typedef enum {
 	dns_aclelementtype_any
 } dns_aclelementtype_t;
 
+typedef struct dns_acl_port_transports {
+	in_port_t port;
+	uint32_t  transports;
+	bool encrypted; /* for protocols with optional encryption (e.g. HTTP) */
+	bool negative;
+	ISC_LINK(struct dns_acl_port_transports) link;
+} dns_acl_port_transports_t;
+
 typedef struct dns_aclipprefix dns_aclipprefix_t;
 
 struct dns_aclipprefix {
@@ -83,6 +91,8 @@ struct dns_acl {
 	unsigned int	  length;	 /*%< Elements initialized */
 	char	     *name;		 /*%< Temporary use only */
 	ISC_LINK(dns_acl_t) nextincache; /*%< Ditto */
+	ISC_LIST(dns_acl_port_transports_t) ports_and_transports;
+	size_t port_proto_entries;
 };
 
 struct dns_aclenv {
@@ -268,6 +278,48 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
  * caller should examine e->negative.  Since the element 'e' may be
  * a reference to a named ACL or a nested ACL, a matching element
  * returned through 'matchelt' is not necessarily 'e' itself.
+ */
+
+isc_result_t
+dns_acl_match_port_transport(const isc_netaddr_t	 *reqaddr,
+			     const in_port_t	       local_port,
+			     const isc_nmsocket_type_t transport,
+			     const bool encrypted, const dns_name_t *reqsigner,
+			     const dns_acl_t *acl, const dns_aclenv_t *env,
+			     int *match, const dns_aclelement_t **matchelt);
+/*%<
+ * Like dns_acl_match, but able to match the server port and
+ * transport, as well as encryption status.
+ *
+ * Requires:
+ *\li		'reqaddr' is not 'NULL';
+ *\li		'acl' is a valid ACL object.
+ */
+
+void
+dns_acl_add_port_transports(dns_acl_t *acl, const in_port_t port,
+			    const uint32_t transports, const bool encrypted,
+			    const bool negative);
+/*%<
+ * Adds a "port-transports" entry to the specified ACL. Transports
+ * are specified as a bit-set 'transports' consisting of entries
+ * defined in the isc_nmsocket_type enumeration.
+ *
+ * Requires:
+ *\li		'acl' is a valid ACL object;
+ *\li		either 'port' or 'transports' is not equal to 0.
+ */
+
+void
+dns_acl_merge_ports_transports(dns_acl_t *dest, dns_acl_t *source, bool pos);
+/*%<
+ * Merges "port-transports" entries from the 'dest' ACL into
+ * the 'source' ACL. The 'pos' parameter works in a way similar to
+ * 'dns_acl_merge()'.
+ *
+ * Requires:
+ *\li		'dest' is a valid ACL object;
+ *\li		'source' is a valid ACL object.
  */
 
 ISC_LANG_ENDDECLS

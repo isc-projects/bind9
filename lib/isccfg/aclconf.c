@@ -627,7 +627,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 }
 
 isc_result_t
-cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
+cfg_acl_fromconfig2(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 		    isc_log_t *lctx, cfg_aclconfctx_t *ctx, isc_mem_t *mctx,
 		    unsigned int nest_level, uint16_t family,
 		    dns_acl_t **target) {
@@ -638,6 +638,10 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 	dns_iptable_t *iptab;
 	int new_nest_level = 0;
 	bool setpos;
+	const cfg_obj_t *caml = NULL;
+	const cfg_obj_t *obj_acl_tuple = NULL;
+	const cfg_obj_t *obj_port = NULL, *obj_transport = NULL;
+	bool is_tuple = false;
 
 	if (nest_level != 0) {
 		new_nest_level = nest_level - 1;
@@ -646,6 +650,20 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 	REQUIRE(ctx != NULL);
 	REQUIRE(target != NULL);
 	REQUIRE(*target == NULL || DNS_ACL_VALID(*target));
+
+	REQUIRE(acl_data != NULL);
+	if (cfg_obj_islist(acl_data)) {
+		caml = acl_data;
+	} else {
+		INSIST(cfg_obj_istuple(acl_data));
+		caml = cfg_tuple_get(acl_data, "aml");
+		INSIST(caml != NULL);
+		obj_acl_tuple = cfg_tuple_get(acl_data, "port-transport");
+		INSIST(obj_acl_tuple != NULL);
+		obj_port = cfg_tuple_get(obj_acl_tuple, "port");
+		obj_transport = cfg_tuple_get(obj_acl_tuple, "transport");
+		is_tuple = true;
+	}
 
 	if (*target != NULL) {
 		/*
@@ -678,6 +696,54 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		result = dns_acl_create(mctx, nelem, &dacl);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
+	}
+
+	if (is_tuple) {
+		uint16_t port = 0;
+		uint32_t transports = 0;
+		bool encrypted = false;
+
+		if (obj_port != NULL && cfg_obj_isuint32(obj_port)) {
+			port = (uint16_t)cfg_obj_asuint32(obj_port);
+		}
+
+		if (obj_transport != NULL && cfg_obj_isstring(obj_transport)) {
+			if (strcasecmp(cfg_obj_asstring(obj_transport),
+				       "udp") == 0) {
+				transports = isc_nm_udpsocket;
+				encrypted = false;
+			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
+					      "tcp") == 0) {
+				transports = isc_nm_tcpdnssocket;
+				encrypted = false;
+			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
+					      "udp-tcp") == 0) {
+				/* Good ol' DNS over port 53 */
+				transports = isc_nm_tcpdnssocket |
+					     isc_nm_udpsocket;
+				encrypted = false;
+			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
+					      "tls") == 0) {
+				transports = isc_nm_tlsdnssocket;
+				encrypted = true;
+			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
+					      "http") == 0) {
+				transports = isc_nm_httpsocket;
+				encrypted = true;
+			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
+					      "http-plain") == 0) {
+				transports = isc_nm_httpsocket;
+				encrypted = false;
+			} else {
+				result = ISC_R_FAILURE;
+				goto cleanup;
+			}
+		}
+
+		if (port != 0 || transports != 0) {
+			dns_acl_add_port_transports(dacl, port, transports,
+						    encrypted, false);
 		}
 	}
 
@@ -787,6 +853,12 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				if (de->nestedacl != NULL) {
 					dns_acl_detach(&de->nestedacl);
 				}
+				/*
+				 * Merge the port-transports entries from the
+				 * nested ACL into its parent.
+				 */
+				dns_acl_merge_ports_transports(dacl, inneracl,
+							       !neg);
 				dns_acl_attach(inneracl, &de->nestedacl);
 				dns_acl_detach(&inneracl);
 				/* Fall through. */

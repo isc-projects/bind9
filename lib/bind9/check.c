@@ -475,6 +475,47 @@ checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
 	if (acl != NULL) {
 		dns_acl_detach(&acl);
 	}
+
+	if (strcasecmp(aclname, "allow-transfer") == 0 &&
+	    cfg_obj_istuple(aclobj)) {
+		const cfg_obj_t *obj_port = cfg_tuple_get(
+			cfg_tuple_get(aclobj, "port-transport"), "port");
+		const cfg_obj_t *obj_proto = cfg_tuple_get(
+			cfg_tuple_get(aclobj, "port-transport"), "transport");
+
+		if (cfg_obj_isuint32(obj_port) &&
+		    cfg_obj_asuint32(obj_port) >= UINT16_MAX) {
+			cfg_obj_log(obj_port, logctx, ISC_LOG_ERROR,
+				    "port value '%u' is out of range",
+
+				    cfg_obj_asuint32(obj_port));
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		}
+
+		if (cfg_obj_isstring(obj_proto)) {
+			const char *allowed[] = { "tcp", "tls" };
+			const char *transport = cfg_obj_asstring(obj_proto);
+			bool found = false;
+			for (size_t i = 0; i < ARRAY_SIZE(allowed); i++) {
+				if (strcasecmp(transport, allowed[i]) == 0) {
+					found = true;
+				}
+			}
+
+			if (!found) {
+				cfg_obj_log(obj_proto, logctx, ISC_LOG_ERROR,
+					    "'%s' is not a valid transport "
+					    "protocol for "
+					    "zone "
+					    "transfers. Please specify either "
+					    "'tcp' or 'tls'",
+					    transport);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
 	return (result);
 }
 
