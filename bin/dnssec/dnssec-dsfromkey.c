@@ -260,6 +260,10 @@ emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 		fatal("can't convert DNSKEY");
 	}
 
+	if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
+		return;
+	}
+
 	if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 && !showall) {
 		return;
 	}
