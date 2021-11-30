@@ -5183,6 +5183,34 @@ is_minimal_nsec(dns_rdataset_t *nsecset) {
 }
 
 /*
+ * If there is a SOA record in the type map then there must be a DNSKEY.
+ */
+static bool
+check_soa_and_dnskey(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (dns_nsec_typepresent(&rdata, dns_rdatatype_soa) &&
+		    (!dns_nsec_typepresent(&rdata, dns_rdatatype_dnskey) ||
+		     !dns_nsec_typepresent(&rdata, dns_rdatatype_ns)))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (false);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (true);
+}
+
+/*
  * The validator has finished.
  */
 static void
@@ -5589,6 +5617,14 @@ answer_response:
 			    !dns_name_equal(fctx->name, name) &&
 			    is_minimal_nsec(rdataset))
 			{
+				continue;
+			}
+
+			/*
+			 * Check SOA and DNSKEY consistency.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    !check_soa_and_dnskey(rdataset)) {
 				continue;
 			}
 			result = dns_db_findnode(fctx->cache, name, true,
