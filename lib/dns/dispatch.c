@@ -598,6 +598,23 @@ done:
 }
 
 static isc_result_t
+tcp_recv_timeout(dns_dispatch_t *disp, dns_dispentry_t **respp) {
+	dns_dispentry_t *resp = ISC_LIST_HEAD(disp->active);
+	if (resp != NULL) {
+		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
+		ISC_LIST_UNLINK(disp->active, resp, alink);
+		ISC_LIST_APPEND(disp->active, resp, alink);
+
+		disp->timedout++;
+
+		*respp = resp;
+		return (ISC_R_TIMEDOUT);
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
 tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 		 isc_sockaddr_t *peer, dns_dispentry_t **respp) {
 	isc_buffer_t source;
@@ -618,8 +635,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 	result = dns_message_peekheader(&source, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
 		dispatch_log(disp, LVL(10), "got garbage packet");
-		result = ISC_R_UNEXPECTED;
-		goto next;
+		return (ISC_R_UNEXPECTED);
 	}
 
 	dispatch_log(disp, LVL(92),
@@ -632,8 +648,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 	 */
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		dispatch_log(disp, LVL(10), "got DNS query instead of answer");
-		result = ISC_R_UNEXPECTED;
-		goto next;
+		return (ISC_R_UNEXPECTED);
 	}
 
 	/*
@@ -649,7 +664,22 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 	} else if (disp->timedout > 0) {
 		/* There was active query that timed-out before */
 		disp->timedout--;
-		result = ISC_R_NOTFOUND;
+
+		resp = ISC_LIST_HEAD(disp->active);
+		if (resp != NULL) {
+			/*
+			 * It's a DNS response, but didn't match any outstanding
+			 * queries. It's possible we would have timed out by
+			 * now, but non-matching responses prevented it, so we
+			 * check the age of the oldest active resp.
+			 */
+			int timeout = resp->timeout - dispentry_runtime(resp);
+			if (timeout <= 0) {
+				result = tcp_recv_timeout(disp, respp);
+			}
+		} else {
+			result = ISC_R_NOTFOUND;
+		}
 	} else {
 		/* We are not expecting this DNS message */
 		result = ISC_R_UNEXPECTED;
@@ -658,27 +688,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 		     bucket, isc_result_totext(result));
 	UNLOCK(&qid->lock);
 
-next:
-	dispatch_getnext(disp, NULL, -1);
-
 	return (result);
-}
-
-static isc_result_t
-tcp_recv_timeout(dns_dispatch_t *disp, dns_dispentry_t **respp) {
-	dns_dispentry_t *resp = ISC_LIST_HEAD(disp->active);
-	if (resp != NULL) {
-		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
-		ISC_LIST_UNLINK(disp->active, resp, alink);
-		ISC_LIST_APPEND(disp->active, resp, alink);
-
-		disp->timedout++;
-
-		*respp = resp;
-		return (ISC_R_TIMEDOUT);
-	}
-
-	return (ISC_R_NOTFOUND);
 }
 
 static void
@@ -778,11 +788,13 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	case ISC_R_SUCCESS:
 		/* We got an answer */
 		result = tcp_recv_success(disp, region, qid, &peer, &resp);
-		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
+		if (result != ISC_R_UNEXPECTED) {
 			/*
 			 * It's a valid DNS response, which may or may not
 			 * have matched an outstanding query.
 			 */
+
+			dispatch_getnext(disp, NULL, -1);
 			break;
 		}
 
@@ -1509,6 +1521,8 @@ dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 
 	switch (disp->socktype) {
 	case isc_socktype_udp:
+		REQUIRE(resp != NULL);
+
 		dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 		if (timeout > 0) {
 			isc_nmhandle_settimeout(resp->handle, timeout);
