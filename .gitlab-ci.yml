@@ -382,34 +382,6 @@ stages:
       - tsan/
     when: on_failure
 
-.cppcheck_args: &run_cppcheck
-  - cppcheck --enable=warning,performance,portability,information,missingInclude --include=config.h --std=c11 --language=c --project=compile_commands.json --error-exitcode=2 -j ${TEST_PARALLEL_JOBS:-1} --xml --output-file=cppcheck.results --relative-paths="$CI_PROJECT_DIR" --inline-suppr --suppressions-list=util/suppressions.txt
-
-.cppcheck_report: &cppcheck_report_html
-  - cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" --file=cppcheck.results --report-dir=cppcheck_html/
-
-.cppcheck: &cppcheck_job
-  <<: *default_triggering_rules
-  stage: postcheck
-  script:
-    - *configure
-    - (make -nwk all || true) | compiledb
-    - export GCC_VERSION=$(gcc --version | sed -n 's/.* \([0-9]\+\)\.[0-9]\+\.[0-9]\+.*/\1/p')
-    - sed -i "/gcc\",/a\"-DCPPCHECK\", \"-D__STDC__\", \"-D__GNUC__=${GCC_VERSION}\"," compile_commands.json
-    - *run_cppcheck
-  after_script:
-    - *cppcheck_report_html
-  artifacts:
-    paths:
-      - compile_commands.json
-      - cppcheck.results
-      - cppcheck_html/
-    expire_in: "1 day"
-    when: on_failure
-  needs:
-    - job: autoreconf
-      artifacts: true
-
 ### Job Definitions
 
 # Jobs in the precheck stage
@@ -787,10 +759,6 @@ unit:gcc:sid:amd64:
   needs:
     - job: gcc:sid:amd64
       artifacts: true
-
-cppcheck:
-  <<: *base_image
-  <<: *cppcheck_job
 
 # Job for out-of-tree GCC build on Debian "sid" (amd64)
 # Also tests configration option: --with-lmdb.
