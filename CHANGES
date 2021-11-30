@@ -1,3 +1,5 @@
+5779.	[test]		Drop cppcheck suppressions and workarounds. [GL #2886]
+
 5778.	[bug]		Destroyed TLS contexts could have been used after a
 			reconfiguration, making BIND unable to serve queries
 			over TLS and HTTPS. [GL #3053]
