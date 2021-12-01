@@ -348,28 +348,23 @@ idna_enabled_test() {
     idna_fail "$text" "+noidnin +idnout"   "xn--19g"
     idna_fail "$text" "+idnin   +idnout"   "xn--19g"
 
-    # Test that the UseSTD3ASCIIRules is being used
-    #
-    # Note that "+noidnin +idnout" is not tested because libidn2 2.2.0+ parses
-    # Punycode more strictly than older versions and thus dig succeeds with that
-    # combination of options with libidn2 2.2.0+ but fails with older
-    # versions.
-    #
-    # Note that "+idnin +idnout" is not tested because libidn2 2.2.0+ parses
-    # Punycode more strictly than older versions and thus dig fails with that
-    # combination of options with libidn2 2.2.0+ but succeeds with older
-    # versions.
-    #
-    # With UseSTD13ASCIIRules=false, 'â˜º' produces 'xn--\032o-oia59s'
-    #
-    # With UseSTD13ASCIIRules=true, 'â˜º' produces 'xn--o-vfa'
 
-    text="Check that UseSTD3ASCIIRules is being used"
-    idna_test "$text" ""                   "â˜º" "\195\162\203\156\194\186."
-    idna_test "$text" "+noidnin +noidnout" "â˜º" "\195\162\203\156\194\186."
-    # idna_test "$text" "+noidnin +idnout"   "â˜º" "xn--o-vfa."
-    idna_test "$text" "+idnin   +noidnout" "â˜º" "xn--o-vfa."
-    # idna_fail "$text" "+idnin   +idnout"   "â˜º" "âo."
+    # Test that non-letter characters are preserved in the output.  When
+    # UseSTD3ASCIIRules are enabled, it would mangle non-letter characters like
+    # `_` (underscore) and `*` (wildcard.
+
+    test="Checking valid non-letter characters"
+    idna_test "$text" ""                   "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +noidnout" "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +idnout"   "*.xn--nxasmq6b.com" "*.βόλοσ.com."
+    idna_test "$text" "+idnin +noidnout"   "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+idnin +idnout"     "*.xn--nxasmq6b.com" "*.βόλοσ.com."
+
+    idna_test "$text" ""                   "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +noidnout" "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +idnout"   "_tcp.xn--nxasmq6b.com" "_tcp.βόλοσ.com."
+    idna_test "$text" "+idnin +noidnout"   "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+idnin +idnout"     "_tcp.xn--nxasmq6b.com" "_tcp.βόλοσ.com."
 }
 
 

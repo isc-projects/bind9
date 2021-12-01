@@ -43,6 +43,12 @@ Feature Changes
   For example: ``allow-transfer port 853 transport tls { any; };``
   :gl:`#2776`
 
+- `UseSTD3ASCIIRules`_ is now disabled for IDN support. This disables additional
+  validation rules for domain names in dig because applying the rules would
+  silently strip characters not-allowed in hostnames such as underscore (``_``)
+  or wildcard (``*``) characters.  This reverts change :gl:`!5738` from the
+  previous release.  :gl:`#1610`
+
 Bug Fixes
 ~~~~~~~~~
 
