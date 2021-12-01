@@ -19,6 +19,7 @@ set -e
 status=0
 n=1
 synth_default=yes
+reject_default=yes
 
 rm -f dig.out.*
 
@@ -98,7 +99,7 @@ check_auth_count() {
     return 0
 }
 
-for ns in 2 4 5 6 7
+for ns in 2 4 5 6 7 8
 do
     case $ns in
     2) ad=yes; description="<default>";;
@@ -106,6 +107,7 @@ do
     5) ad=yes; description="yes";;
     6) ad=no; description="yes; dnssec-validation no";;
     7) ad=yes; description="yes; server 10.53.0.1 { broken-nsec yes; };";;
+    8) ad=yes; description="yes; reject-000-label no;";;
     *) exit 1;;
     esac
     echo_i "prime negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -331,14 +333,15 @@ status=$((status+ret))
 #
 sleep 1
 
-for ns in 2 4 5 6 7
+for ns in 2 4 5 6 7 8
 do
     case $ns in
-    2) ad=yes synth=${synth_default} description="<default>";;
-    4) ad=yes synth=no description="no";;
-    5) ad=yes synth=yes description="yes";;
-    6) ad=no synth=no description="yes; dnssec-validation no";;
-    7) ad=yes synth=no description="yes; server 10.53.0.1 { broken-nsec yes; };";;
+    2) ad=yes synth=${synth_default} reject=${reject_default} description="<default>";;
+    4) ad=yes synth=no reject=${reject_default} description="no";;
+    5) ad=yes synth=yes reject=${reject_default} description="yes";;
+    6) ad=no synth=no reject=${reject_default} description="yes; dnssec-validation no";;
+    7) ad=yes synth=no reject=${reject_default} description="yes; server 10.53.0.1 { broken-nsec yes; };";;
+    8) ad=yes synth=yes reject=no description="yes; reject-000-label no;";;
     *) exit 1;;
     esac
     echo_i "check synthesized NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -594,7 +597,7 @@ do
     dig_with_opts black.minimal. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
-    if [ ${synth} = yes ]
+    if [ ${synth} = yes -a ${reject} = no ]
     then
 	check_synth_soa minimal. dig.out.ns${ns}.test$n || ret=1
 	nextpart ns1/named.run | grep black.minimal/AAAA > /dev/null && ret=1
@@ -676,7 +679,7 @@ do
     do
 	case $synthesized in
 	NXDOMAIN) count=1;;
-	no-data) count=5;;
+	no-data) if [ ${reject} = yes ]; then count=4; else count=5; fi;;
 	wildcard) count=2;;
 	esac
 	echo_i "check 'rndc stats' output for 'synthesized a ${synthesized} response' (synth-from-dnssec ${description};) ($n)"
@@ -737,7 +740,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) count=5;;
+	    SynthNODATA) if [ $reject = yes ]; then count=4; else count=5; fi;;
 	    SynthWILDCARD) count=2;;
 	    esac
 
@@ -800,7 +803,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) count=5;;
+	    SynthNODATA) if [ $reject = yes ]; then count=4; else count=5; fi;;
 	    SynthWILDCARD) count=2;;
 	    esac
 
