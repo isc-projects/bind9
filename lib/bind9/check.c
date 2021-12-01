@@ -2434,6 +2434,22 @@ resume:
 						result = tresult;
 					}
 				}
+
+				if (strcasecmp(str, "ephemeral") != 0) {
+					const cfg_obj_t *tlsmap = NULL;
+
+					tlsmap = find_maplist(config, "tls",
+							      str);
+					if (tlsmap == NULL) {
+						cfg_obj_log(
+							tls, logctx,
+							ISC_LOG_ERROR,
+							"tls '%s' is not "
+							"defined",
+							cfg_obj_asstring(tls));
+						result = ISC_R_FAILURE;
+					}
+				}
 			}
 			continue;
 		}

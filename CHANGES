@@ -1,3 +1,10 @@
+5770.	[func]		BIND could abort on startup on systems using old
+			OpenSSL versions when 'protocols' option is used inside
+			a 'tls' statement. [GL !5602]
+
+5769.	[func]		Added support for client-side 'tls' parameters when
+			doing incoming zone transfers via XoT. [GL !5602]
+
 5768.	[bug]		dnssec-dsfromkey failed to omit revoked keys. [GL #853]
 
 5767.	[func]		Extend allow-transfer option with 'port' and

@@ -946,13 +946,35 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				     &xfr->primaryaddr, xfrin_connect_done,
 				     connect_xfr, 30000, 0);
 		break;
-	case DNS_TRANSPORT_TLS:
+	case DNS_TRANSPORT_TLS: {
+		uint32_t tls_versions;
+		const char *ciphers;
+		bool prefer_server_ciphers;
 		CHECK(isc_tlsctx_createclient(&xfr->tlsctx));
+		if (xfr->transport != NULL) {
+			tls_versions =
+				dns_transport_get_tls_versions(xfr->transport);
+			if (tls_versions != 0) {
+				isc_tlsctx_set_protocols(xfr->tlsctx,
+							 tls_versions);
+			}
+			ciphers = dns_transport_get_ciphers(xfr->transport);
+			if (ciphers != NULL) {
+				isc_tlsctx_set_cipherlist(xfr->tlsctx, ciphers);
+			}
+
+			if (dns_transport_get_prefer_server_ciphers(
+				    xfr->transport, &prefer_server_ciphers))
+			{
+				isc_tlsctx_prefer_server_ciphers(
+					xfr->tlsctx, prefer_server_ciphers);
+			}
+		}
 		isc_tlsctx_enable_dot_client_alpn(xfr->tlsctx);
 		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
 				     &xfr->primaryaddr, xfrin_connect_done,
 				     connect_xfr, 30000, 0, xfr->tlsctx);
-		break;
+	} break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

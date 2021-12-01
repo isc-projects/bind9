@@ -52,9 +52,20 @@ char *
 dns_transport_get_endpoint(dns_transport_t *transport);
 dns_http_mode_t
 dns_transport_get_mode(dns_transport_t *transport);
+char *
+dns_transport_get_ciphers(dns_transport_t *transport);
+uint32_t
+dns_transport_get_tls_versions(const dns_transport_t *transport);
+bool
+dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
+					bool		     *preferp);
 /*%<
  * Getter functions: return the type, cert file, key file, CA file,
  * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
+ *
+ * dns_transport_get_prefer_server_ciphers() returns 'true' is value
+ * was set, 'false' otherwise. The actual value is returned via
+ * 'preferp' pointer.
  */
 
 void
@@ -69,6 +80,14 @@ void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint);
 void
 dns_transport_set_mode(dns_transport_t *transport, dns_http_mode_t mode);
+void
+dns_transport_set_ciphers(dns_transport_t *transport, const char *ciphers);
+void
+dns_transport_set_tls_versions(dns_transport_t *transport,
+			       const uint32_t	tls_versions);
+void
+dns_transport_set_prefer_server_ciphers(dns_transport_t *transport,
+					const bool	 prefer);
 /*%<
  * Setter functions: set the type, cert file, key file, CA file,
  * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.

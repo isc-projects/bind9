@@ -47,6 +47,47 @@
 		}                                                 \
 	}
 
+#define parse_transport_tls_versions(map, transport, name, setter)                \
+	{                                                                         \
+		const cfg_obj_t *obj = NULL;                                      \
+		cfg_map_get(map, name, &obj);                                     \
+		if (obj != NULL) {                                                \
+			{                                                         \
+				uint32_t tls_protos = 0;                          \
+				const cfg_listelt_t *proto = NULL;                \
+				INSIST(obj != NULL);                              \
+				for (proto = cfg_list_first(obj); proto != 0;     \
+				     proto = cfg_list_next(proto)) {              \
+					const cfg_obj_t *tls_proto_obj =          \
+						cfg_listelt_value(proto);         \
+					const char *tls_sver =                    \
+						cfg_obj_asstring(                 \
+							tls_proto_obj);           \
+					const isc_tls_protocol_version_t ver =    \
+						isc_tls_protocol_name_to_version( \
+							tls_sver);                \
+					INSIST(ver !=                             \
+					       ISC_TLS_PROTO_VER_UNDEFINED);      \
+					INSIST(isc_tls_protocol_supported(        \
+						ver));                            \
+					tls_protos |= ver;                        \
+				}                                                 \
+				if (tls_protos != 0) {                            \
+					setter(transport, tls_protos);            \
+				}                                                 \
+			}                                                         \
+		}                                                                 \
+	}
+
+#define parse_transport_bool_option(map, transport, name, setter)  \
+	{                                                          \
+		const cfg_obj_t *obj = NULL;                       \
+		cfg_map_get(map, name, &obj);                      \
+		if (obj != NULL) {                                 \
+			setter(transport, cfg_obj_asboolean(obj)); \
+		}                                                  \
+	}
+
 static isc_result_t
 add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 	const cfg_obj_t *doh = NULL;
@@ -71,6 +112,13 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 				       dns_transport_set_keyfile);
 		parse_transport_option(doh, transport, "cert-file",
 				       dns_transport_set_certfile);
+		parse_transport_tls_versions(doh, transport, "protocols",
+					     dns_transport_set_tls_versions);
+		parse_transport_option(doh, transport, "ciphers",
+				       dns_transport_set_ciphers);
+		parse_transport_bool_option(
+			doh, transport, "prefer-server-ciphers",
+			dns_transport_set_prefer_server_ciphers)
 #if 0
 		/*
 		 * The following two options need to remain unavailable until
@@ -121,6 +169,13 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 				       dns_transport_set_keyfile);
 		parse_transport_option(tls, transport, "cert-file",
 				       dns_transport_set_certfile);
+		parse_transport_tls_versions(tls, transport, "protocols",
+					     dns_transport_set_tls_versions);
+		parse_transport_option(tls, transport, "ciphers",
+				       dns_transport_set_ciphers);
+		parse_transport_bool_option(
+			tls, transport, "prefer-server-ciphers",
+			dns_transport_set_prefer_server_ciphers)
 #if 0
 		/*
 		 * The following two options need to remain unavailable until
