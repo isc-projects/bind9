@@ -5211,6 +5211,32 @@ check_soa_and_dnskey(dns_rdataset_t *nsecset) {
 }
 
 /*
+ * Look for NSEC next name that starts with the label '\000'.
+ */
+static bool
+has_000_label(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (rdata.length > 1 && rdata.data[0] == 1 &&
+		    rdata.data[1] == 0) {
+			dns_rdataset_disassociate(&rdataset);
+			return (true);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (false);
+}
+
+/*
  * The validator has finished.
  */
 static void
@@ -5645,6 +5671,17 @@ answer_response:
 			    !check_soa_and_dnskey(rdataset)) {
 				continue;
 			}
+
+			/*
+			 * Look for \000 label in next name.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    fctx->res->view->reject_000_label &&
+			    has_000_label(rdataset))
+			{
+				continue;
+			}
+
 			result = dns_db_findnode(fctx->cache, name, true,
 						 &nsnode);
 			if (result != ISC_R_SUCCESS) {

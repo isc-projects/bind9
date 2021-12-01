@@ -2118,6 +2118,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "queryport-pool-updateinterval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
+	{ "reject-000-label", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "request-sit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },

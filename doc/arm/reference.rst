@@ -2100,6 +2100,16 @@ Boolean Options
    default is ``no``. Setting this option to ``yes`` leaves ``named``
    vulnerable to replay attacks.
 
+``reject-000-label``
+   This can be used to control whether NSEC records which have the
+   ``next`` field starting with the ``\\000`` label are cached for
+   ``synth-from-dnssec``.  There are a number of DNSSEC implementations
+   that generate bad NSEC type maps where the ``next`` field starts with
+   the ``\\000`` label and between BIND 9.18 and BIND 9.20 there will be
+   a campaign to get these servers corrected.  In BIND 9.18 this defaults
+   to ``yes``.  In BIND 9.20 (BIND 9.19) this will default to ``no`` and
+   in BIND 9.22 (BIND 9.21) this option will be removed.
+
 ``querylog``
    Query logging provides a complete log of all incoming queries and all query
    errors. This provides more insight into the server's activity, but with a
@@ -2246,6 +2256,16 @@ Boolean Options
    ``server <prefix> { broken-nsec yes; };`` can be used to stop
    named caching broken NSEC records from negative responses from servers
    that emit broken NSEC records with missing types that actually exist.
+
+   ``reject-000-label`` can be used to control whether NSEC records
+   which have the ``next`` field starting with the ``\\000`` label
+   are cached for ``synth-from-dnssec``.  There are a number of
+   DNSSEC implementations that generate bad NSEC type maps where
+   the ``next`` field starts with the ``\\000`` label and between
+   BIND 9.18 and BIND 9.20 there will be a campaign to get these
+   servers corrected.  In BIND 9.18 this defaults to ``yes``.  In
+   BIND 9.20 (BIND 9.19) this will default to ``no`` and in BIND 9.22
+   (BIND 9.21) this option will be removed.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from

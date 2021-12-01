@@ -177,6 +177,7 @@ options {\n\
 	query-source address *;\n\
 	query-source-v6 address *;\n\
 	recursion true;\n\
+	reject-000-label yes;\n\
 	request-expire true;\n\
 	request-ixfr true;\n\
 	require-server-cookie no;\n\

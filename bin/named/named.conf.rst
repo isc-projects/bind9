@@ -388,6 +388,7 @@ OPTIONS
   	recursing-file quoted_string;
   	recursion boolean;
   	recursive-clients integer;
+  	reject-000-label boolean;// deprecated
   	request-expire boolean;
   	request-ixfr boolean;
   	request-nsid boolean;
@@ -793,6 +794,7 @@ VIEW
   		window integer;
   	};
   	recursion boolean;
+  	reject-000-label boolean;// deprecated
   	request-expire boolean;
   	request-ixfr boolean;
   	request-nsid boolean;

@@ -4457,6 +4457,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	view->acceptexpired = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	result = named_config_get(maps, "reject-000-label", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->reject_000_label = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	/* 'optionmaps', not 'maps': don't check named_g_defaults yet */
 	(void)named_config_get(optionmaps, "dnssec-validation", &obj);
 	if (obj == NULL) {
