@@ -347,6 +347,24 @@ idna_enabled_test() {
     idna_test "$text" "+noidnin +noidnout" "xn--19g" "xn--19g."
     idna_fail "$text" "+noidnin +idnout"   "xn--19g"
     idna_fail "$text" "+idnin   +idnout"   "xn--19g"
+
+
+    # Test that non-letter characters are preserved in the output.  When
+    # UseSTD3ASCIIRules are enabled, it would mangle non-letter characters like
+    # `_` (underscore) and `*` (wildcard.
+
+    test="Checking valid non-letter characters"
+    idna_test "$text" ""                   "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +noidnout" "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +idnout"   "*.xn--nxasmq6b.com" "*.βόλοσ.com."
+    idna_test "$text" "+idnin +noidnout"   "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
+    idna_test "$text" "+idnin +idnout"     "*.xn--nxasmq6b.com" "*.βόλοσ.com."
+
+    idna_test "$text" ""                   "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +noidnout" "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+noidnin +idnout"   "_tcp.xn--nxasmq6b.com" "_tcp.βόλοσ.com."
+    idna_test "$text" "+idnin +noidnout"   "_tcp.xn--nxasmq6b.com" "_tcp.xn--nxasmq6b.com."
+    idna_test "$text" "+idnin +idnout"     "_tcp.xn--nxasmq6b.com" "_tcp.βόλοσ.com."
 }
 
 
