@@ -98,13 +98,14 @@ check_auth_count() {
     return 0
 }
 
-for ns in 2 4 5 6
+for ns in 2 4 5 6 7
 do
     case $ns in
     2) ad=yes; description="<default>";;
     4) ad=yes; description="no";;
     5) ad=yes; description="yes";;
     6) ad=no; description="yes; dnssec-validation no";;
+    7) ad=yes; description="yes; server 10.53.0.1 { broken-nsec yes; };";;
     *) exit 1;;
     esac
     echo_i "prime negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -318,13 +319,14 @@ status=$((status+ret))
 #
 sleep 1
 
-for ns in 2 4 5 6
+for ns in 2 4 5 6 7
 do
     case $ns in
     2) ad=yes synth=${synth_default} description="<default>";;
     4) ad=yes synth=no description="no";;
     5) ad=yes synth=yes description="yes";;
     6) ad=no synth=no description="yes; dnssec-validation no";;
+    7) ad=yes synth=no description="yes; server 10.53.0.1 { broken-nsec yes; };";;
     *) exit 1;;
     esac
     echo_i "check synthesized NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -637,11 +639,11 @@ do
     count=$(grep "cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
     test $count = 2 || ret=1
     zero=$(grep "0 cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
-    if [ ${ad} = yes ]
+    if [ ${ad} = no -o $ns = 7 ]
     then
-	test $zero = 1 || ret=1
-    else
 	test $zero = 2 || ret=1
+    else
+	test $zero = 1 || ret=1
     fi
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -698,11 +700,11 @@ do
 	count=$(echo "$counter" | grep CacheNSECNodes | wc -l)
 	test $count = 1 || ret=1
 	zero=$(echo "$counter" | grep ">0<" | wc -l)
-	if [ ${ad} = yes ]
+	if [ ${ad} = no -o $ns = 7 ]
 	then
-	    test $zero = 0 || ret=1
-	else
 	    test $zero = 1 || ret=1
+	else
+	    test $zero = 0 || ret=1
 	fi
 	n=$((n+1))
 	if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -761,11 +763,11 @@ do
 	count=$(grep '"CacheNSECNodes":' $json | wc -l)
 	test $count = 2 || ret=1
 	zero=$(grep '"CacheNSECNodes":0' $json | wc -l)
-	if [ ${ad} = yes ]
+	if [ ${ad} = no -o $ns = 7 ]
 	then
-	    test $zero = 1 || ret=1
-	else
 	    test $zero = 2 || ret=1
+	else
+	    test $zero = 1 || ret=1
 	fi
 	n=$((n+1))
 	if [ $ret != 0 ]; then echo_i "failed"; fi
