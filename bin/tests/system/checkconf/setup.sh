@@ -1,5 +1,3 @@
-#!/bin/sh
-#
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -9,10 +7,4 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f good.conf.in good.conf.out badzero.conf *.out
-rm -f good-kasp.conf.in
-rm -rf test.keydir
-rm -f checkconf.out*
-rm -f diff.out*
-rm -f ns*/named.lock
-rm -f good-server-christmas-tree.conf
+cp -f good-server-christmas-tree.conf.in good-server-christmas-tree.conf

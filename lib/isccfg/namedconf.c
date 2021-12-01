@@ -2507,6 +2507,10 @@ static cfg_type_t cfg_type_key = { "key",	  cfg_parse_named_map,
 
 /*%
  * Clauses that can be found in a 'server' statement.
+ *
+ * Please update lib/bind9/check.c and
+ * bin/tests/system/checkconf/good-server-christmas-tree.conf.in to
+ * exercise the new clause when adding new clauses.
  */
 static cfg_clausedef_t server_clauses[] = {
 	{ "bogus", &cfg_type_boolean, 0 },
