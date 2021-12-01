@@ -30,6 +30,8 @@ rm -f ./ns1/minimal.db
 rm -f ./ns1/minimal.db.signed
 rm -f ./ns1/root.db
 rm -f ./ns1/root.db.signed
+rm -f ./ns1/soa-without-dnskey.db
+rm -f ./ns1/soa-without-dnskey.db.signed
 rm -f ./ns1/trusted.conf
 rm -f ./ns2/named_dump.db
 rm -f ./ns*/managed-keys.bind*

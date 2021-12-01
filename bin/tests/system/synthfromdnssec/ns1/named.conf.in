@@ -62,4 +62,9 @@ zone "minimal" {
 	file "minimal.db.signed";
 };
 
+zone "soa-without-dnskey" {
+	type primary;
+	file "soa-without-dnskey.db.signed";
+};
+
 include "trusted.conf";

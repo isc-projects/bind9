@@ -51,6 +51,16 @@ cat "$infile" "$keyname.key" > "$zonefile"
 # do not regenerate NSEC chain as there in a minimal NSEC record present
 $SIGNER -P -Z nonsecify -o $zone $zonefile > /dev/null
 
+zone=soa-without-dnskey
+infile=soa-without-dnskey.db.in
+zonefile=soa-without-dnskey.db
+
+keyname=$($KEYGEN -q -a RSASHA256 -b 2048 -n zone $zone)
+cat "$infile" "$keyname.key" > "$zonefile"
+
+# do not regenerate NSEC chain as there in a minimal NSEC record present
+$SIGNER -P -Z nonsecify -o $zone $zonefile > /dev/null
+
 zone=.
 infile=root.db.in
 zonefile=root.db

@@ -302,6 +302,18 @@ do
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
+
+    echo_i "prime SOA without DNSKEY bad type map NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts soa-without-dnskey. @10.53.0.${ns} TXT > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa soa-without-dnskey. dig.out.ns${ns}.test$n || ret=1
+    grep 'soa-without-dnskey.*3600.IN.NSEC.ns1.soa-without-dnskey. NS SOA RRSIG NSEC$' dig.out.ns${ns}.test$n > /dev/null || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
 done
 
 echo_i "prime redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
@@ -612,6 +624,17 @@ do
     check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
     check_nosynth_aaaa badtypemap.minimal. dig.out.ns${ns}.test$n || ret=1
+    n=$((n+1))
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status+ret))
+
+    echo_i "check SOA without DNSKEY bad type map NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    dig_with_opts soa-without-dnskey. @10.53.0.${ns} A > dig.out.ns${ns}.test$n || ret=1
+    check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+    check_status NOERROR dig.out.ns${ns}.test$n || ret=1
+    check_nosynth_soa soa-without-dnskey. dig.out.ns${ns}.test$n || ret=1
+    grep 'soa-without-dnskey.*3600.IN.NSEC.ns1.soa-without-dnskey. NS SOA RRSIG NSEC$' dig.out.ns${ns}.test$n > /dev/null || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
