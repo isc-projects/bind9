@@ -1173,8 +1173,10 @@ dns_xfrin_shutdown
 dns_zone_addnsec3chain
 dns_zone_asyncload
 dns_zone_attach
+dns_zone_catz_disable
 dns_zone_catz_enable
 dns_zone_catz_enable_db
+dns_zone_catz_is_enabled
 dns_zone_cdscheck
 dns_zone_checknames
 dns_zone_clearforwardacl

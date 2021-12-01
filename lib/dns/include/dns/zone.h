@@ -2606,6 +2606,26 @@ dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
  */
 
 void
+dns_zone_catz_disable(dns_zone_t *zone);
+/*%<
+ * Disable zone as catalog zone, if it is one.
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ */
+
+bool
+dns_zone_catz_is_enabled(dns_zone_t *zone);
+/*%<
+ * Return a boolean indicating whether the zone is enabled as catalog zone.
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ */
+
+void
 dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db);
 /*%<
  * If 'zone' is a catalog zone, then set up a notify-on-update trigger

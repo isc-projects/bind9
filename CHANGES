@@ -3,6 +3,10 @@
 5764.	[bug]		dns_sdlz_putrr failed to process some valid resource
 			records. [GL #3021]
 
+5762.	[bug]		Fix a "named" crash related to removing and restoring a
+			`catalog-zone` entry in the configuration file and
+			running `rndc reconfig`. [GL #1608]
+
 5758.	[bug]		mdig now honors the operating system's preferred
 			ephemeral port range. [GL #2374]
 

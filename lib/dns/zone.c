@@ -1942,6 +1942,24 @@ dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	UNLOCK_ZONE(zone);
 }
 
+void
+dns_zone_catz_disable(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->catzs != NULL) {
+		dns_catz_catzs_detach(&zone->catzs);
+	}
+	UNLOCK_ZONE(zone);
+}
+
+bool
+dns_zone_catz_is_enabled(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->catzs != NULL);
+}
+
 /*
  * If a zone is a catalog zone, attach it to update notification in database.
  */
