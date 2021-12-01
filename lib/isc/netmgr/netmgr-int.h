@@ -1576,4 +1576,7 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async);
 void
 isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
 
+void
+isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota);
+
 #define STREAM_CLIENTS_PER_CONN 23
