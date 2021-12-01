@@ -2510,6 +2510,7 @@ static cfg_type_t cfg_type_key = { "key",	  cfg_parse_named_map,
  */
 static cfg_clausedef_t server_clauses[] = {
 	{ "bogus", &cfg_type_boolean, 0 },
+	{ "broken-nsec", &cfg_type_boolean, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "edns-version", &cfg_type_uint32, 0 },

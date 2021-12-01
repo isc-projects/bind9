@@ -5228,6 +5228,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_valarg_t *valarg;
 	dns_validatorevent_t *vevent;
 	fetchctx_t *fctx = NULL;
+	bool broken_nsec = false;
 	bool chaining;
 	bool negative;
 	bool sentresponse;
@@ -5240,6 +5241,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
 	dns_message_t *message = NULL;
+	dns_peer_t *peer = NULL;
+	isc_netaddr_t ipaddr;
 
 	UNUSED(task); /* for now */
 
@@ -5567,6 +5570,12 @@ validated(isc_task_t *task, isc_event_t *event) {
 	}
 
 answer_response:
+
+	isc_netaddr_fromsockaddr(&ipaddr, &addrinfo->sockaddr);
+	(void)dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr, &peer);
+	if (peer != NULL) {
+		(void)dns_peer_getbrokennsec(peer, &broken_nsec);
+	}
 	/*
 	 * Cache any SOA/NS/NSEC records that happened to be validated.
 	 */
@@ -5597,6 +5606,15 @@ answer_response:
 			}
 			if (sigrdataset == NULL ||
 			    sigrdataset->trust != dns_trust_secure) {
+				continue;
+			}
+
+			/*
+			 * If this peer has been marked as emitting broken
+			 * NSEC records do not cache it.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec && broken_nsec)
+			{
 				continue;
 			}
 

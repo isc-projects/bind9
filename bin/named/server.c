@@ -1438,6 +1438,12 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "broken-nsec", &obj);
+	if (obj != NULL) {
+		CHECK(dns_peer_setbrokennsec(peer, cfg_obj_asboolean(obj)));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "provide-ixfr", &obj);
 	if (obj != NULL) {
 		CHECK(dns_peer_setprovideixfr(peer, cfg_obj_asboolean(obj)));

@@ -596,6 +596,7 @@ primaries string [ port integer ] [ dscp
 .ft C
 server netprefix {
       bogus boolean;
+      broken\-nsec boolean;
       edns boolean;
       edns\-udp\-size integer;
       edns\-version integer;
@@ -925,6 +926,7 @@ view string [ class ] {
       serial\-update\-method ( date | increment | unixtime );
       server netprefix {
               bogus boolean;
+              broken\-nsec boolean;
               edns boolean;
               edns\-udp\-size integer;
               edns\-version integer;

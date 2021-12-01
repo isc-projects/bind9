@@ -2239,8 +2239,13 @@ Boolean Options
    is started.
 
 ``synth-from-dnssec``
-   This option synthesizes answers from cached NSEC, NSEC3, and other RRsets that have been
-   proved to be correct using DNSSEC. The default is ``yes``.
+   This option synthesizes answers from cached NSEC, NSEC3, and
+   other RRsets that have been proved to be correct using DNSSEC.
+   The default is ``yes``.
+
+   ``server <prefix> { broken-nsec yes; };`` can be used to stop
+   named caching broken NSEC records from negative responses from servers
+   that emit broken NSEC records with missing types that actually exist.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from
@@ -4531,6 +4536,12 @@ any top-level ``server`` statements are used as defaults.
 If a remote server is giving out bad data, marking it
 as bogus prevents further queries to it. The default value of
 ``bogus`` is ``no``.
+
+If a remote server is giving out broken NSEC records with type maps
+that are missing types that actually exist, ``broken-nsec`` can be
+used to stop NSEC records from negative responses from the given
+servers being cached and thus available to ``synth-from-dnssec``.
+The default value is ``no``.
 
 The ``provide-ixfr`` clause determines whether the local server, acting
 as primary, responds with an incremental zone transfer when the given

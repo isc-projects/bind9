@@ -87,6 +87,12 @@ void
 dns_peer_detach(dns_peer_t **list);
 
 isc_result_t
+dns_peer_setbrokennsec(dns_peer_t *peer, bool newval);
+
+isc_result_t
+dns_peer_getbrokennsec(dns_peer_t *peer, bool *retval);
+
+isc_result_t
 dns_peer_setbogus(dns_peer_t *peer, bool newval);
 
 isc_result_t

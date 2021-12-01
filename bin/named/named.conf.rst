@@ -513,6 +513,7 @@ SERVER
 
   server netprefix {
   	bogus boolean;
+  	broken-nsec boolean;
   	edns boolean;
   	edns-udp-size integer;
   	edns-version integer;
@@ -822,6 +823,7 @@ VIEW
   	serial-update-method ( date | increment | unixtime );
   	server netprefix {
   		bogus boolean;
+  		broken-nsec boolean;
   		edns boolean;
   		edns-udp-size integer;
   		edns-version integer;
