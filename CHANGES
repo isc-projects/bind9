@@ -1,3 +1,7 @@
+5772.	[bug]		The resolver could hang on shutdown due to dispatch
+			resources not being cleaned up when a TCP connection
+			was reset. [GL #3026]
+
 5771.	[bug]		Use idn2 UseSTD3ASCIIRules=false to disable additional
 			unicode validity checks because enabling the additional
 			checks would break valid domain names that contains

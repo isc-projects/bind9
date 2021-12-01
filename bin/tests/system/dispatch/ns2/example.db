@@ -1,0 +1,6 @@
+example.		86400	IN	SOA	ns.example. root.example. 43 10800 900 604800 86400
+example.		86400	IN	NS	ns.example.
+ns.example.				A	10.53.0.2
+
+ns.sub.example.				A	10.53.0.3
+sub.example.				NS	ns.sub.example.
