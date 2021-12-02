@@ -2249,8 +2249,11 @@ Boolean Options
    is started.
 
 ``synth-from-dnssec``
-   This option synthesizes answers from cached NSEC, NSEC3, and
-   other RRsets that have been proved to be correct using DNSSEC.
+   This option enables support for :rfc:`8198`, Aggressive Use of
+   DNSSEC-Validated Cache.  It allows the resolver to send a smaller number
+   of queries when resolving queries for DNSSEC-signed domains
+   by synthesizing answers from cached NSEC and other RRsets that
+   have been proved to be correct using DNSSEC.
    The default is ``yes``.
 
    ``server <prefix> { broken-nsec yes; };`` can be used to stop
