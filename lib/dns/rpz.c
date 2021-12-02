@@ -1705,7 +1705,7 @@ setup_update(dns_rpz_zone_t *rpz) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
-	nodecount = dns_db_nodecount(rpz->updb);
+	nodecount = dns_db_nodecount(rpz->updb, dns_dbtree_main);
 	hashsize = 1;
 	while (nodecount != 0 &&
 	       hashsize <= (DNS_RPZ_HTSIZE_MAX + DNS_RPZ_HTSIZE_DIV)) {

@@ -328,6 +328,16 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	}
 	dns_rdataset_current(nsecset, &rdata);
 
+#ifdef notyet
+	if (!dns_nsec_typepresent(&rdata, dns_rdatatype_rrsig) ||
+	    !dns_nsec_typepresent(&rdata, dns_rdatatype_nsec))
+	{
+		(*logit)(arg, ISC_LOG_DEBUG(3),
+			 "NSEC missing RRSIG and/or NSEC from type map");
+		return (ISC_R_IGNORE);
+	}
+#endif
+
 	(*logit)(arg, ISC_LOG_DEBUG(3), "looking for relevant NSEC");
 	relation = dns_name_fullcompare(name, nsecname, &order, &olabels);
 
@@ -459,4 +469,33 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	(*logit)(arg, ISC_LOG_DEBUG(3), "nsec range ok");
 	*exists = false;
 	return (ISC_R_SUCCESS);
+}
+
+bool
+dns_nsec_requiredtypespresent(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	bool found = false;
+
+	REQUIRE(DNS_RDATASET_VALID(nsecset));
+	REQUIRE(nsecset->type == dns_rdatatype_nsec);
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (!dns_nsec_typepresent(&rdata, dns_rdatatype_nsec) ||
+		    !dns_nsec_typepresent(&rdata, dns_rdatatype_rrsig))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (false);
+		}
+		found = true;
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (found);
 }

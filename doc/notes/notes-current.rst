@@ -58,6 +58,17 @@ Feature Changes
   events: ``socket is not connected``, ``quota reached``, and ``soft
   quota reached``. :gl:`#2700`
 
+- Restore NSEC Aggressive Cache (``synth-from-dnssec``) as active by default
+  following reworking of the code to find the potentially covering NSEC record.
+  The implementation was optimized for better efficiency, and also tuned
+  to ignore certain types of broken NSEC records.  This feature currently
+  supports answer synthtesis only for zones using NSEC.  :gl:`#1265`
+
+  The new server clause ``broken-nsec`` was added to identify servers
+  that emit bad NSEC records in negative responses so they will not be
+  cached.  This can be used to work around cases where
+  ``synth-from-dnssec`` hides data that exists. :gl:`#1265`
+
 Bug Fixes
 ~~~~~~~~~
 

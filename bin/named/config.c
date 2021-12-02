@@ -177,6 +177,7 @@ options {\n\
 	query-source address *;\n\
 	query-source-v6 address *;\n\
 	recursion true;\n\
+	reject-000-label yes;\n\
 	request-expire true;\n\
 	request-ixfr true;\n\
 	require-server-cookie no;\n\
@@ -190,7 +191,7 @@ options {\n\
 	stale-answer-ttl 30; /* 30 seconds */\n\
 	stale-cache-enable false;\n\
 	stale-refresh-time 30; /* 30 seconds */\n\
-	synth-from-dnssec no;\n\
+	synth-from-dnssec yes;\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\
 	v6-bias 50;\n\

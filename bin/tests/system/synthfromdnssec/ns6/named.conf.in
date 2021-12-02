@@ -9,20 +9,20 @@
  * information regarding copyright ownership.
  */
 
-// NS4
+// NS6
 
 options {
-	query-source address 10.53.0.4;
-	notify-source 10.53.0.4;
-	transfer-source 10.53.0.4;
+	query-source address 10.53.0.6;
+	notify-source 10.53.0.6;
+	transfer-source 10.53.0.6;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.4; };
+	listen-on { 10.53.0.6; };
 	listen-on-v6 { none; };
 	recursion yes;
 	notify no;
-	dnssec-validation yes;
-	synth-from-dnssec no;
+	dnssec-validation no;
+	synth-from-dnssec yes;
 };
 
 key rndc_key {
@@ -31,11 +31,11 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 statistics-channels {
-	inet 10.53.0.4 port @EXTRAPORT1@ allow { any; };
+	inet 10.53.0.6 port @EXTRAPORT1@ allow { any; };
 };
 
 zone "." {
@@ -44,4 +44,3 @@ zone "." {
 };
 
 include "../ns1/trusted.conf";
-// include "../../common/controls.conf";

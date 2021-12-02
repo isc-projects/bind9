@@ -9856,17 +9856,18 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 }
 
 /*
- * Synthesize a NXDOMAIN response from qctx (which contains the
- * NODATA proof), nowild + nowildrdataset + signowildrdataset (which
- * contains the NOWILDCARD proof) and signer + soardatasetp + sigsoardatasetp
- * which contain the SOA record + RRSIG for the negative answer.
+ * Synthesize a NXDOMAIN or NODATA response from qctx (which contains the
+ * NOQNAME proof), nowild + nowildrdataset + signowildrdataset (which
+ * contains the NOWILDCARD proof or NODATA at wildcard) and
+ * signer + soardatasetp + sigsoardatasetp which contain the
+ * SOA record + RRSIG for the negative answer.
  */
 static isc_result_t
-query_synthnxdomain(query_ctx_t *qctx, dns_name_t *nowild,
-		    dns_rdataset_t *nowildrdataset,
-		    dns_rdataset_t *signowildrdataset, dns_name_t *signer,
-		    dns_rdataset_t **soardatasetp,
-		    dns_rdataset_t **sigsoardatasetp) {
+query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
+			  dns_rdataset_t *nowildrdataset,
+			  dns_rdataset_t *signowildrdataset, dns_name_t *signer,
+			  dns_rdataset_t **soardatasetp,
+			  dns_rdataset_t **sigsoardatasetp) {
 	dns_name_t *name = NULL;
 	dns_ttl_t ttl;
 	isc_buffer_t *dbuf, b;
@@ -9954,9 +9955,13 @@ query_synthnxdomain(query_ctx_t *qctx, dns_name_t *nowild,
 			       DNS_SECTION_AUTHORITY);
 	}
 
-	qctx->client->message->rcode = dns_rcode_nxdomain;
+	if (nodata) {
+		inc_stats(qctx->client, ns_statscounter_nodatasynth);
+	} else {
+		qctx->client->message->rcode = dns_rcode_nxdomain;
+		inc_stats(qctx->client, ns_statscounter_nxdomainsynth);
+	}
 	result = ISC_R_SUCCESS;
-	inc_stats(qctx->client, ns_statscounter_nxdomainsynth);
 
 cleanup:
 	if (name != NULL) {
@@ -10070,6 +10075,14 @@ query_coveringnsec(query_ctx_t *qctx) {
 	}
 
 	/*
+	 * If NSEC or RRSIG are missing from the type map
+	 * reject the NSEC RRset.
+	 */
+	if (!dns_nsec_requiredtypespresent(qctx->rdataset)) {
+		goto cleanup;
+	}
+
+	/*
 	 * Check that we have the correct NOQNAME NSEC record.
 	 */
 	result = dns_nsec_noexistnodata(qctx->qtype, qctx->client->query.qname,
@@ -10168,7 +10181,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 		result = dns_nsec_noexistnodata(qctx->qtype, wild, nowild,
 						&rdataset, &exists, &data, NULL,
 						log_noexistnodata, qctx);
-		if (result != ISC_R_SUCCESS || exists) {
+		if (result != ISC_R_SUCCESS || (exists && data)) {
 			goto cleanup;
 		}
 		break;
@@ -10232,9 +10245,9 @@ query_coveringnsec(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-
-	(void)query_synthnxdomain(qctx, nowild, &rdataset, &sigrdataset, signer,
-				  &soardataset, &sigsoardataset);
+	(void)query_synthnxdomainnodata(qctx, exists, nowild, &rdataset,
+					&sigrdataset, signer, &soardataset,
+					&sigsoardataset);
 	done = true;
 
 cleanup:

@@ -2,6 +2,7 @@
 
   server <netprefix> {
   	bogus <boolean>;
+  	broken-nsec <boolean>;
   	edns <boolean>;
   	edns-udp-size <integer>;
   	edns-version <integer>;

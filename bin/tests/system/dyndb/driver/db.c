@@ -361,12 +361,12 @@ issecure(dns_db_t *db) {
 }
 
 static unsigned int
-nodecount(dns_db_t *db) {
+nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	return (dns_db_nodecount(sampledb->rbtdb));
+	return (dns_db_nodecount(sampledb->rbtdb, tree));
 }
 
 /*

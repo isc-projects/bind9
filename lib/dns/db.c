@@ -807,10 +807,10 @@ freenode:
 }
 
 unsigned int
-dns_db_nodecount(dns_db_t *db) {
+dns_db_nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	REQUIRE(DNS_DB_VALID(db));
 
-	return ((db->methods->nodecount)(db));
+	return ((db->methods->nodecount)(db, tree));
 }
 
 size_t

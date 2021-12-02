@@ -1187,6 +1187,7 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result) {
 	case DNS_R_DNAME:
 	case DNS_R_GLUE:
 	case DNS_R_ZONECUT:
+	case DNS_R_COVERINGNSEC:
 		isc_stats_increment(cache->stats,
 				    dns_cachestatscounter_queryhits);
 		break;
@@ -1259,8 +1260,13 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletettl],
 		"cache records deleted due to TTL expiration");
-	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		values[dns_cachestatscounter_coveringnsec],
+		"covering nsec returned");
+	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db, dns_dbtree_main),
 		"cache database nodes");
+	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db, dns_dbtree_nsec),
+		"cache NSEC auxiliary database nodes");
 	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
@@ -1325,8 +1331,13 @@ dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 			writer));
 	TRY0(renderstat("DeleteTTL", values[dns_cachestatscounter_deletettl],
 			writer));
+	TRY0(renderstat("CoveringNSEC",
+			values[dns_cachestatscounter_coveringnsec], writer));
 
-	TRY0(renderstat("CacheNodes", dns_db_nodecount(cache->db), writer));
+	TRY0(renderstat("CacheNodes",
+			dns_db_nodecount(cache->db, dns_dbtree_main), writer));
+	TRY0(renderstat("CacheNSECNodes",
+			dns_db_nodecount(cache->db, dns_dbtree_nsec), writer));
 	TRY0(renderstat("CacheBuckets", dns_db_hashsize(cache->db), writer));
 
 	TRY0(renderstat("TreeMemTotal", isc_mem_total(cache->mctx), writer));
@@ -1387,9 +1398,19 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "DeleteTTL", obj);
 
-	obj = json_object_new_int64(dns_db_nodecount(cache->db));
+	obj = json_object_new_int64(values[dns_cachestatscounter_coveringnsec]);
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CoveringNSEC", obj);
+
+	obj = json_object_new_int64(
+		dns_db_nodecount(cache->db, dns_dbtree_main));
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "CacheNodes", obj);
+
+	obj = json_object_new_int64(
+		dns_db_nodecount(cache->db, dns_dbtree_nsec));
+	CHECKMEM(obj);
+	json_object_object_add(cstats, "CacheNSECNodes", obj);
 
 	obj = json_object_new_int64(dns_db_hashsize(cache->db));
 	CHECKMEM(obj);

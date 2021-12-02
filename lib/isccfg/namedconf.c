@@ -2118,6 +2118,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "queryport-pool-updateinterval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
+	{ "reject-000-label", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "request-sit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },
@@ -2507,9 +2508,14 @@ static cfg_type_t cfg_type_key = { "key",	  cfg_parse_named_map,
 
 /*%
  * Clauses that can be found in a 'server' statement.
+ *
+ * Please update lib/bind9/check.c and
+ * bin/tests/system/checkconf/good-server-christmas-tree.conf.in to
+ * exercise the new clause when adding new clauses.
  */
 static cfg_clausedef_t server_clauses[] = {
 	{ "bogus", &cfg_type_boolean, 0 },
+	{ "broken-nsec", &cfg_type_boolean, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "edns-version", &cfg_type_uint32, 0 },

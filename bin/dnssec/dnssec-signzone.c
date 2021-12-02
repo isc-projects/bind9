@@ -3894,7 +3894,8 @@ main(int argc, char *argv[]) {
 		bool answer;
 
 		hash_length = dns_nsec3_hashlength(dns_hash_sha1);
-		hashlist_init(&hashlist, dns_db_nodecount(gdb) * 2,
+		hashlist_init(&hashlist,
+			      dns_db_nodecount(gdb, dns_dbtree_main) * 2,
 			      hash_length);
 		result = dns_nsec_nseconly(gdb, gversion, &answer);
 		if (result == ISC_R_NOTFOUND) {

@@ -5142,6 +5142,101 @@ unlock:
 }
 
 /*
+ * typemap with just RRSIG(46) and NSEC(47) bits set.
+ *
+ * Bitmap calculation from dns_nsec_setbit:
+ *
+ *					46	47
+ *	shift = 7 - (type % 8);		0	1
+ *	mask = 1 << shift;		0x02	0x01
+ *	array[type / 8] |= mask;
+ *
+ * Window (0), bitmap length (6), and bitmap.
+ */
+static const unsigned char minimal_typemap[] = { 0, 6, 0, 0, 0, 0, 0, 0x03 };
+
+static bool
+is_minimal_nsec(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_nsec_t nsec;
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (nsec.len == sizeof(minimal_typemap) &&
+		    memcmp(nsec.typebits, minimal_typemap, nsec.len) == 0)
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (true);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (false);
+}
+
+/*
+ * If there is a SOA record in the type map then there must be a DNSKEY.
+ */
+static bool
+check_soa_and_dnskey(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (dns_nsec_typepresent(&rdata, dns_rdatatype_soa) &&
+		    (!dns_nsec_typepresent(&rdata, dns_rdatatype_dnskey) ||
+		     !dns_nsec_typepresent(&rdata, dns_rdatatype_ns)))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			return (false);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (true);
+}
+
+/*
+ * Look for NSEC next name that starts with the label '\000'.
+ */
+static bool
+has_000_label(dns_rdataset_t *nsecset) {
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_clone(nsecset, &rdataset);
+
+	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&rdataset, &rdata);
+		if (rdata.length > 1 && rdata.data[0] == 1 &&
+		    rdata.data[1] == 0) {
+			dns_rdataset_disassociate(&rdataset);
+			return (true);
+		}
+	}
+	dns_rdataset_disassociate(&rdataset);
+	return (false);
+}
+
+/*
  * The validator has finished.
  */
 static void
@@ -5159,6 +5254,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_valarg_t *valarg;
 	dns_validatorevent_t *vevent;
 	fetchctx_t *fctx = NULL;
+	bool broken_nsec = false;
 	bool chaining;
 	bool negative;
 	bool sentresponse;
@@ -5171,6 +5267,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
 	dns_message_t *message = NULL;
+	dns_peer_t *peer = NULL;
+	isc_netaddr_t ipaddr;
 
 	UNUSED(task); /* for now */
 
@@ -5498,6 +5596,12 @@ validated(isc_task_t *task, isc_event_t *event) {
 	}
 
 answer_response:
+
+	isc_netaddr_fromsockaddr(&ipaddr, &addrinfo->sockaddr);
+	(void)dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr, &peer);
+	if (peer != NULL) {
+		(void)dns_peer_getbrokennsec(peer, &broken_nsec);
+	}
 	/*
 	 * Cache any SOA/NS/NSEC records that happened to be validated.
 	 */
@@ -5530,6 +5634,54 @@ answer_response:
 			    sigrdataset->trust != dns_trust_secure) {
 				continue;
 			}
+
+			/*
+			 * If this peer has been marked as emitting broken
+			 * NSEC records do not cache it.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec && broken_nsec)
+			{
+				continue;
+			}
+
+			/*
+			 * Don't cache NSEC if missing NSEC or RRSIG types.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    !dns_nsec_requiredtypespresent(rdataset))
+			{
+				continue;
+			}
+
+			/*
+			 * Don't cache "white lies" but do cache
+			 * "black lies".
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    !dns_name_equal(fctx->name, name) &&
+			    is_minimal_nsec(rdataset))
+			{
+				continue;
+			}
+
+			/*
+			 * Check SOA and DNSKEY consistency.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    !check_soa_and_dnskey(rdataset)) {
+				continue;
+			}
+
+			/*
+			 * Look for \000 label in next name.
+			 */
+			if (rdataset->type == dns_rdatatype_nsec &&
+			    fctx->res->view->reject_000_label &&
+			    has_000_label(rdataset))
+			{
+				continue;
+			}
+
 			result = dns_db_findnode(fctx->cache, name, true,
 						 &nsnode);
 			if (result != ISC_R_SUCCESS) {

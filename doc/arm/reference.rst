@@ -2100,6 +2100,16 @@ Boolean Options
    default is ``no``. Setting this option to ``yes`` leaves ``named``
    vulnerable to replay attacks.
 
+``reject-000-label``
+   This can be used to control whether NSEC records which have the
+   ``next`` field starting with the ``\\000`` label are cached for
+   ``synth-from-dnssec``.  There are a number of DNSSEC implementations
+   that generate bad NSEC type maps where the ``next`` field starts with
+   the ``\\000`` label and between BIND 9.18 and BIND 9.20 there will be
+   a campaign to get these servers corrected.  In BIND 9.18 this defaults
+   to ``yes``.  In BIND 9.20 (BIND 9.19) this will default to ``no`` and
+   in BIND 9.22 (BIND 9.21) this option will be removed.
+
 ``querylog``
    Query logging provides a complete log of all incoming queries and all query
    errors. This provides more insight into the server's activity, but with a
@@ -2239,9 +2249,26 @@ Boolean Options
    is started.
 
 ``synth-from-dnssec``
-   This option synthesizes answers from cached NSEC, NSEC3, and other RRsets that have been
-   proved to be correct using DNSSEC. The default is ``no``, but it will become
-   ``yes`` again in future releases.
+   This option enables support for :rfc:`8198`, Aggressive Use of
+   DNSSEC-Validated Cache.  It allows the resolver to send a smaller number
+   of queries when resolving queries for DNSSEC-signed domains
+   by synthesizing answers from cached NSEC and other RRsets that
+   have been proved to be correct using DNSSEC.
+   The default is ``yes``.
+
+   ``server <prefix> { broken-nsec yes; };`` can be used to stop
+   named caching broken NSEC records from negative responses from servers
+   that emit broken NSEC records with missing types that actually exist.
+
+   ``reject-000-label`` can be used to control whether NSEC records
+   which have the ``next`` field starting with the ``\\000`` label
+   are cached for ``synth-from-dnssec``.  There are a number of
+   DNSSEC implementations that generate bad NSEC type maps where
+   the ``next`` field starts with the ``\\000`` label and between
+   BIND 9.18 and BIND 9.20 there will be a campaign to get these
+   servers corrected.  In BIND 9.18 this defaults to ``yes``.  In
+   BIND 9.20 (BIND 9.19) this will default to ``no`` and in BIND 9.22
+   (BIND 9.21) this option will be removed.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from
@@ -4532,6 +4559,12 @@ any top-level ``server`` statements are used as defaults.
 If a remote server is giving out bad data, marking it
 as bogus prevents further queries to it. The default value of
 ``bogus`` is ``no``.
+
+If a remote server is giving out broken NSEC records with type maps
+that are missing types that actually exist, ``broken-nsec`` can be
+used to stop NSEC records from negative responses from the given
+servers being cached and thus available to ``synth-from-dnssec``.
+The default value is ``no``.
 
 The ``provide-ixfr`` clause determines whether the local server, acting
 as primary, responds with an incremental zone transfer when the given
