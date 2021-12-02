@@ -58,7 +58,6 @@ struct dns_dispatchmgr {
 
 	/* Locked by "lock". */
 	isc_mutex_t lock;
-	unsigned int state;
 	ISC_LIST(dns_dispatch_t) list;
 
 	dns_qid_t *qid;
@@ -68,9 +67,6 @@ struct dns_dispatchmgr {
 	in_port_t *v6ports;    /*%< available ports for IPv4 */
 	unsigned int nv6ports; /*%< # of available ports for IPv4 */
 };
-
-#define MGR_SHUTTINGDOWN       0x00000001U
-#define MGR_IS_SHUTTINGDOWN(l) (((l)->state & MGR_SHUTTINGDOWN) != 0)
 
 struct dns_dispentry {
 	unsigned int magic;
@@ -124,7 +120,7 @@ struct dns_dispatch {
 	/* Locked by "lock". */
 	isc_mutex_t lock; /*%< locks all below */
 	isc_socktype_t socktype;
-	atomic_uint_fast32_t state;
+	atomic_uint_fast32_t tcpstate;
 	atomic_bool tcpreading;
 	isc_refcount_t references;
 	unsigned int shutdown_out : 1;
@@ -999,7 +995,6 @@ dispatchmgr_destroy(dns_dispatchmgr_t *mgr) {
 
 	mgr->magic = 0;
 	isc_mutex_destroy(&mgr->lock);
-	mgr->state = 0;
 
 	qid_destroy(mgr->mctx, &mgr->qid);
 
@@ -1213,7 +1208,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		    (localaddr == NULL ||
 		     isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
-			if (atomic_load(&disp->state) ==
+			if (atomic_load(&disp->tcpstate) ==
 			    DNS_DISPATCHSTATE_CONNECTED) {
 				/* We found connected dispatch */
 				disp_connected = disp;
@@ -1700,7 +1695,7 @@ startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		LOCK(&disp->lock);
 		REQUIRE(disp->handle == NULL);
 		REQUIRE(atomic_compare_exchange_strong(
-			&disp->state,
+			&disp->tcpstate,
 			&(uint_fast32_t){ DNS_DISPATCHSTATE_CONNECTING },
 			DNS_DISPATCHSTATE_CONNECTED));
 
@@ -1727,10 +1722,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		     isc_result_totext(eresult));
 
 	ISC_LIST_INIT(resps);
-
-	if (MGR_IS_SHUTTINGDOWN(disp->mgr)) {
-		eresult = ISC_R_SHUTTINGDOWN;
-	}
 
 	if (eresult == ISC_R_SUCCESS) {
 		startrecv(handle, disp, NULL);
@@ -1769,10 +1760,6 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dispatch_log(disp, LVL(90), "UDP connected (%p): %s", resp,
 		     isc_result_totext(eresult));
 
-	if (MGR_IS_SHUTTINGDOWN(disp->mgr)) {
-		eresult = ISC_R_SHUTTINGDOWN;
-	}
-
 	if (eresult == ISC_R_SUCCESS && resp->canceled) {
 		eresult = ISC_R_CANCELED;
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -1801,7 +1788,7 @@ detach:
 isc_result_t
 dns_dispatch_connect(dns_dispentry_t *resp) {
 	dns_dispatch_t *disp = NULL;
-	uint_fast32_t state = DNS_DISPATCHSTATE_NONE;
+	uint_fast32_t tcpstate = DNS_DISPATCHSTATE_NONE;
 
 	REQUIRE(VALID_RESPONSE(resp));
 
@@ -1816,10 +1803,10 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 		 * Check whether the dispatch is already connecting
 		 * or connected.
 		 */
-		atomic_compare_exchange_strong(&disp->state,
-					       (uint_fast32_t *)&state,
+		atomic_compare_exchange_strong(&disp->tcpstate,
+					       (uint_fast32_t *)&tcpstate,
 					       DNS_DISPATCHSTATE_CONNECTING);
-		switch (state) {
+		switch (tcpstate) {
 		case DNS_DISPATCHSTATE_NONE:
 			/* First connection, continue with connecting */
 			LOCK(&disp->lock);
