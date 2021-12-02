@@ -125,6 +125,7 @@ struct dns_dispatch {
 	isc_mutex_t lock; /*%< locks all below */
 	isc_socktype_t socktype;
 	atomic_uint_fast32_t state;
+	atomic_bool tcpreading;
 	isc_refcount_t references;
 	unsigned int shutdown_out : 1;
 
@@ -751,6 +752,8 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	dns_displist_t resps;
 
 	REQUIRE(VALID_DISPATCH(disp));
+
+	atomic_store(&disp->tcpreading, false);
 
 	qid = disp->mgr->qid;
 
@@ -1531,11 +1534,14 @@ dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 		break;
 
 	case isc_socktype_tcp:
-		dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
-		if (timeout > 0) {
-			isc_nmhandle_settimeout(disp->handle, timeout);
+		if (atomic_compare_exchange_strong(&disp->tcpreading,
+						   &(bool){ false }, true)) {
+			dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
+			if (timeout > 0) {
+				isc_nmhandle_settimeout(disp->handle, timeout);
+			}
+			isc_nm_read(disp->handle, tcp_recv, disp);
 		}
-		isc_nm_read(disp->handle, tcp_recv, disp);
 		break;
 
 	default:
