@@ -49,6 +49,15 @@ Feature Changes
   or wildcard (``*``) characters.  This reverts change :gl:`!5738` from the
   previous release.  :gl:`#1610`
 
+- Previously, when an incoming TCP connection could not be accepted because the client
+  closed the connection early, an error message of ``TCP connection
+  failed: socket is not connected`` was logged. This message has been changed
+  to ``Accepting TCP connection failed: socket is not connected``. The
+  severity level at which this type of message is logged has also
+  been changed from ``error`` to ``info`` for the following triggering
+  events: ``socket is not connected``, ``quota reached``, and ``soft
+  quota reached``. :gl:`#2700`
+
 Bug Fixes
 ~~~~~~~~~
 

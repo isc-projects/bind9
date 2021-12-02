@@ -1,3 +1,9 @@
+5773.	[func]		Change the message when accepting TCP connection has
+			failed to say "Accepting TCP connection failed" and
+			change the log level for ISC_R_NOTCONNECTED, ISC_R_QUOTA
+			and ISC_R_SOFTQUOTA results codes from ERROR to INFO.
+			[GL #2700]
+
 5772.	[bug]		The resolver could hang on shutdown due to dispatch
 			resources not being cleaned up when a TCP connection
 			was reset. [GL #3026]
