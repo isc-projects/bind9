@@ -631,15 +631,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 
 	result = accept_connection(ssock, quota);
 done:
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOCONN) {
-		if ((result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA) ||
-		    can_log_tcp_quota()) {
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-				      "TCP connection failed: %s",
-				      isc_result_totext(result));
-		}
-	}
+	isc__nm_accept_connection_log(result, can_log_tcp_quota());
 }
 
 void
@@ -934,15 +926,7 @@ isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	result = accept_connection(sock, ievent->quota);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOCONN) {
-		if ((result != ISC_R_QUOTA && result != ISC_R_SOFTQUOTA) ||
-		    can_log_tcp_quota()) {
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-				      "TCP connection failed: %s",
-				      isc_result_totext(result));
-		}
-	}
+	isc__nm_accept_connection_log(result, can_log_tcp_quota());
 }
 
 static isc_result_t

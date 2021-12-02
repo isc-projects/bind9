@@ -1967,6 +1967,33 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	}
 }
 
+void
+isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
+	int level;
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case ISC_R_NOCONN:
+		return;
+	case ISC_R_QUOTA:
+	case ISC_R_SOFTQUOTA:
+		if (!can_log_quota) {
+			return;
+		}
+		level = ISC_LOG_INFO;
+		break;
+	case ISC_R_NOTCONNECTED:
+		level = ISC_LOG_INFO;
+		break;
+	default:
+		level = ISC_LOG_ERROR;
+	}
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      level, "Accepting TCP connection failed: %s",
+		      isc_result_totext(result));
+}
+
 static void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
