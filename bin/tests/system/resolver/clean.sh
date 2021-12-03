@@ -21,6 +21,7 @@ rm -f dig.out dig.out.* dig.*.out.*
 rm -f dig.*.foo.*
 rm -f dig.*.bar.*
 rm -f dig.*.prime.*
+rm -f nextpart.out.*
 rm -f ns4/tld.db
 rm -f ns6/K*
 rm -f ns6/example.net.db.signed ns6/example.net.db
