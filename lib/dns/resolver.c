@@ -326,9 +326,11 @@ struct fetchctx {
 	dns_name_t *domain;
 	dns_rdataset_t nameservers;
 	atomic_uint_fast32_t attributes;
+	isc_timer_t *timer;
 	isc_time_t expires;
 	isc_time_t expires_try_stale;
 	isc_time_t next_timeout;
+	isc_time_t final;
 	isc_interval_t interval;
 	dns_message_t *qmessage;
 	ISC_LIST(resquery_t) queries;
@@ -1239,6 +1241,35 @@ update_edns_stats(resquery_t *query) {
 	}
 }
 
+/*
+ * Start the maximum lifetime timer for the fetch. This will
+ * trigger if, for example, some ADB or validator dependency
+ * loop occurs and causes a fetch to hang.
+ */
+static inline isc_result_t
+fctx_starttimer(fetchctx_t *fctx) {
+	return (isc_timer_reset(fctx->timer, isc_timertype_once, &fctx->final,
+				NULL, true));
+}
+
+static inline void
+fctx_stoptimer(fetchctx_t *fctx) {
+	isc_result_t result;
+
+	/*
+	 * We don't return a result if resetting the timer to inactive fails
+	 * since there's nothing to be done about it.  Resetting to inactive
+	 * should never fail anyway, since the code as currently written
+	 * cannot fail in that case.
+	 */
+	result = isc_timer_reset(fctx->timer, isc_timertype_inactive, NULL,
+				 NULL, true);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
+				 isc_result_totext(result));
+	}
+}
+
 static void
 fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 		 bool age_untried) {
@@ -1744,6 +1775,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 	fctx->qmin_warning = ISC_R_SUCCESS;
 
 	fctx_cancelqueries(fctx, no_response, age_untried);
+	fctx_stoptimer(fctx);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 	fctx->state = fetchstate_done;
@@ -4337,6 +4369,8 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
 
+	isc_timer_detach(&fctx->timer);
+
 	dns_resolver_detach(&fctx->res);
 
 	isc_mem_free(fctx->mctx, fctx->info);
@@ -4445,8 +4479,9 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 static void
 fctx_start(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
-	dns_resolver_t *res;
+	dns_resolver_t *res = NULL;
 	unsigned int bucketnum;
+	isc_result_t result;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -4491,7 +4526,12 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	UNLOCK(&res->buckets[bucketnum].lock);
 
-	fctx_try(fctx, false, false);
+	result = fctx_starttimer(fctx);
+	if (result != ISC_R_SUCCESS) {
+		fctx_done(fctx, result, __LINE__);
+	} else {
+		fctx_try(fctx, false, false);
+	}
 }
 
 /*
@@ -4564,6 +4604,21 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(10),
 		      "log_ns_ttl: fctx %p: %s: %s (in '%s'?): %u %u", fctx,
 		      where, namebuf, domainbuf, fctx->ns_ttl_ok, fctx->ns_ttl);
+}
+
+static void
+fctx_expired(isc_task_t *task, isc_event_t *event) {
+	fetchctx_t *fctx = event->ev_arg;
+
+	REQUIRE(VALID_FCTX(fctx));
+
+	UNUSED(task);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "shut down hung fetch while resolving '%s'", fctx->info);
+	fctx_shutdown(fctx);
+	isc_event_free(&event);
 }
 
 static isc_result_t
@@ -4775,6 +4830,37 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	}
 
 	/*
+	 * As a backstop, we also set a timer to stop the fetch
+	 * if in-band netmgr timeouts don't work. It will fire two
+	 * seconds after the fetch should have finished. (This
+	 * should be enough of a gap to avoid the timer firing
+	 * while a response is being processed normally.)
+	 */
+	isc_interval_set(&interval, 2, 0);
+	iresult = isc_time_add(&fctx->expires, &interval, &fctx->final);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_time_add: %s",
+				 isc_result_totext(iresult));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_qmessage;
+	}
+
+	/*
+	 * Create an inactive timer to enforce maximum query
+	 * lifetime. It will be made active when the fetch is
+	 * started.
+	 */
+	iresult = isc_timer_create(res->timermgr, isc_timertype_inactive, NULL,
+				   NULL, res->buckets[bucketnum].task,
+				   fctx_expired, fctx, &fctx->timer);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_create: %s",
+				 isc_result_totext(iresult));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_qmessage;
+	}
+
+	/*
 	 * Default retry interval initialization.  We set the interval
 	 * now mostly so it won't be uninitialized.  It will be set to
 	 * the correct value before a query is issued.
@@ -4799,7 +4885,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 					 "isc_time_nowplusinterval: %s",
 					 isc_result_totext(iresult));
 			result = ISC_R_UNEXPECTED;
-			goto cleanup_qmessage;
+			goto cleanup_timer;
 		}
 	}
 
@@ -4843,6 +4929,9 @@ cleanup_mctx:
 	isc_mem_detach(&fctx->mctx);
 	dns_adb_detach(&fctx->adb);
 	dns_db_detach(&fctx->cache);
+
+cleanup_timer:
+	isc_timer_detach(&fctx->timer);
 
 cleanup_qmessage:
 	dns_message_detach(&fctx->qmessage);
