@@ -1,3 +1,9 @@
+5775.	[bug]		Added a timer in the resolver to kill fetches that
+			have deadlocked as a result of dependency loops
+			with the ADB or the validator. This condition is
+			now logged with the message "shut down hung fetch
+			while resolving '<name>/<type>'". [GL #3040]
+
 5774.	[func]		Restore NSEC Aggressive Cache ("synth-from-dnssec")
 			as active by default. It is limited to NSEC only
 			and by default ignores NSEC records with next name
