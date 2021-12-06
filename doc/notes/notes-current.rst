@@ -24,6 +24,11 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- The ``allow-transfer`` option was extended to accept additional
+  ``port`` and ``transport`` parameters, to further restrict zone
+  transfers to a particular port and/or DNS transport protocol.
+  :gl:`#2776`
+
 - Extended DNS Error Code 18 - Prohibited (see :rfc:`8194` section
   4.19) is now set if query access is denied to the specific client.
   :gl:`#1836`
@@ -36,10 +41,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The ``allow-transfer`` option was extended to accept additional
-  ``port`` and ``transport`` parameters, to further restrict zone
-  transfers to a particular port and/or DNS transport protocol.
-  :gl:`#2776`
+- Aggressive Use of DNSSEC-Validated Cache (``synth-from-dnssec``, see
+  :rfc:`8198`) is now enabled by default again, after having been
+  disabled in BIND 9.14.8. The implementation of this feature was
+  reworked to achieve better efficiency and tuned to ignore certain
+  types of broken NSEC records. Negative answer synthesis is currently
+  only supported for zones using NSEC. :gl:`#1265`
 
 - The `UseSTD3ASCIIRules`_ flag is now disabled again for libidn2
   function calls. Applying additional validation rules for domain names
@@ -56,13 +63,6 @@ Feature Changes
   is logged has also been changed from ``error`` to ``info`` for the
   following triggering events: ``socket is not connected``, ``quota
   reached``, and ``soft quota reached``. :gl:`#2700`
-
-- Aggressive Use of DNSSEC-Validated Cache (``synth-from-dnssec``, see
-  :rfc:`8198`) is now enabled by default again, after having been
-  disabled in BIND 9.14.8. The implementation of this feature was
-  reworked to achieve better efficiency and tuned to ignore certain
-  types of broken NSEC records. Negative answer synthesis is currently
-  only supported for zones using NSEC. :gl:`#1265`
 
 - ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
   :gl:`#853`
