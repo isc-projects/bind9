@@ -64,6 +64,9 @@ Feature Changes
   types of broken NSEC records. Negative answer synthesis is currently
   only supported for zones using NSEC. :gl:`#1265`
 
+- ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
+  :gl:`#853`
+
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
 Bug Fixes
