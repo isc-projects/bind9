@@ -11,16 +11,6 @@
 Notes for BIND 9.17.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -32,11 +22,6 @@ New Features
 - Extended DNS Error Code 18 - Prohibited (see :rfc:`8194` section
   4.19) is now set if query access is denied to the specific client.
   :gl:`#1836`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
