@@ -11,16 +11,6 @@
 Notes for BIND 9.17.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -32,11 +22,6 @@ New Features
 - Extended DNS Error Code 18 - Prohibited (see :rfc:`8194` section
   4.19) is now set if query access is denied to the specific client.
   :gl:`#1836`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -81,6 +66,3 @@ Bug Fixes
   being cleaned up when a TCP connection was reset, or due to dependency
   loops in the ADB or the DNSSEC validator. This has been fixed.
   :gl:`#3026` :gl:`#3040`
-
-- On FreeBSD, a TCP connection would leak a small amount of heap memory leading
-  to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
