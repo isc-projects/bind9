@@ -2100,15 +2100,16 @@ Boolean Options
    default is ``no``. Setting this option to ``yes`` leaves ``named``
    vulnerable to replay attacks.
 
+.. _reject_000_label:
+
 ``reject-000-label``
-   This can be used to control whether NSEC records which have the
-   ``next`` field starting with the ``\\000`` label are cached for
-   ``synth-from-dnssec``.  There are a number of DNSSEC implementations
-   that generate bad NSEC type maps where the ``next`` field starts with
-   the ``\\000`` label and between BIND 9.18 and BIND 9.20 there will be
-   a campaign to get these servers corrected.  In BIND 9.18 this defaults
-   to ``yes``.  In BIND 9.20 (BIND 9.19) this will default to ``no`` and
-   in BIND 9.22 (BIND 9.21) this option will be removed.
+   This controls whether NSEC records whose Next Owner Name field starts
+   with a ``\000`` label are cached for use by the ``synth-from-dnssec``
+   feature. The default is ``yes``, which means these records are not
+   used for negative response synthesis. This is a temporary measure to
+   improve interoperability with authoritative servers that generate
+   incorrect NSEC records. The default value of this option may change
+   in a future release, or it may be removed altogether.
 
 ``querylog``
    Query logging provides a complete log of all incoming queries and all query
@@ -2256,19 +2257,11 @@ Boolean Options
    have been proved to be correct using DNSSEC.
    The default is ``yes``.
 
-   ``server <prefix> { broken-nsec yes; };`` can be used to stop
-   named caching broken NSEC records from negative responses from servers
-   that emit broken NSEC records with missing types that actually exist.
-
-   ``reject-000-label`` can be used to control whether NSEC records
-   which have the ``next`` field starting with the ``\\000`` label
-   are cached for ``synth-from-dnssec``.  There are a number of
-   DNSSEC implementations that generate bad NSEC type maps where
-   the ``next`` field starts with the ``\\000`` label and between
-   BIND 9.18 and BIND 9.20 there will be a campaign to get these
-   servers corrected.  In BIND 9.18 this defaults to ``yes``.  In
-   BIND 9.20 (BIND 9.19) this will default to ``no`` and in BIND 9.22
-   (BIND 9.21) this option will be removed.
+   The ``reject-000-label`` :ref:`option <reject_000_label>` and the
+   ``broken-nsec`` :ref:`server configuration clause
+   <server_broken_nsec>` can be used to prevent broken NSEC records from
+   causing incorrect negative responses to be synthesized when
+   ``synth-from-dnssec`` is set to ``yes``.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from
@@ -2443,13 +2436,16 @@ for details on how to specify IP address lists.
    statement set in ``options`` or ``view``. If not specified, the
    default is to allow transfers to all hosts.
 
-   The transport level limitations can also be specified.  In
-   particular, zone transfers can be restricted to a specific port and
-   DNS transport protocol by using the options ``port`` and
-   ``transport``. Zone transfers are currently only possible via the
-   TCP and TLS transports; either option can be specified.
+   The transport level limitations can also be specified. In particular,
+   zone transfers can be restricted to a specific port and/or DNS
+   transport protocol by using the options ``port`` and ``transport``.
+   Either option can be specified; if both are used, both constraints
+   must be satisfied in order for the transfer to be allowed. Zone
+   transfers are currently only possible via the TCP and TLS transports.
 
    For example: ``allow-transfer port 853 transport tls { any; };``
+   allows outgoing zone transfers to any host using the TLS transport
+   over port 853.
 
 ``blackhole``
    This specifies a list of addresses which the server does not accept queries
@@ -4560,11 +4556,15 @@ If a remote server is giving out bad data, marking it
 as bogus prevents further queries to it. The default value of
 ``bogus`` is ``no``.
 
-If a remote server is giving out broken NSEC records with type maps
-that are missing types that actually exist, ``broken-nsec`` can be
-used to stop NSEC records from negative responses from the given
-servers being cached and thus available to ``synth-from-dnssec``.
-The default value is ``no``.
+.. _server_broken_nsec:
+
+The ``broken-nsec`` clause determines whether the NSEC records found in
+negative responses sent by the remote server are ignored for the purpose
+of synthesizing negative responses or not. The default is ``no``.
+Setting this to ``yes`` can be used to prevent broken NSEC records from
+causing incorrect negative responses to be synthesized when
+``synth-from-dnssec`` is set to ``yes``. This option may be removed in a
+future release.
 
 The ``provide-ixfr`` clause determines whether the local server, acting
 as primary, responds with an incremental zone transfer when the given
