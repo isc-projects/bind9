@@ -78,5 +78,6 @@ Bug Fixes
   ``named`` to crash. This has been fixed. :gl:`#1608`
 
 - The resolver could hang on shutdown due to dispatch resources not
-  being cleaned up when a TCP connection was reset. This has been fixed.
-  :gl:`#3026`
+  being cleaned up when a TCP connection was reset, or due to dependency
+  loops in the ADB or the DNSSEC validator. This has been fixed.
+  :gl:`#3026` :gl:`#3040`
