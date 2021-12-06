@@ -8511,30 +8511,16 @@ load_configuration(const char *filename, named_server_t *server,
 		const cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		/*
-		 * Even though listen-on is present in the default
-		 * configuration, this way is easier.
-		 */
-		if (options != NULL) {
-			(void)cfg_map_get(options, "listen-on", &clistenon);
-		}
-		if (clistenon != NULL) {
-			result = listenlist_fromconfig(
-				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET,
-				server->tlsctx_server_cache, &listenon);
-		} else {
-			/*
-			 * Not specified, use default.
-			 */
-			result = ns_listenlist_default(named_g_mctx,
-						       listen_port, true,
-						       AF_INET, &listenon);
-		}
+		result = named_config_get(maps, "listen-on", &clistenon);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_v6portset;
 		}
-
+		result = listenlist_fromconfig(
+			clistenon, config, named_g_aclconfctx, named_g_mctx,
+			AF_INET, server->tlsctx_server_cache, &listenon);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_v6portset;
+		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon4(server->interfacemgr,
 						     listenon);
@@ -8549,22 +8535,13 @@ load_configuration(const char *filename, named_server_t *server,
 		const cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		if (options != NULL) {
-			(void)cfg_map_get(options, "listen-on-v6", &clistenon);
+		result = named_config_get(maps, "listen-on-v6", &clistenon);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_v6portset;
 		}
-		if (clistenon != NULL) {
-			result = listenlist_fromconfig(
-				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET6,
-				server->tlsctx_server_cache, &listenon);
-		} else {
-			/*
-			 * Not specified, use default.
-			 */
-			result = ns_listenlist_default(named_g_mctx,
-						       listen_port, true,
-						       AF_INET6, &listenon);
-		}
+		result = listenlist_fromconfig(
+			clistenon, config, named_g_aclconfctx, named_g_mctx,
+			AF_INET6, server->tlsctx_server_cache, &listenon);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_v6portset;
 		}

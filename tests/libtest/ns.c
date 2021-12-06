@@ -85,8 +85,6 @@ scan_interfaces(void *arg) {
 int
 setup_server(void **state) {
 	isc_result_t result;
-	ns_listenlist_t *listenon = NULL;
-	in_port_t port = 5300 + isc_random8();
 
 	setup_managers(state);
 
@@ -102,14 +100,6 @@ setup_server(void **state) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-
-	result = ns_listenlist_default(mctx, port, true, AF_INET, &listenon);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
-	ns_listenlist_detach(&listenon);
 
 	isc_loop_setup(mainloop, scan_interfaces, NULL);
 
