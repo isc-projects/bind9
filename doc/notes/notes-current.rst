@@ -24,8 +24,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Set Extended DNS Error Code 18 - Prohibited if query access is denied to the
-  specific client. :gl:`#1836`
+- Extended DNS Error Code 18 - Prohibited (see :rfc:`8194` section
+  4.19) is now set if query access is denied to the specific client.
+  :gl:`#1836`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -35,47 +36,44 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The ``allow-transfers`` option was extended to accept additional
+- The ``allow-transfer`` option was extended to accept additional
   ``port`` and ``transport`` parameters, to further restrict zone
-  transfers to a particular port and DNS transport protocol. Either of
-  these options can be specified.
-
-  For example: ``allow-transfer port 853 transport tls { any; };``
+  transfers to a particular port and/or DNS transport protocol.
   :gl:`#2776`
 
-- `UseSTD3ASCIIRules`_ is now disabled for IDN support. This disables additional
-  validation rules for domain names in dig because applying the rules would
-  silently strip characters not-allowed in hostnames such as underscore (``_``)
-  or wildcard (``*``) characters.  This reverts change :gl:`!5738` from the
-  previous release.  :gl:`#1610`
+- The `UseSTD3ASCIIRules`_ flag is now disabled again for libidn2
+  function calls. Applying additional validation rules for domain names
+  in ``dig`` (a change introduced in the previous BIND 9 release) caused
+  characters which are disallowed in hostnames (e.g. underscore ``_``,
+  wildcard ``*``) to be silently stripped. That change was reverted.
+  :gl:`#1610`
 
-- Previously, when an incoming TCP connection could not be accepted because the client
-  closed the connection early, an error message of ``TCP connection
-  failed: socket is not connected`` was logged. This message has been changed
-  to ``Accepting TCP connection failed: socket is not connected``. The
-  severity level at which this type of message is logged has also
-  been changed from ``error`` to ``info`` for the following triggering
-  events: ``socket is not connected``, ``quota reached``, and ``soft
-  quota reached``. :gl:`#2700`
+- Previously, when an incoming TCP connection could not be accepted
+  because the client closed the connection early, an error message of
+  ``TCP connection failed: socket is not connected`` was logged. This
+  message has been changed to ``Accepting TCP connection failed: socket
+  is not connected``. The severity level at which this type of message
+  is logged has also been changed from ``error`` to ``info`` for the
+  following triggering events: ``socket is not connected``, ``quota
+  reached``, and ``soft quota reached``. :gl:`#2700`
 
-- Restore NSEC Aggressive Cache (``synth-from-dnssec``) as active by default
-  following reworking of the code to find the potentially covering NSEC record.
-  The implementation was optimized for better efficiency, and also tuned
-  to ignore certain types of broken NSEC records.  This feature currently
-  supports answer synthtesis only for zones using NSEC.  :gl:`#1265`
+- Aggressive Use of DNSSEC-Validated Cache (``synth-from-dnssec``, see
+  :rfc:`8198`) is now enabled by default again, after having been
+  disabled in BIND 9.14.8. The implementation of this feature was
+  reworked to achieve better efficiency and tuned to ignore certain
+  types of broken NSEC records. Negative answer synthesis is currently
+  only supported for zones using NSEC. :gl:`#1265`
 
-  The new server clause ``broken-nsec`` was added to identify servers
-  that emit bad NSEC records in negative responses so they will not be
-  cached.  This can be used to work around cases where
-  ``synth-from-dnssec`` hides data that exists. :gl:`#1265`
+.. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
 Bug Fixes
 ~~~~~~~~~
 
-- Removing a configured ``catalog-zone`` clause from the configuration, running
-  ``rndc reconfig``, then bringing back the removed ``catalog-zone`` clause and
-  running ``rndc reconfig`` again caused ``named`` to crash. This has been fixed.
-  :gl:`#1608`
+- Removing a configured ``catalog-zone`` clause from the configuration,
+  running ``rndc reconfig``, then bringing back the removed
+  ``catalog-zone`` clause and running ``rndc reconfig`` again caused
+  ``named`` to crash. This has been fixed. :gl:`#1608`
 
-- The resolver could hang on shutdown due to dispatch resources not being
-  cleaned up when a TCP connection was reset. This has been fixed. :gl:`#3026`
+- The resolver could hang on shutdown due to dispatch resources not
+  being cleaned up when a TCP connection was reset. This has been fixed.
+  :gl:`#3026`
