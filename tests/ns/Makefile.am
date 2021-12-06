@@ -15,7 +15,6 @@ LDADD +=			\
 	$(LIBUV_LIBS)
 
 check_PROGRAMS =		\
-	listenlist_test		\
 	notify_test		\
 	plugin_test		\
 	query_test
