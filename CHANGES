@@ -18,6 +18,8 @@
 			condition variable and add missing isc_mutex_destroy()
 			for nmworker lock. [GL #3051]
 
+	--- 9.17.21 released ---
+
 5775.	[bug]		Added a timer in the resolver to kill fetches that
 			have deadlocked as a result of dependency loops
 			with the ADB or the validator. This condition is
