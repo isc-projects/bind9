@@ -45,6 +45,9 @@ Feature Changes
   following triggering events: ``socket is not connected``, ``quota
   reached``, and ``soft quota reached``. :gl:`#2700`
 
+- ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
+  :gl:`#853`
+
 Bug Fixes
 ~~~~~~~~~
 
