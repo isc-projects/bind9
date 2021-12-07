@@ -11,30 +11,8 @@
 Notes for BIND 9.16.24
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - Previously, when an incoming TCP connection could not be accepted
   because the client closed the connection early, an error message of
