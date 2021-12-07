@@ -34,14 +34,14 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Previously, when an incoming TCP connection could not be accepted because the client
-  closed the connection early, an error message of ``TCP connection
-  failed: socket is not connected`` was logged. This message has been changed
-  to ``Accepting TCP connection failed: socket is not connected``. The
-  severity level at which this type of message is logged has also
-  been changed from ``error`` to ``info`` for the following triggering
-  events: ``socket is not connected``, ``quota reached``, and ``soft
-  quota reached``. :gl:`#2700`
+- Previously, when an incoming TCP connection could not be accepted
+  because the client closed the connection early, an error message of
+  ``TCP connection failed: socket is not connected`` was logged. This
+  message has been changed to ``Accepting TCP connection failed: socket
+  is not connected``. The severity level at which this type of message
+  is logged has also been changed from ``error`` to ``info`` for the
+  following triggering events: ``socket is not connected``, ``quota
+  reached``, and ``soft quota reached``. :gl:`#2700`
 
 - The default memory allocator has been switched from ``internal`` to
   ``external`` and new command line option ``-M internal`` has been added to
@@ -50,10 +50,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Removing a configured ``catalog-zone`` clause from the configuration, running
-  ``rndc reconfig``, then bringing back the removed ``catalog-zone`` clause and
-  running ``rndc reconfig`` again caused ``named`` to crash. This has been fixed.
-  :gl:`#1608`
+- Removing a configured ``catalog-zone`` clause from the configuration,
+  running ``rndc reconfig``, then bringing back the removed
+  ``catalog-zone`` clause and running ``rndc reconfig`` again caused
+  ``named`` to crash. This has been fixed. :gl:`#1608`
 
 - On FreeBSD, a TCP connection would leak a small amount of heap memory leading
   to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
