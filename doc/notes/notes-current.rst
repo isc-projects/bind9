@@ -43,6 +43,9 @@ Feature Changes
   following triggering events: ``socket is not connected``, ``quota
   reached``, and ``soft quota reached``. :gl:`#2700`
 
+- ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
+  :gl:`#853`
+
 - The default memory allocator has been switched from ``internal`` to
   ``external`` and new command line option ``-M internal`` has been added to
   ``named``. :gl:`#2398`
