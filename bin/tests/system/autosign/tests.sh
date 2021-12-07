@@ -164,7 +164,7 @@ do
 		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
 	done
 	for z in bar. example. inacksk2.example. inacksk3.example \
-		 inaczsk2.example. inaczsk3.example
+		 inaczsk2.example. inaczsk3.example noksk.example nozsk.example
 	do
 		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
@@ -371,36 +371,51 @@ END
 echo_i "waiting for change to take effect"
 sleep 3
 
-echo_i "checking that expired RRSIGs from missing key are not deleted ($n)"
+missing=$(keyfile_to_key_id "$(cat noksk-ksk.key)")
+echo_i "checking that expired RRSIGs from missing KSK $missing are not deleted ($n)"
 ret=0
-missing=$(keyfile_to_key_id "$(cat missingzsk.key)")
+$JOURNALPRINT ns3/noksk.example.db.jnl | \
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {error=1}} END {exit error}' id=$missing || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+missing=$(keyfile_to_key_id "$(cat nozsk-zsk.key)")
+ksk=$(keyfile_to_key_id "$(cat nozsk-ksk.key)")
+echo_i "checking that expired RRSIGs from missing ZSK $missing are replaced ($n)"
+ret=0
 $JOURNALPRINT ns3/nozsk.example.db.jnl | \
-   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$missing || ret=1
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$missing || ret=1
+$JOURNALPRINT ns3/nozsk.example.db.jnl | \
+   awk '{if ($1 == "add" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$ksk || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that expired RRSIGs from inactive key are not deleted ($n)"
+inactive=$(keyfile_to_key_id "$(cat inaczsk-zsk.key)")
+ksk=$(keyfile_to_key_id "$(cat inaczsk-ksk.key)")
+echo_i "checking that expired RRSIGs from inactive ZSK $inactive are replaced ($n)"
 ret=0
-inactive=$(keyfile_to_key_id "$(cat inactivezsk.key)")
 $JOURNALPRINT ns3/inaczsk.example.db.jnl | \
-   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$inactive || ret=1
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$inactive || ret=1
+$JOURNALPRINT ns3/inaczsk.example.db.jnl | \
+   awk '{if ($1 == "add" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$ksk || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that non-replaceable RRSIGs are logged only once (missing private key) ($n)"
+echo_i "checking that replaced RRSIGs are not logged (missing ZSK private key) ($n)"
 ret=0
 loglines=`grep "Key nozsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
-[ "$loglines" -eq 1 ] || ret=1
+[ "$loglines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that non-replaceable RRSIGs are logged only once (inactive private key) ($n)"
+echo_i "checking that replaced RRSIGs are not logged (inactive ZSK private key) ($n)"
 ret=0
 loglines=`grep "Key inaczsk.example/NSEC3RSASHA1/$inactive .* retaining signatures" ns3/named.run | wc -l`
-[ "$loglines" -eq 1 ] || ret=1
+[ "$loglines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

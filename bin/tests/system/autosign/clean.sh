@@ -22,7 +22,7 @@ rm -f delayksk.key delayzsk.key autoksk.key autozsk.key
 rm -f dig.out.*
 rm -f digcomp.out.test*
 rm -f digcomp.out.test*
-rm -f missingzsk.key inactivezsk.key
+rm -f noksk-ksk.key nozsk-ksk.key nozsk-zsk.key inaczsk-zsk.key inaczsk-ksk.key
 rm -f nopriv.key vanishing.key del1.key del2.key
 rm -f ns*/managed-keys.bind*
 rm -f ns*/named.lock
@@ -43,6 +43,7 @@ rm -f ns3/jitter.nsec3.example.db
 rm -f ns3/kg.out ns3/s.out ns3/st.out
 rm -f ns3/kskonly.example.db
 rm -f ns3/named.ns3.prev
+rm -f ns3/noksk.example.db
 rm -f ns3/nozsk.example.db ns3/inaczsk.example.db
 rm -f ns3/nsec.example.db
 rm -f ns3/nsec3-to-nsec.example.db

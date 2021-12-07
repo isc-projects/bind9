@@ -250,14 +250,26 @@ zsk=`$KEYGEN -G -q -a RSASHA1 -3 $zone 2> kg.out` || dumpit kg.out
 echo $zsk > ../delayzsk.key
 
 #
+# A zone with signatures that are already expired, and the private KSK
+# is missing.
+#
+setup noksk.example
+ksk=`$KEYGEN -q -a RSASHA1 -3 -fk $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 $zone 2> kg.out` || dumpit kg.out
+$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
+echo $ksk > ../noksk-ksk.key
+rm -f ${ksk}.private
+
+#
 # A zone with signatures that are already expired, and the private ZSK
 # is missing.
 #
 setup nozsk.example
-$KEYGEN -q -a RSASHA1 -3 -fk $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -q -a RSASHA1 -3 $zone`
+ksk=`$KEYGEN -q -a RSASHA1 -3 -fk $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 $zone 2> kg.out` || dumpit kg.out
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
-echo $zsk > ../missingzsk.key
+echo $ksk > ../nozsk-ksk.key
+echo $zsk > ../nozsk-zsk.key
 rm -f ${zsk}.private
 
 #
@@ -265,10 +277,11 @@ rm -f ${zsk}.private
 # is inactive.
 #
 setup inaczsk.example
-$KEYGEN -q -a RSASHA1 -3 -fk $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -q -a RSASHA1 -3 $zone`
+ksk=`$KEYGEN -q -a RSASHA1 -3 -fk $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 $zone 2> kg.out` || dumpit kg.out
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
-echo $zsk > ../inactivezsk.key
+echo $ksk > ../inaczsk-ksk.key
+echo $zsk > ../inaczsk-zsk.key
 $SETTIME -I now $zsk > st.out 2>&1 || dumpit st.out
 
 #
