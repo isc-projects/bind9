@@ -54,7 +54,7 @@
 #include <isc/util.h>
 
 #define HP_MAX_THREADS 128
-static int isc__hp_max_threads = HP_MAX_THREADS;
+static int isc__hp_max_threads = 1;
 #define HP_MAX_HPS     4 /* This is named 'K' in the HP paper */
 #define CLPAD	       (128 / sizeof(uintptr_t))
 #define HP_THRESHOLD_R 0 /* This is named 'R' in the HP paper */
@@ -82,9 +82,12 @@ tid(void) {
 
 void
 isc_hp_init(int max_threads) {
+	REQUIRE(max_threads > 0);
+
 	if (isc__hp_max_threads > max_threads) {
 		return;
 	}
+
 	isc__hp_max_threads = max_threads;
 	isc__hp_max_retired = max_threads * HP_MAX_HPS;
 }
@@ -92,6 +95,9 @@ isc_hp_init(int max_threads) {
 isc_hp_t *
 isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 	isc_hp_t *hp = isc_mem_get(mctx, sizeof(*hp));
+
+	REQUIRE(isc__hp_max_threads > 0);
+	REQUIRE(max_hps <= HP_MAX_HPS);
 
 	if (max_hps == 0) {
 		max_hps = HP_MAX_HPS;
