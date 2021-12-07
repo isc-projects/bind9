@@ -11,26 +11,6 @@
 Notes for BIND 9.16.24
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -46,10 +26,6 @@ Feature Changes
 - ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
   :gl:`#853`
 
-- The default memory allocator has been switched from ``internal`` to
-  ``external`` and new command line option ``-M internal`` has been added to
-  ``named``. :gl:`#2398`
-
 Bug Fixes
 ~~~~~~~~~
 
@@ -57,8 +33,3 @@ Bug Fixes
   running ``rndc reconfig``, then bringing back the removed
   ``catalog-zone`` clause and running ``rndc reconfig`` again caused
   ``named`` to crash. This has been fixed. :gl:`#1608`
-
-- On FreeBSD, a TCP connection would leak a small amount of heap memory leading
-  to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
-
-- Overall memory use by ``named`` was optimized and reduced.  :gl:`#2398`
