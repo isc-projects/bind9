@@ -41,6 +41,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- If signatures created by the ZSK are expired, and the ZSK private key is offline,
+  allow the expired signatures to be replaced with signatures created by the KSK.
+  :gl:`#3049`
+
 - On FreeBSD, a TCP connection would leak a small amount of heap memory leading
   to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
 
