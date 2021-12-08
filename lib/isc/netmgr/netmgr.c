@@ -379,6 +379,7 @@ nm_destroy(isc_nm_t **mgr0) {
 			isc_mem_put(mgr->mctx, ievent, sizeof(*ievent));
 		}
 		isc_condition_destroy(&worker->cond_prio);
+		isc_mutex_destroy(&worker->lock);
 
 		r = uv_loop_close(&worker->loop);
 		INSIST(r == 0);
@@ -1271,8 +1272,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		    sock->ah_size * sizeof(sock->ah_frees[0]));
 	isc_mem_put(sock->mgr->mctx, sock->ah_handles,
 		    sock->ah_size * sizeof(sock->ah_handles[0]));
-	isc_mutex_destroy(&sock->lock);
 	isc_condition_destroy(&sock->scond);
+	isc_condition_destroy(&sock->cond);
+	isc_mutex_destroy(&sock->lock);
 #if HAVE_LIBNGHTTP2
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
