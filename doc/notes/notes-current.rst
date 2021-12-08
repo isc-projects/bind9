@@ -52,3 +52,6 @@ Bug Fixes
   ``rndc reconfig``, then bringing back the removed ``catalog-zone`` clause and
   running ``rndc reconfig`` again caused ``named`` to crash. This has been fixed.
   :gl:`#1608`
+
+- On FreeBSD, a TCP connection would leak a small amount of heap memory leading
+  to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
