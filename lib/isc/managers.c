@@ -27,10 +27,13 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 	isc_timermgr_t *timermgr = NULL;
 
 	/*
-	 * We have ncpus network threads, ncpus old network threads - make
-	 * it 4x just to be on the safe side.
+	 * Currently, there are:
+	 * - 1 main thread
+	 * - 1 timer thread
+	 * - n netmgr threads
+	 * - n threadpool threads
 	 */
-	isc_hp_init(4 * workers);
+	isc_hp_init(2 + 2 * workers);
 
 	REQUIRE(netmgrp != NULL && *netmgrp == NULL);
 	isc__netmgr_create(mctx, workers, &netmgr);
