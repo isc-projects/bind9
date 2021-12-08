@@ -231,7 +231,6 @@
   	recursing-file <quoted_string>;
   	recursion <boolean>;
   	recursive-clients <integer>;
-  	reject-000-label <boolean>; // deprecated
   	request-expire <boolean>;
   	request-ixfr <boolean>;
   	request-nsid <boolean>;

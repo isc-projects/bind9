@@ -4099,7 +4099,6 @@ static struct {
 	isc_result_t (*set)(dns_peer_t *peer, bool newval);
 } bools[] = {
 	{ "bogus", dns_peer_setbogus },
-	{ "broken-nsec", dns_peer_setbrokennsec },
 	{ "edns", dns_peer_setsupportedns },
 	{ "provide-ixfr", dns_peer_setprovideixfr },
 	{ "request-expire", dns_peer_setrequestexpire },

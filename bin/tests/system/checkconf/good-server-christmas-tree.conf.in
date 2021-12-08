@@ -5,7 +5,6 @@ key example {
 
 server 0.0.0.0 {
 	bogus no;
-	broken-nsec no;
 	edns no;
 	edns-udp-size 512;
 	edns-version 0;
@@ -28,7 +27,6 @@ server 0.0.0.0 {
 
 server :: {
 	bogus no;
-	broken-nsec no;
 	edns no;
 	edns-udp-size 512;
 	edns-version 0;

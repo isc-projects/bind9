@@ -1438,12 +1438,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(cpeer, "broken-nsec", &obj);
-	if (obj != NULL) {
-		CHECK(dns_peer_setbrokennsec(peer, cfg_obj_asboolean(obj)));
-	}
-
-	obj = NULL;
 	(void)cfg_map_get(cpeer, "provide-ixfr", &obj);
 	if (obj != NULL) {
 		CHECK(dns_peer_setprovideixfr(peer, cfg_obj_asboolean(obj)));
@@ -4455,11 +4449,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	result = named_config_get(maps, "dnssec-accept-expired", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->acceptexpired = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	result = named_config_get(maps, "reject-000-label", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->reject_000_label = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	/* 'optionmaps', not 'maps': don't check named_g_defaults yet */

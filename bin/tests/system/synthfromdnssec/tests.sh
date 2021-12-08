@@ -19,7 +19,6 @@ set -e
 status=0
 n=1
 synth_default=yes
-reject_default=yes
 
 rm -f dig.out.*
 
@@ -99,15 +98,13 @@ check_auth_count() {
     return 0
 }
 
-for ns in 2 4 5 6 7 8
+for ns in 2 4 5 6
 do
     case $ns in
     2) ad=yes; description="<default>";;
     4) ad=yes; description="no";;
     5) ad=yes; description="yes";;
     6) ad=no; description="yes; dnssec-validation no";;
-    7) ad=yes; description="yes; server 10.53.0.1 { broken-nsec yes; };";;
-    8) ad=yes; description="yes; reject-000-label no;";;
     *) exit 1;;
     esac
     echo_i "prime negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -333,15 +330,13 @@ status=$((status+ret))
 #
 sleep 1
 
-for ns in 2 4 5 6 7 8
+for ns in 2 4 5 6
 do
     case $ns in
-    2) ad=yes synth=${synth_default} reject=${reject_default} description="<default>";;
-    4) ad=yes synth=no reject=${reject_default} description="no";;
-    5) ad=yes synth=yes reject=${reject_default} description="yes";;
-    6) ad=no synth=no reject=${reject_default} description="yes; dnssec-validation no";;
-    7) ad=yes synth=no reject=${reject_default} description="yes; server 10.53.0.1 { broken-nsec yes; };";;
-    8) ad=yes synth=yes reject=no description="yes; reject-000-label no;";;
+    2) ad=yes synth=${synth_default} description="<default>";;
+    4) ad=yes synth=no description="no";;
+    5) ad=yes synth=yes description="yes";;
+    6) ad=no synth=no description="yes; dnssec-validation no";;
     *) exit 1;;
     esac
     echo_i "check synthesized NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
@@ -591,20 +586,14 @@ do
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
-    echo_i "check back lie NODATA response (synth-from-dnssec ${description};) ($n)"
+    echo_i "check black lie NODATA response (synth-from-dnssec ${description};) ($n)"
     ret=0
     nextpart ns1/named.run > /dev/null
     dig_with_opts black.minimal. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
     check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
     check_status NOERROR dig.out.ns${ns}.test$n || ret=1
-    if [ ${synth} = yes -a ${reject} = no ]
-    then
-	check_synth_soa minimal. dig.out.ns${ns}.test$n || ret=1
-	nextpart ns1/named.run | grep black.minimal/AAAA > /dev/null && ret=1
-    else
-	check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
-	nextpart ns1/named.run | grep black.minimal/AAAA > /dev/null || ret=1
-    fi
+    check_nosynth_soa minimal. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep black.minimal/AAAA > /dev/null || ret=1
     digcomp black.out dig.out.ns${ns}.test$n || ret=1
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -665,11 +654,11 @@ do
     count=$(grep "cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
     test $count = 2 || ret=1
     zero=$(grep "0 cache NSEC auxiliary database nodes" ns${ns}/named.stats | wc -l)
-    if [ ${ad} = no -o $ns = 7 ]
+    if [ ${ad} = yes ]
     then
-	test $zero = 2 || ret=1
-    else
 	test $zero = 1 || ret=1
+    else
+	test $zero = 2 || ret=1
     fi
     n=$((n+1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -679,7 +668,7 @@ do
     do
 	case $synthesized in
 	NXDOMAIN) count=1;;
-	no-data) if [ ${reject} = yes ]; then count=4; else count=5; fi;;
+	no-data) count=4;;
 	wildcard) count=2;;
 	esac
 	echo_i "check 'rndc stats' output for 'synthesized a ${synthesized} response' (synth-from-dnssec ${description};) ($n)"
@@ -726,11 +715,11 @@ do
 	count=$(echo "$counter" | grep CacheNSECNodes | wc -l)
 	test $count = 1 || ret=1
 	zero=$(echo "$counter" | grep ">0<" | wc -l)
-	if [ ${ad} = no -o $ns = 7 ]
+	if [ ${ad} = yes ]
 	then
-	    test $zero = 1 || ret=1
-	else
 	    test $zero = 0 || ret=1
+	else
+	    test $zero = 1 || ret=1
 	fi
 	n=$((n+1))
 	if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -740,7 +729,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) if [ $reject = yes ]; then count=4; else count=5; fi;;
+	    SynthNODATA) count=4;;
 	    SynthWILDCARD) count=2;;
 	    esac
 
@@ -789,11 +778,11 @@ do
 	count=$(grep '"CacheNSECNodes":' $json | wc -l)
 	test $count = 2 || ret=1
 	zero=$(grep '"CacheNSECNodes":0' $json | wc -l)
-	if [ ${ad} = no -o $ns = 7 ]
+	if [ ${ad} = yes ]
 	then
-	    test $zero = 2 || ret=1
-	else
 	    test $zero = 1 || ret=1
+	else
+	    test $zero = 2 || ret=1
 	fi
 	n=$((n+1))
 	if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -803,7 +792,7 @@ do
 	do
 	    case $synthesized in
 	    SynthNXDOMAIN) count=1;;
-	    SynthNODATA) if [ $reject = yes ]; then count=4; else count=5; fi;;
+	    SynthNODATA) count=4;;
 	    SynthWILDCARD) count=2;;
 	    esac
 

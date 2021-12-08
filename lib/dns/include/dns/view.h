@@ -130,7 +130,6 @@ struct dns_view {
 	bool		      synthfromdnssec;
 	bool		      trust_anchor_telemetry;
 	bool		      root_key_sentinel;
-	bool		      reject_000_label;
 	dns_transfer_format_t transfer_format;
 	dns_acl_t		  *cacheacl;
 	dns_acl_t		  *cacheonacl;
