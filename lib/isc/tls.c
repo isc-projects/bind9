@@ -20,6 +20,7 @@
 #include <openssl/crypto.h>
 #include <openssl/dh.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
@@ -224,10 +225,12 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 	X509 *cert = NULL;
 	EVP_PKEY *pkey = NULL;
 	SSL_CTX *ctx = NULL;
-#ifndef EVP_RSA_gen
-	BIGNUM *bn = NULL;
-	RSA *rsa = NULL;
-#endif
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+	EC_KEY *eckey = NULL;
+#else
+	EVP_PKEY_CTX *pkey_ctx = NULL;
+	EVP_PKEY *params_pkey = NULL;
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 	char errbuf[256];
 	const SSL_METHOD *method = NULL;
 
@@ -254,22 +257,16 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 #endif
 
 	if (ephemeral) {
-#ifdef EVP_RSA_gen
-		pkey = EVP_RSA_gen(4096);
-		if (pkey == NULL) {
+		const int group_nid = NID_X9_62_prime256v1;
+
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+		eckey = EC_KEY_new_by_curve_name(group_nid);
+		if (eckey == NULL) {
 			goto ssl_error;
 		}
-#else
-		rsa = RSA_new();
-		if (rsa == NULL) {
-			goto ssl_error;
-		}
-		bn = BN_new();
-		if (bn == NULL) {
-			goto ssl_error;
-		}
-		BN_set_word(bn, RSA_F4);
-		rv = RSA_generate_key_ex(rsa, 4096, bn, NULL);
+
+		/* Generate the key. */
+		rv = EC_KEY_generate_key(eckey);
 		if (rv != 1) {
 			goto ssl_error;
 		}
@@ -277,15 +274,79 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		if (pkey == NULL) {
 			goto ssl_error;
 		}
+		rv = EVP_PKEY_set1_EC_KEY(pkey, eckey);
+		if (rv != 1) {
+			goto ssl_error;
+		}
 
+		/* We use a named curve and compressed point conversion form. */
+#if HAVE_EVP_PKEY_GET0_EC_KEY
+		EC_KEY_set_asn1_flag(EVP_PKEY_get0_EC_KEY(pkey),
+				     OPENSSL_EC_NAMED_CURVE);
+		EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(pkey),
+				     POINT_CONVERSION_COMPRESSED);
+#else
+		EC_KEY_set_asn1_flag(pkey->pkey.ec, OPENSSL_EC_NAMED_CURVE);
+		EC_KEY_set_conv_form(pkey->pkey.ec,
+				     POINT_CONVERSION_COMPRESSED);
+#endif /* HAVE_EVP_PKEY_GET0_EC_KEY */
+
+#if defined(SSL_CTX_set_ecdh_auto)
 		/*
-		 * EVP_PKEY_assign_*() set the referenced key to key
-		 * however these use the supplied key internally and so
-		 * key will be freed when the parent pkey is freed.
+		 * Using this macro is required for older versions of OpenSSL to
+		 * automatically enable ECDH support.
+		 *
+		 * On later versions this function is no longer needed and is
+		 * deprecated.
 		 */
-		EVP_PKEY_assign(pkey, EVP_PKEY_RSA, rsa);
-		rsa = NULL;
-#endif
+		(void)SSL_CTX_set_ecdh_auto(ctx, 1);
+#endif /* defined(SSL_CTX_set_ecdh_auto) */
+
+		/* Cleanup */
+		EC_KEY_free(eckey);
+		eckey = NULL;
+#else
+		/* Generate the key's parameters. */
+		pkey_ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
+		if (pkey_ctx == NULL) {
+			goto ssl_error;
+		}
+		rv = EVP_PKEY_paramgen_init(pkey_ctx);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		rv = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pkey_ctx,
+							    group_nid);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		rv = EVP_PKEY_paramgen(pkey_ctx, &params_pkey);
+		if (rv != 1 || params_pkey == NULL) {
+			goto ssl_error;
+		}
+		EVP_PKEY_CTX_free(pkey_ctx);
+
+		/* Generate the key. */
+		pkey_ctx = EVP_PKEY_CTX_new(params_pkey, NULL);
+		if (pkey_ctx == NULL) {
+			goto ssl_error;
+		}
+		rv = EVP_PKEY_keygen_init(pkey_ctx);
+		if (rv != 1) {
+			goto ssl_error;
+		}
+		rv = EVP_PKEY_keygen(pkey_ctx, &pkey);
+		if (rv != 1 || pkey == NULL) {
+			goto ssl_error;
+		}
+
+		/* Cleanup */
+		EVP_PKEY_free(params_pkey);
+		params_pkey = NULL;
+		EVP_PKEY_CTX_free(pkey_ctx);
+		pkey_ctx = NULL;
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+
 		cert = X509_new();
 		if (cert == NULL) {
 			goto ssl_error;
@@ -335,9 +396,6 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 
 		X509_free(cert);
 		EVP_PKEY_free(pkey);
-#ifndef EVP_RSA_gen
-		BN_free(bn);
-#endif
 	} else {
 		rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
 		if (rv != 1) {
@@ -369,14 +427,18 @@ ssl_error:
 	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
 	}
-#ifndef EVP_RSA_gen
-	if (bn != NULL) {
-		BN_free(bn);
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+	if (eckey != NULL) {
+		EC_KEY_free(eckey);
 	}
-	if (rsa != NULL) {
-		RSA_free(rsa);
+#else
+	if (params_pkey != NULL) {
+		EVP_PKEY_free(params_pkey);
 	}
-#endif
+	if (pkey_ctx != NULL) {
+		EVP_PKEY_CTX_free(pkey_ctx);
+	}
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	return (ISC_R_TLSERROR);
 }
