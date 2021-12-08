@@ -7579,7 +7579,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	default:
 		result = same_question(fctx, query->rmessage);
 		if (result != ISC_R_SUCCESS) {
-			FCTXTRACE3("response did not match question", result);
+			FCTXTRACE3("question section invalid", result);
 			rctx.nextitem = true;
 			rctx_done(&rctx, result);
 			return;

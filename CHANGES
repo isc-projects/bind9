@@ -1,3 +1,6 @@
+5777.	[bug]		TCP connections could hang after receiving
+			non-matching responses. [GL #3042]
+
 5776.	[bug]		Add a missing isc_condition_destroy() for nmsocket
 			condition variable and add missing isc_mutex_destroy()
 			for nmworker lock. [GL #3051]
