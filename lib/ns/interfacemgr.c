@@ -917,37 +917,60 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 
 			ifp = find_matching_interface(mgr, &listen_addr);
 			if (ifp != NULL) {
-				ifp->generation = mgr->generation;
-				if (le->dscp != -1 && ifp->dscp == -1) {
-					ifp->dscp = le->dscp;
-				} else if (le->dscp != ifp->dscp) {
-					isc_sockaddr_format(&listen_addr, sabuf,
+				/*
+				 * We need to recreate the TLS/HTTPS listeners
+				 * because the certificates could have been
+				 * changed on reconfiguration.
+				 */
+				if (le->sslctx != NULL) {
+					INSIST(NS_INTERFACE_VALID(ifp));
+					LOCK(&mgr->lock);
+					ISC_LIST_UNLINK(ifp->mgr->interfaces,
+							ifp, link);
+					isc_sockaddr_format(&ifp->addr, sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_WARNING,
-						      "%s: conflicting DSCP "
-						      "values, using %d",
-						      sabuf, ifp->dscp);
+						      ISC_LOG_INFO,
+						      "no longer listening on "
+						      "%s",
+						      sabuf);
+					ns_interface_shutdown(ifp);
+					ns_interface_detach(&ifp);
+					UNLOCK(&mgr->lock);
+				} else {
+					ifp->generation = mgr->generation;
+					if (le->dscp != -1 && ifp->dscp == -1) {
+						ifp->dscp = le->dscp;
+					} else if (le->dscp != ifp->dscp) {
+						isc_sockaddr_format(
+							&listen_addr, sabuf,
+							sizeof(sabuf));
+						isc_log_write(
+							IFMGR_COMMON_LOGARGS,
+							ISC_LOG_WARNING,
+							"%s: conflicting DSCP "
+							"values, using %d",
+							sabuf, ifp->dscp);
+					}
+					continue;
 				}
+			}
+
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "listening on IPv6 "
+				      "interfaces, port %u",
+				      le->port);
+			result = ns_interface_setup(mgr, &listen_addr, "<any>",
+						    &ifp, le, NULL);
+			if (result == ISC_R_SUCCESS) {
+				ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
 			} else {
 				isc_log_write(IFMGR_COMMON_LOGARGS,
-					      ISC_LOG_INFO,
-					      "listening on IPv6 "
-					      "interfaces, port %u",
-					      le->port);
-				result = ns_interface_setup(mgr, &listen_addr,
-							    "<any>", &ifp, le,
-							    NULL);
-				if (result == ISC_R_SUCCESS) {
-					ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
-				} else {
-					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_ERROR,
-						      "listening on all IPv6 "
-						      "interfaces failed");
-				}
-				/* Continue. */
+					      ISC_LOG_ERROR,
+					      "listening on all IPv6 "
+					      "interfaces failed");
 			}
+			/* Continue. */
 		}
 	}
 
@@ -1031,6 +1054,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 		for (le = ISC_LIST_HEAD(ll->elts); le != NULL;
 		     le = ISC_LIST_NEXT(le, link)) {
 			int match;
+			bool addr_in_use = false;
 			bool ipv6_wildcard = false;
 			isc_netaddr_t listen_netaddr;
 			isc_sockaddr_t listen_sockaddr;
@@ -1078,71 +1102,86 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
-				ifp->generation = mgr->generation;
-				if (le->dscp != -1 && ifp->dscp == -1) {
-					ifp->dscp = le->dscp;
-				} else if (le->dscp != ifp->dscp) {
-					isc_sockaddr_format(&listen_sockaddr,
-							    sabuf,
+				/*
+				 * We need to recreate the TLS/HTTPS listeners
+				 * because the certificates could have been
+				 * changed on reconfiguration.
+				 */
+				if (le->sslctx != NULL) {
+					INSIST(NS_INTERFACE_VALID(ifp));
+					LOCK(&mgr->lock);
+					ISC_LIST_UNLINK(ifp->mgr->interfaces,
+							ifp, link);
+					isc_sockaddr_format(&ifp->addr, sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_WARNING,
-						      "%s: conflicting DSCP "
-						      "values, using %d",
-						      sabuf, ifp->dscp);
-				}
-			} else {
-				bool addr_in_use = false;
-
-				if (ipv6_wildcard) {
+						      ISC_LOG_INFO,
+						      "no longer listening on "
+						      "%s",
+						      sabuf);
+					ns_interface_shutdown(ifp);
+					ns_interface_detach(&ifp);
+					UNLOCK(&mgr->lock);
+				} else {
+					ifp->generation = mgr->generation;
+					if (le->dscp != -1 && ifp->dscp == -1) {
+						ifp->dscp = le->dscp;
+					} else if (le->dscp != ifp->dscp) {
+						isc_sockaddr_format(
+							&listen_sockaddr, sabuf,
+							sizeof(sabuf));
+						isc_log_write(
+							IFMGR_COMMON_LOGARGS,
+							ISC_LOG_WARNING,
+							"%s: conflicting DSCP "
+							"values, using %d",
+							sabuf, ifp->dscp);
+					}
 					continue;
 				}
-
-				if (log_explicit && family == AF_INET6 &&
-				    listenon_is_ip6_any(le)) {
-					isc_log_write(
-						IFMGR_COMMON_LOGARGS,
-						verbose ? ISC_LOG_INFO
-							: ISC_LOG_DEBUG(1),
-						"IPv6 socket API is "
-						"incomplete; explicitly "
-						"binding to each IPv6 "
-						"address separately");
-					log_explicit = false;
-				}
-				isc_sockaddr_format(&listen_sockaddr, sabuf,
-						    sizeof(sabuf));
-				isc_log_write(
-					IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-					"listening on %s interface "
-					"%s, %s",
-					(family == AF_INET) ? "IPv4" : "IPv6",
-					interface.name, sabuf);
-
-				result = ns_interface_setup(
-					mgr, &listen_sockaddr, interface.name,
-					&ifp, le, &addr_in_use);
-
-				tried_listening = true;
-				if (!addr_in_use) {
-					all_addresses_in_use = false;
-				}
-
-				if (result != ISC_R_SUCCESS) {
-					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_ERROR,
-						      "creating %s interface "
-						      "%s failed; interface "
-						      "ignored",
-						      (family == AF_INET) ? "IP"
-									    "v4"
-									  : "IP"
-									    "v"
-									    "6",
-						      interface.name);
-				}
-				/* Continue. */
 			}
+
+			if (ipv6_wildcard) {
+				continue;
+			}
+
+			if (log_explicit && family == AF_INET6 &&
+			    listenon_is_ip6_any(le)) {
+				isc_log_write(IFMGR_COMMON_LOGARGS,
+					      verbose ? ISC_LOG_INFO
+						      : ISC_LOG_DEBUG(1),
+					      "IPv6 socket API is "
+					      "incomplete; explicitly "
+					      "binding to each IPv6 "
+					      "address separately");
+				log_explicit = false;
+			}
+			isc_sockaddr_format(&listen_sockaddr, sabuf,
+					    sizeof(sabuf));
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "listening on %s interface "
+				      "%s, %s",
+				      (family == AF_INET) ? "IPv4" : "IPv6",
+				      interface.name, sabuf);
+
+			result = ns_interface_setup(mgr, &listen_sockaddr,
+						    interface.name, &ifp, le,
+						    &addr_in_use);
+
+			tried_listening = true;
+			if (!addr_in_use) {
+				all_addresses_in_use = false;
+			}
+
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(
+					IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+					"creating %s interface "
+					"%s failed; interface ignored",
+					(family == AF_INET) ? "IPv4" : "IPv6",
+					interface.name);
+			}
+			/* Continue. */
 		}
 		continue;
 
