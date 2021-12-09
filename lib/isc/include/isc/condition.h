@@ -35,15 +35,9 @@ typedef pthread_cond_t isc_condition_t;
 				isc_condition_strbuf);          \
 	}
 
-#if ISC_MUTEX_PROFILE
-#define isc_condition_wait(cp, mp)                                      \
-	((pthread_cond_wait((cp), &((mp)->mutex)) == 0) ? ISC_R_SUCCESS \
-							: ISC_R_UNEXPECTED)
-#else /* if ISC_MUTEX_PROFILE */
 #define isc_condition_wait(cp, mp)                            \
 	((pthread_cond_wait((cp), (mp)) == 0) ? ISC_R_SUCCESS \
 					      : ISC_R_UNEXPECTED)
-#endif /* if ISC_MUTEX_PROFILE */
 
 #define isc_condition_signal(cp) \
 	((pthread_cond_signal((cp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)

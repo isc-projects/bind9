@@ -1493,7 +1493,6 @@ main(int argc, char *argv[]) {
 
 	if (want_stats) {
 		isc_mem_stats(named_g_mctx, stdout);
-		isc_mutex_stats(stdout);
 	}
 
 	if (named_g_memstatistics && memstats != NULL) {
@@ -1501,7 +1500,6 @@ main(int argc, char *argv[]) {
 		result = isc_stdio_open(memstats, "w", &fp);
 		if (result == ISC_R_SUCCESS) {
 			isc_mem_stats(named_g_mctx, fp);
-			isc_mutex_stats(fp);
 			(void)isc_stdio_close(fp);
 		}
 	}
