@@ -288,6 +288,9 @@
 /* Define to 1 if you have the <net/route.h> header file. */
 #undef HAVE_NET_ROUTE_H
 
+/* Define to 1 if you have the `OPENSSL_cleanup' function. */
+#undef HAVE_OPENSSL_CLEANUP
+
 /* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
 
