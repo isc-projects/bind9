@@ -21,31 +21,12 @@
 
 ISC_LANG_BEGINDECLS
 
-/*!
- * Supply mutex attributes that enable deadlock detection
- * (helpful when debugging).  This is system dependent and
- * currently only supported on NetBSD.
- */
-#if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
-extern pthread_mutexattr_t isc__mutex_attrs;
-#define ISC__MUTEX_ATTRS &isc__mutex_attrs
-#else /* if ISC_MUTEX_DEBUG && defined(__NetBSD__) && \
-       * defined(PTHREAD_MUTEX_ERRORCHECK) */
-#define ISC__MUTEX_ATTRS NULL
-#endif /* if ISC_MUTEX_DEBUG && defined(__NetBSD__) && \
-	* defined(PTHREAD_MUTEX_ERRORCHECK) */
-
-/* XXX We could do fancier error handling... */
-
 typedef pthread_mutex_t isc_mutex_t;
 
-#if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
-#define isc_mutex_init(mp) isc_mutex_init_errcheck((mp))
-#else /* if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK) */
-#define isc_mutex_init(mp) isc__mutex_init((mp), __FILE__, __LINE__)
 void
 isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
-#endif /* if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK) */
+
+#define isc_mutex_init(mp) isc__mutex_init((mp), __FILE__, __LINE__)
 
 #define isc_mutex_lock(mp) \
 	((pthread_mutex_lock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
@@ -57,8 +38,5 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
 	((pthread_mutex_trylock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 
 #define isc_mutex_destroy(mp) RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0)
-
-void
-isc_mutex_init_errcheck(isc_mutex_t *mp);
 
 ISC_LANG_ENDDECLS

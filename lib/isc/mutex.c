@@ -24,54 +24,11 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
-
-static bool errcheck_initialized = false;
-static pthread_mutexattr_t errcheck;
-static isc_once_t once_errcheck = ISC_ONCE_INIT;
-
-static void
-initialize_errcheck(void) {
-	RUNTIME_CHECK(pthread_mutexattr_init(&errcheck) == 0);
-	RUNTIME_CHECK(pthread_mutexattr_settype(&errcheck,
-						PTHREAD_MUTEX_ERRORCHECK) == 0);
-	errcheck_initialized = true;
-}
-
-void
-isc_mutex_init_errcheck(isc_mutex_t *mp) {
-	isc_result_t result;
-	int err;
-
-	result = isc_once_do(&once_errcheck, initialize_errcheck);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	err = pthread_mutex_init(mp, &errcheck);
-	if (err != 0) {
-		strerror_r(err, strbuf, sizeof(strbuf));
-		isc_error_fatal(file, line, "pthread_mutex_init failed: %s",
-				strbuf);
-	}
-}
-#endif /* if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK) */
-
-#if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
-pthread_mutexattr_t isc__mutex_attrs = {
-	PTHREAD_MUTEX_ERRORCHECK, /* m_type */
-	0			  /* m_flags, which appears to be unused. */
-};
-#endif /* if ISC_MUTEX_DEBUG && defined(__NetBSD__) && \
-	* defined(PTHREAD_MUTEX_ERRORCHECK) */
-
-#if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK))
-
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static bool attr_initialized = false;
 static pthread_mutexattr_t attr;
 static isc_once_t once_attr = ISC_ONCE_INIT;
-#endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
-#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 static void
 initialize_attr(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&attr) == 0);
@@ -92,7 +49,7 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 
 	err = pthread_mutex_init(mp, &attr);
 #else  /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
+	err = pthread_mutex_init(mp, NULL);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 	if (err != 0) {
 		char strbuf[ISC_STRERRORSIZE];
@@ -101,4 +58,3 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 				strbuf);
 	}
 }
-#endif /* if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)) */
