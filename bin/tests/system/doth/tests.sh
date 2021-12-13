@@ -35,6 +35,10 @@ dig_with_opts() {
 	"$DIG" $common_dig_options -p "${PORT}" "$@"
 }
 
+rndccmd() (
+	"$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
+)
+
 wait_for_tls_xfer() (
 	srv_number="$1"
 	shift
@@ -432,6 +436,29 @@ ret=0
 dig_with_http_opts -6 +http-plain-get @fd92:7065:b8e:ffff::1 biganswer.example A > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "doing rndc reconfig to see that queries keep being served after that ($n)"
+ret=0
+rndccmd 10.53.0.1 reconfig
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query (ephemeral key) after a reconfiguration ($n)"
+ret=0
+dig_with_tls_opts @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (POST) after a reconfiguration ($n)"
+ret=0
+dig_with_https_opts @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
