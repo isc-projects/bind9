@@ -98,7 +98,7 @@ scan_event(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	ns_interfacemgr_scan(mgr, false);
+	ns_interfacemgr_scan(mgr, false, false);
 	isc_event_free(&event);
 }
 
@@ -851,7 +851,7 @@ clearlistenon(ns_interfacemgr_t *mgr) {
 }
 
 static isc_result_t
-do_scan(ns_interfacemgr_t *mgr, bool verbose) {
+do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_interfaceiter_t *iter = NULL;
 	bool scan_ipv4 = false;
 	bool scan_ipv6 = false;
@@ -919,10 +919,10 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 			if (ifp != NULL) {
 				/*
 				 * We need to recreate the TLS/HTTPS listeners
-				 * because the certificates could have been
-				 * changed on reconfiguration.
+				 * during reconfiguration because the
+				 * certificates could have been changed.
 				 */
-				if (le->sslctx != NULL) {
+				if (config && le->sslctx != NULL) {
 					INSIST(NS_INTERFACE_VALID(ifp));
 					LOCK(&mgr->lock);
 					ISC_LIST_UNLINK(ifp->mgr->interfaces,
@@ -1104,10 +1104,10 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose) {
 			if (ifp != NULL) {
 				/*
 				 * We need to recreate the TLS/HTTPS listeners
-				 * because the certificates could have been
-				 * changed on reconfiguration.
+				 * during a reconfiguration because the
+				 * certificates could have been changed.
 				 */
-				if (le->sslctx != NULL) {
+				if (config && le->sslctx != NULL) {
 					INSIST(NS_INTERFACE_VALID(ifp));
 					LOCK(&mgr->lock);
 					ISC_LIST_UNLINK(ifp->mgr->interfaces,
@@ -1207,7 +1207,7 @@ cleanup_iter:
 }
 
 static isc_result_t
-ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, bool verbose) {
+ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_result_t result;
 	bool purge = true;
 
@@ -1215,7 +1215,7 @@ ns_interfacemgr_scan0(ns_interfacemgr_t *mgr, bool verbose) {
 
 	mgr->generation++; /* Increment the generation count. */
 
-	result = do_scan(mgr, verbose);
+	result = do_scan(mgr, verbose, config);
 	if ((result != ISC_R_SUCCESS) && (result != ISC_R_ADDRINUSE)) {
 		purge = false;
 	}
@@ -1249,7 +1249,7 @@ ns_interfacemgr_islistening(ns_interfacemgr_t *mgr) {
 }
 
 isc_result_t
-ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose) {
+ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_result_t result;
 	bool unlock = false;
 
@@ -1263,7 +1263,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose) {
 		unlock = true;
 	}
 
-	result = ns_interfacemgr_scan0(mgr, verbose);
+	result = ns_interfacemgr_scan0(mgr, verbose, config);
 
 	if (unlock) {
 		isc_task_endexclusive(mgr->excl);

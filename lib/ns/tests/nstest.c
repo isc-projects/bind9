@@ -211,7 +211,7 @@ static void
 scan_interfaces(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	ns_interfacemgr_scan(interfacemgr, true);
+	ns_interfacemgr_scan(interfacemgr, true, false);
 	isc_event_free(&event);
 }
 

@@ -131,11 +131,14 @@ ns_interfacemgr_islistening(ns_interfacemgr_t *mgr);
  */
 
 isc_result_t
-ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose);
+ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config);
 /*%<
  * Scan the operatings system's list of network interfaces
  * and create listeners when new interfaces are discovered.
  * Shut down the sockets for interfaces that go away.
+ *
+ * When 'config' is true, also shut down and recreate any existing TLS and HTTPS
+ * interfaces in order to use their new configuration.
  *
  * This should be called once on server startup and then
  * periodically according to the 'interface-interval' option
