@@ -40,6 +40,7 @@
 #endif /* ifdef HAVE_NET_ROUTE_H */
 
 #if defined(HAVE_LINUX_NETLINK_H) && defined(HAVE_LINUX_RTNETLINK_H)
+#define LINUX_NETLINK_AVAILABLE
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #if defined(RTM_NEWADDR) && defined(RTM_DELADDR)
@@ -102,14 +103,105 @@ scan_event(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+static bool
+need_rescan(ns_interfacemgr_t *mgr, struct MSGHDR *rtm, size_t len) {
+	if (rtm->MSGTYPE != RTM_NEWADDR && rtm->MSGTYPE != RTM_DELADDR) {
+		return (false);
+	}
+
+#ifndef LINUX_NETLINK_AVAILABLE
+	UNUSED(mgr);
+	UNUSED(len);
+	/* On most systems, any NEWADDR or DELADDR means we rescan */
+	return (true);
+#else  /* LINUX_NETLINK_AVAILABLE */
+	/* ...but on linux we need to check the messages more carefully */
+	for (struct MSGHDR *nlh = rtm;
+	     NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE;
+	     nlh = NLMSG_NEXT(nlh, len))
+	{
+		struct ifaddrmsg *ifa = (struct ifaddrmsg *)NLMSG_DATA(nlh);
+		struct rtattr *rth = IFA_RTA(ifa);
+		size_t rtl = IFA_PAYLOAD(nlh);
+
+		while (rtl > 0 && RTA_OK(rth, rtl)) {
+			/*
+			 * Look for IFA_ADDRESS to detect IPv6 interface
+			 * state changes.
+			 */
+			if (rth->rta_type == IFA_ADDRESS &&
+			    ifa->ifa_family == AF_INET6) {
+				bool was_listening = false;
+				isc_netaddr_t addr = { 0 };
+				ns_interface_t *ifp = NULL;
+
+				isc_netaddr_fromin6(&addr, RTA_DATA(rth));
+
+				/*
+				 * Check whether we were listening on the
+				 * address. We need to do this as the
+				 * Linux kernel seems to issue messages
+				 * containing IFA_ADDRESS far more often
+				 * than the actual state changes (on
+				 * router advertisements?)
+				 */
+				LOCK(&mgr->lock);
+				for (ifp = ISC_LIST_HEAD(mgr->interfaces);
+				     ifp != NULL;
+				     ifp = ISC_LIST_NEXT(ifp, link))
+				{
+					isc_netaddr_t tmp = { 0 };
+					isc_netaddr_fromsockaddr(&tmp,
+								 &ifp->addr);
+					if (isc_netaddr_equal(&tmp, &addr)) {
+						was_listening = true;
+						break;
+					}
+				}
+				UNLOCK(&mgr->lock);
+
+				/*
+				 * Do rescan if the state of the interface
+				 * has changed.
+				 */
+				if ((!was_listening &&
+				     rtm->MSGTYPE == RTM_NEWADDR) ||
+				    (was_listening &&
+				     rtm->MSGTYPE == RTM_DELADDR))
+				{
+					return (true);
+				}
+			} else if (rth->rta_type == IFA_ADDRESS &&
+				   ifa->ifa_family == AF_INET) {
+				/*
+				 * It seems that the IPv4 P2P link state
+				 * has changed.
+				 */
+				return (true);
+			} else if (rth->rta_type == IFA_LOCAL) {
+				/*
+				 * Local address state has changed - do
+				 * rescan.
+				 */
+				return (true);
+			}
+			rth = RTA_NEXT(rth, rtl);
+		}
+	}
+#endif /* LINUX_NETLINK_AVAILABLE */
+
+	return (false);
+}
+
 static void
 route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	   void *arg) {
 	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
 	struct MSGHDR *rtm = NULL;
 	bool done = true;
+	size_t rtmlen;
 
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(3), "route_recv: %s",
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(9), "route_recv: %s",
 		      isc_result_totext(eresult));
 
 	if (handle == NULL) {
@@ -137,6 +229,8 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 
 	rtm = (struct MSGHDR *)region->base;
+	rtmlen = region->length;
+
 #ifdef RTM_VERSION
 	if (rtm->rtm_version != RTM_VERSION) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -150,19 +244,13 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 #endif /* ifdef RTM_VERSION */
 
-	switch (rtm->MSGTYPE) {
-	case RTM_NEWADDR:
-	case RTM_DELADDR:
-		if (mgr->route != NULL && mgr->sctx->interface_auto) {
-			isc_event_t *event = NULL;
-			event = isc_event_allocate(mgr->mctx, mgr,
-						   NS_EVENT_IFSCAN, scan_event,
-						   mgr, sizeof(*event));
-			isc_task_send(mgr->excl, &event);
-		}
-		break;
-	default:
-		break;
+	if (need_rescan(mgr, rtm, rtmlen) && mgr->route != NULL &&
+	    mgr->sctx->interface_auto)
+	{
+		isc_event_t *event = NULL;
+		event = isc_event_allocate(mgr->mctx, mgr, NS_EVENT_IFSCAN,
+					   scan_event, mgr, sizeof(*event));
+		isc_task_send(mgr->excl, &event);
 	}
 
 	LOCK(&mgr->lock);
@@ -183,7 +271,7 @@ static void
 route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
 
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(9),
 		      "route_connected: %s", isc_result_totext(eresult));
 
 	if (eresult != ISC_R_SUCCESS) {
