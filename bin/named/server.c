@@ -6933,7 +6933,7 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_event_free(&event);
-	ns_interfacemgr_scan(server->interfacemgr, false);
+	ns_interfacemgr_scan(server->interfacemgr, false, false);
 }
 
 static void
@@ -8933,7 +8933,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * to configure the query source, since the dispatcher we use might
 	 * be shared with an interface.
 	 */
-	result = ns_interfacemgr_scan(server->interfacemgr, true);
+	result = ns_interfacemgr_scan(server->interfacemgr, true, true);
 
 	/*
 	 * Check that named is able to TCP listen on at least one
@@ -10411,7 +10411,7 @@ named_server_scan_interfaces(named_server_t *server) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
 		      "automatic interface rescan");
 
-	ns_interfacemgr_scan(server->interfacemgr, true);
+	ns_interfacemgr_scan(server->interfacemgr, true, false);
 }
 
 /*
