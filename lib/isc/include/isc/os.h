@@ -14,8 +14,16 @@
 /*! \file isc/os.h */
 
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
+
+/*%<
+ * Hardcode the L1 cacheline size of the CPU to 64, this is checked in
+ * the os.c library constructor if operating system provide means to
+ * get the L1 cacheline size using sysconf().
+ */
+#define ISC_OS_CACHELINE_SIZE 64
 
 unsigned int
 isc_os_ncpus(void);

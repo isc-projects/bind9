@@ -9,12 +9,15 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/once.h>
+#include <inttypes.h>
+
 #include <isc/os.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
-static isc_once_t ncpus_once = ISC_ONCE_INIT;
-static unsigned int ncpus = 0;
+#include "os_p.h"
+
+static unsigned int isc__os_ncpus = 0;
 
 #ifdef HAVE_SYSCONF
 
@@ -54,23 +57,33 @@ sysctl_ncpus(void) {
 static void
 ncpus_initialize(void) {
 #if defined(HAVE_SYSCONF)
-	ncpus = sysconf_ncpus();
+	isc__os_ncpus = sysconf_ncpus();
 #endif /* if defined(HAVE_SYSCONF) */
 #if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
-	if (ncpus <= 0) {
-		ncpus = sysctl_ncpus();
+	if (isc__os_ncpus <= 0) {
+		isc__os_ncpus = sysctl_ncpus();
 	}
 #endif /* if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME) */
-	if (ncpus <= 0) {
-		ncpus = 1;
+	if (isc__os_ncpus == 0) {
+		isc__os_ncpus = 1;
 	}
 }
 
 unsigned int
 isc_os_ncpus(void) {
-	isc_result_t result = isc_once_do(&ncpus_once, ncpus_initialize);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	INSIST(ncpus > 0);
+	return (isc__os_ncpus);
+}
 
-	return (ncpus);
+void
+isc__os_initialize(void) {
+	ncpus_initialize();
+#if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
+	long s = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+	RUNTIME_CHECK((size_t)s == (size_t)ISC_OS_CACHELINE_SIZE);
+#endif
+}
+
+void
+isc__os_shutdown(void) {
+	/* empty, but defined for completeness */;
 }
