@@ -2135,8 +2135,6 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 	 * Fix color violations.
 	 */
 	if (IS_BLACK(item)) {
-		/* cppcheck-suppress nullPointerRedundantCheck symbolName=item
-		 */
 		parent = PARENT(item);
 
 		while (child != *rootp && IS_BLACK(child)) {
@@ -2154,8 +2152,6 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 
 				INSIST(sibling != NULL);
 
-				/* cppcheck-suppress nullPointerRedundantCheck
-				 * symbolName=sibling */
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
 					MAKE_RED(sibling);
@@ -2192,8 +2188,6 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 
 				INSIST(sibling != NULL);
 
-				/* cppcheck-suppress nullPointerRedundantCheck
-				 * symbolName=sibling */
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
 					MAKE_RED(sibling);
@@ -2328,7 +2322,6 @@ check_properties_helper(dns_rbtnode_t *node) {
 		}
 	}
 
-	/* cppcheck-suppress nullPointerRedundantCheck symbolName=node */
 	if ((DOWN(node) != NULL) && (!IS_ROOT(DOWN(node)))) {
 		return (false);
 	}
@@ -2366,17 +2359,14 @@ check_black_distance_helper(dns_rbtnode_t *node, size_t *distance) {
 		return (true);
 	}
 
-	/* cppcheck-suppress nullPointerRedundantCheck symbolName=node */
 	if (!check_black_distance_helper(LEFT(node), &dl)) {
 		return (false);
 	}
 
-	/* cppcheck-suppress nullPointerRedundantCheck symbolName=node */
 	if (!check_black_distance_helper(RIGHT(node), &dr)) {
 		return (false);
 	}
 
-	/* cppcheck-suppress nullPointerRedundantCheck symbolName=node */
 	if (!check_black_distance_helper(DOWN(node), &dd)) {
 		return (false);
 	}
@@ -2474,10 +2464,6 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth,
 
 	if (root != NULL) {
 		printnodename(root, true, f);
-		/*
-		 * Don't use IS_RED(root) as it tests for 'root != NULL'
-		 * and cppcheck produces false positives.
-		 */
 		fprintf(f, " (%s, %s", direction,
 			COLOR(root) == RED ? "RED" : "BLACK");
 
@@ -2503,19 +2489,12 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth,
 
 		depth++;
 
-		/*
-		 * Don't use IS_RED(root) as it tests for 'root != NULL'
-		 * and cppcheck produces false positives.
-		 */
 		if (COLOR(root) == RED && IS_RED(LEFT(root))) {
 			fprintf(f, "** Red/Red color violation on left\n");
 		}
 		print_text_helper(LEFT(root), root, depth, "left", data_printer,
 				  f);
 
-		/*
-		 * Don't use IS_RED(root) as cppcheck produces false positives.
-		 */
 		if (COLOR(root) == RED && IS_RED(RIGHT(root))) {
 			fprintf(f, "** Red/Red color violation on right\n");
 		}
