@@ -1,3 +1,10 @@
+5780.	[bug]		The Linux kernel may send netlink messages
+			indicating that network interfaces have changed
+			when they have not. This caused frequent unnecessary
+			re-scans of the interfaces.  Netlink messages now
+			only trigger re-scanning if a new address is seen
+			or an existing address is removed. [GL #3055]
+
 5779.	[test]		Drop cppcheck suppressions and workarounds. [GL #2886]
 
 5778.	[bug]		Destroyed TLS contexts could have been used after a
