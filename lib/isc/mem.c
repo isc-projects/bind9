@@ -1817,17 +1817,8 @@ isc__mempool_get(isc_mempool_t *mpctx0 FLARG) {
 		 */
 		MCTXLOCK(mctx);
 		for (i = 0; i < mpctx->fillcount; i++) {
-			if ((mctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-				item = mem_getunlocked(mctx, mpctx->size);
-			} else {
-				item = mem_get(mctx, mpctx->size);
-				if (item != NULL) {
-					mem_getstats(mctx, mpctx->size);
-				}
-			}
-			if (ISC_UNLIKELY(item == NULL)) {
-				break;
-			}
+			item = mem_get(mctx, mpctx->size);
+			mem_getstats(mctx, mpctx->size);
 			item->next = mpctx->items;
 			mpctx->items = item;
 			mpctx->freecount++;
@@ -1888,12 +1879,8 @@ isc__mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 	 */
 	if (mpctx->freecount >= mpctx->freemax) {
 		MCTXLOCK(mctx);
-		if ((mctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-			mem_putunlocked(mctx, mem, mpctx->size);
-		} else {
-			mem_putstats(mctx, mem, mpctx->size);
-			mem_put(mctx, mem, mpctx->size);
-		}
+		mem_putstats(mctx, mem, mpctx->size);
+		mem_put(mctx, mem, mpctx->size);
 		MCTXUNLOCK(mctx);
 		return;
 	}
