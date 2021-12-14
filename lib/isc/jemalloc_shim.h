@@ -19,6 +19,9 @@
 
 const char *malloc_conf = NULL;
 
+/* Without jemalloc, isc_mem_get_align() is equal to isc_mem_get() */
+#define MALLOCX_ALIGN(a) (a & 0) /* Clear the flag */
+
 #if defined(HAVE_MALLOC_SIZE) || defined(HAVE_MALLOC_USABLE_SIZE)
 
 #include <stdlib.h>
