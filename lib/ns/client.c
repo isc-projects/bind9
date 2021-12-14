@@ -2460,6 +2460,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 
 	isc_mem_create(&mctx);
+	isc_mem_setname(mctx, "clientmgr");
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	*manager = (ns_clientmgr_t){ .magic = 0, .mctx = mctx };
