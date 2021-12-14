@@ -117,7 +117,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  */
 
 #if !defined(ISC_MEM_USE_INTERNAL_MALLOC) && !__SANITIZE_ADDRESS__
-#define ISC_MEM_USE_INTERNAL_MALLOC 1
+#define ISC_MEM_USE_INTERNAL_MALLOC 0
 #endif /* ifndef ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*
