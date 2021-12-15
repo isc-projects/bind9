@@ -252,7 +252,7 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 	isc_result_t result;
 	isccc_region_t source, target;
 	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
+	unsigned int digestlen = sizeof(digest);
 	unsigned char digestb64[HSHA_LENGTH + 4];
 
 	source.rstart = digest;
@@ -375,7 +375,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	isc_result_t result;
 	isccc_sexpr_t *_auth, *hmac;
 	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
+	unsigned int digestlen = sizeof(digest);
 	unsigned char digestb64[HSHA_LENGTH * 4];
 
 	/*

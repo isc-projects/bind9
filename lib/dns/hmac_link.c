@@ -196,8 +196,8 @@ static inline isc_result_t
 hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	REQUIRE(ctx != NULL);
-	unsigned int digestlen;
 	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen = sizeof(digest);
 
 	if (isc_hmac_final(ctx, digest, &digestlen) != ISC_R_SUCCESS) {
 		return (DST_R_OPENSSLFAILURE);
@@ -219,8 +219,8 @@ hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 static inline isc_result_t
 hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
-	unsigned int digestlen;
 	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen = sizeof(digest);
 
 	REQUIRE(ctx != NULL);
 
