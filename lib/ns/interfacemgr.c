@@ -499,7 +499,6 @@ interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 	UNLOCK(&mgr->lock);
 
-	isc_refcount_init(&ifp->references, 1);
 	ifp->magic = IFACE_MAGIC;
 
 	*ifpret = ifp;
@@ -755,8 +754,14 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 }
 
 static void
-interface_destroy(ns_interface_t *ifp) {
-	ns_interfacemgr_t *mgr;
+interface_destroy(ns_interface_t **interfacep) {
+	ns_interface_t *ifp = NULL;
+	ns_interfacemgr_t *mgr = NULL;
+
+	REQUIRE(interfacep != NULL);
+
+	ifp = *interfacep;
+	*interfacep = NULL;
 
 	REQUIRE(NS_INTERFACE_VALID(ifp));
 
@@ -775,24 +780,6 @@ interface_destroy(ns_interface_t *ifp) {
 	isc_refcount_destroy(&ifp->ntcpaccepting);
 
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
-}
-
-void
-ns_interface_attach(ns_interface_t *source, ns_interface_t **target) {
-	REQUIRE(NS_INTERFACE_VALID(source));
-	isc_refcount_increment(&source->references);
-	*target = source;
-}
-
-void
-ns_interface_detach(ns_interface_t **targetp) {
-	ns_interface_t *target = *targetp;
-	*targetp = NULL;
-	REQUIRE(target != NULL);
-	REQUIRE(NS_INTERFACE_VALID(target));
-	if (isc_refcount_decrement(&target->references) == 1) {
-		interface_destroy(target);
-	}
 }
 
 /*%
@@ -835,7 +822,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 					"no longer listening on %s", sabuf);
 				ns_interface_shutdown(ifp);
 			}
-			ns_interface_detach(&ifp);
+			interface_destroy(&ifp);
 		}
 	}
 	UNLOCK(&mgr->lock);
@@ -1028,8 +1015,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				    le->sslctx != NULL) {
 					INSIST(NS_INTERFACE_VALID(ifp));
 					LOCK(&mgr->lock);
-					ISC_LIST_UNLINK(ifp->mgr->interfaces,
-							ifp, link);
 					isc_sockaddr_format(&ifp->addr, sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -1037,8 +1022,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 						      "no longer listening on "
 						      "%s",
 						      sabuf);
-					ns_interface_shutdown(ifp);
-					ns_interface_detach(&ifp);
+					interface_destroy(&ifp);
 					UNLOCK(&mgr->lock);
 				} else {
 					ifp->generation = mgr->generation;
@@ -1206,8 +1190,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				    le->sslctx != NULL) {
 					INSIST(NS_INTERFACE_VALID(ifp));
 					LOCK(&mgr->lock);
-					ISC_LIST_UNLINK(ifp->mgr->interfaces,
-							ifp, link);
 					isc_sockaddr_format(&ifp->addr, sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -1215,8 +1197,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 						      "no longer listening on "
 						      "%s",
 						      sabuf);
-					ns_interface_shutdown(ifp);
-					ns_interface_detach(&ifp);
+					interface_destroy(&ifp);
 					UNLOCK(&mgr->lock);
 				} else {
 					ifp->generation = mgr->generation;

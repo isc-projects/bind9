@@ -69,7 +69,6 @@ struct ns_interface {
 	unsigned int	   magic; /*%< Magic number. */
 	ns_interfacemgr_t *mgr;	  /*%< Interface manager. */
 	isc_mutex_t	   lock;
-	isc_refcount_t	   references;
 	unsigned int	   generation; /*%< Generation number. */
 	isc_sockaddr_t	   addr;       /*%< Address and port. */
 	unsigned int	   flags;      /*%< Interface flags */
@@ -162,12 +161,6 @@ ns_interfacemgr_setlistenon6(ns_interfacemgr_t *mgr, ns_listenlist_t *value);
 
 dns_aclenv_t *
 ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr);
-
-void
-ns_interface_attach(ns_interface_t *source, ns_interface_t **target);
-
-void
-ns_interface_detach(ns_interface_t **targetp);
 
 void
 ns_interface_shutdown(ns_interface_t *ifp);
