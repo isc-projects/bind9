@@ -24,6 +24,16 @@
 			construct the nsupdate command.  The sed expression
 			was not reliably changing the ttl. [GL #3003]
 
+5676.	[func]		Memory use in named was excessive. This has been
+			addressed by:
+			- Replacing locked memory pools with normal memory
+			  allocations.
+			- Reducing the number of retained free items in
+			  unlocked memory pools.
+			- Disabling the internal allocator by default.
+			  "named -M internal" turns it back on.
+			[GL #2398]
+
 	--- 9.16.23 released ---
 
 5752.	[bug]		Fix an assertion failure caused by missing member zones

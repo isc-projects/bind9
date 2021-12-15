@@ -21,14 +21,11 @@ main(int argc, char *argv[]) {
 	void *tmp;
 	isc_mempool_t *mp1, *mp2;
 	unsigned int i, j;
-	isc_mutex_t lock;
 
 	UNUSED(argc);
 	UNUSED(argv);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-
-	isc_mutex_init(&lock);
 
 	mctx = NULL;
 	isc_mem_create(&mctx);
@@ -38,9 +35,6 @@ main(int argc, char *argv[]) {
 
 	mp2 = NULL;
 	isc_mempool_create(mctx, 31, &mp2);
-
-	isc_mempool_associatelock(mp1, &lock);
-	isc_mempool_associatelock(mp2, &lock);
 
 	isc_mem_stats(mctx, stderr);
 
@@ -111,8 +105,6 @@ main(int argc, char *argv[]) {
 	isc_mem_stats(mctx, stderr);
 
 	isc_mem_destroy(&mctx);
-
-	isc_mutex_destroy(&lock);
 
 	return (0);
 }

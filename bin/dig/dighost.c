@@ -170,7 +170,6 @@ unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *tsigkey = NULL;
 bool validated = true;
-isc_mempool_t *commctx = NULL;
 bool debugging = false;
 bool debugtiming = false;
 bool memdebugging = false;
@@ -1426,15 +1425,6 @@ setup_libs(void) {
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
 
-	isc_mempool_create(mctx, COMMSIZE, &commctx);
-	isc_mempool_setname(commctx, "COMMPOOL");
-	/*
-	 * 6 and 2 set as reasonable parameters for 3 or 4 nameserver
-	 * systems.
-	 */
-	isc_mempool_setfreemax(commctx, 6);
-	isc_mempool_setfillcount(commctx, 2);
-
 	isc_mutex_init(&lookup_lock);
 }
 
@@ -1611,8 +1601,8 @@ clear_query(dig_query_t *query) {
 		sockcount--;
 		debug("sockcount=%d", sockcount);
 	}
-	isc_mempool_put(commctx, query->recvspace);
-	isc_mempool_put(commctx, query->tmpsendspace);
+	isc_mem_put(mctx, query->recvspace, COMMSIZE);
+	isc_mem_put(mctx, query->tmpsendspace, COMMSIZE);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
 
@@ -1688,7 +1678,7 @@ destroy_lookup(dig_lookup_t *lookup) {
 		isc_buffer_free(&lookup->querysig);
 	}
 	if (lookup->sendspace != NULL) {
-		isc_mempool_put(commctx, lookup->sendspace);
+		isc_mem_put(mctx, lookup->sendspace, COMMSIZE);
 	}
 
 	if (lookup->tsigctx != NULL) {
@@ -2339,10 +2329,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		check_result(result, "dns_message_settsigkey");
 	}
 
-	lookup->sendspace = isc_mempool_get(commctx);
-	if (lookup->sendspace == NULL) {
-		fatal("memory allocation failure");
-	}
+	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
 
 	result = dns_compress_init(&cctx, -1, mctx);
 	check_result(result, "dns_compress_init");
@@ -2578,8 +2565,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->byte_count = 0;
 		query->ixfr_axfr = false;
 		query->sock = NULL;
-		query->recvspace = isc_mempool_get(commctx);
-		query->tmpsendspace = isc_mempool_get(commctx);
+		query->recvspace = isc_mem_get(mctx, COMMSIZE);
+		query->tmpsendspace = isc_mem_get(mctx, COMMSIZE);
 		if (query->recvspace == NULL) {
 			fatal("memory allocation failure");
 		}
@@ -4378,10 +4365,6 @@ destroy_libs(void) {
 	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
 
-	if (commctx != NULL) {
-		debug("freeing commctx");
-		isc_mempool_destroy(&commctx);
-	}
 	if (socketmgr != NULL) {
 		debug("freeing socketmgr");
 		isc_socketmgr_destroy(&socketmgr);

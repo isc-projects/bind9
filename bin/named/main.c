@@ -456,6 +456,7 @@ static struct flag_def {
 			{ "mctx", ISC_MEM_DEBUGCTX, false },
 			{ NULL, 0, false } },
   mem_context_flags[] = { { "external", ISC_MEMFLAG_INTERNAL, true },
+			  { "internal", ISC_MEMFLAG_INTERNAL, false },
 			  { "fill", ISC_MEMFLAG_FILL, false },
 			  { "nofill", ISC_MEMFLAG_FILL, true },
 			  { NULL, 0, false } };

@@ -629,12 +629,6 @@ struct isc_nm {
 
 	isc_stats_t *stats;
 
-	isc_mempool_t *reqpool;
-	isc_mutex_t reqlock;
-
-	isc_mempool_t *evpool;
-	isc_mutex_t evlock;
-
 	uint_fast32_t workers_running;
 	atomic_uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;

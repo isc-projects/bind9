@@ -398,7 +398,6 @@ isc_mem_stats
 isc_mem_total
 isc_mem_waterack
 isc_meminfo_totalphys
-isc_mempool_associatelock
 isc_mempool_create
 isc_mempool_destroy
 isc_mempool_getallocated

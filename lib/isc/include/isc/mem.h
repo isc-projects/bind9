@@ -117,7 +117,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  */
 
 #if !defined(ISC_MEM_USE_INTERNAL_MALLOC) && !__SANITIZE_ADDRESS__
-#define ISC_MEM_USE_INTERNAL_MALLOC 1
+#define ISC_MEM_USE_INTERNAL_MALLOC 0
 #endif /* ifndef ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*
@@ -493,33 +493,6 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name);
  * Requires:
  *\li	mpctx is a valid pool.
  *\li	name != NULL;
- */
-
-void
-isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
-/*%<
- * Associate a lock with this memory pool.
- *
- * This lock is used when getting or putting items using this memory pool,
- * and it is also used to set or get internal state via the isc_mempool_get*()
- * and isc_mempool_set*() set of functions.
- *
- * Multiple pools can each share a single lock.  For instance, if "manager"
- * type object contained pools for various sizes of events, and each of
- * these pools used a common lock.  Note that this lock must NEVER be used
- * by other than mempool routines once it is given to a pool, since that can
- * easily cause double locking.
- *
- * Requires:
- *
- *\li	mpctpx is a valid pool.
- *
- *\li	lock != NULL.
- *
- *\li	No previous lock is assigned to this pool.
- *
- *\li	The lock is initialized before calling this function via the normal
- *	means of doing that.
  */
 
 /*
