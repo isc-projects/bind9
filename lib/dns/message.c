@@ -722,12 +722,12 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 
 	isc_mempool_create(m->mctx, sizeof(dns_fixedname_t), &m->namepool);
 	isc_mempool_setfillcount(m->namepool, NAME_FILLCOUNT);
-	isc_mempool_setfreemax(m->namepool, 32 * NAME_FREEMAX);
+	isc_mempool_setfreemax(m->namepool, NAME_FREEMAX);
 	isc_mempool_setname(m->namepool, "msg:names");
 
 	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t), &m->rdspool);
 	isc_mempool_setfillcount(m->rdspool, RDATASET_FILLCOUNT);
-	isc_mempool_setfreemax(m->rdspool, 32 * RDATASET_FREEMAX);
+	isc_mempool_setfreemax(m->rdspool, RDATASET_FREEMAX);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
