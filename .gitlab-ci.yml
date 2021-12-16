@@ -201,15 +201,19 @@ stages:
 
 .default-triggering-rules: &default_triggering_rules
   only:
+    - api
     - merge_requests
     - tags
+    - triggers
     - web
     - schedules
 
 .release-branch-triggering-rules: &release_branch_triggering_rules
   only:
+    - api
     - merge_requests
     - tags
+    - triggers
     - web
     - schedules
     - main@isc-projects/bind9
@@ -217,8 +221,10 @@ stages:
 
 .schedules-tags-web-triggering-rules: &schedules_tags_web_triggering_rules
   only:
+    - api
     - schedules
     - tags
+    - triggers
     - web
 
 .precheck: &precheck_job
@@ -1266,7 +1272,9 @@ system:clang:openbsd:amd64:
     - job: clang:openbsd:amd64
       artifacts: true
   only:
+    - api
     - schedules
+    - triggers
     - web
 
 # Jobs with libtool disabled
