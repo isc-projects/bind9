@@ -103,8 +103,8 @@ stages:
 
 # Alpine Linux
 
-.alpine-3.14-amd64: &alpine_3_14_amd64_image
-  image: "$CI_REGISTRY_IMAGE:alpine-3.14-amd64"
+.alpine-3.15-amd64: &alpine_3_15_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.15-amd64"
   <<: *linux_amd64
 
 # Oracle Linux
@@ -538,28 +538,28 @@ push:docs:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
-# Jobs for regular GCC builds on Alpine Linux 3.14 (amd64)
+# Jobs for regular GCC builds on Alpine Linux 3.15 (amd64)
 
-gcc:alpine3.14:amd64:
+gcc:alpine3.15:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "${WITHOUT_READLINE}"
-  <<: *alpine_3_14_amd64_image
+  <<: *alpine_3_15_amd64_image
   <<: *build_job
 
-system:gcc:alpine3.14:amd64:
-  <<: *alpine_3_14_amd64_image
+system:gcc:alpine3.15:amd64:
+  <<: *alpine_3_15_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:alpine3.14:amd64
+    - job: gcc:alpine3.15:amd64
       artifacts: true
 
-unit:gcc:alpine3.14:amd64:
-  <<: *alpine_3_14_amd64_image
+unit:gcc:alpine3.15:amd64:
+  <<: *alpine_3_15_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:alpine3.14:amd64
+    - job: gcc:alpine3.15:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Oracle Linux 7 (amd64)
