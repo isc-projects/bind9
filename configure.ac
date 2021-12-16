@@ -673,8 +673,8 @@ PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [],
 
 AX_SAVE_FLAGS([openssl])
 
-CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
-LIBS="$LIBS $OPENSSL_LIBS"
+CFLAGS="$OPENSSL_CFLAGS $CFLAGS"
+LIBS="$OPENSSL_LIBS $LIBS"
 
 AC_MSG_CHECKING([for OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0])
 AC_COMPILE_IFELSE(
@@ -785,8 +785,11 @@ AC_ARG_ENABLE([fips-mode],
 AC_MSG_CHECKING([whether to enable FIPS mode in OpenSSL library])
 AS_CASE([$enable_fips_mode],
 	[yes], [AC_MSG_RESULT([yes])
-		AC_CHECK_FUNCS([FIPS_mode],
-			       [], [AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.])])],
+		AC_CHECK_FUNCS([EVP_default_properties_enable_fips],
+			       [],
+			       [AC_CHECK_FUNCS([FIPS_mode],
+					       [],
+					       AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.])]))],
 	[no], [AC_MSG_RESULT([no])])
 
 AX_RESTORE_FLAGS([openssl])
