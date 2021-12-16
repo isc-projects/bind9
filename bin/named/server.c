@@ -39,6 +39,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/hmac.h>
@@ -9840,12 +9841,10 @@ view_loaded(void *arg) {
 
 		named_os_started();
 
-#ifdef HAVE_FIPS_MODE
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
 			      "FIPS mode is %s",
-			      FIPS_mode() ? "enabled" : "disabled");
-#endif /* ifdef HAVE_FIPS_MODE */
+			      isc_fips_mode() ? "enabled" : "disabled");
 
 #if HAVE_LIBSYSTEMD
 		sd_notifyf(0,
