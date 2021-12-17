@@ -1259,27 +1259,6 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 	isc_mem_put(mpctx->mctx, mpctx, sizeof(isc_mempool_t));
 }
 
-#if __SANITIZE_ADDRESS__
-void *
-isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-
-	mpctx->allocated++;
-	mpctx->gets++;
-
-	return (isc__mem_get(mpctx->mctx, mpctx->size FLARG_PASS));
-}
-
-void
-isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-	REQUIRE(mem != NULL);
-
-	mpctx->allocated--;
-	isc__mem_put(mpctx->mctx, mem, mpctx->size FLARG_PASS);
-}
-
-#else /* __SANITIZE_ADDRESS__ */
 void *
 isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 	element *restrict item = NULL;
@@ -1290,10 +1269,13 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 
 	if (mpctx->items == NULL) {
 		isc_mem_t *mctx = mpctx->mctx;
+#if !__SANITIZE_ADDRESS__
 		const size_t fillcount = mpctx->fillcount;
+#else
+		const size_t fillcount = 1;
+#endif
 		/*
-		 * We need to dip into the well.  Lock the memory
-		 * context here and fill up our free list.
+		 * We need to dip into the well.  Fill up our free list.
 		 */
 		for (size_t i = 0; i < fillcount; i++) {
 			item = mem_get(mctx, mpctx->size);
@@ -1328,7 +1310,11 @@ isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 
 	isc_mem_t *mctx = mpctx->mctx;
 	const size_t freecount = mpctx->freecount;
+#if !__SANITIZE_ADDRESS__
 	const size_t freemax = mpctx->freemax;
+#else
+	const size_t freemax = 0;
+#endif
 
 	INSIST(mpctx->allocated > 0);
 	mpctx->allocated--;
@@ -1353,8 +1339,6 @@ isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	mpctx->freecount++;
 }
 
-#endif /* __SANITIZE_ADDRESS__ */
-
 /*
  * Quotas
  */
@@ -1363,7 +1347,6 @@ void
 isc_mempool_setfreemax(isc_mempool_t *restrict mpctx,
 		       const unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
-
 	mpctx->freemax = limit;
 }
 
