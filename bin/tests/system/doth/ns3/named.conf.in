@@ -36,11 +36,6 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.3; };
 	listen-on tls local { 10.53.0.3; };             // DoT
-	listen-on-v6 tls local { fd92:7065:b8e:ffff::3; };
-	listen-on tls local http local { 10.53.0.3; };  // DoH
-	listen-on-v6 tls local http local { fd92:7065:b8e:ffff::3; };
-	listen-on tls none http local { 10.53.0.3; };   // unencrypted DoH
-	listen-on-v6 tls none http local { fd92:7065:b8e:ffff::3; };
 	listen-on-v6 { none; };
 	recursion no;
 	notify no;
