@@ -292,7 +292,8 @@ dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, &zonemgr);
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, ncpus,
+				    &zonemgr);
 	return (result);
 }
 
@@ -300,11 +301,6 @@ isc_result_t
 dns_test_managezone(dns_zone_t *zone) {
 	isc_result_t result;
 	REQUIRE(zonemgr != NULL);
-
-	result = dns_zonemgr_setsize(zonemgr, 1);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
 
 	result = dns_zonemgr_managezone(zonemgr, zone);
 	return (result);

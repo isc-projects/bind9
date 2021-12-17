@@ -42,7 +42,6 @@ check_PROGRAMS =	\
 	stats_test	\
 	symtab_test	\
 	task_test	\
-	taskpool_test	\
 	time_test	\
 	timer_test
 

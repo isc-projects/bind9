@@ -35,7 +35,7 @@
 #include <isc/stdtime.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
-#include <isc/taskpool.h>
+#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/timer.h>
 #include <isc/tls.h>
@@ -595,8 +595,10 @@ struct dns_zonemgr {
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
 	isc_nm_t *netmgr;
-	isc_taskpool_t *zonetasks;
-	isc_taskpool_t *loadtasks;
+	atomic_uint_fast32_t nzonetasks;
+	isc_pool_t *zonetasks;
+	atomic_uint_fast32_t nloadtasks;
+	isc_pool_t *loadtasks;
 	isc_task_t *task;
 	isc_pool_t *mctxpool;
 	isc_ratelimiter_t *checkdsrl;
@@ -970,6 +972,8 @@ static void
 zonemgr_putio(dns_io_t **iop);
 static void
 zonemgr_cancelio(dns_io_t *io);
+static isc_result_t
+zonemgr_setsize(dns_zonemgr_t *zmgr, unsigned int workers);
 static void
 rss_post(dns_zone_t *, isc_event_t *);
 
@@ -18798,9 +18802,11 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
-		   dns_zonemgr_t **zmgrp) {
+		   unsigned int workers, dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
+
+	REQUIRE(workers >= 1);
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	zmgr->mctx = NULL;
@@ -18810,7 +18816,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->timermgr = timermgr;
 	zmgr->netmgr = netmgr;
 	zmgr->zonetasks = NULL;
+	atomic_init(&zmgr->nzonetasks, 0);
 	zmgr->loadtasks = NULL;
+	atomic_init(&zmgr->nloadtasks, 0);
 	zmgr->mctxpool = NULL;
 	zmgr->task = NULL;
 	zmgr->checkdsrl = NULL;
@@ -18870,6 +18878,11 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_startupnotifyrl;
 	}
 
+	result = zonemgr_setsize(zmgr, workers);
+	if (result != ISC_R_SUCCESS) {
+		goto free_startuprefreshrl;
+	}
+
 	/* Key file I/O locks. */
 	zonemgr_keymgmt_init(zmgr);
 
@@ -18900,6 +18913,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_iolock:
 	isc_mutex_destroy(&zmgr->iolock);
 #endif /* if 0 */
+free_startuprefreshrl:
+	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 free_startupnotifyrl:
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
 free_refreshrl:
@@ -18963,8 +18978,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_taskpool_gettask(zmgr->zonetasks, &zone->task);
-	isc_taskpool_gettask(zmgr->loadtasks, &zone->loadtask);
+	isc_task_attach(isc_pool_get(zmgr->zonetasks), &zone->task);
+	isc_task_attach(isc_pool_get(zmgr->loadtasks), &zone->loadtask);
 
 	/*
 	 * Set the task name.  The tag will arbitrarily point to one
@@ -19097,10 +19112,10 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_task_destroy(&zmgr->task);
 	}
 	if (zmgr->zonetasks != NULL) {
-		isc_taskpool_destroy(&zmgr->zonetasks);
+		isc_pool_destroy(&zmgr->zonetasks);
 	}
 	if (zmgr->loadtasks != NULL) {
-		isc_taskpool_destroy(&zmgr->loadtasks);
+		isc_pool_destroy(&zmgr->loadtasks);
 	}
 	if (zmgr->mctxpool != NULL) {
 		isc_pool_destroy(&zmgr->mctxpool);
@@ -19115,6 +19130,49 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		UNLOCK_ZONE(zone);
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+}
+
+static isc_result_t
+taskinit(void **target, void *arg, uint32_t bindto, unsigned int quantum,
+	 bool priv) {
+	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
+	isc_task_t *task = NULL;
+	isc_result_t result = isc_task_create_bound(zmgr->taskmgr, quantum,
+						    &task, bindto);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	isc_task_setprivilege(task, priv);
+	isc_task_setname(task, "zonemgr-taskpool", NULL);
+	*target = task;
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+taskfree(void **target) {
+	isc_task_t *task = *target;
+	isc_task_detach(&task);
+}
+
+static isc_result_t
+zonetaskinit(void **target, void *arg) {
+	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
+	uint32_t bindto = atomic_fetch_add(&zmgr->nzonetasks, 1);
+	return (taskinit(target, arg, bindto, 2, false));
+}
+
+static isc_result_t
+loadtaskinit(void **target, void *arg) {
+	/*
+	 * We always set all tasks in the zone-load task pool to
+	 * privileged.  This prevents other tasks in the system from
+	 * running while the server task manager is in privileged
+	 * mode.
+	 */
+	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
+	uint32_t bindto = atomic_fetch_add(&zmgr->nloadtasks, 1);
+	return (taskinit(target, arg, bindto, UINT_MAX, true));
 }
 
 static isc_result_t
@@ -19139,74 +19197,44 @@ mctxfree(void **target) {
 	*target = NULL;
 }
 
-#define ZONES_PER_TASK 100
-#define ZONES_PER_MCTX 1000
-
-isc_result_t
-dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
+static isc_result_t
+zonemgr_setsize(dns_zonemgr_t *zmgr, unsigned int workers) {
 	isc_result_t result;
-	int ntasks = num_zones / ZONES_PER_TASK;
-	int nmctx = num_zones / ZONES_PER_MCTX;
-	isc_taskpool_t *pool = NULL;
-	isc_pool_t *mctxpool = NULL;
 
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	/*
-	 * For anything fewer than 1000 zones we use 10 tasks in
-	 * the task pools.  More than that, and we'll scale at one
-	 * task per 100 zones.  Similarly, for anything smaller than
-	 * 2000 zones we use 2 memory contexts, then scale at 1:1000.
-	 */
-	if (ntasks < 10) {
-		ntasks = 10;
-	}
-	if (nmctx < 2) {
-		nmctx = 2;
+	/* Create the zone tasks pool. */
+	REQUIRE(zmgr->zonetasks == NULL);
+	result = isc_pool_create(zmgr->mctx, workers, taskfree, zonetaskinit,
+				 zmgr, &zmgr->zonetasks);
+	if (result != ISC_R_SUCCESS) {
+		goto fail;
 	}
 
-	/* Create or resize the zone task pools. */
-	if (zmgr->zonetasks == NULL) {
-		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
-					     2, false, &pool);
-	} else {
-		result = isc_taskpool_expand(&zmgr->zonetasks, ntasks, false,
-					     &pool);
+	/* Create the zone load tasks pool. */
+	REQUIRE(zmgr->loadtasks == NULL);
+	result = isc_pool_create(zmgr->mctx, workers, taskfree, loadtaskinit,
+				 zmgr, &zmgr->loadtasks);
+	if (result != ISC_R_SUCCESS) {
+		goto fail;
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		zmgr->zonetasks = pool;
+	/* Create the zone memory context pool. */
+	REQUIRE(zmgr->mctxpool == NULL);
+	result = isc_pool_create(zmgr->mctx, workers, mctxfree, mctxinit, NULL,
+				 &zmgr->mctxpool);
+	if (result != ISC_R_SUCCESS) {
+		goto fail;
 	}
 
-	/*
-	 * We always set all tasks in the zone-load task pool to
-	 * privileged.  This prevents other tasks in the system from
-	 * running while the server task manager is in privileged
-	 * mode.
-	 */
-	pool = NULL;
-	if (zmgr->loadtasks == NULL) {
-		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
-					     UINT_MAX, true, &pool);
-	} else {
-		result = isc_taskpool_expand(&zmgr->loadtasks, ntasks, true,
-					     &pool);
+	return (ISC_R_SUCCESS);
+fail:
+	if (zmgr->mctxpool != NULL) {
+		isc_pool_destroy(&zmgr->mctxpool);
 	}
-
-	if (result == ISC_R_SUCCESS) {
-		zmgr->loadtasks = pool;
+	if (zmgr->loadtasks != NULL) {
+		isc_pool_destroy(&zmgr->loadtasks);
 	}
-
-	/* Create or resize the zone memory context pool. */
-	if (zmgr->mctxpool == NULL) {
-		result = isc_pool_create(zmgr->mctx, nmctx, mctxfree, mctxinit,
-					 NULL, &mctxpool);
-	} else {
-		result = isc_pool_expand(&zmgr->mctxpool, nmctx, &mctxpool);
-	}
-
-	if (result == ISC_R_SUCCESS) {
-		zmgr->mctxpool = mctxpool;
+	if (zmgr->zonetasks != NULL) {
+		isc_pool_destroy(&zmgr->zonetasks);
 	}
 
 	return (result);

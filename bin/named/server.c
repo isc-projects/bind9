@@ -9222,14 +9222,6 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	/*
-	 * Zones have been counted; set the zone manager task pool size.
-	 */
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "sizing zone task pool based on %d zones", num_zones);
-	CHECK(dns_zonemgr_setsize(named_g_server->zonemgr, num_zones));
-
-	/*
 	 * Configure and freeze all explicit views.  Explicit
 	 * views that have zones were already created at parsing
 	 * time, but views with no zones must be created here.
@@ -10192,10 +10184,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
 				      named_g_timermgr, named_g_netmgr,
-				      &server->zonemgr),
+				      named_g_cpus, &server->zonemgr),
 		   "dns_zonemgr_create");
-	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000), "dns_zonemgr_"
-							       "setsize");
 
 	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");
 	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,

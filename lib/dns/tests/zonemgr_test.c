@@ -64,7 +64,7 @@ zonemgr_create(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, 1,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -82,21 +82,14 @@ zonemgr_managezone(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, 1,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_makezone("foo", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	/* This should not succeed until the dns_zonemgr_setsize() is run */
-	result = dns_zonemgr_managezone(myzonemgr, zone);
-	assert_int_equal(result, ISC_R_FAILURE);
-
 	assert_int_equal(dns_zonemgr_getcount(myzonemgr, DNS_ZONESTATE_ANY), 0);
-
-	result = dns_zonemgr_setsize(myzonemgr, 1);
-	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Now it should succeed */
 	result = dns_zonemgr_managezone(myzonemgr, zone);
@@ -123,18 +116,10 @@ zonemgr_createzone(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, 1,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	/* This should not succeed until the dns_zonemgr_setsize() is run */
-	result = dns_zonemgr_createzone(myzonemgr, &zone);
-	assert_int_equal(result, ISC_R_FAILURE);
-
-	result = dns_zonemgr_setsize(myzonemgr, 1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/* Now it should succeed */
 	result = dns_zonemgr_createzone(myzonemgr, &zone);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(zone);
@@ -162,14 +147,11 @@ zonemgr_unreachable(void **state) {
 
 	TIME_NOW(&now);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, 1,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_makezone("foo", &zone, NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = dns_zonemgr_setsize(myzonemgr, 1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_zonemgr_managezone(myzonemgr, zone);
@@ -224,7 +206,6 @@ zonemgr_unreachable(void **state) {
  * 	- dns_zonemgr_forcemaint
  * 	- dns_zonemgr_resumexfrs
  * 	- dns_zonemgr_shutdown
- * 	- dns_zonemgr_setsize
  * 	- dns_zonemgr_settransfersin
  * 	- dns_zonemgr_getttransfersin
  * 	- dns_zonemgr_settransfersperns

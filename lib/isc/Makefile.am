@@ -90,7 +90,6 @@ libisc_la_HEADERS =			\
 	include/isc/symtab.h		\
 	include/isc/syslog.h		\
 	include/isc/task.h		\
-	include/isc/taskpool.h		\
 	include/isc/thread.h		\
 	include/isc/time.h		\
 	include/isc/timer.h		\
@@ -191,7 +190,6 @@ libisc_la_SOURCES =		\
 	syslog.c		\
 	task.c			\
 	task_p.h		\
-	taskpool.c		\
 	thread.c		\
 	time.c			\
 	timer.c			\

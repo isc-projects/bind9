@@ -84,45 +84,7 @@ void *
 isc_pool_get(isc_pool_t *pool);
 /*%<
  * Returns a pointer to an object from the pool. Currently the object
- * is chosen from the pool at random.  (This may be changed in the future
- * to something that guaratees balance.)
- */
-
-int
-isc_pool_count(isc_pool_t *pool);
-/*%<
- * Returns the number of objcts in the pool 'pool'.
- */
-
-isc_result_t
-isc_pool_expand(isc_pool_t **sourcep, unsigned int count, isc_pool_t **targetp);
-
-/*%<
- * If 'size' is larger than the number of objects in the pool pointed to by
- * 'sourcep', then a new pool of size 'count' is allocated, the existing
- * objects are copied into it, additional ones created to bring the
- * total number up to 'count', and the resulting pool is attached to
- * 'targetp'.
- *
- * If 'count' is less than or equal to the number of objects in 'source', then
- * 'sourcep' is attached to 'targetp' without any other action being taken.
- *
- * In either case, 'sourcep' is detached.
- *
- * Requires:
- *
- * \li	'sourcep' is not NULL and '*source' is not NULL
- * \li	'targetp' is not NULL and '*source' is NULL
- *
- * Ensures:
- *
- * \li	On success, '*targetp' points to a valid task pool.
- * \li	On success, '*sourcep' points to NULL.
- *
- * Returns:
- *
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
+ * is chosen from the pool at random.
  */
 
 void

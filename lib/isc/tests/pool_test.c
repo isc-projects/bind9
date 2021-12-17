@@ -84,55 +84,9 @@ create_pool(void **state) {
 	result = isc_pool_create(test_mctx, 8, poolfree, poolinit, taskmgr,
 				 &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool), 8);
 
 	isc_pool_destroy(&pool);
 	assert_null(pool);
-}
-
-/* Resize a pool */
-static void
-expand_pool(void **state) {
-	isc_result_t result;
-	isc_pool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
-
-	UNUSED(state);
-
-	result = isc_pool_create(test_mctx, 10, poolfree, poolinit, taskmgr,
-				 &pool1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool1), 10);
-
-	/* resizing to a smaller size should have no effect */
-	hold = pool1;
-	result = isc_pool_expand(&pool1, 5, &pool2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool2), 10);
-	assert_ptr_equal(pool2, hold);
-	assert_null(pool1);
-	pool1 = pool2;
-	pool2 = NULL;
-
-	/* resizing to the same size should have no effect */
-	hold = pool1;
-	result = isc_pool_expand(&pool1, 10, &pool2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool2), 10);
-	assert_ptr_equal(pool2, hold);
-	assert_null(pool1);
-	pool1 = pool2;
-	pool2 = NULL;
-
-	/* resizing to larger size should make a new pool */
-	hold = pool1;
-	result = isc_pool_expand(&pool1, 20, &pool2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool2), 20);
-	assert_ptr_not_equal(pool2, hold);
-	assert_null(pool1);
-
-	isc_pool_destroy(&pool2);
-	assert_null(pool2);
 }
 
 /* Get objects */
@@ -148,7 +102,6 @@ get_objects(void **state) {
 	result = isc_pool_create(test_mctx, 2, poolfree, poolinit, taskmgr,
 				 &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(isc_pool_count(pool), 2);
 
 	item = isc_pool_get(pool);
 	assert_non_null(item);
@@ -174,7 +127,6 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(get_objects, _setup, _teardown),
 	};
 
