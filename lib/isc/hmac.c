@@ -94,18 +94,17 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len) {
 isc_result_t
 isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
 	       unsigned int *digestlen) {
-	size_t len = 0;
-
 	REQUIRE(hmac != NULL);
 	REQUIRE(digest != NULL);
+	REQUIRE(digestlen != NULL);
+
+	size_t len = *digestlen;
 
 	if (EVP_DigestSignFinal(hmac, digest, &len) != 1) {
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
-	if (digestlen != NULL) {
-		*digestlen = (unsigned int)len;
-	}
+	*digestlen = (unsigned int)len;
 
 	return (ISC_R_SUCCESS);
 }

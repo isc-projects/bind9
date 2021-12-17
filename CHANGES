@@ -1,3 +1,8 @@
+5781.	[bug]		Make BIND work with OpenSSL 3.0.1 as it is now
+			enforcing minimum buffer lengths in EVP_MAC_final and
+			hence EVP_DigestSignFinal.  rndc and TSIG at a minimum
+			were broken by this change. [GL #3057]
+
 5780.	[bug]		The Linux kernel may send netlink messages
 			indicating that network interfaces have changed
 			when they have not. This caused frequent unnecessary

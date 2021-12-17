@@ -31,14 +31,15 @@ typedef void isc_hmac_t;
  * @buf: data to hash
  * @len: length of the data to hash
  * @digest: the output buffer
- * @digestlen: the length of the data written to @digest
+ * @digestlen: in: the length of @digest
+ *             out: the length of the data written to @digest
  *
  * This function computes the message authentication code using a digest type
  * @type with key @key which is @keylen bytes long from data in @buf which is
  * @len bytes long, and places the output into @digest, which must have space
- * for the hash function output (use ISC_MAX_MD_SIZE if unsure).  If the
- * @digestlen parameter is not NULL then the number of bytes of data written
- * (i.e. the length of the digest) will be written to the @digestlen.
+ * for the hash function output (use ISC_MAX_MD_SIZE if unsure). @digestlen
+ * is used to pass in the length of the digest buffer and returns the length
+ * of digest written to @digest.
  */
 isc_result_t
 isc_hmac(const isc_md_type_t *type, const void *key, const size_t keylen,
@@ -103,13 +104,14 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len);
  * isc_hmac_final:
  * @hmac: HMAC context
  * @digest: the output buffer
- * @digestlen: the length of the data written to @digest
+ * @digestlen: in: the length of @digest
+ *             out: the length of the data written to @digest
  *
  * This function retrieves the message authentication code from @hmac and places
- * it in @digest, which must have space for the hash function output.  If the
- * @digestlen parameter is not NULL then the number of bytes of data written
- * (i.e. the length of the digest) will be written to the @digestlen.  After
- * calling this function no additional calls to isc_hmac_update() can be made.
+ * it in @digest, which must have space for the hash function output. @digestlen
+ * is used to pass in the length of the digest buffer and returns the length
+ * of digest written to @digest.  After calling this function no additional
+ * calls to isc_hmac_update() can be made.
  */
 isc_result_t
 isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
