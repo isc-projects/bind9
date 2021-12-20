@@ -76,7 +76,7 @@ $TSIGKEYGEN ddns-key.example.nil > ns1/ddns.key
 if $FEATURETEST --md5; then
 	$TSIGKEYGEN -a hmac-md5 md5-key > ns1/md5.key
 else
-	echo -n > ns1/md5.key
+	echo "/* MD5 NOT SUPPORTED */" > ns1/md5.key
 fi
 $TSIGKEYGEN -a hmac-sha1 sha1-key > ns1/sha1.key
 $TSIGKEYGEN -a hmac-sha224 sha224-key > ns1/sha224.key
