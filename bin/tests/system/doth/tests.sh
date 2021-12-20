@@ -44,7 +44,8 @@ wait_for_tls_xfer() (
 	shift
 	zone_name="$1"
 	shift
-	dig_with_tls_opts -b 10.53.0.3 "@10.53.0.$srv_number" "${zone_name}." AXFR > "dig.out.ns$srv_number.${zone_name}.test$n" || return 1
+	# Let's bind to .10 to make it possible to easily distinguish dig from NSs in packet traces
+	dig_with_tls_opts -b 10.53.0.10 "@10.53.0.$srv_number" "${zone_name}." AXFR > "dig.out.ns$srv_number.${zone_name}.test$n" || return 1
 	grep "^;" "dig.out.ns$srv_number.${zone_name}.test$n" > /dev/null && return 1
 	return 0
 )
@@ -55,7 +56,7 @@ n=0
 n=$((n+1))
 echo_i "testing XoT server functionality (using dig) ($n)"
 ret=0
-dig_with_tls_opts example. -b 10.53.0.3 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
+dig_with_tls_opts example. -b 10.53.0.10 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
 grep "^;" dig.out.ns1.test$n | cat_i
 digcomp example.axfr.good dig.out.ns1.test$n || ret=1
 if test $ret != 0 ; then echo_i "failed"; fi
@@ -95,6 +96,19 @@ if retry_quiet 10 wait_for_tls_xfer 3 example2; then
 	test -f "ns3/example2.db" && ret=1
 else
 	echo_i "timed out waiting for zone transfer"
+fi
+if test $ret != 0 ; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "testing incoming XoT functionality (from the third secondary) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 4 example; then
+	grep "^;" "dig.out.ns4.example.test$n" | cat_i
+	digcomp example.axfr.good "dig.out.ns4.example.test$n" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
 fi
 if test $ret != 0 ; then echo_i "failed"; fi
 status=$((status+ret))
@@ -143,7 +157,7 @@ status=$((status + ret))
 n=$((n+1))
 echo_i "testing zone transfer over Do53 server functionality (using dig, failure expected) ($n)"
 ret=0
-dig_with_opts example. -b 10.53.0.3 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
+dig_with_opts example. -b 10.53.0.10 @10.53.0.1 axfr > dig.out.ns1.test$n || ret=1
 grep "; Transfer failed." dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -442,14 +456,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "doing rndc reconfig to see that queries keep being served after that ($n)"
 ret=0
-rndccmd 10.53.0.1 reconfig
+rndccmd 10.53.0.4 reconfig
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "checking DoT query (ephemeral key) after a reconfiguration ($n)"
+echo_i "checking DoT query after a reconfiguration ($n)"
 ret=0
-dig_with_tls_opts @10.53.0.1 . SOA > dig.out.test$n
+dig_with_tls_opts @10.53.0.4 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -457,7 +471,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (POST) after a reconfiguration ($n)"
 ret=0
-dig_with_https_opts @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts @10.53.0.4 example SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
