@@ -1,3 +1,7 @@
+5782.	[func]		Use ECDSA P-256 instead of a 4096-bit RSA when
+			generating ephemeral key and certificate for the
+			'tls ephemeral' configuration. [GL #2264]
+
 5781.	[bug]		Make BIND work with OpenSSL 3.0.1 as it is now
 			enforcing minimum buffer lengths in EVP_MAC_final and
 			hence EVP_DigestSignFinal.  rndc and TSIG at a minimum

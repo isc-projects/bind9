@@ -693,7 +693,7 @@ AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb], [:],
 #
 # Check for OpenSSL 1.1.x/LibreSSL functions
 #
-AC_CHECK_FUNCS([DH_get0_key ECDSA_SIG_get0 RSA_set0_key])
+AC_CHECK_FUNCS([DH_get0_key ECDSA_SIG_get0 RSA_set0_key EVP_PKEY_get0_EC_KEY])
 
 AC_CHECK_FUNCS([TLS_server_method TLS_client_method])
 
