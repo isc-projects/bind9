@@ -237,7 +237,7 @@ mv -f ns2/other.db.new ns2/other.db
 $RNDCCMD 10.53.0.2 thaw 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 1
 [ -f ns2/other.db.jnl ] && {
-	echo_i "'test -f ns2/other.db.jnl' succeeded when it shouldn't have"; ret=1;
+    echo_i "'test -f ns2/other.db.jnl' succeeded when it shouldn't have"; ret=1;
 }
 $NSUPDATE -p ${PORT} -k ns2/session.key > nsupdate.out.2.test$n 2>&1 <<END || ret=1
 server 10.53.0.2
@@ -370,7 +370,7 @@ ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT2} -c ns4/key2.conf status > /dev/null 2>&1 || ret=1
 for i in 1 3 4 5 6
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT2} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT2} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -381,7 +381,7 @@ ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT3} -c ns4/key3.conf status > /dev/null 2>&1 || ret=1
 for i in 1 2 4 5 6
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT3} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT3} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -392,7 +392,7 @@ ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT4} -c ns4/key4.conf status > /dev/null 2>&1 || ret=1
 for i in 1 2 3 5 6
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT4} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT4} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -403,7 +403,7 @@ ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT5} -c ns4/key5.conf status > /dev/null 2>&1 || ret=1
 for i in 1 2 3 4 6
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT5} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT5} -c ns4/key${i}.conf status > /dev/null 2>&1 && ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -414,7 +414,7 @@ ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf status > /dev/null 2>&1 || ret=1
 for i in 1 2 3 4 5
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key${i}.conf status > /dev/null 2>&1 2>&1 && ret=1
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key${i}.conf status > /dev/null 2>&1 2>&1 && ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -424,7 +424,8 @@ echo_i "testing single control channel with multiple algorithms ($n)"
 ret=0
 for i in 1 2 3 4 5 6
 do
-        $RNDC -s 10.53.0.4 -p ${EXTRAPORT7} -c ns4/key${i}.conf status > /dev/null 2>&1 || ret=1
+	test $i = 1 && $FEATURETEST --have-fips-mode && continue
+	$RNDC -s 10.53.0.4 -p ${EXTRAPORT7} -c ns4/key${i}.conf status > /dev/null 2>&1 || ret=1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -512,20 +513,20 @@ status=$((status+ret))
 
 for i in 512 1024 2048 4096 8192 16384 32768 65536 131072 262144 524288
 do
-        n=$((n+1))
+	n=$((n+1))
 	echo_i "testing rndc buffer size limits (size=${i}) ($n)"
 	ret=0
 	$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf testgen ${i} 2>&1 > rndc.out.$i.test$n || ret=1
 	actual_size=`$GENCHECK rndc.out.$i.test$n`
 	if [ "$?" = "0" ]; then
-            expected_size=$((i+1))
+	    expected_size=$((i+1))
 	    if [ $actual_size != $expected_size ]; then ret=1; fi
 	else
 	    ret=1
 	fi
 
 	if [ $ret != 0 ]; then echo_i "failed"; fi
-        status=$((status+ret))
+	status=$((status+ret))
 done
 
 n=$((n+1))
