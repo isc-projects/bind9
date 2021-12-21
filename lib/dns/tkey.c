@@ -227,6 +227,9 @@ free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
 		while (!ISC_LIST_EMPTY(name->list)) {
 			set = ISC_LIST_HEAD(name->list);
 			ISC_LIST_UNLINK(name->list, set, link);
+			if (dns_rdataset_isassociated(set)) {
+				dns_rdataset_disassociate(set);
+			}
 			dns_message_puttemprdataset(msg, &set);
 		}
 		dns_message_puttempname(msg, &name);
