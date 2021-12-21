@@ -312,14 +312,18 @@ update add optout.example. 3600 NSEC3PARAM 1 1 10 BEEF
 send
 END
 
-# try to convert nsec-only.example; this should fail due to non-NSEC key
-echo_i "preset nsec3param in unsigned zone via nsupdate ($n)"
-$NSUPDATE > nsupdate.out 2>&1 <<END
+if $SHELL ../testcrypto.sh -q RSASHA1
+then
+    # try to convert nsec-only.example; this should fail due to
+    # non-NSEC3 compatible keys
+    echo_i "preset nsec3param in unsigned zone via nsupdate ($n)"
+    $NSUPDATE > nsupdate.out 2>&1 <<END
 server 10.53.0.3 ${PORT}
 zone nsec-only.example.
 update add nsec-only.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
 END
+fi
 
 echo_i "checking for nsec3param in unsigned zone ($n)"
 ret=0
@@ -490,7 +494,12 @@ status=$((status + ret))
 
 echo_i "checking NSEC->NSEC3 conversion failed with NSEC-only key ($n)"
 ret=0
-grep "failed: REFUSED" nsupdate.out > /dev/null || ret=1
+if $SHELL ../testcrypto.sh -q RSASHA1
+then
+    grep "failed: REFUSED" nsupdate.out > /dev/null || ret=1
+else
+    echo_i "skip: RSASHA1 not supported"
+fi
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1144,7 +1153,7 @@ oldserial=$($DIG $DIGOPTS +short soa . @10.53.0.1 | awk '{print $3}')
 sleep 4
 
 echo_i "revoking key to duplicated key ID"
-$SETTIME -R now -K ns2 Kbar.+005+30676.key > settime.out.test$n.3 || ret=1
+$SETTIME -R now -K ns2 Kbar.+013+59973.key > settime.out.test$n.3 || ret=1
 
 ($RNDCCMD 10.53.0.2 loadkeys bar. 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
 
@@ -1178,7 +1187,10 @@ checkprivate nsec3.example 10.53.0.3 || ret=1
 checkprivate nsec3.nsec3.example 10.53.0.3 || ret=1
 checkprivate nsec3.optout.example 10.53.0.3 || ret=1
 checkprivate nsec3-to-nsec.example 10.53.0.3 2 || ret=1 # automatically removed
-checkprivate nsec-only.example 10.53.0.3 || ret=1
+if $SHELL ../testcrypto.sh -q RSASHA1
+then
+    checkprivate nsec-only.example 10.53.0.3 || ret=1
+fi
 checkprivate oldsigs.example 10.53.0.3 2 || ret=1 # pre-signed
 checkprivate optout.example 10.53.0.3 || ret=1
 checkprivate optout.nsec3.example 10.53.0.3 || ret=1
@@ -1311,8 +1323,8 @@ status=$((status + ret))
 
 echo_i "checking revoked key with duplicate key ID ($n)"
 ret=0
-id=30676
-rid=30804
+id=59973
+rid=60101
 $DIG $DIGOPTS +multi dnskey bar @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns2.test$n > /dev/null && ret=1
 keys=$(grep '; key id = '"$rid"'$' dig.out.ns2.test$n | wc -l)

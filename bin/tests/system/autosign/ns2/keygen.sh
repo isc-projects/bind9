@@ -48,10 +48,10 @@ zone=bar
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cat $infile > $zonefile
-for i in Xbar.+005+30676.key Xbar.+005+30804.key Xbar.+005+30676.private \
-	 Xbar.+005+30804.private
+for i in Xbar.+013+59973.key Xbar.+013+59973.private \
+	 Xbar.+013+60101.key Xbar.+013+60101.private
 do
-	cp $i $(echo $i | sed s/X/K/)
+    cp $i $(echo $i | sed s/X/K/)
 done
-$KEYGEN -a RSASHA1 -q $zone > /dev/null
-$DSFROMKEY Kbar.+005+30804.key > dsset-bar.
+$KEYGEN -a ECDSAP256SHA256 -q $zone > /dev/null
+$DSFROMKEY Kbar.+013+60101.key > dsset-bar.
