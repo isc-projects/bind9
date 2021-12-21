@@ -27,7 +27,7 @@ while test "$#" -gt 0; do
                 args="$args -q"
                 quiet=1
                 ;;
-        rsa|RSA)
+        rsa|RSA|rsasha1|RSASHA1)
                 alg="-a RSASHA1"
                 msg="RSA cryptography"
                 ;;

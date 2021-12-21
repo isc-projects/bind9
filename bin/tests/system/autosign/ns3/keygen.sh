@@ -140,7 +140,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 setup rsasha256.example
 cp $infile $zonefile
 ksk=$($KEYGEN -q -a RSASHA256 -b 2048 -fk $zone 2> kg.out) || dumpit kg.out
-$KEYGEN -q -a RSASHA256 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA256 -b 2048 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -149,17 +149,24 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 setup rsasha512.example
 cp $infile $zonefile
 ksk=$($KEYGEN -q -a RSASHA512 -b 2048 -fk $zone 2> kg.out) || dumpit kg.out
-$KEYGEN -q -a RSASHA512 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA512 -b 2048 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
 # NSEC-only zone. A zone using NSEC-only DNSSEC algorithms.
+# None of these algorithms are supported for signing in FIPS mode
+# as they are MD5 and SHA1 based.
 #
-setup nsec-only.example
-cp $infile $zonefile
-ksk=$($KEYGEN -q -a RSASHA1 -fk $zone 2> kg.out) || dumpit kg.out
-$KEYGEN -q -a RSASHA1 $zone > kg.out 2>&1 || dumpit kg.out
-$DSFROMKEY $ksk.key > dsset-${zone}$TP
+if (cd ..; SYSTEMTESTTOP=.. $SHELL ../testcrypto.sh -q RSASHA1)
+then
+    setup nsec-only.example
+    cp $infile $zonefile
+    ksk=$($KEYGEN -q -a RSASHA1 -fk $zone 2> kg.out) || dumpit kg.out
+    $KEYGEN -q -a RSASHA1 $zone > kg.out 2>&1 || dumpit kg.out
+    $DSFROMKEY $ksk.key > dsset-${zone}$TP
+else
+    echo_i "skip: nsec-only.example - signing with RSASHA1 not supported"
+fi
 
 #
 # Signature refresh test zone.  Signatures are set to expire long
@@ -171,7 +178,7 @@ count=1
 while [ $count -le 1000 ]
 do
     echo "label${count} IN TXT label${count}" >> $zonefile
-    count=$(expr $count + 1)
+    count=$((count + 1))
 done
 $KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM $zone > kg.out 2>&1 || dumpit kg.out
@@ -182,8 +189,8 @@ mv $zonefile.signed $zonefile
 # NSEC3->NSEC transition test zone.
 #
 setup nsec3-to-nsec.example
-$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
