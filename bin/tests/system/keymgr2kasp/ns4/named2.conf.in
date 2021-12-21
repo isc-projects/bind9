@@ -37,7 +37,7 @@ controls {
 
 dnssec-policy "rsasha256" {
 	keys {
-		zsk key-directory lifetime P3M algorithm 8 1024;
+		zsk key-directory lifetime P3M algorithm 8 2048;
 		ksk key-directory lifetime P1Y algorithm 8 2048;
 	};
 
