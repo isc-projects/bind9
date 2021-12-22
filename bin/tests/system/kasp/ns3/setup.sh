@@ -42,14 +42,30 @@ U="UNRETENTIVE"
 #
 # Set up zones that will be initially signed.
 #
-for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
-	  rumoured rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 \
+for zn in default dnssec-keygen some-keys legacy-keys pregenerated \
+	  rumoured rsasha256 rsasha512 ecdsa256 ecdsa384 \
 	  dynamic dynamic-inline-signing inline-signing \
 	  checkds-ksk checkds-doubleksk checkds-csk inherit unlimited \
 	  manual-rollover multisigner-model2
 do
 	setup "${zn}.kasp"
 	cp template.db.in "$zonefile"
+done
+
+#
+# Set up RSASHA1 based zones
+#
+for zn in rsasha1 rsasha1-nsec3
+do
+	if (cd ..; $SHELL ../testcrypto.sh -q RSASHA1)
+	then
+		setup "${zn}.kasp"
+		cp template.db.in "$zonefile"
+	else
+		# don't add to zones.
+		echo_i "setting up zone: ${zn}.kasp"
+		cp template.db.in "${zn}.kasp.db"
+	fi
 done
 
 if [ -f ../ed25519-supported.file ]; then
@@ -78,31 +94,31 @@ done
 # Some of these zones already have keys.
 zone="dnssec-keygen.kasp"
 echo_i "setting up zone: $zone"
-$KEYGEN -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
+$KEYGEN -k rsasha256 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
 
 zone="some-keys.kasp"
 echo_i "setting up zone: $zone"
-$KEYGEN -G -a RSASHA1 -b 2000 -L 1234 $zone > keygen.out.$zone.1 2>&1
-$KEYGEN -G -a RSASHA1 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
+$KEYGEN -G -a RSASHA256 -b 2048 -L 1234 $zone > keygen.out.$zone.1 2>&1
+$KEYGEN -G -a RSASHA256 -f KSK  -L 1234 $zone > keygen.out.$zone.2 2>&1
 
 zone="legacy-keys.kasp"
 echo_i "setting up zone: $zone"
-ZSK=$($KEYGEN -a RSASHA1 -b 2048 -L 1234 $zone 2> keygen.out.$zone.1)
-KSK=$($KEYGEN -a RSASHA1 -f KSK  -L 1234 $zone 2> keygen.out.$zone.2)
+ZSK=$($KEYGEN -a RSASHA256 -b 2048 -L 1234 $zone 2> keygen.out.$zone.1)
+KSK=$($KEYGEN -a RSASHA256 -f KSK  -L 1234 $zone 2> keygen.out.$zone.2)
 echo $ZSK > legacy-keys.kasp.zsk
 echo $KSK > legacy-keys.kasp.ksk
 # Predecessor keys:
 Tact="now-9mo"
 Tret="now-3mo"
-ZSK=$($KEYGEN -a RSASHA1 -b 2048 -L 1234 $zone 2> keygen.out.$zone.3)
-KSK=$($KEYGEN -a RSASHA1 -f KSK  -L 1234 $zone 2> keygen.out.$zone.4)
+ZSK=$($KEYGEN -a RSASHA256 -b 2048 -L 1234 $zone 2> keygen.out.$zone.3)
+KSK=$($KEYGEN -a RSASHA256 -f KSK  -L 1234 $zone 2> keygen.out.$zone.4)
 $SETTIME -P $Tact -A $Tact -I $Tret -D $Tret "$ZSK"  > settime.out.$zone.1 2>&1
 $SETTIME -P $Tact -A $Tact -I $Tret -D $Tret "$KSK"  > settime.out.$zone.2 2>&1
 
 zone="pregenerated.kasp"
 echo_i "setting up zone: $zone"
-$KEYGEN -G -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
-$KEYGEN -G -k rsasha1 -l policies/kasp.conf $zone > keygen.out.$zone.2 2>&1
+$KEYGEN -G -k rsasha256 -l policies/kasp.conf $zone > keygen.out.$zone.1 2>&1
+$KEYGEN -G -k rsasha256 -l policies/kasp.conf $zone > keygen.out.$zone.2 2>&1
 
 zone="multisigner-model2.kasp"
 echo_i "setting up zone: $zone"
@@ -122,9 +138,9 @@ echo_i "setting up zone: $zone"
 Tpub="now"
 Tact="now+1d"
 keytimes="-P ${Tpub} -A ${Tact}"
-KSK=$($KEYGEN  -a RSASHA1 -f KSK  -L 1234 $keytimes $zone 2> keygen.out.$zone.1)
-ZSK1=$($KEYGEN -a RSASHA1 -b 2000 -L 1234 $keytimes $zone 2> keygen.out.$zone.2)
-ZSK2=$($KEYGEN -a RSASHA1         -L 1234 $keytimes $zone 2> keygen.out.$zone.3)
+KSK=$($KEYGEN  -a RSASHA256 -f KSK  -L 1234 $keytimes $zone 2> keygen.out.$zone.1)
+ZSK1=$($KEYGEN -a RSASHA256 -b 3072 -L 1234 $keytimes $zone 2> keygen.out.$zone.2)
+ZSK2=$($KEYGEN -a RSASHA256         -L 1234 $keytimes $zone 2> keygen.out.$zone.3)
 $SETTIME -s -g $O -k $R $Tpub -r $R $Tpub -d $H $Tpub  "$KSK"  > settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $R $Tpub -z $R $Tpub              "$ZSK1" > settime.out.$zone.2 2>&1
 $SETTIME -s -g $O -k $R $Tpub -z $R $Tpub              "$ZSK2" > settime.out.$zone.2 2>&1
