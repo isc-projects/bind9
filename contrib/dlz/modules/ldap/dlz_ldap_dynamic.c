@@ -193,7 +193,7 @@ cleanup:
 
 /*% Connects / reconnects to LDAP server */
 static isc_result_t
-ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
+dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
 	isc_result_t result;
 	int ldap_result;
 
@@ -700,7 +700,8 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 			db->log(ISC_LOG_INFO, "LDAP driver attempting to "
 					      "re-connect");
 
-			result = ldap_connect((ldap_instance_t *)dbdata, dbi);
+			result = dlz_ldap_connect((ldap_instance_t *)dbdata,
+						  dbi);
 			if (result != ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 				continue;
@@ -731,7 +732,8 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 		case LDAP_SERVER_DOWN:
 			db->log(ISC_LOG_INFO, "LDAP driver attempting to "
 					      "re-connect");
-			result = ldap_connect((ldap_instance_t *)dbdata, dbi);
+			result = dlz_ldap_connect((ldap_instance_t *)dbdata,
+						  dbi);
 			if (result != ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
@@ -1117,7 +1119,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	ldap->db = dbi;
 #endif /* if PTHREADS */
 		/* attempt to connect */
-		result = ldap_connect(ldap, dbi);
+		result = dlz_ldap_connect(ldap, dbi);
 
 		/*
 		 * if db connection cannot be created, log err msg and
