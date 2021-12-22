@@ -67,6 +67,60 @@ succeeds, then the server needs EDNS to be fully disabled with
 Please contact the administrators of noncompliant domains and encourage
 them to upgrade their broken DNS servers.
 
+Inspecting Encrypted DNS Traffic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   This feature requires support from the cryptographic library that
+   BIND 9 is built against.  For OpenSSL, version 1.1.1 or newer is
+   required (use ``named -V`` to check).
+
+By definition, TLS-encrypted traffic (e.g. DNS-over-TLS, DNS-over-HTTPS)
+is opaque to packet sniffers, which makes debugging problems with
+encrypted DNS close to impossible. However, Wireshark_ offers a
+solution_ to this problem by being able to read key log files. In order
+to make ``named`` prepare such a file, set the ``SSLKEYLOGFILE``
+environment variable to either:
+
+- the string ``config`` (``SSLKEYLOGFILE=config``); this requires
+  defining a ``logging`` :ref:`channel <logging_grammar>` which will
+  handle messages belonging to the ``sslkeylog`` category,
+
+- the path to the key file to write (``SSLKEYLOGFILE=/path/to/file``);
+  this is equivalent to the following ``logging`` :ref:`stanza
+  <logging_grammar>`:
+
+  ::
+
+     channel default_sslkeylogfile {
+         file "${SSLKEYLOGFILE}" versions 10 size 100m suffix timestamp;
+     };
+
+     category sslkeylog {
+         default_sslkeylogfile;
+     };
+
+.. note::
+
+   When using ``SSLKEYLOGFILE=config``, augmenting the log channel
+   output using options like ``print-time`` or ``print-severity`` is
+   strongly discouraged as it will likely make the key log file
+   unusable.
+
+When the ``SSLKEYLOGFILE`` environment variable is set, each TLS
+connection established by ``named`` (both incoming and outgoing) causes
+about 1 kilobyte of data to be written to the key log file.
+
+.. warning::
+
+   Due to the limitations of the current logging code in BIND 9,
+   enabling TLS pre-master secret logging adversely affects ``named``
+   performance.
+
+.. _Wireshark: https://www.wireshark.org/
+.. _solution: https://wiki.wireshark.org/TLS#tls-decryption
+
 Incrementing and Changing the Serial Number
 -------------------------------------------
 
