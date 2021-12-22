@@ -181,6 +181,7 @@ isc_logcategory_t isc_categories[] = { { "default", 0 }, /* "default
 							    must come
 							    first. */
 				       { "general", 0 },
+				       { "sslkeylog", 0 },
 				       { NULL, 0 } };
 
 /*!

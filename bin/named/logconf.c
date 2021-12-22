@@ -326,6 +326,7 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 
 	if (logconfig != NULL) {
 		named_log_setdefaultchannels(logconfig);
+		named_log_setdefaultsslkeylogfile(logconfig);
 	}
 
 	(void)cfg_map_get(logstmt, "channel", &channels);

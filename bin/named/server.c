@@ -9321,6 +9321,7 @@ load_configuration(const char *filename, named_server_t *server,
 			       "configuring logging");
 		} else {
 			named_log_setdefaultchannels(logc);
+			named_log_setdefaultsslkeylogfile(logc);
 			CHECKM(named_log_setunmatchedcategory(logc),
 			       "setting up default 'category unmatched'");
 			CHECKM(named_log_setdefaultcategory(logc),

@@ -58,6 +58,14 @@ named_log_setsafechannels(isc_logconfig_t *lcfg);
  * Like named_log_setdefaultchannels(), but omits any logging to files.
  */
 
+void
+named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg);
+/*%
+ * If the SSLKEYLOGFILE environment variable is set, sets up a default
+ * logging channel for writing TLS pre-master secrets to the path stored
+ * in that environment variable (for debugging purposes).
+ */
+
 isc_result_t
 named_log_setdefaultcategory(isc_logconfig_t *lcfg);
 /*%

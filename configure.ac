@@ -624,16 +624,17 @@ AC_COMPILE_IFELSE(
 # Check for functions added in OpenSSL or LibreSSL
 #
 
-AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto OPENSSL_cleanup])
+AC_CHECK_FUNCS([BIO_read_ex BIO_write_ex])
 AC_CHECK_FUNCS([CRYPTO_zalloc])
-AC_CHECK_FUNCS([EVP_PKEY_new_raw_private_key EVP_PKEY_eq])
+AC_CHECK_FUNCS([ERR_get_error_all])
 AC_CHECK_FUNCS([EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free])
 AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset EVP_MD_CTX_get0_md])
-AC_CHECK_FUNCS([ERR_get_error_all])
-AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
-AC_CHECK_FUNCS([BIO_read_ex BIO_write_ex])
-AC_CHECK_FUNCS([SSL_CTX_up_ref])
+AC_CHECK_FUNCS([EVP_PKEY_new_raw_private_key EVP_PKEY_eq])
+AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto OPENSSL_cleanup])
+AC_CHECK_FUNCS([SSL_CTX_set_keylog_callback])
 AC_CHECK_FUNCS([SSL_CTX_set_min_proto_version])
+AC_CHECK_FUNCS([SSL_CTX_up_ref])
+AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
 
 #
 # Check for algorithm support in OpenSSL
