@@ -167,8 +167,9 @@ extern isc_logmodule_t	 isc_modules[];
  * Do not log directly to DEFAULT.  Use another category.  When in doubt,
  * use GENERAL.
  */
-#define ISC_LOGCATEGORY_DEFAULT (&isc_categories[0])
-#define ISC_LOGCATEGORY_GENERAL (&isc_categories[1])
+#define ISC_LOGCATEGORY_DEFAULT	  (&isc_categories[0])
+#define ISC_LOGCATEGORY_GENERAL	  (&isc_categories[1])
+#define ISC_LOGCATEGORY_SSLKEYLOG (&isc_categories[2])
 /*@}*/
 
 #define ISC_LOGMODULE_SOCKET	(&isc_modules[0])

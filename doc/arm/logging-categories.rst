@@ -97,6 +97,9 @@
 ``spill``
     Queries that have been terminated, either by dropping or responding with SERVFAIL, as a result of a fetchlimit quota being exceeded.
 
+``sslkeylog``
+    TLS pre-master secrets (for debugging purposes).
+
 ``trust-anchor-telemetry``
     Trust-anchor-telemetry requests received by ``named``.
 
