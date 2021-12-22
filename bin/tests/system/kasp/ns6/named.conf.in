@@ -62,7 +62,7 @@ zone "step1.going-straight-to-none.kasp" {
 zone "step1.algorithm-roll.kasp" {
 	type primary;
 	file "step1.algorithm-roll.kasp.db";
-	dnssec-policy "rsasha1";
+	dnssec-policy "rsasha256";
 };
 
 zone "step1.csk-algorithm-roll.kasp" {
