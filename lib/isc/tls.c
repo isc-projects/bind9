@@ -10,6 +10,7 @@
  */
 
 #include <inttypes.h>
+#include <stdlib.h>
 #include <string.h>
 #if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
@@ -175,6 +176,30 @@ isc_tlsctx_free(isc_tlsctx_t **ctxp) {
 	SSL_CTX_free(ctx);
 }
 
+/*
+ * Callback invoked by the SSL library whenever a new TLS pre-master secret
+ * needs to be logged.
+ */
+static void
+sslkeylogfile_append(const SSL *ssl, const char *line) {
+	UNUSED(ssl);
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_NETMGR,
+		      ISC_LOG_INFO, "%s", line);
+}
+
+/*
+ * Enable TLS pre-master secret logging if the SSLKEYLOGFILE environment
+ * variable is set.  This needs to be done on a per-context basis as that is
+ * how SSL_CTX_set_keylog_callback() works.
+ */
+static void
+sslkeylogfile_init(isc_tlsctx_t *ctx) {
+	if (getenv("SSLKEYLOGFILE") != NULL) {
+		SSL_CTX_set_keylog_callback(ctx, sslkeylogfile_append);
+	}
+}
+
 isc_result_t
 isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 	unsigned long err;
@@ -201,6 +226,8 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
 					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
 #endif
+
+	sslkeylogfile_init(ctx);
 
 	*ctxp = ctx;
 
@@ -407,6 +434,8 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			goto ssl_error;
 		}
 	}
+
+	sslkeylogfile_init(ctx);
 
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
