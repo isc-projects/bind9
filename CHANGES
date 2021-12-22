@@ -1,3 +1,8 @@
+5783.	[func]		named is now able to log TLS pre-master secrets for
+			debugging purposes. This requires setting the
+			SSLKEYLOGFILE environment variable appropriately.
+			[GL #2723]
+
 5782.	[func]		Use ECDSA P-256 instead of a 4096-bit RSA when
 			generating ephemeral key and certificate for the
 			'tls ephemeral' configuration. [GL #2264]
