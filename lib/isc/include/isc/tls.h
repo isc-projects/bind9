@@ -158,7 +158,6 @@ isc_tlsctx_enable_http2client_alpn(isc_tlsctx_t *ctx);
 void
 isc_tlsctx_enable_http2server_alpn(isc_tlsctx_t *ctx);
 /*%<
- *
  * Enable HTTP/2 Application Layer Protocol Negotation for 'ctx'.
  *
  * Requires:
@@ -178,9 +177,118 @@ isc_tlsctx_enable_dot_client_alpn(isc_tlsctx_t *ctx);
 void
 isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
 /*%<
- *
  * Enable DoT Application Layer Protocol Negotation for 'ctx'.
  *
  * Requires:
  *\li	'ctx' is not NULL.
+ */
+
+typedef struct isc_tlsctx_cache isc_tlsctx_cache_t;
+/*%<
+ * The TLS context cache is an object which allows retrieving a
+ * previously created TLS context based on the following tuple:
+ *
+ * 1. The name of a TLS entry, as defined in the configuration file;
+ * 2. A transport type. Currently, only TLS (DoT) and HTTPS (DoH) are
+ *    supported;
+ * 3. An IP address family (AF_INET or AF_INET6).
+ *
+ * There are multiple uses for this object:
+ *
+ * First, it allows reuse of client-side contexts during zone transfers.
+ * That, in turn, allows use of session caches associated with these
+ * contexts, which enables TLS session resumption, making establishment
+ * of XoT connections faster and computationally cheaper.
+ *
+ * Second, it can be extended to be used as storage for TLS context related
+ * data, as defined in 'tls' statements in the configuration file (for
+ * example, CA-bundle intermediate certificate storage, client-side contexts
+ * with pre-loaded certificates in a case of Mutual TLS, etc). This will
+ * be used to implement Strict/Mutual TLS.
+ *
+ * Third, it avoids creating an excessive number of server-side TLS
+ * contexts, which might help to reduce the number of contexts
+ * created during server initialisation and reconfiguration.
+ */
+
+typedef enum {
+	isc_tlsctx_cache_none = 0,
+	isc_tlsctx_cache_tls,
+	isc_tlsctx_cache_https,
+	isc_tlsctx_cache_count
+} isc_tlsctx_cache_transport_t;
+/*%< TLS context cache transport type values. */
+
+isc_tlsctx_cache_t *
+isc_tlsctx_cache_new(isc_mem_t *mctx);
+/*%<
+ * Create a new TLS context cache object.
+ *
+ * Requires:
+ *\li	'mctx' is a valid memory context.
+ */
+
+void
+isc_tlsctx_cache_attach(isc_tlsctx_cache_t  *source,
+			isc_tlsctx_cache_t **targetp);
+/*%<
+ * Create a reference to the TLS context cache object.
+ *
+ * Requires:
+ *\li	'source' is a valid TLS context cache object;
+ *\li	'targetp' is a valid pointer to a pointer which must equal NULL.
+ */
+
+void
+isc_tlsctx_cache_detach(isc_tlsctx_cache_t **pcache);
+/*%<
+ * Remove a reference to the TLS context cache object.
+ *
+ * Requires:
+ *\li	'pcache' is a valid pointer to a pointer which must point to a
+ *      valid TLS context cache object.
+ */
+
+isc_result_t
+isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
+		     const isc_tlsctx_cache_transport_t transport,
+		     const uint16_t family, isc_tlsctx_t *ctx,
+		     isc_tlsctx_t **pfound);
+/*%<
+ *
+ * Add a new TLS context to the TLS context cache. 'pfound' is an
+ * optional pointer, which can be used to retrieve an already
+ * existing TLS context object in a case it exists.
+ *
+ * Requires:
+ *\li	'cache' is a valid pointer to a TLS context cache object;
+ *\li	'name' is a valid pointer to a non-empty string;
+ *\li	'transport' is a valid transport identifier (currently only
+ *       TLS/DoT and HTTPS/DoH are supported);
+ *\li	'family' - either 'AF_INET' or 'AF_INET6';
+ *\li   'ctx' - a valid pointer to a valid TLS context object.
+ *
+ * Returns:
+ *\li	#ISC_R_EXISTS - node of the same key already exists;
+ *\li	#ISC_R_SUCCESS - the new entry has been added successfully.
+ */
+
+isc_result_t
+isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
+		      const isc_tlsctx_cache_transport_t transport,
+		      const uint16_t family, isc_tlsctx_t **pctx);
+/*%<
+ * Look up a TLS context in the TLS context cache.
+ *
+ * Requires:
+ *\li	'cache' is a valid pointer to a TLS context cache object;
+ *\li	'name' is a valid pointer to a non empty string;
+ *\li	'transport' - a valid transport identifier (currently only
+ *       TLS/DoT and HTTPS/DoH are supported;
+ *\li	'family' - either 'AF_INET' or 'AF_INET6';
+ *\li   'pctx' - a valid pointer to a non-NULL pointer.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS - the context has been found;
+ *\li	#ISC_R_NOTFOUND	- the context has not been found.
  */
