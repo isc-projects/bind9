@@ -176,6 +176,7 @@ isc_tlsctx_free(isc_tlsctx_t **ctxp) {
 	SSL_CTX_free(ctx);
 }
 
+#if HAVE_SSL_CTX_SET_KEYLOG_CALLBACK
 /*
  * Callback invoked by the SSL library whenever a new TLS pre-master secret
  * needs to be logged.
@@ -199,6 +200,9 @@ sslkeylogfile_init(isc_tlsctx_t *ctx) {
 		SSL_CTX_set_keylog_callback(ctx, sslkeylogfile_append);
 	}
 }
+#else /* HAVE_SSL_CTX_SET_KEYLOG_CALLBACK */
+#define sslkeylogfile_init(ctx)
+#endif /* HAVE_SSL_CTX_SET_KEYLOG_CALLBACK */
 
 isc_result_t
 isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
