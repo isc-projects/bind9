@@ -1,3 +1,7 @@
+5785.	[bug]		named could leak memory when two dnssec-policy clauses
+			had the same name. named failed to log this error.
+			[GL #3085]
+
 5784.	[func]		Implement TLS-contexts reuse. Reusing the
 			previously created TLS context objects can reduce
 			initialisation time for some configurations and enables
