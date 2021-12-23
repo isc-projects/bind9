@@ -8431,6 +8431,15 @@ load_configuration(const char *filename, named_server_t *server,
 
 	server->tlsctx_server_cache = isc_tlsctx_cache_new(named_g_mctx);
 
+	if (server->tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
+	}
+
+	server->tlsctx_client_cache = isc_tlsctx_cache_new(named_g_mctx);
+
+	dns_zonemgr_set_tlsctx_cache(server->zonemgr,
+				     server->tlsctx_client_cache);
+
 	/*
 	 * Fill in the maps array, used for resolving defaults.
 	 */
@@ -10182,6 +10191,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->magic = NAMED_SERVER_MAGIC;
 
 	server->tlsctx_server_cache = NULL;
+	server->tlsctx_client_cache = NULL;
 
 	*serverp = server;
 }
@@ -10239,6 +10249,10 @@ named_server_destroy(named_server_t **serverp) {
 
 	if (server->tlsctx_server_cache != NULL) {
 		isc_tlsctx_cache_detach(&server->tlsctx_server_cache);
+	}
+
+	if (server->tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
 	}
 
 	server->magic = 0;

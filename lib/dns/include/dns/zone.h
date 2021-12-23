@@ -24,6 +24,7 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
+#include <isc/tls.h>
 
 #include <dns/catz.h>
 #include <dns/master.h>
@@ -2066,6 +2067,18 @@ dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
  *\li	'zmgr' to be a valid zone manager.
  *\li	'remote' to be a valid sockaddr.
  *\li	'local' to be a valid sockaddr.
+ */
+
+void
+dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t	   *zmgr,
+			     isc_tlsctx_cache_t *tlsctx_cache);
+/*%<
+ *	Set the TLS client context cache used for zone transfers via
+ *	encrypted transports (e.g. XoT).
+ *
+ * Requires:
+ *\li	'zmgr' is a valid zone manager.
+ *\li	'tlsctx_cache' is a valid TLS context cache.
  */
 
 void

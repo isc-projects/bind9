@@ -35,6 +35,7 @@
 #include <isc/taskpool.h>
 #include <isc/thread.h>
 #include <isc/timer.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -629,6 +630,8 @@ struct dns_zonemgr {
 	struct dns_unreachable unreachable[UNREACH_CACHE_SIZE];
 
 	dns_keymgmt_t *keymgmt;
+
+	isc_tlsctx_cache_t *tlsctx_cache;
 };
 
 /*%
@@ -18133,7 +18136,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	}
 
 	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr, dscp,
-			       zone->tsigkey, zone->transport, zone->mctx,
+			       zone->tsigkey, zone->transport,
+			       zone->zmgr->tlsctx_cache, zone->mctx,
 			       zone->zmgr->netmgr, zone_xfrdone, &zone->xfr));
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
@@ -18831,6 +18835,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	isc_mutex_init(&zmgr->iolock);
 
+	zmgr->tlsctx_cache = NULL;
+
 	zmgr->magic = ZONEMGR_MAGIC;
 
 	*zmgrp = zmgr;
@@ -19188,6 +19194,9 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	zonemgr_keymgmt_destroy(zmgr);
 
 	mctx = zmgr->mctx;
+	if (zmgr->tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&zmgr->tlsctx_cache);
+	}
 	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
 }
@@ -23626,4 +23635,21 @@ zone_nsecttl(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (ISC_MIN(zone->minimum, zone->soattl));
+}
+
+void
+dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t *zmgr,
+			     isc_tlsctx_cache_t *tlsctx_cache) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(tlsctx_cache != NULL);
+
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+
+	if (zmgr->tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&zmgr->tlsctx_cache);
+	}
+
+	isc_tlsctx_cache_attach(tlsctx_cache, &zmgr->tlsctx_cache);
+
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 }
