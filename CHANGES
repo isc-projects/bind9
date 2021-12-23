@@ -1,3 +1,7 @@
+5785.	[bug]		named could leak memory when two dnssec-policy clauses
+			had the same name. named failed to log this error.
+			[GL #3085]
+
 5776.	[bug]		Add a missing isc_condition_destroy() for nmsocket
 			condition variable and add missing isc_mutex_destroy()
 			for nmworker lock. [GL #3051]
