@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/fips.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -170,6 +171,18 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
+		if (isc_fips_mode() &&
+		    (key->algorithm == DNS_KEYALG_RSASHA1 ||
+		     key->algorithm == DNS_KEYALG_NSEC3RSASHA1))
+		{
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy: algorithm %s not supported "
+				    "in FIPS mode",
+				    alg.base);
+			result = DNS_R_BADALG;
+			goto cleanup;
+		}
+
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
 			uint32_t min, size;
@@ -180,7 +193,11 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			case DNS_KEYALG_NSEC3RSASHA1:
 			case DNS_KEYALG_RSASHA256:
 			case DNS_KEYALG_RSASHA512:
-				min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+				if (isc_fips_mode()) {
+					min = 2048;
+				} else {
+					min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+				}
 				if (size < min || size > 4096) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "dnssec-policy: key with "
