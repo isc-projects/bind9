@@ -494,8 +494,6 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->tid = 0;
 	sock->fd = -1;
 
-	isc_tlsctx_enable_dot_server_alpn(sslctx);
-
 #if !HAVE_SO_REUSEPORT_LB
 	fd = isc__nm_tlsdns_lb_socket(iface->type.sa.sa_family);
 #endif

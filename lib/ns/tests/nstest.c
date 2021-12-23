@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include "nstest.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -49,6 +48,8 @@
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
+
+#include "nstest.h"
 
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
@@ -236,7 +237,7 @@ create_managers(void) {
 				     dispatchmgr, maintask, NULL, ncpus, false,
 				     &interfacemgr));
 
-	CHECK(ns_listenlist_default(mctx, port, -1, true, &listenon));
+	CHECK(ns_listenlist_default(mctx, port, -1, true, AF_INET, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
 	ns_listenlist_detach(&listenon);
 

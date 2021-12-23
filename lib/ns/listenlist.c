@@ -24,50 +24,92 @@
 static void
 destroy(ns_listenlist_t *list);
 
-isc_result_t
-ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, bool tls,
-		    const ns_listen_tls_params_t *tls_params,
-		    ns_listenelt_t **target) {
+static isc_result_t
+listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
+		 dns_acl_t *acl, const uint16_t family, const bool is_http,
+		 bool tls, const ns_listen_tls_params_t *tls_params,
+		 isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target) {
 	ns_listenelt_t *elt = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_tlsctx_t *sslctx = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
-	REQUIRE(!tls || tls_params != NULL);
+	REQUIRE(!tls || (tls_params != NULL && tlsctx_cache != NULL));
 
 	if (tls) {
-		result = isc_tlsctx_createserver(tls_params->key,
-						 tls_params->cert, &sslctx);
+		const isc_tlsctx_cache_transport_t transport =
+			is_http ? isc_tlsctx_cache_https : isc_tlsctx_cache_tls;
+
+		/*
+		 * Let's try to reuse the existing context from the cache in
+		 * order to avoid excessive TLS contexts creation.
+		 */
+		result = isc_tlsctx_cache_find(tlsctx_cache, tls_params->name,
+					       transport, family, &sslctx);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+			/*
+			 * The lookup failed, let's try to create a new context
+			 * and store it within the cache.
+			 */
+			INSIST(tls_params->name != NULL &&
+			       *tls_params->name != '\0');
 
-		if (tls_params->protocols != 0) {
-			isc_tlsctx_set_protocols(sslctx, tls_params->protocols);
-		}
-
-		if (tls_params->dhparam_file != NULL) {
-			if (!isc_tlsctx_load_dhparams(sslctx,
-						      tls_params->dhparam_file))
-			{
-				isc_tlsctx_free(&sslctx);
-				return (ISC_R_FAILURE);
+			result = isc_tlsctx_createserver(
+				tls_params->key, tls_params->cert, &sslctx);
+			if (result != ISC_R_SUCCESS) {
+				return (result);
 			}
-		}
 
-		if (tls_params->ciphers != NULL) {
-			isc_tlsctx_set_cipherlist(sslctx, tls_params->ciphers);
-		}
+			if (tls_params->protocols != 0) {
+				isc_tlsctx_set_protocols(sslctx,
+							 tls_params->protocols);
+			}
 
-		if (tls_params->prefer_server_ciphers_set) {
-			isc_tlsctx_prefer_server_ciphers(
-				sslctx, tls_params->prefer_server_ciphers);
-		}
+			if (tls_params->dhparam_file != NULL) {
+				if (!isc_tlsctx_load_dhparams(
+					    sslctx, tls_params->dhparam_file)) {
+					isc_tlsctx_free(&sslctx);
+					return (ISC_R_FAILURE);
+				}
+			}
 
-		if (tls_params->session_tickets_set) {
-			isc_tlsctx_session_tickets(sslctx,
-						   tls_params->session_tickets);
+			if (tls_params->ciphers != NULL) {
+				isc_tlsctx_set_cipherlist(sslctx,
+							  tls_params->ciphers);
+			}
+
+			if (tls_params->prefer_server_ciphers_set) {
+				isc_tlsctx_prefer_server_ciphers(
+					sslctx,
+					tls_params->prefer_server_ciphers);
+			}
+
+			if (tls_params->session_tickets_set) {
+				isc_tlsctx_session_tickets(
+					sslctx, tls_params->session_tickets);
+			}
+
+#ifdef HAVE_LIBNGHTTP2
+			if (is_http) {
+				isc_tlsctx_enable_http2server_alpn(sslctx);
+			}
+#endif /* HAVE_LIBNGHTTP2 */
+
+			if (!is_http) {
+				isc_tlsctx_enable_dot_server_alpn(sslctx);
+			}
+
+			/*
+			 * The storing in the cache should not fail because the
+			 * (re)initialisation happens from within a single
+			 * thread.
+			 */
+			RUNTIME_CHECK(isc_tlsctx_cache_add(
+					      tlsctx_cache, tls_params->name,
+					      transport, family, sslctx,
+					      NULL) == ISC_R_SUCCESS);
+		} else {
+			INSIST(sslctx != NULL);
 		}
 	}
 
@@ -79,6 +121,10 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	elt->dscp = dscp;
 	elt->acl = acl;
 	elt->sslctx = sslctx;
+	elt->sslctx_cache = NULL;
+	if (sslctx != NULL && tlsctx_cache != NULL) {
+		isc_tlsctx_cache_attach(tlsctx_cache, &elt->sslctx_cache);
+	}
 	elt->http_endpoints = NULL;
 	elt->http_endpoints_number = 0;
 	elt->http_quota = NULL;
@@ -88,20 +134,29 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 }
 
 isc_result_t
+ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
+		    dns_acl_t *acl, const uint16_t family, bool tls,
+		    const ns_listen_tls_params_t *tls_params,
+		    isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target) {
+	return listenelt_create(mctx, port, dscp, acl, family, false, tls,
+				tls_params, tlsctx_cache, target);
+}
+
+isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, bool tls,
+			 dns_acl_t *acl, const uint16_t family, bool tls,
 			 const ns_listen_tls_params_t *tls_params,
-			 char **endpoints, size_t nendpoints,
-			 isc_quota_t *quota, const uint32_t max_streams,
-			 ns_listenelt_t **target) {
+			 isc_tlsctx_cache_t *tlsctx_cache, char **endpoints,
+			 size_t nendpoints, isc_quota_t *quota,
+			 const uint32_t max_streams, ns_listenelt_t **target) {
 	isc_result_t result;
 
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(endpoints != NULL && *endpoints != NULL);
 	REQUIRE(nendpoints > 0);
 
-	result = ns_listenelt_create(mctx, http_port, dscp, acl, tls,
-				     tls_params, target);
+	result = listenelt_create(mctx, http_port, dscp, acl, family, true, tls,
+				  tls_params, tlsctx_cache, target);
 	if (result == ISC_R_SUCCESS) {
 		(*target)->is_http = true;
 		(*target)->http_endpoints = endpoints;
@@ -123,8 +178,11 @@ ns_listenelt_destroy(ns_listenelt_t *elt) {
 	if (elt->acl != NULL) {
 		dns_acl_detach(&elt->acl);
 	}
-	if (elt->sslctx != NULL) {
-		isc_tlsctx_free(&elt->sslctx);
+
+	elt->sslctx = NULL; /* this one is going to be destroyed alongside the
+			       sslctx_cache */
+	if (elt->sslctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&elt->sslctx_cache);
 	}
 	if (elt->http_endpoints != NULL) {
 		size_t i;
@@ -179,7 +237,8 @@ ns_listenlist_detach(ns_listenlist_t **listp) {
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		      bool enabled, ns_listenlist_t **target) {
+		      bool enabled, const uint16_t family,
+		      ns_listenlist_t **target) {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
 	ns_listenelt_t *elt = NULL;
@@ -195,7 +254,8 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		goto cleanup;
 	}
 
-	result = ns_listenelt_create(mctx, port, dscp, acl, false, NULL, &elt);
+	result = ns_listenelt_create(mctx, port, dscp, acl, family, false, NULL,
+				     NULL, &elt);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_acl;
 	}
