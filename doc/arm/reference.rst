@@ -2100,17 +2100,6 @@ Boolean Options
    default is ``no``. Setting this option to ``yes`` leaves ``named``
    vulnerable to replay attacks.
 
-.. _reject_000_label:
-
-``reject-000-label``
-   This controls whether NSEC records whose Next Owner Name field starts
-   with a ``\000`` label are cached for use by the ``synth-from-dnssec``
-   feature. The default is ``yes``, which means these records are not
-   used for negative response synthesis. This is a temporary measure to
-   improve interoperability with authoritative servers that generate
-   incorrect NSEC records. The default value of this option may change
-   in a future release, or it may be removed altogether.
-
 ``querylog``
    Query logging provides a complete log of all incoming queries and all query
    errors. This provides more insight into the server's activity, but with a
@@ -2256,12 +2245,6 @@ Boolean Options
    by synthesizing answers from cached NSEC and other RRsets that
    have been proved to be correct using DNSSEC.
    The default is ``yes``.
-
-   The ``reject-000-label`` :ref:`option <reject_000_label>` and the
-   ``broken-nsec`` :ref:`server configuration clause
-   <server_broken_nsec>` can be used to prevent broken NSEC records from
-   causing incorrect negative responses to be synthesized when
-   ``synth-from-dnssec`` is set to ``yes``.
 
    .. note:: DNSSEC validation must be enabled for this option to be effective.
       This initial implementation only covers synthesis of answers from
@@ -4555,16 +4538,6 @@ any top-level ``server`` statements are used as defaults.
 If a remote server is giving out bad data, marking it
 as bogus prevents further queries to it. The default value of
 ``bogus`` is ``no``.
-
-.. _server_broken_nsec:
-
-The ``broken-nsec`` clause determines whether the NSEC records found in
-negative responses sent by the remote server are ignored for the purpose
-of synthesizing negative responses or not. The default is ``no``.
-Setting this to ``yes`` can be used to prevent broken NSEC records from
-causing incorrect negative responses to be synthesized when
-``synth-from-dnssec`` is set to ``yes``. This option may be removed in a
-future release.
 
 The ``provide-ixfr`` clause determines whether the local server, acting
 as primary, responds with an incremental zone transfer when the given

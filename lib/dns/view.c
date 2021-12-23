@@ -240,7 +240,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	view->synthfromdnssec = true;
 	view->trust_anchor_telemetry = true;
 	view->root_key_sentinel = true;
-	view->reject_000_label = true;
 	view->new_zone_dir = NULL;
 	view->new_zone_file = NULL;
 	view->new_zone_db = NULL;
