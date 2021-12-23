@@ -272,6 +272,10 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
 	if (result == ISC_R_SUCCESS) {
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: duplicately named policy found '%s'",
+			kaspname);
 		dns_kasp_detach(&kasp);
 		return (ISC_R_EXISTS);
 	}
