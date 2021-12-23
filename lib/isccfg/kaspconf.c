@@ -272,6 +272,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
 	if (result == ISC_R_SUCCESS) {
+		dns_kasp_detach(&kasp);
 		return (ISC_R_EXISTS);
 	}
 	if (result != ISC_R_NOTFOUND) {
