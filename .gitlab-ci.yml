@@ -177,7 +177,7 @@ stages:
 # This is a meta image that is used as a base for non-specific jobs
 
 .base: &base_image
-  <<: *debian_buster_amd64_image
+  <<: *debian_bullseye_amd64_image
 
 ### QCOW2 Image Templates
 
@@ -515,7 +515,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
 
-# Jobs for doc builds on Debian Sid (amd64)
+# Jobs for doc builds on Debian 11 "bullseye" (amd64)
 
 docs:
   <<: *release_branch_triggering_rules
@@ -698,22 +698,24 @@ unit:gcc:stretch:amd64:
 gcc:buster:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
-    LDFLAGS: "--coverage"
+    CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
-  <<: *system_test_gcov_job
+  <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
-    - job: unit:gcc:buster:amd64
+    - job: gcc:buster:amd64
       artifacts: true
 
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
-  <<: *unit_test_gcov_job
+  <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -723,26 +725,27 @@ unit:gcc:buster:amd64:
 gcc:bullseye:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-gssapi --with-libidn2"
+    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
+    EXTRA_CONFIGURE: "--with-libidn2"
+    LDFLAGS: "--coverage"
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
 system:gcc:bullseye:amd64:
   <<: *debian_bullseye_amd64_image
-  <<: *system_test_job
+  <<: *system_test_gcov_job
   needs:
-    - job: gcc:bullseye:amd64
+    - job: unit:gcc:bullseye:amd64
       artifacts: true
 
 unit:gcc:bullseye:amd64:
   <<: *debian_bullseye_amd64_image
-  <<: *unit_test_job
+  <<: *unit_test_gcov_job
   needs:
     - job: gcc:bullseye:amd64
       artifacts: true
 
-# Jobs for scan-build builds on Debian Buster (amd64)
+# Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
 
 .scan_build: &scan_build
   - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
@@ -798,7 +801,7 @@ unit:gcc:sid:amd64:
     - job: gcc:sid:amd64
       artifacts: true
 
-# Job for out-of-tree GCC build on Debian Sid (amd64)
+# Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
 # Also tests configration option: --with-lmdb.
 
 gcc:out-of-tree:
@@ -813,7 +816,7 @@ gcc:out-of-tree:
   <<: *base_image
   <<: *build_job
 
-# Jobs for tarball GCC builds on Debian Sid (amd64)
+# Jobs for tarball GCC builds on Debian 11 "bullseye" (amd64)
 
 gcc:tarball:
   variables:
@@ -925,12 +928,16 @@ unit:gcc:focal:amd64:
 
 # Jobs for builds with ASAN enabled
 
+# "--disable-warn-error" ./configure option disables compiler warnings. This
+# ensures that the job will not fail because of warnings (e.g., null
+# destination pointer in lib/lwres/print.c) we don't want to fix on BIND 9.11
+# because the version is in security-fixes-only mode.
 gcc:asan:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *base_image
   <<: *build_job
 
@@ -1114,28 +1121,28 @@ unit:gcc:noatomics:
     - job: gcc:noatomics
       artifacts: true
 
-# Jobs for Clang builds on Debian Buster (amd64)
+# Jobs for Clang builds on Debian 11 "bullseye" (amd64)
 
-clang:buster:amd64:
+clang:bullseye:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     EXTRA_CONFIGURE: "--with-python=python3"
-  <<: *debian_buster_amd64_image
+  <<: *debian_bullseye_amd64_image
   <<: *build_job
 
-system:clang:buster:amd64:
-  <<: *debian_buster_amd64_image
+system:clang:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
-    - job: clang:buster:amd64
+    - job: clang:bullseye:amd64
       artifacts: true
 
-unit:clang:buster:amd64:
-  <<: *debian_buster_amd64_image
+unit:clang:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
   <<: *unit_test_job
   needs:
-    - job: clang:buster:amd64
+    - job: clang:bullseye:amd64
       artifacts: true
 
 # Jobs for PKCS#11-enabled GCC builds on Fedora 35 (amd64)
@@ -1417,13 +1424,13 @@ respdiff:
     BIND_BASELINE_VERSION: v9_11_24
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
   script:
-    - ./configure --without-make-clean
+    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refserver
     - cd refserver/
-    - ./configure --without-make-clean
+    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ../bind-qa/bind9/respdiff
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/refserver"
@@ -1447,7 +1454,7 @@ respdiff-third-party:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
   script:
-    - ./configure --without-make-clean
+    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
@@ -1610,7 +1617,7 @@ gcov:
   <<: *default_triggering_rules
   stage: postcheck
   needs:
-    - job: system:gcc:buster:amd64
+    - job: system:gcc:bullseye:amd64
       artifacts: true
   script:
     # *.gcno and *.gcda files generated for shared library objects are created
