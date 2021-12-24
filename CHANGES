@@ -1,3 +1,9 @@
+5784.	[func]		Implement TLS-contexts reuse. Reusing the
+			previously created TLS context objects can reduce
+			initialisation time for some configurations and enables
+			TLS session resumption for incoming zone transfers over
+			TLS (XoT). [GL #3067]
+
 5783.	[func]		named is now able to log TLS pre-master secrets for
 			debugging purposes. This requires setting the
 			SSLKEYLOGFILE environment variable appropriately.
