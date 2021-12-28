@@ -43,3 +43,7 @@ Bug Fixes
 - With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
   reducing the maximum query-response performance.  The recvmmsg support would
   be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
+
+- A failed view configuration during a named reconfiguration procedure could
+  cause inconsistencies in BIND internal structures, causing a crash or other
+  unexpected errors.  This has been fixed.  :gl:`#3060`
