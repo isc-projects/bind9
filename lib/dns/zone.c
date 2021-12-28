@@ -1683,6 +1683,9 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 		dns_zone_setview_helper(zone, zone->prev_view);
 		dns_view_weakdetach(&zone->prev_view);
 	}
+	if (zone->catzs != NULL) {
+		zone_catz_enable(zone, zone->catzs);
+	}
 	if (inline_secure(zone)) {
 		dns_zone_setviewrevert(zone->raw);
 	}
