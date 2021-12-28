@@ -412,7 +412,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_CANCELED) {
+		if (result == ISC_R_SHUTTINGDOWN || result == ISC_R_CANCELED) {
 			atomic_store_release(&listener->controls->shuttingdown,
 					     true);
 		} else if (result != ISC_R_EOF) {
