@@ -214,7 +214,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	if (isc__nmsocket_closing(sock)) {
+	if (isc__nm_closing(sock)) {
 		/* Network manager shutting down */
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;

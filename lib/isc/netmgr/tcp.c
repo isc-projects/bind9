@@ -247,7 +247,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		 */
 		isc__nm_uvreq_put(&req, sock);
 		return;
-	} else if (isc__nmsocket_closing(sock)) {
+	} else if (isc__nm_closing(sock)) {
 		/* Network manager shutting down */
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
