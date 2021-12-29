@@ -11,6 +11,8 @@
 
 # flake8: noqa: E501
 
+import re
+
 from typing import List, Tuple
 
 from docutils import nodes
@@ -104,6 +106,21 @@ project = 'BIND 9'
 # pylint: disable=redefined-builtin
 copyright = '2021, Internet Systems Consortium'
 author = 'Internet Systems Consortium'
+
+m4_vars = {}
+with open('../../configure.ac', encoding='utf-8') as configure_ac:
+    for line in configure_ac:
+        match = re.match(r'm4_define\(\[(?P<key>bind_VERSION_[A-Z]+)\], (?P<val>[^)]*)\)dnl', line)
+        if match:
+            m4_vars[match.group('key')] = match.group('val')
+
+version = '%s.%s.%s%s' % (
+    m4_vars['bind_VERSION_MAJOR'],
+    m4_vars['bind_VERSION_MINOR'],
+    m4_vars['bind_VERSION_PATCH'],
+    m4_vars['bind_VERSION_EXTRA'],
+)
+release = version
 
 # -- General configuration ---------------------------------------------------
 

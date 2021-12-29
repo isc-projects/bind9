@@ -17,9 +17,7 @@ common_SPHINXOPTS =			\
 
 ALLSPHINXOPTS =				\
 	$(common_SPHINXOPTS)		\
-	-D version="$(PACKAGE_VERSION)"	\
 	-D today="$(RELEASE_DATE)"	\
-	-D release="$(PACKAGE_VERSION)"	\
 	$(SPHINXOPTS)			\
 	$(srcdir)
 
