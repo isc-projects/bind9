@@ -15,6 +15,8 @@ common_SPHINXOPTS =			\
 	-a				\
 	$(SPHINX_V)
 
+# The "today" variable set below is not directly used in the ARM, but its value
+# is implicitly inserted on the title page of the PDF file produced by Sphinx.
 ALLSPHINXOPTS =				\
 	$(common_SPHINXOPTS)		\
 	-D today="$(RELEASE_DATE)"	\

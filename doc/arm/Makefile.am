@@ -65,7 +65,7 @@ install-singlehtml: singlehtml
 	cp -R $(SPHINXBUILDDIR)/singlehtml/_static/* $(DESTDIR)/$(docdir)/_static/
 
 epub:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b epub -A today=$(RELEASE_DATE) -d $(SPHINXBUILDDIR)/.doctrees/epub $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/epub
+	$(AM_V_SPHINX)$(SPHINX_BUILD) -b epub -d $(SPHINXBUILDDIR)/.doctrees/epub $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/epub
 
 install-epub:
 	$(INSTALL) -d $(DESTDIR)/$(docdir)
