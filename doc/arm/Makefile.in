@@ -40,14 +40,6 @@ ALLSPHINXOPTS =				\
 	$(SPHINXOPTS)				\
 	${srcdir}
 
-man_SPHINXOPTS =				\
-	$(common_SPHINXOPTS)			\
-	-D version="@""BIND9_VERSION""@"	\
-	-D today="@""RELEASE_DATE""@"		\
-	-D release="@""BIND9_VERSIONSTRING""@"	\
-	$(SPHINXOPTS)				\
-	${srcdir}
-
 # Put it first so that "make" without argument just builds manpages
 all: man
 	@:
