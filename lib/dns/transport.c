@@ -44,6 +44,7 @@ struct dns_transport {
 	isc_mem_t *mctx;
 	dns_transport_type_t type;
 	struct {
+		char *tlsname;
 		char *certfile;
 		char *keyfile;
 		char *cafile;
@@ -269,11 +270,34 @@ dns_transport_set_ciphers(dns_transport_t *transport, const char *ciphers) {
 	}
 }
 
+void
+dns_transport_set_tlsname(dns_transport_t *transport, const char *tlsname) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	if (transport->tls.tlsname != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.tlsname);
+	}
+
+	if (tlsname != NULL) {
+		transport->tls.tlsname = isc_mem_strdup(transport->mctx,
+							tlsname);
+	}
+}
+
 char *
 dns_transport_get_ciphers(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.ciphers);
+}
+
+char *
+dns_transport_get_tlsname(dns_transport_t *transport) {
+	REQUIRE(VALID_TRANSPORT(transport));
+
+	return (transport->tls.tlsname);
 }
 
 void
@@ -328,6 +352,10 @@ transport_destroy(dns_transport_t *transport) {
 	}
 	if (transport->tls.ciphers != NULL) {
 		isc_mem_free(transport->mctx, transport->tls.ciphers);
+	}
+
+	if (transport->tls.tlsname != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.tlsname);
 	}
 
 	isc_mem_putanddetach(&transport->mctx, transport, sizeof(*transport));

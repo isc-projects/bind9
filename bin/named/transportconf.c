@@ -108,6 +108,7 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 		transport = dns_transport_new(&dohname, DNS_TRANSPORT_HTTP,
 					      list);
 
+		dns_transport_set_tlsname(transport, dohid);
 		parse_transport_option(doh, transport, "key-file",
 				       dns_transport_set_keyfile);
 		parse_transport_option(doh, transport, "cert-file",
@@ -165,6 +166,7 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
 					      list);
 
+		dns_transport_set_tlsname(transport, tlsid);
 		parse_transport_option(tls, transport, "key-file",
 				       dns_transport_set_keyfile);
 		parse_transport_option(tls, transport, "cert-file",
@@ -228,10 +230,12 @@ static void
 transport_list_add_ephemeral(dns_transport_list_t *list) {
 	isc_result_t result;
 	dns_name_t tlsname;
+	dns_transport_t *transport;
 
 	create_name("ephemeral", &tlsname);
 
-	(void)dns_transport_new(&tlsname, DNS_TRANSPORT_TLS, list);
+	transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS, list);
+	dns_transport_set_tlsname(transport, "ephemeral");
 
 	return;
 failure:

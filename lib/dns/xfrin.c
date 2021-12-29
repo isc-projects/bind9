@@ -163,7 +163,6 @@ struct dns_xfrin_ctx {
 	unsigned int sincetsig; /*%< recvd since the last TSIG */
 
 	dns_transport_t *transport;
-	isc_tlsctx_t *tlsctx;
 
 	dns_xfrindone_t done;
 
@@ -183,6 +182,8 @@ struct dns_xfrin_ctx {
 
 	dns_rdata_t firstsoa;
 	unsigned char *firstsoa_data;
+
+	isc_tlsctx_cache_t *tlsctx_cache;
 };
 
 #define XFRIN_MAGIC    ISC_MAGIC('X', 'f', 'r', 'I')
@@ -199,7 +200,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
-	     dns_xfrin_ctx_t **xfrp);
+	     isc_tlsctx_cache_t *tlsctx_cache, dns_xfrin_ctx_t **xfrp);
 
 static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr);
@@ -693,7 +694,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 		 dns_tsigkey_t *tsigkey, dns_transport_t *transport,
-		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
+		 isc_tlsctx_cache_t *tlsctx_cache, isc_mem_t *mctx,
+		 isc_nm_t *netmgr, dns_xfrindone_t done,
 		 dns_xfrin_ctx_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_ctx_t *xfr = NULL;
@@ -712,7 +714,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	xfrin_create(mctx, zone, db, netmgr, zonename, dns_zone_getclass(zone),
 		     xfrtype, primaryaddr, sourceaddr, dscp, tsigkey, transport,
-		     &xfr);
+		     tlsctx_cache, &xfr);
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
@@ -860,7 +862,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey, dns_transport_t *transport,
-	     dns_xfrin_ctx_t **xfrp) {
+	     isc_tlsctx_cache_t *tlsctx_cache, dns_xfrin_ctx_t **xfrp) {
 	dns_xfrin_ctx_t *xfr = NULL;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -918,6 +920,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	isc_buffer_init(&xfr->qbuffer, &xfr->qbuffer_data[2],
 			sizeof(xfr->qbuffer_data) - 2);
 
+	isc_tlsctx_cache_attach(tlsctx_cache, &xfr->tlsctx_cache);
+
 	xfr->magic = XFRIN_MAGIC;
 
 	*xfrp = xfr;
@@ -928,6 +932,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	dns_xfrin_ctx_t *connect_xfr = NULL;
 	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
+	isc_tlsctx_t *tlsctx = NULL, *found = NULL;
 
 	(void)isc_refcount_increment0(&xfr->connects);
 	dns_xfrin_attach(xfr, &connect_xfr);
@@ -948,32 +953,79 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		break;
 	case DNS_TRANSPORT_TLS: {
 		uint32_t tls_versions;
-		const char *ciphers;
+		const char *ciphers = NULL;
 		bool prefer_server_ciphers;
-		CHECK(isc_tlsctx_createclient(&xfr->tlsctx));
-		if (xfr->transport != NULL) {
+		const uint16_t family = isc_sockaddr_pf(&xfr->primaryaddr) ==
+							PF_INET6
+						? AF_INET6
+						: AF_INET;
+		const char *tlsname = NULL;
+
+		INSIST(xfr->transport != NULL);
+		tlsname = dns_transport_get_tlsname(xfr->transport);
+		INSIST(tlsname != NULL && *tlsname != '\0');
+
+		/*
+		 * Let's try to re-use the already created context. This way
+		 * we have a chance to resume the TLS session, bypassing the
+		 * full TLS handshake procedure, making establishing
+		 * subsequent TLS connections for XoT faster.
+		 */
+		result = isc_tlsctx_cache_find(xfr->tlsctx_cache, tlsname,
+					       isc_tlsctx_cache_tls, family,
+					       &tlsctx);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * So, no context exists. Let's create one using the
+			 * parameters from the configuration file and try to
+			 * store it for further reuse.
+			 */
+			CHECK(isc_tlsctx_createclient(&tlsctx));
 			tls_versions =
 				dns_transport_get_tls_versions(xfr->transport);
 			if (tls_versions != 0) {
-				isc_tlsctx_set_protocols(xfr->tlsctx,
-							 tls_versions);
+				isc_tlsctx_set_protocols(tlsctx, tls_versions);
 			}
 			ciphers = dns_transport_get_ciphers(xfr->transport);
 			if (ciphers != NULL) {
-				isc_tlsctx_set_cipherlist(xfr->tlsctx, ciphers);
+				isc_tlsctx_set_cipherlist(tlsctx, ciphers);
 			}
 
 			if (dns_transport_get_prefer_server_ciphers(
 				    xfr->transport, &prefer_server_ciphers))
 			{
 				isc_tlsctx_prefer_server_ciphers(
-					xfr->tlsctx, prefer_server_ciphers);
+					tlsctx, prefer_server_ciphers);
+			}
+			isc_tlsctx_enable_dot_client_alpn(tlsctx);
+
+			result = isc_tlsctx_cache_add(
+				xfr->tlsctx_cache, tlsname,
+				isc_tlsctx_cache_tls, family, tlsctx, &found);
+			if (result == ISC_R_EXISTS) {
+				/*
+				 * It seems the entry has just been created
+				 * from within another thread while we were
+				 * initialising ours. Although this is
+				 * unlikely, it could happen after
+				 * startup/re-initialisation. In such a case,
+				 * discard the new context and use the already
+				 * established one from now on.
+				 *
+				 * Such situation will not occur after the
+				 * initial 'warm-up', so it is not critical
+				 * performance-wise.
+				 */
+				INSIST(found != NULL);
+				isc_tlsctx_free(&tlsctx);
+				tlsctx = found;
+			} else {
+				INSIST(result == ISC_R_SUCCESS);
 			}
 		}
-		isc_tlsctx_enable_dot_client_alpn(xfr->tlsctx);
 		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
 				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000, 0, xfr->tlsctx);
+				     connect_xfr, 30000, 0, tlsctx);
 	} break;
 	default:
 		INSIST(0);
@@ -983,8 +1035,13 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	return (ISC_R_SUCCESS);
 
 failure:
-	if (xfr->tlsctx != NULL) {
-		isc_tlsctx_free(&xfr->tlsctx);
+	/*
+	 * The 'found' context is being managed by the TLS context cache.
+	 * Thus, we should keep it as it is, as it will get destroyed
+	 * alongside the cache.
+	 */
+	if (tlsctx != NULL && found != tlsctx) {
+		isc_tlsctx_free(&tlsctx);
 	}
 	isc_refcount_decrement0(&xfr->connects);
 	dns_xfrin_detach(&connect_xfr);
@@ -1031,10 +1088,6 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	isc_refcount_decrement0(&xfr->connects);
-
-	if (xfr->tlsctx != NULL) {
-		isc_tlsctx_free(&xfr->tlsctx);
-	}
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -1668,6 +1721,10 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->firstsoa_data != NULL) {
 		isc_mem_free(xfr->mctx, xfr->firstsoa_data);
+	}
+
+	if (xfr->tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&xfr->tlsctx_cache);
 	}
 
 	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));

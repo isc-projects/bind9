@@ -403,19 +403,21 @@ named_server_reload(isc_task_t *task, isc_event_t *event);
 
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, bool tls,
-	       const ns_listen_tls_params_t *tls_params, in_port_t port,
+listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
+	       const ns_listen_tls_params_t *tls_params,
+	       isc_tlsctx_cache_t *tlsctx_cache, in_port_t port,
 	       isc_mem_t *mctx, ns_listenelt_t **target);
 #endif
 
 static isc_result_t
 listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
-		     ns_listenelt_t **target);
+		     isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target);
 
 static isc_result_t
 listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		      cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		      isc_tlsctx_cache_t *tlsctx_cache,
 		      ns_listenlist_t **target);
 
 static isc_result_t
@@ -8422,6 +8424,22 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	CHECK(bind9_check_namedconf(config, false, named_g_lctx, named_g_mctx));
 
+	/* Let's recreate the TLS context cache */
+	if (server->tlsctx_server_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_server_cache);
+	}
+
+	server->tlsctx_server_cache = isc_tlsctx_cache_new(named_g_mctx);
+
+	if (server->tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
+	}
+
+	server->tlsctx_client_cache = isc_tlsctx_cache_new(named_g_mctx);
+
+	dns_zonemgr_set_tlsctx_cache(server->zonemgr,
+				     server->tlsctx_client_cache);
+
 	/*
 	 * Fill in the maps array, used for resolving defaults.
 	 */
@@ -8874,13 +8892,15 @@ load_configuration(const char *filename, named_server_t *server,
 		if (clistenon != NULL) {
 			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET, &listenon));
+				named_g_mctx, AF_INET,
+				server->tlsctx_server_cache, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
 			 */
 			CHECK(ns_listenlist_default(named_g_mctx, listen_port,
-						    -1, true, &listenon));
+						    -1, true, AF_INET,
+						    &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon4(server->interfacemgr,
@@ -8901,13 +8921,15 @@ load_configuration(const char *filename, named_server_t *server,
 		if (clistenon != NULL) {
 			CHECK(listenlist_fromconfig(
 				clistenon, config, named_g_aclconfctx,
-				named_g_mctx, AF_INET6, &listenon));
+				named_g_mctx, AF_INET6,
+				server->tlsctx_server_cache, &listenon));
 		} else {
 			/*
 			 * Not specified, use default.
 			 */
 			CHECK(ns_listenlist_default(named_g_mctx, listen_port,
-						    -1, true, &listenon));
+						    -1, true, AF_INET6,
+						    &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon6(server->interfacemgr,
@@ -10167,6 +10189,10 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->dtenv = NULL;
 
 	server->magic = NAMED_SERVER_MAGIC;
+
+	server->tlsctx_server_cache = NULL;
+	server->tlsctx_client_cache = NULL;
+
 	*serverp = server;
 }
 
@@ -10220,6 +10246,14 @@ named_server_destroy(named_server_t **serverp) {
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	INSIST(ISC_LIST_EMPTY(server->cachelist));
+
+	if (server->tlsctx_server_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_server_cache);
+	}
+
+	if (server->tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
+	}
 
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
@@ -10860,6 +10894,7 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 static isc_result_t
 listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		      cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		      isc_tlsctx_cache_t *tlsctx_cache,
 		      ns_listenlist_t **target) {
 	isc_result_t result;
 	const cfg_listelt_t *element;
@@ -10878,7 +10913,7 @@ listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		ns_listenelt_t *delt = NULL;
 		const cfg_obj_t *listener = cfg_listelt_value(element);
 		result = listenelt_fromconfig(listener, config, actx, mctx,
-					      family, &delt);
+					      family, tlsctx_cache, &delt);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -10925,6 +10960,7 @@ find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
 static isc_result_t
 listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		     cfg_aclconfctx_t *actx, isc_mem_t *mctx, uint16_t family,
+		     isc_tlsctx_cache_t *tlsctx_cache,
 		     ns_listenelt_t **target) {
 	isc_result_t result;
 	const cfg_obj_t *ltup = NULL;
@@ -10942,6 +10978,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	ns_listenelt_t *delt = NULL;
 	uint32_t tls_protos = 0;
 	ns_listen_tls_params_t tls_params = { 0 };
+	const char *tlsname = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -10950,7 +10987,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 	tlsobj = cfg_tuple_get(ltup, "tls");
 	if (tlsobj != NULL && cfg_obj_isstring(tlsobj)) {
-		const char *tlsname = cfg_obj_asstring(tlsobj);
+		tlsname = cfg_obj_asstring(tlsobj);
 
 		if (strcasecmp(tlsname, "none") == 0) {
 			no_tls = true;
@@ -11033,6 +11070,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	}
 
 	tls_params = (ns_listen_tls_params_t){
+		.name = tlsname,
 		.key = key,
 		.cert = cert,
 		.protocols = tls_protos,
@@ -11126,14 +11164,15 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 #ifdef HAVE_LIBNGHTTP2
 	if (http) {
-		CHECK(listenelt_http(http_server, do_tls, &tls_params, port,
-				     mctx, &delt));
+		CHECK(listenelt_http(http_server, family, do_tls, &tls_params,
+				     tlsctx_cache, port, mctx, &delt));
 	}
 #endif /* HAVE_LIBNGHTTP2 */
 
 	if (!http) {
-		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, do_tls,
-					  &tls_params, &delt));
+		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, family,
+					  do_tls, &tls_params, tlsctx_cache,
+					  &delt));
 	}
 
 	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"), config,
@@ -11151,8 +11190,9 @@ cleanup:
 
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
-listenelt_http(const cfg_obj_t *http, bool tls,
-	       const ns_listen_tls_params_t *tls_params, in_port_t port,
+listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
+	       const ns_listen_tls_params_t *tls_params,
+	       isc_tlsctx_cache_t *tlsctx_cache, in_port_t port,
 	       isc_mem_t *mctx, ns_listenelt_t **target) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_listenelt_t *delt = NULL;
@@ -11224,9 +11264,9 @@ listenelt_http(const cfg_obj_t *http, bool tls,
 		quota = isc_mem_get(mctx, sizeof(isc_quota_t));
 		isc_quota_init(quota, max_clients);
 	}
-	result = ns_listenelt_create_http(mctx, port, named_g_dscp, NULL, tls,
-					  tls_params, endpoints, len, quota,
-					  max_streams, &delt);
+	result = ns_listenelt_create_http(
+		mctx, port, named_g_dscp, NULL, family, tls, tls_params,
+		tlsctx_cache, endpoints, len, quota, max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}

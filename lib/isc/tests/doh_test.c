@@ -332,6 +332,7 @@ nm_setup(void **state) {
 
 	server_tlsctx = NULL;
 	isc_tlsctx_createserver(NULL, NULL, &server_tlsctx);
+	isc_tlsctx_enable_http2server_alpn(server_tlsctx);
 	client_tlsctx = NULL;
 	isc_tlsctx_createclient(&client_tlsctx);
 	isc_tlsctx_enable_http2client_alpn(client_tlsctx);

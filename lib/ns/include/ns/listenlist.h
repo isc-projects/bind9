@@ -40,15 +40,16 @@ typedef struct ns_listenlist ns_listenlist_t;
 
 struct ns_listenelt {
 	isc_mem_t	  *mctx;
-	in_port_t     port;
-	bool	      is_http;
-	isc_dscp_t    dscp; /* -1 = not set, 0..63 */
+	in_port_t	    port;
+	bool		    is_http;
+	isc_dscp_t	    dscp; /* -1 = not set, 0..63 */
 	dns_acl_t	  *acl;
-	isc_tlsctx_t *sslctx;
-	char	     **http_endpoints;
-	size_t	      http_endpoints_number;
-	isc_quota_t  *http_quota;
-	uint32_t      max_concurrent_streams;
+	isc_tlsctx_t	     *sslctx;
+	isc_tlsctx_cache_t *sslctx_cache;
+	char		     **http_endpoints;
+	size_t		    http_endpoints_number;
+	isc_quota_t	    *http_quota;
+	uint32_t	    max_concurrent_streams;
 	ISC_LINK(ns_listenelt_t) link;
 };
 
@@ -59,6 +60,7 @@ struct ns_listenlist {
 };
 
 typedef struct ns_listen_tls_params {
+	const char *name;
 	const char *key;
 	const char *cert;
 	uint32_t    protocols;
@@ -76,24 +78,25 @@ typedef struct ns_listen_tls_params {
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, bool tls,
+		    dns_acl_t *acl, const uint16_t family, bool tls,
 		    const ns_listen_tls_params_t *tls_params,
-		    ns_listenelt_t		   **target);
+		    isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element.
  *
  * Requires:
  * \li	'targetp' is a valid pointer to a pointer containing 'NULL';
  * \li	'tls_params' is a valid, non-'NULL' pointer if 'tls' equals 'true'.
+ * \li	'tlsctx_cache' is a valid, non-'NULL' pointer if 'tls' equals 'true'.
  */
 
 isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, bool tls,
+			 dns_acl_t *acl, const uint16_t family, bool tls,
 			 const ns_listen_tls_params_t *tls_params,
-			 char **endpoints, size_t nendpoints,
-			 isc_quota_t *quota, const uint32_t max_streams,
-			 ns_listenelt_t **target);
+			 isc_tlsctx_cache_t *tlsctx_cache, char **endpoints,
+			 size_t nendpoints, isc_quota_t *quota,
+			 const uint32_t max_streams, ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element for HTTP(S).
  */
@@ -124,7 +127,8 @@ ns_listenlist_detach(ns_listenlist_t **listp);
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		      bool enabled, ns_listenlist_t **target);
+		      bool enabled, const uint16_t family,
+		      ns_listenlist_t **target);
 /*%<
  * Create a listen-on list with default contents, matching
  * all addresses with port 'port' (if 'enabled' is true),

@@ -71,7 +71,7 @@ ns_listenlist_default_test(void **state) {
 
 	UNUSED(state);
 
-	result = ns_listenlist_default(mctx, port, -1, false, &list);
+	result = ns_listenlist_default(mctx, port, -1, false, AF_INET, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(list);
 
@@ -98,7 +98,7 @@ ns_listenlist_default_test(void **state) {
 
 	ns_listenlist_detach(&list);
 
-	result = ns_listenlist_default(mctx, port, -1, true, &list);
+	result = ns_listenlist_default(mctx, port, -1, true, AF_INET, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(ISC_LIST_EMPTY(list->elts));

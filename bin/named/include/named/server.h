@@ -20,6 +20,7 @@
 #include <isc/magic.h>
 #include <isc/quota.h>
 #include <isc/sockaddr.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 
 #include <dns/acl.h>
@@ -109,6 +110,9 @@ struct named_server {
 	dns_dtenv_t *dtenv; /*%< Dnstap environment */
 
 	char *lockfile;
+
+	isc_tlsctx_cache_t *tlsctx_server_cache;
+	isc_tlsctx_cache_t *tlsctx_client_cache;
 };
 
 #define NAMED_SERVER_MAGIC    ISC_MAGIC('S', 'V', 'E', 'R')
