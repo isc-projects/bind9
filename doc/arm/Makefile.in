@@ -34,9 +34,7 @@ common_SPHINXOPTS =	\
 
 ALLSPHINXOPTS =				\
 	$(common_SPHINXOPTS)			\
-	-D version="${BIND9_VERSION}"		\
 	-D today="${RELEASE_DATE}"		\
-	-D release="${BIND9_VERSIONSTRING}"	\
 	$(SPHINXOPTS)				\
 	${srcdir}
 
