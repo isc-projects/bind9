@@ -11887,6 +11887,9 @@ dump_done(void *arg, isc_result_t result) {
 		dns_dumpctx_detach(&zone->dctx);
 	}
 	zonemgr_putio(&zone->writeio);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) && zone->raw != NULL) {
+		dns_zone_detach(&zone->raw);
+	}
 	UNLOCK_ZONE(zone);
 	if (again) {
 		(void)zone_dump(zone, false);
@@ -14892,7 +14895,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	 */
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SHUTDOWN);
 	free_needed = exit_check(zone);
-	if (inline_secure(zone)) {
+	if (inline_secure(zone) && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
 		raw = zone->raw;
 		zone->raw = NULL;
 	}
