@@ -910,6 +910,56 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
 #endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
 }
 
+isc_result_t
+isc_tls_cert_store_create(const char *ca_bundle_filename,
+			  isc_tls_cert_store_t **pstore) {
+	int ret = 0;
+	isc_tls_cert_store_t *store = NULL;
+	REQUIRE(pstore != NULL && *pstore == NULL);
+
+	store = X509_STORE_new();
+	if (store == NULL) {
+		goto error;
+	}
+
+	/* Let's treat empty string as the default (system wide) store */
+	if (ca_bundle_filename != NULL && *ca_bundle_filename == '\0') {
+		ca_bundle_filename = NULL;
+	}
+
+	if (ca_bundle_filename == NULL) {
+		ret = X509_STORE_set_default_paths(store);
+	} else {
+		ret = X509_STORE_load_locations(store, ca_bundle_filename,
+						NULL);
+	}
+
+	if (ret == 0) {
+		goto error;
+	}
+
+	*pstore = store;
+	return (ISC_R_SUCCESS);
+
+error:
+	if (store != NULL) {
+		X509_STORE_free(store);
+	}
+	return (ISC_R_FAILURE);
+}
+
+void
+isc_tls_cert_store_free(isc_tls_cert_store_t **pstore) {
+	isc_tls_cert_store_t *store;
+	REQUIRE(pstore != NULL && *pstore != NULL);
+
+	store = *pstore;
+
+	X509_STORE_free(store);
+
+	*pstore = NULL;
+}
+
 #define TLSCTX_CACHE_MAGIC    ISC_MAGIC('T', 'l', 'S', 'c')
 #define VALID_TLSCTX_CACHE(t) ISC_MAGIC_VALID(t, TLSCTX_CACHE_MAGIC)
 
