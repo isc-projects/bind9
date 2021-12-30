@@ -21,6 +21,8 @@
 typedef struct ssl_ctx_st isc_tlsctx_t;
 typedef struct ssl_st	  isc_tls_t;
 
+typedef struct x509_store_st isc_tls_cert_store_t;
+
 void
 isc_tlsctx_free(isc_tlsctx_t **ctpx);
 /*%<
@@ -183,6 +185,27 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
  *
  * Requires:
  *\li	'ctx' is not NULL.
+ */
+
+isc_result_t
+isc_tls_cert_store_create(const char	     *ca_bundle_filename,
+			  isc_tls_cert_store_t **pstore);
+/*%<
+ * Create X509 certificate store. The 'ca_bundle_filename' might be
+ * 'NULL' or an empty string, which means use the default system wide
+ * bundle/directory.
+ *
+ * Requires:
+ *\li	'pstore' is a valid pointer to a pointer containing 'NULL'.
+ */
+
+void
+isc_tls_cert_store_free(isc_tls_cert_store_t **pstore);
+/*%<
+ * Free X509 certificate store.
+ *
+ * Requires:
+ *\li	'pstore' is a valid pointer to a pointer containing a non-'NULL' value.
  */
 
 typedef struct isc_tlsctx_cache isc_tlsctx_cache_t;
