@@ -409,7 +409,6 @@ misc:
     - rm util/newcopyrights
     - perl -w util/update_copyrights < util/copyrights
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-    - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - sh util/check-categories.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
