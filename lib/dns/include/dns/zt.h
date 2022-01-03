@@ -117,14 +117,13 @@ dns_zt_detach(dns_zt_t **ztp);
  */
 
 void
-dns_zt_flushanddetach(dns_zt_t **ztp);
+dns_zt_flush(dns_zt_t *ztp);
 /*%<
- * Detach the given zonetable, if the reference count goes to zero the
- * zonetable will be flushed and then freed.  In either case 'ztp' is
- * set to NULL.
+ * Schedule flushing of the given zonetable, when reference count goes
+ * to zero.
  *
  * Requires:
- * \li	'*ztp' to be valid
+ * \li	'ztp' to be valid
  */
 
 void
