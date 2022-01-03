@@ -104,7 +104,7 @@ def setup(_):
 
 project = 'BIND 9'
 # pylint: disable=redefined-builtin
-copyright = '2021, Internet Systems Consortium'
+copyright = '2022, Internet Systems Consortium'
 author = 'Internet Systems Consortium'
 
 version_vars = {}
