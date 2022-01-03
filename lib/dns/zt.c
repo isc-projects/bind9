@@ -222,6 +222,9 @@ flush(dns_zone_t *zone, void *uap) {
 
 static void
 zt_destroy(dns_zt_t *zt) {
+	isc_refcount_destroy(&zt->references);
+	isc_refcount_destroy(&zt->loads_pending);
+
 	if (atomic_load_acquire(&zt->flush)) {
 		(void)dns_zt_apply(zt, false, NULL, flush, NULL);
 	}
