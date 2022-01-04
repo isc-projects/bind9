@@ -257,6 +257,12 @@ stages:
         grep "^#define HAVE_READLINE_READLINE" config.h;
       fi
 
+# Unpack release tarball and continue work in the extracted directory.
+.unpack_release_tarball: &unpack_release_tarball
+  - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
+  - rm -f bind-*.tar.${TARBALL_EXTENSION}
+  - cd bind-*
+
 # Move the out-of-tree workspace to CI project dir to save it for use in
 # dependent jobs.
 .save_out_of_tree_workspace: &save_out_of_tree_workspace
@@ -384,6 +390,17 @@ stages:
       - tsan/
     when: on_failure
 
+.docs: &docs_job
+  stage: docs
+  script:
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
+    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
+    - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
+  artifacts:
+    untracked: true
+    expire_in: "1 month"
+
 ### Job Definitions
 
 # Jobs in the precheck stage
@@ -502,24 +519,23 @@ tarball-create:
 docs:
   <<: *release_branch_triggering_rules
   <<: *base_image
-  stage: docs
+  <<: *docs_job
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
-  script:
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
-    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
-    - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
   needs:
     - job: autoreconf
       artifacts: true
-  allow_failure: false
-  artifacts:
-    paths:
-      - doc/arm/
-      - doc/man/
-      - doc/misc/
-    expire_in: "1 month"
+
+docs:tarball:
+  <<: *schedules_tags_web_triggering_rules
+  <<: *base_image
+  <<: *docs_job
+  before_script:
+    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - *unpack_release_tarball
+  needs:
+    - job: tarball-create
+      artifacts: true
 
 push:docs:
   <<: *base_image
@@ -808,9 +824,7 @@ gcc:tarball:
   <<: *base_image
   <<: *build_job
   before_script:
-    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
-    - rm -f bind-*.tar.${TARBALL_EXTENSION}
-    - cd bind-*
+    - *unpack_release_tarball
   needs:
     - job: tarball-create
       artifacts: true
