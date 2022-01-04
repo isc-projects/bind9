@@ -2921,10 +2921,15 @@ static isc_result_t
 catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 		     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata,
 		     isc_eventtype_t type) {
-	catz_chgzone_event_t *event;
-	isc_task_t *task;
+	catz_chgzone_event_t *event = NULL;
+	isc_task_t *task = NULL;
 	isc_result_t result;
 	isc_taskaction_t action = NULL;
+
+	result = isc_taskmgr_excltask(taskmgr, &task);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	switch (type) {
 	case DNS_EVENT_CATZADDZONE:
@@ -2936,6 +2941,7 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 		break;
 	default:
 		REQUIRE(0);
+		ISC_UNREACHABLE();
 	}
 
 	event = (catz_chgzone_event_t *)isc_event_allocate(
@@ -2946,13 +2952,11 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 	event->origin = NULL;
 	event->view = NULL;
 	event->mod = (type == DNS_EVENT_CATZMODZONE);
+
 	dns_catz_entry_attach(entry, &event->entry);
 	dns_catz_zone_attach(origin, &event->origin);
 	dns_view_attach(view, &event->view);
 
-	task = NULL;
-	result = isc_taskmgr_excltask(taskmgr, &task);
-	REQUIRE(result == ISC_R_SUCCESS);
 	isc_task_send(task, ISC_EVENT_PTR(&event));
 	isc_task_detach(&task);
 
