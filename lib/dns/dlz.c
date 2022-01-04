@@ -230,6 +230,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 
 	/* impinfo->methods->create failed. */
 	RWUNLOCK(&dlz_implock, isc_rwlocktype_read);
+	isc_mem_free(mctx, db->dlzname);
 	isc_mem_put(mctx, db, sizeof(dns_dlzdb_t));
 	return (result);
 }
