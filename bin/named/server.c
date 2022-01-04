@@ -8921,7 +8921,6 @@ load_configuration(const char *filename, named_server_t *server,
 		const cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		clistenon = NULL;
 		/*
 		 * Even though listen-on is present in the default
 		 * configuration, this way is easier.
@@ -8948,6 +8947,7 @@ load_configuration(const char *filename, named_server_t *server,
 			ns_listenlist_detach(&listenon);
 		}
 	}
+
 	/*
 	 * Ditto for IPv6.
 	 */
