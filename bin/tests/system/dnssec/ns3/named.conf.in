@@ -378,6 +378,11 @@ zone "too-many-iterations" {
 	file "too-many-iterations.bk";
 };
 
+zone "rsasha1.example" {
+	type primary;
+	file "rsasha1.example.db";
+};
+
 include "siginterval.conf";
 
 include "trusted.conf";

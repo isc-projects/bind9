@@ -63,7 +63,7 @@ for subdomain in secure badds bogus dynamic keyless nsec3 optout \
 	ttlpatch split-dnssec split-smart expired expiring upper lower \
 	dnskey-unknown dnskey-unsupported dnskey-unsupported-2 \
 	dnskey-nsec3-unknown managed-future revkey \
-	dname-at-apex-nsec3 occluded
+	dname-at-apex-nsec3 occluded rsasha1
 do
 	cp "../ns3/dsset-$subdomain.example." .
 done
