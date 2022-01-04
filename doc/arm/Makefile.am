@@ -3,6 +3,7 @@ include $(top_srcdir)/Makefile.docs
 
 EXTRA_DIST =					\
 	conf.py					\
+	isc-logo.pdf				\
 	advanced.rst				\
 	catz.rst				\
 	configuration.rst			\
