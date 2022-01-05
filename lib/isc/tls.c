@@ -961,18 +961,14 @@ tlsctx_cache_entry_destroy(isc_mem_t *mctx, isc_tlsctx_cache_entry_t *entry) {
 	isc_mem_put(mctx, entry, sizeof(*entry));
 }
 
-void
-isc_tlsctx_cache_detach(isc_tlsctx_cache_t **pcache) {
-	isc_tlsctx_cache_t *cache;
+static void
+tlsctx_cache_destroy(isc_tlsctx_cache_t *cache) {
 	isc_ht_iter_t *it = NULL;
 	isc_result_t result;
-	REQUIRE(pcache != NULL);
-	cache = *pcache;
-	REQUIRE(VALID_TLSCTX_CACHE(cache));
 
-	if (isc_refcount_decrement(&cache->references) > 1) {
-		return;
-	}
+	cache->magic = 0;
+
+	isc_refcount_destroy(&cache->references);
 
 	RUNTIME_CHECK(isc_ht_iter_create(cache->data, &it) == ISC_R_SUCCESS);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
@@ -982,13 +978,27 @@ isc_tlsctx_cache_detach(isc_tlsctx_cache_t **pcache) {
 		isc_ht_iter_current(it, (void **)&entry);
 		tlsctx_cache_entry_destroy(cache->mctx, entry);
 	}
+
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&cache->data);
-
 	isc_rwlock_destroy(&cache->rwlock);
-	cache->magic = 0;
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
-	*pcache = NULL;
+}
+
+void
+isc_tlsctx_cache_detach(isc_tlsctx_cache_t **cachep) {
+	isc_tlsctx_cache_t *cache = NULL;
+
+	REQUIRE(cachep != NULL);
+
+	cache = *cachep;
+	*cachep = NULL;
+
+	REQUIRE(VALID_TLSCTX_CACHE(cache));
+
+	if (isc_refcount_decrement(&cache->references) == 1) {
+		tlsctx_cache_destroy(cache);
+	}
 }
 
 isc_result_t

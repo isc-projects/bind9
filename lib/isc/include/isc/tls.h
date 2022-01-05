@@ -240,13 +240,13 @@ isc_tlsctx_cache_attach(isc_tlsctx_cache_t  *source,
  */
 
 void
-isc_tlsctx_cache_detach(isc_tlsctx_cache_t **pcache);
+isc_tlsctx_cache_detach(isc_tlsctx_cache_t **cachep);
 /*%<
  * Remove a reference to the TLS context cache object.
  *
  * Requires:
- *\li	'pcache' is a valid pointer to a pointer which must point to a
- *      valid TLS context cache object.
+ *\li	'cachep' is a pointer to a pointer to a valid TLS
+ *	 context cache object.
  */
 
 isc_result_t
