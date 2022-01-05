@@ -12,6 +12,7 @@
 #if HAVE_CMOCKA
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -147,6 +148,45 @@ isc_mem_test(void **state) {
 
 	isc_mempool_destroy(&mp1);
 }
+
+#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
+/* aligned memory system tests */
+static void
+isc_mem_aligned_test(void **state) {
+	isc_mem_t *mctx2 = NULL;
+	void *ptr;
+	size_t alignment;
+	uintptr_t aligned;
+
+	UNUSED(state);
+
+	/* Check different alignment sizes up to the page size */
+	for (alignment = sizeof(void *); alignment <= 4096; alignment *= 2) {
+		size_t size = alignment / 2 - 1;
+		ptr = isc_mem_get_aligned(test_mctx, size, alignment);
+
+		/* Check if the pointer is properly aligned */
+		aligned = (((uintptr_t)ptr / alignment) * alignment);
+		assert_ptr_equal(aligned, (uintptr_t)ptr);
+
+		/* Check if we can resize to <alignment, 2*alignment> range */
+		ptr = isc_mem_reget_aligned(test_mctx, ptr, size,
+					    size * 2 + alignment, alignment);
+
+		/* Check if the pointer is still properly aligned */
+		aligned = (((uintptr_t)ptr / alignment) * alignment);
+		assert_ptr_equal(aligned, (uintptr_t)ptr);
+
+		isc_mem_put_aligned(test_mctx, ptr, size * 2 + alignment,
+				    alignment);
+
+		/* Check whether isc_mem_putanddetach_detach() also works */
+		isc_mem_create(&mctx2);
+		ptr = isc_mem_get_aligned(mctx2, size, alignment);
+		isc_mem_putanddetach_aligned(&mctx2, ptr, size, alignment);
+	}
+}
+#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
 
 /* test TotalUse calculation */
 static void
@@ -474,7 +514,8 @@ isc_mem_benchmark(void **state) {
 	t = isc_time_microdiff(&ts2, &ts1);
 
 	printf("[ TIME     ] isc_mem_benchmark: "
-	       "%d isc_mem_{get,put} calls, %f seconds, %f calls/second\n",
+	       "%d isc_mem_{get,put} calls, %f seconds, %f "
+	       "calls/second\n",
 	       nthreads * ITERS * NUM_ITEMS, t / 1000000.0,
 	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
 }
@@ -490,6 +531,10 @@ main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(isc_mem_test, _setup,
 						_teardown),
+#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
+		cmocka_unit_test_setup_teardown(isc_mem_aligned_test, _setup,
+						_teardown),
+#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
 		cmocka_unit_test_setup_teardown(isc_mem_total_test, _setup,
 						_teardown),
 		cmocka_unit_test_setup_teardown(isc_mem_inuse_test, _setup,

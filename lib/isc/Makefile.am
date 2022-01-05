@@ -168,6 +168,7 @@ libisc_la_SOURCES =		\
 	openssl_shim.c		\
 	openssl_shim.h		\
 	os.c			\
+	os_p.h			\
 	parseint.c		\
 	pool.c			\
 	portset.c		\

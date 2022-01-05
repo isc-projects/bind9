@@ -26,6 +26,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/os.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/strerr.h>
@@ -328,16 +329,18 @@ unlock:
 		s = ZERO_ALLOCATION_SIZE; \
 	}
 
+#define MEM_ALIGN(a) ((a) ? MALLOCX_ALIGN(a) : 0)
+
 /*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
 static inline void *
-mem_get(isc_mem_t *ctx, size_t size) {
+mem_get(isc_mem_t *ctx, size_t size, int flags) {
 	char *ret = NULL;
 
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
 
-	ret = mallocx(size, 0);
+	ret = mallocx(size, flags);
 	INSIST(ret != NULL);
 
 	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
@@ -352,22 +355,23 @@ mem_get(isc_mem_t *ctx, size_t size) {
  */
 /* coverity[+free : arg-1] */
 static inline void
-mem_put(isc_mem_t *ctx, void *mem, size_t size) {
+mem_put(isc_mem_t *ctx, void *mem, size_t size, int flags) {
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
 
 	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
-	sdallocx(mem, size, 0);
+	sdallocx(mem, size, flags);
 }
 
 static inline void *
-mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size) {
+mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
+	    int flags) {
 	void *new_ptr = NULL;
 
 	ADJUST_ZERO_ALLOCATION_SIZE(new_size);
 
-	new_ptr = rallocx(old_ptr, new_size, 0);
+	new_ptr = rallocx(old_ptr, new_size, flags);
 	INSIST(new_ptr != NULL);
 
 	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
@@ -453,7 +457,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = mallocx(sizeof(*ctx), 0);
+	ctx = mallocx(sizeof(*ctx), MALLOCX_ALIGN(ISC_OS_CACHELINE_SIZE));
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
@@ -572,7 +576,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(malloced == 0);
 	}
-	sdallocx(ctx, sizeof(*ctx), 0);
+	sdallocx(ctx, sizeof(*ctx), MALLOCX_ALIGN(ISC_OS_CACHELINE_SIZE));
 }
 
 void
@@ -617,7 +621,8 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
  */
 
 void
-isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
+isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
+		      size_t alignment FLARG) {
 	isc_mem_t *ctx = NULL;
 
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
@@ -630,7 +635,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size);
+	mem_put(ctx, ptr, size, MEM_ALIGN(alignment));
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
@@ -745,12 +750,12 @@ lo_water(isc_mem_t *ctx) {
 }
 
 void *
-isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
+isc__mem_get(isc_mem_t *ctx, size_t size, size_t alignment FLARG) {
 	void *ptr = NULL;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size);
+	ptr = mem_get(ctx, size, MEM_ALIGN(alignment));
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -761,13 +766,13 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 }
 
 void
-isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
+isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, size_t alignment FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size);
+	mem_put(ctx, ptr, size, MEM_ALIGN(alignment));
 
 	CALL_LO_WATER(ctx);
 }
@@ -884,7 +889,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size);
+	ptr = mem_get(ctx, size, 0);
 
 	/* Recalculate the real allocated size */
 	size = sallocx(ptr, 0);
@@ -898,20 +903,21 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 }
 
 void *
-isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size,
-	       size_t new_size FLARG) {
+isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
+	       size_t alignment FLARG) {
 	void *new_ptr = NULL;
 
 	if (old_ptr == NULL) {
 		REQUIRE(old_size == 0);
-		new_ptr = isc__mem_get(ctx, new_size FLARG_PASS);
+		new_ptr = isc__mem_get(ctx, new_size, alignment FLARG_PASS);
 	} else if (new_size == 0) {
-		isc__mem_put(ctx, old_ptr, old_size FLARG_PASS);
+		isc__mem_put(ctx, old_ptr, old_size, alignment FLARG_PASS);
 	} else {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_ptr, old_size);
 
-		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size);
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size,
+				      MEM_ALIGN(alignment));
 
 		mem_getstats(ctx, new_size);
 		ADD_TRACE(ctx, new_ptr, new_size, file, line);
@@ -944,7 +950,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_ptr, old_size);
 
-		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size);
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, 0);
 
 		/* Recalculate the real allocated size */
 		new_size = sallocx(new_ptr, 0);
@@ -975,7 +981,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size);
+	mem_put(ctx, ptr, size, 0);
 
 	CALL_LO_WATER(ctx);
 }
@@ -1243,7 +1249,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 		mpctx->items = item->next;
 
 		mem_putstats(mctx, item, mpctx->size);
-		mem_put(mctx, item, mpctx->size);
+		mem_put(mctx, item, mpctx->size, 0);
 	}
 
 	/*
@@ -1278,7 +1284,7 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 		 * We need to dip into the well.  Fill up our free list.
 		 */
 		for (size_t i = 0; i < fillcount; i++) {
-			item = mem_get(mctx, mpctx->size);
+			item = mem_get(mctx, mpctx->size, 0);
 			mem_getstats(mctx, mpctx->size);
 			item->next = mpctx->items;
 			mpctx->items = item;
@@ -1326,7 +1332,7 @@ isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	 */
 	if (freecount >= freemax) {
 		mem_putstats(mctx, mem, mpctx->size);
-		mem_put(mctx, mem, mpctx->size);
+		mem_put(mctx, mem, mpctx->size, 0);
 		return;
 	}
 

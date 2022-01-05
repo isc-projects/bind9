@@ -15,7 +15,7 @@
 typedef struct isc_queue isc_queue_t;
 
 isc_queue_t *
-isc_queue_new(isc_mem_t *mctx, int max_threads);
+isc_queue_new(isc_mem_t *mctx);
 /*%<
  * Create a new fetch-and-add array queue.
  *
