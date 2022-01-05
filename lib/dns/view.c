@@ -632,6 +632,7 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
+		dns_zt_t *zt = NULL;
 
 		isc_refcount_destroy(&view->references);
 
@@ -645,13 +646,16 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 			dns_requestmgr_shutdown(view->requestmgr);
 		}
 
-		if (view->zonetable != NULL && view->flush) {
-			dns_zt_flushanddetach(&view->zonetable);
-		} else if (view->zonetable != NULL) {
-			dns_zt_detach(&view->zonetable);
+		LOCK(&view->lock);
+
+		if (view->zonetable != NULL) {
+			zt = view->zonetable;
+			view->zonetable = NULL;
+			if (view->flush) {
+				dns_zt_flush(zt);
+			}
 		}
 
-		LOCK(&view->lock);
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
@@ -674,7 +678,11 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		}
 		UNLOCK(&view->lock);
 
-		/* Need to detach zones outside view lock */
+		/* Need to detach zt and zones outside view lock */
+		if (zt != NULL) {
+			dns_zt_detach(&zt);
+		}
+
 		if (mkzone != NULL) {
 			dns_zone_detach(&mkzone);
 		}
