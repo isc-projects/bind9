@@ -140,14 +140,7 @@ struct isc_taskmgr {
 	LIST(isc_task_t) tasks;
 	atomic_uint_fast32_t mode;
 	atomic_bool exclusive_req;
-	atomic_bool exiting;
-
-	/*
-	 * Multiple threads can read/write 'excl' at the same time, so we need
-	 * to protect the access.  We can't use 'lock' since isc_task_detach()
-	 * will try to acquire it.
-	 */
-	isc_mutex_t excl_lock;
+	bool exiting;
 	isc_task_t *excl;
 };
 
@@ -254,13 +247,11 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	INIT_LINK(task, link);
 	task->magic = TASK_MAGIC;
 
-	exiting = false;
 	LOCK(&manager->lock);
-	if (!atomic_load_relaxed(&manager->exiting)) {
+	exiting = manager->exiting;
+	if (!exiting) {
 		APPEND(manager->tasks, task, link);
 		atomic_fetch_add(&manager->tasks_count, 1);
-	} else {
-		exiting = true;
 	}
 	UNLOCK(&manager->lock);
 
@@ -956,7 +947,6 @@ manager_free(isc_taskmgr_t *manager) {
 	isc_nm_detach(&manager->netmgr);
 
 	isc_mutex_destroy(&manager->lock);
-	isc_mutex_destroy(&manager->excl_lock);
 	manager->magic = 0;
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 }
@@ -1000,7 +990,6 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	*manager = (isc_taskmgr_t){ .magic = TASK_MANAGER_MAGIC };
 
 	isc_mutex_init(&manager->lock);
-	isc_mutex_init(&manager->excl_lock);
 
 	if (default_quantum == 0) {
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
@@ -1012,7 +1001,6 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	}
 
 	INIT_LIST(manager->tasks);
-	atomic_init(&manager->exiting, false);
 	atomic_init(&manager->mode, isc_taskmgrmode_normal);
 	atomic_init(&manager->exclusive_req, false);
 	atomic_init(&manager->tasks_count, 0);
@@ -1042,15 +1030,6 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	 */
 
 	/*
-	 * Detach the exclusive task before acquiring the manager lock
-	 */
-	LOCK(&manager->excl_lock);
-	if (manager->excl != NULL) {
-		isc_task_detach((isc_task_t **)&manager->excl);
-	}
-	UNLOCK(&manager->excl_lock);
-
-	/*
 	 * Unlike elsewhere, we're going to hold this lock a long time.
 	 * We need to do so, because otherwise the list of tasks could
 	 * change while we were traversing it.
@@ -1058,14 +1037,16 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	 * This is also the only function where we will hold both the
 	 * task manager lock and a task lock at the same time.
 	 */
-
 	LOCK(&manager->lock);
+	if (manager->excl != NULL) {
+		isc_task_detach((isc_task_t **)&manager->excl);
+	}
 
 	/*
 	 * Make sure we only get called once.
 	 */
-	INSIST(atomic_compare_exchange_strong(&manager->exiting,
-					      &(bool){ false }, true));
+	INSIST(manager->exiting == false);
+	manager->exiting = true;
 
 	/*
 	 * Post shutdown event(s) to every task (if they haven't already been
@@ -1120,12 +1101,12 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 	REQUIRE(task->threadid == 0);
 	UNLOCK(&task->lock);
 
-	LOCK(&mgr->excl_lock);
+	LOCK(&mgr->lock);
 	if (mgr->excl != NULL) {
 		isc_task_detach(&mgr->excl);
 	}
 	isc_task_attach(task, &mgr->excl);
-	UNLOCK(&mgr->excl_lock);
+	UNLOCK(&mgr->lock);
 }
 
 isc_result_t
@@ -1135,16 +1116,16 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp) {
 	REQUIRE(VALID_MANAGER(mgr));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
-	LOCK(&mgr->excl_lock);
+	LOCK(&mgr->lock);
 	if (mgr->excl != NULL) {
 		isc_task_attach(mgr->excl, taskp);
 		result = ISC_R_SUCCESS;
-	} else if (atomic_load_relaxed(&mgr->exiting)) {
+	} else if (mgr->exiting) {
 		result = ISC_R_SHUTTINGDOWN;
 	} else {
 		result = ISC_R_NOTFOUND;
 	}
-	UNLOCK(&mgr->excl_lock);
+	UNLOCK(&mgr->lock);
 
 	return (result);
 }
@@ -1159,11 +1140,10 @@ isc_task_beginexclusive(isc_task_t *task) {
 
 	REQUIRE(task->state == task_state_running);
 
-	LOCK(&manager->excl_lock);
-	REQUIRE(task == task->manager->excl ||
-		(atomic_load_relaxed(&task->manager->exiting) &&
-		 task->manager->excl == NULL));
-	UNLOCK(&manager->excl_lock);
+	LOCK(&manager->lock);
+	REQUIRE(task == manager->excl ||
+		(manager->exiting && manager->excl == NULL));
+	UNLOCK(&manager->lock);
 
 	if (!atomic_compare_exchange_strong(&manager->exclusive_req,
 					    &(bool){ false }, true))
