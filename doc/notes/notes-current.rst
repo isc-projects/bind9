@@ -49,9 +49,3 @@ Bug Fixes
   to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
 
 - Overall memory use by ``named`` was optimized and reduced.  :gl:`#2398`
-
-- Under certain circumstances, the signed version of an inline-signed zone could
-  be dumped to disk without the serial number of the unsigned version of the
-  zone being saved. This could prevent resynchronization of zone contents after
-  ``named`` restarted, if the unsigned zone file had been modified while
-  ``named`` was not running. This has been fixed. :gl:`#3071`
