@@ -1,3 +1,7 @@
+5788.	[bug]		An assertion could occur if a catalog zone event was
+			scheduled while the task manager was being shut
+			down. [GL #3074]
+
 5787.	[doc]		Update 'auto-dnssec' documentation, it may only be
 			activated at zone level. [GL #3023]
 
