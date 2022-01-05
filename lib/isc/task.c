@@ -1130,7 +1130,7 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 
 isc_result_t
 isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp) {
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(mgr));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -1138,6 +1138,9 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp) {
 	LOCK(&mgr->excl_lock);
 	if (mgr->excl != NULL) {
 		isc_task_attach(mgr->excl, taskp);
+		result = ISC_R_SUCCESS;
+	} else if (atomic_load_relaxed(&mgr->exiting)) {
+		result = ISC_R_SHUTTINGDOWN;
 	} else {
 		result = ISC_R_NOTFOUND;
 	}
