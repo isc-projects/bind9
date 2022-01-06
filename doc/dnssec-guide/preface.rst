@@ -57,7 +57,7 @@ Acknowledgements
 
 This document was originally authored by Josh Kuo of `DeepDive
 Networking <https://www.deepdivenetworking.com/>`__. He can be reached
-at josh@deepdivenetworking.com.
+at josh.kuo@gmail.com.
 
 Thanks to the following individuals (in no particular order) who have
 helped in completing this document: Jeremy C. Reed, Heidi Schempf,
