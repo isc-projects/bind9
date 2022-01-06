@@ -11869,7 +11869,22 @@ dump_done(void *arg, isc_result_t result) {
 	if (compact) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 	}
-	if (result != ISC_R_SUCCESS && result != ISC_R_CANCELED) {
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN)) {
+		/*
+		 * If DNS_ZONEFLG_SHUTDOWN is set, all external references to
+		 * the zone are gone, which means it is in the process of being
+		 * cleaned up, so do not reschedule dumping.
+		 *
+		 * Detach from the raw version of the zone in case this
+		 * operation has been deferred in zone_shutdown().
+		 */
+		if (zone->raw != NULL) {
+			dns_zone_detach(&zone->raw);
+		}
+		if (result == ISC_R_SUCCESS) {
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FLUSH);
+		}
+	} else if (result != ISC_R_SUCCESS && result != ISC_R_CANCELED) {
 		/*
 		 * Try again in a short while.
 		 */
@@ -11891,9 +11906,6 @@ dump_done(void *arg, isc_result_t result) {
 		dns_dumpctx_detach(&zone->dctx);
 	}
 	zonemgr_putio(&zone->writeio);
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) && zone->raw != NULL) {
-		dns_zone_detach(&zone->raw);
-	}
 	UNLOCK_ZONE(zone);
 	if (again) {
 		(void)zone_dump(zone, false);
@@ -14901,6 +14913,12 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	 */
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SHUTDOWN);
 	free_needed = exit_check(zone);
+	/*
+	 * If a dump is in progress for the secure zone, defer detaching from
+	 * the raw zone as it may prevent the unsigned serial number from being
+	 * stored in the raw-format dump of the secure zone.  In this scenario,
+	 * dump_done() takes care of cleaning up the zone->raw reference.
+	 */
 	if (inline_secure(zone) && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
 		raw = zone->raw;
 		zone->raw = NULL;

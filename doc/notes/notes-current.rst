@@ -50,8 +50,8 @@ Bug Fixes
 
 - Overall memory use by ``named`` was optimized and reduced.  :gl:`#2398`
 
-- Under certain circumstances, the signed version of an inline-signed zone could
-  be dumped to disk without the serial number of the unsigned version of the
-  zone being saved. This could prevent resynchronization of zone contents after
-  ``named`` restarted, if the unsigned zone file had been modified while
-  ``named`` was not running. This has been fixed. :gl:`#3071`
+- Under certain circumstances, the signed version of an inline-signed
+  zone could be dumped to disk without the serial number of the unsigned
+  version of the zone, preventing resynchronization of zone contents
+  after ``named`` restart in case the unsigned zone file gets modified
+  while ``named`` is not running. This has been fixed. :gl:`#3071`

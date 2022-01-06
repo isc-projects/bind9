@@ -151,3 +151,10 @@ zone example {
 	auto-dnssec maintain;
 	file "example.db";
 };
+
+zone "unsigned-serial-test" {
+	type primary;
+	inline-signing yes;
+	auto-dnssec maintain;
+	file "unsigned-serial-test.db";
+};

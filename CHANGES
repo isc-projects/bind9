@@ -9,7 +9,7 @@
 			activated at zone level. [GL #3023]
 
 5786.	[bug]		Defer detaching from zone->raw in zone_shutdown() if
-			the zone is in the process of being dumped to disk to
+			the zone is in the process of being dumped to disk, to
 			ensure that the unsigned serial number information is
 			always written in the raw-format header of the signed
 			version on an inline-signed zone. [GL #3071]
