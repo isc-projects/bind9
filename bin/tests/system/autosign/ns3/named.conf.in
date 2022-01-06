@@ -249,6 +249,13 @@ zone "inaczsk.example" {
 	auto-dnssec maintain;
 };
 
+zone "noksk.example" {
+	type primary;
+	file "noksk.example.db";
+	allow-update { any; };
+	auto-dnssec maintain;
+};
+
 zone "sync.example" {
 	type primary;
 	file "sync.example.db";

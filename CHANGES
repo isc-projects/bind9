@@ -1,3 +1,6 @@
+5789.	[bug]		Allow replacing expired zone signatures with
+			signatures created by the KSK. [GL #3049]
+
 5788.	[bug]		An assertion could occur if a catalog zone event was
 			scheduled while the task manager was being shut
 			down. [GL #3074]

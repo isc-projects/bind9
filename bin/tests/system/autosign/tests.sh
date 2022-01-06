@@ -164,7 +164,7 @@ do
 		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
 	done
 	for z in bar. example. inacksk2.example. inacksk3.example \
-		 inaczsk2.example. inaczsk3.example
+		 inaczsk2.example. inaczsk3.example noksk.example nozsk.example
 	do
 		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
@@ -210,9 +210,9 @@ $DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -A -2 -f - inacksk3.example | awk '{ print $4}'`
-grep "DNSKEY 7 2 " dig.out.ns3.test$n > /dev/null || ret=1
+grep "DNSKEY ${DEFAULT_ALGORITHM_NUMBER} 2 " dig.out.ns3.test$n > /dev/null || ret=1
 
-pattern="DNSKEY 7 2 [0-9]* [0-9]* [0-9]* ${zskid} "
+pattern="DNSKEY ${DEFAULT_ALGORITHM_NUMBER} 2 [0-9]* [0-9]* [0-9]* ${zskid} "
 grep "${pattern}" dig.out.ns3.test$n > /dev/null && ret=1
 
 count=`awk 'BEGIN { count = 0 }
@@ -228,7 +228,8 @@ test $count -eq 3 || ret=1
 awk='$4 == "RRSIG" && $5 == "DNSKEY" { printf "%05u\n", $11 }'
 id=`awk "${awk}" dig.out.ns3.test$n`
 
-$SETTIME -D now+5 ns3/Kinacksk3.example.+007+${id} > settime.out.test$n || ret=1
+keyfile=$(printf "ns3/Kinacksk3.example.+%03u+%s" "${DEFAULT_ALGORITHM_NUMBER}" "${id}")
+$SETTIME -D now+5 "${keyfile}" > settime.out.test$n || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys inacksk3.example 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 
 n=`expr $n + 1`
@@ -245,8 +246,8 @@ ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
-grep "CNAME 7 3 " dig.out.ns3.test$n > /dev/null || ret=1
-grep "CNAME 7 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null && ret=1
+grep "CNAME ${DEFAULT_ALGORITHM_NUMBER} 3 " dig.out.ns3.test$n > /dev/null || ret=1
+grep "CNAME ${DEFAULT_ALGORITHM_NUMBER} 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null && ret=1
 count=`awk 'BEGIN { count = 0 }
 	    $4 == "RRSIG" && $5 == "CNAME" { count++ }
 	    END {print count}' dig.out.ns3.test$n`
@@ -256,7 +257,9 @@ count=`awk 'BEGIN { count = 0 }
        END {print count}' dig.out.ns3.test$n`
 test $count -eq 3 || ret=1
 id=`awk '$4 == "RRSIG" && $5 == "CNAME" { printf "%05u\n", $11 }' dig.out.ns3.test$n`
-$SETTIME -D now+5 ns3/Kinaczsk3.example.+007+${id} > settime.out.test$n || ret=1
+
+keyfile=$(printf "ns3/Kinaczsk3.example.+%03u+%s" "${DEFAULT_ALGORITHM_NUMBER}" "${id}")
+$SETTIME -D now+5 "${keyfile}" > settime.out.test$n || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys inaczsk3.example 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -371,36 +374,51 @@ END
 echo_i "waiting for change to take effect"
 sleep 3
 
-echo_i "checking that expired RRSIGs from missing key are not deleted ($n)"
+missing=$(keyfile_to_key_id "$(cat noksk-ksk.key)")
+echo_i "checking that expired RRSIGs from missing KSK $missing are not deleted ($n)"
 ret=0
-missing=$(keyfile_to_key_id "$(cat missingzsk.key)")
+$JOURNALPRINT ns3/noksk.example.db.jnl | \
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {error=1}} END {exit error}' id=$missing || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+missing=$(keyfile_to_key_id "$(cat nozsk-zsk.key)")
+ksk=$(keyfile_to_key_id "$(cat nozsk-ksk.key)")
+echo_i "checking that expired RRSIGs from missing ZSK $missing are replaced ($n)"
+ret=0
 $JOURNALPRINT ns3/nozsk.example.db.jnl | \
-   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$missing || ret=1
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$missing || ret=1
+$JOURNALPRINT ns3/nozsk.example.db.jnl | \
+   awk '{if ($1 == "add" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$ksk || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that expired RRSIGs from inactive key are not deleted ($n)"
+inactive=$(keyfile_to_key_id "$(cat inaczsk-zsk.key)")
+ksk=$(keyfile_to_key_id "$(cat inaczsk-ksk.key)")
+echo_i "checking that expired RRSIGs from inactive ZSK $inactive are replaced ($n)"
 ret=0
-inactive=$(keyfile_to_key_id "$(cat inactivezsk.key)")
 $JOURNALPRINT ns3/inaczsk.example.db.jnl | \
-   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$inactive || ret=1
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$inactive || ret=1
+$JOURNALPRINT ns3/inaczsk.example.db.jnl | \
+   awk '{if ($1 == "add" && $5 == "RRSIG" && $12 == id) {ok=1}} END {exit ok?0:1}' id=$ksk || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that non-replaceable RRSIGs are logged only once (missing private key) ($n)"
+echo_i "checking that replaced RRSIGs are not logged (missing ZSK private key) ($n)"
 ret=0
-loglines=`grep "Key nozsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
-[ "$loglines" -eq 1 ] || ret=1
+loglines=`grep "Key nozsk.example/$DEFAULT_ALGORITHM/$missing .* retaining signatures" ns3/named.run | wc -l`
+[ "$loglines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that non-replaceable RRSIGs are logged only once (inactive private key) ($n)"
+echo_i "checking that replaced RRSIGs are not logged (inactive ZSK private key) ($n)"
 ret=0
-loglines=`grep "Key inaczsk.example/NSEC3RSASHA1/$inactive .* retaining signatures" ns3/named.run | wc -l`
-[ "$loglines" -eq 1 ] || ret=1
+loglines=`grep "Key inaczsk.example/$DEFAULT_ALGORITHM/$inactive .* retaining signatures" ns3/named.run | wc -l`
+[ "$loglines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1057,7 +1075,7 @@ send
 END
 [ $ret != 0 ] && echo_i "error: dynamic update add NSEC3PARAM failed"
 # Create DNSSEC keys in the zone directory.
-$KEYGEN -a rsasha1 -3 -q -K ns3 jitter.nsec3.example > /dev/null
+$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -K ns3 jitter.nsec3.example > /dev/null
 # Trigger zone signing.
 ($RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 # Wait until zone has been signed.
@@ -1081,7 +1099,7 @@ ret=0
 oldserial=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '$0 !~ /SOA/ {print $3}'`
 oldinception=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {print $6}' | sort -u`
 
-$KEYGEN -a rsasha1 -3 -q -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
+$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
 
 ($RNDCCMD 10.53.0.3 sign prepub.example 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
 newserial=$oldserial
@@ -1465,12 +1483,12 @@ $DIG $DIGOPTS @10.53.0.3 axfr inacksk2.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -A -2 -f - inacksk2.example | awk '{ print $4}' `
-pattern="DNSKEY 7 2 [0-9]* [0-9]* [0-9]* ${zskid} "
+pattern="DNSKEY ${DEFAULT_ALGORITHM_NUMBER} 2 [0-9]* [0-9]* [0-9]* ${zskid} "
 grep "${pattern}" dig.out.ns3.test$n > /dev/null || ret=1
 
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -2 -f - inacksk2.example | awk '{ print $4}' `
-pattern="DNSKEY 7 2 [0-9]* [0-9]* [0-9]* ${kskid} "
+pattern="DNSKEY ${DEFAULT_ALGORITHM_NUMBER} 2 [0-9]* [0-9]* [0-9]* ${kskid} "
 grep "${pattern}" dig.out.ns3.test$n > /dev/null && ret=1
 
 n=`expr $n + 1`
@@ -1480,7 +1498,7 @@ status=`expr $status + $ret`
 echo_i "check that zone with inactive ZSK and active KSK is properly autosigned ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.test$n
-grep "SOA 7 2" dig.out.ns3.test$n > /dev/null || ret=1
+grep "SOA ${DEFAULT_ALGORITHM_NUMBER} 2" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1497,7 +1515,7 @@ $DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -A -2 -f - inacksk3.example | awk '{ print $4}' `
-pattern="DNSKEY 7 2 [0-9]* [0-9]* [0-9]* ${zskid} "
+pattern="DNSKEY ${DEFAULT_ALGORITHM_NUMBER} 2 [0-9]* [0-9]* [0-9]* ${zskid} "
 grep "${pattern}" dig.out.ns3.test$n > /dev/null || ret=1
 
 count=`awk 'BEGIN { count = 0 }
@@ -1524,7 +1542,7 @@ ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
-grep "CNAME 7 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null || ret=1
+grep "CNAME ${DEFAULT_ALGORITHM_NUMBER} 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null || ret=1
 count=`awk 'BEGIN { count = 0 }
        $4 == "RRSIG" && $5 == "CNAME" { count++ }
        END {print count}' dig.out.ns3.test$n`
@@ -1598,7 +1616,7 @@ status=`expr $status + $ret`
 echo_i "check that DNAME at apex with NSEC3 is correctly signed (auto-dnssec maintain) ($n)"
 ret=0
 $DIG $DIGOPTS txt dname-at-apex-nsec3.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "RRSIG NSEC3 7 3 600" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG NSEC3 ${DEFAULT_ALGORITHM_NUMBER} 3 600" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
