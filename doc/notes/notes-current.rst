@@ -53,3 +53,7 @@ Bug Fixes
   version of the zone, preventing resynchronization of zone contents
   after ``named`` restart in case the unsigned zone file gets modified
   while ``named`` is not running. This has been fixed. :gl:`#3071`
+
+- Under certain circumstances, reading from the raw TCP channels used
+  for rndc and statistics could cause assertion failure.  This has been
+  fixed. :gl:`#3079`
