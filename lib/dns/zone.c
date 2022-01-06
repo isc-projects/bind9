@@ -3483,7 +3483,8 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		INSIST(result == ISC_R_SUCCESS);
 
-		/* RFC 3110, section 4: Performance Considerations:
+		/*
+		 * RFC 3110, section 4: Performance Considerations:
 		 *
 		 * A public exponent of 3 minimizes the effort needed to verify
 		 * a signature.  Use of 3 as the public exponent is weak for
@@ -6858,7 +6859,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				}
 				deleted = true;
 			}
-			if (warn) {
+			if (warn && !deleted) {
 				/*
 				 * At this point, we've got an RRSIG,
 				 * which is signed by an inactive key.
@@ -6868,7 +6869,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * offline will prevent us spinning waiting
 				 * for the private part.
 				 */
-				if (incremental && !deleted) {
+				if (incremental) {
 					result = offline(db, ver, zonediff,
 							 name, rdataset.ttl,
 							 &rdata);
@@ -7060,8 +7061,9 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 					continue;
 				}
 
-				/* Don't consider inactive keys, however
-				 * the key may be temporary offline, so do
+				/*
+				 * Don't consider inactive keys, however
+				 * the KSK may be temporary offline, so do
 				 * consider keys which private key files are
 				 * unavailable.
 				 */
@@ -7074,7 +7076,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				}
 				if (KSK(keys[j])) {
 					have_ksk = true;
-				} else {
+				} else if (dst_key_isprivate(keys[j])) {
 					have_nonksk = true;
 				}
 				both = have_ksk && have_nonksk;
@@ -9705,9 +9707,10 @@ zone_sign(dns_zone_t *zone) {
 						       ALG(zone_keys[j]))) {
 						continue;
 					}
-					/* Don't consider inactive keys, however
+					/*
+					 * Don't consider inactive keys, however
 					 * the key may be temporary offline, so
-					 * do consider keys which private key
+					 * do consider KSKs which private key
 					 * files are unavailable.
 					 */
 					if (dst_key_inactive(zone_keys[j])) {
@@ -9718,7 +9721,8 @@ zone_sign(dns_zone_t *zone) {
 					}
 					if (KSK(zone_keys[j])) {
 						have_ksk = true;
-					} else {
+					} else if (dst_key_isprivate(
+							   zone_keys[j])) {
 						have_nonksk = true;
 					}
 					both = have_ksk && have_nonksk;
@@ -14744,8 +14748,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		timeout = 30;
 	}
 
-	/* Save request parameters so we can reuse them later on
-	   for resolving missing glue A/AAAA records. */
+	/*
+	 * Save request parameters so we can reuse them later on
+	 * for resolving missing glue A/AAAA records.
+	 */
 	cb_args = isc_mem_get(zone->mctx, sizeof(*cb_args));
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;

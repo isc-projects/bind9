@@ -1158,8 +1158,8 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				}
 
 				/* Don't consider inactive keys, however
-				 * the key may be temporary offline, so do
-				 * consider keys which private key files are
+				 * the KSK may be temporary offline, so do
+				 * consider KSKs which private key files are
 				 * unavailable.
 				 */
 				if (dst_key_inactive(keys[j])) {
@@ -1171,7 +1171,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				}
 				if (KSK(keys[j])) {
 					have_ksk = true;
-				} else {
+				} else if (dst_key_isprivate(keys[j])) {
 					have_nonksk = true;
 				}
 				both = have_ksk && have_nonksk;
