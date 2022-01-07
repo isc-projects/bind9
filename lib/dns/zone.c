@@ -13607,6 +13607,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	switch (revent->result) {
 	case ISC_R_SUCCESS:
 		break;
+	case ISC_R_SHUTTINGDOWN:
+		goto exiting;
 	case ISC_R_TIMEDOUT:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
@@ -13988,6 +13990,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	switch (revent->result) {
 	case ISC_R_SUCCESS:
 		break;
+	case ISC_R_SHUTTINGDOWN:
+		goto exiting;
 	case ISC_R_TIMEDOUT:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
