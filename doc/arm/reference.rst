@@ -4349,11 +4349,12 @@ Response Rate Limiting
 Excessive, almost-identical UDP *responses* can be controlled by
 configuring a ``rate-limit`` clause in an ``options`` or ``view``
 statement. This mechanism keeps authoritative BIND 9 from being used to
-amplify reflection denial-of-service (DoS) attacks. Short, truncated
-(TC=1) responses can be sent to provide rate-limited responses to
+amplify reflection denial-of-service (DoS) attacks. Short BADCOOKIE errors or
+truncated (TC=1) responses can be sent to provide rate-limited responses to
 legitimate clients within a range of forged, attacked IP addresses.
-Legitimate clients react to dropped or truncated responses by retrying
-with UDP or with TCP, respectively.
+Legitimate clients react to dropped responses by retrying,
+to BADCOOKIE errors by including a server cookie when retrying,
+and to truncated responses by switching to TCP.
 
 This mechanism is intended for authoritative DNS servers. It can be used
 on recursive servers, but can slow applications such as SMTP servers
@@ -4411,13 +4412,21 @@ with responses to requests with forged source addresses, but could let a
 third party block responses to legitimate requests. There is a mechanism
 that can answer some legitimate requests from a client whose address is
 being forged in a flood. Setting ``slip`` to 2 (its default) causes
-every other UDP request to be answered with a small truncated (TC=1)
-response. The small size and reduced frequency, and resulting lack of
+every other UDP request without a valid server cookie to be answered with
+a small response. The small size and reduced frequency, and resulting lack of
 amplification, of "slipped" responses make them unattractive for
 reflection DoS attacks. ``slip`` must be between 0 and 10. A value of 0
-does not "slip"; no truncated responses are sent due to rate limiting. Rather,
+does not "slip"; no small responses are sent due to rate limiting. Rather,
 all responses are dropped. A value of 1 causes every response to slip;
-values between 2 and 10 cause every nth response to slip. Some error
+values between 2 and 10 cause every nth response to slip.
+
+If the request included a client cookie, then a "slipped" response is
+a BADCOOKIE error with a server cookie, which allows a legitimate client
+to include the server cookie to be exempted from the rate limiting
+when it retries the request.
+If the request did not include a cookie, then a "slipped" response is
+a truncated (TC=1) response, which prompts a legitimate client to
+switch to TCP and thus be exempted from the rate limiting. Some error
 responses, including REFUSED and SERVFAIL, cannot be replaced with
 truncated responses and are instead leaked at the ``slip`` rate.
 
@@ -4439,7 +4448,8 @@ can tighten defenses during attacks. For example, with
 ``qps-scale 250; responses-per-second 20;`` and a total query rate of
 1000 queries/second for all queries from all DNS clients including via
 TCP, then the effective responses/second limit changes to (250/1000)*20,
-or 5. Responses sent via TCP are not limited but are counted to compute
+or 5. Responses to requests that included a valid server cookie,
+and responses sent via TCP, are not limited but are counted to compute
 the query-per-second rate.
 
 Communities of DNS clients can be given their own parameters or no
