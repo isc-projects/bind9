@@ -43,6 +43,9 @@ Feature Changes
   ``tls ephemeral`` configuration using the RSA algorithm with 4096-bit
   keys. This has been changed to the ECDSA P-256 algorithm. :gl:`#2264`
 
+- Overall memory use by ``named`` has been optimized and reduced,
+  especially on systems with many CPU cores. :gl:`#2398` :gl:`#3048`
+
 
 Bug Fixes
 ~~~~~~~~~
