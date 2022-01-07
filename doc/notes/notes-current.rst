@@ -37,7 +37,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- ``named`` formerly generated an ephemeral key and certificate for the
+  ``tls ephemeral`` configuration using the RSA algorithm with 4096-bit
+  keys. This has been changed to the ECDSA P-256 algorithm. :gl:`#2264`
+
 
 Bug Fixes
 ~~~~~~~~~
