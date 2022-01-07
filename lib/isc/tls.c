@@ -317,16 +317,16 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			goto ssl_error;
 		}
 
-		/* We use a named curve and compressed point conversion form. */
+		/* Use a named curve and uncompressed point conversion form. */
 #if HAVE_EVP_PKEY_GET0_EC_KEY
 		EC_KEY_set_asn1_flag(EVP_PKEY_get0_EC_KEY(pkey),
 				     OPENSSL_EC_NAMED_CURVE);
 		EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(pkey),
-				     POINT_CONVERSION_COMPRESSED);
+				     POINT_CONVERSION_UNCOMPRESSED);
 #else
 		EC_KEY_set_asn1_flag(pkey->pkey.ec, OPENSSL_EC_NAMED_CURVE);
 		EC_KEY_set_conv_form(pkey->pkey.ec,
-				     POINT_CONVERSION_COMPRESSED);
+				     POINT_CONVERSION_UNCOMPRESSED);
 #endif /* HAVE_EVP_PKEY_GET0_EC_KEY */
 
 #if defined(SSL_CTX_set_ecdh_auto)
