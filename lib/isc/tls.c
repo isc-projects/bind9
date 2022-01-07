@@ -36,6 +36,7 @@
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
 #include <isc/once.h>
+#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/thread.h>
@@ -389,7 +390,9 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		if (cert == NULL) {
 			goto ssl_error;
 		}
-		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
+
+		ASN1_INTEGER_set(X509_get_serialNumber(cert),
+				 (long)isc_random32());
 
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
 		X509_gmtime_adj(X509_get_notBefore(cert), 0);
