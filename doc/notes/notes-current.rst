@@ -44,18 +44,21 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- If signatures created by the ZSK are expired, and the ZSK private key is offline,
-  allow the expired signatures to be replaced with signatures created by the KSK.
-  :gl:`#3049`
+- If signatures created by the ZSK were expired and the ZSK private key
+  was offline, the signatures were not replaced. This behavior has been
+  amended to replace the expired signatures with new signatures created
+  using the KSK. :gl:`#3049`
 
-- On FreeBSD, a TCP connection would leak a small amount of heap memory leading
-  to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
+- On FreeBSD, TCP connections leaked a small amount of heap memory,
+  leading to an eventual out-of-memory problem. This has been fixed.
+  :gl:`#3051`
 
 - Under certain circumstances, the signed version of an inline-signed
   zone could be dumped to disk without the serial number of the unsigned
-  version of the zone, preventing resynchronization of zone contents
-  after ``named`` restart in case the unsigned zone file gets modified
-  while ``named`` is not running. This has been fixed. :gl:`#3071`
+  version of the zone. This prevented resynchronization of the zone
+  contents after ``named`` restarted, if the unsigned zone file was
+  modified while ``named`` was not running. This has been fixed.
+  :gl:`#3071`
 
 - With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
   reducing the maximum query-response performance.  The recvmmsg support would
