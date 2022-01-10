@@ -137,11 +137,9 @@
 
 #ifdef HAVE_LMDB
 #include <lmdb.h>
-#define count_newzones	   count_newzones_db
 #define configure_newzones configure_newzones_db
 #define dumpzone	   dumpzone_db
 #else /* HAVE_LMDB */
-#define count_newzones	   count_newzones_file
 #define configure_newzones configure_newzones_file
 #define dumpzone	   dumpzone_file
 #endif /* HAVE_LMDB */
@@ -467,13 +465,7 @@ putuint8(isc_buffer_t **b, uint8_t val);
 static isc_result_t
 putnull(isc_buffer_t **b);
 
-static int
-count_zones(const cfg_obj_t *conf);
-
 #ifdef HAVE_LMDB
-static isc_result_t
-migrate_nzf(dns_view_t *view);
-
 static isc_result_t
 nzd_writable(dns_view_t *view);
 
@@ -488,13 +480,13 @@ nzd_env_close(dns_view_t *view);
 
 static isc_result_t
 nzd_close(MDB_txn **txnp, bool commit);
-
-static isc_result_t
-nzd_count(dns_view_t *view, int *countp);
 #else  /* ifdef HAVE_LMDB */
 static isc_result_t
 nzf_append(dns_view_t *view, const cfg_obj_t *zconfig);
 #endif /* ifdef HAVE_LMDB */
+
+static isc_result_t
+load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg);
 
 /*%
  * Configure a single view ACL at '*aclp'.  Get its configuration from
@@ -7714,94 +7706,9 @@ cleanup:
 	return (result);
 }
 
-#ifndef HAVE_LMDB
-static isc_result_t
-count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
-	isc_result_t result;
-
-	/* The new zone file may not exist. That is OK. */
-	if (!isc_file_exists(view->new_zone_file)) {
-		*num_zonesp = 0;
-		return (ISC_R_SUCCESS);
-	}
-
-	/*
-	 * In the case of NZF files, we also parse the configuration in
-	 * the file at this stage.
-	 *
-	 * This may be called in multiple views, so we reset
-	 * the parser each time.
-	 */
-	cfg_parser_reset(named_g_addparser);
-	result = cfg_parse_file(named_g_addparser, view->new_zone_file,
-				&cfg_type_addzoneconf, &nzcfg->nzf_config);
-	if (result == ISC_R_SUCCESS) {
-		int num_zones;
-
-		num_zones = count_zones(nzcfg->nzf_config);
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "NZF file '%s' contains %d zones",
-			      view->new_zone_file, num_zones);
-		if (num_zonesp != NULL) {
-			*num_zonesp = num_zones;
-		}
-	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "Error parsing NZF file '%s': %s",
-			      view->new_zone_file, isc_result_totext(result));
-	}
-
-	return (result);
-}
-
-#else /* HAVE_LMDB */
-
-static isc_result_t
-count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
-	isc_result_t result;
-	int n;
-
-	UNUSED(nzcfg);
-
-	REQUIRE(num_zonesp != NULL);
-
-	LOCK(&view->new_zone_lock);
-
-	CHECK(migrate_nzf(view));
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "loading NZD zone count from '%s' "
-		      "for view '%s'",
-		      view->new_zone_db, view->name);
-
-	CHECK(nzd_count(view, &n));
-
-	*num_zonesp = n;
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "NZD database '%s' contains %d zones", view->new_zone_db,
-		      n);
-
-cleanup:
-	if (result != ISC_R_SUCCESS) {
-		*num_zonesp = 0;
-	}
-
-	UNLOCK(&view->new_zone_lock);
-
-	return (ISC_R_SUCCESS);
-}
-
-#endif /* HAVE_LMDB */
-
 static isc_result_t
 setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       cfg_parser_t *conf_parser, cfg_aclconfctx_t *actx,
-	       int *num_zones) {
+	       cfg_parser_t *conf_parser, cfg_aclconfctx_t *actx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool allow = false;
 	ns_cfgctx_t *nzcfg = NULL;
@@ -7899,28 +7806,29 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	if (!allow) {
 		dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
-		if (num_zones != NULL) {
-			*num_zones = 0;
-		}
 		return (ISC_R_SUCCESS);
 	}
 
 	nzcfg = isc_mem_get(view->mctx, sizeof(*nzcfg));
+	*nzcfg = (ns_cfgctx_t){ 0 };
 
 	/*
 	 * We attach the parser that was used for config as well
 	 * as the one that will be used for added zones, to avoid
 	 * a shutdown race later.
 	 */
-	memset(nzcfg, 0, sizeof(*nzcfg));
+	isc_mem_attach(view->mctx, &nzcfg->mctx);
 	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
 	cfg_parser_attach(named_g_addparser, &nzcfg->add_parser);
-	isc_mem_attach(view->mctx, &nzcfg->mctx);
 	cfg_aclconfctx_attach(actx, &nzcfg->actx);
 
 	result = dns_view_setnewzones(view, true, nzcfg, newzone_cfgctx_destroy,
 				      mapsize);
 	if (result != ISC_R_SUCCESS) {
+		cfg_aclconfctx_detach(&nzcfg->actx);
+		cfg_parser_destroy(&nzcfg->add_parser);
+		cfg_parser_destroy(&nzcfg->conf_parser);
+		isc_mem_putanddetach(&nzcfg->mctx, nzcfg, sizeof(*nzcfg));
 		dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
 		return (result);
 	}
@@ -7930,7 +7838,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		cfg_obj_attach(vconfig, &nzcfg->vconfig);
 	}
 
-	result = count_newzones(view, nzcfg, num_zones);
+	result = load_nzf(view, nzcfg);
 	return (result);
 }
 
@@ -8320,24 +8228,6 @@ cleanup:
 
 #endif /* HAVE_LMDB */
 
-static int
-count_zones(const cfg_obj_t *conf) {
-	const cfg_obj_t *zonelist = NULL;
-	const cfg_listelt_t *element;
-	int n = 0;
-
-	REQUIRE(conf != NULL);
-
-	cfg_map_get(conf, "zone", &zonelist);
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		n++;
-	}
-
-	return (n);
-}
-
 static isc_result_t
 check_lockfile(named_server_t *server, const cfg_obj_t *config,
 	       bool first_time) {
@@ -8443,7 +8333,6 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_viewlist_t viewlist, builtin_viewlist;
 	in_port_t listen_port, udpport_low, udpport_high;
 	int i, backlog;
-	int num_zones = 0;
 	bool exclusive = false;
 	isc_interval_t interval;
 	isc_logconfig_t *logc = NULL;
@@ -9185,19 +9074,14 @@ load_configuration(const char *filename, named_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
-		const cfg_obj_t *voptions = cfg_tuple_get(vconfig, "options");
-		int nzf_num_zones;
 
 		view = NULL;
 
 		CHECK(create_view(vconfig, &viewlist, &view));
 		INSIST(view != NULL);
 
-		num_zones += count_zones(voptions);
-
 		CHECK(setup_newzones(view, config, vconfig, conf_parser,
-				     named_g_aclconfctx, &nzf_num_zones));
-		num_zones += nzf_num_zones;
+				     named_g_aclconfctx));
 
 		dns_view_detach(&view);
 	}
@@ -9207,16 +9091,11 @@ load_configuration(const char *filename, named_server_t *server,
 	 * view here.
 	 */
 	if (views == NULL) {
-		int nzf_num_zones;
-
 		CHECK(create_view(NULL, &viewlist, &view));
 		INSIST(view != NULL);
 
-		num_zones = count_zones(config);
-
 		CHECK(setup_newzones(view, config, NULL, conf_parser,
-				     named_g_aclconfctx, &nzf_num_zones));
-		num_zones += nzf_num_zones;
+				     named_g_aclconfctx));
 
 		dns_view_detach(&view);
 	}
@@ -13089,7 +12968,32 @@ cleanup:
 	return (result);
 }
 
-#else /* HAVE_LMDB */
+static isc_result_t
+load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg) {
+	isc_result_t result;
+
+	/* The new zone file may not exist. That is OK. */
+	if (!isc_file_exists(view->new_zone_file)) {
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Parse the configuration in the NZF file.  This may be called in
+	 * multiple views, so we reset the parser each time.
+	 */
+	cfg_parser_reset(named_g_addparser);
+	result = cfg_parse_file(named_g_addparser, view->new_zone_file,
+				&cfg_type_addzoneconf, &nzcfg->nzf_config);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "Error parsing NZF file '%s': %s",
+			      view->new_zone_file, isc_result_totext(result));
+	}
+
+	return (result);
+}
+#else  /* HAVE_LMDB */
 
 static void
 nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
@@ -13414,52 +13318,16 @@ nzd_close(MDB_txn **txnp, bool commit) {
 }
 
 /*
- * Count the zones configured in the new zone database for 'view' and store the
- * result in 'countp'.
+ * If there's an existing NZF file, load it and migrate its data
+ * to the NZD.
  *
- * Caller must hold 'view->new_zone_lock'.
- */
-static isc_result_t
-nzd_count(dns_view_t *view, int *countp) {
-	isc_result_t result;
-	int status;
-	MDB_txn *txn = NULL;
-	MDB_dbi dbi;
-	MDB_stat statbuf;
-
-	REQUIRE(countp != NULL);
-
-	result = nzd_open(view, MDB_RDONLY, &txn, &dbi);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	status = mdb_stat(txn, dbi, &statbuf);
-	if (status != MDB_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "mdb_stat: %s", mdb_strerror(status));
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	*countp = statbuf.ms_entries;
-
-cleanup:
-	(void)nzd_close(&txn, false);
-
-	return (result);
-}
-
-/*
- * Migrate zone configuration from an NZF file to an NZD database.
  * Caller must hold view->new_zone_lock.
  */
 static isc_result_t
-migrate_nzf(dns_view_t *view) {
+load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg) {
 	isc_result_t result;
 	cfg_obj_t *nzf_config = NULL;
-	int status, n;
+	int status;
 	isc_buffer_t *text = NULL;
 	bool commit = false;
 	const cfg_obj_t *zonelist;
@@ -13470,17 +13338,13 @@ migrate_nzf(dns_view_t *view) {
 	MDB_val key, data;
 	ns_dzarg_t dzarg;
 
+	UNUSED(nzcfg);
+
 	/*
 	 * If NZF file doesn't exist, or NZD DB exists and already
 	 * has data, return without attempting migration.
 	 */
 	if (!isc_file_exists(view->new_zone_file)) {
-		result = ISC_R_SUCCESS;
-		goto cleanup;
-	}
-
-	result = nzd_count(view, &n);
-	if (result == ISC_R_SUCCESS && n > 0) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
@@ -13562,7 +13426,7 @@ migrate_nzf(dns_view_t *view) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "Error writing zone config to "
-				      "buffer in migrate_nzf(): %s",
+				      "buffer in load_nzf(): %s",
 				      isc_result_totext(result));
 			result = dzarg.result;
 			goto cleanup;
@@ -13615,7 +13479,6 @@ cleanup:
 
 	return (result);
 }
-
 #endif /* HAVE_LMDB */
 
 static isc_result_t
