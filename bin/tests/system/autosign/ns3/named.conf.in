@@ -317,4 +317,18 @@ zone "dname-at-apex-nsec3.example" {
 	auto-dnssec maintain;
 };
 
+zone "cds-delete.example" {
+	type primary;
+	file "cds-delete.example.db";
+	allow-update { any; };
+	auto-dnssec maintain;
+};
+
+zone "cdnskey-delete.example" {
+	type primary;
+	file "cdnskey-delete.example.db";
+	allow-update { any; };
+	auto-dnssec maintain;
+};
+
 include "trusted.conf";

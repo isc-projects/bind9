@@ -35,6 +35,8 @@ rm -f ns2/private.secure.example.db ns2/bar.db
 rm -f ns3/*.nzd ns3/*.nzd-lock ns3/*.nzf
 rm -f ns3/*.nzf
 rm -f ns3/autonsec3.example.db
+rm -f ns3/cdnskey-delete.example.db
+rm -f ns3/cds-delete.example.db
 rm -f ns3/delzsk.example.db
 rm -f ns3/dname-at-apex-nsec3.example.db
 rm -f ns3/inacksk2.example.db
