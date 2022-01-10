@@ -369,11 +369,14 @@ isc_result_t
 dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      dns_name_t *origin, dns_rdataclass_t zclass,
 		      dns_ttl_t ttl, dns_diff_t *diff, isc_mem_t *mctx,
-		      bool dnssec_insecure);
+		      bool expect_cds_delete, bool expect_cdnskey_delete);
 /*%<
  * Add or remove the CDS DELETE record and the CDNSKEY DELETE record.
- * If 'dnssec_insecure' is true, the DELETE records should be present.
- * Otherwise, the DELETE records must be removed from the RRsets (if present).
+ * If 'expect_cds_delete' is true, the CDS DELETE record should be present.
+ * Otherwise, the CDS DELETE record must be removed from the RRsets (if
+ * present). If 'expect_cdnskey_delete' is true, the CDNSKEY DELETE record
+ * should be present. Otherwise, the CDNSKEY DELETE record must be removed
+ * from the RRsets (if present).
  *
  * Returns:
  *\li   ISC_R_SUCCESS
