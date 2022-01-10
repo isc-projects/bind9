@@ -332,7 +332,7 @@ $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -P now -A now+3600 $zone > kg.out 2>&1 || du
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #
-#  A zone that starts with a active KSK + ZSK and a inactive ZSK.
+# A zone that starts with a active KSK + ZSK and a inactive ZSK.
 #
 setup inacksk3.example
 cp $infile $zonefile
@@ -342,7 +342,7 @@ $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #
-#  A zone that starts with a active KSK + ZSK and a inactive ZSK.
+# A zone that starts with a active KSK + ZSK and a inactive ZSK.
 #
 setup inaczsk3.example
 cp $infile $zonefile
@@ -363,9 +363,28 @@ zsk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -I now-1w $zone 2>kg.out` || dumpit kg.
 echo $zsk > ../delzsk.key
 
 #
-#  Check that NSEC3 are correctly signed and returned from below a DNAME
+# Check that NSEC3 are correctly signed and returned from below a DNAME
 #
 setup dname-at-apex-nsec3.example
+cp $infile $zonefile
+ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
+$DSFROMKEY $ksk.key > dsset-${zone}.
+
+#
+# Check that dynamically added CDS (DELETE) is kept in the zone after signing.
+#
+setup cds-delete.example
+cp $infile $zonefile
+ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
+$DSFROMKEY $ksk.key > dsset-${zone}.
+
+#
+# Check that dynamically added CDNSKEY (DELETE) is kept in the zone after
+# signing.
+#
+setup cdnskey-delete.example
 cp $infile $zonefile
 ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out

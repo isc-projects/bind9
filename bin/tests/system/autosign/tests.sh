@@ -1645,6 +1645,89 @@ inac=`grep "DNSKEY .* is now inactive" ns1/named.run | wc -l`
 [ "$inac" -eq 1 ] || ret=1
 del=`grep "DNSKEY .* is now deleted" ns1/named.run | wc -l`
 [ "$del" -eq 1 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking that CDS (DELETE) persists after zone sign ($n)"
+echo_i "update add cds-delete.example. CDS 0 0 00"
+ret=0
+$NSUPDATE > nsupdate.out 2>&1 <<END
+server 10.53.0.3 ${PORT}
+zone cds-delete.example.
+update add cds-delete.example. 3600 CDS 0 0 0 00
+send
+END
+
+_cds_delete() (
+	$DIG $DIGOPTS +noall +answer $1 cds @10.53.0.3 > dig.out.ns3.test$n || return 1
+	grep "CDS.*0.*0.*0.*00" dig.out.ns3.test$n > /dev/null 2>&1 || return 1
+	return 0
+)
+_cdnskey_delete_nx() {
+	$DIG $DIGOPTS +noall +answer $1 cdnskey @10.53.0.3 > dig.out.ns3.test$n || return 1
+	grep "CDNSKEY.*0.*3.*0.*AA==" dig.out.ns3.test$n > /dev/null 2>&1 && return 1
+	return 0
+}
+
+echo_i "query cds-delete.example. CDS"
+retry_quiet 10 _cds_delete cds-delete.example. || ret=1
+echo_i "query cds-delete.example. CDNSKEY"
+retry_quiet 1 _cdnskey_delete_nx cds-delete.example. || ret=1
+
+echo_i "sign cds-delete.example."
+nextpart ns3/named.run >/dev/null
+$RNDCCMD 10.53.0.3 sign cds-delete.example > /dev/null 2>&1 || ret=1
+wait_for_log 10 "zone cds-delete.example/IN: next key event" ns3/named.run
+# The CDS (DELETE) record should still be here.
+echo_i "query cds-delete.example. CDS"
+retry_quiet 1 _cds_delete cds-delete.example. || ret=1
+# The CDNSKEY (DELETE) record should still not be added.
+echo_i "query cds-delete.example. CDNSKEY"
+retry_quiet 1 _cdnskey_delete_nx cds-delete.example. || ret=1
+
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking that CDNSKEY (DELETE) persists after zone sign ($n)"
+echo_i "update add cdnskey-delete.example. CDNSKEY 0 3 0 AA=="
+ret=0
+$NSUPDATE > nsupdate.out 2>&1 <<END
+server 10.53.0.3 ${PORT}
+zone cdnskey-delete.example.
+update add cdnskey-delete.example. 3600 CDNSKEY 0 3 0 AA==
+send
+END
+
+_cds_delete_nx() (
+	$DIG $DIGOPTS +noall +answer $1 cds @10.53.0.3 > dig.out.ns3.test$n || return 1
+	grep "CDS.*0.*0.*0.*00" dig.out.ns3.test$n > /dev/null 2>&1 && return 1
+	return 0
+)
+_cdnskey_delete() {
+	$DIG $DIGOPTS +noall +answer $1 cdnskey @10.53.0.3 > dig.out.ns3.test$n || return 1
+	grep "CDNSKEY.*0.*3.*0.*AA==" dig.out.ns3.test$n > /dev/null 2>&1 || return 1
+	return 0
+}
+
+echo_i "query cdnskey-delete.example. CDNSKEY"
+retry_quiet 10 _cdnskey_delete cdnskey-delete.example. || ret=1
+echo_i "query cdnskey-delete.example. CDS"
+retry_quiet 1 _cds_delete_nx cdnskey-delete.example. || ret=1
+
+echo_i "sign cdsnskey-delete.example."
+nextpart ns3/named.run >/dev/null
+$RNDCCMD 10.53.0.3 sign cdnskey-delete.example > /dev/null 2>&1 || ret=1
+wait_for_log 10 "zone cdnskey-delete.example/IN: next key event" ns3/named.run
+# The CDNSKEY (DELETE) record should still be here.
+echo_i "query cdnskey-delete.example. CDNSKEY"
+retry_quiet 1 _cdnskey_delete cdnskey-delete.example. || ret=1
+# The CDS (DELETE) record should still not be added.
+echo_i "query cdnskey-delete.example. CDS"
+retry_quiet 1 _cds_delete_nx cdnskey-delete.example. || ret=1
+
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
