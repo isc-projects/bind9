@@ -1,3 +1,6 @@
+5858.	[bug]		Don't remove CDS/CDNSKEY DELETE records on zone sign
+			when using 'auto-dnssec maintain;'. [GL #2931]
+
 5857.	[bug]		Fixed a possible crash during shutdown due to ADB
 			entries being unlinked from the hash table too
 			soon. [GL #3256]
