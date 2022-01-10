@@ -1267,7 +1267,7 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 	return (false);
 }
 
-isc_result_t
+void
 dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 		     dns_dnsseckey_t **dkp) {
 	isc_result_t result;
@@ -1311,7 +1311,6 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 
 	ISC_LINK_INIT(dk, link);
 	*dkp = dk;
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -1492,7 +1491,7 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 			continue;
 		}
 
-		RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
+		dns_dnsseckey_create(mctx, &dstkey, &key);
 		key->source = dns_keysource_repository;
 		dns_dnssec_get_hints(key, now);
 
@@ -1535,11 +1534,10 @@ failure:
  * the keys in the keyset, regardless of whether they have
  * metadata indicating they should be deactivated or removed.
  */
-static isc_result_t
+static void
 addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
        isc_mem_t *mctx) {
-	dns_dnsseckey_t *key;
-	isc_result_t result;
+	dns_dnsseckey_t *key = NULL;
 
 	/* Skip duplicates */
 	for (key = ISC_LIST_HEAD(*keylist); key != NULL;
@@ -1568,13 +1566,10 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 		}
 
 		key->source = dns_keysource_zoneapex;
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
-	result = dns_dnsseckey_create(mctx, newkey, &key);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_dnsseckey_create(mctx, newkey, &key);
 	if (key->legacy || savekeys) {
 		key->force_publish = true;
 		key->force_sign = dst_key_isprivate(key->key);
@@ -1582,7 +1577,6 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 	key->source = dns_keysource_zoneapex;
 	ISC_LIST_APPEND(*keylist, key, link);
 	*newkey = NULL;
-	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -1683,7 +1677,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		}
 
 		if (publickey) {
-			RETERR(addkey(keylist, &dnskey, savekeys, mctx));
+			addkey(keylist, &dnskey, savekeys, mctx);
 			goto skip;
 		}
 
@@ -1766,11 +1760,9 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			if (pubkey != NULL) {
-				RETERR(addkey(keylist, &pubkey, savekeys,
-					      mctx));
+				addkey(keylist, &pubkey, savekeys, mctx);
 			} else {
-				RETERR(addkey(keylist, &dnskey, savekeys,
-					      mctx));
+				addkey(keylist, &dnskey, savekeys, mctx);
 			}
 			goto skip;
 		}
@@ -1787,7 +1779,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		 */
 		dst_key_setttl(privkey, dst_key_getttl(dnskey));
 
-		RETERR(addkey(keylist, &privkey, savekeys, mctx));
+		addkey(keylist, &privkey, savekeys, mctx);
 	skip:
 		if (dnskey != NULL) {
 			dst_key_free(&dnskey);

@@ -245,7 +245,7 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
  * rrset.  dns_dnssec_signs() works on any rrset.
  */
 
-isc_result_t
+void
 dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 		     dns_dnsseckey_t **dkp);
 /*%<
@@ -253,10 +253,6 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
  *
  *	Requires:
  *\li		'dkp' is not NULL and '*dkp' is NULL.
- *
- *	Returns:
- *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
  */
 
 void
