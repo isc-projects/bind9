@@ -1260,6 +1260,13 @@ AC_PATH_PROG(CURL, curl, curl)
 AC_SUBST(CURL)
 
 #
+# Look for gnutls-cli
+#
+
+AC_PATH_PROG([GNUTLS_CLI], [gnutls-cli], [])
+AC_SUBST(GNUTLS_CLI)
+
+#
 # Look for nc
 #
 
