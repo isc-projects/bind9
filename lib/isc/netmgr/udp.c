@@ -219,7 +219,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
-#ifdef UV_UDP_RECVMMSG
+#if HAVE_DECL_UV_UDP_RECVMMSG
 	uv_init_flags |= UV_UDP_RECVMMSG;
 #endif
 	r = uv_udp_init_ex(&worker->loop, &sock->uv_handle.udp, uv_init_flags);
@@ -351,7 +351,6 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc__nm_uvreq_t *req = NULL;
 	uint32_t maxudp;
-	bool free_buf;
 	isc_sockaddr_t sockaddr;
 	isc_result_t result;
 
@@ -359,18 +358,21 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(sock->reading);
 
-#ifdef UV_UDP_MMSG_FREE
-	free_buf = ((flags & UV_UDP_MMSG_FREE) == UV_UDP_MMSG_FREE);
-#elif UV_UDP_MMSG_CHUNK
-	free_buf = ((flags & UV_UDP_MMSG_CHUNK) == 0);
+	/*
+	 * When using recvmmsg(2), if no errors occur, there will be a final
+	 * callback with nrecv set to 0, addr set to NULL and the buffer
+	 * pointing at the initially allocated data with the UV_UDP_MMSG_CHUNK
+	 * flag cleared and the UV_UDP_MMSG_FREE flag set.
+	 */
+#if HAVE_DECL_UV_UDP_MMSG_FREE
+	if ((flags & UV_UDP_MMSG_FREE) == UV_UDP_MMSG_FREE) {
+		INSIST(nrecv == 0);
+		INSIST(addr == NULL);
+		goto free;
+	}
 #else
-	free_buf = true;
 	UNUSED(flags);
 #endif
-
-	/*
-	 * Three possible reasons to return now without processing:
-	 */
 
 	/*
 	 * - If we're simulating a firewall blocking UDP packets
@@ -429,9 +431,31 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	sock->processing = false;
 
 free:
-	if (free_buf) {
-		isc__nm_free_uvbuf(sock, buf);
+#if HAVE_DECL_UV_UDP_MMSG_CHUNK
+	/*
+	 * When using recvmmsg(2), chunks will have the UV_UDP_MMSG_CHUNK flag
+	 * set, those must not be freed.
+	 */
+	if ((flags & UV_UDP_MMSG_CHUNK) == UV_UDP_MMSG_CHUNK) {
+		return;
 	}
+#endif
+
+	/*
+	 * When using recvmmsg(2), if a UDP socket error occurs, nrecv will be <
+	 * 0. In either scenario, the callee can now safely free the provided
+	 * buffer.
+	 */
+	if (nrecv < 0) {
+		/*
+		 * The buffer may be a null buffer on error.
+		 */
+		if (buf->base == NULL && buf->len == 0) {
+			return;
+		}
+	}
+
+	isc__nm_free_uvbuf(sock, buf);
 }
 
 /*

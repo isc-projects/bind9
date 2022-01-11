@@ -906,6 +906,15 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	}
 
 free:
+	if (nread < 0) {
+		/*
+		 * The buffer may be a null buffer on error.
+		 */
+		if (buf->base == NULL && buf->len == 0) {
+			return;
+		}
+	}
+
 	isc__nm_free_uvbuf(sock, buf);
 }
 

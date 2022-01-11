@@ -730,6 +730,9 @@ AC_MSG_CHECKING(for libuv)
 PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
 		  [AC_MSG_ERROR([libuv not found])])
 
+# libuv recvmmsg support
+AC_CHECK_DECLS([UV_UDP_RECVMMSG, UV_UDP_MMSG_FREE, UV_UDP_MMSG_CHUNK], [], [], [[#include <uv.h>]])
+
 #
 # flockfile is usually provided by pthreads
 #

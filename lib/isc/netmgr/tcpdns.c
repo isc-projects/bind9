@@ -864,6 +864,15 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 
 	isc__nm_process_sock_buffer(sock);
 free:
+	if (nread < 0) {
+		/*
+		 * The buffer may be a null buffer on error.
+		 */
+		if (buf->base == NULL && buf->len == 0) {
+			return;
+		}
+	}
+
 	isc__nm_free_uvbuf(sock, buf);
 }
 
