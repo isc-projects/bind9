@@ -383,6 +383,11 @@ zone "rsasha1.example" {
 	file "rsasha1.example.db";
 };
 
+zone "rsasha1-1024.example" {
+	type primary;
+	file "rsasha1-1024.example.db";
+};
+
 include "siginterval.conf";
 
 include "trusted.conf";

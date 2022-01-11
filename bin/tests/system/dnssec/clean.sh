@@ -27,7 +27,6 @@ rm -f ./canonical?.*
 rm -f ./delv.out*
 rm -f ./delve.out*
 rm -f ./dig.out.*
-rm -f ./ns2/too-many-iterations.db
 rm -f ./dnssectools.out*
 rm -f ./dsfromkey.out.*
 rm -f ./keygen.err
@@ -54,7 +53,9 @@ rm -f ./ns2/cds.secure.db ./ns2/cds-x.secure.db
 rm -f ./ns2/in-addr.arpa.db
 rm -f ./ns2/nsec3chain-test.db
 rm -f ./ns2/single-nsec3.db
+rm -f ./ns2/too-many-iterations.db
 rm -f ./ns2/updatecheck-kskonly.secure.*
+rm -f ./ns3/NSEC ./ns3/NSEC3
 rm -f ./ns3/auto-nsec.example.db ./ns3/auto-nsec3.example.db
 rm -f ./ns3/badds.example.db
 rm -f ./ns3/dname-at-apex-nsec3.example.db
@@ -83,6 +84,8 @@ rm -f ./ns3/optout.nsec3.example.db
 rm -f ./ns3/optout.optout.example.db
 rm -f ./ns3/publish-inactive.example.db
 rm -f ./ns3/revkey.example.db
+rm -f ./ns3/rsasha1-1024.example.tmp
+rm -f ./ns3/rsasha1.example.tmp
 rm -f ./ns3/rsasha256.example.db ./ns3/rsasha512.example.db
 rm -f ./ns3/secure.below-cname.example.db
 rm -f ./ns3/secure.example.db ./ns3/*.managed.db ./ns3/*.trusted.db
@@ -96,7 +99,6 @@ rm -f ./ns3/ttlpatch.example.db ./ns3/ttlpatch.example.db.signed
 rm -f ./ns3/ttlpatch.example.db.patched
 rm -f ./ns3/unsecure.example.db ./ns3/bogus.example.db ./ns3/keyless.example.db
 rm -f ./ns3/unsupported.managed.db.tmp ./ns3/unsupported.trusted.db.tmp
-rm -f ./ns3/NSEC ./ns3/NSEC3
 rm -f ./ns4/named_dump.db*
 rm -f ./ns6/optout-tld.db
 rm -f ./ns7/multiple.example.bk ./ns7/nsec3.example.bk ./ns7/optout.example.bk
@@ -109,9 +111,9 @@ rm -f ./signer/*.signed.post*
 rm -f ./signer/*.signed.pre*
 rm -f ./signer/example.db.after ./signer/example.db.before
 rm -f ./signer/example.db.changed
+rm -f ./signer/general/*.jnl
 rm -f ./signer/general/dsset*
 rm -f ./signer/general/signed.zone
-rm -f ./signer/general/*.jnl
 rm -f ./signer/general/signer.err.*
 rm -f ./signer/general/signer.out.*
 rm -f ./signer/nsec3param.out

@@ -684,3 +684,8 @@ zone=rsasha1.example
 zonefile=rsasha1.example.db
 awk '$4 == "DNSKEY" && $5 == 257 { print }' "$zonefile" |
 $DSFROMKEY -f - "$zone" > "dsset-${zone}."
+
+zone=rsasha1-1024.example
+zonefile=rsasha1-1024.example.db
+awk '$4 == "DNSKEY" && $5 == 257 { print }' "$zonefile" |
+$DSFROMKEY -f - "$zone" > "dsset-${zone}."
