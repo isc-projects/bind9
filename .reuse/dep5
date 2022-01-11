@@ -1,0 +1,177 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: BIND 9
+Upstream-Contact: Internet Systems Consortium, Inc. ("ISC") <info@isc.org>
+Source: https://gitlab.isc.org/isc-projects/bind9/
+
+#
+# Build system, data files from tests, and misc cruft
+#
+Files: **/*.after*
+       **/*.bad
+       **/*.batch
+       **/*.before*
+       **/*.ccache
+       **/*.good
+       **/*.key
+       **/*.pem
+       **/*.private
+       **/*.raw
+       **/*.saved
+       **/*.zonelist
+       **/*dig.out*
+       **/Makefile
+       **/Makefile.*
+       **/testdata/*
+       .github/*
+       .gitlab/*
+       AUTHORS
+       CHANGES
+       COPYRIGHT
+       Makefile
+       Makefile.*
+       bin/tests/system/checkzone/zones/bad-caa-rr.db
+       bin/tests/system/checkzone/zones/bad1.db
+       bin/tests/system/checkzone/zones/crashzone.db
+       bin/tests/system/dnstap/large-answer.fstrm
+       bin/tests/system/notify/ns4/named.port.in
+       bin/tests/system/formerr/nametoolong
+       bin/tests/system/formerr/noquestions
+       bin/tests/system/formerr/twoquestions
+       bin/tests/system/journal/ns1/managed-keys.bind.in
+       bin/tests/system/journal/ns1/managed-keys.bind.jnl.in
+       bin/tests/system/journal/ns2/managed-keys.bind.in
+       bin/tests/system/journal/ns2/managed-keys.bind.jnl.in
+       bin/tests/system/keepalive/expected
+       bin/tests/system/legacy/ns10/named.ednsrefused
+       bin/tests/system/legacy/ns2/named.dropedns
+       bin/tests/system/legacy/ns3/named.dropedns
+       bin/tests/system/legacy/ns3/named.notcp
+       bin/tests/system/legacy/ns5/named.notcp
+       bin/tests/system/legacy/ns6/edns512.db.signed
+       bin/tests/system/legacy/ns7/edns512-notcp.db.signed
+       bin/tests/system/legacy/ns7/named.notcp
+       bin/tests/system/legacy/ns8/named.ednsformerr
+       bin/tests/system/legacy/ns9/named.ednsnotimp
+       bin/tests/system/nsupdate/commandlist
+       bin/tests/system/nsupdate/verylarge.in
+       bin/tests/system/org.isc.bind.system.plist
+       bin/tests/system/pipelined/input
+       bin/tests/system/pipelined/inputb
+       bin/tests/system/pipelined/ref
+       bin/tests/system/pipelined/refb
+       bin/tests/system/rsabigexponent/ns2/dsset-example.in
+       bin/tests/system/run.gdb
+       bin/tests/system/runtime/ctrl-chars
+       bin/tests/system/runtime/long-cmd-line
+       bin/tests/system/statschannel/traffic.expect.1
+       bin/tests/system/statschannel/traffic.expect.2
+       bin/tests/system/statschannel/traffic.expect.4
+       bin/tests/system/statschannel/traffic.expect.5
+       bin/tests/system/statschannel/traffic.expect.6
+       bin/tests/system/tcp/1996-alloc_dnsbuf-crash-test.pkt
+       bin/tests/system/tsig/badlocation
+       bin/tests/system/tsig/badtime
+       bin/tests/system/unknown/large.out
+       bin/tests/system/xfer/ans5/badkeydata
+       bin/tests/system/xfer/ans5/badmessageid
+       bin/tests/system/xfer/ans5/goodaxfr
+       bin/tests/system/xfer/ans5/partial
+       bin/tests/system/xfer/ans5/soamismatch
+       bin/tests/system/xfer/ans5/unknownkey
+       bin/tests/system/xfer/ans5/unsigned
+       bin/tests/system/xfer/ans5/wrongkey
+       bin/tests/system/xfer/ans5/wrongname
+       bin/tests/system/xfer/knowngood.mapped
+       cocci/*.cocci
+       cocci/*.disabled
+       cocci/*.spatch
+       doc/arm/isc-logo.pdf
+       doc/arm/requirements.txt
+       doc/man/*.1in
+       doc/man/*.5in
+       doc/man/*.8in
+       fuzz/*.in/*
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+License: MPL-2.0
+
+#
+# DNSSEC Guide images
+#
+Files: doc/dnssec-guide/img/*.png
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+License: MPL-2.0
+
+#
+# Libtool Files
+#
+Files: m4/libtool.m4
+       m4/ltoptions.m4
+       m4/ltsugar.m4
+       m4/ltversion.m4
+       m4/ltversion.m4
+       m4/lt~obsolete.m4
+Copyright: Free Software Foundation, Inc.
+License:
+ This file is free software; the Free Software Foundation gives unlimited
+ permission to copy and/or distribute it, with or without modifications, as long
+ as this notice is preserved.
+
+#
+# DLZ Modules
+#
+Files: contrib/dlz/modules/*/testing/*
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+	   Stichting NLnet, Netherlands
+License: ISC and MPL-2.0
+
+#
+# Stuff that's basically uncopyrightable (configuration, generated files),
+# use CC0-1.0 for clarity that we don't care
+#
+Files: **/.clang-format
+       **/.clang-format.headers
+       **/.dir-locals.el
+       **/.gitattributes
+       **/.gitignore
+       **/named*.args
+       **/startme
+       .clang-format
+       .clang-format.headers
+       .dir-locals.el
+       .gitattributes
+       .gitignore
+       .gitlab-ci.yml
+       .lgtm.yml
+       .pylintrc
+       .uncrustify.cfg
+       doc/misc/*.zoneopt
+       doc/misc/options
+       doc/misc/options.active
+       tsan-suppressions.txt
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+License: CC0-1.0
+
+#
+# geoip2 test files (mmdb is generated from json)
+#
+Files: bin/tests/system/geoip2/data/*.json
+       bin/tests/system/geoip2/data/*.mmdb
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+License: CC0-1.0
+
+#
+# files that may be left over from other branches.
+#
+# in a newly cloned branch or after running "git clean", these
+# files don't exist, but they can be left lying around after
+# checking out an older branch. we explicitly ignore them so they
+# won't clutter up the output when running "reuse lint" by hand
+# in a working source tree.
+#
+Files: **/platform.h
+       bin/python/*
+       bin/tests/optional/*
+       make/*
+       unit/unittest.sh
+Copyright: Internet Systems Consortium, Inc. ("ISC")
+License: CC0-1.0

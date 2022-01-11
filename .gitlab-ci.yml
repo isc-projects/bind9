@@ -421,11 +421,6 @@ misc:
     - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
     - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
     - rm CHANGES.tmp
-    - perl -w util/merge_copyrights
-    - diff -urNap util/copyrights util/newcopyrights
-    - rm util/newcopyrights
-    - perl -w util/update_copyrights < util/copyrights
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - sh util/check-categories.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
@@ -433,7 +428,6 @@ misc:
   needs: []
   artifacts:
     paths:
-      - util/newcopyrights
       - checklibs.out
     expire_in: "1 day"
     when: on_failure
@@ -457,6 +451,15 @@ coccinelle:
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+
+reuse:
+  <<: *precheck_job
+  needs: []
+  image:
+    name: docker.io/fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
 
 danger:
   <<: *precheck_job
