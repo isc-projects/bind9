@@ -54,6 +54,17 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp);
  *\li	'ctxp' != NULL and '*ctxp' == NULL.
  */
 
+isc_result_t
+isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
+			    const char *certfile);
+/*%<
+ * Load a TLS certificate into a TLS context.
+ *
+ * Requires:
+ *\li	'ctx' != NULL;
+ *\li	'keyfile' and 'certfile' are both non-NULL.
+ */
+
 typedef enum isc_tls_protocol_version {
 	/* these must be the powers of two */
 	ISC_TLS_PROTO_VER_1_2 = 1 << 0,
@@ -156,6 +167,16 @@ isc_tls_free(isc_tls_t **tlsp);
  *\li	'tlsp' != NULL and '*tlsp' != NULL.
  */
 
+const char *
+isc_tls_verify_peer_result_string(isc_tls_t *tls);
+/*%<
+ * Return a user readable description of a remote peer's certificate
+ * validation.
+ *
+ * Requires:
+ *\li	'tls' != NULL.
+ */
+
 #if HAVE_LIBNGHTTP2
 void
 isc_tlsctx_enable_http2client_alpn(isc_tlsctx_t *ctx);
@@ -185,6 +206,33 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
  *
  * Requires:
  *\li	'ctx' is not NULL.
+ */
+
+isc_result_t
+isc_tlsctx_enable_peer_verification(isc_tlsctx_t *ctx, const bool is_server,
+				    isc_tls_cert_store_t *store,
+				    const char	       *hostname,
+				    bool hostname_ignore_subject);
+/*%<
+ * Enable peer certificate and, optionally, hostname (for client contexts)
+ * verification.
+ *
+ * Requires:
+ *\li	'ctx' is not NULL;
+ *\li	'store' is not NULL.
+ */
+
+isc_result_t
+isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file);
+/*%<
+ * Load the list of CA-certificate names from a CA-bundle file to
+ * send by the server to a client when requesting a peer certificate.
+ * Usually used in conjunction with
+ * isc_tlsctx_enable_peer_validation().
+ *
+ * Requires:
+ *\li	'ctx' is not NULL;
+ *\li	'ca_bundle_file' is not NULL.
  */
 
 isc_result_t

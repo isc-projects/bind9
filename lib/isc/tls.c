@@ -12,12 +12,14 @@
  */
 
 #include <inttypes.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
 #endif /* HAVE_LIBNGHTTP2 */
+#include <arpa/inet.h>
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
@@ -28,6 +30,8 @@
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#include <openssl/x509_vfy.h>
+#include <openssl/x509v3.h>
 
 #include <isc/atomic.h>
 #include <isc/ht.h>
@@ -256,6 +260,26 @@ ssl_error:
 }
 
 isc_result_t
+isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
+			    const char *certfile) {
+	int rv;
+	REQUIRE(ctx != NULL);
+	REQUIRE(keyfile != NULL);
+	REQUIRE(certfile != NULL);
+
+	rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
+	if (rv != 1) {
+		return (ISC_R_TLSERROR);
+	}
+	rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
+	if (rv != 1) {
+		return (ISC_R_TLSERROR);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			isc_tlsctx_t **ctxp) {
 	int rv;
@@ -443,13 +467,9 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		X509_free(cert);
 		EVP_PKEY_free(pkey);
 	} else {
-		rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
-		if (rv != 1) {
-			goto ssl_error;
-		}
-		rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile,
-						 SSL_FILETYPE_PEM);
-		if (rv != 1) {
+		isc_result_t result;
+		result = isc_tlsctx_load_certificate(ctx, keyfile, certfile);
+		if (result != ISC_R_SUCCESS) {
 			goto ssl_error;
 		}
 	}
@@ -740,6 +760,13 @@ isc_tls_free(isc_tls_t **tlsp) {
 	*tlsp = NULL;
 }
 
+const char *
+isc_tls_verify_peer_result_string(isc_tls_t *tls) {
+	REQUIRE(tls != NULL);
+
+	return (X509_verify_cert_error_string(SSL_get_verify_result(tls)));
+}
+
 #if HAVE_LIBNGHTTP2
 #ifndef OPENSSL_NO_NEXTPROTONEG
 /*
@@ -898,6 +925,102 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	SSL_CTX_set_alpn_select_cb(tls, dot_alpn_select_proto_cb, NULL);
 #endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+}
+
+isc_result_t
+isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
+				    isc_tls_cert_store_t *store,
+				    const char *hostname,
+				    bool hostname_ignore_subject) {
+	int ret = 0;
+	REQUIRE(tlsctx != NULL);
+	REQUIRE(store != NULL);
+
+	/* Set the hostname/IP address. */
+	if (!is_server && hostname != NULL && *hostname != '\0') {
+		struct in6_addr sa6;
+		struct in_addr sa;
+		X509_VERIFY_PARAM *param = SSL_CTX_get0_param(tlsctx);
+		unsigned int hostflags = X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
+
+		/* It might be an IP address. */
+		if (inet_pton(AF_INET6, hostname, &sa6) == 1 ||
+		    inet_pton(AF_INET, hostname, &sa) == 1)
+		{
+			ret = X509_VERIFY_PARAM_set1_ip_asc(param, hostname);
+		} else {
+			/* It seems that it is a host name. Let's set it. */
+			ret = X509_VERIFY_PARAM_set1_host(param, hostname, 0);
+		}
+		if (ret != 1) {
+			return (ISC_R_FAILURE);
+		}
+
+#ifdef X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
+		/*
+		 * According to the RFC 8310, Section 8.1, Subject field MUST
+		 * NOT be inspected when verifying a hostname when using
+		 * DoT. Only SubjectAltName must be checked instead. That is
+		 * not the case for HTTPS, though.
+		 *
+		 * Unfortunately, some quite old versions of OpenSSL (< 1.1.1)
+		 * might lack the functionality to implement that. It should
+		 * have very little real-world consequences, as most of the
+		 * production-ready certificates issued by real CAs will have
+		 * SubjectAltName set. In such a case, the Subject field is
+		 * ignored.
+		 */
+		if (hostname_ignore_subject) {
+			hostflags |= X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
+		}
+#else
+		UNUSED(hostname_ignore_subject);
+#endif
+		X509_VERIFY_PARAM_set_hostflags(param, hostflags);
+	}
+
+	/* "Attach" the cert store to the context */
+#if defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER >= 0x3050000fL)
+	(void)X509_STORE_up_ref(store);
+	SSL_CTX_set_cert_store(tlsctx, store);
+#elif defined(CRYPTO_LOCK_X509_STORE)
+	/*
+	 * That is the case for OpenSSL < 1.1.X and LibreSSL < 3.5.0.
+	 * No SSL_CTX_set1_cert_store(), no X509_STORE_up_ref(). Sigh...
+	 */
+	(void)CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
+	SSL_CTX_set_cert_store(tlsctx, store);
+#else
+	SSL_CTX_set1_cert_store(tlsctx, store);
+#endif
+
+	/* enable verification */
+	if (is_server) {
+		SSL_CTX_set_verify(tlsctx,
+				   SSL_VERIFY_PEER |
+					   SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+				   NULL);
+	} else {
+		SSL_CTX_set_verify(tlsctx, SSL_VERIFY_PEER, NULL);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file) {
+	STACK_OF(X509_NAME) * cert_names;
+	REQUIRE(ctx != NULL);
+	REQUIRE(ca_bundle_file != NULL);
+
+	cert_names = SSL_load_client_CA_file(ca_bundle_file);
+	if (cert_names == NULL) {
+		return (ISC_R_FAILURE);
+	}
+
+	SSL_CTX_set_client_CA_list(ctx, cert_names);
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
