@@ -145,7 +145,7 @@ We need to generate at least two RSA keys:
 ::
 
    pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type rsa:2048 --label example.net-ksk --pin <PIN>
-   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type rsa:2048 --label example.net-ksk --pin <PIN>
+   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type rsa:2048 --label example.net-zsk --pin <PIN>
 
 Remember that each key should have unique label and we are going to use that
 label to reference the private key.
@@ -196,6 +196,18 @@ The output should look like this (the second number will be different):
    Kexample.net.+008+31729.private
    Kexample.net.+008+42231.key
    Kexample.net.+008+42231.private
+
+A note on generating ECDSA keys: there is a bug in libp11 when looking up a key,
+that function compares keys only on their ID, not the label. So when looking up
+a key it returns the first key, rather than the matching key. The workaround for
+this is when creating ECDSA keys, you should specify a unique ID:
+
+::
+
+   ksk=$(echo "example.net-ksk" | sha1sum - | awk '{print $1}')
+   zsk=$(echo "example.net-zsk" | sha1sum - | awk '{print $1}')
+   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type EC:prime256v1 --id $ksk --label example.net-ksk --pin <PIN>
+   pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type EC:prime256v1 --id $zsk --label example.net-zsk --pin <PIN>
 
 
 Specifying the Engine on the Command Line
