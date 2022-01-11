@@ -1,16 +1,18 @@
-/* pkcs11.h
- * Copyright 2006, 2007 g10 Code GmbH
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  * Copyright 2006 Andreas Jellinghaus
+ * Copyright 2006, 2007 g10 Code GmbH
  * Copyright 2017 Red Hat, Inc.
  *
- * This file is free software; as a special exception the author gives
- * unlimited permission to copy and/or distribute it, with or without
- * modifications, as long as this notice is preserved.
+ * SPDX-License-Identifier: MPL-2.0
  *
- * This file is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY, to the extent permitted by law; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  */
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.  If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
 
 /* Please submit any changes back to the p11-kit project at
  * https://github.com/p11-glue/p11-kit/, so that

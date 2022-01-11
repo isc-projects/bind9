@@ -1,3 +1,16 @@
+<!--
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+
+SPDX-License-Identifier: MPL-2.0
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0.  If a copy of the MPL was not distributed with this
+file, you can obtain one at https://mozilla.org/MPL/2.0/.
+
+See the COPYRIGHT file distributed with this work for additional
+information regarding copyright ownership.
+-->
+
 ## BIND 9 Coding Style
 
 BIND 9 is principally written in [C](#cstyle), with some additional code
@@ -21,8 +34,31 @@ is to compile with no warnings.
 
 #### Copyright Notices
 
-Source files with significant content should have a copyright.  The copyright
-year(s) should be kept current.
+The license described in the ``COPYING`` file applies to the BIND 9 source as a
+whole, though individual source files can have a different license which is
+required to be compatible with the MPL-2.0.
+
+Aside from that, individual files can be provided under a dual license,
+e.g. MPL-2.0 license and alternatively under a permissive license like BSD, MIT
+etc.
+
+The common way of expressing the license of a source file is to add the matching
+boilerplate text into the top comment of the file. Due to formatting, typos
+etc. these “boilerplates” are hard to validate for tools which are used in the
+context of license compliance.
+
+An alternative to boilerplate text is the use of Software Package Data Exchange
+(SPDX) license identifiers in each source file. SPDX license identifiers are
+machine parsable and precise shorthands for the license under which the content
+of the file is contributed. SPDX license identifiers are managed by the SPDX
+Workgroup at the Linux Foundation and have been agreed on by partners throughout
+the industry, tool vendors, and legal teams. For further information see
+https://spdx.org/
+
+The BIND 9 requires the precise SPDX identifier in all source files. The valid
+identifiers used in the BIND 9 are explained in the section License identifiers
+and have been retrieved from the official SPDX license list at
+https://spdx.org/licenses/ along with the license texts.
 
 #### Indentation
 
@@ -151,7 +187,7 @@ or for public files that do not declare any functions.
     	 *
     	 * This Source Code Form is subject to the terms of the Mozilla Public
     	 * License, v. 2.0. If a copy of the MPL was not distributed with this
-    	 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    	 * file, you can obtain one at https://mozilla.org/MPL/2.0/.
     	 */
     
     	#pragma once

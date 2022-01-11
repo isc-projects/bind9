@@ -1,12 +1,13 @@
-.. 
-   Copyright (C) Internet Systems Consortium, Inc. ("ISC")
-   
-   This Source Code Form is subject to the terms of the Mozilla Public
-   License, v. 2.0. If a copy of the MPL was not distributed with this
-   file, you can obtain one at https://mozilla.org/MPL/2.0/.
-   
-   See the COPYRIGHT file distributed with this work for additional
-   information regarding copyright ownership.
+.. Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+..
+.. SPDX-License-Identifier: MPL-2.0
+..
+.. This Source Code Form is subject to the terms of the Mozilla Public
+.. License, v. 2.0.  If a copy of the MPL was not distributed with this
+.. file, you can obtain one at https://mozilla.org/MPL/2.0/.
+..
+.. See the COPYRIGHT file distributed with this work for additional
+.. information regarding copyright ownership.
 
 Release Notes
 =============
@@ -91,17 +92,8 @@ for Microsoft Windows operating systems.
 License
 -------
 
-BIND 9 is open source software licensed under the terms of the Mozilla
-Public License, version 2.0 (see the ``LICENSE`` file for the full
-text).
-
-The license requires that if you make changes to BIND and distribute
-them outside your organization, those changes must be published under
-the same license. It does not require that you publish or disclose
-anything other than the changes you have made to our software. This
-requirement does not affect anyone who is using BIND, with or without
-modifications, without redistributing it, nor anyone redistributing BIND
-without changes.
+BIND 9 is open source software licensed under the terms of the Mozilla Public
+License, version 2.0 (see the ``COPYING`` file for the full text).
 
 Those wishing to discuss license compliance may contact ISC at
 https://www.isc.org/contact/.
