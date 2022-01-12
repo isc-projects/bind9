@@ -89,6 +89,8 @@ isc___nm_uverr2result(int uverr, bool dolog, const char *file,
 		return (ISC_R_EOF);
 	case UV_EMSGSIZE:
 		return (ISC_R_MAXSIZE);
+	case UV_ENOTSUP:
+		return (ISC_R_FAMILYNOSUPPORT);
 	default:
 		if (dolog) {
 			UNEXPECTED_ERROR(
