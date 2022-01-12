@@ -37,25 +37,24 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Overall memory use by ``named`` has been optimized and reduced,
+  especially on systems with many CPU cores. :gl:`#2398` :gl:`#3048`
+
 - ``named`` formerly generated an ephemeral key and certificate for the
   ``tls ephemeral`` configuration using the RSA algorithm with 4096-bit
   keys. This has been changed to the ECDSA P-256 algorithm. :gl:`#2264`
 
-- Overall memory use by ``named`` has been optimized and reduced,
-  especially on systems with many CPU cores. :gl:`#2398` :gl:`#3048`
-
-
 Bug Fixes
 ~~~~~~~~~
+
+- On FreeBSD, TCP connections leaked a small amount of heap memory,
+  leading to an eventual out-of-memory problem. This has been fixed.
+  :gl:`#3051`
 
 - If signatures created by the ZSK were expired and the ZSK private key
   was offline, the signatures were not replaced. This behavior has been
   amended to replace the expired signatures with new signatures created
   using the KSK. :gl:`#3049`
-
-- On FreeBSD, TCP connections leaked a small amount of heap memory,
-  leading to an eventual out-of-memory problem. This has been fixed.
-  :gl:`#3051`
 
 - Under certain circumstances, the signed version of an inline-signed
   zone could be dumped to disk without the serial number of the unsigned
