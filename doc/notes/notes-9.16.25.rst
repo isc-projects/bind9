@@ -12,26 +12,6 @@
 Notes for BIND 9.16.25
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -59,7 +39,3 @@ Bug Fixes
   contents after ``named`` restarted, if the unsigned zone file was
   modified while ``named`` was not running. This has been fixed.
   :gl:`#3071`
-
-- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
-  reducing the maximum query-response performance.  The recvmmsg support would
-  be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
