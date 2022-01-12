@@ -732,6 +732,8 @@ PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
 
 # libuv recvmmsg support
 AC_CHECK_DECLS([UV_UDP_RECVMMSG, UV_UDP_MMSG_FREE, UV_UDP_MMSG_CHUNK], [], [], [[#include <uv.h>]])
+AS_CASE([$host],
+	[*-musl],[AC_DEFINE([HAVE_DECL_UV_UDP_RECVMMSG], [0], [Disable recvmmsg support on systems with MUSL glibc])])
 
 #
 # flockfile is usually provided by pthreads

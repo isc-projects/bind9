@@ -16339,6 +16339,14 @@ cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_UV_UDP_MMSG_CHUNK $ac_have_decl
 _ACEOF
 
+case $host in #(
+  *-musl) :
+
+$as_echo "#define HAVE_DECL_UV_UDP_RECVMMSG 0" >>confdefs.h
+ ;; #(
+  *) :
+     ;;
+esac
 
 #
 # flockfile is usually provided by pthreads
