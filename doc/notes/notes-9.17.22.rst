@@ -12,27 +12,12 @@
 Notes for BIND 9.17.22
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - ``named`` now logs TLS pre-master secrets for debugging purposes when
   the ``SSLKEYLOGFILE`` environment variable is set. This enables
   troubleshooting issues with encrypted DNS traffic. :gl:`#2723`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
