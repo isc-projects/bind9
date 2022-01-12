@@ -44,14 +44,14 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- On FreeBSD, TCP connections leaked a small amount of heap memory,
+  leading to an eventual out-of-memory problem. This has been fixed.
+  :gl:`#3051`
+
 - If signatures created by the ZSK were expired and the ZSK private key
   was offline, the signatures were not replaced. This behavior has been
   amended to replace the expired signatures with new signatures created
   using the KSK. :gl:`#3049`
-
-- On FreeBSD, TCP connections leaked a small amount of heap memory,
-  leading to an eventual out-of-memory problem. This has been fixed.
-  :gl:`#3051`
 
 - Under certain circumstances, the signed version of an inline-signed
   zone could be dumped to disk without the serial number of the unsigned
