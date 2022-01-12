@@ -482,7 +482,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
 	result = isc_nm_listenudp(ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
-				  ns__client_request, ifp,
+				  ns_client_request, ifp,
 				  &ifp->udplistensocket);
 	return (result);
 }
@@ -492,7 +492,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, NULL, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
@@ -525,7 +525,7 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
 
@@ -559,7 +559,7 @@ load_http_endpoints(isc_nm_http_endpoints_t *epset, ns_interface_t *ifp,
 
 	for (size_t i = 0; i < neps; i++) {
 		result = isc_nm_http_endpoints_add(epset, eps[i],
-						   ns__client_request, ifp);
+						   ns_client_request, ifp);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}

@@ -1680,8 +1680,8 @@ ns__client_put_cb(void *client0) {
  * or tcpmsg (TCP case).
  */
 void
-ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
-		   isc_region_t *region, void *arg) {
+ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
+		  isc_region_t *region, void *arg) {
 	ns_client_t *client = NULL;
 	isc_result_t result;
 	isc_result_t sigresult = ISC_R_SUCCESS;
