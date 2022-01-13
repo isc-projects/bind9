@@ -16305,17 +16305,6 @@ $as_echo "yes" >&6; }
 fi
 
 # libuv recvmmsg support
-ac_fn_c_check_decl "$LINENO" "UV_UDP_RECVMMSG" "ac_cv_have_decl_UV_UDP_RECVMMSG" "#include <uv.h>
-"
-if test "x$ac_cv_have_decl_UV_UDP_RECVMMSG" = xyes; then :
-  ac_have_decl=1
-else
-  ac_have_decl=0
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DECL_UV_UDP_RECVMMSG $ac_have_decl
-_ACEOF
 ac_fn_c_check_decl "$LINENO" "UV_UDP_MMSG_FREE" "ac_cv_have_decl_UV_UDP_MMSG_FREE" "#include <uv.h>
 "
 if test "x$ac_cv_have_decl_UV_UDP_MMSG_FREE" = xyes; then :
@@ -16339,14 +16328,42 @@ cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_UV_UDP_MMSG_CHUNK $ac_have_decl
 _ACEOF
 
-case $host in #(
-  *-musl) :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether struct msghdr uses padding for alignment" >&5
+$as_echo_n "checking whether struct msghdr uses padding for alignment... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/socket.h>
+int
+main ()
+{
+const struct msghdr h = { .__pad1 = 0, .__pad2 = 0 };
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_DECL_UV_UDP_RECVMMSG 0" >>confdefs.h
- ;; #(
-  *) :
-     ;;
-esac
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		   ac_fn_c_check_decl "$LINENO" "UV_UDP_RECVMMSG" "ac_cv_have_decl_UV_UDP_RECVMMSG" "#include <uv.h>
+"
+if test "x$ac_cv_have_decl_UV_UDP_RECVMMSG" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UV_UDP_RECVMMSG $ac_have_decl
+_ACEOF
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
 # flockfile is usually provided by pthreads

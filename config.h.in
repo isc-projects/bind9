@@ -83,7 +83,8 @@
    you don't. */
 #undef HAVE_DECL_UV_UDP_MMSG_FREE
 
-/* Disable recvmmsg support on systems with MUSL glibc */
+/* Define to 1 if you have the declaration of `UV_UDP_RECVMMSG', and to 0 if
+   you don't. */
 #undef HAVE_DECL_UV_UDP_RECVMMSG
 
 /* Define to 1 if you have the <devpoll.h> header file. */
