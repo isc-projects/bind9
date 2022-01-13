@@ -231,7 +231,7 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	if (atomic_load_acquire(&listener->controls->shuttingdown) ||
-	    result == ISC_R_CANCELED)
+	    result == ISC_R_SHUTTINGDOWN)
 	{
 		goto cleanup_sendhandle;
 	} else if (result != ISC_R_SUCCESS) {
@@ -414,7 +414,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_SHUTTINGDOWN || result == ISC_R_CANCELED) {
+		if (result == ISC_R_SHUTTINGDOWN) {
 			atomic_store_release(&listener->controls->shuttingdown,
 					     true);
 		} else if (result != ISC_R_EOF) {
@@ -630,7 +630,7 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_sockaddr_t peeraddr;
 
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_CANCELED) {
+		if (result == ISC_R_SHUTTINGDOWN) {
 			shutdown_listener(listener);
 		}
 		return (result);

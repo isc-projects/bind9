@@ -51,17 +51,22 @@ recv_data(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	INSIST(VALID_CCMSG(ccmsg));
 
-	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
+	switch (eresult) {
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
+	case ISC_R_EOF:
 		ccmsg->result = eresult;
 		goto done;
-	} else if (region == NULL && eresult == ISC_R_SUCCESS) {
-		ccmsg->result = ISC_R_EOF;
-		goto done;
-	} else if (eresult != ISC_R_SUCCESS) {
+	case ISC_R_SUCCESS:
+		if (region == NULL) {
+			ccmsg->result = ISC_R_EOF;
+			goto done;
+		}
+		ccmsg->result = ISC_R_SUCCESS;
+		break;
+	default:
 		ccmsg->result = eresult;
 		goto done;
-	} else {
-		ccmsg->result = eresult;
 	}
 
 	if (!ccmsg->length_received) {
