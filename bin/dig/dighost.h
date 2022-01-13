@@ -111,9 +111,9 @@ struct dig_lookup {
 						  message */
 		identify_previous_line,	       /*% Prepend a "Nameserver <foo>:"
 						  message, with newline and tab */
-		idnin, idnout, ignore, mapped, multiline, need_search,
-		new_search, noclass, nocrypto, nottl,
-		ns_search_only,	 /*%< dig +nssearch, host -C */
+		idnin, idnout, ignore, multiline, need_search, new_search,
+		noclass, nocrypto, nottl, ns_search_only, /*%< dig +nssearch,
+							     host -C */
 		nsid,		 /*% Name Server ID (RFC 5001) */
 		onesoa, pending, /*%< Pending a successful answer */
 		print_unknown_format, qr, raflag, recurse, section_additional,

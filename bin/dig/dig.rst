@@ -400,10 +400,6 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    creating a new TCP socket for each lookup. The default is
    ``+nokeepopen``.
 
-``+[no]mapped``
-   This option allows [or does not allow] mapped IPv4-over-IPv6 addresses to be used. The default is
-   ``+mapped``.
-
 ``+[no]multiline``
    This option prints [or does not print] records, like the SOA records, in a verbose multi-line format
    with human-readable comments. The default is to print each record on

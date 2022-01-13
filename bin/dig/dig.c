@@ -248,8 +248,6 @@ help(void) {
 	       "                 +[no]keepopen       (Keep the TCP socket open "
 	       "between "
 	       "queries)\n"
-	       "                 +[no]mapped         (Allow mapped IPv4 over "
-	       "IPv6)\n"
 	       "                 +[no]multiline      (Print records in an "
 	       "expanded format)\n"
 	       "                 +ndots=###          (Set search NDOTS value)\n"
@@ -1584,7 +1582,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		switch (cmd[1]) {
 		case 'a':
 			FULLCHECK("mapped");
-			lookup->mapped = state;
+			fprintf(stderr, ";; +mapped option is deprecated");
 			break;
 		case 'u':
 			FULLCHECK("multiline");
