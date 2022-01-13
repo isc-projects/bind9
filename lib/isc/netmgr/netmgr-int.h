@@ -1850,6 +1850,12 @@ isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family);
  */
 
 isc_result_t
+isc__nm_socket_v6only(uv_os_sock_t fd, sa_family_t sa_family);
+/*%<
+ * Restrict the socket to sending and receiving IPv6 packets only
+ */
+
+isc_result_t
 isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms);
 /*%<
  * Set the connection timeout in milliseconds, on non-Linux platforms,

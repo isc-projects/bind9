@@ -334,6 +334,7 @@ isc__nm_tcpdns_lb_socket(sa_family_t sa_family) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	(void)isc__nm_socket_incoming_cpu(sock);
+	(void)isc__nm_socket_v6only(sock, sa_family);
 
 	/* FIXME: set mss */
 
