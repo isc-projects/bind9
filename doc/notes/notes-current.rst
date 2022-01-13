@@ -57,3 +57,7 @@ Bug Fixes
 
 - Using ``rndc`` on a busy recursive server could cause the ``named`` to abort
   with assertion failure.  This has been fixed. :gl:`#3079`
+
+- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
+  reducing the maximum query-response performance.  The recvmmsg support would
+  be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
