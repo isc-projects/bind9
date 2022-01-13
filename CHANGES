@@ -1,7 +1,10 @@
-5790.	[bug]		Enforce enqueuing TCP resumeread to prevent the
-			next read callback from being executed before the
-			current read callback has finished, and the worker
-			receive buffer has been marked as "freed". [GL #3079]
+5790.	[bug]		The control channel was incorrectly looking for
+			ISC_R_CANCELED as a signal that the named is
+			shutting down.  In the dispatch refactoring,
+			the result code returned from network manager
+			is now ISC_R_SHUTTINGDOWN.  Change the control
+			channel code to use ISC_R_SHUTTINGDOWN result
+			code to detect named being shut down. [GL #3079]
 
 5789.	[bug]		Allow replacing expired zone signatures with
 			signatures created by the KSK. [GL #3049]

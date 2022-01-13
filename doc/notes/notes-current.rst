@@ -55,6 +55,5 @@ Bug Fixes
   after ``named`` restart in case the unsigned zone file gets modified
   while ``named`` is not running. This has been fixed. :gl:`#3071`
 
-- Under certain circumstances, reading from the raw TCP channels used
-  for rndc and statistics could cause assertion failure.  This has been
-  fixed. :gl:`#3079`
+- Using ``rndc`` on a busy recursive server could cause the ``named`` to abort
+  with assertion failure.  This has been fixed. :gl:`#3079`
