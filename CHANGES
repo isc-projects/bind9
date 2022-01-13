@@ -1,3 +1,6 @@
+5793.	[bug]		Correctly detect and enable UDP recvmmsg support
+			in all versions of libuv that support it. [GL #3095]
+
 5792.	[bug]		Don't schedule zone events on ISC_R_SHUTTINGDOWN
 			event failures. [GL #3084]
 
