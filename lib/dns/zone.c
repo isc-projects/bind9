@@ -16276,30 +16276,12 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 			   isc_result_totext(result));
 	}
 
-	/*
-	 * Old bind's return formerr if they see a soa record.	Retry w/o
-	 * the soa if we see a formerr and had sent a SOA.
-	 */
 	isc_event_free(&event);
-	if (message->rcode == dns_rcode_formerr &&
-	    (notify->flags & DNS_NOTIFY_NOSOA) == 0)
-	{
-		bool startup;
-
-		notify->flags |= DNS_NOTIFY_NOSOA;
-		dns_request_destroy(&notify->request);
-		startup = (notify->flags & DNS_NOTIFY_STARTUP);
-		result = notify_send_queue(notify, startup);
-		if (result != ISC_R_SUCCESS) {
-			notify_destroy(notify, false);
-		}
-	} else {
-		if (result == ISC_R_TIMEDOUT) {
-			notify_log(notify->zone, ISC_LOG_DEBUG(1),
-				   "notify to %s: retries exceeded", addrbuf);
-		}
-		notify_destroy(notify, false);
+	if (result == ISC_R_TIMEDOUT) {
+		notify_log(notify->zone, ISC_LOG_DEBUG(1),
+			   "notify to %s: retries exceeded", addrbuf);
 	}
+	notify_destroy(notify, false);
 	dns_message_detach(&message);
 }
 
