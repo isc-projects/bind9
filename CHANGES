@@ -1,3 +1,6 @@
+5795.	[bug]		rndc could crash when interrupted by a signal
+			before receiving a response. [GL #3080]
+
 5794.	[func]		Set the IPV6_V6ONLY on all IPv6 sockets to
 			restrict the IPv6 sockets to sending and
 			receiving IPv6 packets only. [GL #3093]
