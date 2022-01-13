@@ -1,7 +1,5 @@
-5790.	[bug]		Enforce enqueuing TCP resumeread to prevent the
-			next read callback from being executed before the
-			current read callback has finished, and the worker
-			receive buffer has been marked as "freed". [GL #3079]
+5793.	[bug]		Correctly detect and enable UDP recvmmsg support
+			in all versions of libuv that support it. [GL #3095]
 
 5789.	[bug]		Allow replacing expired zone signatures with
 			signatures created by the KSK. [GL #3049]

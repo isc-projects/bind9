@@ -46,19 +46,37 @@
 /* Must be different from ISC_NETMGR_TID_UNKNOWN */
 #define ISC_NETMGR_NON_INTERLOCKED -2
 
-#if !defined(WIN32)
 /*
- * New versions of libuv support recvmmsg on unices.
- * Since recvbuf is only allocated per worker allocating a bigger one is not
- * that wasteful.
- * 20 here is UV__MMSG_MAXWIDTH taken from the current libuv source, nothing
- * will break if the original value changes.
+ * Receive buffers
  */
-#define ISC_NETMGR_RECVBUF_SIZE (20 * 65536)
+#if HAVE_DECL_UV_UDP_MMSG_CHUNK
+/*
+ * The value 20 here is UV__MMSG_MAXWIDTH taken from the current libuv source,
+ * libuv will not receive more that 20 datagrams in a single recvmmsg call.
+ */
+#define ISC_NETMGR_UDP_RECVBUF_SIZE (20 * UINT16_MAX)
 #else
-#define ISC_NETMGR_RECVBUF_SIZE (65536)
+/*
+ * A single DNS message size
+ */
+#define ISC_NETMGR_UDP_RECVBUF_SIZE UINT16_MAX
 #endif
 
+/*
+ * The TCP receive buffer can fit one maximum sized DNS message plus its size,
+ * the receive buffer here affects TCP, DoT and DoH.
+ */
+#define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
+
+/* Pick the larger buffer */
+#define ISC_NETMGR_RECVBUF_SIZE                                     \
+	(ISC_NETMGR_UDP_RECVBUF_SIZE >= ISC_NETMGR_TCP_RECVBUF_SIZE \
+		 ? ISC_NETMGR_UDP_RECVBUF_SIZE                      \
+		 : ISC_NETMGR_TCP_RECVBUF_SIZE)
+
+/*
+ * Send buffer
+ */
 #define ISC_NETMGR_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /*%
@@ -72,7 +90,7 @@
  * most in TCPDNS connections, so there's no risk of overrun
  * when using a buffer this size.
  */
-#define NM_BIG_BUF (65535 + 2) * 2
+#define NM_BIG_BUF ISC_NETMGR_TCP_RECVBUF_SIZE * 2
 
 #if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
 #define HAVE_SO_REUSEPORT_LB 1

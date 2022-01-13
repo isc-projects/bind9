@@ -57,6 +57,6 @@ Bug Fixes
   after ``named`` restart in case the unsigned zone file gets modified
   while ``named`` is not running. This has been fixed. :gl:`#3071`
 
-- Under certain circumstances, reading from the raw TCP channels used
-  for rndc and statistics could cause assertion failure.  This has been
-  fixed. :gl:`#3079`
+- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
+  reducing the maximum query-response performance.  The recvmmsg support would
+  be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`

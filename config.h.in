@@ -75,6 +75,18 @@
 /* Define to 1 if you have the `CRYPTO_zalloc' function. */
 #undef HAVE_CRYPTO_ZALLOC
 
+/* Define to 1 if you have the declaration of `UV_UDP_MMSG_CHUNK', and to 0 if
+   you don't. */
+#undef HAVE_DECL_UV_UDP_MMSG_CHUNK
+
+/* Define to 1 if you have the declaration of `UV_UDP_MMSG_FREE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_UV_UDP_MMSG_FREE
+
+/* Define to 1 if you have the declaration of `UV_UDP_RECVMMSG', and to 0 if
+   you don't. */
+#undef HAVE_DECL_UV_UDP_RECVMMSG
+
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
 

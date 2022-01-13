@@ -818,7 +818,6 @@ isc__nm_tcp_resumeread(isc_nmhandle_t *handle) {
 
 	isc__netievent_tcpstartread_t *ievent = NULL;
 	isc_nmsocket_t *sock = handle->sock;
-	isc__networker_t *worker = &sock->mgr->workers[sock->tid];
 
 	REQUIRE(sock->tid == isc_nm_tid());
 
@@ -840,18 +839,8 @@ isc__nm_tcp_resumeread(isc_nmhandle_t *handle) {
 
 	ievent = isc__nm_get_netievent_tcpstartread(sock->mgr, sock);
 
-	if (worker->recvbuf_inuse) {
-		/*
-		 * If we happen to call the resumeread from inside the receive
-		 * callback, the worker->recvbuf might still be in use, so we
-		 * need to force enqueue the next read event.
-		 */
-		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ievent);
-
-	} else {
-		isc__nm_maybe_enqueue_ievent(worker,
-					     (isc__netievent_t *)ievent);
-	}
+	isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
+				     (isc__netievent_t *)ievent);
 }
 
 void
@@ -906,6 +895,15 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	}
 
 free:
+	if (nread < 0) {
+		/*
+		 * The buffer may be a null buffer on error.
+		 */
+		if (buf->base == NULL && buf->len == 0) {
+			return;
+		}
+	}
+
 	isc__nm_free_uvbuf(sock, buf);
 }
 

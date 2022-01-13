@@ -2257,6 +2257,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_type
+
+# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
+# ---------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_decl
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -16257,6 +16303,67 @@ else
 $as_echo "yes" >&6; }
 
 fi
+
+# libuv recvmmsg support
+ac_fn_c_check_decl "$LINENO" "UV_UDP_MMSG_FREE" "ac_cv_have_decl_UV_UDP_MMSG_FREE" "#include <uv.h>
+"
+if test "x$ac_cv_have_decl_UV_UDP_MMSG_FREE" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UV_UDP_MMSG_FREE $ac_have_decl
+_ACEOF
+ac_fn_c_check_decl "$LINENO" "UV_UDP_MMSG_CHUNK" "ac_cv_have_decl_UV_UDP_MMSG_CHUNK" "#include <uv.h>
+"
+if test "x$ac_cv_have_decl_UV_UDP_MMSG_CHUNK" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UV_UDP_MMSG_CHUNK $ac_have_decl
+_ACEOF
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether struct msghdr uses padding for alignment" >&5
+$as_echo_n "checking whether struct msghdr uses padding for alignment... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/socket.h>
+int
+main ()
+{
+const struct msghdr h = { .__pad1 = 0, .__pad2 = 0 };
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_DECL_UV_UDP_RECVMMSG 0" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		   ac_fn_c_check_decl "$LINENO" "UV_UDP_RECVMMSG" "ac_cv_have_decl_UV_UDP_RECVMMSG" "#include <uv.h>
+"
+if test "x$ac_cv_have_decl_UV_UDP_RECVMMSG" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UV_UDP_RECVMMSG $ac_have_decl
+_ACEOF
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
 # flockfile is usually provided by pthreads
