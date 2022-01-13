@@ -3694,6 +3694,33 @@ isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	};
 }
 
+const char *
+isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	sock = handle->sock;
+	switch (sock->type) {
+	case isc_nm_tlsdnssocket:
+		return (isc__nm_tlsdns_verify_tls_peer_result_string(handle));
+		break;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		return (isc__nm_tls_verify_tls_peer_result_string(handle));
+		break;
+	case isc_nm_httpsocket:
+		return (isc__nm_http_verify_tls_peer_result_string(handle));
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
+
+	return (NULL);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
