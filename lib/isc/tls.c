@@ -36,6 +36,7 @@
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
 #include <isc/once.h>
+#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/thread.h>
@@ -317,16 +318,16 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			goto ssl_error;
 		}
 
-		/* We use a named curve and compressed point conversion form. */
+		/* Use a named curve and uncompressed point conversion form. */
 #if HAVE_EVP_PKEY_GET0_EC_KEY
 		EC_KEY_set_asn1_flag(EVP_PKEY_get0_EC_KEY(pkey),
 				     OPENSSL_EC_NAMED_CURVE);
 		EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(pkey),
-				     POINT_CONVERSION_COMPRESSED);
+				     POINT_CONVERSION_UNCOMPRESSED);
 #else
 		EC_KEY_set_asn1_flag(pkey->pkey.ec, OPENSSL_EC_NAMED_CURVE);
 		EC_KEY_set_conv_form(pkey->pkey.ec,
-				     POINT_CONVERSION_COMPRESSED);
+				     POINT_CONVERSION_UNCOMPRESSED);
 #endif /* HAVE_EVP_PKEY_GET0_EC_KEY */
 
 #if defined(SSL_CTX_set_ecdh_auto)
@@ -389,7 +390,9 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		if (cert == NULL) {
 			goto ssl_error;
 		}
-		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
+
+		ASN1_INTEGER_set(X509_get_serialNumber(cert),
+				 (long)isc_random32());
 
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
 		X509_gmtime_adj(X509_get_notBefore(cert), 0);
