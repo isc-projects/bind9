@@ -1,3 +1,6 @@
+5792.	[bug]		Don't schedule zone events on ISC_R_SHUTTINGDOWN
+			event failures. [GL #3084]
+
 5791.	[func]		Remove workaround for servers returning FORMERR
 			when receiving NOTIFY query with SOA record in
 			ANSWER section. [GL #3086]

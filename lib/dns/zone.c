@@ -13598,18 +13598,19 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		zone_debuglog(zone, me, 1, "exiting");
-		exiting = true;
-		goto next_primary;
+		goto exiting;
 	}
 
 	isc_sockaddr_format(&zone->primaryaddr, primary, sizeof(primary));
 	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
-	if (revent->result != ISC_R_SUCCESS) {
-		if (revent->result == ISC_R_TIMEDOUT &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS))
-		{
+	switch (revent->result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_SHUTTINGDOWN:
+		goto exiting;
+	case ISC_R_TIMEDOUT:
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refreshing stub: timeout retrying "
@@ -13617,6 +13618,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 				     primary, source);
 			goto same_primary;
 		}
+		/* fallthrough */
+	default:
 		dns_zonemgr_unreachableadd(zone->zmgr, &zone->primaryaddr,
 					   &zone->sourceaddr, &now);
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -13761,6 +13764,10 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	UNLOCK_ZONE(zone);
 	return;
+
+exiting:
+	zone_debuglog(zone, me, 1, "exiting");
+	exiting = true;
 
 next_primary:
 	isc_mem_put(zone->mctx, cb_args, sizeof(*cb_args));
@@ -13971,9 +13978,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		isc_event_free(&event);
-		dns_request_destroy(&zone->request);
-		goto detach;
+		goto exiting;
 	}
 
 	/*
@@ -13982,19 +13987,20 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_format(&zone->primaryaddr, primary, sizeof(primary));
 	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
-	if (revent->result != ISC_R_SUCCESS) {
-		if (revent->result == ISC_R_TIMEDOUT &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS))
-		{
+	switch (revent->result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_SHUTTINGDOWN:
+		goto exiting;
+	case ISC_R_TIMEDOUT:
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: timeout retrying without EDNS "
 				     "primary %s (source %s)",
 				     primary, source);
 			goto same_primary;
-		}
-		if (revent->result == ISC_R_TIMEDOUT &&
-		    !dns_request_usedtcp(revent->request)) {
+		} else if (!dns_request_usedtcp(revent->request)) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: retry limit for "
 				     "primary %s exceeded (source %s)",
@@ -14020,13 +14026,15 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 					     "unreachable (cached)",
 					     primary, source);
 			}
-		} else {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refresh: failure trying primary "
-				     "%s (source %s): %s",
-				     primary, source,
-				     isc_result_totext(revent->result));
+			goto next_primary;
 		}
+		/* fallthrough */
+	default:
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "refresh: failure trying primary "
+			     "%s (source %s): %s",
+			     primary, source,
+			     isc_result_totext(revent->result));
 		goto next_primary;
 	}
 
@@ -14368,6 +14376,11 @@ next_primary:
 
 requeue:
 	queue_soa_query(zone);
+	goto detach;
+
+exiting:
+	isc_event_free(&event);
+	dns_request_destroy(&zone->request);
 	goto detach;
 
 same_primary:
@@ -16257,31 +16270,36 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	dns_message_create(notify->zone->mctx, DNS_MESSAGE_INTENTPARSE,
 			   &message);
 
-	result = revent->result;
-	if (result == ISC_R_SUCCESS) {
-		result =
-			dns_request_getresponse(revent->request, message,
-						DNS_MESSAGEPARSE_PRESERVEORDER);
+	if (revent->result != ISC_R_SUCCESS) {
+		result = revent->result;
+		goto fail;
 	}
-	if (result == ISC_R_SUCCESS) {
-		result = dns_rcode_totext(message->rcode, &buf);
+
+	result = dns_request_getresponse(revent->request, message,
+					 DNS_MESSAGEPARSE_PRESERVEORDER);
+	if (result != ISC_R_SUCCESS) {
+		goto fail;
 	}
+
+	result = dns_rcode_totext(message->rcode, &buf);
 	if (result == ISC_R_SUCCESS) {
 		notify_log(notify->zone, ISC_LOG_DEBUG(3),
 			   "notify response from %s: %.*s", addrbuf,
 			   (int)buf.used, rcode);
-	} else {
-		notify_log(notify->zone, ISC_LOG_DEBUG(2),
-			   "notify to %s failed: %s", addrbuf,
-			   isc_result_totext(result));
 	}
 
-	isc_event_free(&event);
+	goto done;
+
+fail:
+	notify_log(notify->zone, ISC_LOG_DEBUG(2), "notify to %s failed: %s",
+		   addrbuf, isc_result_totext(result));
 	if (result == ISC_R_TIMEDOUT) {
 		notify_log(notify->zone, ISC_LOG_DEBUG(1),
 			   "notify to %s: retries exceeded", addrbuf);
 	}
+done:
 	notify_destroy(notify, false);
+	isc_event_free(&event);
 	dns_message_detach(&message);
 }
 
