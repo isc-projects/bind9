@@ -32,7 +32,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The IPv6 sockets are now explicitly restricted to sending and receiving IPv6
+  packets only.  This renders the ``dig`` option ``+mapped`` non-functioning and
+  thus the option has been removed. :gl:`#3093`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
