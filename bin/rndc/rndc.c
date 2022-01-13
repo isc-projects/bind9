@@ -316,7 +316,7 @@ static void
 rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_ccmsg_t *ccmsg = (isccc_ccmsg_t *)arg;
 	isccc_sexpr_t *response = NULL;
-	isccc_sexpr_t *data;
+	isccc_sexpr_t *data = NULL;
 	isccc_region_t source;
 	char *errormsg = NULL;
 	char *textmsg = NULL;
@@ -339,7 +339,7 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		      "* the clocks are not synchronized,\n"
 		      "* the key signing algorithm is incorrect,\n"
 		      "* or the key is invalid.");
-	} else if (result != ISC_R_SUCCESS && result != ISC_R_CANCELED) {
+	} else if (result != ISC_R_SUCCESS) {
 		fatal("recv failed: %s", isc_result_totext(result));
 	}
 
@@ -414,7 +414,7 @@ rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	REQUIRE(ccmsg != NULL);
 
-	if (shuttingdown && result == ISC_R_EOF) {
+	if (shuttingdown && (result == ISC_R_EOF || result == ISC_R_CANCELED)) {
 		atomic_fetch_sub_release(&recvs, 1);
 		if (handle != NULL) {
 			REQUIRE(recvnonce_handle == handle);
