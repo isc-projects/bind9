@@ -873,6 +873,7 @@ typedef struct isc_nmsocket_h2 {
 		isc_tlsctx_t *tlsctx;
 		isc_sockaddr_t local_interface;
 		void *cstream;
+		const char *tls_peer_verify_string;
 	} connect;
 } isc_nmsocket_h2_t;
 #endif /* HAVE_LIBNGHTTP2 */
@@ -1586,6 +1587,9 @@ isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
  * Stop reading on a connected TLSDNS handle.
  */
 
+const char *
+isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+
 void
 isc__nm_async_tlsdnscycle(isc__networker_t *worker, isc__netievent_t *ev0);
 void
@@ -1670,6 +1674,9 @@ isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
  * around.
  */
 
+const char *
+isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+
 void
 isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
@@ -1730,6 +1737,9 @@ isc__nm_http_has_encryption(const isc_nmhandle_t *handle);
 
 void
 isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
+
+const char *
+isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 
 void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);

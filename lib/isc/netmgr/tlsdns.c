@@ -78,6 +78,17 @@ static isc_result_t
 tls_cycle(isc_nmsocket_t *sock);
 
 static bool
+peer_verification_has_failed(isc_nmsocket_t *sock) {
+	if (sock->tls.tls != NULL && sock->tls.state == TLS_STATE_HANDSHAKE &&
+	    SSL_get_verify_result(sock->tls.tls) != X509_V_OK)
+	{
+		return (true);
+	}
+
+	return (false);
+}
+
+static bool
 can_log_tlsdns_quota(void) {
 	isc_stdtime_t now, last;
 
@@ -795,9 +806,14 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	isc__nm_stop_reading(sock);
 
 	if (sock->tls.pending_req != NULL) {
+		isc_result_t failure_result = ISC_R_CANCELED;
 		isc__nm_uvreq_t *req = sock->tls.pending_req;
 		sock->tls.pending_req = NULL;
-		isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED, async);
+
+		if (peer_verification_has_failed(sock)) {
+			failure_result = ISC_R_TLSBADPEERCERT;
+		}
+		isc__nm_failed_connect_cb(sock, req, failure_result, async);
 	}
 
 	if (!sock->recv_read) {
@@ -1986,11 +2002,14 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 		 * TLS handshake to complete
 		 */
 		if (sock->tls.pending_req != NULL) {
+			isc_result_t result = ISC_R_CANCELED;
 			isc__nm_uvreq_t *req = sock->tls.pending_req;
 			sock->tls.pending_req = NULL;
 
-			isc__nm_failed_connect_cb(sock, req, ISC_R_CANCELED,
-						  false);
+			if (peer_verification_has_failed(sock)) {
+				result = ISC_R_TLSBADPEERCERT;
+			}
+			isc__nm_failed_connect_cb(sock, req, result, false);
 			return;
 		}
 
@@ -2069,4 +2088,20 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 
 	return (sock->tls.alpn_negotiated);
+}
+
+const char *
+isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlsdnssocket);
+
+	sock = handle->sock;
+	if (sock->tls.tls == NULL) {
+		return (NULL);
+	}
+
+	return (isc_tls_verify_peer_result_string(sock->tls.tls));
 }
