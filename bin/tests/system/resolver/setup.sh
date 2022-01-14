@@ -11,6 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+# shellcheck source=../conf.sh
 . ../conf.sh
 
 cp ns4/tld1.db ns4/tld.db
