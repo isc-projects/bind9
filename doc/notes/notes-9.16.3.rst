@@ -82,7 +82,7 @@ Bug Fixes
    0: Operation not permitted``, which has now been silenced.
    :gl:`#1042` :gl:`#1090`
 
--  When ``named-checkconf`` was run, it would sometimes incorrectly set
+-  When ``named-checkconf -z`` was run, it would sometimes incorrectly set
    its exit code. It reflected only the status of the last view found;
    any errors found for other configured views were not reported. Thanks
    to Graham Clinch. :gl:`#1807`
