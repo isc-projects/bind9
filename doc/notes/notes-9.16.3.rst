@@ -12,6 +12,20 @@
 Notes for BIND 9.16.3
 ---------------------
 
+Security Fixes
+~~~~~~~~~~~~~~
+
+-  To prevent exhaustion of server resources by a maliciously configured
+   domain, the number of recursive queries that can be triggered by a
+   request before aborting recursion has been further limited. Root and
+   top-level domain servers are no longer exempt from the
+   ``max-recursion-queries`` limit. Fetches for missing name server
+   address records are limited to 4 for any domain. This issue was
+   disclosed in CVE-2020-8616. :gl:`#1388`
+
+-  Replaying a TSIG BADTIME response as a request could trigger an
+   assertion failure. This was disclosed in CVE-2020-8617. :gl:`#1703`
+
 Known Issues
 ~~~~~~~~~~~~
 
