@@ -11,7 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# shellcheck source=conf.sh
+# shellcheck source=../conf.sh
 . ../conf.sh
 
 dig_with_opts() {
@@ -839,7 +839,7 @@ nextpart ns5/named.run > /dev/null
 # bind to local address so that addresses in log messages are consistent
 # between platforms; use tcp to get SERVFAIL rather than timeout on slow
 # machines
-dig_with_opts @10.53.0.5 -b 10.53.0.5 +tcp tcpalso.no-questions. a +tries=3 +time=4 > dig.ns5.out.${n} || ret=1
+dig_with_opts @10.53.0.5 -b 10.53.0.5 +tcp tcpalso.no-questions. a +tries=3 +timeout=10 > dig.ns5.out.${n} || ret=1
 grep "status: SERVFAIL" dig.ns5.out.${n} > /dev/null || ret=1
 check_namedrun() {
 nextpartpeek ns5/named.run > nextpart.out.${n}
