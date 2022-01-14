@@ -33,30 +33,7 @@ The latest versions of BIND 9 software can always be found at
 https://www.isc.org/download/. There you will find additional
 information about each release, and source code.
 
-.. include:: ../notes/notes-current.rst
-.. include:: ../notes/notes-9.17.22.rst
-.. include:: ../notes/notes-9.17.21.rst
-.. include:: ../notes/notes-9.17.20.rst
-.. include:: ../notes/notes-9.17.19.rst
-.. include:: ../notes/notes-9.17.18.rst
-.. include:: ../notes/notes-9.17.17.rst
-.. include:: ../notes/notes-9.17.16.rst
-.. include:: ../notes/notes-9.17.15.rst
-.. include:: ../notes/notes-9.17.14.rst
-.. include:: ../notes/notes-9.17.13.rst
-.. include:: ../notes/notes-9.17.12.rst
-.. include:: ../notes/notes-9.17.11.rst
-.. include:: ../notes/notes-9.17.10.rst
-.. include:: ../notes/notes-9.17.9.rst
-.. include:: ../notes/notes-9.17.8.rst
-.. include:: ../notes/notes-9.17.7.rst
-.. include:: ../notes/notes-9.17.6.rst
-.. include:: ../notes/notes-9.17.5.rst
-.. include:: ../notes/notes-9.17.4.rst
-.. include:: ../notes/notes-9.17.3.rst
-.. include:: ../notes/notes-9.17.2.rst
-.. include:: ../notes/notes-9.17.1.rst
-.. include:: ../notes/notes-9.17.0.rst
+.. include:: ../notes/notes-9.18.0.rst
 
 .. _relnotes_license:
 
