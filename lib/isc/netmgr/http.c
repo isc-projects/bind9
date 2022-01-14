@@ -1941,7 +1941,6 @@ static struct http_error_responses {
 	const nghttp2_nv header;
 	const char *desc;
 } error_responses[] = {
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_SUCCESS, 200, "OK"),
 	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_BAD_REQUEST, 400, "Bad Request"),
 	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_NOT_FOUND, 404, "Not Found"),
 	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE, 413,
@@ -1979,7 +1978,11 @@ log_server_error_response(const isc_nmsocket_t *socket,
 static isc_result_t
 server_send_error_response(const isc_http_error_responses_t error,
 			   nghttp2_session *ngsession, isc_nmsocket_t *socket) {
-	void *base = isc_buffer_base(&socket->h2.rbuf);
+	void *base;
+
+	REQUIRE(error != ISC_HTTP_ERROR_SUCCESS);
+
+	base = isc_buffer_base(&socket->h2.rbuf);
 	if (base != NULL) {
 		isc_mem_free(socket->h2.session->mctx, base);
 		isc_buffer_initnull(&socket->h2.rbuf);
