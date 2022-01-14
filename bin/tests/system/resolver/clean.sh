@@ -14,11 +14,11 @@
 #
 # Clean up after resolver tests.
 #
-rm -f */named.conf
-rm -f */named.memstats
-rm -f */named.run */named.run.prev
-rm -f */ans.run
-rm -f */*.jdb
+rm -f ./*/named.conf
+rm -f ./*/named.memstats
+rm -f ./*/named.run ./*/named.run.prev
+rm -f ./*/ans.run
+rm -f ./*/*.jdb
 rm -f dig.out dig.out.* dig.*.out.*
 rm -f dig.*.foo.*
 rm -f dig.*.bar.*
