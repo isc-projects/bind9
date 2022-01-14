@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <isc/base64.h>
+#include <isc/log.h>
 #include <isc/netmgr.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -1925,9 +1926,9 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	return (ISC_R_SUCCESS);
 }
 
-#define MAKE_ERROR_REPLY(tag, code)             \
-	{                                       \
-		tag, MAKE_NV2(":status", #code) \
+#define MAKE_ERROR_REPLY(tag, code, desc)             \
+	{                                             \
+		tag, MAKE_NV2(":status", #code), desc \
 	}
 
 /*
@@ -1938,21 +1939,50 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 static struct http_error_responses {
 	const isc_http_error_responses_t type;
 	const nghttp2_nv header;
+	const char *desc;
 } error_responses[] = {
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_SUCCESS, 200),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_NOT_FOUND, 404),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE, 413),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_URI_TOO_LONG, 414),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE, 415),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_BAD_REQUEST, 400),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_NOT_IMPLEMENTED, 501),
-	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_GENERIC, 500),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_BAD_REQUEST, 400, "Bad Request"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_NOT_FOUND, 404, "Not Found"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE, 413,
+			 "Payload Too Large"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_URI_TOO_LONG, 414, "URI Too Long"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE, 415,
+			 "Unsupported Media Type"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_GENERIC, 500, "Internal Server Error"),
+	MAKE_ERROR_REPLY(ISC_HTTP_ERROR_NOT_IMPLEMENTED, 501, "Not Implemented")
 };
+
+static void
+log_server_error_response(const isc_nmsocket_t *socket,
+			  const struct http_error_responses *response) {
+	const int log_level = ISC_LOG_DEBUG(1);
+	isc_sockaddr_t client_addr;
+	isc_sockaddr_t local_addr;
+	char client_sabuf[ISC_SOCKADDR_FORMATSIZE];
+	char local_sabuf[ISC_SOCKADDR_FORMATSIZE];
+
+	if (!isc_log_wouldlog(isc_lctx, log_level)) {
+		return;
+	}
+
+	client_addr = isc_nmhandle_peeraddr(socket->h2.session->handle);
+	local_addr = isc_nmhandle_localaddr(socket->h2.session->handle);
+	isc_sockaddr_format(&client_addr, client_sabuf, sizeof(client_sabuf));
+	isc_sockaddr_format(&local_addr, local_sabuf, sizeof(local_sabuf));
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      log_level, "HTTP/2 request from %s (on %s) failed: %s %s",
+		      client_sabuf, local_sabuf, response->header.value,
+		      response->desc);
+}
 
 static isc_result_t
 server_send_error_response(const isc_http_error_responses_t error,
 			   nghttp2_session *ngsession, isc_nmsocket_t *socket) {
-	void *base = isc_buffer_base(&socket->h2.rbuf);
+	void *base;
+
+	REQUIRE(error != ISC_HTTP_ERROR_SUCCESS);
+
+	base = isc_buffer_base(&socket->h2.rbuf);
 	if (base != NULL) {
 		isc_mem_free(socket->h2.session->mctx, base);
 		isc_buffer_initnull(&socket->h2.rbuf);
@@ -1965,6 +1995,7 @@ server_send_error_response(const isc_http_error_responses_t error,
 	     i < sizeof(error_responses) / sizeof(error_responses[0]); i++)
 	{
 		if (error_responses[i].type == error) {
+			log_server_error_response(socket, &error_responses[i]);
 			return (server_send_response(
 				ngsession, socket->h2.stream_id,
 				&error_responses[i].header, 1, socket));
