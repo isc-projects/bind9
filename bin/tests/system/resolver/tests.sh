@@ -837,9 +837,8 @@ echo_i "check that SERVFAIL is returned for an empty question section via TCP ($
 ret=0
 nextpart ns5/named.run > /dev/null
 # bind to local address so that addresses in log messages are consistent
-# between platforms; use tcp to get SERVFAIL rather than timeout on slow
-# machines
-dig_with_opts @10.53.0.5 -b 10.53.0.5 +tcp tcpalso.no-questions. a +tries=3 +timeout=10 > dig.ns5.out.${n} || ret=1
+# between platforms
+dig_with_opts @10.53.0.5 -b 10.53.0.5 tcpalso.no-questions. a +tries=2 +timeout=15 > dig.ns5.out.${n} || ret=1
 grep "status: SERVFAIL" dig.ns5.out.${n} > /dev/null || ret=1
 check_namedrun() {
 nextpartpeek ns5/named.run > nextpart.out.${n}
