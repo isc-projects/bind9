@@ -113,7 +113,9 @@ brackets) are defined:
 
    openssl_conf = openssl_init
 
-And add following lines at the bottom of the file:
+And make sure there are no other 'openssl_conf = ...' lines in the file.
+
+Add following lines at the bottom of the file:
 
 ::
 
