@@ -67,7 +67,7 @@ Options
    This option prints debugging traces, and is equivalent to the ``-v`` verbose option.
 
 ``-l``
-   This option tells ``named` to list the zone, meaning the ``host`` command performs a zone transfer of zone
+   This option tells ``named`` to list the zone, meaning the ``host`` command performs a zone transfer of zone
    ``name`` and prints out the NS, PTR, and address records (A/AAAA).
 
    Together, the ``-l -a`` options print all records in the zone.
