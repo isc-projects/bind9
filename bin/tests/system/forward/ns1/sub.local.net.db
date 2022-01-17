@@ -18,12 +18,5 @@ $TTL 300	; 5 minutes
 				3600       ; minimum (1 hour)
 				)
 			NS	ns
-ns			A	10.53.0.2
-sld			NS	ns.sld
-ns.sld			A	10.53.0.1
-local			NS	ns.local
-ns.local		A	10.53.0.9
-sibling			NS	ns.sibling
-ns.sibling		A	10.53.0.4
-sibling			NS	ns.sub.local
-ns.sub.local		A	10.53.0.10
+			TXT	"recursed"
+ns			A	10.53.0.1

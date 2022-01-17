@@ -62,3 +62,8 @@ zone "malicious." {
 	type primary;
 	file "malicious.db";
 };
+
+zone "sibling.tld" {
+	type primary;
+	file "sibling.tld.db";
+};
