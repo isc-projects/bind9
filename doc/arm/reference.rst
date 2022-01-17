@@ -4022,16 +4022,7 @@ Five policy triggers can be encoded in RPZ records.
 
    If authoritative name servers for the query name are not yet known, ``named``
    recursively looks up the authoritative servers for the query name before
-   applying an RPZ-NSDNAME rule, which can cause a processing delay. To speed up
-   processing at the cost of precision, the ``nsdname-wait-recurse`` option can
-   be used; when set to ``no``, RPZ-NSDNAME rules are only applied when
-   authoritative servers for the query name have already been looked up and
-   cached.  If authoritative servers for the query name are not in the cache,
-   the RPZ-NSDNAME rule is ignored, but the authoritative servers for
-   the query name are looked up in the background and the rule is
-   applied to subsequent queries. The default is ``yes``,
-   meaning RPZ-NSDNAME rules are always applied, even if authoritative
-   servers for the query name need to be looked up first.
+   applying an RPZ-NSDNAME rule, which can cause a processing delay.
 
 ``RPZ-NSIP``
    NSIP triggers match the IP addresses of authoritative servers. They
