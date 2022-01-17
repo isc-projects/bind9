@@ -551,7 +551,7 @@ status=$((status + ret))
 
 # check whether we can use curl for sending test queries.
 if [ -x "${CURL}" ] ; then
-	CURL_HTTP2="$(${CURL} --version | grep '^Features:.* HTTP2\( \|$\)')"
+	CURL_HTTP2="$(${CURL} --version | grep -E '^Features:.* HTTP2( |$)')"
 
 	if [ -n "$CURL_HTTP2" ]; then
 		testcurl=1
