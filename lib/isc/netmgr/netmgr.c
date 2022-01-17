@@ -3184,6 +3184,25 @@ isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family) {
 }
 
 isc_result_t
+isc__nm_socket_v6only(uv_os_sock_t fd, sa_family_t sa_family) {
+	/*
+	 * Enable the IPv6-only option on IPv6 sockets
+	 */
+	if (sa_family == AF_INET6) {
+#if defined(IPV6_V6ONLY)
+		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_V6ONLY) == -1) {
+			return (ISC_R_FAILURE);
+		} else {
+			return (ISC_R_SUCCESS);
+		}
+#else
+		UNUSED(fd);
+#endif
+	}
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
 isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 	int proto, pf, addrlen, fd, r;
 

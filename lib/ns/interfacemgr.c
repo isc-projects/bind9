@@ -544,10 +544,6 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	}
 
 #if 0
-#ifndef ISC_ALLOW_MAPPED
-	isc_socket_ipv6only(ifp->tcpsocket, true);
-#endif /* ifndef ISC_ALLOW_MAPPED */
-
 	if (ifp->dscp != -1) {
 		isc_socket_dscp(ifp->tcpsocket,ifp->dscp);
 	}
@@ -983,12 +979,10 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	 * packets as the form of mapped addresses unintentionally
 	 * unless explicitly allowed.
 	 */
-#ifndef ISC_ALLOW_MAPPED
 	if (scan_ipv6 && isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
 		ipv6only = false;
 		log_explicit = true;
 	}
-#endif /* ifndef ISC_ALLOW_MAPPED */
 	if (scan_ipv6 && isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
 		ipv6pktinfo = false;
 		log_explicit = true;

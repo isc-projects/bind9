@@ -631,7 +631,6 @@ make_empty_lookup(void) {
 		.section_authority = true,
 		.section_additional = true,
 		.ednsneg = true,
-		.mapped = true,
 		.dscp = -1,
 	};
 
@@ -743,7 +742,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	}
 	looknew->ednsneg = lookold->ednsneg;
 	looknew->padding = lookold->padding;
-	looknew->mapped = lookold->mapped;
 	looknew->multiline = lookold->multiline;
 	looknew->nottl = lookold->nottl;
 	looknew->noclass = lookold->noclass;
@@ -2724,8 +2722,7 @@ start_tcp(dig_query_t *query) {
 		return;
 	}
 
-	if (!query->lookup->mapped &&
-	    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+	if (isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr))
 	{
 		isc_netaddr_t netaddr;
@@ -2952,8 +2949,7 @@ start_udp(dig_query_t *query) {
 		return;
 	}
 
-	if (!query->lookup->mapped &&
-	    isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+	if (isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&query->sockaddr.type.sin6.sin6_addr))
 	{
 		isc_netaddr_t netaddr;

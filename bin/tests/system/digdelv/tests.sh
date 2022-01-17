@@ -389,24 +389,11 @@ if [ -x "$DIG" ] ; then
   fi
 
   n=$((n+1))
-  echo_i "checking dig @IPv4addr -6 +mapped A a.example ($n)"
-  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null && [ "$(uname -s)" != "OpenBSD" ]
-  then
-    ret=0
-    dig_with_opts +tcp @10.53.0.2 -6 +mapped A a.example > dig.out.test$n 2>&1 || ret=1
-    grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status+ret))
-  else
-    echo_i "IPv6 or IPv4-to-IPv6 mapping unavailable; skipping"
-  fi
-
-  n=$((n+1))
-  echo_i "checking dig +tcp @IPv4addr -6 +nomapped A a.example ($n)"
+  echo_i "checking dig +tcp @IPv4addr -6 A a.example ($n)"
   if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
-    dig_with_opts +tcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    dig_with_opts +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null && ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -415,11 +402,11 @@ if [ -x "$DIG" ] ; then
   fi
   n=$((n+1))
 
-  echo_i "checking dig +notcp @IPv4addr -6 +nomapped A a.example ($n)"
+  echo_i "checking dig +notcp @IPv4addr -6 A a.example ($n)"
   if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
-    dig_with_opts +notcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    dig_with_opts +notcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null && ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))

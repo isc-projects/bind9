@@ -94,6 +94,7 @@ isc__nm_udp_lb_socket(sa_family_t sa_family) {
 
 	(void)isc__nm_socket_incoming_cpu(sock);
 	(void)isc__nm_socket_disable_pmtud(sock, sa_family);
+	(void)isc__nm_socket_v6only(sock, sa_family);
 
 	result = isc__nm_socket_reuse(sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
