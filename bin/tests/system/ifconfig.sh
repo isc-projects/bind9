@@ -12,10 +12,10 @@
 #
 # Set up interface aliases for bind9 system tests.
 #
-# IPv4: 10.53.0.{1..10}				RFC 1918
+# IPv4: 10.53.0.{1..11}				RFC 1918
 #       10.53.1.{1..2}
 #       10.53.2.{1..2}
-# IPv6: fd92:7065:b8e:ffff::{1..10}		ULA
+# IPv6: fd92:7065:b8e:ffff::{1..11}		ULA
 #       fd92:7065:b8e:99ff::{1..2}
 #       fd92:7065:b8e:ff::{1..2}
 #
@@ -65,7 +65,7 @@ case "$1" in
 		  2) ipv6="00" ;;
 		  *) ipv6="" ;;
 		esac
-		for ns in 1 2 3 4 5 6 7 8 9 10
+		for ns in 1 2 3 4 5 6 7 8 9 10 11
 		do
 			[ $i -gt 0 -a $ns -gt 2 ] && break
 			int=`expr $i \* 10 + $ns`
@@ -165,7 +165,7 @@ case "$1" in
 		  2) ipv6="00" ;;
 		  *) ipv6="" ;;
 		esac
-		for ns in 10 9 8 7 6 5 4 3 2 1
+		for ns in 11 10 9 8 7 6 5 4 3 2 1
 		do
 			[ $i -gt 0 -a $ns -gt 2 ] && continue
 			int=`expr $i \* 10 + $ns - 1`
