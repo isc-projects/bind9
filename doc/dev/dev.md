@@ -83,7 +83,7 @@ comments; they must be clearly written and consistent with existing style.
 * Read the diff
 * Read accompanying notes in the ticket
 * Apply the diff to the appropriate branch
-* Run `configure` (using at least `--enable-developer --with-atf`)
+* Run `configure` (using at least `--enable-developer`)
 * Build
 * Read the documentation, if any
 * Read the tests
@@ -139,11 +139,11 @@ interfaces (as root):
         $ sudo sh ifconfig.sh up
         $ cd ../../..
 
-To run the tests, build BIND (be sure to use --with-atf to run unit
+To run the tests, build BIND (be sure to use --with-cmocka to run unit
 tests), then run `make` `check`.  An easy way to check the results:
 
         $ make check 2>&1 | tee /tmp/check.out
-        $ grep '^R:' /tmp/check.out | sort | uniq -c
+        $ grep -A 10 'Testsuite summary' /tmp/check.out
 
 This will show all of the test results. One or two "R:SKIPPED" is okay; if
 there are a lot of them, then you probably forgot to create the loopback
@@ -152,6 +152,10 @@ the end of `make` `check` only summarizes the system test results, not the
 unit tests, so you can't rely on it to catch everything.)
 
 To run only the system tests, omitting unit tests:
+
+	$ make test
+
+Or:
 
         $ cd bin/tests/system
         $ sh runall.sh
@@ -221,9 +225,9 @@ in `rbt.c`.  (There are exceptions to this rule, though; for instance,
 different files in `lib/isc`.)
 
 When BIND is built with unit tests, they will be run as part of
-`make` `check`.  But if you want to run *only* the ATF unit tests:
+`make` `check`.  But if you want to run *only* the unit tests:
 
-        $ sh unit/unittest.sh
+        $ make unit
 
 You can also run the unit tests for only one library:
 
