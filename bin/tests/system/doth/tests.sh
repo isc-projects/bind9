@@ -582,29 +582,5 @@ if [ -n "$testcurl" ]; then
 	status=$((status + ret))
 fi
 
-# check whether we can use gnutls-cli for sending test queries.
-if [ -x "${GNUTLS_CLI}" ] ; then
-	GNUTLS_CLI_CHECK="$(${GNUTLS_CLI} --logfile=/dev/null 2>&1 | grep -i 'illegal option')"
-
-	if [ -n "$GNUTLS_CLI_CHECK" ]; then
-		echo_i "The available version of gnutls-cli does not support the required features"
-	else
-		testgnutls=1
-	fi
-fi
-
-if [ -n "${testgnutls}" ] ; then
-	n=$((n + 1))
-	echo_i "checking sending a DoT query using gnutls-cli ($n)"
-	ret=0
-	# use gnutls-cli to query for 'example/SOA',
-	# use a timeout with a second empty `cat` because EOF in `stdin`
-	# causes gnutls-cli to disconnect without waiting for the answer
-	( cat example-soa-request.saved && timeout 10 cat ) | "${GNUTLS_CLI}" --no-ca-verification --no-ocsp --alpn=dot --logfile=/dev/null --port=${TLSPORT} 10.53.0.1 > example-soa-answer.test$n 2>&1
-	diff example-soa-answer.good example-soa-answer.test$n > /dev/null 2>&1 || ret=1
-	if [ $ret != 0 ]; then echo_i "failed"; fi
-	status=$((status + ret))
-fi
-
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
