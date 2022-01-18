@@ -47,7 +47,8 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		 * order to avoid excessive TLS contexts creation.
 		 */
 		result = isc_tlsctx_cache_find(tlsctx_cache, tls_params->name,
-					       transport, family, &sslctx);
+					       transport, family, &sslctx,
+					       NULL);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * The lookup failed, let's try to create a new context
@@ -108,8 +109,8 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			 */
 			RUNTIME_CHECK(isc_tlsctx_cache_add(
 					      tlsctx_cache, tls_params->name,
-					      transport, family, sslctx,
-					      NULL) == ISC_R_SUCCESS);
+					      transport, family, sslctx, NULL,
+					      NULL, NULL) == ISC_R_SUCCESS);
 		} else {
 			INSIST(sslctx != NULL);
 		}
