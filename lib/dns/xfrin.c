@@ -973,7 +973,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		 */
 		result = isc_tlsctx_cache_find(xfr->tlsctx_cache, tlsname,
 					       isc_tlsctx_cache_tls, family,
-					       &tlsctx);
+					       &tlsctx, NULL);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * So, no context exists. Let's create one using the
@@ -1001,7 +1001,8 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 
 			result = isc_tlsctx_cache_add(
 				xfr->tlsctx_cache, tlsname,
-				isc_tlsctx_cache_tls, family, tlsctx, &found);
+				isc_tlsctx_cache_tls, family, tlsctx, NULL,
+				&found, NULL);
 			if (result == ISC_R_EXISTS) {
 				/*
 				 * It seems the entry has just been created

@@ -326,12 +326,17 @@ isc_result_t
 isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		     const isc_tlsctx_cache_transport_t transport,
 		     const uint16_t family, isc_tlsctx_t *ctx,
-		     isc_tlsctx_t **pfound);
+		     isc_tls_cert_store_t *store, isc_tlsctx_t **pfound,
+		     isc_tls_cert_store_t **pfound_store);
 /*%<
  *
  * Add a new TLS context to the TLS context cache. 'pfound' is an
  * optional pointer, which can be used to retrieve an already
  * existing TLS context object in a case it exists.
+ *
+ * The passed certificates store object ('store') possession is
+ * transferred to the cache object in a case of success. In some cases
+ * it might be destroyed immediately upon the call completion.
  *
  * Requires:
  *\li	'cache' is a valid pointer to a TLS context cache object;
@@ -349,7 +354,8 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 isc_result_t
 isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 		      const isc_tlsctx_cache_transport_t transport,
-		      const uint16_t family, isc_tlsctx_t **pctx);
+		      const uint16_t family, isc_tlsctx_t **pctx,
+		      isc_tls_cert_store_t **pstore);
 /*%<
  * Look up a TLS context in the TLS context cache.
  *

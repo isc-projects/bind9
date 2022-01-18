@@ -1084,13 +1084,10 @@ typedef struct isc_tlsctx_cache_entry {
 	 */
 	isc_tlsctx_t *ctx[isc_tlsctx_cache_count - 1][2];
 	/*
-	 * TODO: add a certificate store for an intermediate certificates
-	 * from a CA-bundle file. One is enough for all the contexts defined
-	 * above. We will need that for validation.
-	 *
-	 * X509_STORE *ca_bundle_store; // TODO:  define the utilities to
-	 * operate on these ones
+	 * One certificate store is enough for all the contexts defined
+	 * above. We need that for peer validation.
 	 */
+	isc_tls_cert_store_t *ca_store;
 } isc_tlsctx_cache_entry_t;
 
 struct isc_tlsctx_cache {
@@ -1140,6 +1137,9 @@ tlsctx_cache_entry_destroy(isc_mem_t *mctx, isc_tlsctx_cache_entry_t *entry) {
 			}
 		}
 	}
+	if (entry->ca_store != NULL) {
+		isc_tls_cert_store_free(&entry->ca_store);
+	}
 	isc_mem_put(mctx, entry, sizeof(*entry));
 }
 
@@ -1187,7 +1187,8 @@ isc_result_t
 isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		     const isc_tlsctx_cache_transport_t transport,
 		     const uint16_t family, isc_tlsctx_t *ctx,
-		     isc_tlsctx_t **pfound) {
+		     isc_tls_cert_store_t *store, isc_tlsctx_t **pfound,
+		     isc_tls_cert_store_t **pfound_store) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t name_len, tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
@@ -1214,14 +1215,27 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 			INSIST(*pfound == NULL);
 			*pfound = entry->ctx[tr_offset][ipv6];
 		}
+
+		if (pfound_store != NULL && entry->ca_store != NULL) {
+			INSIST(*pfound_store == NULL);
+			*pfound_store = entry->ca_store;
+		}
 		result = ISC_R_EXISTS;
 	} else if (result == ISC_R_SUCCESS &&
 		   entry->ctx[tr_offset][ipv6] == NULL) {
 		/*
-		 * The hast table entry exists, but is not filled for this
+		 * The hash table entry exists, but is not filled for this
 		 * particular transport/IP type combination.
 		 */
 		entry->ctx[tr_offset][ipv6] = ctx;
+		/*
+		 * As the passed certificates store object is supposed to be
+		 * internally managed by the cache object anyway, we might
+		 * destroy the unneeded store object right now.
+		 */
+		if (store != NULL && store != entry->ca_store) {
+			isc_tls_cert_store_free(&store);
+		}
 		result = ISC_R_SUCCESS;
 	} else {
 		/*
@@ -1232,6 +1246,7 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		/* Oracle/Red Hat Linux, GCC bug #53119 */
 		memset(entry, 0, sizeof(*entry));
 		entry->ctx[tr_offset][ipv6] = ctx;
+		entry->ca_store = store;
 		RUNTIME_CHECK(isc_ht_add(cache->data, (const uint8_t *)name,
 					 name_len,
 					 (void *)entry) == ISC_R_SUCCESS);
@@ -1246,7 +1261,8 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 isc_result_t
 isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 		      const isc_tlsctx_cache_transport_t transport,
-		      const uint16_t family, isc_tlsctx_t **pctx) {
+		      const uint16_t family, isc_tlsctx_t **pctx,
+		      isc_tls_cert_store_t **pstore) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
@@ -1266,6 +1282,12 @@ isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 
 	result = isc_ht_find(cache->data, (const uint8_t *)name, strlen(name),
 			     (void **)&entry);
+
+	if (result == ISC_R_SUCCESS && pstore != NULL &&
+	    entry->ca_store != NULL) {
+		*pstore = entry->ca_store;
+	}
+
 	if (result == ISC_R_SUCCESS && entry->ctx[tr_offset][ipv6] != NULL) {
 		*pctx = entry->ctx[tr_offset][ipv6];
 	} else if (result == ISC_R_SUCCESS &&
