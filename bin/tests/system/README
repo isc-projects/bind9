@@ -117,13 +117,7 @@ Running All The System Tests
 ---
 To run all the system tests, enter the command:
 
-    sh runall.sh [-c] [-n] [numproc]
-
-The optional flag "-c" forces colored output (by default system test output is
-not printed in color due to run.sh being piped through "tee").
-
-The optional flag "-n" has the same effect as it does for "run.sh" - it causes
-the retention of all output files from all tests.
+    make [-j numproc] test
 
 The optional "numproc" argument specifies the maximum number of tests that can
 run in parallel.  The default is 1, which means that all of the tests run
@@ -136,13 +130,6 @@ with one another.  However, the systests.output file produced at the end of the
 run (in the bin/tests/system directory) will contain the output from each test
 in sequential order.
 
-Note that it is not possible to pass arguments to tests though the "runall.sh"
-script.
-
-A run of all the system tests can also be initiated via make:
-
-    make [-j numproc] test
-
 In this case, retention of the output files after a test completes successfully
 is specified by setting the environment variable SYSTEMTEST_NO_CLEAN to 1 prior
 to running make, e.g.
@@ -151,38 +138,6 @@ to running make, e.g.
 
 while setting environment variable SYSTEMTEST_FORCE_COLOR to 1 forces system
 test output to be printed in color.
-
-
-Running Multiple System Test Suites Simultaneously
----
-In some cases it may be desirable to have multiple instances of the system test
-suite running simultaneously (e.g. from different terminal windows).  To do
-this:
-
-1. Each installation must have its own directory tree.  The system tests create
-files in the test directories, so separate directory trees are required to
-avoid interference between the same test running in the different
-installations.
-
-2. For one of the test suites, the starting port number must be specified by
-setting the environment variable STARTPORT before starting the test suite.
-Each test suite comprises about 100 tests, each being allocated a set of 100
-ports.  The port ranges for each test are allocated sequentially, so each test
-suite requires about 10,000 ports to itself.  By default, the port allocation
-starts at 5,000.  So the following set of commands:
-
-    Terminal Window 1:
-        cd <installation-1>/bin/tests/system
-        sh runall.sh 4
-
-    Terminal Window 2:
-        cd <installation-2>/bin/tests/system
-        STARTPORT=20000 sh runall.sh 4
-
-... will start the test suite for installation-1 using the default base port
-of 5,000, so the test suite will use ports 5,000 through 15,000 (or there
-abouts).  The use of "STARTPORT=20000" to prefix the run of the test suite for
-installation-2 will mean the test suite uses ports 20,000 through 30,000 or so.
 
 
 Format of Test Output
@@ -247,8 +202,8 @@ deleted if the test succeeds but are retained on error.  The run.sh script
 automatically calls a given test's clean.sh script before invoking its setup.sh
 script.
 
-Deletion of the files produced by the set of tests (e.g. after the execution
-of "runall.sh") can be carried out using the command:
+Deletion of the files produced by the set of tests (e.g. after the execution of
+make) can be carried out using the command:
 
     sh cleanall.sh
 
@@ -337,7 +292,7 @@ port assignments would be:
     HIGHPORT = 5299
 
 When running tests in parallel (i.e. giving a value of "numproc" greater than 1
-in the "make" or "runall.sh" commands listed above), it is guaranteed that each
+in the "make" command listed above), it is guaranteed that each
 test will get a set of unique port numbers.
 
 
@@ -373,7 +328,7 @@ arguments, e.g.:
    (cd mytest ; sh clean.sh -D xyz)
 
 No arguments will be passed to the test scripts if the test is run as part of
-a run of the full test suite (e.g. the tests are started with "runall.sh").
+a run of the full test suite (e.g. the tests are started with make).
 
 3.  Each script should start with the following lines:
 
@@ -673,7 +628,6 @@ Notes on Parallel Execution
 Although execution of an individual test is controlled by "run.sh", which
 executes the above shell scripts (and starts the relevant servers) for each
 test, the running of all tests in the test suite is controlled by the Makefile.
-("runall.sh" does little more than invoke "make" on the Makefile.)
 
 All system tests are capable of being run in parallel.  For this to work, each
 test needs to use a unique set of ports.  To avoid the need to define which
@@ -701,7 +655,7 @@ abnormally, e.g. core files, PID files etc., are stored in the test directory.
 
 3. A file "test.output.<test-name>" containing the text written to stdout by the
 test is written to bin/tests/system/.  This file is only produced when the test
-is run as part of the entire test suite (e.g. via "runall.sh").
+is run as part of the entire test suite (e.g. via make).
 
 If the test fails, all these files are retained.  But if the test succeeds,
 they are cleaned up at different times:

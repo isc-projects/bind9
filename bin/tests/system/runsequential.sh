@@ -13,9 +13,9 @@
 
 # Run system tests that must be run sequentially
 #
-# Note: Use "make check" (or runall.sh) to run all the system tests.  This
-# script will just run those tests that require that each of their nameservers
-# is the only one running on an IP address.
+# Note: Use "make check" to run all the system tests.  This script will just
+# run those tests that require that each of their nameservers is the only one
+# running on an IP address.
 #
 
 . ./conf.sh
