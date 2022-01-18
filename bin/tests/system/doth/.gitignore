@@ -1,0 +1,4 @@
+gnutls-cli.*
+headers.*
+ns*/example.db
+ns*/named.conf

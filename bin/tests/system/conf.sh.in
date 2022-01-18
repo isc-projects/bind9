@@ -114,9 +114,6 @@ SHELL=@SHELL@
 # CURL will be empty if no program was found by configure
 CURL=@CURL@
 
-# GNUTLS_CLI will be empty if no program was found by configure
-GNUTLS_CLI=@GNUTLS_CLI@
-
 # NC will be empty if no program was found by configure
 NC=@NC@
 
