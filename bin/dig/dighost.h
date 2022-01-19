@@ -177,6 +177,17 @@ struct dig_lookup {
 		bool https_get;
 		char *https_path;
 	};
+	struct {
+		bool tls_ca_set;
+		char *tls_ca_file;
+		bool tls_hostname_set;
+		char *tls_hostname;
+		bool tls_cert_file_set;
+		char *tls_cert_file;
+		bool tls_key_file_set;
+		char *tls_key_file;
+		isc_tlsctx_cache_t *tls_ctx_cache;
+	};
 };
 
 /*% The dig_query structure */
@@ -209,7 +220,6 @@ struct dig_query {
 	isc_time_t time_recv;
 	uint64_t byte_count;
 	isc_timer_t *timer;
-	isc_tlsctx_t *tlsctx;
 };
 
 struct dig_server {
@@ -446,5 +456,8 @@ dig_idnsetup(dig_lookup_t *lookup, bool active);
  */
 void
 dig_shutdown(void);
+
+bool
+dig_lookup_is_tls(const dig_lookup_t *lookup);
 
 ISC_LANG_ENDDECLS
