@@ -72,10 +72,4 @@ servers share their cached data.
 
 .. _supported_os:
 
-Supported Operating Systems
----------------------------
-
-ISC BIND 9 compiles and runs on many Unix-like operating
-systems and on Microsoft Windows Server 2012 R2, 2016, and Windows 10.
-For an up-to-date list of supported systems, see the PLATFORMS.md file
-in the top-level directory of the BIND 9 source distribution.
+.. include:: platforms.rst
