@@ -295,6 +295,14 @@ help(void) {
 	       "                 +[no]tcp            (TCP mode (+[no]vc))\n"
 	       "                 +timeout=###        (Set query timeout) [5]\n"
 	       "                 +[no]tls            (DNS-over-TLS mode)\n"
+	       "                 +[no]tls-ca[=file]  (Enable remote server's "
+	       "TLS certificate validation)\n"
+	       "                 +[no]tls-hostname=hostname (Explicitly set "
+	       "the expected TLS hostname)\n"
+	       "                 +[no]tls-certfile=file (Load client TLS "
+	       "certificate chain from file)\n"
+	       "                 +[no]tls-keyfile=file (Load client TLS "
+	       "private key from file)\n"
 	       "                 +[no]trace          (Trace delegation down "
 	       "from root "
 	       "[+dnssec])\n"
@@ -346,7 +354,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		} else {
 			printf(";; Query time: %ld msec\n", (long)diff / 1000);
 		}
-		if (query->lookup->tls_mode) {
+		if (dig_lookup_is_tls(query->lookup)) {
 			proto = "TLS";
 		} else if (query->lookup->https_mode) {
 			if (query->lookup->http_plain) {
@@ -1021,6 +1029,128 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 	}
 }
 
+#define FULLCHECK(A)                                                 \
+	do {                                                         \
+		size_t _l = strlen(cmd);                             \
+		if (_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) \
+			goto invalid_option;                         \
+	} while (0)
+#define FULLCHECK2(A, B)                                                 \
+	do {                                                             \
+		size_t _l = strlen(cmd);                                 \
+		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
+		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0))   \
+			goto invalid_option;                             \
+	} while (0)
+#define FULLCHECK6(A, B, C, D, E, F)                                     \
+	do {                                                             \
+		size_t _l = strlen(cmd);                                 \
+		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
+		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0) && \
+		    (_l >= sizeof(C) || strncasecmp(cmd, C, _l) != 0) && \
+		    (_l >= sizeof(D) || strncasecmp(cmd, D, _l) != 0) && \
+		    (_l >= sizeof(E) || strncasecmp(cmd, E, _l) != 0) && \
+		    (_l >= sizeof(F) || strncasecmp(cmd, F, _l) != 0))   \
+			goto invalid_option;                             \
+	} while (0)
+
+static bool
+plus_tls_options(const char *cmd, const char *value, const bool state,
+		 dig_lookup_t *lookup) {
+	/*
+	 * Using TLS implies "TCP-like" mode.
+	 */
+	if (!lookup->tcp_mode_set) {
+		lookup->tcp_mode = state;
+	}
+	switch (cmd[3]) {
+	case '-':
+		/*
+		 * Assume that if any of the +tls-* options are set, then we
+		 * need to verify the remote certificate (compatibility with
+		 * kdig).
+		 */
+		if (state) {
+			lookup->tls_ca_set = state;
+		}
+		switch (cmd[4]) {
+		case 'c':
+			switch (cmd[5]) {
+			case 'a':
+				FULLCHECK("tls-ca");
+				lookup->tls_ca_set = state;
+				if (state && value != NULL) {
+					lookup->tls_ca_file =
+						isc_mem_strdup(mctx, value);
+				}
+				break;
+			case 'e':
+				FULLCHECK("tls-certfile");
+				lookup->tls_cert_file_set = state;
+				if (state) {
+					if (value != NULL && *value != '\0') {
+						lookup->tls_cert_file =
+							isc_mem_strdup(mctx,
+								       value);
+					} else {
+						fprintf(stderr,
+							";; TLS certificate "
+							"file is "
+							"not specified\n");
+						goto invalid_option;
+					}
+				}
+				break;
+			default:
+				goto invalid_option;
+			}
+			break;
+		case 'h':
+			FULLCHECK("tls-hostname");
+			lookup->tls_hostname_set = state;
+			if (state) {
+				if (value != NULL && *value != '\0') {
+					lookup->tls_hostname =
+						isc_mem_strdup(mctx, value);
+				} else {
+					fprintf(stderr, ";; TLS hostname is "
+							"not specified\n");
+					goto invalid_option;
+				}
+			}
+			break;
+		case 'k':
+			FULLCHECK("tls-keyfile");
+			lookup->tls_key_file_set = state;
+			if (state) {
+				if (value != NULL && *value != '\0') {
+					lookup->tls_key_file =
+						isc_mem_strdup(mctx, value);
+				} else {
+					fprintf(stderr,
+						";; TLS private key file is "
+						"not specified\n");
+					goto invalid_option;
+				}
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case '\0':
+		FULLCHECK("tls");
+		lookup->tls_mode = state;
+		break;
+	default:
+		goto invalid_option;
+	}
+
+	return true;
+invalid_option:
+	return false;
+}
+
 /*%
  * We're not using isc_commandline_parse() here since the command line
  * syntax of dig is quite a bit different from that which can be described
@@ -1049,31 +1179,6 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 	}
 	/* parse the rest of the string */
 	value = strtok_r(NULL, "", &last);
-
-#define FULLCHECK(A)                                                 \
-	do {                                                         \
-		size_t _l = strlen(cmd);                             \
-		if (_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) \
-			goto invalid_option;                         \
-	} while (0)
-#define FULLCHECK2(A, B)                                                 \
-	do {                                                             \
-		size_t _l = strlen(cmd);                                 \
-		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
-		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0))   \
-			goto invalid_option;                             \
-	} while (0)
-#define FULLCHECK6(A, B, C, D, E, F)                                     \
-	do {                                                             \
-		size_t _l = strlen(cmd);                                 \
-		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
-		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0) && \
-		    (_l >= sizeof(C) || strncasecmp(cmd, C, _l) != 0) && \
-		    (_l >= sizeof(D) || strncasecmp(cmd, D, _l) != 0) && \
-		    (_l >= sizeof(E) || strncasecmp(cmd, E, _l) != 0) && \
-		    (_l >= sizeof(F) || strncasecmp(cmd, F, _l) != 0))   \
-			goto invalid_option;                             \
-	} while (0)
 
 	switch (cmd[0]) {
 	case 'a':
@@ -1937,10 +2042,15 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			break;
 		case 'l':
-			FULLCHECK("tls");
-			lookup->tls_mode = state;
-			if (!lookup->tcp_mode_set) {
-				lookup->tcp_mode = state;
+			switch (cmd[2]) {
+			case 's':
+				if (!plus_tls_options(cmd, value, state,
+						      lookup)) {
+					goto invalid_option;
+				}
+				break;
+			default:
+				goto invalid_option;
 			}
 			break;
 		case 'o':

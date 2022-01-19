@@ -735,6 +735,30 @@ to 853.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B +tls\-ca[=file\-name], +notls\-ca
+This option enables remote server TLS certificate validation for
+DNS transports, relying on TLS. Certificate authorities
+certificates are loaded from the specified PEM file
+(\fBfile\-name\fP). If the file is not specified, the default
+certificates from the global certificates store are used.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B +tls\-certfile=file\-name, +tls\-keyfile=file\-name, +notls\-certfile, +notls\-keyfile
+These options set the state of certificate\-based client
+authentication for DNS transports, relying on TLS. Both certificate
+chain file and private key file are expected to be in PEM format.
+Both options must be specified at the same time.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B +tls\-hostname=hostname, +notls\-hostname
+This option makes \fBdig\fP use the provided hostname during remote
+server TLS certificate verification. Otherwise, the DNS server name
+is used. This option has no effect if \fI\%+tls\-ca\fP is not specified.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B +topdown, +notopdown
 This feature is related to \fI\%dig +sigchase\fP, which is obsolete and
 has been removed. Use \fI\%delv\fP instead.
