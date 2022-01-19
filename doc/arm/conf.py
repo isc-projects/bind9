@@ -150,6 +150,7 @@ exclude_patterns = [
     'logging-cattegories.rst',
     'managed-keys.rst',
     'pkcs11.rst',
+    'platforms.rst',
     'plugins.rst'
     ]
 
