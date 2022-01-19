@@ -1,3 +1,6 @@
+5795.	[bug]		rndc could crash when interrupted by a signal
+			before receiving a response. [GL #3080]
+
 5793.	[bug]		Correctly detect and enable UDP recvmmsg support
 			in all versions of libuv that support it. [GL #3095]
 
