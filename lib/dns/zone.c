@@ -23533,7 +23533,7 @@ setserial(isc_task_t *task, isc_event_t *event) {
 	ENTER;
 
 	if (zone->update_disabled) {
-		goto failure;
+		goto disabled;
 	}
 
 	desired = sse->serial;
@@ -23612,6 +23612,8 @@ failure:
 		dns_db_detach(&db);
 	}
 	dns_diff_clear(&diff);
+
+disabled:
 	isc_event_free(&event);
 	dns_zone_idetach(&zone);
 
