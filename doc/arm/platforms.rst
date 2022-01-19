@@ -11,7 +11,7 @@
 
 .. _supported_os:
 
-Supported platforms
+Supported Platforms
 -------------------
 
 Current support status of various platforms and BIND 9 versions can be
@@ -21,16 +21,8 @@ https://kb.isc.org/docs/supported-platforms
 
 In general, this version of BIND will build and run on any
 POSIX-compliant system with a C11-compliant C compiler, BSD-style
-sockets with RFC-compliant IPv6 support, and POSIX-compliant threads,
-plus the following mandatory libraries:
-
--  ``libuv`` for asynchronous I/O operations and event loops
--  ``libssl`` and ``libcrypto`` from OpenSSL for cryptography
-
-Use of the following libraries is optional:
-
--  ``libjemalloc`` for improved memory allocation performance
--  ``libnghttp2`` for DNS-over-HTTPS (DoH) support
+sockets with RFC-compliant IPv6 support, POSIX-compliant threads, and
+the :ref:`required libraries <build_dependencies>`.
 
 The following C11 features are used in BIND 9:
 
@@ -42,24 +34,6 @@ The following C11 features are used in BIND 9:
    extension.
 
 The C11 variants are preferred.
-
-BIND 9.18 requires a fairly recent version of ``libuv`` (at least 1.x).
-For some of the older systems listed below, you will have to install an
-updated ``libuv`` package from sources such as EPEL, PPA, or other
-native sources for updated packages. The other option is to build and
-install ``libuv`` from source.
-
-Certain optional BIND features have additional library dependencies.
-These include:
-
--  ``libfstrm`` and ``libprotobuf-c`` for DNSTAP
--  ``libidn2`` for display of internationalized domain names in ``dig``
--  ``libjson-c`` for JSON statistics
--  ``libmaxminddb`` for geolocation
--  ``libnghttp2`` for DNS over HTTPS
--  ``libxml2`` for XML statistics
--  ``libz`` for compression of the HTTP statistics channel
--  ``readline`` for line editing in ``nsupdate`` and ``nslookup``
 
 ISC regularly tests BIND on many operating systems and architectures,
 but lacks the resources to test all of them. Consequently, ISC is only
@@ -121,7 +95,7 @@ supported platforms.
    -  Debian Jessie
    -  FreeBSD 10.x, 11.x
 
-Unsupported platforms
+Unsupported Platforms
 ---------------------
 
 These are platforms on which BIND 9.18 is known *not* to build or run:
