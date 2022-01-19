@@ -11,7 +11,7 @@
 
 .. _supported_os:
 
-Supported platforms
+Supported Platforms
 -------------------
 
 Current support status of various platforms and BIND 9 versions can be
@@ -21,9 +21,8 @@ https://kb.isc.org/docs/supported-platforms
 
 In general, this version of BIND will build and run on any
 POSIX-compliant system with a C11-compliant C compiler, BSD-style
-sockets with RFC-compliant IPv6 support, POSIX-compliant threads, the
-``libuv`` asynchronous I/O library, and the OpenSSL cryptography
-library.
+sockets with RFC-compliant IPv6 support, POSIX-compliant threads, and
+the :ref:`required libraries <build_dependencies>`.
 
 The following C11 features are used in BIND 9:
 
@@ -35,17 +34,6 @@ The following C11 features are used in BIND 9:
    the form of C11 ``_Thread_local``/``thread_local``, the ``__thread``
    GCC extension, or the ``__declspec(thread)`` MSVC extension on
    Windows.
-
-BIND 9.16 requires a fairly recent version of ``libuv`` (at least 1.x).
-For some of the older systems listed below, you will have to install an
-updated ``libuv`` package from sources such as EPEL, PPA, or other
-native sources for updated packages. The other option is to build and
-install ``libuv`` from source.
-
-Certain optional BIND features have additional library dependencies.
-These include ``libxml2`` and ``libjson-c`` for statistics,
-``libmaxminddb`` for geolocation, ``libfstrm`` and ``libprotobuf-c`` for
-DNSTAP, and ``libidn2`` for internationalized domain name conversion.
 
 ISC regularly tests BIND on many operating systems and architectures,
 but lacks the resources to test all of them. Consequently, ISC is only
@@ -109,7 +97,7 @@ supported platforms.
    -  Debian Jessie
    -  FreeBSD 10.x, 11.x
 
-Unsupported platforms
+Unsupported Platforms
 ---------------------
 
 These are platforms on which BIND 9.16 is known *not* to build or run:
