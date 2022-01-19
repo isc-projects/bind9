@@ -14,6 +14,11 @@
 Supported platforms
 -------------------
 
+Current support status of various platforms and BIND 9 versions can be
+found in the ISC Knowledgebase:
+
+https://kb.isc.org/docs/supported-platforms
+
 In general, this version of BIND will build and run on any
 POSIX-compliant system with a C11-compliant C compiler, BSD-style
 sockets with RFC-compliant IPv6 support, and POSIX-compliant threads,
