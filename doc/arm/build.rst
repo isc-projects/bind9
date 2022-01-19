@@ -12,21 +12,6 @@
 Building BIND 9
 ---------------
 
-At a minimum, BIND requires a Unix or Linux system with an ANSI C
-compiler, basic POSIX support, and a 64-bit integer type. BIND also
-requires the ``libuv`` asynchronous I/O library, the ``nghttp2`` HTTP/2
-library, the ``jemalloc`` memory allocation library, and the OpenSSL
-cryptography library. On Linux, BIND requires the ``libcap`` library to
-set process privileges, though this requirement can be overridden by
-disabling capability support at compile time. See `Compile-time
-options <#opts>`__ below for details on other libraries that may be
-required to support optional features.
-
-Successful builds have been observed on many versions of Linux and Unix,
-including RHEL/CentOS/Oracle Linux, Fedora, Debian, Ubuntu, SLES,
-openSUSE, Slackware, Alpine, FreeBSD, NetBSD, OpenBSD, macOS, Solaris,
-OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
-
 To build on a Unix or Linux system, use:
 
 ::
@@ -70,37 +55,42 @@ https://developer.apple.com/download/more/ or, if you have Xcode already
 installed, you can run ``xcode-select --install``. (Note that an Apple
 ID may be required to access the download page.)
 
-Dependencies
-~~~~~~~~~~~~
+.. _build_dependencies:
+
+Required libraries
+~~~~~~~~~~~~~~~~~~
 
 To build BIND you need to have the following packages installed:
 
-::
+- ``libuv`` for asynchronous I/O operations and event loops
+- ``libssl`` and ``libcrypto`` from OpenSSL for cryptography
+- ``pkg-config / pkgconfig / pkgconf`` for build system support
 
-   libuv
-   pkg-config / pkgconfig / pkgconf
+BIND 9.19 requires a fairly recent version of ``libuv`` (at least 1.x).
+For some older systems, you will have to install an updated ``libuv``
+package from sources such as EPEL, PPA, or other native sources for updated
+packages. The other option is to build and install ``libuv`` from source.
+
+OpenSSL 1.0.2e or newer is required.
+If the OpenSSL library is installed in a nonstandard location,
+specify the prefix using ``--with-openssl=<PREFIX>`` on the
+configure command line. To use a PKCS#11 hardware service module for
+cryptographic operations, it will be necessary to compile and use
+engine_pkcs11 from the OpenSC project.
 
 To build BIND from the git repository, you need the following tools
 installed:
 
-::
+- ``autoconf`` (includes autoreconf)
+- ``automake``
+- ``libtool``
 
-   autoconf (includes autoreconf)
-   automake
-   libtool
-
-Compile-time options
-~~~~~~~~~~~~~~~~~~~~
+Optional features
+~~~~~~~~~~~~~~~~~
 
 To see a full list of configuration options, run ``configure --help``.
 
-For the server to support DNSSEC, you need to build it with crypto
-support. To use OpenSSL, you must have OpenSSL 1.0.2e or newer
-installed. If the OpenSSL library is installed in a nonstandard
-location, specify the prefix using ``--with-openssl=<PREFIX>`` on the
-configure command line. To use a PKCS#11 hardware service module for
-cryptographic operations, it will be necessary to compile and use
-engine_pkcs11 from the OpenSC project.
+To improve performance, ``libjemalloc`` library is strongly recommended.
 
 To support DNS over HTTPS, the server must be linked with
 ``libnghttp2``.
@@ -132,6 +122,13 @@ For DNSTAP packet logging, you must have installed ``libfstrm``
 https://github.com/farsightsec/fstrm and ``libprotobuf-c``
 https://developers.google.com/protocol-buffers, and BIND must be
 configured with ``--enable-dnstap``.
+
+To support internationalized domain names in ``dig``, you must have installed
+``libidn2``. If the library is installed in a nonstandard location, specify
+the prefix using ``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
+
+For line editing in ``nsupdate`` and ``nslookup``, you must have installed
+``readline`` library.
 
 Certain compiled-in constants and default settings can be decreased to
 values better suited to small machines, e.g. OpenWRT boxes, by
