@@ -35,7 +35,7 @@ The following C11 features are used in BIND 9:
 
 The C11 variants are preferred.
 
-BIND 9.17 requires a fairly recent version of `libuv` (at least 1.x).  For
+BIND 9.18 requires a fairly recent version of `libuv` (at least 1.x).  For
 some of the older systems listed below, you will have to install an updated
 `libuv` package from sources such as EPEL, PPA, or other native sources for
 updated packages. The other option is to build and install `libuv` from
@@ -59,7 +59,7 @@ offer support on a "best effort" basis for some.
 
 ### Regularly tested platforms
 
-As of Dec 2021, BIND 9.17 is fully supported and regularly tested on the
+As of Jan 2022, BIND 9.18 is fully supported and regularly tested on the
 following systems:
 
 * Debian 9, 10, 11
@@ -108,7 +108,7 @@ platforms.
 
 ## Unsupported platforms
 
-These are platforms on which BIND 9.17 is known *not* to build or run:
+These are platforms on which BIND 9.18 is known *not* to build or run:
 
 * Platforms without at least OpenSSL 1.0.2
 * Windows
