@@ -51,7 +51,8 @@ the file CHANGES. See below for details on the CHANGES file format.
 For up-to-date versions and release notes, see https://www.isc.org/
 download/.
 
-For information about supported platforms, see PLATFORMS.
+For information about supported platforms, see the "Supported Platforms"
+section in the BIND 9 Administrator Reference Manual.
 
 Reporting bugs and getting help
 

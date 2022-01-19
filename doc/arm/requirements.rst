@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. Requirements:
+.. _Requirements:
 
 BIND Resource Requirements
 ==========================
@@ -69,7 +69,5 @@ In this configuration, none of the individual machines need to have as
 much memory or CPU power as in the first alternative, but this has the
 disadvantage of making many more external queries, as none of the name
 servers share their cached data.
-
-.. _supported_os:
 
 .. include:: platforms.rst

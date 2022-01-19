@@ -62,7 +62,9 @@ CHANGES file format.
 For up-to-date versions and release notes, see
 [https://www.isc.org/download/](https://www.isc.org/download/).
 
-For information about supported platforms, see [PLATFORMS](PLATFORMS.md).
+For information about supported platforms, see the
+["Supported Platforms"](doc/arm/platforms.rst) section in the BIND 9
+Administrator Reference Manual.
 
 ### <a name="help"/> Reporting bugs and getting help
 
