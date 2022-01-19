@@ -307,7 +307,6 @@ rndc_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_load_acquire(&recvs) == 0)
 	{
 		shuttingdown = true;
-		isc_task_shutdown(rndc_task);
 		isc_app_shutdown();
 	}
 }
@@ -393,7 +392,6 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_fetch_sub_release(&recvs, 1) == 1)
 	{
 		shuttingdown = true;
-		isc_task_shutdown(rndc_task);
 		isc_app_shutdown();
 	}
 }
