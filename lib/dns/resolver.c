@@ -339,6 +339,8 @@ struct fetchctx {
 	dns_fetch_t *qminfetch;
 	dns_rdataset_t qminrrset;
 	dns_name_t qmindcname;
+	dns_fixedname_t fwdfname;
+	dns_name_t *fwdname;
 
 	/*%
 	 * The number of events we're waiting for.
@@ -3766,6 +3768,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		if (result == ISC_R_SUCCESS) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
+			dns_name_copynf(domain, fctx->fwdname);
 			if (fctx->fwdpolicy == dns_fwdpolicy_only &&
 			    isstrictsubdomain(domain, &fctx->domain))
 			{
@@ -5155,6 +5158,9 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->restarts = 0;
 	fctx->querysent = 0;
 	fctx->referrals = 0;
+
+	fctx->fwdname = dns_fixedname_initname(&fctx->fwdfname);
+
 	TIME_NOW(&fctx->start);
 	fctx->timeouts = 0;
 	fctx->lamecount = 0;
@@ -5217,6 +5223,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 					   fname, &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
+			dns_name_copynf(fname, fctx->fwdname);
 		}
 
 		if (fctx->fwdpolicy != dns_fwdpolicy_only) {
@@ -7120,6 +7127,15 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 	}
 }
 
+static inline bool
+name_external(const dns_name_t *name, fetchctx_t *fctx) {
+	if (ISFORWARDER(fctx->addrinfo)) {
+		return (!dns_name_issubdomain(name, fctx->fwdname));
+	}
+
+	return (!dns_name_issubdomain(name, &fctx->domain));
+}
+
 static isc_result_t
 check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	      dns_section_t section) {
@@ -7146,7 +7162,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	result = dns_message_findname(rctx->query->rmessage, section, addname,
 				      dns_rdatatype_any, 0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
-		external = !dns_name_issubdomain(name, &fctx->domain);
+		external = name_external(name, fctx);
 		if (type == dns_rdatatype_a) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -8771,6 +8787,13 @@ rctx_answer_scan(respctx_t *rctx) {
 
 		case dns_namereln_subdomain:
 			/*
+			 * Don't accept DNAME from parent namespace.
+			 */
+			if (name_external(name, fctx)) {
+				continue;
+			}
+
+			/*
 			 * In-scope DNAME records must have at least
 			 * as many labels as the domain being queried.
 			 * They also must be less that qname's labels
@@ -9083,13 +9106,11 @@ rctx_authority_positive(respctx_t *rctx) {
 				       DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
 		dns_name_t *name = NULL;
-		bool external;
 
 		dns_message_currentname(rctx->query->rmessage,
 					DNS_SECTION_AUTHORITY, &name);
-		external = !dns_name_issubdomain(name, &fctx->domain);
 
-		if (!external) {
+		if (!name_external(name, fctx)) {
 			dns_rdataset_t *rdataset = NULL;
 
 			/*
@@ -9476,7 +9497,10 @@ rctx_authority_dnssec(respctx_t *rctx) {
 		}
 
 		if (!dns_name_issubdomain(name, &fctx->domain)) {
-			/* Invalid name found; preserve it for logging later */
+			/*
+			 * Invalid name found; preserve it for logging
+			 * later.
+			 */
 			rctx->found_name = name;
 			rctx->found_type = ISC_LIST_HEAD(name->list)->type;
 			continue;
