@@ -292,8 +292,6 @@ static void
 rndc_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
-	UNUSED(task);
-
 	if (sevent->result != ISC_R_SUCCESS) {
 		fatal("send failed: %s", isc_result_totext(sevent->result));
 	}
@@ -302,7 +300,7 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 	    atomic_load_acquire(&recvs) == 0)
 	{
 		isc_socket_detach(&sock);
-		isc_task_shutdown(task);
+		isc_task_detach(&task);
 		isc_app_shutdown();
 	}
 }
@@ -378,7 +376,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	if (atomic_load_acquire(&sends) == 0 &&
 	    atomic_load_acquire(&recvs) == 0) {
 		isc_socket_detach(&sock);
-		isc_task_shutdown(task);
+		isc_task_detach(&task);
 		isc_app_shutdown();
 	}
 }
@@ -1058,6 +1056,7 @@ main(int argc, char **argv) {
 		get_addresses(servername, (in_port_t)remoteport);
 	}
 
+	isc_task_attach(task, &(isc_task_t *){ NULL });
 	DO("post event", isc_app_onrun(rndc_mctx, task, rndc_start, NULL));
 
 	result = isc_app_run();
