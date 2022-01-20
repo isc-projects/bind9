@@ -77,7 +77,7 @@ Inspecting Encrypted DNS Traffic
    BIND 9 is built against.  For OpenSSL, version 1.1.1 or newer is
    required (use ``named -V`` to check).
 
-By definition, TLS-encrypted traffic (e.g. DNS-over-TLS, DNS-over-HTTPS)
+By definition, TLS-encrypted traffic (e.g. DNS over TLS, DNS over HTTPS)
 is opaque to packet sniffers, which makes debugging problems with
 encrypted DNS close to impossible. However, Wireshark_ offers a
 solution_ to this problem by being able to read key log files. In order
