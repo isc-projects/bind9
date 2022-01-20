@@ -575,10 +575,11 @@ AC_ARG_WITH([libnghttp2],
 
 AS_IF([test "$enable_doh" = "yes"],
       [AS_CASE([$with_libnghttp2],
-	       [no],[AC_MSG_ERROR([Use '--disable-doh' to disable DoH])],
+	       [no],[AC_MSG_ERROR([Use '--disable-doh' to disable DNS-over-HTTPS support])],
 	       [auto|yes],[PKG_CHECK_MODULES([LIBNGHTTP2], [libnghttp2 >= 1.6.0],
-					     [AC_DEFINE([HAVE_LIBNGHTTP2], [1], [Build with DoH support])],
-					     [AC_MSG_ERROR([DoH requested, but libnghttp2 not found])])],
+					     [AC_DEFINE([HAVE_LIBNGHTTP2], [1], [Build with DNS-over-HTTPS support])],
+					     [AC_MSG_ERROR(m4_normalize([DNS-over-HTTPS support requested, but libnghttp2 not found.
+									 Either install libnghttp2 or use --disable-doh.]))])],
 	       [AC_MSG_ERROR([Specifying libnghttp2 installation path is not supported, adjust PKG_CONFIG_PATH instead])])])
 
 AM_CONDITIONAL([HAVE_LIBNGHTTP2], [test -n "$LIBNGHTTP2_LIBS"])

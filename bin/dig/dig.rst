@@ -340,7 +340,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    are ignored when this is set.
 
 ``+[no]https[=value]``
-   This option indicates whether to use DNS-over-HTTPS (DoH) when querying
+   This option indicates whether to use DNS over HTTPS (DoH) when querying
    name servers.  When this option is in use, the port number defaults to 443.
    The HTTP POST request mode is used when sending the query.
 
@@ -537,7 +537,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    5 seconds. An attempt to set ``T`` to less than 1 is silently set to 1.
 
 ``+[no]tls``
-   This option indicates whether to use DNS-over-TLS (DoT) when querying
+   This option indicates whether to use DNS over TLS (DoT) when querying
    name servers. When this option is in use, the port number defaults
    to 853.
 

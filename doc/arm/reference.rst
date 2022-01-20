@@ -2530,10 +2530,10 @@ Use of an ``http`` specification requires ``tls`` to be specified
 as well.  If an unencrypted connection is desired (for example,
 on load-sharing servers behind a reverse proxy), ``tls none`` may be used.
 
-If a port number is not specified, the default is 53 for standard DNS, 853
-for DNS over TLS, 443 for DNS over HTTPS, and 80 for DNS over unenecrypted
-HTTP.  These defaults may be overridden using the ``port``, ``tls-port``,
-``https-port`` and ``http-port`` options.
+If a port number is not specified, the default is 53 for standard DNS,
+853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
+DNS over HTTP (unencrypted).  These defaults may be overridden using the
+``port``, ``tls-port``, ``https-port`` and ``http-port`` options.
 
 Multiple ``listen-on`` statements are allowed. For example:
 
