@@ -243,6 +243,9 @@ Implementation Notes for DNS Security (DNSSEC).* February 2013. [11]
 :rfc:`7216` - M. Thomson and R. Bellis. *Location Information Server (LIS)
 Discovery Using IP Addresses and Reverse DNS.* April 2014.
 
+:rfc:`7050` - T. Savolainen, J. Korhonen, and D. Wing. *Discovery of the IPv6
+Prefix Used for IPv6 Address Synthesis.* November 2013. [21]
+
 :rfc:`7344` - W. Kumari, O. Gudmundsson, and G. Barwood. *Automating DNSSEC
 Delegation Trust Maintenance.* September 2014. [12]
 
@@ -257,8 +260,14 @@ Wessels. *DNS Transport over TCP - Implementation Requirements.* March 2016.
 
 :rfc:`7830` - A. Mayrhofer. *The EDNS(0) Padding Option.* May 2016. [13]
 
+:rfc:`8078` - O. Gudmundsson and P. Wouters. *Managing DS Records from the
+Parent via CDS/CDNSKEY.* March 2017. [22]
+
 :rfc:`8080` - O. Sury and R. Edmonds. *Edwards-Curve Digital Security Algorithm
 (EdDSA) for DNSSEC.* February 2017.
+
+:rfc:`8880` - S. Cheshire and D. Schinazi. *Special Use Domain Name
+'ipv4only.arpa'.* August 2020.
 
 :rfc:`8482` - J. Abley, O. Gudmundsson, M. Majkowski, and E. Hunt. *Providing
 Minimal-Sized Responses to DNS Queries That Have QTYPE=ANY.* January 2019.
@@ -368,6 +377,9 @@ March 1999.
 
 :rfc:`3123` - P. Koch. *A DNS RR Type for Lists of Address Prefixes (APL RR).* June
 2001.
+
+:rfc:`5205` - P. Nikander and J. Laganier. *Host Identity Protocol (HIP)
+Domain Name System (DNS) Extension.* April 2008.
 
 :rfc:`6742` - RJ Atkinson, SN Bhatti, U. St. Andrews, and S. Rose. *DNS
 Resource Records for the Identifier-Locator Network Protocol (ILNP).*
@@ -591,6 +603,10 @@ dig, host, and nslookup at compile time.  ACE labels are supported
 everywhere with or without ``--with-libidn2``.
 
 [20] Section 5.1 - DNAME records are fully supported.
+
+[21] RFC 7050 is updated by RFC 8880.
+
+[22] Updating of parent zones is not yet implemented.
 
 .. _internet_drafts:
 
