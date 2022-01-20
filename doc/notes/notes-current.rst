@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.17.22
+Notes for BIND 9.17.23
 ----------------------
 
 Security Fixes
@@ -25,9 +25,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- ``named`` now logs TLS pre-master secrets for debugging purposes when
-  the ``SSLKEYLOGFILE`` environment variable is set. This enables
-  troubleshooting issues with encrypted DNS traffic. :gl:`#2723`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -43,22 +41,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- If signatures created by the ZSK are expired, and the ZSK private key is offline,
-  allow the expired signatures to be replaced with signatures created by the KSK.
-  :gl:`#3049`
-
-- On FreeBSD, a TCP connection would leak a small amount of heap memory leading
-  to out-of-memory problem in a long run. This has been fixed. :gl:`#3051`
-
-- Under certain circumstances, the signed version of an inline-signed
-  zone could be dumped to disk without the serial number of the unsigned
-  version of the zone, preventing resynchronization of zone contents
-  after ``named`` restart in case the unsigned zone file gets modified
-  while ``named`` is not running. This has been fixed. :gl:`#3071`
-
-- Using ``rndc`` on a busy recursive server could cause the ``named`` to abort
-  with assertion failure.  This has been fixed. :gl:`#3079`
 
 - With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
   reducing the maximum query-response performance.  The recvmmsg support would

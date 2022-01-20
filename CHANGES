@@ -15,6 +15,8 @@
 			when receiving NOTIFY query with SOA record in
 			ANSWER section. [GL #3086]
 
+	--- 9.17.22 released ---
+
 5790.	[bug]		The control channel was incorrectly looking for
 			ISC_R_CANCELED as a signal that the named is
 			shutting down.  In the dispatch refactoring,
