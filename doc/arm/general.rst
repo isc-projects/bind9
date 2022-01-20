@@ -63,17 +63,27 @@ Bibliography (and Suggested Reading)
 Requests for Comment (RFCs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Specification documents for the Internet protocol suite, including the
+DNS, are published as part of the `Request for Comments`_ (RFCs) series
+of technical notes. The standards themselves are defined by the
+`Internet Engineering Task Force`_ (IETF) and the `Internet Engineering
+Steering Group`_ (IESG). RFCs can be viewed online at:
+https://www.rfc-editor.org/.
+
+While reading RFCs, please keep in mind that :rfc:`not all RFCs are
+standards <1796>`, and also that the validity of documents does change
+over time. Every RFC needs to be interpreted in the context of other
+documents.
+
 BIND 9 strives for strict compliance with IETF standards. To the best
 of our knowledge, BIND 9 complies with the following RFCs, with
 the caveats and exceptions listed in the numbered notes below. Many
 of these RFCs were written by current or former ISC staff members.
 The list is non-exhaustive.
 
-Specification documents for the Internet protocol suite, including the
-DNS, are published as part of the Request for Comments (RFCs) series of
-technical notes. The standards themselves are defined by the Internet
-Engineering Task Force (IETF) and the Internet Engineering Steering
-Group (IESG). RFCs can be viewed online at: https://datatracker.ietf.org/doc/ .
+.. _Internet Engineering Steering Group: https://www.ietf.org/about/groups/iesg/
+.. _Internet Engineering Task Force: https://www.ietf.org/about/
+.. _Request for Comments: https://www.ietf.org/standards/rfcs/
 
 Some of these RFCs, though DNS-related, are not concerned with implementing
 software.
