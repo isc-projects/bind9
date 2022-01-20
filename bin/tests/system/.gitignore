@@ -10,7 +10,6 @@ named.run
 /feature-test
 /test.output.*
 /makejournal
-/systests.output
 /random.data
 /*.log
 /*.trs

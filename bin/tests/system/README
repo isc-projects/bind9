@@ -126,9 +126,7 @@ new tests being started as tests finish.  Each test will get a unique set of
 ports, so there is no danger of tests interfering with one another.  Parallel
 running will reduce the total time taken to run the BIND system tests, but will
 mean that the output from all the tests sent to the screen will be mixed up
-with one another.  However, the systests.output file produced at the end of the
-run (in the bin/tests/system directory) will contain the output from each test
-in sequential order.
+with one another.
 
 In this case, retention of the output files after a test completes successfully
 is specified by setting the environment variable SYSTEMTEST_NO_CLEAN to 1 prior
