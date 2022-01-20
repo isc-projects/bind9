@@ -16,14 +16,12 @@ To build on a Unix or Linux system, use:
 
 ::
 
-       $ autoreconf -fi (if you are building in the git repository)
-       $ ./configure
-       $ make
+    $ autoreconf -fi ### (only if building from the git repository)
+    $ ./configure
+    $ make
 
-If you’re using Emacs, you might find ``make tags`` helpful.
-
-Several environment variables, which can be set before running
-``configure``, affect compilation. Significant ones are:
+Several environment variables affect compilation, and they can be set
+before running ``configure``. The most significant ones are:
 
 +--------------------+-------------------------------------------------+
 | Variable           | Description                                     |
@@ -31,11 +29,11 @@ Several environment variables, which can be set before running
 | ``CC``             | The C compiler to use. ``configure`` tries to   |
 |                    | figure out the right one for supported systems. |
 +--------------------+-------------------------------------------------+
-| ``CFLAGS``         | C compiler flags. Defaults to include -g and/or |
-|                    | -O2 as supported by the compiler. Please        |
-|                    | include ‘-g’ if you need to set ``CFLAGS``.     |
+| ``CFLAGS``         | The C compiler flags. Defaults to include -g    |
+|                    | and/or -O2 as supported by the compiler. Please |
+|                    | include ``-g`` if ``CFLAGS`` needs to be set.   |
 +--------------------+-------------------------------------------------+
-| ``LDFLAGS``        | Linker flags. Defaults to empty string.         |
+| ``LDFLAGS``        | The linker flags. Defaults to an empty string.  |
 +--------------------+-------------------------------------------------+
 
 Additional environment variables affecting the build are listed at the
@@ -44,91 +42,93 @@ command:
 
 ::
 
-   $ ./configure --help
+    $ ./configure --help
 
-macOS
-~~~~~
-
-Building on macOS assumes that the “Command Tools for Xcode” are
-installed. These can be downloaded from
-https://developer.apple.com/download/more/ or, if you have Xcode already
-installed, you can run ``xcode-select --install``. (Note that an Apple
-ID may be required to access the download page.)
+If using Emacs, the ``make tags`` command may be helpful.
 
 .. _build_dependencies:
 
-Required libraries
+Required Libraries
 ~~~~~~~~~~~~~~~~~~
 
-To build BIND you need to have the following packages installed:
+To build BIND 9, the following packages must be installed:
 
-- ``libuv`` for asynchronous I/O operations and event loops
-- ``libssl`` and ``libcrypto`` from OpenSSL for cryptography
-- ``pkg-config / pkgconfig / pkgconf`` for build system support
+- ``libcrypto``, ``libssl``
+- ``libuv``
+- ``perl``
+- ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
 
-BIND 9.18 requires a fairly recent version of ``libuv`` (at least 1.x).
-For some older systems, you will have to install an updated ``libuv``
-package from sources such as EPEL, PPA, or other native sources for updated
-packages. The other option is to build and install ``libuv`` from source.
+BIND 9.18 requires ``libuv`` 1.x or higher. On older systems, an updated
+``libuv`` package needs to be installed from sources such as EPEL, PPA,
+or other native sources. The other option is to build and install
+``libuv`` from source.
 
-OpenSSL 1.0.2e or newer is required.
-If the OpenSSL library is installed in a nonstandard location,
-specify the prefix using ``--with-openssl=<PREFIX>`` on the
-configure command line. To use a PKCS#11 hardware service module for
-cryptographic operations, it will be necessary to compile and use
-engine_pkcs11 from the OpenSC project.
+OpenSSL 1.0.2e or newer is required. If the OpenSSL library is installed
+in a nonstandard location, specify the prefix using
+``--with-openssl=<PREFIX>`` on the ``configure`` command line. To use a
+PKCS#11 hardware service module for cryptographic operations,
+``engine_pkcs11`` from the OpenSC project must be compiled and used.
 
-To build BIND from the git repository, you need the following tools
+To build BIND from the git repository, the following tools must also be
 installed:
 
-- ``autoconf`` (includes autoreconf)
+- ``autoconf`` (includes ``autoreconf``)
 - ``automake``
 - ``libtool``
 
-Optional features
+Optional Features
 ~~~~~~~~~~~~~~~~~
 
 To see a full list of configuration options, run ``configure --help``.
 
-To improve performance, ``libjemalloc`` library is strongly recommended.
+To improve performance, use of the ``jemalloc`` library
+(http://jemalloc.net/) is strongly recommended.
 
-To support DNS over HTTPS, the server must be linked with
-``libnghttp2``.
+To support :rfc:`DNS over HTTPS (DoH) <8484>`, the server must be linked
+with ``libnghttp2`` (https://nghttp2.org/). If the library is
+unavailable, ``--disable-doh`` can be used to disable DoH support.
 
 To support the HTTP statistics channel, the server must be linked with
-at least one of the following libraries: ``libxml2`` http://xmlsoft.org
-or ``json-c`` https://github.com/json-c/json-c. If these are installed
-at a nonstandard location, then:
+at least one of the following libraries: ``libxml2``
+(http://xmlsoft.org) or ``json-c`` (https://github.com/json-c/json-c).
+If these are installed at a nonstandard location, then:
 
--  for ``libxml2``, specify the prefix using ``--with-libxml2=/prefix``.
--  for ``json-c``, adjust ``PKG_CONFIG_PATH``.
+- for ``libxml2``, specify the prefix using ``--with-libxml2=/prefix``,
+- for ``json-c``, adjust ``PKG_CONFIG_PATH``.
 
 To support compression on the HTTP statistics channel, the server must
-be linked against ``libzlib``. If this is installed in a nonstandard
-location, specify the prefix using ``--with-zlib=/prefix``.
+be linked against ``zlib`` (https://zlib.net/). If this is installed in
+a nonstandard location, specify the prefix using
+``--with-zlib=/prefix``.
 
 To support storing configuration data for runtime-added zones in an LMDB
-database, the server must be linked with ``liblmdb``. If this is
-installed in a nonstandard location, specify the prefix using
-``with-lmdb=/prefix``.
+database, the server must be linked with ``liblmdb``
+(https://github.com/LMDB/lmdb). If this is installed in a nonstandard
+location, specify the prefix using ``--with-lmdb=/prefix``.
 
 To support MaxMind GeoIP2 location-based ACLs, the server must be linked
-with ``libmaxminddb``. This is turned on by default if the library is
-found; if the library is installed in a nonstandard location, specify
-the prefix using ``--with-maxminddb=/prefix``. GeoIP2 support can be
-switched off with ``--disable-geoip``.
+with ``libmaxminddb`` (https://maxmind.github.io/libmaxminddb/). This is
+turned on by default if the library is found; if the library is
+installed in a nonstandard location, specify the prefix using
+``--with-maxminddb=/prefix``. GeoIP2 support can be switched off with
+``--disable-geoip``.
 
-For DNSTAP packet logging, you must have installed ``libfstrm``
-https://github.com/farsightsec/fstrm and ``libprotobuf-c``
-https://developers.google.com/protocol-buffers, and BIND must be
-configured with ``--enable-dnstap``.
+For DNSTAP packet logging, ``libfstrm``
+(https://github.com/farsightsec/fstrm) and ``libprotobuf-c``
+(https://developers.google.com/protocol-buffers) must be installed, and
+BIND must be configured with ``--enable-dnstap``.
 
-To support internationalized domain names in ``dig``, you must have installed
-``libidn2``. If the library is installed in a nonstandard location, specify
-the prefix using ``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
+To support internationalized domain names in ``dig``, ``libidn2``
+(https://www.gnu.org/software/libidn/#libidn2) must be installed. If the
+library is installed in a nonstandard location, specify the prefix using
+``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
 
-For line editing in ``nsupdate`` and ``nslookup``, you must have installed
-``readline`` library.
+For line editing in ``nsupdate`` and ``nslookup``, either the
+``readline`` (https://tiswww.case.edu/php/chet/readline/rltop.html) or
+the ``libedit`` library (https://www.thrysoee.dk/editline/) must be
+installed. If these are installed at a nonstandard location, adjust
+``PKG_CONFIG_PATH``. ``readline`` is used by default, and ``libedit``
+can be explicitly requested using ``--with-readline=libedit``.
 
 Certain compiled-in constants and default settings can be decreased to
 values better suited to small machines, e.g. OpenWRT boxes, by
@@ -137,32 +137,43 @@ This decreases memory usage by using smaller structures, but degrades
 performance.
 
 On Linux, process capabilities are managed in user space using the
-``libcap`` library, which can be installed on most Linux systems via the
-``libcap-dev`` or ``libcap-devel`` package. Process capability support
-can also be disabled by configuring with ``--disable-linux-caps``.
+``libcap`` library
+(https://git.kernel.org/pub/scm/libs/libcap/libcap.git/), which can be
+installed on most Linux systems via the ``libcap-dev`` or
+``libcap-devel`` package. Process capability support can also be
+disabled by configuring with ``--disable-linux-caps``.
 
 On some platforms it is necessary to explicitly request large file
 support to handle files bigger than 2GB. This can be done by using
 ``--enable-largefile`` on the ``configure`` command line.
 
-Support for the “fixed” rrset-order option can be enabled or disabled by
+Support for the “fixed” RRset-order option can be enabled or disabled by
 specifying ``--enable-fixed-rrset`` or ``--disable-fixed-rrset`` on the
-configure command line. By default, fixed rrset-order is disabled to
+``configure`` command line. By default, fixed RRset-order is disabled to
 reduce memory footprint.
 
-The ``--enable-querytrace`` option causes ``named`` to log every step of
-processing every query. The ``--enable-singletrace`` option turns on the
-same verbose tracing, but allows an individual query to be separately
-traced by setting its query ID to 0. These options should only be
-enabled when debugging, because they have a significant negative impact
-on query performance.
+The ``--enable-querytrace`` option causes ``named`` to log every step
+while processing every query. The ``--enable-singletrace`` option turns
+on the same verbose tracing, but allows an individual query to be
+separately traced by setting its query ID to 0. These options should
+only be enabled when debugging, because they have a significant negative
+impact on query performance.
 
 ``make install`` installs ``named`` and the various BIND 9 libraries. By
 default, installation is into /usr/local, but this can be changed with
 the ``--prefix`` option when running ``configure``.
 
-You may specify the option ``--sysconfdir`` to set the directory where
-configuration files like ``named.conf`` go by default, and
-``--localstatedir`` to set the default parent directory of
+The option ``--sysconfdir`` can be specified to set the directory where
+configuration files such as ``named.conf`` go by default;
+``--localstatedir`` can be used to set the default parent directory of
 ``run/named.pid``. ``--sysconfdir`` defaults to ``$prefix/etc`` and
 ``--localstatedir`` defaults to ``$prefix/var``.
+
+macOS
+~~~~~
+
+Building on macOS assumes that the “Command Tools for Xcode” are
+installed. These can be downloaded from
+https://developer.apple.com/download/more/ or, if Xcode is already
+installed, simply run ``xcode-select --install``. (Note that an Apple ID
+may be required to access the download page.)
