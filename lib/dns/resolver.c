@@ -6768,7 +6768,31 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 static inline bool
 name_external(const dns_name_t *name, fetchctx_t *fctx) {
 	if (ISFORWARDER(fctx->addrinfo)) {
-		return (!dns_name_issubdomain(name, fctx->fwdname));
+		isc_result_t result;
+		dns_fixedname_t fixed;
+		dns_forwarders_t *forwarders = NULL;
+		dns_name_t *fname;
+
+		if (!dns_name_issubdomain(name, fctx->fwdname)) {
+			return (true);
+		}
+
+		/*
+		 * Is there a child forwarder declaration that is better?
+		 * This lookup should always succeed if the configuration
+		 * has not changed.
+		 */
+		fname = dns_fixedname_initname(&fixed);
+		result = dns_fwdtable_find(fctx->res->view->fwdtable, name, fname,
+					   &forwarders);
+		if (result == ISC_R_SUCCESS) {
+			return (!dns_name_equal(fname, fctx->fwdname));
+		}
+
+		/*
+		 * Play it safe if the configuration has changed.
+		 */
+		return (true);
 	}
 
 	return (!dns_name_issubdomain(name, fctx->domain));
