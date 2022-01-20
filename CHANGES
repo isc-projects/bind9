@@ -4,6 +4,8 @@
 5793.	[bug]		Correctly detect and enable UDP recvmmsg support
 			in all versions of libuv that support it. [GL #3095]
 
+	--- 9.16.25 released ---
+
 5789.	[bug]		Allow replacing expired zone signatures with
 			signatures created by the KSK. [GL #3049]
 
