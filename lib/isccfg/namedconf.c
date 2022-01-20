@@ -105,6 +105,7 @@ static cfg_type_t cfg_type_http_description;
 static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_ixfrratio;
 static cfg_type_t cfg_type_key;
+static cfg_type_t cfg_type_keystore;
 static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
@@ -477,7 +478,6 @@ static cfg_tuplefielddef_t dnssecpolicy_fields[] = {
 	{ "options", &cfg_type_dnssecpolicyopts, 0 },
 	{ NULL, NULL, 0 }
 };
-
 static cfg_type_t cfg_type_dnssecpolicy = {
 	"dnssec-policy", cfg_parse_tuple, cfg_print_tuple,
 	cfg_doc_tuple,	 &cfg_rep_tuple,  dnssecpolicy_fields
@@ -582,10 +582,58 @@ static cfg_type_t cfg_type_dnsseckeyrole = {
 /*%
  * DNSSEC key storage types.
  */
-static const char *dnsseckeystore_enums[] = { "key-directory", NULL };
-static cfg_type_t cfg_type_dnsseckeystore = {
-	"dnssec-key-storage", parse_optional_enum, cfg_print_ustring,
-	doc_optional_enum,    &cfg_rep_string,	   dnsseckeystore_enums
+static keyword_type_t keystore_kw = { "key-store", &cfg_type_astring };
+static cfg_type_t cfg_type_keystorage = { "keystorage",	   parse_keyvalue,
+					  print_keyvalue,  doc_keyvalue,
+					  &cfg_rep_string, &keystore_kw };
+
+static isc_result_t
+parse_keystore(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "key-directory") == 0)
+	{
+		CHECK(cfg_parse_obj(pctx, &cfg_type_ustring, &obj));
+	} else if (pctx->token.type == isc_tokentype_string &&
+		   strcasecmp(TOKEN_STRING(pctx), "key-store") == 0)
+	{
+		CHECK(cfg_parse_obj(pctx, &cfg_type_keystorage, &obj));
+	} else {
+		CHECK(cfg_parse_void(pctx, NULL, &obj));
+	}
+
+	*ret = obj;
+cleanup:
+	return (result);
+}
+
+static void
+doc_keystore(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "[ key-directory | key-store <string> ]");
+}
+
+static void
+print_keystore(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	REQUIRE(pctx != NULL);
+	REQUIRE(obj != NULL);
+	REQUIRE(obj->type->rep == &cfg_rep_string);
+
+	if (strcasecmp(cfg_obj_asstring(obj), "key-directory") != 0) {
+		cfg_print_cstr(pctx, "key-store ");
+	}
+	cfg_print_ustring(pctx, obj);
+}
+
+static cfg_type_t cfg_type_optional_keystore = {
+	"optionalkeystorage", parse_keystore,  print_keystore,
+	doc_keystore,	      &cfg_rep_string, &keystore_kw
 };
 
 /*%
@@ -604,7 +652,7 @@ static cfg_type_t cfg_type_lifetime = { "lifetime",	   parse_keyvalue,
 
 static cfg_tuplefielddef_t kaspkey_fields[] = {
 	{ "role", &cfg_type_dnsseckeyrole, 0 },
-	{ "keystore-type", &cfg_type_dnsseckeystore, 0 },
+	{ "keystorage", &cfg_type_optional_keystore, 0 },
 	{ "lifetime", &cfg_type_lifetime, 0 },
 	{ "algorithm", &cfg_type_algorithm, 0 },
 	{ "length", &cfg_type_optional_uint32, 0 },
@@ -1143,6 +1191,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "http", &cfg_type_http_description,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
+	{ "key-store", &cfg_type_keystore, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "masters", &cfg_type_remoteservers,
@@ -2548,6 +2597,29 @@ static cfg_clausedef_t *key_clausesets[] = { key_clauses, NULL };
 static cfg_type_t cfg_type_key = { "key",	  cfg_parse_named_map,
 				   cfg_print_map, cfg_doc_map,
 				   &cfg_rep_map,  key_clausesets };
+
+/*%
+ * A key-store statement.
+ */
+static cfg_clausedef_t keystore_clauses[] = { { "directory", &cfg_type_astring,
+						0 },
+					      { "uri", &cfg_type_qstring, 0 },
+					      { NULL, NULL, 0 } };
+
+static cfg_clausedef_t *keystore_clausesets[] = { keystore_clauses, NULL };
+static cfg_type_t cfg_type_keystoreopts = {
+	"keystoreopts", cfg_parse_map, cfg_print_map,
+	cfg_doc_map,	&cfg_rep_map,  keystore_clausesets
+};
+
+static cfg_tuplefielddef_t keystore_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "options", &cfg_type_keystoreopts, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_keystore = { "key-store",	 cfg_parse_tuple,
+					cfg_print_tuple, cfg_doc_tuple,
+					&cfg_rep_tuple,	 keystore_fields };
 
 /*%
  * Clauses that can be found in a 'server' statement.
