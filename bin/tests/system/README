@@ -632,15 +632,8 @@ test, the running of all tests in the test suite is controlled by the Makefile.
 All system tests are capable of being run in parallel.  For this to work, each
 test needs to use a unique set of ports.  To avoid the need to define which
 tests use which ports (and so risk port clashes as further tests are added),
-the ports are assigned when the tests are run.  This is achieved by having the
-"test" target in the Makefile depend on "parallel.mk".  That file is created
-when "make check" is run, and contains a target for each test of the form:
-
-    <test-name>:
-        @$(SHELL) run.sh -p <baseport> <test-name>
-
-The <baseport> is unique and the values of <baseport> for each test are
-separated by at least 100 ports.
+the ports are determined by "get_ports.sh", a port broker script which keeps
+track of ports given to each individual system test.
 
 
 Cleaning Up From Tests

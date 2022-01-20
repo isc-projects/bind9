@@ -12,7 +12,6 @@ named.run
 /makejournal
 /systests.output
 /random.data
-parallel.mk
 /*.log
 /*.trs
 /resolve
