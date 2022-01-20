@@ -143,6 +143,7 @@ exclude_patterns = [
     '.DS_Store',
     '*.grammar.rst',
     '*.zoneopts.rst',
+    'build.rst',
     'catz.rst',
     'dlz.rst',
     'dnssec.rst',
