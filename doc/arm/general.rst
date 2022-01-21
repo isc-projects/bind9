@@ -95,7 +95,7 @@ Internet Standards
 1987.
 
 :rfc:`1035` - P. Mockapetris. *Domain Names — Implementation and Specification.*
-November 1987. [1] [2]
+November 1987. [#rfc1035_1]_ [#rfc1035_2]_
 
 :rfc:`1123` - R. Braden. *Requirements for Internet Hosts - Application and
 Support.* October 1989.
@@ -143,7 +143,7 @@ Transaction Authentication for DNS (TSIG).* May 2000.
 September 2000.
 
 :rfc:`2931` - D. Eastlake, 3rd. *DNS Request and Transaction Signatures (SIG(0)s).*
-September 2000. [3]
+September 2000. [#rfc2931]_
 
 :rfc:`3007` - B. Wellington. *Secure Domain Name System (DNS) Dynamic Update.*
 November 2000.
@@ -187,7 +187,7 @@ Clarification.* January 2006.
 :rfc:`4398` - S. Josefsson. *Storing Certificates in the Domain Name System (DNS).* March 2006.
 
 :rfc:`4470` - S. Weiler and J. Ihren. *Minimally covering NSEC Records and
-DNSSEC On-line Signing.* April 2006. [5]
+DNSSEC On-line Signing.* April 2006. [#rfc4470]_
 
 :rfc:`4509` - W. Hardaker. *Use of SHA-256 in DNSSEC Delegation Signer
 (DS) Resource Records (RRs).* May 2006.
@@ -201,7 +201,7 @@ Code, Secure Hash Algorithm) TSIG Algorithm Identifiers.* August 2006.
 (RR) for Encoding Dynamic Host Configuration Protocol (DHCP) Information (DHCID
 RR).* October 2006.
 
-:rfc:`4955` - D. Blacka. *DNS Security (DNSSEC) Experiments.* July 2007. [6]
+:rfc:`4955` - D. Blacka. *DNS Security (DNSSEC) Experiments.* July 2007. [#rfc4955]_
 
 :rfc:`5001` - R. Austein. *DNS Name Server Identifier (NSID) Option.* August 2007.
 
@@ -209,7 +209,7 @@ RR).* October 2006.
 (DNSSEC) Hashed Authenticated Denial of Existence.* March 2008.
 
 :rfc:`5452` - A. Hubert and R. van Mook. *Measures for Making DNS More
-Resilient Against Forged Answers.* January 2009. [7]
+Resilient Against Forged Answers.* January 2009. [#rfc5452]_
 
 :rfc:`5702` - J. Jansen. *Use of SHA-2 Algorithms with RSA in DNSKEY and
 RRSIG Resource Records for DNSSEC.* October 2009.
@@ -225,13 +225,13 @@ Addressing of IPv4/IPv6 Translators.* October 2010.
 
 :rfc:`6147` - M. Bagnulo, A. Sullivan, P. Matthews, and I. van Beijnum.
 *DNS64: DNS Extensions for Network Address Translation from IPv6 Clients to
-IPv4 Servers.* April 2011. [8]
+IPv4 Servers.* April 2011. [#rfc6147]_
 
 :rfc:`6604` - D. Eastlake, 3rd. *xNAME RCODE and Status Bits Clarification.*
 April 2012.
 
 :rfc:`6605` - P. Hoffman and W. C. A. Wijngaards. *Elliptic Curve Digital
-Signature Algorithm (DSA) for DNSSEC.* April 2012. [9]
+Signature Algorithm (DSA) for DNSSEC.* April 2012. [#rfc6605]_
 
 :rfc:`6672` - S. Rose and W. Wijngaards. *DNAME Redirection in the DNS.*
 June 2012.
@@ -241,13 +241,13 @@ Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA.*
 August 2012.
 
 :rfc:`6725` - S. Rose. *DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry
-Updates.* August 2012. [10]
+Updates.* August 2012. [#rfc6725]_
 
 :rfc:`6840` - S. Weiler, Ed., and D. Blacka, Ed. *Clarifications and
-Implementation Notes for DNS Security (DNSSEC).* February 2013. [11]
+Implementation Notes for DNS Security (DNSSEC).* February 2013. [#rfc6840]_
 
 :rfc:`7344` - W. Kumari, O. Gudmundsson, and G. Barwood. *Automating DNSSEC
-Delegation Trust Maintenance.* September 2014. [12]
+Delegation Trust Maintenance.* September 2014. [#rfc7344]_
 
 :rfc:`7477` - W. Hardaker. *Child-to-Parent Synchronization in DNS.* March
 2015.
@@ -258,10 +258,10 @@ Wessels. *DNS Transport over TCP - Implementation Requirements.* March 2016.
 :rfc:`7828` - P. Wouters, J. Abley, S. Dickinson, and R. Bellis.
 *The edns-tcp-keepalive EDNS0 Option.* April 2016.
 
-:rfc:`7830` - A. Mayrhofer. *The EDNS(0) Padding Option.* May 2016. [13]
+:rfc:`7830` - A. Mayrhofer. *The EDNS(0) Padding Option.* May 2016. [#rfc7830]_
 
 :rfc:`8078` - O. Gudmundsson and P. Wouters. *Managing DS Records from the
-Parent via CDS/CDNSKEY.* March 2017. [22]
+Parent via CDS/CDNSKEY.* March 2017. [#rfc8078]_
 
 :rfc:`8080` - O. Sury and R. Edmonds. *Edwards-Curve Digital Security Algorithm
 (EdDSA) for DNSSEC.* February 2017.
@@ -291,7 +291,7 @@ Implementation Errors and Suggested Fixes.* October 1993.
 
 :rfc:`3363` - R. Bush, A. Durand, B. Fink, O. Gudmundsson, and T. Hain.
 *Representing Internet Protocol Version 6 (IPv6) Addresses in the Domain Name
-System (DNS).* August 2002. [14]
+System (DNS).* August 2002. [#rfc3363]_
 
 :rfc:`3493` - R. Gilligan, S. Thomson, J. Bound, J. McCann, and W. Stevens.
 *Basic Socket Interface Extensions for IPv6.* March 2003.
@@ -362,7 +362,7 @@ October 1997.
 March 1998.
 
 :rfc:`2606` - D. Eastlake, 3rd and A. Panitz. *Reserved Top Level DNS Names.* June
-1999. [15]
+1999. [#rfc2606]_
 
 :rfc:`3901` - A. Durand and J. Ihren. *DNS IPv6 Transport Operational Guidelines.*
 September 2004.
@@ -381,7 +381,7 @@ Historic RFCs
 -------------
 
 :rfc:`2874` - M. Crawford and C. Huitema. *DNS Extensions to Support IPv6 Address
-Aggregation and Renumbering.* July 2000. [4]
+Aggregation and Renumbering.* July 2000. [#rfc2874]_
 
 :rfc:`4431` - M. Andrews and S. Weiler. *The DNSSEC Lookaside Validation
 (DLV) DNS Resource Record.* February 2006.
@@ -397,13 +397,13 @@ Obsoleted and Unimplemented Experimental RFCs
 
 :rfc:`1521` - N. Borenstein and N. Freed. *MIME (Multipurpose Internet Mail
 Extensions) Part One: Mechanisms for Specifying and Describing the Format of
-Internet Message Bodies.* September 1993 [16]
+Internet Message Bodies.* September 1993 [#rfc1521]_
 
 :rfc:`1750` - D. Eastlake, 3rd, S. Crocker, and J. Schiller. *Randomness
 Recommendations for Security.* December 1994.
 
 :rfc:`2535` - D. Eastlake, 3rd. *Domain Name System Security Extensions.*
-March 1999. [17] [18]
+March 1999. [#rfc2535_1]_ [#rfc2535_2]_
 
 :rfc:`2537` - D. Eastlake, 3rd. *RSA/MD5 KEYs and SIGs in the Domain Name System
 (DNS).* March 1999.
@@ -429,10 +429,10 @@ Authority.* November 2000.
 (RR).* December 2002.
 
 :rfc:`3490` - P. Faltstrom, P. Hoffman, and A. Costello. *Internationalizing Domain Names
-in Applications (IDNA).* March 2003. [19]
+in Applications (IDNA).* March 2003. [#idna]
 
 :rfc:`3491` - P. Hoffman and M. Blanchet. *Nameprep: A Stringprep Profile for
-Internationalized Domain Names (IDN).* March 2003. [19]
+Internationalized Domain Names (IDN).* March 2003. [#idna]
 
 :rfc:`3655` - B. Wellington and O. Gudmundsson. *Redefinition of DNS Authenticated
 Data (AD) Bit.* November 2003.
@@ -449,7 +449,7 @@ Resource Record (RR) Secure Entry Point (SEP) Flag.* May 2004.
 :rfc:`3845` - J. Schlyter. *DNS Security (DNSSEC) NextSECure (NSEC) RDATA Format.*
 August 2004.
 
-:rfc:`4294` - J. Loughney, Ed. *IPv6 Node Requirements.* [20]
+:rfc:`4294` - J. Loughney, Ed. *IPv6 Node Requirements.* [#rfc4294]_
 
 :rfc:`4408` - M. Wong and W. Schlitt. *Sender Policy Framework (SPF) for
 Authorizing Use of Domains in E-Mail, Version 1.* April 2006.
@@ -472,70 +472,70 @@ RFCs No Longer Supported in BIND 9
 Notes
 ~~~~~
 
-[1] Queries to zones that have failed to load return SERVFAIL rather
-than a non-authoritative response. This is considered a feature.
+.. [#rfc1035_1] Queries to zones that have failed to load return SERVFAIL rather
+   than a non-authoritative response. This is considered a feature.
 
-[2] CLASS ANY queries are not supported. This is considered a
-feature.
+.. [#rfc1035_2] CLASS ANY queries are not supported. This is considered a
+   feature.
 
-[3] When receiving a query signed with a SIG(0), the server is
-only able to verify the signature if it has the key in its local
-authoritative data; it cannot do recursion or validation to
-retrieve unknown keys.
+.. [#rfc2931] When receiving a query signed with a SIG(0), the server is
+   only able to verify the signature if it has the key in its local
+   authoritative data; it cannot do recursion or validation to
+   retrieve unknown keys.
 
-[4] Compliance is with loading and serving of A6 records only. A6 records were moved
-to the experimental category by :rfc:`3363`.
+.. [#rfc2874] Compliance is with loading and serving of A6 records only.
+   A6 records were moved to the experimental category by :rfc:`3363`.
 
-[5] Minimally Covering NSEC records are accepted but not generated.
+.. [#rfc4470] Minimally Covering NSEC records are accepted but not generated.
 
-[6] BIND 9 interoperates with correctly designed experiments.
+.. [#rfc4955] BIND 9 interoperates with correctly designed experiments.
 
-[7] ``named`` only uses ports to extend the ID space; addresses are not
-used.
+.. [#rfc5452] ``named`` only uses ports to extend the ID space; addresses are not
+   used.
 
-[8] Section 5.5 does not match reality. ``named`` uses the presence
-of DO=1 to detect if validation may be occurring. CD has no bearing
-on whether validation occurs.
+.. [#rfc6147] Section 5.5 does not match reality. ``named`` uses the presence
+   of DO=1 to detect if validation may be occurring. CD has no bearing
+   on whether validation occurs.
 
-[9] Compliance is conditional on the OpenSSL library being linked against
-a supporting ECDSA.
+.. [#rfc6605] Compliance is conditional on the OpenSSL library being linked against
+   a supporting ECDSA.
 
-[10] RSAMD5 support has been removed. See :rfc:`6944`.
+.. [#rfc6725] RSAMD5 support has been removed. See :rfc:`6944`.
 
-[11] Section 5.9 - Always set CD=1 on queries. This is *not* done, as
-it prevents DNSSEC from working correctly through another recursive server.
+.. [#rfc6840] Section 5.9 - Always set CD=1 on queries. This is *not* done, as
+   it prevents DNSSEC from working correctly through another recursive server.
 
-When talking to a recursive server, the best algorithm is to send
-CD=0 and then send CD=1 iff SERVFAIL is returned, in case the recursive
-server has a bad clock and/or bad trust anchor. Alternatively, one
-can send CD=1 then CD=0 on validation failure, in case the recursive
-server is under attack or there is stale/bogus authoritative data.
+   When talking to a recursive server, the best algorithm is to send
+   CD=0 and then send CD=1 iff SERVFAIL is returned, in case the recursive
+   server has a bad clock and/or bad trust anchor. Alternatively, one
+   can send CD=1 then CD=0 on validation failure, in case the recursive
+   server is under attack or there is stale/bogus authoritative data.
 
-[12] Updating of parent zones is not yet implemented.
+.. [#rfc7344] Updating of parent zones is not yet implemented.
 
-[13] ``named`` does not currently encrypt DNS requests, so the PAD option
-is accepted but not returned in responses.
+.. [#rfc7830] ``named`` does not currently encrypt DNS requests, so the PAD option
+   is accepted but not returned in responses.
 
-[14] Section 4 is ignored.
+.. [#rfc3363] Section 4 is ignored.
 
-[15] This does not apply to DNS server implementations.
+.. [#rfc2606] This does not apply to DNS server implementations.
 
-[16] Only the Base 64 encoding specification is supported.
+.. [#rfc1521] Only the Base 64 encoding specification is supported.
 
-[17] Wildcard records are not supported in DNSSEC secure zones.
+.. [#rfc2535_1] Wildcard records are not supported in DNSSEC secure zones.
 
-[18] Servers authoritative for secure zones being resolved by BIND
-9 must support EDNS0 (:rfc:`2671`), and must return all relevant SIGs
-and NXTs in responses, rather than relying on the resolving server
-to perform separate queries for missing SIGs and NXTs.
+.. [#rfc2535_2] Servers authoritative for secure zones being resolved by BIND
+   9 must support EDNS0 (:rfc:`2671`), and must return all relevant SIGs
+   and NXTs in responses, rather than relying on the resolving server
+   to perform separate queries for missing SIGs and NXTs.
 
-[19] BIND 9 requires ``--with-idn`` to enable entry of IDN labels within dig,
-host, and nslookup at compile time.  ACE labels are supported
-everywhere with or without ``--with-idn``.
+.. [#idna] BIND 9 requires ``--with-libidn2`` to enable entry of IDN labels within
+   dig, host, and nslookup at compile time.  ACE labels are supported
+   everywhere with or without ``--with-libidn2``.
 
-[20] Section 5.1 - DNAME records are fully supported.
+.. [#rfc4294] Section 5.1 - DNAME records are fully supported.
 
-[22] Updating of parent zones is not yet implemented.
+.. [#rfc8078] Updating of parent zones is not yet implemented.
 
 .. _internet_drafts:
 
