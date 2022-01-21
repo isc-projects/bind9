@@ -170,7 +170,7 @@ DNS (GSS-TSIG).* October 2003.
 DNS.* March 2005.
 
 :rfc:`4033` - R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose. *DNS Security
-Introduction and Requirements.* March 2005. [4]
+Introduction and Requirements.* March 2005.
 
 :rfc:`4034` - R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose. *Resource Records for
 the DNS Security Extensions.* March 2005.
