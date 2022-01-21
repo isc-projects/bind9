@@ -7127,37 +7127,74 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 	}
 }
 
+/*
+ * Returns true if 'name' is external to the namespace for which
+ * the server being queried can answer, either because it's not a
+ * subdomain or because it's below a forward declaration.
+ */
 static inline bool
-name_external(const dns_name_t *name, fetchctx_t *fctx) {
+name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_forwarders_t *forwarders = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *fname = dns_fixedname_initname(&fixed);
+	dns_name_t suffix;
+	unsigned int labels;
+
+	/*
+	 * The name is outside the queried namespace.
+	 */
+	if (!dns_name_issubdomain(name, ISFORWARDER(fctx->addrinfo)
+						? fctx->fwdname
+						: &fctx->domain))
+	{
+		return (true);
+	}
+
+	/*
+	 * If the record lives in the parent zone, adjust the name so we
+	 * look for the correct forward clause.
+	 */
+	labels = dns_name_countlabels(name);
+	if (dns_rdatatype_atparent(type) && labels > 1U) {
+		dns_name_init(&suffix, NULL);
+		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
+		name = &suffix;
+	}
+
+	/*
+	 * Look for a forward declaration below 'name'.
+	 */
+	result = dns_fwdtable_find(fctx->res->view->fwdtable, name, fname,
+				   &forwarders);
+
 	if (ISFORWARDER(fctx->addrinfo)) {
-		isc_result_t result;
-		dns_fixedname_t fixed;
-		dns_forwarders_t *forwarders = NULL;
-		dns_name_t *fname;
-
-		if (!dns_name_issubdomain(name, fctx->fwdname)) {
-			return (true);
-		}
-
 		/*
-		 * Is there a child forwarder declaration that is better?
-		 * This lookup should always succeed if the configuration
-		 * has not changed.
+		 * See if the forwarder declaration is better.
 		 */
-		fname = dns_fixedname_initname(&fixed);
-		result = dns_fwdtable_find(fctx->res->view->fwdtable, name, fname,
-					   &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			return (!dns_name_equal(fname, fctx->fwdname));
 		}
 
 		/*
-		 * Play it safe if the configuration has changed.
+		 * If the lookup failed, the configuration must have
+		 * changed: play it safe and don't cache.
 		 */
 		return (true);
 	}
 
-	return (!dns_name_issubdomain(name, &fctx->domain));
+	/*
+	 * If name is covered by 'forward only' then we can't
+	 * cache this repsonse.
+	 */
+	if (result == ISC_R_SUCCESS &&
+	    forwarders->fwdpolicy == dns_fwdpolicy_only &&
+	    !ISC_LIST_EMPTY(forwarders->fwdrs))
+	{
+		return (true);
+	}
+
+	return (false);
 }
 
 static isc_result_t
@@ -7186,7 +7223,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	result = dns_message_findname(rctx->query->rmessage, section, addname,
 				      dns_rdatatype_any, 0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
-		external = name_external(name, fctx);
+		external = name_external(name, type, fctx);
 		if (type == dns_rdatatype_a) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -8813,7 +8850,7 @@ rctx_answer_scan(respctx_t *rctx) {
 			/*
 			 * Don't accept DNAME from parent namespace.
 			 */
-			if (name_external(name, fctx)) {
+			if (name_external(name, dns_rdatatype_dname, fctx)) {
 				continue;
 			}
 
@@ -9134,7 +9171,7 @@ rctx_authority_positive(respctx_t *rctx) {
 		dns_message_currentname(rctx->query->rmessage,
 					DNS_SECTION_AUTHORITY, &name);
 
-		if (!name_external(name, fctx)) {
+		if (!name_external(name, dns_rdatatype_ns, fctx)) {
 			dns_rdataset_t *rdataset = NULL;
 
 			/*
