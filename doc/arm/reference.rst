@@ -4834,6 +4834,12 @@ The following options can be specified in a ``tls`` statement:
     or the TLS certificate and key pair is planned to be used across
     multiple BIND instances.
 
+.. warning::
+
+   TLS configuration is subject to change and incompatible changes might
+   be introduced in the future. Users of TLS are encouraged to carefully
+   read release notes when upgrading.
+
 The options described above are used to control different aspects of
 TLS functioning. Thus, most of them have no well-defined default
 values, as these depend on the cryptographic library version in use
