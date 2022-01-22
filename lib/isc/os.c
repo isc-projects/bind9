@@ -81,7 +81,7 @@ isc__os_initialize(void) {
 	ncpus_initialize();
 #if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
 	long s = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
-	RUNTIME_CHECK((size_t)s == (size_t)ISC_OS_CACHELINE_SIZE);
+	RUNTIME_CHECK((size_t)s == (size_t)ISC_OS_CACHELINE_SIZE || s <= 0);
 #endif
 }
 
