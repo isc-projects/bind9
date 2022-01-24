@@ -27,7 +27,7 @@ Description
 ``named-checkconf`` checks the syntax, but not the semantics, of a
 ``named`` configuration file. The file, along with all files included by it, is parsed and checked for syntax
 errors. If no file is specified,
-``/etc/named.conf`` is read by default.
+|named_conf| is read by default.
 
 Note: files that ``named`` reads in separate parser contexts, such as
 ``rndc.key`` and ``bind.keys``, are not automatically read by
@@ -81,7 +81,7 @@ Options
 
 ``filename``
    This indicates the name of the configuration file to be checked. If not specified,
-   it defaults to ``/etc/named.conf``.
+   it defaults to |named_conf|.
 
 Return Values
 ~~~~~~~~~~~~~

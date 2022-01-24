@@ -59,11 +59,11 @@ Options
 
 ``-c config-file``
    This option indicates ``config-file`` as the configuration file instead of the default,
-   ``/etc/rndc.conf``.
+   |rndc_conf|.
 
 ``-k key-file``
    This option indicates ``key-file`` as the key file instead of the default,
-   ``/etc/rndc.key``. The key in ``/etc/rndc.key`` is used to
+   |rndc_key|. The key in |rndc_key| is used to
    authenticate commands sent to the server if the config-file does not
    exist.
 

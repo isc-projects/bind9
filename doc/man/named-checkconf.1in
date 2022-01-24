@@ -38,7 +38,7 @@ named-checkconf \- named configuration file syntax checking tool
 \fBnamed\-checkconf\fP checks the syntax, but not the semantics, of a
 \fBnamed\fP configuration file. The file, along with all files included by it, is parsed and checked for syntax
 errors. If no file is specified,
-\fB/etc/named.conf\fP is read by default.
+\fB@sysconfdir@/named.conf\fP is read by default.
 .sp
 Note: files that \fBnamed\fP reads in separate parser contexts, such as
 \fBrndc.key\fP and \fBbind.keys\fP, are not automatically read by
@@ -91,7 +91,7 @@ This option performs a test load of all zones of type \fBprimary\fP found in \fB
 .TP
 .B \fBfilename\fP
 This indicates the name of the configuration file to be checked. If not specified,
-it defaults to \fB/etc/named.conf\fP\&.
+it defaults to \fB@sysconfdir@/named.conf\fP\&.
 .UNINDENT
 .SH RETURN VALUES
 .sp
