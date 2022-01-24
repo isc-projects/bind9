@@ -35,7 +35,7 @@ enabled with the ``filter-aaaa`` ACL and the ``filter-aaaa-on-v4`` and
 
 ::
 
-   plugin query "/usr/local/lib/filter-aaaa.so" {
+   plugin query "filter-aaaa.so" {
            filter-aaaa-on-v4 yes;
            filter-aaaa-on-v6 yes;
            filter-aaaa { 192.0.2.1; 2001:db8:2::1; };

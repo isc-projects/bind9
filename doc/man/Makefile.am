@@ -132,6 +132,9 @@ man_SUBST =							\
 	$(AM_V_SED)$(SED)					\
 	  -e 's,[@]PACKAGE_VERSION@,$(PACKAGE_VERSION),'	\
 	  -e 's,[@]RELEASE_DATE@,$(RELEASE_DATE),'		\
+	  -e 's,[@]libdir[@],$(libdir),g'			\
+	  -e 's,[@]runstatedir[@],$(runstatedir),g'		\
+	  -e 's,[@]sysconfdir[@],$(sysconfdir),g'		\
 	  $(srcdir)/$@in >$@
 
 .1in.1:
@@ -170,6 +173,7 @@ if HAVE_SPHINX_BUILD
 manpages.stamp: $(MANPAGES_RST)
 	@rm -f manpages.tmp
 	@touch manpages.tmp
+	echo "${man_RST_EPILOG}"
 	$(AM_V_SPHINX)$(SPHINX_BUILD) -b man -d $(SPHINXBUILDDIR)/.doctrees/man $(man_SPHINXOPTS) $(SPHINXBUILDDIR)/man
 	for f in $(SPHINXBUILDDIR)/man/*; do \
 	  cp -a "$$f" "$(srcdir)/$$(basename $$f)in"; \

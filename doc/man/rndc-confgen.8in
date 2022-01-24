@@ -45,9 +45,8 @@ by hand. Alternatively, it can be run with the \fB\-a\fP option to set up a
 .INDENT 0.0
 .TP
 .B \fB\-a\fP
-This option sets automatic \fBrndc\fP configuration, which creates a file \fBrndc.key\fP
-in \fB/etc\fP (or a different \fBsysconfdir\fP specified when BIND
-was built) that is read by both \fBrndc\fP and \fBnamed\fP on startup.
+This option sets automatic \fBrndc\fP configuration, which creates a file
+\fB@sysconfdir@/rndc.key\fP that is read by both \fBrndc\fP and \fBnamed\fP on startup.
 The \fBrndc.key\fP file defines a default command channel and
 authentication key allowing \fBrndc\fP to communicate with \fBnamed\fP on
 the local host with no further configuration.
