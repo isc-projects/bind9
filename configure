@@ -21381,7 +21381,7 @@ fi
 # Pull release date from CHANGES file last modification date
 # for reproducible builds
 #
-release_date=`date -r CHANGES +%Y-%m-%d`
+release_date=`date -u -r CHANGES +%Y-%m-%d`
 RELEASE_DATE=$release_date
 
 
