@@ -1,3 +1,7 @@
+5796.	[bug]		Ignore the invalid (<= 0) values returned
+			by the sysconf() check for the L1 cache line
+			size.  [GL #3108]
+
 5795.	[bug]		rndc could crash when interrupted by a signal
 			before receiving a response. [GL #3080]
 
