@@ -1,3 +1,6 @@
+5803.	[func]		Use compile-time paths in the documentation.
+			[GL #2717]
+
 5802.	[test]		Add system test to test engine_pkcs11. [GL !5727]
 
 5801.	[bug]		Log "quota reached" message when hard quota
