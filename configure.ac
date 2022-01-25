@@ -79,7 +79,7 @@ AC_PROG_CPP_WERROR
 #
 # Find build compiler when cross compiling
 #
-AX_CC_FOR_BUILD
+AX_PROG_CC_FOR_BUILD
 
 #
 # Find the machine's endian flavor.
