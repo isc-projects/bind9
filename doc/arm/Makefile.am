@@ -5,6 +5,7 @@ EXTRA_DIST =					\
 	conf.py					\
 	isc-logo.pdf				\
 	advanced.rst				\
+	build.rst				\
 	catz.rst				\
 	configuration.rst			\
 	dlz.rst					\
@@ -20,6 +21,7 @@ EXTRA_DIST =					\
 	manpages.rst				\
 	notes.rst				\
 	pkcs11.rst				\
+	platforms.rst				\
 	plugins.rst				\
 	reference.rst				\
 	requirements.rst			\

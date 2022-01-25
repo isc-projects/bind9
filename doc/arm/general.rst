@@ -63,17 +63,27 @@ Bibliography (and Suggested Reading)
 Requests for Comment (RFCs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Specification documents for the Internet protocol suite, including the
+DNS, are published as part of the `Request for Comments`_ (RFCs) series
+of technical notes. The standards themselves are defined by the
+`Internet Engineering Task Force`_ (IETF) and the `Internet Engineering
+Steering Group`_ (IESG). RFCs can be viewed online at:
+https://www.rfc-editor.org/.
+
+While reading RFCs, please keep in mind that :rfc:`not all RFCs are
+standards <1796>`, and also that the validity of documents does change
+over time. Every RFC needs to be interpreted in the context of other
+documents.
+
 BIND 9 strives for strict compliance with IETF standards. To the best
 of our knowledge, BIND 9 complies with the following RFCs, with
 the caveats and exceptions listed in the numbered notes below. Many
 of these RFCs were written by current or former ISC staff members.
 The list is non-exhaustive.
 
-Specification documents for the Internet protocol suite, including the
-DNS, are published as part of the Request for Comments (RFCs) series of
-technical notes. The standards themselves are defined by the Internet
-Engineering Task Force (IETF) and the Internet Engineering Steering
-Group (IESG). RFCs can be viewed online at: https://datatracker.ietf.org/doc/ .
+.. _Internet Engineering Steering Group: https://www.ietf.org/about/groups/iesg/
+.. _Internet Engineering Task Force: https://www.ietf.org/about/
+.. _Request for Comments: https://www.ietf.org/standards/rfcs/
 
 Some of these RFCs, though DNS-related, are not concerned with implementing
 software.
@@ -160,7 +170,7 @@ DNS (GSS-TSIG).* October 2003.
 DNS.* March 2005.
 
 :rfc:`4033` - R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose. *DNS Security
-Introduction and Requirements.* March 2005. [4]
+Introduction and Requirements.* March 2005.
 
 :rfc:`4034` - R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose. *Resource Records for
 the DNS Security Extensions.* March 2005.
@@ -217,10 +227,6 @@ Addressing of IPv4/IPv6 Translators.* October 2010.
 *DNS64: DNS Extensions for Network Address Translation from IPv6 Clients to
 IPv4 Servers.* April 2011. [8]
 
-:rfc:`6594` - O. Sury. *Use of the SHA-256 Algorithm with RSA, Digital
-Signature Algorithm (DSA), and Elliptic Curve DSA (ECDSA) in SSHFP Resource
-Records.* April 2012.
-
 :rfc:`6604` - D. Eastlake, 3rd. *xNAME RCODE and Status Bits Clarification.*
 April 2012.
 
@@ -240,8 +246,8 @@ Updates.* August 2012. [10]
 :rfc:`6840` - S. Weiler, Ed., and D. Blacka, Ed. *Clarifications and
 Implementation Notes for DNS Security (DNSSEC).* February 2013. [11]
 
-:rfc:`7216` - M. Thomson and R. Bellis. *Location Information Server (LIS)
-Discovery Using IP Addresses and Reverse DNS.* April 2014.
+:rfc:`7050` - T. Savolainen, J. Korhonen, and D. Wing. *Discovery of the IPv6
+Prefix Used for IPv6 Address Synthesis.* November 2013. [21]
 
 :rfc:`7344` - W. Kumari, O. Gudmundsson, and G. Barwood. *Automating DNSSEC
 Delegation Trust Maintenance.* September 2014. [12]
@@ -257,14 +263,14 @@ Wessels. *DNS Transport over TCP - Implementation Requirements.* March 2016.
 
 :rfc:`7830` - A. Mayrhofer. *The EDNS(0) Padding Option.* May 2016. [13]
 
+:rfc:`8078` - O. Gudmundsson and P. Wouters. *Managing DS Records from the
+Parent via CDS/CDNSKEY.* March 2017. [22]
+
 :rfc:`8080` - O. Sury and R. Edmonds. *Edwards-Curve Digital Security Algorithm
 (EdDSA) for DNSSEC.* February 2017.
 
-:rfc:`8482` - J. Abley, O. Gudmundsson, M. Majkowski, and E. Hunt. *Providing
-Minimal-Sized Responses to DNS Queries That Have QTYPE=ANY.* January 2019.
-
-:rfc:`8490` - R. Bellis, S. Cheshire, J. Dickinson, S. Dickinson, T. Lemon,
-and T. Pusateri. *DNS Stateful Operations.* March 2019.
+:rfc:`8880` - S. Cheshire and D. Schinazi. *Special Use Domain Name
+'ipv4only.arpa'.* August 2020.
 
 :rfc:`8624` - P. Wouters and O. Sury. *Algorithm Implementation Requirements
 and Usage Guidance for DNSSEC.* June 2019.
@@ -281,34 +287,13 @@ Deployed DNS Software.* October 1993.
 :rfc:`1536` - A. Kumar, J. Postel, C. Neuman, P. Danzig, and S. Miller. *Common DNS
 Implementation Errors and Suggested Fixes.* October 1993.
 
-:rfc:`1591` - J. Postel. *Domain Name System Structure and Delegation.* March 1994.
-
 :rfc:`1706` - B. Manning and R. Colella. *DNS NSAP Resource Records.* October 1994.
-
-:rfc:`1713` - A. Romao. *Tools for DNS Debugging.* November 1994.
-
-:rfc:`1794` - T. Brisco. *DNS Support for Load Balancing.* April 1995.
 
 :rfc:`1912` - D. Barr. *Common DNS Operational and Configuration Errors.* February
 1996.
 
 :rfc:`2230` - R. Atkinson. *Key Exchange Delegation Record for the DNS.* November
 1997.
-
-:rfc:`2352` - O. Vaughan. *A Convention for Using Legal Names as Domain Names.* May
-1998.
-
-:rfc:`2825` - IAB and L. Daigle. *A Tangled Web: Issues of I18N, Domain Names, and
-the Other Internet Protocols.* May 2000.
-
-:rfc:`2826` - Internet Architecture Board. *IAB Technical Comment on the Unique
-DNS Root.* May 2000.
-
-:rfc:`3071` - J. Klensin. *Reflections on the DNS, RFC 1591, and Categories of
-Domains.* February 2001.
-
-:rfc:`3258` - T. Hardie. *Distributing Authoritative Name Servers via Shared
-Unicast Addresses.* April 2002.
 
 :rfc:`3363` - R. Bush, A. Durand, B. Fink, O. Gudmundsson, and T. Hain.
 *Representing Internet Protocol Version 6 (IPv6) Addresses in the Domain Name
@@ -351,23 +336,17 @@ Experimental RFCs
 :rfc:`1183` - C. F. Everhart, L. A. Mamakos, R. Ullmann, P. Mockapetris. *New DNS RR
 Definitions.* October 1990.
 
-:rfc:`1464` - R. Rosenbaum. *Using the Domain Name System to Store Arbitrary
-String Attributes.* May 1993.
-
 :rfc:`1712` - C. Farrell, M. Schulze, S. Pleitner, and D. Baldoni. *DNS Encoding of
 Geographical Location.* November 1994.
 
 :rfc:`1876` - C. Davis, P. Vixie, T. Goodwin, and I. Dickinson. *A Means for Expressing
 Location Information in the Domain Name System.* January 1996.
 
-:rfc:`2345` - J. Klensin, T. Wolf, and G. Oglesby. *Domain Names and Company Name
-Retrieval.* May 1998.
-
-:rfc:`2540` - D. Eastlake, 3rd. *Detached Domain Name System (DNS) Information.*
-March 1999.
-
 :rfc:`3123` - P. Koch. *A DNS RR Type for Lists of Address Prefixes (APL RR).* June
 2001.
+
+:rfc:`5205` - P. Nikander and J. Laganier. *Host Identity Protocol (HIP)
+Domain Name System (DNS) Extension.* April 2008.
 
 :rfc:`6742` - RJ Atkinson, SN Bhatti, U. St. Andrews, and S. Rose. *DNS
 Resource Records for the Identifier-Locator Network Protocol (ILNP).*
@@ -416,42 +395,18 @@ Aggregation and Renumbering.* July 2000. [4]
 RFCs of Type "Unknown"
 ----------------------
 
-:rfc:`1033` - M. Lottor. *Domain Administrators Operations Guide.* November 1987.
-
 :rfc:`1101` - P. Mockapetris. *DNS Encoding of Network Names and Other Types.*
 April 1989.
 
 Obsoleted and Unimplemented Experimental RFCs
 ---------------------------------------------
 
-:rfc:`974` - C. Partridge. *Mail Routing and the Domain System.* January 1986.
-
 :rfc:`1521` - N. Borenstein and N. Freed. *MIME (Multipurpose Internet Mail
 Extensions) Part One: Mechanisms for Specifying and Describing the Format of
 Internet Message Bodies.* September 1993 [16]
 
-:rfc:`1537` - P. Beertema. *Common DNS Data File Configuration Errors.* October
-1993.
-
 :rfc:`1750` - D. Eastlake, 3rd, S. Crocker, and J. Schiller. *Randomness
 Recommendations for Security.* December 1994.
-
-:rfc:`2010` - B. Manning and P. Vixie. *Operational Criteria for Root Name Servers.*
-October 1996.
-
-:rfc:`2052` - A. Gulbrandsen and P. Vixie. *A DNS RR for Specifying the Location of
-Services.* October 1996.
-
-:rfc:`2065` - D. Eastlake, 3rd and C. Kaufman. *Domain Name System Security Extensions.*
-January 1997.
-
-:rfc:`2137` - D. Eastlake, 3rd. *Secure Domain Name System Dynamic Update.* April
-1997.
-
-:rfc:`2168` - R. Daniel and M. Mealling. *Resolution of Uniform Resource Identifiers
-Using the Domain Name System.* June 1997.
-
-:rfc:`2240` - O. Vaughan. *A Legal Basis for Domain Name Allocation.* November 1997.
 
 :rfc:`2535` - D. Eastlake, 3rd. *Domain Name System Security Extensions.*
 March 1999. [17] [18]
@@ -471,14 +426,8 @@ Name System (DNS).* March 1999.
 :rfc:`2915` - M. Mealling and R. Daniel. *The Naming Authority Pointer (NAPTR) DNS
 Resource Record.* September 2000.
 
-:rfc:`2929` - D. Eastlake, 3rd, E. Brunner-Williams, and B. Manning. *Domain Name System
-(DNS) IANA Considerations.* September 2000.
-
 :rfc:`3008` - B. Wellington. *Domain Name System Security (DNSSEC) Signing
 Authority.* November 2000.
-
-:rfc:`3090` - E. Lewis. *DNS Security Extension Clarification on Zone Status.*
-March 2001.
 
 :rfc:`3152` - R. Bush. *Delegation of IP6.ARPA.* August 2001.
 
@@ -591,6 +540,10 @@ dig, host, and nslookup at compile time.  ACE labels are supported
 everywhere with or without ``--with-libidn2``.
 
 [20] Section 5.1 - DNAME records are fully supported.
+
+[21] RFC 7050 is updated by RFC 8880.
+
+[22] Updating of parent zones is not yet implemented.
 
 .. _internet_drafts:
 

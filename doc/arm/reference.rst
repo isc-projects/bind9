@@ -886,6 +886,18 @@ used by multiple stub and secondary zones in their ``primaries`` or
 keyword ``masters``, which can still be used, but is no longer the
 preferred terminology.)
 
+To force the zone transfer requests to be sent over TLS, use ``tls`` keyword,
+e.g. ``primaries { 192.0.2.1 tls tls-configuration-name; };``,
+where ``tls-configuration-name`` refers to a previously defined
+:ref:`tls statement <tls>`.
+
+.. warning::
+
+   Please note that TLS connections to primaries are currently
+   **not authenticated**. This mode provides protection from passive observers
+   but does not protect from man-in-the-middle attacks on zone transfers.
+
+
 .. _options_grammar:
 
 ``options`` Statement Grammar
@@ -2434,6 +2446,12 @@ for details on how to specify IP address lists.
    For example: ``allow-transfer port 853 transport tls { any; };``
    allows outgoing zone transfers to any host using the TLS transport
    over port 853.
+
+.. warning::
+
+   Please note that incoming TLS connections are currently
+   **not authenticated at the TLS level**.
+   Please use :ref:`tsig` to authenticate requestors.
 
 ``blackhole``
    This specifies a list of addresses which the server does not accept queries
@@ -4815,6 +4833,12 @@ The following options can be specified in a ``tls`` statement:
     might be required in the cases when forward secrecy is needed,
     or the TLS certificate and key pair is planned to be used across
     multiple BIND instances.
+
+.. warning::
+
+   TLS configuration is subject to change and incompatible changes might
+   be introduced in the future. Users of TLS are encouraged to carefully
+   read release notes when upgrading.
 
 The options described above are used to control different aspects of
 TLS functioning. Thus, most of them have no well-defined default
