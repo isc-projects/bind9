@@ -294,7 +294,7 @@ The following statements are supported:
         Declares communication channels to get access to :iscman:`named` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``dhparam-file``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -4803,12 +4803,18 @@ The following options can be specified in a ``tls`` statement:
     Path to a file containing the TLS certificate to be used for
     the connection.
 
+  ``ca-file``
+    Path to a file containing trusted TLS certificates.
+
   ``dhparam-file``
     Path to a file containing Diffie-Hellman parameters,
     which is needed to enable the cipher suites depending on the
     Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
     specified is essential for enabling perfect forward secrecy capable
     ciphers in TLSv1.2.
+
+  ``hostname``
+    The hostname associated with the certificate.
 
   ``protocols``
     Allowed versions of the TLS protocol. TLS version 1.2 and higher are

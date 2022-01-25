@@ -122,16 +122,10 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 		parse_transport_bool_option(
 			doh, transport, "prefer-server-ciphers",
 			dns_transport_set_prefer_server_ciphers)
-#if 0
-		/*
-		 * The following two options need to remain unavailable until
-		 * TLS certificate verification gets implemented.
-		 */
-		parse_transport_option(doh, transport, "ca-file",
-				       dns_transport_set_cafile);
+			parse_transport_option(doh, transport, "ca-file",
+					       dns_transport_set_cafile);
 		parse_transport_option(doh, transport, "hostname",
 				       dns_transport_set_hostname);
-#endif
 	}
 
 	return (ISC_R_SUCCESS);
@@ -180,16 +174,10 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 		parse_transport_bool_option(
 			tls, transport, "prefer-server-ciphers",
 			dns_transport_set_prefer_server_ciphers)
-#if 0
-		/*
-		 * The following two options need to remain unavailable until
-		 * TLS certificate verification gets implemented.
-		 */
-		parse_transport_option(tls, transport, "ca-file",
-				       dns_transport_set_cafile);
+			parse_transport_option(tls, transport, "ca-file",
+					       dns_transport_set_cafile);
 		parse_transport_option(tls, transport, "hostname",
 				       dns_transport_set_hostname);
-#endif
 	}
 
 	return (ISC_R_SUCCESS);
