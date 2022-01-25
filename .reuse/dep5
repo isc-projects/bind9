@@ -36,7 +36,6 @@ Files: **/README
        Makefile
        Makefile.*
        OPTIONS
-       PLATFORMS
        README
        bin/named/bind9.xsl
        bin/named/bind9.xsl.h
