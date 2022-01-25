@@ -56,4 +56,32 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
  *\li  Other errors are possible.
  */
 
+isc_result_t
+cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
+			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
+			dns_keystore_t    **kspp);
+/*%<
+ * Create and configure a key store. If a 'keystorelist' is provided, a lookup
+ * happens and if a keystore already exists with the same name, no new one is
+ * created, and no attach to 'kspp' happens.
+ *
+ * Requires:
+ *
+ *\li  config != NULL
+
+ *\li  'mctx' is a valid memory context.
+ *
+ *\li  'logctx' is a valid logging context.
+ *
+ *\li  kspp != NULL && *kspp == NULL
+ *
+ * Returns:
+ *
+ *\li  #ISC_R_SUCCESS  If creating and configuring the keystore succeeds.
+ *\li  #ISC_R_EXISTS   If 'keystorelist' already has a keystore with 'name'.
+ *\li  #ISC_R_NOMEMORY
+ *
+ *\li  Other errors are possible.
+ */
+
 ISC_LANG_ENDDECLS

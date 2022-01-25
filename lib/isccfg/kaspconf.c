@@ -24,6 +24,7 @@
 #include <isc/util.h>
 
 #include <dns/kasp.h>
+#include <dns/keystore.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/nsec3.h>
@@ -87,6 +88,23 @@ get_duration(const cfg_obj_t **maps, const char *option, const char *dfl) {
 	}
 	INSIST(result == ISC_R_SUCCESS);
 	return (cfg_obj_asduration(obj));
+}
+
+/*
+ * Utility function for configuring strings.
+ */
+static const char *
+get_string(const cfg_obj_t **maps, const char *option) {
+	const cfg_obj_t *obj;
+	isc_result_t result;
+	obj = NULL;
+
+	result = confget(maps, option, &obj);
+	if (result == ISC_R_NOTFOUND) {
+		return (NULL);
+	}
+	INSIST(result == ISC_R_SUCCESS);
+	return (cfg_obj_asstring(obj));
 }
 
 /*
@@ -654,4 +672,70 @@ cleanup:
 	/* Something bad happened, detach (destroys kasp) and return error. */
 	dns_kasp_detach(&kasp);
 	return (result);
+}
+
+isc_result_t
+cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
+			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
+			dns_keystore_t **kspp) {
+	isc_result_t result;
+	const cfg_obj_t *maps[2];
+	const cfg_obj_t *koptions = NULL;
+	const char *name = NULL;
+	dns_keystore_t *keystore = NULL;
+	int i = 0;
+
+	REQUIRE(config != NULL);
+	REQUIRE(kspp != NULL && *kspp == NULL);
+
+	name = cfg_obj_asstring(cfg_tuple_get(config, "name"));
+	INSIST(name != NULL);
+
+	result = dns_keystorelist_find(keystorelist, name, &keystore);
+
+	if (result == ISC_R_SUCCESS) {
+		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+			    "key-store: duplicate key-store found '%s'", name);
+		dns_keystore_detach(&keystore);
+		return (ISC_R_EXISTS);
+	}
+	if (result != ISC_R_NOTFOUND) {
+		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+			    "key-store: lookup '%s' failed: %s", name,
+			    isc_result_totext(result));
+		return (result);
+	}
+
+	/*
+	 * No key-store with configured name was found in list, create new one.
+	 */
+	INSIST(keystore == NULL);
+	result = dns_keystore_create(mctx, name, &keystore);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	INSIST(keystore != NULL);
+
+	/* Now configure. */
+	INSIST(DNS_KEYSTORE_VALID(keystore));
+
+	if (config != NULL) {
+		koptions = cfg_tuple_get(config, "options");
+		maps[i++] = koptions;
+	}
+	maps[i] = NULL;
+
+	/* Configuration */
+	dns_keystore_setdirectory(keystore, get_string(maps, "directory"));
+	dns_keystore_setpkcs11uri(keystore, get_string(maps, "uri"));
+
+	/* Append it to the list for future lookups. */
+	ISC_LIST_APPEND(*keystorelist, keystore, link);
+	INSIST(!(ISC_LIST_EMPTY(*keystorelist)));
+
+	/* Success: Attach the keystore to the pointer and return. */
+	dns_keystore_attach(keystore, kspp);
+
+	/* Don't detach as keystore is on '*keystorelist' */
+	return (ISC_R_SUCCESS);
 }
