@@ -370,6 +370,30 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "reconfiguring secondary - checking if catz survives a certain class of failed reconfiguration attempts ($n)"
+ret=0
+sed -e "s/^#T3//" < ns2/named1.conf.in > ns2/named.conf.tmp
+copy_setports ns2/named.conf.tmp ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking again that dom3.example. is served by secondary ($n)"
+ret=0
+wait_for_soa @10.53.0.2 dom3.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "reconfiguring secondary - reverting the bad configuration ($n)"
+ret=0
+copy_setports ns2/named1.conf.in ns2/named.conf
+rndccmd 10.53.0.2 reconfig || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "removing all records from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
@@ -1213,7 +1237,7 @@ echo_i "reconfiguring secondary - removing catalog4 catalog zone, adding non-exi
 ret=0
 sed -e "s/^#T2//" < ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > /dev/null 2>&1 && ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

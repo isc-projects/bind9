@@ -1,3 +1,8 @@
+5797.	[bug]		A failed view configuration during a named
+			reconfiguration procedure could cause inconsistencies
+			in BIND internal structures, causing a crash or other
+			unexpected errors. [GL #3060]
+
 5796.	[bug]		Ignore the invalid (<= 0) values returned
 			by the sysconf() check for the L1 cache line
 			size.  [GL #3108]
