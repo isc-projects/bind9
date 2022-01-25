@@ -14,20 +14,21 @@
 /*! \file */
 
 #include <ctype.h>
+#include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
 #endif /* ifndef PATH_MAX */
-
-#include "gen.h"
 
 #ifndef ULLONG_MAX
 #define ULLONG_MAX (~0ULL)
@@ -157,6 +158,11 @@ static struct ttnam {
 
 static int maxtype = -1;
 
+typedef struct {
+	DIR *handle;
+	char *filename;
+} isc_dir_t;
+
 static char *
 upper(char *);
 static char *
@@ -170,6 +176,54 @@ static void
 sd(unsigned int, const char *, const char *, char);
 static void
 insert_into_typenames(int, const char *, const char *);
+
+static bool
+start_directory(const char *path, isc_dir_t *dir) {
+	dir->handle = opendir(path);
+
+	if (dir->handle != NULL) {
+		return (true);
+	} else {
+		return (false);
+	}
+}
+
+static bool
+next_file(isc_dir_t *dir) {
+	struct dirent *dirent;
+
+	dir->filename = NULL;
+
+	if (dir->handle != NULL) {
+		errno = 0;
+		dirent = readdir(dir->handle);
+		if (dirent != NULL) {
+			dir->filename = dirent->d_name;
+		} else {
+			if (errno != 0) {
+				fprintf(stderr,
+					"Error: reading directory: %s\n",
+					strerror(errno));
+				exit(1);
+			}
+		}
+	}
+
+	if (dir->filename != NULL) {
+		return (true);
+	} else {
+		return (false);
+	}
+}
+
+static void
+end_directory(isc_dir_t *dir) {
+	if (dir->handle != NULL) {
+		(void)closedir(dir->handle);
+	}
+
+	dir->handle = NULL;
+}
 
 /*%
  * If you use more than 10 of these in, say, a printf(), you'll have problems.
@@ -560,7 +614,7 @@ main(int argc, char **argv) {
 	}
 
 	srcdir[0] = '\0';
-	while ((c = isc_commandline_parse(argc, argv, "cdits:F:P:S:")) != -1) {
+	while ((c = getopt(argc, argv, "cdits:F:P:S:")) != -1) {
 		switch (c) {
 		case 'c':
 			code = 0;
@@ -595,26 +649,24 @@ main(int argc, char **argv) {
 			filetype = 'h';
 			break;
 		case 's':
-			if (strlen(isc_commandline_argument) >
+			if (strlen(optarg) >
 			    PATH_MAX - 2 * TYPECLASSLEN -
 				    sizeof("/rdata/_65535_65535"))
 			{
-				fprintf(stderr, "\"%s\" too long\n",
-					isc_commandline_argument);
+				fprintf(stderr, "\"%s\" too long\n", optarg);
 				exit(1);
 			}
-			n = snprintf(srcdir, sizeof(srcdir), "%s/",
-				     isc_commandline_argument);
+			n = snprintf(srcdir, sizeof(srcdir), "%s/", optarg);
 			INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
 			break;
 		case 'F':
-			file = isc_commandline_argument;
+			file = optarg;
 			break;
 		case 'P':
-			prefix = isc_commandline_argument;
+			prefix = optarg;
 			break;
 		case 'S':
-			suffix = isc_commandline_argument;
+			suffix = optarg;
 			break;
 		case '?':
 			exit(1);
