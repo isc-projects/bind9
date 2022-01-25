@@ -79,6 +79,7 @@
 #include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keymgr.h>
+#include <dns/keystore.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/master.h>
@@ -8129,10 +8130,14 @@ load_configuration(const char *filename, named_server_t *server,
 	const cfg_obj_t *options;
 	const cfg_obj_t *usev4ports, *avoidv4ports, *usev6ports, *avoidv6ports;
 	const cfg_obj_t *kasps;
+	const cfg_obj_t *keystores;
 	dns_kasp_t *kasp = NULL;
 	dns_kasp_t *kasp_next = NULL;
 	dns_kasp_t *default_kasp = NULL;
 	dns_kasplist_t tmpkasplist, kasplist;
+	dns_keystore_t *keystore = NULL;
+	dns_keystore_t *keystore_next = NULL;
+	dns_keystorelist_t tmpkeystorelist, keystorelist;
 	const cfg_obj_t *views;
 
 	dns_view_t *view_next = NULL;
@@ -8171,6 +8176,7 @@ load_configuration(const char *filename, named_server_t *server,
 	REQUIRE(isc_loop_current(named_g_loopmgr) == named_g_mainloop);
 
 	ISC_LIST_INIT(kasplist);
+	ISC_LIST_INIT(keystorelist);
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
@@ -8883,6 +8889,29 @@ load_configuration(const char *filename, named_server_t *server,
 	(void)configure_session_key(maps, server, named_g_mctx, first_time);
 
 	/*
+	 * Create the DNSSEC key stores.
+	 */
+	keystores = NULL;
+	(void)cfg_map_get(config, "key-store", &keystores);
+	for (element = cfg_list_first(keystores); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		keystore = NULL;
+		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
+					      named_g_lctx, &keystorelist,
+					      &keystore));
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_keystorelist;
+		}
+		INSIST(keystore != NULL);
+		dns_keystore_detach(&keystore);
+	}
+	tmpkeystorelist = server->keystorelist;
+	server->keystorelist = keystorelist;
+	keystorelist = tmpkeystorelist;
+
+	/*
 	 * Create the built-in kasp policies ("default", "insecure").
 	 */
 	kasps = NULL;
@@ -9585,6 +9614,15 @@ cleanup_kasplist:
 		dns_kasp_detach(&kasp);
 	}
 
+cleanup_keystorelist:
+	for (keystore = ISC_LIST_HEAD(keystorelist); keystore != NULL;
+	     keystore = keystore_next)
+	{
+		keystore_next = ISC_LIST_NEXT(keystore, link);
+		ISC_LIST_UNLINK(keystorelist, keystore, link);
+		dns_keystore_detach(&keystore);
+	}
+
 cleanup_v6portset:
 	isc_portset_destroy(named_g_mctx, &v6portset);
 
@@ -9849,6 +9887,7 @@ shutdown_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 	dns_view_t *view = NULL, *view_next = NULL;
 	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+	dns_keystore_t *keystore = NULL, *keystore_next = NULL;
 	bool flush = server->flushonshutdown;
 	named_cache_t *nsc = NULL;
 
@@ -9893,6 +9932,14 @@ shutdown_server(void *arg) {
 		kasp_next = ISC_LIST_NEXT(kasp, link);
 		ISC_LIST_UNLINK(server->kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
+	}
+
+	for (keystore = ISC_LIST_HEAD(server->keystorelist); keystore != NULL;
+	     keystore = keystore_next)
+	{
+		keystore_next = ISC_LIST_NEXT(keystore, link);
+		ISC_LIST_UNLINK(server->keystorelist, keystore, link);
+		dns_keystore_detach(&keystore);
 	}
 
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
@@ -10001,6 +10048,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	/* Initialize server data structures. */
 	ISC_LIST_INIT(server->kasplist);
+	ISC_LIST_INIT(server->keystorelist);
 	ISC_LIST_INIT(server->viewlist);
 
 	/* Must be first. */
@@ -10109,6 +10157,7 @@ named_server_destroy(named_server_t **serverp) {
 	dst_lib_destroy();
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
+	INSIST(ISC_LIST_EMPTY(server->keystorelist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	INSIST(ISC_LIST_EMPTY(server->cachelist));
 

@@ -145,6 +145,12 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			key->role |= DNS_KASP_KEY_ROLE_ZSK;
 		}
 
+		obj = cfg_tuple_get(config, "keystorage");
+		if (cfg_obj_isstring(obj)) {
+			key->keystore = isc_mem_strdup(key->mctx,
+						       cfg_obj_asstring(obj));
+		}
+
 		key->lifetime = 0; /* unlimited */
 		obj = cfg_tuple_get(config, "lifetime");
 		if (cfg_obj_isduration(obj)) {

@@ -385,21 +385,20 @@ dns_kasp_addkey(dns_kasp_t *kasp, dns_kasp_key_t *key) {
 
 isc_result_t
 dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp) {
-	dns_kasp_key_t *key;
+	dns_kasp_key_t *key = NULL;
+	dns_kasp_key_t k = { .length = -1 };
 
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	key = isc_mem_get(kasp->mctx, sizeof(*key));
+	*key = k;
+
 	key->mctx = NULL;
 	isc_mem_attach(kasp->mctx, &key->mctx);
 
 	ISC_LINK_INIT(key, link);
 
-	key->lifetime = 0;
-	key->algorithm = 0;
-	key->length = -1;
-	key->role = 0;
 	*keyp = key;
 	return (ISC_R_SUCCESS);
 }
@@ -408,6 +407,10 @@ void
 dns_kasp_key_destroy(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
+	if (key->keystore != NULL) {
+		isc_mem_free(key->mctx, key->keystore);
+		key->keystore = NULL;
+	}
 	isc_mem_putanddetach(&key->mctx, key, sizeof(*key));
 }
 

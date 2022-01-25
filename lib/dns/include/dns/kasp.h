@@ -51,6 +51,7 @@ struct dns_kasp_key {
 	ISC_LINK(struct dns_kasp_key) link;
 
 	/* Configuration */
+	char	 *keystore;
 	uint32_t lifetime;
 	uint8_t	 algorithm;
 	int	 length;
