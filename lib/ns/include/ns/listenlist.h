@@ -65,6 +65,7 @@ typedef struct ns_listen_tls_params {
 	const char *name;
 	const char *key;
 	const char *cert;
+	const char *ca_file;
 	uint32_t    protocols;
 	const char *dhparam_file;
 	const char *ciphers;
