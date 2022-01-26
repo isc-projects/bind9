@@ -122,9 +122,13 @@ export CONTROLPORT
 export LOWPORT
 export HIGHPORT
 
+# Start all servers used by the system test.  Ensure all log files written
+# during a system test (tests.sh + potentially multiple *.py scripts) are
+# retained for each run by calling start.pl with the --restart command-line
+# option for all invocations except the first one.
 start_servers() {
     echoinfo "I:$systest:starting servers"
-    if $restart; then
+    if $restart || [ "$run" -gt 0 ]; then
         restart_opt="--restart"
     fi
     if ! $PERL start.pl ${restart_opt} --port "$PORT" "$systest"; then
@@ -228,10 +232,10 @@ fi
 
 if [ $status -eq 0 ]; then
     if [ -n "$PYTEST" ]; then
-        run=$((run+1))
         for test in $(cd "${systest}" && find . -name "tests*.py"); do
             rm -f "$systest/$test.status"
             if start_servers; then
+                run=$((run+1))
                 rm -f "$systest/$test.status"
                 test_status=0
                 (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
