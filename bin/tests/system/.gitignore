@@ -8,7 +8,6 @@ named.lock
 named.pid
 named.run
 /feature-test
-/test.output.*
 /makejournal
 /random.data
 /*.log

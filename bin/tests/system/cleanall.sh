@@ -31,6 +31,5 @@ rm -f ../random.data
 for d in $SUBDIRS
 do
    test ! -f $d/clean.sh || ( cd $d && $SHELL clean.sh )
-   rm -f test.output.$d
    test -d $d && find $d -type d -exec rmdir '{}' \; 2> /dev/null
 done
