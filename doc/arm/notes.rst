@@ -34,23 +34,7 @@ proceed in the unstable 9.17 branch.
 Supported Platforms
 -------------------
 
-To build on Unix-like systems, BIND requires support for POSIX.1c
-threads (IEEE Std 1003.1c-1995), the Advanced Sockets API for IPv6
-(:rfc:`3542`), and standard atomic operations provided by the C
-compiler.
-
-The libuv asynchronous I/O library and the OpenSSL cryptography library
-must be available for the target platform. A PKCS#11 provider can be
-used instead of OpenSSL for Public Key cryptography (i.e., DNSSEC
-signing and validation), but OpenSSL is still required for general
-cryptography operations such as hashing and random number generation.
-
-More information can be found in the ``PLATFORMS.md`` file that is
-included in the source distribution of BIND 9. If your compiler and
-system libraries provide the above features, BIND 9 should compile and
-run. If that is not the case, the BIND development team will generally
-accept patches that add support for systems that are still supported by
-their respective vendors.
+See the :ref:`supported_os` section in the :ref:`Requirements` chapter.
 
 Download
 --------
