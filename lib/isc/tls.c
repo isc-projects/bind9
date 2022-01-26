@@ -394,11 +394,16 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		ASN1_INTEGER_set(X509_get_serialNumber(cert),
 				 (long)isc_random32());
 
+		/*
+		 * Set the "not before" property 5 minutes into the past to
+		 * accommodate with some possible clock skew across systems.
+		 */
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
-		X509_gmtime_adj(X509_get_notBefore(cert), 0);
+		X509_gmtime_adj(X509_get_notBefore(cert), -300);
 #else
-		X509_gmtime_adj(X509_getm_notBefore(cert), 0);
+		X509_gmtime_adj(X509_getm_notBefore(cert), -300);
 #endif
+
 		/*
 		 * We set the vailidy for 10 years.
 		 */
