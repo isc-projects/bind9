@@ -19,6 +19,11 @@
 #ifndef DLZ_PTHREAD_H
 #define DLZ_PTHREAD_H 1
 
+#ifndef PTHREADS
+#define PTHREADS 1
+#endif /* ifndef PTHREADS */
+
+#ifdef PTHREADS
 #include <pthread.h>
 #define dlz_mutex_t	  pthread_mutex_t
 #define dlz_mutex_init	  pthread_mutex_init
