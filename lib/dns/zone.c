@@ -871,6 +871,10 @@ static inline void
 zone_attachdb(dns_zone_t *zone, dns_db_t *db);
 static inline void
 zone_detachdb(dns_zone_t *zone);
+static void
+zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
+static void
+zone_catz_disable(dns_zone_t *zone);
 static isc_result_t
 default_journal(dns_zone_t *zone);
 static void
@@ -1670,6 +1674,9 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 		dns_zone_setview_helper(zone, zone->prev_view);
 		dns_view_weakdetach(&zone->prev_view);
 	}
+	if (zone->catzs != NULL) {
+		zone_catz_enable(zone, zone->catzs);
+	}
 	if (inline_secure(zone)) {
 		dns_zone_setviewrevert(zone->raw);
 	}
@@ -1930,18 +1937,34 @@ dns_zone_rpz_disable_db(dns_zone_t *zone, dns_db_t *db) {
 					     zone->rpzs->zones[zone->rpz_num]);
 }
 
-void
-dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
+static void
+zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(catzs != NULL);
 
-	LOCK_ZONE(zone);
 	INSIST(zone->catzs == NULL || zone->catzs == catzs);
 	dns_catz_catzs_set_view(catzs, zone->view);
 	if (zone->catzs == NULL) {
 		dns_catz_catzs_attach(catzs, &zone->catzs);
 	}
+}
+
+void
+dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone_catz_enable(zone, catzs);
 	UNLOCK_ZONE(zone);
+}
+
+static void
+zone_catz_disable(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (zone->catzs != NULL) {
+		dns_catz_catzs_detach(&zone->catzs);
+	}
 }
 
 void
@@ -1949,9 +1972,7 @@ dns_zone_catz_disable(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	if (zone->catzs != NULL) {
-		dns_catz_catzs_detach(&zone->catzs);
-	}
+	zone_catz_disable(zone);
 	UNLOCK_ZONE(zone);
 }
 

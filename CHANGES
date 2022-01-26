@@ -1,3 +1,8 @@
+5797.	[bug]		A failed view configuration during a named
+			reconfiguration procedure could cause inconsistencies
+			in BIND internal structures, causing a crash or other
+			unexpected errors. [GL #3060]
+
 5795.	[bug]		rndc could crash when interrupted by a signal
 			before receiving a response. [GL #3080]
 

@@ -233,7 +233,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* Open the library */
 	dlopen_flags = RTLD_NOW | RTLD_GLOBAL;
 
-#if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__
+#if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	/*
 	 * If RTLD_DEEPBIND is available then use it. This can avoid
 	 * issues with a module using a different version of a system
@@ -244,7 +244,8 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	 * a segfault).
 	 */
 	dlopen_flags |= RTLD_DEEPBIND;
-#endif /* if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ */
+#endif /* if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ && \
+	  !__SANITIZE_THREAD__ */
 
 	cd->dl_handle = dlopen(cd->dl_path, dlopen_flags);
 	if (cd->dl_handle == NULL) {

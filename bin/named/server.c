@@ -437,6 +437,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
 	       bool modify);
 
+static void
+configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
+			     dns_view_t *view);
+
 static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx);
@@ -2439,7 +2443,7 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 }
 
 static isc_result_t
-configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
+configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 	      const cfg_obj_t *rpz_obj, bool *old_rpz_okp) {
 	bool dnsrps_enabled;
 	const cfg_listelt_t *zone_element;
@@ -2453,7 +2457,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	uint32_t minupdateinterval_default;
 	dns_rpz_zones_t *zones;
 	const dns_rpz_zones_t *old;
-	dns_view_t *pview;
+	bool pview_must_detach = false;
 	const dns_rpz_zone_t *old_zone;
 	isc_result_t result;
 	int i;
@@ -2592,14 +2596,19 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 		zones->p.nsip_wait_recurse = false;
 	}
 
-	pview = NULL;
-	result = dns_viewlist_find(&named_g_server->viewlist, view->name,
-				   view->rdclass, &pview);
-	if (result == ISC_R_SUCCESS) {
+	if (pview != NULL) {
 		old = pview->rpzs;
 	} else {
-		old = NULL;
+		result = dns_viewlist_find(&named_g_server->viewlist,
+					   view->name, view->rdclass, &pview);
+		if (result == ISC_R_SUCCESS) {
+			pview_must_detach = true;
+			old = pview->rpzs;
+		} else {
+			old = NULL;
+		}
 	}
+
 	if (old == NULL) {
 		*old_rpz_okp = false;
 	} else {
@@ -2621,7 +2630,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 			add_soa_default, ttl_default, minupdateinterval_default,
 			old_zone, old_rpz_okp);
 		if (result != ISC_R_SUCCESS) {
-			if (pview != NULL) {
+			if (pview_must_detach) {
 				dns_view_detach(&pview);
 			}
 			return (result);
@@ -2658,7 +2667,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 			    view->rpzs->rpz_ver);
 	}
 
-	if (pview != NULL) {
+	if (pview_must_detach) {
 		dns_view_detach(&pview);
 	}
 
@@ -2987,15 +2996,14 @@ catz_modzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
 }
 
 static isc_result_t
-configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
-		    const cfg_listelt_t *element) {
+configure_catz_zone(dns_view_t *view, dns_view_t *pview,
+		    const cfg_obj_t *config, const cfg_listelt_t *element) {
 	const cfg_obj_t *catz_obj, *obj;
 	dns_catz_zone_t *zone = NULL;
 	const char *str;
 	isc_result_t result;
 	dns_name_t origin;
 	dns_catz_options_t *opts;
-	dns_view_t *pview = NULL;
 
 	dns_name_init(&origin, NULL);
 	catz_obj = cfg_listelt_value(element);
@@ -3026,9 +3034,7 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 	if (result == ISC_R_EXISTS) {
 		isc_ht_iter_t *it = NULL;
 
-		result = dns_viewlist_find(&named_g_server->viewlist,
-					   view->name, view->rdclass, &pview);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(pview != NULL);
 
 		/*
 		 * xxxwpk todo: reconfigure the zone!!!!
@@ -3116,9 +3122,6 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 	}
 
 cleanup:
-	if (pview != NULL) {
-		dns_view_detach(&pview);
-	}
 	dns_name_free(&origin, view->mctx);
 
 	return (result);
@@ -3130,11 +3133,11 @@ static dns_catz_zonemodmethods_t ns_catz_zonemodmethods = {
 };
 
 static isc_result_t
-configure_catz(dns_view_t *view, const cfg_obj_t *config,
+configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	       const cfg_obj_t *catz_obj) {
 	const cfg_listelt_t *zone_element;
 	const dns_catz_zones_t *old = NULL;
-	dns_view_t *pview = NULL;
+	bool pview_must_detach = false;
 	isc_result_t result;
 
 	/* xxxwpk TODO do it cleaner, once, somewhere */
@@ -3149,10 +3152,15 @@ configure_catz(dns_view_t *view, const cfg_obj_t *config,
 				 view->mctx, named_g_taskmgr,
 				 named_g_timermgr));
 
-	result = dns_viewlist_find(&named_g_server->viewlist, view->name,
-				   view->rdclass, &pview);
-	if (result == ISC_R_SUCCESS) {
+	if (pview != NULL) {
 		old = pview->catzs;
+	} else {
+		result = dns_viewlist_find(&named_g_server->viewlist,
+					   view->name, view->rdclass, &pview);
+		if (result == ISC_R_SUCCESS) {
+			pview_must_detach = true;
+			old = pview->catzs;
+		}
 	}
 
 	if (old != NULL) {
@@ -3162,7 +3170,7 @@ configure_catz(dns_view_t *view, const cfg_obj_t *config,
 	}
 
 	while (zone_element != NULL) {
-		CHECK(configure_catz_zone(view, config, zone_element));
+		CHECK(configure_catz_zone(view, pview, config, zone_element));
 		zone_element = cfg_list_next(zone_element);
 	}
 
@@ -3173,7 +3181,7 @@ configure_catz(dns_view_t *view, const cfg_obj_t *config,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	if (pview != NULL) {
+	if (pview_must_detach) {
 		dns_view_detach(&pview);
 	}
 
@@ -3974,6 +3982,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
+	bool rpz_configured = false;
+	bool catz_configured = false;
+	bool zones_configured = false;
 	bool reused_cache = false;
 	bool shared_cache = false;
 	int i = 0, j = 0, k = 0;
@@ -4045,14 +4056,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	if (view->rdclass == dns_rdataclass_in && need_hints &&
 	    named_config_get(maps, "response-policy", &obj) == ISC_R_SUCCESS)
 	{
-		CHECK(configure_rpz(view, maps, obj, &old_rpz_ok));
+		CHECK(configure_rpz(view, NULL, maps, obj, &old_rpz_ok));
+		rpz_configured = true;
 	}
 
 	obj = NULL;
 	if (view->rdclass == dns_rdataclass_in && need_hints &&
 	    named_config_get(maps, "catalog-zones", &obj) == ISC_R_SUCCESS)
 	{
-		CHECK(configure_catz(view, config, obj));
+		CHECK(configure_catz(view, NULL, config, obj));
+		catz_configured = true;
 	}
 
 	/*
@@ -4076,6 +4089,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				     viewlist, kasplist, actx, false,
 				     old_rpz_ok, false));
 	}
+	zones_configured = true;
 
 	/*
 	 * Check that a master or slave zone was found for each
@@ -5815,6 +5829,91 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	/*
+	 * Revert to the old view if there was an error.
+	 */
+	if (result != ISC_R_SUCCESS) {
+		isc_result_t result2;
+
+		result2 = dns_viewlist_find(&named_g_server->viewlist,
+					    view->name, view->rdclass, &pview);
+		if (result2 == ISC_R_SUCCESS) {
+			dns_view_thaw(pview);
+
+			obj = NULL;
+			if (rpz_configured &&
+			    pview->rdclass == dns_rdataclass_in && need_hints &&
+			    named_config_get(maps, "response-policy", &obj) ==
+				    ISC_R_SUCCESS)
+			{
+				/*
+				 * We are swapping the places of the `view` and
+				 * `pview` in the function's parameters list
+				 * because we are reverting the same operation
+				 * done previously in the "correct" order.
+				 */
+				result2 = configure_rpz(pview, view, maps, obj,
+							&old_rpz_ok);
+				if (result2 != ISC_R_SUCCESS) {
+					isc_log_write(named_g_lctx,
+						      NAMED_LOGCATEGORY_GENERAL,
+						      NAMED_LOGMODULE_SERVER,
+						      ISC_LOG_ERROR,
+						      "rpz configuration "
+						      "revert failed for view "
+						      "'%s'",
+						      pview->name);
+				}
+			}
+
+			obj = NULL;
+			if (catz_configured &&
+			    pview->rdclass == dns_rdataclass_in && need_hints &&
+			    named_config_get(maps, "catalog-zones", &obj) ==
+				    ISC_R_SUCCESS)
+			{
+				if (pview->catzs != NULL) {
+					dns_catz_catzs_detach(&pview->catzs);
+				}
+				/*
+				 * We are swapping the places of the `view` and
+				 * `pview` in the function's parameters list
+				 * because we are reverting the same operation
+				 * done previously in the "correct" order.
+				 */
+				result2 = configure_catz(pview, view, config,
+							 obj);
+				if (result2 != ISC_R_SUCCESS) {
+					isc_log_write(named_g_lctx,
+						      NAMED_LOGCATEGORY_GENERAL,
+						      NAMED_LOGMODULE_SERVER,
+						      ISC_LOG_ERROR,
+						      "catz configuration "
+						      "revert failed for view "
+						      "'%s'",
+						      pview->name);
+				}
+			}
+
+			dns_view_freeze(pview);
+		}
+
+		if (pview != NULL) {
+			dns_view_detach(&pview);
+		}
+
+		if (zones_configured) {
+			for (element = cfg_list_first(zonelist);
+			     element != NULL; element = cfg_list_next(element))
+			{
+				const cfg_obj_t *zconfig =
+					cfg_listelt_value(element);
+				configure_zone_setviewcommit(result, zconfig,
+							     view);
+			}
+		}
+	}
+
 	if (ntatable != NULL) {
 		dns_ntatable_detach(&ntatable);
 	}
