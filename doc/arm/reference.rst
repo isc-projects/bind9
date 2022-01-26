@@ -4832,7 +4832,13 @@ The following options can be specified in a ``tls`` statement:
     the connection.
 
   ``ca-file``
-    Path to a file containing trusted TLS certificates.
+    Path to a file containing trusted CA-authorities TLS
+    certificates used to verify remote peer certificates. Specifying
+    this option enables remote peer certificates verification. For
+    incoming connections specifying this option will make BIND require
+    a valid TLS certificate from a client. In the case of outgoing
+    connections, if ``hostname`` is not specified, then the remote
+    server IP address is used instead.
 
   ``dhparam-file``
     Path to a file containing Diffie-Hellman parameters,
@@ -4842,7 +4848,13 @@ The following options can be specified in a ``tls`` statement:
     ciphers in TLSv1.2.
 
   ``hostname``
-    The hostname associated with the certificate.
+    The expected hostname in the TLS certificate of the
+    remote server. This option enables a remote server certificate
+    verification. If ``ca-file`` is not specified, then the
+    platform-specific certificates store is used for
+    verification. This option is used when connecting to a remote peer
+    only and, thus, is ignored when ``tls`` statements are referenced
+    by ``listen-on`` or ``listen-on-v6`` statements.
 
   ``protocols``
     Allowed versions of the TLS protocol. TLS version 1.2 and higher are

@@ -933,6 +933,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	dns_xfrin_ctx_t *connect_xfr = NULL;
 	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
 	isc_tlsctx_t *tlsctx = NULL, *found = NULL;
+	isc_tls_cert_store_t *store = NULL, *found_store = NULL;
 
 	(void)isc_refcount_increment0(&xfr->connects);
 	dns_xfrin_attach(xfr, &connect_xfr);
@@ -973,8 +974,19 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		 */
 		result = isc_tlsctx_cache_find(xfr->tlsctx_cache, tlsname,
 					       isc_tlsctx_cache_tls, family,
-					       &tlsctx, NULL);
+					       &tlsctx, &found_store);
 		if (result != ISC_R_SUCCESS) {
+			const char *hostname =
+				dns_transport_get_hostname(xfr->transport);
+			const char *ca_file =
+				dns_transport_get_cafile(xfr->transport);
+			const char *cert_file =
+				dns_transport_get_certfile(xfr->transport);
+			const char *key_file =
+				dns_transport_get_keyfile(xfr->transport);
+			char primary_addr_str[INET6_ADDRSTRLEN] = { 0 };
+			isc_netaddr_t primary_netaddr = { 0 };
+			bool hostname_ignore_subject;
 			/*
 			 * So, no context exists. Let's create one using the
 			 * parameters from the configuration file and try to
@@ -997,12 +1009,80 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				isc_tlsctx_prefer_server_ciphers(
 					tlsctx, prefer_server_ciphers);
 			}
+
+			if (hostname != NULL || ca_file != NULL) {
+				if (found_store == NULL) {
+					/*
+					 * 'ca_file' can equal 'NULL' here, in
+					 * that case the store with system-wide
+					 * CA certificates will be created, just
+					 * as planned.
+					 */
+					result = isc_tls_cert_store_create(
+						ca_file, &store);
+
+					if (result != ISC_R_SUCCESS) {
+						goto failure;
+					}
+				} else {
+					store = found_store;
+				}
+
+				INSIST(store != NULL);
+				if (hostname == NULL) {
+					/*
+					 * If CA bundle file is specified, but
+					 * hostname is not, then use the primary
+					 * IP address for validation, just like
+					 * dig does.
+					 */
+					INSIST(ca_file != NULL);
+					isc_netaddr_fromsockaddr(
+						&primary_netaddr,
+						&xfr->primaryaddr);
+					isc_netaddr_format(
+						&primary_netaddr,
+						primary_addr_str,
+						sizeof(primary_addr_str));
+					hostname = primary_addr_str;
+				}
+				/*
+				 * According to RFC 8310, Subject field MUST NOT
+				 * be inspected when verifying hostname for DoT.
+				 * Only SubjectAltName must be checked.
+				 */
+				hostname_ignore_subject = true;
+				result = isc_tlsctx_enable_peer_verification(
+					tlsctx, false, store, hostname,
+					hostname_ignore_subject);
+				if (result != ISC_R_SUCCESS) {
+					goto failure;
+				}
+
+				/*
+				 * Let's load client certificate and enable
+				 * Mutual TLS. We do that only in the case when
+				 * Strict TLS is enabled, because Mutual TLS is
+				 * an extension of it.
+				 */
+				if (cert_file != NULL) {
+					INSIST(key_file != NULL);
+
+					result = isc_tlsctx_load_certificate(
+						tlsctx, key_file, cert_file);
+					if (result != ISC_R_SUCCESS) {
+						goto failure;
+					}
+				}
+			}
+
 			isc_tlsctx_enable_dot_client_alpn(tlsctx);
 
+			found_store = NULL;
 			result = isc_tlsctx_cache_add(
 				xfr->tlsctx_cache, tlsname,
-				isc_tlsctx_cache_tls, family, tlsctx, NULL,
-				&found, NULL);
+				isc_tlsctx_cache_tls, family, tlsctx, store,
+				&found, &found_store);
 			if (result == ISC_R_EXISTS) {
 				/*
 				 * It seems the entry has just been created
@@ -1019,6 +1099,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				 */
 				INSIST(found != NULL);
 				isc_tlsctx_free(&tlsctx);
+				isc_tls_cert_store_free(&store);
 				tlsctx = found;
 			} else {
 				INSIST(result == ISC_R_SUCCESS);
@@ -1042,6 +1123,10 @@ failure:
 	 */
 	if (tlsctx != NULL && found != tlsctx) {
 		isc_tlsctx_free(&tlsctx);
+	}
+
+	if (store != NULL && store != found_store) {
+		isc_tls_cert_store_free(&store);
 	}
 	isc_refcount_decrement0(&xfr->connects);
 	dns_xfrin_detach(&connect_xfr);
