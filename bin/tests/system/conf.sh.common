@@ -181,19 +181,19 @@ then
 		printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 	}
 	echo_i() {
-	    printf '%s\n' "$*" | while read -r __LINE ; do
+	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
 	       echoinfo "I:$SYSTESTDIR:$__LINE"
 	    done
 	}
 
 	echo_ic() {
-	    printf '%s\n' "$*" | while read -r __LINE ; do
+	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
 	       echoinfo "I:$SYSTESTDIR:  $__LINE"
 	    done
 	}
 
 	echo_d() {
-	    printf '%s\n' "$*" | while read -r __LINE ; do
+	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
 	       echoinfo "D:$SYSTESTDIR:$__LINE"
 	    done
 	}
@@ -218,32 +218,32 @@ else
 	}
 
 	echo_i() {
-	    echo "$@" | while read -r __LINE ; do
+	    echo "$@" | while IFS= read -r __LINE ; do
 	       echoinfo "I:$SYSTESTDIR:$__LINE"
 	    done
 	}
 
 	echo_ic() {
-	    echo "$@" | while read -r __LINE ; do
+	    echo "$@" | while IFS= read -r __LINE ; do
 	       echoinfo "I:$SYSTESTDIR:  $__LINE"
 	    done
 	}
 
 	echo_d() {
-	    echo "$@" | while read -r __LINE ; do
+	    echo "$@" | while IFS= read -r __LINE ; do
 	       echoinfo "D:$SYSTESTDIR:$__LINE"
 	    done
 	}
 fi
 
 cat_i() {
-    while read -r __LINE ; do
+    while IFS= read -r __LINE ; do
        echoinfo "I:$SYSTESTDIR:$__LINE"
     done
 }
 
 cat_d() {
-    while read -r __LINE ; do
+    while IFS= read -r __LINE ; do
        echoinfo "D:$SYSTESTDIR:$__LINE"
     done
 }

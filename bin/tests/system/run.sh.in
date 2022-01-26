@@ -117,9 +117,13 @@ fi
 # Determine which ports to use for this system test.
 eval "$(cd "${srcdir}" && ./get_ports.sh -p "$baseport" -t "$systest")"
 
+# Start all servers used by the system test.  Ensure all log files written
+# during a system test (tests.sh + potentially multiple *.py scripts) are
+# retained for each run by calling start.pl with the --restart command-line
+# option for all invocations except the first one.
 start_servers() {
     echoinfo "I:$systest:starting servers"
-    if $restart; then
+    if $restart || [ "$run" -gt 0 ]; then
         restart_opt="--restart"
     fi
     if ! $PERL start.pl ${restart_opt} --port "$PORT" "$systest"; then
