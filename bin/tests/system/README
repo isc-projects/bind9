@@ -598,13 +598,10 @@ Adding a Test to the System Test Suite
 ---
 Once a test has been created, the following files should be edited:
 
-* conf.sh.in  The name of the test should be added to the PARALLELDIRS or
-SEQUENTIALDIRS variables as appropriate.  The former is used for tests that
-can run in parallel with other tests, the latter for tests that are unable to
-do so.
+* conf.sh.common The name of the test should be added to the PARALLEL_COMMON
+variable.
 
-* Makefile.in The name of the test should be added to one of the the PARALLEL
-or SEQUENTIAL variables.
+* Makefile.am The name of the test should be added to the TESTS variable.
 
 (It is likely that a future iteration of the system test suite will remove the
 need to edit multiple files to add a test.)
