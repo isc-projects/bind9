@@ -8,11 +8,8 @@ named.lock
 named.pid
 named.run
 /feature-test
-/test.output.*
 /makejournal
-/systests.output
 /random.data
-parallel.mk
 /*.log
 /*.trs
 /resolve

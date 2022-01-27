@@ -126,9 +126,7 @@ new tests being started as tests finish.  Each test will get a unique set of
 ports, so there is no danger of tests interfering with one another.  Parallel
 running will reduce the total time taken to run the BIND system tests, but will
 mean that the output from all the tests sent to the screen will be mixed up
-with one another.  However, the systests.output file produced at the end of the
-run (in the bin/tests/system directory) will contain the output from each test
-in sequential order.
+with one another.
 
 In this case, retention of the output files after a test completes successfully
 is specified by setting the environment variable SYSTEMTEST_NO_CLEAN to 1 prior
@@ -598,13 +596,10 @@ Adding a Test to the System Test Suite
 ---
 Once a test has been created, the following files should be edited:
 
-* conf.sh.in  The name of the test should be added to the PARALLELDIRS or
-SEQUENTIALDIRS variables as appropriate.  The former is used for tests that
-can run in parallel with other tests, the latter for tests that are unable to
-do so.
+* conf.sh.common The name of the test should be added to the PARALLEL_COMMON
+variable.
 
-* Makefile.in The name of the test should be added to one of the the PARALLEL
-or SEQUENTIAL variables.
+* Makefile.am The name of the test should be added to the TESTS variable.
 
 (It is likely that a future iteration of the system test suite will remove the
 need to edit multiple files to add a test.)
@@ -632,15 +627,8 @@ test, the running of all tests in the test suite is controlled by the Makefile.
 All system tests are capable of being run in parallel.  For this to work, each
 test needs to use a unique set of ports.  To avoid the need to define which
 tests use which ports (and so risk port clashes as further tests are added),
-the ports are assigned when the tests are run.  This is achieved by having the
-"test" target in the Makefile depend on "parallel.mk".  That file is created
-when "make check" is run, and contains a target for each test of the form:
-
-    <test-name>:
-        @$(SHELL) run.sh -p <baseport> <test-name>
-
-The <baseport> is unique and the values of <baseport> for each test are
-separated by at least 100 ports.
+the ports are determined by "get_ports.sh", a port broker script which keeps
+track of ports given to each individual system test.
 
 
 Cleaning Up From Tests
@@ -653,10 +641,6 @@ stored in the test directory.
 2. Files produced by named which may not be cleaned up if named exits
 abnormally, e.g. core files, PID files etc., are stored in the test directory.
 
-3. A file "test.output.<test-name>" containing the text written to stdout by the
-test is written to bin/tests/system/.  This file is only produced when the test
-is run as part of the entire test suite (e.g. via make).
-
 If the test fails, all these files are retained.  But if the test succeeds,
 they are cleaned up at different times:
 
@@ -665,7 +649,3 @@ they are cleaned up at different times:
 
 2. Files that may not be cleaned up if named exits abnormally can be removed
 using the "cleanall.sh" script.
-
-3. "test.output.*" files are deleted when the test suite ends.  At this point,
-the file "testsummary.sh" is called which concatenates all the "test.output.*"
-files into a single "systests.output" file before deleting them.

@@ -31,13 +31,6 @@ export LANG=C
 # The "dialup", "delzone", and "dupsigs" tests are also not run by
 # default because they take a very long time to complete.
 #
-# The following tests are hard-coded to use ports 5300 and 9953. For
-# this reason, these must be run sequentially.
-#
-# Sequential tests that only run on unix/linux should be added to
-# SEQUENTIAL_UNIX in conf.sh.in
-#
-SEQUENTIAL_COMMON=""
 
 #
 # These tests can use ports assigned by the caller (other than 5300

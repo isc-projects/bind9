@@ -73,8 +73,6 @@ KRB5_KTNAME=dns.keytab
 #
 # Construct the lists of tests to run
 #
-SEQUENTIAL_UNIX=""
-SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_UNIX"
 
 PARALLEL_UNIX="chain
 checkds
@@ -93,9 +91,7 @@ pipelined
 qmin
 shutdown
 tcp"
-PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
-
-SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
+SUBDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
