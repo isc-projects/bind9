@@ -1,3 +1,5 @@
+5800.	[func]		Add ECS support to the DLZ interface. [GL #3082]
+
 5799.	[bug]		Use L1 cache-line size detected at runtime. [GL #3108]
 
 5798.	[test]		Add system test to test dnssec-keyfromlabel. [GL #3092]
