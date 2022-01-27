@@ -51,6 +51,10 @@ ISC_LANG_BEGINDECLS
 *****/
 
 #define DNS_CLIENTINFO_VERSION 3
+/*
+ * Any updates to this structure should also be applied in
+ * contrib/modules/dlz/dlz_minmal.h.
+ */
 typedef struct dns_clientinfo {
 	uint16_t  version;
 	void     *data;
@@ -64,6 +68,10 @@ typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
 #define DNS_CLIENTINFOMETHODS_VERSION 2
 #define DNS_CLIENTINFOMETHODS_AGE     1
 
+/*
+ * Any updates to this structure should also be applied in
+ * contrib/modules/dlz/dlz_minmal.h.
+ */
 typedef struct dns_clientinfomethods {
 	uint16_t		  version;
 	uint16_t		  age;
