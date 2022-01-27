@@ -155,11 +155,6 @@ To run only the system tests, omitting unit tests:
 
 	$ make test
 
-Or:
-
-        $ cd bin/tests/system
-        $ sh runall.sh
-
 To run an individual system test:
 
         $ make -C bin/tests/system/ check TESTS=<testname> V=1
