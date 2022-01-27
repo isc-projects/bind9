@@ -942,7 +942,7 @@ unit:gcc:focal:amd64:
 gcc:asan:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -Wno-error=stringop-overread"
     LDFLAGS: "-fsanitize=address,undefined"
     SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
     EXTRA_CONFIGURE: "--with-libidn2 --without-jemalloc"
