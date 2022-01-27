@@ -111,7 +111,7 @@ isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 		isc_hp_uintptr_t *hps;
 
 		hps = isc_mem_get_aligned(mctx, hp->max_hps * sizeof(*hps),
-					  ISC_OS_CACHELINE_SIZE);
+					  isc_os_cacheline());
 		for (int j = 0; j < hp->max_hps; j++) {
 			atomic_init(&hps[j], 0);
 		}
@@ -124,8 +124,7 @@ isc_hp_new(isc_mem_t *mctx, size_t max_hps, isc_hp_deletefunc_t *deletefunc) {
 	for (int i = 0; i < isc__hp_max_threads; i++) {
 		retirelist_t *rl;
 
-		rl = isc_mem_get_aligned(mctx, sizeof(*rl),
-					 ISC_OS_CACHELINE_SIZE);
+		rl = isc_mem_get_aligned(mctx, sizeof(*rl), isc_os_cacheline());
 		rl->size = 0;
 		rl->list = isc_mem_get(hp->mctx,
 				       hp->max_retired * sizeof(uintptr_t));
@@ -149,12 +148,12 @@ isc_hp_destroy(isc_hp_t *hp) {
 		isc_mem_put(hp->mctx, rl->list,
 			    hp->max_retired * sizeof(uintptr_t));
 		isc_mem_put_aligned(hp->mctx, rl, sizeof(*rl),
-				    ISC_OS_CACHELINE_SIZE);
+				    isc_os_cacheline());
 	}
 	for (int i = 0; i < isc__hp_max_threads; i++) {
 		isc_hp_uintptr_t *hps = hp->hp[i];
 		isc_mem_put_aligned(hp->mctx, hps, hp->max_hps * sizeof(*hps),
-				    ISC_OS_CACHELINE_SIZE);
+				    isc_os_cacheline());
 	}
 	isc_mem_put(hp->mctx, hp->hp, isc__hp_max_threads * sizeof(hp->hp[0]));
 	isc_mem_put(hp->mctx, hp->rl, isc__hp_max_threads * sizeof(hp->rl[0]));
