@@ -4158,7 +4158,7 @@ is listed in a policy zone, to operators of servers for listed names. To
 prevent that information leak, by default any recursion needed for a
 request is done before any policy triggers are considered. Because
 listed domains often have slow authoritative servers, this behavior can
-cost significant time. The ``qname-wait-recurse yes`` option overrides
+cost significant time. The ``qname-wait-recurse no`` option overrides
 the default and enables that behavior when recursion cannot change a
 non-error response. The option does not affect QNAME or client-IP
 triggers in policy zones listed after other zones containing IP, NSIP,
