@@ -1,3 +1,5 @@
+5800.	[func]		Add ECS support to the DLZ interface. [GL #3082]
+
 5797.	[bug]		A failed view configuration during a named
 			reconfiguration procedure could cause inconsistencies
 			in BIND internal structures, causing a crash or other
