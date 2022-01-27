@@ -22,7 +22,7 @@ keyid=`expr ${keyname} : 'K.+008+\(.*\)'`
 
 (cd ../ns2 && $SHELL sign.sh ${keyid:-00000} )
 
-cp ../ns2/dsset-example$TP .
+cp ../ns2/dsset-example. .
 
 cat $infile $keyname.key > $zonefile
 

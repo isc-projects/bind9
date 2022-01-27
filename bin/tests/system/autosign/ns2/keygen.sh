@@ -19,18 +19,18 @@
 for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs sync \
     dname-at-apex-nsec3
 do
-	cp ../ns3/dsset-$subdomain.example$TP .
+	cp ../ns3/dsset-$subdomain.example. .
 done
 
 # Create keys and pass the DS to the parent.
 zone=example
 zonefile="${zone}.db"
 infile="${zonefile}.in"
-cat $infile dsset-*.example$TP > $zonefile
+cat $infile dsset-*.example. > $zonefile
 
 kskname=`$KEYGEN -a RSASHA1 -3 -q -fk $zone`
 $KEYGEN -a RSASHA1 -3 -q $zone > /dev/null
-$DSFROMKEY $kskname.key > dsset-${zone}$TP
+$DSFROMKEY $kskname.key > dsset-${zone}.
 
 # Create keys for a private secure zone.
 zone=private.secure.example
@@ -53,4 +53,4 @@ do
 	cp $i `echo $i | sed s/X/K/`
 done
 $KEYGEN -a RSASHA1 -q $zone > /dev/null
-$DSFROMKEY Kbar.+005+30804.key > dsset-bar$TP
+$DSFROMKEY Kbar.+005+30804.key > dsset-bar.

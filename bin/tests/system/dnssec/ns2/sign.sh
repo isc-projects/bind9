@@ -24,8 +24,8 @@ echo_i "ns2/sign.sh"
 # Get the DS records for the "trusted." and "managed." zones.
 for subdomain in secure unsupported disabled enabled
 do
-	cp "../ns3/dsset-$subdomain.managed$TP" .
-	cp "../ns3/dsset-$subdomain.trusted$TP" .
+	cp "../ns3/dsset-$subdomain.managed." .
+	cp "../ns3/dsset-$subdomain.trusted." .
 done
 
 # Sign the "trusted." and "managed." zones.
@@ -65,7 +65,7 @@ for subdomain in secure badds bogus dynamic keyless nsec3 optout \
 	dnskey-nsec3-unknown managed-future revkey \
 	dname-at-apex-nsec3 occluded
 do
-	cp "../ns3/dsset-$subdomain.example$TP" .
+	cp "../ns3/dsset-$subdomain.example." .
 done
 
 # Sign the "example." zone.
@@ -83,7 +83,6 @@ cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
 
 zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
 "$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" |
-tr -d '\r' |
 awk '
 tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 	for (i = 1; i <= NF; i++ ) {
