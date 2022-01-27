@@ -1915,18 +1915,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		return;
 	}
 
-	/*
-	 * Disable pipelined TCP query processing if necessary.
-	 */
-	if (TCP_CLIENT(client) &&
-	    (client->message->opcode != dns_opcode_query ||
-	     (client->sctx->keepresporder != NULL &&
-	      dns_acl_allowed(&netaddr, NULL, client->sctx->keepresporder,
-			      env))))
-	{
-		isc_nm_sequential(handle);
-	}
-
 	dns_opcodestats_increment(client->sctx->opcodestats,
 				  client->message->opcode);
 	switch (client->message->opcode) {

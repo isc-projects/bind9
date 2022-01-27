@@ -1567,7 +1567,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 			 sock, isc_refcount_current(&sock->references));
 
 	atomic_init(&sock->active, true);
-	atomic_init(&sock->sequential, false);
 	atomic_init(&sock->readpaused, false);
 	atomic_init(&sock->closing, false);
 	atomic_init(&sock->listening, 0);
@@ -2334,9 +2333,8 @@ processbuffer(isc_nmsocket_t *sock) {
  * If we only have an incomplete DNS message, we don't touch any
  * timers. If we do have a full message, reset the timer.
  *
- * Stop reading if this is a client socket, or if the server socket
- * has been set to sequential mode. In this case we'll be called again
- * later by isc__nm_resume_processing().
+ * Stop reading if this is a client socket.  In this case we'll be
+ * called again later by isc__nm_resume_processing().
  */
 void
 isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
@@ -2372,8 +2370,7 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			 */
 			isc__nmsocket_timer_stop(sock);
 
-			if (atomic_load(&sock->client) ||
-			    atomic_load(&sock->sequential)) {
+			if (atomic_load(&sock->client)) {
 				isc__nm_stop_reading(sock);
 				return;
 			}
@@ -3445,39 +3442,6 @@ isc_nm_work_offload(isc_nm_t *netmgr, isc_nm_workcb_t work_cb,
 	r = uv_queue_work(&worker->loop, &work->req, isc__nm_work_cb,
 			  isc__nm_after_work_cb);
 	UV_RUNTIME_CHECK(uv_queue_work, r);
-}
-
-void
-isc_nm_sequential(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	sock = handle->sock;
-
-	switch (sock->type) {
-	case isc_nm_tcpdnssocket:
-	case isc_nm_tlsdnssocket:
-		break;
-	case isc_nm_httpsocket:
-		return;
-	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
-	}
-
-	/*
-	 * We don't want pipelining on this connection. That means
-	 * that we need to pause after reading each request, and
-	 * resume only after the request has been processed. This
-	 * is done in isc__nm_resume_processing(), which is the
-	 * socket's closehandle_cb callback, called whenever a handle
-	 * is released.
-	 */
-	isc__nmsocket_timer_stop(sock);
-	isc__nm_stop_reading(sock);
-	atomic_store(&sock->sequential, true);
 }
 
 void

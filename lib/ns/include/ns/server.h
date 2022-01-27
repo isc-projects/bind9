@@ -90,7 +90,6 @@ struct ns_server {
 	uint32_t options;
 
 	dns_acl_t	  *blackholeacl;
-	dns_acl_t	  *keepresporder;
 	uint16_t       udpsize;
 	uint16_t       transfer_tcp_message_size;
 	bool	       interface_auto;

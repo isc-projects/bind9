@@ -8698,15 +8698,6 @@ load_configuration(const char *filename, named_server_t *server,
 					     server->sctx->blackholeacl);
 	}
 
-	/*
-	 * Set "keep-response-order". Only legal at options or
-	 * global defaults level.
-	 */
-	CHECK(configure_view_acl(NULL, config, named_g_config,
-				 "keep-response-order", NULL,
-				 named_g_aclconfctx, named_g_mctx,
-				 &server->sctx->keepresporder));
-
 	obj = NULL;
 	result = named_config_get(maps, "match-mapped-addresses", &obj);
 	INSIST(result == ISC_R_SUCCESS);

@@ -1022,11 +1022,6 @@ struct isc_nmsocket {
 	atomic_bool client;
 
 	/*%
-	 * TCPDNS socket has been set not to pipeline.
-	 */
-	atomic_bool sequential;
-
-	/*%
 	 * The socket is processing read callback, this is guard to not read
 	 * data before the readcb is back.
 	 */

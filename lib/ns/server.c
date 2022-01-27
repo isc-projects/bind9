@@ -158,9 +158,6 @@ ns_server_detach(ns_server_t **sctxp) {
 		if (sctx->blackholeacl != NULL) {
 			dns_acl_detach(&sctx->blackholeacl);
 		}
-		if (sctx->keepresporder != NULL) {
-			dns_acl_detach(&sctx->keepresporder);
-		}
 		if (sctx->tkeyctx != NULL) {
 			dns_tkeyctx_destroy(&sctx->tkeyctx);
 		}
