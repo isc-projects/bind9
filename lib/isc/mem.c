@@ -459,7 +459,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = mallocx(sizeof(*ctx), MALLOCX_ALIGN(ISC_OS_CACHELINE_SIZE));
+	ctx = mallocx(sizeof(*ctx), MALLOCX_ALIGN(isc_os_cacheline()));
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
@@ -578,7 +578,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(malloced == 0);
 	}
-	sdallocx(ctx, sizeof(*ctx), MALLOCX_ALIGN(ISC_OS_CACHELINE_SIZE));
+	sdallocx(ctx, sizeof(*ctx), MALLOCX_ALIGN(isc_os_cacheline()));
 }
 
 void

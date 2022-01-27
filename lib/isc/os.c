@@ -20,6 +20,7 @@
 #include "os_p.h"
 
 static unsigned int isc__os_ncpus = 0;
+static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
 
 #ifdef HAVE_SYSCONF
 
@@ -76,12 +77,19 @@ isc_os_ncpus(void) {
 	return (isc__os_ncpus);
 }
 
+unsigned long
+isc_os_cacheline(void) {
+	return (isc__os_cacheline);
+}
+
 void
 isc__os_initialize(void) {
 	ncpus_initialize();
 #if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
 	long s = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
-	RUNTIME_CHECK((size_t)s == (size_t)ISC_OS_CACHELINE_SIZE || s <= 0);
+	if (s > 0 && (unsigned long)s > isc__os_cacheline) {
+		isc__os_cacheline = s;
+	}
 #endif
 }
 

@@ -94,8 +94,7 @@ isc_queue_new(isc_mem_t *mctx) {
 	isc_queue_t *queue = NULL;
 	node_t *sentinel = NULL;
 
-	queue = isc_mem_get_aligned(mctx, sizeof(*queue),
-				    ISC_OS_CACHELINE_SIZE);
+	queue = isc_mem_get_aligned(mctx, sizeof(*queue), isc_os_cacheline());
 
 	*queue = (isc_queue_t){ 0 };
 
@@ -211,5 +210,5 @@ isc_queue_destroy(isc_queue_t *queue) {
 	isc_hp_destroy(queue->hp);
 
 	isc_mem_putanddetach_aligned(&queue->mctx, queue, sizeof(*queue),
-				     ISC_OS_CACHELINE_SIZE);
+				     isc_os_cacheline());
 }
