@@ -1,0 +1,26 @@
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
+# These are known leaks in libp11.
+leak:BN_MONT_CTX_new
+leak:C_LoadModule
+leak:ctx_new
+leak:ctx_try_load_object
+leak:dlfcn_name_converter
+leak:EC_GROUP_set_seed
+leak:CRYPTO_strdup
+leak:CRYPTO_zalloc
+leak:pkcs11_check_token
+leak:pkcs11_CTX_new
+leak:pkcs11_enumerate_slots
+leak:pkcs11_getattr_alloc
+leak:pkcs11_init_key
+leak:pkcs11_strdup
