@@ -1,3 +1,5 @@
+5798.	[test]		Add system test to test dnssec-keyfromlabel. [GL #3092]
+
 5797.	[bug]		A failed view configuration during a named
 			reconfiguration procedure could cause inconsistencies
 			in BIND internal structures, causing a crash or other
