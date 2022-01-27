@@ -467,8 +467,6 @@ echo_i "test smaller transfer TCP message size ($n)"
 $DIG $DIGOPTS example. @10.53.0.8 axfr \
 	-y key1.:1234abcd8765 > dig.out.msgsize.test$n || status=1
 
-$DOS2UNIX dig.out.msgsize.test$n >/dev/null 2>&1
-
 bytes=`wc -c < dig.out.msgsize.test$n`
 if [ $bytes -ne 459357 ]; then
 	echo_i "failed axfr size check"

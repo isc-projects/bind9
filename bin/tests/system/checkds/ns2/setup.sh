@@ -21,7 +21,7 @@ for subdomain in dspublished reference missing-dspublished bad-dspublished \
 		 dswithdrawn missing-dswithdrawn bad-dswithdrawn \
 		 multiple-dswithdrawn incomplete-dswithdrawn bad2-dswithdrawn
 do
-	cp "../ns9/dsset-$subdomain.checkds$TP" .
+	cp "../ns9/dsset-$subdomain.checkds." .
 done
 
 zone="checkds"

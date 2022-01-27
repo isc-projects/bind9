@@ -23,8 +23,6 @@
 #
 #   numprocess  Number of concurrent processes to use when running the tests.
 #               The default is one, which causes the tests to run sequentially.
-#               (This is ignored when running on Windows as the tests are always
-#               run sequentially on that platform.)
 
 . ./conf.sh
 
@@ -72,19 +70,9 @@ export SYSTEMTEST_NO_CLEAN
 status=0
 
 if [ "$NOPARALLEL" = "" ]; then
-    if [ "$CYGWIN" = "" ]; then
-        # Running on Unix, use "make" to run tests in parallel.
-        make -j "$numproc" check
-        status=$?
-    else
-        # Running on Windows: Cygwin "make" is available, but isn't being
-        # used for the build. So we create a special makefile for the purpose
-        # of parallel execution of system tests, and use that.
-        $SHELL parallel.sh > parallel.mk
-        make -f parallel.mk -j "$numproc" check
-        $SHELL ./runsequential.sh
-        $SHELL ./testsummary.sh || status=1
-    fi
+    # use "make" to run tests in parallel.
+    make -j "$numproc" check
+    status=$?
 else
     # the NOPARALLEL environment variable indicates that tests must be
     # run sequentially.

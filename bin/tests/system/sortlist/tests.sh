@@ -30,7 +30,7 @@ EOF
 $DIG $DIGOPTS a.example. @10.53.0.1 -b 10.53.0.1 >test1.dig
 # Note that this can't use digcomp.pl because here, the ordering of the
 # result RRs is significant.
-$DIFF test1.dig test1.good || status=1
+diff test1.dig test1.good || status=1
 
 echo_i "test 1-element sortlist statement and undocumented BIND 8 features"
 	cat <<EOF >test2.good

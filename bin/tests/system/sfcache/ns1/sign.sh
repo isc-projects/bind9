@@ -22,7 +22,7 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh )
 
-cp "../ns2/dsset-example$TP" .
+cp "../ns2/dsset-example." .
 
 keyname=$($KEYGEN -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" -n zone $zone)
 

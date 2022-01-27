@@ -205,7 +205,7 @@ restart () {
 	    PID=`cat ns$1/named.pid 2>/dev/null`
 	    if test -n "$PID"; then
 		echo_i "killing ns$1 server $PID"
-		$KILL -9 $PID
+		kill -9 $PID
 	    fi
 	fi
     fi
@@ -381,7 +381,7 @@ addr () {
     digcmd $2 >$DIGNM
     #ckalive "$2" "server crashed by 'dig $2'" || return 1
     ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
-    ADDR_TTL=`tr -d '\r' < $DIGNM | sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p"`
+    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
     if test -z "$ADDR_TTL"; then
 	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
@@ -768,7 +768,7 @@ EOF
   if [ "$mode" = dnsrps ]; then
     echo_i "checking that dnsrpzd is automatically restarted"
     OLD_PID=`cat dnsrpzd.pid`
-    $KILL "$OLD_PID"
+    kill "$OLD_PID"
     n=0
     while true; do
 	NEW_PID=`cat dnsrpzd.pid 2>/dev/null`

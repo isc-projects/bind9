@@ -94,13 +94,8 @@ nextpart ns3/named.run > /dev/null
 sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
-if [ ! "$CYGWIN" ]; then
-    echo_i "reloading with example2 using HUP and waiting up to 45 seconds"
-    $KILL -HUP `cat ns2/named.pid`
-else
-    echo_i "reloading with example2 using rndc and waiting up to 45 seconds"
-    rndc_reload ns2 10.53.0.2
-fi
+echo_i "reloading with example2 using HUP and waiting up to 45 seconds"
+kill -HUP `cat ns2/named.pid`
 
 try=0
 while test $try -lt 45

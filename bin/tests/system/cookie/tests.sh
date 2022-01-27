@@ -22,7 +22,7 @@ n=0
 getcookie() {
 	awk '$2 == "COOKIE:" {
 		print $3;
-	}' < $1 | tr -d '\r'
+	}' < $1
 }
 
 fullcookie() {
