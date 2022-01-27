@@ -20,7 +20,6 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
-	keep-response-order { 10.53.0.7/32; };
 	recursion yes;
 	dnssec-validation yes;
 	notify yes;

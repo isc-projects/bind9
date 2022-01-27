@@ -144,7 +144,6 @@
   	ipv4only-server <string>;
   	ixfr-from-differences ( primary | master | secondary | slave |
   	    <boolean> );
-  	keep-response-order { <address_match_element>; ... };
   	key-directory <quoted_string>;
   	lame-ttl <duration>;
   	listen-on [ port <integer> ] [ dscp
