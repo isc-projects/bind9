@@ -33,6 +33,10 @@
 #define ECS_MAX_V6_SCOPE 56
 #endif
 
+/*
+ * Any updates to this structure should also be applied in
+ * contrib/modules/dlz/dlz_minmal.h.
+ */
 struct dns_ecs {
 	isc_netaddr_t addr;
 	uint8_t	      source;
