@@ -64,12 +64,8 @@ typedef bool my_bool;
  * many separate instances.
  */
 typedef struct {
-#if PTHREADS
 	db_list_t *db; /*%< handle to a list of DB */
 	int dbcount;
-#else  /* if PTHREADS */
-	dbinstance_t *db; /*%< handle to DB */
-#endif /* if PTHREADS */
 
 	unsigned int flags;
 	char *dbname;
@@ -112,7 +108,6 @@ mysql_destroy(dbinstance_t *db) {
 	destroy_dbinstance(db);
 }
 
-#if PTHREADS
 /*%
  * Properly cleans up a list of database instances.
  * This function is only used when the module is compiled for
@@ -175,7 +170,6 @@ mysql_find_avail_conn(mysql_instance_t *mysql) {
 		   count);
 	return (NULL);
 }
-#endif /* PTHREADS */
 
 /*%
  * Allocates memory for a new string, and then constructs the new
@@ -224,16 +218,8 @@ mysql_get_resultset(const char *zone, const char *record, const char *client,
 	unsigned int j = 0;
 	int qres = 0;
 
-#if PTHREADS
 	/* find an available DBI from the list */
 	dbi = mysql_find_avail_conn(db);
-#else  /* PTHREADS */
-	/*
-	 * only 1 DBI - no need to lock instance lock either
-	 * only 1 thread in the whole process, no possible contention.
-	 */
-	dbi = (dbinstance_t *)(db->db);
-#endif /* PTHREADS */
 
 	if (dbi == NULL) {
 		return (ISC_R_FAILURE);
@@ -798,13 +784,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	dbinstance_t *dbi = NULL;
 	MYSQL *dbc;
 	char *tmp = NULL;
-	char *endp;
-	int j;
+	char *endp = NULL;
 	const char *helper_name;
-#if PTHREADS
-	int dbcount;
-	int i;
-#endif /* PTHREADS */
+	int dbcount, i, j;
 	va_list ap;
 
 	UNUSED(dlzname);
@@ -823,13 +805,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	}
 	va_end(ap);
 
-#if PTHREADS
 	/* if debugging, let user know we are multithreaded. */
 	mysql->log(ISC_LOG_DEBUG(1), "MySQL module running multithreaded");
-#else  /* PTHREADS */
-	/* if debugging, let user know we are single threaded. */
-	mysql->log(ISC_LOG_DEBUG(1), "MySQL module running single threaded");
-#endif /* PTHREADS */
 
 	/* verify we have at least 4 arg's passed to the module */
 	if (argc < 4) {
@@ -901,7 +878,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		free(tmp);
 	}
 
-#if PTHREADS
 	/* multithreaded build can have multiple DB connections */
 	tmp = get_parameter_value(argv[1], "threads=");
 	if (tmp == NULL) {
@@ -934,7 +910,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	 * append each new DBI to the end of the list
 	 */
 	for (i = 0; i < dbcount; i++) {
-#endif /* PTHREADS */
 		switch (argc) {
 		case 4:
 			result = build_dbinstance(NULL, NULL, NULL, argv[2],
@@ -973,17 +948,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			goto cleanup;
 		}
 
-#if PTHREADS
 		/* when multithreaded, build a list of DBI's */
 		DLZ_LINK_INIT(dbi, link);
 		DLZ_LIST_APPEND(*(mysql->db), dbi, link);
-#else  /* if PTHREADS */
-	/*
-	 * when single threaded, hold onto the one connection
-	 * instance.
-	 */
-	mysql->db = dbi;
-#endif /* if PTHREADS */
 
 		/* create and set db connection */
 		dbi->dbconn = mysql_init(NULL);
@@ -1029,11 +996,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			goto cleanup;
 		}
 
-#if PTHREADS
 		/* set DBI = null for next loop through. */
 		dbi = NULL;
 	}
-#endif /* PTHREADS */
 
 	*dbdata = mysql;
 
@@ -1051,14 +1016,11 @@ cleanup:
 void
 dlz_destroy(void *dbdata) {
 	mysql_instance_t *db = (mysql_instance_t *)dbdata;
-#if PTHREADS
+
 	/* cleanup the list of DBI's */
 	if (db->db != NULL) {
 		mysql_destroy_dblist((db_list_t *)(db->db));
 	}
-#else  /* PTHREADS */
-	mysql_destroy(db);
-#endif /* PTHREADS */
 
 	if (db->dbname != NULL) {
 		free(db->dbname);
