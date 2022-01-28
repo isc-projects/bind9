@@ -428,8 +428,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	 * If the DLZ only operates on 'live' data, then version
 	 * wouldn't necessarily be needed.
 	 */
-	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
-	{
+	if (clientinfo != NULL && clientinfo->version >= 2) {
 		dbversion = clientinfo->dbversion;
 		if (dbversion != NULL && *(bool *)dbversion) {
 			state->log(ISC_LOG_INFO, "dlz_example: lookup against "
@@ -439,7 +438,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "source-addr") == 0) {
-		strcpy(buf, "unknown");
+		char ecsbuf[DNS_ECS_FORMATSIZE] = "not supported";
+		strncpy(buf, "unknown", sizeof(buf));
 		if (methods != NULL && methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
 		     DNS_CLIENTINFOMETHODS_VERSION) &&
@@ -448,12 +448,26 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			methods->sourceip(clientinfo, &src);
 			fmt_address(src, buf, sizeof(buf));
 		}
+		if (clientinfo != NULL && clientinfo->version >= 3) {
+			if (clientinfo->ecs.addr.family != AF_UNSPEC) {
+				dns_ecs_format(&clientinfo->ecs, ecsbuf,
+					       sizeof(ecsbuf));
+			} else {
+				snprintf(ecsbuf, sizeof(ecsbuf), "%s",
+					 "not present");
+			}
+		}
+		i = strlen(buf);
+		snprintf(buf + i, sizeof(buf) - i - 1, " ECS %s", ecsbuf);
 
 		state->log(ISC_LOG_INFO,
 			   "dlz_example: lookup connection from: %s", buf);
 
 		found = true;
 		result = state->putrr(lookup, "TXT", 0, buf);
+		/* We could also generate a CNAME RR:
+		snprintf(buf, sizeof(buf), "%s.redirect.example.", ecsbuf);
+		result = state->putrr(lookup, "CNAME", 0, buf); */
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}

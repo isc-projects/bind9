@@ -463,8 +463,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	 * If the DLZ only operates on 'live' data, then version
 	 * wouldn't necessarily be needed.
 	 */
-	if (clientinfo != NULL && clientinfo->version >= DNS_CLIENTINFO_VERSION)
-	{
+	if (clientinfo != NULL && clientinfo->version >= 2) {
 		dbversion = clientinfo->dbversion;
 		if (dbversion != NULL && *(bool *)dbversion) {
 			loginfo("dlz_example: lookup against live transaction");
@@ -472,6 +471,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "source-addr") == 0) {
+		char ecsbuf[DNS_ECS_FORMATSIZE] = "not supported";
 		strncpy(buf, "unknown", sizeof(buf));
 		if (methods != NULL && methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
@@ -481,6 +481,17 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 			methods->sourceip(clientinfo, &src);
 			fmt_address(src, buf, sizeof(buf));
 		}
+		if (clientinfo != NULL && clientinfo->version >= 3) {
+			if (clientinfo->ecs.addr.family != AF_UNSPEC) {
+				dns_ecs_format(&clientinfo->ecs, ecsbuf,
+					       sizeof(ecsbuf));
+			} else {
+				snprintf(ecsbuf, sizeof(ecsbuf), "%s",
+					 "not present");
+			}
+		}
+		i = strlen(buf);
+		snprintf(buf + i, sizeof(buf) - i - 1, " ECS %s", ecsbuf);
 
 		loginfo("dlz_example: lookup connection from %s", buf);
 

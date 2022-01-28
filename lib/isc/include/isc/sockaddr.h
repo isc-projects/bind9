@@ -25,6 +25,10 @@
 #include <sys/un.h>
 #endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
+/*
+ * Any updates to this structure should also be applied in
+ * contrib/modules/dlz/dlz_minmal.h.
+ */
 struct isc_sockaddr {
 	union {
 		struct sockaddr		sa;

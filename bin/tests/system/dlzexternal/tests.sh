@@ -218,5 +218,13 @@ lookups=`grep "lookup #.*\.not\.there" ns1/named.run | wc -l`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+newtest "checking ECS data is passed to driver in clientinfo"
+$DIG $DIGOPTS +short +subnet=192.0/16 source-addr.example.nil txt > dig.out.ns1.test$n.1 || ret=1
+grep "192.0.0.0/16/0" dig.out.ns1.test$n.1 > /dev/null || ret=1
+$DIG $DIGOPTS +short source-addr.example.nil txt > dig.out.ns1.test$n.2 || ret=1
+grep "not.*present" dig.out.ns1.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
