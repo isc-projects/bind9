@@ -97,8 +97,8 @@ b9_add_helper(mysql_instance_t *db, const char *helper_name, void *ptr);
  * Private methods
  */
 
-void
-mysql_destroy(dbinstance_t *db) {
+static void
+dlz_mysql_destroy(dbinstance_t *db) {
 	/* release DB connection */
 	if (db->dbconn != NULL) {
 		mysql_close((MYSQL *)db->dbconn);
@@ -114,7 +114,7 @@ mysql_destroy(dbinstance_t *db) {
  * multithreaded operation.
  */
 static void
-mysql_destroy_dblist(db_list_t *dblist) {
+dlz_mysql_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -123,7 +123,7 @@ mysql_destroy_dblist(db_list_t *dblist) {
 		dbi = ndbi;
 		ndbi = DLZ_LIST_NEXT(dbi, link);
 
-		mysql_destroy(dbi);
+		dlz_mysql_destroy(dbi);
 	}
 
 	/* release memory for the list structure */
@@ -1021,7 +1021,7 @@ dlz_destroy(void *dbdata) {
 
 	/* cleanup the list of DBI's */
 	if (db->db != NULL) {
-		mysql_destroy_dblist((db_list_t *)(db->db));
+		dlz_mysql_destroy_dblist((db_list_t *)(db->db));
 	}
 
 	if (db->dbname != NULL) {
