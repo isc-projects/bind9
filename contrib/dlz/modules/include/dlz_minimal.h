@@ -28,8 +28,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <dns/ecs.h>
-
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -37,7 +35,8 @@
 #include <sys/types.h>
 #include <sys/un.h>
 
-typedef uint32_t dns_ttl_t;
+typedef unsigned int isc_result_t;
+typedef uint32_t     dns_ttl_t;
 
 /*
  * Define DLZ_DLOPEN_VERSION to different values to use older versions
@@ -89,6 +88,8 @@ typedef uint32_t dns_ttl_t;
 /* opaque structures */
 typedef void *dns_sdlzlookup_t;
 typedef void *dns_sdlzallnodes_t;
+typedef void *dns_view_t;
+typedef void *dns_dlzdb_t;
 
 #if DLZ_DLOPEN_VERSION > 1
 /*
@@ -105,6 +106,22 @@ typedef struct isc_sockaddr {
 	unsigned int length;
 	void	     *link;
 } isc_sockaddr_t;
+
+typedef struct isc_netaddr {
+	unsigned int family;
+	union {
+		struct in_addr	in;
+		struct in6_addr in6;
+		char		un[sizeof(((struct sockaddr_un *)0)->sun_path)];
+	} type;
+	uint32_t zone;
+} isc_netaddr_t;
+
+typedef struct dns_ecs {
+	isc_netaddr_t addr;
+	uint8_t	      source;
+	uint8_t	      scope;
+} dns_ecs_t;
 
 #define DNS_CLIENTINFO_VERSION 3
 typedef struct dns_clientinfo {
@@ -126,7 +143,6 @@ typedef struct dns_clientinfomethods {
 	uint16_t		  version;
 	uint16_t		  age;
 	dns_clientinfo_sourceip_t sourceip;
-	dns_clientinfo_version_t  dbversion;
 } dns_clientinfomethods_t;
 #endif /* DLZ_DLOPEN_VERSION > 1 */
 
