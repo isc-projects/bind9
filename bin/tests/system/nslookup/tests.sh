@@ -23,15 +23,19 @@ ret=0
 l=012345678901234567890123456789012345678901234567890123456789012
 t=0123456789012345678901234567890123456789012345678901234567890
 d=$l.$l.$l.$t
-$NSLOOKUP -port=${PORT} -domain=$d -type=soa example 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} -domain=$d -type=soa example 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 grep "origin = ns1.example" nslookup.out${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check A only lookup"
+echo_i "Check A only lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} a-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} a-only.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c a-only.example.net nslookup.out${n})
@@ -41,9 +45,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check AAAA only lookup"
+echo_i "Check AAAA only lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} aaaa-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} aaaa-only.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c aaaa-only.example.net nslookup.out${n})
@@ -53,9 +59,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check dual A + AAAA lookup"
+echo_i "Check dual A + AAAA lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} dual.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} dual.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c dual.example.net nslookup.out${n})
@@ -66,9 +74,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check CNAME to A only lookup"
+echo_i "Check CNAME to A only lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} cname-a-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} cname-a-only.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c "canonical name" nslookup.out${n})
@@ -80,9 +90,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check CNAME to AAAA only lookup"
+echo_i "Check CNAME to AAAA only lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} cname-aaaa-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} cname-aaaa-only.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c "canonical name" nslookup.out${n})
@@ -94,9 +106,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "Check CNAME to dual A + AAAA lookup"
+echo_i "Check CNAME to dual A + AAAA lookup ($n)"
 ret=0
-$NSLOOKUP -port=${PORT} cname-dual.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} cname-dual.example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
 lines=$(grep -c "Server:" nslookup.out${n})
 test $lines -eq 1 || ret=1
 lines=$(grep -c "canonical name" nslookup.out${n})
