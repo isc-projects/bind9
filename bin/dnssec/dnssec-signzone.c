@@ -417,17 +417,15 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 		DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, directory, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		dst_key_free(&pubkey);
-		result = dns_dnsseckey_create(mctx, &privkey, &key);
+		dns_dnsseckey_create(mctx, &privkey, &key);
 	} else {
-		result = dns_dnsseckey_create(mctx, &pubkey, &key);
+		dns_dnsseckey_create(mctx, &pubkey, &key);
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		key->force_publish = false;
-		key->force_sign = false;
-		key->index = keycount++;
-		ISC_LIST_APPEND(keylist, key, link);
-	}
+	key->force_publish = false;
+	key->force_sign = false;
+	key->index = keycount++;
+	ISC_LIST_APPEND(keylist, key, link);
 
 	isc_rwlock_unlock(&keylist_lock, isc_rwlocktype_write);
 	return (key);

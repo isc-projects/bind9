@@ -1768,10 +1768,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		}
 		dst_key_setttl(dst_key, dns_kasp_dnskeyttl(kasp));
 		dst_key_settime(dst_key, DST_TIME_CREATED, now);
-		result = dns_dnsseckey_create(mctx, &dst_key, &new_key);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_dnsseckey_create(mctx, &dst_key, &new_key);
 		keymgr_key_init(new_key, kasp, now, csk);
 	} else {
 		new_key = candidate;
