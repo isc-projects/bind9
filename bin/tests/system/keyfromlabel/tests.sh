@@ -61,12 +61,12 @@ do
 		# Skip dnssec-keyfromlabel if key generation failed.
 		test $ret == 0 || continue
 
-		echo_i "Get ZSK $alg $id-$zone $type:$bits"
+		echo_i "Get ZSK $alg $zone $type:$bits"
 		ret=0
 		zsk=$(keyfromlabel $alg $zone keyfromlabel-zsk)
 		test -z "$zsk" && ret=1
 
-		echo_i "Get KSK $alg $id-$zone $type:$bits"
+		echo_i "Get KSK $alg $zone $type:$bits"
 		ret=0
 		ksk=$(keyfromlabel $alg $zone keyfromlabel-ksk -f KSK)
 		test -z "$ksk" && ret=1
