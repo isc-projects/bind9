@@ -621,8 +621,6 @@ static void
 setoption(char *opt) {
 	size_t l = strlen(opt);
 
-	debugging = true;
-
 #define CHECKOPT(A, N) \
 	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
 
