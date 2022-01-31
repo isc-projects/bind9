@@ -59,12 +59,8 @@
  * many separate instances.
  */
 typedef struct {
-#if PTHREADS
 	db_list_t *db; /*%< handle to a list of DB */
 	int dbcount;
-#else  /* if PTHREADS */
-	dbinstance_t *db; /*%< handle to DB */
-#endif /* if PTHREADS */
 
 	char *dbname;
 
@@ -113,7 +109,6 @@ sqlite3_destroy(dbinstance_t *db) {
 	destroy_dbinstance(db);
 }
 
-#if PTHREADS
 /*%
  * Properly cleans up a list of database instances.
  * This function is only used when the module is compiled for
@@ -176,7 +171,6 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3) {
 		     count);
 	return (NULL);
 }
-#endif /* PTHREADS */
 
 /*%
  * Allocates memory for a new string, and then constructs the new
@@ -252,16 +246,8 @@ sqlite3_get_resultset(const char *zone, const char *record, const char *client,
 		goto cleanup;
 	}
 
-#if PTHREADS
 	/* find an available DBI from the list */
 	dbi = sqlite3_find_avail(db);
-#else  /* PTHREADS */
-	/*
-	 * only 1 DBI - no need to lock instance lock either
-	 * only 1 thread in the whole process, no possible contention.
-	 */
-	dbi = (dbinstance_t *)(db->db);
-#endif /* PTHREADS */
 
 	if (dbi == NULL) {
 		return (ISC_R_FAILURE);
@@ -870,12 +856,9 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	dbinstance_t *dbi = NULL;
 	sqlite3 *dbc = NULL;
 	char *tmp = NULL;
-	char *endp;
+	char *endp = NULL;
 	const char *helper_name;
-#if PTHREADS
-	int dbcount;
-	int i, ret;
-#endif /* PTHREADS */
+	int dbcount, i, ret;
 	va_list ap;
 
 	UNUSED(dlzname);
@@ -894,13 +877,8 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	}
 	va_end(ap);
 
-#if PTHREADS
 	/* if debugging, let user know we are multithreaded. */
 	s3->log(ISC_LOG_DEBUG(1), "SQLite3 module: running multithreaded");
-#else  /* PTHREADS */
-	/* if debugging, let user know we are single threaded. */
-	s3->log(ISC_LOG_DEBUG(1), "SQLite3 module: running single threaded");
-#endif /* PTHREADS */
 
 	/* verify we have at least 4 arg's passed to the module */
 	if (argc < 4) {
@@ -925,7 +903,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		goto cleanup;
 	}
 
-#if PTHREADS
 	/* multithreaded build can have multiple DB connections */
 	tmp = get_parameter_value(argv[1], "threads=");
 	if (tmp == NULL) {
@@ -958,7 +935,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	 * append each new DBI to the end of the list
 	 */
 	for (i = 0; i < dbcount; i++) {
-#endif /* PTHREADS */
 		switch (argc) {
 		case 4:
 			result = build_dbinstance(NULL, NULL, NULL, argv[2],
@@ -1014,25 +990,15 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			goto cleanup;
 		}
 
-#if PTHREADS
 		/* when multithreaded, build a list of DBI's */
 		DLZ_LINK_INIT(dbi, link);
 		DLZ_LIST_APPEND(*(s3->db), dbi, link);
-#else  /* if PTHREADS */
-	/*
-	 * when single threaded, hold onto the one connection
-	 * instance.
-	 */
-	s3->db = dbi;
-#endif /* if PTHREADS */
 
 		dbi->dbconn = dbc;
 		dbc = NULL;
-#if PTHREADS
 		/* set DBI = null for next loop through. */
 		dbi = NULL;
 	}
-#endif /* PTHREADS */
 
 	*dbdata = s3;
 	return (ISC_R_SUCCESS);
@@ -1049,14 +1015,10 @@ cleanup:
 void
 dlz_destroy(void *dbdata) {
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
-#if PTHREADS
 	/* cleanup the list of DBI's */
 	if (db->db != NULL) {
 		sqlite3_destroy_dblist((db_list_t *)(db->db));
 	}
-#else  /* PTHREADS */
-	sqlite3_destroy(db);
-#endif /* PTHREADS */
 
 	if (db->dbname != NULL) {
 		free(db->dbname);
