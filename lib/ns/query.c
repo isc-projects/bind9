@@ -1396,7 +1396,8 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		dns_db_t *tdbp;
 
 		dns_clientinfomethods_init(&cm, ns_client_sourceip);
-		dns_clientinfo_init(&ci, client, &client->ecs, NULL);
+		dns_clientinfo_init(&ci, client, NULL);
+		dns_clientinfo_setecs(&ci, &client->ecs);
 
 		tdbp = NULL;
 		tresult = dns_view_searchdlz(client->view, name, zonelabels,
@@ -1538,7 +1539,7 @@ query_additionalauthfind(dns_db_t *db, dns_dbversion_t *version,
 	isc_result_t result;
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Since we are looking for authoritative data, we do not set
@@ -1702,7 +1703,7 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * We treat type A additional section processing as if it
@@ -2278,7 +2279,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	rdataset->trust = dns_trust_secure;
 	sigrdataset->trust = dns_trust_secure;
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Save the updated secure state.  Ignore failures.
@@ -2315,7 +2316,7 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 	dns_clientinfo_t ci;
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	if (!dns_rdataset_isassociated(keyrdataset)) {
 		result = dns_db_findnodeext(db, &rrsig->signer, false, &cm, &ci,
@@ -2599,9 +2600,10 @@ stale_refresh_aftermath(ns_client_t *client, isc_result_t result) {
 		qctx_init(client, NULL, 0, &qctx);
 
 		dns_clientinfomethods_init(&cm, ns_client_sourceip);
-		dns_clientinfo_init(
-			&ci, qctx.client,
-			HAVEECS(qctx.client) ? &qctx.client->ecs : NULL, NULL);
+		dns_clientinfo_init(&ci, qctx.client, NULL);
+		if (HAVEECS(qctx.client)) {
+			dns_clientinfo_setecs(&ci, &qctx.client->ecs);
+		}
 
 		result = qctx_prepare_buffers(&qctx, &buffer);
 		if (result != ISC_R_SUCCESS) {
@@ -3033,7 +3035,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 	node = NULL;
 	found = dns_fixedname_initname(&fixed);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 	result = dns_db_findext(*dbp, name, version, type, options, client->now,
 				&node, found, &cm, &ci, *rdatasetp, NULL);
 	if (result == DNS_R_DELEGATION && is_zone && USECACHE(client)) {
@@ -3180,7 +3182,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_find_p");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Try to find either a CNAME or the type of record demanded by the
@@ -4830,7 +4832,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 	dns_name_clone(qname, &name);
 	labels = dns_name_countlabels(&name);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Map unknown algorithm to known value.
@@ -5033,7 +5035,8 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_rdataset_init(&trdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, &client->ecs, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
+	dns_clientinfo_setecs(&ci, &client->ecs);
 
 	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
 	{
@@ -5171,7 +5174,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_rdataset_init(&trdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, &client->ecs, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
+	dns_clientinfo_setecs(&ci, &client->ecs);
 
 	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
 	{
@@ -5893,9 +5897,10 @@ query_lookup(query_ctx_t *qctx) {
 	CALL_HOOK(NS_QUERY_LOOKUP_BEGIN, qctx);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, qctx->client,
-			    HAVEECS(qctx->client) ? &qctx->client->ecs : NULL,
-			    NULL);
+	dns_clientinfo_init(&ci, qctx->client, NULL);
+	if (HAVEECS(qctx->client)) {
+		dns_clientinfo_setecs(&ci, &qctx->client->ecs);
+	}
 
 	/*
 	 * We'll need some resources...
@@ -8631,7 +8636,7 @@ query_notfound(query_ctx_t *qctx) {
 		dns_clientinfo_t ci;
 
 		dns_clientinfomethods_init(&cm, ns_client_sourceip);
-		dns_clientinfo_init(&ci, qctx->client, NULL, NULL);
+		dns_clientinfo_init(&ci, qctx->client, NULL);
 
 		dns_db_attach(qctx->view->hints, &qctx->db);
 		result = dns_db_findext(qctx->db, dns_rootname, NULL,
@@ -10036,7 +10041,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 	nowild = dns_fixedname_initname(&fnowild);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, qctx->client, NULL, NULL);
+	dns_clientinfo_init(&ci, qctx->client, NULL);
 
 	/*
 	 * All signer names must be the same to accept.
@@ -10699,25 +10704,18 @@ static isc_result_t
 query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	     dns_section_t section) {
 	ns_client_t *client = qctx->client;
-	dns_name_t *name;
-	dns_dbnode_t *node;
-	isc_result_t result, eresult;
+	dns_name_t *name = NULL;
+	dns_dbnode_t *node = NULL;
+	isc_result_t result, eresult = ISC_R_SUCCESS;
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	dns_rdataset_t **sigrdatasetp = NULL;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addsoa");
-	/*
-	 * Initialization.
-	 */
-	eresult = ISC_R_SUCCESS;
-	name = NULL;
-	rdataset = NULL;
-	node = NULL;
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Don't add the SOA record for test which set "-T nosoa".
@@ -10852,7 +10850,7 @@ query_addns(query_ctx_t *qctx) {
 	fname = dns_fixedname_initname(&foundname);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Get resources and make 'name' be the database origin.
@@ -10936,7 +10934,7 @@ query_addbestns(query_ctx_t *qctx) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_addbestns");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * Find the right database.
@@ -11133,7 +11131,7 @@ query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_addwildcardproof");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
-	dns_clientinfo_init(&ci, client, NULL, NULL);
+	dns_clientinfo_init(&ci, client, NULL);
 
 	/*
 	 * If a name has been specifically flagged as needing
