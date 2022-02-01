@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   options {
   	allow-new-zones <boolean>;
   	allow-notify { <address_match_element>; ... };
