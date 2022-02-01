@@ -844,14 +844,14 @@ At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
 
-.. _parentals_grammar:
+.. _parental_agents_grammar:
 
 ``parental-agents`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: ../misc/parentals.grammar.rst
+.. include:: ../misc/parental-agents.grammar.rst
 
-.. _parentals_statement:
+.. _parental_agents_statement:
 
 ``parental-agents`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
