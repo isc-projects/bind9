@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   managed-keys { <string> ( static-key
       | initial-key | static-ds |
       initial-ds ) <integer> <integer>
