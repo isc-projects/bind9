@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   http <string> {
   	endpoints { <quoted_string>; ... };
   	listener-clients <integer>;

@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   trusted-keys { <string> <integer>
       <integer> <integer>
       <quoted_string>; ... };, deprecated

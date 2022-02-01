@@ -38,7 +38,8 @@ OPTIONS_FILES =				\
 	trust-anchors.grammar.rst	\
 	managed-keys.grammar.rst	\
 	trusted-keys.grammar.rst	\
-	http.grammar.rst
+	http.grammar.rst		\
+	parental-agents.grammar.rst
 
 EXTRA_DIST =			\
 	$(OPTIONS_FILES)	\
@@ -104,79 +105,82 @@ delegation-only.zoneopt: cfg_test
 in-view.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar in-view --active > $@
 
-../../bin/named/named.conf.rst: options.active
+../../bin/named/named.conf.rst: options.active rst-options.pl
 	$(AM_V_RST_OPTIONS)$(PERL) $(srcdir)/rst-options.pl options.active > $@
 
-master.zoneopt.rst: master.zoneopt
+master.zoneopt.rst: master.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl master.zoneopt > $@
 
-slave.zoneopt.rst: slave.zoneopt
+slave.zoneopt.rst: slave.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl slave.zoneopt > $@
 
-mirror.zoneopt.rst: mirror.zoneopt
+mirror.zoneopt.rst: mirror.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl mirror.zoneopt > $@
 
-forward.zoneopt.rst: forward.zoneopt
+forward.zoneopt.rst: forward.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl forward.zoneopt > $@
 
-hint.zoneopt.rst: hint.zoneopt
+hint.zoneopt.rst: hint.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl hint.zoneopt > $@
 
-stub.zoneopt.rst: stub.zoneopt
+stub.zoneopt.rst: stub.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl stub.zoneopt > $@
 
-static-stub.zoneopt.rst: static-stub.zoneopt
+static-stub.zoneopt.rst: static-stub.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl static-stub.zoneopt > $@
 
-redirect.zoneopt.rst: redirect.zoneopt
+redirect.zoneopt.rst: redirect.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl redirect.zoneopt > $@
 
-delegation-only.zoneopt.rst: delegation-only.zoneopt
+delegation-only.zoneopt.rst: delegation-only.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl delegation-only.zoneopt > $@
 
-in-view.zoneopt.rst: in-view.zoneopt
+in-view.zoneopt.rst: in-view.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl in-view.zoneopt > $@
 
-acl.grammar.rst: options.active
+acl.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active acl > $@
 
-controls.grammar.rst: options.active
+controls.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active controls > $@
 
-dnssec-policy.grammar.rst: options.active
+dnssec-policy.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active dnssec-policy > $@
 
-key.grammar.rst: options.active
+key.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active key > $@
 
-logging.grammar.rst: options.active
+logging.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active logging > $@
 
-primaries.grammar.rst: options.active
+primaries.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active primaries > $@
 
-options.grammar.rst: options.active
+options.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active options > $@
 
-server.grammar.rst: options.active
+server.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active server > $@
 
-statistics-channels.grammar.rst: options.active
+statistics-channels.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active statistics-channels > $@
 
-tls.grammar.rst: options.active
+tls.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active tls > $@
 
-trust-anchors.grammar.rst: options.active
+trust-anchors.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active trust-anchors > $@
 
-managed-keys.grammar.rst: options.active
+managed-keys.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active managed-keys > $@
 
-trusted-keys.grammar.rst: options.active
+trusted-keys.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active trusted-keys > $@
 
-http.grammar.rst: options.active
+http.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active http > $@
+
+parental-agents.grammar.rst: options.active rst-grammars.pl
+	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active parental-agents > $@
 
 endif
