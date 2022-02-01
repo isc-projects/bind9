@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   primaries <string> [ port <integer> ] [ dscp
       <integer> ] { ( <remote-servers> |
       <ipv4_address> [ port <integer> ] |

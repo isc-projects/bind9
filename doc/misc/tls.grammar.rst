@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   tls <string> {
   	cert-file <quoted_string>;
   	ciphers <string>;

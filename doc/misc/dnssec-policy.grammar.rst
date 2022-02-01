@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   dnssec-policy <string> {
   	dnskey-ttl <duration>;
   	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
