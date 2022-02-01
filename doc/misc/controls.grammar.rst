@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+::
+
   controls {
   	inet ( <ipv4_address> | <ipv6_address> |
   	    * ) [ port ( <integer> | * ) ] allow
