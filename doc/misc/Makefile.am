@@ -38,7 +38,8 @@ OPTIONS_FILES =				\
 	trust-anchors.grammar.rst	\
 	managed-keys.grammar.rst	\
 	trusted-keys.grammar.rst	\
-	http.grammar.rst
+	http.grammar.rst		\
+	parental-agents.grammar.rst
 
 EXTRA_DIST =			\
 	$(OPTIONS_FILES)	\
@@ -178,5 +179,8 @@ trusted-keys.grammar.rst: options.active rst-grammars.pl
 
 http.grammar.rst: options.active rst-grammars.pl
 	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active http > $@
+
+parental-agents.grammar.rst: options.active rst-grammars.pl
+	$(AM_V_RST_GRAMMARS)$(PERL) $(srcdir)/rst-grammars.pl options.active parental-agents > $@
 
 endif
