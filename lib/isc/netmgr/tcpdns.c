@@ -596,7 +596,7 @@ tcpdns_connection_cb(uv_stream_t *server, int status) {
 		if (result == ISC_R_QUOTA) {
 			isc__nm_incstats(ssock->mgr,
 					 ssock->statsindex[STATID_ACCEPTFAIL]);
-			return;
+			goto done;
 		}
 	}
 
