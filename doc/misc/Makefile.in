@@ -57,7 +57,7 @@ options: FORCE
 		rm -f $@.new $@.raw $@.sorted ; \
 	fi
 
-rst: options
+rst: options rst-options.pl rst-zoneopt.pl rst-grammars.pl
 	${PERL} rst-options.pl options.active > ${top_srcdir}/bin/named/named.conf.rst
 	${PERL} rst-zoneopt.pl master.zoneopt > master.zoneopt.rst
 	${PERL} rst-zoneopt.pl slave.zoneopt > slave.zoneopt.rst
