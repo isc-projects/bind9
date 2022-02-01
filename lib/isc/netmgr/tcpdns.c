@@ -597,7 +597,7 @@ tcpdns_connection_cb(uv_stream_t *server, int status) {
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
 			isc__nm_incstats(ssock, STATID_ACCEPTFAIL);
-			return;
+			goto done;
 		}
 	}
 
