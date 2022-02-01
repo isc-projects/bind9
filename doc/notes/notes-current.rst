@@ -47,3 +47,6 @@ Bug Fixes
 - A failed view configuration during a named reconfiguration procedure could
   cause inconsistencies in BIND internal structures, causing a crash or other
   unexpected errors.  This has been fixed.  :gl:`#3060`
+
+- Restore logging "quota reached" message when accepting connection is over
+  hard quota.  :gl:`#3125`
