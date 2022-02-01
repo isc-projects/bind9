@@ -1,3 +1,6 @@
+5801.	[bug]		Log "quota reached" message when hard quota
+			is reached when accepting a connection. [GL #3125]
+
 5800.	[func]		Add ECS support to the DLZ interface. [GL #3082]
 
 5799.	[bug]		Use L1 cache-line size detected at runtime. [GL #3108]
