@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-AC_INIT(BIND, [9.16], [info@isc.org], [], [https://www.isc.org/downloads/])
+AC_INIT(BIND, [9.16], [https://gitlab.isc.org/isc-projects/bind9/-/issues/new?issuable_template=Bug], [], [https://www.isc.org/downloads/])
 AC_PREREQ([2.60])
 
 #
