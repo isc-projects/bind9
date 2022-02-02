@@ -37,7 +37,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The DLZ API has been updated: EDNS Client-Subnet (ECS) options sent
+  by a client are now included in the client information sent to DLZ
+  modules when processing queries. :gl:`#3082`
 
 Bug Fixes
 ~~~~~~~~~
@@ -52,3 +54,6 @@ Bug Fixes
 
 - Restore logging "quota reached" message when accepting connection is over
   hard quota.  :gl:`#3125`
+
+- Build errors were introduced in some DLZ modules due to an incomplete
+  change in the previous release. This has been fixed. :gl:`#3111`
