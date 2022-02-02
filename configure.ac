@@ -25,7 +25,7 @@ m4_define([bind_PKG_VERSION], [[bind_VERSION_MAJOR.bind_VERSION_MINOR.bind_VERSI
 #
 # Autoconf initialization
 #
-AC_INIT([BIND], bind_PKG_VERSION, [info@isc.org], [], [https://www.isc.org/downloads/])
+AC_INIT([BIND], bind_PKG_VERSION, [https://gitlab.isc.org/isc-projects/bind9/-/issues/new?issuable_template=Bug], [], [https://www.isc.org/downloads/])
 AC_PREREQ([2.69])
 
 AC_DEFINE([PACKAGE_VERSION_MAJOR], ["][bind_VERSION_MAJOR]["], [BIND 9 Major part of the version])
