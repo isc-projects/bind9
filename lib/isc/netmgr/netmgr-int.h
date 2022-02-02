@@ -350,6 +350,14 @@ struct isc__nm_uvreq {
 	ISC_LINK(isc__nm_uvreq_t) link;
 };
 
+struct isc_nm_timer {
+	isc_refcount_t references;
+	uv_timer_t timer;
+	isc_nmhandle_t *handle;
+	isc_nm_timer_cb cb;
+	void *cbarg;
+};
+
 void *
 isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type);
 /*%<
