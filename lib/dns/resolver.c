@@ -63,6 +63,7 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
+#include <dns/zone.h>
 
 /* Detailed logging of fctx attach/detach */
 #ifndef FCTX_TRACE
@@ -6765,37 +6766,70 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 /*
  * Returns true if 'name' is external to the namespace for which
  * the server being queried can answer, either because it's not a
- * subdomain or because it's below a forward declaration.
+ * subdomain or because it's below a forward declaration or a
+ * locally served zone.
  */
 static inline bool
 name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_forwarders_t *forwarders = NULL;
-	dns_fixedname_t fixed;
+	dns_fixedname_t fixed, zfixed;
 	dns_name_t *fname = dns_fixedname_initname(&fixed);
+	dns_name_t *zfname = dns_fixedname_initname(&zfixed);
+	dns_name_t *apex = NULL;
 	dns_name_t suffix;
+	dns_zone_t *zone = NULL;
 	unsigned int labels;
+	dns_namereln_t rel;
+
+	apex = ISFORWARDER(fctx->addrinfo) ? fctx->fwdname : fctx->domain;
 
 	/*
 	 * The name is outside the queried namespace.
 	 */
-	if (!dns_name_issubdomain(name, ISFORWARDER(fctx->addrinfo)
-						? fctx->fwdname
-						: fctx->domain))
-	{
+	rel = dns_name_fullcompare(name, apex, &(int){ 0 },
+				   &(unsigned int){ 0U });
+	if (rel != dns_namereln_subdomain && rel != dns_namereln_equal) {
 		return (true);
 	}
 
 	/*
 	 * If the record lives in the parent zone, adjust the name so we
-	 * look for the correct forward clause.
+	 * look for the correct zone or forward clause.
 	 */
 	labels = dns_name_countlabels(name);
 	if (dns_rdatatype_atparent(type) && labels > 1U) {
 		dns_name_init(&suffix, NULL);
 		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
 		name = &suffix;
+	} else if (rel == dns_namereln_equal) {
+		/* If 'name' is 'apex', no further checking is needed. */
+		return (false);
 	}
+
+	/*
+	 * If there is a locally served zone between 'apex' and 'name'
+	 * then don't cache.
+	 */
+	LOCK(&fctx->res->view->lock);
+	if (fctx->res->view->zonetable != NULL) {
+		unsigned int options = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_MIRROR;
+		result = dns_zt_find(fctx->res->view->zonetable, name, options,
+				     zfname, &zone);
+		if (zone != NULL) {
+			dns_zone_detach(&zone);
+		}
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+			if (dns_name_fullcompare(zfname, apex, &(int){ 0 },
+						 &(unsigned int){ 0U }) ==
+			    dns_namereln_subdomain)
+			{
+				UNLOCK(&fctx->res->view->lock);
+				return (true);
+			}
+		}
+	}
+	UNLOCK(&fctx->res->view->lock);
 
 	/*
 	 * Look for a forward declaration below 'name'.
@@ -6816,16 +6850,14 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		 * changed: play it safe and don't cache.
 		 */
 		return (true);
-	}
-
-	/*
-	 * If name is covered by 'forward only' then we can't
-	 * cache this repsonse.
-	 */
-	if (result == ISC_R_SUCCESS &&
-	    forwarders->fwdpolicy == dns_fwdpolicy_only &&
-	    !ISC_LIST_EMPTY(forwarders->fwdrs))
+	} else if (result == ISC_R_SUCCESS &&
+		   forwarders->fwdpolicy == dns_fwdpolicy_only &&
+		   !ISC_LIST_EMPTY(forwarders->fwdrs))
 	{
+		/*
+		 * If 'name' is covered by a 'forward only' clause then we
+		 * can't cache this repsonse.
+		 */
 		return (true);
 	}
 
