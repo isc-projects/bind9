@@ -232,7 +232,12 @@ help(void) {
 	       "                 +[no]https[=###]    (DNS-over-HTTPS mode) "
 	       "[/]\n"
 	       "                 +[no]https-get      (Use GET instead of "
-	       "default POST method\n"
+	       "default POST method while using HTTPS)\n"
+	       "                 +[no]http-plain[=###]    (DNS over plain HTTP "
+	       "mode) "
+	       "[/]\n"
+	       "                 +[no]https-plain-get      (Use GET instead of "
+	       "default POST method while using plain HTTP)\n"
 	       "                 +[no]identify       (ID responders in short "
 	       "answers)\n"
 #ifdef HAVE_LIBIDN2
