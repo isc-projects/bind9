@@ -24,4 +24,4 @@ rm -f keyfromlabel.out.*
 rm -f pkcs11-tool.out.*
 rm -f signer.out.*
 
-softhsm2-util --delete-token --token "softhsm2" || echo_i "softhsm2 token not found"
+softhsm2-util --delete-token --token "softhsm2-keyfromlabel" >/dev/null 2>&1 || echo_i "softhsm2-keyfromlabel token not found for cleaning"
