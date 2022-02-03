@@ -12,37 +12,12 @@
 Notes for BIND 9.16.26
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
 - The DLZ API has been updated: EDNS Client-Subnet (ECS) options sent
   by a client are now included in the client information sent to DLZ
   modules when processing queries. :gl:`#3082`
-
-- Add DEBUG(1) level messages when starting and ending BIND 9 task exclusive mode
-  that stops the normal DNS operation (f.e. for reconfiguration, interface
-  scans, and other events that require exclusive access to a shared resources).
-  :gl:`#3137`
 
 Bug Fixes
 ~~~~~~~~~
@@ -62,14 +37,3 @@ Bug Fixes
 
 - Build errors were introduced in some DLZ modules due to an incomplete
   change in the previous release. This has been fixed. :gl:`#3111`
-
-- TCP connections could hang indefinitely if the TCP write buffers
-  were full because of the other party not reading sent data.  This has
-  been fixed by adding a "write" timer. Connections that are hung
-  while writing will now time out after the ``tcp-idle-timeout`` period
-  has elapsed. :gl:`#3132`
-
-- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options were
-  not implemented when the BIND 9 networking stack was refactored in 9.16.
-  The missing functionality has been re-implemented and outgoing zone
-  transfers now time out properly when not progressing. :gl:`#1897`
