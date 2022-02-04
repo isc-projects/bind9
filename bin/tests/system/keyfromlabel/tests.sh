@@ -24,7 +24,7 @@ keygen() {
 
 	label="${id}-${zone}"
 	p11id=$(echo "${label}" | sha1sum - | awk '{print $1}')
-	pkcs11-tool --module $SOFTHSM2_MODULE -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
+	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-keyfromlabel" -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
 }
 
 keyfromlabel() {
@@ -33,7 +33,7 @@ keyfromlabel() {
         id="$3"
         shift 3
 
-	$KEYFRLAB -E pkcs11 -a $alg -l "token=softhsm2;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id 2>> /dev/null || return 1
+	$KEYFRLAB -E pkcs11 -a $alg -l "token=softhsm2-keyfromlabel;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id 2>> /dev/null || return 1
 	cat keyfromlabel.out.$zone.$id
 }
 
@@ -61,17 +61,18 @@ do
 		# Skip dnssec-keyfromlabel if key generation failed.
 		test $ret == 0 || continue
 
-		echo_i "Get ZSK $alg $id-$zone $type:$bits"
+		echo_i "Get ZSK $alg $zone $type:$bits"
 		ret=0
 		zsk=$(keyfromlabel $alg $zone keyfromlabel-zsk)
 		test -z "$zsk" && ret=1
+		test "$ret" -eq 0 || echo_i "failed (zsk=$zsk)"
+		status=$((status+ret))
 
-		echo_i "Get KSK $alg $id-$zone $type:$bits"
+		echo_i "Get KSK $alg $zone $type:$bits"
 		ret=0
 		ksk=$(keyfromlabel $alg $zone keyfromlabel-ksk -f KSK)
 		test -z "$ksk" && ret=1
-
-		test "$ret" -eq 0 || echo_i "failed (zsk=$zsk ksk=$ksk)"
+		test "$ret" -eq 0 || echo_i "failed (ksk=$ksk)"
 		status=$((status+ret))
 
 		# Skip signing if dnssec-keyfromlabel failed.
