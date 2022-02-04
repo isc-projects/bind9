@@ -1,3 +1,5 @@
+5802.	[test]		Add system test to test engine_pkcs11. [GL !5727]
+
 5801.	[bug]		Log "quota reached" message when hard quota
 			is reached when accepting a connection. [GL #3125]
 

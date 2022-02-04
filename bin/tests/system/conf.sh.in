@@ -80,6 +80,7 @@ cookie
 dlzexternal
 dnssec
 dyndb
+engine_pkcs11
 filter-aaaa
 kasp
 keyfromlabel

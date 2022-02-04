@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,12 +11,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# shellcheck source=conf.sh
 . ../conf.sh
 
-set -e
+if [ -n "${SOFTHSM2_MODULE}" ] && command -v softhsm2-util >/dev/null; then
+	exit 0
+fi
 
-softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "softhsm2-keyfromlabel" | awk '/^The token has been initialized and is reassigned to slot/ { print $NF }'
-
-printf '%s' "${HSMPIN:-1234}" > pin
-PWD=$(pwd)
+echo_i "skip: softhsm2-util not available"
+exit 255
