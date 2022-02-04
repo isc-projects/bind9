@@ -42,16 +42,18 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
-  reducing the maximum query-response performance.  The recvmmsg support would
-  be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
+- Previously, ``recvmmsg`` support was enabled in libuv 1.35.0 and
+  1.36.0, but not in libuv versions 1.37.0 or greater, reducing the
+  maximum query-response performance. This has been fixed. :gl:`#3095`
 
-- A failed view configuration during a named reconfiguration procedure could
-  cause inconsistencies in BIND internal structures, causing a crash or other
-  unexpected errors.  This has been fixed.  :gl:`#3060`
+- A failed view configuration during a ``named`` reconfiguration
+  procedure could cause inconsistencies in BIND internal structures,
+  causing a crash or other unexpected errors. This has been fixed.
+  :gl:`#3060`
 
-- Restore logging "quota reached" message when accepting connection is over
-  hard quota.  :gl:`#3125`
+- Previously, ``named`` logged a "quota reached" message when it hit its
+  hard quota on the number of connections. That message was accidentally
+  removed but has now been restored. :gl:`#3125`
 
 - Build errors were introduced in some DLZ modules due to an incomplete
   change in the previous release. This has been fixed. :gl:`#3111`
