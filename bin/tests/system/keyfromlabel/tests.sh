@@ -65,13 +65,14 @@ do
 		ret=0
 		zsk=$(keyfromlabel $alg $zone keyfromlabel-zsk)
 		test -z "$zsk" && ret=1
+		test "$ret" -eq 0 || echo_i "failed (zsk=$zsk)"
+		status=$((status+ret))
 
 		echo_i "Get KSK $alg $zone $type:$bits"
 		ret=0
 		ksk=$(keyfromlabel $alg $zone keyfromlabel-ksk -f KSK)
 		test -z "$ksk" && ret=1
-
-		test "$ret" -eq 0 || echo_i "failed (zsk=$zsk ksk=$ksk)"
+		test "$ret" -eq 0 || echo_i "failed (ksk=$ksk)"
 		status=$((status+ret))
 
 		# Skip signing if dnssec-keyfromlabel failed.
