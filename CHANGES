@@ -1,3 +1,5 @@
+	--- 9.16.26 released ---
+
 5801.	[bug]		Log "quota reached" message when hard quota
 			is reached when accepting a connection. [GL #3125]
 
