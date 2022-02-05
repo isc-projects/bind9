@@ -1,3 +1,6 @@
+5810.	[func]		New option '-J' for dnssec-signzone and dnssec-verify
+			allows loading journal files. [GL #2486]
+
 5809.	[bug]		Reset client TCP connection when data received cannot
 			be parsed as a valid DNS request. [GL #3149]
 

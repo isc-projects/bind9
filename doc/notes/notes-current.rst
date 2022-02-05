@@ -25,7 +25,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- ``dnssec-verify`` and ``dnssec-signzone`` now accept a ``-J`` option to
+  specify a journal file to read when loading the zone to be verified or
+  signed. :gl:`#2486`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
