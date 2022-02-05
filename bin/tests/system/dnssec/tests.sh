@@ -1406,6 +1406,20 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_ic "check that dnssec-signzone -J loads journal files ($n)"
+ret=0
+(
+cd signer/general || exit 0
+rm -f signed.zone
+$MAKEJOURNAL example.com. test9.zone test10.zone test9.zone.jnl
+$SIGNER -f signed.zone -o example.com. -J test9.zone.jnl test9.zone > signer.out.$n
+grep -q extra signed.zone
+) || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+
 echo_ic "check that dnssec-signzone accepts maximum NSEC3 iterations ($n)"
 ret=0
 (
