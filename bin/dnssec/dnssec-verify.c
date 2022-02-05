@@ -70,10 +70,10 @@ const char *program = "dnssec-verify";
 static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
-static dns_db_t *gdb;		  /* The database */
-static dns_dbversion_t *gversion; /* The database version */
-static dns_rdataclass_t gclass;	  /* The class */
-static dns_name_t *gorigin;	  /* The database origin */
+static dns_db_t *gdb = NULL;		 /* The database */
+static dns_dbversion_t *gversion = NULL; /* The database version */
+static dns_rdataclass_t gclass;		 /* The class */
+static dns_name_t *gorigin = NULL;	 /* The database origin */
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
 
@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
 	char *endp;
 	int ch;
 
-#define CMDLINE_FLAGS "c:E:hm:o:I:qv:Vxz"
+#define CMDLINE_FLAGS "c:E:hJ:m:o:I:qv:Vxz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -224,6 +224,10 @@ main(int argc, char *argv[]) {
 
 		case 'I':
 			inputformatstr = isc_commandline_argument;
+			break;
+
+		case 'J':
+			journal = isc_commandline_argument;
 			break;
 
 		case 'm':
@@ -319,6 +323,9 @@ main(int argc, char *argv[]) {
 	gdb = NULL;
 	report("Loading zone '%s' from file '%s'\n", origin, file);
 	loadzone(file, origin, rdclass, &gdb);
+	if (journal != NULL) {
+		loadjournal(mctx, gdb, journal);
+	}
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
 

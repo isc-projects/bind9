@@ -32,6 +32,9 @@ extern bool quiet;
 /*! program name, statically initialized in each program */
 extern const char *program;
 
+/*! journal file */
+extern const char *journal;
+
 /*!
  * List of DS digest types used by dnssec-cds and dnssec-dsfromkey,
  * defined in dnssectool.c. Filled in by add_dtype() from -a
@@ -102,3 +105,6 @@ key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
 
 bool
 isoptarg(const char *arg, char **argv, void (*usage)(void));
+
+void
+loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *journal);
