@@ -937,7 +937,7 @@ gcc:asan:
 system:gcc:asan:
   variables:
     SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
-    LSAN_OPTIONS: "suppressions=/builds/isc-projects/bind9/suppr-lsan.txt"
+    LSAN_OPTIONS: "suppressions=$CI_PROJECT_DIR/suppr-lsan.txt"
   <<: *fedora_35_amd64_image
   <<: *system_test_job
   needs:
