@@ -2704,7 +2704,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 				isc_log_write(
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-					"catz: catz_delzone_taskaction: "
+					"catz: catz_addmodzone_taskaction: "
 					"zone '%s' exists in multiple "
 					"catalog zones",
 					nameb);
