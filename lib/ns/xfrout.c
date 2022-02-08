@@ -696,9 +696,6 @@ static void
 xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
 
 static void
-xfrout_client_shutdown(void *arg, isc_result_t result);
-
-static void
 xfrout_log1(ns_client_t *client, dns_name_t *zonename, dns_rdataclass_t rdclass,
 	    int level, const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
@@ -1294,13 +1291,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmemlen = len;
 
 	/*
-	 * Register a shutdown callback with the client, so that we
-	 * can stop the transfer immediately when the client task
-	 * gets a shutdown event.
-	 */
-	xfr->client->shutdown = xfrout_client_shutdown;
-	xfr->client->shutdown_arg = xfr;
-	/*
 	 * These MUST be after the last "goto failure;" / CHECK to
 	 * prevent a double free by the caller.
 	 */
@@ -1649,9 +1639,6 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 
 	INSIST(xfr->sends == 0);
 
-	xfr->client->shutdown = NULL;
-	xfr->client->shutdown_arg = NULL;
-
 	if (xfr->stream != NULL) {
 		xfr->stream->methods->destroy(&xfr->stream);
 	}
@@ -1754,12 +1741,6 @@ xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
 	ns_client_drop(xfr->client, ISC_R_CANCELED);
 	isc_nmhandle_detach(&xfr->client->reqhandle);
 	xfrout_ctx_destroy(&xfr);
-}
-
-static void
-xfrout_client_shutdown(void *arg, isc_result_t result) {
-	xfrout_ctx_t *xfr = (xfrout_ctx_t *)arg;
-	xfrout_fail(xfr, result, "aborted");
 }
 
 /*
