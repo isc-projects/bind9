@@ -2681,6 +2681,8 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
 
 	if (ev->mod) {
+		dns_catz_zone_t *parentcatz;
+
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -2688,46 +2690,40 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 				      "modify zone \"%s\"",
 				      isc_result_totext(result), nameb);
 			goto cleanup;
-		} else {
-			dns_catz_zone_t *parentcatz;
-
-			if (!dns_zone_getadded(zone)) {
-				isc_log_write(
-					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-					"catz: "
-					"catz_addmodzone_taskaction: "
-					"zone '%s' is not a dynamically "
-					"added zone",
-					nameb);
-				goto cleanup;
-			}
-
-			parentcatz = dns_zone_get_parentcatz(zone);
-
-			if (parentcatz == NULL) {
-				isc_log_write(
-					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-					"catz: catz_addmodzone_taskaction: "
-					"zone '%s' exists and is not added by "
-					"a catalog zone, so won't be modified",
-					nameb);
-				goto cleanup;
-			}
-			if (parentcatz != ev->origin) {
-				isc_log_write(
-					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-					"catz: catz_addmodzone_taskaction: "
-					"zone '%s' exists in multiple "
-					"catalog zones",
-					nameb);
-				goto cleanup;
-			}
-
-			dns_zone_detach(&zone);
 		}
+
+		if (!dns_zone_getadded(zone)) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "catz: catz_addmodzone_taskaction: "
+				      "zone '%s' is not a dynamically "
+				      "added zone",
+				      nameb);
+			goto cleanup;
+		}
+
+		parentcatz = dns_zone_get_parentcatz(zone);
+
+		if (parentcatz == NULL) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "catz: catz_addmodzone_taskaction: "
+				      "zone '%s' exists and is not added by "
+				      "a catalog zone, so won't be modified",
+				      nameb);
+			goto cleanup;
+		}
+		if (parentcatz != ev->origin) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "catz: catz_addmodzone_taskaction: "
+				      "zone '%s' exists in multiple "
+				      "catalog zones",
+				      nameb);
+			goto cleanup;
+		}
+
+		dns_zone_detach(&zone);
 	} else {
 		if (result == ISC_R_SUCCESS) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
