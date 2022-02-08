@@ -20,6 +20,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "dnspython2: mark tests that need dnspython >= 2.0.0"
     )
+    config.addinivalue_line(
+        "markers", "long: mark tests that take a long time to run"
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -45,6 +48,13 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "dnspython2" in item.keywords:
                 item.add_marker(skip_dnspython2)
+
+    skip_long_tests = pytest.mark.skip(
+        reason="need CI_ENABLE_ALL_TESTS environment variable")
+    if not os.environ.get("CI_ENABLE_ALL_TESTS"):
+        for item in items:
+            if "long" in item.keywords:
+                item.add_marker(skip_long_tests)
 
 
 @pytest.fixture

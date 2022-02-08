@@ -88,6 +88,7 @@ if ! $do_run; then
         LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" \
         LOG_FLAGS="$log_flags" \
         TEST_LARGE_MAP="${TEST_LARGE_MAP}" \
+        CI_ENABLE_ALL_TESTS="${CI_ENABLE_ALL_TESTS}" \
         make -e check
     exit $?
 fi

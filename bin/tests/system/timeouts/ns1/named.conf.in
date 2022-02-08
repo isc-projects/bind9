@@ -30,6 +30,8 @@ options {
 	tcp-initial-timeout 20;
 	tcp-idle-timeout 50;
 	tcp-keepalive-timeout 70;
+	max-transfer-time-out 5; /* minutes */
+	max-transfer-idle-out 1; /* minutes */
 };
 
 zone "." {
