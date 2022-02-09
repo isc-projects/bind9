@@ -14,50 +14,6 @@
 General DNS Reference Information
 =================================
 
-.. _ipv6addresses:
-
-IPv6 Addresses (AAAA)
----------------------
-
-IPv6 addresses are 128-bit identifiers, for interfaces and sets of
-interfaces, which were introduced in the DNS to facilitate scalable
-Internet routing. There are three types of addresses: *Unicast*, an
-identifier for a single interface; *Anycast*, an identifier for a set of
-interfaces; and *Multicast*, an identifier for a set of interfaces. Here
-we describe the global Unicast address scheme. For more information, see
-:rfc:`3587`, "IPv6 Global Unicast Address Format."
-
-IPv6 unicast addresses consist of a *global routing prefix*, a *subnet
-identifier*, and an *interface identifier*.
-
-The global routing prefix is provided by the upstream provider or ISP,
-and roughly corresponds to the IPv4 *network* section of the address
-range. The subnet identifier is for local subnetting, much like
-subnetting an IPv4 /16 network into /24 subnets. The interface
-identifier is the address of an individual interface on a given network;
-in IPv6, addresses belong to interfaces rather than to machines.
-
-The subnetting capability of IPv6 is much more flexible than that of
-IPv4; subnetting can be carried out on bit boundaries, in much the same
-way as Classless InterDomain Routing (CIDR), and the DNS PTR
-representation ("nibble" format) makes setting up reverse zones easier.
-
-The interface identifier must be unique on the local link, and is
-usually generated automatically by the IPv6 implementation, although it
-is usually possible to override the default setting if necessary. A
-typical IPv6 address might look like:
-``2001:db8:201:9:a00:20ff:fe81:2b32``.
-
-IPv6 address specifications often contain long strings of zeros, so the
-architects have included a shorthand for specifying them. The double
-colon (``::``) indicates the longest possible string of zeros that can
-fit, and can be used only once in an address.
-
-.. _bibliography:
-
-Bibliography (and Suggested Reading)
-------------------------------------
-
 .. _rfcs:
 
 Requests for Comment (RFCs)
