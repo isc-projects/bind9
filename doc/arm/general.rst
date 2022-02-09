@@ -450,7 +450,7 @@ Notes
 .. [#rfc6605] Compliance is conditional on the OpenSSL library being linked against
    a supporting ECDSA.
 
-.. [#rfc6725] RSAMD5 support has been removed. See :rfc:`6944`.
+.. [#rfc6725] RSAMD5 support has been removed. See :rfc:`8624`.
 
 .. [#rfc6840] Section 5.9 - Always set CD=1 on queries. This is *not* done, as
    it prevents DNSSEC from working correctly through another recursive server.
