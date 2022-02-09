@@ -57,6 +57,8 @@ struct dns_keystore {
 #define DNS_KEYSTORE_MAGIC     ISC_MAGIC('K', 'E', 'Y', 'S')
 #define DNS_KEYSTORE_VALID(ks) ISC_MAGIC_VALID(ks, DNS_KEYSTORE_MAGIC)
 
+#define DNS_KEYSTORE_KEYDIRECTORY "key-directory"
+
 isc_result_t
 dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
 /*%<

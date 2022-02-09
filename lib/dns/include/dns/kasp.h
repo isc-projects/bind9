@@ -51,11 +51,11 @@ struct dns_kasp_key {
 	ISC_LINK(struct dns_kasp_key) link;
 
 	/* Configuration */
-	char	 *keystore;
-	uint32_t lifetime;
-	uint8_t	 algorithm;
-	int	 length;
-	uint8_t	 role;
+	const char *keystore;
+	uint32_t    lifetime;
+	uint8_t	    algorithm;
+	int	    length;
+	uint8_t	    role;
 };
 
 struct dns_kasp_nsec3param {
@@ -641,6 +641,21 @@ dns_kasp_key_lifetime(dns_kasp_key_t *key);
  * Returns:
  *
  *\li  Lifetime of key.
+ *
+ */
+
+const char *
+dns_kasp_key_keystore(dns_kasp_key_t *key);
+/*%<
+ * The keystore reference of this key.
+ *
+ * Requires:
+ *
+ *\li  key != NULL
+ *
+ * Returns:
+ *
+ *\li  Keystore of key, or NULL if zone's key-directory is used.
  *
  */
 
