@@ -80,7 +80,6 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC5891 [7]
   RFC5936
   RFC5952
-  RFC5966
   RFC6052
   RFC6147 [12]
   RFC6303
@@ -99,6 +98,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC7344 [20]
   RFC7477
   RFC7553
+  RFC7766
   RFC7793
   RFC7830 [15]
   RFC7929
