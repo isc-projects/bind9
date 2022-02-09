@@ -16129,43 +16129,6 @@ fi
 done
 
 
-for ac_header in sys/cpuset.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/cpuset.h" "ac_cv_header_sys_cpuset_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_cpuset_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_CPUSET_H 1
-_ACEOF
-
-fi
-
-done
-
-for ac_header in sys/procset.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/procset.h" "ac_cv_header_sys_procset_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_procset_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_PROCSET_H 1
-_ACEOF
-
-fi
-
-done
-
-for ac_func in pthread_setaffinity_np cpuset_setaffinity processor_bind sched_setaffinity
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-
 # Look for functions relating to thread naming
 for ac_func in pthread_setname_np pthread_set_name_np
 do :
