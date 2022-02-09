@@ -640,6 +640,14 @@ isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp) {
 }
 
 void
+isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	handle->sock->write_timeout = write_timeout;
+}
+
+void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised) {
 	REQUIRE(VALID_NM(mgr));
