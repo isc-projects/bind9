@@ -214,6 +214,10 @@ Resilient Against Forged Answers.* January 2009. [#rfc5452]_
 :rfc:`5702` - J. Jansen. *Use of SHA-2 Algorithms with RSA in DNSKEY and
 RRSIG Resource Records for DNSSEC.* October 2009.
 
+:rfc:`5891` - J. Klensin.
+*Internationalized Domain Names in Applications (IDNA): Protocol.*
+August 2010
+
 :rfc:`5936` - E. Lewis and A. Hoenes, Ed. *DNS Zone Transfer Protocol (AXFR).*
 June 2010.
 
