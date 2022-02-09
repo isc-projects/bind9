@@ -23,6 +23,10 @@
 
 #define UV_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
+#if !defined(UV__ERR)
+#define UV__ERR(x) (-(x))
+#endif
+
 #if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
 static inline void *
 uv_handle_get_data(const uv_handle_t *handle) {
@@ -44,6 +48,11 @@ uv_req_set_data(uv_req_t *req, void *data) {
 	req->data = data;
 }
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 19, 0) */
+
+#if UV_VERSION_HEX < UV_VERSION(1, 32, 0)
+int
+uv_tcp_close_reset(uv_tcp_t *handle, uv_close_cb close_cb);
+#endif
 
 #if UV_VERSION_HEX < UV_VERSION(1, 34, 0)
 #define uv_sleep(msec) usleep(msec * 1000)
