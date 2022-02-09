@@ -63,7 +63,6 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC4294 - Section 5.1 [8]
   RFC4343
   RFC4398
-  RFC4408
   RFC4431 [22]
   RFC4470 [9]
   RFC4509
@@ -96,6 +95,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC6944
   RFC7043
   RFC7050 [21]
+  RFC7208
   RFC7314
   RFC7344 [20]
   RFC7477
