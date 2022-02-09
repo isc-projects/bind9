@@ -156,6 +156,11 @@ System (DNS).* May 2001.
 :rfc:`3226` - O. Gudmundsson. *DNSSEC and IPv6 A6 Aware Server/Resolver
 Message Size Requirements.* December 2001.
 
+:rfc:`3403` - M. Mealling.
+*Dynamic Delegation Discovery System (DDDS). Part Three: The Domain Name System
+(DNS) Database.*
+October 2002.
+
 :rfc:`3492` - A. Costello. *Punycode: A Bootstring Encoding of Unicode for
 Internationalized Domain Names in Applications (IDNA).* March 2003.
 
