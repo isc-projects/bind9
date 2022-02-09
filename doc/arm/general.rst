@@ -255,6 +255,11 @@ Updates.* August 2012. [#rfc6725]_
 :rfc:`6840` - S. Weiler, Ed., and D. Blacka, Ed. *Clarifications and
 Implementation Notes for DNS Security (DNSSEC).* February 2013. [#rfc6840]_
 
+:rfc:`7208` - S. Kitterman.
+*Sender Policy Framework (SPF) for Authorizing Use of Domains in Email,
+Version 1.*
+April 2014.
+
 :rfc:`7344` - W. Kumari, O. Gudmundsson, and G. Barwood. *Automating DNSSEC
 Delegation Trust Maintenance.* September 2014. [#rfc7344]_
 
