@@ -64,7 +64,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC4343
   RFC4398
   RFC4408
-  RFC4431
+  RFC4431 [22]
   RFC4470 [9]
   RFC4509
   RFC4592
@@ -165,3 +165,6 @@ to the experimental category by RFC3363.
 [20] Updating of parent zones is not yet implemented.
 
 [21] RFC 7050 is updated by RFC 8880
+
+[22] Compliance is with loading and serving of DLV records only.
+DLV records were moved to the historic category by RFC 8749.
