@@ -763,7 +763,7 @@ struct isc_nmsocket {
 	/*%
 	 * TCP read/connect timeout timers.
 	 */
-	uv_timer_t timer;
+	uv_timer_t read_timer;
 	uint64_t read_timeout;
 	uint64_t connect_timeout;
 

@@ -1882,7 +1882,7 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(req->cb.connect != NULL);
 
 	isc__nmsocket_timer_stop(sock);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
 	INSIST(atomic_compare_exchange_strong(&sock->connecting,
 					      &(bool){ true }, false));
@@ -2005,7 +2005,7 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 			return;
 		}
 
-		r = uv_timer_start(&sock->timer,
+		r = uv_timer_start(&sock->read_timer,
 				   isc__nmsocket_connecttimeout_cb,
 				   sock->connect_timeout + 10, 0);
 		UV_RUNTIME_CHECK(uv_timer_start, r);
@@ -2017,7 +2017,8 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 			return;
 		}
 
-		r = uv_timer_start(&sock->timer, isc__nmsocket_readtimeout_cb,
+		r = uv_timer_start(&sock->read_timer,
+				   isc__nmsocket_readtimeout_cb,
 				   sock->read_timeout, 0);
 		UV_RUNTIME_CHECK(uv_timer_start, r);
 	}
@@ -2027,7 +2028,7 @@ bool
 isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	return (uv_is_active((uv_handle_t *)&sock->timer));
+	return (uv_is_active((uv_handle_t *)&sock->read_timer));
 }
 
 void
@@ -2049,7 +2050,7 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 
 	/* uv_timer_stop() is idempotent, no need to check if running */
 
-	r = uv_timer_stop(&sock->timer);
+	r = uv_timer_stop(&sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_stop, r);
 }
 
@@ -2283,7 +2284,7 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
 	default:
 		handle->sock->read_timeout = 0;
 
-		if (uv_is_active((uv_handle_t *)&handle->sock->timer)) {
+		if (uv_is_active((uv_handle_t *)&handle->sock->read_timer)) {
 			isc__nmsocket_timer_stop(handle->sock);
 		}
 	}
