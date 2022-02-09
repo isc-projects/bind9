@@ -402,83 +402,6 @@ RFCs of Type "Unknown"
 :rfc:`1101` - P. Mockapetris. *DNS Encoding of Network Names and Other Types.*
 April 1989.
 
-Obsoleted and Unimplemented Experimental RFCs
----------------------------------------------
-
-:rfc:`1521` - N. Borenstein and N. Freed. *MIME (Multipurpose Internet Mail
-Extensions) Part One: Mechanisms for Specifying and Describing the Format of
-Internet Message Bodies.* September 1993 [#rfc1521]_
-
-:rfc:`1750` - D. Eastlake, 3rd, S. Crocker, and J. Schiller. *Randomness
-Recommendations for Security.* December 1994.
-
-:rfc:`2535` - D. Eastlake, 3rd. *Domain Name System Security Extensions.*
-March 1999. [#rfc2535_1]_ [#rfc2535_2]_
-
-:rfc:`2537` - D. Eastlake, 3rd. *RSA/MD5 KEYs and SIGs in the Domain Name System
-(DNS).* March 1999.
-
-:rfc:`2538` - D. Eastlake, 3rd and O. Gudmundsson. *Storing Certificates in the Domain
-Name System (DNS).* March 1999.
-
-:rfc:`2671` - P. Vixie. *Extension Mechanisms for DNS (EDNS0).* August 1999.
-
-:rfc:`2672` - M. Crawford. *Non-Terminal DNS Name Redirection.* August 1999.
-
-:rfc:`2673` - M. Crawford. *Binary Labels in the Domain Name System.* August 1999.
-
-:rfc:`2915` - M. Mealling and R. Daniel. *The Naming Authority Pointer (NAPTR) DNS
-Resource Record.* September 2000.
-
-:rfc:`3008` - B. Wellington. *Domain Name System Security (DNSSEC) Signing
-Authority.* November 2000.
-
-:rfc:`3152` - R. Bush. *Delegation of IP6.ARPA.* August 2001.
-
-:rfc:`3445` - D. Massey and S. Rose. *Limiting the Scope of the KEY Resource Record
-(RR).* December 2002.
-
-:rfc:`3490` - P. Faltstrom, P. Hoffman, and A. Costello. *Internationalizing Domain Names
-in Applications (IDNA).* March 2003. [#idna]
-
-:rfc:`3491` - P. Hoffman and M. Blanchet. *Nameprep: A Stringprep Profile for
-Internationalized Domain Names (IDN).* March 2003. [#idna]
-
-:rfc:`3655` - B. Wellington and O. Gudmundsson. *Redefinition of DNS Authenticated
-Data (AD) Bit.* November 2003.
-
-:rfc:`3658` - O. Gudmundsson. *Delegation Signer (DS) Resource Record (RR).*
-December 2003.
-
-:rfc:`3755` - S. Weiler. *Legacy Resolver Compatibility for Delegation Signer
-(DS).* May 2004.
-
-:rfc:`3757` - O. Kolkman, J. Schlyter, and E. Lewis. *Domain Name System KEY (DNSKEY)
-Resource Record (RR) Secure Entry Point (SEP) Flag.* May 2004.
-
-:rfc:`3845` - J. Schlyter. *DNS Security (DNSSEC) NextSECure (NSEC) RDATA Format.*
-August 2004.
-
-:rfc:`4294` - J. Loughney, Ed. *IPv6 Node Requirements.* [#rfc4294]_
-
-:rfc:`4408` - M. Wong and W. Schlitt. *Sender Policy Framework (SPF) for
-Authorizing Use of Domains in E-Mail, Version 1.* April 2006.
-
-:rfc:`5966` - R. Bellis. *DNS Transport Over TCP - Implementation
-Requirements.* August 2010.
-
-:rfc:`6844` - P. Hallam-Baker and R. Stradling. *DNS Certification Authority
-Authorization (CAA) Resource Record.* January 2013.
-
-:rfc:`6944` - S. Rose. *Applicability Statement: DNS Security (DNSSEC) DNSKEY
-Algorithm Implementation Status.* April 2013.
-
-RFCs No Longer Supported in BIND 9
-----------------------------------
-
-:rfc:`2536` - D. Eastlake, 3rd. *DSA KEYs and SIGs in the Domain Name System
-(DNS).* March 1999.
-
 Notes
 ~~~~~
 
@@ -531,13 +454,6 @@ Notes
 .. [#rfc2606] This does not apply to DNS server implementations.
 
 .. [#rfc1521] Only the Base 64 encoding specification is supported.
-
-.. [#rfc2535_1] Wildcard records are not supported in DNSSEC secure zones.
-
-.. [#rfc2535_2] Servers authoritative for secure zones being resolved by BIND
-   9 must support EDNS0 (:rfc:`2671`), and must return all relevant SIGs
-   and NXTs in responses, rather than relying on the resolving server
-   to perform separate queries for missing SIGs and NXTs.
 
 .. [#idna] BIND 9 requires ``--with-libidn2`` to enable entry of IDN labels within
    dig, host, and nslookup at compile time.  ACE labels are supported
