@@ -69,9 +69,6 @@
 /* Use CMocka */
 #undef HAVE_CMOCKA
 
-/* Define to 1 if you have the `cpuset_setaffinity' function. */
-#undef HAVE_CPUSET_SETAFFINITY
-
 /* Define to 1 if you have the `CRYPTO_zalloc' function. */
 #undef HAVE_CRYPTO_ZALLOC
 
@@ -315,9 +312,6 @@
 /* Define to 1 if you have the `OPENSSL_init_ssl' function. */
 #undef HAVE_OPENSSL_INIT_SSL
 
-/* Define to 1 if you have the `processor_bind' function. */
-#undef HAVE_PROCESSOR_BIND
-
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
@@ -338,9 +332,6 @@
 
 /* Define to 1 if you have the `pthread_rwlock_rdlock' function. */
 #undef HAVE_PTHREAD_RWLOCK_RDLOCK
-
-/* Define to 1 if you have the `pthread_setaffinity_np' function. */
-#undef HAVE_PTHREAD_SETAFFINITY_NP
 
 /* Define to 1 if you have the `pthread_setname_np' function. */
 #undef HAVE_PTHREAD_SETNAME_NP
@@ -371,9 +362,6 @@
 
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H
-
-/* Define to 1 if you have the `sched_setaffinity' function. */
-#undef HAVE_SCHED_SETAFFINITY
 
 /* Define to 1 if you have the `sched_yield' function. */
 #undef HAVE_SCHED_YIELD
@@ -447,9 +435,6 @@
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #undef HAVE_SYS_CAPABILITY_H
 
-/* Define to 1 if you have the <sys/cpuset.h> header file. */
-#undef HAVE_SYS_CPUSET_H
-
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 #undef HAVE_SYS_DEVPOLL_H
 
@@ -458,9 +443,6 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
-
-/* Define to 1 if you have the <sys/procset.h> header file. */
-#undef HAVE_SYS_PROCSET_H
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
