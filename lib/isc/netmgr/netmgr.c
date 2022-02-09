@@ -2070,7 +2070,21 @@ isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
 		      isc_result_totext(result));
 }
 
-static void
+void
+isc__nmsocket_writetimeout_cb(uv_timer_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
+
+	int r = uv_timer_stop(&sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_stop, r);
+
+	/* The shutdown will be handled in the respective close functions */
+	r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
+	UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+
+	isc__nmsocket_shutdown(sock);
+}
+
+void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
 
@@ -2447,6 +2461,8 @@ isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 		atomic_store(&sock->keepalive, value);
 		sock->read_timeout = value ? atomic_load(&sock->mgr->keepalive)
 					   : atomic_load(&sock->mgr->idle);
+		sock->write_timeout = value ? atomic_load(&sock->mgr->keepalive)
+					    : atomic_load(&sock->mgr->idle);
 		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
