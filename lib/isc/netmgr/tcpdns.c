@@ -37,13 +37,6 @@
 #include "netmgr-int.h"
 #include "uv-compat.h"
 
-/*%<
- *
- * Maximum number of simultaneous handles in flight supported for a single
- * connected TCPDNS socket. This value was chosen arbitrarily, and may be
- * changed in the future.
- */
-
 static atomic_uint_fast32_t last_tcpdnsquota_log = ATOMIC_VAR_INIT(0);
 
 static bool
@@ -108,6 +101,10 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_timer_init(&worker->loop, &sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	if (isc__nm_closing(sock)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -502,6 +499,10 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_timer_init(&worker->loop, &sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	LOCK(&sock->parent->lock);
 
@@ -972,6 +973,10 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
+	r = uv_timer_init(&worker->loop, &csock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&csock->write_timer, csock);
+
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
 		result = isc__nm_uverr2result(r);
@@ -1088,6 +1093,13 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
 
+	if (sock->write_timeout == 0) {
+		sock->write_timeout =
+			(atomic_load(&sock->keepalive)
+				 ? atomic_load(&sock->mgr->keepalive)
+				 : atomic_load(&sock->mgr->idle));
+	}
+
 	ievent = isc__nm_get_netievent_tcpdnssend(sock->mgr, sock, uvreq);
 	isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
 				     (isc__netievent_t *)ievent);
@@ -1104,6 +1116,11 @@ tcpdns_send_cb(uv_write_t *req, int status) {
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
 	sock = uvreq->sock;
+
+	if (--sock->writes == 0) {
+		int r = uv_timer_stop(&sock->write_timer);
+		UV_RUNTIME_CHECK(uv_timer_stop, r);
+	}
 
 	if (status < 0) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
@@ -1170,6 +1187,11 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 		result = isc__nm_uverr2result(r);
 		goto fail;
 	}
+
+	r = uv_timer_start(&sock->write_timer, isc__nmsocket_writetimeout_cb,
+			   sock->write_timeout, 0);
+	UV_RUNTIME_CHECK(uv_timer_start, r);
+	RUNTIME_CHECK(sock->writes++ >= 0);
 
 	r = uv_write(&uvreq->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcpdns_send_cb);
@@ -1240,7 +1262,7 @@ tcpdns_close_cb(uv_handle_t *handle) {
 }
 
 static void
-timer_close_cb(uv_handle_t *timer) {
+read_timer_close_cb(uv_handle_t *timer) {
 	isc_nmsocket_t *sock = uv_handle_get_data(timer);
 	uv_handle_set_data(timer, NULL);
 
@@ -1253,6 +1275,17 @@ timer_close_cb(uv_handle_t *timer) {
 	} else {
 		uv_close(&sock->uv_handle.handle, tcpdns_close_cb);
 	}
+}
+
+static void
+write_timer_close_cb(uv_handle_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data(timer);
+	uv_handle_set_data(timer, NULL);
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
 }
 
 static void
@@ -1307,6 +1340,7 @@ stop_tcpdns_parent(isc_nmsocket_t *sock) {
 
 static void
 tcpdns_close_direct(isc_nmsocket_t *sock) {
+	int r;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
@@ -1322,8 +1356,10 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-	uv_close((uv_handle_t *)&sock->read_timer, timer_close_cb);
+	r = uv_timer_stop(&sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_stop, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
+	uv_close((uv_handle_t *)&sock->write_timer, write_timer_close_cb);
 }
 
 void
