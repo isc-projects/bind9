@@ -691,6 +691,7 @@ unit:gcc:buster:amd64:
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 11 "bullseye" (amd64)
+# (The second unit test job also executes unstable unit tests.)
 
 gcc:bullseye:amd64:
   variables:
@@ -714,6 +715,20 @@ unit:gcc:bullseye:amd64:
   needs:
     - job: gcc:bullseye:amd64
       artifacts: true
+
+unit:gcc:bullseye:unstable:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *unit_test_job
+  variables:
+    CI_ENABLE_ALL_TESTS: 1
+  needs:
+    - job: gcc:bullseye:amd64
+      artifacts: true
+  only:
+    - api
+    - schedules
+    - triggers
+    - web
 
 # Jobs for cross-compiled GCC builds on Debian 11 "bullseye" (amd64) with
 # 32-bit libraries
