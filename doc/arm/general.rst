@@ -64,6 +64,11 @@ Support IP Version 6.* October 2003.
 :rfc:`6891` - J. Damas, M. Graff, and P. Vixie. *Extension Mechanisms for DNS
 (EDNS(0)).* April 2013.
 
+:rfc:`8945` - F. Dupont, S. Morris, P. Vixie, D. Eastlake 3rd, O. Gudmundsson,
+and B. Wellington.
+*Secret Key Transaction Authentication for DNS (TSIG).*
+November 2020.
+
 .. _proposed_standards:
 
 Proposed Standards
@@ -91,9 +96,6 @@ System (DNS).* March 1999.
 
 :rfc:`2782` - A. Gulbrandsen, P. Vixie, and L. Esibov. *A DNS RR for Specifying the
 Location of Services (DNS SRV).* February 2000.
-
-:rfc:`2845` - P. Vixie, O. Gudmundsson, D. Eastlake, 3rd, and B. Wellington. *Secret Key
-Transaction Authentication for DNS (TSIG).* May 2000.
 
 :rfc:`2930` - D. Eastlake, 3rd. *Secret Key Establishment for DNS (TKEY RR).*
 September 2000.
