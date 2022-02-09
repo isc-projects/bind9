@@ -1384,19 +1384,61 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			     element = cfg_list_next(element))
 			{
 				isc_result_t ret;
-				const char *name;
+				const char *val;
 				cfg_obj_t *kconfig = cfg_listelt_value(element);
+				const cfg_obj_t *kopt;
+				const cfg_obj_t *kobj = NULL;
 				if (!cfg_obj_istuple(kconfig)) {
 					continue;
 				}
-				name = cfg_obj_asstring(cfg_tuple_get(
-					cfg_listelt_value(element), "name"));
-				if (strcmp(DNS_KEYSTORE_KEYDIRECTORY, name) == 0) {
+				val = cfg_obj_asstring(
+					cfg_tuple_get(kconfig, "name"));
+				if (strcmp(DNS_KEYSTORE_KEYDIRECTORY, val) == 0)
+				{
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "name '%s' not allowed",
 						    DNS_KEYSTORE_KEYDIRECTORY);
 					if (result == ISC_R_SUCCESS) {
 						result = ISC_R_FAILURE;
+					}
+				}
+
+				kopt = cfg_tuple_get(kconfig, "options");
+				if (cfg_map_get(kopt, "directory", &kobj) ==
+				    ISC_R_SUCCESS) {
+					val = cfg_obj_asstring(kobj);
+					ret = isc_file_isdirectory(val);
+					switch (ret) {
+					case ISC_R_SUCCESS:
+						break;
+					case ISC_R_FILENOTFOUND:
+						cfg_obj_log(
+							obj, logctx,
+							ISC_LOG_WARNING,
+							"key-store directory: "
+							"'%s' does not exist",
+							val);
+						break;
+					case ISC_R_INVALIDFILE:
+						cfg_obj_log(
+							obj, logctx,
+							ISC_LOG_WARNING,
+							"key-store directory: "
+							"'%s' is not a "
+							"directory",
+							val);
+						break;
+					default:
+						cfg_obj_log(
+							obj, logctx,
+							ISC_LOG_WARNING,
+							"key-store directory: "
+							"'%s' %s",
+							val,
+							isc_result_totext(ret));
+						if (result == ISC_R_SUCCESS) {
+							result = ret;
+						}
 					}
 				}
 

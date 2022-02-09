@@ -300,20 +300,32 @@ n=$((n + 1))
 echo_i "checking for missing key directory warning ($n)"
 ret=0
 rm -rf test.keydir
+rm -rf test.keystoredir
 $CHECKCONF warn-keydir.conf >checkconf.out$n.1 2>&1
 l=$(grep "'test.keydir' does not exist" <checkconf.out$n.1 | wc -l)
 [ $l -eq 1 ] || ret=1
+l=$(grep "'test.keystoredir' does not exist" <checkconf.out$n.1 | wc -l)
+[ $l -eq 1 ] || ret=1
 touch test.keydir
+touch test.keystoredir
 $CHECKCONF warn-keydir.conf >checkconf.out$n.2 2>&1
 l=$(grep "'test.keydir' is not a directory" <checkconf.out$n.2 | wc -l)
 [ $l -eq 1 ] || ret=1
+l=$(grep "'test.keystoredir' is not a directory" <checkconf.out$n.2 | wc -l)
+[ $l -eq 1 ] || ret=1
 rm -f test.keydir
+rm -f test.keystoredir
 mkdir test.keydir
+mkdir test.keystoredir
 $CHECKCONF warn-keydir.conf >checkconf.out$n.3 2>&1
 l=$(grep "key-directory" <checkconf.out$n.3 | wc -l)
 [ $l -eq 0 ] || ret=1
+l=$(grep "key-store directory" <checkconf.out$n.3 | wc -l)
+[ $l -eq 0 ] || ret=1
 rm -rf test.keydir
+rm -rf test.keystoredir
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking that named-checkconf -z catches conflicting ttl with max-ttl ($n)"
