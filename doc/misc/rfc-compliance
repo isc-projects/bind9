@@ -91,7 +91,6 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC6725 [19]
   RFC6840 [14]
   RFC6891
-  RFC6944
   RFC7043
   RFC7208
   RFC7314
@@ -104,6 +103,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC7929
   RFC8078 [20]
   RFC8080
+  RFC8624
   RFC8659
 
 [1] Queries to zones that have failed to load return SERVFAIL rather
@@ -158,7 +158,7 @@ is accepted but not returned in responses.
 [18] Loading and serving of A6 records only.  A6 records were moved
 to the experimental category by RFC3363.
 
-[19] RSAMD5 support has been removed. See RFC 6944.
+[19] RSAMD5 support has been removed. See RFC 6944 and RFC 8624.
 
 [20] Updating of parent zones is not yet implemented.
 
