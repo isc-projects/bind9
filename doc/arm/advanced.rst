@@ -117,7 +117,7 @@ Incremental Zone Transfers (IXFR)
 
 The incremental zone transfer (IXFR) protocol is a way for secondary servers
 to transfer only changed data, instead of having to transfer an entire
-zone. The IXFR protocol is specified in :rfc:`1995`. See :ref:`proposed_standards`.
+zone. The IXFR protocol is specified in :rfc:`1995`.
 
 When acting as a primary server, BIND 9 supports IXFR for those zones where the
 necessary change history information is available. These include primary
