@@ -549,11 +549,3 @@ archival, and they should not be quoted or cited in any formal documents
 unless accompanied by the disclaimer that they are "works in progress."
 IDs have a lifespan of six months, after which they are deleted unless
 updated by their authors.
-
-.. _more_about_bind:
-
-Other Documents About BIND
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Paul Albitz and Cricket Liu. *DNS and BIND.* Copyright 1998 Sebastopol, CA: O'Reilly and
-Associates.
