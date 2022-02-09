@@ -39,7 +39,6 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC2539
   RFC2606 [17]
   RFC2782
-  RFC2845
   RFC2874 [18]
   RFC2930
   RFC2931 [5]
@@ -105,6 +104,7 @@ or Best Current Practice (BCP) documents.  The list is non exhaustive.
   RFC8080
   RFC8624
   RFC8659
+  RFC8945
 
 [1] Queries to zones that have failed to load return SERVFAIL rather
 than a non-authoritative response.  This is considered a feature.
