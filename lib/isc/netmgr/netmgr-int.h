@@ -767,6 +767,13 @@ struct isc_nmsocket {
 	uint64_t read_timeout;
 	uint64_t connect_timeout;
 
+	/*%
+	 * TCP write timeout timer.
+	 */
+	uv_timer_t write_timer;
+	uint64_t write_timeout;
+	int64_t writes;
+
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;
 
@@ -1588,11 +1595,24 @@ void
 isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async);
 
 void
-isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
-
-void
 isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota);
 
+/*
+ * Timeout callbacks
+ */
+void
+isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
+void
+isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
+void
+isc__nmsocket_writetimeout_cb(uv_timer_t *timer);
+
+/*%<
+ *
+ * Maximum number of simultaneous handles in flight supported for a single
+ * connected TCPDNS socket. This value was chosen arbitrarily, and may be
+ * changed in the future.
+ */
 #define STREAM_CLIENTS_PER_CONN 23
 
 #define UV_RUNTIME_CHECK(func, ret)                                           \
