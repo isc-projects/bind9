@@ -269,6 +269,10 @@ Parent via CDS/CDNSKEY.* March 2017. [#rfc8078]_
 :rfc:`8624` - P. Wouters and O. Sury. *Algorithm Implementation Requirements
 and Usage Guidance for DNSSEC.* June 2019.
 
+:rfc:`8659` - P. Hallam-Baker, R. Stradling, and J. Hoffman-Andrews.
+*DNS Certification Authority Authorization (CAA) Resource Record.*
+November 2019.
+
 :rfc:`8749` - W. Mekking and D. Mahoney. *Moving DNSSEC Lookaside Validation
 (DLV) to Historic Status.* March 2020.
 
