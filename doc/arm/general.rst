@@ -398,7 +398,7 @@ Historic RFCs
 Aggregation and Renumbering.* July 2000. [#rfc2874]_
 
 :rfc:`4431` - M. Andrews and S. Weiler. *The DNSSEC Lookaside Validation
-(DLV) DNS Resource Record.* February 2006.
+(DLV) DNS Resource Record.* February 2006. [#rfc4431]_
 
 RFCs of Type "Unknown"
 ----------------------
@@ -422,6 +422,9 @@ Notes
 
 .. [#rfc2874] Compliance is with loading and serving of A6 records only.
    A6 records were moved to the experimental category by :rfc:`3363`.
+
+.. [#rfc4431] Compliance is with loading and serving of DLV records only.
+   DLV records were moved to the historic category by :rfc:`8749`.
 
 .. [#rfc4470] Minimally Covering NSEC records are accepted but not generated.
 
