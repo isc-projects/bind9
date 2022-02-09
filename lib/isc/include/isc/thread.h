@@ -43,16 +43,10 @@ void
 isc_thread_join(isc_thread_t thread, isc_threadresult_t *result);
 
 void
-isc_thread_setconcurrency(unsigned int level);
-
-void
 isc_thread_yield(void);
 
 void
 isc_thread_setname(isc_thread_t thread, const char *name);
-
-isc_result_t
-isc_thread_setaffinity(int cpu);
 
 #define isc_thread_self (uintptr_t) pthread_self
 
