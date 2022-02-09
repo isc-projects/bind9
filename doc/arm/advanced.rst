@@ -811,9 +811,6 @@ understand the binary label format at all anymore, and return an
 error if one is given. In particular, an authoritative BIND 9 name server will
 not load a zone file containing binary labels.
 
-For an overview of the format and structure of IPv6 addresses, see
-:ref:`ipv6addresses`.
-
 Address Lookups Using AAAA Records
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
