@@ -258,6 +258,11 @@ Implementation Notes for DNS Security (DNSSEC).* February 2013. [#rfc6840]_
 :rfc:`7050` - T. Savolainen, J. Korhonen, and D. Wing. *Discovery of the IPv6
 Prefix Used for IPv6 Address Synthesis.* November 2013. [#rfc7050]_
 
+:rfc:`7208` - S. Kitterman.
+*Sender Policy Framework (SPF) for Authorizing Use of Domains in Email,
+Version 1.*
+April 2014.
+
 :rfc:`7344` - W. Kumari, O. Gudmundsson, and G. Barwood. *Automating DNSSEC
 Delegation Trust Maintenance.* September 2014. [#rfc7344]_
 
