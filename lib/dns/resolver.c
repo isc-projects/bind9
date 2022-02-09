@@ -7411,7 +7411,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	fetchctx_t *fctx = NULL;
 	respctx_t rctx;
 
-	if (eresult == ISC_R_CANCELED || eresult == ISC_R_EOF) {
+	if (eresult == ISC_R_CANCELED) {
 		return;
 	}
 
@@ -7886,45 +7886,40 @@ rctx_answer_init(respctx_t *rctx) {
 static isc_result_t
 rctx_dispfail(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
-	resquery_t *query = rctx->query;
 
 	if (rctx->result == ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (rctx->result == ISC_R_EOF &&
-	    (rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0) {
-		/*
-		 * The problem might be that they don't understand
-		 * EDNS0. Turn it off and try again.
-		 */
-		rctx->retryopts |= DNS_FETCHOPT_NOEDNS0;
-		rctx->resend = true;
-		add_bad_edns(fctx, &query->addrinfo->sockaddr);
-	} else {
-		/*
-		 * There's no hope for this response.
-		 */
-		rctx->next_server = true;
+	/*
+	 * There's no hope for this response.
+	 */
+	rctx->next_server = true;
 
-		/*
-		 * If this is a network error, mark the server as bad so
-		 * that we won't try it for this fetch again.  Also
-		 * adjust finish and no_response so that we penalize
-		 * this address in SRTT adjustment later.
-		 */
-		if (rctx->result == ISC_R_HOSTUNREACH ||
-		    rctx->result == ISC_R_NETUNREACH ||
-		    rctx->result == ISC_R_CONNREFUSED ||
-		    rctx->result == ISC_R_CANCELED ||
-		    rctx->result == ISC_R_SHUTTINGDOWN)
-		{
-			rctx->broken_server = rctx->result;
-			rctx->broken_type = badns_unreachable;
-			rctx->finish = NULL;
-			rctx->no_response = true;
-		}
+	/*
+	 * If this is a network failure, the operation is cancelled,
+	 * or the network manager is being shut down, we mark the server
+	 * as bad so that we won't try it for this fetch again. Also
+	 * adjust finish and no_response so that we penalize this
+	 * address in SRTT adjustments later.
+	 */
+	switch (rctx->result) {
+	case ISC_R_EOF:
+	case ISC_R_HOSTUNREACH:
+	case ISC_R_NETUNREACH:
+	case ISC_R_CONNREFUSED:
+	case ISC_R_CONNECTIONRESET:
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+		rctx->broken_server = rctx->result;
+		rctx->broken_type = badns_unreachable;
+		rctx->finish = NULL;
+		rctx->no_response = true;
+		break;
+	default:
+		break;
 	}
+
 	FCTXTRACE3("dispatcher failure", rctx->result);
 	rctx_done(rctx, ISC_R_SUCCESS);
 	return (ISC_R_COMPLETE);
