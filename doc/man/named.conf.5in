@@ -1231,7 +1231,7 @@ zone string [ class ] {
 .UNINDENT
 .SH FILES
 .sp
-\fB/etc/named.conf\fP
+\fB@sysconfdir@/named.conf\fP
 .SH SEE ALSO
 .sp
 \fBnamed(8)\fP, \fBnamed\-checkconf(8)\fP, \fBrndc(8)\fP, \fBrndc\-confgen(8)\fP, \fBtsig\-keygen(8)\fP, BIND 9 Administrator Reference Manual.

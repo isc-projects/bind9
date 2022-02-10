@@ -97,7 +97,7 @@ Options
 
 ``-a anchor-file``
    This option specifies a file from which to read DNSSEC trust anchors. The default
-   is ``/etc/bind.keys``, which is included with BIND 9 and contains one
+   is |bind_keys|, which is included with BIND 9 and contains one
    or more trust anchors for the root zone (".").
 
    Keys that do not match the root zone name are ignored. An alternate
@@ -107,8 +107,8 @@ Options
    ``initial-key``, and ``static-key`` identically. That is, for a managed key,
    it is the *initial* key that is trusted; :rfc:`5011` key management is not
    supported. ``delv`` does not consult the managed-keys database maintained by
-   ``named``, which means that if either of the keys in ``/etc/bind.keys`` is
-   revoked and rolled over, ``/etc/bind.keys`` must be updated to
+   ``named``, which means that if either of the keys in |bind_keys| is
+   revoked and rolled over, |bind_keys| must be updated to
    use DNSSEC validation in ``delv``.
 
 ``-b address``
@@ -316,7 +316,7 @@ assign values to options like the timeout interval. They have the form
 Files
 ~~~~~
 
-``/etc/bind.keys``
+|bind_keys|
 
 ``/etc/resolv.conf``
 
