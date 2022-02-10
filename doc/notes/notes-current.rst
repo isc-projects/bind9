@@ -46,6 +46,10 @@ Feature Changes
   scans, and other events that require exclusive access to a shared resources).
   :gl:`#3137`
 
+- The limit on the number of simultaneously processed pipelined DNS queries
+  received over TCP has been dropped. Previously, it was capped at 23
+  queries processed at the same time. :gl:`#3141`
+
 Bug Fixes
 ~~~~~~~~~
 
