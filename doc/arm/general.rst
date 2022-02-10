@@ -269,6 +269,10 @@ Wessels. *DNS Transport over TCP - Implementation Requirements.* March 2016.
 
 :rfc:`7830` - A. Mayrhofer. *The EDNS(0) Padding Option.* May 2016. [#rfc7830]_
 
+:rfc:`7858` - Z. Hu, L. Zhu, J. Heidemann, A. Mankin, D. Wessels,
+and P. Hoffman. *Specification for DNS over Transport Layer Security (TLS).*
+May 2016. [#noencryptedfwd]_
+
 :rfc:`7929` - P. Wouters. *DNS-Based Authentication of Named Entities (DANE)
 Bindings for OpenPGP.* August 2016.
 
@@ -277,6 +281,9 @@ Parent via CDS/CDNSKEY.* March 2017. [#rfc8078]_
 
 :rfc:`8080` - O. Sury and R. Edmonds. *Edwards-Curve Digital Security Algorithm
 (EdDSA) for DNSSEC.* February 2017.
+
+:rfc:`8484` - P. Hoffman and P. McManus. *DNS Queries over HTTPS (DoH).*
+October 2018. [#noencryptedfwd]_
 
 :rfc:`8624` - P. Wouters and O. Sury. *Algorithm Implementation Requirements
 and Usage Guidance for DNSSEC.* June 2019.
@@ -292,6 +299,9 @@ November 2019.
 and B. Wellington.
 *Secret Key Transaction Authentication for DNS (TSIG).*
 November 2020.
+
+:rfc:`9103` - W. Toorop, S. Dickinson, S. Sahib, P. Aras, and A. Mankin.
+*DNS Zone Transfer over TLS.* August 2021. [#rfc9103]_
 
 Best Current Practice RFCs
 --------------------------
@@ -424,7 +434,13 @@ Notes
 
 .. [#rfc7050] RFC 7050 is updated by RFC 8880.
 
+.. [#noencryptedfwd] Forwarding DNS queries over encrypted transports is not
+   supported yet.
+
 .. [#rfc8078] Updating of parent zones is not yet implemented.
+
+.. [#rfc9103] Strict TLS and Mutual TLS authentication mechanisms are
+   not supported yet.
 
 .. _internet_drafts:
 
