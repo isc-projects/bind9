@@ -125,7 +125,7 @@ print <<END;
 Files
 ~~~~~
 
-``/etc/named.conf``
+|named_conf|
 
 See Also
 ~~~~~~~~

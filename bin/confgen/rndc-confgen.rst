@@ -35,9 +35,8 @@ Options
 ~~~~~~~
 
 ``-a``
-   This option sets automatic ``rndc`` configuration, which creates a file ``rndc.key``
-   in ``/etc`` (or a different ``sysconfdir`` specified when BIND
-   was built) that is read by both ``rndc`` and ``named`` on startup.
+   This option sets automatic ``rndc`` configuration, which creates a file
+   |rndc_key| that is read by both ``rndc`` and ``named`` on startup.
    The ``rndc.key`` file defines a default command channel and
    authentication key allowing ``rndc`` to communicate with ``named`` on
    the local host with no further configuration.

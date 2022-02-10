@@ -69,11 +69,11 @@ IPv4 and IPv6 source addresses.
 .TP
 .B \fB\-c config\-file\fP
 This option indicates \fBconfig\-file\fP as the configuration file instead of the default,
-\fB/etc/rndc.conf\fP\&.
+\fB@sysconfdir@/rndc.conf\fP\&.
 .TP
 .B \fB\-k key\-file\fP
 This option indicates \fBkey\-file\fP as the key file instead of the default,
-\fB/etc/rndc.key\fP\&. The key in \fB/etc/rndc.key\fP is used to
+\fB@sysconfdir@/rndc.key\fP\&. The key in \fB@sysconfdir@/rndc.key\fP is used to
 authenticate commands sent to the server if the config\-file does not
 exist.
 .TP

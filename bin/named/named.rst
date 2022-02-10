@@ -29,7 +29,7 @@ distribution from ISC. For more information on the DNS, see :rfc:`1033`,
 :rfc:`1034`, and :rfc:`1035`.
 
 When invoked without arguments, ``named`` reads the default
-configuration file ``/etc/named.conf``, reads any initial data, and
+configuration file |named_conf|, reads any initial data, and
 listens for queries.
 
 Options
@@ -45,7 +45,7 @@ Options
 
 ``-c config-file``
    This option tells ``named`` to use ``config-file`` as its configuration file instead of the default,
-   ``/etc/named.conf``. To ensure that the configuration file
+   |named_conf|. To ensure that the configuration file
    can be reloaded after the server has changed its working directory
    due to to a possible ``directory`` option in the configuration file,
    ``config-file`` should be an absolute pathname.
@@ -206,10 +206,10 @@ in the script used to start the ``named`` process.
 Files
 ~~~~~
 
-``/etc/named.conf``
+|named_conf|
    The default configuration file.
 
-``/var/run/named/named.pid``
+|named_pid|
    The default process-id file.
 
 See Also

@@ -113,7 +113,7 @@ supplied, \fBdelv\fP performs a lookup for an A record.
 .TP
 .B \fB\-a anchor\-file\fP
 This option specifies a file from which to read DNSSEC trust anchors. The default
-is \fB/etc/bind.keys\fP, which is included with BIND 9 and contains one
+is \fB@sysconfdir@/bind.keys\fP, which is included with BIND 9 and contains one
 or more trust anchors for the root zone (".").
 .sp
 Keys that do not match the root zone name are ignored. An alternate
@@ -123,8 +123,8 @@ Note: When reading the trust anchor file, \fBdelv\fP treats \fBtrust\-anchors\fP
 \fBinitial\-key\fP, and \fBstatic\-key\fP identically. That is, for a managed key,
 it is the \fIinitial\fP key that is trusted; \fI\%RFC 5011\fP key management is not
 supported. \fBdelv\fP does not consult the managed\-keys database maintained by
-\fBnamed\fP, which means that if either of the keys in \fB/etc/bind.keys\fP is
-revoked and rolled over, \fB/etc/bind.keys\fP must be updated to
+\fBnamed\fP, which means that if either of the keys in \fB@sysconfdir@/bind.keys\fP is
+revoked and rolled over, \fB@sysconfdir@/bind.keys\fP must be updated to
 use DNSSEC validation in \fBdelv\fP\&.
 .TP
 .B \fB\-b address\fP
@@ -331,7 +331,7 @@ This option prints response data in YAML format.
 .UNINDENT
 .SH FILES
 .sp
-\fB/etc/bind.keys\fP
+\fB@sysconfdir@/bind.keys\fP
 .sp
 \fB/etc/resolv.conf\fP
 .SH SEE ALSO

@@ -102,3 +102,17 @@ man_pages = [
     ('rndc', 'rndc', 'name server control utility', author, 8),
     ('tsig-keygen', 'tsig-keygen', 'TSIG key generation tool', author, 8),
     ]
+
+#
+# The rst_epilog will be completely overwritten from the Makefile,
+# the definition here is provided purely for situations when
+# sphinx-build is run by hand.
+#
+rst_epilog = """
+.. |rndc_conf| replace: ``@sysconfdir@/rndc.conf``
+.. |rndc_key| replace: ``@sysconfdir@/rndc.key``
+.. |named_conf| replace: ``@sysconfdir@/named.conf``
+.. |bind_keys| replace: ``@sysconfdir@/bind.keys``
+.. |named_pid| replace: ``@runstatedir@/named.pid``
+.. |session_key| replace: ``@runstatedir@/session.key``
+"""

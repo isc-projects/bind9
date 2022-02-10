@@ -40,7 +40,7 @@ distribution from ISC. For more information on the DNS, see \fI\%RFC 1033\fP,
 \fI\%RFC 1034\fP, and \fI\%RFC 1035\fP\&.
 .sp
 When invoked without arguments, \fBnamed\fP reads the default
-configuration file \fB/etc/named.conf\fP, reads any initial data, and
+configuration file \fB@sysconfdir@/named.conf\fP, reads any initial data, and
 listens for queries.
 .SH OPTIONS
 .INDENT 0.0
@@ -55,7 +55,7 @@ This option tells \fBnamed\fP to use only IPv6, even if the host machine is capa
 .TP
 .B \fB\-c config\-file\fP
 This option tells \fBnamed\fP to use \fBconfig\-file\fP as its configuration file instead of the default,
-\fB/etc/named.conf\fP\&. To ensure that the configuration file
+\fB@sysconfdir@/named.conf\fP\&. To ensure that the configuration file
 can be reloaded after the server has changed its working directory
 due to to a possible \fBdirectory\fP option in the configuration file,
 \fBconfig\-file\fP should be an absolute pathname.
@@ -234,10 +234,10 @@ in the script used to start the \fBnamed\fP process.
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fB/etc/named.conf\fP
+.B \fB@sysconfdir@/named.conf\fP
 The default configuration file.
 .TP
-.B \fB/var/run/named/named.pid\fP
+.B \fB@runstatedir@/named.pid\fP
 The default process\-id file.
 .UNINDENT
 .SH SEE ALSO
