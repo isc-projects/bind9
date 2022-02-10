@@ -1,3 +1,6 @@
+5811.	[bug]		Reimplement the maximum and idle timeouts for outgoing
+			zone tranfers. [GL #1897]
+
 5810.	[func]		New option '-J' for dnssec-signzone and dnssec-verify
 			allows loading journal files. [GL #2486]
 
