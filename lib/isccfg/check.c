@@ -78,8 +78,9 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	  isc_log_t *logctxlogc);
 
 static isc_result_t
-keydirexist(const cfg_obj_t *zcgf, const char *dir, const char *kaspnamestr,
-	    isc_symtab_t *symtab, isc_log_t *logctx, isc_mem_t *mctx);
+keydirexist(const cfg_obj_t *zcgf, const char *optname, dns_name_t *zname,
+	    const char *dirname, const char *kaspnamestr, isc_symtab_t *symtab,
+	    isc_log_t *logctx, isc_mem_t *mctx);
 
 static const cfg_obj_t *
 find_maplist(const cfg_obj_t *config, const char *listname, const char *name);
@@ -2946,6 +2947,147 @@ cleanup:
 }
 
 static isc_result_t
+check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
+	     dns_name_t *zname, const char *name, const char *keydir,
+	     isc_symtab_t *keydirs, isc_log_t *logctx, isc_mem_t *mctx) {
+	const char *dir = keydir;
+	const cfg_listelt_t *element;
+	isc_result_t ret, result = ISC_R_SUCCESS;
+	bool do_cleanup = false;
+	bool done = false;
+	bool keystore = false;
+
+	const cfg_obj_t *kasps = NULL;
+	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+	dns_kasplist_t kasplist;
+
+	const cfg_obj_t *keystores = NULL;
+	dns_keystore_t *ks = NULL, *ks_next = NULL;
+	dns_keystorelist_t kslist;
+
+	/* If no dnssec-policy or key-store, use the dir (key-directory) */
+	(void)cfg_map_get(config, "dnssec-policy", &kasps);
+	(void)cfg_map_get(config, "key-store", &keystores);
+	if (kasps == NULL || keystores == NULL) {
+		goto check;
+	}
+
+	ISC_LIST_INIT(kasplist);
+	ISC_LIST_INIT(kslist);
+	do_cleanup = true;
+
+	/*
+	 * Look for the dnssec-policy by name, which is the dnssec-policy
+	 * for the zone in question.
+	 */
+	for (element = cfg_list_first(kasps); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		const cfg_obj_t *kaspobj = NULL;
+
+		if (!cfg_obj_istuple(kconfig)) {
+			continue;
+		}
+
+		kaspobj = cfg_tuple_get(kconfig, "name");
+		if (strcmp(name, cfg_obj_asstring(kaspobj)) != 0) {
+			continue;
+		}
+
+		ret = cfg_kasp_fromconfig(kconfig, NULL, mctx, logctx,
+					  &kasplist, &kasp);
+		if (ret != ISC_R_SUCCESS) {
+			kasp = NULL;
+		}
+		break;
+	}
+	if (kasp == NULL) {
+		goto check;
+	}
+
+	/* Check key-stores of keys */
+	dns_kasp_freeze(kasp);
+	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+	{
+		const char *ksname = dns_kasp_key_keystore(kkey);
+		if (ksname == NULL || strcmp("key-directory", ksname) == 0) {
+			dir = keydir;
+			keystore = false;
+		} else {
+			/* Look for the key-store by name */
+			for (element = cfg_list_first(keystores);
+			     element != NULL; element = cfg_list_next(element))
+			{
+				cfg_obj_t *kconfig = cfg_listelt_value(element);
+				const cfg_obj_t *ksobj = NULL;
+
+				if (!cfg_obj_istuple(kconfig)) {
+					continue;
+				}
+
+				ksobj = cfg_tuple_get(kconfig, "name");
+				if (strcmp(ksname, cfg_obj_asstring(ksobj)) !=
+				    0) {
+					continue;
+				}
+
+				/* Found the keystore */
+				ksobj = NULL;
+				if (cfg_map_get(cfg_tuple_get(kconfig, "option"
+								       "s"),
+						"directory",
+						&ksobj) == ISC_R_SUCCESS)
+				{
+					/* Check this directory in the symtable
+					 */
+					dir = cfg_obj_asstring(ksobj);
+					keystore = true;
+				} else {
+					dir = keydir;
+					keystore = false;
+				}
+				break;
+			}
+		}
+	}
+	dns_kasp_thaw(kasp);
+	done = true;
+
+check:
+	if (!done) {
+		ret = keydirexist(zconfig, "key-directory", zname, dir, name,
+				  keydirs, logctx, mctx);
+		if (ret != ISC_R_SUCCESS) {
+			result = ret;
+		}
+	}
+
+	if (do_cleanup) {
+		if (ks != NULL) {
+			dns_keystore_detach(&ks);
+		}
+		if (kasp != NULL) {
+			dns_kasp_detach(&kasp);
+		}
+		for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
+			ks_next = ISC_LIST_NEXT(ks, link);
+			ISC_LIST_UNLINK(kslist, ks, link);
+			dns_keystore_detach(&ks);
+		}
+		for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL;
+		     kasp = kasp_next) {
+			kasp_next = ISC_LIST_NEXT(kasp, link);
+			ISC_LIST_UNLINK(kasplist, kasp, link);
+			dns_kasp_detach(&kasp);
+		}
+	}
+
+	return (result);
+}
+
+static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
 	       isc_symtab_t *files, isc_symtab_t *keydirs, isc_symtab_t *inview,
@@ -3213,8 +3355,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		(void)cfg_map_get(goptions, "dnssec-policy", &obj);
 	}
 	if (obj != NULL) {
-		const cfg_obj_t *kasps = NULL;
-
 		kaspname = cfg_obj_asstring(obj);
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
@@ -3798,19 +3938,18 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Make sure there is no other zone with the same
-	 * key-directory and a different dnssec-policy.
+	 * Make sure there is no other zone with the same key directory (from
+	 * (key-directory or key-store/directory) and a different dnssec-policy.
 	 */
 	if (zname != NULL) {
-		char keydirbuf[DNS_NAME_FORMATSIZE + 128];
-		char *tmp = keydirbuf;
-		size_t len = sizeof(keydirbuf);
-		dns_name_format(zname, keydirbuf, sizeof(keydirbuf));
-		len -= strlen(tmp);
-		tmp += strlen(tmp);
-		(void)snprintf(tmp, len, "/%s", (dir == NULL) ? "(null)" : dir);
-		tresult = keydirexist(zconfig, (const char *)keydirbuf,
-				      kaspname, keydirs, logctx, mctx);
+		if (has_dnssecpolicy) {
+			tresult = check_keydir(config, zconfig, zname, kaspname,
+					       dir, keydirs, logctx, mctx);
+		} else {
+			tresult = keydirexist(zconfig, "key-directory", zname,
+					      dir, kaspname, keydirs, logctx,
+					      mctx);
+		}
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -4030,15 +4169,32 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 }
 
 static isc_result_t
-keydirexist(const cfg_obj_t *zcfg, const char *keydir, const char *kaspnamestr,
-	    isc_symtab_t *symtab, isc_log_t *logctx, isc_mem_t *mctx) {
+keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
+	    const char *dirname, const char *kaspnamestr, isc_symtab_t *symtab,
+	    isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result;
 	isc_symvalue_t symvalue;
 	char *symkey;
+	char keydirbuf[DNS_NAME_FORMATSIZE + 128];
+	char *keydir = keydirbuf;
+	size_t len = sizeof(keydirbuf);
+	size_t n;
 
 	if (kaspnamestr == NULL || strcmp(kaspnamestr, "none") == 0) {
 		return (ISC_R_SUCCESS);
 	}
+
+	dns_name_format(zname, keydirbuf, sizeof(keydirbuf));
+	len -= strlen(keydir);
+	keydir += strlen(keydir);
+	n = snprintf(keydir, len, "/%s", (dirname == NULL) ? "." : dirname);
+	if (n > len) {
+		cfg_obj_log(zcfg, logctx, ISC_LOG_WARNING,
+			    "%s '%s' truncated because too long, may cause "
+			    "false positives in key directory in use checks",
+			    optname, (dirname == NULL) ? "." : dirname);
+	}
+	keydir = keydirbuf;
 
 	result = isc_symtab_lookup(symtab, keydir, 0, &symvalue);
 	if (result == ISC_R_SUCCESS) {
@@ -4061,9 +4217,9 @@ keydirexist(const cfg_obj_t *zcfg, const char *keydir, const char *kaspnamestr,
 		}
 
 		cfg_obj_log(zcfg, logctx, ISC_LOG_ERROR,
-			    "key-directory '%s' already in use by zone %s with "
+			    "%s '%s' already in use by zone %s with "
 			    "policy %s: %s:%u",
-			    keydir,
+			    optname, keydir,
 			    cfg_obj_asstring(cfg_tuple_get(exist, "name")),
 			    cfg_obj_asstring(kasp), file, line);
 		return (ISC_R_EXISTS);
