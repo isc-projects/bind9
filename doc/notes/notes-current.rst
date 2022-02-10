@@ -36,6 +36,10 @@ Removed Features
   packets only.  This renders the ``dig`` option ``+mapped`` non-functioning and
   thus the option has been removed. :gl:`#3093`
 
+- The ``keep-order-response`` option has been declared obsolete and the
+  functionality has been removed.  ``named`` expects DNS clients to be
+  fully compliant with :rfc:`7766`. :gl:`#3140`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
