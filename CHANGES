@@ -1,3 +1,7 @@
+5807.	[bug]		Add a TCP "write" timer, and time out writing
+			connections after the "tcp-idle-timeout" period
+			has elapsed. [GL #3132]
+
 5804.	[func]		Add a debug log message when starting and ending
 			the task exclusive mode. [GL #3137]
 
