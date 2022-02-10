@@ -39,6 +39,11 @@ Feature Changes
   by a client are now included in the client information sent to DLZ
   modules when processing queries. :gl:`#3082`
 
+- Add DEBUG(1) level messages when starting and ending BIND 9 task exclusive mode
+  that stops the normal DNS operation (f.e. for reconfiguration, interface
+  scans, and other events that require exclusive access to a shared resources).
+  :gl:`#3137`
+
 Bug Fixes
 ~~~~~~~~~
 
