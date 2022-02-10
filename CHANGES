@@ -1,3 +1,6 @@
+5804.	[func]		Add a debug log message when starting and ending
+			the task exclusive mode. [GL #3137]
+
 5803.	[func]		Use compile-time paths in the documentation.
 			[GL #2717]
 
