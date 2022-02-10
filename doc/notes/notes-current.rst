@@ -35,6 +35,10 @@ Security Fixes
   ISC would like to thank Vincent Levigneron from AFNIC for bringing
   this vulnerability to our attention. :gl:`#3158`
 
+- When chasing DS records, a timed out or artificially delayed fetch
+  could cause ``named`` to crash while resuming a DS lookup.
+  (CVE-2022-0667) :gl:`#3129`
+
 Known Issues
 ~~~~~~~~~~~~
 
