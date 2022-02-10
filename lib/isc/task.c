@@ -25,6 +25,7 @@
 #include <isc/atomic.h>
 #include <isc/condition.h>
 #include <isc/event.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -1107,7 +1108,19 @@ isc_task_beginexclusive(isc_task_t *task) {
 		return (ISC_R_LOCKBUSY);
 	}
 
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "exclusive task mode: %s", "starting");
+	}
+
 	isc_nm_pause(manager->netmgr);
+
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "exclusive task mode: %s", "started");
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -1120,7 +1133,20 @@ isc_task_endexclusive(isc_task_t *task) {
 	REQUIRE(task->state == task_state_running);
 	manager = task->manager;
 
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "exclusive task mode: %s", "ending");
+	}
+
 	isc_nm_resume(manager->netmgr);
+
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "exclusive task mode: %s", "ended");
+	}
+
 	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
 					       &(bool){ true }, false));
 }
