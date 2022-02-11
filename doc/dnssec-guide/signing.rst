@@ -762,9 +762,10 @@ The policy has multiple parts:
 -  The ``keys`` clause lists all keys that should be in the zone, along
    with their associated parameters. In this example, we are using the
    conventional KSK/ZSK split, with the KSK changed every year and the
-   ZSK changed every two months. We have used one of the two mandatory
-   algorithms for the keys. (The ``default`` DNSSEC policy sets a CSK
-   that is never changed.)
+   ZSK changed every two months (the ``default`` DNSSEC policy sets a
+   CSK that is never changed). Keys are created using the
+   ECDSAPS256SHA256 algorithm; each KSK/ZSK pair must have the same
+   algorithm. A CSK combines the functionality of a ZSK and a KSK.
 
 -  The parameters ending in ``-ttl`` are, as expected, the TTLs of the
    associated records. Remember that during a key rollover,
