@@ -48,7 +48,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([bin/named/main.c])
-AM_INIT_AUTOMAKE([1.9 tar-pax foreign subdir-objects dist-xz no-dist-gzip -Wall -Werror])
+AM_INIT_AUTOMAKE([1.14 tar-pax foreign subdir-objects dist-xz no-dist-gzip -Wall -Werror])
 AM_SILENT_RULES([yes])
 AM_EXTRA_RECURSIVE_TARGETS([test unit doc])
 
