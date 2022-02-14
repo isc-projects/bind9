@@ -117,7 +117,7 @@ Incremental Zone Transfers (IXFR)
 
 The incremental zone transfer (IXFR) protocol is a way for secondary servers
 to transfer only changed data, instead of having to transfer an entire
-zone. The IXFR protocol is specified in :rfc:`1995`. See :ref:`proposed_standards`.
+zone. The IXFR protocol is specified in :rfc:`1995`.
 
 When acting as a primary server, BIND 9 supports IXFR for those zones where the
 necessary change history information is available. These include primary
@@ -810,9 +810,6 @@ been completely removed per :rfc:`3363`. Many applications in BIND 9 do not
 understand the binary label format at all anymore, and return an
 error if one is given. In particular, an authoritative BIND 9 name server will
 not load a zone file containing binary labels.
-
-For an overview of the format and structure of IPv6 addresses, see
-:ref:`ipv6addresses`.
 
 Address Lookups Using AAAA Records
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
