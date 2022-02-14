@@ -330,10 +330,6 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	opt->length = r.length;
 	opt->options = mem_maybedup(mctx, r.base, r.length);
-	if (opt->options == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	opt->offset = 0;
 	opt->mctx = mctx;
 	return (ISC_R_SUCCESS);

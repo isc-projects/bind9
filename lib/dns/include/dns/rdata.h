@@ -523,7 +523,8 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx);
  *
  * Result:
  *\li	Success
- *\li	Resource Limit: Not enough memory
+ *\li	Not Implemented
+ *\li	Unexpected end of input
  */
 
 void

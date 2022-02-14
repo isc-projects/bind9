@@ -257,18 +257,8 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 
 	nxt->len = region.length;
 	nxt->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nxt->typebits == NULL) {
-		goto cleanup;
-	}
-
 	nxt->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL) {
-		dns_name_free(&nxt->next, mctx);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

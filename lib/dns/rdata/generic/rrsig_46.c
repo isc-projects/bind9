@@ -501,18 +501,8 @@ tostruct_rrsig(ARGS_TOSTRUCT) {
 	 */
 	sig->siglen = sr.length;
 	sig->signature = mem_maybedup(mctx, sr.base, sig->siglen);
-	if (sig->signature == NULL) {
-		goto cleanup;
-	}
-
 	sig->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL) {
-		dns_name_free(&sig->signer, mctx);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

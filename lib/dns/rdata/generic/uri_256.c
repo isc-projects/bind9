@@ -240,10 +240,6 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	 */
 	uri->tgt_len = sr.length;
 	uri->target = mem_maybedup(mctx, sr.base, sr.length);
-	if (uri->target == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	uri->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

@@ -207,10 +207,6 @@ tostruct_cert(ARGS_TOSTRUCT) {
 	cert->length = region.length;
 
 	cert->certificate = mem_maybedup(mctx, region.base, region.length);
-	if (cert->certificate == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	cert->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

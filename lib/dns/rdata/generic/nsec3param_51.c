@@ -243,9 +243,6 @@ tostruct_nsec3param(ARGS_TOSTRUCT) {
 	INSIST(nsec3param->salt_length == region.length);
 	nsec3param->salt = mem_maybedup(mctx, region.base,
 					nsec3param->salt_length);
-	if (nsec3param->salt == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	isc_region_consume(&region, nsec3param->salt_length);
 
 	nsec3param->mctx = mctx;

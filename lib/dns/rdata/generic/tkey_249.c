@@ -474,9 +474,6 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	 */
 	INSIST(tkey->keylen + 2U <= sr.length);
 	tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
-	if (tkey->key == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&sr, tkey->keylen);
 
 	/*
@@ -490,21 +487,8 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	 */
 	INSIST(tkey->otherlen <= sr.length);
 	tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
-	if (tkey->other == NULL) {
-		goto cleanup;
-	}
-
 	tkey->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL) {
-		dns_name_free(&tkey->algorithm, mctx);
-	}
-	if (mctx != NULL && tkey->key != NULL) {
-		isc_mem_free(mctx, tkey->key);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

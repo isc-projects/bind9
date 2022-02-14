@@ -234,10 +234,6 @@ tostruct_in_atma(ARGS_TOSTRUCT) {
 	isc_region_consume(&r, 1);
 	atma->atma_len = r.length;
 	atma->atma = mem_maybedup(mctx, r.base, r.length);
-	if (atma->atma == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	atma->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

@@ -1014,13 +1014,6 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	svcb->svclen = region.length;
 	svcb->svc = mem_maybedup(mctx, region.base, region.length);
 
-	if (svcb->svc == NULL) {
-		if (mctx != NULL) {
-			dns_name_free(&svcb->svcdomain, svcb->mctx);
-		}
-		return (ISC_R_NOMEMORY);
-	}
-
 	svcb->offset = 0;
 	svcb->mctx = mctx;
 

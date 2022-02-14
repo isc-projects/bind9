@@ -322,42 +322,21 @@ tostruct_hip(ARGS_TOSTRUCT) {
 	hip->hit = hip->key = hip->servers = NULL;
 
 	hip->hit = mem_maybedup(mctx, region.base, hip->hit_len);
-	if (hip->hit == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&region, hip->hit_len);
 
 	INSIST(hip->key_len <= region.length);
 
 	hip->key = mem_maybedup(mctx, region.base, hip->key_len);
-	if (hip->key == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&region, hip->key_len);
 
 	hip->servers_len = region.length;
 	if (hip->servers_len != 0) {
 		hip->servers = mem_maybedup(mctx, region.base, region.length);
-		if (hip->servers == NULL) {
-			goto cleanup;
-		}
 	}
 
 	hip->offset = hip->servers_len;
 	hip->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (hip->hit != NULL) {
-		isc_mem_free(mctx, hip->hit);
-	}
-	if (hip->key != NULL) {
-		isc_mem_free(mctx, hip->key);
-	}
-	if (hip->servers != NULL) {
-		isc_mem_free(mctx, hip->servers);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

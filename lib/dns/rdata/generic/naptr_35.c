@@ -521,27 +521,18 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	isc_region_consume(&r, 1);
 	INSIST(naptr->flags_len <= r.length);
 	naptr->flags = mem_maybedup(mctx, r.base, naptr->flags_len);
-	if (naptr->flags == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&r, naptr->flags_len);
 
 	naptr->service_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	INSIST(naptr->service_len <= r.length);
 	naptr->service = mem_maybedup(mctx, r.base, naptr->service_len);
-	if (naptr->service == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&r, naptr->service_len);
 
 	naptr->regexp_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	INSIST(naptr->regexp_len <= r.length);
 	naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
-	if (naptr->regexp == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&r, naptr->regexp_len);
 
 	dns_name_init(&name, NULL);
@@ -550,18 +541,6 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	name_duporclone(&name, mctx, &naptr->replacement);
 	naptr->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL && naptr->flags != NULL) {
-		isc_mem_free(mctx, naptr->flags);
-	}
-	if (mctx != NULL && naptr->service != NULL) {
-		isc_mem_free(mctx, naptr->service);
-	}
-	if (mctx != NULL && naptr->regexp != NULL) {
-		isc_mem_free(mctx, naptr->regexp);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

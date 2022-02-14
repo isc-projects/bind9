@@ -154,10 +154,6 @@ tostruct_x25(ARGS_TOSTRUCT) {
 	x25->x25_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	x25->x25 = mem_maybedup(mctx, r.base, x25->x25_len);
-	if (x25->x25 == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	x25->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

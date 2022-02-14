@@ -529,9 +529,6 @@ tostruct_caa(ARGS_TOSTRUCT) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 	caa->tag = mem_maybedup(mctx, sr.base, caa->tag_len);
-	if (caa->tag == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	isc_region_consume(&sr, caa->tag_len);
 
 	/*
@@ -539,9 +536,6 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	 */
 	caa->value_len = sr.length;
 	caa->value = mem_maybedup(mctx, sr.base, sr.length);
-	if (caa->value == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	caa->mctx = mctx;
 	return (ISC_R_SUCCESS);

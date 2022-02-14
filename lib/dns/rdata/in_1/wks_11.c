@@ -323,9 +323,6 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	wks->map_len = region.length;
 	wks->map = mem_maybedup(mctx, region.base, region.length);
-	if (wks->map == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	wks->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

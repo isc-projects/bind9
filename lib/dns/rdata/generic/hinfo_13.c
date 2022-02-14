@@ -125,26 +125,13 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	hinfo->cpu_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
-	if (hinfo->cpu == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	isc_region_consume(&region, hinfo->cpu_len);
 
 	hinfo->os_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	hinfo->os = mem_maybedup(mctx, region.base, hinfo->os_len);
-	if (hinfo->os == NULL) {
-		goto cleanup;
-	}
-
 	hinfo->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL && hinfo->cpu != NULL) {
-		isc_mem_free(mctx, hinfo->cpu);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

@@ -400,13 +400,6 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	if (ipseckey->keylength != 0U) {
 		ipseckey->key = mem_maybedup(mctx, region.base,
 					     ipseckey->keylength);
-		if (ipseckey->key == NULL) {
-			if (ipseckey->gateway_type == 3) {
-				dns_name_free(&ipseckey->gateway,
-					      ipseckey->mctx);
-			}
-			return (ISC_R_NOMEMORY);
-		}
 	} else {
 		ipseckey->key = NULL;
 	}

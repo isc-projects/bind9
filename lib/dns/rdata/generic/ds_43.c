@@ -293,10 +293,6 @@ generic_tostruct_ds(ARGS_TOSTRUCT) {
 	ds->length = region.length;
 
 	ds->digest = mem_maybedup(mctx, region.base, region.length);
-	if (ds->digest == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	ds->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

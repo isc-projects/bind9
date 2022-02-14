@@ -258,9 +258,6 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	INSIST(doa->mediatype_len <= region.length);
 	doa->mediatype = mem_maybedup(mctx, region.base, doa->mediatype_len);
-	if (doa->mediatype == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&region, doa->mediatype_len);
 
 	/*
@@ -270,21 +267,12 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	doa->data = NULL;
 	if (doa->data_len > 0) {
 		doa->data = mem_maybedup(mctx, region.base, doa->data_len);
-		if (doa->data == NULL) {
-			goto cleanup;
-		}
 		isc_region_consume(&region, doa->data_len);
 	}
 
 	doa->mctx = mctx;
 
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL && doa->mediatype != NULL) {
-		isc_mem_free(mctx, doa->mediatype);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

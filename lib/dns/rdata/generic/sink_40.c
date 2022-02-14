@@ -214,10 +214,6 @@ tostruct_sink(ARGS_TOSTRUCT) {
 	/* Data */
 	sink->datalen = sr.length;
 	sink->data = mem_maybedup(mctx, sr.base, sink->datalen);
-	if (sink->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	sink->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

@@ -218,10 +218,6 @@ tostruct_sshfp(ARGS_TOSTRUCT) {
 	sshfp->length = region.length;
 
 	sshfp->digest = mem_maybedup(mctx, region.base, region.length);
-	if (sshfp->digest == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	sshfp->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

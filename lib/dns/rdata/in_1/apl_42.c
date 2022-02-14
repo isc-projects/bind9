@@ -295,10 +295,6 @@ tostruct_in_apl(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	apl->apl_len = r.length;
 	apl->apl = mem_maybedup(mctx, r.base, r.length);
-	if (apl->apl == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	apl->offset = 0;
 	apl->mctx = mctx;
 	return (ISC_R_SUCCESS);

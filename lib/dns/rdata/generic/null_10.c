@@ -108,10 +108,6 @@ tostruct_null(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	null->length = r.length;
 	null->data = mem_maybedup(mctx, r.base, r.length);
-	if (null->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	null->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

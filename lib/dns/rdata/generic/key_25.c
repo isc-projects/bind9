@@ -355,10 +355,6 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	/* Data */
 	key->datalen = sr.length;
 	key->data = mem_maybedup(mctx, sr.base, key->datalen);
-	if (key->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	key->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

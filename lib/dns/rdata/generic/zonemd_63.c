@@ -272,10 +272,6 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 	zonemd->length = region.length;
 
 	zonemd->digest = mem_maybedup(mctx, region.base, region.length);
-	if (zonemd->digest == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	zonemd->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

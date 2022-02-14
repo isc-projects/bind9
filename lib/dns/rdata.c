@@ -420,11 +420,14 @@ name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 static inline void *
 mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
-	void *copy;
+	void *copy = NULL;
+
+	REQUIRE(source != NULL);
 
 	if (mctx == NULL) {
 		return (source);
 	}
+
 	copy = isc_mem_allocate(mctx, length);
 	memmove(copy, source, length);
 

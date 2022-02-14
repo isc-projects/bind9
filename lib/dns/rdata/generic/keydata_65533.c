@@ -384,10 +384,6 @@ tostruct_keydata(ARGS_TOSTRUCT) {
 	/* Data */
 	keydata->datalen = sr.length;
 	keydata->data = mem_maybedup(mctx, sr.base, keydata->datalen);
-	if (keydata->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	keydata->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
