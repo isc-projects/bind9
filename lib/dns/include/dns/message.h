@@ -434,7 +434,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
  *
  *\li	'target' is a valid buffer.
  *
- *\li	'section' is a valid section label.
+ *\li	'section' is a named section label.
  *
  * Ensures:
  *
@@ -806,7 +806,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  * Requires:
  *\li	'msg' be valid.
  *
- *\li	'section' be a valid section.
+ *\li	'section' be a named section.
  *
  *\li	If a pointer to the name is desired, 'foundname' should be non-NULL.
  *	If it is non-NULL, '*foundname' MUST be NULL.
