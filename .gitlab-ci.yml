@@ -1251,16 +1251,14 @@ release:
 
 # Coverity Scan analysis upload
 
-.coverity_cache_prep: &coverity_cache_prep
-  - test -f cov-analysis-linux64.md5 && test -f cov-analysis-linux64.tgz || (
-    curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64
+.coverity_prep: &coverity_prep
+  - curl --output cov-analysis-linux64.md5 https://scan.coverity.com/download/linux64
          --form project=$COVERITY_SCAN_PROJECT_NAME
          --form token=$COVERITY_SCAN_TOKEN
-         --form md5=1;
-    curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64
+         --form md5=1
+  - curl --output cov-analysis-linux64.tgz https://scan.coverity.com/download/linux64
          --form project=$COVERITY_SCAN_PROJECT_NAME
-         --form token=$COVERITY_SCAN_TOKEN;
-    )
+         --form token=$COVERITY_SCAN_TOKEN
   - test "$(md5sum cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat cov-analysis-linux64.md5)"
   - tar --extract --gzip --file=cov-analysis-linux64.tgz
   - test -d cov-analysis-linux64-2021.12.1
@@ -1285,7 +1283,7 @@ coverity:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     EXTRA_CONFIGURE: "--with-libidn2"
   script:
-    - *coverity_cache_prep
+    - *coverity_prep
     - *configure
     - *coverity_build
   needs:
@@ -1301,11 +1299,6 @@ coverity:
     variables:
       - $COVERITY_SCAN_PROJECT_NAME
       - $COVERITY_SCAN_TOKEN
-  cache:
-    key: cov-analysis-linux64-2021.12.1
-    paths:
-      - cov-analysis-linux64.md5
-      - cov-analysis-linux64.tgz
 
 # Respdiff tests
 
