@@ -295,20 +295,21 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 
 	mgr->workers = isc_mem_get(mctx, workers * sizeof(isc__networker_t));
 	for (size_t i = 0; i < workers; i++) {
-		int r;
 		isc__networker_t *worker = &mgr->workers[i];
+		int r;
+
 		*worker = (isc__networker_t){
 			.mgr = mgr,
 			.id = i,
 		};
 
 		r = uv_loop_init(&worker->loop);
-		RUNTIME_CHECK(r == 0);
+		UV_RUNTIME_CHECK(uv_loop_init, r);
 
 		worker->loop.data = &mgr->workers[i];
 
 		r = uv_async_init(&worker->loop, &worker->async, async_cb);
-		RUNTIME_CHECK(r == 0);
+		UV_RUNTIME_CHECK(uv_async_init, r);
 
 		isc_mutex_init(&worker->lock);
 		isc_condition_init(&worker->cond_prio);
@@ -384,7 +385,7 @@ nm_destroy(isc_nm_t **mgr0) {
 		isc_mutex_destroy(&worker->lock);
 
 		r = uv_loop_close(&worker->loop);
-		INSIST(r == 0);
+		UV_RUNTIME_CHECK(uv_loop_close, r);
 
 		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
 			isc_queue_destroy(worker->ievents[type]);
@@ -2098,11 +2099,11 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
-	int r = 0;
-
 	REQUIRE(VALID_NMSOCK(sock));
 
 	if (atomic_load(&sock->connecting)) {
+		int r;
+
 		if (sock->connect_timeout == 0) {
 			return;
 		}
@@ -2110,17 +2111,19 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 		r = uv_timer_start(&sock->timer,
 				   isc__nmsocket_connecttimeout_cb,
 				   sock->connect_timeout + 10, 0);
+		UV_RUNTIME_CHECK(uv_timer_start, r);
 
 	} else {
+		int r;
+
 		if (sock->read_timeout == 0) {
 			return;
 		}
 
 		r = uv_timer_start(&sock->timer, isc__nmsocket_readtimeout_cb,
 				   sock->read_timeout, 0);
+		UV_RUNTIME_CHECK(uv_timer_start, r);
 	}
-
-	RUNTIME_CHECK(r == 0);
 }
 
 bool
@@ -2143,12 +2146,14 @@ isc__nmsocket_timer_start(isc_nmsocket_t *sock) {
 
 void
 isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
+	int r;
+
 	REQUIRE(VALID_NMSOCK(sock));
 
 	/* uv_timer_stop() is idempotent, no need to check if running */
 
-	int r = uv_timer_stop(&sock->timer);
-	RUNTIME_CHECK(r == 0);
+	r = uv_timer_stop(&sock->timer);
+	UV_RUNTIME_CHECK(uv_timer_stop, r);
 }
 
 isc__nm_uvreq_t *
@@ -2232,24 +2237,27 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 	case isc_nm_udpsocket:
 		r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 				      isc__nm_udp_read_cb);
+		UV_RUNTIME_CHECK(uv_udp_recv_start, r);
 		break;
 	case isc_nm_tcpsocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcp_read_cb);
+		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	case isc_nm_tcpdnssocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcpdns_read_cb);
+		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	case isc_nm_tlsdnssocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tlsdns_read_cb);
+		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
-	RUNTIME_CHECK(r == 0);
 	atomic_store(&sock->reading, true);
 }
 
@@ -2264,17 +2272,18 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 		r = uv_udp_recv_stop(&sock->uv_handle.udp);
+		UV_RUNTIME_CHECK(uv_udp_recv_stop, r);
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
 		r = uv_read_stop(&sock->uv_handle.stream);
+		UV_RUNTIME_CHECK(uv_read_stop, r);
 		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
 	}
-	RUNTIME_CHECK(r == 0);
 	atomic_store(&sock->reading, false);
 }
 
@@ -3322,12 +3331,12 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
 
 	if (recv_buffer_size > 0) {
 		int r = uv_recv_buffer_size(handle, &recv_buffer_size);
-		INSIST(r == 0);
+		UV_RUNTIME_CHECK(uv_recv_buffer_size, r);
 	}
 
 	if (send_buffer_size > 0) {
 		int r = uv_send_buffer_size(handle, &send_buffer_size);
-		INSIST(r == 0);
+		UV_RUNTIME_CHECK(uv_send_buffer_size, r);
 	}
 }
 
@@ -3395,7 +3404,7 @@ isc_nm_work_offload(isc_nm_t *netmgr, isc_nm_workcb_t work_cb,
 
 	r = uv_queue_work(&worker->loop, &work->req, isc__nm_work_cb,
 			  isc__nm_after_work_cb);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_queue_work, r);
 }
 
 void

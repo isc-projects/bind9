@@ -118,11 +118,11 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	if (isc__nm_closing(sock)) {
@@ -564,13 +564,13 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	/* TODO: set min mss */
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	/* This keeps the socket alive after everything else is gone */
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	LOCK(&sock->parent->lock);
@@ -1188,7 +1188,7 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		isc__nm_uvreq_t *req = NULL;
 		size_t bytes;
 		int rv;
-		int err;
+		int r;
 
 		if (sock->tls.senddata.base != NULL ||
 		    sock->tls.senddata.length > 0) {
@@ -1212,34 +1212,38 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		RUNTIME_CHECK(rv == 1);
 		INSIST((size_t)pending == bytes);
 
-		err = uv_try_write(&sock->uv_handle.stream, &req->uvbuf, 1);
+		r = uv_try_write(&sock->uv_handle.stream, &req->uvbuf, 1);
 
-		if (err == pending) {
+		if (r == pending) {
 			/* Wrote everything, restart */
 			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock);
 			continue;
 		}
 
-		if (err > 0) {
+		if (r > 0) {
 			/* Partial write, send rest asynchronously */
-			memmove(req->uvbuf.base, req->uvbuf.base + err,
-				req->uvbuf.len - err);
-			req->uvbuf.len = req->uvbuf.len - err;
-		} else if (err == UV_ENOSYS || err == UV_EAGAIN) {
+			memmove(req->uvbuf.base, req->uvbuf.base + r,
+				req->uvbuf.len - r);
+			req->uvbuf.len = req->uvbuf.len - r;
+		} else if (r == UV_ENOSYS || r == UV_EAGAIN) {
 			/* uv_try_write is not supported, send
 			 * asynchronously */
 		} else {
-			result = isc__nm_uverr2result(err);
+			result = isc__nm_uverr2result(r);
 			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock);
 			break;
 		}
 
-		err = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
-			       &req->uvbuf, 1, tls_write_cb);
-
-		INSIST(err == 0);
+		r = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
+			     &req->uvbuf, 1, tls_write_cb);
+		if (r < 0) {
+			result = isc__nm_uverr2result(r);
+			isc__nm_uvreq_put(&req, sock);
+			free_senddata(sock);
+			break;
+		}
 
 		break;
 	}
@@ -1469,11 +1473,11 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	worker = &csock->mgr->workers[csock->tid];
 
 	r = uv_tcp_init(&worker->loop, &csock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&csock->uv_handle.handle, csock);
 
 	r = uv_timer_init(&worker->loop, &csock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->timer, csock);
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
