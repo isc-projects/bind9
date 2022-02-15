@@ -1,3 +1,6 @@
+5809.	[bug]		Reset client TCP connection when data received cannot
+			be parsed as a valid DNS request. [GL #3149]
+
 5808.	[bug]		Certain TCP failures were not caught and handled
 			correctly by the dispatch manager, causing
 			connections to time out rather than returning
