@@ -1247,6 +1247,12 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock);
  * callbacks.
  */
 
+void
+isc__nmsocket_reset(isc_nmsocket_t *sock);
+/*%<
+ * Reset and close the socket.
+ */
+
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
