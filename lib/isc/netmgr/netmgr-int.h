@@ -2078,3 +2078,9 @@ void
 isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota);
 
 #define STREAM_CLIENTS_PER_CONN 23
+
+#define UV_RUNTIME_CHECK(func, ret)                                           \
+	if (ret != 0) {                                                       \
+		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s\n", #func, \
+				uv_strerror(ret));                            \
+	}
