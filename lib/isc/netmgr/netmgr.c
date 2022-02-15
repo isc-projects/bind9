@@ -1835,9 +1835,6 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	}
 }
 
-void
-isc__nmsocket_shutdown(isc_nmsocket_t *sock);
-
 static void
 nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	isc_nmsocket_t *sock = NULL;
@@ -2085,11 +2082,7 @@ isc__nmsocket_writetimeout_cb(uv_timer_t *timer) {
 	int r = uv_timer_stop(&sock->write_timer);
 	UV_RUNTIME_CHECK(uv_timer_stop, r);
 
-	/* The shutdown will be handled in the respective close functions */
-	r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
-	UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
-
-	isc__nmsocket_shutdown(sock);
+	isc__nmsocket_reset(sock);
 }
 
 void
@@ -2903,6 +2896,32 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
+isc__nmsocket_reset(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		REQUIRE(sock->parent == NULL);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	}
+
+	if (!uv_is_closing(&sock->uv_handle.handle)) {
+		/*
+		 * The real shutdown will be handled in the respective
+		 * close functions.
+		 */
+		int r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
+		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+	}
+	isc__nmsocket_shutdown(sock);
+}
+
+void
 isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	switch (sock->type) {
@@ -3467,25 +3486,26 @@ isc_nm_sequential(isc_nmhandle_t *handle) {
 
 void
 isc_nm_bad_request(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock;
+	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	sock = handle->sock;
+
 	switch (sock->type) {
+	case isc_nm_udpsocket:
+		return;
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		REQUIRE(sock->parent == NULL);
+		isc__nmsocket_reset(sock);
+		return;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
 		isc__nm_http_bad_request(handle);
-		break;
-#endif /* HAVE_LIBNGHTTP2 */
-
-	case isc_nm_udpsocket:
-	case isc_nm_tcpdnssocket:
-	case isc_nm_tlsdnssocket:
 		return;
-		break;
-
+#endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_tcpsocket:
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
