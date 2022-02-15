@@ -137,11 +137,11 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 
 	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
 	if (r != 0) {
@@ -521,14 +521,14 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	/* TODO: set min mss */
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	/* This keeps the socket alive after everything else is gone */
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
@@ -971,11 +971,11 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	worker = &csock->mgr->workers[isc_nm_tid()];
 
 	r = uv_tcp_init(&worker->loop, &csock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&csock->uv_handle.handle, csock);
 
 	r = uv_timer_init(&worker->loop, &csock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->timer, csock);
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
