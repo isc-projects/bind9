@@ -383,7 +383,7 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 
 	isc_netaddr_fromsockaddr(&netaddr, destaddr);
 	result = dns_acl_match(&netaddr, NULL, blackhole, NULL, &match, NULL);
-	if (result != ISC_R_SUCCESS || match == 0) {
+	if (result != ISC_R_SUCCESS || match <= 0) {
 		return (false);
 	}
 
