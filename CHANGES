@@ -24,6 +24,10 @@
 5821.	[bug]		Fix query context management issues in the TCP part
 			of dig. [GL #3184]
 
+5819.	[security]	Lookups involving a DNAME could trigger an INSIST when
+			"synth-from-dnssec" was enabled. (CVE-2022-0635)
+			[GL #3158]
+
 5818.	[security]	A synchronous call to closehandle_cb() caused
 			isc__nm_process_sock_buffer() to be called recursively,
 			which in turn left TCP connections hanging in the
