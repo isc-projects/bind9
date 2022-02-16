@@ -10231,7 +10231,8 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "resolver priming query complete");
+		      "resolver priming query complete: %s",
+		      isc_result_totext(fevent->result));
 
 	UNUSED(task);
 
