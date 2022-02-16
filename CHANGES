@@ -1,3 +1,7 @@
+5805.	[func]		The result of each resolver priming attempt is now
+			included in the "resolver priming query complete" log
+			message. [GL #3139]
+
 5804.	[func]		Add a debug log message when starting and ending
 			the task exclusive mode. [GL #3137]
 
