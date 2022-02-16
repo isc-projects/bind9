@@ -102,11 +102,11 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	atomic_store(&sock->connecting, true);
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 
 	if (isc__nm_closing(sock)) {
 		result = ISC_R_CANCELED;
@@ -491,13 +491,13 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	/* TODO: set min mss */
 
 	r = uv_tcp_init(&worker->loop, &sock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 	/* This keeps the socket alive after everything else is gone */
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 
 	r = uv_timer_init(&worker->loop, &sock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
 
 	LOCK(&sock->parent->lock);
@@ -947,11 +947,11 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	worker = &csock->mgr->workers[csock->tid];
 
 	r = uv_tcp_init(&worker->loop, &csock->uv_handle.tcp);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&csock->uv_handle.handle, csock);
 
 	r = uv_timer_init(&worker->loop, &csock->timer);
-	RUNTIME_CHECK(r == 0);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->timer, csock);
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
@@ -1142,7 +1142,7 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 		bufs[0].base = uvreq->uvbuf.base + (r - 2);
 		bufs[0].len = uvreq->uvbuf.len - (r - 2);
 	} else if (r == UV_ENOSYS || r == UV_EAGAIN) {
-		/* uv_try_write not support, send asynchronously */
+		/* uv_try_write not supported, send asynchronously */
 	} else {
 		/* error sending data */
 		result = isc__nm_uverr2result(r);
@@ -1157,7 +1157,6 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	return;
-
 fail:
 	if (result != ISC_R_SUCCESS) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_SENDFAIL]);
