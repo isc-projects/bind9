@@ -5169,7 +5169,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
     ::
 
         keys {
-            ksk key-directory lifetime unlimited algorithm rsasha1 2048;
+            ksk key-directory lifetime unlimited algorithm rsasha256 2048;
             zsk lifetime P30D algorithm 8;
             csk lifetime P6MT12H3M15S algorithm ecdsa256;
         };
@@ -5205,6 +5205,8 @@ The following options can be specified in a ``dnssec-policy`` statement:
     number.  An optional second parameter specifies the key's size in
     bits.  If it is omitted, as shown in the example for the second and
     third keys, an appropriate default size for the algorithm is used.
+    Each KSK/ZSK pair must have the same algorithm. A CSK combines the
+    functionality of a ZSK and a KSK.
 
   ``purge-keys``
     This is the time after when DNSSEC keys that have been deleted from
