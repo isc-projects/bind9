@@ -81,3 +81,8 @@ Bug Fixes
 
 - Client TCP connections are now closed immediately when data received
   cannot be parsed as a valid DNS request. :gl:`#3149`
+
+- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options were
+  not implemented when the BIND 9 networking stack was refactored in 9.16.
+  The missing functionality has been re-implemented and outgoing zone
+  transfers now time out properly when not progressing. :gl:`#1897`
