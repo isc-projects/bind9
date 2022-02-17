@@ -201,8 +201,6 @@ struct ns_client {
 	uint16_t	extflags;
 	int16_t		ednsversion; /* -1 noedns */
 	void (*cleanup)(ns_client_t *);
-	void (*shutdown)(void *arg, isc_result_t result);
-	void	     *shutdown_arg;
 	ns_query_t    query;
 	isc_time_t    requesttime;
 	isc_stdtime_t now;

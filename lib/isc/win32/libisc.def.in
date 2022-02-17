@@ -480,6 +480,11 @@ isc_nm_tcpconnect
 isc_nm_tcpdnsconnect
 isc_nm_tcpdns_sequential
 isc_nm_tid
+isc_nm_timer_create
+isc_nm_timer_attach
+isc_nm_timer_detach
+isc_nm_timer_start
+isc_nm_timer_stop
 isc_nm_udpconnect
 isc_nm_work_offload
 isc_nmsocket_close

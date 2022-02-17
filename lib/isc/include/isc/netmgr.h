@@ -492,3 +492,27 @@ isc__nm_force_tid(int tid);
 
 void
 isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout);
+
+/*
+ * Timer related functions
+ */
+
+typedef struct isc_nm_timer isc_nm_timer_t;
+
+typedef void (*isc_nm_timer_cb)(void *, isc_result_t);
+
+void
+isc_nm_timer_create(isc_nmhandle_t *, isc_nm_timer_cb, void *,
+		    isc_nm_timer_t **);
+
+void
+isc_nm_timer_attach(isc_nm_timer_t *, isc_nm_timer_t **);
+
+void
+isc_nm_timer_detach(isc_nm_timer_t **);
+
+void
+isc_nm_timer_start(isc_nm_timer_t *, uint64_t);
+
+void
+isc_nm_timer_stop(isc_nm_timer_t *);
