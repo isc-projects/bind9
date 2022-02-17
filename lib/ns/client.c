@@ -1822,6 +1822,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * There isn't enough header to determine whether
 		 * this was a request or a response.  Drop it.
 		 */
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+			      "dropped request: invalid message header");
 		isc_nm_bad_request(handle);
 		return;
 	}
@@ -1838,7 +1841,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 * If it's a TCP response, discard it here.
 	 */
 	if ((flags & DNS_MESSAGEFLAG_QR) != 0) {
-		CTRACE("unexpected response");
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+			      "dropped request: unexpected response");
 		isc_nm_bad_request(handle);
 		return;
 	}
