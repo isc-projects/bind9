@@ -713,13 +713,14 @@ tcp_recv_done(dns_dispentry_t *resp, isc_result_t eresult,
 }
 
 static void
-tcp_recv_cancelall(dns_displist_t *resps, isc_region_t *region) {
+tcp_recv_cancelall(dns_displist_t *resps, isc_region_t *region,
+		   isc_result_t result) {
 	dns_dispentry_t *resp = NULL, *next = NULL;
 
 	for (resp = ISC_LIST_HEAD(*resps); resp != NULL; resp = next) {
 		next = ISC_LIST_NEXT(resp, rlink);
 		ISC_LIST_UNLINK(*resps, resp, rlink);
-		resp->response(ISC_R_SHUTTINGDOWN, region, resp->arg);
+		resp->response(result, region, resp->arg);
 		dispentry_detach(&resp);
 	}
 }
@@ -831,7 +832,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		break;
 	default:
 		/* We're being shut down; cancel all outstanding resps. */
-		tcp_recv_cancelall(&resps, region);
+		tcp_recv_cancelall(&resps, region, result);
 	}
 
 	dns_dispatch_detach(&disp);
