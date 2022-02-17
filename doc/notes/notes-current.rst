@@ -70,3 +70,9 @@ Bug Fixes
   to ``none``.  ``blackhole`` worked correctly when it was left unset, or
   if only positive-match elements were included. This has now been fixed.
   :gl:`#3157`
+
+- TCP connections could hang indefinitely if the TCP write buffers
+  were full because of the other party not reading sent data.  This has
+  been fixed by adding a "write" timer. Connections that are hung
+  while writing will now time out after the ``tcp-idle-timeout`` period
+  has elapsed. :gl:`#3132`

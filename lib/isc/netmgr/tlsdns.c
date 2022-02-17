@@ -38,13 +38,6 @@
 #include "openssl_shim.h"
 #include "uv-compat.h"
 
-/*%<
- *
- * Maximum number of simultaneous handles in flight supported for a single
- * connected TLSDNS socket. This value was chosen arbitrarily, and may be
- * changed in the future.
- */
-
 static atomic_uint_fast32_t last_tlsdnsquota_log = ATOMIC_VAR_INIT(0);
 
 static void
@@ -121,9 +114,13 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&sock->uv_handle.handle, sock);
 
-	r = uv_timer_init(&worker->loop, &sock->timer);
+	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_timer_init(&worker->loop, &sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	if (isc__nm_closing(sock)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -161,7 +158,8 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 	isc__nm_incstats(sock, STATID_CONNECT);
 
-	uv_handle_set_data((uv_handle_t *)&sock->timer, &req->uv_req.connect);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer,
+			   &req->uv_req.connect);
 	isc__nmsocket_timer_start(sock);
 
 	atomic_store(&sock->connected, true);
@@ -569,9 +567,13 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	/* This keeps the socket alive after everything else is gone */
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 
-	r = uv_timer_init(&worker->loop, &sock->timer);
+	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_timer_init(&worker->loop, &sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	LOCK(&sock->parent->lock);
 
@@ -1107,7 +1109,8 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 			sock->tls.pending_req = NULL;
 
 			isc__nmsocket_timer_stop(sock);
-			uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
+			uv_handle_set_data((uv_handle_t *)&sock->read_timer,
+					   sock);
 
 			INSIST(atomic_compare_exchange_strong(
 				&sock->connecting, &(bool){ true }, false));
@@ -1162,6 +1165,11 @@ tls_write_cb(uv_write_t *req, int status) {
 	isc_result_t result;
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
 	isc_nmsocket_t *sock = uvreq->sock;
+
+	if (--sock->writes == 0) {
+		int r = uv_timer_stop(&sock->write_timer);
+		UV_RUNTIME_CHECK(uv_timer_stop, r);
+	}
 
 	free_senddata(sock);
 
@@ -1235,6 +1243,12 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 			free_senddata(sock);
 			break;
 		}
+
+		r = uv_timer_start(&sock->write_timer,
+				   isc__nmsocket_writetimeout_cb,
+				   sock->write_timeout, 0);
+		UV_RUNTIME_CHECK(uv_timer_start, r);
+		RUNTIME_CHECK(sock->writes++ >= 0);
 
 		r = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
 			     &req->uvbuf, 1, tls_write_cb);
@@ -1476,9 +1490,13 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&csock->uv_handle.handle, csock);
 
-	r = uv_timer_init(&worker->loop, &csock->timer);
+	r = uv_timer_init(&worker->loop, &csock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&csock->timer, csock);
+	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
+
+	r = uv_timer_init(&worker->loop, &csock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&csock->write_timer, csock);
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
@@ -1626,6 +1644,13 @@ isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
+
+	if (sock->write_timeout == 0) {
+		sock->write_timeout =
+			(atomic_load(&sock->keepalive)
+				 ? atomic_load(&sock->mgr->keepalive)
+				 : atomic_load(&sock->mgr->idle));
+	}
 
 	ievent = isc__nm_get_netievent_tlsdnssend(sock->mgr, sock, uvreq);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
@@ -1804,7 +1829,7 @@ tlsdns_close_cb(uv_handle_t *handle) {
 }
 
 static void
-timer_close_cb(uv_handle_t *handle) {
+read_timer_close_cb(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 	uv_handle_set_data(handle, NULL);
 
@@ -1817,6 +1842,17 @@ timer_close_cb(uv_handle_t *handle) {
 	} else {
 		uv_close(&sock->uv_handle.handle, tlsdns_close_cb);
 	}
+}
+
+static void
+write_timer_close_cb(uv_handle_t *timer) {
+	isc_nmsocket_t *sock = uv_handle_get_data(timer);
+	uv_handle_set_data(timer, NULL);
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
 }
 
 static void
@@ -1872,6 +1908,8 @@ stop_tlsdns_parent(isc_nmsocket_t *sock) {
 
 static void
 tlsdns_close_direct(isc_nmsocket_t *sock) {
+	int r;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
@@ -1889,8 +1927,10 @@ tlsdns_close_direct(isc_nmsocket_t *sock) {
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	uv_handle_set_data((uv_handle_t *)&sock->timer, sock);
-	uv_close((uv_handle_t *)&sock->timer, timer_close_cb);
+	r = uv_timer_stop(&sock->write_timer);
+	UV_RUNTIME_CHECK(uv_timer_stop, r);
+	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
+	uv_close((uv_handle_t *)&sock->write_timer, write_timer_close_cb);
 }
 
 void

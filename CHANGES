@@ -1,3 +1,7 @@
+5807.	[bug]		Add a TCP "write" timer, and time out writing
+			connections after the "tcp-idle-timeout" period
+			has elapsed. [GL #3132]
+
 5806.	[bug]		An error in checking the "blackhole" ACL could cause
 			DNS requests sent by named to fail if the
 			destination address or prefix was specifically
