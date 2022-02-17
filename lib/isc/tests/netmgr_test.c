@@ -418,6 +418,7 @@ connect_send(isc_nmhandle_t *handle) {
 	isc_nmhandle_t *sendhandle = NULL;
 	isc_refcount_increment0(&active_csends);
 	isc_nmhandle_attach(handle, &sendhandle);
+	isc_nmhandle_setwritetimeout(handle, T_IDLE);
 	if (atomic_fetch_sub(&nsends, 1) > 1) {
 		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
 			    connect_send_cb, NULL);
@@ -529,6 +530,7 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_nmhandle_t *sendhandle = NULL;
 			isc_nmhandle_attach(handle, &sendhandle);
 			isc_refcount_increment0(&active_ssends);
+			isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
 			isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
 				    listen_send_cb, cbarg);
 		}

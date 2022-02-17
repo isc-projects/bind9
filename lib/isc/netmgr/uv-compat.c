@@ -50,6 +50,24 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 }
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 
+#if UV_VERSION_HEX < UV_VERSION(1, 32, 0)
+int
+uv_tcp_close_reset(uv_tcp_t *handle, uv_close_cb close_cb) {
+	if (setsockopt(handle->io_watcher.fd, SOL_SOCKET, SO_LINGER,
+		       &(struct linger){ 1, 0 }, sizeof(struct linger)) == -1)
+	{
+#if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
+		return (uv_translate_sys_error(errno));
+#else
+		return (-errno);
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
+	}
+
+	uv_close((uv_handle_t *)handle, close_cb);
+	return (0);
+}
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 32, 0) */
+
 int
 isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 		    unsigned int flags) {
