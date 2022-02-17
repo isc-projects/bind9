@@ -1,3 +1,8 @@
+5806.	[bug]		An error in checking the "blackhole" ACL could cause
+			DNS requests sent by named to fail if the
+			destination address or prefix was specifically
+			excluded from the ACL. [GL #3157]
+
 5805.	[func]		The result of each resolver priming attempt is now
 			included in the "resolver priming query complete" log
 			message. [GL #3139]
