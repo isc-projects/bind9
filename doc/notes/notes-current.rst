@@ -76,3 +76,6 @@ Bug Fixes
   been fixed by adding a "write" timer. Connections that are hung
   while writing will now time out after the ``tcp-idle-timeout`` period
   has elapsed. :gl:`#3132`
+
+- Client TCP connections are now closed immediately when data received
+  cannot be parsed as a valid DNS request. :gl:`#3149`
