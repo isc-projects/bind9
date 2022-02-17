@@ -109,6 +109,7 @@ libisc_la_SOURCES =		\
 	netmgr/netmgr.c		\
 	netmgr/tcp.c		\
 	netmgr/tcpdns.c		\
+	netmgr/timer.c		\
 	netmgr/tlsdns.c		\
 	netmgr/udp.c		\
 	netmgr/uv-compat.c	\
