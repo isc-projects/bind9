@@ -39,6 +39,7 @@
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
+#include <dns/journal.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/name.h>
@@ -64,6 +65,7 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 
 int verbose = 0;
 bool quiet = false;
+const char *journal = NULL;
 dns_dsdigest_t dtype[8];
 
 static fatalcallback_t *fatalcallback = NULL;
@@ -563,4 +565,42 @@ isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 		return (true);
 	}
 	return (false);
+}
+
+void
+loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *file) {
+	dns_journal_t *jnl = NULL;
+	isc_result_t result;
+
+	result = dns_journal_open(mctx, file, DNS_JOURNAL_READ, &jnl);
+	if (result == ISC_R_NOTFOUND) {
+		fprintf(stderr, "%s: journal file %s not found\n", program,
+			file);
+		goto cleanup;
+	} else if (result != ISC_R_SUCCESS) {
+		fatal("unable to open journal %s: %s\n", file,
+		      isc_result_totext(result));
+	}
+
+	if (dns_journal_empty(jnl)) {
+		dns_journal_destroy(&jnl);
+		return;
+	}
+
+	result = dns_journal_rollforward(jnl, db, 0);
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_UPTODATE:
+		break;
+
+	case ISC_R_NOTFOUND:
+	case ISC_R_RANGE:
+		fatal("journal %s out of sync with zone", file);
+
+	default:
+		fatal("journal %s: %s\n", file, isc_result_totext(result));
+	}
+
+cleanup:
+	dns_journal_destroy(&jnl);
 }

@@ -17,3 +17,4 @@ rm -f zones/*.out*
 rm -f zones/*.tmp
 rm -f zones/K*
 rm -f zones/dsset-*
+rm -f zones/updated*

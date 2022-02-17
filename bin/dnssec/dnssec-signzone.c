@@ -3357,9 +3357,9 @@ main(int argc, char *argv[]) {
 	atomic_init(&finished, false);
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
-#define CMDLINE_FLAGS                                                         \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:VX:" \
-	"xzZ:"
+#define CMDLINE_FLAGS                                                        \
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
+	"VX:xzZ:"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3505,6 +3505,10 @@ main(int argc, char *argv[]) {
 			if (*endp != '\0' || jitter < 0) {
 				fatal("jitter must be numeric and positive");
 			}
+			break;
+
+		case 'J':
+			journal = isc_commandline_argument;
 			break;
 
 		case 'K':
@@ -3810,6 +3814,9 @@ main(int argc, char *argv[]) {
 	gdb = NULL;
 	TIME_NOW(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
+	if (journal != NULL) {
+		loadjournal(mctx, gdb, journal);
+	}
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
 	get_soa_ttls();

@@ -75,6 +75,9 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 	}
 
 	result = dns_db_load(*db, filename, dns_masterformat_text, 0);
+	if (result == DNS_R_SEENINCLUDE) {
+		result = ISC_R_SUCCESS;
+	}
 	return (result);
 }
 

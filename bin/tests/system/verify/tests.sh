@@ -21,7 +21,7 @@ status=0
 
 for file in zones/*.good
 do
-	n=`expr $n + 1`
+	n=$((n+1))
 	zone=`expr "$file" : 'zones/\(.*\).good'`
 	echo_i "checking supposedly good zone: $zone ($n)"
 	ret=0
@@ -36,7 +36,7 @@ done
 
 for file in zones/*.bad
 do
-	n=`expr $n + 1`
+	n=$((n+1))
 	zone=`expr "$file" : 'zones/\(.*\).bad'`
 	echo_i "checking supposedly bad zone: $zone ($n)"
 	ret=0
@@ -88,7 +88,7 @@ do
 	[ $dumpit = 1 ] && cat verify.out.$n
 done
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking error message when -o is not used and a SOA record not at top of zone is found ($n)"
 ret=0
 # When -o is not used, origin is set to zone file name, which should cause an error in this case
@@ -97,12 +97,17 @@ grep "not at top of zone" verify.out.$n > /dev/null || ret=1
 grep "use -o to specify a different zone origin" verify.out.$n > /dev/null || ret=1
 [ $ret = 0 ] || failed
 
-n=`expr $n + 1`
+n=$((n+1))
 echo_i "checking error message when an invalid -o is specified and a SOA record not at top of zone is found ($n)"
 ret=0
 $VERIFY -o invalid.origin zones/ksk+zsk.nsec.good > verify.out.$n 2>&1 && ret=1
 grep "not at top of zone" verify.out.$n > /dev/null || ret=1
 grep "use -o to specify a different zone origin" verify.out.$n > /dev/null && ret=1
+[ $ret = 0 ] || failed
+
+n=$((n+1))
+echo_i "checking dnssec-verify -J reads journal file ($n)"
+$VERIFY -o updated -J zones/updated.other.jnl zones/updated.other > verify.out.$n 2>&1 || ret=1
 [ $ret = 0 ] || failed
 
 echo_i "exit status: $status"
