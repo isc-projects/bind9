@@ -3101,6 +3101,10 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	rbtdb_rdatatype_t type;
 	dns_rbtnode_t *node;
 
+	REQUIRE(search != NULL);
+	REQUIRE(search->zonecut != NULL);
+	REQUIRE(search->zonecut_rdataset != NULL);
+
 	/*
 	 * The caller MUST NOT be holding any node locks.
 	 */
@@ -4914,6 +4918,8 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	search.need_cleanup = false;
 	search.wild = false;
 	search.zonecut = NULL;
+	search.zonecut_rdataset = NULL;
+	search.zonecut_sigrdataset = NULL;
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain);
 	search.now = now;
@@ -4932,7 +4938,14 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				  cache_zonecut_callback, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
-		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
+		/*
+		 * If dns_rbt_findnode discovered a covering DNAME skip
+		 * looking for a covering NSEC.
+		 */
+		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0 &&
+		    (search.zonecut_rdataset == NULL ||
+		     search.zonecut_rdataset->type != dns_rdatatype_dname))
+		{
 			result = find_coveringnsec(&search, name, nodep, now,
 						   foundname, rdataset,
 						   sigrdataset);
