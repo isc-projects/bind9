@@ -396,24 +396,6 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
  */
 
 void
-isc_nm_sequential(isc_nmhandle_t *handle);
-/*%<
- * Disable pipelining on this connection. Each DNS packet will be only
- * processed after the previous completes.
- *
- * The socket must be unpaused after the query is processed.  This is done
- * the response is sent, or if we're dropping the query, it will be done
- * when a handle is fully dereferenced by calling the socket's
- * closehandle_cb callback.
- *
- * Note: This can only be run while a message is being processed; if it is
- * run before any messages are read, no messages will be read.
- *
- * Also note: once this has been set, it cannot be reversed for a given
- * connection.
- */
-
-void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised);
 /*%<

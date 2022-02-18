@@ -153,8 +153,8 @@ and a negated match denies access. If there is no match, access is
 denied. The clauses ``allow-notify``, ``allow-recursion``,
 ``allow-recursion-on``, ``allow-query``, ``allow-query-on``,
 ``allow-query-cache``, ``allow-query-cache-on``, ``allow-transfer``,
-``allow-update``, ``allow-update-forwarding``, ``blackhole``, and
-``keep-response-order`` all use address match lists. Similarly, the
+``allow-update``, ``allow-update-forwarding``, and ``blackhole``
+all use address match lists. Similarly, the
 ``listen-on`` option causes the server to refuse queries on any of
 the machine's addresses which do not match the list.
 
@@ -2462,12 +2462,6 @@ for details on how to specify IP address lists.
    This specifies a list of addresses which the server does not accept queries
    from or use to resolve a query. Queries from these addresses are not
    responded to. The default is ``none``.
-
-``keep-response-order``
-   This specifies a list of addresses to which the server sends responses
-   to TCP queries, in the same order in which they were received. This
-   disables the processing of TCP queries in parallel. The default is
-   ``none``.
 
 ``no-case-compress``
    This specifies a list of addresses which require responses to use

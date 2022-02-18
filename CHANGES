@@ -1,3 +1,6 @@
+5813.	[func]		The "keep-response-order" ACL has been declared
+			obsolete, and is now non-operational. [GL #3140]
+
 5812.	[func]		Drop the artificial limit on the number of queries
 			processed in a single TCP read callback. [GL #3141]
 

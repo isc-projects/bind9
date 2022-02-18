@@ -11,9 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f */named.conf
-rm -f */named.memstats
-rm -f */named.run
-rm -f raw* output*
+rm -f ./*/named.conf
+rm -f ./*/named.memstats
+rm -f ./*/named.run*
+rm -f raw* output* ./*.out.*
 rm -f ns*/named.lock
 rm -f ns*/managed-keys.bind*

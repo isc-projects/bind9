@@ -68,7 +68,6 @@ options {\n\
 			    "\
 	heartbeat-interval 60;\n\
 	interface-interval 60;\n\
-#	keep-response-order {none;};\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
 #	lock-file \"" NAMED_LOCALSTATEDIR "/run/named/named.lock\";\n\
