@@ -30,6 +30,7 @@
 #include <isc/mutex.h>
 #include <isc/refcount.h>
 
+#include <dns/keystore.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -51,11 +52,11 @@ struct dns_kasp_key {
 	ISC_LINK(struct dns_kasp_key) link;
 
 	/* Configuration */
-	const char *keystore;
-	uint32_t    lifetime;
-	uint8_t	    algorithm;
-	int	    length;
-	uint8_t	    role;
+	dns_keystore_t *keystore;
+	uint32_t	lifetime;
+	uint8_t		algorithm;
+	int		length;
+	uint8_t		role;
 };
 
 struct dns_kasp_nsec3param {
@@ -644,7 +645,7 @@ dns_kasp_key_lifetime(dns_kasp_key_t *key);
  *
  */
 
-const char *
+dns_keystore_t *
 dns_kasp_key_keystore(dns_kasp_key_t *key);
 /*%<
  * The keystore reference of this key.

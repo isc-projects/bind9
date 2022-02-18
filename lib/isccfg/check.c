@@ -1190,39 +1190,6 @@ check_port(const cfg_obj_t *options, isc_log_t *logctx, const char *type,
 }
 
 static isc_result_t
-check_keystore(const cfg_obj_t *obj, isc_log_t *logctx, dns_kasp_t *kasp,
-	       dns_keystorelist_t *kslist) {
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_kasp_key_t *kkey;
-	dns_keystore_t *ks = NULL;
-
-	REQUIRE(kasp != NULL);
-
-	dns_kasp_freeze(kasp);
-
-	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
-	     kkey = ISC_LIST_NEXT(kkey, link))
-	{
-		const char *keystore = dns_kasp_key_keystore(kkey);
-		if (keystore != NULL && strcmp("key-directory", keystore) != 0)
-		{
-			if (dns_keystorelist_find(kslist, keystore, &ks) ==
-			    ISC_R_SUCCESS) {
-				dns_keystore_detach(&ks);
-			} else {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "key-store '%s' not found",
-					    keystore);
-				result = ISC_R_FAILURE;
-			}
-		}
-	}
-
-	dns_kasp_thaw(kasp);
-	return (result);
-}
-
-static isc_result_t
 check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	      bool check_algorithms, isc_log_t *logctx, isc_mem_t *mctx,
 	      optlevel_t optlevel) {
@@ -1401,12 +1368,14 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 						    DNS_KEYSTORE_KEYDIRECTORY);
 					if (result == ISC_R_SUCCESS) {
 						result = ISC_R_FAILURE;
+						continue;
 					}
 				}
 
 				kopt = cfg_tuple_get(kconfig, "options");
 				if (cfg_map_get(kopt, "directory", &kobj) ==
-				    ISC_R_SUCCESS) {
+				    ISC_R_SUCCESS)
+				{
 					val = cfg_obj_asstring(kobj);
 					ret = isc_file_isdirectory(val);
 					switch (ret) {
@@ -1458,6 +1427,19 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	}
 
 	/*
+	 * Add default key-store "key-directory".
+	 */
+	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, &ks);
+	if (tresult != ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+	if (ks != NULL) {
+		dns_keystore_detach(&ks);
+	}
+
+	/*
 	 * Check dnssec-policy.
 	 */
 	obj = NULL;
@@ -1494,13 +1476,8 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 
 					ret = cfg_kasp_fromconfig(
 						kconfig, NULL, check_algorithms,
-						mctx, logctx, &list, &kasp);
-					if (ret == ISC_R_SUCCESS) {
-						/* Check key-stores of keys */
-						ret = check_keystore(
-							obj, logctx, kasp,
-							&kslist);
-					}
+						mctx, logctx, &kslist, &list,
+						&kasp);
 					if (ret != ISC_R_SUCCESS) {
 						if (result == ISC_R_SUCCESS) {
 							result = ret;
@@ -2977,6 +2954,23 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	do_cleanup = true;
 
 	/*
+	 * Build the keystore list.
+	 */
+	for (element = cfg_list_first(keystores); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kcfg = cfg_listelt_value(element);
+		ks = NULL;
+		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, &kslist, &ks);
+		INSIST(ks != NULL);
+		dns_keystore_detach(&ks);
+	}
+	ks = NULL;
+	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, &ks);
+	INSIST(ks != NULL);
+	dns_keystore_detach(&ks);
+
+	/*
 	 * Look for the dnssec-policy by name, which is the dnssec-policy
 	 * for the zone in question.
 	 */
@@ -2995,8 +2989,8 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			continue;
 		}
 
-		ret = cfg_kasp_fromconfig(kconfig, NULL, mctx, logctx,
-					  &kasplist, &kasp);
+		ret = cfg_kasp_fromconfig(kconfig, NULL, false, mctx, logctx,
+					  &kslist, &kasplist, &kasp);
 		if (ret != ISC_R_SUCCESS) {
 			kasp = NULL;
 		}
@@ -3011,45 +3005,15 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
 	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
 	{
-		const char *ksname = dns_kasp_key_keystore(kkey);
-		if (ksname == NULL || strcmp("key-directory", ksname) == 0) {
+		dns_keystore_t *kks = dns_kasp_key_keystore(kkey);
+		if (kks == NULL || strcmp(DNS_KEYSTORE_KEYDIRECTORY,
+					  dns_keystore_name(kks)) == 0)
+		{
 			dir = keydir;
 			keystore = false;
 		} else {
-			/* Look for the key-store by name */
-			for (element = cfg_list_first(keystores);
-			     element != NULL; element = cfg_list_next(element))
-			{
-				cfg_obj_t *kconfig = cfg_listelt_value(element);
-				const cfg_obj_t *ksobj = NULL;
-
-				if (!cfg_obj_istuple(kconfig)) {
-					continue;
-				}
-
-				ksobj = cfg_tuple_get(kconfig, "name");
-				if (strcmp(ksname, cfg_obj_asstring(ksobj)) !=
-				    0) {
-					continue;
-				}
-
-				/* Found the keystore */
-				ksobj = NULL;
-				if (cfg_map_get(cfg_tuple_get(kconfig, "option"
-								       "s"),
-						"directory",
-						&ksobj) == ISC_R_SUCCESS)
-				{
-					/* Check this directory in the symtable
-					 */
-					dir = cfg_obj_asstring(ksobj);
-					keystore = true;
-				} else {
-					dir = keydir;
-					keystore = false;
-				}
-				break;
-			}
+			dir = dns_keystore_directory(kks);
+			keystore = true;
 		}
 	}
 	dns_kasp_thaw(kasp);
@@ -3065,22 +3029,23 @@ check:
 	}
 
 	if (do_cleanup) {
+		if (kasp != NULL) {
+			dns_kasp_detach(&kasp);
+		}
 		if (ks != NULL) {
 			dns_keystore_detach(&ks);
 		}
-		if (kasp != NULL) {
+		for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL;
+		     kasp = kasp_next)
+		{
+			kasp_next = ISC_LIST_NEXT(kasp, link);
+			ISC_LIST_UNLINK(kasplist, kasp, link);
 			dns_kasp_detach(&kasp);
 		}
 		for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
 			ks_next = ISC_LIST_NEXT(ks, link);
 			ISC_LIST_UNLINK(kslist, ks, link);
 			dns_keystore_detach(&ks);
-		}
-		for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL;
-		     kasp = kasp_next) {
-			kasp_next = ISC_LIST_NEXT(kasp, link);
-			ISC_LIST_UNLINK(kasplist, kasp, link);
-			dns_kasp_detach(&kasp);
 		}
 	}
 
@@ -3366,6 +3331,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			has_dnssecpolicy = false;
 			kasp_inlinesigning = false;
 		} else {
+			const cfg_obj_t *kasps = NULL;
 			(void)cfg_map_get(config, "dnssec-policy", &kasps);
 			for (element = cfg_list_first(kasps); element != NULL;
 			     element = cfg_list_next(element))

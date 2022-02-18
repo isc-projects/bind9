@@ -8889,6 +8889,19 @@ load_configuration(const char *filename, named_server_t *server,
 	(void)configure_session_key(maps, server, named_g_mctx, first_time);
 
 	/*
+	 * Create the built-in key store ("key-directory").
+	 */
+	keystore = NULL;
+	result = cfg_keystore_fromconfig(NULL, named_g_mctx, named_g_lctx,
+					 named_g_engine, &keystorelist,
+					 &keystore);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_keystorelist;
+	}
+	INSIST(keystore != NULL);
+	dns_keystore_detach(&keystore);
+
+	/*
 	 * Create the DNSSEC key stores.
 	 */
 	keystores = NULL;
@@ -8899,17 +8912,14 @@ load_configuration(const char *filename, named_server_t *server,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		keystore = NULL;
 		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
-					      named_g_lctx, &keystorelist,
-					      &keystore));
+						 named_g_lctx, named_g_engine,
+						 &keystorelist, &keystore);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_keystorelist;
 		}
 		INSIST(keystore != NULL);
 		dns_keystore_detach(&keystore);
 	}
-	tmpkeystorelist = server->keystorelist;
-	server->keystorelist = keystorelist;
-	keystorelist = tmpkeystorelist;
 
 	/*
 	 * Create the built-in kasp policies ("default", "insecure").
@@ -8924,7 +8934,7 @@ load_configuration(const char *filename, named_server_t *server,
 		kasp = NULL;
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
-					     &kasplist, &kasp);
+					     &keystorelist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_kasplist;
 		}
@@ -8953,7 +8963,7 @@ load_configuration(const char *filename, named_server_t *server,
 		kasp = NULL;
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
-					     &kasplist, &kasp);
+					     &keystorelist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_kasplist;
 		}
@@ -8961,8 +8971,15 @@ load_configuration(const char *filename, named_server_t *server,
 		dns_kasp_freeze(kasp);
 		dns_kasp_detach(&kasp);
 	}
-
 	dns_kasp_detach(&default_kasp);
+
+	/*
+	 * Save keystore list and kasp list.
+	 */
+	tmpkeystorelist = server->keystorelist;
+	server->keystorelist = keystorelist;
+	keystorelist = tmpkeystorelist;
+
 	tmpkasplist = server->kasplist;
 	server->kasplist = kasplist;
 	kasplist = tmpkasplist;

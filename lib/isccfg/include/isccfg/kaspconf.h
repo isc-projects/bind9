@@ -26,13 +26,17 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		    bool check_algorithms, isc_mem_t *mctx, isc_log_t *logctx,
-		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp);
+		    dns_keystorelist_t *keystorelist, dns_kasplist_t *kasplist,
+		    dns_kasp_t **kaspp);
 /*%<
  * Create and configure a KASP. If 'default_kasp' is not NULL, the built-in
  * default configuration is used to set values that are not explicitly set in
- * the policy. If a 'kasplist' is provided, a lookup happens and if a KASP
- * already exists with the same name, no new KASP is created, and no attach to
- * 'kaspp' happens.
+ * the policy.
+ *
+ * If a 'kasplist' is provided, a lookup happens and if a KASP already exists
+ * with the same name, no new KASP is created, and no attach to 'kaspp' happens.
+ *
+ * The 'keystorelist' is where to lookup key stores if KASP keys are using them.
  *
  * If 'check_algorithms' is true then the dnssec-policy DNSSEC key
  * algorithms are checked against those supported by the crypto provider.
@@ -59,7 +63,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 isc_result_t
 cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
-			dns_keystore_t    **kspp);
+			dns_keystore_t	  **kspp);
 /*%<
  * Create and configure a key store. If a 'keystorelist' is provided, a lookup
  * happens and if a keystore already exists with the same name, no new one is

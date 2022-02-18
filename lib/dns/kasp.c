@@ -408,10 +408,7 @@ dns_kasp_key_destroy(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
 	if (key->keystore != NULL) {
-		char *ks;
-		DE_CONST(key->keystore, ks);
-		isc_mem_free(key->mctx, ks);
-		key->keystore = NULL;
+		dns_keystore_detach(&key->keystore);
 	}
 	isc_mem_putanddetach(&key->mctx, key, sizeof(*key));
 }
@@ -474,7 +471,7 @@ dns_kasp_key_lifetime(dns_kasp_key_t *key) {
 	return (key->lifetime);
 }
 
-const char *
+dns_keystore_t *
 dns_kasp_key_keystore(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 

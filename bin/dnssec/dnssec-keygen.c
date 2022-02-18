@@ -256,13 +256,39 @@ progress(int p) {
 static void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	       dns_kasp_t **kaspp) {
+	isc_result_t result = ISC_R_NOTFOUND;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *kasps = NULL;
 	dns_kasp_t *kasp = NULL, *kasp_next;
-	isc_result_t result = ISC_R_NOTFOUND;
 	dns_kasplist_t kasplist;
+	const cfg_obj_t *keystores = NULL;
+	dns_keystore_t *ks = NULL, *ks_next;
+	dns_keystorelist_t kslist;
 
 	ISC_LIST_INIT(kasplist);
+	ISC_LIST_INIT(kslist);
+
+	(void)cfg_map_get(config, "key-store", &keystores);
+	for (element = cfg_list_first(keystores); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		ks = NULL;
+		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, &kslist,
+						 &ks);
+		if (result != ISC_R_SUCCESS) {
+			fatal("failed to configure key-store '%s': %s",
+			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
+			      isc_result_totext(result));
+		}
+		INSIST(ks != NULL);
+		dns_keystore_detach(&ks);
+	}
+	/* Default key-directory key store. */
+	ks = NULL;
+	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, engine, &kslist, &ks);
+	INSIST(ks != NULL);
+	dns_keystore_detach(&ks);
 
 	(void)cfg_map_get(config, "dnssec-policy", &kasps);
 	for (element = cfg_list_first(kasps); element != NULL;
@@ -277,7 +303,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		}
 
 		result = cfg_kasp_fromconfig(kconfig, NULL, true, mctx, lctx,
-					     &kasplist, &kasp);
+					     &kslist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure dnssec-policy '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -297,6 +323,15 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		kasp_next = ISC_LIST_NEXT(kasp, link);
 		ISC_LIST_UNLINK(kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
+	}
+
+	/*
+	 * Cleanup keystore list.
+	 */
+	for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
+		ks_next = ISC_LIST_NEXT(ks, link);
+		ISC_LIST_UNLINK(kslist, ks, link);
+		dns_keystore_detach(&ks);
 	}
 }
 
