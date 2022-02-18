@@ -94,3 +94,9 @@ Bug Fixes
   miscalculated in certain resolution scenarios, potentially causing the
   value of the counter to drop below zero. This has been fixed.
   :gl:`#3147`
+
+- Invalid dnssec-policy definitions were being accepted where the
+  defined keys did not cover both KSK and ZSK roles for a given
+  algorithm.  This is now checked for and the dnssec-policy is
+  rejected if both roles are not present for all algorithms in use.
+  :gl:`#3142`
