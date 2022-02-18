@@ -20,6 +20,7 @@ copy_setports ns1/named.conf.in ns1/named.conf
 # tcp-initial-timeout interval
 #
 $PYTHON -c "
+from __future__ import print_function
 print('large IN TXT', end=' ')
 for a in range(128):
     print('\"%s\"' % ('A' * 240), end=' ')
