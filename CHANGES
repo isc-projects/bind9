@@ -1,3 +1,6 @@
+5812.	[func]		Drop the artificial limit on the number of queries
+			processed in a single TCP read callback. [GL #3141]
+
 5811.	[bug]		Reimplement the maximum and idle timeouts for outgoing
 			zone tranfers. [GL #1897]
 
