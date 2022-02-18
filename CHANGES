@@ -8,6 +8,8 @@
 5804.	[func]		Add a debug log message when starting and ending
 			the task exclusive mode. [GL #3137]
 
+	--- 9.16.26 released ---
+
 5801.	[bug]		Log "quota reached" message when hard quota
 			is reached when accepting a connection. [GL #3125]
 

@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.26
+Notes for BIND 9.16.27
 ----------------------
 
 Security Fixes
@@ -35,10 +35,6 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The DLZ API has been updated: EDNS Client-Subnet (ECS) options sent
-  by a client are now included in the client information sent to DLZ
-  modules when processing queries. :gl:`#3082`
-
 - Add DEBUG(1) level messages when starting and ending BIND 9 task exclusive mode
   that stops the normal DNS operation (f.e. for reconfiguration, interface
   scans, and other events that require exclusive access to a shared resources).
@@ -46,20 +42,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
-  reducing the maximum query-response performance.  The recvmmsg support would
-  be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
-
-- A failed view configuration during a named reconfiguration procedure could
-  cause inconsistencies in BIND internal structures, causing a crash or other
-  unexpected errors.  This has been fixed.  :gl:`#3060`
-
-- Restore logging "quota reached" message when accepting connection is over
-  hard quota.  :gl:`#3125`
-
-- Build errors were introduced in some DLZ modules due to an incomplete
-  change in the previous release. This has been fixed. :gl:`#3111`
 
 - TCP connections could hang indefinitely if the TCP write buffers
   were full because of the other party not reading sent data.  This has
