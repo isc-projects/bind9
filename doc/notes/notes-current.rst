@@ -60,6 +60,10 @@ New Features
   specify a journal file to read when loading the zone to be verified or
   signed. :gl:`#2486`
 
+- Add support for remote TLS certificates verification, both to BIND
+  and ``dig``, making it possible to implement Strict and Mutual TLS
+  authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

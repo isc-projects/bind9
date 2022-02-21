@@ -1,3 +1,8 @@
+5839.	[func]		Add support for remote TLS certificates
+			verification, both to BIND and dig, making it possible
+			to implement Strict and Mutual TLS authentication,
+			as described in RFC 9103, Section 9.3. [GL #3163]
+
 5838.	[cleanup]	When modifying a member zone in a catalog zone, and it
 			is detected that the zone exists and was not created by
 			the current catalog zone, distinguish the two cases when
