@@ -121,28 +121,33 @@
 		UNUSED(r); \
 		UNUSED(m); \
 	} while (0)
-#define FCTXTRACE(m)       \
-	do {               \
-		UNUSED(m); \
+#define FCTXTRACE(m)          \
+	do {                  \
+		UNUSED(fctx); \
+		UNUSED(m);    \
 	} while (0)
-#define FCTXTRACE2(m1, m2)  \
-	do {                \
-		UNUSED(m1); \
-		UNUSED(m2); \
+#define FCTXTRACE2(m1, m2)    \
+	do {                  \
+		UNUSED(fctx); \
+		UNUSED(m1);   \
+		UNUSED(m2);   \
 	} while (0)
-#define FCTXTRACE3(m1, res)  \
-	do {                 \
-		UNUSED(m1);  \
-		UNUSED(res); \
+#define FCTXTRACE3(m1, res)   \
+	do {                  \
+		UNUSED(fctx); \
+		UNUSED(m1);   \
+		UNUSED(res);  \
 	} while (0)
 #define FCTXTRACE4(m1, m2, res) \
 	do {                    \
+		UNUSED(fctx);   \
 		UNUSED(m1);     \
 		UNUSED(m2);     \
 		UNUSED(res);    \
 	} while (0)
 #define FCTXTRACE5(m1, m2, v) \
 	do {                  \
+		UNUSED(fctx); \
 		UNUSED(m1);   \
 		UNUSED(m2);   \
 		UNUSED(v);    \
@@ -9553,9 +9558,7 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
  */
 static isc_result_t
 rctx_next(respctx_t *rctx) {
-#ifdef WANT_QUERYTRACE
 	fetchctx_t *fctx = rctx->fctx;
-#endif /* ifdef WANT_QUERYTRACE */
 	isc_result_t result;
 
 	FCTXTRACE("nextitem");
