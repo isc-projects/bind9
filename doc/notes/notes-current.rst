@@ -37,6 +37,10 @@ New Features
 - Add DNS Extended Errors (:rfc:`8914`) when stale answers are returned from
   cache. :gl:`#2267`
 
+- Add support for remote TLS certificates verification, both to BIND
+  and ``dig``, making it possible to implement Strict and Mutual TLS
+  authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
