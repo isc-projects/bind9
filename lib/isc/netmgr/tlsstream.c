@@ -597,7 +597,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			   &handle->sock->iface);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
-	tlssock->tlsstream.ctx = tlslistensock->tlsstream.ctx;
+	isc_tlsctx_attach(tlslistensock->tlsstream.ctx,
+			  &tlssock->tlsstream.ctx);
 	tlssock->tlsstream.tls = isc_tls_create(tlssock->tlsstream.ctx);
 	if (tlssock->tlsstream.tls == NULL) {
 		atomic_store(&tlssock->closed, true);
@@ -611,8 +612,6 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->peer = handle->sock->peer;
 	tlssock->read_timeout = atomic_load(&handle->sock->mgr->init);
 	tlssock->tid = isc_nm_tid();
-
-	tlssock->tlsstream.ctx = tlslistensock->tlsstream.ctx;
 
 	result = initialize_tls(tlssock, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -640,7 +639,7 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
 	tlssock->extrahandlesize = extrahandlesize;
-	tlssock->tlsstream.ctx = sslctx;
+	isc_tlsctx_attach(sslctx, &tlssock->tlsstream.ctx);
 	tlssock->tlsstream.tls = NULL;
 
 	/*
@@ -865,7 +864,7 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	sock->recv_cbarg = NULL;
 	if (sock->tlsstream.tls != NULL) {
 		isc_tls_free(&sock->tlsstream.tls);
-		sock->tlsstream.ctx = NULL;
+		isc_tlsctx_free(&sock->tlsstream.ctx);
 	}
 
 	if (sock->outer != NULL) {
@@ -896,7 +895,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
-	nsock->tlsstream.ctx = ctx;
+	isc_tlsctx_attach(ctx, &nsock->tlsstream.ctx);
 
 	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, nsock,
 			  nsock->connect_timeout, 0);
@@ -1009,12 +1008,18 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 		REQUIRE(VALID_NMSOCK(sock->tlsstream.tlslistener));
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
 	} else if (sock->type == isc_nm_tlssocket) {
+		if (sock->tlsstream.ctx != NULL) {
+			isc_tlsctx_free(&sock->tlsstream.ctx);
+		}
 		if (sock->tlsstream.tls != NULL) {
 			isc_tls_free(&sock->tlsstream.tls);
 			/* These are destroyed when we free SSL */
-			sock->tlsstream.ctx = NULL;
 			sock->tlsstream.bio_out = NULL;
 			sock->tlsstream.bio_in = NULL;
+		}
+	} else if (sock->type == isc_nm_tlslistener) {
+		if (sock->tlsstream.ctx != NULL) {
+			isc_tlsctx_free(&sock->tlsstream.ctx);
 		}
 	}
 }
