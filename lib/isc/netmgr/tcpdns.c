@@ -206,14 +206,15 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
-	if (!atomic_load(&sock->connecting)) {
-		return;
-	}
-
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
+
+	if (atomic_load(&sock->timedout)) {
+		result = ISC_R_TIMEDOUT;
+		goto error;
+	}
 
 	if (isc__nmsocket_closing(sock)) {
 		/* Socket was closed midflight by isc__nm_tcpdns_shutdown() */
@@ -221,7 +222,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 		goto error;
 	} else if (status == UV_ETIMEDOUT) {
 		/* Timeout status code here indicates hard error */
-		result = ISC_R_CANCELED;
+		result = ISC_R_TIMEDOUT;
 		goto error;
 	} else if (status != 0) {
 		result = isc__nm_uverr2result(status);

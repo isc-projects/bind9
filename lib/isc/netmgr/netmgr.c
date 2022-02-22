@@ -1509,6 +1509,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->connecting, false);
 	atomic_init(&sock->keepalive, false);
 	atomic_init(&sock->connected, false);
+	atomic_init(&sock->timedout, false);
 
 	atomic_init(&sock->active_child_connections, 0);
 
@@ -1936,18 +1937,14 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 
 	isc__nmsocket_timer_stop(sock);
 
-	/* Call the connect callback directly */
+	/*
+	 * Mark the connection as timed out and shutdown the socket.
+	 */
 
-	req->cb.connect(req->handle, ISC_R_TIMEDOUT, req->cbarg);
-
-	/* Timer is not running, cleanup and shutdown everything */
-	if (!isc__nmsocket_timer_running(sock)) {
-		INSIST(atomic_compare_exchange_strong(&sock->connecting,
-						      &(bool){ true }, false));
-		isc__nm_uvreq_put(&req, sock);
-		isc__nmsocket_clearcb(sock);
-		isc__nmsocket_shutdown(sock);
-	}
+	INSIST(atomic_compare_exchange_strong(&sock->timedout, &(bool){ false },
+					      true));
+	isc__nmsocket_clearcb(sock);
+	isc__nmsocket_shutdown(sock);
 }
 
 void
