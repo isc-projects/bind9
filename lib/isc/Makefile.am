@@ -38,7 +38,6 @@ libisc_la_HEADERS =			\
 	include/isc/heap.h		\
 	include/isc/hex.h		\
 	include/isc/hmac.h		\
-	include/isc/hp.h		\
 	include/isc/ht.h		\
 	include/isc/httpd.h		\
 	include/isc/interfaceiter.h	\
@@ -67,7 +66,6 @@ libisc_la_HEADERS =			\
 	include/isc/pool.h		\
 	include/isc/portset.h		\
 	include/isc/print.h		\
-	include/isc/queue.h		\
 	include/isc/quota.h		\
 	include/isc/radix.h		\
 	include/isc/random.h		\
@@ -145,7 +143,6 @@ libisc_la_SOURCES =		\
 	heap.c			\
 	hex.c			\
 	hmac.c			\
-	hp.c			\
 	ht.c			\
 	httpd.c			\
 	interfaceiter.c		\
@@ -173,7 +170,6 @@ libisc_la_SOURCES =		\
 	parseint.c		\
 	pool.c			\
 	portset.c		\
-	queue.c			\
 	quota.c			\
 	radix.c			\
 	random.c		\

@@ -29,7 +29,6 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
-#include <isc/hp.h>
 #include <isc/mutex.h>
 #include <isc/netmgr.h>
 #include <isc/nonce.h>
@@ -258,8 +257,6 @@ _setup(void **state) {
 	if (isc_test_begin(NULL, false, workers) != ISC_R_SUCCESS) {
 		return (-1);
 	}
-
-	isc_hp_init(4 * workers);
 
 	signal(SIGPIPE, SIG_IGN);
 
