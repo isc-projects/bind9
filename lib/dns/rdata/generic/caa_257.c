@@ -507,27 +507,19 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	/*
 	 * Flags
 	 */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	caa->flags = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/*
 	 * Tag length
 	 */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	caa->tag_len = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/*
 	 * Tag
 	 */
-	if (sr.length < caa->tag_len) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
+	INSIST(sr.length >= caa->tag_len);
 	caa->tag = mem_maybedup(mctx, sr.base, caa->tag_len);
 	isc_region_consume(&sr, caa->tag_len);
 

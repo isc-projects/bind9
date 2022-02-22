@@ -213,7 +213,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_doa);
 	REQUIRE(doa != NULL);
-	REQUIRE(rdata->length != 0);
+	REQUIRE(rdata->length >= 10);
 
 	doa->common.rdclass = rdata->rdclass;
 	doa->common.rdtype = rdata->type;
@@ -224,36 +224,24 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	/*
 	 * DOA-ENTERPRISE
 	 */
-	if (region.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	doa->enterprise = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
 
 	/*
 	 * DOA-TYPE
 	 */
-	if (region.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	doa->type = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
 
 	/*
 	 * DOA-LOCATION
 	 */
-	if (region.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	doa->location = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 
 	/*
 	 * DOA-MEDIA-TYPE
 	 */
-	if (region.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	doa->mediatype_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	INSIST(doa->mediatype_len <= region.length);

@@ -191,23 +191,14 @@ tostruct_sink(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Meaning */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	sink->meaning = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Coding */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	sink->coding = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Subcoding */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	sink->subcoding = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 

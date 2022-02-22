@@ -353,10 +353,6 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	REQUIRE(ipseckey != NULL);
 	REQUIRE(rdata->length >= 3);
 
-	if (rdata->data[1] > 3U) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
-
 	ipseckey->common.rdclass = rdata->rdclass;
 	ipseckey->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ipseckey->common, link);
@@ -384,6 +380,7 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 		break;
 
 	case 2:
+		INSIST(region.length >= 16U);
 		memmove(ipseckey->in6_addr.s6_addr, region.base, 16);
 		isc_region_consume(&region, 16);
 		break;
