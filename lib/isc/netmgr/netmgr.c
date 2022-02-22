@@ -21,6 +21,7 @@
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
+#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -145,6 +146,7 @@ static isc_threadresult_t
 nm_thread(isc_threadarg_t worker0);
 static void
 async_cb(uv_async_t *handle);
+
 static bool
 process_netievent(isc__networker_t *worker, isc__netievent_t *ievent);
 static isc_result_t
@@ -153,51 +155,6 @@ static void
 wait_for_priority_queue(isc__networker_t *worker);
 static void
 drain_queue(isc__networker_t *worker, netievent_type_t type);
-
-#define ENQUEUE_NETIEVENT(worker, queue, event) \
-	isc_queue_enqueue(worker->ievents[queue], (uintptr_t)event)
-#define DEQUEUE_NETIEVENT(worker, queue) \
-	(isc__netievent_t *)isc_queue_dequeue(worker->ievents[queue])
-
-#define ENQUEUE_PRIORITY_NETIEVENT(worker, event) \
-	ENQUEUE_NETIEVENT(worker, NETIEVENT_PRIORITY, event)
-#define ENQUEUE_PRIVILEGED_NETIEVENT(worker, event) \
-	ENQUEUE_NETIEVENT(worker, NETIEVENT_PRIVILEGED, event)
-#define ENQUEUE_TASK_NETIEVENT(worker, event) \
-	ENQUEUE_NETIEVENT(worker, NETIEVENT_TASK, event)
-#define ENQUEUE_NORMAL_NETIEVENT(worker, event) \
-	ENQUEUE_NETIEVENT(worker, NETIEVENT_NORMAL, event)
-
-#define DEQUEUE_PRIORITY_NETIEVENT(worker) \
-	DEQUEUE_NETIEVENT(worker, NETIEVENT_PRIORITY)
-#define DEQUEUE_PRIVILEGED_NETIEVENT(worker) \
-	DEQUEUE_NETIEVENT(worker, NETIEVENT_PRIVILEGED)
-#define DEQUEUE_TASK_NETIEVENT(worker) DEQUEUE_NETIEVENT(worker, NETIEVENT_TASK)
-#define DEQUEUE_NORMAL_NETIEVENT(worker) \
-	DEQUEUE_NETIEVENT(worker, NETIEVENT_NORMAL)
-
-#define INCREMENT_NETIEVENT(worker, queue) \
-	atomic_fetch_add_release(&worker->nievents[queue], 1)
-#define DECREMENT_NETIEVENT(worker, queue) \
-	atomic_fetch_sub_release(&worker->nievents[queue], 1)
-
-#define INCREMENT_PRIORITY_NETIEVENT(worker) \
-	INCREMENT_NETIEVENT(worker, NETIEVENT_PRIORITY)
-#define INCREMENT_PRIVILEGED_NETIEVENT(worker) \
-	INCREMENT_NETIEVENT(worker, NETIEVENT_PRIVILEGED)
-#define INCREMENT_TASK_NETIEVENT(worker) \
-	INCREMENT_NETIEVENT(worker, NETIEVENT_TASK)
-#define INCREMENT_NORMAL_NETIEVENT(worker) \
-	INCREMENT_NETIEVENT(worker, NETIEVENT_NORMAL)
-
-#define DECREMENT_PRIORITY_NETIEVENT(worker) \
-	DECREMENT_NETIEVENT(worker, NETIEVENT_PRIORITY)
-#define DECREMENT_PRIVILEGED_NETIEVENT(worker) \
-	DECREMENT_NETIEVENT(worker, NETIEVENT_PRIVILEGED)
-#define DECREMENT_TASK_NETIEVENT(worker) \
-	DECREMENT_NETIEVENT(worker, NETIEVENT_TASK)
-#define DECREMENT_NORMAL_NETIEVENT(worker) \
-	DECREMENT_NETIEVENT(worker, NETIEVENT_NORMAL)
 
 static void
 isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -311,12 +268,10 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		r = uv_async_init(&worker->loop, &worker->async, async_cb);
 		UV_RUNTIME_CHECK(uv_async_init, r);
 
-		isc_mutex_init(&worker->lock);
-		isc_condition_init(&worker->cond_prio);
-
 		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-			worker->ievents[type] = isc_queue_new(mgr->mctx);
-			atomic_init(&worker->nievents[type], 0);
+			isc_mutex_init(&worker->ievents[type].lock);
+			isc_condition_init(&worker->ievents[type].cond);
+			ISC_LIST_INIT(worker->ievents[type].list);
 		}
 
 		worker->recvbuf = isc_mem_get(mctx, ISC_NETMGR_RECVBUF_SIZE);
@@ -367,28 +322,15 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
-		isc__netievent_t *ievent = NULL;
 		int r;
-
-		/* Empty the async event queues */
-		while ((ievent = DEQUEUE_PRIORITY_NETIEVENT(worker)) != NULL) {
-			isc__nm_put_netievent(mgr, ievent);
-		}
-
-		INSIST(DEQUEUE_PRIVILEGED_NETIEVENT(worker) == NULL);
-		INSIST(DEQUEUE_TASK_NETIEVENT(worker) == NULL);
-
-		while ((ievent = DEQUEUE_NORMAL_NETIEVENT(worker)) != NULL) {
-			isc__nm_put_netievent(mgr, ievent);
-		}
-		isc_condition_destroy(&worker->cond_prio);
-		isc_mutex_destroy(&worker->lock);
 
 		r = uv_loop_close(&worker->loop);
 		UV_RUNTIME_CHECK(uv_loop_close, r);
 
 		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-			isc_queue_destroy(worker->ievents[type]);
+			INSIST(ISC_LIST_EMPTY(worker->ievents[type].list));
+			isc_condition_destroy(&worker->ievents[type].cond);
+			isc_mutex_destroy(&worker->ievents[type].lock);
 		}
 
 		isc_mem_put(mgr->mctx, worker->sendbuf,
@@ -737,12 +679,16 @@ nm_thread(isc_threadarg_t worker0) {
 	}
 
 	/*
-	 * We are shutting down. Process the task queues
-	 * (they may include shutdown events) but do not process
-	 * the netmgr event queue.
+	 * We are shutting down.  Drain the queues.
 	 */
 	drain_queue(worker, NETIEVENT_PRIVILEGED);
 	drain_queue(worker, NETIEVENT_TASK);
+
+	for (size_t type = 0; type < NETIEVENT_MAX; type++) {
+		LOCK(&worker->ievents[type].lock);
+		INSIST(ISC_LIST_EMPTY(worker->ievents[type].list));
+		UNLOCK(&worker->ievents[type].lock);
+	}
 
 	LOCK(&mgr->lock);
 	mgr->workers_running--;
@@ -765,7 +711,8 @@ process_all_queues(isc__networker_t *worker) {
 		isc_result_t result = process_queue(worker, type);
 		switch (result) {
 		case ISC_R_SUSPEND:
-			return (true);
+			reschedule = true;
+			break;
 		case ISC_R_EMPTY:
 			/* empty queue */
 			break;
@@ -859,35 +806,29 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 wait_for_priority_queue(isc__networker_t *worker) {
-	isc_condition_t *cond = &worker->cond_prio;
-	bool wait_for_work = true;
+	isc_condition_t *cond = &worker->ievents[NETIEVENT_PRIORITY].cond;
+	isc_mutex_t *lock = &worker->ievents[NETIEVENT_PRIORITY].lock;
+	isc__netievent_list_t *list =
+		&(worker->ievents[NETIEVENT_PRIORITY].list);
 
-	while (true) {
-		isc__netievent_t *ievent;
-		LOCK(&worker->lock);
-		ievent = DEQUEUE_PRIORITY_NETIEVENT(worker);
-		if (wait_for_work) {
-			while (ievent == NULL) {
-				WAIT(cond, &worker->lock);
-				ievent = DEQUEUE_PRIORITY_NETIEVENT(worker);
-			}
-		}
-		UNLOCK(&worker->lock);
-		wait_for_work = false;
-
-		if (ievent == NULL) {
-			return;
-		}
-		DECREMENT_PRIORITY_NETIEVENT(worker);
-
-		(void)process_netievent(worker, ievent);
+	LOCK(lock);
+	while (ISC_LIST_EMPTY(*list)) {
+		WAIT(cond, lock);
 	}
+	UNLOCK(lock);
+
+	drain_queue(worker, NETIEVENT_PRIORITY);
 }
 
 static void
 drain_queue(isc__networker_t *worker, netievent_type_t type) {
-	while (process_queue(worker, type) != ISC_R_EMPTY) {
-		;
+	bool empty = false;
+	while (!empty) {
+		if (process_queue(worker, type) == ISC_R_EMPTY) {
+			LOCK(&worker->ievents[type].lock);
+			empty = ISC_LIST_EMPTY(worker->ievents[type].list);
+			UNLOCK(&worker->ievents[type].lock);
+		}
 	}
 }
 
@@ -995,40 +936,41 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 
 static isc_result_t
 process_queue(isc__networker_t *worker, netievent_type_t type) {
-	/*
-	 * The number of items on the queue is only loosely synchronized with
-	 * the items on the queue.  But there's a guarantee that if there's an
-	 * item on the queue, it will be accounted for.  However there's a
-	 * possibility that the counter might be higher than the items on the
-	 * queue stored.
-	 */
-	uint_fast32_t waiting = atomic_load_acquire(&worker->nievents[type]);
-	isc__netievent_t *ievent = DEQUEUE_NETIEVENT(worker, type);
+	isc__netievent_t *ievent = NULL;
+	isc__netievent_list_t list;
 
-	if (ievent == NULL && waiting == 0) {
+	ISC_LIST_INIT(list);
+
+	LOCK(&worker->ievents[type].lock);
+	ISC_LIST_MOVE(list, worker->ievents[type].list);
+	UNLOCK(&worker->ievents[type].lock);
+
+	ievent = ISC_LIST_HEAD(list);
+	if (ievent == NULL) {
 		/* There's nothing scheduled */
 		return (ISC_R_EMPTY);
-	} else if (ievent == NULL) {
-		/* There's at least one item scheduled, but not on the queue yet
-		 */
-		return (ISC_R_SUCCESS);
 	}
 
 	while (ievent != NULL) {
-		DECREMENT_NETIEVENT(worker, type);
-		bool stop = !process_netievent(worker, ievent);
+		isc__netievent_t *next = ISC_LIST_NEXT(ievent, link);
+		ISC_LIST_DEQUEUE(list, ievent, link);
 
-		if (stop) {
-			/* Netievent told us to stop */
+		if (!process_netievent(worker, ievent)) {
+			/* The netievent told us to stop */
+			if (!ISC_LIST_EMPTY(list)) {
+				/*
+				 * Reschedule the rest of the unprocessed
+				 * events.
+				 */
+				LOCK(&worker->ievents[type].lock);
+				ISC_LIST_PREPENDLIST(worker->ievents[type].list,
+						     list, link);
+				UNLOCK(&worker->ievents[type].lock);
+			}
 			return (ISC_R_SUSPEND);
 		}
 
-		if (waiting-- == 0) {
-			/* We reached this round "quota" */
-			break;
-		}
-
-		ievent = DEQUEUE_NETIEVENT(worker, type);
+		ievent = next;
 	}
 
 	/* We processed at least one */
@@ -1041,6 +983,7 @@ isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type) {
 						      sizeof(*event));
 
 	*event = (isc__netievent_storage_t){ .ni.type = type };
+	ISC_LINK_INIT(&(event->ni), link);
 	return (event);
 }
 
@@ -1130,26 +1073,39 @@ isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
+	netievent_type_t type;
+
 	if (event->type > netievent_prio) {
-		/*
-		 * We need to make sure this signal will be delivered and
-		 * the queue will be processed.
-		 */
-		LOCK(&worker->lock);
-		INCREMENT_PRIORITY_NETIEVENT(worker);
-		ENQUEUE_PRIORITY_NETIEVENT(worker, event);
-		SIGNAL(&worker->cond_prio);
-		UNLOCK(&worker->lock);
-	} else if (event->type == netievent_privilegedtask) {
-		INCREMENT_PRIVILEGED_NETIEVENT(worker);
-		ENQUEUE_PRIVILEGED_NETIEVENT(worker, event);
-	} else if (event->type == netievent_task) {
-		INCREMENT_TASK_NETIEVENT(worker);
-		ENQUEUE_TASK_NETIEVENT(worker, event);
+		type = NETIEVENT_PRIORITY;
 	} else {
-		INCREMENT_NORMAL_NETIEVENT(worker);
-		ENQUEUE_NORMAL_NETIEVENT(worker, event);
+		switch (event->type) {
+		case netievent_prio:
+			INSIST(0);
+			ISC_UNREACHABLE();
+			break;
+		case netievent_privilegedtask:
+			type = NETIEVENT_PRIVILEGED;
+			break;
+		case netievent_task:
+			type = NETIEVENT_TASK;
+			break;
+		default:
+			type = NETIEVENT_NORMAL;
+			break;
+		}
 	}
+
+	/*
+	 * We need to make sure this signal will be delivered and
+	 * the queue will be processed.
+	 */
+	LOCK(&worker->ievents[type].lock);
+	ISC_LIST_ENQUEUE(worker->ievents[type].list, event, link);
+	if (type == NETIEVENT_PRIORITY) {
+		SIGNAL(&worker->ievents[type].cond);
+	}
+	UNLOCK(&worker->ievents[type].lock);
+
 	uv_async_send(&worker->async);
 }
 
@@ -2927,6 +2883,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 void
 isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
 	UNUSED(ev0);
+
 	uv_walk(&worker->loop, shutdown_walk_cb, NULL);
 }
 

@@ -11,7 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/hp.h>
 #include <isc/managers.h>
 #include <isc/util.h>
 
@@ -27,15 +26,6 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
-
-	/*
-	 * Currently, there are:
-	 * - 1 main thread
-	 * - 1 timer thread
-	 * - n netmgr threads
-	 * - n threadpool threads
-	 */
-	isc_hp_init(2 + 2 * workers);
 
 	REQUIRE(netmgrp != NULL && *netmgrp == NULL);
 	isc__netmgr_create(mctx, workers, &netmgr);

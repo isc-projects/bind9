@@ -23,7 +23,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/hp.h>
 #include <isc/nonce.h>
 #include <isc/os.h>
 #include <isc/quota.h>
@@ -208,8 +207,6 @@ _setup(void **state __attribute__((unused))) {
 	if (isc_test_begin(NULL, false, workers) != ISC_R_SUCCESS) {
 		return (-1);
 	}
-
-	isc_hp_init(4 * workers);
 
 	signal(SIGPIPE, SIG_IGN);
 
