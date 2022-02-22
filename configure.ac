@@ -650,6 +650,7 @@ AC_CHECK_FUNCS([SSL_CTX_set_keylog_callback])
 AC_CHECK_FUNCS([SSL_CTX_set_min_proto_version])
 AC_CHECK_FUNCS([SSL_CTX_up_ref])
 AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
+AC_CHECK_FUNCS([SSL_CTX_up_ref])
 
 #
 # Check for algorithm support in OpenSSL
