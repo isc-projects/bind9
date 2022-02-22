@@ -1014,6 +1014,7 @@ struct isc_nmsocket {
 	atomic_bool connected;
 	atomic_bool accepting;
 	atomic_bool reading;
+	atomic_bool timedout;
 	isc_refcount_t references;
 
 	/*%
