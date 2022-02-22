@@ -34,7 +34,6 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/hash.h>
-#include <isc/hp.h>
 #include <isc/httpd.h>
 #include <isc/managers.h>
 #include <isc/netmgr.h>

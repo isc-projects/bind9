@@ -201,7 +201,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 isc_result_t
 isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 		      isc_task_t **taskp, int threadid) {
-	isc_task_t *task;
+	isc_task_t *task = NULL;
 	bool exiting;
 
 	REQUIRE(VALID_MANAGER(manager));
