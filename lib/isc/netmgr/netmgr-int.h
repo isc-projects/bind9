@@ -833,6 +833,7 @@ struct isc_nmsocket {
 	atomic_bool connected;
 	bool accepting;
 	bool reading;
+	atomic_bool timedout;
 	isc_refcount_t references;
 
 	/*%
