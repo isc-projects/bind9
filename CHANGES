@@ -1,3 +1,6 @@
+5814.	[bug]		The RecursClients statistics counter could underflow
+			in certain resolution scenarios. [GL #3147]
+
 5812.	[func]		Drop the artificial limit on the number of queries
 			processed in a single TCP read callback. [GL #3141]
 
