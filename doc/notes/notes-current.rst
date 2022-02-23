@@ -53,3 +53,9 @@ Bug Fixes
   not implemented when the BIND 9 networking stack was refactored in 9.16.
   The missing functionality has been re-implemented and outgoing zone
   transfers now time out properly when not progressing. :gl:`#1897`
+
+- The statistics counter representing the current number of clients
+  awaiting recursive resolution results (``RecursClients``) could be
+  miscalculated in certain resolution scenarios, potentially causing the
+  value of the counter to drop below zero. This has been fixed.
+  :gl:`#3147`
