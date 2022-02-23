@@ -1753,11 +1753,11 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 	INSIST(atomic_fetch_sub(&sock->ah, 1) > 0);
 
-#if !__SANITIZE_ADDRESS && !__SANITIZE_THREAD__
+#if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (atomic_load(&sock->active)) {
 		reuse = isc_astack_trypush(sock->inactivehandles, handle);
 	}
-#endif /* !__SANITIZE_ADDRESS && !__SANITIZE_THREAD__ */
+#endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
 	if (!reuse) {
 		nmhandle_free(sock, handle);
 	}
@@ -2512,10 +2512,14 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 	handle = req->handle;
 	req->handle = NULL;
 
+#if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (!isc__nmsocket_active(sock) ||
 	    !isc_astack_trypush(sock->inactivereqs, req)) {
 		isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
 	}
+#else  /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
+	isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
+#endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
 
 	if (handle != NULL) {
 		isc__nmhandle_detach(&handle FLARG_PASS);
