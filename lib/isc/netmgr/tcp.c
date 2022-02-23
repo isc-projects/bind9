@@ -239,14 +239,15 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
-	if (!atomic_load(&sock->connecting)) {
-		return;
-	}
-
 	req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
+
+	if (atomic_load(&sock->timedout)) {
+		result = ISC_R_TIMEDOUT;
+		goto error;
+	}
 
 	if (!atomic_load(&sock->connecting)) {
 		/*
