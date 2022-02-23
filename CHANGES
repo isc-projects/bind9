@@ -1,3 +1,6 @@
+5814.	[bug]		The RecursClients statistics counter could underflow
+			in certain resolution scenarios. [GL #3147]
+
 5813.	[func]		The "keep-response-order" ACL has been declared
 			obsolete, and is now non-operational. [GL #3140]
 
