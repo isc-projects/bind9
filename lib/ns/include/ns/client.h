@@ -270,8 +270,7 @@ struct ns_client {
 #define NS_CLIENTATTR_WANTPAD	   0x08000 /*%< pad reply */
 #define NS_CLIENTATTR_USEKEEPALIVE 0x10000 /*%< use TCP keepalive */
 
-#define NS_CLIENTATTR_NOSETFC	0x20000 /*%< don't set servfail cache */
-#define NS_CLIENTATTR_RECURSING 0x40000 /*%< client is recursing */
+#define NS_CLIENTATTR_NOSETFC 0x20000 /*%< don't set servfail cache */
 
 /*
  * Flag to use with the SERVFAIL cache to indicate
