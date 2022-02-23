@@ -372,14 +372,14 @@ nm_destroy(isc_nm_t **mgr0) {
 
 		/* Empty the async event queues */
 		while ((ievent = DEQUEUE_PRIORITY_NETIEVENT(worker)) != NULL) {
-			isc_mem_put(mgr->mctx, ievent, sizeof(*ievent));
+			isc__nm_put_netievent(mgr, ievent);
 		}
 
 		INSIST(DEQUEUE_PRIVILEGED_NETIEVENT(worker) == NULL);
 		INSIST(DEQUEUE_TASK_NETIEVENT(worker) == NULL);
 
-		while ((ievent = DEQUEUE_PRIORITY_NETIEVENT(worker)) != NULL) {
-			isc_mem_put(mgr->mctx, ievent, sizeof(*ievent));
+		while ((ievent = DEQUEUE_NORMAL_NETIEVENT(worker)) != NULL) {
+			isc__nm_put_netievent(mgr, ievent);
 		}
 		isc_condition_destroy(&worker->cond_prio);
 		isc_mutex_destroy(&worker->lock);
