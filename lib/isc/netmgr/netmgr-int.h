@@ -250,7 +250,6 @@ struct isc_nmhandle {
 	 * the socket.
 	 */
 	isc_nmsocket_t *sock;
-	size_t ah_pos; /* Position in the socket's 'active handles' array */
 
 	isc_nm_http_session_t *httpsession;
 
@@ -1092,30 +1091,9 @@ struct isc_nmsocket {
 	isc_result_t result;
 
 	/*%
-	 * List of active handles.
-	 * ah - current position in 'ah_frees'; this represents the
-	 *	current number of active handles;
-	 * ah_size - size of the 'ah_frees' and 'ah_handles' arrays
-	 * ah_handles - array pointers to active handles
-	 *
-	 * Adding a handle
-	 *  - if ah == ah_size, reallocate
-	 *  - x = ah_frees[ah]
-	 *  - ah_frees[ah++] = 0;
-	 *  - ah_handles[x] = handle
-	 *  - x must be stored with the handle!
-	 * Removing a handle:
-	 *  - ah_frees[--ah] = x
-	 *  - ah_handles[x] = NULL;
-	 *
-	 * XXX: for now this is locked with socket->lock, but we
-	 * might want to change it to something lockless in the
-	 * future.
+	 * Current number of active handles.
 	 */
 	atomic_int_fast32_t ah;
-	size_t ah_size;
-	size_t *ah_frees;
-	isc_nmhandle_t **ah_handles;
 
 	/*% Buffer for TCPDNS processing */
 	size_t buf_size;
