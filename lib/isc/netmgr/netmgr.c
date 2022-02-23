@@ -1257,8 +1257,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_astack_destroy(sock->inactivereqs);
 	sock->magic = 0;
 
-	isc_mem_free(sock->mgr->mctx, sock->ah_frees);
-	isc_mem_free(sock->mgr->mctx, sock->ah_handles);
 	isc_condition_destroy(&sock->scond);
 	isc_condition_destroy(&sock->cond);
 	isc_mutex_destroy(&sock->lock);
@@ -1435,7 +1433,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	*sock = (isc_nmsocket_t){ .type = type,
 				  .iface = *iface,
 				  .fd = -1,
-				  .ah_size = 32,
 				  .inactivehandles = isc_astack_new(
 					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
 				  .inactivereqs = isc_astack_new(
@@ -1453,15 +1450,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	isc_nm_attach(mgr, &sock->mgr);
 	sock->uv_handle.handle.data = sock;
 
-	sock->ah_frees = isc_mem_allocate(mgr->mctx,
-					  sock->ah_size * sizeof(size_t));
-	sock->ah_handles = isc_mem_allocate(
-		mgr->mctx, sock->ah_size * sizeof(isc_nmhandle_t *));
 	ISC_LINK_INIT(&sock->quotacb, link);
-	for (size_t i = 0; i < 32; i++) {
-		sock->ah_frees[i] = i;
-		sock->ah_handles[i] = NULL;
-	}
 
 	switch (type) {
 	case isc_nm_udpsocket:
@@ -1560,8 +1549,6 @@ isc_nmhandle_t *
 isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		   isc_sockaddr_t *local FLARG) {
 	isc_nmhandle_t *handle = NULL;
-	size_t handlenum;
-	int pos;
 
 	REQUIRE(VALID_NMSOCK(sock));
 
@@ -1596,34 +1583,13 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		handle->local = sock->iface;
 	}
 
-	LOCK(&sock->lock);
-	/* We need to add this handle to the list of active handles */
-	if ((size_t)atomic_load(&sock->ah) == sock->ah_size) {
-		sock->ah_frees =
-			isc_mem_reallocate(sock->mgr->mctx, sock->ah_frees,
-					   sock->ah_size * 2 * sizeof(size_t));
-		sock->ah_handles = isc_mem_reallocate(
-			sock->mgr->mctx, sock->ah_handles,
-			sock->ah_size * 2 * sizeof(isc_nmhandle_t *));
+	(void)atomic_fetch_add(&sock->ah, 1);
 
-		for (size_t i = sock->ah_size; i < sock->ah_size * 2; i++) {
-			sock->ah_frees[i] = i;
-			sock->ah_handles[i] = NULL;
-		}
-
-		sock->ah_size *= 2;
-	}
-
-	handlenum = atomic_fetch_add(&sock->ah, 1);
-	pos = sock->ah_frees[handlenum];
-
-	INSIST(sock->ah_handles[pos] == NULL);
-	sock->ah_handles[pos] = handle;
-	handle->ah_pos = pos;
 #ifdef NETMGR_TRACE
+	LOCK(&sock->lock);
 	ISC_LIST_APPEND(sock->active_handles, handle, active_link);
-#endif
 	UNLOCK(&sock->lock);
+#endif
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
@@ -1688,7 +1654,6 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 static void
 nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
-	size_t handlenum;
 	bool reuse = false;
 
 	/*
@@ -1698,18 +1663,12 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	 */
 	LOCK(&sock->lock);
 
-	INSIST(sock->ah_handles[handle->ah_pos] == handle);
-	INSIST(sock->ah_size > handle->ah_pos);
-	INSIST(atomic_load(&sock->ah) > 0);
-
 #ifdef NETMGR_TRACE
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 #endif
 
-	sock->ah_handles[handle->ah_pos] = NULL;
-	handlenum = atomic_fetch_sub(&sock->ah, 1) - 1;
-	sock->ah_frees[handlenum] = handle->ah_pos;
-	handle->ah_pos = 0;
+	INSIST(atomic_fetch_sub(&sock->ah, 1) > 0);
+
 	if (atomic_load(&sock->active)) {
 		reuse = isc_astack_trypush(sock->inactivehandles, handle);
 	}
