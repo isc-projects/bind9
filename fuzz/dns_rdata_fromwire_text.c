@@ -47,7 +47,6 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	isc_lexspecials_t specials;
 
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
 	CHECK(isc_lex_create(mctx, 64, &lex));
 
 	memset(specials, 0, sizeof(specials));
