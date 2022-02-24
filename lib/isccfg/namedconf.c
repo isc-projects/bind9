@@ -1184,7 +1184,7 @@ static cfg_clausedef_t namedconf_or_view_clauses[] = {
 	{ "trust-anchors", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_trustedkeys,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
-	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
+	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ NULL, NULL, 0 }
 };
 

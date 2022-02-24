@@ -105,7 +105,7 @@ delegation-only.zoneopt: cfg_test
 in-view.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar in-view --active > $@
 
-../../bin/named/named.conf.rst: options.active rst-options.pl
+../../bin/named/named.conf.rst: options.active rst-options.pl delegation-only.zoneopt.rst forward.zoneopt.rst hint.zoneopt.rst in-view.zoneopt.rst mirror.zoneopt.rst primary.zoneopt.rst redirect.zoneopt.rst secondary.zoneopt.rst static-stub.zoneopt.rst stub.zoneopt.rst
 	$(AM_V_RST_OPTIONS)$(PERL) $(srcdir)/rst-options.pl options.active > $@
 
 primary.zoneopt.rst: primary.zoneopt rst-zoneopt.pl
