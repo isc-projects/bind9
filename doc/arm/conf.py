@@ -148,7 +148,7 @@ exclude_patterns = [
     'dlz.rst',
     'dnssec.rst',
     'dyndb.rst',
-    'logging-cattegories.rst',
+    'logging-categories.rst',
     'managed-keys.rst',
     'pkcs11.rst',
     'platforms.rst',
