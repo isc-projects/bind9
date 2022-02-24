@@ -19,6 +19,7 @@ libfuzzmain_la_SOURCES =		\
 	main.c
 
 check_PROGRAMS =			\
+	dns_master_load			\
 	dns_message_parse		\
 	dns_name_fromtext_target	\
 	dns_rdata_fromwire_text		\
@@ -26,6 +27,7 @@ check_PROGRAMS =			\
 	isc_lex_gettoken
 
 EXTRA_DIST =				\
+	dns_master_load.in		\
 	dns_message_parse.in		\
 	dns_name_fromtext_target.in	\
 	dns_rdata_fromwire_text.in	\
