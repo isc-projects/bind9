@@ -12,7 +12,7 @@
 ::
 
   zone <string> [ <class> ] {
-  	type ( slave | secondary );
+  	type secondary;
   	allow-notify { <address_match_element>; ... };
   	allow-query { <address_match_element>; ... };
   	allow-query-on { <address_match_element>; ... };
