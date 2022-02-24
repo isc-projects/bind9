@@ -5460,8 +5460,8 @@ Here is an example of a typical split DNS setup implemented using
 ``zone`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: ../misc/master.zoneopt.rst
-.. include:: ../misc/slave.zoneopt.rst
+.. include:: ../misc/primary.zoneopt.rst
+.. include:: ../misc/secondary.zoneopt.rst
 .. include:: ../misc/mirror.zoneopt.rst
 .. include:: ../misc/hint.zoneopt.rst
 .. include:: ../misc/stub.zoneopt.rst

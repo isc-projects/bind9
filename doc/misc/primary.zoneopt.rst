@@ -12,7 +12,7 @@
 ::
 
   zone <string> [ <class> ] {
-  	type ( master | primary );
+  	type primary;
   	allow-query { <address_match_element>; ... };
   	allow-query-on { <address_match_element>; ... };
   	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };

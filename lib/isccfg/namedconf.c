@@ -3854,11 +3854,11 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 	switch (zonetype) {
 	case CFG_ZONE_PRIMARY:
 		cfg_print_indent(&pctx);
-		cfg_print_cstr(&pctx, "type ( master | primary );\n");
+		cfg_print_cstr(&pctx, "type primary;\n");
 		break;
 	case CFG_ZONE_SECONDARY:
 		cfg_print_indent(&pctx);
-		cfg_print_cstr(&pctx, "type ( slave | secondary );\n");
+		cfg_print_cstr(&pctx, "type secondary;\n");
 		break;
 	case CFG_ZONE_MIRROR:
 		cfg_print_indent(&pctx);
