@@ -4,6 +4,11 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+5817.	[security]	The rules for acceptance of records into the cache
+			have been tightened to prevent the possibility of
+			poisoning if forwarders send records outside
+			the configured bailiwick. (CVE-2021-25220) [GL #2950]
+
 5816.	[bug]		Make BIND compile with LibreSSL 3.5.0, as it was using
 			not very accurate pre-processor checks for using shims.
 			[GL #3172]
