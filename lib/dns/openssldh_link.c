@@ -263,10 +263,9 @@ static isc_result_t
 openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	DH *dh = NULL;
 	BN_GENCB *cb;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !HAVE_BN_GENCB_NEW
 	BN_GENCB _cb;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+#endif /* !HAVE_BN_GENCB_NEW */
 	union {
 		void *dptr;
 		void (*fptr)(int);
