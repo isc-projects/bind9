@@ -360,10 +360,9 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
 	DH *dh = NULL;
 	BN_GENCB *cb = NULL;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !HAVE_BN_GENCB_NEW
 	BN_GENCB _cb;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+#endif /* !HAVE_BN_GENCB_NEW */
 #else
 	OSSL_PARAM_BLD *bld = NULL;
 	OSSL_PARAM *params = NULL;
