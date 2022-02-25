@@ -383,10 +383,9 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
 	RSA *rsa = RSA_new();
 	EVP_PKEY *pkey = EVP_PKEY_new();
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !HAVE_BN_GENCB_NEW
 	BN_GENCB _cb;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+#endif /* !HAVE_BN_GENCB_NEW */
 	BN_GENCB *cb = BN_GENCB_new();
 #else
 	EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", NULL);
