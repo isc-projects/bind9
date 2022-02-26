@@ -44,13 +44,14 @@
  * "directory" option.
  */
 #define CFG_CLAUSEFLAG_CALLBACK 0x00000020
-/*% A option that is only used in testing. */
+/*% An option that is only used in testing. */
 #define CFG_CLAUSEFLAG_TESTONLY 0x00000040
 /*% A configuration option that was not configured at compile time. */
 #define CFG_CLAUSEFLAG_NOTCONFIGURED 0x00000080
-/*% A option for a experimental feature. */
+/*% An option for an experimental feature. */
 #define CFG_CLAUSEFLAG_EXPERIMENTAL 0x00000100
-/* obsolete: #define CFG_CLAUSEFLAG_NOOP 0x00000200 */
+/*% An option that should be omited from the documentation */
+#define CFG_CLAUSEFLAG_NODOC 0x00000200
 /*% Clause will be obsolete in a future release (logs a warning) */
 #define CFG_CLAUSEFLAG_DEPRECATED 0x00000400
 /*% Clause has been obsolete so long that it's now a fatal error */
