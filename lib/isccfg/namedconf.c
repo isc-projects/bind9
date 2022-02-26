@@ -1157,7 +1157,8 @@ static cfg_clausedef_t namedconf_clauses[] = {
 #endif
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
-	{ "masters", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
+	{ "masters", &cfg_type_remoteservers,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ "options", &cfg_type_options, 0 },
 	{ "parental-agents", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
@@ -1777,6 +1778,9 @@ cfg_doc_kv_tuple(cfg_printer_t *pctx, const cfg_type_t *type) {
 
 	fields = type->of;
 	for (f = fields; f->name != NULL; f++) {
+		if ((f->flags & CFG_CLAUSEFLAG_NODOC) != 0) {
+			continue;
+		}
 		if (f != fields) {
 			cfg_print_cstr(pctx, " [ ");
 			cfg_print_cstr(pctx, f->name);
@@ -1878,7 +1882,8 @@ static cfg_type_t cfg_type_catz_zone = { "zone",	  parse_keyvalue,
 
 static cfg_tuplefielddef_t catz_zone_fields[] = {
 	{ "zone name", &cfg_type_catz_zone, 0 },
-	{ "default-masters", &cfg_type_namesockaddrkeylist, 0 },
+	{ "default-masters", &cfg_type_namesockaddrkeylist,
+	  CFG_CLAUSEFLAG_NODOC },
 	{ "default-primaries", &cfg_type_namesockaddrkeylist, 0 },
 	{ "zone-directory", &cfg_type_qstring, 0 },
 	{ "in-memory", &cfg_type_boolean, 0 },
@@ -2389,7 +2394,7 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "masters", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
-		  CFG_ZONE_REDIRECT },
+		  CFG_ZONE_REDIRECT | CFG_CLAUSEFLAG_NODOC },
 	{ "parental-agents", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "primaries", &cfg_type_namesockaddrkeylist,
@@ -3850,11 +3855,11 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 	switch (zonetype) {
 	case CFG_ZONE_PRIMARY:
 		cfg_print_indent(&pctx);
-		cfg_print_cstr(&pctx, "type ( master | primary );\n");
+		cfg_print_cstr(&pctx, "type primary;\n");
 		break;
 	case CFG_ZONE_SECONDARY:
 		cfg_print_indent(&pctx);
-		cfg_print_cstr(&pctx, "type ( slave | secondary );\n");
+		cfg_print_cstr(&pctx, "type secondary;\n");
 		break;
 	case CFG_ZONE_MIRROR:
 		cfg_print_indent(&pctx);
@@ -3899,7 +3904,9 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		{
 			continue;
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
+		if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0 ||
+		    (clause->flags & CFG_CLAUSEFLAG_NODOC) != 0)
+		{
 			continue;
 		}
 

@@ -4,8 +4,8 @@ include $(top_srcdir)/Makefile.docs
 OPTIONS_FILES =				\
 	options				\
 	options.active			\
-	master.zoneopt			\
-	slave.zoneopt			\
+	primary.zoneopt			\
+	secondary.zoneopt			\
 	mirror.zoneopt			\
 	forward.zoneopt			\
 	hint.zoneopt			\
@@ -15,8 +15,8 @@ OPTIONS_FILES =				\
 	delegation-only.zoneopt		\
 	in-view.zoneopt			\
 	../../bin/named/named.conf.rst	\
-	master.zoneopt.rst		\
-	slave.zoneopt.rst		\
+	primary.zoneopt.rst		\
+	secondary.zoneopt.rst		\
 	mirror.zoneopt.rst		\
 	forward.zoneopt.rst		\
 	hint.zoneopt.rst		\
@@ -75,11 +75,11 @@ options: cfg_test
 options.active: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
 
-master.zoneopt: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar master --active > $@
+primary.zoneopt: cfg_test
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar primary --active > $@
 
-slave.zoneopt: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar slave --active > $@
+secondary.zoneopt: cfg_test
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar secondary --active > $@
 
 mirror.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar mirror --active > $@
@@ -108,11 +108,11 @@ in-view.zoneopt: cfg_test
 ../../bin/named/named.conf.rst: options.active rst-options.pl
 	$(AM_V_RST_OPTIONS)$(PERL) $(srcdir)/rst-options.pl options.active > $@
 
-master.zoneopt.rst: master.zoneopt rst-zoneopt.pl
-	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl master.zoneopt > $@
+primary.zoneopt.rst: primary.zoneopt rst-zoneopt.pl
+	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl primary.zoneopt > $@
 
-slave.zoneopt.rst: slave.zoneopt rst-zoneopt.pl
-	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl slave.zoneopt > $@
+secondary.zoneopt.rst: secondary.zoneopt rst-zoneopt.pl
+	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl secondary.zoneopt > $@
 
 mirror.zoneopt.rst: mirror.zoneopt rst-zoneopt.pl
 	$(AM_V_RST_ZONEOPT)$(PERL) $(srcdir)/rst-zoneopt.pl mirror.zoneopt > $@

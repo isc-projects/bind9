@@ -2731,7 +2731,9 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 			{
 				continue;
 			}
-			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0 ||
+			    (clause->flags & CFG_CLAUSEFLAG_NODOC) != 0)
+			{
 				continue;
 			}
 			cfg_print_cstr(pctx, clause->name);
@@ -2787,7 +2789,9 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 			{
 				continue;
 			}
-			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
+			if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0 ||
+			    (clause->flags & CFG_CLAUSEFLAG_NODOC) != 0)
+			{
 				continue;
 			}
 			cfg_print_indent(pctx);

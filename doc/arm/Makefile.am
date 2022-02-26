@@ -37,14 +37,14 @@ EXTRA_DIST =					\
 	../misc/key.grammar.rst			\
 	../misc/logging.grammar.rst		\
 	../misc/managed-keys.grammar.rst	\
-	../misc/master.zoneopt.rst		\
+	../misc/primary.zoneopt.rst		\
 	../misc/mirror.zoneopt.rst		\
 	../misc/options.grammar.rst		\
 	../misc/parental-agents.grammar.rst	\
 	../misc/primaries.grammar.rst		\
 	../misc/redirect.zoneopt.rst		\
 	../misc/server.grammar.rst		\
-	../misc/slave.zoneopt.rst		\
+	../misc/secondary.zoneopt.rst		\
 	../misc/static-stub.zoneopt.rst		\
 	../misc/statistics-channels.grammar.rst	\
 	../misc/stub.zoneopt.rst		\
