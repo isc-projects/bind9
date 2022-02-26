@@ -152,17 +152,6 @@ See DNSSEC-KEYS.
       initial-ds ) integer integer
       integer quoted_string; ... };, deprecated
 
-MASTERS
-^^^^^^^
-
-::
-
-  masters string [ port integer ] [ dscp
-      integer ] { ( remote-servers |
-      ipv4_address [ port integer ] |
-      ipv6_address [ port integer ] ) [ key
-      string ] [ tls string ]; ... };
-
 OPTIONS
 ^^^^^^^
 
@@ -198,15 +187,12 @@ OPTIONS
   	avoid-v6-udp-ports { portrange; ... };
   	bindkeys-file quoted_string;
   	blackhole { address_match_element; ... };
-  	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
-  	    integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ default-primaries [ port
-  	    integer ] [ dscp integer ] { ( remote-servers |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... } ] [
-  	    zone-directory quoted_string ] [ in-memory boolean ] [
-  	    min-update-interval duration ]; ... };
+  	catalog-zones { zone string [ default-primaries [ port integer
+  	    ] [ dscp integer ] { ( remote-servers | ipv4_address [
+  	    port integer ] | ipv6_address [ port integer ] ) [ key
+  	    string ] [ tls string ]; ... } ] [ zone-directory
+  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
+  	    duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );
@@ -632,15 +618,12 @@ VIEW
   	attach-cache string;
   	auth-nxdomain boolean;
   	auto-dnssec ( allow | maintain | off );
-  	catalog-zones { zone string [ default-masters [ port integer ]
-  	    [ dscp integer ] { ( remote-servers | ipv4_address [ port
-  	    integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ default-primaries [ port
-  	    integer ] [ dscp integer ] { ( remote-servers |
-  	    ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... } ] [
-  	    zone-directory quoted_string ] [ in-memory boolean ] [
-  	    min-update-interval duration ]; ... };
+  	catalog-zones { zone string [ default-primaries [ port integer
+  	    ] [ dscp integer ] { ( remote-servers | ipv4_address [
+  	    port integer ] | ipv6_address [ port integer ] ) [ key
+  	    string ] [ tls string ]; ... } ] [ zone-directory
+  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
+  	    duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );
@@ -947,10 +930,6 @@ VIEW
   		key-directory quoted_string;
   		masterfile-format ( raw | text );
   		masterfile-style ( full | relative );
-  		masters [ port integer ] [ dscp integer ] { (
-  		    remote-servers | ipv4_address [ port integer ] |
-  		    ipv6_address [ port integer ] ) [ key string ] [
-  		    tls string ]; ... };
   		max-ixfr-ratio ( unlimited | percentage );
   		max-journal-size ( default | unlimited | sizeval );
   		max-records integer;
@@ -1066,9 +1045,6 @@ ZONE
   	key-directory quoted_string;
   	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
-  	masters [ port integer ] [ dscp integer ] { ( remote-servers
-  	    | ipv4_address [ port integer ] | ipv6_address [ port
-  	    integer ] ) [ key string ] [ tls string ]; ... };
   	max-ixfr-ratio ( unlimited | percentage );
   	max-journal-size ( default | unlimited | sizeval );
   	max-records integer;
