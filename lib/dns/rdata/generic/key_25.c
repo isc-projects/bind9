@@ -322,7 +322,7 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	isc_region_t sr;
 
 	REQUIRE(key != NULL);
-	REQUIRE(rdata->length != 0);
+	REQUIRE(rdata->length >= 4U);
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->common.rdclass == rdata->rdclass);
@@ -332,33 +332,20 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Flags */
-	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	key->flags = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Protocol */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	key->protocol = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Algorithm */
-	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	key->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Data */
 	key->datalen = sr.length;
 	key->data = mem_maybedup(mctx, sr.base, key->datalen);
-	if (key->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	key->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

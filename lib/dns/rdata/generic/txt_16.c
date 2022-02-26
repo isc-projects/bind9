@@ -172,10 +172,6 @@ generic_tostruct_txt(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	txt->txt_len = r.length;
 	txt->txt = mem_maybedup(mctx, r.base, r.length);
-	if (txt->txt == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	txt->offset = 0;
 	txt->mctx = mctx;
 	return (ISC_R_SUCCESS);

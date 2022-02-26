@@ -209,7 +209,7 @@ tostruct_uri(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 	REQUIRE(uri != NULL);
-	REQUIRE(rdata->length != 0);
+	REQUIRE(rdata->length >= 4);
 
 	uri->common.rdclass = rdata->rdclass;
 	uri->common.rdtype = rdata->type;
@@ -220,18 +220,12 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	/*
 	 * Priority
 	 */
-	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	uri->priority = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Weight
 	 */
-	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
 	uri->weight = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
@@ -240,10 +234,6 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	 */
 	uri->tgt_len = sr.length;
 	uri->target = mem_maybedup(mctx, sr.base, sr.length);
-	if (uri->target == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	uri->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

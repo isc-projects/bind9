@@ -4362,7 +4362,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Convert rdata to keydata. */
 		result = dns_rdata_tostruct(&rdata, &keydata, NULL);
-		if (result == ISC_R_UNEXPECTEDEND) {
+		if (result == ISC_R_NOTIMPLEMENTED) {
 			continue;
 		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);

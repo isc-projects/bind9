@@ -306,34 +306,17 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 	nsec3->salt_length = uint8_consume_fromregion(&region);
 	INSIST(nsec3->salt_length <= region.length);
 	nsec3->salt = mem_maybedup(mctx, region.base, nsec3->salt_length);
-	if (nsec3->salt == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	isc_region_consume(&region, nsec3->salt_length);
 
 	nsec3->next_length = uint8_consume_fromregion(&region);
 	INSIST(nsec3->next_length <= region.length);
 	nsec3->next = mem_maybedup(mctx, region.base, nsec3->next_length);
-	if (nsec3->next == NULL) {
-		goto cleanup;
-	}
 	isc_region_consume(&region, nsec3->next_length);
 
 	nsec3->len = region.length;
 	nsec3->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nsec3->typebits == NULL) {
-		goto cleanup;
-	}
-
 	nsec3->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (nsec3->next != NULL) {
-		isc_mem_free(mctx, nsec3->next);
-	}
-	isc_mem_free(mctx, nsec3->salt);
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

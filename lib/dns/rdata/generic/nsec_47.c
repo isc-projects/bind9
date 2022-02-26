@@ -178,18 +178,8 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 
 	nsec->len = region.length;
 	nsec->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nsec->typebits == NULL) {
-		goto cleanup;
-	}
-
 	nsec->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL) {
-		dns_name_free(&nsec->next, mctx);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

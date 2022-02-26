@@ -141,10 +141,6 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	eid->eid_len = r.length;
 	eid->eid = mem_maybedup(mctx, r.base, r.length);
-	if (eid->eid == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	eid->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

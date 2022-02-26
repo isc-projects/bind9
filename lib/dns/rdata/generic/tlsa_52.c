@@ -231,10 +231,6 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	tlsa->length = region.length;
 
 	tlsa->data = mem_maybedup(mctx, region.base, region.length);
-	if (tlsa->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	tlsa->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

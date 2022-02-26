@@ -341,42 +341,48 @@ tostruct_keydata(ARGS_TOSTRUCT) {
 
 	/* Refresh timer */
 	if (sr.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->refresh = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Add hold-down */
 	if (sr.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->addhd = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Remove hold-down */
 	if (sr.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->removehd = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Flags */
 	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->flags = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Protocol */
 	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->protocol = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Algorithm */
 	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		/* Not KEYDATA */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 	keydata->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
@@ -384,10 +390,6 @@ tostruct_keydata(ARGS_TOSTRUCT) {
 	/* Data */
 	keydata->datalen = sr.length;
 	keydata->data = mem_maybedup(mctx, sr.base, keydata->datalen);
-	if (keydata->data == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
 	keydata->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
