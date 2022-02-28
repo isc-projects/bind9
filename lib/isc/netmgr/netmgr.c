@@ -2851,8 +2851,13 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	switch (sock->type) {
+	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
+		/*
+		 * This can be called from the TCP write timeout, or
+		 * from the TCPDNS or TLSDNS branches of isc_nm_bad_request().
+		 */
 		REQUIRE(sock->parent == NULL);
 		break;
 	default:
