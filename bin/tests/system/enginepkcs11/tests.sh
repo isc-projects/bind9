@@ -27,6 +27,26 @@ dig_with_opts() (
   $DIG +tcp +noadd +nosea +nostat +nocmd +dnssec -p "$PORT" "$@"
 )
 
+check_keys() {
+  _zone=$1
+  _expect=$2
+  _ret=0
+  _status=0
+  _count=$(ls K*.key | grep "K${_zone}" | wc -l)
+
+  test "$_count" -eq "$_expect" || ret=1
+  test "$_ret" -eq 0 || echo_i "failed (expected $_expect keys, got $_count)"
+  _status=$((_status + _ret))
+
+  _ret=0
+  _count=$(cat K${_zone}*.private | grep Label | wc -l)
+  test "$_count" -eq "$_expect" || _ret=1
+  test "$_ret" -eq 0 || echo_i "failed (expected Label metadata in key files)"
+  _status=$((_status + _ret))
+
+  return $_status
+}
+
 # Perform tests inside ns1 dir
 cd ns1
 
@@ -48,9 +68,7 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
   n=$((n + 1))
   ret=0
   echo_i "Test key generation was successful for $zone ($n)"
-  count=$(ls K*.key | grep "K${zone}" | wc -l)
-  test "$count" -eq 4 || ret=1
-  test "$ret" -eq 0 || echo_i "failed (expected 4 keys, got $count)"
+  check_keys $zone 4 || ret=1
   status=$((status + ret))
 
   n=$((n + 1))
@@ -155,6 +173,52 @@ EOF
   )
   retry_quiet 10 _dig_dnskey_ksk || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected 4 DNSKEY records, 2 KSK signatures)"
+  status=$((status + ret))
+
+  # Check dnssec-policy interaction.
+  zone="${alg}.kasp"
+
+  # Basic checks if setup was successful (dnssec-policy).
+  n=$((n + 1))
+  ret=0
+  echo_i "Test key generation was successful for $zone ($n)"
+  check_keys $zone 2 || ret=1
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY response for $zone ($n)"
+  _dig_policy_dnskey() {
+    dig_with_opts "$zone" @10.53.0.1 DNSKEY >dig.out.dnskey.$zone.$n || return 1
+    count=$(awk 'BEGIN { count = 0 } $4 == "DNSKEY" { count++ } END {print count}' dig.out.dnskey.$zone.$n)
+    test $count -eq 2
+  }
+  retry_quiet 2 _dig_policy_dnskey || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected 2 DNSKEY records)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA response for $zone ($n)"
+  _dig_policy_soa() {
+    dig_with_opts "$zone" @10.53.0.1 SOA >dig.out.soa.$zone.$n || return 1
+    awk '$4 == "RRSIG" && $5 == "SOA" { print $11 }' dig.out.soa.$zone.$n >dig.out.keyids.$zone.$n || return 1
+    numsigs=$(cat dig.out.keyids.$zone.$n | wc -l)
+    test $numsigs -eq 1 || return 1
+    return 0
+  }
+  retry_quiet 2 _dig_policy_soa || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected a SOA RRSIG record)"
+  status=$((status + ret))
+
+  # Check dnssec-keygen with dnssec-policy and key-store.
+  zone="${alg}.keygen"
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test dnssec-keygen for $zone ($n)"
+  $KEYGEN $ENGINE_ARG -k $alg -l named.conf $zone >keygen.out.$zone.$n 2>/dev/null || ret=1
+  check_keys $zone 2 || ret=1
   status=$((status + ret))
 
 done
