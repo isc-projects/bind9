@@ -15,7 +15,15 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+          The rules for acceptance of records into the cache have been tightened
+          to prevent the possibility of poisoning if forwarders send records
+          outside the configured bailiwick. (CVE-2021-25220)
+        </para>
+        <para>
+          ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
+          Network and Information Security Lab, Tsinghua University, and
+          Changgen Zou from Qi An Xin Group Corp. for bringing this
+          vulnerability to our attention. [GL #2950]
         </para>
       </listitem>
     </itemizedlist>
