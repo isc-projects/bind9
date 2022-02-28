@@ -218,6 +218,9 @@ isc__nm_work_cb(uv_work_t *req);
 static void
 isc__nm_after_work_cb(uv_work_t *req, int status);
 
+void
+isc__nmsocket_reset(isc_nmsocket_t *sock);
+
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
@@ -1942,11 +1945,7 @@ isc__nmsocket_writetimeout_cb(uv_timer_t *timer) {
 	int r = uv_timer_stop(&sock->write_timer);
 	UV_RUNTIME_CHECK(uv_timer_stop, r);
 
-	/* The shutdown will be handled in the respective close functions */
-	r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
-	UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
-
-	isc__nmsocket_shutdown(sock);
+	isc__nmsocket_reset(sock);
 }
 
 void
@@ -2672,6 +2671,35 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 	UNUSED(worker);
 
 	nmhandle_detach_cb(&ievent->handle FLARG_PASS);
+}
+
+void
+isc__nmsocket_reset(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+	case isc_nm_tcpdnssocket:
+		/*
+		 * This can be called from the TCP write timeout.
+		 */
+		REQUIRE(sock->parent == NULL);
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+		break;
+	}
+
+	if (!uv_is_closing(&sock->uv_handle.handle)) {
+		/*
+		 * The real shutdown will be handled in the respective
+		 * close functions.
+		 */
+		int r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
+		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+	}
+	isc__nmsocket_shutdown(sock);
 }
 
 void
