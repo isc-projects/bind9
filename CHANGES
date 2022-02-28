@@ -1,3 +1,7 @@
+5815.	[bug]		If an oversized key name of a specific length was used
+			in the text form of an HTTP or SVBC record, an INSIST
+			could be triggered when parsing it. [GL #3175]
+
 5814.	[bug]		The RecursClients statistics counter could underflow
 			in certain resolution scenarios. [GL #3147]
 
