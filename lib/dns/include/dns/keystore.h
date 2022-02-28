@@ -31,6 +31,8 @@
 
 #include <dns/types.h>
 
+#include <dst/dst.h>
+
 ISC_LANG_BEGINDECLS
 
 /* Key store */
@@ -60,7 +62,8 @@ struct dns_keystore {
 #define DNS_KEYSTORE_KEYDIRECTORY "key-directory"
 
 isc_result_t
-dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
+dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
+		    dns_keystore_t **kspp);
 /*%<
  * Create a key store.
  *
@@ -69,6 +72,8 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
  *\li  'mctx' is a valid memory context.
  *
  *\li  'name' is a valid C string.
+ *
+ *\li  'engine' is the name of the OpenSSL engine to use, may be NULL.
  *
  *\li  kspp != NULL && *kspp == NULL
  *
@@ -127,6 +132,20 @@ dns_keystore_name(dns_keystore_t *keystore);
  */
 
 const char *
+dns_keystore_engine(dns_keystore_t *keystore);
+/*%<
+ * Get keystore engine.
+ *
+ * Requires:
+ *
+ *\li   'keystore' is a valid keystore.
+ *
+ * Returns:
+ *
+ *\li   engine of 'keystore'. May be NULL.
+ */
+
+const char *
 dns_keystore_directory(dns_keystore_t *keystore);
 /*%<
  * Get keystore directory.
@@ -173,6 +192,25 @@ dns_keystore_setpkcs11uri(dns_keystore_t *keystore, const char *uri);
  * Requires:
  *
  *\li   'keystore' is a valid keystore.
+ *
+ */
+
+isc_result_t
+dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
+		    dns_rdataclass_t rdclass, isc_mem_t *mctx, uint32_t alg,
+		    int size, int flags, dst_key_t **dstkey);
+/*%<
+ * Create a DNSSEC key pair. Set keystore PKCS#11 URI.
+ *
+ * Requires:
+ *
+ *\li   'keystore' is a valid keystore.
+ *
+ *\li   'origin' is a valid DNS owner name.
+ *
+ *\li   'mctx' is a valid memory context.
+ *
+ *\li	'dstkey' is not NULL and '*dstkey' is NULL.
  *
  */
 

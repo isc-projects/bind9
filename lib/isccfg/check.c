@@ -1412,8 +1412,9 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 					}
 				}
 
-				ret = cfg_keystore_fromconfig(
-					kconfig, mctx, logctx, &kslist, &ks);
+				ret = cfg_keystore_fromconfig(kconfig, mctx,
+							      logctx, NULL,
+							      &kslist, &ks);
 				if (ret != ISC_R_SUCCESS) {
 					if (result == ISC_R_SUCCESS) {
 						result = ret;
@@ -1429,7 +1430,8 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	/*
 	 * Add default key-store "key-directory".
 	 */
-	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, &ks);
+	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist,
+					  &ks);
 	if (tresult != ISC_R_SUCCESS) {
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -2961,12 +2963,13 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	{
 		cfg_obj_t *kcfg = cfg_listelt_value(element);
 		ks = NULL;
-		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, &kslist, &ks);
+		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, NULL, &kslist,
+					      &ks);
 		INSIST(ks != NULL);
 		dns_keystore_detach(&ks);
 	}
 	ks = NULL;
-	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, &ks);
+	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist, &ks);
 	INSIST(ks != NULL);
 	dns_keystore_detach(&ks);
 

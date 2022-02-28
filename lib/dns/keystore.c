@@ -13,11 +13,6 @@
 
 /*! \file */
 
-#ifdef HAVE_GNUTLS
-#include <gnutls/crypto.h>
-#include <gnutls/pkcs11.h>
-#endif
-
 #include <string.h>
 
 #include <isc/assertions.h>
@@ -26,15 +21,18 @@
 #include <isc/util.h>
 
 #include <dns/keystore.h>
+#include <dns/keyvalues.h>
 
 isc_result_t
-dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp) {
+dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
+		    dns_keystore_t **kspp) {
 	dns_keystore_t *keystore;
 
 	REQUIRE(name != NULL);
 	REQUIRE(kspp != NULL && *kspp == NULL);
 
 	keystore = isc_mem_get(mctx, sizeof(*keystore));
+	keystore->engine = engine;
 	keystore->mctx = NULL;
 	isc_mem_attach(mctx, &keystore->mctx);
 
@@ -65,6 +63,8 @@ dns_keystore_attach(dns_keystore_t *source, dns_keystore_t **targetp) {
 
 static inline void
 destroy(dns_keystore_t *keystore) {
+	char *name;
+
 	REQUIRE(!ISC_LINK_LINKED(keystore, link));
 
 	isc_mutex_destroy(&keystore->lock);
@@ -96,6 +96,13 @@ dns_keystore_name(dns_keystore_t *keystore) {
 	REQUIRE(DNS_KEYSTORE_VALID(keystore));
 
 	return (keystore->name);
+}
+
+const char *
+dns_keystore_engine(dns_keystore_t *keystore) {
+	REQUIRE(DNS_KEYSTORE_VALID(keystore));
+
+	return (keystore->engine);
 }
 
 const char *
@@ -134,6 +141,80 @@ dns_keystore_setpkcs11uri(dns_keystore_t *keystore, const char *uri) {
 	keystore->pkcs11uri = (uri == NULL)
 				      ? NULL
 				      : isc_mem_strdup(keystore->mctx, uri);
+}
+
+isc_result_t
+dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
+		    dns_rdataclass_t rdclass, isc_mem_t *mctx, uint32_t alg,
+		    int size, int flags, dst_key_t **dstkey) {
+	isc_result_t result;
+	dst_key_t *newkey = NULL;
+	const char *uri = NULL;
+
+	REQUIRE(DNS_KEYSTORE_VALID(keystore));
+	REQUIRE(dns_name_isvalid(origin));
+	REQUIRE(mctx != NULL);
+	REQUIRE(dstkey != NULL && *dstkey == NULL);
+
+	uri = dns_keystore_pkcs11uri(keystore);
+	if (uri != NULL) {
+		dst_key_t *key = NULL;
+		char *label = NULL;
+		size_t len;
+		char timebuf[18];
+		isc_time_t now = isc_time_now();
+		bool ksk = ((flags & DNS_KEYFLAG_KSK) != 0);
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char object[DNS_NAME_FORMATSIZE + 26];
+
+		/* Generate the key */
+		isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
+		dns_name_format(origin, namebuf, sizeof(namebuf));
+		snprintf(object, sizeof(object), "%s-%s-%s", namebuf,
+			 ksk ? "ksk" : "zsk", timebuf);
+
+		result = dst_key_generate(origin, alg, size, 0, flags,
+					  DNS_KEYPROTO_DNSSEC, rdclass, object,
+					  mctx, &key, NULL);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				      "keystore: failed to generate key "
+				      "%s (ret=%d)",
+				      object, result);
+			return (result);
+		}
+		dst_key_free(&key);
+
+		/* Retrieve generated key from label */
+		len = strlen(object) + strlen(uri) + 10;
+		label = isc_mem_get(mctx, len);
+		sprintf(label, "%s;object=%s;", uri, object);
+		result = dst_key_fromlabel(
+			origin, alg, flags, DNS_KEYPROTO_DNSSEC,
+			dns_rdataclass_in, dns_keystore_engine(keystore), label,
+			NULL, mctx, &newkey);
+
+		isc_mem_put(mctx, label, len);
+
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				      "keystore: failed to access key "
+				      "%s (ret=%d)",
+				      object, result);
+			return (result);
+		}
+	} else {
+		result = dst_key_generate(origin, alg, size, 0, flags,
+					  DNS_KEYPROTO_DNSSEC, rdclass, NULL,
+					  mctx, &newkey, NULL);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		*dstkey = newkey;
+	}
+	return (result);
 }
 
 isc_result_t

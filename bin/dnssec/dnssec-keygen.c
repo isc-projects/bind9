@@ -255,7 +255,7 @@ progress(int p) {
 
 static void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
-	       dns_kasp_t **kaspp) {
+	       const char *engine, dns_kasp_t **kaspp) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *kasps = NULL;
@@ -274,8 +274,8 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		ks = NULL;
-		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, &kslist,
-						 &ks);
+		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, engine,
+						 &kslist, &ks);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure key-store '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -1305,7 +1305,7 @@ main(int argc, char **argv) {
 				      ctx.policy, ctx.configfile);
 			}
 
-			kasp_from_conf(config, mctx, ctx.policy, &kasp);
+			kasp_from_conf(config, mctx, ctx.policy, engine, &kasp);
 			if (kasp == NULL) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);

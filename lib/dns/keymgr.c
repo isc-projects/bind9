@@ -23,6 +23,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/dnssec.h>
@@ -446,21 +447,28 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 		 dns_rdataclass_t rdclass, isc_mem_t *mctx,
 		 dns_dnsseckeylist_t *keylist, dns_dnsseckeylist_t *newkeys,
 		 dst_key_t **dst_key) {
-	bool conflict = false;
-	int keyflags = DNS_KEYOWNER_ZONE;
 	isc_result_t result = ISC_R_SUCCESS;
+	bool conflict = false;
+	int flags = DNS_KEYOWNER_ZONE;
 	dst_key_t *newkey = NULL;
+	uint32_t alg = dns_kasp_key_algorithm(kkey);
+	dns_keystore_t *keystore = dns_kasp_key_keystore(kkey);
+	int size = dns_kasp_key_size(kkey);
+
+	if (dns_kasp_key_ksk(kkey)) {
+		flags |= DNS_KEYFLAG_KSK;
+	}
 
 	do {
-		uint32_t algo = dns_kasp_key_algorithm(kkey);
-		int size = dns_kasp_key_size(kkey);
-
-		if (dns_kasp_key_ksk(kkey)) {
-			keyflags |= DNS_KEYFLAG_KSK;
+		if (keystore == NULL) {
+			RETERR(dst_key_generate(origin, alg, size, 0, flags,
+						DNS_KEYPROTO_DNSSEC, rdclass,
+						NULL, mctx, &newkey, NULL));
+		} else {
+			RETERR(dns_keystore_keygen(keystore, origin, rdclass,
+						   mctx, alg, size, flags,
+						   &newkey));
 		}
-		RETERR(dst_key_generate(origin, algo, size, 0, keyflags,
-					DNS_KEYPROTO_DNSSEC, rdclass, NULL,
-					mctx, &newkey, NULL));
 
 		/* Key collision? */
 		conflict = keymgr_keyid_conflict(newkey, keylist);
@@ -1989,8 +1997,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	char keystr[DST_KEY_FORMATSIZE];
 
-	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(dns_name_isvalid(origin));
+	REQUIRE(mctx != NULL);
 	REQUIRE(keyring != NULL);
+	REQUIRE(DNS_KASP_VALID(kasp));
 
 	ISC_LIST_INIT(newkeys);
 

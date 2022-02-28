@@ -62,7 +62,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 isc_result_t
 cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
+			isc_log_t *logctx, const char *engine,
+			dns_keystorelist_t *keystorelist,
 			dns_keystore_t	  **kspp);
 /*%<
  * Create and configure a key store. If a 'keystorelist' is provided, a lookup
