@@ -32,9 +32,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ddns-confgen \- ddns key generation tool
 .SH SYNOPSIS
 .sp
-\fBtsig\-keygen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-r\fP randomfile] [name]
+\fBtsig\-keygen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [name]
 .sp
-\fBddns\-confgen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-k\fP keyname] [\fB\-q\fP] [\fB\-r\fP randomfile] [\fB\-s\fP name] [\fB\-z\fP zone]
+\fBddns\-confgen\fP [\fB\-a\fP algorithm] [\fB\-h\fP] [\fB\-k\fP keyname] [\fB\-q\fP] [\fB\-s\fP name] [\fB\-z\fP zone]
 .SH DESCRIPTION
 .sp
 \fBtsig\-keygen\fP and \fBddns\-confgen\fP are invocation methods for a
