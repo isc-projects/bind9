@@ -15,7 +15,6 @@ Manual Pages
 ============
 
 .. include:: ../../bin/tools/arpaname.rst
-.. include:: ../../bin/confgen/ddns-confgen.rst
 .. include:: ../../bin/delv/delv.rst
 .. include:: ../../bin/dig/dig.rst
 .. include:: ../../bin/dnssec/dnssec-cds.rst
@@ -51,3 +50,5 @@ Manual Pages
 .. include:: ../../bin/confgen/rndc-confgen.rst
 .. include:: ../../bin/rndc/rndc.conf.rst
 .. include:: ../../bin/rndc/rndc.rst
+.. include:: ../../bin/confgen/ddns-confgen.rst
+.. include:: ../../bin/confgen/tsig-keygen.rst

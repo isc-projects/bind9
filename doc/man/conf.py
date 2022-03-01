@@ -103,4 +103,5 @@ man_pages = [
     ('rndc-confgen', 'rndc-confgen', 'rndc key generation tool', author, 8),
     ('rndc.conf', 'rndc.conf', 'rndc configuration file', author, 5),
     ('rndc', 'rndc', 'name server control utility', author, 8),
+    ('tsig-keygen', 'tsig-keygen', 'TSIG key generation tool', author, 8),
     ]
