@@ -16,9 +16,9 @@ tsig-keygen, ddns-confgen - TSIG key generation tool
 
 Synopsis
 ~~~~~~~~
-:program:`tsig-keygen` [**-a** algorithm] [**-h**] [**-r** randomfile] [name]
+:program:`tsig-keygen` [**-a** algorithm] [**-h**] [name]
 
-:program:`ddns-confgen` [**-a** algorithm] [**-h**] [**-k** keyname] [**-q**] [**-r** randomfile] [**-s** name] [**-z** zone]
+:program:`ddns-confgen` [**-a** algorithm] [**-h**] [**-k** keyname] [**-q**] [**-s** name] [**-z** zone]
 
 Description
 ~~~~~~~~~~~
