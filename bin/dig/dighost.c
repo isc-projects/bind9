@@ -3583,6 +3583,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		debug("recv_done: cancel");
 		isc_nmhandle_detach(&query->readhandle);
 		query_detach(&query);
+		UNLOCK_LOOKUP;
 		return;
 	}
 
