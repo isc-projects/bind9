@@ -48,48 +48,68 @@ However, \fBnamed\-checkconf\fP can be run on these files explicitly.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-h\fP
+.B \-h
 This option prints the usage summary and exits.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-j\fP
+.B \-j
 When loading a zonefile, this option instructs \fBnamed\fP to read the journal if it exists.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-l\fP
+.B \-l
 This option lists all the configured zones. Each line of output contains the zone
 name, class (e.g. IN), view, and type (e.g. primary or secondary).
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-c\fP
+.B \-c
 This option specifies that only the "core" configuration should be checked. This suppresses the loading of
 plugin modules, and causes all parameters to \fBplugin\fP statements to
 be ignored.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-i\fP
+.B \-i
 This option ignores warnings on deprecated options.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-p\fP
+.B \-p
 This option prints out the \fBnamed.conf\fP and included files in canonical form if
 no errors were detected. See also the \fB\-x\fP option.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-t directory\fP
+.B \-t directory
 This option instructs \fBnamed\fP to chroot to \fBdirectory\fP, so that \fBinclude\fP directives in the
 configuration file are processed as if run by a similarly chrooted
 \fBnamed\fP\&.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-v\fP
+.B \-v
 This option prints the version of the \fBnamed\-checkconf\fP program and exits.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-x\fP
+.B \-x
 When printing the configuration files in canonical form, this option obscures
 shared secrets by replacing them with strings of question marks
 (\fB?\fP). This allows the contents of \fBnamed.conf\fP and related files
 to be shared \- for example, when submitting bug reports \-
 without compromising private data. This option cannot be used without
 \fB\-p\fP\&.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-z\fP
+.B \-z
 This option performs a test load of all zones of type \fBprimary\fP found in \fBnamed.conf\fP\&.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fBfilename\fP
+.B filename
 This indicates the name of the configuration file to be checked. If not specified,
 it defaults to \fB@sysconfdir@/named.conf\fP\&.
 .UNINDENT

@@ -49,22 +49,30 @@ into a command line to confirm the correctness of an NSEC3 hash.
 .SH ARGUMENTS
 .INDENT 0.0
 .TP
-.B \fBsalt\fP
+.B salt
 This is the salt provided to the hash algorithm.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fBalgorithm\fP
+.B algorithm
 This is a number indicating the hash algorithm. Currently the only supported
 hash algorithm for NSEC3 is SHA\-1, which is indicated by the number
 1; consequently "1" is the only useful value for this argument.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fBflags\fP
+.B flags
 This is provided for compatibility with NSEC3 record presentation format, but
 is ignored since the flags do not affect the hash.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fBiterations\fP
+.B iterations
 This is the number of additional times the hash should be performed.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fBdomain\fP
+.B domain
 This is the domain name to be hashed.
 .UNINDENT
 .SH SEE ALSO

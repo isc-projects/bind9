@@ -63,26 +63,33 @@ used by Windows 2000 can be switched on with the ``-o`` flag.
 Options
 ~~~~~~~
 
-``-4``
+.. option:: -4
+
    This option sets use of IPv4 only.
 
-``-6``
+.. option:: -6
+
    This option sets use of IPv6 only.
 
-``-C``
+.. option:: -C
+
    Overrides the default `resolv.conf` file. This is only intended for testing.
 
-``-d``
+.. option:: -d
+
    This option sets debug mode, which provides tracing information about the update
    requests that are made and the replies received from the name server.
 
-``-D``
+.. option:: -D
+
    This option sets extra debug mode.
 
-``-i``
+.. option:: -i
+
    This option forces interactive mode, even when standard input is not a terminal.
 
-``-k keyfile``
+.. option:: -k keyfile
+
    This option indicates the file containing the TSIG authentication key. Keyfiles may be in
    two formats: a single file containing a ``named.conf``-format ``key``
    statement, which may be generated automatically by ``ddns-confgen``;
@@ -93,7 +100,8 @@ Options
    key used to authenticate Dynamic DNS update requests. In this case,
    the key specified is not an HMAC-MD5 key.
 
-``-l``
+.. option:: -l
+
    This option sets local-host only mode, which sets the server address to localhost
    (disabling the ``server`` so that the server address cannot be
    overridden). Connections to the local server use a TSIG key
@@ -102,26 +110,32 @@ Options
    ``update-policy`` to ``local``. The location of this key file can be
    overridden with the ``-k`` option.
 
-``-L level``
+.. option:: -L level
+
    This option sets the logging debug level. If zero, logging is disabled.
 
-``-p port``
+.. option:: -p port
+
    This option sets the port to use for connections to a name server. The default is
    53.
 
-``-P``
+.. option:: -P
+
    This option prints the list of private BIND-specific resource record types whose
    format is understood by ``nsupdate``. See also the ``-T`` option.
 
-``-r udpretries``
+.. option:: -r udpretries
+
    This option sets the number of UDP retries. The default is 3. If zero, only one update
    request is made.
 
-``-t timeout``
+.. option:: -t timeout
+
    This option sets the maximum time an update request can take before it is aborted. The
    default is 300 seconds. If zero, the timeout is disabled.
 
-``-T``
+.. option:: -T
+
    This option prints the list of IANA standard resource record types whose format is
    understood by ``nsupdate``. ``nsupdate`` exits after the lists
    are printed. The ``-T`` option can be combined with the ``-P``
@@ -132,21 +146,25 @@ Options
    present, is parsed using the UNKNOWN rdata format, (<backslash>
    <hash> <space> <length> <space> <hexstring>).
 
-``-u udptimeout``
+.. option:: -u udptimeout
+
    This option sets the UDP retry interval. The default is 3 seconds. If zero, the
    interval is computed from the timeout interval and number of UDP
    retries.
 
-``-v``
+.. option:: -v
+
    This option specifies that TCP should be used even for small update requests. By default, ``nsupdate`` uses
    UDP to send update requests to the name server unless they are too
    large to fit in a UDP request, in which case TCP is used. TCP may
    be preferable when a batch of update requests is made.
 
-``-V``
+.. option:: -V
+
    This option prints the version number and exits.
 
-``-y [hmac:]keyname:secret``
+.. option:: -y [hmac:]keyname:secret
+
    This option sets the literal TSIG authentication key. ``keyname`` is the name of the key,
    and ``secret`` is the base64 encoded shared secret. ``hmac`` is the
    name of the key algorithm; valid choices are ``hmac-md5``,

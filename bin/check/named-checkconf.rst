@@ -38,37 +38,46 @@ However, ``named-checkconf`` can be run on these files explicitly.
 Options
 ~~~~~~~
 
-``-h``
+.. option:: -h
+
    This option prints the usage summary and exits.
 
-``-j``
+.. option:: -j
+
    When loading a zonefile, this option instructs ``named`` to read the journal if it exists.
 
-``-l``
+.. option:: -l
+
    This option lists all the configured zones. Each line of output contains the zone
    name, class (e.g. IN), view, and type (e.g. primary or secondary).
 
-``-c``
+.. option:: -c
+
    This option specifies that only the "core" configuration should be checked. This suppresses the loading of
    plugin modules, and causes all parameters to ``plugin`` statements to
    be ignored.
 
-``-i``
+.. option:: -i
+
    This option ignores warnings on deprecated options.
 
-``-p``
+.. option:: -p
+
    This option prints out the ``named.conf`` and included files in canonical form if
    no errors were detected. See also the ``-x`` option.
 
-``-t directory``
+.. option:: -t directory
+
    This option instructs ``named`` to chroot to ``directory``, so that ``include`` directives in the
    configuration file are processed as if run by a similarly chrooted
    ``named``.
 
-``-v``
+.. option:: -v
+
    This option prints the version of the ``named-checkconf`` program and exits.
 
-``-x``
+.. option:: -x
+
    When printing the configuration files in canonical form, this option obscures
    shared secrets by replacing them with strings of question marks
    (``?``). This allows the contents of ``named.conf`` and related files
@@ -76,10 +85,12 @@ Options
    without compromising private data. This option cannot be used without
    ``-p``.
 
-``-z``
+.. option:: -z
+
    This option performs a test load of all zones of type ``primary`` found in ``named.conf``.
 
-``filename``
+.. option:: filename
+
    This indicates the name of the configuration file to be checked. If not specified,
    it defaults to |named_conf|.
 

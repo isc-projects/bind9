@@ -51,7 +51,7 @@ DNSKEY RRset on schedule even if the true private key is stored offline.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-f filename\fP
+.B \-f filename
 This option indicates the zone file mode. Instead of a public keyfile name, the argument is the
 DNS domain name of a zone master file, which can be read from
 \fBfilename\fP\&. If the domain name is the same as \fBfilename\fP, then it may be
@@ -59,24 +59,34 @@ omitted.
 .sp
 If \fBfilename\fP is set to \fB"\-"\fP, then the zone data is read from the
 standard input.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-K directory\fP
+.B \-K directory
 This option sets the directory in which the key files are to reside.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-L ttl\fP
+.B \-L ttl
 This option sets the default TTL to use for this key when it is converted into a
 DNSKEY RR. This is the TTL used when the key is imported into a zone,
 unless there was already a DNSKEY RRset in
 place, in which case the existing TTL takes precedence. Setting the default TTL to \fB0\fP or \fBnone\fP
 removes it from the key.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-h\fP
+.B \-h
 This option emits a usage message and exits.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-v level\fP
+.B \-v level
 This option sets the debugging level.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-V\fP
+.B \-V
 This option prints version information.
 .UNINDENT
 .SH TIMING OPTIONS
@@ -91,21 +101,27 @@ respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use \fBnone\fP or \fBnever\fP\&.
 .INDENT 0.0
 .TP
-.B \fB\-P date/offset\fP
+.B \-P date/offset
 This option sets the date on which a key is to be published to the zone. After
 that date, the key is included in the zone but is not used
 to sign it.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-P sync date/offset\fP
+.B \-P sync date/offset
 This option sets the date on which CDS and CDNSKEY records that match this key
 are to be published to the zone.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D date/offset\fP
+.B \-D date/offset
 This option sets the date on which the key is to be deleted. After that date, the
 key is no longer included in the zone. (However, it may remain in the key
 repository.)
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D sync date/offset\fP
+.B \-D sync date/offset
 This option sets the date on which the CDS and CDNSKEY records that match this
 key are to be deleted.
 .UNINDENT

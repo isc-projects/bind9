@@ -35,13 +35,15 @@ of the generated key. If no name is specified, the default is ``tsig-key``.
 Options
 ~~~~~~~
 
-``-a algorithm``
+.. option:: -a algorithm
+
    This option specifies the algorithm to use for the TSIG key. Available
    choices are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384,
    and hmac-sha512. The default is hmac-sha256. Options are
    case-insensitive, and the "hmac-" prefix may be omitted.
 
-``-h``
+.. option:: -h
+
    This option prints a short summary of options and arguments.
 
 See Also

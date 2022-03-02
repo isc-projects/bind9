@@ -41,7 +41,8 @@ DNSKEY RRset on schedule even if the true private key is stored offline.
 Options
 ~~~~~~~
 
-``-f filename``
+.. option:: -f filename
+
    This option indicates the zone file mode. Instead of a public keyfile name, the argument is the
    DNS domain name of a zone master file, which can be read from
    ``filename``. If the domain name is the same as ``filename``, then it may be
@@ -50,23 +51,28 @@ Options
    If ``filename`` is set to ``"-"``, then the zone data is read from the
    standard input.
 
-``-K directory``
+.. option:: -K directory
+
    This option sets the directory in which the key files are to reside.
 
-``-L ttl``
+.. option:: -L ttl
+
    This option sets the default TTL to use for this key when it is converted into a
    DNSKEY RR. This is the TTL used when the key is imported into a zone,
    unless there was already a DNSKEY RRset in
    place, in which case the existing TTL takes precedence. Setting the default TTL to ``0`` or ``none``
    removes it from the key.
 
-``-h``
+.. option:: -h
+
    This option emits a usage message and exits.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
 Timing Options
@@ -81,21 +87,25 @@ months (defined as 30 24-hour days), weeks, days, hours, or minutes,
 respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use ``none`` or ``never``.
 
-``-P date/offset``
+.. option:: -P date/offset
+
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
    to sign it.
 
-``-P sync date/offset``
+.. option:: -P sync date/offset
+
    This option sets the date on which CDS and CDNSKEY records that match this key
    are to be published to the zone.
 
-``-D date/offset``
+.. option:: -D date/offset
+
    This option sets the date on which the key is to be deleted. After that date, the
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-``-D sync date/offset``
+.. option:: -D sync date/offset
+
    This option sets the date on which the CDS and CDNSKEY records that match this
    key are to be deleted.
 

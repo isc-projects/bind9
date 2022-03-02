@@ -45,16 +45,19 @@ be used from a remote system.
 Options
 ~~~~~~~
 
-``-a algorithm``
+.. option:: -a algorithm
+
    This option specifies the algorithm to use for the TSIG key. Available
    choices are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384,
    and hmac-sha512. The default is hmac-sha256. Options are
    case-insensitive, and the "hmac-" prefix may be omitted.
 
-``-h``
+.. option:: -h
+
    This option prints a short summary of options and arguments.
 
-``-k keyname``
+.. option:: -k keyname
+
    This option specifies the key name of the DDNS authentication key. The
    default is ``ddns-key`` when neither the ``-s`` nor ``-z`` option is
    specified; otherwise, the default is ``ddns-key`` as a separate label
@@ -62,12 +65,14 @@ Options
    The key name must have the format of a valid domain name, consisting of
    letters, digits, hyphens, and periods.
 
-``-q``
+.. option:: -q
+
    This option enables quiet mode, which prints only the key, with no
    explanatory text or usage examples. This is essentially identical to
    ``tsig-keygen``.
 
-``-s name``
+.. option:: -s name
+
    This option generates a configuration example to allow dynamic updates
    of a single hostname. The example ``named.conf`` text shows how to set
    an update policy for the specified name using the "name" nametype. The
@@ -75,7 +80,8 @@ Options
    cannot be used, since the name to be updated may differ from the key
    name. This option cannot be used with the ``-z`` option.
 
-``-z zone``
+.. option:: -z zone
+
    This option generates a configuration example to allow
    dynamic updates of a zone. The example ``named.conf`` text shows how
    to set an update policy for the specified zone using the "zonesub"
