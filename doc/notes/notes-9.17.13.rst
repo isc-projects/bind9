@@ -61,8 +61,8 @@ Bug Fixes
   ``stale-cache-enable`` was set to ``yes``. This has been fixed.
   :gl:`#389` :gl:`#2289`
 
-- A deadlock could occur when multiple ``rndc addzone``, ``rndc
-  delzone``, and/or ``rndc modzone`` commands were invoked
+- A deadlock could occur when multiple :option:`rndc addzone`, :option:`rndc
+  delzone`, and/or :option:`rndc modzone` commands were invoked
   simultaneously for different zones. This has been fixed. :gl:`#2626`
 
 - ``inline-signing`` was incorrectly described as being inherited from

@@ -45,18 +45,18 @@ Options
    ECDSAP256SHA256, ECDSAP384SHA384, ED25519, or ED448.
 
    If no algorithm is specified, RSASHA1 is used by default
-   unless the ``-3`` option is specified, in which case NSEC3RSASHA1
-   is used instead. (If ``-3`` is used and an algorithm is
+   unless the :option:`-3` option is specified, in which case NSEC3RSASHA1
+   is used instead. (If :option:`-3` is used and an algorithm is
    specified, that algorithm is checked for compatibility with
    NSEC3.)
 
    These values are case-insensitive. In some cases, abbreviations are
    supported, such as ECDSA256 for ECDSAP256SHA256 and ECDSA384 for
-   ECDSAP384SHA384. If RSASHA1 is specified along with the ``-3``
+   ECDSAP384SHA384. If RSASHA1 is specified along with the :option:`-3`
    option, then NSEC3RSASHA1 is used instead.
 
    Since BIND 9.12.0, this option is mandatory except when using the
-   ``-S`` option, which copies the algorithm from the predecessory key.
+   :option:`-S` option, which copies the algorithm from the predecessory key.
    Previously, the default for newly generated keys was RSASHA1.
 
 .. option:: -3
@@ -98,7 +98,7 @@ Options
    date in the metadata stored with the private key; other dates may
    be set there as well, including publication date, activation date, etc. Keys
    that include this data may be incompatible with older versions of
-   BIND; the ``-C`` option suppresses them.
+   BIND; the :option:`-C` option suppresses them.
 
 .. option:: -c class
 
@@ -113,7 +113,7 @@ Options
 .. option:: -G
 
    This option generates a key, but does not publish it or sign with it. This option is
-   incompatible with ``-P`` and ``-A``.
+   incompatible with :option:`-P` and :option:`-A`.
 
 .. option:: -h
 
@@ -128,7 +128,8 @@ Options
 
    This option generates KEY records rather than DNSKEY records.
 
-``-L`` ttl
+.. option:: -L ttl
+
    This option sets the default TTL to use for this key when it is converted into a
    DNSKEY RR. This is the TTL used when the key is imported into a zone,
    unless there was already a DNSKEY RRset in
@@ -189,7 +190,7 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
-   to sign it. If not set, and if the ``-G`` option has not been used, the
+   to sign it. If not set, and if the :option:`-G` option has not been used, the
    default is the current date.
 
 .. option:: -P sync date/offset
@@ -201,7 +202,7 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 
    This option sets the date on which the key is to be activated. After that date,
    the key is included in the zone and used to sign it. If not set,
-   and if the ``-G`` option has not been used, the default is the current date.
+   and if the :option:`-G` option has not been used, the default is the current date.
 
 .. option:: -R date/offset
 

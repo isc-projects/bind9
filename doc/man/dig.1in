@@ -62,12 +62,12 @@ performs an NS query for "." (the root).
 .sp
 It is possible to set per\-user defaults for \fBdig\fP via
 \fB${HOME}/.digrc\fP\&. This file is read and any options in it are applied
-before the command\-line arguments. The \fB\-r\fP option disables this
+before the command\-line arguments. The \fI\%\-r\fP option disables this
 feature, for scripts that need predictable behavior.
 .sp
 The IN and CH class names overlap with the IN and CH top\-level domain
-names. Either use the \fB\-t\fP and \fB\-c\fP options to specify the type and
-class, use the \fB\-q\fP to specify the domain name, or use "IN." and
+names. Either use the \fI\%\-t\fP and \fI\%\-c\fP options to specify the type and
+class, use the \fI\%\-q\fP to specify the domain name, or use "IN." and
 "CH." when looking up these top\-level domains.
 .SH SIMPLE USAGE
 .sp
@@ -95,7 +95,7 @@ server.
 .sp
 If no \fBserver\fP argument is provided, \fBdig\fP consults
 \fB/etc/resolv.conf\fP; if an address is found there, it queries the
-name server at that address. If either of the \fB\-4\fP or \fB\-6\fP
+name server at that address. If either of the \fI\%\-4\fP or \fI\%\-6\fP
 options are in use, then only addresses for the corresponding
 transport are tried. If no usable addresses are found, \fBdig\fP
 sends the query to the local host. The reply from the name server
@@ -186,7 +186,7 @@ scripts that need predictable behavior.
 This option indicates the resource record type to query, which can be any valid query type. If
 it is a resource record type supported in BIND 9, it can be given by
 the type mnemonic (such as \fBNS\fP or \fBAAAA\fP). The default query type is
-\fBA\fP, unless the \fB\-x\fP option is supplied to indicate a reverse
+\fBA\fP, unless the \fI\%\-x\fP option is supplied to indicate a reverse
 lookup. A zone transfer can be requested by specifying a type of
 AXFR. When an incremental zone transfer (IXFR) is required, set the
 \fBtype\fP to \fBixfr=N\fP\&. The incremental zone transfer contains
@@ -212,7 +212,7 @@ This option prints the version number and exits.
 .B \-x addr
 This option sets simplified reverse lookups, for mapping addresses to names. The
 \fBaddr\fP is an IPv4 address in dotted\-decimal notation, or a
-colon\-delimited IPv6 address. When the \fB\-x\fP option is used, there is no
+colon\-delimited IPv6 address. When the \fI\%\-x\fP option is used, there is no
 need to provide the \fBname\fP, \fBclass\fP, and \fBtype\fP arguments.
 \fBdig\fP automatically performs a lookup for a name like
 \fB94.2.0.192.in\-addr.arpa\fP and sets the query type and class to PTR
@@ -234,8 +234,8 @@ not specified, the default is \fBhmac\-md5\fP; if MD5 was disabled, the default 
 \fBNOTE:\fP
 .INDENT 0.0
 .INDENT 3.5
-Only the \fB\-k\fP option should be used, rather than the \fB\-y\fP option,
-because with \fB\-y\fP the shared secret is supplied as a command\-line
+Only the \fI\%\-k\fP option should be used, rather than the \fI\%\-y\fP option,
+because with \fI\%\-y\fP the shared secret is supplied as a command\-line
 argument in clear text. This may be visible in the output from \fBps1\fP or
 in a history file maintained by the user\(aqs shell.
 .UNINDENT
@@ -803,7 +803,7 @@ This flag is off by default.
 .SH MULTIPLE QUERIES
 .sp
 The BIND 9 implementation of \fBdig\fP supports specifying multiple
-queries on the command line (in addition to supporting the \fB\-f\fP batch
+queries on the command line (in addition to supporting the \fI\%\-f\fP batch
 file option). Each of those queries can be supplied with its own set of
 flags, options, and query options.
 .sp

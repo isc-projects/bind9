@@ -15,7 +15,7 @@ Notes for BIND 9.17.3
 New Features
 ~~~~~~~~~~~~
 
-- New ``rndc`` command ``rndc dnssec -status`` shows the current DNSSEC
+- New ``rndc`` command :option:`rndc dnssec -status <rndc dnssec>` shows the current DNSSEC
   policy and keys in use, the key states, and rollover status.
   :gl:`#1612`
 
@@ -68,8 +68,8 @@ Bug Fixes
   for ``check-names``, were not processed correctly and were being
   ignored. :gl:`#1949`
 
-- ``rndc dnstap -roll <value>`` did not limit the number of saved files
-  to ``<value>``. :gl:`!3728`
+- :option:`rndc dnstap -roll value <rndc dnstap>` did not limit the number of saved files
+  to ``value``. :gl:`!3728`
 
 - The validator could fail to accept a properly signed RRset if an
   unsupported algorithm appeared earlier in the DNSKEY RRset than a

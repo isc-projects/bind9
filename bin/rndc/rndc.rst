@@ -144,7 +144,7 @@ Currently supported commands are:
    (Note the brackets around and semi-colon after the zone configuration
    text.)
 
-   See also ``rndc delzone`` and ``rndc modzone``.
+   See also :option:`rndc delzone` and :option:`rndc modzone`.
 
 .. option:: delzone [-clean] zone [class [view]]
 
@@ -163,7 +163,7 @@ Currently supported commands are:
    recreated. To remove it permanently, it must also be removed from
    ``named.conf``.
 
-   See also ``rndc addzone`` and ``rndc modzone``.
+   See also :option:`rndc addzone` and :option:`rndc modzone`.
 
 .. option:: dnssec (-status | -rollover -key id [-alg algorithm] [-when time] | -checkds [-key id [-alg algorithm]] [-when time]  published | withdraw)) zone [class [view]]
 
@@ -225,7 +225,7 @@ Currently supported commands are:
    journal file to be synced into the master file. All dynamic update
    attempts are refused while the zone is frozen.
 
-   See also ``rndc thaw``.
+   See also :option:`rndc thaw`.
 
 .. option:: halt [-p]
 
@@ -236,13 +236,13 @@ Currently supported commands are:
    an external process to determine when ``named`` has completed
    halting.
 
-   See also ``rndc stop``.
+   See also :option:`rndc stop`.
 
 .. option:: loadkeys [zone [class [view]]]
 
    This command fetches all DNSSEC keys for the given zone from the key directory. If
    they are within their publication period, they are merged into the
-   zone's DNSKEY RRset. Unlike ``rndc sign``, however, the zone is not
+   zone's DNSKEY RRset. Unlike :option:`rndc sign`, however, the zone is not
    immediately re-signed by the new keys, but is allowed to
    incrementally re-sign over time.
 
@@ -282,7 +282,7 @@ Currently supported commands are:
       restarted or reconfigured, and all existing key maintenance states
       are deleted.
 
-      Running ``rndc reconfig`` or restarting ``named`` immediately
+      Running :option:`rndc reconfig` or restarting ``named`` immediately
       after this command causes key maintenance to be reinitialized
       from scratch, just as if the server were being started for the
       first time. This is primarily intended for testing, but it may
@@ -298,7 +298,7 @@ Currently supported commands are:
    command line is the zone configuration text that would ordinarily be
    placed in ``named.conf``.
 
-   If the zone was originally added via ``rndc addzone``, the
+   If the zone was originally added via :option:`rndc addzone`, the
    configuration changes are recorded permanently and are still
    in effect after the server is restarted or reconfigured. However, if
    it was originally configured in ``named.conf``, then that original
@@ -307,7 +307,7 @@ Currently supported commands are:
    make the changes permanent, it must also be modified in
    ``named.conf``.
 
-   See also ``rndc addzone`` and ``rndc delzone``.
+   See also :option:`rndc addzone` and :option:`rndc delzone`.
 
 .. option:: notify zone [class [view]]
 
@@ -317,7 +317,7 @@ Currently supported commands are:
 
    This command sets the server's debugging level to 0.
 
-   See also ``rndc trace``.
+   See also :option:`rndc trace`.
 
 .. option:: nta [(-class class | -dump | -force | -remove | -lifetime duration)] domain [view]
 
@@ -453,7 +453,7 @@ Currently supported commands are:
    ``named.secroots``, but can be overridden via the ``secroots-file``
    option in ``named.conf``.
 
-   See also ``rndc managed-keys``.
+   See also :option:`rndc managed-keys`.
 
 .. option:: serve-stale (on | off | reset | status) [class [view]]
 
@@ -472,7 +472,7 @@ Currently supported commands are:
 
    This command prints the configuration of a running zone.
 
-   See also ``rndc zonestatus``.
+   See also :option:`rndc zonestatus`.
 
 .. option:: sign zone [class [view]]
 
@@ -488,7 +488,7 @@ Currently supported commands are:
    "Dynamic Update Policies" in the BIND 9 Administrator Reference Manual for more
    details.)
 
-   See also ``rndc loadkeys``.
+   See also :option:`rndc loadkeys`.
 
 .. option:: signing [(-list | -clear keyid/algorithm | -clear all | -nsec3param (parameters | none) | -serial value) zone [class [view]]
 
@@ -556,7 +556,7 @@ Currently supported commands are:
    This allows an external process to determine when ``named`` has
    completed stopping.
 
-   See also ``rndc halt``.
+   See also :option:`rndc halt`.
 
 .. option:: sync -clean [zone [class [view]]]
 
@@ -585,7 +585,7 @@ Currently supported commands are:
    changes in the zone. Otherwise, if the zone has changed, any existing
    journal file is removed.
 
-   See also ``rndc freeze``.
+   See also :option:`rndc freeze`.
 
 .. option:: trace
 
@@ -595,7 +595,7 @@ Currently supported commands are:
 
    This command sets the server's debugging level to an explicit value.
 
-   See also ``rndc notrace``.
+   See also :option:`rndc notrace`.
 
 .. option:: tsig-delete keyname [view]
 
@@ -625,10 +625,10 @@ Currently supported commands are:
    signed, whether it uses automatic DNSSEC key management or inline
    signing, and the scheduled refresh or expiry times for the zone.
 
-   See also ``rndc showzone``.
+   See also :option:`rndc showzone`.
 
-``rndc`` commands that specify zone names, such as ``reload``
-``retransfer``, or ``zonestatus``, can be ambiguous when applied to zones
+``rndc`` commands that specify zone names, such as :option:`reload`
+:option:`retransfer`, or :option:`zonestatus`, can be ambiguous when applied to zones
 of type ``redirect``. Redirect zones are always called ``.``, and can be
 confused with zones of type ``hint`` or with secondary copies of the root
 zone. To specify a redirect zone, use the special zone name

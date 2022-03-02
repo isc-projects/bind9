@@ -15,7 +15,7 @@ Notes for BIND 9.17.5
 New Features
 ~~~~~~~~~~~~
 
-- Add a new ``rndc`` command, ``rndc dnssec -checkds``, which signals to
+- Add a new ``rndc`` command, :option:`rndc dnssec -checkds <rndc dnssec>`, which signals to
   ``named`` that a DS record for a given zone or key has been published
   or withdrawn from the parent. This command replaces the time-based
   ``parent-registration-delay`` configuration option. :gl:`#1613`

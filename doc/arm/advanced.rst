@@ -96,19 +96,19 @@ The zone files of dynamic zones cannot normally be edited by hand
 because they are not guaranteed to contain the most recent dynamic
 changes; those are only in the journal file. The only way to ensure
 that the zone file of a dynamic zone is up-to-date is to run
-``rndc stop``.
+:option:`rndc stop`.
 
 To make changes to a dynamic zone manually, follow these steps:
 first, disable dynamic updates to the zone using
-``rndc freeze zone``. This updates the zone file with the
+:option:`rndc freeze zone <rndc freeze>`. This updates the zone file with the
 changes stored in its ``.jnl`` file. Then, edit the zone file. Finally, run
-``rndc thaw zone`` to reload the changed zone and re-enable dynamic
+:option:`rndc thaw zone <rndc thaw>` to reload the changed zone and re-enable dynamic
 updates.
 
-``rndc sync zone`` updates the zone file with changes from the
+:option:`rndc sync zone <rndc sync>` updates the zone file with changes from the
 journal file without stopping dynamic updates; this may be useful for
 viewing the current zone state. To remove the ``.jnl`` file after
-updating the zone file, use ``rndc sync -clean``.
+updating the zone file, use :option:`rndc sync -clean <rndc sync>`.
 
 .. _incremental_zone_transfers:
 
@@ -389,8 +389,8 @@ configuration syntax and the process of creating TSIG keys.
 the tools included with BIND support it for sending messages to
 ``named``:
 
-   * :ref:`man_nsupdate` supports TSIG via the ``-k``, ``-l``, and ``-y`` command-line options, or via the ``key`` command when running interactively.
-   * :ref:`man_dig` supports TSIG via the ``-k`` and ``-y`` command-line options.
+   * :ref:`man_nsupdate` supports TSIG via the :option:`-k <nsupdate -k>`, :option:`-l <nsupdate -l>`, and :option:`-y <nsupdate -y>` command-line options, or via the ``key`` command when running interactively.
+   * :ref:`man_dig` supports TSIG via the :option:`-k <nsupdate -k>` and :option:`-y <nsupdate -y>` command-line options.
 
 Generating a Shared Key
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -446,7 +446,7 @@ the signature. If the signature is valid, the response is signed
 using the same key.
 
 TSIG keys that are known to a server can be listed using the command
-``rndc tsig-list``.
+:option:`rndc tsig-list`.
 
 Instructing the Server to Use a Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -545,10 +545,10 @@ exchange. The shared secret can then be used to sign subsequent
 transactions between the two servers.
 
 TSIG keys known by the server, including TKEY-negotiated keys, can be
-listed using ``rndc tsig-list``.
+listed using :option:`rndc tsig-list`.
 
 TKEY-negotiated keys can be deleted from a server using
-``rndc tsig-delete``. This can also be done via the TKEY protocol
+:option:`rndc tsig-delete`. This can also be done via the TKEY protocol
 itself, by sending an authenticated TKEY query specifying the "key
 deletion" mode.
 
@@ -645,8 +645,8 @@ The ``dnssec-signzone`` program is used to sign a zone.
 
 Any ``keyset`` files corresponding to secure sub-zones should be
 present. The zone signer generates ``NSEC``, ``NSEC3``, and ``RRSIG``
-records for the zone, as well as ``DS`` for the child zones if ``-g``
-is specified. If ``-g`` is not specified, then DS RRsets for the
+records for the zone, as well as ``DS`` for the child zones if :option:`-g <dnssec-signzone -g>`
+is specified. If :option:`-g <dnssec-signzone -g>` is not specified, then DS RRsets for the
 secure child zones need to be added manually.
 
 By default, all zone keys which have an available private key are used

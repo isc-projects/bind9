@@ -125,5 +125,5 @@ Bug Fixes
   cases when it should have been calculated in days. This has been
   fixed. (Thanks to Tony Finch.) :gl:`!3735`
 
-- LMDB locking code was revised to make ``rndc reconfig`` work properly
+- LMDB locking code was revised to make :option:`rndc reconfig` work properly
   on FreeBSD and with LMDB >= 0.9.26. :gl:`#1976`

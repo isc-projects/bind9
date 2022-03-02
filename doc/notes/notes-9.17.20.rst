@@ -55,7 +55,7 @@ Feature Changes
   a steady response rate on a loaded resolver while these internal data
   structures are resized. :gl:`#2941`
 
-- The output of ``rndc serve-stale status`` has been clarified. It now
+- The output of :option:`rndc serve-stale status <rndc serve-stale>` has been clarified. It now
   explicitly reports whether retention of stale data in the cache is
   enabled (``stale-cache-enable``), and whether returning such data in
   responses is enabled (``stale-answer-enable``). :gl:`#2742`

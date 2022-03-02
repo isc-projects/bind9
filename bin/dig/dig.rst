@@ -51,12 +51,12 @@ performs an NS query for "." (the root).
 
 It is possible to set per-user defaults for ``dig`` via
 ``${HOME}/.digrc``. This file is read and any options in it are applied
-before the command-line arguments. The ``-r`` option disables this
+before the command-line arguments. The :option:`-r` option disables this
 feature, for scripts that need predictable behavior.
 
 The IN and CH class names overlap with the IN and CH top-level domain
-names. Either use the ``-t`` and ``-c`` options to specify the type and
-class, use the ``-q`` to specify the domain name, or use "IN." and
+names. Either use the :option:`-t` and :option:`-c` options to specify the type and
+class, use the :option:`-q` to specify the domain name, or use "IN." and
 "CH." when looking up these top-level domains.
 
 Simple Usage
@@ -80,7 +80,7 @@ where:
 
    If no ``server`` argument is provided, ``dig`` consults
    ``/etc/resolv.conf``; if an address is found there, it queries the
-   name server at that address. If either of the ``-4`` or ``-6``
+   name server at that address. If either of the :option:`-4` or :option:`-6`
    options are in use, then only addresses for the corresponding
    transport are tried. If no usable addresses are found, ``dig``
    sends the query to the local host. The reply from the name server
@@ -160,7 +160,7 @@ Options
    This option indicates the resource record type to query, which can be any valid query type. If
    it is a resource record type supported in BIND 9, it can be given by
    the type mnemonic (such as ``NS`` or ``AAAA``). The default query type is
-   ``A``, unless the ``-x`` option is supplied to indicate a reverse
+   ``A``, unless the :option:`-x` option is supplied to indicate a reverse
    lookup. A zone transfer can be requested by specifying a type of
    AXFR. When an incremental zone transfer (IXFR) is required, set the
    ``type`` to ``ixfr=N``. The incremental zone transfer contains
@@ -183,7 +183,7 @@ Options
 
    This option sets simplified reverse lookups, for mapping addresses to names. The
    ``addr`` is an IPv4 address in dotted-decimal notation, or a
-   colon-delimited IPv6 address. When the ``-x`` option is used, there is no
+   colon-delimited IPv6 address. When the :option:`-x` option is used, there is no
    need to provide the ``name``, ``class``, and ``type`` arguments.
    ``dig`` automatically performs a lookup for a name like
    ``94.2.0.192.in-addr.arpa`` and sets the query type and class to PTR
@@ -200,8 +200,8 @@ Options
    not specified, the default is ``hmac-md5``; if MD5 was disabled, the default is
    ``hmac-sha256``.
 
-.. note:: Only the ``-k`` option should be used, rather than the ``-y`` option,
-   because with ``-y`` the shared secret is supplied as a command-line
+.. note:: Only the :option:`-k` option should be used, rather than the :option:`-y` option,
+   because with :option:`-y` the shared secret is supplied as a command-line
    argument in clear text. This may be visible in the output from ``ps1`` or
    in a history file maintained by the user's shell.
 
@@ -694,7 +694,7 @@ Multiple Queries
 ~~~~~~~~~~~~~~~~
 
 The BIND 9 implementation of ``dig`` supports specifying multiple
-queries on the command line (in addition to supporting the ``-f`` batch
+queries on the command line (in addition to supporting the :option:`-f` batch
 file option). Each of those queries can be supplied with its own set of
 flags, options, and query options.
 

@@ -63,6 +63,6 @@ Bug Fixes
   a Combined Signing Key (CSK). :gl:`#2857`
 
 - When a dynamic zone was made available in another view using the
-  ``in-view`` statement, running ``rndc freeze`` always reported an
+  ``in-view`` statement, running :option:`rndc freeze` always reported an
   ``already frozen`` error even though the zone was successfully
   frozen. This has been fixed. :gl:`#2844`

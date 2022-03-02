@@ -50,7 +50,7 @@ add one line to the ``options`` section of your configuration file:
         ...
     };
 
-Restart ``named`` or run ``rndc reconfig``, and your recursive server is
+Restart ``named`` or run :option:`rndc reconfig`, and your recursive server is
 now happily validating each DNS response. If this does not work for you,
 and you have already verified DNSSEC support as described in
 :ref:`dnssec_support_in_bind`, you may have some other

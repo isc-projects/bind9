@@ -15,10 +15,10 @@ Notes for BIND 9.17.6
 New Features
 ~~~~~~~~~~~~
 
-- Add a new ``rndc`` command, ``rndc dnssec -rollover``, which triggers
+- Add a new ``rndc`` command, :option:`rndc dnssec -rollover <rndc dnssec>`, which triggers
   a manual rollover for a specific key. :gl:`#1749`
 
-- Add a new ``rndc`` command, ``rndc dumpdb -expired``, which dumps the
+- Add a new ``rndc`` command, :option:`rndc dumpdb -expired <rndc dumpdb>`, which dumps the
   cache database, including expired RRsets that are awaiting cleanup, to
   the ``dump-file`` for diagnostic purposes. :gl:`#1870`
 

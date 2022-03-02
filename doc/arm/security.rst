@@ -152,12 +152,12 @@ matches when *both* conditions are true.
 -------------------------
 
 On Unix servers, it is possible to run BIND in a *chrooted* environment
-(using the ``chroot()`` function) by specifying the ``-t`` option for
+(using the ``chroot()`` function) by specifying the :option:`-t <named -t>` option for
 ``named``. This can help improve system security by placing BIND in a
 "sandbox," which limits the damage done if a server is compromised.
 
 Another useful feature in the Unix version of BIND is the ability to run
-the daemon as an unprivileged user (``-u`` user). We suggest running
+the daemon as an unprivileged user (:option:`-u <named -u>` user). We suggest running
 as an unprivileged user when using the ``chroot`` feature.
 
 Here is an example command line to load BIND in a ``chroot`` sandbox,

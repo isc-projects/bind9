@@ -77,9 +77,9 @@ Bug Fixes
   :gl:`#2517`
 
 - Zones using KASP could not be thawed after they were frozen using
-  ``rndc freeze``. This has been fixed. :gl:`#2523`
+  :option:`rndc freeze`. This has been fixed. :gl:`#2523`
 
-- After ``rndc dnssec -checkds`` or ``rndc dnssec -rollover`` is used,
+- After :option:`rndc dnssec -checkds <rndc dnssec>` or :option:`rndc dnssec -rollover <rndc dnssec>` is used,
   ``named`` now immediately attempts to reconfigure zone keys. This
   change prevents unnecessary key rollover delays. :gl:`#2488`
 

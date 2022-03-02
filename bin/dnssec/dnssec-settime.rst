@@ -26,10 +26,10 @@ Description
 ~~~~~~~~~~~
 
 ``dnssec-settime`` reads a DNSSEC private key file and sets the key
-timing metadata as specified by the ``-P``, ``-A``, ``-R``, ``-I``, and
-``-D`` options. The metadata can then be used by ``dnssec-signzone`` or
-other signing software to determine when a key is to be published,
-whether it should be used for signing a zone, etc.
+timing metadata as specified by the :option:`-P`, :option:`-A`, :option:`-R`,
+:option:`-I`, and :option:`-D` options. The metadata can then be used by
+``dnssec-signzone`` or other signing software to determine when a key is
+to be published, whether it should be used for signing a zone, etc.
 
 If none of these options is set on the command line,
 ``dnssec-settime`` simply prints the key timing metadata already stored
@@ -45,12 +45,12 @@ the key file. The private file's permissions are always set to be
 inaccessible to anyone other than the owner (mode 0600).
 
 When working with state files, it is possible to update the timing metadata in
-those files as well with ``-s``.  With this option, it is also possible to update key
-states with ``-d`` (DS), ``-k`` (DNSKEY), ``-r`` (RRSIG of KSK), or ``-z``
-(RRSIG of ZSK). Allowed states are HIDDEN, RUMOURED, OMNIPRESENT, and
-UNRETENTIVE.
+those files as well with :option:`-s`.  With this option, it is also possible
+to update key states with :option:`-d` (DS), :option:`-k` (DNSKEY), :option:`-r`
+(RRSIG of KSK), or :option:`-z` (RRSIG of ZSK). Allowed states are HIDDEN,
+RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 
-The goal state of the key can also be set with ``-g``. This should be either
+The goal state of the key can also be set with :option:`-g`. This should be either
 HIDDEN or OMNIPRESENT, representing whether the key should be removed from the
 zone or published.
 
@@ -239,7 +239,7 @@ associated with a key.
 .. option:: -p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
 
    This option prints a specific metadata value or set of metadata values.
-   The ``-p`` option may be followed by one or more of the following letters or
+   The :option:`-p` option may be followed by one or more of the following letters or
    strings to indicate which value or values to print: ``C`` for the
    creation date, ``P`` for the publication date, ``Pds` for the DS publication
    date, ``Psync`` for the CDS and CDNSKEY publication date, ``A`` for the

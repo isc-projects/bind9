@@ -231,7 +231,7 @@ Running ``named`` With Automatic Zone Re-signing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The zone can also be signed automatically by named. Again, we need to provide
-the name of the OpenSSL engine using the -E command line option.
+the name of the OpenSSL engine using the :option:`-E <named -E>` command line option.
 
 ::
 

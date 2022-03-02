@@ -50,14 +50,14 @@ Options
    ``algorithm`` must be one of RSASHA1, NSEC3RSASHA1, RSASHA256,
    RSASHA512, ECDSAP256SHA256, ECDSAP384SHA384, ED25519, or ED448. For
    TKEY, the value must be DH (Diffie-Hellman); specifying this value
-   automatically sets the ``-T KEY`` option as well.
+   automatically sets the :option:`-T KEY <-T>` option as well.
 
    These values are case-insensitive. In some cases, abbreviations are
    supported, such as ECDSA256 for ECDSAP256SHA256 and ECDSA384 for
-   ECDSAP384SHA384. If RSASHA1 is specified along with the ``-3``
+   ECDSAP384SHA384. If RSASHA1 is specified along with the :option:`-3`
    option, NSEC3RSASHA1 is used instead.
 
-   This parameter *must* be specified except when using the ``-S``
+   This parameter *must* be specified except when using the :option:`-S`
    option, which copies the algorithm from the predecessor key.
 
    In prior releases, HMAC algorithms could be generated for use as TSIG
@@ -74,7 +74,7 @@ Options
    If the key size is not specified, some algorithms have pre-defined
    defaults. For example, RSA keys for use as DNSSEC zone-signing keys
    have a default size of 1024 bits; RSA keys for use as key-signing
-   keys (KSKs, generated with ``-f KSK``) default to 2048 bits.
+   keys (KSKs, generated with :option:`-f KSK <-f>`) default to 2048 bits.
 
 .. option:: -C
 
@@ -83,7 +83,7 @@ Options
    creation date in the metadata stored with the private key; other
    dates may be set there as well, including publication date, activation date,
    etc. Keys that include this data may be incompatible with older
-   versions of BIND; the ``-C`` option suppresses them.
+   versions of BIND; the :option:`-C` option suppresses them.
 
 .. option:: -c class
 
@@ -113,7 +113,7 @@ Options
 .. option:: -G
 
    This option generates a key, but does not publish it or sign with it. This option is
-   incompatible with ``-P`` and ``-A``.
+   incompatible with :option:`-P` and :option:`-A`.
 
 .. option:: -g generator
 
@@ -153,7 +153,7 @@ Options
 .. option:: -l file
 
    This option provides a configuration file that contains a ``dnssec-policy`` statement
-   (matching the policy set with ``-k``).
+   (matching the policy set with :option:`-k`).
 
 .. option:: -n nametype
 
@@ -166,7 +166,7 @@ Options
 .. option:: -p protocol
 
    This option sets the protocol value for the generated key, for use with
-   ``-T KEY``. The protocol is a number between 0 and 255. The default
+   :option:`-T KEY <-T>`. The protocol is a number between 0 and 255. The default
    is 3 (DNSSEC). Other possible values for this argument are listed in
    :rfc:`2535` and its successors.
 
@@ -204,7 +204,7 @@ Options
 
 .. option:: -t type
 
-   This option indicates the type of the key for use with ``-T KEY``. ``type``
+   This option indicates the type of the key for use with :option:`-T KEY <-T>`. ``type``
    must be one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF. The default
    is AUTHCONF. AUTH refers to the ability to authenticate data, and
    CONF to the ability to encrypt data.
@@ -233,7 +233,7 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
-   to sign it. If not set, and if the ``-G`` option has not been used, the
+   to sign it. If not set, and if the :option:`-G` option has not been used, the
    default is the current date.
 
 .. option:: -P sync date/offset
@@ -245,8 +245,8 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 
    This option sets the date on which the key is to be activated. After that date,
    the key is included in the zone and used to sign it. If not set,
-   and if the ``-G`` option has not been used, the default is the current date. If set,
-   and ``-P`` is not set, the publication date is set to the
+   and if the :option:`-G` option has not been used, the default is the current date. If set,
+   and :option:`-P` is not set, the publication date is set to the
    activation date minus the prepublication interval.
 
 .. option:: -R date/offset
@@ -309,7 +309,7 @@ string. ``Knnnn.+aaa+iiiii.key`` contains the public key, and
 ``Knnnn.+aaa+iiiii.private`` contains the private key.
 
 The ``.key`` file contains a DNSKEY or KEY record. When a zone is being
-signed by ``named`` or ``dnssec-signzone -S``, DNSKEY records are
+signed by ``named`` or :option:`dnssec-signzone -S`, DNSKEY records are
 included automatically. In other cases, the ``.key`` file can be
 inserted into a zone file manually or with an ``$INCLUDE`` statement.
 

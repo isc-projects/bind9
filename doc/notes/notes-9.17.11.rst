@@ -50,7 +50,7 @@ Bug Fixes
   Note that journals created by the current version of ``named`` are not
   usable by versions prior to 9.16.12. Before downgrading to a prior
   release, users are advised to ensure that all dynamic zones have been
-  synchronized using ``rndc sync -clean``.
+  synchronized using :option:`rndc sync -clean <rndc sync>`.
 
   A journal file's format can be changed manually by running
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``

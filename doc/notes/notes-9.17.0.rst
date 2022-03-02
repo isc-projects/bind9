@@ -63,7 +63,7 @@ Feature Changes
 
 .. _bug: https://sourceware.org/bugzilla/show_bug.cgi?id=23844
 
--  The ``rndc nta -dump`` and ``rndc secroots`` commands now both
+-  The :option:`rndc nta -dump <rndc nta>` and :option:`rndc secroots` commands now both
    include ``validate-except`` entries when listing negative trust
    anchors. These are indicated by the keyword ``permanent`` in place of
    the expiry date. :gl:`#1532`

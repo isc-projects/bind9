@@ -59,8 +59,8 @@ Bug Fixes
 ~~~~~~~~~
 
 - Removing a configured ``catalog-zone`` clause from the configuration,
-  running ``rndc reconfig``, then bringing back the removed
-  ``catalog-zone`` clause and running ``rndc reconfig`` again caused
+  running :option:`rndc reconfig`, then bringing back the removed
+  ``catalog-zone`` clause and running :option:`rndc reconfig` again caused
   ``named`` to crash. This has been fixed. :gl:`#1608`
 
 - The resolver could hang on shutdown due to dispatch resources not

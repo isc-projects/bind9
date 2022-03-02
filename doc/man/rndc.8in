@@ -161,7 +161,7 @@ the default view:
 (Note the brackets around and semi\-colon after the zone configuration
 text.)
 .sp
-See also \fBrndc delzone\fP and \fBrndc modzone\fP\&.
+See also \fI\%rndc delzone\fP and \fI\%rndc modzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -181,7 +181,7 @@ when the server is restarted or reconfigured, the zone is
 recreated. To remove it permanently, it must also be removed from
 \fBnamed.conf\fP\&.
 .sp
-See also \fBrndc addzone\fP and \fBrndc modzone\fP\&.
+See also \fI\%rndc addzone\fP and \fI\%rndc modzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -250,7 +250,7 @@ normally updated by dynamic update, and causes changes in the
 journal file to be synced into the master file. All dynamic update
 attempts are refused while the zone is frozen.
 .sp
-See also \fBrndc thaw\fP\&.
+See also \fI\%rndc thaw\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -262,14 +262,14 @@ forward from the journal files when the server is restarted. If
 an external process to determine when \fBnamed\fP has completed
 halting.
 .sp
-See also \fBrndc stop\fP\&.
+See also \fI\%rndc stop\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B loadkeys [zone [class [view]]]
 This command fetches all DNSSEC keys for the given zone from the key directory. If
 they are within their publication period, they are merged into the
-zone\(aqs DNSKEY RRset. Unlike \fBrndc sign\fP, however, the zone is not
+zone\(aqs DNSKEY RRset. Unlike \fI\%rndc sign\fP, however, the zone is not
 immediately re\-signed by the new keys, but is allowed to
 incrementally re\-sign over time.
 .sp
@@ -311,7 +311,7 @@ However, key maintenance operations cease until \fBnamed\fP is
 restarted or reconfigured, and all existing key maintenance states
 are deleted.
 .sp
-Running \fBrndc reconfig\fP or restarting \fBnamed\fP immediately
+Running \fI\%rndc reconfig\fP or restarting \fBnamed\fP immediately
 after this command causes key maintenance to be reinitialized
 from scratch, just as if the server were being started for the
 first time. This is primarily intended for testing, but it may
@@ -329,7 +329,7 @@ As with \fBaddzone\fP, the configuration string specified on the
 command line is the zone configuration text that would ordinarily be
 placed in \fBnamed.conf\fP\&.
 .sp
-If the zone was originally added via \fBrndc addzone\fP, the
+If the zone was originally added via \fI\%rndc addzone\fP, the
 configuration changes are recorded permanently and are still
 in effect after the server is restarted or reconfigured. However, if
 it was originally configured in \fBnamed.conf\fP, then that original
@@ -338,7 +338,7 @@ reconfigured, the zone reverts to its original configuration. To
 make the changes permanent, it must also be modified in
 \fBnamed.conf\fP\&.
 .sp
-See also \fBrndc addzone\fP and \fBrndc delzone\fP\&.
+See also \fI\%rndc addzone\fP and \fI\%rndc delzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -350,7 +350,7 @@ This command resends NOTIFY messages for the zone.
 .B notrace
 This command sets the server\(aqs debugging level to 0.
 .sp
-See also \fBrndc trace\fP\&.
+See also \fI\%rndc trace\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -496,7 +496,7 @@ Otherwise, it is written to the secroots dump file, which defaults to
 \fBnamed.secroots\fP, but can be overridden via the \fBsecroots\-file\fP
 option in \fBnamed.conf\fP\&.
 .sp
-See also \fBrndc managed\-keys\fP\&.
+See also \fI\%rndc managed\-keys\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -517,7 +517,7 @@ answers is currently enabled or disabled. It also reports the values of
 .B showzone zone [class [view]]
 This command prints the configuration of a running zone.
 .sp
-See also \fBrndc zonestatus\fP\&.
+See also \fI\%rndc zonestatus\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -534,7 +534,7 @@ and also requires the zone to be configured to allow dynamic DNS. (See
 "Dynamic Update Policies" in the BIND 9 Administrator Reference Manual for more
 details.)
 .sp
-See also \fBrndc loadkeys\fP\&.
+See also \fI\%rndc loadkeys\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -606,7 +606,7 @@ zones. If \fB\-p\fP is specified, \fBnamed(8)\(ga\(aqs process ID is returned.
 This allows an external process to determine when \(ga\(ganamed\fP has
 completed stopping.
 .sp
-See also \fBrndc halt\fP\&.
+See also \fI\%rndc halt\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -638,7 +638,7 @@ option is in use, the journal file is updated to reflect
 changes in the zone. Otherwise, if the zone has changed, any existing
 journal file is removed.
 .sp
-See also \fBrndc freeze\fP\&.
+See also \fI\%rndc freeze\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -650,7 +650,7 @@ This command increments the server\(aqs debugging level by one.
 .B trace level
 This command sets the server\(aqs debugging level to an explicit value.
 .sp
-See also \fBrndc notrace\fP\&.
+See also \fI\%rndc notrace\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -684,11 +684,11 @@ whether the zone supports dynamic updates, whether the zone is DNSSEC
 signed, whether it uses automatic DNSSEC key management or inline
 signing, and the scheduled refresh or expiry times for the zone.
 .sp
-See also \fBrndc showzone\fP\&.
+See also \fI\%rndc showzone\fP\&.
 .UNINDENT
 .sp
-\fBrndc\fP commands that specify zone names, such as \fBreload\fP
-\fBretransfer\fP, or \fBzonestatus\fP, can be ambiguous when applied to zones
+\fBrndc\fP commands that specify zone names, such as \fI\%reload\fP
+\fI\%retransfer\fP, or \fI\%zonestatus\fP, can be ambiguous when applied to zones
 of type \fBredirect\fP\&. Redirect zones are always called \fB\&.\fP, and can be
 confused with zones of type \fBhint\fP or with secondary copies of the root
 zone. To specify a redirect zone, use the special zone name

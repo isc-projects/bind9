@@ -100,8 +100,8 @@ Feature Changes
    in cache as a potential mitigation mechanism, should there be a
    problem with one or more domains. Note that cache content retention
    is independent of whether stale answers are used in response to
-   client queries (``stale-answer-enable yes|no`` and ``rndc serve-stale
-   on|off``). Serving of stale answers when the authoritative servers
+   client queries (``stale-answer-enable yes|no`` and :option:`rndc serve-stale
+   on|off <rndc serve-stale>`). Serving of stale answers when the authoritative servers
    are not responding must be explicitly enabled, whereas the retention
    of expired cache content takes place automatically on all versions of
    BIND 9 that have this feature available. :gl:`#1877`
@@ -195,13 +195,13 @@ Bug Fixes
    of the current active key (the predecessor) was not changed and thus
    never removed from the zone. :gl:`#1846`
 
--  When ``named-checkconf -z`` was run, it would sometimes incorrectly
+-  When :option:`named-checkconf -z` was run, it would sometimes incorrectly
    set its exit code. It reflected the status of the last view found; if
    zone-loading errors were found in earlier configured views but not in
    the last one, the exit code indicated success. Thanks to Graham
    Clinch. :gl:`#1807`
 
-- ``named-checkconf -p`` could include spurious text in
+- :option:`named-checkconf -p` could include spurious text in
   ``server-addresses`` statements due to an uninitialized DSCP value.
   This has been fixed. :gl:`#1812`
 

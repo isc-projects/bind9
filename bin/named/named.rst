@@ -38,13 +38,13 @@ Options
 
 .. option:: -4
 
-   This option tells ``named`` to use only IPv4, even if the host machine is capable of IPv6. ``-4`` and
-   ``-6`` are mutually exclusive.
+   This option tells ``named`` to use only IPv4, even if the host machine is capable of IPv6. :option:`-4` and
+   :option:`-6` are mutually exclusive.
 
 .. option:: -6
 
-   This option tells ``named`` to use only IPv6, even if the host machine is capable of IPv4. ``-4`` and
-   ``-6`` are mutually exclusive.
+   This option tells ``named`` to use only IPv6, even if the host machine is capable of IPv4. :option:`-4` and
+   :option:`-6` are mutually exclusive.
 
 .. option:: -c config-file
 
@@ -153,7 +153,7 @@ Options
 
 .. warning::
 
-      This option should be used in conjunction with the ``-u`` option,
+      This option should be used in conjunction with the :option:`-u` option,
       as chrooting a process running as root doesn't enhance security on
       most systems; the way ``chroot`` is defined allows a process
       with root privileges to escape a chroot jail.
@@ -165,8 +165,8 @@ Options
    value based on the number of detected CPUs: 1 for 1 CPU, and the
    number of detected CPUs minus one for machines with more than 1 CPU.
    This cannot be increased to a value higher than the number of CPUs.
-   If ``-n`` has been set to a higher value than the number of detected
-   CPUs, then ``-U`` may be increased as high as that value, but no
+   If :option:`-n` has been set to a higher value than the number of detected
+   CPUs, then :option:`-U` may be increased as high as that value, but no
    higher.
 
 .. option:: -u user
@@ -179,7 +179,7 @@ Options
       On Linux, ``named`` uses the kernel's capability mechanism to drop
       all root privileges except the ability to ``bind`` to a
       privileged port and set process resource limits. Unfortunately,
-      this means that the ``-u`` option only works when ``named`` is run
+      this means that the :option:`-u` option only works when ``named`` is run
       on kernel 2.2.18 or later, or kernel 2.3.99-pre3 or later, since
       previous kernels did not allow privileges to be retained after
       ``setuid``.

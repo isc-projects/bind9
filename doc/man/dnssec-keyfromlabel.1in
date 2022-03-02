@@ -53,18 +53,18 @@ be one of RSASHA1, NSEC3RSASHA1, RSASHA256, RSASHA512,
 ECDSAP256SHA256, ECDSAP384SHA384, ED25519, or ED448.
 .sp
 If no algorithm is specified, RSASHA1 is used by default
-unless the \fB\-3\fP option is specified, in which case NSEC3RSASHA1
-is used instead. (If \fB\-3\fP is used and an algorithm is
+unless the \fI\%\-3\fP option is specified, in which case NSEC3RSASHA1
+is used instead. (If \fI\%\-3\fP is used and an algorithm is
 specified, that algorithm is checked for compatibility with
 NSEC3.)
 .sp
 These values are case\-insensitive. In some cases, abbreviations are
 supported, such as ECDSA256 for ECDSAP256SHA256 and ECDSA384 for
-ECDSAP384SHA384. If RSASHA1 is specified along with the \fB\-3\fP
+ECDSAP384SHA384. If RSASHA1 is specified along with the \fI\%\-3\fP
 option, then NSEC3RSASHA1 is used instead.
 .sp
 Since BIND 9.12.0, this option is mandatory except when using the
-\fB\-S\fP option, which copies the algorithm from the predecessory key.
+\fI\%\-S\fP option, which copies the algorithm from the predecessory key.
 Previously, the default for newly generated keys was RSASHA1.
 .UNINDENT
 .INDENT 0.0
@@ -111,7 +111,7 @@ By default, \fBdnssec\-keyfromlabel\fP includes the key\(aqs creation
 date in the metadata stored with the private key; other dates may
 be set there as well, including publication date, activation date, etc. Keys
 that include this data may be incompatible with older versions of
-BIND; the \fB\-C\fP option suppresses them.
+BIND; the \fI\%\-C\fP option suppresses them.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -129,7 +129,7 @@ The only recognized flags are KSK (Key\-Signing Key) and REVOKE.
 .TP
 .B \-G
 This option generates a key, but does not publish it or sign with it. This option is
-incompatible with \fB\-P\fP and \fB\-A\fP\&.
+incompatible with \fI\%\-P\fP and \fI\%\-A\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -149,7 +149,7 @@ This option generates KEY records rather than DNSKEY records.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \fB\-L\fP ttl
+.B \-L ttl
 This option sets the default TTL to use for this key when it is converted into a
 DNSKEY RR. This is the TTL used when the key is imported into a zone,
 unless there was already a DNSKEY RRset in
@@ -215,7 +215,7 @@ explicitly prevent a date from being set, use \fBnone\fP or \fBnever\fP\&.
 .B \-P date/offset
 This option sets the date on which a key is to be published to the zone. After
 that date, the key is included in the zone but is not used
-to sign it. If not set, and if the \fB\-G\fP option has not been used, the
+to sign it. If not set, and if the \fI\%\-G\fP option has not been used, the
 default is the current date.
 .UNINDENT
 .INDENT 0.0
@@ -229,7 +229,7 @@ are to be published to the zone.
 .B \-A date/offset
 This option sets the date on which the key is to be activated. After that date,
 the key is included in the zone and used to sign it. If not set,
-and if the \fB\-G\fP option has not been used, the default is the current date.
+and if the \fI\%\-G\fP option has not been used, the default is the current date.
 .UNINDENT
 .INDENT 0.0
 .TP

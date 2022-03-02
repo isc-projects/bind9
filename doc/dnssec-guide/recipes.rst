@@ -234,8 +234,8 @@ The first command gets us into the key directory
 ``/etc/bind/keys/example.com/``, where keys for ``example.com`` are
 stored.
 
-The second, ``dnssec-settime``, sets an inactive (``-I``) date of January 1,
-2021, and a deletion (``-D``) date of February 1, 2021, for the current ZSK
+The second, ``dnssec-settime``, sets an inactive (:option:`-I <dnssec-settime -I>`) date of January 1,
+2021, and a deletion (:option:`-D <dnssec-settime -D>`) date of February 1, 2021, for the current ZSK
 (``Kexample.com.+008+17694``).
 
 The third command, ``dnssec-keygen``, creates a successor key, using
@@ -487,8 +487,8 @@ The first command gets us into the key directory
 ``/etc/bind/keys/example.com/``, where keys for ``example.com`` are
 stored.
 
-The second, ``dnssec-settime``, sets an inactive (``-I``) date of January 1,
-2021, and a deletion (``-D``) date of February 1, 2021 for the current KSK
+The second, ``dnssec-settime``, sets an inactive (:option:`-I <dnssec-settime -I>`) date of January 1,
+2021, and a deletion (:option:`-D <dnssec-settime -D>`) date of February 1, 2021 for the current KSK
 (``Kexample.com.+007+24848``).
 
 The third command, ``dnssec-keygen``, creates a successor key, using
@@ -1095,14 +1095,14 @@ Change your ``dnssec-policy`` line to indicate you want to revert to unsigned:
        dnssec-policy "insecure";
    };
 
-Then use ``rndc reload`` to reload the zone.
+Then use :option:`rndc reload` to reload the zone.
 
 The "insecure" policy is a built-in policy (like "default"). It will make sure
 the zone is still DNSSEC maintained, to allow for a graceful transition to
 unsigned.
 
 When the DS records have been removed from the parent zone, use
-``rndc dnssec -checkds -key <id> withdrawn example.com`` to tell ``named`` that
+:option:`rndc dnssec -checkds -key id withdrawn example.com <rndc dnssec>` to tell ``named`` that
 the DS is removed, and the remaining DNSSEC records will be removed in a timely
 manner. Or if you have parental agents configured, the DNSSEC records will be
 automatically removed after BIND has seen that the parental agents no longer

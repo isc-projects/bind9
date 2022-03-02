@@ -35,7 +35,7 @@ input, in which case both .key and .private files are generated.
 
 The newly created .private file does *not* contain private key data, and
 cannot be used for signing. However, having a .private file makes it
-possible to set publication (``-P``) and deletion (``-D``) times for the
+possible to set publication (:option:`-P`) and deletion (:option:`-D`) times for the
 key, which means the public key can be added to and removed from the
 DNSKEY RRset on schedule even if the true private key is stored offline.
 

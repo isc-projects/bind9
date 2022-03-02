@@ -105,7 +105,7 @@ To enable automatic signing, set a ``dnssec-policy`` or add the
 With ``auto-dnssec allow``, ``named`` can search the key directory for
 keys matching the zone, insert them into the zone, and use them to sign
 the zone. It does so only when it receives an
-``rndc sign <zonename>``.
+:option:`rndc sign zonename <rndc sign>`.
 
 ``auto-dnssec maintain`` includes the above functionality, but also
 automatically adjusts the zone's DNSKEY records on a schedule according to
@@ -123,17 +123,17 @@ made to the zone - such as adding, removing, or revoking a key - then that
 action is carried out. By default, the key directory is checked for
 changes every 60 minutes; this period can be adjusted with
 ``dnssec-loadkeys-interval``, up to a maximum of 24 hours. The
-``rndc loadkeys`` command forces ``named`` to check for key updates immediately.
+:option:`rndc loadkeys` command forces ``named`` to check for key updates immediately.
 
 If keys are present in the key directory the first time the zone is
 loaded, the zone is signed immediately, without waiting for an
-``rndc sign`` or ``rndc loadkeys`` command. Those commands can still be
+:option:`rndc sign` or :option:`rndc loadkeys` command. Those commands can still be
 used when there are unscheduled key changes.
 
 When new keys are added to a zone, the TTL is set to match that of any
 existing DNSKEY RRset. If there is no existing DNSKEY RRset, the
 TTL is set to the TTL specified when the key was created (using the
-``dnssec-keygen -L`` option), if any, or to the SOA TTL.
+:option:`dnssec-keygen -L` option), if any, or to the SOA TTL.
 
 To sign the zone using NSEC3 instead of NSEC, submit an
 NSEC3PARAM record via dynamic update prior to the scheduled publication
@@ -240,7 +240,7 @@ Converting From NSEC to NSEC3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Add a ``nsec3param`` option to your ``dnssec-policy`` and
-run ``rndc reconfig``.
+run :option:`rndc reconfig`.
 
 Or use ``nsupdate`` to add an NSEC3PARAM record.
 
@@ -251,7 +251,7 @@ Converting From NSEC3 to NSEC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To do this, remove the ``nsec3param`` option from the ``dnssec-policy`` and
-run ``rndc reconfig``.
+run :option:`rndc reconfig`.
 
 Or use ``nsupdate`` to remove all NSEC3PARAM records with a
 zero flag field. The NSEC chain is generated before the NSEC3 chain
