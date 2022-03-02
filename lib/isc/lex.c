@@ -670,6 +670,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		case lexstate_string:
 			if (!escaped && c == '=' &&
 			    (options & ISC_LEXOPT_VPAIR) != 0) {
+				if (remaining == 0U) {
+					result = grow_data(lex, &remaining,
+							   &curr, &prev);
+					if (result != ISC_R_SUCCESS) {
+						goto done;
+					}
+				}
 				INSIST(remaining > 0U);
 				*curr++ = c;
 				*curr = '\0';
@@ -682,7 +689,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if (state == lexstate_vpairstart) {
 				if (c == '"' &&
 				    (options & ISC_LEXOPT_QVPAIR) != 0) {
-					INSIST(remaining > 0U);
 					no_comments = true;
 					state = lexstate_qvpair;
 					break;
