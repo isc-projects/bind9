@@ -453,10 +453,9 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	} u;
 	RSA *rsa = RSA_new();
 	BIGNUM *e = BN_new();
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !HAVE_BN_GENCB_NEW
 	BN_GENCB _cb;
-#endif /* if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-	* defined(LIBRESSL_VERSION_NUMBER) */
+#endif /* !HAVE_BN_GENCB_NEW */
 	BN_GENCB *cb = BN_GENCB_new();
 	EVP_PKEY *pkey = EVP_PKEY_new();
 

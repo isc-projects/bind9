@@ -51,6 +51,9 @@
 /* Define to 1 if you have the `BIO_write_ex' function. */
 #undef HAVE_BIO_WRITE_EX
 
+/* Define to 1 if you have the `BN_GENCB_new' function. */
+#undef HAVE_BN_GENCB_NEW
+
 /* Define to 1 if the compiler supports __builtin_clz. */
 #undef HAVE_BUILTIN_CLZ
 
