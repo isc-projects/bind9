@@ -55,16 +55,8 @@ Files: **/README
        bin/tests/system/journal/ns2/managed-keys.bind.in
        bin/tests/system/journal/ns2/managed-keys.bind.jnl.in
        bin/tests/system/keepalive/expected
-       bin/tests/system/legacy/ns10/named.ednsrefused
-       bin/tests/system/legacy/ns2/named.dropedns
-       bin/tests/system/legacy/ns3/named.dropedns
-       bin/tests/system/legacy/ns3/named.notcp
-       bin/tests/system/legacy/ns5/named.notcp
        bin/tests/system/legacy/ns6/edns512.db.signed
        bin/tests/system/legacy/ns7/edns512-notcp.db.signed
-       bin/tests/system/legacy/ns7/named.notcp
-       bin/tests/system/legacy/ns8/named.ednsformerr
-       bin/tests/system/legacy/ns9/named.ednsnotimp
        bin/tests/system/notify/ns4/named.port.in
        bin/tests/system/nsupdate/commandlist
        bin/tests/system/nsupdate/verylarge.in
@@ -150,6 +142,16 @@ Files: **/.clang-format
        **/.gitattributes
        **/.gitignore
        **/named*.args
+       **/named.dropedns
+       **/named.ednsformerr
+       **/named.ednsnotimp
+       **/named.ednsrefused
+       **/named.maxudp1460
+       **/named.maxudp512
+       **/named.noaa
+       **/named.noedns
+       **/named.nosoa
+       **/named.notcp
        **/startme
        .clang-format
        .clang-format.headers
