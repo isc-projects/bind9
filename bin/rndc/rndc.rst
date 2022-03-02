@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: rndc
 .. _man_rndc:
 
 rndc - name server control utility

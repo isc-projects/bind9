@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-cds
 .. _man_dnssec-cds:
 
 dnssec-cds - change DS records for a child zone based on CDS/CDNSKEY

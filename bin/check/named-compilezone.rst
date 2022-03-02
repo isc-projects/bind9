@@ -13,6 +13,7 @@
 
 .. BEWARE: Do not forget to edit also named-checkzone.rst!
 
+.. program:: named-compilezone
 .. _man_named-compilezone:
 
 named-compilezone - zone file converting tool

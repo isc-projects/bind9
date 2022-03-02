@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: named-nzd2nzf
 .. _man_named-nzd2nzf:
 
 named-nzd2nzf - convert an NZD database to NZF text format

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: nsec3hash
 .. _man_nsec3hash:
 
 nsec3hash - generate NSEC3 hash

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-signzone
 .. _man_dnssec-signzone:
 
 dnssec-signzone - DNSSEC zone signing tool

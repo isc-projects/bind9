@@ -9,8 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. highlight: console
-
+.. program:: nsupdate
 .. _man_nsupdate:
 
 nsupdate - dynamic DNS update utility

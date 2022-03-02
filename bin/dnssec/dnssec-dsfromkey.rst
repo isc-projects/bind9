@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-dsfromkey
 .. _man_dnssec-dsfromkey:
 
 dnssec-dsfromkey - DNSSEC DS RR generation tool

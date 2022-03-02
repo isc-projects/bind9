@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-revoke
 .. _man_dnssec-revoke:
 
 dnssec-revoke - set the REVOKED bit on a DNSSEC key

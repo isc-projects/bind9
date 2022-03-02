@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-keygen
 .. _man_dnssec-keygen:
 
 dnssec-keygen: DNSSEC key generation tool

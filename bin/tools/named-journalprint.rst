@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: named-journalprint
 .. _man_named-journalprint:
 
 named-journalprint - print zone journal in human-readable form

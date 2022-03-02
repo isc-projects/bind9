@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: host
 .. _man_host:
 
 host - DNS lookup utility

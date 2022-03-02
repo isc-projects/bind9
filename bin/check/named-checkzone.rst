@@ -13,6 +13,7 @@
 
 .. BEWARE: Do not forget to edit also named-compilezone.rst!
 
+.. program:: named-checkzone
 .. _man_named-checkzone:
 
 named-checkzone - zone file validation tool

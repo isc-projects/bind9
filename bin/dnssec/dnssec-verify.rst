@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-verify
 .. _man_dnssec-verify:
 
 dnssec-verify - DNSSEC zone verification tool

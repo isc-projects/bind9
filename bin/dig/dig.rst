@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dig
 .. _man_dig:
 
 dig - DNS lookup utility
