@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: mdig
 .. _man_mdig:
 
 mdig - DNS pipelined lookup utility

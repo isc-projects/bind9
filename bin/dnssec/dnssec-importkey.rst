@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-importkey
 .. _man_dnssec-importkey:
 
 dnssec-importkey - import DNSKEY records from external systems so they can be managed

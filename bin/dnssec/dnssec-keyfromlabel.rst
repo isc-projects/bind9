@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-keyfromlabel
 .. _man_dnssec-keyfromlabel:
 
 dnssec-keyfromlabel - DNSSEC key generation tool

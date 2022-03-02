@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: delv
 .. _man_delv:
 
 delv - DNS lookup and validation utility

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: named-checkconf
 .. _man_named-checkconf:
 
 named-checkconf - named configuration file syntax checking tool

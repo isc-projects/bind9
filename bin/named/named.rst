@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: named
 .. _man_named:
 
 named - Internet domain name server

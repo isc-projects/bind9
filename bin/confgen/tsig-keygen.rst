@@ -13,6 +13,7 @@
 
 .. BEWARE: Do not forget to edit also ddns-confgen.rst!
 
+.. program:: tsig-keygen
 .. _man_tsig-keygen:
 
 tsig-keygen - TSIG key generation tool

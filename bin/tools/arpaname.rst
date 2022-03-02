@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: arpaname
 .. _man_arpaname:
 
 arpaname - translate IP addresses to the corresponding ARPA names

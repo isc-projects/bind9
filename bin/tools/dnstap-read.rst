@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnstap-read
 .. _man_dnstap-read:
 
 dnstap-read - print dnstap data in human-readable form

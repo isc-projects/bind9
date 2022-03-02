@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: rndc-confgen
 .. _man_rndc-confgen:
 
 rndc-confgen - rndc key generation tool

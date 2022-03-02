@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: dnssec-settime
 .. _man_dnssec-settime:
 
 dnssec-settime: set the key timing metadata for a DNSSEC key

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: named-rrchecker
 .. _man_named-rrchecker:
 
 named-rrchecker - syntax checker for individual DNS resource records

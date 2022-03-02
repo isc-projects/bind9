@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: rndc.conf
 .. _man_rndc.conf:
 
 rndc.conf - rndc configuration file

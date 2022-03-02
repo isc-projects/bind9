@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. program:: nslookup
 .. _man_nslookup:
 
 nslookup - query Internet name servers interactively
