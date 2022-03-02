@@ -37,7 +37,8 @@ match the name of the zone for which the key is being generated.
 Options
 ~~~~~~~
 
-``-a algorithm``
+.. option:: -a algorithm
+
    This option selects the cryptographic algorithm. The value of ``algorithm`` must
    be one of RSASHA1, NSEC3RSASHA1, RSASHA256, RSASHA512,
    ECDSAP256SHA256, ECDSAP384SHA384, ED25519, or ED448.
@@ -57,20 +58,23 @@ Options
    ``-S`` option, which copies the algorithm from the predecessory key.
    Previously, the default for newly generated keys was RSASHA1.
 
-``-3``
+.. option:: -3
+
    This option uses an NSEC3-capable algorithm to generate a DNSSEC key. If this
    option is used with an algorithm that has both NSEC and NSEC3
    versions, then the NSEC3 version is used; for example,
    ``dnssec-keygen -3a RSASHA1`` specifies the NSEC3RSASHA1 algorithm.
 
-``-E engine``
+.. option:: -E engine
+
    This option specifies the cryptographic hardware to use.
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
    engine identifier that drives the cryptographic accelerator or
    hardware service module (usually ``pkcs11``).
 
-``-l label``
+.. option:: -l label
+
    This option specifies the label for a key pair in the crypto hardware.
 
    When BIND 9 is built with OpenSSL-based PKCS#11 support, the label is
@@ -78,14 +82,16 @@ Options
    preceded by an optional OpenSSL engine name, followed by a colon, as
    in ``pkcs11:keylabel``.
 
-``-n nametype``
+.. option:: -n nametype
+
    This option specifies the owner type of the key. The value of ``nametype`` must
    either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY
    (for a key associated with a host (KEY)), USER (for a key associated
    with a user (KEY)), or OTHER (DNSKEY). These values are
    case-insensitive.
 
-``-C``
+.. option:: -C
+
    This option enables compatibility mode, which generates an old-style key, without any metadata.
    By default, ``dnssec-keyfromlabel`` includes the key's creation
    date in the metadata stored with the private key; other dates may
@@ -93,26 +99,32 @@ Options
    that include this data may be incompatible with older versions of
    BIND; the ``-C`` option suppresses them.
 
-``-c class``
+.. option:: -c class
+
    This option indicates that the DNS record containing the key should have the
    specified class. If not specified, class IN is used.
 
-``-f flag``
+.. option:: -f flag
+
    This option sets the specified flag in the ``flag`` field of the KEY/DNSKEY record.
    The only recognized flags are KSK (Key-Signing Key) and REVOKE.
 
-``-G``
+.. option:: -G
+
    This option generates a key, but does not publish it or sign with it. This option is
    incompatible with ``-P`` and ``-A``.
 
-``-h``
+.. option:: -h
+
    This option prints a short summary of the options and arguments to
    ``dnssec-keyfromlabel``.
 
-``-K directory``
+.. option:: -K directory
+
    This option sets the directory in which the key files are to be written.
 
-``-k``
+.. option:: -k
+
    This option generates KEY records rather than DNSKEY records.
 
 ``-L`` ttl
@@ -122,12 +134,14 @@ Options
    place, in which case the existing TTL would take precedence. Setting
    the default TTL to ``0`` or ``none`` removes it.
 
-``-p protocol``
+.. option:: -p protocol
+
    This option sets the protocol value for the key. The protocol is a number between
    0 and 255. The default is 3 (DNSSEC). Other possible values for this
    argument are listed in :rfc:`2535` and its successors.
 
-``-S key``
+.. option:: -S key
+
    This option generates a key as an explicit successor to an existing key. The name,
    algorithm, size, and type of the key are set to match the
    predecessor. The activation date of the new key is set to the
@@ -135,19 +149,23 @@ Options
    set to the activation date minus the prepublication interval, which
    defaults to 30 days.
 
-``-t type``
+.. option:: -t type
+
    This option indicates the type of the key. ``type`` must be one of AUTHCONF,
    NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF. AUTH refers
    to the ability to authenticate data, and CONF to the ability to encrypt
    data.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
-``-y``
+.. option:: -y
+
    This option allows DNSSEC key files to be generated even if the key ID would
    collide with that of an existing key, in the event of either key
    being revoked. (This is only safe to enable if
@@ -166,41 +184,49 @@ months (defined as 30 24-hour days), weeks, days, hours, or minutes,
 respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use ``none`` or ``never``.
 
-``-P date/offset``
+.. option:: -P date/offset
+
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
    to sign it. If not set, and if the ``-G`` option has not been used, the
    default is the current date.
 
-``-P sync date/offset``
+.. option:: -P sync date/offset
+
    This option sets the date on which CDS and CDNSKEY records that match this key
    are to be published to the zone.
 
-``-A date/offset``
+.. option:: -A date/offset
+
    This option sets the date on which the key is to be activated. After that date,
    the key is included in the zone and used to sign it. If not set,
    and if the ``-G`` option has not been used, the default is the current date.
 
-``-R date/offset``
+.. option:: -R date/offset
+
    This option sets the date on which the key is to be revoked. After that date, the
    key is flagged as revoked. It is included in the zone and
    is used to sign it.
 
-``-I date/offset``
+.. option:: -I date/offset
+
    This option sets the date on which the key is to be retired. After that date, the
    key is still included in the zone, but it is not used to
    sign it.
 
-``-D date/offset``
+.. option:: -D date/offset
+
    This option sets the date on which the key is to be deleted. After that date, the
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-``-D sync date/offset``
+.. option:: -D sync date/offset
+
    This option sets the date on which the CDS and CDNSKEY records that match this
    key are to be deleted.
 
-``-i interval``
+.. option:: -i interval
+
    This option sets the prepublication interval for a key. If set, then the
    publication and activation dates must be separated by at least this
    much time. If the activation date is specified but the publication

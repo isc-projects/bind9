@@ -31,34 +31,42 @@ containing the now-revoked key.
 Options
 ~~~~~~~
 
-``-h``
+.. option:: -h
+
    This option emits a usage message and exits.
 
-``-K directory``
+.. option:: -K directory
+
    This option sets the directory in which the key files are to reside.
 
-``-r``
+.. option:: -r
+
    This option indicates to remove the original keyset files after writing the new keyset files.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
-``-E engine``
+.. option:: -E engine
+
    This option specifies the cryptographic hardware to use, when applicable.
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
    engine identifier that drives the cryptographic accelerator or
    hardware service module (usually ``pkcs11``).
 
-``-f``
+.. option:: -f
+
    This option indicates a forced overwrite and causes ``dnssec-revoke`` to write the new key pair,
    even if a file already exists matching the algorithm and key ID of
    the revoked key.
 
-``-R``
+.. option:: -R
+
    This option prints the key tag of the key with the REVOKE bit set, but does not
    revoke the key.
 

@@ -36,13 +36,15 @@ generated.
 Options
 ~~~~~~~
 
-``-3``
+.. option:: -3
+
    This option uses an NSEC3-capable algorithm to generate a DNSSEC key. If this
    option is used with an algorithm that has both NSEC and NSEC3
    versions, then the NSEC3 version is selected; for example,
    ``dnssec-keygen -3a RSASHA1`` specifies the NSEC3RSASHA1 algorithm.
 
-``-a algorithm``
+.. option:: -a algorithm
+
    This option selects the cryptographic algorithm. For DNSSEC keys, the value of
    ``algorithm`` must be one of RSASHA1, NSEC3RSASHA1, RSASHA256,
    RSASHA512, ECDSAP256SHA256, ECDSAP384SHA384, ED25519, or ED448. For
@@ -61,7 +63,8 @@ Options
    keys, but that feature was removed in BIND 9.13.0. Use
    ``tsig-keygen`` to generate TSIG keys.
 
-``-b keysize``
+.. option:: -b keysize
+
    This option specifies the number of bits in the key. The choice of key size
    depends on the algorithm used: RSA keys must be between 1024 and 4096
    bits; Diffie-Hellman keys must be between 128 and 4096 bits. Elliptic
@@ -72,7 +75,8 @@ Options
    have a default size of 1024 bits; RSA keys for use as key-signing
    keys (KSKs, generated with ``-f KSK``) default to 2048 bits.
 
-``-C``
+.. option:: -C
+
    This option enables compatibility mode, which generates an old-style key, without any timing
    metadata. By default, ``dnssec-keygen`` includes the key's
    creation date in the metadata stored with the private key; other
@@ -80,44 +84,53 @@ Options
    etc. Keys that include this data may be incompatible with older
    versions of BIND; the ``-C`` option suppresses them.
 
-``-c class``
+.. option:: -c class
+
    This option indicates that the DNS record containing the key should have the
    specified class. If not specified, class IN is used.
 
-``-d bits``
+.. option:: -d bits
+
    This option specifies the key size in bits. For the algorithms RSASHA1, NSEC3RSASA1, RSASHA256, and
    RSASHA512 the key size must be between 1024 and 4096 bits; DH size is between 128
    and 4096 bits. This option is ignored for algorithms ECDSAP256SHA256,
    ECDSAP384SHA384, ED25519, and ED448.
 
-``-E engine``
+.. option:: -E engine
+
    This option specifies the cryptographic hardware to use, when applicable.
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
    engine identifier that drives the cryptographic accelerator or
    hardware service module (usually ``pkcs11``).
 
-``-f flag``
+.. option:: -f flag
+
    This option sets the specified flag in the flag field of the KEY/DNSKEY record.
    The only recognized flags are KSK (Key-Signing Key) and REVOKE.
 
-``-G``
+.. option:: -G
+
    This option generates a key, but does not publish it or sign with it. This option is
    incompatible with ``-P`` and ``-A``.
 
-``-g generator``
+.. option:: -g generator
+
    This option indicates the generator to use if generating a Diffie-Hellman key. Allowed
    values are 2 and 5. If no generator is specified, a known prime from
    :rfc:`2539` is used if possible; otherwise the default is 2.
 
-``-h``
+.. option:: -h
+
    This option prints a short summary of the options and arguments to
    ``dnssec-keygen``.
 
-``-K directory``
+.. option:: -K directory
+
    This option sets the directory in which the key files are to be written.
 
-``-k policy``
+.. option:: -k policy
+
    This option creates keys for a specific ``dnssec-policy``. If a policy uses multiple keys,
    ``dnssec-keygen`` generates multiple keys. This also
    creates a ".state" file to keep track of the key state.
@@ -126,7 +139,8 @@ Options
    it cannot be used at the same time as many of the other options that
    ``dnssec-keygen`` provides.
 
-``-L ttl``
+.. option:: -L ttl
+
    This option sets the default TTL to use for this key when it is converted into a
    DNSKEY RR. This is the TTL used when the key is imported into a zone,
    unless there was already a DNSKEY RRset in
@@ -135,24 +149,28 @@ Options
    defaults to the SOA TTL. Setting the default TTL to ``0`` or ``none``
    is the same as leaving it unset.
 
-``-l file``
+.. option:: -l file
+
    This option provides a configuration file that contains a ``dnssec-policy`` statement
    (matching the policy set with ``-k``).
 
-``-n nametype``
+.. option:: -n nametype
+
    This option specifies the owner type of the key. The value of ``nametype`` must
    either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY
    (for a key associated with a host (KEY)), USER (for a key associated
    with a user (KEY)), or OTHER (DNSKEY). These values are
    case-insensitive. The default is ZONE for DNSKEY generation.
 
-``-p protocol``
+.. option:: -p protocol
+
    This option sets the protocol value for the generated key, for use with
    ``-T KEY``. The protocol is a number between 0 and 255. The default
    is 3 (DNSSEC). Other possible values for this argument are listed in
    :rfc:`2535` and its successors.
 
-``-q``
+.. option:: -q
+
    This option sets quiet mode, which suppresses unnecessary output, including progress
    indication. Without this option, when ``dnssec-keygen`` is run
    interactively to generate an RSA or DSA key pair, it prints a
@@ -162,7 +180,8 @@ Options
    round of the Miller-Rabin primality test; and a space ( ) means that the
    number has passed all the tests and is a satisfactory key.
 
-``-S key``
+.. option:: -S key
+
    This option creates a new key which is an explicit successor to an existing key.
    The name, algorithm, size, and type of the key are set to match
    the existing key. The activation date of the new key is set to
@@ -170,26 +189,31 @@ Options
    set to the activation date minus the prepublication interval,
    which defaults to 30 days.
 
-``-s strength``
+.. option:: -s strength
+
    This option specifies the strength value of the key. The strength is a number
    between 0 and 15, and currently has no defined purpose in DNSSEC.
 
-``-T rrtype``
+.. option:: -T rrtype
+
    This option specifies the resource record type to use for the key. ``rrtype``
    must be either DNSKEY or KEY. The default is DNSKEY when using a
    DNSSEC algorithm, but it can be overridden to KEY for use with
    SIG(0).
 
-``-t type``
+.. option:: -t type
+
    This option indicates the type of the key for use with ``-T KEY``. ``type``
    must be one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF. The default
    is AUTHCONF. AUTH refers to the ability to authenticate data, and
    CONF to the ability to encrypt data.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level.
 
 Timing Options
@@ -204,43 +228,51 @@ months (defined as 30 24-hour days), weeks, days, hours, or minutes,
 respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use ``none`` or ``never``.
 
-``-P date/offset``
+.. option:: -P date/offset
+
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
    to sign it. If not set, and if the ``-G`` option has not been used, the
    default is the current date.
 
-``-P sync date/offset``
+.. option:: -P sync date/offset
+
    This option sets the date on which CDS and CDNSKEY records that match this key
    are to be published to the zone.
 
-``-A date/offset``
+.. option:: -A date/offset
+
    This option sets the date on which the key is to be activated. After that date,
    the key is included in the zone and used to sign it. If not set,
    and if the ``-G`` option has not been used, the default is the current date. If set,
    and ``-P`` is not set, the publication date is set to the
    activation date minus the prepublication interval.
 
-``-R date/offset``
+.. option:: -R date/offset
+
    This option sets the date on which the key is to be revoked. After that date, the
    key is flagged as revoked. It is included in the zone and
    is used to sign it.
 
-``-I date/offset``
+.. option:: -I date/offset
+
    This option sets the date on which the key is to be retired. After that date, the
    key is still included in the zone, but it is not used to
    sign it.
 
-``-D date/offset``
+.. option:: -D date/offset
+
    This option sets the date on which the key is to be deleted. After that date, the
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-``-D sync date/offset``
+.. option:: -D sync date/offset
+
    This option sets the date on which the CDS and CDNSKEY records that match this
    key are to be deleted.
 
-``-i interval``
+.. option:: -i interval
+
    This option sets the prepublication interval for a key. If set, then the
    publication and activation dates must be separated by at least this
    much time. If the activation date is specified but the publication

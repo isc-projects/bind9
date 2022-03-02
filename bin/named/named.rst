@@ -35,30 +35,36 @@ listens for queries.
 Options
 ~~~~~~~
 
-``-4``
+.. option:: -4
+
    This option tells ``named`` to use only IPv4, even if the host machine is capable of IPv6. ``-4`` and
    ``-6`` are mutually exclusive.
 
-``-6``
+.. option:: -6
+
    This option tells ``named`` to use only IPv6, even if the host machine is capable of IPv4. ``-4`` and
    ``-6`` are mutually exclusive.
 
-``-c config-file``
+.. option:: -c config-file
+
    This option tells ``named`` to use ``config-file`` as its configuration file instead of the default,
    |named_conf|. To ensure that the configuration file
    can be reloaded after the server has changed its working directory
    due to to a possible ``directory`` option in the configuration file,
    ``config-file`` should be an absolute pathname.
 
-``-d debug-level``
+.. option:: -d debug-level
+
    This option sets the daemon's debug level to ``debug-level``. Debugging traces from
    ``named`` become more verbose as the debug level increases.
 
-``-D string``
+.. option:: -D string
+
    This option specifies a string that is used to identify a instance of ``named``
    in a process listing. The contents of ``string`` are not examined.
 
-``-E engine-name``
+.. option:: -E engine-name
+
    When applicable, this option specifies the hardware to use for cryptographic
    operations, such as a secure key store used for signing.
 
@@ -66,16 +72,20 @@ Options
    engine identifier that drives the cryptographic accelerator or
    hardware service module (usually ``pkcs11``).
 
-``-f``
+.. option:: -f
+
    This option runs the server in the foreground (i.e., do not daemonize).
 
-``-g``
+.. option:: -g
+
    This option runs the server in the foreground and forces all logging to ``stderr``.
 
-``-L logfile``
+.. option:: -L logfile
+
    This option sets the log to the file ``logfile`` by default, instead of the system log.
 
-``-M option``
+.. option:: -M option
+
    This option sets the default memory context options. If set to ``external``,
    the internal memory manager is bypassed in favor of
    system-provided memory allocation functions. If set to ``fill``, blocks
@@ -84,18 +94,21 @@ Options
    and is the default unless ``named`` has been compiled with developer
    options.
 
-``-m flag``
+.. option:: -m flag
+
    This option turns on memory usage debugging flags. Possible flags are ``usage``,
    ``trace``, ``record``, ``size``, and ``mctx``. These correspond to the
    ``ISC_MEM_DEBUGXXXX`` flags described in ``<isc/mem.h>``.
 
-``-n #cpus``
+.. option:: -n #cpus
+
    This option creates ``#cpus`` worker threads to take advantage of multiple CPUs. If
    not specified, ``named`` tries to determine the number of CPUs
    present and creates one thread per CPU. If it is unable to determine
    the number of CPUs, a single worker thread is created.
 
-``-p value``
+.. option:: -p value
+
    This option specifies the port(s) on which the server will listen
    for queries. If ``value`` is of the form ``<portnum>`` or
    ``dns=<portnum>``, the server will listen for DNS queries on
@@ -106,8 +119,9 @@ Options
    listen for HTTPS queries on ``portnum``; the default is 443.
    If ``value`` is of the form ``http=<portnum>``, the server will
    listen for HTTP queries on ``portnum``; the default is 80.
-   
-``-s``
+
+.. option:: -s
+
    This option writes memory usage statistics to ``stdout`` on exit.
 
 .. note::
@@ -115,7 +129,8 @@ Options
       This option is mainly of interest to BIND 9 developers and may be
       removed or changed in a future release.
 
-``-S #max-socks``
+.. option:: -S #max-socks
+
    This option is deprecated and no longer has any function.
 
 .. warning::
@@ -130,7 +145,8 @@ Options
       specified value, because ``named`` reserves some file descriptors
       for its internal use.
 
-``-t directory``
+.. option:: -t directory
+
    This option tells ``named`` to chroot to ``directory`` after processing the command-line arguments, but
    before reading the configuration file.
 
@@ -141,7 +157,8 @@ Options
       most systems; the way ``chroot`` is defined allows a process
       with root privileges to escape a chroot jail.
 
-``-U #listeners``
+.. option:: -U #listeners
+
    This option tells ``named`` the number of ``#listeners`` worker threads to listen on, for incoming UDP packets on
    each address. If not specified, ``named`` calculates a default
    value based on the number of detected CPUs: 1 for 1 CPU, and the
@@ -151,7 +168,8 @@ Options
    CPUs, then ``-U`` may be increased as high as that value, but no
    higher.
 
-``-u user``
+.. option:: -u user
+
    This option sets the setuid to ``user`` after completing privileged operations, such as
    creating sockets that listen on privileged ports.
 
@@ -165,13 +183,16 @@ Options
       previous kernels did not allow privileges to be retained after
       ``setuid``.
 
-``-v``
+.. option:: -v
+
    This option reports the version number and exits.
 
-``-V``
+.. option:: -V
+
    This option reports the version number and build options, and exits.
 
-``-X lock-file``
+.. option:: -X lock-file
+
    This option acquires a lock on the specified file at runtime; this helps to
    prevent duplicate ``named`` instances from running simultaneously.
    Use of this option overrides the ``lock-file`` option in

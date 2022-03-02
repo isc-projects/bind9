@@ -30,22 +30,27 @@ input and checks whether it is syntactically correct.
 Options
 ~~~~~~~
 
-``-h``
+.. option:: -h
+
    This option prints out the help menu.
 
-``-o origin``
+.. option:: -o origin
+
    This option specifies the origin to be used when interpreting
    the record.
 
-``-p``
+.. option:: -p
+
    This option prints out the resulting record in canonical form. If there
    is no canonical form defined, the record is printed in unknown
    record format.
 
-``-u``
+.. option:: -u
+
    This option prints out the resulting record in unknown record form.
 
-``-C``, ``-T``, and ``-P``
+.. option:: -C, -T, -P
+
    These options print out the known class, standard type,
    and private type mnemonics, respectively.
 

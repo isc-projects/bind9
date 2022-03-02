@@ -68,7 +68,8 @@ A typical invocation of ``delv`` looks like:
 
 where:
 
-``server``
+.. option:: server
+
    is the name or IP address of the name server to query. This can be an
    IPv4 address in dotted-decimal notation or an IPv6 address in
    colon-delimited notation. When the supplied ``server`` argument is a
@@ -84,10 +85,12 @@ where:
    sends queries to the localhost addresses (127.0.0.1 for IPv4, ::1
    for IPv6).
 
-``name``
+.. option:: name
+
    is the domain name to be looked up.
 
-``type``
+.. option:: type
+
    indicates what type of query is required - ANY, A, MX, etc.
    ``type`` can be any valid query type. If no ``type`` argument is
    supplied, ``delv`` performs a lookup for an A record.
@@ -95,7 +98,8 @@ where:
 Options
 ~~~~~~~
 
-``-a anchor-file``
+.. option:: -a anchor-file
+
    This option specifies a file from which to read DNSSEC trust anchors. The default
    is |bind_keys|, which is included with BIND 9 and contains one
    or more trust anchors for the root zone (".").
@@ -111,27 +115,32 @@ Options
    revoked and rolled over, |bind_keys| must be updated to
    use DNSSEC validation in ``delv``.
 
-``-b address``
+.. option:: -b address
+
    This option sets the source IP address of the query to ``address``. This must be
    a valid address on one of the host's network interfaces, or ``0.0.0.0``,
    or ``::``. An optional source port may be specified by appending
    ``#<port>``
 
-``-c class``
+.. option:: -c class
+
    This option sets the query class for the requested data. Currently, only class
    "IN" is supported in ``delv`` and any other value is ignored.
 
-``-d level``
+.. option:: -d level
+
    This option sets the systemwide debug level to ``level``. The allowed range is
    from 0 to 99. The default is 0 (no debugging). Debugging traces from
    ``delv`` become more verbose as the debug level increases. See the
    ``+mtrace``, ``+rtrace``, and ``+vtrace`` options below for
    additional debugging details.
 
-``-h``
+.. option:: -h
+
    This option displays the ``delv`` help usage output and exits.
 
-``-i``
+.. option:: -i
+
    This option sets insecure mode, which disables internal DNSSEC validation. (Note,
    however, that this does not set the CD bit on upstream queries. If the
    server being queried is performing DNSSEC validation, then it does
@@ -139,23 +148,27 @@ Options
    is necessary to examine invalid data to debug a DNSSEC problem, use
    ``dig +cd``.)
 
-``-m``
+.. option:: -m
+
    This option enables memory usage debugging.
 
-``-p port#``
+.. option:: -p port#
+
    This option specifies a destination port to use for queries, instead of the
    standard DNS port number 53. This option is used with a name
    server that has been configured to listen for queries on a
    non-standard port number.
 
-``-q name``
+.. option:: -q name
+
    This option sets the query name to ``name``. While the query name can be
    specified without using the ``-q`` option, it is sometimes necessary to
    disambiguate names from types or classes (for example, when looking
    up the name "ns", which could be misinterpreted as the type NS, or
    "ch", which could be misinterpreted as class CH).
 
-``-t type``
+.. option:: -t type
+
    This option sets the query type to ``type``, which can be any valid query type
    supported in BIND 9 except for zone transfer types AXFR and IXFR. As
    with ``-q``, this is useful to distinguish query-name types or classes
@@ -165,10 +178,12 @@ Options
    The default query type is "A", unless the ``-x`` option is supplied
    to indicate a reverse lookup, in which case it is "PTR".
 
-``-v``
+.. option:: -v
+
    This option prints the ``delv`` version and exits.
 
-``-x addr``
+.. option:: -x addr
+
    This option performs a reverse lookup, mapping an address to a name. ``addr``
    is an IPv4 address in dotted-decimal notation, or a colon-delimited
    IPv6 address. When ``-x`` is used, there is no need to provide the
@@ -177,10 +192,12 @@ Options
    query type to PTR. IPv6 addresses are looked up using nibble format
    under the IP6.ARPA domain.
 
-``-4``
+.. option:: -4
+
    This option forces ``delv`` to only use IPv4.
 
-``-6``
+.. option:: -6
+
    This option forces ``delv`` to only use IPv6.
 
 Query Options
@@ -195,7 +212,8 @@ the string ``no`` to negate the meaning of that keyword. Other keywords
 assign values to options like the timeout interval. They have the form
 ``+keyword=value``. The query options are:
 
-``+[no]cdflag``
+.. option:: +[no]cdflag
+
    This option controls whether to set the CD (checking disabled) bit in queries
    sent by ``delv``. This may be useful when troubleshooting DNSSEC
    problems from behind a validating resolver. A validating resolver
@@ -204,15 +222,18 @@ assign values to options like the timeout interval. They have the form
    to return invalid responses, which ``delv`` can then validate
    internally and report the errors in detail.
 
-``+[no]class``
+.. option:: +[no]class
+
    This option controls whether to display the CLASS when printing a record. The
    default is to display the CLASS.
 
-``+[no]ttl``
+.. option:: +[no]ttl
+
    This option controls whether to display the TTL when printing a record. The
    default is to display the TTL.
 
-``+[no]rtrace``
+.. option:: +[no]rtrace
+
    This option toggles resolver fetch logging. This reports the name and type of each
    query sent by ``delv`` in the process of carrying out the resolution
    and validation process, including the original query
@@ -224,7 +245,8 @@ assign values to options like the timeout interval. They have the form
    ``-d`` option produces the same output, but affects other
    logging categories as well.
 
-``+[no]mtrace``
+.. option:: +[no]mtrace
+
    This option toggles message logging. This produces a detailed dump of the
    responses received by ``delv`` in the process of carrying out the
    resolution and validation process.
@@ -234,7 +256,8 @@ assign values to options like the timeout interval. They have the form
    debug level to 10 using the ``-d`` option produces the same
    output, but affects other logging categories as well.
 
-``+[no]vtrace``
+.. option:: +[no]vtrace
+
    This option toggles validation logging. This shows the internal process of the
    validator as it determines whether an answer is validly signed,
    unsigned, or invalid.
@@ -244,20 +267,24 @@ assign values to options like the timeout interval. They have the form
    systemwide debug level to 3 using the ``-d`` option produces the
    same output, but affects other logging categories as well.
 
-``+[no]short``
+.. option:: +[no]short
+
    This option toggles between verbose and terse answers. The default is to print the answer in a
    verbose form.
 
-``+[no]comments``
+.. option:: +[no]comments
+
    This option toggles the display of comment lines in the output. The default is to
    print comments.
 
-``+[no]rrcomments``
+.. option:: +[no]rrcomments
+
    This option toggles the display of per-record comments in the output (for example,
    human-readable key information about DNSKEY records). The default is
    to print per-record comments.
 
-``+[no]crypto``
+.. option:: +[no]crypto
+
    This option toggles the display of cryptographic fields in DNSSEC records. The
    contents of these fields are unnecessary to debug most DNSSEC
    validation failures and removing them makes it easier to see the
@@ -265,28 +292,33 @@ assign values to options like the timeout interval. They have the form
    they are replaced by the string ``[omitted]`` or, in the DNSKEY case, the
    key ID is displayed as the replacement, e.g. ``[ key id = value ]``.
 
-``+[no]trust``
+.. option:: +[no]trust
+
    This option controls whether to display the trust level when printing a record.
    The default is to display the trust level.
 
-``+[no]split[=W]``
+.. option:: +[no]split[=W]
+
    This option splits long hex- or base64-formatted fields in resource records into
    chunks of ``W`` characters (where ``W`` is rounded up to the nearest
    multiple of 4). ``+nosplit`` or ``+split=0`` causes fields not to be
    split at all. The default is 56 characters, or 44 characters when
    multiline mode is active.
 
-``+[no]all``
+.. option:: +[no]all
+
    This option sets or clears the display options ``+[no]comments``,
    ``+[no]rrcomments``, and ``+[no]trust`` as a group.
 
-``+[no]multiline``
+.. option:: +[no]multiline
+
    This option prints long records (such as RRSIG, DNSKEY, and SOA records) in a
    verbose multi-line format with human-readable comments. The default
    is to print each record on a single line, to facilitate machine
    parsing of the ``delv`` output.
 
-``+[no]dnssec``
+.. option:: +[no]dnssec
+
    This option indicates whether to display RRSIG records in the ``delv`` output.
    The default is to do so. Note that (unlike in ``dig``) this does
    *not* control whether to request DNSSEC records or to
@@ -294,23 +326,27 @@ assign values to options like the timeout interval. They have the form
    always occurs unless suppressed by the use of ``-i`` or
    ``+noroot``.
 
-``+[no]root[=ROOT]``
+.. option:: +[no]root[=ROOT]
+
    This option indicates whether to perform conventional DNSSEC validation, and if so,
    specifies the name of a trust anchor. The default is to validate using a
    trust anchor of "." (the root zone), for which there is a built-in key. If
    specifying a different trust anchor, then ``-a`` must be used to specify a
    file containing the key.
 
-``+[no]tcp``
+.. option:: +[no]tcp
+
    This option controls whether to use TCP when sending queries. The default is to
    use UDP unless a truncated response has been received.
 
-``+[no]unknownformat``
+.. option:: +[no]unknownformat
+
    This option prints all RDATA in unknown RR-type presentation format (:rfc:`3597`).
    The default is to print RDATA for known types in the type's
    presentation format.
 
-``+[no]yaml``
+.. option:: +[no]yaml
+
    This option prints response data in YAML format.
 
 Files

@@ -34,7 +34,8 @@ by hand. Alternatively, it can be run with the ``-a`` option to set up a
 Options
 ~~~~~~~
 
-``-a``
+.. option:: -a
+
    This option sets automatic ``rndc`` configuration, which creates a file
    |rndc_key| that is read by both ``rndc`` and ``named`` on startup.
    The ``rndc.key`` file defines a default command channel and
@@ -46,46 +47,56 @@ Options
    remotely, run ``rndc-confgen`` without the ``-a`` option
    and set up ``rndc.conf`` and ``named.conf`` as directed.
 
-``-A algorithm``
+.. option:: -A algorithm
+
    This option specifies the algorithm to use for the TSIG key. Available choices
    are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, and
    hmac-sha512. The default is hmac-sha256.
 
-``-b keysize``
+.. option:: -b keysize
+
    This option specifies the size of the authentication key in bits. The size must be between
    1 and 512 bits; the default is the hash size.
 
-``-c keyfile``
+.. option:: -c keyfile
+
    This option is used with the ``-a`` option to specify an alternate location for
    ``rndc.key``.
 
-``-h``
+.. option:: -h
+
    This option prints a short summary of the options and arguments to
    ``rndc-confgen``.
 
-``-k keyname``
+.. option:: -k keyname
+
    This option specifies the key name of the ``rndc`` authentication key. This must be a
    valid domain name. The default is ``rndc-key``.
 
-``-p port``
+.. option:: -p port
+
    This option specifies the command channel port where ``named`` listens for
    connections from ``rndc``. The default is 953.
 
-``-q``
+.. option:: -q
+
    This option prevets printing the written path in automatic configuration mode.
 
-``-s address``
+.. option:: -s address
+
    This option specifies the IP address where ``named`` listens for command-channel
    connections from ``rndc``. The default is the loopback address
    127.0.0.1.
 
-``-t chrootdir``
+.. option:: -t chrootdir
+
    This option is used with the ``-a`` option to specify a directory where ``named``
    runs chrooted. An additional copy of the ``rndc.key`` is
    written relative to this directory, so that it is found by the
    chrooted ``named``.
 
-``-u user``
+.. option:: -u user
+
    This option is used with the ``-a`` option to set the owner of the generated ``rndc.key`` file.
    If ``-t`` is also specified, only the file in the chroot
    area has its owner changed.

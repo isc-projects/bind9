@@ -72,7 +72,8 @@ maintain a ``dsset-`` file as well as emit an ``nsupdate`` script.
 Options
 ~~~~~~~
 
-``-a algorithm``
+.. option:: -a algorithm
+
    When converting CDS records to DS records, this option specifies
    the acceptable digest algorithms. This option can be repeated, so
    that multiple digest types are allowed. If none of the CDS records
@@ -87,15 +88,18 @@ Options
    are case-insensitive, and the hyphen may be omitted. If no algorithm
    is specified, the default is SHA-256 only.
 
-``-c class``
+.. option:: -c class
+
    This option specifies the DNS class of the zones.
 
-``-D``
+.. option:: -D
+
    This option generates DS records from CDNSKEY records if both CDS and CDNSKEY
    records are present in the child zone. By default CDS records are
    preferred.
 
-``-d path``
+.. option:: -d path
+
    This specifies the location of the parent DS records. The path can be the name of a file
    containing the DS records; if it is a directory, ``dnssec-cds``
    looks for a ``dsset-`` file for the domain inside the directory.
@@ -104,14 +108,16 @@ Options
    were signed earlier than the modification time of the ``dsset-``
    file. This can be adjusted with the ``-s`` option.
 
-``-f child-file``
+.. option:: -f child-file
+
    This option specifies the file containing the child's CDS and/or CDNSKEY records, plus its
    DNSKEY records and the covering RRSIG records, so that they can be
    authenticated.
 
    The examples below describe how to generate this file.
 
-``-iextension``
+.. option:: -iextension
+
    This option updates the ``dsset-`` file in place, instead of writing DS records to
    the standard output.
 
@@ -125,7 +131,8 @@ Options
    child records, provided that it is later than the file's current
    modification time.
 
-``-s start-time``
+.. option:: -s start-time
+
    This option specifies the date and time after which RRSIG records become
    acceptable. This can be either an absolute or a relative time. An
    absolute start time is indicated by a number in YYYYMMDDHHMMSS
@@ -137,12 +144,14 @@ Options
    If no start-time is specified, the modification time of the
    ``dsset-`` file is used.
 
-``-T ttl``
+.. option:: -T ttl
+
    This option specifies a TTL to be used for new DS records. If not specified, the
    default is the TTL of the old DS records. If they had no explicit TTL,
    the new DS records also have no explicit TTL.
 
-``-u``
+.. option:: -u
+
    This option writes an ``nsupdate`` script to the standard output, instead of
    printing the new DS reords. The output is empty if no change is
    needed.
@@ -151,10 +160,12 @@ Options
    original ``dsset-`` file, with the ``-T`` option, or using the
    ``nsupdate`` ``ttl`` command.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level. Level 1 is intended to be usefully verbose
    for general users; higher levels are intended for developers.
 

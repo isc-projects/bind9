@@ -69,7 +69,7 @@ purposes.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-f\fP
+.B \-f
 This option forces an update of an old\-format key with no metadata fields. Without
 this option, \fBdnssec\-settime\fP fails when attempting to update a
 legacy key. With this option, the key is recreated in the new
@@ -77,11 +77,15 @@ format, but with the original key data retained. The key\(aqs creation
 date is set to the present time. If no other values are
 specified, then the key\(aqs publication and activation dates are also
 set to the present time.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-K directory\fP
+.B \-K directory
 This option sets the directory in which the key files are to reside.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-L ttl\fP
+.B \-L ttl
 This option sets the default TTL to use for this key when it is converted into a
 DNSKEY RR. This is the TTL used when the key is imported into a zone,
 unless there was already a DNSKEY RRset in
@@ -89,17 +93,25 @@ place, in which case the existing TTL takes precedence. If this
 value is not set and there is no existing DNSKEY RRset, the TTL
 defaults to the SOA TTL. Setting the default TTL to \fB0\fP or \fBnone\fP
 removes it from the key.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-h\fP
+.B \-h
 This option emits a usage message and exits.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-V\fP
+.B \-V
 This option prints version information.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-v level\fP
+.B \-v level
 This option sets the debugging level.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-E engine\fP
+.B \-E engine
 This option specifies the cryptographic hardware to use, when applicable.
 .sp
 When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
@@ -118,55 +130,75 @@ respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use \fBnone\fP or \fBnever\fP\&.
 .INDENT 0.0
 .TP
-.B \fB\-P date/offset\fP
+.B \-P date/offset
 This option sets the date on which a key is to be published to the zone. After
 that date, the key is included in the zone but is not used
 to sign it.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-P ds date/offset\fP
+.B \-P ds date/offset
 This option sets the date on which DS records that match this key have been
 seen in the parent zone.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-P sync date/offset\fP
+.B \-P sync date/offset
 This option sets the date on which CDS and CDNSKEY records that match this key
 are to be published to the zone.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-A date/offset\fP
+.B \-A date/offset
 This option sets the date on which the key is to be activated. After that date,
 the key is included in the zone and used to sign it.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-R date/offset\fP
+.B \-R date/offset
 This option sets the date on which the key is to be revoked. After that date, the
 key is flagged as revoked. It is included in the zone and
 is used to sign it.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-I date/offset\fP
+.B \-I date/offset
 This option sets the date on which the key is to be retired. After that date, the
 key is still included in the zone, but it is not used to
 sign it.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D date/offset\fP
+.B \-D date/offset
 This option sets the date on which the key is to be deleted. After that date, the
 key is no longer included in the zone. (However, it may remain in the key
 repository.)
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D ds date/offset\fP
+.B \-D ds date/offset
 This option sets the date on which the DS records that match this key have
 been seen removed from the parent zone.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D sync date/offset\fP
+.B \-D sync date/offset
 This option sets the date on which the CDS and CDNSKEY records that match this
 key are to be deleted.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-S predecessor key\fP
+.B \-S predecessor key
 This option selects a key for which the key being modified is an explicit
 successor. The name, algorithm, size, and type of the predecessor key
 must exactly match those of the key being modified. The activation
 date of the successor key is set to the inactivation date of the
 predecessor. The publication date is set to the activation date
 minus the prepublication interval, which defaults to 30 days.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-i interval\fP
+.B \-i interval
 This option sets the prepublication interval for a key. If set, then the
 publication and activation dates must be separated by at least this
 much time. If the activation date is specified but the publication
@@ -193,22 +225,32 @@ purpose, but should never be used in production.
 Known key states are HIDDEN, RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 .INDENT 0.0
 .TP
-.B \fB\-s\fP
+.B \-s
 This option indicates that when setting key timing data, the state file should also be updated.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-g state\fP
+.B \-g state
 This option sets the goal state for this key. Must be HIDDEN or OMNIPRESENT.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-d state date/offset\fP
+.B \-d state date/offset
 This option sets the DS state for this key as of the specified date, offset from the current date.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-k state date/offset\fP
+.B \-k state date/offset
 This option sets the DNSKEY state for this key as of the specified date, offset from the current date.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-r state date/offset\fP
+.B \-r state date/offset
 This option sets the RRSIG (KSK) state for this key as of the specified date, offset from the current date.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-z state date/offset\fP
+.B \-z state date/offset
 This option sets the RRSIG (ZSK) state for this key as of the specified date, offset from the current date.
 .UNINDENT
 .SH PRINTING OPTIONS
@@ -217,10 +259,12 @@ This option sets the RRSIG (ZSK) state for this key as of the specified date, of
 associated with a key.
 .INDENT 0.0
 .TP
-.B \fB\-u\fP
+.B \-u
 This option indicates that times should be printed in Unix epoch format.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all\fP
+.B \-p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
 This option prints a specific metadata value or set of metadata values.
 The \fB\-p\fP option may be followed by one or more of the following letters or
 strings to indicate which value or values to print: \fBC\fP for the

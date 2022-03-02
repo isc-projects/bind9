@@ -41,34 +41,48 @@ containing the now\-revoked key.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-h\fP
+.B \-h
 This option emits a usage message and exits.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-K directory\fP
+.B \-K directory
 This option sets the directory in which the key files are to reside.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-r\fP
+.B \-r
 This option indicates to remove the original keyset files after writing the new keyset files.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-v level\fP
+.B \-v level
 This option sets the debugging level.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-V\fP
+.B \-V
 This option prints version information.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-E engine\fP
+.B \-E engine
 This option specifies the cryptographic hardware to use, when applicable.
 .sp
 When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
 engine identifier that drives the cryptographic accelerator or
 hardware service module (usually \fBpkcs11\fP).
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-f\fP
+.B \-f
 This option indicates a forced overwrite and causes \fBdnssec\-revoke\fP to write the new key pair,
 even if a file already exists matching the algorithm and key ID of
 the revoked key.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-R\fP
+.B \-R
 This option prints the key tag of the key with the REVOKE bit set, but does not
 revoke the key.
 .UNINDENT

@@ -85,7 +85,7 @@ maintain a \fBdsset\-\fP file as well as emit an \fBnsupdate\fP script.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-a algorithm\fP
+.B \-a algorithm
 When converting CDS records to DS records, this option specifies
 the acceptable digest algorithms. This option can be repeated, so
 that multiple digest types are allowed. If none of the CDS records
@@ -99,16 +99,22 @@ are created for each CDNSKEY records.
 The algorithm must be one of SHA\-1, SHA\-256, or SHA\-384. These values
 are case\-insensitive, and the hyphen may be omitted. If no algorithm
 is specified, the default is SHA\-256 only.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-c class\fP
+.B \-c class
 This option specifies the DNS class of the zones.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-D\fP
+.B \-D
 This option generates DS records from CDNSKEY records if both CDS and CDNSKEY
 records are present in the child zone. By default CDS records are
 preferred.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-d path\fP
+.B \-d path
 This specifies the location of the parent DS records. The path can be the name of a file
 containing the DS records; if it is a directory, \fBdnssec\-cds\fP
 looks for a \fBdsset\-\fP file for the domain inside the directory.
@@ -116,15 +122,19 @@ looks for a \fBdsset\-\fP file for the domain inside the directory.
 To protect against replay attacks, child records are rejected if they
 were signed earlier than the modification time of the \fBdsset\-\fP
 file. This can be adjusted with the \fB\-s\fP option.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-f child\-file\fP
+.B \-f child\-file
 This option specifies the file containing the child\(aqs CDS and/or CDNSKEY records, plus its
 DNSKEY records and the covering RRSIG records, so that they can be
 authenticated.
 .sp
 The examples below describe how to generate this file.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-iextension\fP
+.B \-iextension
 This option updates the \fBdsset\-\fP file in place, instead of writing DS records to
 the standard output.
 .sp
@@ -137,8 +147,10 @@ To protect against replay attacks, the modification time of the
 \fBdsset\-\fP file is set to match the signature inception time of the
 child records, provided that it is later than the file\(aqs current
 modification time.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-s start\-time\fP
+.B \-s start\-time
 This option specifies the date and time after which RRSIG records become
 acceptable. This can be either an absolute or a relative time. An
 absolute start time is indicated by a number in YYYYMMDDHHMMSS
@@ -149,13 +161,17 @@ current time is indicated with \fBnow+N\fP\&.
 .sp
 If no start\-time is specified, the modification time of the
 \fBdsset\-\fP file is used.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-T ttl\fP
+.B \-T ttl
 This option specifies a TTL to be used for new DS records. If not specified, the
 default is the TTL of the old DS records. If they had no explicit TTL,
 the new DS records also have no explicit TTL.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-u\fP
+.B \-u
 This option writes an \fBnsupdate\fP script to the standard output, instead of
 printing the new DS reords. The output is empty if no change is
 needed.
@@ -163,13 +179,19 @@ needed.
 Note: The TTL of new records needs to be specified: it can be done in the
 original \fBdsset\-\fP file, with the \fB\-T\fP option, or using the
 \fBnsupdate\fP \fBttl\fP command.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-V\fP
+.B \-V
 This option prints version information.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-v level\fP
+.B \-v level
 This option sets the debugging level. Level 1 is intended to be usefully verbose
 for general users; higher levels are intended for developers.
+.UNINDENT
+.INDENT 0.0
 .TP
 .B \fBdomain\fP
 This indicates the name of the delegation point/child zone apex.

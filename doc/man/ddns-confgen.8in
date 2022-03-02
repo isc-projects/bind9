@@ -54,37 +54,47 @@ be used from a remote system.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \fB\-a algorithm\fP
+.B \-a algorithm
 This option specifies the algorithm to use for the TSIG key. Available
 choices are: hmac\-md5, hmac\-sha1, hmac\-sha224, hmac\-sha256, hmac\-sha384,
 and hmac\-sha512. The default is hmac\-sha256. Options are
 case\-insensitive, and the "hmac\-" prefix may be omitted.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-h\fP
+.B \-h
 This option prints a short summary of options and arguments.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-k keyname\fP
+.B \-k keyname
 This option specifies the key name of the DDNS authentication key. The
 default is \fBddns\-key\fP when neither the \fB\-s\fP nor \fB\-z\fP option is
 specified; otherwise, the default is \fBddns\-key\fP as a separate label
 followed by the argument of the option, e.g., \fBddns\-key.example.com.\fP
 The key name must have the format of a valid domain name, consisting of
 letters, digits, hyphens, and periods.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-q\fP
+.B \-q
 This option enables quiet mode, which prints only the key, with no
 explanatory text or usage examples. This is essentially identical to
 \fBtsig\-keygen\fP\&.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-s name\fP
+.B \-s name
 This option generates a configuration example to allow dynamic updates
 of a single hostname. The example \fBnamed.conf\fP text shows how to set
 an update policy for the specified name using the "name" nametype. The
 default key name is \fBddns\-key.name\fP\&. Note that the "self" nametype
 cannot be used, since the name to be updated may differ from the key
 name. This option cannot be used with the \fB\-z\fP option.
+.UNINDENT
+.INDENT 0.0
 .TP
-.B \fB\-z zone\fP
+.B \-z zone
 This option generates a configuration example to allow
 dynamic updates of a zone. The example \fBnamed.conf\fP text shows how
 to set an update policy for the specified zone using the "zonesub"

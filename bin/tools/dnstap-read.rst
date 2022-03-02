@@ -32,18 +32,22 @@ longer and more detailed YAML format is used.
 Options
 ~~~~~~~
 
-``-m``
+.. option:: -m
+
    This option indicates trace memory allocations, and is used for debugging memory leaks.
 
-``-p``
+.. option:: -p
+
    This option prints the text form of the DNS
    message that was encapsulated in the ``dnstap`` frame, after printing the ``dnstap`` data.
 
-``-x``
+.. option:: -x
+
    This option prints a hex dump of the wire form
    of the DNS message that was encapsulated in the ``dnstap`` frame, after printing the ``dnstap`` data.
 
-``-y``
+.. option:: -y
+
    This option prints ``dnstap`` data in a detailed YAML format.
 
 See Also
