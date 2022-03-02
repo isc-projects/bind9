@@ -49,6 +49,7 @@ man8_MANS =			\
 	filter-aaaa.8		\
 	named-checkconf.8	\
 	named-checkzone.8	\
+	named-compilezone.8	\
 	named-journalprint.8	\
 	named.8			\
 	nsec3hash.8		\
@@ -79,6 +80,7 @@ MANPAGES_RST =			\
 	mdig.rst		\
 	named-checkconf.rst	\
 	named-checkzone.rst	\
+	named-compilezone.rst	\
 	named-journalprint.rst	\
 	named-nzd2nzf.rst	\
 	named-rrchecker.rst	\
@@ -119,6 +121,7 @@ MANPAGES_IN = \
 	mdig.1in		\
 	named-checkconf.8in	\
 	named-checkzone.8in	\
+	named-compilezone.8in	\
 	named-journalprint.8in	\
 	named-nzd2nzf.8in	\
 	named-rrchecker.1in	\
