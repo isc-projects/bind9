@@ -78,7 +78,7 @@ for most situations. We cover the creation of a custom policy in
 default values.
 
 When the configuration file is updated, tell ``named`` to
-reload the configuration file by running ``rndc reconfig``:
+reload the configuration file by running :option:`rndc reconfig`:
 
 ::
 
@@ -1599,7 +1599,7 @@ of the zone, which looks something like this:
        file "db/example.com.signed.db";
    };
 
-Once the ``rndc reconfig`` command is issued, BIND serves a signed
+Once the :option:`rndc reconfig` command is issued, BIND serves a signed
 zone. The file ``dsset-example.com`` (created by ``dnssec-signzone``
 when it signed the ``example.com`` zone) contains the DS record for the
 zone's KSK. You will need to pass that to the administrator of the parent

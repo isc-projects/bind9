@@ -36,10 +36,10 @@ dnssec-settime \- set the key timing metadata for a DNSSEC key
 .SH DESCRIPTION
 .sp
 \fBdnssec\-settime\fP reads a DNSSEC private key file and sets the key
-timing metadata as specified by the \fB\-P\fP, \fB\-A\fP, \fB\-R\fP, \fB\-I\fP, and
-\fB\-D\fP options. The metadata can then be used by \fBdnssec\-signzone\fP or
-other signing software to determine when a key is to be published,
-whether it should be used for signing a zone, etc.
+timing metadata as specified by the \fI\%\-P\fP, \fI\%\-A\fP, \fI\%\-R\fP,
+\fI\%\-I\fP, and \fI\%\-D\fP options. The metadata can then be used by
+\fBdnssec\-signzone\fP or other signing software to determine when a key is
+to be published, whether it should be used for signing a zone, etc.
 .sp
 If none of these options is set on the command line,
 \fBdnssec\-settime\fP simply prints the key timing metadata already stored
@@ -55,12 +55,12 @@ the key file. The private file\(aqs permissions are always set to be
 inaccessible to anyone other than the owner (mode 0600).
 .sp
 When working with state files, it is possible to update the timing metadata in
-those files as well with \fB\-s\fP\&.  With this option, it is also possible to update key
-states with \fB\-d\fP (DS), \fB\-k\fP (DNSKEY), \fB\-r\fP (RRSIG of KSK), or \fB\-z\fP
-(RRSIG of ZSK). Allowed states are HIDDEN, RUMOURED, OMNIPRESENT, and
-UNRETENTIVE.
+those files as well with \fI\%\-s\fP\&.  With this option, it is also possible
+to update key states with \fI\%\-d\fP (DS), \fI\%\-k\fP (DNSKEY), \fI\%\-r\fP
+(RRSIG of KSK), or \fI\%\-z\fP (RRSIG of ZSK). Allowed states are HIDDEN,
+RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 .sp
-The goal state of the key can also be set with \fB\-g\fP\&. This should be either
+The goal state of the key can also be set with \fI\%\-g\fP\&. This should be either
 HIDDEN or OMNIPRESENT, representing whether the key should be removed from the
 zone or published.
 .sp
@@ -266,7 +266,7 @@ This option indicates that times should be printed in Unix epoch format.
 .TP
 .B \-p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
 This option prints a specific metadata value or set of metadata values.
-The \fB\-p\fP option may be followed by one or more of the following letters or
+The \fI\%\-p\fP option may be followed by one or more of the following letters or
 strings to indicate which value or values to print: \fBC\fP for the
 creation date, \fBP\fP for the publication date, \fBPds\(ga for the DS publication
 date, \(ga\(gaPsync\fP for the CDS and CDNSKEY publication date, \fBA\fP for the

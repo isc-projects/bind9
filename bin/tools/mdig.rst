@@ -231,7 +231,7 @@ Local Options
 
    This option sets the query type to ``type``. It can be any valid
    query type which is supported in BIND 9. The default query type is "A",
-   unless the ``-x`` option is supplied to indicate a reverse lookup with
+   unless the :option:`-x` option is supplied to indicate a reverse lookup with
    the "PTR" query type.
 
 .. option:: -x addr

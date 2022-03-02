@@ -79,7 +79,7 @@ Options
    Without this flag, it is assumed that the DNSKEY RRset is signed
    by all active keys. When this flag is set, it is not an error if
    the DNSKEY RRset is not signed by zone-signing keys. This corresponds
-   to the ``-x`` option in ``dnssec-signzone``.
+   to the :option:`-x option in dnssec-signzone <dnssec-signzone -x>`.
 
 .. option:: -z
 
@@ -94,9 +94,10 @@ Options
    the KSK flag state, and that other RRsets be signed by a
    non-revoked key for the same algorithm that includes the self-signed
    key; the same key may be used for both purposes. This corresponds to
-   the ``-z`` option in ``dnssec-signzone``.
+   the :option:`-z option in dnssec-signzone <dnssec-signzone -z>`.
 
-``zonefile``
+.. option:: zonefile
+
    This option indicates the file containing the zone to be signed.
 
 See Also

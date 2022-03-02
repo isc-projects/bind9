@@ -80,7 +80,7 @@ where:
 
    If no ``server`` argument is provided, ``delv`` consults
    ``/etc/resolv.conf``; if an address is found there, it queries the
-   name server at that address. If either of the ``-4`` or ``-6``
+   name server at that address. If either of the :option:`-4` or :option:`-6`
    options is in use, then only addresses for the corresponding
    transport are tried. If no usable addresses are found, ``delv``
    sends queries to the localhost addresses (127.0.0.1 for IPv4, ::1
@@ -163,7 +163,7 @@ Options
 .. option:: -q name
 
    This option sets the query name to ``name``. While the query name can be
-   specified without using the ``-q`` option, it is sometimes necessary to
+   specified without using the :option:`-q` option, it is sometimes necessary to
    disambiguate names from types or classes (for example, when looking
    up the name "ns", which could be misinterpreted as the type NS, or
    "ch", which could be misinterpreted as class CH).
@@ -172,11 +172,11 @@ Options
 
    This option sets the query type to ``type``, which can be any valid query type
    supported in BIND 9 except for zone transfer types AXFR and IXFR. As
-   with ``-q``, this is useful to distinguish query-name types or classes
+   with :option:`-q`, this is useful to distinguish query-name types or classes
    when they are ambiguous. It is sometimes necessary to disambiguate
    names from types.
 
-   The default query type is "A", unless the ``-x`` option is supplied
+   The default query type is "A", unless the :option:`-x` option is supplied
    to indicate a reverse lookup, in which case it is "PTR".
 
 .. option:: -v
@@ -187,7 +187,7 @@ Options
 
    This option performs a reverse lookup, mapping an address to a name. ``addr``
    is an IPv4 address in dotted-decimal notation, or a colon-delimited
-   IPv6 address. When ``-x`` is used, there is no need to provide the
+   IPv6 address. When :option:`-x` is used, there is no need to provide the
    ``name`` or ``type`` arguments; ``delv`` automatically performs a
    lookup for a name like ``11.12.13.10.in-addr.arpa`` and sets the
    query type to PTR. IPv6 addresses are looked up using nibble format
@@ -243,7 +243,7 @@ assign values to options like the timeout interval. They have the form
 
    This is equivalent to setting the debug level to 1 in the "resolver"
    logging category. Setting the systemwide debug level to 1 using the
-   ``-d`` option produces the same output, but affects other
+   :option:`-d` option produces the same output, but affects other
    logging categories as well.
 
 .. option:: +[no]mtrace
@@ -254,7 +254,7 @@ assign values to options like the timeout interval. They have the form
 
    This is equivalent to setting the debug level to 10 for the "packets"
    module of the "resolver" logging category. Setting the systemwide
-   debug level to 10 using the ``-d`` option produces the same
+   debug level to 10 using the :option:`-d` option produces the same
    output, but affects other logging categories as well.
 
 .. option:: +[no]vtrace
@@ -265,7 +265,7 @@ assign values to options like the timeout interval. They have the form
 
    This is equivalent to setting the debug level to 3 for the
    "validator" module of the "dnssec" logging category. Setting the
-   systemwide debug level to 3 using the ``-d`` option produces the
+   systemwide debug level to 3 using the :option:`-d` option produces the
    same output, but affects other logging categories as well.
 
 .. option:: +[no]short
@@ -324,7 +324,7 @@ assign values to options like the timeout interval. They have the form
    The default is to do so. Note that (unlike in ``dig``) this does
    *not* control whether to request DNSSEC records or to
    validate them. DNSSEC records are always requested, and validation
-   always occurs unless suppressed by the use of ``-i`` or
+   always occurs unless suppressed by the use of :option:`-i` or
    ``+noroot``.
 
 .. option:: +[no]root[=ROOT]
@@ -332,7 +332,7 @@ assign values to options like the timeout interval. They have the form
    This option indicates whether to perform conventional DNSSEC validation, and if so,
    specifies the name of a trust anchor. The default is to validate using a
    trust anchor of "." (the root zone), for which there is a built-in key. If
-   specifying a different trust anchor, then ``-a`` must be used to specify a
+   specifying a different trust anchor, then :option:`-a` must be used to specify a
    file containing the key.
 
 .. option:: +[no]tcp

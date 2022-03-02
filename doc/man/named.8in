@@ -46,14 +46,14 @@ listens for queries.
 .INDENT 0.0
 .TP
 .B \-4
-This option tells \fBnamed\fP to use only IPv4, even if the host machine is capable of IPv6. \fB\-4\fP and
-\fB\-6\fP are mutually exclusive.
+This option tells \fBnamed\fP to use only IPv4, even if the host machine is capable of IPv6. \fI\%\-4\fP and
+\fI\%\-6\fP are mutually exclusive.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-6
-This option tells \fBnamed\fP to use only IPv6, even if the host machine is capable of IPv4. \fB\-4\fP and
-\fB\-6\fP are mutually exclusive.
+This option tells \fBnamed\fP to use only IPv6, even if the host machine is capable of IPv4. \fI\%\-4\fP and
+\fI\%\-6\fP are mutually exclusive.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -184,7 +184,7 @@ before reading the configuration file.
 \fBWARNING:\fP
 .INDENT 0.0
 .INDENT 3.5
-This option should be used in conjunction with the \fB\-u\fP option,
+This option should be used in conjunction with the \fI\%\-u\fP option,
 as chrooting a process running as root doesn\(aqt enhance security on
 most systems; the way \fBchroot\fP is defined allows a process
 with root privileges to escape a chroot jail.
@@ -198,8 +198,8 @@ each address. If not specified, \fBnamed\fP calculates a default
 value based on the number of detected CPUs: 1 for 1 CPU, and the
 number of detected CPUs minus one for machines with more than 1 CPU.
 This cannot be increased to a value higher than the number of CPUs.
-If \fB\-n\fP has been set to a higher value than the number of detected
-CPUs, then \fB\-U\fP may be increased as high as that value, but no
+If \fI\%\-n\fP has been set to a higher value than the number of detected
+CPUs, then \fI\%\-U\fP may be increased as high as that value, but no
 higher.
 .UNINDENT
 .INDENT 0.0
@@ -215,7 +215,7 @@ creating sockets that listen on privileged ports.
 On Linux, \fBnamed\fP uses the kernel\(aqs capability mechanism to drop
 all root privileges except the ability to \fBbind\fP to a
 privileged port and set process resource limits. Unfortunately,
-this means that the \fB\-u\fP option only works when \fBnamed\fP is run
+this means that the \fI\%\-u\fP option only works when \fBnamed\fP is run
 on kernel 2.2.18 or later, or kernel 2.3.99\-pre3 or later, since
 previous kernels did not allow privileges to be retained after
 \fBsetuid\fP\&.

@@ -94,7 +94,7 @@ This option verifies only that the DNSKEY RRset is signed with key\-signing keys
 Without this flag, it is assumed that the DNSKEY RRset is signed
 by all active keys. When this flag is set, it is not an error if
 the DNSKEY RRset is not signed by zone\-signing keys. This corresponds
-to the \fB\-x\fP option in \fBdnssec\-signzone\fP\&.
+to the \fB\-x option in dnssec\-signzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -110,11 +110,11 @@ be at least one non\-revoked, self\-signed DNSKEY, regardless of
 the KSK flag state, and that other RRsets be signed by a
 non\-revoked key for the same algorithm that includes the self\-signed
 key; the same key may be used for both purposes. This corresponds to
-the \fB\-z\fP option in \fBdnssec\-signzone\fP\&.
+the \fB\-z option in dnssec\-signzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \fBzonefile\fP
+.B zonefile
 This option indicates the file containing the zone to be signed.
 .UNINDENT
 .SH SEE ALSO

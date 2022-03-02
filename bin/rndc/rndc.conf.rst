@@ -127,7 +127,7 @@ key statement indicates that "samplekey" uses the HMAC-SHA256 algorithm
 and its secret clause contains the base-64 encoding of the HMAC-SHA256
 secret enclosed in double quotes.
 
-If ``rndc -s testserver`` is used, then ``rndc`` connects to the server
+If :option:`rndc -s testserver <rndc -s>` is used, then ``rndc`` connects to the server
 on localhost port 5353 using the key "testkey".
 
 To generate a random secret with ``rndc-confgen``:

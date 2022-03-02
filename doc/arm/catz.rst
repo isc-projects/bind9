@@ -35,7 +35,7 @@ Principle of Operation
 
 Normally, if a zone is to be served by a secondary server, the
 ``named.conf`` file on the server must list the zone, or the zone must
-be added using ``rndc addzone``. In environments with a large number of
+be added using :option:`rndc addzone`. In environments with a large number of
 secondary servers, and/or where the zones being served are changing
 frequently, the overhead involved in maintaining consistent zone
 configuration on all the secondary servers can be significant.
@@ -56,11 +56,11 @@ To use the catalog zone feature to serve a new member zone:
 
 -  Set up the member zone to be served on the primary as normal. This
    can be done by editing ``named.conf`` or by running
-   ``rndc addzone``.
+   :option:`rndc addzone`.
 
 -  Add an entry to the catalog zone for the new member zone. This can
    be done by editing the catalog zone's zone file and running
-   ``rndc reload``, or by updating the zone using ``nsupdate``.
+   :option:`rndc reload`, or by updating the zone using ``nsupdate``.
 
 The change to the catalog zone is propagated from the primary to all
 secondaries using the normal AXFR/IXFR mechanism. When the secondary receives the
@@ -79,7 +79,7 @@ update, notices that the member zone has been removed, stops
 serving the zone, and removes it from its list of configured zones.
 However, removing the member zone from the primary server must be done
 by editing the configuration file or running
-``rndc delzone``.
+:option:`rndc delzone`.
 
 Configuring Catalog Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,8 +137,8 @@ specified in any order.
 
 Catalog zones are defined on a per-view basis. Configuring a non-empty
 ``catalog-zones`` statement in a view automatically turns on
-``allow-new-zones`` for that view. This means that ``rndc addzone``
-and ``rndc delzone`` also work in any view that supports catalog
+``allow-new-zones`` for that view. This means that :option:`rndc addzone`
+and :option:`rndc delzone` also work in any view that supports catalog
 zones.
 
 Catalog Zone Format

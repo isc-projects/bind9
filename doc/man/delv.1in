@@ -94,7 +94,7 @@ DNSSEC).
 .sp
 If no \fBserver\fP argument is provided, \fBdelv\fP consults
 \fB/etc/resolv.conf\fP; if an address is found there, it queries the
-name server at that address. If either of the \fB\-4\fP or \fB\-6\fP
+name server at that address. If either of the \fI\%\-4\fP or \fI\%\-6\fP
 options is in use, then only addresses for the corresponding
 transport are tried. If no usable addresses are found, \fBdelv\fP
 sends queries to the localhost addresses (127.0.0.1 for IPv4, ::1
@@ -186,7 +186,7 @@ non\-standard port number.
 .TP
 .B \-q name
 This option sets the query name to \fBname\fP\&. While the query name can be
-specified without using the \fB\-q\fP option, it is sometimes necessary to
+specified without using the \fI\%\-q\fP option, it is sometimes necessary to
 disambiguate names from types or classes (for example, when looking
 up the name "ns", which could be misinterpreted as the type NS, or
 "ch", which could be misinterpreted as class CH).
@@ -196,11 +196,11 @@ up the name "ns", which could be misinterpreted as the type NS, or
 .B \-t type
 This option sets the query type to \fBtype\fP, which can be any valid query type
 supported in BIND 9 except for zone transfer types AXFR and IXFR. As
-with \fB\-q\fP, this is useful to distinguish query\-name types or classes
+with \fI\%\-q\fP, this is useful to distinguish query\-name types or classes
 when they are ambiguous. It is sometimes necessary to disambiguate
 names from types.
 .sp
-The default query type is "A", unless the \fB\-x\fP option is supplied
+The default query type is "A", unless the \fI\%\-x\fP option is supplied
 to indicate a reverse lookup, in which case it is "PTR".
 .UNINDENT
 .INDENT 0.0
@@ -213,7 +213,7 @@ This option prints the \fBdelv\fP version and exits.
 .B \-x addr
 This option performs a reverse lookup, mapping an address to a name. \fBaddr\fP
 is an IPv4 address in dotted\-decimal notation, or a colon\-delimited
-IPv6 address. When \fB\-x\fP is used, there is no need to provide the
+IPv6 address. When \fI\%\-x\fP is used, there is no need to provide the
 \fBname\fP or \fBtype\fP arguments; \fBdelv\fP automatically performs a
 lookup for a name like \fB11.12.13.10.in\-addr.arpa\fP and sets the
 query type to PTR. IPv6 addresses are looked up using nibble format
@@ -273,7 +273,7 @@ of trust for DNSSEC validation.
 .sp
 This is equivalent to setting the debug level to 1 in the "resolver"
 logging category. Setting the systemwide debug level to 1 using the
-\fB\-d\fP option produces the same output, but affects other
+\fI\%\-d\fP option produces the same output, but affects other
 logging categories as well.
 .UNINDENT
 .INDENT 0.0
@@ -285,7 +285,7 @@ resolution and validation process.
 .sp
 This is equivalent to setting the debug level to 10 for the "packets"
 module of the "resolver" logging category. Setting the systemwide
-debug level to 10 using the \fB\-d\fP option produces the same
+debug level to 10 using the \fI\%\-d\fP option produces the same
 output, but affects other logging categories as well.
 .UNINDENT
 .INDENT 0.0
@@ -297,7 +297,7 @@ unsigned, or invalid.
 .sp
 This is equivalent to setting the debug level to 3 for the
 "validator" module of the "dnssec" logging category. Setting the
-systemwide debug level to 3 using the \fB\-d\fP option produces the
+systemwide debug level to 3 using the \fI\%\-d\fP option produces the
 same output, but affects other logging categories as well.
 .UNINDENT
 .INDENT 0.0
@@ -365,7 +365,7 @@ This option indicates whether to display RRSIG records in the \fBdelv\fP output.
 The default is to do so. Note that (unlike in \fBdig\fP) this does
 \fInot\fP control whether to request DNSSEC records or to
 validate them. DNSSEC records are always requested, and validation
-always occurs unless suppressed by the use of \fB\-i\fP or
+always occurs unless suppressed by the use of \fI\%\-i\fP or
 \fB+noroot\fP\&.
 .UNINDENT
 .INDENT 0.0
@@ -374,7 +374,7 @@ always occurs unless suppressed by the use of \fB\-i\fP or
 This option indicates whether to perform conventional DNSSEC validation, and if so,
 specifies the name of a trust anchor. The default is to validate using a
 trust anchor of "." (the root zone), for which there is a built\-in key. If
-specifying a different trust anchor, then \fB\-a\fP must be used to specify a
+specifying a different trust anchor, then \fI\%\-a\fP must be used to specify a
 file containing the key.
 .UNINDENT
 .INDENT 0.0

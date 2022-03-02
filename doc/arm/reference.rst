@@ -405,7 +405,7 @@ control channel listening on the loopback address 127.0.0.1 and its IPv6
 counterpart, ::1. In this case, and also when the ``controls`` statement
 is present but does not have a ``keys`` clause, ``named`` attempts
 to load the command channel key from the file |rndc_key|.
-To create an ``rndc.key`` file, run ``rndc-confgen -a``.
+To create an ``rndc.key`` file, run :option:`rndc-confgen -a`.
 
 To disable the command channel, use an empty ``controls`` statement:
 ``controls { };``.
@@ -495,7 +495,7 @@ logging configuration is:
         category unmatched { null; };
    };
 
-If ``named`` is started with the ``-L`` option, it logs to the specified
+If ``named`` is started with the :option:`-L <named -L>` option, it logs to the specified
 file at startup, instead of using syslog. In this case the logging
 configuration is:
 
@@ -509,7 +509,7 @@ configuration is:
 The logging configuration is only established when the entire
 configuration file has been parsed. When the server starts up, all
 logging messages regarding syntax errors in the configuration file go to
-the default channels, or to standard error if the ``-g`` option was
+the default channels, or to standard error if the :option:`-g <named -g>` option was
 specified.
 
 .. _channel:
@@ -608,8 +608,8 @@ configuration, for example.
 The server can supply extensive debugging information when it is in
 debugging mode. If the server's global debug level is greater than zero,
 debugging mode is active. The global debug level is set either
-by starting the ``named`` server with the ``-d`` flag followed by a
-positive integer, or by running ``rndc trace``. The global debug level
+by starting the ``named`` server with the :option:`-d <named -d>` flag followed by a
+positive integer, or by running :option:`rndc trace`. The global debug level
 can be set to zero, and debugging mode turned off, by running ``rndc
 notrace``. All debugging messages in the server have a debug level;
 higher debug levels give more detailed output. Channels that specify a
@@ -652,7 +652,7 @@ If ``buffered`` has been turned on, the output to files is not
 flushed after each log entry. By default all log messages are flushed.
 
 There are four predefined channels that are used for ``named``'s default
-logging, as follows. If ``named`` is started with the ``-L`` option, then a fifth
+logging, as follows. If ``named`` is started with the :option:`-L <named -L>` option, then a fifth
 channel, ``default_logfile``, is added. How they are used is described in
 :ref:`the_category_phrase`.
 
@@ -699,12 +699,12 @@ The ``default_debug`` channel has the special property that it only
 produces output when the server's debug level is non-zero. It normally
 writes to a file called ``named.run`` in the server's working directory.
 
-For security reasons, when the ``-u`` command-line option is used, the
+For security reasons, when the :option:`-u <named -u>` command-line option is used, the
 ``named.run`` file is created only after ``named`` has changed to the
 new UID, and any debug output generated while ``named`` is starting -
 and still running as root - is discarded. To capture this
-output, run the server with the ``-L`` option to specify a
-default logfile, or the ``-g`` option to log to standard error which can
+output, run the server with the :option:`-L <named -L>` option to specify a
+default logfile, or the :option:`-g <named -g>` option to log to standard error which can
 be redirected to a file.
 
 Once a channel is defined, it cannot be redefined. The
@@ -726,7 +726,7 @@ default category is specified, the following "default default" is used:
 
    category default { default_syslog; default_debug; };
 
-If ``named`` is started with the ``-L`` option, the default category
+If ``named`` is started with the :option:`-L <named -L>` option, the default category
 is:
 
 ::
@@ -1098,7 +1098,7 @@ default is used.
 
    ``dnstap-output`` can only be set globally in ``options``. Currently,
    it can only be set once while ``named`` is running; once set, it
-   cannot be changed by ``rndc reload`` or ``rndc reconfig``.
+   cannot be changed by :option:`rndc reload` or :option:`rndc reconfig`.
 
 ``dnstap-identity``
    This specifies an ``identity`` string to send in ``dnstap`` messages. If
@@ -1129,7 +1129,7 @@ default is used.
    When ``named`` is built with liblmdb, this option sets a maximum size
    for the memory map of the new-zone database (NZD) in LMDB database
    format. This database is used to store configuration information for
-   zones added using ``rndc addzone``. Note that this is not the NZD
+   zones added using :option:`rndc addzone`. Note that this is not the NZD
    database file size, but the largest size that the database may grow
    to.
 
@@ -1171,7 +1171,7 @@ default is used.
 
 ``new-zones-directory``
    This specifies the directory in which to store the configuration
-   parameters for zones added via ``rndc addzone``. By default, this is
+   parameters for zones added via :option:`rndc addzone`. By default, this is
    the working directory. If set to a relative path, it is relative
    to the working directory. The directory *must* be writable by the
    effective user ID of the ``named`` process.
@@ -1224,7 +1224,7 @@ default is used.
 
 ``dump-file``
    This is the pathname of the file the server dumps the database to, when
-   instructed to do so with ``rndc dumpdb``. If not specified, the
+   instructed to do so with :option:`rndc dumpdb`. If not specified, the
    default is ``named_dump.db``.
 
 ``memstatistics-file``
@@ -1239,7 +1239,7 @@ default is used.
    ``none``.
 
    Specifying ``lock-file none`` disables the use of a lock file.
-   ``lock-file`` is ignored if ``named`` was run using the ``-X``
+   ``lock-file`` is ignored if ``named`` was run using the :option:`-X <named -X>`
    option, which overrides it. Changes to ``lock-file`` are ignored if
    ``named`` is being reloaded or reconfigured; it is only effective
    when the server is first started.
@@ -1255,12 +1255,12 @@ default is used.
 
 ``recursing-file``
    This is the pathname of the file where the server dumps the queries that are
-   currently recursing, when instructed to do so with ``rndc recursing``.
+   currently recursing, when instructed to do so with :option:`rndc recursing`.
    If not specified, the default is ``named.recursing``.
 
 ``statistics-file``
    This is the pathname of the file the server appends statistics to, when
-   instructed to do so using ``rndc stats``. If not specified, the
+   instructed to do so using :option:`rndc stats`. If not specified, the
    default is ``named.stats`` in the server's current directory. The
    format of the file is described in :ref:`statsfile`.
 
@@ -1271,7 +1271,7 @@ default is used.
 
 ``secroots-file``
    This is the pathname of the file the server dumps security roots to, when
-   instructed to do so with ``rndc secroots``. If not specified, the
+   instructed to do so with :option:`rndc secroots`. If not specified, the
    default is ``named.secroots``.
 
 ``session-keyfile``
@@ -1519,7 +1519,7 @@ default is used.
 
 ``nta-lifetime``
    This specifies the default lifetime, in seconds, for
-   negative trust anchors added via ``rndc nta``.
+   negative trust anchors added via :option:`rndc nta`.
 
    A negative trust anchor selectively disables DNSSEC validation for
    zones that are known to be failing because of misconfiguration, rather
@@ -1537,7 +1537,7 @@ default is used.
 
 ``nta-recheck``
    This specifies how often to check whether negative trust anchors added via
-   ``rndc nta`` are still necessary.
+   :option:`rndc nta` are still necessary.
 
    A negative trust anchor is normally used when a domain has stopped
    validating due to operator error; it temporarily disables DNSSEC
@@ -1548,7 +1548,7 @@ default is used.
    negative trust anchor is allowed to expire early.
 
    Validity checks can be disabled for an individual NTA by using
-   ``rndc nta -f``, or for all NTAs by setting ``nta-recheck`` to zero.
+   :option:`rndc nta -f <rndc nta>`, or for all NTAs by setting ``nta-recheck`` to zero.
 
    For convenience, TTL-style time-unit suffixes can be used to specify the NTA
    recheck interval in seconds, minutes, or hours. It also accepts ISO 8601
@@ -1579,7 +1579,7 @@ default is used.
 
    For stale answers to be returned, they must be enabled, either in the
    configuration file using ``stale-answer-enable`` or via
-   ``rndc serve-stale on``.
+   :option:`rndc serve-stale on <rndc serve-stale>`.
 
 ``serial-update-method``
    Zones configured for dynamic DNS may use this option to set the
@@ -1611,7 +1611,7 @@ default is used.
    counters).
 
    These statistics may be accessed via the ``statistics-channel`` or
-   using ``rndc stats``, which dumps them to the file listed in the
+   using :option:`rndc stats`, which dumps them to the file listed in the
    ``statistics-file``. See also :ref:`statsfile`.
 
    For backward compatibility with earlier versions of BIND 9, the
@@ -1637,7 +1637,7 @@ Boolean Options
    support the routing sockets for this feature to work.
 
 ``allow-new-zones``
-   If ``yes``, then zones can be added at runtime via ``rndc addzone``.
+   If ``yes``, then zones can be added at runtime via :option:`rndc addzone`.
    The default is ``no``.
 
    Newly added zones' configuration parameters are stored so that they
@@ -1652,7 +1652,7 @@ Boolean Options
    Configurations for zones added at runtime are stored either in
    a new-zone file (NZF) or a new-zone database (NZD), depending on
    whether ``named`` was linked with liblmdb at compile time. See
-   :ref:`man_rndc` for further details about ``rndc addzone``.
+   :ref:`man_rndc` for further details about :option:`rndc addzone`.
 
 ``auth-nxdomain``
    If ``yes``, then the ``AA`` bit is always set on NXDOMAIN responses,
@@ -1661,8 +1661,8 @@ Boolean Options
 
 ``memstatistics``
    This writes memory statistics to the file specified by
-   ``memstatistics-file`` at exit. The default is ``no`` unless ``-m
-   record`` is specified on the command line, in which case it is ``yes``.
+   ``memstatistics-file`` at exit. The default is ``no`` unless :option:`-m
+   record <named -m>` is specified on the command line, in which case it is ``yes``.
 
 ``dialup``
    If ``yes``, then the server treats all zones as if they are doing
@@ -1885,12 +1885,12 @@ Boolean Options
    also enabled. The default is not to return stale answers.
 
    Stale answers can also be enabled or disabled at runtime via
-   ``rndc serve-stale on`` or ``rndc serve-stale off``; these override
-   the configured setting. ``rndc serve-stale reset`` restores the
+   :option:`rndc serve-stale on <rndc serve-stale>` or :option:`rndc serve-stale off <rndc serve-stale>`; these override
+   the configured setting. :option:`rndc serve-stale reset <rndc serve-stale>` restores the
    setting to the one specified in ``named.conf``. Note that if stale
    answers have been disabled by ``rndc``, they cannot be
    re-enabled by reloading or reconfiguring ``named``; they must be
-   re-enabled with ``rndc serve-stale on``, or the server must be
+   re-enabled with :option:`rndc serve-stale on <rndc serve-stale>`, or the server must be
    restarted.
 
    Information about stale answers is logged under the ``serve-stale``
@@ -2045,19 +2045,19 @@ Boolean Options
    settings:
 
    ``auto-dnssec allow;`` permits keys to be updated and the zone fully
-   re-signed whenever the user issues the command ``rndc sign zonename``.
+   re-signed whenever the user issues the command :option:`rndc sign zonename <rndc sign>`.
 
    ``auto-dnssec maintain;`` includes the above, but also
    automatically adjusts the zone's DNSSEC keys on a schedule, according
    to the keys' timing metadata (see :ref:`man_dnssec-keygen` and
-   :ref:`man_dnssec-settime`). The command ``rndc sign zonename``
+   :ref:`man_dnssec-settime`). The command :option:`rndc sign zonename <rndc sign>`
    causes ``named`` to load keys from the key repository and sign the
-   zone with all keys that are active. ``rndc loadkeys zonename``
+   zone with all keys that are active. :option:`rndc loadkeys zonename <rndc loadkeys>`
    causes ``named`` to load keys from the key repository and schedule
    key maintenance events to occur in the future, but it does not sign
    the full zone immediately. Note: once keys have been loaded for a
    zone the first time, the repository is searched for changes
-   periodically, regardless of whether ``rndc loadkeys`` is used. The
+   periodically, regardless of whether :option:`rndc loadkeys` is used. The
    recheck interval is defined by ``dnssec-loadkeys-interval``.
 
    ``auto-dnssec off;`` does not allow for DNSSEC key management.
@@ -2131,7 +2131,7 @@ Boolean Options
    ``named`` first starts.  If ``querylog`` is not specified, then query logging
    is determined by the presence of the logging category ``queries``.  Query
    logging can also be activated at runtime using the command ``rndc querylog
-   on``, or deactivated with ``rndc querylog off``.
+   on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
 ``check-names``
    This option is used to restrict the character set and syntax of
@@ -2219,7 +2219,7 @@ Boolean Options
    the KSK bit set) are only used to sign the DNSKEY RRset at the zone
    apex. However, if this option is set to ``no``, then the KSK bit is
    ignored; KSKs are treated as if they were ZSKs and are used to sign
-   the entire zone. This is similar to the ``dnssec-signzone -z``
+   the entire zone. This is similar to the :option:`dnssec-signzone -z`
    command-line option.
 
    When this option is set to ``yes``, there must be at least two active
@@ -2234,7 +2234,7 @@ Boolean Options
    used to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
    Zone-signing keys (keys without the KSK bit set) are used to sign
    the remainder of the zone, but not the DNSKEY RRset. This is similar
-   to the ``dnssec-signzone -x`` command-line option.
+   to the :option:`dnssec-signzone -x` command-line option.
 
    The default is ``yes``. If ``update-check-ksk`` is set to ``no``, this
    option is ignored.
@@ -2317,7 +2317,7 @@ on the host machine.
    able to resolve the name using only the transport it has. If the
    machine is dual-stacked, the ``dual-stack-servers`` parameter has no
    effect unless access to a transport has been disabled on the command
-   line (e.g., ``named -4``).
+   line (e.g., :option:`named -4`).
 
 .. _access_control:
 
@@ -3031,7 +3031,7 @@ system.
    default is zero.
 
    The current list of active fetches can be dumped by running
-   ``rndc recursing``. The list includes the number of active fetches
+   :option:`rndc recursing`. The list includes the number of active fetches
    for each domain and the number of queries that have been passed
    (allowed) or dropped (spilled) as a result of the ``fetches-per-zone``
    limit. (Note: these counters are not cumulative over time;
@@ -3151,7 +3151,7 @@ system.
    minimum are adjusted with a logged warning. (Note: this value
    must be greater than the expected round-trip delay time; otherwise, no
    client will ever have enough time to submit a message.) This value
-   can be updated at runtime by using ``rndc tcp-timeouts``.
+   can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-idle-timeout``
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
@@ -3161,7 +3161,7 @@ system.
    second). Values above the maximum or below the minimum are
    adjusted with a logged warning. See ``tcp-keepalive-timeout`` for
    clients using the EDNS TCP keepalive option. This value can be
-   updated at runtime by using ``rndc tcp-timeouts``.
+   updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-keepalive-timeout``
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
@@ -3172,7 +3172,7 @@ system.
    adjusted with a logged warning. This value may be greater than
    ``tcp-idle-timeout`` because clients using the EDNS TCP keepalive
    option are expected to use TCP connections for more than one message.
-   This value can be updated at runtime by using ``rndc tcp-timeouts``.
+   This value can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-advertised-timeout``
    This sets the timeout value (in units of 100 milliseconds) that the server sends
@@ -3182,7 +3182,7 @@ system.
    and the minimum is 0, which signals that the clients must close TCP
    connections immediately. Ordinarily this should be set to the same
    value as ``tcp-keepalive-timeout``. This value can be updated at
-   runtime by using ``rndc tcp-timeouts``.
+   runtime by using :option:`rndc tcp-timeouts`.
 
 .. _intervals:
 
@@ -3467,7 +3467,7 @@ Tuning
    For stale answers to be returned, the retaining of them in cache must be
    enabled via the configuration option ``stale-cache-enable``, and returning
    cached answers must be enabled, either in the configuration file using the
-   ``stale-answer-enable`` option or by calling ``rndc serve-stale on``.
+   ``stale-answer-enable`` option or by calling :option:`rndc serve-stale on <rndc serve-stale>`.
 
    When ``stale-cache-enable`` is set to ``no``, setting the ``max-stale-ttl``
    has no effect, the value of ``max-cache-ttl`` will be ``0`` in such case.
@@ -3535,12 +3535,12 @@ Tuning
    Signing-state records are used internally by ``named`` to track
    the current state of a zone-signing process, i.e., whether it is
    still active or has been completed. The records can be inspected
-   using the command ``rndc signing -list zone``. Once ``named`` has
+   using the command :option:`rndc signing -list zone <rndc signing>`. Once ``named`` has
    finished signing a zone with a particular key, the signing-state
    record associated with that key can be removed from the zone by
-   running ``rndc signing -clear keyid/algorithm zone``. To clear all of
+   running :option:`rndc signing -clear keyid/algorithm zone <rndc signing>`. To clear all of
    the completed signing-state records for a zone, use
-   ``rndc signing -clear all zone``.
+   :option:`rndc signing -clear all zone <rndc signing>`.
 
 ``min-refresh-time``; ``max-refresh-time``; ``min-retry-time``; ``max-retry-time``
    These options control the server's behavior on refreshing a zone
@@ -4959,7 +4959,7 @@ has been validated and proven secure.
 
 The resolver attempts DNSSEC validation on all DNS data in subdomains of
 configured trust anchors. Validation below specified names can be
-temporarily disabled by using ``rndc nta``, or permanently disabled with
+temporarily disabled by using :option:`rndc nta`, or permanently disabled with
 the ``validate-except`` option.
 
 All keys listed in ``trust-anchors``, and their corresponding zones, are
@@ -5627,7 +5627,7 @@ or ``delegation-only``.
 
    The zone data is maintained in the form of NS and (if necessary) glue A or
    AAAA RRs internally, which can be seen by dumping zone databases with
-   ``rndc dumpdb -all``. The configured RRs are considered local configuration
+   :option:`rndc dumpdb -all <rndc dumpdb>`. The configured RRs are considered local configuration
    parameters rather than public data. Non-recursive queries (i.e., those
    with the RD bit off) to a static-stub zone are therefore prohibited and
    are responded to with REFUSED.
@@ -5681,9 +5681,9 @@ or ``delegation-only``.
 
    Because redirect zones are not referenced directly by name, they are not
    kept in the zone lookup table with normal primary and secondary zones. To reload
-   a redirect zone, use ``rndc reload -redirect``; to retransfer a
-   redirect zone configured as a secondary, use ``rndc retransfer -redirect``.
-   When using ``rndc reload`` without specifying a zone name, redirect
+   a redirect zone, use :option:`rndc reload -redirect <rndc reload>`; to retransfer a
+   redirect zone configured as a secondary, use :option:`rndc retransfer -redirect <rndc retransfer>`.
+   When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
 
 ``delegation-only``

@@ -63,7 +63,7 @@ Options
 .. option:: -J filename
 
    When loading the zone file, this option tells ``named`` to read the journal from the given file, if
-   it exists. This implies ``-j``.
+   it exists. This implies :option:`-j`.
 
 .. option:: -c class
 

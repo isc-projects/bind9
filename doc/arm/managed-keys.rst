@@ -47,7 +47,7 @@ has completed, the active KSK can be revoked, and the zone can be
 The easiest way to place a stand-by key in a zone is to use the "smart
 signing" features of ``dnssec-keygen`` and ``dnssec-signzone``. If a key
 exists with a publication date in the past, but an activation date which is
-unset or in the future, ``dnssec-signzone -S`` includes the
+unset or in the future, :option:`dnssec-signzone -S` includes the
 DNSKEY record in the zone but does not sign with it:
 
 ::

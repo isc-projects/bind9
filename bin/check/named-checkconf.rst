@@ -65,7 +65,7 @@ Options
 .. option:: -p
 
    This option prints out the ``named.conf`` and included files in canonical form if
-   no errors were detected. See also the ``-x`` option.
+   no errors were detected. See also the :option:`-x` option.
 
 .. option:: -t directory
 
@@ -84,7 +84,7 @@ Options
    (``?``). This allows the contents of ``named.conf`` and related files
    to be shared - for example, when submitting bug reports -
    without compromising private data. This option cannot be used without
-   ``-p``.
+   :option:`-p`.
 
 .. option:: -z
 
