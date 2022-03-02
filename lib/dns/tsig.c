@@ -795,7 +795,12 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_name_init(&tsig.algorithm, NULL);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
+
 	tsig.timesigned = now + msg->timeadjust;
 	tsig.fudge = DNS_TSIG_FUDGE;
 
@@ -1162,7 +1167,11 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	/*
 	 * Get the current time.
 	 */
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
 
 	/*
 	 * Find dns_tsigkey_t based on keyname.
@@ -1655,7 +1664,11 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		/*
 		 * Is the time ok?
 		 */
-		isc_stdtime_get(&now);
+		if (msg->fuzzing) {
+			now = msg->fuzztime;
+		} else {
+			isc_stdtime_get(&now);
+		}
 
 		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
