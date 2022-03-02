@@ -973,7 +973,11 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	sig.labels = 0; /* the root name */
 	sig.originalttl = 0;
 
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
 	sig.timesigned = now - DNS_TSIG_FUDGE;
 	sig.timeexpire = now + DNS_TSIG_FUDGE;
 
@@ -1118,7 +1122,12 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
+
 	if (isc_serial_lt((uint32_t)now, sig.timesigned)) {
 		result = DNS_R_SIGFUTURE;
 		msg->sig0status = dns_tsigerror_badtime;
