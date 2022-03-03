@@ -386,7 +386,7 @@ Currently supported commands are:
 
    This command reloads the configuration file and loads new zones, but does not reload
    existing zone files even if they have changed. This is faster than a
-   full ``reload`` when there is a large number of zones, because it
+   full :option:`rndc reload` when there is a large number of zones, because it
    avoids the need to examine the modification times of the zone files.
 
 .. option:: recursing
@@ -434,7 +434,7 @@ Currently supported commands are:
 .. option:: scan
 
    This command scans the list of available network interfaces for changes, without
-   performing a full ``reconfig`` or waiting for the
+   performing a full :option:`rndc reconfig` or waiting for the
    ``interface-interval`` timer.
 
 .. option:: secroots [-] [view ...]

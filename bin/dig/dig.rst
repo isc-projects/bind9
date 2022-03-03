@@ -38,7 +38,7 @@ than ``dig``.
 Although ``dig`` is normally used with command-line arguments, it also
 has a batch mode of operation for reading lookup requests from a file. A
 brief summary of its command-line arguments and options is printed when
-the ``-h`` option is given. The BIND 9
+the :option:`-h` option is given. The BIND 9
 implementation of ``dig`` allows multiple lookups to be issued from the
 command line.
 
@@ -124,6 +124,10 @@ Options
    the given ``file``. Each line in the file should be organized in the
    same way it would be presented as a query to ``dig`` using the
    command-line interface.
+
+.. option:: -h
+
+   Print a usage summary.
 
 .. option:: -k keyfile
 
