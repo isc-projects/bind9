@@ -63,6 +63,7 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
+#include <dns/zone.h>
 
 /* Detailed logging of fctx attach/detach */
 #ifndef FCTX_TRACE
@@ -371,6 +372,8 @@ struct fetchctx {
 	dns_rdataset_t qminrrset;
 	dns_fixedname_t qmindcfname;
 	dns_name_t *qmindcname;
+	dns_fixedname_t fwdfname;
+	dns_name_t *fwdname;
 
 	/*%
 	 * The number of events we're waiting for.
@@ -3539,6 +3542,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		if (result == ISC_R_SUCCESS) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
+			dns_name_copy(domain, fctx->fwdname);
 			if (fctx->fwdpolicy == dns_fwdpolicy_only &&
 			    isstrictsubdomain(domain, fctx->domain))
 			{
@@ -4708,6 +4712,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	fctx->domain = dns_fixedname_initname(&fctx->dfname);
 	fctx->qminname = dns_fixedname_initname(&fctx->qminfname);
 	fctx->qmindcname = dns_fixedname_initname(&fctx->qmindcfname);
+	fctx->fwdname = dns_fixedname_initname(&fctx->fwdfname);
 
 	dns_name_copy(name, fctx->name);
 	dns_name_copy(name, fctx->qminname);
@@ -4752,6 +4757,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 					   fname, &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
+			dns_name_copy(fname, fctx->fwdname);
 		}
 
 		if (fctx->fwdpolicy != dns_fwdpolicy_only) {
@@ -6760,6 +6766,107 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 	}
 }
 
+/*
+ * Returns true if 'name' is external to the namespace for which
+ * the server being queried can answer, either because it's not a
+ * subdomain or because it's below a forward declaration or a
+ * locally served zone.
+ */
+static inline bool
+name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_forwarders_t *forwarders = NULL;
+	dns_fixedname_t fixed, zfixed;
+	dns_name_t *fname = dns_fixedname_initname(&fixed);
+	dns_name_t *zfname = dns_fixedname_initname(&zfixed);
+	dns_name_t *apex = NULL;
+	dns_name_t suffix;
+	dns_zone_t *zone = NULL;
+	unsigned int labels;
+	dns_namereln_t rel;
+
+	apex = ISFORWARDER(fctx->addrinfo) ? fctx->fwdname : fctx->domain;
+
+	/*
+	 * The name is outside the queried namespace.
+	 */
+	rel = dns_name_fullcompare(name, apex, &(int){ 0 },
+				   &(unsigned int){ 0U });
+	if (rel != dns_namereln_subdomain && rel != dns_namereln_equal) {
+		return (true);
+	}
+
+	/*
+	 * If the record lives in the parent zone, adjust the name so we
+	 * look for the correct zone or forward clause.
+	 */
+	labels = dns_name_countlabels(name);
+	if (dns_rdatatype_atparent(type) && labels > 1U) {
+		dns_name_init(&suffix, NULL);
+		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
+		name = &suffix;
+	} else if (rel == dns_namereln_equal) {
+		/* If 'name' is 'apex', no further checking is needed. */
+		return (false);
+	}
+
+	/*
+	 * If there is a locally served zone between 'apex' and 'name'
+	 * then don't cache.
+	 */
+	LOCK(&fctx->res->view->lock);
+	if (fctx->res->view->zonetable != NULL) {
+		unsigned int options = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_MIRROR;
+		result = dns_zt_find(fctx->res->view->zonetable, name, options,
+				     zfname, &zone);
+		if (zone != NULL) {
+			dns_zone_detach(&zone);
+		}
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+			if (dns_name_fullcompare(zfname, apex, &(int){ 0 },
+						 &(unsigned int){ 0U }) ==
+			    dns_namereln_subdomain)
+			{
+				UNLOCK(&fctx->res->view->lock);
+				return (true);
+			}
+		}
+	}
+	UNLOCK(&fctx->res->view->lock);
+
+	/*
+	 * Look for a forward declaration below 'name'.
+	 */
+	result = dns_fwdtable_find(fctx->res->view->fwdtable, name, fname,
+				   &forwarders);
+
+	if (ISFORWARDER(fctx->addrinfo)) {
+		/*
+		 * See if the forwarder declaration is better.
+		 */
+		if (result == ISC_R_SUCCESS) {
+			return (!dns_name_equal(fname, fctx->fwdname));
+		}
+
+		/*
+		 * If the lookup failed, the configuration must have
+		 * changed: play it safe and don't cache.
+		 */
+		return (true);
+	} else if (result == ISC_R_SUCCESS &&
+		   forwarders->fwdpolicy == dns_fwdpolicy_only &&
+		   !ISC_LIST_EMPTY(forwarders->fwdrs))
+	{
+		/*
+		 * If 'name' is covered by a 'forward only' clause then we
+		 * can't cache this repsonse.
+		 */
+		return (true);
+	}
+
+	return (false);
+}
+
 static isc_result_t
 check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	      dns_rdataset_t *found, dns_section_t section) {
@@ -6786,7 +6893,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	result = dns_message_findname(rctx->query->rmessage, section, addname,
 				      dns_rdatatype_any, 0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
-		external = !dns_name_issubdomain(name, fctx->domain);
+		external = name_external(name, type, fctx);
 		if (type == dns_rdatatype_a) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -8454,6 +8561,13 @@ rctx_answer_scan(respctx_t *rctx) {
 
 		case dns_namereln_subdomain:
 			/*
+			 * Don't accept DNAME from parent namespace.
+			 */
+			if (name_external(name, dns_rdatatype_dname, fctx)) {
+				continue;
+			}
+
+			/*
 			 * In-scope DNAME records must have at least
 			 * as many labels as the domain being queried.
 			 * They also must be less that qname's labels
@@ -8768,13 +8882,11 @@ rctx_authority_positive(respctx_t *rctx) {
 				       DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
 		dns_name_t *name = NULL;
-		bool external;
 
 		dns_message_currentname(rctx->query->rmessage,
 					DNS_SECTION_AUTHORITY, &name);
-		external = !dns_name_issubdomain(name, fctx->domain);
 
-		if (!external) {
+		if (!name_external(name, dns_rdatatype_ns, fctx)) {
 			dns_rdataset_t *rdataset = NULL;
 
 			/*
@@ -9161,8 +9273,10 @@ rctx_authority_dnssec(respctx_t *rctx) {
 		}
 
 		if (!dns_name_issubdomain(name, fctx->domain)) {
-			/* Invalid name found; preserve it for logging
-			 * later */
+			/*
+			 * Invalid name found; preserve it for logging
+			 * later.
+			 */
 			rctx->found_name = name;
 			rctx->found_type = ISC_LIST_HEAD(name->list)->type;
 			continue;
