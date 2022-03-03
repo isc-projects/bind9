@@ -422,7 +422,7 @@ of \fBnamed.conf\fP, or by specifying \fBquerylog yes;\fP in the
 .B reconfig
 This command reloads the configuration file and loads new zones, but does not reload
 existing zone files even if they have changed. This is faster than a
-full \fBreload\fP when there is a large number of zones, because it
+full \fI\%rndc reload\fP when there is a large number of zones, because it
 avoids the need to examine the modification times of the zone files.
 .UNINDENT
 .INDENT 0.0
@@ -476,7 +476,7 @@ with new signatures.
 .TP
 .B scan
 This command scans the list of available network interfaces for changes, without
-performing a full \fBreconfig\fP or waiting for the
+performing a full \fI\%rndc reconfig\fP or waiting for the
 \fBinterface\-interval\fP timer.
 .UNINDENT
 .INDENT 0.0
