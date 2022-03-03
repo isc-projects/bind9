@@ -181,6 +181,17 @@ Removed Features
   9. A replacement for engine_pkcs11 which employs the new "provider"
   approach introduced in OpenSSL 3.x is in the making. :gl:`#2843`
 
+- The utilities ``dnssec-checkds``, ``dnssec-coverage``, and
+  ``dnssec-keymgr`` have been removed from the BIND distribution, as well
+  as the ``isc`` Python package. DNSSEC features formerly provided
+  by these utilities are now integrated into ``named``.
+  See the :ref:`dnssec-policy <dnssec_policy_grammar>` configuration option
+  for more details.
+
+  An archival version of the Python utilities has been moved to
+  the repository https://gitlab.isc.org/isc-projects/dnssec-keymgr/.
+  Please note these tools are no longer supported by ISC.
+
 - Since the old socket manager API has been removed, "socketmgr"
   statistics are no longer reported by the
   :ref:`statistics channel <statschannels>`. :gl:`#2926`
