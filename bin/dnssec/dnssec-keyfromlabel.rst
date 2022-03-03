@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-keyfromlabel`` generates a pair of key files that reference a
+:program:`dnssec-keyfromlabel` generates a pair of key files that reference a
 key object stored in a cryptographic hardware service module (HSM). The
 private key file can be used for DNSSEC signing of zone data as if it
 were a conventional signing key created by ``dnssec-keygen``, but the
@@ -95,7 +95,7 @@ Options
 .. option:: -C
 
    This option enables compatibility mode, which generates an old-style key, without any metadata.
-   By default, ``dnssec-keyfromlabel`` includes the key's creation
+   By default, :program:`dnssec-keyfromlabel` includes the key's creation
    date in the metadata stored with the private key; other dates may
    be set there as well, including publication date, activation date, etc. Keys
    that include this data may be incompatible with older versions of
@@ -119,7 +119,7 @@ Options
 .. option:: -h
 
    This option prints a short summary of the options and arguments to
-   ``dnssec-keyfromlabel``.
+   :program:`dnssec-keyfromlabel`.
 
 .. option:: -K directory
 
@@ -250,7 +250,7 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 Generated Key Files
 ~~~~~~~~~~~~~~~~~~~
 
-When ``dnssec-keyfromlabel`` completes successfully, it prints a string
+When :program:`dnssec-keyfromlabel` completes successfully, it prints a string
 of the form ``Knnnn.+aaa+iiiii`` to the standard output. This is an
 identification string for the key files it has generated.
 
@@ -260,7 +260,7 @@ identification string for the key files it has generated.
 
 -  ``iiiii`` is the key identifier (or footprint).
 
-``dnssec-keyfromlabel`` creates two files, with names based on the
+:program:`dnssec-keyfromlabel` creates two files, with names based on the
 printed string. ``Knnnn.+aaa+iiiii.key`` contains the public key, and
 ``Knnnn.+aaa+iiiii.private`` contains the private key.
 

@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-signzone`` signs a zone; it generates NSEC and RRSIG records
+:program:`dnssec-signzone` signs a zone; it generates NSEC and RRSIG records
 and produces a signed version of the zone. The security status of
 delegations from the signed zone (that is, whether the child zones are
 secure) is determined by the presence or absence of a ``keyset``
@@ -47,7 +47,7 @@ Options
 
    This option sets compatibility mode, in which a ``keyset-zonename`` file is generated in addition
    to ``dsset-zonename`` when signing a zone, for use by older versions
-   of ``dnssec-signzone``.
+   of :program:`dnssec-signzone`.
 
 .. option:: -d directory
 
@@ -56,7 +56,7 @@ Options
 .. option:: -D
 
    This option indicates that only those record types automatically managed by
-   ``dnssec-signzone``, i.e., RRSIG, NSEC, NSEC3 and NSEC3PARAM records, should be included in the output.
+   :program:`dnssec-signzone`, i.e., RRSIG, NSEC, NSEC3 and NSEC3PARAM records, should be included in the output.
    If smart signing (:option:`-S`) is used, DNSKEY records are also included.
    The resulting file can be included in the original zone file with
    ``$INCLUDE``. This option cannot be combined with :option:`-O raw <-O>`
@@ -144,7 +144,7 @@ Options
 .. option:: -h
 
    This option prints a short summary of the options and arguments to
-   ``dnssec-signzone``.
+   :program:`dnssec-signzone`.
 
 .. option:: -V
 
@@ -160,7 +160,7 @@ Options
 
    The default cycle interval is one quarter of the difference between
    the signature end and start times. So if neither ``end-time`` nor
-   ``start-time`` is specified, ``dnssec-signzone`` generates
+   ``start-time`` is specified, :program:`dnssec-signzone` generates
    signatures that are valid for 30 days, with a cycle interval of 7.5
    days. Therefore, if any existing RRSIG records are due to expire in
    less than 7.5 days, they are replaced.
@@ -258,14 +258,14 @@ Options
    one, signatures from the old key that are still within their validity
    period are retained. This allows the zone to continue to validate
    with cached copies of the old DNSKEY RRset. The :option:`-Q` option forces
-   ``dnssec-signzone`` to remove signatures from keys that are no longer
+   :program:`dnssec-signzone` to remove signatures from keys that are no longer
    active. This enables ZSK rollover using the procedure described in
    :rfc:`4641#4.2.1.1` ("Pre-Publish Key Rollover").
 
 .. option:: -q
 
    This option enables quiet mode, which suppresses unnecessary output. Without this option, when
-   ``dnssec-signzone`` is run it prints three pieces of information to standard output: the number of
+   :program:`dnssec-signzone` is run it prints three pieces of information to standard output: the number of
    keys in use; the algorithms used to verify the zone was signed correctly and
    other status information; and the filename containing the signed
    zone. With the option that output is suppressed, leaving only the filename.
@@ -275,14 +275,14 @@ Options
    This option removes signatures from keys that are no longer published.
 
    This option is similar to :option:`-Q`, except it forces
-   ``dnssec-signzone`` to remove signatures from keys that are no longer
+   :program:`dnssec-signzone` to remove signatures from keys that are no longer
    published. This enables ZSK rollover using the procedure described in
    :rfc:`4641#4.2.1.2` ("Double Signature Zone Signing Key
    Rollover").
 
 .. option:: -S
 
-   This option enables smart signing, which instructs ``dnssec-signzone`` to search the key
+   This option enables smart signing, which instructs :program:`dnssec-signzone` to search the key
    repository for keys that match the zone being signed, and to include
    them in the zone if appropriate.
 
@@ -336,7 +336,7 @@ Options
    This option updates the NSEC/NSEC3 chain when re-signing a previously signed zone.
    With this option, a zone signed with NSEC can be switched to NSEC3,
    or a zone signed with NSEC3 can be switched to NSEC or to NSEC3 with
-   different parameters. Without this option, ``dnssec-signzone``
+   different parameters. Without this option, :program:`dnssec-signzone`
    retains the existing chain when re-signing.
 
 .. option:: -v level
@@ -406,7 +406,7 @@ DS records can be imported from them (:option:`-g`).
    db.example.com.signed
    %
 
-In the above example, ``dnssec-signzone`` creates the file
+In the above example, :program:`dnssec-signzone` creates the file
 ``db.example.com.signed``. This file should be referenced in a zone
 statement in the ``named.conf`` file.
 

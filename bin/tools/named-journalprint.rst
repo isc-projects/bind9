@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-journalprint`` scans the contents of a zone journal file,
+:program:`named-journalprint` scans the contents of a zone journal file,
 printing it in a human-readable form, or, optionally, converting it
 to a different journal file format.
 
@@ -38,7 +38,7 @@ shutdown or crash. By default, the name of the journal file is formed by
 appending the extension ``.jnl`` to the name of the corresponding zone
 file.
 
-``named-journalprint`` converts the contents of a given journal file
+:program:`named-journalprint` converts the contents of a given journal file
 into a human-readable text format. Each line begins with ``add`` or ``del``,
 to indicate whether the record was added or deleted, and continues with
 the resource record in master-file format.

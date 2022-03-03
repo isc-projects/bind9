@@ -26,15 +26,15 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``rndc`` controls the operation of a name server; it supersedes the
-``ndc`` utility. If ``rndc`` is
+:program:`rndc` controls the operation of a name server; it supersedes the
+``ndc`` utility. If :program:`rndc` is
 invoked with no command line options or arguments, it prints a short
 summary of the supported commands and the available options and their
 arguments.
 
-``rndc`` communicates with the name server over a TCP connection,
+:program:`rndc` communicates with the name server over a TCP connection,
 sending commands authenticated with digital signatures. In the current
-versions of ``rndc`` and ``named``, the only supported authentication
+versions of :program:`rndc` and ``named``, the only supported authentication
 algorithms are HMAC-MD5 (for compatibility), HMAC-SHA1, HMAC-SHA224,
 HMAC-SHA256 (default), HMAC-SHA384, and HMAC-SHA512. They use a shared
 secret on each end of the connection, which provides TSIG-style
@@ -42,7 +42,7 @@ authentication for the command request and the name server's response.
 All commands sent over the channel must be signed by a key_id known to
 the server.
 
-``rndc`` reads a configuration file to determine how to contact the name
+:program:`rndc` reads a configuration file to determine how to contact the name
 server and decide what algorithm and key it should use.
 
 Options
@@ -77,9 +77,9 @@ Options
 .. option:: -s server
 
    ``server`` is the name or address of the server which matches a server
-   statement in the configuration file for ``rndc``. If no server is
+   statement in the configuration file for :program:`rndc`. If no server is
    supplied on the command line, the host named by the default-server
-   clause in the options statement of the ``rndc`` configuration file
+   clause in the options statement of the :program:`rndc` configuration file
    is used.
 
 .. option:: -p port
@@ -94,7 +94,7 @@ Options
 
 .. option:: -r
 
-   This option instructs ``rndc`` to print the result code returned by ``named``
+   This option instructs :program:`rndc` to print the result code returned by ``named``
    after executing the requested command (e.g., ISC_R_SUCCESS,
    ISC_R_FAILURE, etc.).
 
@@ -106,7 +106,7 @@ Options
 
    This option indicates use of the key ``key_id`` from the configuration file. For control message validation to succeed, ``key_id`` must be known
    by ``named`` with the same algorithm and secret string. If no ``key_id`` is specified,
-   ``rndc`` first looks for a key clause in the server statement of
+   :program:`rndc` first looks for a key clause in the server statement of
    the server being used, or if no server statement is present for that
    host, then in the default-key clause of the options statement. Note that
    the configuration file contains shared secrets which are used to send
@@ -116,7 +116,7 @@ Options
 Commands
 ~~~~~~~~
 
-A list of commands supported by ``rndc`` can be seen by running ``rndc``
+A list of commands supported by :program:`rndc` can be seen by running :program:`rndc`
 without arguments.
 
 Currently supported commands are:
@@ -449,7 +449,7 @@ Currently supported commands are:
    yet been updated by a successful key refresh query).
 
    If the first argument is ``-``, then the output is returned via the
-   ``rndc`` response channel and printed to the standard output.
+   :program:`rndc` response channel and printed to the standard output.
    Otherwise, it is written to the secroots dump file, which defaults to
    ``named.secroots``, but can be overridden via the ``secroots-file``
    option in ``named.conf``.
@@ -628,7 +628,7 @@ Currently supported commands are:
 
    See also :option:`rndc showzone`.
 
-``rndc`` commands that specify zone names, such as :option:`reload`
+:program:`rndc` commands that specify zone names, such as :option:`reload`
 :option:`retransfer`, or :option:`zonestatus`, can be ambiguous when applied to zones
 of type ``redirect``. Redirect zones are always called ``.``, and can be
 confused with zones of type ``hint`` or with secondary copies of the root

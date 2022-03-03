@@ -26,16 +26,16 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``host`` is a simple utility for performing DNS lookups. It is normally
+:program:`host` is a simple utility for performing DNS lookups. It is normally
 used to convert names to IP addresses and vice versa. When no arguments
-or options are given, ``host`` prints a short summary of its
+or options are given, :program:`host` prints a short summary of its
 command-line arguments and options.
 
 ``name`` is the domain name that is to be looked up. It can also be a
 dotted-decimal IPv4 address or a colon-delimited IPv6 address, in which
-case ``host`` by default performs a reverse lookup for that address.
+case :program:`host` by default performs a reverse lookup for that address.
 ``server`` is an optional argument which is either the name or IP
-address of the name server that ``host`` should query instead of the
+address of the name server that :program:`host` should query instead of the
 server or servers listed in ``/etc/resolv.conf``.
 
 Options
@@ -66,7 +66,7 @@ Options
 
 .. option:: -C
 
-   This option indicates that ``named`` should check consistency, meaning that ``host`` queries the SOA records for zone
+   This option indicates that ``named`` should check consistency, meaning that :program:`host` queries the SOA records for zone
    ``name`` from all the listed authoritative name servers for that
    zone. The list of name servers is defined by the NS records that are
    found for the zone.
@@ -77,7 +77,7 @@ Options
 
 .. option:: -l
 
-   This option tells ``named`` to list the zone, meaning the ``host`` command performs a zone transfer of zone
+   This option tells ``named`` to list the zone, meaning the :program:`host` command performs a zone transfer of zone
    ``name`` and prints out the NS, PTR, and address records (A/AAAA).
 
    Together, the :option:`-l` :option:`-a` options print all records in the zone.
@@ -100,7 +100,7 @@ Options
    This option specifies a non-recursive query; setting this option clears the RD (recursion
    desired) bit in the query. This means that the name server
    receiving the query does not attempt to resolve ``name``. The :option:`-r`
-   option enables ``host`` to mimic the behavior of a name server by
+   option enables :program:`host` to mimic the behavior of a name server by
    making non-recursive queries, and expecting to receive answers to
    those queries that can be referrals to other name servers.
 
@@ -121,11 +121,11 @@ Options
    This option specifies the query type. The ``type`` argument can be any recognized query type:
    CNAME, NS, SOA, TXT, DNSKEY, AXFR, etc.
 
-   When no query type is specified, ``host`` automatically selects an
+   When no query type is specified, :program:`host` automatically selects an
    appropriate query type. By default, it looks for A, AAAA, and MX
    records. If the :option:`-C` option is given, queries are made for SOA
    records. If ``name`` is a dotted-decimal IPv4 address or
-   colon-delimited IPv6 address, ``host`` queries for PTR records.
+   colon-delimited IPv6 address, :program:`host` queries for PTR records.
 
    If a query type of IXFR is chosen, the starting serial number can be
    specified by appending an equals sign (=), followed by the starting serial
@@ -133,7 +133,7 @@ Options
 
 .. option:: -T, -U
 
-   This option specifies TCP or UDP. By default, ``host`` uses UDP when making queries; the
+   This option specifies TCP or UDP. By default, :program:`host` uses UDP when making queries; the
    :option:`-T` option makes it use a TCP connection when querying the name
    server. TCP is automatically selected for queries that require
    it, such as zone transfer (AXFR) requests. Type ``ANY`` queries default
@@ -165,7 +165,7 @@ Options
    This options sets the length of the wait timeout, indicating that ``named`` should wait for up to ``wait`` seconds for a reply. If ``wait`` is
    less than 1, the wait interval is set to 1 second.
 
-   By default, ``host`` waits for 5 seconds for UDP responses and 10
+   By default, :program:`host` waits for 5 seconds for UDP responses and 10
    seconds for TCP connections. These defaults can be overridden by the
    ``timeout`` option in ``/etc/resolv.conf``.
 
@@ -174,13 +174,13 @@ Options
 IDN Support
 ~~~~~~~~~~~
 
-If ``host`` has been built with IDN (internationalized domain name)
-support, it can accept and display non-ASCII domain names. ``host``
+If :program:`host` has been built with IDN (internationalized domain name)
+support, it can accept and display non-ASCII domain names. :program:`host`
 appropriately converts character encoding of a domain name before sending
 a request to a DNS server or displaying a reply from the server.
 To turn off IDN support, define the ``IDN_DISABLE``
 environment variable. IDN support is disabled if the variable is set
-when ``host`` runs.
+when :program:`host` runs.
 
 Files
 ~~~~~

@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-revoke`` reads a DNSSEC key file, sets the REVOKED bit on the
+:program:`dnssec-revoke` reads a DNSSEC key file, sets the REVOKED bit on the
 key as defined in :rfc:`5011`, and creates a new pair of key files
 containing the now-revoked key.
 
@@ -63,7 +63,7 @@ Options
 
 .. option:: -f
 
-   This option indicates a forced overwrite and causes ``dnssec-revoke`` to write the new key pair,
+   This option indicates a forced overwrite and causes :program:`dnssec-revoke` to write the new key pair,
    even if a file already exists matching the algorithm and key ID of
    the revoked key.
 

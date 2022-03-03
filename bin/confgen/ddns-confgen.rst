@@ -27,7 +27,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``ddns-confgen`` is an utility that generates keys for use in TSIG signing.
+:program:`ddns-confgen` is an utility that generates keys for use in TSIG signing.
 The resulting keys can be used, for example, to secure dynamic DNS updates
 to a zone, or for the ``rndc`` command channel.
 
@@ -40,7 +40,7 @@ command-channel security.)
 
 Note that ``named`` itself can configure a local DDNS key for use with
 :option:`nsupdate -l`; it does this when a zone is configured with
-``update-policy local;``. ``ddns-confgen`` is only needed when a more
+``update-policy local;``. :program:`ddns-confgen` is only needed when a more
 elaborate configuration is required: for instance, if ``nsupdate`` is to
 be used from a remote system.
 
