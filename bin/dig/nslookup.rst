@@ -26,8 +26,8 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``nslookup`` is a program to query Internet domain name servers.
-``nslookup`` has two modes: interactive and non-interactive. Interactive
+:program:`nslookup` is a program to query Internet domain name servers.
+:program:`nslookup` has two modes: interactive and non-interactive. Interactive
 mode allows the user to query name servers for information about various
 hosts and domains or to print a list of hosts in a domain.
 Non-interactive mode prints just the name and requested
@@ -56,7 +56,7 @@ seconds, type:
 
    nslookup -query=hinfo  -timeout=10
 
-The ``-version`` option causes ``nslookup`` to print the version number
+The ``-version`` option causes :program:`nslookup` to print the version number
 and immediately exit.
 
 Interactive Commands
@@ -183,19 +183,19 @@ Interactive Commands
 Return Values
 ~~~~~~~~~~~~~
 
-``nslookup`` returns with an exit status of 1 if any query failed, and 0
+:program:`nslookup` returns with an exit status of 1 if any query failed, and 0
 otherwise.
 
 IDN Support
 ~~~~~~~~~~~
 
-If ``nslookup`` has been built with IDN (internationalized domain name)
-support, it can accept and display non-ASCII domain names. ``nslookup``
+If :program:`nslookup` has been built with IDN (internationalized domain name)
+support, it can accept and display non-ASCII domain names. :program:`nslookup`
 appropriately converts character encoding of a domain name before sending
 a request to a DNS server or displaying a reply from the server.
 To turn off IDN support, define the ``IDN_DISABLE``
 environment variable. IDN support is disabled if the variable is set
-when ``nslookup`` runs, or when the standard output is not a tty.
+when :program:`nslookup` runs, or when the standard output is not a tty.
 
 Files
 ~~~~~

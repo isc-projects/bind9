@@ -30,12 +30,12 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``mdig`` is a multiple/pipelined query version of ``dig``: instead of
+:program:`mdig` is a multiple/pipelined query version of ``dig``: instead of
 waiting for a response after sending each query, it begins by sending
 all queries. Responses are displayed in the order in which they are
 received, not in the order the corresponding queries were sent.
 
-``mdig`` options are a subset of the ``dig`` options, and are divided
+:program:`mdig` options are a subset of the ``dig`` options, and are divided
 into "anywhere options," which can occur anywhere, "global options," which
 must occur before the query name (or they are ignored with a warning),
 and "local options," which apply to the next query on the command line.
@@ -45,9 +45,9 @@ address of the name server to query. (Unlike ``dig``, this value is not
 retrieved from ``/etc/resolv.conf``.) It can be an IPv4 address in
 dotted-decimal notation, an IPv6 address in colon-delimited notation, or
 a hostname. When the supplied ``server`` argument is a hostname,
-``mdig`` resolves that name before querying the name server.
+:program:`mdig` resolves that name before querying the name server.
 
-``mdig`` provides a number of query options which affect the way in
+:program:`mdig` provides a number of query options which affect the way in
 which lookups are made and the results displayed. Some of these set or
 reset flag bits in the query header, some determine which sections of
 the answer get printed, and others determine the timeout and retry
@@ -64,31 +64,31 @@ Anywhere Options
 
 .. option:: -f
 
-   This option makes ``mdig`` operate in batch mode by reading a list
+   This option makes :program:`mdig` operate in batch mode by reading a list
    of lookup requests to process from the file ``filename``. The file
    contains a number of queries, one per line. Each entry in the file
    should be organized in the same way they would be presented as queries
-   to ``mdig`` using the command-line interface.
+   to :program:`mdig` using the command-line interface.
 
 .. option:: -h
 
-   This option causes ``mdig`` to print detailed help information, with the full list
+   This option causes :program:`mdig` to print detailed help information, with the full list
    of options, and exit.
 
 .. option:: -v
 
-   This option causes ``mdig`` to print the version number and exit.
+   This option causes :program:`mdig` to print the version number and exit.
 
 Global Options
 ~~~~~~~~~~~~~~
 
 .. option:: -4
 
-   This option forces ``mdig`` to only use IPv4 query transport.
+   This option forces :program:`mdig` to only use IPv4 query transport.
 
 .. option:: -6
 
-   This option forces ``mdig`` to only use IPv6 query transport.
+   This option forces :program:`mdig` to only use IPv6 query transport.
 
 .. option:: -b address
 
@@ -104,7 +104,7 @@ Global Options
 .. option:: -p port#
 
    This option is used when a non-standard port number is to be
-   queried. ``port#`` is the port number that ``mdig`` sends its
+   queried. ``port#`` is the port number that :program:`mdig` sends its
    queries to, instead of the standard DNS port number 53. This option is
    used to test a name server that has been configured to listen for
    queries on a non-standard port number.
@@ -171,7 +171,7 @@ The global query options are:
 
    This option toggles printing of records, like the SOA records, in a verbose multi-line format
    with human-readable comments. The default is to print each record on
-   a single line, to facilitate machine parsing of the ``mdig`` output.
+   a single line, to facilitate machine parsing of the :program:`mdig` output.
 
 .. option:: +[no]question
 
@@ -239,7 +239,7 @@ Local Options
 
    Reverse lookups - mapping addresses to names - are simplified by
    this option. ``addr`` is an IPv4 address in dotted-decimal
-   notation, or a colon-delimited IPv6 address. ``mdig`` automatically
+   notation, or a colon-delimited IPv6 address. :program:`mdig` automatically
    performs a lookup for a query name like ``11.12.13.10.in-addr.arpa`` and
    sets the query type and class to PTR and IN respectively. By default,
    IPv6 addresses are looked up using nibble format under the IP6.ARPA
@@ -319,7 +319,7 @@ The local query options are:
 .. option:: +[no]recurse
 
    This toggles the setting of the RD (recursion desired) bit in the query.
-   This bit is set by default, which means ``mdig`` normally sends
+   This bit is set by default, which means :program:`mdig` normally sends
    recursive queries.
 
 .. option:: +retry=T

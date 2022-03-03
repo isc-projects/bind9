@@ -28,7 +28,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-compilezone`` checks the syntax and integrity of a zone file,
+:program:`named-compilezone` checks the syntax and integrity of a zone file,
 and dumps the zone contents to a specified file in a specified format.
 It applies strict check levels by default, since the
 dump output is used as an actual zone file loaded by ``named``.
@@ -152,7 +152,7 @@ Options
 .. option:: -o filename
 
    This option writes the zone output to ``filename``. If ``filename`` is ``-``, then
-   the zone output is written to standard output. This is mandatory for ``named-compilezone``.
+   the zone output is written to standard output. This is mandatory for :program:`named-compilezone`.
 
 .. option:: -r mode
 
@@ -194,7 +194,7 @@ Options
 .. option:: -D
 
    This option dumps the zone file in canonical format. This is always enabled for
-   ``named-compilezone``.
+   :program:`named-compilezone`.
 
 .. option:: -W mode
 
@@ -214,7 +214,7 @@ Options
 Return Values
 ~~~~~~~~~~~~~
 
-``named-compilezone`` returns an exit status of 1 if errors were detected
+:program:`named-compilezone` returns an exit status of 1 if errors were detected
 and 0 otherwise.
 
 See Also

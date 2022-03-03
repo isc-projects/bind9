@@ -24,18 +24,18 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``nsupdate`` is used to submit Dynamic DNS Update requests, as defined in
+:program:`nsupdate` is used to submit Dynamic DNS Update requests, as defined in
 :rfc:`2136`, to a name server. This allows resource records to be added or
 removed from a zone without manually editing the zone file. A single
 update request can contain requests to add or remove more than one
 resource record.
 
-Zones that are under dynamic control via ``nsupdate`` or a DHCP server
+Zones that are under dynamic control via :program:`nsupdate` or a DHCP server
 should not be edited by hand. Manual edits could conflict with dynamic
 updates and cause data to be lost.
 
 The resource records that are dynamically added or removed with
-``nsupdate`` must be in the same zone. Requests are sent to the
+:program:`nsupdate` must be in the same zone. Requests are sent to the
 zone's primary server, which is identified by the MNAME field of the
 zone's SOA record.
 
@@ -44,13 +44,13 @@ updates. These use the TSIG resource record type described in :rfc:`2845`,
 the SIG(0) record described in :rfc:`2535` and :rfc:`2931`, or GSS-TSIG as
 described in :rfc:`3645`.
 
-TSIG relies on a shared secret that should only be known to ``nsupdate``
+TSIG relies on a shared secret that should only be known to :program:`nsupdate`
 and the name server. For instance, suitable ``key`` and ``server``
 statements are added to |named_conf| so that the name server
 can associate the appropriate secret key and algorithm with the IP
 address of the client application that is using TSIG
 authentication. ``ddns-confgen`` can generate suitable
-configuration fragments. ``nsupdate`` uses the :option:`-y` or :option:`-k` options
+configuration fragments. :program:`nsupdate` uses the :option:`-y` or :option:`-k` options
 to provide the TSIG shared secret; these options are mutually exclusive.
 
 SIG(0) uses public key cryptography. To use a SIG(0) key, the public key
@@ -131,7 +131,7 @@ Options
 .. option:: -P
 
    This option prints the list of private BIND-specific resource record types whose
-   format is understood by ``nsupdate``. See also the :option:`-T` option.
+   format is understood by :program:`nsupdate`. See also the :option:`-T` option.
 
 .. option:: -r udpretries
 
@@ -146,7 +146,7 @@ Options
 .. option:: -T
 
    This option prints the list of IANA standard resource record types whose format is
-   understood by ``nsupdate``. ``nsupdate`` exits after the lists
+   understood by :program:`nsupdate`. :program:`nsupdate` exits after the lists
    are printed. The :option:`-T` option can be combined with the :option:`-P`
    option.
 
@@ -163,7 +163,7 @@ Options
 
 .. option:: -v
 
-   This option specifies that TCP should be used even for small update requests. By default, ``nsupdate`` uses
+   This option specifies that TCP should be used even for small update requests. By default, :program:`nsupdate` uses
    UDP to send update requests to the name server unless they are too
    large to fit in a UDP request, in which case TCP is used. TCP may
    be preferable when a batch of update requests is made.
@@ -189,7 +189,7 @@ Options
 Input Format
 ~~~~~~~~~~~~
 
-``nsupdate`` reads input from ``filename`` or standard input. Each
+:program:`nsupdate` reads input from ``filename`` or standard input. Each
 command is supplied on exactly one line of input. Some commands are for
 administrative purposes; others are either update instructions or
 prerequisite checks on the contents of the zone. These checks set
@@ -209,7 +209,7 @@ The command formats and their meanings are as follows:
 
 ``server servername port``
    This command sends all dynamic update requests to the name server ``servername``.
-   When no server statement is provided, ``nsupdate`` sends updates
+   When no server statement is provided, :program:`nsupdate` sends updates
    to the primary server of the correct zone. The MNAME field of that
    zone's SOA record identify the primary server for that zone.
    ``port`` is the port number on ``servername`` where the dynamic
@@ -218,14 +218,14 @@ The command formats and their meanings are as follows:
 
 ``local address port``
    This command sends all dynamic update requests using the local ``address``. When
-   no local statement is provided, ``nsupdate`` sends updates using
+   no local statement is provided, :program:`nsupdate` sends updates using
    an address and port chosen by the system. ``port`` can also
    be used to force requests to come from a specific port. If no port number
    is specified, the system assigns one.
 
 ``zone zonename``
    This command specifies that all updates are to be made to the zone ``zonename``.
-   If no ``zone`` statement is provided, ``nsupdate`` attempts to
+   If no ``zone`` statement is provided, :program:`nsupdate` attempts to
    determine the correct zone to update based on the rest of the input.
 
 ``class classname``
@@ -323,7 +323,7 @@ Lines beginning with a semicolon (;) are comments and are ignored.
 Examples
 ~~~~~~~~
 
-The examples below show how ``nsupdate`` can be used to insert and
+The examples below show how :program:`nsupdate` can be used to insert and
 delete resource records from the ``example.com`` zone. Notice that the
 input in each example contains a trailing blank line, so that a group of
 commands is sent as one dynamic update request to the primary name
@@ -381,5 +381,5 @@ Bugs
 ~~~~
 
 The TSIG key is redundantly stored in two separate files. This is a
-consequence of ``nsupdate`` using the DST library for its cryptographic
+consequence of :program:`nsupdate` using the DST library for its cryptographic
 operations, and may change in future releases.

@@ -28,9 +28,9 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-checkzone`` checks the syntax and integrity of a zone file. It
+:program:`named-checkzone` checks the syntax and integrity of a zone file. It
 performs the same checks as ``named`` does when loading a zone. This
-makes ``named-checkzone`` useful for checking zone files before
+makes :program:`named-checkzone` useful for checking zone files before
 configuring them into a name server.
 
 Options
@@ -51,7 +51,7 @@ Options
 
 .. option:: -v
 
-   This option prints the version of the ``named-checkzone`` program and exits.
+   This option prints the version of the :program:`named-checkzone` program and exits.
 
 .. option:: -j
 
@@ -103,7 +103,7 @@ Options
 .. option:: -F format
 
    This option specifies the format of the output file specified. For
-   ``named-checkzone``, this does not have any effect unless it dumps
+   :program:`named-checkzone`, this does not have any effect unless it dumps
    the zone contents.
 
    Possible formats are ``text`` (the default), which is the standard
@@ -212,7 +212,7 @@ Options
 Return Values
 ~~~~~~~~~~~~~
 
-``named-checkzone`` returns an exit status of 1 if errors were detected
+:program:`named-checkzone` returns an exit status of 1 if errors were detected
 and 0 otherwise.
 
 See Also

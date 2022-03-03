@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``rndc.conf`` is the configuration file for ``rndc``, the BIND 9 name
+:program:`rndc.conf` is the configuration file for ``rndc``, the BIND 9 name
 server control utility. This file has a similar structure and syntax to
 ``named.conf``. Statements are enclosed in braces and terminated with a
 semi-colon. Clauses in the statements are also semi-colon terminated.
@@ -38,7 +38,7 @@ C++ style: // to end of line
 
 Unix style: # to end of line
 
-``rndc.conf`` is much simpler than ``named.conf``. The file uses three
+:program:`rndc.conf` is much simpler than ``named.conf``. The file uses three
 statements: an options statement, a server statement, and a key
 statement.
 
@@ -135,7 +135,7 @@ To generate a random secret with ``rndc-confgen``:
 
 ``rndc-confgen``
 
-A complete ``rndc.conf`` file, including the randomly generated key,
+A complete :program:`rndc.conf` file, including the randomly generated key,
 is written to the standard output. Commented-out ``key`` and
 ``controls`` statements for ``named.conf`` are also printed.
 
@@ -147,7 +147,7 @@ Name Server Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The name server must be configured to accept rndc connections and to
-recognize the key specified in the ``rndc.conf`` file, using the
+recognize the key specified in the :program:`rndc.conf` file, using the
 controls statement in ``named.conf``. See the sections on the
 ``controls`` statement in the BIND 9 Administrator Reference Manual for
 details.

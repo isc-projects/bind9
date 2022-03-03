@@ -29,28 +29,28 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dig`` is a flexible tool for interrogating DNS name servers. It
+:program:`dig` is a flexible tool for interrogating DNS name servers. It
 performs DNS lookups and displays the answers that are returned from the
-name server(s) that were queried. Most DNS administrators use ``dig`` to
+name server(s) that were queried. Most DNS administrators use :program:`dig` to
 troubleshoot DNS problems because of its flexibility, ease of use, and
 clarity of output. Other lookup tools tend to have less functionality
-than ``dig``.
+than :program:`dig`.
 
-Although ``dig`` is normally used with command-line arguments, it also
+Although :program:`dig` is normally used with command-line arguments, it also
 has a batch mode of operation for reading lookup requests from a file. A
 brief summary of its command-line arguments and options is printed when
 the :option:`-h` option is given. The BIND 9
-implementation of ``dig`` allows multiple lookups to be issued from the
+implementation of :program:`dig` allows multiple lookups to be issued from the
 command line.
 
-Unless it is told to query a specific name server, ``dig`` tries each
+Unless it is told to query a specific name server, :program:`dig` tries each
 of the servers listed in ``/etc/resolv.conf``. If no usable server
-addresses are found, ``dig`` sends the query to the local host.
+addresses are found, :program:`dig` sends the query to the local host.
 
-When no command-line arguments or options are given, ``dig``
+When no command-line arguments or options are given, :program:`dig`
 performs an NS query for "." (the root).
 
-It is possible to set per-user defaults for ``dig`` via
+It is possible to set per-user defaults for :program:`dig` via
 ``${HOME}/.digrc``. This file is read and any options in it are applied
 before the command-line arguments. The :option:`-r` option disables this
 feature, for scripts that need predictable behavior.
@@ -63,7 +63,7 @@ class, use the :option:`-q` to specify the domain name, or use "IN." and
 Simple Usage
 ~~~~~~~~~~~~
 
-A typical invocation of ``dig`` looks like:
+A typical invocation of :program:`dig` looks like:
 
 ::
 
@@ -76,14 +76,14 @@ where:
    is the name or IP address of the name server to query. This can be an
    IPv4 address in dotted-decimal notation or an IPv6 address in
    colon-delimited notation. When the supplied ``server`` argument is a
-   hostname, ``dig`` resolves that name before querying that name
+   hostname, :program:`dig` resolves that name before querying that name
    server.
 
-   If no ``server`` argument is provided, ``dig`` consults
+   If no ``server`` argument is provided, :program:`dig` consults
    ``/etc/resolv.conf``; if an address is found there, it queries the
    name server at that address. If either of the :option:`-4` or :option:`-6`
    options are in use, then only addresses for the corresponding
-   transport are tried. If no usable addresses are found, ``dig``
+   transport are tried. If no usable addresses are found, :program:`dig`
    sends the query to the local host. The reply from the name server
    that responds is displayed.
 
@@ -95,7 +95,7 @@ where:
 
    indicates what type of query is required - ANY, A, MX, SIG, etc.
    ``type`` can be any valid query type. If no ``type`` argument is
-   supplied, ``dig`` performs a lookup for an A record.
+   supplied, :program:`dig` performs a lookup for an A record.
 
 Options
 ~~~~~~~
@@ -121,9 +121,9 @@ Options
 
 .. option:: -f file
 
-   This option sets batch mode, in which ``dig`` reads a list of lookup requests to process from
+   This option sets batch mode, in which :program:`dig` reads a list of lookup requests to process from
    the given ``file``. Each line in the file should be organized in the
-   same way it would be presented as a query to ``dig`` using the
+   same way it would be presented as a query to :program:`dig` using the
    command-line interface.
 
 .. option:: -h
@@ -134,7 +134,7 @@ Options
 
    This option tells ``named`` to sign queries using TSIG using a key read from the given file. Key
    files can be generated using ``tsig-keygen``. When using TSIG
-   authentication with ``dig``, the name server that is queried needs to
+   authentication with :program:`dig`, the name server that is queried needs to
    know the key and algorithm that is being used. In BIND, this is done
    by providing appropriate ``key`` and ``server`` statements in
    ``named.conf``.
@@ -190,7 +190,7 @@ Options
    ``addr`` is an IPv4 address in dotted-decimal notation, or a
    colon-delimited IPv6 address. When the :option:`-x` option is used, there is no
    need to provide the ``name``, ``class``, and ``type`` arguments.
-   ``dig`` automatically performs a lookup for a name like
+   :program:`dig` automatically performs a lookup for a name like
    ``94.2.0.192.in-addr.arpa`` and sets the query type and class to PTR
    and IN respectively. IPv6 addresses are looked up using nibble format
    under the IP6.ARPA domain.
@@ -213,7 +213,7 @@ Options
 Query Options
 ~~~~~~~~~~~~~
 
-``dig`` provides a number of query options which affect the way in which
+:program:`dig` provides a number of query options which affect the way in which
 lookups are made and the results displayed. Some of these set or reset
 flag bits in the query header, some determine which sections of the
 answer get printed, and others determine the timeout and retry
@@ -292,7 +292,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 .. option:: +[no]cmd
 
    This option toggles the printing of the initial comment in the output, identifying the
-   version of ``dig`` and the query options that have been applied. This option
+   version of :program:`dig` and the query options that have been applied. This option
    always has a global effect; it cannot be set globally and then overridden on a
    per-lookup basis. The default is to print this comment.
 
@@ -437,7 +437,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``IDN SUPPORT`` to have been enabled at compile time.
 
    The default is to process IDN input when standard output is a tty.
-   The IDN processing on input is disabled when ``dig`` output is redirected
+   The IDN processing on input is disabled when :program:`dig` output is redirected
    to files, pipes, and other non-tty file descriptors.
 
 .. option:: +[no]idnout
@@ -446,7 +446,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``IDN SUPPORT`` to have been enabled at compile time.
 
    The default is to process puny code on output when standard output is
-   a tty. The puny code processing on output is disabled when ``dig`` output
+   a tty. The puny code processing on output is disabled when :program:`dig` output
    is redirected to files, pipes, and other non-tty file descriptors.
 
 .. option:: +[no]ignore
@@ -468,7 +468,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    This option prints [or does not print] records, like the SOA records, in a verbose multi-line format
    with human-readable comments. The default is to print each record on
-   a single line to facilitate machine parsing of the ``dig`` output.
+   a single line to facilitate machine parsing of the :program:`dig` output.
 
 .. option:: +ndots=D
 
@@ -486,7 +486,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +[no]nssearch
 
-   When this option is set, ``dig`` attempts to find the authoritative
+   When this option is set, :program:`dig` attempts to find the authoritative
    name servers for the zone containing the name being looked up, and
    display the SOA record that each name server has for the zone.
    Addresses of servers that did not respond are also printed.
@@ -538,7 +538,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 .. option:: +[no]recurse
 
    This option toggles the setting of the RD (recursion desired) bit in the query.
-   This bit is set by default, which means ``dig`` normally sends
+   This bit is set by default, which means :program:`dig` normally sends
    recursive queries. Recursion is automatically disabled when the
    ``+nssearch`` or ``+trace`` query option is used.
 
@@ -641,7 +641,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    This option toggles tracing of the delegation path from the root name servers for
    the name being looked up. Tracing is disabled by default. When
-   tracing is enabled, ``dig`` makes iterative queries to resolve the
+   tracing is enabled, :program:`dig` makes iterative queries to resolve the
    name being looked up. It follows referrals from the root servers,
    showing the answer from each server that was used to resolve the
    lookup.
@@ -698,7 +698,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 Multiple Queries
 ~~~~~~~~~~~~~~~~
 
-The BIND 9 implementation of ``dig`` supports specifying multiple
+The BIND 9 implementation of :program:`dig` supports specifying multiple
 queries on the command line (in addition to supporting the :option:`-f` batch
 file option). Each of those queries can be supplied with its own set of
 flags, options, and query options.
@@ -720,19 +720,19 @@ query options. For example:
 
    dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
 
-shows how ``dig`` can be used from the command line to make three
+shows how :program:`dig` can be used from the command line to make three
 lookups: an ANY query for ``www.isc.org``, a reverse lookup of 127.0.0.1,
 and a query for the NS records of ``isc.org``. A global query option of
-``+qr`` is applied, so that ``dig`` shows the initial query it made for
+``+qr`` is applied, so that :program:`dig` shows the initial query it made for
 each lookup. The final query has a local query option of ``+noqr`` which
-means that ``dig`` does not print the initial query when it looks up the
+means that :program:`dig` does not print the initial query when it looks up the
 NS records for ``isc.org``.
 
 IDN Support
 ~~~~~~~~~~~
 
-If ``dig`` has been built with IDN (internationalized domain name)
-support, it can accept and display non-ASCII domain names. ``dig``
+If :program:`dig` has been built with IDN (internationalized domain name)
+support, it can accept and display non-ASCII domain names. :program:`dig`
 appropriately converts character encoding of a domain name before sending
 a request to a DNS server or displaying a reply from the server.
 To turn off IDN support, use the parameters
@@ -742,7 +742,7 @@ variable.
 Return Codes
 ~~~~~~~~~~~~
 
-``dig`` return codes are:
+:program:`dig` return codes are:
 
 ``0``
    DNS response received, including NXDOMAIN status

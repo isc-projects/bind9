@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-rrchecker`` reads a individual DNS resource record from standard
+:program:`named-rrchecker` reads a individual DNS resource record from standard
 input and checks whether it is syntactically correct.
 
 Options

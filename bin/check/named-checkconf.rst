@@ -26,16 +26,16 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-checkconf`` checks the syntax, but not the semantics, of a
+:program:`named-checkconf` checks the syntax, but not the semantics, of a
 ``named`` configuration file. The file, along with all files included by it, is parsed and checked for syntax
 errors. If no file is specified,
 |named_conf| is read by default.
 
 Note: files that ``named`` reads in separate parser contexts, such as
 ``rndc.key`` and ``bind.keys``, are not automatically read by
-``named-checkconf``. Configuration errors in these files may cause
-``named`` to fail to run, even if ``named-checkconf`` was successful.
-However, ``named-checkconf`` can be run on these files explicitly.
+:program:`named-checkconf`. Configuration errors in these files may cause
+``named`` to fail to run, even if :program:`named-checkconf` was successful.
+However, :program:`named-checkconf` can be run on these files explicitly.
 
 Options
 ~~~~~~~
@@ -76,7 +76,7 @@ Options
 
 .. option:: -v
 
-   This option prints the version of the ``named-checkconf`` program and exits.
+   This option prints the version of the :program:`named-checkconf` program and exits.
 
 .. option:: -x
 
@@ -99,7 +99,7 @@ Options
 Return Values
 ~~~~~~~~~~~~~
 
-``named-checkconf`` returns an exit status of 1 if errors were detected
+:program:`named-checkconf` returns an exit status of 1 if errors were detected
 and 0 otherwise.
 
 See Also

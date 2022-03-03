@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnstap-read`` reads ``dnstap`` data from a specified file and prints
+:program:`dnstap-read` reads ``dnstap`` data from a specified file and prints
 it in a human-readable format. By default, ``dnstap`` data is printed in
 a short summary format, but if the :option:`-y` option is specified, a
 longer and more detailed YAML format is used.

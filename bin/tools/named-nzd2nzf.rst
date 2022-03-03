@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named-nzd2nzf`` converts an NZD database to NZF format and prints it
+:program:`named-nzd2nzf` converts an NZD database to NZF format and prints it
 to standard output. This can be used to review the configuration of
 zones that were added to ``named`` via :option:`rndc addzone`. It can also be
 used to restore the old file format when rolling back from a newer

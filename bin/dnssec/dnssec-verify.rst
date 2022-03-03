@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-verify`` verifies that a zone is fully signed for each
+:program:`dnssec-verify` verifies that a zone is fully signed for each
 algorithm found in the DNSKEY RRset for the zone, and that the
 NSEC/NSEC3 chains are complete.
 
@@ -68,7 +68,7 @@ Options
 
 .. option:: -q
 
-   This option sets quiet mode, which suppresses output.  Without this option, when ``dnssec-verify``
+   This option sets quiet mode, which suppresses output.  Without this option, when :program:`dnssec-verify`
    is run it prints to standard output the number of keys in use, the
    algorithms used to verify the zone was signed correctly, and other status
    information.  With this option, all non-error output is suppressed, and only the exit

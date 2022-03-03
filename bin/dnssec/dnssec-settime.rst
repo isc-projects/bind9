@@ -26,14 +26,14 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-settime`` reads a DNSSEC private key file and sets the key
+:program:`dnssec-settime` reads a DNSSEC private key file and sets the key
 timing metadata as specified by the :option:`-P`, :option:`-A`, :option:`-R`,
 :option:`-I`, and :option:`-D` options. The metadata can then be used by
 ``dnssec-signzone`` or other signing software to determine when a key is
 to be published, whether it should be used for signing a zone, etc.
 
 If none of these options is set on the command line,
-``dnssec-settime`` simply prints the key timing metadata already stored
+:program:`dnssec-settime` simply prints the key timing metadata already stored
 in the key.
 
 When key metadata fields are changed, both files of a key pair
@@ -64,7 +64,7 @@ Options
 .. option:: -f
 
    This option forces an update of an old-format key with no metadata fields. Without
-   this option, ``dnssec-settime`` fails when attempting to update a
+   this option, :program:`dnssec-settime` fails when attempting to update a
    legacy key. With this option, the key is recreated in the new
    format, but with the original key data retained. The key's creation
    date is set to the present time. If no other values are
@@ -230,7 +230,7 @@ Known key states are HIDDEN, RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 Printing Options
 ~~~~~~~~~~~~~~~~
 
-``dnssec-settime`` can also be used to print the timing metadata
+:program:`dnssec-settime` can also be used to print the timing metadata
 associated with a key.
 
 .. option:: -u

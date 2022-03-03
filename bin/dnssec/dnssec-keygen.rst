@@ -26,7 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-keygen`` generates keys for DNSSEC (Secure DNS), as defined in
+:program:`dnssec-keygen` generates keys for DNSSEC (Secure DNS), as defined in
 :rfc:`2535` and :rfc:`4034`. It can also generate keys for use with TSIG
 (Transaction Signatures) as defined in :rfc:`2845`, or TKEY (Transaction
 Key) as defined in :rfc:`2930`.
@@ -80,7 +80,7 @@ Options
 .. option:: -C
 
    This option enables compatibility mode, which generates an old-style key, without any timing
-   metadata. By default, ``dnssec-keygen`` includes the key's
+   metadata. By default, :program:`dnssec-keygen` includes the key's
    creation date in the metadata stored with the private key; other
    dates may be set there as well, including publication date, activation date,
    etc. Keys that include this data may be incompatible with older
@@ -125,7 +125,7 @@ Options
 .. option:: -h
 
    This option prints a short summary of the options and arguments to
-   ``dnssec-keygen``.
+   :program:`dnssec-keygen`.
 
 .. option:: -K directory
 
@@ -134,12 +134,12 @@ Options
 .. option:: -k policy
 
    This option creates keys for a specific ``dnssec-policy``. If a policy uses multiple keys,
-   ``dnssec-keygen`` generates multiple keys. This also
+   :program:`dnssec-keygen` generates multiple keys. This also
    creates a ".state" file to keep track of the key state.
 
    This option creates keys according to the ``dnssec-policy`` configuration, hence
    it cannot be used at the same time as many of the other options that
-   ``dnssec-keygen`` provides.
+   :program:`dnssec-keygen` provides.
 
 .. option:: -L ttl
 
@@ -174,7 +174,7 @@ Options
 .. option:: -q
 
    This option sets quiet mode, which suppresses unnecessary output, including progress
-   indication. Without this option, when ``dnssec-keygen`` is run
+   indication. Without this option, when :program:`dnssec-keygen` is run
    interactively to generate an RSA or DSA key pair, it prints a
    string of symbols to ``stderr`` indicating the progress of the key
    generation. A ``.`` indicates that a random number has been found which
@@ -295,7 +295,7 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
 Generated Keys
 ~~~~~~~~~~~~~~
 
-When ``dnssec-keygen`` completes successfully, it prints a string of the
+When :program:`dnssec-keygen` completes successfully, it prints a string of the
 form ``Knnnn.+aaa+iiiii`` to the standard output. This is an
 identification string for the key it has generated.
 
@@ -305,7 +305,7 @@ identification string for the key it has generated.
 
 -  ``iiiii`` is the key identifier (or footprint).
 
-``dnssec-keygen`` creates two files, with names based on the printed
+:program:`dnssec-keygen` creates two files, with names based on the printed
 string. ``Knnnn.+aaa+iiiii.key`` contains the public key, and
 ``Knnnn.+aaa+iiiii.private`` contains the private key.
 
@@ -329,7 +329,7 @@ The command prints a string of the form:
 
 ``Kexample.com.+013+26160``
 
-In this example, ``dnssec-keygen`` creates the files
+In this example, :program:`dnssec-keygen` creates the files
 ``Kexample.com.+013+26160.key`` and ``Kexample.com.+013+26160.private``.
 
 To generate a matching key-signing key, issue the command:
