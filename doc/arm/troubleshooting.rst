@@ -81,7 +81,7 @@ By definition, TLS-encrypted traffic (e.g. DNS over TLS, DNS over HTTPS)
 is opaque to packet sniffers, which makes debugging problems with
 encrypted DNS close to impossible. However, Wireshark_ offers a
 solution_ to this problem by being able to read key log files. In order
-to make ``named`` prepare such a file, set the ``SSLKEYLOGFILE``
+to make :iscman:`named` prepare such a file, set the ``SSLKEYLOGFILE``
 environment variable to either:
 
 - the string ``config`` (``SSLKEYLOGFILE=config``); this requires
@@ -110,13 +110,13 @@ environment variable to either:
    unusable.
 
 When the ``SSLKEYLOGFILE`` environment variable is set, each TLS
-connection established by ``named`` (both incoming and outgoing) causes
+connection established by :iscman:`named` (both incoming and outgoing) causes
 about 1 kilobyte of data to be written to the key log file.
 
 .. warning::
 
    Due to the limitations of the current logging code in BIND 9,
-   enabling TLS pre-master secret logging adversely affects ``named``
+   enabling TLS pre-master secret logging adversely affects :iscman:`named`
    performance.
 
 .. _Wireshark: https://www.wireshark.org/

@@ -62,7 +62,7 @@ Feature Changes
 
 - The `UseSTD3ASCIIRules`_ flag is now set for libidn2 function calls.
   This enables additional validation rules for IDN domains and hostnames
-  in ``dig``. :gl:`#1610`
+  in :iscman:`dig`. :gl:`#1610`
 
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
@@ -70,7 +70,7 @@ Bug Fixes
 ~~~~~~~~~
 
 - Reloading a catalog zone which referenced a missing/deleted member
-  zone triggered a runtime check failure, causing ``named`` to exit
+  zone triggered a runtime check failure, causing :iscman:`named` to exit
   prematurely. This has been fixed. :gl:`#2308`
 
 - Some lame delegations could trigger a dependency loop, in which a

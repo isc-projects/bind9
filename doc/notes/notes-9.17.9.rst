@@ -27,10 +27,10 @@ Feature Changes
   described in :rfc:`8078`. :gl:`#1750`
 
 - When using the ``unixtime`` or ``date`` method to update the SOA
-  serial number, ``named`` and ``dnssec-signzone`` silently fell back to
+  serial number, :iscman:`named` and :iscman:`dnssec-signzone` silently fell back to
   the ``increment`` method to prevent the new serial number from being
   smaller than the old serial number (using serial number arithmetics).
-  ``dnssec-signzone`` now prints a warning message, and ``named`` logs a
+  :iscman:`dnssec-signzone` now prints a warning message, and :iscman:`named` logs a
   warning, when such a fallback happens. :gl:`#2058`
 
 Bug Fixes
@@ -40,16 +40,16 @@ Bug Fixes
   the same time, resulting in an unpredictable but low-probability
   assertion failure in ``free_rbtdb()``. This has been fixed. :gl:`#2317`
 
-- ``named`` no longer attempts to assign threads to CPUs outside the CPU
+- :iscman:`named` no longer attempts to assign threads to CPUs outside the CPU
   affinity set. Thanks to Ole Bjørn Hessen. :gl:`#2245`
 
-- When reconfiguring ``named``, removing ``auto-dnssec`` did not turn
+- When reconfiguring :iscman:`named`, removing ``auto-dnssec`` did not turn
   off DNSSEC maintenance. This has been fixed. :gl:`#2341`
 
 - The report of intermittent BIND assertion failures triggered in
   ``lib/dns/resolver.c:dns_name_issubdomain()`` has now been closed
   without further action. Our initial response to this was to add
-  diagnostic logging instead of terminating ``named``, anticipating that
+  diagnostic logging instead of terminating :iscman:`named`, anticipating that
   we would receive further useful troubleshooting input. This workaround
   first appeared in BIND releases 9.17.5 and 9.16.7. However, since
   those releases were published, there have been no new reports of

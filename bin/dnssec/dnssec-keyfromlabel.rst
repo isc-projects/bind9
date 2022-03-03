@@ -29,7 +29,7 @@ Description
 :program:`dnssec-keyfromlabel` generates a pair of key files that reference a
 key object stored in a cryptographic hardware service module (HSM). The
 private key file can be used for DNSSEC signing of zone data as if it
-were a conventional signing key created by ``dnssec-keygen``, but the
+were a conventional signing key created by :iscman:`dnssec-keygen`, but the
 key material is stored within the HSM and the actual signing takes
 place there.
 

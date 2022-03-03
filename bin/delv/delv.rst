@@ -33,7 +33,7 @@ Description
 ~~~~~~~~~~~
 
 :program:`delv` is a tool for sending DNS queries and validating the results,
-using the same internal resolver and validator logic as ``named``.
+using the same internal resolver and validator logic as :iscman:`named`.
 
 :program:`delv` sends to a specified name server all queries needed to
 fetch and validate the requested data; this includes the original
@@ -113,7 +113,7 @@ Options
    ``initial-key``, and ``static-key`` identically. That is, for a managed key,
    it is the *initial* key that is trusted; :rfc:`5011` key management is not
    supported. :program:`delv` does not consult the managed-keys database maintained by
-   ``named``, which means that if either of the keys in |bind_keys| is
+   :iscman:`named`, which means that if either of the keys in |bind_keys| is
    revoked and rolled over, |bind_keys| must be updated to
    use DNSSEC validation in :program:`delv`.
 
@@ -322,7 +322,7 @@ assign values to options like the timeout interval. They have the form
 .. option:: +[no]dnssec
 
    This option indicates whether to display RRSIG records in the :program:`delv` output.
-   The default is to do so. Note that (unlike in ``dig``) this does
+   The default is to do so. Note that (unlike in :iscman:`dig`) this does
    *not* control whether to request DNSSEC records or to
    validate them. DNSSEC records are always requested, and validation
    always occurs unless suppressed by the use of :option:`-i` or

@@ -26,7 +26,7 @@ BIND Version
 
 Most configuration examples given in this document require BIND version
 9.16.0 or newer (although many do work with all versions of BIND
-later than 9.9). To check the version of ``named`` you have installed,
+later than 9.9). To check the version of :iscman:`named` you have installed,
 use the :option:`-v <named -v>` switch as shown below:
 
 ::

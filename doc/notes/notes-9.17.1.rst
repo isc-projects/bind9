@@ -54,7 +54,7 @@ Bug Fixes
 ~~~~~~~~~
 
 -  When an RPZ policy zone was updated via zone transfer and a large
-   number of records was deleted, ``named`` could become nonresponsive
+   number of records was deleted, :iscman:`named` could become nonresponsive
    for a short period while deleted names were removed from the RPZ
    summary database. This database cleanup is now done incrementally
    over a longer period of time, reducing such delays. :gl:`#1447`

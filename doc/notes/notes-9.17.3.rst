@@ -15,7 +15,7 @@ Notes for BIND 9.17.3
 New Features
 ~~~~~~~~~~~~
 
-- New ``rndc`` command :option:`rndc dnssec -status <rndc dnssec>` shows the current DNSSEC
+- New :iscman:`rndc` command :option:`rndc dnssec -status <rndc dnssec>` shows the current DNSSEC
   policy and keys in use, the key states, and rollover status.
   :gl:`#1612`
 
@@ -34,7 +34,7 @@ Feature Changes
 
 - As part of an ongoing effort to use :rfc:`8499` terminology,
   ``primaries`` can now be used as a synonym for ``masters`` in
-  ``named.conf``. Similarly, ``notify primary-only`` can now be used as
+  :iscman:`named.conf`. Similarly, ``notify primary-only`` can now be used as
   a synonym for ``notify master-only``. The output of ``rndc
   zonestatus`` now uses ``primary`` and ``secondary`` terminology.
   :gl:`#1948`
@@ -43,21 +43,21 @@ Bug Fixes
 ~~~~~~~~~
 
 - A race condition could occur if a TCP socket connection was closed
-  while ``named`` was waiting for a recursive response. The attempt to
+  while :iscman:`named` was waiting for a recursive response. The attempt to
   send a response over the closing connection triggered an assertion
   failure in the function ``isc__nm_tcpdns_send()``. :gl:`#1937`
 
-- A race condition could occur when ``named`` attempted to use a UDP
+- A race condition could occur when :iscman:`named` attempted to use a UDP
   interface that was shutting down. This triggered an assertion failure
   in ``uv__udp_finish_close()``. :gl:`#1938`
 
 - Fix assertion failure when server was under load and root zone had not
   yet been loaded. :gl:`#1862`
 
-- ``named`` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c``
+- :iscman:`named` could crash when cleaning dead nodes in ``lib/dns/rbtdb.c``
   that were being reused. :gl:`#1968`
 
-- ``named`` crashed on shutdown when a new ``rndc`` connection was
+- :iscman:`named` crashed on shutdown when a new :iscman:`rndc` connection was
   received during shutdown. This has been fixed. :gl:`#1747`
 
 - The DS RRset returned by ``dns_keynode_dsset()`` was used in a

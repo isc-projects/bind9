@@ -198,13 +198,13 @@ Options
    This option acquires a lock on the specified file at runtime; this helps to
    prevent duplicate :program:`named` instances from running simultaneously.
    Use of this option overrides the ``lock-file`` option in
-   ``named.conf``. If set to ``none``, the lock file check is disabled.
+   :iscman:`named.conf`. If set to ``none``, the lock file check is disabled.
 
 Signals
 ~~~~~~~
 
 In routine operation, signals should not be used to control the
-nameserver; ``rndc`` should be used instead.
+nameserver; :iscman:`rndc` should be used instead.
 
 SIGHUP
    This signal forces a reload of the server.

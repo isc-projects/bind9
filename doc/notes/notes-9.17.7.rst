@@ -15,9 +15,9 @@ Notes for BIND 9.17.7
 New Features
 ~~~~~~~~~~~~
 
-- Support for DNS over TLS (DoT) has been added: the ``dig`` tool is now
-  able to send DoT queries (``+tls`` option) and ``named`` can handle
-  DoT queries (``listen-on tls ...`` option). ``named`` can use either a
+- Support for DNS over TLS (DoT) has been added: the :iscman:`dig` tool is now
+  able to send DoT queries (``+tls`` option) and :iscman:`named` can handle
+  DoT queries (``listen-on tls ...`` option). :iscman:`named` can use either a
   certificate provided by the user or an ephemeral certificate generated
   automatically upon startup. :gl:`#1840`
 
@@ -29,26 +29,26 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The ``dig``, ``host``, and ``nslookup`` tools have been converted to
+- The :iscman:`dig`, :iscman:`host`, and :iscman:`nslookup` tools have been converted to
   use the new network manager API rather than the older ISC socket API.
 
   As a side effect of this change, the ``dig +unexpected`` option no
   longer works. This could previously be used to diagnose broken servers
   or network configurations by listening for replies from servers other
   than the one that was queried. With the new API, such answers are
-  filtered before they ever reach ``dig``, so the option has been
+  filtered before they ever reach :iscman:`dig`, so the option has been
   removed. :gl:`#2140`
 
-- The network manager API is now used by ``named`` to send zone transfer
+- The network manager API is now used by :iscman:`named` to send zone transfer
   requests. :gl:`#2016`
 
 Bug Fixes
 ~~~~~~~~~
 
-- ``named`` could crash with an assertion failure if a TCP connection
+- :iscman:`named` could crash with an assertion failure if a TCP connection
   were closed while a request was still being processed. :gl:`#2227`
 
-- ``named`` acting as a resolver could incorrectly treat signed zones
+- :iscman:`named` acting as a resolver could incorrectly treat signed zones
   with no DS record at the parent as bogus. Such zones should be treated
   as insecure. This has been fixed. :gl:`#2236`
 

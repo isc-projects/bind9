@@ -30,7 +30,7 @@ New Features
 -  When a secondary server receives a large incremental zone transfer
    (IXFR), it can have a negative impact on query performance while the
    incremental changes are applied to the zone. To address this,
-   ``named`` can now limit the size of IXFR responses it sends in
+   :iscman:`named` can now limit the size of IXFR responses it sends in
    response to zone transfer requests. If an IXFR response would be
    larger than an AXFR of the entire zone, it will send an AXFR response
    instead.

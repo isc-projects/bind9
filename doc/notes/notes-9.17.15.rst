@@ -15,7 +15,7 @@ Notes for BIND 9.17.15
 Bug Fixes
 ~~~~~~~~~
 
-- When preparing DNS responses, ``named`` could replace the letters
+- When preparing DNS responses, :iscman:`named` could replace the letters
   ``W`` (uppercase) and ``w`` (lowercase) with ``\000``. This has been
   fixed. :gl:`#2779`
 

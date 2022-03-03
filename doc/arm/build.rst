@@ -118,12 +118,12 @@ For DNSTAP packet logging, ``libfstrm``
 (https://developers.google.com/protocol-buffers) must be installed, and
 BIND must be configured with ``--enable-dnstap``.
 
-To support internationalized domain names in ``dig``, ``libidn2``
+To support internationalized domain names in :iscman:`dig`, ``libidn2``
 (https://www.gnu.org/software/libidn/#libidn2) must be installed. If the
 library is installed in a nonstandard location, specify the prefix using
 ``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
 
-For line editing in ``nsupdate`` and ``nslookup``, either the
+For line editing in :iscman:`nsupdate` and :iscman:`nslookup`, either the
 ``readline`` (https://tiswww.case.edu/php/chet/readline/rltop.html) or
 the ``libedit`` library (https://www.thrysoee.dk/editline/) must be
 installed. If these are installed at a nonstandard location, adjust
@@ -152,19 +152,19 @@ specifying ``--enable-fixed-rrset`` or ``--disable-fixed-rrset`` on the
 ``configure`` command line. By default, fixed RRset-order is disabled to
 reduce memory footprint.
 
-The ``--enable-querytrace`` option causes ``named`` to log every step
+The ``--enable-querytrace`` option causes :iscman:`named` to log every step
 while processing every query. The ``--enable-singletrace`` option turns
 on the same verbose tracing, but allows an individual query to be
 separately traced by setting its query ID to 0. These options should
 only be enabled when debugging, because they have a significant negative
 impact on query performance.
 
-``make install`` installs ``named`` and the various BIND 9 libraries. By
+``make install`` installs :iscman:`named` and the various BIND 9 libraries. By
 default, installation is into /usr/local, but this can be changed with
 the ``--prefix`` option when running ``configure``.
 
 The option ``--sysconfdir`` can be specified to set the directory where
-configuration files such as ``named.conf`` go by default;
+configuration files such as :iscman:`named.conf` go by default;
 ``--localstatedir`` can be used to set the default parent directory of
 ``run/named.pid``. ``--sysconfdir`` defaults to ``$prefix/etc`` and
 ``--localstatedir`` defaults to ``$prefix/var``.

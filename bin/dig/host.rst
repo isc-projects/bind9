@@ -66,7 +66,7 @@ Options
 
 .. option:: -C
 
-   This option indicates that ``named`` should check consistency, meaning that :program:`host` queries the SOA records for zone
+   This option indicates that :iscman:`named` should check consistency, meaning that :program:`host` queries the SOA records for zone
    ``name`` from all the listed authoritative name servers for that
    zone. The list of name servers is defined by the NS records that are
    found for the zone.
@@ -77,7 +77,7 @@ Options
 
 .. option:: -l
 
-   This option tells ``named`` to list the zone, meaning the :program:`host` command performs a zone transfer of zone
+   This option tells :iscman:`named` to list the zone, meaning the :program:`host` command performs a zone transfer of zone
    ``name`` and prints out the NS, PTR, and address records (A/AAAA).
 
    Together, the :option:`-l` :option:`-a` options print all records in the zone.
@@ -112,7 +112,7 @@ Options
 
 .. option:: -s
 
-   This option tells ``named`` *not* to send the query to the next nameserver if any server responds
+   This option tells :iscman:`named` *not* to send the query to the next nameserver if any server responds
    with a SERVFAIL response, which is the reverse of normal stub
    resolver behavior.
 
@@ -162,7 +162,7 @@ Options
 
 .. option:: -W wait
 
-   This options sets the length of the wait timeout, indicating that ``named`` should wait for up to ``wait`` seconds for a reply. If ``wait`` is
+   This options sets the length of the wait timeout, indicating that :iscman:`named` should wait for up to ``wait`` seconds for a reply. If ``wait`` is
    less than 1, the wait interval is set to 1 second.
 
    By default, :program:`host` waits for 5 seconds for UDP responses and 10

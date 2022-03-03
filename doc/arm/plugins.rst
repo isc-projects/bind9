@@ -14,7 +14,7 @@
 Plugins
 -------
 
-Plugins are a mechanism to extend the functionality of ``named`` using
+Plugins are a mechanism to extend the functionality of :iscman:`named` using
 dynamically loadable libraries. By using plugins, core server
 functionality can be kept simple for the majority of users; more complex
 code implementing optional features need only be installed by users that
@@ -25,17 +25,17 @@ more plugins are added. Currently, only "query plugins" are supported;
 these modify the name server query logic. Other plugin types may be
 added in the future.
 
-The only plugin currently included in BIND is ``filter-aaaa.so``, which
+The only plugin currently included in BIND is :iscman:`filter-aaaa.so <filter-aaaa>`, which
 replaces the ``filter-aaaa`` feature that previously existed natively as
-part of ``named``. The code for this feature has been removed from
-``named`` and can no longer be configured using standard ``named.conf``
-syntax, but linking in the ``filter-aaaa.so`` plugin provides identical
+part of :iscman:`named`. The code for this feature has been removed from
+:iscman:`named` and can no longer be configured using standard :iscman:`named.conf`
+syntax, but linking in the :iscman:`filter-aaaa.so <filter-aaaa>` plugin provides identical
 functionality.
 
 Configuring Plugins
 ~~~~~~~~~~~~~~~~~~~
 
-A plugin is configured with the ``plugin`` statement in ``named.conf``:
+A plugin is configured with the ``plugin`` statement in :iscman:`named.conf`:
 
 ::
 
@@ -61,7 +61,7 @@ Each plugin implements four functions:
 -  ``plugin_register``
    to allocate memory, configure a plugin instance, and attach to hook
    points within
-   ``named``
+   :iscman:`named`
    ,
 -  ``plugin_destroy``
    to tear down the plugin instance and free memory,
@@ -71,9 +71,9 @@ Each plugin implements four functions:
 -  ``plugin_check``
    to test syntactic correctness of the plugin parameters.
 
-At various locations within the ``named`` source code, there are "hook
+At various locations within the :iscman:`named` source code, there are "hook
 points" at which a plugin may register itself. When a hook point is
-reached while ``named`` is running, it is checked to see whether any
+reached while :iscman:`named` is running, it is checked to see whether any
 plugins have registered themselves there; if so, the associated "hook
 action" - a function within the plugin library - is called. Hook
 actions may examine the runtime state and make changes: for example,

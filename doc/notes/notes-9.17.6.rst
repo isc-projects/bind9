@@ -15,10 +15,10 @@ Notes for BIND 9.17.6
 New Features
 ~~~~~~~~~~~~
 
-- Add a new ``rndc`` command, :option:`rndc dnssec -rollover <rndc dnssec>`, which triggers
+- Add a new :iscman:`rndc` command, :option:`rndc dnssec -rollover <rndc dnssec>`, which triggers
   a manual rollover for a specific key. :gl:`#1749`
 
-- Add a new ``rndc`` command, :option:`rndc dumpdb -expired <rndc dumpdb>`, which dumps the
+- Add a new :iscman:`rndc` command, :option:`rndc dumpdb -expired <rndc dumpdb>`, which dumps the
   cache database, including expired RRsets that are awaiting cleanup, to
   the ``dump-file`` for diagnostic purposes. :gl:`#1870`
 
@@ -34,7 +34,7 @@ Feature Changes
 
 - DNS Flag Day 2020: The default EDNS buffer size has been changed from
   4096 to 1232 bytes, the EDNS buffer size probing has been removed, and
-  ``named`` now sets the DF (Don't Fragment) flag on outgoing UDP
+  :iscman:`named` now sets the DF (Don't Fragment) flag on outgoing UDP
   packets. According to measurements done by multiple parties, this
   should not cause any operational problems as most of the Internet
   "core" is able to cope with IP message sizes between 1400-1500 bytes;
@@ -48,15 +48,15 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- ``named`` reported an invalid memory size when running in an
+- :iscman:`named` reported an invalid memory size when running in an
   environment that did not properly report the number of available
   memory pages and/or the size of each memory page. :gl:`#2166`
 
-- With multiple forwarders configured, ``named`` could fail the
+- With multiple forwarders configured, :iscman:`named` could fail the
   ``REQUIRE(msg->state == (-1))`` assertion in ``lib/dns/message.c``,
   causing it to crash. This has been fixed. :gl:`#2124`
 
-- ``named`` erroneously performed continuous key rollovers for KASP
+- :iscman:`named` erroneously performed continuous key rollovers for KASP
   policies that used algorithm Ed25519 or Ed448 due to a mismatch
   between created key size and expected key size. :gl:`#2171`
 

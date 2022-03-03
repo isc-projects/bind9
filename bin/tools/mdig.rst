@@ -30,18 +30,18 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-:program:`mdig` is a multiple/pipelined query version of ``dig``: instead of
+:program:`mdig` is a multiple/pipelined query version of :iscman:`dig`: instead of
 waiting for a response after sending each query, it begins by sending
 all queries. Responses are displayed in the order in which they are
 received, not in the order the corresponding queries were sent.
 
-:program:`mdig` options are a subset of the ``dig`` options, and are divided
+:program:`mdig` options are a subset of the :iscman:`dig` options, and are divided
 into "anywhere options," which can occur anywhere, "global options," which
 must occur before the query name (or they are ignored with a warning),
 and "local options," which apply to the next query on the command line.
 
 The ``@server`` option is a mandatory global option. It is the name or IP
-address of the name server to query. (Unlike ``dig``, this value is not
+address of the name server to query. (Unlike :iscman:`dig`, this value is not
 retrieved from ``/etc/resolv.conf``.) It can be an IPv4 address in
 dotted-decimal notation, an IPv6 address in colon-delimited notation, or
 a hostname. When the supplied ``server`` argument is a hostname,

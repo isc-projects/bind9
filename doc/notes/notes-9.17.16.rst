@@ -17,7 +17,7 @@ Security Fixes
 
 - Sending DNS messages with the OPCODE field set to anything other than
   QUERY (0) via DNS-over-TLS (DoT) or DNS-over-HTTPS (DoH) channels
-  triggered an assertion failure in ``named``. This has been fixed.
+  triggered an assertion failure in :iscman:`named`. This has been fixed.
 
   ISC would like to thank Ville Heikkila of Synopsys Cybersecurity
   Research Center for bringing this vulnerability to our attention.
@@ -55,12 +55,12 @@ Bug Fixes
   database of managed keys from subsequently being read back. This has
   been fixed. :gl:`#2686`
 
-- Signed, insecure delegation responses prepared by ``named`` either
+- Signed, insecure delegation responses prepared by :iscman:`named` either
   lacked the necessary NSEC records or contained duplicate NSEC records
   when both wildcard expansion and CNAME chaining were required to
   prepare the response. This has been fixed. :gl:`#2759`
 
-- If ``nsupdate`` sends an SOA request and receives a REFUSED response,
+- If :iscman:`nsupdate` sends an SOA request and receives a REFUSED response,
   it now fails over to the next available server. :gl:`#2758`
 
 - A bug that caused the NSEC3 salt to be changed on every restart for

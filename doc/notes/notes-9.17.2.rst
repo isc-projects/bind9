@@ -68,7 +68,7 @@ New Features
    Docs`_. Release notes are no longer available as a separate document
    accompanying a release. :gl:`#83`
 
--  ``named`` and ``named-checkzone`` now reject master zones that have a
+-  :iscman:`named` and :iscman:`named-checkzone` now reject master zones that have a
    DS RRset at the zone apex. Attempts to add DS records at the zone
    apex via UPDATE will be logged but otherwise ignored. DS records
    belong in the parent zone, not at the zone apex. :gl:`#1798`
@@ -78,7 +78,7 @@ New Features
    particular type that can be added to a domain name via dynamic
    update. :gl:`#1657`
 
--  ``dig`` and other tools can now print the Extended DNS Error (EDE)
+-  :iscman:`dig` and other tools can now print the Extended DNS Error (EDE)
    option when it appears in a request or a response. :gl:`#1835`
 
 -  ``dig +qid=<num>`` allows the user to specify a particular query ID
@@ -96,7 +96,7 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 -  The default value of ``max-stale-ttl`` has changed from 1 week to 12
-   hours. This option controls how long ``named`` retains expired RRsets
+   hours. This option controls how long :iscman:`named` retains expired RRsets
    in cache as a potential mitigation mechanism, should there be a
    problem with one or more domains. Note that cache content retention
    is independent of whether stale answers are used in response to
@@ -109,8 +109,8 @@ Feature Changes
    .. warning::
        This change may be significant for administrators who expect that
        stale cache content will be automatically retained for up to 1
-       week. Add option ``max-stale-ttl 1w;`` to ``named.conf`` to keep
-       the previous behavior of ``named``.
+       week. Add option ``max-stale-ttl 1w;`` to :iscman:`named.conf` to keep
+       the previous behavior of :iscman:`named`.
 
 -  BIND 9 no longer sets receive/send buffer sizes for UDP sockets,
    relying on system defaults instead. :gl:`#1713`
@@ -119,8 +119,8 @@ Feature Changes
    BIND 9 rwlock implementation. :gl:`#1753`
 
 -  BIND 9 binaries which are neither daemons nor administrative programs
-   were moved to ``$bindir``. Only ``ddns-confgen``, ``named``,
-   ``rndc``, ``rndc-confgen``, and ``tsig-confgen`` were left in
+   were moved to ``$bindir``. Only :iscman:`ddns-confgen`, :iscman:`named`,
+   :iscman:`rndc`, :iscman:`rndc-confgen`, and ``tsig-confgen`` were left in
    ``$sbindir``. :gl:`#1724`
 
 -  ``listen-on-v6 { any; }`` creates a separate socket for each
@@ -160,12 +160,12 @@ Bug Fixes
    processing step that was causing this delay has now been removed.
    :gl:`#1834`
 
--  ``named`` could crash with an assertion failure if the name of a
+-  :iscman:`named` could crash with an assertion failure if the name of a
    database node was looked up while the database was being modified.
    :gl:`#1857`
 
 -  When running on a system with support for Linux capabilities,
-   ``named`` drops root privileges very soon after system startup. This
+   :iscman:`named` drops root privileges very soon after system startup. This
    was causing a spurious log message, ``unable to set effective uid to
    0: Operation not permitted``, which has now been silenced.
    :gl:`#1042` :gl:`#1090`
@@ -173,7 +173,7 @@ Bug Fixes
 -  A possible deadlock in ``lib/isc/unix/socket.c`` was fixed.
    :gl:`#1859`
 
--  Previously, ``named`` did not destroy some mutexes and conditional
+-  Previously, :iscman:`named` did not destroy some mutexes and conditional
    variables in netmgr code, which caused a memory leak on FreeBSD. This
    has been fixed. :gl:`#1893`
 
@@ -205,7 +205,7 @@ Bug Fixes
   ``server-addresses`` statements due to an uninitialized DSCP value.
   This has been fixed. :gl:`#1812`
 
--  When built without LMDB support, ``named`` failed to restart after a
+-  When built without LMDB support, :iscman:`named` failed to restart after a
    zone with a double quote (") in its name was added with ``rndc
    addzone``. Thanks to Alberto Fernández. :gl:`#1695`
 

@@ -20,18 +20,18 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- When ``dnssec-signzone`` signs a zone using a successor key whose
+- When :iscman:`dnssec-signzone` signs a zone using a successor key whose
   predecessor is still published, it now only refreshes signatures for
   RRsets which have an invalid signature, an expired signature, or a
   signature which expires within the provided cycle interval. This
-  allows ``dnssec-signzone`` to gradually replace signatures in a zone
+  allows :iscman:`dnssec-signzone` to gradually replace signatures in a zone
   whose ZSK is being rolled over (similarly to what ``auto-dnssec
   maintain;`` does). :gl:`#1551`
 
-- ``dnssec-cds`` now only generates SHA-2 DS records by default and
+- :iscman:`dnssec-cds` now only generates SHA-2 DS records by default and
   avoids copying deprecated SHA-1 records from a child zone to its
   delegation in the parent. If the child zone does not publish SHA-2 CDS
-  records, ``dnssec-cds`` will generate them from the CDNSKEY records.
+  records, :iscman:`dnssec-cds` will generate them from the CDNSKEY records.
   The ``-a algorithm`` option now affects the process of generating DS
   digest records from both CDS and CDNSKEY records. Thanks to Tony
   Finch. :gl:`#2871`
@@ -45,16 +45,16 @@ Bug Fixes
 
 - A recent change to the internal memory structure of zone databases
   inadvertently neglected to update the MAPAPI value for zone files in
-  ``map`` format. This caused version 9.17.17 of ``named`` to attempt to
+  ``map`` format. This caused version 9.17.17 of :iscman:`named` to attempt to
   load files into memory that were no longer compatible, triggering an
   assertion failure on startup. The MAPAPI value has now been updated,
-  so ``named`` rejects outdated files when encountering them.
+  so :iscman:`named` rejects outdated files when encountering them.
   :gl:`#2872`
 
 - Zone files in ``map`` format whose size exceeded 2 GB failed to load.
   This has been fixed. :gl:`#2878`
 
-- Stale data in the cache could cause ``named`` to send non-minimized
+- Stale data in the cache could cause :iscman:`named` to send non-minimized
   queries despite QNAME minimization being enabled. This has been fixed.
   :gl:`#2665`
 

@@ -16,12 +16,12 @@ Security Fixes
 ~~~~~~~~~~~~~~
 
 - A malformed incoming IXFR transfer could trigger an assertion failure
-  in ``named``, causing it to quit abnormally. (CVE-2021-25214)
+  in :iscman:`named`, causing it to quit abnormally. (CVE-2021-25214)
 
   ISC would like to thank Greg Kuechle of SaskTel for bringing this
   vulnerability to our attention. :gl:`#2467`
 
-- ``named`` crashed when a DNAME record placed in the ANSWER section
+- :iscman:`named` crashed when a DNAME record placed in the ANSWER section
   during DNAME chasing turned out to be the final answer to a client
   query. (CVE-2021-25215)
 
@@ -56,7 +56,7 @@ Bug Fixes
   has been fixed. :gl:`#2583`
 
 - When ``stale-answer-client-timeout`` was set to a positive value and
-  recursion for a client query completed when ``named`` was about to
+  recursion for a client query completed when :iscman:`named` was about to
   look for a stale answer, an assertion could fail in
   ``query_respond()``, resulting in a crash. This has been fixed.
   :gl:`#2594`
@@ -64,15 +64,15 @@ Bug Fixes
 - After upgrading to the previous release, journal files for trust
   anchor databases (e.g. ``managed-keys.bind.jnl``) could be left in a
   corrupt state. (Other zone journal files were not affected.) This has
-  been fixed. If a corrupt journal file is detected, ``named`` can now
+  been fixed. If a corrupt journal file is detected, :iscman:`named` can now
   recover from it. :gl:`#2600`
 
-- When sending queries over TCP, ``dig`` now properly handles ``+tries=1
+- When sending queries over TCP, :iscman:`dig` now properly handles ``+tries=1
   +retry=0`` by not retrying the connection when the remote server
   closes the connection prematurely. :gl:`#2490`
 
 - CDS/CDNSKEY DELETE records are now removed when a zone transitions
-  from a secure to an insecure state. ``named-checkzone`` also no longer
+  from a secure to an insecure state. :iscman:`named-checkzone` also no longer
   reports an error when such records are found in an unsigned zone.
   :gl:`#2517`
 
@@ -80,8 +80,8 @@ Bug Fixes
   :option:`rndc freeze`. This has been fixed. :gl:`#2523`
 
 - After :option:`rndc dnssec -checkds <rndc dnssec>` or :option:`rndc dnssec -rollover <rndc dnssec>` is used,
-  ``named`` now immediately attempts to reconfigure zone keys. This
+  :iscman:`named` now immediately attempts to reconfigure zone keys. This
   change prevents unnecessary key rollover delays. :gl:`#2488`
 
-- ``named`` crashed after skipping a primary server while transferring a
+- :iscman:`named` crashed after skipping a primary server while transferring a
   zone over TLS. This has been fixed. :gl:`#2562`
