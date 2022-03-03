@@ -24,6 +24,11 @@ Security Fixes
   Changgen Zou from Qi An Xin Group Corp. for bringing this
   vulnerability to our attention. :gl:`#2950`
 
+- TCP connections with ``keep-response-order`` enabled could leave the
+  TCP sockets in the ``CLOSE_WAIT`` state when the client did not
+  properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
+
+
 Known Issues
 ~~~~~~~~~~~~
 
