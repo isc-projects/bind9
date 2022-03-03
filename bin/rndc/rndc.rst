@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: rndc
 .. program:: rndc
 .. _man_rndc:
 

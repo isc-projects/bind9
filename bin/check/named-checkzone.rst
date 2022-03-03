@@ -13,6 +13,7 @@
 
 .. BEWARE: Do not forget to edit also named-compilezone.rst!
 
+.. iscman:: named-checkzone
 .. program:: named-checkzone
 .. _man_named-checkzone:
 

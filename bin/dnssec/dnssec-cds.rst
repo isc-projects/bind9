@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-cds
 .. program:: dnssec-cds
 .. _man_dnssec-cds:
 

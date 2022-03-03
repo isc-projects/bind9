@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-keyfromlabel
 .. program:: dnssec-keyfromlabel
 .. _man_dnssec-keyfromlabel:
 

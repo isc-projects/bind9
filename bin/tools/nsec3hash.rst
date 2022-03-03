@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: nsec3hash
 .. program:: nsec3hash
 .. _man_nsec3hash:
 

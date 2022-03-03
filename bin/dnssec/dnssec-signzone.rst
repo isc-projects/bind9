@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-signzone
 .. program:: dnssec-signzone
 .. _man_dnssec-signzone:
 

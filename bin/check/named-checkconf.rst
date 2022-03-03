@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: named-checkconf
 .. program:: named-checkconf
 .. _man_named-checkconf:
 

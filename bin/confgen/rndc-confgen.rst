@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: rndc-confgen
 .. program:: rndc-confgen
 .. _man_rndc-confgen:
 

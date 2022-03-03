@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: filter-aaaa
 .. _man_filter-aaaa:
 
 filter-aaaa.so - filter AAAA in DNS responses when A is present

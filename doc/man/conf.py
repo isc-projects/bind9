@@ -116,3 +116,6 @@ rst_epilog = """
 .. |named_pid| replace: ``@runstatedir@/named.pid``
 .. |session_key| replace: ``@runstatedir@/session.key``
 """
+
+def setup(app):
+    app.add_crossref_type('iscman', 'iscman', 'pair: %s; manual page')

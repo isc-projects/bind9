@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnstap-read
 .. program:: dnstap-read
 .. _man_dnstap-read:
 

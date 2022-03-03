@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: host
 .. program:: host
 .. _man_host:
 

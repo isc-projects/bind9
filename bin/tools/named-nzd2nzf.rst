@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: named-nzd2nzf
 .. program:: named-nzd2nzf
 .. _man_named-nzd2nzf:
 

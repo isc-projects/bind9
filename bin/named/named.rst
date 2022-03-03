@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: named
 .. program:: named
 .. _man_named:
 

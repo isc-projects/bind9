@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: named-journalprint
 .. program:: named-journalprint
 .. _man_named-journalprint:
 

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-keygen
 .. program:: dnssec-keygen
 .. _man_dnssec-keygen:
 

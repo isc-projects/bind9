@@ -13,6 +13,7 @@
 
 .. BEWARE: Do not forget to edit also ddns-confgen.rst!
 
+.. iscman:: tsig-keygen
 .. program:: tsig-keygen
 .. _man_tsig-keygen:
 

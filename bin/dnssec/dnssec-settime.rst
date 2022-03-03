@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-settime
 .. program:: dnssec-settime
 .. _man_dnssec-settime:
 

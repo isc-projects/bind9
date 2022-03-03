@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: mdig
 .. program:: mdig
 .. _man_mdig:
 
