@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: delv
 .. program:: delv
 .. _man_delv:
 

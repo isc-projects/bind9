@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dig
 .. program:: dig
 .. _man_dig:
 

@@ -11,6 +11,8 @@
 
 .. highlight: console
 
+.. iscman:: named.conf
+
 named.conf - configuration file for **named**
 ---------------------------------------------
 

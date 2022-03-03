@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-verify
 .. program:: dnssec-verify
 .. _man_dnssec-verify:
 

@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-dsfromkey
 .. program:: dnssec-dsfromkey
 .. _man_dnssec-dsfromkey:
 

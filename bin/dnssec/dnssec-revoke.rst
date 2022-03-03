@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-revoke
 .. program:: dnssec-revoke
 .. _man_dnssec-revoke:
 

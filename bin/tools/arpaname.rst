@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: arpaname
 .. program:: arpaname
 .. _man_arpaname:
 

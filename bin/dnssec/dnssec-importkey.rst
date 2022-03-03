@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-importkey
 .. program:: dnssec-importkey
 .. _man_dnssec-importkey:
 

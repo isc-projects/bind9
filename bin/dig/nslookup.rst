@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: nslookup
 .. program:: nslookup
 .. _man_nslookup:
 

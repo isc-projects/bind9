@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: named-rrchecker
 .. program:: named-rrchecker
 .. _man_named-rrchecker:
 
