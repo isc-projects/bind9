@@ -15,7 +15,14 @@ Notes for BIND 9.16.27
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- The rules for acceptance of records into the cache have been tightened
+  to prevent the possibility of poisoning if forwarders send records
+  outside the configured bailiwick. (CVE-2021-25220)
+
+  ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
+  Network and Information Security Lab, Tsinghua University, and
+  Changgen Zou from Qi An Xin Group Corp. for bringing this
+  vulnerability to our attention. :gl:`#2950`
 
 Known Issues
 ~~~~~~~~~~~~
