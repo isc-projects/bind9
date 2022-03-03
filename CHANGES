@@ -4,6 +4,13 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+5818.	[security]	A synchronous call to closehandle_cb() caused
+			isc__nm_process_sock_buffer() to be called recursively,
+			which in turn left TCP connections hanging in the
+			CLOSE_WAIT state blocking indefinitely when
+			out-of-order processing was disabled. (CVE-2022-0396)
+			[GL #3112]
+
 5817.	[security]	The rules for acceptance of records into the cache
 			have been tightened to prevent the possibility of
 			poisoning if forwarders send records outside
