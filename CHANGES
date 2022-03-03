@@ -1,3 +1,7 @@
+5820.	[security]	An assertion could occur in resume_dslookup() if the
+			fetch had been shut down earlier. (CVE-2022-0667)
+			[GL #3129]
+
 5819.	[security]	Lookups involving a DNAME could trigger an INSIST when
 			"synth-from-dnssec" was enabled. (CVE-2022-0635)
 			[GL #3158]
