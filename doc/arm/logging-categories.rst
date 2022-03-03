@@ -41,7 +41,7 @@
     
     Note: the log message can also be due to packet loss. Before reporting servers for non-:rfc:`1034` compliance they should be re-tested to determine the nature of the non-compliance. This testing should prevent or reduce the number of false-positive reports.
     
-    Note: eventually ``named`` will have to stop treating such timeouts as due to :rfc:`1034` non-compliance and start treating it as plain packet loss. Falsely classifying packet loss as due to :rfc:`1034` non-compliance impacts DNSSEC validation, which requires EDNS for the DNSSEC records to be returned.
+    Note: eventually :iscman:`named` will have to stop treating such timeouts as due to :rfc:`1034` non-compliance and start treating it as plain packet loss. Falsely classifying packet loss as due to :rfc:`1034` non-compliance impacts DNSSEC validation, which requires EDNS for the DNSSEC records to be returned.
 
 ``general``
     A catch-all for many things that still are not classified into categories.
@@ -102,10 +102,10 @@
     TLS pre-master secrets (for debugging purposes).
 
 ``trust-anchor-telemetry``
-    Trust-anchor-telemetry requests received by ``named``.
+    Trust-anchor-telemetry requests received by :iscman:`named`.
 
 ``unmatched``
-    Messages that ``named`` was unable to determine the class of, or for which there was no matching ``view``. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the ``null`` channel.
+    Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching ``view``. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the ``null`` channel.
 
 ``update``
     Dynamic updates.

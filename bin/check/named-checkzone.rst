@@ -29,7 +29,7 @@ Description
 ~~~~~~~~~~~
 
 :program:`named-checkzone` checks the syntax and integrity of a zone file. It
-performs the same checks as ``named`` does when loading a zone. This
+performs the same checks as :iscman:`named` does when loading a zone. This
 makes :program:`named-checkzone` useful for checking zone files before
 configuring them into a name server.
 
@@ -55,13 +55,13 @@ Options
 
 .. option:: -j
 
-   When loading a zone file, this option tells ``named`` to read the journal if it exists. The journal
+   When loading a zone file, this option tells :iscman:`named` to read the journal if it exists. The journal
    file name is assumed to be the zone file name with the
    string ``.jnl`` appended.
 
 .. option:: -J filename
 
-   When loading the zone file, this option tells ``named`` to read the journal from the given file, if
+   When loading the zone file, this option tells :iscman:`named` to read the journal from the given file, if
    it exists. This implies :option:`-j`.
 
 .. option:: -c class
@@ -108,9 +108,9 @@ Options
 
    Possible formats are ``text`` (the default), which is the standard
    textual representation of the zone, and ``raw`` and ``raw=N``, which
-   store the zone in a binary format for rapid loading by ``named``.
+   store the zone in a binary format for rapid loading by :iscman:`named`.
    ``raw=N`` specifies the format version of the raw zone file: if ``N`` is
-   0, the raw file can be read by any version of ``named``; if N is 1, the
+   0, the raw file can be read by any version of :iscman:`named`; if N is 1, the
    file can only be read by release 9.9.0 or higher. The default is 1.
 
 .. option:: -k mode
@@ -122,7 +122,7 @@ Options
 
    This option sets a maximum permissible TTL for the input file. Any record with a
    TTL higher than this value causes the zone to be rejected. This
-   is similar to using the ``max-zone-ttl`` option in ``named.conf``.
+   is similar to using the ``max-zone-ttl`` option in :iscman:`named.conf`.
 
 .. option:: -L serial
 
@@ -174,9 +174,9 @@ Options
 
 .. option:: -t directory
 
-   This option tells ``named`` to chroot to ``directory``, so that ``include`` directives in the
+   This option tells :iscman:`named` to chroot to ``directory``, so that ``include`` directives in the
    configuration file are processed as if run by a similarly chrooted
-   ``named``.
+   :iscman:`named`.
 
 .. option:: -T mode
 
@@ -186,9 +186,9 @@ Options
 
 .. option:: -w directory
 
-   This option instructs ``named`` to chdir to ``directory``, so that relative filenames in master file
+   This option instructs :iscman:`named` to chdir to ``directory``, so that relative filenames in master file
    ``$INCLUDE`` directives work. This is similar to the directory clause in
-   ``named.conf``.
+   :iscman:`named.conf`.
 
 .. option:: -D
 

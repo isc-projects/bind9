@@ -31,7 +31,7 @@ Removed Features
 ~~~~~~~~~~~~~~~~
 
 - The IPv6 sockets are now explicitly restricted to sending and receiving IPv6
-  packets only.  This renders the ``dig`` option ``+mapped`` non-functioning and
+  packets only.  This renders the :iscman:`dig` option ``+mapped`` non-functioning and
   thus the option has been removed. :gl:`#3093`
 
 Feature Changes
@@ -53,7 +53,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- With libuv >= 1.37.0, the recvmmsg support would not be enabled in ``named``
+- With libuv >= 1.37.0, the recvmmsg support would not be enabled in :iscman:`named`
   reducing the maximum query-response performance.  The recvmmsg support would
   be used only in libuv 1.35.0 and 1.36.0.  This has been fixed.  :gl:`#3095`
 
@@ -68,7 +68,7 @@ Bug Fixes
   change in the previous release. This has been fixed. :gl:`#3111`
 
 - An error in the processing of the ``blackhole`` ACL could cause some DNS
-  requests sent by ``named`` to fail - for example, zone transfer requests
+  requests sent by :iscman:`named` to fail - for example, zone transfer requests
   and SOA refresh queries - if the destination address or prefix was
   specifically excluded from the ACL using ``!``, or if the ACL was set
   to ``none``.  ``blackhole`` worked correctly when it was left unset, or

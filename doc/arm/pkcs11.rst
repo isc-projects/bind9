@@ -153,7 +153,7 @@ Remember that each key should have unique label and we are going to use that
 label to reference the private key.
 
 Convert the RSA keys stored in the HSM into a format that BIND 9 understands.
-The ``dnssec-keyfromlabel`` tool from BIND 9 can link the raw keys stored in the
+The :iscman:`dnssec-keyfromlabel` tool from BIND 9 can link the raw keys stored in the
 HSM with the ``K<zone>+<alg>+<id>`` files.  You'll need to provide the OpenSSL
 engine name (``pkcs11``), the algorithm (``RSASHA256``) and the PKCS#11 label
 that specify the token (we asume that it has been initialized as bind9), the
@@ -216,7 +216,7 @@ Specifying the Engine on the Command Line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using OpenSSL-based PKCS#11, the "engine" to be used by OpenSSL can be
-specified in ``named`` and all of the BIND ``dnssec-*`` tools by using the ``-E
+specified in :iscman:`named` and all of the BIND ``dnssec-*`` tools by using the ``-E
 <engine>`` command line option. Specifying the engine is generally not necessary
 unless a different OpenSSL engine is used.
 
@@ -227,8 +227,8 @@ provide the name of the OpenSSL engine using the -E command line option.
 
    dnssec-signzone -E pkcs11 -S -o example.net example.net
 
-Running ``named`` With Automatic Zone Re-signing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Running :iscman:`named` With Automatic Zone Re-signing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The zone can also be signed automatically by named. Again, we need to provide
 the name of the OpenSSL engine using the :option:`-E <named -E>` command line option.
@@ -248,14 +248,14 @@ and the logs should have lines like:
    DNSKEY example.net/RSASHA256/42231 (ZSK) is now published
    DNSKEY example.net/RSA256SHA256/42231 (ZSK) is now active
 
-For ``named`` to dynamically re-sign zones using HSM keys,
-and/or to sign new records inserted via nsupdate, ``named`` must
+For :iscman:`named` to dynamically re-sign zones using HSM keys,
+and/or to sign new records inserted via nsupdate, :iscman:`named` must
 have access to the HSM PIN. In OpenSSL-based PKCS#11, this is
 accomplished by placing the PIN into the ``openssl.cnf`` file (in the above
 examples, ``/opt/pkcs11/usr/ssl/openssl.cnf``).
 
 The location of the openssl.cnf file can be overridden by setting the
-``OPENSSL_CONF`` environment variable before running ``named``.
+``OPENSSL_CONF`` environment variable before running :iscman:`named`.
 
 Here is a sample ``openssl.cnf``:
 

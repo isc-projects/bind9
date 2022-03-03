@@ -63,9 +63,9 @@ Interactive Commands
 ~~~~~~~~~~~~~~~~~~~~
 
 ``host [server]``
-   This command looks up information for ``host`` using the current default server or
-   using ``server``, if specified. If ``host`` is an Internet address and the
-   query type is A or PTR, the name of the host is returned. If ``host`` is
+   This command looks up information for :iscman:`host` using the current default server or
+   using ``server``, if specified. If :iscman:`host` is an Internet address and the
+   query type is A or PTR, the name of the host is returned. If :iscman:`host` is
    a name and does not have a trailing period (``.``), the search list is used
    to qualify the name.
 

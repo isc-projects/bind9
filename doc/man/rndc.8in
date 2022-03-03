@@ -602,8 +602,8 @@ there is no explicit root zone configured.
 .B stop \-p
 This command stops the server, making sure any recent changes made through dynamic
 update or IXFR are first saved to the master files of the updated
-zones. If \fB\-p\fP is specified, \fBnamed(8)\(ga\(aqs process ID is returned.
-This allows an external process to determine when \(ga\(ganamed\fP has
+zones. If \fB\-p\fP is specified, \fBnamed\fP\(aqs process ID is returned.
+This allows an external process to determine when \fBnamed\fP has
 completed stopping.
 .sp
 See also \fI\%rndc halt\fP\&.

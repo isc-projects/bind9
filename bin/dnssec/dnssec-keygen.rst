@@ -63,7 +63,7 @@ Options
 
    In prior releases, HMAC algorithms could be generated for use as TSIG
    keys, but that feature was removed in BIND 9.13.0. Use
-   ``tsig-keygen`` to generate TSIG keys.
+   :iscman:`tsig-keygen` to generate TSIG keys.
 
 .. option:: -b keysize
 
@@ -310,7 +310,7 @@ string. ``Knnnn.+aaa+iiiii.key`` contains the public key, and
 ``Knnnn.+aaa+iiiii.private`` contains the private key.
 
 The ``.key`` file contains a DNSKEY or KEY record. When a zone is being
-signed by ``named`` or :option:`dnssec-signzone -S`, DNSKEY records are
+signed by :iscman:`named` or :option:`dnssec-signzone -S`, DNSKEY records are
 included automatically. In other cases, the ``.key`` file can be
 inserted into a zone file manually or with an ``$INCLUDE`` statement.
 

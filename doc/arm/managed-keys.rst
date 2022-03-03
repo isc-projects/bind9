@@ -15,7 +15,7 @@ Dynamic Trust Anchor Management
 -------------------------------
 
 BIND is able to maintain DNSSEC trust anchors using :rfc:`5011` key
-management. This feature allows ``named`` to keep track of changes to
+management. This feature allows :iscman:`named` to keep track of changes to
 critical DNSSEC keys without any need for the operator to make changes
 to configuration files.
 
@@ -45,7 +45,7 @@ has completed, the active KSK can be revoked, and the zone can be
 "rolled over" to the newly accepted key.
 
 The easiest way to place a stand-by key in a zone is to use the "smart
-signing" features of ``dnssec-keygen`` and ``dnssec-signzone``. If a key
+signing" features of :iscman:`dnssec-keygen` and :iscman:`dnssec-signzone`. If a key
 exists with a publication date in the past, but an activation date which is
 unset or in the future, :option:`dnssec-signzone -S` includes the
 DNSKEY record in the zone but does not sign with it:
@@ -55,7 +55,7 @@ DNSKEY record in the zone but does not sign with it:
    $ dnssec-keygen -K keys -f KSK -P now -A now+2y example.net
    $ dnssec-signzone -S -K keys example.net
 
-To revoke a key, use the command ``dnssec-revoke``. This
+To revoke a key, use the command :iscman:`dnssec-revoke`. This
 adds the REVOKED bit to the key flags and regenerates the ``K*.key``
 and ``K*.private`` files.
 
@@ -77,7 +77,7 @@ wrapping around at 65535. So, for example, the key
 
 If two keys have IDs exactly 128 apart and one is revoked, the two
 key IDs will collide, causing several problems. To prevent this,
-``dnssec-keygen`` does not generate a new key if another key
+:iscman:`dnssec-keygen` does not generate a new key if another key
 which may collide is present. This checking only occurs if the new keys are
 written to the same directory that holds all other keys in use for that
 zone.

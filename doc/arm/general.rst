@@ -394,10 +394,10 @@ Notes
 
 .. [#rfc4955] BIND 9 interoperates with correctly designed experiments.
 
-.. [#rfc5452] ``named`` only uses ports to extend the ID space; addresses are not
+.. [#rfc5452] :iscman:`named` only uses ports to extend the ID space; addresses are not
    used.
 
-.. [#rfc6147] Section 5.5 does not match reality. ``named`` uses the presence
+.. [#rfc6147] Section 5.5 does not match reality. :iscman:`named` uses the presence
    of DO=1 to detect if validation may be occurring. CD has no bearing
    on whether validation occurs.
 
@@ -417,7 +417,7 @@ Notes
 
 .. [#rfc7344] Updating of parent zones is not yet implemented.
 
-.. [#rfc7830] ``named`` does not currently encrypt DNS requests, so the PAD option
+.. [#rfc7830] :iscman:`named` does not currently encrypt DNS requests, so the PAD option
    is accepted but not returned in responses.
 
 .. [#rfc3363] Section 4 is ignored.

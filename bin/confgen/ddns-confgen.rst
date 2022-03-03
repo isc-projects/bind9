@@ -29,19 +29,19 @@ Description
 
 :program:`ddns-confgen` is an utility that generates keys for use in TSIG signing.
 The resulting keys can be used, for example, to secure dynamic DNS updates
-to a zone, or for the ``rndc`` command channel.
+to a zone, or for the :iscman:`rndc` command channel.
 
 The key name can specified using :option:`-k` parameter and defaults to ``ddns-key``.
 The generated key is accompanied by configuration text and instructions that
-can be used with ``nsupdate`` and ``named`` when setting up dynamic DNS,
+can be used with :iscman:`nsupdate` and :iscman:`named` when setting up dynamic DNS,
 including an example ``update-policy`` statement.
-(This usage is similar to the ``rndc-confgen`` command for setting up
+(This usage is similar to the :iscman:`rndc-confgen` command for setting up
 command-channel security.)
 
-Note that ``named`` itself can configure a local DDNS key for use with
+Note that :iscman:`named` itself can configure a local DDNS key for use with
 :option:`nsupdate -l`; it does this when a zone is configured with
 ``update-policy local;``. :program:`ddns-confgen` is only needed when a more
-elaborate configuration is required: for instance, if ``nsupdate`` is to
+elaborate configuration is required: for instance, if :iscman:`nsupdate` is to
 be used from a remote system.
 
 Options
@@ -71,12 +71,12 @@ Options
 
    This option enables quiet mode, which prints only the key, with no
    explanatory text or usage examples. This is essentially identical to
-   ``tsig-keygen``.
+   :iscman:`tsig-keygen`.
 
 .. option:: -s name
 
    This option generates a configuration example to allow dynamic updates
-   of a single hostname. The example ``named.conf`` text shows how to set
+   of a single hostname. The example :iscman:`named.conf` text shows how to set
    an update policy for the specified name using the "name" nametype. The
    default key name is ``ddns-key.name``. Note that the "self" nametype
    cannot be used, since the name to be updated may differ from the key
@@ -85,7 +85,7 @@ Options
 .. option:: -z zone
 
    This option generates a configuration example to allow
-   dynamic updates of a zone. The example ``named.conf`` text shows how
+   dynamic updates of a zone. The example :iscman:`named.conf` text shows how
    to set an update policy for the specified zone using the "zonesub"
    nametype, allowing updates to all subdomain names within that zone.
    This option cannot be used with the :option:`-s` option.

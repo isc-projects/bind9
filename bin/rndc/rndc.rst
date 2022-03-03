@@ -34,7 +34,7 @@ arguments.
 
 :program:`rndc` communicates with the name server over a TCP connection,
 sending commands authenticated with digital signatures. In the current
-versions of :program:`rndc` and ``named``, the only supported authentication
+versions of :program:`rndc` and :iscman:`named`, the only supported authentication
 algorithms are HMAC-MD5 (for compatibility), HMAC-SHA1, HMAC-SHA224,
 HMAC-SHA256 (default), HMAC-SHA384, and HMAC-SHA512. They use a shared
 secret on each end of the connection, which provides TSIG-style
@@ -94,7 +94,7 @@ Options
 
 .. option:: -r
 
-   This option instructs :program:`rndc` to print the result code returned by ``named``
+   This option instructs :program:`rndc` to print the result code returned by :iscman:`named`
    after executing the requested command (e.g., ISC_R_SUCCESS,
    ISC_R_FAILURE, etc.).
 
@@ -105,7 +105,7 @@ Options
 .. option:: -y key_id
 
    This option indicates use of the key ``key_id`` from the configuration file. For control message validation to succeed, ``key_id`` must be known
-   by ``named`` with the same algorithm and secret string. If no ``key_id`` is specified,
+   by :iscman:`named` with the same algorithm and secret string. If no ``key_id`` is specified,
    :program:`rndc` first looks for a key clause in the server statement of
    the server being used, or if no server statement is present for that
    host, then in the default-key clause of the options statement. Note that
@@ -126,14 +126,14 @@ Currently supported commands are:
    This command adds a zone while the server is running. This command requires the
    ``allow-new-zones`` option to be set to ``yes``. The configuration
    string specified on the command line is the zone configuration text
-   that would ordinarily be placed in ``named.conf``.
+   that would ordinarily be placed in :iscman:`named.conf`.
 
    The configuration is saved in a file called ``viewname.nzf`` (or, if
-   ``named`` is compiled with liblmdb, an LMDB database file called
+   :iscman:`named` is compiled with liblmdb, an LMDB database file called
    ``viewname.nzd``). ``viewname`` is the name of the view, unless the view
    name contains characters that are incompatible with use as a file
    name, in which case a cryptographic hash of the view name is used
-   instead. When ``named`` is restarted, the file is loaded into
+   instead. When :iscman:`named` is restarted, the file is loaded into
    the view configuration so that zones that were added can persist
    after a restart.
 
@@ -159,10 +159,10 @@ Currently supported commands are:
 
    If the zone was originally added via ``rndc addzone``, then it is
    removed permanently. However, if it was originally configured in
-   ``named.conf``, then that original configuration remains in place;
+   :iscman:`named.conf`, then that original configuration remains in place;
    when the server is restarted or reconfigured, the zone is
    recreated. To remove it permanently, it must also be removed from
-   ``named.conf``.
+   :iscman:`named.conf`.
 
    See also :option:`rndc addzone` and :option:`rndc modzone`.
 
@@ -177,7 +177,7 @@ Currently supported commands are:
    ``rndc dnssec -rollover`` allows you to schedule key rollover for a
    specific key (overriding the original key lifetime).
 
-   ``rndc dnssec -checkds`` will let ``named`` know that the DS for the given
+   ``rndc dnssec -checkds`` will let :iscman:`named` know that the DS for the given
    key has been seen published into or withdrawn from the parent.  This is
    required in order to complete a KSK rollover.  If the ``-key id`` argument
    is specified, look for the key with the given identifier, otherwise if there
@@ -189,7 +189,7 @@ Currently supported commands are:
 .. option:: dnstap (-reopen | -roll [number])
 
    This command closes and re-opens DNSTAP output files. ``rndc dnstap -reopen`` allows
-   the output file to be renamed externally, so that ``named`` can
+   the output file to be renamed externally, so that :iscman:`named` can
    truncate and re-open it. ``rndc dnstap -roll`` causes the output file
    to be rolled automatically, similar to log files. The most recent
    output file has ".0" appended to its name; the previous most recent
@@ -233,8 +233,8 @@ Currently supported commands are:
    This command stops the server immediately. Recent changes made through dynamic
    update or IXFR are not saved to the master files, but are rolled
    forward from the journal files when the server is restarted. If
-   ``-p`` is specified, ``named``'s process ID is returned. This allows
-   an external process to determine when ``named`` has completed
+   ``-p`` is specified, :iscman:`named`'s process ID is returned. This allows
+   an external process to determine when :iscman:`named` has completed
    halting.
 
    See also :option:`rndc stop`.
@@ -279,11 +279,11 @@ Currently supported commands are:
 
       Existing keys that are already trusted are not deleted from
       memory; DNSSEC validation can continue after this command is used.
-      However, key maintenance operations cease until ``named`` is
+      However, key maintenance operations cease until :iscman:`named` is
       restarted or reconfigured, and all existing key maintenance states
       are deleted.
 
-      Running :option:`rndc reconfig` or restarting ``named`` immediately
+      Running :option:`rndc reconfig` or restarting :iscman:`named` immediately
       after this command causes key maintenance to be reinitialized
       from scratch, just as if the server were being started for the
       first time. This is primarily intended for testing, but it may
@@ -297,16 +297,16 @@ Currently supported commands are:
    command requires the ``allow-new-zones`` option to be set to ``yes``.
    As with ``addzone``, the configuration string specified on the
    command line is the zone configuration text that would ordinarily be
-   placed in ``named.conf``.
+   placed in :iscman:`named.conf`.
 
    If the zone was originally added via :option:`rndc addzone`, the
    configuration changes are recorded permanently and are still
    in effect after the server is restarted or reconfigured. However, if
-   it was originally configured in ``named.conf``, then that original
+   it was originally configured in :iscman:`named.conf`, then that original
    configuration remains in place; when the server is restarted or
    reconfigured, the zone reverts to its original configuration. To
    make the changes permanent, it must also be modified in
-   ``named.conf``.
+   :iscman:`named.conf`.
 
    See also :option:`rndc addzone` and :option:`rndc delzone`.
 
@@ -324,18 +324,18 @@ Currently supported commands are:
 
    This command sets a DNSSEC negative trust anchor (NTA) for ``domain``, with a
    lifetime of ``duration``. The default lifetime is configured in
-   ``named.conf`` via the ``nta-lifetime`` option, and defaults to one
+   :iscman:`named.conf` via the ``nta-lifetime`` option, and defaults to one
    hour. The lifetime cannot exceed one week.
 
    A negative trust anchor selectively disables DNSSEC validation for
    zones that are known to be failing because of misconfiguration rather
    than an attack. When data to be validated is at or below an active
-   NTA (and above any other configured trust anchors), ``named``
+   NTA (and above any other configured trust anchors), :iscman:`named`
    aborts the DNSSEC validation process and treats the data as insecure
    rather than bogus. This continues until the NTA's lifetime has
    elapsed.
 
-   NTAs persist across restarts of the ``named`` server. The NTAs for a
+   NTAs persist across restarts of the :iscman:`named` server. The NTAs for a
    view are saved in a file called ``name.nta``, where ``name`` is the name
    of the view; if it contains characters that are incompatible with
    use as a file name, a cryptographic hash is generated from the name of
@@ -353,7 +353,7 @@ Currently supported commands are:
    of existing NTAs is printed. Note that this may include NTAs that are
    expired but have not yet been cleaned up.
 
-   Normally, ``named`` periodically tests to see whether data below
+   Normally, :iscman:`named` periodically tests to see whether data below
    an NTA can now be validated (see the ``nta-recheck`` option in the
    Administrator Reference Manual for details). If data can be
    validated, then the NTA is regarded as no longer necessary and is
@@ -380,8 +380,8 @@ Currently supported commands are:
 
    Query logging can also be enabled by explicitly directing the
    ``queries`` ``category`` to a ``channel`` in the ``logging`` section
-   of ``named.conf``, or by specifying ``querylog yes;`` in the
-   ``options`` section of ``named.conf``.
+   of :iscman:`named.conf`, or by specifying ``querylog yes;`` in the
+   ``options`` section of :iscman:`named.conf`.
 
 .. option:: reconfig
 
@@ -392,7 +392,7 @@ Currently supported commands are:
 
 .. option:: recursing
 
-   This command dumps the list of queries ``named`` is currently
+   This command dumps the list of queries :iscman:`named` is currently
    recursing on, and the list of domains to which iterative queries
    are currently being sent.
 
@@ -452,18 +452,18 @@ Currently supported commands are:
    :program:`rndc` response channel and printed to the standard output.
    Otherwise, it is written to the secroots dump file, which defaults to
    ``named.secroots``, but can be overridden via the ``secroots-file``
-   option in ``named.conf``.
+   option in :iscman:`named.conf`.
 
    See also :option:`rndc managed-keys`.
 
 .. option:: serve-stale (on | off | reset | status) [class [view]]
 
    This command enables, disables, resets, or reports the current status of
-   the serving of stale answers as configured in ``named.conf``.
+   the serving of stale answers as configured in :iscman:`named.conf`.
 
    If serving of stale answers is disabled by ``rndc-serve-stale off``, then it
-   remains disabled even if ``named`` is reloaded or reconfigured. ``rndc
-   serve-stale reset`` restores the setting as configured in ``named.conf``.
+   remains disabled even if :iscman:`named` is reloaded or reconfigured. ``rndc
+   serve-stale reset`` restores the setting as configured in :iscman:`named.conf`.
 
    ``rndc serve-stale status`` reports whether caching and serving of stale
    answers is currently enabled or disabled. It also reports the values of
@@ -520,7 +520,7 @@ Currently supported commands are:
    chain should be set. ``iterations`` defines the number of additional times to apply
    the algorithm when generating an NSEC3 hash. The ``salt`` is a string
    of data expressed in hexadecimal, a hyphen (`-') if no salt is to be
-   used, or the keyword ``auto``, which causes ``named`` to generate a
+   used, or the keyword ``auto``, which causes :iscman:`named` to generate a
    random 64-bit salt.
 
    So, for example, to create an NSEC3 chain using the SHA-1 hash
@@ -553,8 +553,8 @@ Currently supported commands are:
 
    This command stops the server, making sure any recent changes made through dynamic
    update or IXFR are first saved to the master files of the updated
-   zones. If ``-p`` is specified, ``named(8)`'s process ID is returned.
-   This allows an external process to determine when ``named`` has
+   zones. If ``-p`` is specified, :iscman:`named`'s process ID is returned.
+   This allows an external process to determine when :iscman:`named` has
    completed stopping.
 
    See also :option:`rndc halt`.
@@ -606,7 +606,7 @@ Currently supported commands are:
 .. option:: tsig-list
 
    This command lists the names of all TSIG keys currently configured for use by
-   ``named`` in each view. The list includes both statically configured keys and
+   :iscman:`named` in each view. The list includes both statically configured keys and
    dynamic TKEY-negotiated keys.
 
 .. option:: validation (on | off | status) [view ...]

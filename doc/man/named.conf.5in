@@ -35,7 +35,7 @@ named.conf \- configuration file for **named**
 \fBnamed.conf\fP
 .SH DESCRIPTION
 .sp
-\fBnamed.conf\fP is the configuration file for \fBnamed\fP\&. Statements are
+\fI\%named.conf\fP is the configuration file for \fBnamed\fP\&. Statements are
 enclosed in braces and terminated with a semi\-colon. Clauses in the
 statements are also semi\-colon terminated.  The usual comment styles are
 supported:

@@ -29,7 +29,7 @@ Description
 :program:`dnssec-settime` reads a DNSSEC private key file and sets the key
 timing metadata as specified by the :option:`-P`, :option:`-A`, :option:`-R`,
 :option:`-I`, and :option:`-D` options. The metadata can then be used by
-``dnssec-signzone`` or other signing software to determine when a key is
+:iscman:`dnssec-signzone` or other signing software to determine when a key is
 to be published, whether it should be used for signing a zone, etc.
 
 If none of these options is set on the command line,

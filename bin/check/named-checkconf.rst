@@ -27,14 +27,14 @@ Description
 ~~~~~~~~~~~
 
 :program:`named-checkconf` checks the syntax, but not the semantics, of a
-``named`` configuration file. The file, along with all files included by it, is parsed and checked for syntax
+:iscman:`named` configuration file. The file, along with all files included by it, is parsed and checked for syntax
 errors. If no file is specified,
 |named_conf| is read by default.
 
-Note: files that ``named`` reads in separate parser contexts, such as
+Note: files that :iscman:`named` reads in separate parser contexts, such as
 ``rndc.key`` and ``bind.keys``, are not automatically read by
 :program:`named-checkconf`. Configuration errors in these files may cause
-``named`` to fail to run, even if :program:`named-checkconf` was successful.
+:iscman:`named` to fail to run, even if :program:`named-checkconf` was successful.
 However, :program:`named-checkconf` can be run on these files explicitly.
 
 Options
@@ -46,7 +46,7 @@ Options
 
 .. option:: -j
 
-   When loading a zonefile, this option instructs ``named`` to read the journal if it exists.
+   When loading a zonefile, this option instructs :iscman:`named` to read the journal if it exists.
 
 .. option:: -l
 
@@ -65,14 +65,14 @@ Options
 
 .. option:: -p
 
-   This option prints out the ``named.conf`` and included files in canonical form if
+   This option prints out the :iscman:`named.conf` and included files in canonical form if
    no errors were detected. See also the :option:`-x` option.
 
 .. option:: -t directory
 
-   This option instructs ``named`` to chroot to ``directory``, so that ``include`` directives in the
+   This option instructs :iscman:`named` to chroot to ``directory``, so that ``include`` directives in the
    configuration file are processed as if run by a similarly chrooted
-   ``named``.
+   :iscman:`named`.
 
 .. option:: -v
 
@@ -82,14 +82,14 @@ Options
 
    When printing the configuration files in canonical form, this option obscures
    shared secrets by replacing them with strings of question marks
-   (``?``). This allows the contents of ``named.conf`` and related files
+   (``?``). This allows the contents of :iscman:`named.conf` and related files
    to be shared - for example, when submitting bug reports -
    without compromising private data. This option cannot be used without
    :option:`-p`.
 
 .. option:: -z
 
-   This option performs a test load of all zones of type ``primary`` found in ``named.conf``.
+   This option performs a test load of all zones of type ``primary`` found in :iscman:`named.conf`.
 
 .. option:: filename
 

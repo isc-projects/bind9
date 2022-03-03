@@ -50,7 +50,7 @@ add one line to the ``options`` section of your configuration file:
         ...
     };
 
-Restart ``named`` or run :option:`rndc reconfig`, and your recursive server is
+Restart :iscman:`named` or run :option:`rndc reconfig`, and your recursive server is
 now happily validating each DNS response. If this does not work for you,
 and you have already verified DNSSEC support as described in
 :ref:`dnssec_support_in_bind`, you may have some other
@@ -120,28 +120,28 @@ confirm that it is in fact validating DNS responses.
 
 .. _using_dig_to_verify:
 
-Using ``dig`` to Verify
-^^^^^^^^^^^^^^^^^^^^^^^
+Using :iscman:`dig` to Verify
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Web-based DNSSEC-verification tools often employ JavaScript. If you don't trust the
 JavaScript magic that the web-based tools rely on, you can take matters
 into your own hands and use a command-line DNS tool to check your
 validating resolver yourself.
 
-While ``nslookup`` is popular, partly because it comes pre-installed on
-most systems, it is not DNSSEC-aware. ``dig``, on the other hand, fully
+While :iscman:`nslookup` is popular, partly because it comes pre-installed on
+most systems, it is not DNSSEC-aware. :iscman:`dig`, on the other hand, fully
 supports the DNSSEC standard and comes as a part of BIND. If you do not
-have ``dig`` already installed on your system, install it by downloading
+have :iscman:`dig` already installed on your system, install it by downloading
 it from ISC's `website <https://www.isc.org/download>`__. ISC provides pre-compiled
 Windows versions on its website.
 
-``dig`` is a flexible tool for interrogating DNS name servers. It
+:iscman:`dig` is a flexible tool for interrogating DNS name servers. It
 performs DNS lookups and displays the answers that are returned from the
 name servers that were queried. Most seasoned DNS administrators use
-``dig`` to troubleshoot DNS problems because of its flexibility, ease of
+:iscman:`dig` to troubleshoot DNS problems because of its flexibility, ease of
 use, and clarity of output.
 
-The example below shows how to use ``dig`` to query the name server 10.53.0.1
+The example below shows how to use :iscman:`dig` to query the name server 10.53.0.1
 for the A record for ``ftp.isc.org`` when DNSSEC validation is enabled
 (i.e. the default). The address 10.53.0.1 is only used as an example;
 replace it with the actual address or host name of your
@@ -202,7 +202,7 @@ file, i.e.:
    };
 
 If the server is restarted (to ensure a clean cache) and the same
-``dig`` command executed, the result is very similar:
+:iscman:`dig` command executed, the result is very similar:
 
 ::
 
@@ -234,7 +234,7 @@ If the server is restarted (to ensure a clean cache) and the same
    ;; MSG SIZE  rcvd: 187
 
 However, this time there is no ``ad`` flag in the header. Although
-``dig`` is still returning the DNSSEC-related resource records, it is
+:iscman:`dig` is still returning the DNSSEC-related resource records, it is
 not checking them, and thus cannot vouch for the authenticity of the answer.
 If you do carry out this test, remember to re-enable DNSSEC validation
 (by removing the ``dnssec-validation no;`` line from the configuration
@@ -324,7 +324,7 @@ How Do I Know I Have a Validation Problem?
 
 Since all DNSSEC validation failures result in a general ``SERVFAIL``
 message, how do we know if it was really a validation error?
-Fortunately, there is a flag in ``dig``, (``+cd``, for "checking
+Fortunately, there is a flag in :iscman:`dig`, (``+cd``, for "checking
 disabled") which tells the server to disable DNSSEC validation. If
 you receive a ``SERVFAIL`` message, re-run the query a second time
 and set the ``+cd`` flag. If the query succeeds with ``+cd``, but
@@ -769,8 +769,8 @@ EDNS on DNS Servers
 For many years, BIND has had EDNS enabled by default,
 and the UDP packet size is set to a maximum of 4096 bytes. The DNS
 administrator should not need to perform any reconfiguration. You can
-use ``dig`` to verify that your server supports EDNS and see the UDP packet
-size it allows with this ``dig`` command:
+use :iscman:`dig` to verify that your server supports EDNS and see the UDP packet
+size it allows with this :iscman:`dig` command:
 
 ::
 

@@ -132,12 +132,12 @@ Options
 
 .. option:: -k keyfile
 
-   This option tells ``named`` to sign queries using TSIG using a key read from the given file. Key
-   files can be generated using ``tsig-keygen``. When using TSIG
+   This option tells :iscman:`named` to sign queries using TSIG using a key read from the given file. Key
+   files can be generated using :iscman:`tsig-keygen`. When using TSIG
    authentication with :program:`dig`, the name server that is queried needs to
    know the key and algorithm that is being used. In BIND, this is done
    by providing appropriate ``key`` and ``server`` statements in
-   ``named.conf``.
+   :iscman:`named.conf`.
 
 .. option:: -m
 
@@ -381,7 +381,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +[no]fail
 
-   This option indicates that ``named`` should try [or not try] the next server if a SERVFAIL is received. The default is
+   This option indicates that :iscman:`named` should try [or not try] the next server if a SERVFAIL is received. The default is
    to not try the next server, which is the reverse of normal stub
    resolver behavior.
 
@@ -582,7 +582,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +[no]sigchase
 
-   This feature is now obsolete and has been removed; use ``delv``
+   This feature is now obsolete and has been removed; use :iscman:`delv`
    instead.
 
 .. option:: +split=W
@@ -635,7 +635,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 .. option:: +[no]topdown
 
    This feature is related to ``dig +sigchase``, which is obsolete and
-   has been removed. Use ``delv`` instead.
+   has been removed. Use :iscman:`delv` instead.
 
 .. option:: +[no]trace
 
@@ -661,7 +661,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 .. option:: +trusted-key=####
 
    This option formerly specified trusted keys for use with ``dig +sigchase``. This
-   feature is now obsolete and has been removed; use ``delv`` instead.
+   feature is now obsolete and has been removed; use :iscman:`delv` instead.
 
 .. option:: +[no]ttlid
 

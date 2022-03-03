@@ -34,7 +34,7 @@ Principle of Operation
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Normally, if a zone is to be served by a secondary server, the
-``named.conf`` file on the server must list the zone, or the zone must
+:iscman:`named.conf` file on the server must list the zone, or the zone must
 be added using :option:`rndc addzone`. In environments with a large number of
 secondary servers, and/or where the zones being served are changing
 frequently, the overhead involved in maintaining consistent zone
@@ -48,19 +48,19 @@ removes, or reconfigures member zones based on the data received.
 To use a catalog zone, it must first be set up as a normal zone on both the
 primary and secondary servers that are configured to use it. It
 must also be added to a ``catalog-zones`` list in the ``options`` or
-``view`` statement in ``named.conf``. This is comparable to the way a
+``view`` statement in :iscman:`named.conf`. This is comparable to the way a
 policy zone is configured as a normal zone and also listed in a
 ``response-policy`` statement.
 
 To use the catalog zone feature to serve a new member zone:
 
 -  Set up the member zone to be served on the primary as normal. This
-   can be done by editing ``named.conf`` or by running
+   can be done by editing :iscman:`named.conf` or by running
    :option:`rndc addzone`.
 
 -  Add an entry to the catalog zone for the new member zone. This can
    be done by editing the catalog zone's zone file and running
-   :option:`rndc reload`, or by updating the zone using ``nsupdate``.
+   :option:`rndc reload`, or by updating the zone using :iscman:`nsupdate`.
 
 The change to the catalog zone is propagated from the primary to all
 secondaries using the normal AXFR/IXFR mechanism. When the secondary receives the
@@ -85,7 +85,7 @@ Configuring Catalog Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Catalog zones are configured with a ``catalog-zones`` statement in the
-``options`` or ``view`` section of ``named.conf``. For example:
+``options`` or ``view`` section of :iscman:`named.conf`. For example:
 
 ::
 
@@ -211,7 +211,7 @@ BIND currently supports the following options:
 
 
    These options are the equivalents of ``allow-query`` and
-   ``allow-transfer`` in a zone declaration in the ``named.conf``
+   ``allow-transfer`` in a zone declaration in the :iscman:`named.conf`
    configuration file. The ACL is processed in order; if there is no
    match to any rule, the default policy is to deny access. For the
    syntax of the APL RR, see :rfc:`3123`.
