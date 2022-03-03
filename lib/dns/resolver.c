@@ -6253,14 +6253,19 @@ name_external(dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	dns_zone_t *zone = NULL;
 	unsigned int labels;
 	dns_namereln_t rel;
+	/*
+	 * The following two variables do not influence code flow; they are
+	 * only necessary for calling dns_name_fullcompare().
+	 */
+	int _orderp = 0;
+	unsigned int _nlabelsp = 0;
 
 	apex = ISFORWARDER(fctx->addrinfo) ? fctx->fwdname : &fctx->domain;
 
 	/*
 	 * The name is outside the queried namespace.
 	 */
-	rel = dns_name_fullcompare(name, apex, &(int){ 0 },
-				   &(unsigned int){ 0U });
+	rel = dns_name_fullcompare(name, apex, &_orderp, &_nlabelsp);
 	if (rel != dns_namereln_subdomain && rel != dns_namereln_equal) {
 		return (true);
 	}
@@ -6292,8 +6297,8 @@ name_external(dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 			dns_zone_detach(&zone);
 		}
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			if (dns_name_fullcompare(zfname, apex, &(int){ 0 },
-						 &(unsigned int){ 0U }) ==
+			if (dns_name_fullcompare(zfname, apex, &_orderp,
+						 &_nlabelsp) ==
 			    dns_namereln_subdomain)
 			{
 				UNLOCK(&fctx->res->view->lock);
