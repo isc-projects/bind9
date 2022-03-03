@@ -26,8 +26,7 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-:program:`rndc` controls the operation of a name server; it supersedes the
-``ndc`` utility. If :program:`rndc` is
+:program:`rndc` controls the operation of a name server. If :program:`rndc` is
 invoked with no command line options or arguments, it prints a short
 summary of the supported commands and the available options and their
 arguments.
@@ -648,5 +647,5 @@ See Also
 ~~~~~~~~
 
 :manpage:`rndc.conf(5)`, :manpage:`rndc-confgen(8)`,
-:manpage:`named(8)`, :manpage:`named.conf(5)`, :manpage:`ndc(8)`, BIND 9 Administrator
+:manpage:`named(8)`, :manpage:`named.conf(5)`, BIND 9 Administrator
 Reference Manual.
