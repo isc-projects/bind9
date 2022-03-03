@@ -1,3 +1,8 @@
+5822.	[bug]		When calling dns_dispatch_send(), attach/detach
+			dns_request_t object as the read callback could
+			be called before send callback dereferencing
+			dns_request_t object too early. [GL #3105]
+
 5821.	[bug]		Fix query context management issues in the TCP part
 			of dig. [GL #3184]
 
