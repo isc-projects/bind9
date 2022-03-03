@@ -719,12 +719,6 @@ doshutdown(void) {
 		dns_message_detach(&updatemsg);
 	}
 
-	if (is_dst_up) {
-		ddebug("Destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = false;
-	}
-
 	ddebug("Destroying request manager");
 	dns_requestmgr_detach(&requestmgr);
 
@@ -3305,6 +3299,9 @@ cleanup(void) {
 	}
 	UNLOCK(&answer_lock);
 
+	ddebug("Shutting down managers");
+	isc_managers_destroy(&netmgr, &taskmgr, NULL);
+
 #if HAVE_GSSAPI
 	if (tsigkey != NULL) {
 		ddebug("detach tsigkey x%p", tsigkey);
@@ -3319,9 +3316,6 @@ cleanup(void) {
 	if (sig0key != NULL) {
 		dst_key_free(&sig0key);
 	}
-
-	ddebug("Shutting down managers");
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	ddebug("Destroying event");
 	isc_event_free(&global_event);
@@ -3356,6 +3350,12 @@ cleanup(void) {
 	isc_mem_destroy(&gmctx);
 
 	isc_mutex_destroy(&answer_lock);
+
+	if (is_dst_up) {
+		ddebug("Destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = false;
+	}
 }
 
 static void
