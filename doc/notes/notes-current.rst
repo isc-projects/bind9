@@ -55,17 +55,17 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- TCP connections could hang indefinitely if the other party did not
-  read sent data, causing the TCP write buffers to fill. This has been
-  fixed by adding a "write" timer. Connections that are hung while
-  writing now time out after the ``tcp-idle-timeout`` period has
-  elapsed. :gl:`#3132`
-
 - The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options
   were not implemented when the BIND 9 networking stack was refactored
   in 9.16. The missing functionality has been re-implemented and
   outgoing zone transfers now time out properly when not progressing.
   :gl:`#1897`
+
+- TCP connections could hang indefinitely if the other party did not
+  read sent data, causing the TCP write buffers to fill. This has been
+  fixed by adding a "write" timer. Connections that are hung while
+  writing now time out after the ``tcp-idle-timeout`` period has
+  elapsed. :gl:`#3132`
 
 - The statistics counter representing the current number of clients
   awaiting recursive resolution results (``RecursClients``) could be
