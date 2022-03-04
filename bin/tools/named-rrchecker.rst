@@ -59,4 +59,4 @@ Options
 See Also
 ~~~~~~~~
 
-:rfc:`1034`, :rfc:`1035`, :manpage:`named(8)`.
+:rfc:`1034`, :rfc:`1035`, :iscman:`named(8) <named>`.

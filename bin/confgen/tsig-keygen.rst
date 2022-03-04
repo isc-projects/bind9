@@ -51,4 +51,4 @@ Options
 See Also
 ~~~~~~~~
 
-:manpage:`nsupdate(1)`, :manpage:`named.conf(5)`, :manpage:`named(8)`, BIND 9 Administrator Reference Manual.
+:iscman:`nsupdate(1) <nsupdate>`, :iscman:`named.conf(5) <named.conf>`, :iscman:`named(8) <named>`, BIND 9 Administrator Reference Manual.

@@ -55,4 +55,4 @@ Options
 See Also
 ~~~~~~~~
 
-:manpage:`named(8)`, :manpage:`rndc(8)`, BIND 9 Administrator Reference Manual.
+:iscman:`named(8) <named>`, :iscman:`rndc(8) <rndc>`, BIND 9 Administrator Reference Manual.

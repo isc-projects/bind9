@@ -104,4 +104,4 @@ Options
 See Also
 ~~~~~~~~
 
-:manpage:`dnssec-signzone(8)`, BIND 9 Administrator Reference Manual, :rfc:`4033`.
+:iscman:`dnssec-signzone(8) <dnssec-signzone>`, BIND 9 Administrator Reference Manual, :rfc:`4033`.

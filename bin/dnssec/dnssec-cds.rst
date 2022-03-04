@@ -217,5 +217,5 @@ protection time.
 See Also
 ~~~~~~~~
 
-:manpage:`dig(1)`, :manpage:`dnssec-settime(8)`, :manpage:`dnssec-signzone(8)`, :manpage:`nsupdate(1)`, BIND 9 Administrator
+:iscman:`dig(1) <dig>`, :iscman:`dnssec-settime(8) <dnssec-settime>`, :iscman:`dnssec-signzone(8) <dnssec-signzone>`, :iscman:`nsupdate(1) <nsupdate>`, BIND 9 Administrator
 Reference Manual, :rfc:`7344`.

@@ -375,7 +375,7 @@ See Also
 ~~~~~~~~
 
 :rfc:`2136`, :rfc:`3007`, :rfc:`2104`, :rfc:`2845`, :rfc:`1034`, :rfc:`2535`, :rfc:`2931`,
-:manpage:`named(8)`, :manpage:`dnssec-keygen(8)`, :manpage:`tsig-keygen(8)`.
+:iscman:`named(8) <named>`, :iscman:`dnssec-keygen(8) <dnssec-keygen>`, :iscman:`tsig-keygen(8) <tsig-keygen>`.
 
 Bugs
 ~~~~

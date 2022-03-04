@@ -423,5 +423,5 @@ The private keys are assumed to be in the current directory.
 See Also
 ~~~~~~~~
 
-:manpage:`dnssec-keygen(8)`, BIND 9 Administrator Reference Manual, :rfc:`4033`,
+:iscman:`dnssec-keygen(8) <dnssec-keygen>`, BIND 9 Administrator Reference Manual, :rfc:`4033`,
 :rfc:`4641`.

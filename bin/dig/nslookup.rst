@@ -205,4 +205,4 @@ Files
 See Also
 ~~~~~~~~
 
-:manpage:`dig(1)`, :manpage:`host(1)`, :manpage:`named(8)`.
+:iscman:`dig(1) <dig>`, :iscman:`host(1) <host>`, :iscman:`named(8) <named>`.

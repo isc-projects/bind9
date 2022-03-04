@@ -769,7 +769,7 @@ Files
 See Also
 ~~~~~~~~
 
-:manpage:`delv(1)`, :manpage:`host(1)`, :manpage:`named(8)`, :manpage:`dnssec-keygen(8)`, :rfc:`1035`.
+:iscman:`delv(1) <delv>`, :iscman:`host(1) <host>`, :iscman:`named(8) <named>`, :iscman:`dnssec-keygen(8) <dnssec-keygen>`, :rfc:`1035`.
 
 Bugs
 ~~~~
