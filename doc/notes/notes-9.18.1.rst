@@ -9,8 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.17.23
-----------------------
+Notes for BIND 9.18.1
+---------------------
 
 Security Fixes
 ~~~~~~~~~~~~~~
@@ -38,19 +38,6 @@ Security Fixes
 - When chasing DS records, a timed-out or artificially delayed fetch
   could cause ``named`` to crash while resuming a DS lookup.
   (CVE-2022-0667) :gl:`#3129`
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
 
 Feature Changes
 ~~~~~~~~~~~~~~~
