@@ -28,22 +28,6 @@ Security Fixes
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
   properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
 
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
