@@ -9,8 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.17.23
-----------------------
+Notes for BIND 9.18.1
+---------------------
 
 Security Fixes
 ~~~~~~~~~~~~~~
@@ -38,19 +38,6 @@ Security Fixes
 - When chasing DS records, a timed-out or artificially delayed fetch
   could cause ``named`` to crash while resuming a DS lookup.
   (CVE-2022-0667) :gl:`#3129`
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -100,16 +87,6 @@ Bug Fixes
   miscalculated in certain resolution scenarios, potentially causing the
   value of the counter to drop below zero. This has been fixed.
   :gl:`#3147`
-
-- Invalid dnssec-policy definitions were being accepted where the
-  defined keys did not cover both KSK and ZSK roles for a given
-  algorithm.  This is now checked for and the dnssec-policy is
-  rejected if both roles are not present for all algorithms in use.
-  :gl:`#3142`
-
-- Handling of the TCP write timeouts has been improved to track timeout
-  for each TCP write separately leading to faster connection tear down
-  in case the other party is not reading the data. :gl:`#3200`
 
 - An error in the processing of the ``blackhole`` ACL could cause some
   DNS requests sent by :iscman:`named` to fail - for example, zone
