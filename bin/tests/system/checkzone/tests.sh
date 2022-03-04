@@ -193,9 +193,18 @@ status=$((status+ret))
 ret=0
 # Step 3: Ensure that output conversion from stdin is the same as the output conversion from a file.
 diff zones/zone1_file.txt zones/zone1_stdin.txt >/dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+n=$((n+1))
+ret=0
+echo_i "checking integer overflow is prevented in \$GENERATE ($n)"
+$CHECKZONE -D example.com zones/generate-overflow.db > test.out.$n 2>&1 || ret=1
+lines=$(grep -c CNAME test.out.$n)
+echo $lines
+[ "$lines" -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
