@@ -184,5 +184,15 @@ n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+n=$((n+1))
+ret=0
+echo_i "checking integer overflow is prevented in \$GENERATE ($n)"
+$CHECKZONE -D example.com zones/generate-overflow.db > test.out.$n 2>&1 || ret=1
+lines=$(grep -c CNAME test.out.$n)
+echo $lines
+[ "$lines" -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
