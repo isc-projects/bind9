@@ -21,7 +21,6 @@
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
-#include <isc/hp.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/os.h>
@@ -78,7 +77,6 @@ create_managers(unsigned int workers) {
 	}
 	INSIST(workers != 0);
 
-	isc_hp_init(6 * workers);
 	isc_managers_create(test_mctx, workers, 0, &netmgr, &taskmgr,
 			    &timermgr);
 
