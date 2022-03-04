@@ -21,6 +21,7 @@
 #include <isc/netmgr.h>
 #include <isc/result.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -349,6 +350,9 @@ req_send(dns_request_t *request) {
 	isc_buffer_usedregion(request->query, &r);
 
 	request->flags |= DNS_REQUEST_F_SENDING;
+
+	/* detached in req_senddone() */
+	req_attach(request, &(dns_request_t *){ NULL });
 	dns_dispatch_send(request->dispentry, &r, request->dscp);
 }
 
@@ -472,8 +476,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
-	isc_task_t *tclone = NULL;
-	dns_request_t *rclone = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
 	dns_messageid_t id;
@@ -506,6 +508,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		return (DNS_R_BLACKHOLED);
 	}
 
+	/* detached in dns_request_destroy() */
 	result = new_request(mctx, &request);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -517,7 +520,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
 		sizeof(dns_requestevent_t));
-	isc_task_attach(task, &tclone);
+	isc_task_attach(task, &(isc_task_t *){ NULL });
 	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
@@ -547,7 +550,11 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		goto cleanup;
 	}
 
+	/* detached in req_connected() */
+	req_attach(request, &(dns_request_t *){ NULL });
+
 again:
+
 	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
 			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
@@ -559,7 +566,6 @@ again:
 		dispopt |= DNS_DISPATCHOPT_FIXEDID;
 	}
 
-	req_attach(request, &rclone);
 	result = dns_dispatch_add(request->dispatch, dispopt, request->timeout,
 				  destaddr, req_connected, req_senddone,
 				  req_response, request, &id,
@@ -568,11 +574,11 @@ again:
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
 			connected = false;
-			req_detach(&rclone);
 			dns_dispatch_detach(&request->dispatch);
 			goto again;
 		}
-		goto cleanup;
+
+		goto detach;
 	}
 
 	/* Add message ID. */
@@ -589,7 +595,9 @@ again:
 	request->destaddr = *destaddr;
 	if (tcp && connected) {
 		req_send(request);
-		req_detach(&rclone);
+
+		/* no need to call req_connected(), detach here */
+		req_detach(&(dns_request_t *){ request });
 	} else {
 		request->flags |= DNS_REQUEST_F_CONNECTING;
 		if (tcp) {
@@ -611,13 +619,13 @@ unlink:
 	ISC_LIST_UNLINK(requestmgr->requests, request, link);
 	UNLOCK(&requestmgr->lock);
 
+detach:
+	/* connect failed, detach here */
+	req_detach(&(dns_request_t *){ request });
+
 cleanup:
-	if (tclone != NULL) {
-		isc_task_detach(&tclone);
-	}
-	if (rclone != NULL) {
-		req_detach(&rclone);
-	}
+	isc_task_detach(&(isc_task_t *){ task });
+	/* final detach to shut down request */
 	req_detach(&request);
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw: failed %s",
 		isc_result_totext(result));
@@ -645,8 +653,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
-	isc_task_t *tclone = NULL;
-	dns_request_t *rclone = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
 	dns_messageid_t id;
@@ -678,6 +684,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		return (DNS_R_BLACKHOLED);
 	}
 
+	/* detached in dns_request_destroy() */
 	result = new_request(mctx, &request);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -689,10 +696,11 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
 		sizeof(dns_requestevent_t));
-	isc_task_attach(task, &tclone);
+	isc_task_attach(task, &(isc_task_t *){ NULL });
 	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
+
 	if (key != NULL) {
 		dns_tsigkey_attach(key, &request->tsigkey);
 	}
@@ -715,19 +723,21 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		request->timeout = udptimeout * 1000;
 	}
 
-use_tcp:
+	/* detached in req_connected() */
+	req_attach(request, &(dns_request_t *){ NULL });
+
+again:
 	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr, dscp,
 			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto detach;
 	}
 
-	req_attach(request, &rclone);
 	result = dns_dispatch_add(
 		request->dispatch, 0, request->timeout, destaddr, req_connected,
 		req_senddone, req_response, request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto detach;
 	}
 
 	message->id = id;
@@ -736,21 +746,20 @@ use_tcp:
 		/*
 		 * Try again using TCP.
 		 */
-		req_detach(&rclone);
 		dns_message_renderreset(message);
 		dns_dispatch_done(&request->dispentry);
 		dns_dispatch_detach(&request->dispatch);
 		options |= DNS_REQUESTOPT_TCP;
 		tcp = true;
-		goto use_tcp;
+		goto again;
 	}
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto detach;
 	}
 
 	result = dns_message_getquerytsig(message, mctx, &request->tsig);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto detach;
 	}
 
 	LOCK(&requestmgr->lock);
@@ -762,7 +771,9 @@ use_tcp:
 	request->destaddr = *destaddr;
 	if (tcp && connected) {
 		req_send(request);
-		req_detach(&rclone);
+
+		/* no need to call req_connected(), detach here */
+		req_detach(&(dns_request_t *){ request });
 	} else {
 		request->flags |= DNS_REQUEST_F_CONNECTING;
 		if (tcp) {
@@ -784,13 +795,13 @@ unlink:
 	ISC_LIST_UNLINK(requestmgr->requests, request, link);
 	UNLOCK(&requestmgr->lock);
 
+detach:
+	/* connect failed, detach here */
+	req_detach(&(dns_request_t *){ request });
+
 cleanup:
-	if (tclone != NULL) {
-		isc_task_detach(&tclone);
-	}
-	if (rclone != NULL) {
-		req_detach(&rclone);
-	}
+	isc_task_detach(&(isc_task_t *){ task });
+	/* final detach to shut down request */
 	req_detach(&request);
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: failed %s",
 		isc_result_totext(result));
@@ -987,6 +998,7 @@ dns_request_destroy(dns_request_t **requestp) {
 	INSIST(request->dispentry == NULL);
 	INSIST(request->dispatch == NULL);
 
+	/* final detach to shut down request */
 	req_detach(&request);
 }
 
@@ -1020,7 +1032,8 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
-	req_detach(&request);
+	/* attached in dns_request_createvia/_createraw() */
+	req_detach(&(dns_request_t *){ request });
 }
 
 static void
@@ -1049,6 +1062,9 @@ req_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	}
 
 	UNLOCK(&request->requestmgr->locks[request->hash]);
+
+	/* attached in req_send() */
+	req_detach(&request);
 }
 
 static void
@@ -1129,6 +1145,7 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 	task = request->event->ev_sender;
 	request->event->ev_sender = request;
 	request->event->result = result;
+
 	isc_task_sendanddetach(&task, (isc_event_t **)&request->event);
 }
 
