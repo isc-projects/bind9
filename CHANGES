@@ -1,3 +1,6 @@
+5821.	[bug]		Fix query context management issues in the TCP part
+			of dig. [GL #3184]
+
 5820.	[placeholder]
 
 5819.	[placeholder]

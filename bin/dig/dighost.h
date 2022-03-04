@@ -188,6 +188,7 @@ struct dig_query {
 	bool second_rr_rcvd;
 	bool first_repeat_rcvd;
 	bool warn_id;
+	bool canceled;
 	uint32_t first_rr_serial;
 	uint32_t second_rr_serial;
 	uint32_t msg_count;
