@@ -35,8 +35,7 @@ rndc \- name server control utility
 \fBrndc\fP [\fB\-b\fP source\-address] [\fB\-c\fP config\-file] [\fB\-k\fP key\-file] [\fB\-s\fP server] [\fB\-p\fP port] [\fB\-q\fP] [\fB\-r\fP] [\fB\-V\fP] [\fB\-y\fP key_id] [[\fB\-4\fP] | [\fB\-6\fP]] {command}
 .SH DESCRIPTION
 .sp
-\fBrndc\fP controls the operation of a name server; it supersedes the
-\fBndc\fP utility. If \fBrndc\fP is
+\fBrndc\fP controls the operation of a name server. If \fBrndc\fP is
 invoked with no command line options or arguments, it prints a short
 summary of the supported commands and the available options and their
 arguments.
@@ -703,7 +702,7 @@ Several error messages could be clearer.
 .SH SEE ALSO
 .sp
 \fBrndc.conf(5)\fP, \fBrndc\-confgen(8)\fP,
-\fBnamed(8)\fP, \fBnamed.conf(5)\fP, \fBndc(8)\fP, BIND 9 Administrator
+\fBnamed(8)\fP, \fBnamed.conf(5)\fP, BIND 9 Administrator
 Reference Manual.
 .SH AUTHOR
 Internet Systems Consortium

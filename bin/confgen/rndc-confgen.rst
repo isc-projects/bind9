@@ -118,4 +118,4 @@ To print a sample :iscman:`rndc.conf` file and the corresponding ``controls`` an
 See Also
 ~~~~~~~~
 
-:manpage:`rndc(8)`, :manpage:`rndc.conf(5)`, :manpage:`named(8)`, BIND 9 Administrator Reference Manual.
+:iscman:`rndc(8) <rndc>`, :iscman:`rndc.conf(5) <rndc.conf>`, :iscman:`named(8) <named>`, BIND 9 Administrator Reference Manual.

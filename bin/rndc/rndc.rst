@@ -646,6 +646,6 @@ Several error messages could be clearer.
 See Also
 ~~~~~~~~
 
-:manpage:`rndc.conf(5)`, :manpage:`rndc-confgen(8)`,
-:manpage:`named(8)`, :manpage:`named.conf(5)`, BIND 9 Administrator
+:iscman:`rndc.conf(5) <rndc.conf>`, :iscman:`rndc-confgen(8) <rndc-confgen>`,
+:iscman:`named(8) <named>`, :iscman:`named.conf(5) <named.conf>`, BIND 9 Administrator
 Reference Manual.

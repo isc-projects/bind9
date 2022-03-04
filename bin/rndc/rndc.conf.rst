@@ -155,4 +155,4 @@ details.
 See Also
 ~~~~~~~~
 
-:manpage:`rndc(8)`, :manpage:`rndc-confgen(8)`, :manpage:`mmencode(1)`, BIND 9 Administrator Reference Manual.
+:iscman:`rndc(8) <rndc>`, :iscman:`rndc-confgen(8) <rndc-confgen>`, :manpage:`mmencode(1)`, BIND 9 Administrator Reference Manual.

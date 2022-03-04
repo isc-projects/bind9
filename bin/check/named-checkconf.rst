@@ -105,4 +105,4 @@ and 0 otherwise.
 See Also
 ~~~~~~~~
 
-:manpage:`named(8)`, :manpage:`named-checkzone(8)`, BIND 9 Administrator Reference Manual.
+:iscman:`named(8) <named>`, :iscman:`named-checkzone(8) <named-checkzone>`, BIND 9 Administrator Reference Manual.

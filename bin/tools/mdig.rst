@@ -373,4 +373,4 @@ The local query options are:
 See Also
 ~~~~~~~~
 
-:manpage:`dig(1)`, :rfc:`1035`.
+:iscman:`dig(1) <dig>`, :rfc:`1035`.

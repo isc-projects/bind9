@@ -339,5 +339,5 @@ To generate a matching key-signing key, issue the command:
 See Also
 ~~~~~~~~
 
-:manpage:`dnssec-signzone(8)`, BIND 9 Administrator Reference Manual, :rfc:`2539`,
+:iscman:`dnssec-signzone(8) <dnssec-signzone>`, BIND 9 Administrator Reference Manual, :rfc:`2539`,
 :rfc:`2845`, :rfc:`4034`.

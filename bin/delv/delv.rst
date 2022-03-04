@@ -361,4 +361,4 @@ Files
 See Also
 ~~~~~~~~
 
-:manpage:`dig(1)`, :manpage:`named(8)`, :rfc:`4034`, :rfc:`4035`, :rfc:`4431`, :rfc:`5074`, :rfc:`5155`.
+:iscman:`dig(1) <dig>`, :iscman:`named(8) <named>`, :rfc:`4034`, :rfc:`4035`, :rfc:`4431`, :rfc:`5074`, :rfc:`5155`.

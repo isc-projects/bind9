@@ -220,5 +220,5 @@ and 0 otherwise.
 See Also
 ~~~~~~~~
 
-:manpage:`named(8)`, :manpage:`named-checkconf(8)`, :manpage:`named-checkzone(8)`,
-:rfc:`1035`, BIND 9 Administrator Reference Manual.
+:iscman:`named(8) <named>`, :iscman:`named-checkconf(8) <named-checkconf>`, :iscman:`named-checkzone(8) <named-checkzone>`, `:rfc:`1035`,
+BIND 9 Administrator Reference Manual.

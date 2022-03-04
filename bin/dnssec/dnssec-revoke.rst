@@ -75,4 +75,4 @@ Options
 See Also
 ~~~~~~~~
 
-:manpage:`dnssec-keygen(8)`, BIND 9 Administrator Reference Manual, :rfc:`5011`.
+:iscman:`dnssec-keygen(8) <dnssec-keygen>`, BIND 9 Administrator Reference Manual, :rfc:`5011`.
