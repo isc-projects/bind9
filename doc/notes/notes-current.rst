@@ -80,16 +80,11 @@ Bug Fixes
   hard quota on the number of connections. That message was accidentally
   removed but has now been restored. :gl:`#3125`
 
-- Build errors were introduced in some DLZ modules due to an incomplete
-  change in the previous release. This has been fixed. :gl:`#3111`
-
-- An error in the processing of the ``blackhole`` ACL could cause some
-  DNS requests sent by ``named`` to fail - for example, zone transfer
-  requests and SOA refresh queries - if the destination address or
-  prefix was specifically excluded from the ACL using ``!``, or if the
-  ACL was set to ``none``. This has now been fixed. ``blackhole`` worked
-  correctly when it was left unset, or if only positive-match elements
-  were included. :gl:`#3157`
+- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options
+  were not implemented when the BIND 9 networking stack was refactored
+  in 9.16. The missing functionality has been re-implemented and
+  outgoing zone transfers now time out properly when not progressing.
+  :gl:`#1897`
 
 - TCP connections could hang indefinitely if the other party did not
   read sent data, causing the TCP write buffers to fill. This has been
@@ -100,14 +95,19 @@ Bug Fixes
 - Client TCP connections are now closed immediately when data received
   cannot be parsed as a valid DNS request. :gl:`#3149`
 
-- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options
-  were not implemented when the BIND 9 networking stack was refactored
-  in 9.16. The missing functionality has been re-implemented and
-  outgoing zone transfers now time out properly when not progressing.
-  :gl:`#1897`
-
 - The statistics counter representing the current number of clients
   awaiting recursive resolution results (``RecursClients``) could be
   miscalculated in certain resolution scenarios, potentially causing the
   value of the counter to drop below zero. This has been fixed.
   :gl:`#3147`
+
+- An error in the processing of the ``blackhole`` ACL could cause some
+  DNS requests sent by ``named`` to fail - for example, zone transfer
+  requests and SOA refresh queries - if the destination address or
+  prefix was specifically excluded from the ACL using ``!``, or if the
+  ACL was set to ``none``. This has now been fixed. ``blackhole`` worked
+  correctly when it was left unset, or if only positive-match elements
+  were included. :gl:`#3157`
+
+- Build errors were introduced in some DLZ modules due to an incomplete
+  change in the previous release. This has been fixed. :gl:`#3111`
