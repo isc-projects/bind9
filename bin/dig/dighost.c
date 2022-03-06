@@ -2900,10 +2900,10 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		dig_lookup_t *l = query->lookup;
 
 		debug("in cancel handler");
-		query_detach(&query);
 		if (!query->canceled) {
 			cancel_lookup(l);
 		}
+		query_detach(&query);
 		lookup_detach(&l);
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
