@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 1996-2021  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 1996-2022  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17068,7 +17068,12 @@ fi
 #
 # was --with-openssl specified?
 #
-# [pairwise: --with-openssl --enable-openssl-hash, --with-openssl --disable-openssl-hash, --without-openssl]
+# "--enable-openssl-hash" is on purpose not being tested because it fails
+# linking when either of --with-ecdsa, --with-gost, --with-eddsa, or --with-aes
+# is used as well because it can't find f.e. HMAC_CTX_new() as "-lcrypto" is
+# missing.
+#
+# [pairwise: --with-openssl, --with-openssl --disable-openssl-hash, --without-openssl]
 
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then :
@@ -17143,6 +17148,9 @@ fi
 
 #
 # was --enable-openssl-hash specified?
+#
+# "--enable-openssl-hash" is not being tested, see the reasoning in
+# "--with-openssl" pairwise section.
 #
 # [pairwise: skip]
 # Check whether --enable-openssl-hash was given.
