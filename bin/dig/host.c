@@ -584,12 +584,6 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 static const char *optstring = "46aAc:dilnm:p:rst:vVwCDN:R:TUW:";
 
-/*% version */
-static void
-version(void) {
-	fprintf(stderr, "host %s\n", PACKAGE_VERSION);
-}
-
 static void
 pre_parse_args(int argc, char **argv) {
 	int c;
@@ -663,7 +657,7 @@ pre_parse_args(int argc, char **argv) {
 		case 'v':
 			break;
 		case 'V':
-			version();
+			printf("host %s\n", PACKAGE_VERSION);
 			exit(0);
 			break;
 		case 'w':

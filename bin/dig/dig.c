@@ -125,12 +125,6 @@ usage(void) {
 }
 #endif /* if TARGET_OS_IPHONE */
 
-/*% version */
-static void
-version(void) {
-	fprintf(stderr, "DiG %s\n", PACKAGE_VERSION);
-}
-
 /*% help */
 static void
 help(void) {
@@ -2164,7 +2158,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			(*lookup)->use_usec = true;
 			break;
 		case 'v':
-			version();
+			printf("DiG %s\n", PACKAGE_VERSION);
 			exit(0);
 			break;
 		}

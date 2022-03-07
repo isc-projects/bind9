@@ -111,7 +111,7 @@ vbprintf(int level, const char *fmt, ...) {
 
 void
 version(const char *name) {
-	fprintf(stderr, "%s %s\n", name, PACKAGE_VERSION);
+	printf("%s %s\n", name, PACKAGE_VERSION);
 	exit(0);
 }
 
