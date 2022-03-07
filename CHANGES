@@ -4,6 +4,8 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+	--- 9.16.27 released ---
+
 5818.	[security]	A synchronous call to closehandle_cb() caused
 			isc__nm_process_sock_buffer() to be called recursively,
 			which in turn left TCP connections hanging in the
