@@ -33,7 +33,7 @@
 			processed in a single TCP read callback. [GL #3141]
 
 5811.	[bug]		Reimplement the maximum and idle timeouts for outgoing
-			zone tranfers. [GL #1897]
+			zone transfers. [GL #1897]
 
 5809.	[bug]		Reset client TCP connection when data received cannot
 			be parsed as a valid DNS request. [GL #3149]
