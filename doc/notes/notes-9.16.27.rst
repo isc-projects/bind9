@@ -28,52 +28,31 @@ Security Fixes
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
   properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
 
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Add DEBUG(1) level messages when starting and ending BIND 9 task exclusive mode
-  that stops the normal DNS operation (f.e. for reconfiguration, interface
-  scans, and other events that require exclusive access to a shared resources).
-  :gl:`#3137`
+- DEBUG(1)-level messages were added when starting and ending the BIND 9
+  task-exclusive mode that stops normal DNS operation (e.g. for
+  reconfiguration, interface scans, and other events that require
+  exclusive access to a shared resource). :gl:`#3137`
 
 Bug Fixes
 ~~~~~~~~~
 
-- TCP connections could hang indefinitely if the TCP write buffers
-  were full because of the other party not reading sent data.  This has
-  been fixed by adding a "write" timer. Connections that are hung
-  while writing will now time out after the ``tcp-idle-timeout`` period
-  has elapsed. :gl:`#3132`
+- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options
+  were not implemented when the BIND 9 networking stack was refactored
+  in 9.16. The missing functionality has been re-implemented and
+  outgoing zone transfers now time out properly when not progressing.
+  :gl:`#1897`
 
-- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options were
-  not implemented when the BIND 9 networking stack was refactored in 9.16.
-  The missing functionality has been re-implemented and outgoing zone
-  transfers now time out properly when not progressing. :gl:`#1897`
+- TCP connections could hang indefinitely if the other party did not
+  read sent data, causing the TCP write buffers to fill. This has been
+  fixed by adding a "write" timer. Connections that are hung while
+  writing now time out after the ``tcp-idle-timeout`` period has
+  elapsed. :gl:`#3132`
 
 - The statistics counter representing the current number of clients
   awaiting recursive resolution results (``RecursClients``) could be
   miscalculated in certain resolution scenarios, potentially causing the
   value of the counter to drop below zero. This has been fixed.
   :gl:`#3147`
-
-- Invalid dnssec-policy definitions were being accepted where the
-  defined keys did not cover both KSK and ZSK roles for a given
-  algorithm.  This is now checked for and the dnssec-policy is
-  rejected if both roles are not present for all algorithms in use.
-  :gl:`#3142`
