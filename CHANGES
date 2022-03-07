@@ -24,6 +24,8 @@
 5821.	[bug]		Fix query context management issues in the TCP part
 			of dig. [GL #3184]
 
+	--- 9.18.1 released ---
+
 5820.	[security]	An assertion could occur in resume_dslookup() if the
 			fetch had been shut down earlier. (CVE-2022-0667)
 			[GL #3129]
