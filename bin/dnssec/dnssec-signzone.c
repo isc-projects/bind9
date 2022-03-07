@@ -3189,7 +3189,7 @@ print_version(FILE *fp) {
 		return;
 	}
 
-	fprintf(fp, "; dnssec_signzone version %s\n", PACKAGE_VERSION);
+	fprintf(fp, "; %s version %s\n", program, PACKAGE_VERSION);
 }
 
 ISC_NORETURN static void
