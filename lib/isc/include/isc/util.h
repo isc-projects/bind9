@@ -365,3 +365,13 @@ mock_assert(const int result, const char *const expression,
  * Misc
  */
 #include <isc/deprecated.h>
+
+/*%
+ * Swap
+ */
+#define ISC_SWAP(a, b)                    \
+	{                                 \
+		typeof(a) __tmp_swap = a; \
+		a = b;                    \
+		b = __tmp_swap;           \
+	}
