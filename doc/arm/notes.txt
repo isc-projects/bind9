@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.36
+Release Notes for BIND Version 9.11.37
 
 Introduction
 
@@ -35,6 +35,19 @@ most individuals and organizations who are using BIND.
 Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
+
+Notes for BIND 9.11.37
+
+Security Fixes
+
+  • The rules for acceptance of records into the cache have been tightened
+    to prevent the possibility of poisoning if forwarders send records
+    outside the configured bailiwick. (CVE-2021-25220)
+
+    ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
+    Network and Information Security Lab, Tsinghua University, and
+    Changgen Zou from Qi An Xin Group Corp. for bringing this
+    vulnerability to our attention. [GL #2950]
 
 Notes for BIND 9.11.36
 
