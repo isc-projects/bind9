@@ -1,3 +1,5 @@
+	--- 9.16.27 released ---
+
 5818.	[security]	A synchronous call to closehandle_cb() caused
 			isc__nm_process_sock_buffer() to be called recursively,
 			which in turn left TCP connections hanging in the
