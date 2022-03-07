@@ -406,14 +406,6 @@ void
 dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
 
 isc_result_t
-dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp, dns_rpz_zones_t *rpzs,
-		  dns_rpz_num_t rpz_num) ISC_DEPRECATED;
-
-isc_result_t
-dns_rpz_ready(dns_rpz_zones_t *rpzs, dns_rpz_zones_t **load_rpzsp,
-	      dns_rpz_num_t rpz_num) ISC_DEPRECATED;
-
-isc_result_t
 dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	    const dns_name_t *name);
 
