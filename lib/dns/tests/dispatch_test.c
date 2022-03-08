@@ -276,7 +276,7 @@ struct {
 
 static dns_dispatch_t *dispatch = NULL;
 static dns_dispentry_t *dispentry = NULL;
-static atomic_bool first = ATOMIC_VAR_INIT(true);
+static atomic_bool first = true;
 
 static void
 reset_testdata(void) {

@@ -719,7 +719,7 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name);
  *      that indicates that the database does not implement cyclic
  *      processing.
  */
-static atomic_uint_fast32_t init_count = ATOMIC_VAR_INIT(0);
+static atomic_uint_fast32_t init_count = 0;
 
 /*
  * Locking
@@ -819,7 +819,8 @@ update_rrsetstats(dns_rbtdb_t *rbtdb, const rbtdb_rdatatype_t htype,
 	dns_rdatastatstype_t base = 0;
 	dns_rdatastatstype_t type;
 	rdatasetheader_t *header = &(rdatasetheader_t){
-		.type = htype, .attributes = ATOMIC_VAR_INIT(hattributes)
+		.type = htype,
+		.attributes = hattributes,
 	};
 
 	if (!do_stats(header)) {

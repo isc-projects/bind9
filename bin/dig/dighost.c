@@ -89,7 +89,7 @@ dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
 dig_searchlistlist_t search_list;
 
-static atomic_bool cancel_now = ATOMIC_VAR_INIT(false);
+static atomic_bool cancel_now = false;
 
 bool check_ra = false, have_ipv4 = false, have_ipv6 = false,
      specified_source = false, free_now = false, usesearch = false,
@@ -105,8 +105,8 @@ isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
 isc_sockaddr_t localaddr;
-isc_refcount_t sendcount = ATOMIC_VAR_INIT(0);
-isc_refcount_t recvcount = ATOMIC_VAR_INIT(0);
+isc_refcount_t sendcount = 0;
+isc_refcount_t recvcount = 0;
 int ndots = -1;
 int tries = -1;
 int lookup_counter = 0;
