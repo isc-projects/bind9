@@ -4,6 +4,9 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+5821.	[bug]		Fix query context management issues in the TCP part
+			of dig. [GL #3184]
+
 5816.	[bug]		Make BIND compile with LibreSSL 3.5.0, as it was using
 			not very accurate pre-processor checks for using shims.
 			[GL #3172]
