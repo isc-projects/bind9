@@ -129,7 +129,6 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 		unsigned long cfg_line, isc_mem_t *mctx, isc_log_t *lctx,
 		void *actx, ns_hooktable_t *hooktable, void **instp) {
 	async_instance_t *inst = NULL;
-	isc_result_t result;
 
 	UNUSED(parameters);
 	UNUSED(cfg);
@@ -144,7 +143,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	*inst = (async_instance_t){ .mctx = NULL };
 	isc_mem_attach(mctx, &inst->mctx);
 
-	CHECK(isc_ht_init(&inst->ht, mctx, 16));
+	isc_ht_init(&inst->ht, mctx, 16);
 	isc_mutex_init(&inst->hlock);
 
 	/*
@@ -155,13 +154,6 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	*instp = inst;
 
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (result != ISC_R_SUCCESS) {
-		plugin_destroy((void **)&inst);
-	}
-
-	return (result);
 }
 
 isc_result_t

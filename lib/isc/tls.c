@@ -940,7 +940,7 @@ isc_tlsctx_cache_new(isc_mem_t *mctx) {
 	isc_refcount_init(&nc->references, 1);
 	isc_mem_attach(mctx, &nc->mctx);
 
-	RUNTIME_CHECK(isc_ht_init(&nc->data, mctx, 5) == ISC_R_SUCCESS);
+	isc_ht_init(&nc->data, mctx, 5);
 	isc_rwlock_init(&nc->rwlock, 0, 0);
 
 	return (nc);
@@ -980,7 +980,7 @@ tlsctx_cache_destroy(isc_tlsctx_cache_t *cache) {
 
 	isc_refcount_destroy(&cache->references);
 
-	RUNTIME_CHECK(isc_ht_iter_create(cache->data, &it) == ISC_R_SUCCESS);
+	isc_ht_iter_create(cache->data, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
 	{
