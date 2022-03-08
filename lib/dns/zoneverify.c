@@ -396,13 +396,12 @@ chain_equal(const struct nsec3_chain_fixed *e1,
 	return (memcmp(e1 + 1, e2 + 1, data_length) == 0);
 }
 
-static isc_result_t
+static void
 record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 	     const dns_rdata_nsec3_t *nsec3, isc_heap_t *chains) {
-	struct nsec3_chain_fixed *element;
+	struct nsec3_chain_fixed *element = NULL;
+	unsigned char *cp = NULL;
 	size_t len;
-	unsigned char *cp;
-	isc_result_t result;
 
 	len = sizeof(*element) + nsec3->next_length * 2 + nsec3->salt_length;
 
@@ -418,13 +417,7 @@ record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 	memmove(cp, rawhash, nsec3->next_length);
 	cp += nsec3->next_length;
 	memmove(cp, nsec3->next, nsec3->next_length);
-	result = isc_heap_insert(chains, element);
-	if (result != ISC_R_SUCCESS) {
-		zoneverify_log_error(vctx, "isc_heap_insert failed: %s",
-				     isc_result_totext(result));
-		isc_mem_put(vctx->mctx, element, len);
-	}
-	return (result);
+	isc_heap_insert(chains, element);
 }
 
 /*
@@ -499,12 +492,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 	/*
 	 * Record chain.
 	 */
-	result = record_nsec3(vctx, rawhash, &nsec3, vctx->expected_chains);
-	if (result != ISC_R_SUCCESS) {
-		zoneverify_log_error(vctx, "record_nsec3(): %s",
-				     isc_result_totext(result));
-		return (result);
-	}
+	record_nsec3(vctx, rawhash, &nsec3, vctx->expected_chains);
 
 	/*
 	 * Make sure there is only one NSEC3 record with this set of
@@ -608,6 +596,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		if (nsec3.next_length != isc_buffer_usedlength(&b)) {
 			continue;
 		}
+
 		/*
 		 * We only care about NSEC3 records that match a NSEC3PARAM
 		 * record.
@@ -619,12 +608,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		/*
 		 * Record chain.
 		 */
-		result = record_nsec3(vctx, owner, &nsec3, vctx->found_chains);
-		if (result != ISC_R_SUCCESS) {
-			zoneverify_log_error(vctx, "record_nsec3(): %s",
-					     isc_result_totext(result));
-			goto cleanup;
-		}
+		record_nsec3(vctx, owner, &nsec3, vctx->found_chains);
 	}
 	result = ISC_R_SUCCESS;
 
@@ -1285,11 +1269,9 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	  dns_dbversion_t *ver, dns_name_t *origin, dns_keytable_t *secroots) {
-	isc_result_t result;
-
 	memset(vctx, 0, sizeof(*vctx));
 
 	vctx->mctx = mctx;
@@ -1311,21 +1293,11 @@ vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	dns_rdataset_init(&vctx->nsec3paramsigs);
 
 	vctx->expected_chains = NULL;
-	result = isc_heap_create(mctx, chain_compare, NULL, 1024,
-				 &vctx->expected_chains);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	isc_heap_create(mctx, chain_compare, NULL, 1024,
+			&vctx->expected_chains);
 
 	vctx->found_chains = NULL;
-	result = isc_heap_create(mctx, chain_compare, NULL, 1024,
-				 &vctx->found_chains);
-	if (result != ISC_R_SUCCESS) {
-		isc_heap_destroy(&vctx->expected_chains);
-		return (result);
-	}
-
-	return (result);
+	isc_heap_create(mctx, chain_compare, NULL, 1024, &vctx->found_chains);
 }
 
 static void
@@ -1994,10 +1966,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result, vresult = ISC_R_UNSET;
 	vctx_t vctx;
 
-	result = vctx_init(&vctx, mctx, zone, db, ver, origin, secroots);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	vctx_init(&vctx, mctx, zone, db, ver, origin, secroots);
 
 	result = check_apex_rrsets(&vctx);
 	if (result != ISC_R_SUCCESS) {
