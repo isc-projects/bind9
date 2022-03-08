@@ -61,8 +61,7 @@ test_ht_full(int bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	result = isc_ht_init(&ht, test_mctx, bits);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_init(&ht, test_mctx, bits);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -207,8 +206,7 @@ test_ht_iterator(void) {
 	unsigned char key[16];
 	size_t tksize;
 
-	result = isc_ht_init(&ht, test_mctx, 16);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_init(&ht, test_mctx, 16);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -222,8 +220,7 @@ test_ht_iterator(void) {
 	}
 
 	walked = 0;
-	result = isc_ht_iter_create(ht, &iter);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_iter_create(ht, &iter);
 
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
