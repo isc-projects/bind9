@@ -439,6 +439,8 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_nm_tid());
 
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+
 #if HAVE_DECL_UV_UDP_RECVMMSG
 	uv_init_flags |= UV_UDP_RECVMMSG;
 #endif
@@ -1030,6 +1032,8 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	(void)isc__nm_socket_incoming_cpu(sock->fd);
 
 	(void)isc__nm_socket_disable_pmtud(sock->fd, sa_family);
+
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 
 	event = isc__nm_get_netievent_udpconnect(mgr, sock, req);
 
