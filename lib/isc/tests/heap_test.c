@@ -76,17 +76,14 @@ idx(void *p, unsigned int i) {
 static void
 isc_heap_delete_test(void **state) {
 	isc_heap_t *heap = NULL;
-	isc_result_t result;
 	struct e e1 = { 100, 0 };
 
 	UNUSED(state);
 
-	result = isc_heap_create(test_mctx, compare, idx, 0, &heap);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_heap_create(test_mctx, compare, idx, 0, &heap);
 	assert_non_null(heap);
 
 	isc_heap_insert(heap, &e1);
-	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(e1.index, 1);
 
 	isc_heap_delete(heap, e1.index);

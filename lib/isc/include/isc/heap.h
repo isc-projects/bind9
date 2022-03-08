@@ -46,7 +46,7 @@ typedef void (*isc_heapaction_t)(void *, void *);
 
 typedef struct isc_heap isc_heap_t;
 
-isc_result_t
+void
 isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 		isc_heapindex_t index, unsigned int size_increment,
 		isc_heap_t **heapp);
@@ -71,10 +71,6 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
  *	used, which is currently 1024, allowing space for an additional 1024
  *	heap elements to be inserted before adding more space.
  *\li	"heapp" is not NULL, and "*heap" is NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS		- success
- *\li	ISC_R_NOMEMORY		- insufficient memory
  */
 
 void
@@ -86,7 +82,7 @@ isc_heap_destroy(isc_heap_t **heapp);
  *\li	"heapp" is not NULL and "*heap" points to a valid isc_heap_t.
  */
 
-isc_result_t
+void
 isc_heap_insert(isc_heap_t *heap, void *elt);
 /*!<
  * \brief Inserts a new element into a heap.
