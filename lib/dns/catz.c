@@ -2046,10 +2046,9 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 	isc_ht_iter_destroy(&iter);
 }
 
-isc_result_t
+void
 dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp) {
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
-	isc_ht_iter_create(catz->entries, itp);
 
-	return (ISC_R_SUCCESS);
+	isc_ht_iter_create(catz->entries, itp);
 }
