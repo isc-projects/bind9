@@ -1,3 +1,9 @@
+5824.	[bug]		Invalid dnssec-policy definitions were being accepted
+			where the defined keys did not cover both KSK and ZSK
+			roles for a given algorithm.  This is now checked for
+			and the dnssec-policy is rejected if both roles are
+			not present for all algorithms in use. [GL #3142]
+
 5823.	[func]		Replace hazard pointers based lock-free list with
 			locked-list based queue that's simpler and has no or
 			little performance impact. [GL #3180]
