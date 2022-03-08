@@ -405,14 +405,6 @@ dns_rpz_attach_rpzs(dns_rpz_zones_t *source, dns_rpz_zones_t **target);
 void
 dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
 
-isc_result_t
-dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	    const dns_name_t *name);
-
-void
-dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	       const dns_name_t *name);
-
 dns_rpz_num_t
 dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		dns_rpz_zbits_t zbits, const isc_netaddr_t *netaddr,
