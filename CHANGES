@@ -1,3 +1,9 @@
+5824.	[bug]		Invalid dnssec-policy definitions were being accepted
+			where the defined keys did not cover both KSK and ZSK
+			roles for a given algorithm.  This is now checked for
+			and the dnssec-policy is rejected if both roles are
+			not present for all algorithms in use. [GL #3142]
+
 5816.	[bug]		Make BIND compile with LibreSSL 3.5.0, as it was using
 			not very accurate pre-processor checks for using shims.
 			[GL #3172]
