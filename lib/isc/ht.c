@@ -49,7 +49,7 @@ struct isc_ht_iter {
 	isc_ht_node_t *cur;
 };
 
-isc_result_t
+void
 isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits) {
 	isc_ht_t *ht = NULL;
 	size_t i;
@@ -76,7 +76,6 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits) {
 	ht->magic = ISC_HT_MAGIC;
 
 	*htp = ht;
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -201,7 +200,7 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, uint32_t keysize) {
 	return (ISC_R_NOTFOUND);
 }
 
-isc_result_t
+void
 isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	isc_ht_iter_t *it;
 
@@ -215,8 +214,6 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	it->cur = NULL;
 
 	*itp = it;
-
-	return (ISC_R_SUCCESS);
 }
 
 void
