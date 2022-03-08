@@ -22,6 +22,11 @@ New Features
 
 - None.
 
+- Run RPZ updates on the specialized "offload" threads to reduce the amount
+  of time they block query processing on the main networking threads.  This
+  should increase the responsiveness of ``named`` when RPZ updates are being
+  applied after an RPZ zone has been successfully transfered.  :gl:`#3190`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

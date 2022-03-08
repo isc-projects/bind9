@@ -56,6 +56,9 @@
 			not negotiate "dot" ALPN token could crash BIND
 			on shutdown. That has been fixed. [GL #3767]
 
+5850.	[func]		Run the RPZ update process on the offload threads.
+			[GL #3190]
+
 	--- 9.18.11 released ---
 
 6067.	[security]	Fix serve-stale crash when recursive clients soft quota
