@@ -4,6 +4,10 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+5823.	[func]		Replace hazard pointers based lock-free list with
+			locked-list based queue that's simpler and has no or
+			little performance impact. [GL #3180]
+
 5822.	[bug]		When calling dns_dispatch_send(), attach/detach
 			dns_request_t object as the read callback could
 			be called before send callback dereferencing
