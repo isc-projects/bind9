@@ -558,7 +558,7 @@ again:
 	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
 			      &connected, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto detach;
 	}
 
 	if ((options & DNS_REQUESTOPT_FIXEDID) != 0) {
