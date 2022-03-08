@@ -19,13 +19,12 @@ CLEANFILES =				\
 	$(nodist_libdns_la_SOURCES)	\
 	gen$(BUILD_EXEEXT)
 
-gen$(BUILD_EXEEXT): gen.c gen.h
-	$(CC_FOR_BUILD) -g -I. $(GEN_NEED_OPTARG) $(srcdir)/gen.c -o $@
+gen$(BUILD_EXEEXT): gen.c
+	$(CC_FOR_BUILD) -g -I. $(srcdir)/gen.c -o $@
 
 EXTRA_DIST =		\
 	dnstap.proto	\
 	gen.c		\
-	gen.h		\
 	rdata/*
 
 include/dns/enumtype.h: gen Makefile
