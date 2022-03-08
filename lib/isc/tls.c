@@ -34,8 +34,8 @@
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
-static atomic_bool init_done = ATOMIC_VAR_INIT(false);
-static atomic_bool shut_done = ATOMIC_VAR_INIT(false);
+static atomic_bool init_done = false;
+static atomic_bool shut_done = false;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static isc_mutex_t *locks = NULL;

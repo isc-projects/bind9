@@ -139,7 +139,7 @@ _TYPEDEF_T(uintmax);
 #undef _TYPEDEF_T
 #undef _TYPEDEF_O
 
-#define ATOMIC_VAR_INIT(arg)                             \
+#define arg                             \
 	{                                                \
 		.m = PTHREAD_MUTEX_INITIALIZER, .v = arg \
 	}
