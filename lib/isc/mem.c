@@ -1414,7 +1414,7 @@ print_contexts(FILE *file) {
 }
 #endif
 
-static atomic_uintptr_t checkdestroyed = ATOMIC_VAR_INIT(0);
+static atomic_uintptr_t checkdestroyed = 0;
 
 void
 isc_mem_checkdestroyed(FILE *file) {

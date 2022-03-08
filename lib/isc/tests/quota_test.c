@@ -139,7 +139,7 @@ isc_quota_soft_test(void **state) {
 	isc_quota_destroy(&quota);
 }
 
-static atomic_uint_fast32_t cb_calls = ATOMIC_VAR_INIT(0);
+static atomic_uint_fast32_t cb_calls = 0;
 static isc_quota_cb_t cbs[30];
 static isc_quota_t *qp;
 
@@ -253,7 +253,7 @@ typedef struct qthreadinfo {
 	isc_quota_cb_t callbacks[100];
 } qthreadinfo_t;
 
-static atomic_uint_fast32_t g_tnum = ATOMIC_VAR_INIT(0);
+static atomic_uint_fast32_t g_tnum = 0;
 /* at most 10 * 100 quota_detach threads */
 isc_thread_t g_threads[10 * 100];
 

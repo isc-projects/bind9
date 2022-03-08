@@ -58,32 +58,32 @@ static uint64_t stop_magic = 0;
 static uv_buf_t send_msg = { .base = (char *)&send_magic,
 			     .len = sizeof(send_magic) };
 
-static atomic_int_fast64_t active_cconnects = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t nsends = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t ssends = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t sreads = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t csends = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t creads = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t ctimeouts = ATOMIC_VAR_INIT(0);
-static atomic_int_fast64_t total_sends = ATOMIC_VAR_INIT(0);
+static atomic_int_fast64_t active_cconnects = 0;
+static atomic_int_fast64_t nsends = 0;
+static atomic_int_fast64_t ssends = 0;
+static atomic_int_fast64_t sreads = 0;
+static atomic_int_fast64_t csends = 0;
+static atomic_int_fast64_t creads = 0;
+static atomic_int_fast64_t ctimeouts = 0;
+static atomic_int_fast64_t total_sends = 0;
 
-static atomic_bool was_error = ATOMIC_VAR_INIT(false);
+static atomic_bool was_error = false;
 
 static unsigned int workers = 0;
 
 static bool reuse_supported = true;
 static bool noanswer = false;
 
-static atomic_bool POST = ATOMIC_VAR_INIT(true);
+static atomic_bool POST = true;
 
-static atomic_bool slowdown = ATOMIC_VAR_INIT(false);
+static atomic_bool slowdown = false;
 
-static atomic_bool use_TLS = ATOMIC_VAR_INIT(false);
+static atomic_bool use_TLS = false;
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
 
 static isc_quota_t listener_quota;
-static atomic_bool check_listener_quota = ATOMIC_VAR_INIT(false);
+static atomic_bool check_listener_quota = false;
 
 static isc_nm_http_endpoints_t *endpoints = NULL;
 
