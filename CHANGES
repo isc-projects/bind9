@@ -1,3 +1,6 @@
+5850.	[func]		Run the RPZ update process on the offload threads.
+			[GL #3190]
+
 5843.	[bug]		When an UPDATE targets a zone that is not configured,
 			the requested zone name is now logged in the "not
 			authoritative" error message, so that it is easier to
