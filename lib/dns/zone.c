@@ -303,6 +303,7 @@ struct dns_zone {
 	isc_stdtime_t log_key_expired_timer;
 	char *keydirectory;
 	dns_keyfileio_t *kfio;
+	dns_keystorelist_t *keystores;
 
 	uint32_t maxrefresh;
 	uint32_t minrefresh;
@@ -6120,8 +6121,8 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	/* Get keys from private key files. */
 	dns_zone_lock_keyfiles(zone);
-	result = dns_dnssec_findmatchingkeys(origin, dir, now,
-					     dns_zone_getmctx(zone), keys);
+	result = dns_dnssec_findmatchingkeys(origin, kasp, dir, zone->keystores,
+					     now, dns_zone_getmctx(zone), keys);
 	dns_zone_unlock_keyfiles(zone);
 
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
@@ -6134,8 +6135,8 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				     dns_rdatatype_none, 0, &keyset, NULL);
 	if (result == ISC_R_SUCCESS) {
 		CHECK(dns_dnssec_keylistfromrdataset(
-			origin, dir, dns_zone_getmctx(zone), &keyset, NULL,
-			NULL, false, false, &dnskeys));
+			origin, kasp, dir, dns_zone_getmctx(zone), &keyset,
+			NULL, NULL, false, false, &dnskeys));
 	} else if (result != ISC_R_NOTFOUND) {
 		CHECK(result);
 	}
@@ -15920,6 +15921,9 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_mem_t *mctx;
+	dns_kasp_t *kasp;
+	dns_keystorelist_t *keystores;
+	const char *keydir;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(dns_rdatatype_iskeymaterial(rdata->type));
@@ -15930,10 +15934,14 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 
 	*inuse = false;
 
+	kasp = dns_zone_getkasp(zone);
+	keydir = dns_zone_getkeydirectory(zone);
+	keystores = dns_zone_getkeystores(zone);
+
 	dns_zone_lock_keyfiles(zone);
-	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
-					     dns_zone_getkeydirectory(zone),
-					     now, mctx, &keylist);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), kasp,
+					     keydir, keystores, now, mctx,
+					     &keylist);
 	dns_zone_unlock_keyfiles(zone);
 	if (result == ISC_R_NOTFOUND) {
 		return (ISC_R_SUCCESS);
@@ -19414,6 +19422,32 @@ dns_zone_getkeydirectory(dns_zone_t *zone) {
 	return (zone->keydirectory);
 }
 
+void
+dns_zone_setkeystores(dns_zone_t *zone, dns_keystorelist_t *keystores) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->keystores = keystores;
+	UNLOCK_ZONE(zone);
+}
+
+dns_keystorelist_t *
+dns_zone_getkeystores(dns_zone_t *zone) {
+	dns_keystorelist_t *ks = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (inline_raw(zone) && zone->secure != NULL) {
+		ks = zone->secure->keystores;
+	} else {
+		ks = zone->keystores;
+	}
+	UNLOCK_ZONE(zone);
+
+	return (ks);
+}
+
 unsigned int
 dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	dns_zone_t *zone;
@@ -21634,8 +21668,8 @@ zone_rekey(dns_zone_t *zone) {
 		dns_zone_lock_keyfiles(zone);
 
 		result = dns_dnssec_keylistfromrdataset(
-			&zone->origin, dir, mctx, &keyset, &keysigs, &soasigs,
-			false, false, &dnskeys);
+			&zone->origin, kasp, dir, mctx, &keyset, &keysigs,
+			&soasigs, false, false, &dnskeys);
 
 		dns_zone_unlock_keyfiles(zone);
 
@@ -21696,8 +21730,8 @@ zone_rekey(dns_zone_t *zone) {
 	KASP_LOCK(kasp);
 
 	dns_zone_lock_keyfiles(zone);
-	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, now, mctx,
-					     &keys);
+	result = dns_dnssec_findmatchingkeys(&zone->origin, kasp, dir,
+					     zone->keystores, now, mctx, &keys);
 	dns_zone_unlock_keyfiles(zone);
 
 	if (result != ISC_R_SUCCESS) {

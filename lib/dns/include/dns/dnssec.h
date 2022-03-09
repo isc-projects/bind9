@@ -22,6 +22,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/diff.h>
+#include <dns/kasp.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -295,11 +296,15 @@ dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now);
  */
 
 isc_result_t
-dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
+dns_dnssec_findmatchingkeys(const dns_name_t *origin, dns_kasp_t *kasp,
+			    const char *keydir, dns_keystorelist_t *keystores,
 			    isc_stdtime_t now, isc_mem_t *mctx,
 			    dns_dnsseckeylist_t *keylist);
 /*%<
- * Search 'directory' for K* key files matching the name in 'origin'.
+ * Search for K* key files matching the name in 'origin'. If 'kasp' is not
+ * NULL, search in the directories used in 'keystores'. Otherwise search in the
+ * key-directory 'keydir'.
+ *
  * Append all such keys, along with use hints gleaned from their
  * metadata, onto 'keylist'.  Skip any unsupported algorithms.
  *
@@ -318,17 +323,18 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
  */
 
 isc_result_t
-dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
-			       isc_mem_t *mctx, dns_rdataset_t *keyset,
-			       dns_rdataset_t *keysigs, dns_rdataset_t *soasigs,
-			       bool savekeys, bool publickey,
-			       dns_dnsseckeylist_t *keylist);
+dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
+			       const char *directory, isc_mem_t *mctx,
+			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
+			       dns_rdataset_t *soasigs, bool savekeys,
+			       bool publickey, dns_dnsseckeylist_t *keylist);
 /*%<
  * Append the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
- * Omit duplicates.  If 'publickey' is false, search 'directory' for
- * matching key files, and load the private keys that go with
- * the public ones.  If 'savekeys' is true, mark the keys so
- * they will not be deleted or inactivated regardless of metadata.
+ * Omit duplicates.  If 'publickey' is false, search the key stores referenced
+ * in 'kasp', or 'directory' if 'kasp' is NULL, for matching key files, and
+ * load the private keys that go with the public ones.  If 'savekeys' is true,
+ * mark the keys so they will not be deleted or inactivated regardless of
+ * metadata.
  *
  * 'keysigs' and 'soasigs', if not NULL and associated, contain the
  * RRSIGS for the DNSKEY and SOA records respectively and are used to mark

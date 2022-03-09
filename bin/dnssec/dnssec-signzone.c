@@ -2639,7 +2639,7 @@ loadzonekeys(bool preserve_keys, bool load_public) {
 
 	/* Load keys corresponding to the existing DNSKEY RRset. */
 	result = dns_dnssec_keylistfromrdataset(
-		gorigin, directory, mctx, &rdataset, &keysigs, &soasigs,
+		gorigin, NULL, directory, mctx, &rdataset, &keysigs, &soasigs,
 		preserve_keys, load_public, &keylist);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to load the zone keys: %s",
@@ -2830,8 +2830,8 @@ findkeys:
 	/*
 	 * Find keys that match this zone in the key repository.
 	 */
-	result = dns_dnssec_findmatchingkeys(gorigin, directory, now, mctx,
-					     &matchkeys);
+	result = dns_dnssec_findmatchingkeys(gorigin, NULL, directory, NULL,
+					     now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}

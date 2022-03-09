@@ -442,8 +442,8 @@ static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
-	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
-	       bool modify);
+	       dns_keystorelist_t *keystores, cfg_aclconfctx_t *aclconf,
+	       bool added, bool old_rpz_ok, bool modify);
 
 static void
 configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
@@ -2788,13 +2788,13 @@ catz_addmodzone_cb(void *arg) {
 	zoneobj = cfg_listelt_value(cfg_list_first(zlist));
 
 	/* Mark view unfrozen so that zone can be added */
-
 	isc_loopmgr_pause(named_g_loopmgr);
 	dns_view_thaw(cz->view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, cz->view,
 				&cz->cbd->server->viewlist,
-				&cz->cbd->server->kasplist, cfg->actx, true,
-				false, cz->mod);
+				&cz->cbd->server->kasplist,
+				&cz->cbd->server->keystorelist,
+				cfg->actx, true, false, cz->mod);
 	dns_view_freeze(cz->view);
 	isc_loopmgr_resume(named_g_loopmgr);
 
@@ -3976,8 +3976,9 @@ static const char *const response_synonyms[] = { "response", NULL };
 static isc_result_t
 configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	       cfg_obj_t *vconfig, named_cachelist_t *cachelist,
-	       dns_kasplist_t *kasplist, const cfg_obj_t *bindkeys,
-	       isc_mem_t *mctx, cfg_aclconfctx_t *actx, bool need_hints) {
+	       dns_kasplist_t *kasplist, dns_keystorelist_t *keystores,
+	       const cfg_obj_t *bindkeys, isc_mem_t *mctx,
+	       cfg_aclconfctx_t *actx, bool need_hints) {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
 	const cfg_obj_t *optionmaps[3];
@@ -4122,7 +4123,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	{
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view, viewlist,
-				     kasplist, actx, false, old_rpz_ok, false));
+				     kasplist, keystores, actx, false,
+				     old_rpz_ok, false));
 		zone_element_latest = element;
 	}
 
@@ -6430,8 +6432,8 @@ static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
-	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
-	       bool modify) {
+	       dns_keystorelist_t *keystores, cfg_aclconfctx_t *aclconf,
+	       bool added, bool old_rpz_ok, bool modify) {
 	dns_view_t *pview = NULL; /* Production view */
 	dns_zone_t *zone = NULL;  /* New or reused zone */
 	dns_zone_t *raw = NULL;	  /* New or reused raw zone */
@@ -6625,7 +6627,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setstats(zone, named_g_server->zonestats);
 		}
 		CHECK(named_zone_configure(config, vconfig, zconfig, aclconf,
-					   kasplist, zone, NULL));
+					   kasplist, keystores, zone, NULL));
 		dns_zone_attach(zone, &view->redirect);
 		goto cleanup;
 	}
@@ -6801,7 +6803,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Configure the zone.
 	 */
 	CHECK(named_zone_configure(config, vconfig, zconfig, aclconf, kasplist,
-				   zone, raw));
+				   keystores, zone, raw));
 
 	/*
 	 * Add the zone to its view in the new view list.
@@ -7801,7 +7803,8 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view,
 				     &named_g_server->viewlist,
-				     &named_g_server->kasplist, actx, true,
+				     &named_g_server->kasplist,
+				     &named_g_server->keystorelist, actx, true,
 				     false, false));
 	}
 
@@ -7986,7 +7989,8 @@ configure_newzone(const cfg_obj_t *zconfig, cfg_obj_t *config,
 		  cfg_aclconfctx_t *actx) {
 	return (configure_zone(
 		config, zconfig, vconfig, view, &named_g_server->viewlist,
-		&named_g_server->kasplist, actx, true, false, false));
+		&named_g_server->kasplist, &named_g_server->keystorelist, actx,
+		true, false, false));
 }
 
 /*%
@@ -9083,7 +9087,8 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 
 		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist, bindkeys,
+					&cachelist, &server->kasplist,
+					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
@@ -9104,7 +9109,8 @@ load_configuration(const char *filename, named_server_t *server,
 			goto cleanup_cachelist;
 		}
 		result = configure_view(view, &viewlist, config, NULL,
-					&cachelist, &server->kasplist, bindkeys,
+					&cachelist, &server->kasplist,
+					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
@@ -9132,7 +9138,8 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 
 		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist, bindkeys,
+					&cachelist, &server->kasplist,
+					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx,
 					false);
 		if (result != ISC_R_SUCCESS) {
@@ -13417,8 +13424,9 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Mark view unfrozen and configure zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, view,
-				&server->viewlist, &server->kasplist, cfg->actx,
-				true, false, false);
+				&server->viewlist, &server->kasplist,
+				&server->keystorelist, cfg->actx, true, false,
+				false);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume(named_g_loopmgr);
@@ -13602,8 +13610,9 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Reconfigure the zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, view,
-				&server->viewlist, &server->kasplist, cfg->actx,
-				true, false, true);
+				&server->viewlist, &server->kasplist,
+				&server->keystorelist, cfg->actx, true, false,
+				true);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume(named_g_loopmgr);
