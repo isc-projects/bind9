@@ -91,6 +91,7 @@ struct dst_key {
 	dns_rdataclass_t key_class; /*%< class of the key record */
 	dns_ttl_t key_ttl;	    /*%< default/initial dnskey ttl */
 	isc_mem_t *mctx;	    /*%< memory context */
+	char *directory;	    /*%< key directory */
 	char *engine;		    /*%< engine name (HSM) */
 	char *label;		    /*%< engine label (HSM) */
 	char *object;		    /*%< engine object (HSM) */
