@@ -444,7 +444,7 @@ keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
  */
 static isc_result_t
 keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
-		 dns_rdataclass_t rdclass, isc_mem_t *mctx,
+		 dns_rdataclass_t rdclass, isc_mem_t *mctx, const char *keydir,
 		 dns_dnsseckeylist_t *keylist, dns_dnsseckeylist_t *newkeys,
 		 dst_key_t **dst_key) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -489,6 +489,20 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 	dst_key_setnum(newkey, DST_NUM_LIFETIME, dns_kasp_key_lifetime(kkey));
 	dst_key_setbool(newkey, DST_BOOL_KSK, dns_kasp_key_ksk(kkey));
 	dst_key_setbool(newkey, DST_BOOL_ZSK, dns_kasp_key_zsk(kkey));
+
+	if (keystore == NULL ||
+	    strcmp(dns_keystore_name(keystore), "key-directory") == 0)
+	{
+		if (keydir != NULL) {
+			dst_key_setdirectory(newkey, keydir);
+		}
+	} else {
+		if (dns_keystore_directory(keystore) != NULL) {
+			dst_key_setdirectory(newkey,
+					     dns_keystore_directory(keystore));
+		}
+	}
+
 	*dst_key = newkey;
 	return (ISC_R_SUCCESS);
 
@@ -1679,8 +1693,8 @@ static isc_result_t
 keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		    dns_dnsseckeylist_t *keyring, dns_dnsseckeylist_t *newkeys,
 		    const dns_name_t *origin, dns_rdataclass_t rdclass,
-		    dns_kasp_t *kasp, uint32_t lifetime, bool rollover,
-		    isc_stdtime_t now, isc_stdtime_t *nexttime,
+		    dns_kasp_t *kasp, const char *keydir, uint32_t lifetime,
+		    bool rollover, isc_stdtime_t now, isc_stdtime_t *nexttime,
 		    isc_mem_t *mctx) {
 	char keystr[DST_KEY_FORMATSIZE];
 	isc_stdtime_t retire = 0, active = 0, prepub = 0;
@@ -1799,8 +1813,8 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 			    dns_kasp_key_zsk(kaspkey));
 
 		isc_result_t result = keymgr_createkey(kaspkey, origin, rdclass,
-						       mctx, keyring, newkeys,
-						       &dst_key);
+						       mctx, keydir, keyring,
+						       newkeys, &dst_key);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1944,7 +1958,7 @@ keymgr_key_may_be_purged(dst_key_t *key, uint32_t after, isc_stdtime_t now) {
 }
 
 static void
-keymgr_purge_keyfile(dst_key_t *key, const char *dir, int type) {
+keymgr_purge_keyfile(dst_key_t *key, int type) {
 	isc_result_t ret;
 	isc_buffer_t fileb;
 	char filename[NAME_MAX];
@@ -1953,7 +1967,7 @@ keymgr_purge_keyfile(dst_key_t *key, const char *dir, int type) {
 	 * Make the filename.
 	 */
 	isc_buffer_init(&fileb, filename, sizeof(filename));
-	ret = dst_key_buildfilename(key, type, dir, &fileb);
+	ret = dst_key_buildfilename(key, type, dst_key_directory(key), &fileb);
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key, keystr, sizeof(keystr));
@@ -1983,8 +1997,8 @@ keymgr_purge_keyfile(dst_key_t *key, const char *dir, int type) {
  */
 isc_result_t
 dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
-	       const char *directory, isc_mem_t *mctx,
-	       dns_dnsseckeylist_t *keyring, dns_dnsseckeylist_t *dnskeys,
+	       isc_mem_t *mctx, dns_dnsseckeylist_t *keyring,
+	       dns_dnsseckeylist_t *dnskeys, const char *keydir,
 	       dns_kasp_t *kasp, isc_stdtime_t now, isc_stdtime_t *nexttime) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dnsseckeylist_t newkeys;
@@ -2003,14 +2017,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	REQUIRE(DNS_KASP_VALID(kasp));
 
 	ISC_LIST_INIT(newkeys);
-
-	isc_dir_init(&dir);
-	if (directory == NULL) {
-		directory = ".";
-	}
-
-	RETERR(isc_dir_open(&dir, directory));
-	dir_open = true;
 
 	*nexttime = 0;
 
@@ -2086,13 +2092,9 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				      keystr, keymgr_keyrole(dkey->key),
 				      dns_kasp_getname(kasp));
 
-			keymgr_purge_keyfile(dkey->key, directory,
-					     DST_TYPE_PUBLIC);
-			keymgr_purge_keyfile(dkey->key, directory,
-					     DST_TYPE_PRIVATE);
-			keymgr_purge_keyfile(dkey->key, directory,
-					     DST_TYPE_STATE);
-
+			keymgr_purge_keyfile(dkey->key, DST_TYPE_PUBLIC);
+			keymgr_purge_keyfile(dkey->key, DST_TYPE_PRIVATE);
+			keymgr_purge_keyfile(dkey->key, DST_TYPE_STATE);
 			dkey->purge = true;
 		}
 	}
@@ -2201,9 +2203,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		}
 
 		/* See if this key requires a rollover. */
-		RETERR(keymgr_key_rollover(
-			kkey, active_key, keyring, &newkeys, origin, rdclass,
-			kasp, lifetime, rollover_allowed, now, nexttime, mctx));
+		RETERR(keymgr_key_rollover(kkey, active_key, keyring, &newkeys,
+					   origin, rdclass, kasp, keydir,
+					   lifetime, rollover_allowed, now,
+					   nexttime, mctx));
 	}
 
 	/* Walked all kasp key configurations.  Append new keys. */
@@ -2221,6 +2224,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	keymgr_update(keyring, kasp, now, nexttime, secure_to_insecure);
 
 	/* Store key states and update hints. */
+	isc_dir_init(&dir);
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
@@ -2230,8 +2234,31 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			modified = true;
 		}
 		if (modified && !dkey->purge) {
+			const char *directory = dst_key_directory(dkey->key);
+			if (directory == NULL) {
+				directory = ".";
+			}
+
+			RETERR(isc_dir_open(&dir, directory));
+			dir_open = true;
+
 			dns_dnssec_get_hints(dkey, now);
 			RETERR(dst_key_tofile(dkey->key, options, directory));
+			dst_key_setmodified(dkey->key, false);
+
+			isc_dir_close(&dir);
+			dir_open = false;
+
+			if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+				continue;
+			}
+			dst_key_format(dkey->key, keystr, sizeof(keystr));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(3),
+				      "keymgr: DNSKEY %s (%s) "
+				      "saved to directory %s, policy %s",
+				      keystr, keymgr_keyrole(dkey->key),
+				      directory, dns_kasp_getname(kasp));
 		}
 		dst_key_setmodified(dkey->key, false);
 	}
@@ -2264,10 +2291,10 @@ failure:
 
 static isc_result_t
 keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-	       const char *directory, isc_stdtime_t now, isc_stdtime_t when,
-	       bool dspublish, dns_keytag_t id, unsigned int alg,
-	       bool check_id) {
+	       isc_stdtime_t now, isc_stdtime_t when, bool dspublish,
+	       dns_keytag_t id, unsigned int alg, bool check_id) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
+	const char *directory = NULL;
 	isc_dir_t dir;
 	isc_result_t result;
 	dns_dnsseckey_t *ksk_key = NULL;
@@ -2336,6 +2363,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 	/* Store key state and update hints. */
 	isc_dir_init(&dir);
+	directory = dst_key_directory(ksk_key->key);
 	if (directory == NULL) {
 		directory = ".";
 	}
@@ -2356,19 +2384,17 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
-		   bool dspublish) {
-	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
-			       0, 0, false));
+		   isc_stdtime_t now, isc_stdtime_t when, bool dspublish) {
+	return (keymgr_checkds(kasp, keyring, now, when, dspublish, 0, 0,
+			       false));
 }
 
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now,
-		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
-		      unsigned int alg) {
-	return (keymgr_checkds(kasp, keyring, directory, now, when, dspublish,
-			       id, alg, true));
+		      isc_stdtime_t now, isc_stdtime_t when, bool dspublish,
+		      dns_keytag_t id, unsigned int alg) {
+	return (keymgr_checkds(kasp, keyring, now, when, dspublish, id, alg,
+			       true));
 }
 
 static void
@@ -2575,10 +2601,10 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 isc_result_t
 dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		    const char *directory, isc_stdtime_t now,
-		    isc_stdtime_t when, dns_keytag_t id,
+		    isc_stdtime_t now, isc_stdtime_t when, dns_keytag_t id,
 		    unsigned int algorithm) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
+	const char *directory = NULL;
 	isc_dir_t dir;
 	isc_result_t result;
 	dns_dnsseckey_t *key = NULL;
@@ -2639,6 +2665,7 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 	/* Store key state and update hints. */
 	isc_dir_init(&dir);
+	directory = dst_key_directory(key->key);
 	if (directory == NULL) {
 		directory = ".";
 	}

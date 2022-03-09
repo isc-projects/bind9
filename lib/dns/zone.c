@@ -20355,7 +20355,6 @@ static bool
 do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 	   bool dspublish) {
 	dns_kasp_t *kasp = zone->kasp;
-	const char *dir = dns_zone_getkeydirectory(zone);
 	isc_result_t result;
 	uint32_t count = 0;
 	uint32_t num;
@@ -20406,7 +20405,7 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 		     dspublish ? "published" : "withdrawn", dst_key_id(key));
 
 	dns_zone_lock_keyfiles(zone);
-	result = dns_keymgr_checkds_id(kasp, &zone->checkds_ok, dir, now, now,
+	result = dns_keymgr_checkds_id(kasp, &zone->checkds_ok, now, now,
 				       dspublish, dst_key_id(key),
 				       dst_key_alg(key));
 	dns_zone_unlock_keyfiles(zone);
@@ -21608,7 +21607,6 @@ zone_rekey(dns_zone_t *zone) {
 	dns_rdataset_init(&keysigs);
 	dns_rdataset_init(&cdsset);
 	dns_rdataset_init(&cdnskeyset);
-	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &_sig_diff);
@@ -21622,6 +21620,7 @@ zone_rekey(dns_zone_t *zone) {
 	now = isc_time_seconds(&timenow);
 
 	kasp = zone->kasp;
+	dir = dns_zone_getkeydirectory(zone);
 
 	dnssec_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
@@ -21767,7 +21766,7 @@ zone_rekey(dns_zone_t *zone) {
 		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
 			dns_zone_lock_keyfiles(zone);
 			result = dns_keymgr_run(&zone->origin, zone->rdclass,
-						dir, mctx, &keys, &dnskeys,
+						mctx, &keys, &dnskeys, dir,
 						kasp, now, &nexttime);
 			dns_zone_unlock_keyfiles(zone);
 
