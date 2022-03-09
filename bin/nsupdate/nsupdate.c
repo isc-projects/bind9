@@ -976,11 +976,6 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 	return (count);
 }
 
-static void
-version(void) {
-	fprintf(stderr, "nsupdate %s\n", PACKAGE_VERSION);
-}
-
 #define PARSE_ARGS_FMT "46C:dDghilL:Mok:p:Pr:R:t:Tu:vVy:"
 
 static void
@@ -1055,7 +1050,7 @@ pre_parse_args(int argc, char **argv) {
 			break;
 
 		case 'V':
-			version();
+			printf("nsupdate %s\n", PACKAGE_VERSION);
 			doexit = true;
 			break;
 

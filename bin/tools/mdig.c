@@ -1726,7 +1726,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			 */
 			break;
 		case 'v':
-			fprintf(stderr, "mDiG %s\n", PACKAGE_VERSION);
+			printf("mDiG %s\n", PACKAGE_VERSION);
 			exit(0);
 			break;
 		}

@@ -1334,7 +1334,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			/* handled in preparse_args() */
 			break;
 		case 'v':
-			fprintf(stderr, "delv %s\n", PACKAGE_VERSION);
+			printf("delv %s\n", PACKAGE_VERSION);
 			exit(0);
 		/* NOTREACHED */
 		default:

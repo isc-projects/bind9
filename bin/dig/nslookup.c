@@ -613,11 +613,6 @@ set_ndots(const char *value) {
 }
 
 static void
-version(void) {
-	fprintf(stderr, "nslookup %s\n", PACKAGE_VERSION);
-}
-
-static void
 setoption(char *opt) {
 	size_t l = strlen(opt);
 
@@ -880,7 +875,7 @@ parse_args(int argc, char **argv) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
 			if (strncasecmp(argv[0], "-ver", 4) == 0) {
-				version();
+				printf("nslookup %s\n", PACKAGE_VERSION);
 				exit(0);
 			} else if (argv[0][1] != 0) {
 				setoption(&argv[0][1]);
