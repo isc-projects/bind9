@@ -662,15 +662,6 @@ or SEQUENTIAL variables.
 need to edit multiple files to add a test.)
 
 
-Valgrind
----
-When running system tests, named can be run under Valgrind.  The output from
-Valgrind are sent to per-process files that can be reviewed after the test has
-completed.  To enable this, set the USE_VALGRIND environment variable to
-"helgrind" to run the Helgrind tool, or any other value to run the Memcheck
-tool.  To use "helgrind" effectively, build BIND with --disable-atomic.
-
-
 Maintenance Notes
 ===
 This section is aimed at developers maintaining BIND's system test framework.
