@@ -902,7 +902,6 @@ enable_warn_shadow
 enable_warn_error
 enable_developer
 enable_fuzzing
-enable_mutex_atomics
 with_python
 with_python_install_dir
 enable_kqueue
@@ -1620,8 +1619,6 @@ Optional Features:
   --enable-fuzzing=<afl|libfuzzer>
                           Enable fuzzing using American Fuzzy Lop or libFuzzer
                           (default=no)
-  --enable-mutex-atomics  emulate atomics by mutex-locked variables, useful
-                          for debugging [default=no]
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
@@ -12422,34 +12419,6 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
-
-# [pairwise: --enable-mutex-atomics, --disable-mutex-atomics]
-# Check whether --enable-mutex_atomics was given.
-if test "${enable_mutex_atomics+set}" = set; then :
-  enableval=$enable_mutex_atomics;
-else
-  enable_mutex_atomics=no
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to emulate atomics with mutexes" >&5
-$as_echo_n "checking whether to emulate atomics with mutexes... " >&6; }
-case "$enable_mutex_atomics" in
-yes)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define ISC_MUTEX_ATOMICS 1" >>confdefs.h
-
-        ;;
-no)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        ;;
-*)
-        as_fn_error $? "\"--enable-mutex-atomics requires yes or no\"" "$LINENO" 5
-        ;;
-esac
 
 #
 # Make very sure that these are the first files processed by
