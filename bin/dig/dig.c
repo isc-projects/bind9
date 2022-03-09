@@ -1515,8 +1515,11 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				case 'i':
 					FULLCHECK("idnin");
 #ifndef HAVE_LIBIDN2
-					fprintf(stderr, ";; IDN input support"
+					if (state) {
+						fprintf(stderr,
+							";; IDN input support"
 							" not enabled\n");
+					}
 #else  /* ifndef HAVE_LIBIDN2 */
 					lookup->idnin = state;
 #endif /* ifndef HAVE_LIBIDN2 */
@@ -1524,8 +1527,11 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				case 'o':
 					FULLCHECK("idnout");
 #ifndef HAVE_LIBIDN2
-					fprintf(stderr, ";; IDN output support"
+					if (state) {
+						fprintf(stderr,
+							";; IDN output support"
 							" not enabled\n");
+					}
 #else  /* ifndef HAVE_LIBIDN2 */
 					lookup->idnout = state;
 #endif /* ifndef HAVE_LIBIDN2 */
