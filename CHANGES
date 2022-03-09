@@ -1,3 +1,9 @@
+5831.	[bug]		When resending a UDP request in the result of a timeout,
+			the recv_done() function in dighost.c was prepending
+			the new query into the loookup's queries list instead
+			of inserting, which could cause an assertion failure
+			when the resent query's result was SERVFAIL. [GL #3020]
+
 5828.	[bug]		Replace single TCP write timer with per-TCP write
 			timers. [GL #3200]
 
