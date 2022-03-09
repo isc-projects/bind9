@@ -108,9 +108,7 @@ comments; they must be clearly written and consistent with existing style.
 * Copies of code that could be unified in a helper function
 * Premature optimizations
 * Compiler warnings introduced
-* Portability issues:
- * Use of non-POSIX library calls or options
- * API changes correctly reflected in Windows `*.def` files
+* Portability issues, such as the use of non-POSIX library calls or options
 * DNS/protocol problems
 * Cut/pasted code that may have been modified in one place but needs to be modified in other places as well
 * No tests or inadequate tests
@@ -999,9 +997,9 @@ the program.  File descriptor destinations are never closed, have no
 maximum size limit, and do not do version control.
 
 Syslog destinations are associated with the standard syslog facilities
-available on your system: generally `syslogd` on UNIX and Linux systems
-and the Application log in the Event Viewer on Windows systems.  They too
-have no maximum size limit and do no version control.
+available on your system: generally `syslogd` on UNIX and Linux
+systems. They too have no maximum size limit and do no version
+control.
 
 Since null channels go nowhere, no additional destination
 specification is necessary.

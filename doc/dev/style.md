@@ -24,8 +24,7 @@ below.
 
 A C11 compiler, library with C11 extensions and POSIX:2001 are assumed.  Feel
 free to use any C11 feature, but make sure to provide compatibility shims for
-all supported platforms, e.g. Windows MSVC that doesn't support all of the C11
-features.
+all supported platforms that don't support all of the C11 features.
 
 #### Warnings
 
