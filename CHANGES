@@ -1,3 +1,6 @@
+5826.	[cleanup]	Stop dig from complaining about lack of IDN support when
+			the user asks for no IDN translation. [GL #3188]
+
 5825.	[funcf]		Set the minimum MTU on UDPv6 and TCPv6 sockets and
 			limit TCP maximum segment size (TCP_MAXSEG) to (1220)
 			for both TCPv4 and TCPv6 sockets. [GL #2201]
