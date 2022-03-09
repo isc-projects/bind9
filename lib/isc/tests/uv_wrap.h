@@ -96,7 +96,7 @@ __wrap_uv_fileno(const uv_handle_t *handle, uv_os_fd_t *fd);
  * uv_timer_start
  */
 
-static atomic_int __state_uv_udp_open = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_open = 0;
 
 int
 __wrap_uv_udp_open(uv_udp_t *handle, uv_os_sock_t sock) {
@@ -106,7 +106,7 @@ __wrap_uv_udp_open(uv_udp_t *handle, uv_os_sock_t sock) {
 	return (atomic_load(&__state_uv_udp_open));
 }
 
-static atomic_int __state_uv_udp_bind = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_bind = 0;
 
 int
 __wrap_uv_udp_bind(uv_udp_t *handle, const struct sockaddr *addr,
@@ -117,8 +117,7 @@ __wrap_uv_udp_bind(uv_udp_t *handle, const struct sockaddr *addr,
 	return (atomic_load(&__state_uv_udp_bind));
 }
 
-static atomic_int __state_uv_udp_connect
-	__attribute__((unused)) = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_connect __attribute__((unused)) = 0;
 
 #if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 int
@@ -130,8 +129,7 @@ __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 }
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 27, 0) */
 
-static atomic_int __state_uv_udp_getpeername
-	__attribute__((unused)) = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_getpeername __attribute__((unused)) = 0;
 
 #if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 int
@@ -144,7 +142,7 @@ __wrap_uv_udp_getpeername(const uv_udp_t *handle, struct sockaddr *name,
 }
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 27, 0) */
 
-static atomic_int __state_uv_udp_getsockname = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_getsockname = 0;
 int
 __wrap_uv_udp_getsockname(const uv_udp_t *handle, struct sockaddr *name,
 			  int *namelen) {
@@ -154,7 +152,7 @@ __wrap_uv_udp_getsockname(const uv_udp_t *handle, struct sockaddr *name,
 	return (atomic_load(&__state_uv_udp_getsockname));
 }
 
-static atomic_int __state_uv_udp_send = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_send = 0;
 int
 __wrap_uv_udp_send(uv_udp_send_t *req, uv_udp_t *handle, const uv_buf_t bufs[],
 		   unsigned int nbufs, const struct sockaddr *addr,
@@ -165,7 +163,7 @@ __wrap_uv_udp_send(uv_udp_send_t *req, uv_udp_t *handle, const uv_buf_t bufs[],
 	return (atomic_load(&__state_uv_udp_send));
 }
 
-static atomic_int __state_uv_udp_recv_start = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_recv_start = 0;
 int
 __wrap_uv_udp_recv_start(uv_udp_t *handle, uv_alloc_cb alloc_cb,
 			 uv_udp_recv_cb recv_cb) {
@@ -175,7 +173,7 @@ __wrap_uv_udp_recv_start(uv_udp_t *handle, uv_alloc_cb alloc_cb,
 	return (atomic_load(&__state_uv_udp_recv_start));
 }
 
-static atomic_int __state_uv_udp_recv_stop = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_udp_recv_stop = 0;
 int
 __wrap_uv_udp_recv_stop(uv_udp_t *handle) {
 	if (atomic_load(&__state_uv_udp_recv_stop) == 0) {
@@ -184,7 +182,7 @@ __wrap_uv_udp_recv_stop(uv_udp_t *handle) {
 	return (atomic_load(&__state_uv_udp_recv_stop));
 }
 
-static atomic_int __state_uv_tcp_open = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_tcp_open = 0;
 int
 __wrap_uv_tcp_open(uv_tcp_t *handle, uv_os_sock_t sock) {
 	if (atomic_load(&__state_uv_tcp_open) == 0) {
@@ -193,7 +191,7 @@ __wrap_uv_tcp_open(uv_tcp_t *handle, uv_os_sock_t sock) {
 	return (atomic_load(&__state_uv_tcp_open));
 }
 
-static atomic_int __state_uv_tcp_bind = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_tcp_bind = 0;
 int
 __wrap_uv_tcp_bind(uv_tcp_t *handle, const struct sockaddr *addr,
 		   unsigned int flags) {
@@ -203,7 +201,7 @@ __wrap_uv_tcp_bind(uv_tcp_t *handle, const struct sockaddr *addr,
 	return (atomic_load(&__state_uv_tcp_bind));
 }
 
-static atomic_int __state_uv_tcp_getsockname = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_tcp_getsockname = 0;
 int
 __wrap_uv_tcp_getsockname(const uv_tcp_t *handle, struct sockaddr *name,
 			  int *namelen) {
@@ -213,7 +211,7 @@ __wrap_uv_tcp_getsockname(const uv_tcp_t *handle, struct sockaddr *name,
 	return (atomic_load(&__state_uv_tcp_getsockname));
 }
 
-static atomic_int __state_uv_tcp_getpeername = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_tcp_getpeername = 0;
 int
 __wrap_uv_tcp_getpeername(const uv_tcp_t *handle, struct sockaddr *name,
 			  int *namelen) {
@@ -223,7 +221,7 @@ __wrap_uv_tcp_getpeername(const uv_tcp_t *handle, struct sockaddr *name,
 	return (atomic_load(&__state_uv_tcp_getpeername));
 }
 
-static atomic_int __state_uv_tcp_connect = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_tcp_connect = 0;
 int
 __wrap_uv_tcp_connect(uv_connect_t *req, uv_tcp_t *handle,
 		      const struct sockaddr *addr, uv_connect_cb cb) {
@@ -233,7 +231,7 @@ __wrap_uv_tcp_connect(uv_connect_t *req, uv_tcp_t *handle,
 	return (atomic_load(&__state_uv_tcp_connect));
 }
 
-static atomic_int __state_uv_listen = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_listen = 0;
 int
 __wrap_uv_listen(uv_stream_t *stream, int backlog, uv_connection_cb cb) {
 	if (atomic_load(&__state_uv_listen) == 0) {
@@ -242,7 +240,7 @@ __wrap_uv_listen(uv_stream_t *stream, int backlog, uv_connection_cb cb) {
 	return (atomic_load(&__state_uv_listen));
 }
 
-static atomic_int __state_uv_accept = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_accept = 0;
 int
 __wrap_uv_accept(uv_stream_t *server, uv_stream_t *client) {
 	if (atomic_load(&__state_uv_accept) == 0) {
@@ -251,7 +249,7 @@ __wrap_uv_accept(uv_stream_t *server, uv_stream_t *client) {
 	return (atomic_load(&__state_uv_accept));
 }
 
-static atomic_int __state_uv_send_buffer_size = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_send_buffer_size = 0;
 int
 __wrap_uv_send_buffer_size(uv_handle_t *handle, int *value) {
 	if (atomic_load(&__state_uv_send_buffer_size) == 0) {
@@ -260,7 +258,7 @@ __wrap_uv_send_buffer_size(uv_handle_t *handle, int *value) {
 	return (atomic_load(&__state_uv_send_buffer_size));
 }
 
-static atomic_int __state_uv_recv_buffer_size = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_recv_buffer_size = 0;
 int
 __wrap_uv_recv_buffer_size(uv_handle_t *handle, int *value) {
 	if (atomic_load(&__state_uv_recv_buffer_size) == 0) {
@@ -269,7 +267,7 @@ __wrap_uv_recv_buffer_size(uv_handle_t *handle, int *value) {
 	return (atomic_load(&__state_uv_recv_buffer_size));
 }
 
-static atomic_int __state_uv_fileno = ATOMIC_VAR_INIT(0);
+static atomic_int __state_uv_fileno = 0;
 int
 __wrap_uv_fileno(const uv_handle_t *handle, uv_os_fd_t *fd) {
 	if (atomic_load(&__state_uv_fileno) == 0) {

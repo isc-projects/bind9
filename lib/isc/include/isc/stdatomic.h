@@ -29,8 +29,6 @@
 #error "isc/stdatomic.h does not support your compiler"
 #endif /* if !defined(__GNUC_ATOMICS) */
 
-#define ATOMIC_VAR_INIT(x) x
-
 typedef enum memory_order {
 	memory_order_relaxed = __ATOMIC_RELAXED,
 	memory_order_consume = __ATOMIC_CONSUME,

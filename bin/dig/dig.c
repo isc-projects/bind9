@@ -59,7 +59,7 @@
 
 dig_lookup_t *default_lookup = NULL;
 
-static atomic_uintptr_t batchname = ATOMIC_VAR_INIT(0);
+static atomic_uintptr_t batchname = 0;
 static FILE *batchfp = NULL;
 static char *argv0;
 static int addresscount = 0;
