@@ -38,7 +38,7 @@
 #include "openssl_shim.h"
 #include "uv-compat.h"
 
-static atomic_uint_fast32_t last_tlsdnsquota_log = ATOMIC_VAR_INIT(0);
+static atomic_uint_fast32_t last_tlsdnsquota_log = 0;
 
 static void
 tls_error(isc_nmsocket_t *sock, isc_result_t result);

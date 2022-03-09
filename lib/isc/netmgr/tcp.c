@@ -37,7 +37,7 @@
 #include "netmgr-int.h"
 #include "uv-compat.h"
 
-static atomic_uint_fast32_t last_tcpquota_log = ATOMIC_VAR_INIT(0);
+static atomic_uint_fast32_t last_tcpquota_log = 0;
 
 static bool
 can_log_tcp_quota(void) {
