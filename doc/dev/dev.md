@@ -47,7 +47,7 @@ particular, a full regression test (`make` `check`) must be run for every
 modification so that unexpected side-effects are identified.
 
 When a problem or concern is found by the reviewer, these comments are
-placed on the RT ticket so the author can respond.
+placed on the merge request in GitLab so the author can respond.
 
 #### What is reviewed:
 
@@ -209,7 +209,7 @@ points to `rndc`, `SIGNZONE` to `dnssec-signzone`, etc.
 
 #### <a name="unittest"></a> Building unit tests
 
-BIND uses the cmocka, unit testing framework.
+BIND uses the cmocka unit testing framework.
 
 To build BIND with unit tests, run `configure` with the `--with-cmocka`
 option.  This requires cmocka >= 1.0.0 to be installed in the system.
