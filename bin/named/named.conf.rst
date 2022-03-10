@@ -24,10 +24,10 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-:iscman:`named.conf` is the configuration file for :iscman:`named`. Statements are
-enclosed in braces and terminated with a semi-colon. Clauses in the
-statements are also semi-colon terminated.  The usual comment styles are
-supported:
+:file:`named.conf` is the configuration file for :iscman:`named`.
+Statements are enclosed in braces and terminated with a semi-colon.
+Clauses in the statements are also semi-colon terminated. The usual
+comment styles are supported:
 
 C style: /\* \*/
 
