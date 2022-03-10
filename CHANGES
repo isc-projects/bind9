@@ -1,3 +1,6 @@
+5828.	[bug]		Replace single TCP write timer with per-TCP write
+			timers. [GL #3200]
+
 5824.	[bug]		Invalid dnssec-policy definitions were being accepted
 			where the defined keys did not cover both KSK and ZSK
 			roles for a given algorithm.  This is now checked for
