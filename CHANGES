@@ -1,3 +1,6 @@
+5834.	[cleanup]	C99 variable-length arrays are difficult to use safely,
+			so avoid them except in test code. [GL #3201]
+
 5828.	[bug]		Replace single TCP write timer with per-TCP write
 			timers. [GL #3200]
 
