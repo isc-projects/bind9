@@ -11,4 +11,4 @@
 
 :orphan:
 
-.. include:: ../../bin/check/named-checkzone.rst
+.. include:: ../../bin/check/named-compilezone.rst
