@@ -3923,15 +3923,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			} else {
 				start_udp(next);
 			}
-		}
-
-		/*
-		 * If our query is at the head of the list and there
-		 * is no next, we're the only one left, so fall
-		 * through to print the message.
-		 */
-		if ((ISC_LIST_HEAD(l->q) != query) ||
-		    (ISC_LIST_NEXT(query, link) != NULL)) {
 			dighost_comments(l,
 					 "Got %s from %s, trying next "
 					 "server",
@@ -3939,7 +3930,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
-			goto next_lookup;
+			goto detach_query;
 		}
 	}
 
