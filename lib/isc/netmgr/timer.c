@@ -41,6 +41,7 @@ isc_nm_timer_create(isc_nmhandle_t *handle, isc_nm_timer_cb cb, void *cbarg,
 	sock = handle->sock;
 	worker = &sock->mgr->workers[isc_nm_tid()];
 
+	/* TODO: per-loop object cache */
 	timer = isc_mem_get(sock->mgr->mctx, sizeof(*timer));
 	*timer = (isc_nm_timer_t){ .cb = cb, .cbarg = cbarg };
 	isc_refcount_init(&timer->references, 1);
@@ -91,7 +92,8 @@ isc_nm_timer_detach(isc_nm_timer_t **timerp) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (isc_refcount_decrement(&timer->references) == 1) {
-		uv_timer_stop(&timer->timer);
+		int r = uv_timer_stop(&timer->timer);
+		UV_RUNTIME_CHECK(uv_timer_stop, r);
 		uv_close((uv_handle_t *)&timer->timer, timer_destroy);
 	}
 }
