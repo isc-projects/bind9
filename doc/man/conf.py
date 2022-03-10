@@ -88,6 +88,7 @@ man_pages = [
     ('mdig', 'mdig', 'DNS pipelined lookup utility', author, 1),
     ('named-checkconf', 'named-checkconf', 'named configuration file syntax checking tool', author, 8),
     ('named-checkzone', 'named-checkzone', 'zone file validity checking or converting tool', author, 8),
+    ('named-compilezone', 'named-compilezone', 'zone file validity checking or converting tool', author, 8),
     ('named-journalprint', 'named-journalprint', 'print zone journal in human-readable form', author, 8),
     ('named-nzd2nzf', 'named-nzd2nzf', 'convert an NZD database to NZF text format', author, 8),
     ('named-rrchecker', 'named-rrchecker', 'syntax checker for individual DNS resource records', author, 1),
@@ -103,4 +104,5 @@ man_pages = [
     ('rndc-confgen', 'rndc-confgen', 'rndc key generation tool', author, 8),
     ('rndc.conf', 'rndc.conf', 'rndc configuration file', author, 5),
     ('rndc', 'rndc', 'name server control utility', author, 8),
+    ('tsig-keygen', 'tsig-keygen', 'TSIG key generation tool', author, 8),
     ]

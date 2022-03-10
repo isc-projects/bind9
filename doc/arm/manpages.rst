@@ -36,6 +36,7 @@ Manual Pages
 .. include:: ../../bin/tools/mdig.rst
 .. include:: ../../bin/check/named-checkconf.rst
 .. include:: ../../bin/check/named-checkzone.rst
+.. include:: ../../bin/check/named-compilezone.rst
 .. include:: ../../bin/tools/named-journalprint.rst
 .. include:: ../../bin/tools/named-nzd2nzf.rst
 .. include:: ../../bin/tools/named-rrchecker.rst
@@ -51,3 +52,4 @@ Manual Pages
 .. include:: ../../bin/confgen/rndc-confgen.rst
 .. include:: ../../bin/rndc/rndc.conf.rst
 .. include:: ../../bin/rndc/rndc.rst
+.. include:: ../../bin/confgen/tsig-keygen.rst

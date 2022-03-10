@@ -11,25 +11,27 @@
 
 .. highlight: console
 
-.. BEWARE: Do not forget to edit also named-compilezone.rst!
+.. BEWARE: Do not forget to edit also named-checkzone.rst!
 
-.. _man_named-checkzone:
+.. _man_named-compilezone:
 
-named-checkzone - zone file validation tool
--------------------------------------------
+named-compilezone - zone file converting tool
+---------------------------------------------
 
 Synopsis
 ~~~~~~~~
 
-:program:`named-checkzone` [**-d**] [**-h**] [**-j**] [**-q**] [**-v**] [**-c** class] [**-f** format] [**-F** format] [**-J** filename] [**-i** mode] [**-k** mode] [**-m** mode] [**-M** mode] [**-n** mode] [**-l** ttl] [**-L** serial] [**-o** filename] [**-r** mode] [**-s** style] [**-S** mode] [**-t** directory] [**-T** mode] [**-w** directory] [**-D**] [**-W** mode] {zonename} {filename}
+:program:`named-compilezone` [**-d**] [**-h**] [**-j**] [**-q**] [**-v**] [**-c** class] [**-f** format] [**-F** format] [**-J** filename] [**-i** mode] [**-k** mode] [**-m** mode] [**-M** mode] [**-n** mode] [**-l** ttl] [**-L** serial] [**-r** mode] [**-s** style] [**-S** mode] [**-t** directory] [**-T** mode] [**-w** directory] [**-D**] [**-W** mode] {**-o** filename} {zonename} {filename}
 
 Description
 ~~~~~~~~~~~
 
-``named-checkzone`` checks the syntax and integrity of a zone file. It
-performs the same checks as ``named`` does when loading a zone. This
-makes ``named-checkzone`` useful for checking zone files before
-configuring them into a name server.
+``named-compilezone`` checks the syntax and integrity of a zone file,
+and dumps the zone contents to a specified file in a specified format.
+It applies strict check levels by default, since the
+dump output is used as an actual zone file loaded by ``named``.
+When manually specified otherwise, the check levels must at least be as
+strict as those specified in the ``named`` configuration file.
 
 Options
 ~~~~~~~
@@ -103,7 +105,7 @@ Options
 
 ``-k mode``
    This option performs ``check-names`` checks with the specified failure mode.
-   Possible modes are ``fail``, ``warn`` (the default), and ``ignore``.
+   Possible modes are ``fail`` (the default), ``warn``, and ``ignore``.
 
 ``-l ttl``
    This option sets a maximum permissible TTL for the input file. Any record with a
@@ -126,11 +128,12 @@ Options
 
 ``-n mode``
    This option specifies whether NS records should be checked to see if they are
-   addresses. Possible modes are ``fail``, ``warn`` (the default), and ``ignore``.
+   addresses. Possible modes are ``fail`` (the default), ``warn``,  and
+   ``ignore``.
 
 ``-o filename``
    This option writes the zone output to ``filename``. If ``filename`` is ``-``, then
-   the zone output is written to standard output.
+   the zone output is written to standard output. This is mandatory for ``named-compilezone``.
 
 ``-r mode``
    This option checks for records that are treated as different by DNSSEC but are
@@ -142,9 +145,7 @@ Options
    ``full`` (the default) and ``relative``. The ``full`` format is most
    suitable for processing automatically by a separate script.
    The relative format is more human-readable and is thus
-   suitable for editing by hand. This does not have any effect unless it dumps
-   the zone contents. It also does not have any meaning if the output format
-   is not text.
+   suitable for editing by hand.
 
 ``-S mode``
    This option checks whether an SRV record refers to a CNAME. Possible modes are
@@ -166,7 +167,8 @@ Options
    ``named.conf``.
 
 ``-D``
-   This option dumps the zone file in canonical format.
+   This option dumps the zone file in canonical format. This is always enabled for
+   ``named-compilezone``.
 
 ``-W mode``
    This option specifies whether to check for non-terminal wildcards. Non-terminal
@@ -183,11 +185,11 @@ Options
 Return Values
 ~~~~~~~~~~~~~
 
-``named-checkzone`` returns an exit status of 1 if errors were detected
+``named-compilezone`` returns an exit status of 1 if errors were detected
 and 0 otherwise.
 
 See Also
 ~~~~~~~~
 
-:manpage:`named(8)`, :manpage:`named-checkconf(8)`, :manpage:`named-compilezone(8)`,
+:manpage:`named(8)`, :manpage:`named-checkconf(8)`, :manpage:`named-checkzone(8)`,
 :rfc:`1035`, BIND 9 Administrator Reference Manual.

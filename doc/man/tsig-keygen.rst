@@ -11,4 +11,4 @@
 
 :orphan:
 
-.. include:: ../../bin/confgen/ddns-confgen.rst
+.. include:: ../../bin/confgen/tsig-keygen.rst
