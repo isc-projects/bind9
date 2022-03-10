@@ -51,9 +51,6 @@ static void
 read_timer_close_cb(uv_handle_t *handle);
 
 static void
-write_timer_close_cb(uv_handle_t *handle);
-
-static void
 udp_close_direct(isc_nmsocket_t *sock);
 
 static void
@@ -234,10 +231,6 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	r = uv_timer_init(&worker->loop, &sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	LOCK(&sock->parent->lock);
 
@@ -661,10 +654,6 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
-	r = uv_timer_init(&worker->loop, &sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
-
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
 		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_OPENFAIL]);
@@ -1021,17 +1010,6 @@ read_timer_close_cb(uv_handle_t *handle) {
 }
 
 static void
-write_timer_close_cb(uv_handle_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data(timer);
-	uv_handle_set_data(timer, NULL);
-
-	REQUIRE(VALID_NMSOCK(sock));
-
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
-}
-
-static void
 stop_udp_child(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -1083,14 +1061,11 @@ stop_udp_parent(isc_nmsocket_t *sock) {
 
 static void
 udp_close_direct(isc_nmsocket_t *sock) {
-	int r;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 
-	r = uv_timer_stop(&sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_stop, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
-	uv_close((uv_handle_t *)&sock->write_timer, write_timer_close_cb);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
 }
 
 void
