@@ -100,3 +100,7 @@ Bug Fixes
   algorithm.  This is now checked for and the dnssec-policy is
   rejected if both roles are not present for all algorithms in use.
   :gl:`#3142`
+
+- Handling of the TCP write timeouts has been improved to track timeout
+  for each TCP write separately leading to faster connection tear down
+  in case the other party is not reading the data. :gl:`#3200`
