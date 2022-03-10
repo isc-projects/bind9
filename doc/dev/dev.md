@@ -47,7 +47,7 @@ particular, a full regression test (`make` `check`) must be run for every
 modification so that unexpected side-effects are identified.
 
 When a problem or concern is found by the reviewer, these comments are
-placed on the RT ticket so the author can respond.
+placed on the merge request in GitLab so the author can respond.
 
 #### What is reviewed:
 
@@ -108,9 +108,7 @@ comments; they must be clearly written and consistent with existing style.
 * Copies of code that could be unified in a helper function
 * Premature optimizations
 * Compiler warnings introduced
-* Portability issues:
- * Use of non-POSIX library calls or options
- * API changes correctly reflected in Windows `*.def` files
+* Portability issues, such as the use of non-POSIX library calls or options
 * DNS/protocol problems
 * Cut/pasted code that may have been modified in one place but needs to be modified in other places as well
 * No tests or inadequate tests
@@ -204,7 +202,7 @@ points to `rndc`, `SIGNZONE` to `dnssec-signzone`, etc.
 
 #### <a name="unittest"></a> Building unit tests
 
-BIND uses the cmocka, unit testing framework.
+BIND uses the cmocka unit testing framework.
 
 To build BIND with unit tests, run `configure` with the `--with-cmocka`
 option.  This requires cmocka >= 1.0.0 to be installed in the system.
@@ -999,9 +997,9 @@ the program.  File descriptor destinations are never closed, have no
 maximum size limit, and do not do version control.
 
 Syslog destinations are associated with the standard syslog facilities
-available on your system: generally `syslogd` on UNIX and Linux systems
-and the Application log in the Event Viewer on Windows systems.  They too
-have no maximum size limit and do no version control.
+available on your system: generally `syslogd` on UNIX and Linux
+systems. They too have no maximum size limit and do no version
+control.
 
 Since null channels go nowhere, no additional destination
 specification is necessary.
