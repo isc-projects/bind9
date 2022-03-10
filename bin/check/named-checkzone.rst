@@ -171,7 +171,7 @@ Options
 ``-W mode``
    This option specifies whether to check for non-terminal wildcards. Non-terminal
    wildcards are almost always the result of a failure to understand the
-   wildcard matching algorithm (:rfc:`1034`). Possible modes are ``warn``
+   wildcard matching algorithm (:rfc:`4592`). Possible modes are ``warn``
    (the default) and ``ignore``.
 
 ``zonename``
