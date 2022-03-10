@@ -700,7 +700,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 	ISC_LIST_APPEND(httpdmgr->running, httpd, link);
 	UNLOCK(&httpdmgr->lock);
 
-	isc_nmhandle_attach(handle, &httpd->readhandle);
+	isc_nmhandle_attach(httpd->handle, &httpd->readhandle);
 	isc_nm_read(handle, httpd_request, httpdmgr);
 }
 
@@ -869,6 +869,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	httpd = isc_nmhandle_getdata(handle);
 
 	REQUIRE(httpd->state == RECV);
+	REQUIRE(httpd->handle == handle);
 
 	if (eresult != ISC_R_SUCCESS) {
 		goto cleanup_readhandle;
@@ -883,13 +884,13 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 				/* don't unref, keep reading */
 				return;
 			}
+
 			/*
-			 * We have been called from httpd_senddone
-			 * and we need to resume reading.  Detach
-			 * readhandle before resuming.
+			 * We must have been called from httpd_senddone (as
+			 * ISC_R_NOTFOUND is not returned from netmgr) and we
+			 * need to resume reading.
 			 */
-			isc_nmhandle_detach(&httpd->readhandle);
-			isc_nm_resumeread(handle);
+			isc_nm_resumeread(httpd->readhandle);
 			return;
 		}
 		goto cleanup_readhandle;
@@ -1002,11 +1003,12 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	isc_buffer_usedregion(httpd->sendbuffer, &r);
 
-	isc_nm_pauseread(handle);
+	isc_nm_pauseread(httpd->handle);
 	httpd->state = SEND;
 
-	isc_nmhandle_attach(handle, &httpd->sendhandle);
-	isc_nm_send(handle, &r, httpd_senddone, httpd);
+	isc_nmhandle_attach(httpd->handle, &httpd->sendhandle);
+	isc_nm_send(httpd->sendhandle, &r, httpd_senddone, httpd);
+	return;
 
 cleanup_readhandle:
 	isc_nmhandle_detach(&httpd->readhandle);
@@ -1158,6 +1160,7 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	REQUIRE(VALID_HTTPD(httpd));
 	REQUIRE(httpd->state == SEND);
+	REQUIRE(httpd->handle == handle);
 
 	isc_buffer_free(&httpd->sendbuffer);
 
@@ -1176,20 +1179,33 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_nmhandle_detach(&httpd->sendhandle);
 
 	if (result != ISC_R_SUCCESS) {
-		return;
+		goto cleanup_readhandle;
+	}
+
+	if ((httpd->flags & HTTPD_CLOSE) != 0) {
+		goto cleanup_readhandle;
 	}
 
 	httpd->state = RECV;
+	httpd->sendhandle = NULL;
+
 	if (httpd->recvlen != 0) {
 		/*
 		 * Outstanding requests still exist, start processing
 		 * them.
 		 */
-		isc_nmhandle_attach(handle, &httpd->readhandle);
-		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
+		httpd_request(httpd->handle, ISC_R_SUCCESS, NULL, httpd->mgr);
 	} else if (!httpd->truncated) {
-		isc_nm_resumeread(handle);
+		isc_nm_resumeread(httpd->readhandle);
+	} else {
+		/* Truncated request, don't resume */
+		goto cleanup_readhandle;
 	}
+
+	return;
+
+cleanup_readhandle:
+	isc_nmhandle_detach(&httpd->readhandle);
 }
 
 isc_result_t
