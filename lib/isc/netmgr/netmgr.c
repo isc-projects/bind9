@@ -1985,11 +1985,15 @@ isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
 }
 
 void
-isc__nmsocket_writetimeout_cb(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
+isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult) {
+	isc__nm_uvreq_t *req = data;
+	isc_nmsocket_t *sock = NULL;
 
-	int r = uv_timer_stop(&sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_stop, r);
+	REQUIRE(eresult == ISC_R_TIMEDOUT);
+	REQUIRE(VALID_UVREQ(req));
+	REQUIRE(VALID_NMSOCK(req->sock));
+
+	sock = req->sock;
 
 	isc__nmsocket_reset(sock);
 }
@@ -2802,6 +2806,13 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 	nmhandle_detach_cb(&ievent->handle FLARG_PASS);
 }
 
+static void
+reset_shutdown(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
+	isc__nmsocket_shutdown(sock);
+}
+
 void
 isc__nmsocket_reset(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -2827,10 +2838,10 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		 * The real shutdown will be handled in the respective
 		 * close functions.
 		 */
-		int r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
+		int r = uv_tcp_close_reset(&sock->uv_handle.tcp,
+					   reset_shutdown);
 		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
 	}
-	isc__nmsocket_shutdown(sock);
 }
 
 void
