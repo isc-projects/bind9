@@ -43,6 +43,8 @@ END
 print <<END;
 .. highlight: console
 
+.. iscman:: named.conf
+
 named.conf - configuration file for **named**
 ---------------------------------------------
 
@@ -54,10 +56,10 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``named.conf`` is the configuration file for ``named``. Statements are
-enclosed in braces and terminated with a semi-colon. Clauses in the
-statements are also semi-colon terminated.  The usual comment styles are
-supported:
+:file:`named.conf` is the configuration file for :iscman:`named`.
+Statements are enclosed in braces and terminated with a semi-colon.
+Clauses in the statements are also semi-colon terminated. The usual
+comment styles are supported:
 
 C style: /\\* \\*/
 
@@ -141,6 +143,6 @@ Files
 See Also
 ~~~~~~~~
 
-:manpage:`named(8)`, :manpage:`named-checkconf(8)`, :manpage:`rndc(8)`, :manpage:`rndc-confgen(8)`, :manpage:`tsig-keygen(8)`, BIND 9 Administrator Reference Manual.
+:iscman:`named(8) <named>`, :iscman:`named-checkconf(8) <named-checkconf>`, :iscman:`rndc(8) <rndc>`, :iscman:`rndc-confgen(8) <rndc-confgen>`, :iscman:`tsig-keygen(8) <tsig-keygen>`, BIND 9 Administrator Reference Manual.
 
 END
