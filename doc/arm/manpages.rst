@@ -15,6 +15,7 @@ Manual Pages
 ============
 
 .. include:: ../../bin/tools/arpaname.rst
+.. include:: ../../bin/confgen/ddns-confgen.rst
 .. include:: ../../bin/delv/delv.rst
 .. include:: ../../bin/dig/dig.rst
 .. include:: ../../bin/dnssec/dnssec-cds.rst
@@ -31,8 +32,8 @@ Manual Pages
 .. include:: ../../bin/dig/host.rst
 .. include:: ../../bin/tools/mdig.rst
 .. include:: ../../bin/check/named-checkconf.rst
-.. _man_named-checkzone_named-compilezone:
 .. include:: ../../bin/check/named-checkzone.rst
+.. include:: ../../bin/check/named-compilezone.rst
 .. include:: ../../bin/tools/named-journalprint.rst
 .. include:: ../../bin/tools/named-nzd2nzf.rst
 .. include:: ../../bin/tools/named-rrchecker.rst
@@ -44,5 +45,4 @@ Manual Pages
 .. include:: ../../bin/confgen/rndc-confgen.rst
 .. include:: ../../bin/rndc/rndc.conf.rst
 .. include:: ../../bin/rndc/rndc.rst
-.. _man_tsig-keygen_ddns-confgen:
 .. include:: ../../bin/confgen/tsig-keygen.rst
