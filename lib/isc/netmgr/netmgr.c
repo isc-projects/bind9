@@ -2814,6 +2814,7 @@ reset_shutdown(uv_handle_t *handle) {
 	isc_nmsocket_t *sock = uv_handle_get_data(handle);
 
 	isc__nmsocket_shutdown(sock);
+	isc__nmsocket_detach(&sock);
 }
 
 void
@@ -2836,14 +2837,19 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		break;
 	}
 
-	if (!uv_is_closing(&sock->uv_handle.handle)) {
+	if (!uv_is_closing(&sock->uv_handle.handle) &&
+	    uv_is_active(&sock->uv_handle.handle))
+	{
 		/*
 		 * The real shutdown will be handled in the respective
 		 * close functions.
 		 */
+		isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 		int r = uv_tcp_close_reset(&sock->uv_handle.tcp,
 					   reset_shutdown);
 		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+	} else {
+		isc__nmsocket_shutdown(sock);
 	}
 }
 
@@ -2885,13 +2891,27 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 
 	switch (handle->type) {
 	case UV_UDP:
+		isc__nmsocket_shutdown(sock);
+		return;
 	case UV_TCP:
-		break;
+		switch (sock->type) {
+		case isc_nm_tcpsocket:
+		case isc_nm_tcpdnssocket:
+		case isc_nm_tlsdnssocket:
+			if (sock->parent == NULL) {
+				/* Reset the TCP connections on shutdown */
+				isc__nmsocket_reset(sock);
+				return;
+			}
+			/* FALLTHROUGH */
+		default:
+			isc__nmsocket_shutdown(sock);
+		}
+
+		return;
 	default:
 		return;
 	}
-
-	isc__nmsocket_shutdown(sock);
 }
 
 void
