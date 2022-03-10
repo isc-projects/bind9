@@ -189,11 +189,10 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 static isc_result_t
 gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
-	isc_region_t message, r;
+	isc_region_t message;
 	gss_buffer_desc gmessage, gsig;
 	OM_uint32 minor, gret;
 	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
-	unsigned char buf[sig->length];
 	char err[1024];
 
 	/*
@@ -202,11 +201,7 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	 */
 	isc_buffer_usedregion(ctx->buffer, &message);
 	REGION_TO_GBUFFER(message, gmessage);
-
-	memmove(buf, sig->base, sig->length);
-	r.base = buf;
-	r.length = sig->length;
-	REGION_TO_GBUFFER(r, gsig);
+	REGION_TO_GBUFFER(*sig, gsig);
 
 	/*
 	 * Verify the data.
