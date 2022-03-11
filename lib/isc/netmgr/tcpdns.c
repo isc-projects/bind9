@@ -102,10 +102,6 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
-	r = uv_timer_init(&worker->loop, &sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
-
 	if (isc__nm_closing(sock)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
@@ -504,10 +500,6 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_timer_init(&worker->loop, &sock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	r = uv_timer_init(&worker->loop, &sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
 
 	LOCK(&sock->parent->lock);
 
@@ -978,10 +970,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
-	r = uv_timer_init(&worker->loop, &csock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&csock->write_timer, csock);
-
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
 		result = isc__nm_uverr2result(r);
@@ -1118,14 +1106,12 @@ tcpdns_send_cb(uv_write_t *req, int status) {
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	REQUIRE(VALID_NMSOCK(uvreq->sock));
 
 	sock = uvreq->sock;
 
-	if (--sock->writes == 0) {
-		int r = uv_timer_stop(&sock->write_timer);
-		UV_RUNTIME_CHECK(uv_timer_stop, r);
-	}
+	isc_nm_timer_stop(uvreq->timer);
+	isc_nm_timer_detach(&uvreq->timer);
 
 	if (status < 0) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
@@ -1193,16 +1179,17 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 		goto fail;
 	}
 
-	r = uv_timer_start(&sock->write_timer, isc__nmsocket_writetimeout_cb,
-			   sock->write_timeout, 0);
-	UV_RUNTIME_CHECK(uv_timer_start, r);
-	RUNTIME_CHECK(sock->writes++ >= 0);
-
 	r = uv_write(&uvreq->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcpdns_send_cb);
 	if (r < 0) {
 		result = isc__nm_uverr2result(r);
 		goto fail;
+	}
+
+	isc_nm_timer_create(uvreq->handle, isc__nmsocket_writetimeout_cb, uvreq,
+			    &uvreq->timer);
+	if (sock->write_timeout > 0) {
+		isc_nm_timer_start(uvreq->timer, sock->write_timeout);
 	}
 
 	return;
@@ -1283,17 +1270,6 @@ read_timer_close_cb(uv_handle_t *timer) {
 }
 
 static void
-write_timer_close_cb(uv_handle_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data(timer);
-	uv_handle_set_data(timer, NULL);
-
-	REQUIRE(VALID_NMSOCK(sock));
-
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
-}
-
-static void
 stop_tcpdns_child(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_tcpdnssocket);
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -1345,7 +1321,6 @@ stop_tcpdns_parent(isc_nmsocket_t *sock) {
 
 static void
 tcpdns_close_direct(isc_nmsocket_t *sock) {
-	int r;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(atomic_load(&sock->closing));
@@ -1361,10 +1336,8 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	r = uv_timer_stop(&sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_stop, r);
-	uv_handle_set_data((uv_handle_t *)&sock->write_timer, sock);
-	uv_close((uv_handle_t *)&sock->write_timer, write_timer_close_cb);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
 }
 
 void
