@@ -35,3 +35,5 @@ rm -f rndc.dnssec.*.out.* rndc.zonestatus.out.*
 rm -f python.out.*
 rm -f *-supported.file
 rm -f created.key-* unused.key-*
+rm -f ns3/ksk/K* ns3/zsk/K*
+rm -rf ./ns3/ksk/ ./ns3/zsk/

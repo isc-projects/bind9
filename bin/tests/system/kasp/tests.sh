@@ -127,6 +127,7 @@ set_zone "kasp"
 set_policy "default" "1" "3600"
 set_server "." "10.53.0.1"
 # Key properties.
+key_clear "KEY1"
 set_keyrole "KEY1" "csk"
 set_keylifetime "KEY1" "0"
 set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
@@ -538,6 +539,7 @@ key_clear "KEY4"
 set_zone "checkds-ksk.kasp"
 set_policy "checkds-ksk" "2" "303"
 set_server "ns3" "10.53.0.3"
+
 # Key properties.
 set_keyrole "KEY1" "ksk"
 set_keylifetime "KEY1" "0"
@@ -935,6 +937,55 @@ set_keystate "KEY1" "STATE_DS" "hidden"
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 set_keytimes_csk_policy
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: keystore.kasp.
+#
+set_zone "keystore.kasp"
+set_policy "keystore" "2" "303"
+set_server "ns3" "10.53.0.3"
+# Key properties.
+key_clear "KEY1"
+set_keyrole "KEY1" "ksk"
+set_keylifetime "KEY1" "0"
+set_keydir "KEY1" "ns3/ksk"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY1" "yes"
+set_zonesigning "KEY1" "no"
+
+key_clear "KEY2"
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "0"
+set_keydir "KEY2" "ns3/zsk"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "yes"
+
+# KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
+# ZSK: DNSKEY, RRSIG (zsk) published.
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS" "hidden"
+
+set_keystate "KEY2" "GOAL" "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
+# Two keys only.
+key_clear "KEY3"
+key_clear "KEY4"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+# Reuse set_keytimes_csk_policy to set the KEY1 keytimes.
+set_keytimes_csk_policy
+created=$(key_get KEY2 CREATED)
+set_keytime "KEY2" "PUBLISHED" "${created}"
+set_keytime "KEY2" "ACTIVE" "${created}"
 check_keytimes
 check_apex
 check_subdomain

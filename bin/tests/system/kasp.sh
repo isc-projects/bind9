@@ -67,6 +67,8 @@ VIEW3="C1Azf+gGPMmxrUg/WQINP6eV9Y0="
 # PRIVKEY_STAT
 # PUBKEY_STAT
 # STATE_STAT
+# FLAGS
+# KEYDIR
 
 key_key() {
   echo "${1}__${2}"
@@ -132,6 +134,7 @@ key_clear() {
   key_set "$1" "PRIVKEY_STAT" '0'
   key_set "$1" "PUBKEY_STAT" '0'
   key_set "$1" "STATE_STAT" '0'
+  key_set "$1" "KEYDIR" 'none'
 }
 
 # Start clear.
@@ -176,7 +179,7 @@ get_keyids() {
   _zone=$2
   _regex="K${_zone}.+*+*.key"
 
-  find "${_dir}" -mindepth 1 -maxdepth 1 -name "${_regex}" | sed "s,$_dir/K${_zone}.+\([0-9]\{3\}\)+\([0-9]\{5\}\).key,\2,"
+  find "${_dir}" -mindepth 1 -maxdepth 3 -name "${_regex}" | sed "s,.*/K${_zone}.+\([0-9]\{3\}\)+\([0-9]\{5\}\).key,\2,"
 }
 
 # By default log errors and don't quit immediately.
@@ -313,6 +316,13 @@ set_keystate() {
   key_set "$1" "$2" "$3"
 }
 
+# Set key directory.
+# $1: Key to update (KEY1, KEY2, ...)
+# $2: Directory.
+set_keydir() {
+  key_set "$1" "KEYDIR" "$2"
+}
+
 # Check the key $1 with id $2.
 # This requires environment variables to be set.
 #
@@ -324,7 +334,10 @@ set_keystate() {
 # KEY_ID=$(echo $1 | sed 's/^0\{0,4\}//')
 # KEY_CREATED (from the KEY_FILE)
 check_key() {
-  _dir="$DIR"
+  _dir=$(key_get "$1" KEYDIR)
+  if [ "$_dir" = "none" ]; then
+    _dir="$DIR"
+  fi
   _zone="$ZONE"
   _role=$(key_get "$1" ROLE)
   _key_idpad="$2"
@@ -465,7 +478,10 @@ check_key() {
 
 # Check the key timing metadata for key $1.
 check_timingmetadata() {
-  _dir="$DIR"
+  _dir=$(key_get "$1" KEYDIR)
+  if [ "$_dir" = "none" ]; then
+    _dir="$DIR"
+  fi
   _zone="$ZONE"
   _key_idpad=$(key_get "$1" ID)
   _key_id=$(echo "$_key_idpad" | sed 's/^0\{0,4\}//')
@@ -644,11 +660,11 @@ check_keytimes() {
 # STATE_FILE="${BASE_FILE}.state"
 # KEY_ID=$(echo $1 | sed 's/^0\{0,4\}//')
 key_unused() {
-  _dir=$DIR
-  _zone=$ZONE
-  _key_idpad=$1
+  _dir="$DIR"
+  _zone="$ZONE"
+  _key_idpad="$1"
   _key_id=$(echo "$_key_idpad" | sed 's/^0\{0,4\}//')
-  _alg_num=$2
+  _alg_num="$2"
   _alg_numpad=$(printf "%03d" "$_alg_num")
 
   BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
@@ -788,6 +804,8 @@ _check_keys() {
 #
 # It is expected that KEY1, KEY2, KEY3, and KEY4 arrays are set correctly.
 # Found key identifiers are stored in the right key array.
+# Keys are found if they are stored inside $DIR or in a subdirectory up to
+# three levels deeper.
 check_keys() {
   n=$((n + 1))
   echo_i "check keys are created for zone ${ZONE} ($n)"

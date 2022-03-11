@@ -166,6 +166,14 @@ zone "inline-signing.kasp" {
 	dnssec-policy "default";
 };
 
+/* A zone that uses dnssec-policy with key stores. */
+zone "keystore.kasp" {
+	type primary;
+	file "keystore.kasp.db";
+	inline-signing yes;
+	dnssec-policy "keystore";
+};
+
 /*
  * A configured dnssec-policy but some keys already created.
  */
