@@ -420,36 +420,6 @@ isc_timer_gettype(isc_timer_t *timer) {
 	return (t);
 }
 
-isc_result_t
-isc_timer_touch(isc_timer_t *timer) {
-	isc_result_t result;
-	isc_time_t now;
-
-	/*
-	 * Set the last-touched time of 'timer' to the current time.
-	 */
-
-	REQUIRE(VALID_TIMER(timer));
-
-	LOCK(&timer->lock);
-
-	/*
-	 * We'd like to
-	 *
-	 *	REQUIRE(timer->type == isc_timertype_once);
-	 *
-	 * but we cannot without locking the manager lock too, which we
-	 * don't want to do.
-	 */
-
-	TIME_NOW(&now);
-	result = isc_time_add(&now, &timer->interval, &timer->idle);
-
-	UNLOCK(&timer->lock);
-
-	return (result);
-}
-
 void
 isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
 	REQUIRE(VALID_TIMER(timer));

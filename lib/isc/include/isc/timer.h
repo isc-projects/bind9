@@ -196,27 +196,6 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
  *\li	Unexpected error
  */
 
-isc_result_t
-isc_timer_touch(isc_timer_t *timer);
-/*%<
- * Set the last-touched time of 'timer' to the current time.
- *
- * Requires:
- *
- *\li	'timer' is a valid once timer.
- *
- * Ensures:
- *
- *\li	An idle timeout will not be generated until at least Now + the
- *	timer's interval if 'timer' is a once timer with a non-zero
- *	interval.
- *
- * Returns:
- *
- *\li	Success
- *\li	Unexpected error
- */
-
 void
 isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp);
 /*%<
