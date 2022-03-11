@@ -29,9 +29,6 @@
  *	They are used to implement both (possibly expiring) idle timers and
  *	'one-shot' timers.
  *
- *\li	'limited' timers generate a periodic tick event until they reach
- *	their lifetime when they generate a life timeout event.
- *
  *\li	'inactive' timers generate no events.
  *
  * Timers can change type.  It is typical to create a timer as
@@ -83,7 +80,6 @@ typedef enum {
 	isc_timertype_undefined = -1, /*%< Undefined */
 	isc_timertype_ticker = 0,     /*%< Ticker */
 	isc_timertype_once = 1,	      /*%< Once */
-	isc_timertype_limited = 2,    /*%< Limited */
 	isc_timertype_inactive = 3    /*%< Inactive */
 } isc_timertype_t;
 
