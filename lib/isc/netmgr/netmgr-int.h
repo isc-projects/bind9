@@ -377,15 +377,15 @@ struct isc__nm_uvreq {
 	int magic;
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
-	char tcplen[2];	      /* The TCP DNS message length */
-	uv_buf_t uvbuf;	      /* translated isc_region_t, to be
-			       * sent or received */
-	isc_sockaddr_t local; /* local address */
-	isc_sockaddr_t peer;  /* peer address */
-	isc__nm_cb_t cb;      /* callback */
-	void *cbarg;	      /* callback argument */
-	uv_pipe_t ipc;	      /* used for sending socket
-			       * uv_handles to other threads */
+	char tcplen[2];	       /* The TCP DNS message length */
+	uv_buf_t uvbuf;	       /* translated isc_region_t, to be
+				* sent or received */
+	isc_sockaddr_t local;  /* local address */
+	isc_sockaddr_t peer;   /* peer address */
+	isc__nm_cb_t cb;       /* callback */
+	void *cbarg;	       /* callback argument */
+	isc_nm_timer_t *timer; /* TCP write timer */
+
 	union {
 		uv_handle_t handle;
 		uv_req_t req;
@@ -972,9 +972,7 @@ struct isc_nmsocket {
 	/*%
 	 * TCP write timeout timer.
 	 */
-	uv_timer_t write_timer;
 	uint64_t write_timeout;
-	int64_t writes;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;
@@ -2102,7 +2100,7 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
-isc__nmsocket_writetimeout_cb(uv_timer_t *timer);
+isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
 
 #define UV_RUNTIME_CHECK(func, ret)                                           \
 	if (ret != 0) {                                                       \
