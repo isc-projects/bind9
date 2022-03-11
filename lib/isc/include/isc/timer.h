@@ -24,10 +24,8 @@
  *
  *\li	'ticker' timers generate a periodic tick event.
  *
- *\li	'once' timers generate an idle timeout event if they are idle for too
- *	long, and generate a life timeout event if their lifetime expires.
- *	They are used to implement both (possibly expiring) idle timers and
- *	'one-shot' timers.
+ *\li	'once' timers generate an timeout event if the time reaches
+ *      the set interval.
  *
  *\li	'inactive' timers generate no events.
  *
@@ -110,21 +108,6 @@ isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
  * 'task' and when dispatched 'action' will be called with 'arg' as the
  * arg value.  The new timer is returned in 'timerp'.
  *
- * Notes:
- *
- *\li	For ticker timers, the timer will generate a 'tick' event every
- *	'interval' seconds.  The value of 'expires' is ignored.
- *
- *\li	For once timers, 'expires' specifies the time when a life timeout
- *	event should be generated.  If 'expires' is 0 (the epoch), then no life
- *	timeout will be generated.  'interval' specifies how long the timer
- *	can be idle before it generates an idle timeout.  If 0, then no
- *	idle timeout will be generated.
- *
- *\li	If 'expires' is NULL, the epoch will be used.
- *
- *	If 'interval' is NULL, the zero interval will be used.
- *
  * Requires:
  *
  *\li	'manager' is a valid manager
@@ -161,16 +144,20 @@ isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
 
 isc_result_t
 isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
-		const isc_time_t *expires, const isc_interval_t *interval,
-		bool purge);
+		const isc_interval_t *interval, bool purge);
 /*%<
- * Change the timer's type, expires, and interval values to the given
+ * Change the timer's type, and interval values to the given
  * values.  If 'purge' is TRUE, any pending events from this timer
  * are purged from its task's event queue.
  *
  * Notes:
  *
- *\li	If 'expires' is NULL, the epoch will be used.
+ *\li	For ticker timers, the timer will generate a 'tick' event every
+ *	'interval' seconds.
+ *
+ *\li	For once timers, 'interval' specifies how long the timer
+ *	can be idle before it generates an idle timeout.  If 0, then no
+ *	idle timeout will be generated.
  *
  *\li	If 'interval' is NULL, the zero interval will be used.
  *
@@ -178,8 +165,8 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
  *
  *\li	'timer' is a valid timer
  *
- *\li	The same requirements that isc_timer_create() imposes on 'type',
- *	'expires' and 'interval' apply.
+ *\li	'interval' points to a valid interval, or is NULL.
+ *
  *
  * Ensures:
  *

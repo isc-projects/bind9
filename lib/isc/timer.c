@@ -64,7 +64,6 @@ struct isc_timer {
 	isc_time_t idle;
 	/*! Locked by manager lock. */
 	isc_timertype_t type;
-	isc_time_t expires;
 	isc_interval_t interval;
 	isc_task_t *task;
 	isc_taskaction_t action;
@@ -96,34 +95,30 @@ static isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_timermgr_t *manager;
 	isc_time_t due;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	/*!
 	 * Note: the caller must ensure locking.
 	 */
-
-	REQUIRE(timer->type != isc_timertype_inactive);
 
 	manager = timer->manager;
 
 	/*
 	 * Compute the new due time.
 	 */
-	if (timer->type != isc_timertype_once) {
-		isc_result_t result = isc_time_add(now, &timer->interval, &due);
+	switch (timer->type) {
+	case isc_timertype_ticker:
+		result = isc_time_add(now, &timer->interval, &due);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
-	} else {
-		if (isc_time_isepoch(&timer->idle)) {
-			due = timer->expires;
-		} else if (isc_time_isepoch(&timer->expires)) {
-			due = timer->idle;
-		} else if (isc_time_compare(&timer->idle, &timer->expires) < 0)
-		{
-			due = timer->idle;
-		} else {
-			due = timer->expires;
-		}
+		break;
+	case isc_timertype_once:
+		due = timer->idle;
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -167,7 +162,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		SIGNAL(&manager->wakeup);
 	}
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static void
@@ -240,7 +235,6 @@ isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
 	*timer = (isc_timer_t){
 		.manager = manager,
 		.type = isc_timertype_inactive,
-		.expires = *isc_time_epoch,
 		.interval = *isc_interval_zero,
 		.action = action,
 		.arg = arg,
@@ -271,8 +265,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
 
 isc_result_t
 isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
-		const isc_time_t *expires, const isc_interval_t *interval,
-		bool purge) {
+		const isc_interval_t *interval, bool purge) {
 	isc_time_t now;
 	isc_timermgr_t *manager;
 	isc_result_t result;
@@ -287,14 +280,11 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	if (expires == NULL) {
-		expires = isc_time_epoch;
-	}
 	if (interval == NULL) {
 		interval = isc_interval_zero;
 	}
 	REQUIRE(type == isc_timertype_inactive ||
-		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
+		!isc_interval_iszero(interval));
 
 	/*
 	 * Get current time.
@@ -319,7 +309,6 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 					  ISC_TIMEREVENT_LASTEVENT, NULL);
 	}
 	timer->type = type;
-	timer->expires = *expires;
 	timer->interval = *interval;
 	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
 		result = isc_time_add(&now, interval, &timer->idle);
@@ -385,95 +374,73 @@ isc_timer_detach(isc_timer_t **timerp) {
 }
 
 static void
-dispatch(isc_timermgr_t *manager, isc_time_t *now) {
-	bool done = false, post_event, need_schedule;
+post_event(isc_timermgr_t *manager, isc_timer_t *timer, isc_eventtype_t type) {
 	isc_timerevent_t *event;
+	XTRACEID("posting", timer);
+	/*
+	 * XXX We could preallocate this event.
+	 */
+	event = (isc_timerevent_t *)isc_event_allocate(
+		manager->mctx, timer, type, timer->action, timer->arg,
+		sizeof(*event));
+
+	if (event != NULL) {
+		event->due = timer->due;
+		isc_task_send(timer->task, ISC_EVENT_PTR(&event));
+	} else {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s",
+				 "couldn't allocate event");
+	}
+}
+
+static void
+dispatch(isc_timermgr_t *manager, isc_time_t *now) {
+	bool need_schedule;
 	isc_eventtype_t type = 0;
 	isc_timer_t *timer;
 	isc_result_t result;
-	bool idle;
 
 	/*!
 	 * The caller must be holding the manager lock.
 	 */
 
-	while (manager->nscheduled > 0 && !done) {
+	while (manager->nscheduled > 0) {
 		timer = isc_heap_element(manager->heap, 1);
 		INSIST(timer != NULL && timer->type != isc_timertype_inactive);
-		if (isc_time_compare(now, &timer->due) >= 0) {
-			if (timer->type == isc_timertype_ticker) {
-				type = ISC_TIMEREVENT_TICK;
-				post_event = true;
-				need_schedule = true;
-			} else if (!isc_time_isepoch(&timer->expires) &&
-				   isc_time_compare(now, &timer->expires) >= 0)
-			{
-				type = ISC_TIMEREVENT_LIFE;
-				post_event = true;
-				need_schedule = false;
-			} else {
-				idle = false;
 
-				LOCK(&timer->lock);
-				if (!isc_time_isepoch(&timer->idle) &&
-				    isc_time_compare(now, &timer->idle) >= 0) {
-					idle = true;
-				}
-				UNLOCK(&timer->lock);
-				if (idle) {
-					type = ISC_TIMEREVENT_IDLE;
-					post_event = true;
-					need_schedule = false;
-				} else {
-					/*
-					 * Idle timer has been touched;
-					 * reschedule.
-					 */
-					XTRACEID("idle reschedule", timer);
-					post_event = false;
-					need_schedule = true;
-				}
-			}
-
-			if (post_event) {
-				XTRACEID("posting", timer);
-				/*
-				 * XXX We could preallocate this event.
-				 */
-				event = (isc_timerevent_t *)isc_event_allocate(
-					manager->mctx, timer, type,
-					timer->action, timer->arg,
-					sizeof(*event));
-
-				if (event != NULL) {
-					event->due = timer->due;
-					isc_task_send(timer->task,
-						      ISC_EVENT_PTR(&event));
-				} else {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s",
-							 "couldn't allocate "
-							 "event");
-				}
-			}
-
-			timer->index = 0;
-			isc_heap_delete(manager->heap, 1);
-			manager->nscheduled--;
-
-			if (need_schedule) {
-				result = schedule(timer, now, false);
-				if (result != ISC_R_SUCCESS) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s: %u",
-							 "couldn't schedule "
-							 "timer",
-							 result);
-				}
-			}
-		} else {
+		if (isc_time_compare(now, &timer->due) < 0) {
 			manager->due = timer->due;
-			done = true;
+			break;
+		}
+
+		switch (timer->type) {
+		case isc_timertype_ticker:
+			type = ISC_TIMEREVENT_TICK;
+			post_event(manager, timer, type);
+			need_schedule = true;
+			break;
+		case isc_timertype_once:
+			type = ISC_TIMEREVENT_IDLE;
+			post_event(manager, timer, type);
+			need_schedule = false;
+			break;
+		default:
+			INSIST(0);
+			ISC_UNREACHABLE();
+		}
+
+		timer->index = 0;
+		isc_heap_delete(manager->heap, 1);
+		manager->nscheduled--;
+
+		if (need_schedule) {
+			result = schedule(timer, now, false);
+			if (result != ISC_R_SUCCESS) {
+				UNEXPECTED_ERROR(__FILE__, __LINE__, "%s: %u",
+						 "couldn't schedule "
+						 "timer",
+						 result);
+			}
 		}
 	}
 }
