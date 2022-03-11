@@ -1514,7 +1514,6 @@ cleanup_rbt:
 isc_result_t
 dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	dns_rpz_zone_t *zone;
-	isc_result_t result;
 
 	REQUIRE(rpzp != NULL && *rpzp == NULL);
 	REQUIRE(rpzs != NULL);
@@ -1527,13 +1526,8 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	memset(zone, 0, sizeof(*zone));
 	isc_refcount_init(&zone->refs, 1);
 
-	result = isc_timer_create(rpzs->timermgr, isc_timertype_inactive, NULL,
-				  NULL, rpzs->updater,
-				  dns_rpz_update_taskaction, zone,
-				  &zone->updatetimer);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_timer;
-	}
+	isc_timer_create(rpzs->timermgr, rpzs->updater,
+			 dns_rpz_update_taskaction, zone, &zone->updatetimer);
 
 	/*
 	 * This will never be used, but costs us nothing and
@@ -1573,14 +1567,6 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	*rpzp = zone;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_timer:
-	isc_refcount_decrementz(&zone->refs);
-	isc_refcount_destroy(&zone->refs);
-
-	isc_mem_put(rpzs->mctx, zone, sizeof(*zone));
-
-	return (result);
 }
 
 isc_result_t

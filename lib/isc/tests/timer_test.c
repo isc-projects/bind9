@@ -130,8 +130,8 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_timer_create(timermgr, timertype, expires, interval, task,
-				  action, (void *)timertype, &timer);
+	isc_timer_create(timermgr, task, action, (void *)timertype, &timer);
+	result = isc_timer_reset(timer, timertype, expires, interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -561,9 +561,9 @@ purge(void **state) {
 	isc_interval_set(&interval, seconds, 0);
 
 	tickertimer = NULL;
-	result = isc_timer_create(timermgr, isc_timertype_ticker, &expires,
-				  &interval, task1, tick_event, NULL,
-				  &tickertimer);
+	isc_timer_create(timermgr, task1, tick_event, NULL, &tickertimer);
+	result = isc_timer_reset(tickertimer, isc_timertype_ticker, &expires,
+				 &interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	oncetimer = NULL;
@@ -573,9 +573,9 @@ purge(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 0, 0);
-	result = isc_timer_create(timermgr, isc_timertype_once, &expires,
-				  &interval, task2, once_event, NULL,
-				  &oncetimer);
+	isc_timer_create(timermgr, task2, once_event, NULL, &oncetimer);
+	result = isc_timer_reset(oncetimer, isc_timertype_once, &expires,
+				 &interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

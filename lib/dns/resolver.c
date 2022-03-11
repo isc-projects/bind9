@@ -4857,15 +4857,8 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	 * lifetime. It will be made active when the fetch is
 	 * started.
 	 */
-	iresult = isc_timer_create(res->timermgr, isc_timertype_inactive, NULL,
-				   NULL, res->buckets[bucketnum].task,
-				   fctx_expired, fctx, &fctx->timer);
-	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_create: %s",
-				 isc_result_totext(iresult));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_qmessage;
-	}
+	isc_timer_create(res->timermgr, res->buckets[bucketnum].task,
+			 fctx_expired, fctx, &fctx->timer);
 
 	/*
 	 * Default retry interval initialization.  We set the interval
@@ -10167,13 +10160,9 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	isc_task_setname(task, "resolver_task", NULL);
 
-	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
-				  task, spillattimer_countdown, res,
-				  &res->spillattimer);
+	isc_timer_create(timermgr, task, spillattimer_countdown, res,
+			 &res->spillattimer);
 	isc_task_detach(&task);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_primelock;
-	}
 
 	res->magic = RES_MAGIC;
 

@@ -56,7 +56,6 @@ ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event);
 isc_result_t
 isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp) {
-	isc_result_t result;
 	isc_ratelimiter_t *rl;
 	INSIST(ratelimiterp != NULL && *ratelimiterp == NULL);
 
@@ -74,11 +73,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 
 	isc_mutex_init(&rl->lock);
 
-	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
-				  rl->task, ratelimiter_tick, rl, &rl->timer);
-	if (result != ISC_R_SUCCESS) {
-		goto free_mutex;
-	}
+	isc_timer_create(timermgr, rl->task, ratelimiter_tick, rl, &rl->timer);
 
 	/*
 	 * Increment the reference count to indicate that we may
@@ -92,13 +87,6 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 
 	*ratelimiterp = rl;
 	return (ISC_R_SUCCESS);
-
-free_mutex:
-	isc_refcount_decrementz(&rl->references);
-	isc_refcount_destroy(&rl->references);
-	isc_mutex_destroy(&rl->lock);
-	isc_mem_put(mctx, rl, sizeof(*rl));
-	return (result);
 }
 
 isc_result_t

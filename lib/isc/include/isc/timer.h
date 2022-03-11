@@ -101,11 +101,9 @@ typedef struct isc_timerevent {
  *** those functions which return an isc_result_t.
  ***/
 
-isc_result_t
-isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
-		 const isc_time_t *expires, const isc_interval_t *interval,
-		 isc_task_t *task, isc_taskaction_t action, void *arg,
-		 isc_timer_t **timerp);
+void
+isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
+		 isc_taskaction_t action, void *arg, isc_timer_t **timerp);
 /*%<
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
  * are specified by 'expires' and 'interval'.  Events will be posted to

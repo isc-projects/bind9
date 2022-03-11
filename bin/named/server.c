@@ -9942,27 +9942,17 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  true, &server->interfacemgr),
 		   "creating interface manager");
 
-	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task,
-				    interface_timer_tick, server,
-				    &server->interface_timer),
-		   "creating interface timer");
+	isc_timer_create(named_g_timermgr, server->task, interface_timer_tick,
+			 server, &server->interface_timer);
 
-	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task,
-				    heartbeat_timer_tick, server,
-				    &server->heartbeat_timer),
-		   "creating heartbeat timer");
+	isc_timer_create(named_g_timermgr, server->task, heartbeat_timer_tick,
+			 server, &server->heartbeat_timer);
 
-	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task, tat_timer_tick,
-				    server, &server->tat_timer),
-		   "creating trust anchor telemetry timer");
+	isc_timer_create(named_g_timermgr, server->task, tat_timer_tick, server,
+			 &server->tat_timer);
 
-	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task, pps_timer_tick,
-				    server, &server->pps_timer),
-		   "creating pps timer");
+	isc_timer_create(named_g_timermgr, server->task, pps_timer_tick, server,
+			 &server->pps_timer);
 
 	CHECKFATAL(
 		cfg_parser_create(named_g_mctx, named_g_lctx, &named_g_parser),

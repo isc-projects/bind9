@@ -219,115 +219,54 @@ destroy(isc_timer_t *timer) {
 	isc_mem_put(manager->mctx, timer, sizeof(*timer));
 }
 
-isc_result_t
-isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
-		 const isc_time_t *expires, const isc_interval_t *interval,
-		 isc_task_t *task, isc_taskaction_t action, void *arg,
-		 isc_timer_t **timerp) {
+void
+isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
+		 isc_taskaction_t action, void *arg, isc_timer_t **timerp) {
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
 
 	isc_timer_t *timer;
-	isc_result_t result;
 	isc_time_t now;
 
-	/*
-	 * Create a new 'type' timer managed by 'manager'.  The timers
-	 * parameters are specified by 'expires' and 'interval'.  Events
-	 * will be posted to 'task' and when dispatched 'action' will be
-	 * called with 'arg' as the arg value.  The new timer is returned
-	 * in 'timerp'.
-	 */
-	if (expires == NULL) {
-		expires = isc_time_epoch;
-	}
-	if (interval == NULL) {
-		interval = isc_interval_zero;
-	}
-	REQUIRE(type == isc_timertype_inactive ||
-		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
 	 * Get current time.
 	 */
-	if (type != isc_timertype_inactive) {
-		TIME_NOW(&now);
-	} else {
-		/*
-		 * We don't have to do this, but it keeps the compiler from
-		 * complaining about "now" possibly being used without being
-		 * set, even though it will never actually happen.
-		 */
-		isc_time_settoepoch(&now);
-	}
+	TIME_NOW(&now);
 
 	timer = isc_mem_get(manager->mctx, sizeof(*timer));
+	*timer = (isc_timer_t){
+		.manager = manager,
+		.type = isc_timertype_inactive,
+		.expires = *isc_time_epoch,
+		.interval = *isc_interval_zero,
+		.action = action,
+		.arg = arg,
+	};
 
-	timer->manager = manager;
 	isc_refcount_init(&timer->references, 1);
 
-	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
-		result = isc_time_add(&now, interval, &timer->idle);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(manager->mctx, timer, sizeof(*timer));
-			return (result);
-		}
-	} else {
-		isc_time_settoepoch(&timer->idle);
-	}
+	isc_time_settoepoch(&timer->idle);
 
-	timer->type = type;
-	timer->expires = *expires;
-	timer->interval = *interval;
-	timer->task = NULL;
 	isc_task_attach(task, &timer->task);
-	timer->action = action;
-	/*
-	 * Removing the const attribute from "arg" is the best of two
-	 * evils here.  If the timer->arg member is made const, then
-	 * it affects a great many recipients of the timer event
-	 * which did not pass in an "arg" that was truly const.
-	 * Changing isc_timer_create() to not have "arg" prototyped as const,
-	 * though, can cause compilers warnings for calls that *do*
-	 * have a truly const arg.  The caller will have to carefully
-	 * keep track of whether arg started as a true const.
-	 */
-	DE_CONST(arg, timer->arg);
-	timer->index = 0;
+
 	isc_mutex_init(&timer->lock);
 	ISC_LINK_INIT(timer, link);
-	timer->magic = TIMER_MAGIC;
 
-	LOCK(&manager->lock);
+	timer->magic = TIMER_MAGIC;
 
 	/*
 	 * Note we don't have to lock the timer like we normally would because
 	 * there are no external references to it yet.
 	 */
 
-	if (type != isc_timertype_inactive) {
-		result = schedule(timer, &now, true);
-	} else {
-		result = ISC_R_SUCCESS;
-	}
-	if (result == ISC_R_SUCCESS) {
-		*timerp = timer;
-		APPEND(manager->timers, timer, link);
-	}
+	*timerp = timer;
 
+	LOCK(&manager->lock);
+	APPEND(manager->timers, timer, link);
 	UNLOCK(&manager->lock);
-
-	if (result != ISC_R_SUCCESS) {
-		timer->magic = 0;
-		isc_mutex_destroy(&timer->lock);
-		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		return (result);
-	}
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

@@ -18946,8 +18946,6 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 
 isc_result_t
 dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	isc_result_t result;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
@@ -18972,13 +18970,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_task_setname(zone->task, "zone", zone);
 	isc_task_setname(zone->loadtask, "loadzone", zone);
 
-	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive, NULL,
-				  NULL, zone->task, zone_timer, zone,
-				  &zone->timer);
-
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_tasks;
-	}
+	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, zone,
+			 &zone->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -18991,16 +18984,9 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	zone->zmgr = zmgr;
 	isc_refcount_increment(&zmgr->refs);
 
-	goto unlock;
-
-cleanup_tasks:
-	isc_task_detach(&zone->loadtask);
-	isc_task_detach(&zone->task);
-
-unlock:
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -22485,7 +22471,6 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone) {
  */
 isc_result_t
 dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
-	isc_result_t result;
 	dns_zonemgr_t *zmgr;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -22510,12 +22495,8 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	LOCK_ZONE(zone);
 	LOCK_ZONE(raw);
 
-	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive, NULL,
-				  NULL, zone->task, zone_timer, raw,
-				  &raw->timer);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
+	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, raw,
+			 &raw->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -22536,11 +22517,10 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	raw->zmgr = zmgr;
 	isc_refcount_increment(&zmgr->refs);
 
-unlock:
 	UNLOCK_ZONE(raw);
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void
