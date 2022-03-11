@@ -529,7 +529,7 @@ docs:
       artifacts: true
 
 docs:tarball:
-  <<: *schedules_tags_web_triggering_rules
+  <<: *default_triggering_rules
   <<: *base_image
   <<: *docs_job
   before_script:
