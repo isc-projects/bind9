@@ -480,7 +480,6 @@ basic(void **state) {
 	isc_event_t *event = NULL;
 	isc_timer_t *ti1 = NULL;
 	isc_timer_t *ti2 = NULL;
-	isc_time_t absolute;
 	isc_interval_t interval;
 	char *testarray[] = { one, one, one,   one,  one, one,	 one,  one,
 			      one, two, three, four, two, three, four, NULL };
@@ -506,19 +505,15 @@ basic(void **state) {
 	result = isc_task_onshutdown(task4, basic_shutdown, four);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
 	isc_timer_create(timermgr, task1, basic_tick, tick, &ti1);
-	result = isc_timer_reset(ti1, isc_timertype_ticker, &absolute,
-				 &interval, false);
+	result = isc_timer_reset(ti1, isc_timertype_ticker, &interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ti2 = NULL;
-	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
 	isc_timer_create(timermgr, task2, basic_tick, tock, &ti2);
-	result = isc_timer_reset(ti2, isc_timertype_ticker, &absolute,
-				 &interval, false);
+	result = isc_timer_reset(ti2, isc_timertype_ticker, &interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sleep(2);

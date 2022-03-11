@@ -420,7 +420,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			need_schedule = true;
 			break;
 		case isc_timertype_once:
-			type = ISC_TIMEREVENT_IDLE;
+			type = ISC_TIMEREVENT_ONCE;
 			post_event(manager, timer, type);
 			need_schedule = false;
 			break;

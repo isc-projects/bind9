@@ -1672,7 +1672,7 @@ dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 	zone->updatepending = false;
 	dns_catz_update_from_db(zone->db, zone->catzs);
 	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
-				 NULL, NULL, true);
+				 NULL, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_event_free(&event);
 	result = isc_time_now(&zone->lastupdated);
@@ -1733,8 +1733,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 					 0);
 			dns_db_currentversion(db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
-						 isc_timertype_once, NULL,
-						 &interval, true);
+						 isc_timertype_once, &interval,
+						 true);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

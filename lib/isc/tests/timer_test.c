@@ -102,8 +102,7 @@ shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-setup_test(isc_timertype_t timertype, isc_time_t *expires,
-	   isc_interval_t *interval,
+setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 	   void (*action)(isc_task_t *, isc_event_t *)) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
@@ -131,7 +130,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_timer_create(timermgr, task, action, (void *)timertype, &timer);
-	result = isc_timer_reset(timer, timertype, expires, interval, false);
+	result = isc_timer_reset(timer, timertype, interval, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -207,7 +206,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 		print_message("# tick %d\n", tick);
 	}
 
-	expected_event_type = ISC_TIMEREVENT_LIFE;
+	expected_event_type = ISC_TIMEREVENT_ONCE;
 	if ((uintptr_t)event->ev_arg == isc_timertype_ticker) {
 		expected_event_type = ISC_TIMEREVENT_TICK;
 	}
@@ -259,7 +258,6 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 /* timer type ticker */
 static void
 ticker(void **state) {
-	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -269,31 +267,8 @@ ticker(void **state) {
 	nanoseconds = 500000000;
 
 	isc_interval_set(&interval, seconds, nanoseconds);
-	isc_time_settoepoch(&expires);
 
-	setup_test(isc_timertype_ticker, &expires, &interval, ticktock);
-}
-
-/* timer type once reaches lifetime */
-static void
-once_life(void **state) {
-	isc_result_t result;
-	isc_time_t expires;
-	isc_interval_t interval;
-
-	UNUSED(state);
-
-	nevents = 1;
-	seconds = 1;
-	nanoseconds = 100000000;
-
-	isc_interval_set(&interval, seconds, nanoseconds);
-	result = isc_time_nowplusinterval(&expires, &interval);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	isc_interval_set(&interval, 0, 0);
-
-	setup_test(isc_timertype_once, &expires, &interval, ticktock);
+	setup_test(isc_timertype_ticker, &interval, ticktock);
 }
 
 static void
@@ -335,7 +310,7 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 	isc_time_add(&now, &interval, &lasttime);
 	isc_mutex_unlock(&lasttime_mx);
 
-	subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_IDLE);
+	subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_ONCE);
 
 	isc_timer_detach(&timer);
 	isc_task_shutdown(task);
@@ -345,8 +320,6 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 /* timer type once idles out */
 static void
 once_idle(void **state) {
-	isc_result_t result;
-	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -355,13 +328,9 @@ once_idle(void **state) {
 	seconds = 1;
 	nanoseconds = 200000000;
 
-	isc_interval_set(&interval, seconds + 1, nanoseconds);
-	result = isc_time_nowplusinterval(&expires, &interval);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
 	isc_interval_set(&interval, seconds, nanoseconds);
 
-	setup_test(isc_timertype_once, &expires, &interval, test_idle);
+	setup_test(isc_timertype_once, &interval, test_idle);
 }
 
 /* timer reset */
@@ -372,7 +341,6 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	isc_time_t base;
 	isc_time_t ulim;
 	isc_time_t llim;
-	isc_time_t expires;
 	isc_interval_t interval;
 
 	int tick = atomic_fetch_add(&eventcnt, 1);
@@ -413,19 +381,14 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 
 	if (_eventcnt < 3) {
 		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_TICK);
-
 		if (_eventcnt == 2) {
 			isc_interval_set(&interval, seconds, nanoseconds);
-			result = isc_time_nowplusinterval(&expires, &interval);
-			subthread_assert_result_equal(result, ISC_R_SUCCESS);
-
-			isc_interval_set(&interval, 0, 0);
 			result = isc_timer_reset(timer, isc_timertype_once,
-						 &expires, &interval, false);
+						 &interval, false);
 			subthread_assert_result_equal(result, ISC_R_SUCCESS);
 		}
 	} else {
-		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_LIFE);
+		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_ONCE);
 
 		isc_timer_detach(&timer);
 		isc_task_shutdown(task);
@@ -436,7 +399,6 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 
 static void
 reset(void **state) {
-	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -446,9 +408,8 @@ reset(void **state) {
 	nanoseconds = 750000000;
 
 	isc_interval_set(&interval, seconds, nanoseconds);
-	isc_time_settoepoch(&expires);
 
-	setup_test(isc_timertype_ticker, &expires, &interval, test_reset);
+	setup_test(isc_timertype_ticker, &interval, test_reset);
 }
 
 static atomic_bool startflag;
@@ -492,7 +453,7 @@ tick_event(isc_task_t *task, isc_event_t *event) {
 		isc_time_settoepoch(&expires);
 		isc_interval_set(&interval, seconds, 0);
 		result = isc_timer_reset(tickertimer, isc_timertype_ticker,
-					 &expires, &interval, true);
+					 &interval, true);
 		subthread_assert_result_equal(result, ISC_R_SUCCESS);
 
 		isc_task_shutdown(task);
@@ -537,7 +498,6 @@ shutdown_purge(isc_task_t *task, isc_event_t *event) {
 static void
 purge(void **state) {
 	isc_result_t result;
-	isc_time_t expires;
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -557,25 +517,21 @@ purge(void **state) {
 	result = isc_task_create(taskmgr, 0, &task2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, seconds, 0);
 
 	tickertimer = NULL;
 	isc_timer_create(timermgr, task1, tick_event, NULL, &tickertimer);
-	result = isc_timer_reset(tickertimer, isc_timertype_ticker, &expires,
-				 &interval, false);
+	result = isc_timer_reset(tickertimer, isc_timertype_ticker, &interval,
+				 false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	oncetimer = NULL;
 
 	isc_interval_set(&interval, (seconds * 2) + 1, 0);
-	result = isc_time_nowplusinterval(&expires, &interval);
-	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_interval_set(&interval, 0, 0);
 	isc_timer_create(timermgr, task2, once_event, NULL, &oncetimer);
-	result = isc_timer_reset(oncetimer, isc_timertype_once, &expires,
-				 &interval, false);
+	result = isc_timer_reset(oncetimer, isc_timertype_once, &interval,
+				 false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -598,8 +554,9 @@ purge(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(ticker),    cmocka_unit_test(once_life),
-		cmocka_unit_test(once_idle), cmocka_unit_test(reset),
+		cmocka_unit_test(ticker),
+		cmocka_unit_test(once_idle),
+		cmocka_unit_test(reset),
 		cmocka_unit_test(purge),
 	};
 	int c;

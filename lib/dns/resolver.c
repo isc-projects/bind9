@@ -1273,8 +1273,8 @@ fctx_starttimer(fetchctx_t *fctx) {
 				 isc_time_nanoseconds(&tmp));
 	}
 
-	return (isc_timer_reset(fctx->timer, isc_timertype_once, NULL,
-				&interval, true));
+	return (isc_timer_reset(fctx->timer, isc_timertype_once, &interval,
+				true));
 }
 
 static inline void
@@ -1288,7 +1288,7 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	 * cannot fail in that case.
 	 */
 	result = isc_timer_reset(fctx->timer, isc_timertype_inactive, NULL,
-				 NULL, true);
+				 true);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
 				 isc_result_totext(result));
@@ -1746,7 +1746,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 			}
 			isc_interval_set(&i, 20 * 60, 0);
 			result = isc_timer_reset(fctx->res->spillattimer,
-						 isc_timertype_ticker, NULL, &i,
+						 isc_timertype_ticker, &i,
 						 true);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
@@ -10031,8 +10031,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 	}
 	if (res->spillat <= res->spillatmin) {
 		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, NULL,
-					 true);
+					 isc_timertype_inactive, NULL, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	count = res->spillat;
@@ -10403,8 +10402,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			send_shutdown_events(res);
 		}
 		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, NULL,
-					 true);
+					 isc_timertype_inactive, NULL, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	UNLOCK(&res->lock);

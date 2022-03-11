@@ -15272,7 +15272,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	if (isc_time_isepoch(&next)) {
 		zone_debuglog(zone, me, 10, "settimer inactive");
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
-					 NULL, NULL, true);
+					 NULL, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "could not deactivate zone timer: %s",
@@ -15296,7 +15296,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 					 isc_time_nanoseconds(&tmp));
 		}
 
-		result = isc_timer_reset(zone->timer, isc_timertype_once, NULL,
+		result = isc_timer_reset(zone->timer, isc_timertype_once,
 					 &interval, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,

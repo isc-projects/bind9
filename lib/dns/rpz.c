@@ -1616,8 +1616,8 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 			isc_interval_set(&interval, (unsigned int)defer, 0);
 			dns_db_currentversion(zone->db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
-						 isc_timertype_once, NULL,
-						 &interval, true);
+						 isc_timertype_once, &interval,
+						 true);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -1669,7 +1669,7 @@ dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 	zone->updaterunning = true;
 	dns_rpz_update_from_db(zone);
 	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
-				 NULL, NULL, true);
+				 NULL, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = isc_time_now(&zone->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1770,7 +1770,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 				      dname, defer);
 			isc_interval_set(&interval, (unsigned int)defer, 0);
 			isc_timer_reset(rpz->updatetimer, isc_timertype_once,
-					NULL, &interval, true);
+					&interval, true);
 		} else {
 			isc_event_t *event = NULL;
 			INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
@@ -2210,7 +2210,7 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 		}
 
 		isc_timer_reset(rpz->updatetimer, isc_timertype_inactive, NULL,
-				NULL, true);
+				true);
 		isc_timer_detach(&rpz->updatetimer);
 
 		isc_ht_destroy(&rpz->nodes);
