@@ -289,10 +289,19 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 		return (ISC_R_SUCCESS);
 	}
 
+	result = isc_timer_create(ntatable->timermgr, isc_timertype_inactive,
+				  NULL, NULL, ntatable->task, checkbogus, nta,
+				  &nta->timer);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
 	isc_interval_set(&interval, view->nta_recheck, 0);
-	result = isc_timer_create(ntatable->timermgr, isc_timertype_ticker,
-				  NULL, &interval, ntatable->task, checkbogus,
-				  nta, &nta->timer);
+	result = isc_timer_reset(nta->timer, isc_timertype_ticker, NULL,
+				 &interval, false);
+	if (result != ISC_R_SUCCESS) {
+		isc_timer_detach(&nta->timer);
+	}
 	return (result);
 }
 
