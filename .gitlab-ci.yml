@@ -394,9 +394,6 @@ stages:
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
     - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
-  artifacts:
-    untracked: true
-    expire_in: "1 month"
 
 ### Job Definitions
 
@@ -517,6 +514,7 @@ tarball-create:
       artifacts: true
 
 # Jobs for doc builds on Debian 11 "bullseye" (amd64)
+# Long "docs" job artifact retention is needed for bind.isc.org web site
 
 docs:
   <<: *release_branch_triggering_rules
@@ -527,6 +525,9 @@ docs:
   needs:
     - job: autoreconf
       artifacts: true
+  artifacts:
+    untracked: true
+    expire_in: "1 month"
 
 docs:tarball:
   <<: *default_triggering_rules
