@@ -92,9 +92,6 @@ struct isc_timermgr {
 	isc_heap_t *heap;
 };
 
-void
-isc_timermgr_poke(isc_timermgr_t *manager);
-
 static inline isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_timermgr_t *manager;
@@ -627,13 +624,6 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
-}
-
-void
-isc_timermgr_poke(isc_timermgr_t *manager) {
-	REQUIRE(VALID_MANAGER(manager));
-
-	SIGNAL(&manager->wakeup);
 }
 
 void

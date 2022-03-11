@@ -252,7 +252,4 @@ isc_timer_gettype(isc_timer_t *timer);
  *\li	'timer' to be a valid timer.
  */
 
-void
-isc_timermgr_poke(isc_timermgr_t *m);
-
 ISC_LANG_ENDDECLS

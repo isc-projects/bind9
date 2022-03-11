@@ -48,7 +48,6 @@
 #define NAMED_COMMAND_FREEZE	   "freeze"
 #define NAMED_COMMAND_UNFREEZE	   "unfreeze"
 #define NAMED_COMMAND_THAW	   "thaw"
-#define NAMED_COMMAND_TIMERPOKE	   "timerpoke"
 #define NAMED_COMMAND_RECURSING	   "recursing"
 #define NAMED_COMMAND_NULL	   "null"
 #define NAMED_COMMAND_NOTIFY	   "notify"
