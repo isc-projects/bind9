@@ -15279,11 +15279,25 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 				     isc_result_totext(result));
 		}
 	} else {
+		isc_interval_t interval;
 		if (isc_time_compare(&next, now) <= 0) {
-			next = *now;
+			isc_interval_set(&interval, 0, 1);
+		} else {
+			/*
+			 * In theory, we could just type isc_interval_t to
+			 * isc_time_t and back, but there's no such guarantee,
+			 * so a safer method is being used here.
+			 */
+			isc_time_t tmp;
+			isc_interval_set(&interval, isc_time_seconds(now),
+					 isc_time_nanoseconds(now));
+			isc_time_subtract(&next, &interval, &tmp);
+			isc_interval_set(&interval, isc_time_seconds(&tmp),
+					 isc_time_nanoseconds(&tmp));
 		}
-		result = isc_timer_reset(zone->timer, isc_timertype_once, &next,
-					 NULL, true);
+
+		result = isc_timer_reset(zone->timer, isc_timertype_once, NULL,
+					 &interval, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "could not reset zone timer: %s",

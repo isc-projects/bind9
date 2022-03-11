@@ -92,7 +92,7 @@ struct isc_timermgr {
 	isc_heap_t *heap;
 };
 
-static inline isc_result_t
+static isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_timermgr_t *manager;
 	isc_time_t due;
@@ -170,7 +170,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 deschedule(isc_timer_t *timer) {
 	isc_timermgr_t *manager;
 

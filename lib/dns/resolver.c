@@ -337,7 +337,6 @@ struct fetchctx {
 	isc_time_t expires;
 	isc_time_t expires_try_stale;
 	isc_time_t next_timeout;
-	isc_time_t final;
 	isc_interval_t interval;
 	dns_message_t *qmessage;
 	ISC_LIST(resquery_t) queries;
@@ -1255,8 +1254,27 @@ update_edns_stats(resquery_t *query) {
  */
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
-	return (isc_timer_reset(fctx->timer, isc_timertype_once, &fctx->final,
-				NULL, true));
+	isc_interval_t interval;
+	isc_time_t now;
+	isc_time_t expires;
+
+	isc_interval_set(&interval, 2, 0);
+	isc_time_add(&fctx->expires, &interval, &expires);
+
+	isc_time_now(&now);
+	if (isc_time_compare(&expires, &now) <= 0) {
+		isc_interval_set(&interval, 0, 1);
+	} else {
+		isc_time_t tmp;
+		isc_interval_set(&interval, isc_time_seconds(&now),
+				 isc_time_nanoseconds(&now));
+		isc_time_subtract(&expires, &interval, &tmp);
+		isc_interval_set(&interval, isc_time_seconds(&tmp),
+				 isc_time_nanoseconds(&tmp));
+	}
+
+	return (isc_timer_reset(fctx->timer, isc_timertype_once, NULL,
+				&interval, true));
 }
 
 static inline void
@@ -4533,6 +4551,13 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	UNLOCK(&res->buckets[bucketnum].lock);
 
+	/*
+	 * As a backstop, we also set a timer to stop the fetch
+	 * if in-band netmgr timeouts don't work. It will fire two
+	 * seconds after the fetch should have finished. (This
+	 * should be enough of a gap to avoid the timer firing
+	 * while a response is being processed normally.)
+	 */
 	result = fctx_starttimer(fctx);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
@@ -4831,22 +4856,6 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_time_nowplusinterval: %s",
-				 isc_result_totext(iresult));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_qmessage;
-	}
-
-	/*
-	 * As a backstop, we also set a timer to stop the fetch
-	 * if in-band netmgr timeouts don't work. It will fire two
-	 * seconds after the fetch should have finished. (This
-	 * should be enough of a gap to avoid the timer firing
-	 * while a response is being processed normally.)
-	 */
-	isc_interval_set(&interval, 2, 0);
-	iresult = isc_time_add(&fctx->expires, &interval, &fctx->final);
-	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_time_add: %s",
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
