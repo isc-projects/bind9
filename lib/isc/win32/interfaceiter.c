@@ -387,8 +387,9 @@ internal_current6(isc_interfaceiter_t *iter) {
 		snprintf(iter->current.name, sizeof(iter->current.name),
 			 "TCP/IPv6 Interface %u", iter->pos6 + 1);
 
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < 16; i++) {
 			iter->current.netmask.type.in6.s6_addr[i] = 0xff;
+		}
 		iter->current.netmask.family = AF_INET6;
 		if (IN6_IS_ADDR_LOOPBACK(&iter->current.address.type.in6)) {
 			iter->v6loop = true;

@@ -241,8 +241,9 @@ main(int argc, char *argv[]) {
 				if (len > 0) {
 					printf("0x");
 				}
-				for (j = 0; j < len; j++)
+				for (j = 0; j < len; j++) {
 					printf("%02x", idbuf[j]);
+				}
 				if (template[2].ulValueLen > len) {
 					printf("...");
 				}

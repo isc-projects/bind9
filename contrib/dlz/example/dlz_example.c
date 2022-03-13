@@ -474,8 +474,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "too-long") == 0) {
-		for (i = 0; i < 511; i++)
+		for (i = 0; i < 511; i++) {
 			buf[i] = 'x';
+		}
 		buf[i] = '\0';
 		found = true;
 		result = state->putrr(lookup, "TXT", 0, buf);
