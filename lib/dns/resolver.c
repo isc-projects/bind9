@@ -1265,12 +1265,7 @@ fctx_starttimer(fetchctx_t *fctx) {
 	if (isc_time_compare(&expires, &now) <= 0) {
 		isc_interval_set(&interval, 0, 1);
 	} else {
-		isc_time_t tmp;
-		isc_interval_set(&interval, isc_time_seconds(&now),
-				 isc_time_nanoseconds(&now));
-		isc_time_subtract(&expires, &interval, &tmp);
-		isc_interval_set(&interval, isc_time_seconds(&tmp),
-				 isc_time_nanoseconds(&tmp));
+		isc_time_subtract(&expires, &now, &interval);
 	}
 
 	return (isc_timer_reset(fctx->timer, isc_timertype_once, &interval,

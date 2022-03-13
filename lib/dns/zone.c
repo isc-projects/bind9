@@ -15283,17 +15283,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		if (isc_time_compare(&next, now) <= 0) {
 			isc_interval_set(&interval, 0, 1);
 		} else {
-			/*
-			 * In theory, we could just type isc_interval_t to
-			 * isc_time_t and back, but there's no such guarantee,
-			 * so a safer method is being used here.
-			 */
-			isc_time_t tmp;
-			isc_interval_set(&interval, isc_time_seconds(now),
-					 isc_time_nanoseconds(now));
-			isc_time_subtract(&next, &interval, &tmp);
-			isc_interval_set(&interval, isc_time_seconds(&tmp),
-					 isc_time_nanoseconds(&tmp));
+			isc_time_subtract(&next, now, &interval);
 		}
 
 		result = isc_timer_reset(zone->timer, isc_timertype_once,
