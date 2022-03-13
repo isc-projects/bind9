@@ -47,7 +47,7 @@ if HAVE_LMDB
 bin_PROGRAMS +=			\
 	named-nzd2nzf
 
-named_nzd2nzf_CFLAGS =		\
+named_nzd2nzf_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LMDB_CFLAGS)
 
