@@ -473,8 +473,9 @@ mem_thread(isc_threadarg_t arg) {
 	isc_mem_t *mctx = (isc_mem_t *)arg;
 	void *items[NUM_ITEMS];
 	size_t size = atomic_load(&mem_size);
-	while (!atomic_compare_exchange_weak(&mem_size, &size, size / 2))
+	while (!atomic_compare_exchange_weak(&mem_size, &size, size / 2)) {
 		;
+	}
 
 	for (int i = 0; i < ITERS; i++) {
 		for (int j = 0; j < NUM_ITEMS; j++) {

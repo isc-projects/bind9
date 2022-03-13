@@ -72,8 +72,9 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	UNUSED(rdclass);
 	UNUSED(options);
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++) {
 		RETERR(txt_fromwire(source, target));
+	}
 	return (ISC_R_SUCCESS);
 }
 

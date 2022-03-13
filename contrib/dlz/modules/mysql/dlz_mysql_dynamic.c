@@ -468,8 +468,9 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 			 * ones together.  figure out how long to make
 			 * string.
 			 */
-			for (j = 2; j < fields; j++)
+			for (j = 2; j < fields; j++) {
 				len += strlen(safeGet(row[j])) + 1;
+			}
 
 			/*
 			 * allocate string memory, allow for NULL to
@@ -668,8 +669,9 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 			 * more than 4 fields, concatenate the last
 			 * ones together.
 			 */
-			for (j = 3; j < fields; j++)
+			for (j = 3; j < fields; j++) {
 				len += strlen(safeGet(row[j])) + 1;
+			}
 
 			tmpString = malloc(len + 1);
 			if (tmpString == NULL) {
