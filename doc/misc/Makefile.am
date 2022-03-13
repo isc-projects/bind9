@@ -55,8 +55,8 @@ MAINTAINERCLEANFILES = $(OPTIONS_FILES)
 
 noinst_PROGRAMS = cfg_test
 
-cfg_test_CFLAGS =			\
-	$(AM_CFLAGS)			\
+cfg_test_CPPFLAGS =			\
+	$(AM_CPPFLAGS)			\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
 	$(LIBISCCFG_CFLAGS)
