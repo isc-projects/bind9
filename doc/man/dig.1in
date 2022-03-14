@@ -153,12 +153,14 @@ Print a usage summary.
 .INDENT 0.0
 .TP
 .B \-k keyfile
-This option tells \fI\%named\fP to sign queries using TSIG using a key read from the given file. Key
-files can be generated using \fI\%tsig\-keygen\fP\&. When using TSIG
-authentication with \fBdig\fP, the name server that is queried needs to
-know the key and algorithm that is being used. In BIND, this is done
-by providing appropriate \fBkey\fP and \fBserver\fP statements in
-\fI\%named.conf\fP\&.
+This option tells \fBdig\fP to sign queries using TSIG or
+SIG(0) using a key read from the given file. Key files can be
+generated using \fI\%tsig\-keygen\fP\&. When using TSIG authentication
+with \fBdig\fP, the name server that is queried needs to
+know the key and algorithm that is being used. In BIND, this is
+done by providing appropriate \fBkey\fP and \fBserver\fP statements
+in \fI\%named.conf\fP for TSIG and by looking up the KEY record
+in zone data for SIG(0).
 .UNINDENT
 .INDENT 0.0
 .TP
