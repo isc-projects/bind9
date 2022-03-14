@@ -55,7 +55,6 @@ typedef struct isc_httpdurl isc_httpdurl_t;	       /*%< HTTP URL */
 typedef void(isc_httpdondestroy_t)(void *); /*%< Callback on destroying httpd */
 typedef struct isc_interface	 isc_interface_t;     /*%< Interface */
 typedef struct isc_interfaceiter isc_interfaceiter_t; /*%< Interface Iterator */
-typedef struct isc_interval	 isc_interval_t;      /*%< Interval */
 typedef struct isc_lex		 isc_lex_t;	      /*%< Lex */
 typedef struct isc_log		 isc_log_t;	      /*%< Log */
 typedef struct isc_logcategory	 isc_logcategory_t;   /*%< Log Category */

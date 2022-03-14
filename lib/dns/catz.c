@@ -617,7 +617,6 @@ dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 isc_result_t
 dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 		  const dns_name_t *name) {
-	isc_result_t result;
 	dns_catz_zone_t *new_zone;
 
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
@@ -634,13 +633,9 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	isc_ht_init(&new_zone->entries, catzs->mctx, 4);
 
 	new_zone->updatetimer = NULL;
-	result = isc_timer_create(catzs->timermgr, isc_timertype_inactive, NULL,
-				  NULL, catzs->updater,
-				  dns_catz_update_taskaction, new_zone,
-				  &new_zone->updatetimer);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_ht;
-	}
+	isc_timer_create(catzs->timermgr, catzs->updater,
+			 dns_catz_update_taskaction, new_zone,
+			 &new_zone->updatetimer);
 
 	isc_time_settoepoch(&new_zone->lastupdated);
 	new_zone->updatepending = false;
@@ -658,13 +653,6 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	*zonep = new_zone;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_ht:
-	isc_ht_destroy(&new_zone->entries);
-	dns_name_free(&new_zone->name, catzs->mctx);
-	isc_mem_put(catzs->mctx, new_zone, sizeof(*new_zone));
-
-	return (result);
 }
 
 isc_result_t
@@ -1684,7 +1672,7 @@ dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 	zone->updatepending = false;
 	dns_catz_update_from_db(zone->db, zone->catzs);
 	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
-				 NULL, NULL, true);
+				 NULL, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_event_free(&event);
 	result = isc_time_now(&zone->lastupdated);
@@ -1745,8 +1733,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 					 0);
 			dns_db_currentversion(db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
-						 isc_timertype_once, NULL,
-						 &interval, true);
+						 isc_timertype_once, &interval,
+						 true);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

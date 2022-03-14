@@ -21,24 +21,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-/***
- *** Intervals
- ***/
-
-/*!
- *  \brief
- * The contents of this structure are private, and MUST NOT be accessed
- * directly by callers.
- *
- * The contents are exposed only to allow callers to avoid dynamic allocation.
- */
-struct isc_interval {
-	unsigned int seconds;
-	unsigned int nanoseconds;
-};
-
-extern const isc_interval_t *const isc_interval_zero;
-
 /*
  * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially
  * more for other locales to handle longer national abbreviations when
@@ -46,11 +28,16 @@ extern const isc_interval_t *const isc_interval_zero;
  */
 #define ISC_FORMATHTTPTIMESTAMP_SIZE 50
 
+/*
+ * Semantic shims to distinguish between relative and absolute time
+ */
+#define isc_interval_zero isc_time_epoch
+#define isc_interval_t	  isc_time_t
+
 ISC_LANG_BEGINDECLS
 
-void
-isc_interval_set(isc_interval_t *i, unsigned int seconds,
-		 unsigned int nanoseconds);
+#define isc_interval_set(i, seconds, nanoseconds) \
+	isc_time_set((isc_time_t *)i, seconds, nanoseconds)
 /*%<
  * Set 'i' to a value representing an interval of 'seconds' seconds and
  * 'nanoseconds' nanoseconds, suitable for use in isc_time_add() and
@@ -62,8 +49,7 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
  *\li	nanoseconds < 1000000000.
  */
 
-bool
-isc_interval_iszero(const isc_interval_t *i);
+#define isc_interval_iszero(i) isc_time_isepoch((const isc_time_t *)i)
 /*%<
  * Returns true iff. 'i' is the zero interval.
  *
@@ -72,8 +58,7 @@ isc_interval_iszero(const isc_interval_t *i);
  *\li	'i' is a valid pointer.
  */
 
-unsigned int
-isc_interval_ms(const isc_interval_t *i);
+#define isc_interval_ms(i) isc_time_miliseconds((const isc_time_t *)i)
 /*%<
  * Returns interval 'i' expressed as a number of milliseconds.
  *
@@ -318,6 +303,16 @@ isc_time_nanoseconds(const isc_time_t *t);
  *
  * Ensures:
  *\li	The returned value is less than 1*10^9.
+ */
+
+uint32_t
+isc_time_miliseconds(const isc_time_t *t);
+/*%<
+ * Returns time 't' expressed as a number of milliseconds.
+ *
+ * Requires:
+ *
+ *\li	't' is a valid pointer.
  */
 
 void

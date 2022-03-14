@@ -337,7 +337,6 @@ struct fetchctx {
 	isc_time_t expires;
 	isc_time_t expires_try_stale;
 	isc_time_t next_timeout;
-	isc_time_t final;
 	isc_interval_t interval;
 	dns_message_t *qmessage;
 	ISC_LIST(resquery_t) queries;
@@ -1255,8 +1254,22 @@ update_edns_stats(resquery_t *query) {
  */
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
-	return (isc_timer_reset(fctx->timer, isc_timertype_once, &fctx->final,
-				NULL, true));
+	isc_interval_t interval;
+	isc_time_t now;
+	isc_time_t expires;
+
+	isc_interval_set(&interval, 2, 0);
+	isc_time_add(&fctx->expires, &interval, &expires);
+
+	isc_time_now(&now);
+	if (isc_time_compare(&expires, &now) <= 0) {
+		isc_interval_set(&interval, 0, 1);
+	} else {
+		isc_time_subtract(&expires, &now, &interval);
+	}
+
+	return (isc_timer_reset(fctx->timer, isc_timertype_once, &interval,
+				true));
 }
 
 static inline void
@@ -1270,7 +1283,7 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	 * cannot fail in that case.
 	 */
 	result = isc_timer_reset(fctx->timer, isc_timertype_inactive, NULL,
-				 NULL, true);
+				 true);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
 				 isc_result_totext(result));
@@ -1728,7 +1741,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 			}
 			isc_interval_set(&i, 20 * 60, 0);
 			result = isc_timer_reset(fctx->res->spillattimer,
-						 isc_timertype_ticker, NULL, &i,
+						 isc_timertype_ticker, &i,
 						 true);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
@@ -4533,6 +4546,13 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	UNLOCK(&res->buckets[bucketnum].lock);
 
+	/*
+	 * As a backstop, we also set a timer to stop the fetch
+	 * if in-band netmgr timeouts don't work. It will fire two
+	 * seconds after the fetch should have finished. (This
+	 * should be enough of a gap to avoid the timer firing
+	 * while a response is being processed normally.)
+	 */
 	result = fctx_starttimer(fctx);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
@@ -4837,35 +4857,12 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	}
 
 	/*
-	 * As a backstop, we also set a timer to stop the fetch
-	 * if in-band netmgr timeouts don't work. It will fire two
-	 * seconds after the fetch should have finished. (This
-	 * should be enough of a gap to avoid the timer firing
-	 * while a response is being processed normally.)
-	 */
-	isc_interval_set(&interval, 2, 0);
-	iresult = isc_time_add(&fctx->expires, &interval, &fctx->final);
-	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_time_add: %s",
-				 isc_result_totext(iresult));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_qmessage;
-	}
-
-	/*
 	 * Create an inactive timer to enforce maximum query
 	 * lifetime. It will be made active when the fetch is
 	 * started.
 	 */
-	iresult = isc_timer_create(res->timermgr, isc_timertype_inactive, NULL,
-				   NULL, res->buckets[bucketnum].task,
-				   fctx_expired, fctx, &fctx->timer);
-	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_create: %s",
-				 isc_result_totext(iresult));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_qmessage;
-	}
+	isc_timer_create(res->timermgr, res->buckets[bucketnum].task,
+			 fctx_expired, fctx, &fctx->timer);
 
 	/*
 	 * Default retry interval initialization.  We set the interval
@@ -10029,8 +10026,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 	}
 	if (res->spillat <= res->spillatmin) {
 		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, NULL,
-					 true);
+					 isc_timertype_inactive, NULL, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	count = res->spillat;
@@ -10167,13 +10163,9 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	isc_task_setname(task, "resolver_task", NULL);
 
-	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
-				  task, spillattimer_countdown, res,
-				  &res->spillattimer);
+	isc_timer_create(timermgr, task, spillattimer_countdown, res,
+			 &res->spillattimer);
 	isc_task_detach(&task);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_primelock;
-	}
 
 	res->magic = RES_MAGIC;
 
@@ -10405,8 +10397,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			send_shutdown_events(res);
 		}
 		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, NULL,
-					 true);
+					 isc_timertype_inactive, NULL, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	UNLOCK(&res->lock);

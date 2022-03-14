@@ -74,9 +74,8 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 		isc_refcount_destroy(&nta->refcount);
 		nta->magic = 0;
 		if (nta->timer != NULL) {
-			(void)isc_timer_reset(nta->timer,
-					      isc_timertype_inactive, NULL,
-					      NULL, true);
+			(void)isc_timer_reset(
+				nta->timer, isc_timertype_inactive, NULL, true);
 			isc_timer_detach(&nta->timer);
 		}
 		if (dns_rdataset_isassociated(&nta->rdataset)) {
@@ -233,7 +232,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (nta->timer != NULL && nta->expiry - now < view->nta_recheck) {
 		(void)isc_timer_reset(nta->timer, isc_timertype_inactive, NULL,
-				      NULL, true);
+				      true);
 	}
 	nta_detach(view->mctx, &nta);
 	dns_view_weakdetach(&view);
@@ -289,10 +288,14 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 		return (ISC_R_SUCCESS);
 	}
 
+	isc_timer_create(ntatable->timermgr, ntatable->task, checkbogus, nta,
+			 &nta->timer);
 	isc_interval_set(&interval, view->nta_recheck, 0);
-	result = isc_timer_create(ntatable->timermgr, isc_timertype_ticker,
-				  NULL, &interval, ntatable->task, checkbogus,
-				  nta, &nta->timer);
+	result = isc_timer_reset(nta->timer, isc_timertype_ticker, &interval,
+				 false);
+	if (result != ISC_R_SUCCESS) {
+		isc_timer_detach(&nta->timer);
+	}
 	return (result);
 }
 
@@ -476,9 +479,8 @@ again:
 			      "deleting expired NTA at %s", nb);
 
 		if (nta->timer != NULL) {
-			(void)isc_timer_reset(nta->timer,
-					      isc_timertype_inactive, NULL,
-					      NULL, true);
+			(void)isc_timer_reset(
+				nta->timer, isc_timertype_inactive, NULL, true);
 			isc_timer_detach(&nta->timer);
 		}
 
@@ -689,7 +691,7 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable) {
 			if (nta->timer != NULL) {
 				(void)isc_timer_reset(nta->timer,
 						      isc_timertype_inactive,
-						      NULL, NULL, true);
+						      NULL, true);
 			}
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);

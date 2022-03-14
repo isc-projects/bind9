@@ -31,6 +31,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/time.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS

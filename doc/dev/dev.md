@@ -1400,8 +1400,9 @@ be triggered at that time.
           * 'arg' as its argument in task 'task'.
           */
          isc_timer_t *timer = NULL;
-         result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-                                   interval, task, timeout, arg, &timer);
+         result = isc_timer_create(timermgr, task, timeout, arg, &timer);
+         result = isc_timer_reset(timermgr, isc_timertype_once, NULL,
+                                  interval, false);
 
 An event can also be explicitly triggered via `isc_task_send()`.  
 

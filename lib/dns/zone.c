@@ -15272,18 +15272,22 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	if (isc_time_isepoch(&next)) {
 		zone_debuglog(zone, me, 10, "settimer inactive");
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
-					 NULL, NULL, true);
+					 NULL, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "could not deactivate zone timer: %s",
 				     isc_result_totext(result));
 		}
 	} else {
+		isc_interval_t interval;
 		if (isc_time_compare(&next, now) <= 0) {
-			next = *now;
+			isc_interval_set(&interval, 0, 1);
+		} else {
+			isc_time_subtract(&next, now, &interval);
 		}
-		result = isc_timer_reset(zone->timer, isc_timertype_once, &next,
-					 NULL, true);
+
+		result = isc_timer_reset(zone->timer, isc_timertype_once,
+					 &interval, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "could not reset zone timer: %s",
@@ -18946,8 +18950,6 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 
 isc_result_t
 dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	isc_result_t result;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
@@ -18972,13 +18974,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_task_setname(zone->task, "zone", zone);
 	isc_task_setname(zone->loadtask, "loadzone", zone);
 
-	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive, NULL,
-				  NULL, zone->task, zone_timer, zone,
-				  &zone->timer);
-
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_tasks;
-	}
+	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, zone,
+			 &zone->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -18991,16 +18988,9 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	zone->zmgr = zmgr;
 	isc_refcount_increment(&zmgr->refs);
 
-	goto unlock;
-
-cleanup_tasks:
-	isc_task_detach(&zone->loadtask);
-	isc_task_detach(&zone->task);
-
-unlock:
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -22485,7 +22475,6 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone) {
  */
 isc_result_t
 dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
-	isc_result_t result;
 	dns_zonemgr_t *zmgr;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -22510,12 +22499,8 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	LOCK_ZONE(zone);
 	LOCK_ZONE(raw);
 
-	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive, NULL,
-				  NULL, zone->task, zone_timer, raw,
-				  &raw->timer);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
+	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, raw,
+			 &raw->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -22536,11 +22521,10 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	raw->zmgr = zmgr;
 	isc_refcount_increment(&zmgr->refs);
 
-unlock:
 	UNLOCK_ZONE(raw);
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void

@@ -56,7 +56,6 @@ ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event);
 isc_result_t
 isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp) {
-	isc_result_t result;
 	isc_ratelimiter_t *rl;
 	INSIST(ratelimiterp != NULL && *ratelimiterp == NULL);
 
@@ -74,11 +73,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 
 	isc_mutex_init(&rl->lock);
 
-	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
-				  rl->task, ratelimiter_tick, rl, &rl->timer);
-	if (result != ISC_R_SUCCESS) {
-		goto free_mutex;
-	}
+	isc_timer_create(timermgr, rl->task, ratelimiter_tick, rl, &rl->timer);
 
 	/*
 	 * Increment the reference count to indicate that we may
@@ -92,13 +87,6 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 
 	*ratelimiterp = rl;
 	return (ISC_R_SUCCESS);
-
-free_mutex:
-	isc_refcount_decrementz(&rl->references);
-	isc_refcount_destroy(&rl->references);
-	isc_mutex_destroy(&rl->lock);
-	isc_mem_put(mctx, rl, sizeof(*rl));
-	return (result);
 }
 
 isc_result_t
@@ -114,7 +102,7 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval) {
 	 * If the timer is currently running, change its rate.
 	 */
 	if (rl->state == isc_ratelimiter_ratelimited) {
-		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
+		result = isc_timer_reset(rl->timer, isc_timertype_ticker,
 					 &rl->interval, false);
 	}
 	UNLOCK(&rl->lock);
@@ -162,7 +150,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 			ISC_LIST_APPEND(rl->pending, ev, ev_ratelink);
 		}
 	} else if (rl->state == isc_ratelimiter_idle) {
-		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
+		result = isc_timer_reset(rl->timer, isc_timertype_ticker,
 					 &rl->interval, false);
 		if (result == ISC_R_SUCCESS) {
 			ev->ev_sender = task;
@@ -223,8 +211,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 			 * waste resources by having it fire periodically.
 			 */
 			isc_result_t result = isc_timer_reset(
-				rl->timer, isc_timertype_inactive, NULL, NULL,
-				false);
+				rl->timer, isc_timertype_inactive, NULL, false);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			rl->state = isc_ratelimiter_idle;
 			pertic = 0; /* Force the loop to exit. */
@@ -247,8 +234,7 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 
 	LOCK(&rl->lock);
 	rl->state = isc_ratelimiter_shuttingdown;
-	(void)isc_timer_reset(rl->timer, isc_timertype_inactive, NULL, NULL,
-			      false);
+	(void)isc_timer_reset(rl->timer, isc_timertype_inactive, NULL, false);
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
 		task = ev->ev_sender;
 		ISC_LIST_UNLINK(rl->pending, ev, ev_ratelink);
@@ -323,7 +309,7 @@ isc_ratelimiter_stall(isc_ratelimiter_t *rl) {
 		break;
 	case isc_ratelimiter_ratelimited:
 		result = isc_timer_reset(rl->timer, isc_timertype_inactive,
-					 NULL, NULL, false);
+					 NULL, false);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	/* FALLTHROUGH */
 	case isc_ratelimiter_idle:
@@ -349,7 +335,7 @@ isc_ratelimiter_release(isc_ratelimiter_t *rl) {
 	case isc_ratelimiter_stalled:
 		if (!ISC_LIST_EMPTY(rl->pending)) {
 			result = isc_timer_reset(rl->timer,
-						 isc_timertype_ticker, NULL,
+						 isc_timertype_ticker,
 						 &rl->interval, false);
 			if (result == ISC_R_SUCCESS) {
 				rl->state = isc_ratelimiter_ratelimited;

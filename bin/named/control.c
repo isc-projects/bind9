@@ -278,9 +278,6 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		   command_compare(command, NAMED_COMMAND_UNFREEZE))
 	{
 		result = named_server_freeze(named_g_server, false, lex, text);
-	} else if (command_compare(command, NAMED_COMMAND_TIMERPOKE)) {
-		isc_timermgr_poke(named_g_timermgr);
-		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_TRACE)) {
 		result = named_server_setdebuglevel(named_g_server, lex);
 	} else if (command_compare(command, NAMED_COMMAND_TSIGDELETE)) {
