@@ -390,7 +390,7 @@ the tools included with BIND support it for sending messages to
 :iscman:`named`:
 
    * :ref:`man_nsupdate` supports TSIG via the :option:`-k <nsupdate -k>`, :option:`-l <nsupdate -l>`, and :option:`-y <nsupdate -y>` command-line options, or via the ``key`` command when running interactively.
-   * :ref:`man_dig` supports TSIG via the :option:`-k <nsupdate -k>` and :option:`-y <nsupdate -y>` command-line options.
+   * :ref:`man_dig` supports TSIG via the :option:`-k <dig -k>` and :option:`-y <dig -y>` command-line options.
 
 Generating a Shared Key
 ~~~~~~~~~~~~~~~~~~~~~~~
