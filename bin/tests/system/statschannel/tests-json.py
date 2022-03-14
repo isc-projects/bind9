@@ -19,7 +19,6 @@ import pytest
 import requests
 
 import generic
-from helper import fmt
 
 
 # JSON helper functions
@@ -50,7 +49,7 @@ def load_timers_json(zone, primary=True):
 
     # Check if the primary zone timer exists
     assert 'loaded' in zone
-    loaded = datetime.strptime(zone['loaded'], fmt)
+    loaded = datetime.strptime(zone['loaded'], generic.fmt)
 
     if primary:
         # Check if the secondary zone timers does not exist
@@ -61,8 +60,8 @@ def load_timers_json(zone, primary=True):
     else:
         assert 'expires' in zone
         assert 'refresh' in zone
-        expires = datetime.strptime(zone['expires'], fmt)
-        refresh = datetime.strptime(zone['refresh'], fmt)
+        expires = datetime.strptime(zone['expires'], generic.fmt)
+        refresh = datetime.strptime(zone['refresh'], generic.fmt)
 
     return (name, loaded, expires, refresh)
 
@@ -104,10 +103,10 @@ def test_zone_with_many_keys_json(statsport):
 
 @pytest.mark.json
 @pytest.mark.requests
-@pytest.mark.dnspython
 @pytest.mark.skipif(os.getenv("HAVEJSONSTATS", "unset") != "1",
                     reason="JSON not configured")
 def test_traffic_json(named_port, statsport):
-    generic.test_traffic(fetch_traffic_json,
-                         statsip="10.53.0.2", statsport=statsport,
-                         port=named_port)
+    generic_dnspython = pytest.importorskip('generic_dnspython')
+    generic_dnspython.test_traffic(fetch_traffic_json,
+                                   statsip="10.53.0.2", statsport=statsport,
+                                   port=named_port)

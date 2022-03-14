@@ -23,9 +23,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "xml: mark tests that need xml.etree to function"
     )
-    config.addinivalue_line(
-        "markers", "dnspython: mark tests that need dnspython to function"
-    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -72,15 +69,6 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "xml" in item.keywords:
                 item.add_marker(no_xmlstats)
-    # Test for dnspython module
-    skip_dnspython = pytest.mark.skip(
-        reason="need dnspython module to run")
-    try:
-        import dns.query  # noqa: F401
-    except ModuleNotFoundError:
-        for item in items:
-            if "dnspython" in item.keywords:
-                item.add_marker(skip_dnspython)
 
 
 @pytest.fixture

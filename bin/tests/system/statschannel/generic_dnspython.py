@@ -9,73 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
-import os.path
-
 from collections import defaultdict
-from datetime import datetime, timedelta
 
 import dns.message
 import dns.query
 import dns.rcode
 
-# ISO datetime format without msec
-fmt = '%Y-%m-%dT%H:%M:%SZ'
-
-# The constants were taken from BIND 9 source code (lib/dns/zone.c)
-max_refresh = timedelta(seconds=2419200)  # 4 weeks
-max_expires = timedelta(seconds=14515200)  # 24 weeks
-now = datetime.utcnow().replace(microsecond=0)
-dayzero = datetime.utcfromtimestamp(0).replace(microsecond=0)
-
 
 TIMEOUT = 10
-
-
-# Generic helper functions
-def check_expires(expires, min_time, max_time):
-    assert expires >= min_time
-    assert expires <= max_time
-
-
-def check_refresh(refresh, min_time, max_time):
-    assert refresh >= min_time
-    assert refresh <= max_time
-
-
-def check_loaded(loaded, expected):
-    # Sanity check the zone timers values
-    assert loaded == expected
-    assert loaded < now
-
-
-def check_zone_timers(loaded, expires, refresh, loaded_exp):
-    # Sanity checks the zone timers values
-    if expires is not None:
-        check_expires(expires, now, now + max_expires)
-    if refresh is not None:
-        check_refresh(refresh, now, now + max_refresh)
-    check_loaded(loaded, loaded_exp)
-
-
-#
-# The output is gibberish, but at least make sure it does not crash.
-#
-def check_manykeys(name, zone=None):
-    # pylint: disable=unused-argument
-    assert name == "manykeys"
-
-
-def zone_mtime(zonedir, name):
-
-    try:
-        si = os.stat(os.path.join(zonedir, "{}.db".format(name)))
-    except FileNotFoundError:
-        return dayzero
-
-    mtime = datetime.utcfromtimestamp(si.st_mtime).replace(microsecond=0)
-
-    return mtime
 
 
 def create_msg(qname, qtype):
@@ -144,3 +85,45 @@ def check_traffic(data, expected):
     assert len(expected) == len(ordered_expected)
 
     assert ordered_data == ordered_expected
+
+
+def test_traffic(fetch_traffic, **kwargs):
+
+    statsip = kwargs['statsip']
+    statsport = kwargs['statsport']
+    port = kwargs['port']
+
+    data = fetch_traffic(statsip, statsport)
+    exp = create_expected(data)
+
+    msg = create_msg("short.example.", "TXT")
+    update_expected(exp, "dns-udp-requests-sizes-received-ipv4", msg)
+    ans = udp_query(statsip, port, msg)
+    update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
+    data = fetch_traffic(statsip, statsport)
+
+    check_traffic(data, exp)
+
+    msg = create_msg("long.example.", "TXT")
+    update_expected(exp, "dns-udp-requests-sizes-received-ipv4", msg)
+    ans = udp_query(statsip, port, msg)
+    update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
+    data = fetch_traffic(statsip, statsport)
+
+    check_traffic(data, exp)
+
+    msg = create_msg("short.example.", "TXT")
+    update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
+    ans = tcp_query(statsip, port, msg)
+    update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
+    data = fetch_traffic(statsip, statsport)
+
+    check_traffic(data, exp)
+
+    msg = create_msg("long.example.", "TXT")
+    update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
+    ans = tcp_query(statsip, port, msg)
+    update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
+    data = fetch_traffic(statsip, statsport)
+
+    check_traffic(data, exp)

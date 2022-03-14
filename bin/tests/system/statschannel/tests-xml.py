@@ -20,7 +20,6 @@ import pytest
 import requests
 
 import generic
-from helper import fmt
 
 
 # XML helper functions
@@ -79,7 +78,7 @@ def load_timers_xml(zone, primary=True):
 
     loaded_el = zone.find('loaded')
     assert loaded_el is not None
-    loaded = datetime.strptime(loaded_el.text, fmt)
+    loaded = datetime.strptime(loaded_el.text, generic.fmt)
 
     expires_el = zone.find('expires')
     refresh_el = zone.find('refresh')
@@ -91,8 +90,8 @@ def load_timers_xml(zone, primary=True):
     else:
         assert expires_el is not None
         assert refresh_el is not None
-        expires = datetime.strptime(expires_el.text, fmt)
-        refresh = datetime.strptime(refresh_el.text, fmt)
+        expires = datetime.strptime(expires_el.text, generic.fmt)
+        refresh = datetime.strptime(refresh_el.text, generic.fmt)
 
     return (name, loaded, expires, refresh)
 
@@ -134,10 +133,10 @@ def test_zone_with_many_keys_xml(statsport):
 
 @pytest.mark.xml
 @pytest.mark.requests
-@pytest.mark.dnspython
 @pytest.mark.skipif(os.getenv("HAVEXMLSTATS", "unset") != "1",
                     reason="XML not configured")
 def test_traffic_xml(named_port, statsport):
-    generic.test_traffic(fetch_traffic_xml,
-                         statsip="10.53.0.2", statsport=statsport,
-                         port=named_port)
+    generic_dnspython = pytest.importorskip('generic_dnspython')
+    generic_dnspython.test_traffic(fetch_traffic_xml,
+                                   statsip="10.53.0.2", statsport=statsport,
+                                   port=named_port)
