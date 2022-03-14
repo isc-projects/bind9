@@ -11,6 +11,7 @@
 
 .. highlight: console
 
+.. iscman:: filter-a
 .. _man_filter-a:
 
 filter-a.so - filter A in DNS responses when AAAA is present
@@ -24,8 +25,8 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``filter-a.so`` is a query plugin module for ``named``, enabling
-``named`` to omit some IPv4 addresses when responding to clients.
+:program:`filter-a.so` is a query plugin module for :iscman:`named`, enabling
+:iscman:`named` to omit some IPv4 addresses when responding to clients.
 
 For example:
 

@@ -20,11 +20,11 @@ New Features
   NSEC3 salt collisions are automatically prevented during resalting.
   :gl:`#1620`
 
-- ``dig`` output now includes the transport protocol used (UDP, TCP, or
+- :iscman:`dig` output now includes the transport protocol used (UDP, TCP, or
   TLS). :gl:`#1816`
 
-- ``dig`` can now report the DNS64 prefixes in use (``+dns64prefix``).
-  This is useful when the host on which ``dig`` is run is behind an
+- :iscman:`dig` can now report the DNS64 prefixes in use (``+dns64prefix``).
+  This is useful when the host on which :iscman:`dig` is run is behind an
   IPv6-only link, using DNS64/NAT64 or 464XLAT for IPv4aaS (IPv4 as a
   Service). :gl:`#1154`
 
@@ -37,11 +37,11 @@ Feature Changes
 
 - Earlier releases of BIND versions 9.16 and newer required the
   operating system to support load-balanced sockets in order for
-  ``named`` to be able to achieve high performance (by distributing
+  :iscman:`named` to be able to achieve high performance (by distributing
   incoming queries among multiple threads). However, the only operating
   systems currently known to support load-balanced sockets are Linux and
   FreeBSD 12, which means both UDP and TCP performance were limited to a
-  single thread on other systems. As of BIND 9.17.8, ``named`` attempts
+  single thread on other systems. As of BIND 9.17.8, :iscman:`named` attempts
   to distribute incoming queries among multiple threads on systems which
   lack support for load-balanced sockets (except Windows). :gl:`#2137`
 

@@ -152,16 +152,16 @@ matches when *both* conditions are true.
 -------------------------
 
 On Unix servers, it is possible to run BIND in a *chrooted* environment
-(using the ``chroot()`` function) by specifying the ``-t`` option for
-``named``. This can help improve system security by placing BIND in a
+(using the ``chroot()`` function) by specifying the :option:`-t <named -t>` option for
+:iscman:`named`. This can help improve system security by placing BIND in a
 "sandbox," which limits the damage done if a server is compromised.
 
 Another useful feature in the Unix version of BIND is the ability to run
-the daemon as an unprivileged user (``-u`` user). We suggest running
+the daemon as an unprivileged user (:option:`-u <named -u>` user). We suggest running
 as an unprivileged user when using the ``chroot`` feature.
 
 Here is an example command line to load BIND in a ``chroot`` sandbox,
-``/var/named``, and to run ``named`` ``setuid`` to user 202:
+``/var/named``, and to run :iscman:`named` ``setuid`` to user 202:
 
 ``/usr/local/sbin/named -u 202 -t /var/named``
 
@@ -178,7 +178,7 @@ the values of options like ``directory`` and ``pid-file``
 must be adjusted to account for this.
 
 Unlike with earlier versions of BIND, 
-``named`` does *not* typically need to be compiled statically, nor do shared libraries need to be installed under the new
+:iscman:`named` does *not* typically need to be compiled statically, nor do shared libraries need to be installed under the new
 root. However, depending on the operating system, it may be necessary to set
 up locations such as ``/dev/zero``, ``/dev/random``, ``/dev/log``, and
 ``/etc/localtime``.
@@ -188,14 +188,14 @@ up locations such as ``/dev/zero``, ``/dev/random``, ``/dev/log``, and
 Using the ``setuid`` Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Prior to running the ``named`` daemon, use the ``touch`` utility (to
+Prior to running the :iscman:`named` daemon, use the ``touch`` utility (to
 change file access and modification times) or the ``chown`` utility (to
 set the user id and/or group id) on files where BIND should
 write.
 
 .. note::
 
-   If the ``named`` daemon is running as an unprivileged user, it
+   If the :iscman:`named` daemon is running as an unprivileged user, it
    cannot bind to new restricted ports if the server is
    reloaded.
 

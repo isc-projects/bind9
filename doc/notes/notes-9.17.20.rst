@@ -55,14 +55,14 @@ Feature Changes
   a steady response rate on a loaded resolver while these internal data
   structures are resized. :gl:`#2941`
 
-- The output of ``rndc serve-stale status`` has been clarified. It now
+- The output of :option:`rndc serve-stale status <rndc serve-stale>` has been clarified. It now
   explicitly reports whether retention of stale data in the cache is
   enabled (``stale-cache-enable``), and whether returning such data in
   responses is enabled (``stale-answer-enable``). :gl:`#2742`
 
 - The `UseSTD3ASCIIRules`_ flag is now set for libidn2 function calls.
   This enables additional validation rules for IDN domains and hostnames
-  in ``dig``. :gl:`#1610`
+  in :iscman:`dig`. :gl:`#1610`
 
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
 
@@ -70,7 +70,7 @@ Bug Fixes
 ~~~~~~~~~
 
 - Reloading a catalog zone which referenced a missing/deleted member
-  zone triggered a runtime check failure, causing ``named`` to exit
+  zone triggered a runtime check failure, causing :iscman:`named` to exit
   prematurely. This has been fixed. :gl:`#2308`
 
 - Some lame delegations could trigger a dependency loop, in which a

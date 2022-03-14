@@ -15,7 +15,7 @@ Notes for BIND 9.17.19
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- The ``lame-ttl`` option controls how long ``named`` caches certain
+- The ``lame-ttl`` option controls how long :iscman:`named` caches certain
   types of broken responses from authoritative servers (see the
   `security advisory <https://kb.isc.org/docs/cve-2021-25219>`_ for
   details). This caching mechanism could be abused by an attacker to
@@ -65,12 +65,12 @@ Removed Features
   which is part of the `OpenSC`_ project. :gl:`#2691`
 
 - Old-style Dynamically Loadable Zones (DLZ) drivers that had to be
-  enabled in ``named`` at build time have been removed. New-style DLZ
+  enabled in :iscman:`named` at build time have been removed. New-style DLZ
   modules should be used as a replacement. :gl:`#2814`
 
 - Support for the ``map`` zone file format (``masterfile-format map;``)
   has been removed. Users relying on the ``map`` format are advised to
-  convert their zones to the ``raw`` format with ``named-compilezone``
+  convert their zones to the ``raw`` format with :iscman:`named-compilezone`
   and change the configuration appropriately prior to upgrading BIND 9.
   :gl:`#2882`
 
@@ -80,10 +80,10 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 - The network manager API is now used for sending all outgoing DNS
-  queries and requests from ``named`` and related tools, including
-  ``delv``, ``mdig``, and ``nsupdate``. :gl:`#2401`
+  queries and requests from :iscman:`named` and related tools, including
+  :iscman:`delv`, :iscman:`mdig`, and :iscman:`nsupdate`. :gl:`#2401`
 
-- ``named`` and ``named-checkconf`` now exit with an error when a single
+- :iscman:`named` and :iscman:`named-checkconf` now exit with an error when a single
   port configured for ``query-source``, ``transfer-source``,
   ``notify-source``, ``parental-source``, and/or their respective IPv6
   counterparts clashes with a global listening port. This configuration
@@ -91,7 +91,7 @@ Feature Changes
   until now (even though sending UDP messages such as NOTIFY failed).
   :gl:`#2888`
 
-- ``named`` and ``named-checkconf`` now issue a warning when there is a
+- :iscman:`named` and :iscman:`named-checkconf` now issue a warning when there is a
   single port configured for ``query-source``, ``transfer-source``,
   ``notify-source``, ``parental-source``, and/or for their respective
   IPv6 counterparts. :gl:`#2888`
@@ -110,7 +110,7 @@ Bug Fixes
   again. :gl:`#2911`
 
 - When new IP addresses were set up by the operating system during
-  ``named`` startup, it could fail to listen for TCP connections on the
+  :iscman:`named` startup, it could fail to listen for TCP connections on the
   newly added interfaces. :gl:`#2852`
 
 - Under specific circumstances, zone transfers over TCP and TLS could be

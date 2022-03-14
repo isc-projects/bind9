@@ -15,11 +15,11 @@ Notes for BIND 9.17.17
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- Fixed an assertion failure that occurred in ``named`` when it
+- Fixed an assertion failure that occurred in :iscman:`named` when it
   attempted to send a UDP packet that exceeded the MTU size, if
   Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
 
-- ``named`` failed to check the opcode of responses when performing zone
+- :iscman:`named` failed to check the opcode of responses when performing zone
   refreshes, stub zone updates, and UPDATE forwarding. This could lead
   to an assertion failure under certain conditions and has been
   addressed by rejecting responses whose opcode does not match the
@@ -43,7 +43,7 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Previously, ``named`` accepted FORMERR responses both with and without
+- Previously, :iscman:`named` accepted FORMERR responses both with and without
   an OPT record, as an indication that a given server did not support
   EDNS. To implement full compliance with :rfc:`6891`, only FORMERR
   responses without an OPT record are now accepted. This intentionally
@@ -58,10 +58,10 @@ Feature Changes
   enabled by default. :gl:`#2433`
 
 - Testing revealed that setting the thread affinity for various types of
-  ``named`` threads led to inconsistent recursive performance, as
+  :iscman:`named` threads led to inconsistent recursive performance, as
   sometimes multiple sets of threads competed over a single resource.
 
-  Due to the above, ``named`` no longer sets thread affinity. This
+  Due to the above, :iscman:`named` no longer sets thread affinity. This
   causes a slight dip of around 5% in authoritative performance, but
   recursive performance is now consistently improved. :gl:`#2822`
 
@@ -74,6 +74,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Authentication of ``rndc`` messages could fail if a ``controls``
+- Authentication of :iscman:`rndc` messages could fail if a ``controls``
   statement was configured with multiple key algorithms for the same
   listener. This has been fixed. :gl:`#2756`

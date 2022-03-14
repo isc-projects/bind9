@@ -20,8 +20,8 @@ no required format or schema. DLZ modules exist for several different
 database backends, including MySQL and LDAP, and can be
 written for any other.
 
-The DLZ module provides data to ``named`` in text
-format, which is then converted to DNS wire format by ``named``. This
+The DLZ module provides data to :iscman:`named` in text
+format, which is then converted to DNS wire format by :iscman:`named`. This
 conversion, and the lack of any internal caching, places significant
 limits on the query performance of DLZ modules. Consequently, DLZ is not
 recommended for use on high-volume servers. However, it can be used in a
@@ -33,7 +33,7 @@ database.
 Configuring DLZ
 ~~~~~~~~~~~~~~~
 
-A DLZ database is configured with a ``dlz`` statement in ``named.conf``:
+A DLZ database is configured with a ``dlz`` statement in :iscman:`named.conf`:
 
 ::
 

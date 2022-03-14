@@ -36,7 +36,7 @@ Feature Changes
 
 - The `UseSTD3ASCIIRules`_ flag is now disabled again for libidn2
   function calls. Applying additional validation rules for domain names
-  in ``dig`` (a change introduced in the previous BIND 9 release) caused
+  in :iscman:`dig` (a change introduced in the previous BIND 9 release) caused
   characters which are disallowed in hostnames (e.g. underscore ``_``,
   wildcard ``*``) to be silently stripped. That change was reverted.
   :gl:`#1610`
@@ -50,7 +50,7 @@ Feature Changes
   following triggering events: ``socket is not connected``, ``quota
   reached``, and ``soft quota reached``. :gl:`#2700`
 
-- ``dnssec-dsfromkey`` no longer generates DS records from revoked keys.
+- :iscman:`dnssec-dsfromkey` no longer generates DS records from revoked keys.
   :gl:`#853`
 
 .. _UseSTD3ASCIIRules: http://www.unicode.org/reports/tr46/#UseSTD3ASCIIRules
@@ -59,9 +59,9 @@ Bug Fixes
 ~~~~~~~~~
 
 - Removing a configured ``catalog-zone`` clause from the configuration,
-  running ``rndc reconfig``, then bringing back the removed
-  ``catalog-zone`` clause and running ``rndc reconfig`` again caused
-  ``named`` to crash. This has been fixed. :gl:`#1608`
+  running :option:`rndc reconfig`, then bringing back the removed
+  ``catalog-zone`` clause and running :option:`rndc reconfig` again caused
+  :iscman:`named` to crash. This has been fixed. :gl:`#1608`
 
 - The resolver could hang on shutdown due to dispatch resources not
   being cleaned up when a TCP connection was reset, or due to dependency

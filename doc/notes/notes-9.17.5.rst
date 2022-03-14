@@ -15,12 +15,12 @@ Notes for BIND 9.17.5
 New Features
 ~~~~~~~~~~~~
 
-- Add a new ``rndc`` command, ``rndc dnssec -checkds``, which signals to
-  ``named`` that a DS record for a given zone or key has been published
+- Add a new :iscman:`rndc` command, :option:`rndc dnssec -checkds <rndc dnssec>`, which signals to
+  :iscman:`named` that a DS record for a given zone or key has been published
   or withdrawn from the parent. This command replaces the time-based
   ``parent-registration-delay`` configuration option. :gl:`#1613`
 
-- Log when ``named`` adds a CDS/CDNSKEY to the zone. :gl:`#1748`
+- Log when :iscman:`named` adds a CDS/CDNSKEY to the zone. :gl:`#1748`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -47,7 +47,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- In rare circumstances, ``named`` would exit with an assertion failure
+- In rare circumstances, :iscman:`named` would exit with an assertion failure
   when the number of nodes stored in the red-black tree exceeded the
   maximum allowed size of the internal hash table. :gl:`#2104`
 
@@ -56,13 +56,13 @@ Bug Fixes
   resulted in a generic protocol error being returned instead of a more
   specific error code. :gl:`#1928`
 
-- With query name minimization enabled, ``named`` failed to resolve
+- With query name minimization enabled, :iscman:`named` failed to resolve
   ``ip6.arpa.`` names that had extra labels to the left of the IPv6
-  part. For example, when ``named`` attempted query name minimization on
+  part. For example, when :iscman:`named` attempted query name minimization on
   a name like ``A.B.1.2.3.4.(...).ip6.arpa.``, it stopped at the
   leftmost IPv6 label, i.e. ``1.2.3.4.(...).ip6.arpa.``, without
   considering the extra labels (``A.B``). That caused a query loop when
-  resolving the name: if ``named`` received NXDOMAIN answers, then the
+  resolving the name: if :iscman:`named` received NXDOMAIN answers, then the
   same query was repeatedly sent until the number of queries sent
   reached the value of the ``max-recursion-queries`` configuration
   option. :gl:`#1847`

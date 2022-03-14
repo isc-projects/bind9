@@ -15,17 +15,17 @@ Notes for BIND 9.17.22
 New Features
 ~~~~~~~~~~~~
 
-- ``named`` now logs TLS pre-master secrets for debugging purposes when
+- :iscman:`named` now logs TLS pre-master secrets for debugging purposes when
   the ``SSLKEYLOGFILE`` environment variable is set. This enables
   troubleshooting issues with encrypted DNS traffic. :gl:`#2723`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Overall memory use by ``named`` has been optimized and reduced,
+- Overall memory use by :iscman:`named` has been optimized and reduced,
   especially on systems with many CPU cores. :gl:`#2398` :gl:`#3048`
 
-- ``named`` formerly generated an ephemeral key and certificate for the
+- :iscman:`named` formerly generated an ephemeral key and certificate for the
   ``tls ephemeral`` configuration using the RSA algorithm with 4096-bit
   keys. This has been changed to the ECDSA P-256 algorithm. :gl:`#2264`
 
@@ -44,6 +44,6 @@ Bug Fixes
 - Under certain circumstances, the signed version of an inline-signed
   zone could be dumped to disk without the serial number of the unsigned
   version of the zone. This prevented resynchronization of the zone
-  contents after ``named`` restarted, if the unsigned zone file was
-  modified while ``named`` was not running. This has been fixed.
+  contents after :iscman:`named` restarted, if the unsigned zone file was
+  modified while :iscman:`named` was not running. This has been fixed.
   :gl:`#3071`

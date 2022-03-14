@@ -35,7 +35,7 @@ Configuring DynDB
 ~~~~~~~~~~~~~~~~~
 
 A DynDB database is configured with a ``dyndb`` statement in
-``named.conf``:
+:iscman:`named.conf`:
 
 ::
 

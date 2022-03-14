@@ -11,6 +11,8 @@
 
 .. highlight: console
 
+.. iscman:: dnssec-settime
+.. program:: dnssec-settime
 .. _man_dnssec-settime:
 
 dnssec-settime: set the key timing metadata for a DNSSEC key
@@ -24,14 +26,14 @@ Synopsis
 Description
 ~~~~~~~~~~~
 
-``dnssec-settime`` reads a DNSSEC private key file and sets the key
-timing metadata as specified by the ``-P``, ``-A``, ``-R``, ``-I``, and
-``-D`` options. The metadata can then be used by ``dnssec-signzone`` or
-other signing software to determine when a key is to be published,
-whether it should be used for signing a zone, etc.
+:program:`dnssec-settime` reads a DNSSEC private key file and sets the key
+timing metadata as specified by the :option:`-P`, :option:`-A`, :option:`-R`,
+:option:`-I`, and :option:`-D` options. The metadata can then be used by
+:iscman:`dnssec-signzone` or other signing software to determine when a key is
+to be published, whether it should be used for signing a zone, etc.
 
 If none of these options is set on the command line,
-``dnssec-settime`` simply prints the key timing metadata already stored
+:program:`dnssec-settime` simply prints the key timing metadata already stored
 in the key.
 
 When key metadata fields are changed, both files of a key pair
@@ -44,12 +46,12 @@ the key file. The private file's permissions are always set to be
 inaccessible to anyone other than the owner (mode 0600).
 
 When working with state files, it is possible to update the timing metadata in
-those files as well with ``-s``.  With this option, it is also possible to update key
-states with ``-d`` (DS), ``-k`` (DNSKEY), ``-r`` (RRSIG of KSK), or ``-z``
-(RRSIG of ZSK). Allowed states are HIDDEN, RUMOURED, OMNIPRESENT, and
-UNRETENTIVE.
+those files as well with :option:`-s`.  With this option, it is also possible
+to update key states with :option:`-d` (DS), :option:`-k` (DNSKEY), :option:`-r`
+(RRSIG of KSK), or :option:`-z` (RRSIG of ZSK). Allowed states are HIDDEN,
+RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 
-The goal state of the key can also be set with ``-g``. This should be either
+The goal state of the key can also be set with :option:`-g`. This should be either
 HIDDEN or OMNIPRESENT, representing whether the key should be removed from the
 zone or published.
 
@@ -59,19 +61,22 @@ purposes.
 Options
 ~~~~~~~
 
-``-f``
+.. option:: -f
+
    This option forces an update of an old-format key with no metadata fields. Without
-   this option, ``dnssec-settime`` fails when attempting to update a
+   this option, :program:`dnssec-settime` fails when attempting to update a
    legacy key. With this option, the key is recreated in the new
    format, but with the original key data retained. The key's creation
    date is set to the present time. If no other values are
    specified, then the key's publication and activation dates are also
    set to the present time.
 
-``-K directory``
+.. option:: -K directory
+
    This option sets the directory in which the key files are to reside.
 
-``-L ttl``
+.. option:: -L ttl
+
    This option sets the default TTL to use for this key when it is converted into a
    DNSKEY RR. This is the TTL used when the key is imported into a zone,
    unless there was already a DNSKEY RRset in
@@ -80,16 +85,20 @@ Options
    defaults to the SOA TTL. Setting the default TTL to ``0`` or ``none``
    removes it from the key.
 
-``-h``
+.. option:: -h
+
    This option emits a usage message and exits.
 
-``-V``
+.. option:: -V
+
    This option prints version information.
 
-``-v level``
+.. option:: -v level
+
    This option sets the debugging level.
 
-``-E engine``
+.. option:: -E engine
+
    This option specifies the cryptographic hardware to use, when applicable.
 
    When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
@@ -108,47 +117,57 @@ months (defined as 30 24-hour days), weeks, days, hours, or minutes,
 respectively. Without a suffix, the offset is computed in seconds. To
 explicitly prevent a date from being set, use ``none`` or ``never``.
 
-``-P date/offset``
+.. option:: -P date/offset
+
    This option sets the date on which a key is to be published to the zone. After
    that date, the key is included in the zone but is not used
    to sign it.
 
-``-P ds date/offset``
+.. option:: -P ds date/offset
+
    This option sets the date on which DS records that match this key have been
    seen in the parent zone.
 
-``-P sync date/offset``
+.. option:: -P sync date/offset
+
    This option sets the date on which CDS and CDNSKEY records that match this key
    are to be published to the zone.
 
-``-A date/offset``
+.. option:: -A date/offset
+
    This option sets the date on which the key is to be activated. After that date,
    the key is included in the zone and used to sign it. 
 
-``-R date/offset``
+.. option:: -R date/offset
+
    This option sets the date on which the key is to be revoked. After that date, the
    key is flagged as revoked. It is included in the zone and
    is used to sign it.
 
-``-I date/offset``
+.. option:: -I date/offset
+
    This option sets the date on which the key is to be retired. After that date, the
    key is still included in the zone, but it is not used to
    sign it.
 
-``-D date/offset``
+.. option:: -D date/offset
+
    This option sets the date on which the key is to be deleted. After that date, the
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-``-D ds date/offset``
+.. option:: -D ds date/offset
+
    This option sets the date on which the DS records that match this key have
    been seen removed from the parent zone.
 
-``-D sync date/offset``
+.. option:: -D sync date/offset
+
    This option sets the date on which the CDS and CDNSKEY records that match this
    key are to be deleted.
 
-``-S predecessor key``
+.. option:: -S predecessor key
+
    This option selects a key for which the key being modified is an explicit
    successor. The name, algorithm, size, and type of the predecessor key
    must exactly match those of the key being modified. The activation
@@ -156,7 +175,8 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    predecessor. The publication date is set to the activation date
    minus the prepublication interval, which defaults to 30 days.
 
-``-i interval``
+.. option:: -i interval
+
    This option sets the prepublication interval for a key. If set, then the
    publication and activation dates must be separated by at least this
    much time. If the activation date is specified but the publication
@@ -183,36 +203,44 @@ purpose, but should never be used in production.
 
 Known key states are HIDDEN, RUMOURED, OMNIPRESENT, and UNRETENTIVE.
 
-``-s``
+.. option:: -s
+
    This option indicates that when setting key timing data, the state file should also be updated.
 
-``-g state``
+.. option:: -g state
+
    This option sets the goal state for this key. Must be HIDDEN or OMNIPRESENT.
 
-``-d state date/offset``
+.. option:: -d state date/offset
+
    This option sets the DS state for this key as of the specified date, offset from the current date.
 
-``-k state date/offset``
+.. option:: -k state date/offset
+
    This option sets the DNSKEY state for this key as of the specified date, offset from the current date.
 
-``-r state date/offset``
+.. option:: -r state date/offset
+
    This option sets the RRSIG (KSK) state for this key as of the specified date, offset from the current date.
 
-``-z state date/offset``
+.. option:: -z state date/offset
+
    This option sets the RRSIG (ZSK) state for this key as of the specified date, offset from the current date.
 
 Printing Options
 ~~~~~~~~~~~~~~~~
 
-``dnssec-settime`` can also be used to print the timing metadata
+:program:`dnssec-settime` can also be used to print the timing metadata
 associated with a key.
 
-``-u``
+.. option:: -u
+
    This option indicates that times should be printed in Unix epoch format.
 
-``-p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all``
+.. option:: -p C/P/Pds/Psync/A/R/I/D/Dds/Dsync/all
+
    This option prints a specific metadata value or set of metadata values.
-   The ``-p`` option may be followed by one or more of the following letters or
+   The :option:`-p` option may be followed by one or more of the following letters or
    strings to indicate which value or values to print: ``C`` for the
    creation date, ``P`` for the publication date, ``Pds` for the DS publication
    date, ``Psync`` for the CDS and CDNSKEY publication date, ``A`` for the
@@ -224,5 +252,5 @@ associated with a key.
 See Also
 ~~~~~~~~
 
-:manpage:`dnssec-keygen(8)`, :manpage:`dnssec-signzone(8)`, BIND 9 Administrator Reference Manual,
+:iscman:`dnssec-keygen(8) <dnssec-keygen>`, :iscman:`dnssec-signzone(8) <dnssec-signzone>`, BIND 9 Administrator Reference Manual,
 :rfc:`5011`.

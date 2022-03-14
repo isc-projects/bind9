@@ -21,7 +21,7 @@ Security Fixes
   ISC would like to thank Emanuel Almeida of Cisco Systems, Inc. for
   bringing this vulnerability to our attention. :gl:`#1996`
 
-- ``named`` could crash after failing an assertion check in certain
+- :iscman:`named` could crash after failing an assertion check in certain
   query resolution scenarios where QNAME minimization and forwarding
   were both enabled. To prevent such crashes, QNAME minimization is now
   always disabled for a given query resolution process, if forwarders
@@ -61,12 +61,12 @@ New Features
 - A new configuration option ``stale-cache-enable`` has been introduced
   to enable or disable keeping stale answers in cache. :gl:`#1712`
 
-- ``rndc`` has been updated to use the new BIND network manager API.
+- :iscman:`rndc` has been updated to use the new BIND network manager API.
   This change had the side effect of altering the TCP timeout for RNDC
   connections from 60 seconds to the ``tcp-idle-timeout`` value, which
   defaults to 30 seconds. Also, because the network manager currently
   has no support for UNIX-domain sockets, those cannot now be used
-  with ``rndc``. This will be addressed in a future release, either by
+  with :iscman:`rndc`. This will be addressed in a future release, either by
   restoring UNIX-domain socket support or by formally declaring them
   to be obsolete in the control channel. :gl:`#1759`
 
@@ -97,14 +97,14 @@ Bug Fixes
   ``response-policy`` statement. This has been fixed. :gl:`#1619`
 
 - The IPv6 Duplicate Address Detection (DAD) mechanism could
-  inadvertently prevent ``named`` from binding to new IPv6 interfaces,
+  inadvertently prevent :iscman:`named` from binding to new IPv6 interfaces,
   by causing multiple route socket messages to be sent for each IPv6
-  address. ``named`` monitors for new interfaces to ``bind()`` to when
+  address. :iscman:`named` monitors for new interfaces to ``bind()`` to when
   it is configured to listen on ``any`` or on a specific range of
   addresses. New IPv6 interfaces can be in a "tentative" state before
   they are fully available for use. When DAD is in use, two messages are
   emitted by the route socket: one when the interface first appears and
-  then a second one when it is fully "up." An attempt by ``named`` to
+  then a second one when it is fully "up." An attempt by :iscman:`named` to
   ``bind()`` to the new interface prematurely would fail, causing it
   thereafter to ignore that address/interface. The problem was worked
   around by setting the ``IP_FREEBIND`` option on the socket and trying
@@ -125,5 +125,5 @@ Bug Fixes
   cases when it should have been calculated in days. This has been
   fixed. (Thanks to Tony Finch.) :gl:`!3735`
 
-- LMDB locking code was revised to make ``rndc reconfig`` work properly
+- LMDB locking code was revised to make :option:`rndc reconfig` work properly
   on FreeBSD and with LMDB >= 0.9.26. :gl:`#1976`

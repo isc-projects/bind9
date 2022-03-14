@@ -15,26 +15,26 @@ Notes for BIND 9.17.10
 New Features
 ~~~~~~~~~~~~
 
-- Support for DNS-over-HTTPS (DoH) was added to ``named``. Because of
+- Support for DNS-over-HTTPS (DoH) was added to :iscman:`named`. Because of
   this, the ``nghttp2`` HTTP/2 library is now required for building the
   development branch of BIND 9. Both TLS-encrypted and unencrypted
   HTTP/2 connections are supported (the latter may be used to offload
   encryption to other software).
 
   Note that there is no client-side support for HTTPS as yet; this will
-  be added to ``dig`` in a future release. :gl:`#1144`
+  be added to :iscman:`dig` in a future release. :gl:`#1144`
 
-- ``named`` now supports XFR-over-TLS (XoT) for incoming as well as
+- :iscman:`named` now supports XFR-over-TLS (XoT) for incoming as well as
   outgoing zone transfers. Addresses in a ``primaries`` list can now be
   accompanied by an optional ``tls`` keyword, followed by either the
   name of a previously configured ``tls`` statement or ``ephemeral``.
   :gl:`#2392`
 
 - A new option, ``stale-answer-client-timeout``, has been added to
-  improve ``named``'s behavior with respect to serving stale data. The
-  option defines the amount of time ``named`` waits before attempting to
+  improve :iscman:`named`'s behavior with respect to serving stale data. The
+  option defines the amount of time :iscman:`named` waits before attempting to
   answer the query with a stale RRset from cache. If a stale answer is
-  found, ``named`` continues the ongoing fetches, attempting to refresh
+  found, :iscman:`named` continues the ongoing fetches, attempting to refresh
   the RRset in cache until the ``resolver-query-timeout`` interval is
   reached.
 
@@ -57,7 +57,7 @@ Removed Features
   failure: ``acache-cleaning-interval``, ``acache-enable``,
   ``additional-from-auth``, ``additional-from-cache``,
   ``allow-v6-synthesis``, ``cleaning-interval``, ``dnssec-enable``,
-  ``dnssec-lookaside``, ``filter-aaaa``, ``filter-aaaa-on-v4``,
+  ``dnssec-lookaside``, :iscman:`filter-aaaa`, ``filter-aaaa-on-v4``,
   ``filter-aaaa-on-v6``, ``geoip-use-ecs``, ``lwres``,
   ``max-acache-size``, ``nosit-udp-size``, ``queryport-pool-ports``,
   ``queryport-pool-updateinterval``, ``request-sit``, ``sit-secret``,
@@ -66,11 +66,11 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- When serve-stale is enabled and stale data is available, ``named`` now
+- When serve-stale is enabled and stale data is available, :iscman:`named` now
   returns stale answers upon encountering any unexpected error in the
   query resolution process. This may happen, for example, if the
   ``fetches-per-server`` or ``fetches-per-zone`` limits are reached. In
-  this case, ``named`` attempts to answer DNS requests with stale data,
+  this case, :iscman:`named` attempts to answer DNS requests with stale data,
   but does not start the ``stale-refresh-time`` window. :gl:`#2434`
 
 - The default value of ``max-stale-ttl`` has been changed from 12 hours
@@ -93,10 +93,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- ``named`` failed to start when its configuration included a zone with
+- :iscman:`named` failed to start when its configuration included a zone with
   a non-builtin ``allow-update`` ACL attached. :gl:`#2413`
 
-- Previously, ``dnssec-keyfromlabel`` crashed when operating on an ECDSA
+- Previously, :iscman:`dnssec-keyfromlabel` crashed when operating on an ECDSA
   key. This has been fixed. :gl:`#2178`
 
 - KASP incorrectly set signature validity to the value of the DNSKEY
@@ -115,5 +115,5 @@ Bug Fixes
   (Equation (2)). :gl:`#2375`
 
 - Performance of the DNSSEC verification code (used by
-  ``dnssec-signzone``, ``dnssec-verify``, and mirror zones) has been
+  :iscman:`dnssec-signzone`, :iscman:`dnssec-verify`, and mirror zones) has been
   improved. :gl:`#2073`

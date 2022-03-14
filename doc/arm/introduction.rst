@@ -95,7 +95,7 @@ applications.
 Clients look up information in the DNS by calling a *resolver* library,
 which sends queries to one or more *name servers* and interprets the
 responses. The BIND 9 software distribution contains a name server,
-``named``, and a set of associated tools.
+:iscman:`named`, and a set of associated tools.
 
 .. _domain_names:
 
@@ -155,7 +155,7 @@ and we suggest reading :rfc:`1033`, :rfc:`1034`, and :rfc:`1035` to gain a compl
 understanding of this difficult and subtle topic.
 
 Though BIND 9 is called a "domain name server," it deals primarily in
-terms of zones. The ``primary`` and ``secondary`` declarations in the ``named.conf``
+terms of zones. The ``primary`` and ``secondary`` declarations in the :iscman:`named.conf`
 file specify zones, not domains. When BIND asks some other site if it is
 willing to be a secondary server for a *domain*, it is actually asking
 for secondary service for some collection of *zones*.
@@ -172,7 +172,7 @@ servers, on different networks.
 
 Responses from authoritative servers have the "authoritative answer"
 (AA) bit set in the response packets. This makes them easy to identify
-when debugging DNS configurations using tools like ``dig`` (:ref:`diagnostic_tools`).
+when debugging DNS configurations using tools like :iscman:`dig` (:ref:`diagnostic_tools`).
 
 .. _primary_master:
 
@@ -282,8 +282,8 @@ send queries first to a custom server for RBL processing before
 forwarding them to the wider Internet.
 
 There may be one or more forwarders in a given setup. The order in which
-the forwarders are listed in ``named.conf`` does not determine the
-sequence in which they are queried; rather, ``named`` uses the response
+the forwarders are listed in :iscman:`named.conf` does not determine the
+sequence in which they are queried; rather, :iscman:`named` uses the response
 times from previous queries to select the server that is likely to
 respond the most quickly. A server that has not yet been queried is
 given an initial small random response time to ensure that it is tried

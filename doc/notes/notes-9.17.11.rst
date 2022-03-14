@@ -15,7 +15,7 @@ Notes for BIND 9.17.11
 New Features
 ~~~~~~~~~~~~
 
-- ``dig`` has been extended to support DNS-over-HTTPS (DoH) queries,
+- :iscman:`dig` has been extended to support DNS-over-HTTPS (DoH) queries,
   using ``dig +https`` and related options. :gl:`#1641`
 
 - A new ``purge-keys`` option has been added to ``dnssec-policy``. It
@@ -35,33 +35,33 @@ Feature Changes
 - ``http default`` can now be specified in ``listen-on`` and
   ``listen-on-v6`` statements to use the default HTTP endpoint of
   ``/dns-query``. It is no longer necessary to include an ``http``
-  statement in ``named.conf`` unless overriding this value. :gl:`#2472`
+  statement in :iscman:`named.conf` unless overriding this value. :gl:`#2472`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Zone journal (``.jnl``) files created by versions of ``named`` prior
+- Zone journal (``.jnl``) files created by versions of :iscman:`named` prior
   to 9.16.12 were no longer compatible; this could cause problems when
   upgrading if journal files were not synchronized first. This has been
   corrected: older journal files can now be read when starting up. When
   an old-style journal file is detected, it is updated to the new format
   immediately after loading.
 
-  Note that journals created by the current version of ``named`` are not
+  Note that journals created by the current version of :iscman:`named` are not
   usable by versions prior to 9.16.12. Before downgrading to a prior
   release, users are advised to ensure that all dynamic zones have been
-  synchronized using ``rndc sync -clean``.
+  synchronized using :option:`rndc sync -clean <rndc sync>`.
 
   A journal file's format can be changed manually by running
   ``named-journalprint -d`` (downgrade) or ``named-journalprint -u``
-  (upgrade). Note that this *must not* be done while ``named`` is
+  (upgrade). Note that this *must not* be done while :iscman:`named` is
   running. :gl:`#2505`
 
-- ``named`` crashed when it was allowed to serve stale answers and
+- :iscman:`named` crashed when it was allowed to serve stale answers and
   ``stale-answer-client-timeout`` was triggered without any (stale) data
   available in the cache to answer the query. :gl:`#2503`
 
-- If an outgoing packet exceeded ``max-udp-size``, ``named`` dropped it
+- If an outgoing packet exceeded ``max-udp-size``, :iscman:`named` dropped it
   instead of sending back a proper response. To prevent this problem,
   the ``IP_DONTFRAG`` option is no longer set on UDP sockets, which has
   been happening since BIND 9.17.6. :gl:`#2466`
@@ -70,7 +70,7 @@ Bug Fixes
   using ``dnssec-policy`` with ``nsec3param``. This has been fixed.
   :gl:`#2498`
 
-- A memory leak occurred when ``named`` was reconfigured after adding an
+- A memory leak occurred when :iscman:`named` was reconfigured after adding an
   inline-signed zone with ``auto-dnssec maintain`` enabled. This has
   been fixed. :gl:`#2041`
 
@@ -79,9 +79,9 @@ Bug Fixes
   such a record was loaded. :gl:`#2499`
 
 - If an invalid key name (e.g. ``a..b``) was specified in a
-  ``primaries`` list in ``named.conf``, the wrong size was passed to
+  ``primaries`` list in :iscman:`named.conf`, the wrong size was passed to
   ``isc_mem_put()``, which resulted in the returned memory being put on
-  the wrong free list and prevented ``named`` from starting up. This has
+  the wrong free list and prevented :iscman:`named` from starting up. This has
   been fixed. :gl:`#2460`
 
 - ``libtool`` was inadvertently introduced as a build-time requirement

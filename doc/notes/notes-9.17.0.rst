@@ -30,7 +30,7 @@ New Features
 -  When a secondary server receives a large incremental zone transfer
    (IXFR), it can have a negative impact on query performance while the
    incremental changes are applied to the zone. To address this,
-   ``named`` can now limit the size of IXFR responses it sends in
+   :iscman:`named` can now limit the size of IXFR responses it sends in
    response to zone transfer requests. If an IXFR response would be
    larger than an AXFR of the entire zone, it will send an AXFR response
    instead.
@@ -63,7 +63,7 @@ Feature Changes
 
 .. _bug: https://sourceware.org/bugzilla/show_bug.cgi?id=23844
 
--  The ``rndc nta -dump`` and ``rndc secroots`` commands now both
+-  The :option:`rndc nta -dump <rndc nta>` and :option:`rndc secroots` commands now both
    include ``validate-except`` entries when listing negative trust
    anchors. These are indicated by the keyword ``permanent`` in place of
    the expiry date. :gl:`#1532`
