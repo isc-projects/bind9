@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/python3
 
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,21 +11,21 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+import os
 
-if test -n "$PYTHON"
-then
-    if [ "$($PYTHON -c "import dns.version; print(dns.version.MAJOR)" 2> /dev/null)" -ge 2 ]
-    then
-        :
-    else
-        echo_i "This test requires the dnspython >= 2.0.0 module." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires Python and the dnspython module." >&2
-    exit 1
-fi
+import pytest
 
-exit 0
+
+@pytest.fixture(scope='session')
+def named_port():
+    return int(os.environ.get('PORT', default=5300))
+
+
+@pytest.fixture(scope='session')
+def named_tlsport():
+    return int(os.environ.get('TLSPORT', default=8853))
+
+
+@pytest.fixture(scope='session')
+def control_port():
+    return int(os.environ.get('CONTROLPORT', default=9953))

@@ -16,7 +16,7 @@ SYSTEMTESTTOP=..
 
 if test -n "$PYTHON"
 then
-    if $PYTHON -c "from dns.query import send_tcp" 2> /dev/null
+    if [ "$($PYTHON -c "import dns.version; print(dns.version.MAJOR)" 2> /dev/null)" -ge 2 ]
     then
         :
     else
