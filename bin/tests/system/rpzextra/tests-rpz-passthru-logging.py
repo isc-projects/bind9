@@ -12,11 +12,13 @@
 # information regarding copyright ownership.
 
 import os
+
 import pytest
+
+pytest.importorskip('dns')
 import dns.resolver
 
 
-# @pytest.mark.dnspython
 def test_rpz_passthru_logging(named_port):
     resolver = dns.resolver.Resolver()
     resolver.nameservers = ['10.53.0.1']
