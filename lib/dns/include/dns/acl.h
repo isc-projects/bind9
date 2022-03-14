@@ -32,6 +32,7 @@
 #include <isc/magic.h>
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
+#include <isc/rwlock.h>
 
 #include <dns/geoip.h>
 #include <dns/iptable.h>
@@ -101,9 +102,12 @@ struct dns_aclenv {
 	unsigned int   magic;
 	isc_mem_t	  *mctx;
 	isc_refcount_t references;
+
+	isc_rwlock_t rwlock; /*%< Locks localhost and localnets */
 	dns_acl_t	  *localhost;
 	dns_acl_t	  *localnets;
-	bool	       match_mapped;
+
+	bool match_mapped;
 #if defined(HAVE_GEOIP2)
 	dns_geoip_databases_t *geoip;
 #endif /* HAVE_GEOIP2 */
@@ -220,6 +224,12 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s);
  */
 
 void
+dns_aclenv_set(dns_aclenv_t *env, dns_acl_t *localhost, dns_acl_t *localnets);
+/*%<
+ * Attach the 'localhost' and 'localnets' arguments to 'env' ACL environment
+ */
+
+void
 dns_aclenv_attach(dns_aclenv_t *source, dns_aclenv_t **targetp);
 /*%<
  * Attach '*targetp' to ACL environment 'source'.
@@ -240,7 +250,7 @@ dns_aclenv_detach(dns_aclenv_t **aclenvp);
 
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
-	      const dns_acl_t *acl, const dns_aclenv_t *env, int *match,
+	      const dns_acl_t *acl, dns_aclenv_t *env, int *match,
 	      const dns_aclelement_t **matchelt);
 /*%<
  * General, low-level ACL matching.  This is expected to
@@ -270,7 +280,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 
 bool
 dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
-		     const dns_aclelement_t *e, const dns_aclenv_t *env,
+		     const dns_aclelement_t *e, dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
@@ -287,7 +297,7 @@ dns_acl_match_port_transport(const isc_netaddr_t	 *reqaddr,
 			     const in_port_t	       local_port,
 			     const isc_nmsocket_type_t transport,
 			     const bool encrypted, const dns_name_t *reqsigner,
-			     const dns_acl_t *acl, const dns_aclenv_t *env,
+			     const dns_acl_t *acl, dns_aclenv_t *env,
 			     int *match, const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but able to match the server port and
