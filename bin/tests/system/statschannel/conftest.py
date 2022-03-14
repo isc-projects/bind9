@@ -18,9 +18,6 @@ def pytest_configure(config):
         "markers", "requests: mark tests that need requests to function"
     )
     config.addinivalue_line(
-        "markers", "json: mark tests that need json to function"
-    )
-    config.addinivalue_line(
         "markers", "xml: mark tests that need xml.etree to function"
     )
 
@@ -37,15 +34,6 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "requests" in item.keywords:
                 item.add_marker(skip_requests)
-    # Test for json module
-    skip_json = pytest.mark.skip(
-        reason="need json module to run")
-    try:
-        import json  # noqa: F401
-    except ModuleNotFoundError:
-        for item in items:
-            if "json" in item.keywords:
-                item.add_marker(skip_json)
     # Test for xml module
     skip_xml = pytest.mark.skip(
         reason="need xml module to run")
@@ -55,13 +43,6 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "xml" in item.keywords:
                 item.add_marker(skip_xml)
-    # Test if JSON statistics channel was enabled
-    no_jsonstats = pytest.mark.skip(
-        reason="need JSON statistics to be enabled")
-    if os.getenv("HAVEJSONSTATS") is None:
-        for item in items:
-            if "json" in item.keywords:
-                item.add_marker(no_jsonstats)
     # Test if XML statistics channel was enabled
     no_xmlstats = pytest.mark.skip(
         reason="need XML statistics to be enabled")
