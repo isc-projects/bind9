@@ -388,6 +388,14 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    to not try the next server, which is the reverse of normal stub
    resolver behavior.
 
+.. option:: +fuzztime[=value], +nofuzztime
+
+   This option allows the signing time to be specified when generating
+   signed messages.  If a value is specified it is the seconds since
+   00:00:00 January 1, 1970 UTC ignoring leap seconds.  If no value
+   is specified 1646972129 (Fri 11 Mar 2022 04:15:29 UTC) is used.
+   The default is ``+nofuzztime`` and the current time is used.
+
 .. option:: +header-only, +noheader-only
 
    This option sends a query with a DNS header without a question section. The
