@@ -35,7 +35,9 @@ import dns.message
 import dns.name
 import dns.query
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 
 pytest.importorskip("hypothesis")
 from hypothesis import given
