@@ -132,12 +132,14 @@ Options
 
 .. option:: -k keyfile
 
-   This option tells :iscman:`named` to sign queries using TSIG using a key read from the given file. Key
-   files can be generated using :iscman:`tsig-keygen`. When using TSIG
-   authentication with :program:`dig`, the name server that is queried needs to
-   know the key and algorithm that is being used. In BIND, this is done
-   by providing appropriate ``key`` and ``server`` statements in
-   :iscman:`named.conf`.
+   This option tells :program:`dig` to sign queries using TSIG or
+   SIG(0) using a key read from the given file. Key files can be
+   generated using :iscman:`tsig-keygen`. When using TSIG authentication
+   with :program:`dig`, the name server that is queried needs to
+   know the key and algorithm that is being used. In BIND, this is
+   done by providing appropriate ``key`` and ``server`` statements
+   in :iscman:`named.conf` for TSIG and by looking up the KEY record
+   in zone data for SIG(0).
 
 .. option:: -m
 

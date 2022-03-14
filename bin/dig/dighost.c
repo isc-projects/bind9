@@ -146,6 +146,7 @@ const dns_name_t *hmacname = NULL;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *tsigkey = NULL;
+dst_key_t *sig0key = NULL;
 bool validated = true;
 bool debugging = false;
 bool debugtiming = false;
@@ -1158,6 +1159,10 @@ setup_file_key(void) {
 
 	debug("setup_file_key()");
 
+	if (sig0key != NULL) {
+		dst_key_free(&sig0key);
+	}
+
 	/* Try reading the key from a K* pair */
 	result = dst_key_fromnamedfile(
 		keyfile, NULL, DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx, &dstkey);
@@ -1195,18 +1200,20 @@ setup_file_key(void) {
 	case DST_ALG_HMACSHA512:
 		hmacname = DNS_TSIG_HMACSHA512_NAME;
 		break;
-	default:
-		printf(";; Couldn't create key %s: bad algorithm\n",
-		       keynametext);
-		goto failure;
 	}
-	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmacname,
-					   dstkey, false, NULL, 0, 0, mctx,
-					   NULL, &tsigkey);
-	if (result != ISC_R_SUCCESS) {
-		printf(";; Couldn't create key %s: %s\n", keynametext,
-		       isc_result_totext(result));
-		goto failure;
+
+	if (hmacname != NULL) {
+		result = dns_tsigkey_createfromkey(
+			dst_key_name(dstkey), hmacname, dstkey, false, NULL, 0,
+			0, mctx, NULL, &tsigkey);
+		if (result != ISC_R_SUCCESS) {
+			printf(";; Couldn't create key %s: %s\n", keynametext,
+			       isc_result_totext(result));
+			goto failure;
+		}
+	} else {
+		dst_key_attach(dstkey, &sig0key);
+		dst_key_free(&dstkey);
 	}
 failure:
 	if (dstkey != NULL) {
@@ -2453,6 +2460,10 @@ setup_lookup(dig_lookup_t *lookup) {
 		debug("initializing keys");
 		result = dns_message_settsigkey(lookup->sendmsg, tsigkey);
 		check_result(result, "dns_message_settsigkey");
+	} else if (sig0key != NULL) {
+		debug("initializing keys");
+		result = dns_message_setsig0key(lookup->sendmsg, sig0key);
+		check_result(result, "dns_message_setsig0key");
 	}
 
 	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
@@ -4716,10 +4727,17 @@ destroy_libs(void) {
 	clear_searchlist();
 
 	if (tsigkey != NULL) {
-		debug("freeing key %p", tsigkey);
+		debug("freeing TSIG key %p", tsigkey);
 		dns_tsigkey_detach(&tsigkey);
 	}
+
+	if (sig0key != NULL) {
+		debug("freeing SIG(0) key %p", sig0key);
+		dst_key_free(&sig0key);
+	}
+
 	if (namebuf != NULL) {
+		debug("freeing key %p", tsigkey);
 		isc_buffer_free(&namebuf);
 	}
 
