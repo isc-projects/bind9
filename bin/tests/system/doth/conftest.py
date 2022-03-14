@@ -11,7 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
 import shutil
 import subprocess
 
@@ -36,8 +35,3 @@ def gnutls_cli_executable():
         pytest.skip('gnutls-cli does not support the --logfile option')
 
     return executable
-
-
-@pytest.fixture
-def named_tlsport():
-    return int(os.environ.get('TLSPORT', '853'))

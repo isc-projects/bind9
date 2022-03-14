@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
 import pytest
 
 
@@ -32,27 +31,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "dnspython" in item.keywords:
                 item.add_marker(skip_dnspython)
-
-
-@pytest.fixture
-def named_port(request):
-    # pylint: disable=unused-argument
-    port = os.getenv("PORT")
-    if port is None:
-        port = 5301
-    else:
-        port = int(port)
-
-    return port
-
-
-@pytest.fixture
-def control_port(request):
-    # pylint: disable=unused-argument
-    port = os.getenv("CONTROLPORT")
-    if port is None:
-        port = 5301
-    else:
-        port = int(port)
-
-    return port

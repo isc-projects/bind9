@@ -87,20 +87,8 @@ def pytest_collection_modifyitems(config, items):
 def statsport(request):
     # pylint: disable=unused-argument
     env_port = os.getenv("EXTRAPORT1")
-    if port is None:
+    if env_port is None:
         env_port = 5301
-    else:
-        env_port = int(env_port)
-
-    return env_port
-
-
-@pytest.fixture
-def port(request):
-    # pylint: disable=unused-argument
-    env_port = os.getenv("PORT")
-    if port is None:
-        env_port = 5300
     else:
         env_port = int(env_port)
 

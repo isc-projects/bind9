@@ -19,8 +19,8 @@ import dns.query
 import dns.rcode
 
 
-def test_connreset(port):
+def test_connreset(named_port):
     msg = dns.message.make_query("sub.example.", "A", want_dnssec=True,
                                  use_edns=0, payload=1232)
-    ans = dns.query.udp(msg, "10.53.0.2", timeout=10, port=port)
+    ans = dns.query.udp(msg, "10.53.0.2", timeout=10, port=named_port)
     assert ans.rcode() == dns.rcode.SERVFAIL
