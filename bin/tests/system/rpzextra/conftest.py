@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
 import pytest
 
 try:
@@ -34,9 +33,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "dnspython" in item.keywords:
                 item.add_marker(skip_requests)
-    # Test if JSON statistics channel was enabled
-    no_jsonstats = pytest.mark.skip(reason="need JSON statistics to be enabled")
-    if os.getenv("HAVEJSONSTATS") is None:
-        for item in items:
-            if "json" in item.keywords:
-                item.add_marker(no_jsonstats)
