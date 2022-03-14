@@ -26,6 +26,8 @@ import dns.query
 import dns.rdataclass
 import dns.rdatatype
 
+import pytest_custom_markers  # pylint: disable=import-error
+
 
 TIMEOUT = 10
 
@@ -204,7 +206,7 @@ def test_send_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.long
+@pytest_custom_markers.long_test
 def test_max_transfer_idle_out(named_port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(("10.53.0.1", named_port))
@@ -235,7 +237,7 @@ def test_max_transfer_idle_out(named_port):
             assert soa is None
 
 
-@pytest.mark.long
+@pytest_custom_markers.long_test
 def test_max_transfer_time_out(named_port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(("10.53.0.1", named_port))
