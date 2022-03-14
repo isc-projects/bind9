@@ -214,20 +214,18 @@ endif HAVE_PERLMOD_NET_DNS
 if HAVE_PYTHON
 TESTS += kasp keymgr2kasp tcp pipelined
 
-if HAVE_PYMOD_DNS
-TESTS += checkds dispatch qmin cookie timeouts
+if HAVE_PYTEST
+TESTS += checkds dispatch rpzextra shutdown timeouts
+endif
 
+if HAVE_PYMOD_DNS
+TESTS += qmin cookie
 if HAVE_PERLMOD_NET_DNS
 TESTS += dnssec
 if HAVE_PERLMOD_NET_DNS_NAMESERVER
 TESTS += chain
 endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
-
-if HAVE_PYTEST
-TESTS += rpzextra shutdown
-endif
-
 endif HAVE_PYMOD_DNS
 
 endif HAVE_PYTHON

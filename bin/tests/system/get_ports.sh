@@ -14,7 +14,11 @@
 # This script is a 'port' broker.  It keeps track of ports given to the
 # individual system subtests, so every test is given a unique port range.
 
-total_tests=$(find . -maxdepth 1 -mindepth 1 -type d | wc -l)
+get_sorted_test_names() {
+	find . -maxdepth 2 -mindepth 2 -type f \( -name "tests.sh" -o -name "tests*.py" \) | cut -d/ -f2 | sort -u
+}
+
+total_tests=$(get_sorted_test_names | wc -l)
 ports_per_test=20
 
 port_min=5001
@@ -33,7 +37,7 @@ while getopts "p:t:-:" OPT; do
     case "$OPT" in
 	p | port) baseport=$OPTARG ;;
 	t | test)
-		test_index=$(find . -maxdepth 1 -mindepth 1 -type d | sort | grep -F -x -n "./${OPTARG}" | cut -d: -f1)
+		test_index=$(get_sorted_test_names | awk "/^${OPTARG}\$/ { print NR }")
 		if [ -z "${test_index}" ]; then
 			echo "Test '${OPTARG}' not found" >&2
 			exit 1
