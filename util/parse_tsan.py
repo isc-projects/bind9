@@ -84,7 +84,7 @@ with open(sys.argv[1], "r", encoding='utf-8') as f:
                 DNAME = os.path.join(OUT, DNAME)
                 if not os.path.isdir(DNAME):
                     os.mkdir(DNAME)
-                FNAME = sha256(S.block.encode('utf-8')).hexdigest() + ".tsan"
+                FNAME = sha256(S.block.encode('utf-8')).hexdigest() + ".txt"
                 FNAME = os.path.join(DNAME, FNAME)
                 if not os.path.isfile(FNAME):
                     with open(FNAME, "w", encoding='utf-8') as w:
