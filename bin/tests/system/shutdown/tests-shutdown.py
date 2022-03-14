@@ -19,10 +19,11 @@ import subprocess
 from string import ascii_lowercase as letters
 import time
 
-import dns.resolver
 import pytest
 
 pytest.importorskip('dns')
+import dns.exception
+import dns.resolver
 
 
 def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):

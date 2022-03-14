@@ -17,10 +17,17 @@ import subprocess
 import sys
 import time
 
-import dns.resolver
 import pytest
 
 pytest.importorskip('dns', minversion='2.0.0')
+import dns.exception
+import dns.message
+import dns.name
+import dns.query
+import dns.rcode
+import dns.rdataclass
+import dns.rdatatype
+import dns.resolver
 
 
 def has_signed_apex_nsec(zone, response):
