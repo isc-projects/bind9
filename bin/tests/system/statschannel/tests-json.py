@@ -16,12 +16,12 @@ from datetime import datetime
 import os
 
 import pytest
-import requests
 
 import generic
 
 pytestmark = pytest.mark.skipif(not os.environ.get('HAVEJSONSTATS'),
                                 reason='json-c support disabled in the build')
+requests = pytest.importorskip('requests')
 
 
 # JSON helper functions
@@ -75,27 +75,23 @@ def load_zone_json(zone):
     return name
 
 
-@pytest.mark.requests
 def test_zone_timers_primary_json(statsport):
     generic.test_zone_timers_primary(fetch_zones_json, load_timers_json,
                                      statsip="10.53.0.1", statsport=statsport,
                                      zonedir="ns1")
 
 
-@pytest.mark.requests
 def test_zone_timers_secondary_json(statsport):
     generic.test_zone_timers_secondary(fetch_zones_json, load_timers_json,
                                        statsip="10.53.0.3", statsport=statsport,
                                        zonedir="ns3")
 
 
-@pytest.mark.requests
 def test_zone_with_many_keys_json(statsport):
     generic.test_zone_with_many_keys(fetch_zones_json, load_zone_json,
                                      statsip="10.53.0.2", statsport=statsport)
 
 
-@pytest.mark.requests
 def test_traffic_json(named_port, statsport):
     generic_dnspython = pytest.importorskip('generic_dnspython')
     generic_dnspython.test_traffic(fetch_traffic_json,
