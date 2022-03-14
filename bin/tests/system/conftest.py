@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -10,16 +12,20 @@
 # information regarding copyright ownership.
 
 import os
+
 import pytest
 
 
-@pytest.fixture
-def port(request):
-    # pylint: disable=unused-argument
-    env_port = os.getenv("PORT")
-    if env_port is None:
-        env_port = 5300
-    else:
-        env_port = int(env_port)
+@pytest.fixture(scope='session')
+def named_port():
+    return int(os.environ.get('PORT', default=5300))
 
-    return env_port
+
+@pytest.fixture(scope='session')
+def named_tlsport():
+    return int(os.environ.get('TLSPORT', default=8853))
+
+
+@pytest.fixture(scope='session')
+def control_port():
+    return int(os.environ.get('CONTROLPORT', default=9953))

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -10,9 +12,9 @@
 # information regarding copyright ownership.
 
 import os
+
 import pytest
 
 
-@pytest.fixture(scope='module')
-def named_port():
-    return int(os.environ.get("PORT", default=5300))
+long_test = pytest.mark.skipif(not os.environ.get('CI_ENABLE_ALL_TESTS'),
+                               reason='CI_ENABLE_ALL_TESTS not set')
