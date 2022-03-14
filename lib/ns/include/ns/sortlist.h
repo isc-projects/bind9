@@ -37,7 +37,7 @@ typedef enum {
 
 ns_sortlisttype_t
 ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
-		  const void **argp);
+		  void **argp);
 /*%<
  * Find the sortlist statement in 'acl' (for ACL environment 'env')
  * that applies to 'clientaddr', if any.
@@ -70,7 +70,7 @@ ns_sortlist_addrorder2(const isc_netaddr_t *addr, const void *arg);
 void
 ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, dns_aclenv_t *env,
 			isc_netaddr_t	      *client_addr,
-			dns_addressorderfunc_t *orderp, const void **argp);
+			dns_addressorderfunc_t *orderp, void **argp);
 /*%<
  * Find the sortlist statement in 'acl' that applies to 'clientaddr', if any.
  * If a sortlist statement applies, return in '*orderp' a pointer to a function

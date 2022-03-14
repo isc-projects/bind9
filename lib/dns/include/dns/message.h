@@ -238,7 +238,7 @@ typedef struct dns_msgblock dns_msgblock_t;
 
 struct dns_sortlist_arg {
 	dns_aclenv_t	     *env;
-	const dns_acl_t	*acl;
+	dns_acl_t		  *acl;
 	const dns_aclelement_t *element;
 };
 
@@ -1417,7 +1417,7 @@ dns_message_getrawmessage(dns_message_t *msg);
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 dns_aclenv_t *env, const dns_acl_t *acl,
+			 dns_aclenv_t *env, dns_acl_t *acl,
 			 const dns_aclelement_t *element);
 /*%<
  * Define the order in which RR sets get rendered by

@@ -642,6 +642,13 @@ msgreset(dns_message_t *msg, bool everything) {
 		dynbuf = next_dynbuf;
 	}
 
+	if (msg->order_arg.env != NULL) {
+		dns_aclenv_detach(&msg->order_arg.env);
+	}
+	if (msg->order_arg.acl != NULL) {
+		dns_acl_detach(&msg->order_arg.acl);
+	}
+
 	/*
 	 * Set other bits to normal default values.
 	 */
@@ -4457,15 +4464,19 @@ dns_message_getrawmessage(dns_message_t *msg) {
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 dns_aclenv_t *env, const dns_acl_t *acl,
+			 dns_aclenv_t *env, dns_acl_t *acl,
 			 const dns_aclelement_t *elem) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE((order == NULL) == (env == NULL));
 	REQUIRE(env == NULL || (acl != NULL || elem != NULL));
 
 	msg->order = order;
-	msg->order_arg.env = env;
-	msg->order_arg.acl = acl;
+	if (env != NULL) {
+		dns_aclenv_attach(env, &msg->order_arg.env);
+	}
+	if (acl != NULL) {
+		dns_acl_attach(acl, &msg->order_arg.acl);
+	}
 	msg->order_arg.element = elem;
 }
 

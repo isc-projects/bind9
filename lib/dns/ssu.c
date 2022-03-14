@@ -279,7 +279,7 @@ stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
 bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
-			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
+			bool tcp, dns_aclenv_t *env, dns_rdatatype_t type,
 			const dns_name_t *target, const dst_key_t *key,
 			const dns_ssurule_t **rulep) {
 	dns_fixedname_t fixed;
@@ -367,8 +367,10 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
+			RWLOCK(&env->rwlock, isc_rwlocktype_read);
 			dns_acl_match(addr, NULL, env->localhost, NULL, &match,
 				      NULL);
+			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
 			if (match == 0) {
 				if (signer != NULL) {
 					isc_log_write(dns_lctx,
