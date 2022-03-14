@@ -40,15 +40,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "json" in item.keywords:
                 item.add_marker(no_jsonstats)
-
-
-@pytest.fixture
-def named_port(request):
-    # pylint: disable=unused-argument
-    port = os.getenv("PORT")
-    if port is None:
-        port = 5301
-    else:
-        port = int(port)
-
-    return port

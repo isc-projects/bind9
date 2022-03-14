@@ -41,10 +41,10 @@ def create_socket(host, port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_tcp_garbage(port):
+def test_tcp_garbage(named_port):
     import dns.query
 
-    with create_socket("10.53.0.7", port) as sock:
+    with create_socket("10.53.0.7", named_port) as sock:
 
         msg = create_msg("a.example.", "A")
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
@@ -68,11 +68,11 @@ def test_tcp_garbage(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_tcp_garbage_response(port):
+def test_tcp_garbage_response(named_port):
     import dns.query
     import dns.message
 
-    with create_socket("10.53.0.7", port) as sock:
+    with create_socket("10.53.0.7", named_port) as sock:
 
         msg = create_msg("a.example.", "A")
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())

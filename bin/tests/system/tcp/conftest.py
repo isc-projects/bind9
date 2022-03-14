@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
 import pytest
 
 
@@ -45,15 +44,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "dnspython2" in item.keywords:
                 item.add_marker(skip_dnspython2)
-
-
-@pytest.fixture
-def port(request):
-    # pylint: disable=unused-argument
-    env_port = os.getenv("PORT")
-    if port is None:
-        env_port = 5300
-    else:
-        env_port = int(env_port)
-
-    return env_port

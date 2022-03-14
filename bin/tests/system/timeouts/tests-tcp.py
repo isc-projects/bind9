@@ -34,14 +34,14 @@ def timeout():
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_initial_timeout(port):
+def test_initial_timeout(named_port):
     #
     # The initial timeout is 2.5 seconds, so this should timeout
     #
     import dns.query
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         time.sleep(3)
 
@@ -57,7 +57,7 @@ def test_initial_timeout(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_idle_timeout(port):
+def test_idle_timeout(named_port):
     #
     # The idle timeout is 5 seconds, so the third message should fail
     #
@@ -65,7 +65,7 @@ def test_idle_timeout(port):
 
     msg = create_msg("example.", "A")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         time.sleep(1)
 
@@ -89,7 +89,7 @@ def test_idle_timeout(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_keepalive_timeout(port):
+def test_keepalive_timeout(named_port):
     #
     # Keepalive is 7 seconds, so the third message should succeed.
     #
@@ -100,7 +100,7 @@ def test_keepalive_timeout(port):
     msg.use_edns(edns=True, payload=4096, options=[kopt])
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         time.sleep(1)
 
@@ -120,7 +120,7 @@ def test_keepalive_timeout(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_pipelining_timeout(port):
+def test_pipelining_timeout(named_port):
     #
     # The pipelining should only timeout after the last message is received
     #
@@ -128,7 +128,7 @@ def test_pipelining_timeout(port):
 
     msg = create_msg("example.", "A")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         time.sleep(1)
 
@@ -158,7 +158,7 @@ def test_pipelining_timeout(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_long_axfr(port):
+def test_long_axfr(named_port):
     #
     # The timers should not fire during AXFR, thus the connection should not
     # close abruptly
@@ -168,7 +168,7 @@ def test_long_axfr(port):
     import dns.rdatatype
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         name = dns.name.from_text("example.")
         msg = create_msg("example.", "AXFR")
@@ -194,11 +194,11 @@ def test_long_axfr(port):
 
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
-def test_send_timeout(port):
+def test_send_timeout(named_port):
     import dns.query
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         # Send and receive single large RDATA over TCP
         msg = create_msg("large.example.", "TXT")
@@ -225,13 +225,13 @@ def test_send_timeout(port):
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
 @pytest.mark.long
-def test_max_transfer_idle_out(port):
+def test_max_transfer_idle_out(named_port):
     import dns.query
     import dns.rdataclass
     import dns.rdatatype
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         name = dns.name.from_text("example.")
         msg = create_msg("example.", "AXFR")
@@ -262,13 +262,13 @@ def test_max_transfer_idle_out(port):
 @pytest.mark.dnspython
 @pytest.mark.dnspython2
 @pytest.mark.long
-def test_max_transfer_time_out(port):
+def test_max_transfer_time_out(named_port):
     import dns.query
     import dns.rdataclass
     import dns.rdatatype
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(("10.53.0.1", port))
+        sock.connect(("10.53.0.1", named_port))
 
         name = dns.name.from_text("example.")
         msg = create_msg("example.", "AXFR")
