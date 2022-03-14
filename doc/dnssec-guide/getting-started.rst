@@ -26,8 +26,8 @@ BIND Version
 
 Most configuration examples given in this document require BIND version
 9.16.0 or newer (although many do work with all versions of BIND
-later than 9.9). To check the version of ``named`` you have installed,
-use the ``-v`` switch as shown below:
+later than 9.9). To check the version of :iscman:`named` you have installed,
+use the :option:`-v <named -v>` switch as shown below:
 
 ::
 
@@ -47,10 +47,10 @@ DNSSEC Support in BIND
 
 All versions of BIND 9 since BIND 9.7 can support DNSSEC, as currently
 deployed in the global DNS, so the BIND software you are running most
-likely already supports DNSSEC. Run the command ``named -V``
+likely already supports DNSSEC. Run the command :option:`named -V`
 to see what flags it was built with. If it was built with OpenSSL
 (``--with-openssl``), then it supports DNSSEC. Below is an example
-of the output from running ``named -V``:
+of the output from running :option:`named -V`:
 
 ::
 

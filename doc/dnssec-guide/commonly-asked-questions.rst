@@ -147,7 +147,7 @@ Can I use the same key for multiple zones?
    specific key rollover requirements) get their own key pairs, while other,
    more "generic" zones can use a single key pair for easier management. Note that
    at present (mid-2020), fully automatic signing (using the ``dnssec-policy``
-   clause in your ``named`` configuration file) does not support reuse of keys
+   clause in your :iscman:`named` configuration file) does not support reuse of keys
    except when the same zone appears in multiple views (see next question).
    To use the same key for multiple zones, sign your
    zones using semi-automatic signing. Each zone wishing to use the key
@@ -164,6 +164,6 @@ How do I sign the different instances of a zone that appears in multiple views?
 
 Will there be any problems if I change the DNSSEC policy for a zone?
    If you are using fully automatic signing, no. Just change the parameters in the
-   ``dnssec-policy`` statement and reload the configuration file. ``named``
+   ``dnssec-policy`` statement and reload the configuration file. :iscman:`named`
    makes a smooth transition to the new policy, ensuring that your zone
    remains valid at all times.

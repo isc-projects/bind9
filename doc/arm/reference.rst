@@ -261,7 +261,7 @@ The following statements are supported:
         Defines a named IP address matching list, for access control and other uses.
 
     ``controls``
-        Declares control channels to be used by the ``rndc`` utility.
+        Declares control channels to be used by the :iscman:`rndc` utility.
 
     ``dnssec-policy``
         Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
@@ -291,7 +291,7 @@ The following statements are supported:
         Sets certain configuration options on a per-server basis.
 
     ``statistics-channels``
-        Declares communication channels to get access to ``named`` statistics.
+        Declares communication channels to get access to :iscman:`named` statistics.
 
     ``tls``
         Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``dhparam-file``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
@@ -361,7 +361,7 @@ The following ACLs are built-in:
 
 The ``controls`` statement declares control channels to be used by
 system administrators to manage the operation of the name server. These
-control channels are used by the ``rndc`` utility to send commands to
+control channels are used by the :iscman:`rndc` utility to send commands to
 and retrieve non-DNS results from a name server.
 
 An ``inet`` control channel is a TCP socket listening at the specified
@@ -369,7 +369,7 @@ An ``inet`` control channel is a TCP socket listening at the specified
 address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
 wildcard address; connections are accepted on any of the system's
 IPv4 addresses. To listen on the IPv6 wildcard address, use an
-``ip_addr`` of ``::``. If ``rndc`` is only used on the local host,
+``ip_addr`` of ``::``. If :iscman:`rndc` is only used on the local host,
 using the loopback address (``127.0.0.1`` or ``::1``) is recommended for
 maximum security.
 
@@ -392,7 +392,7 @@ The primary authorization mechanism of the command channel is the
 ``key_list``, which contains a list of ``key_id``s. Each ``key_id`` in
 the ``key_list`` is authorized to execute commands over the control
 channel. See :ref:`admin_tools` for information about
-configuring keys in ``rndc``.
+configuring keys in :iscman:`rndc`.
 
 If the ``read-only`` clause is enabled, the control channel is limited
 to the following set of read-only commands: ``nta -dump``, ``null``,
@@ -400,12 +400,12 @@ to the following set of read-only commands: ``nta -dump``, ``null``,
 ``read-only`` is not enabled and the control channel allows read-write
 access.
 
-If no ``controls`` statement is present, ``named`` sets up a default
+If no ``controls`` statement is present, :iscman:`named` sets up a default
 control channel listening on the loopback address 127.0.0.1 and its IPv6
 counterpart, ::1. In this case, and also when the ``controls`` statement
-is present but does not have a ``keys`` clause, ``named`` attempts
+is present but does not have a ``keys`` clause, :iscman:`named` attempts
 to load the command channel key from the file |rndc_key|.
-To create an ``rndc.key`` file, run ``rndc-confgen -a``.
+To create an ``rndc.key`` file, run :option:`rndc-confgen -a`.
 
 To disable the command channel, use an empty ``controls`` statement:
 ``controls { };``.
@@ -459,7 +459,7 @@ match lists to verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.
 
 The ``algorithm_id`` is a string that specifies a security/authentication
-algorithm. The ``named`` server supports ``hmac-md5``, ``hmac-sha1``,
+algorithm. The :iscman:`named` server supports ``hmac-md5``, ``hmac-sha1``,
 ``hmac-sha224``, ``hmac-sha256``, ``hmac-sha384``, and ``hmac-sha512``
 TSIG authentication. Truncated hashes are supported by appending the
 minimum number of required bits preceded by a dash, e.g.,
@@ -495,7 +495,7 @@ logging configuration is:
         category unmatched { null; };
    };
 
-If ``named`` is started with the ``-L`` option, it logs to the specified
+If :iscman:`named` is started with the :option:`-L <named -L>` option, it logs to the specified
 file at startup, instead of using syslog. In this case the logging
 configuration is:
 
@@ -509,7 +509,7 @@ configuration is:
 The logging configuration is only established when the entire
 configuration file has been parsed. When the server starts up, all
 logging messages regarding syntax errors in the configuration file go to
-the default channels, or to standard error if the ``-g`` option was
+the default channels, or to standard error if the :option:`-g <named -g>` option was
 specified.
 
 .. _channel:
@@ -525,7 +525,7 @@ whether messages selected for the channel go to a file, go to a particular
 syslog facility, go to the standard error stream, or are discarded. The definition can
 optionally also limit the message severity level that is accepted
 by the channel (the default is ``info``), and whether to include a
-``named``-generated time stamp, the category name, and/or the severity level
+:iscman:`named`-generated time stamp, the category name, and/or the severity level
 (the default is not to include any).
 
 The ``null`` destination clause causes all messages sent to the channel
@@ -540,7 +540,7 @@ many backup versions of the file are saved each time this happens
 (``suffix``).
 
 The ``size`` option is used to limit log file growth. If the file ever
-exceeds the specified size, then ``named`` stops writing to the file
+exceeds the specified size, then :iscman:`named` stops writing to the file
 unless it has a ``versions`` option associated with it. If backup
 versions are kept, the files are rolled as described below. If there is
 no ``versions`` option, no more data is written to the log until
@@ -597,7 +597,7 @@ also determine what eventually passes through. For example, defining a
 channel facility and severity as ``daemon`` and ``debug``, but only
 logging ``daemon.warning`` via ``syslog.conf``, causes messages of
 severity ``info`` and ``notice`` to be dropped. If the situation were
-reversed, with ``named`` writing messages of only ``warning`` or higher,
+reversed, with :iscman:`named` writing messages of only ``warning`` or higher,
 then ``syslogd`` would print all messages it received from the channel.
 
 The ``stderr`` destination clause directs the channel to the server's
@@ -608,8 +608,8 @@ configuration, for example.
 The server can supply extensive debugging information when it is in
 debugging mode. If the server's global debug level is greater than zero,
 debugging mode is active. The global debug level is set either
-by starting the ``named`` server with the ``-d`` flag followed by a
-positive integer, or by running ``rndc trace``. The global debug level
+by starting the :iscman:`named` server with the :option:`-d <named -d>` flag followed by a
+positive integer, or by running :option:`rndc trace`. The global debug level
 can be set to zero, and debugging mode turned off, by running ``rndc
 notrace``. All debugging messages in the server have a debug level;
 higher debug levels give more detailed output. Channels that specify a
@@ -651,8 +651,8 @@ order: time, category, severity. Here is an example where all three
 If ``buffered`` has been turned on, the output to files is not
 flushed after each log entry. By default all log messages are flushed.
 
-There are four predefined channels that are used for ``named``'s default
-logging, as follows. If ``named`` is started with the ``-L`` option, then a fifth
+There are four predefined channels that are used for :iscman:`named`'s default
+logging, as follows. If :iscman:`named` is started with the :option:`-L <named -L>` option, then a fifth
 channel, ``default_logfile``, is added. How they are used is described in
 :ref:`the_category_phrase`.
 
@@ -699,12 +699,12 @@ The ``default_debug`` channel has the special property that it only
 produces output when the server's debug level is non-zero. It normally
 writes to a file called ``named.run`` in the server's working directory.
 
-For security reasons, when the ``-u`` command-line option is used, the
-``named.run`` file is created only after ``named`` has changed to the
-new UID, and any debug output generated while ``named`` is starting -
+For security reasons, when the :option:`-u <named -u>` command-line option is used, the
+``named.run`` file is created only after :iscman:`named` has changed to the
+new UID, and any debug output generated while :iscman:`named` is starting -
 and still running as root - is discarded. To capture this
-output, run the server with the ``-L`` option to specify a
-default logfile, or the ``-g`` option to log to standard error which can
+output, run the server with the :option:`-L <named -L>` option to specify a
+default logfile, or the :option:`-g <named -g>` option to log to standard error which can
 be redirected to a file.
 
 Once a channel is defined, it cannot be redefined. The
@@ -726,7 +726,7 @@ default category is specified, the following "default default" is used:
 
    category default { default_syslog; default_debug; };
 
-If ``named`` is started with the ``-L`` option, the default category
+If :iscman:`named` is started with the :option:`-L <named -L>` option, the default category
 is:
 
 ::
@@ -902,7 +902,7 @@ where ``tls-configuration-name`` refers to a previously defined
 ``options`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the grammar of the ``options`` statement in the ``named.conf``
+This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
 
 .. include:: ../misc/options.grammar.rst
@@ -930,7 +930,7 @@ default is used.
    statements, in which case it overrides the global ``attach-cache``
    option.
 
-   The ``cache_name`` specifies the cache to be shared. When the ``named``
+   The ``cache_name`` specifies the cache to be shared. When the :iscman:`named`
    server configures views which are supposed to share a cache, it
    creates a cache with the specified name for the first view of these
    sharing views. The rest of the views simply refer to the
@@ -985,7 +985,7 @@ default is used.
    the working directory defaults to ``"."``, the directory from
    which the server was started. The directory specified should be an
    absolute path, and *must* be writable by the effective user ID of the
-   ``named`` process.
+   :iscman:`named` process.
 
    The option takes effect only at the time that the configuration
    option is parsed; if other files are being included before or after specifying the
@@ -1028,13 +1028,13 @@ default is used.
         resolver query;
       };
 
-   Logged ``dnstap`` messages can be parsed using the ``dnstap-read``
+   Logged ``dnstap`` messages can be parsed using the :iscman:`dnstap-read`
    utility (see :ref:`man_dnstap-read` for details).
 
    For more information on ``dnstap``, see http://dnstap.info.
 
    The fstrm library has a number of tunables that are exposed in
-   ``named.conf``, and can be modified if necessary to improve
+   :iscman:`named.conf`, and can be modified if necessary to improve
    performance or prevent loss of data. These are:
 
    -  ``fstrm-set-buffer-hint``: The threshold number of bytes to
@@ -1097,8 +1097,8 @@ default is used.
    rolling.
 
    ``dnstap-output`` can only be set globally in ``options``. Currently,
-   it can only be set once while ``named`` is running; once set, it
-   cannot be changed by ``rndc reload`` or ``rndc reconfig``.
+   it can only be set once while :iscman:`named` is running; once set, it
+   cannot be changed by :option:`rndc reload` or :option:`rndc reconfig`.
 
 ``dnstap-identity``
    This specifies an ``identity`` string to send in ``dnstap`` messages. If
@@ -1111,7 +1111,7 @@ default is used.
    ``none``, no version string is sent.
 
 ``geoip-directory``
-   When ``named`` is compiled using the MaxMind GeoIP2 geolocation API, this
+   When :iscman:`named` is compiled using the MaxMind GeoIP2 geolocation API, this
    specifies the directory containing GeoIP database files.  By default, the
    option is set based on the prefix used to build the ``libmaxminddb`` module;
    for example, if the library is installed in ``/usr/local/lib``, then the
@@ -1126,16 +1126,16 @@ default is used.
    ``bind.keys``, ``rndc.key``, or ``session.key``.)
 
 ``lmdb-mapsize``
-   When ``named`` is built with liblmdb, this option sets a maximum size
+   When :iscman:`named` is built with liblmdb, this option sets a maximum size
    for the memory map of the new-zone database (NZD) in LMDB database
    format. This database is used to store configuration information for
-   zones added using ``rndc addzone``. Note that this is not the NZD
+   zones added using :option:`rndc addzone`. Note that this is not the NZD
    database file size, but the largest size that the database may grow
    to.
 
    Because the database file is memory-mapped, its size is limited by
-   the address space of the ``named`` process. The default of 32 megabytes
-   was chosen to be usable with 32-bit ``named`` builds. The largest
+   the address space of the :iscman:`named` process. The default of 32 megabytes
+   was chosen to be usable with 32-bit :iscman:`named` builds. The largest
    permitted value is 1 terabyte. Given typical zone configurations
    without elaborate ACLs, a 32 MB NZD file ought to be able to hold
    configurations of about 100,000 zones.
@@ -1145,9 +1145,9 @@ default is used.
    keys (i.e., those configured using the ``initial-key`` or ``initial-ds``
    keywords in a ``trust-anchors`` statement). By default, this is the working
    directory. The directory *must* be writable by the effective user ID of the
-   ``named`` process.
+   :iscman:`named` process.
 
-   If ``named`` is not configured to use views, managed keys for
+   If :iscman:`named` is not configured to use views, managed keys for
    the server are tracked in a single file called
    ``managed-keys.bind``. Otherwise, managed keys are tracked in
    separate files, one file per view; each file name is the view
@@ -1162,7 +1162,7 @@ default is used.
 
 ``max-ixfr-ratio``
    This sets the size threshold (expressed as a percentage of the size
-   of the full zone) beyond which ``named`` chooses to use an AXFR
+   of the full zone) beyond which :iscman:`named` chooses to use an AXFR
    response rather than IXFR when answering zone transfer requests. See
    :ref:`incremental_zone_transfers`.
 
@@ -1171,10 +1171,10 @@ default is used.
 
 ``new-zones-directory``
    This specifies the directory in which to store the configuration
-   parameters for zones added via ``rndc addzone``. By default, this is
+   parameters for zones added via :option:`rndc addzone`. By default, this is
    the working directory. If set to a relative path, it is relative
    to the working directory. The directory *must* be writable by the
-   effective user ID of the ``named`` process.
+   effective user ID of the :iscman:`named` process.
 
 ``qname-minimization``
    This option controls QNAME minimization behavior in the BIND
@@ -1224,7 +1224,7 @@ default is used.
 
 ``dump-file``
    This is the pathname of the file the server dumps the database to, when
-   instructed to do so with ``rndc dumpdb``. If not specified, the
+   instructed to do so with :option:`rndc dumpdb`. If not specified, the
    default is ``named_dump.db``.
 
 ``memstatistics-file``
@@ -1232,16 +1232,16 @@ default is used.
    on exit. If not specified, the default is ``named.memstats``.
 
 ``lock-file``
-   This is the pathname of a file on which ``named`` attempts to acquire a
+   This is the pathname of a file on which :iscman:`named` attempts to acquire a
    file lock when starting for the first time; if unsuccessful, the
    server terminates, under the assumption that another server
    is already running. If not specified, the default is
    ``none``.
 
    Specifying ``lock-file none`` disables the use of a lock file.
-   ``lock-file`` is ignored if ``named`` was run using the ``-X``
+   ``lock-file`` is ignored if :iscman:`named` was run using the :option:`-X <named -X>`
    option, which overrides it. Changes to ``lock-file`` are ignored if
-   ``named`` is being reloaded or reconfigured; it is only effective
+   :iscman:`named` is being reloaded or reconfigured; it is only effective
    when the server is first started.
 
 ``pid-file``
@@ -1255,28 +1255,28 @@ default is used.
 
 ``recursing-file``
    This is the pathname of the file where the server dumps the queries that are
-   currently recursing, when instructed to do so with ``rndc recursing``.
+   currently recursing, when instructed to do so with :option:`rndc recursing`.
    If not specified, the default is ``named.recursing``.
 
 ``statistics-file``
    This is the pathname of the file the server appends statistics to, when
-   instructed to do so using ``rndc stats``. If not specified, the
+   instructed to do so using :option:`rndc stats`. If not specified, the
    default is ``named.stats`` in the server's current directory. The
    format of the file is described in :ref:`statsfile`.
 
 ``bindkeys-file``
    This is the pathname of a file to override the built-in trusted keys provided
-   by ``named``. See the discussion of ``dnssec-validation`` for
+   by :iscman:`named`. See the discussion of ``dnssec-validation`` for
    details. If not specified, the default is |bind_keys|.
 
 ``secroots-file``
    This is the pathname of the file the server dumps security roots to, when
-   instructed to do so with ``rndc secroots``. If not specified, the
+   instructed to do so with :option:`rndc secroots`. If not specified, the
    default is ``named.secroots``.
 
 ``session-keyfile``
    This is the pathname of the file into which to write a TSIG session key
-   generated by ``named`` for use by ``nsupdate -l``. If not specified,
+   generated by :iscman:`named` for use by ``nsupdate -l``. If not specified,
    the default is |session_key|. (See :ref:`dynamic_update_policies`,
    and in particular the discussion of the ``update-policy`` statement's
    ``local`` option, for more information about this feature.)
@@ -1413,14 +1413,14 @@ default is used.
 
 ``dnssec-must-be-secure``
    This specifies hierarchies which must be or may not be secure (signed and
-   validated). If ``yes``, then ``named`` only accepts answers if
+   validated). If ``yes``, then :iscman:`named` only accepts answers if
    they are secure. If ``no``, then normal DNSSEC validation applies,
    allowing insecure answers to be accepted. The specified domain
    must be defined as a trust anchor, for instance in a ``trust-anchors``
    statement, or ``dnssec-validation auto`` must be active.
 
 ``dns64``
-   This directive instructs ``named`` to return mapped IPv4 addresses to
+   This directive instructs :iscman:`named` to return mapped IPv4 addresses to
    AAAA queries when there are no AAAA records. It is intended to be
    used in conjunction with a NAT64. Each ``dns64`` defines one DNS64
    prefix. Multiple DNS64 prefixes can be defined.
@@ -1501,33 +1501,33 @@ default is used.
 ``dnssec-update-mode``
    If this option is set to its default value of ``maintain`` in a zone
    of type ``primary`` which is DNSSEC-signed and configured to allow
-   dynamic updates (see :ref:`dynamic_update_policies`), and if ``named`` has access
-   to the private signing key(s) for the zone, then ``named``
+   dynamic updates (see :ref:`dynamic_update_policies`), and if :iscman:`named` has access
+   to the private signing key(s) for the zone, then :iscman:`named`
    automatically signs all new or changed records and maintains signatures
    for the zone by regenerating RRSIG records whenever they approach
    their expiration date.
 
-   If the option is changed to ``no-resign``, then ``named`` signs
+   If the option is changed to ``no-resign``, then :iscman:`named` signs
    all new or changed records, but scheduled maintenance of signatures
    is disabled.
 
-   With either of these settings, ``named`` rejects updates to a
+   With either of these settings, :iscman:`named` rejects updates to a
    DNSSEC-signed zone when the signing keys are inactive or unavailable
-   to ``named``. (A planned third option, ``external``, will disable all
+   to :iscman:`named`. (A planned third option, ``external``, will disable all
    automatic signing and allow DNSSEC data to be submitted into a zone
    via dynamic update; this is not yet implemented.)
 
 ``nta-lifetime``
    This specifies the default lifetime, in seconds, for
-   negative trust anchors added via ``rndc nta``.
+   negative trust anchors added via :option:`rndc nta`.
 
    A negative trust anchor selectively disables DNSSEC validation for
    zones that are known to be failing because of misconfiguration, rather
    than an attack. When data to be validated is at or below an active
-   NTA (and above any other configured trust anchors), ``named``
+   NTA (and above any other configured trust anchors), :iscman:`named`
    aborts the DNSSEC validation process and treats the data as insecure
    rather than bogus. This continues until the NTA's lifetime has
-   elapsed. NTAs persist across ``named`` restarts.
+   elapsed. NTAs persist across :iscman:`named` restarts.
 
    For convenience, TTL-style time-unit suffixes can be used to specify the NTA
    lifetime in seconds, minutes, or hours. It also accepts ISO 8601 duration
@@ -1537,18 +1537,18 @@ default is used.
 
 ``nta-recheck``
    This specifies how often to check whether negative trust anchors added via
-   ``rndc nta`` are still necessary.
+   :option:`rndc nta` are still necessary.
 
    A negative trust anchor is normally used when a domain has stopped
    validating due to operator error; it temporarily disables DNSSEC
    validation for that domain. In the interest of ensuring that DNSSEC
-   validation is turned back on as soon as possible, ``named``
+   validation is turned back on as soon as possible, :iscman:`named`
    periodically sends a query to the domain, ignoring negative trust
    anchors, to find out whether it can now be validated. If so, the
    negative trust anchor is allowed to expire early.
 
    Validity checks can be disabled for an individual NTA by using
-   ``rndc nta -f``, or for all NTAs by setting ``nta-recheck`` to zero.
+   :option:`rndc nta -f <rndc nta>`, or for all NTAs by setting ``nta-recheck`` to zero.
 
    For convenience, TTL-style time-unit suffixes can be used to specify the NTA
    recheck interval in seconds, minutes, or hours. It also accepts ISO 8601
@@ -1579,7 +1579,7 @@ default is used.
 
    For stale answers to be returned, they must be enabled, either in the
    configuration file using ``stale-answer-enable`` or via
-   ``rndc serve-stale on``.
+   :option:`rndc serve-stale on <rndc serve-stale>`.
 
 ``serial-update-method``
    Zones configured for dynamic DNS may use this option to set the
@@ -1611,7 +1611,7 @@ default is used.
    counters).
 
    These statistics may be accessed via the ``statistics-channel`` or
-   using ``rndc stats``, which dumps them to the file listed in the
+   using :option:`rndc stats`, which dumps them to the file listed in the
    ``statistics-file``. See also :ref:`statsfile`.
 
    For backward compatibility with earlier versions of BIND 9, the
@@ -1637,13 +1637,13 @@ Boolean Options
    support the routing sockets for this feature to work.
 
 ``allow-new-zones``
-   If ``yes``, then zones can be added at runtime via ``rndc addzone``.
+   If ``yes``, then zones can be added at runtime via :option:`rndc addzone`.
    The default is ``no``.
 
    Newly added zones' configuration parameters are stored so that they
    can persist after the server is restarted. The configuration
    information is saved in a file called ``viewname.nzf`` (or, if
-   ``named`` is compiled with liblmdb, in an LMDB database file called
+   :iscman:`named` is compiled with liblmdb, in an LMDB database file called
    ``viewname.nzd``). "viewname" is the name of the view, unless the view
    name contains characters that are incompatible with use as a file
    name, in which case a cryptographic hash of the view name is used
@@ -1651,8 +1651,8 @@ Boolean Options
 
    Configurations for zones added at runtime are stored either in
    a new-zone file (NZF) or a new-zone database (NZD), depending on
-   whether ``named`` was linked with liblmdb at compile time. See
-   :ref:`man_rndc` for further details about ``rndc addzone``.
+   whether :iscman:`named` was linked with liblmdb at compile time. See
+   :ref:`man_rndc` for further details about :option:`rndc addzone`.
 
 ``auth-nxdomain``
    If ``yes``, then the ``AA`` bit is always set on NXDOMAIN responses,
@@ -1661,8 +1661,8 @@ Boolean Options
 
 ``memstatistics``
    This writes memory statistics to the file specified by
-   ``memstatistics-file`` at exit. The default is ``no`` unless ``-m
-   record`` is specified on the command line, in which case it is ``yes``.
+   ``memstatistics-file`` at exit. The default is ``no`` unless :option:`-m
+   record <named -m>` is specified on the command line, in which case it is ``yes``.
 
 ``dialup``
    If ``yes``, then the server treats all zones as if they are doing
@@ -1856,7 +1856,7 @@ Boolean Options
    at the global options level, not per-view.
 
    ``answer-cookie no`` is intended as a temporary measure, for use when
-   ``named`` shares an IP address with other servers that do not yet
+   :iscman:`named` shares an IP address with other servers that do not yet
    support DNS COOKIE. A mismatch between servers on the same address is
    not expected to cause operational problems, but the option to disable
    COOKIE responses so that all servers have the same behavior is
@@ -1885,21 +1885,21 @@ Boolean Options
    also enabled. The default is not to return stale answers.
 
    Stale answers can also be enabled or disabled at runtime via
-   ``rndc serve-stale on`` or ``rndc serve-stale off``; these override
-   the configured setting. ``rndc serve-stale reset`` restores the
-   setting to the one specified in ``named.conf``. Note that if stale
-   answers have been disabled by ``rndc``, they cannot be
-   re-enabled by reloading or reconfiguring ``named``; they must be
-   re-enabled with ``rndc serve-stale on``, or the server must be
+   :option:`rndc serve-stale on <rndc serve-stale>` or :option:`rndc serve-stale off <rndc serve-stale>`; these override
+   the configured setting. :option:`rndc serve-stale reset <rndc serve-stale>` restores the
+   setting to the one specified in :iscman:`named.conf`. Note that if stale
+   answers have been disabled by :iscman:`rndc`, they cannot be
+   re-enabled by reloading or reconfiguring :iscman:`named`; they must be
+   re-enabled with :option:`rndc serve-stale on <rndc serve-stale>`, or the server must be
    restarted.
 
    Information about stale answers is logged under the ``serve-stale``
    log category.
 
 ``stale-answer-client-timeout``
-   This option defines the amount of time (in milliseconds) that ``named``
+   This option defines the amount of time (in milliseconds) that :iscman:`named`
    waits before attempting to answer the query with a stale RRset from cache.
-   If a stale answer is found, ``named`` continues the ongoing fetches,
+   If a stale answer is found, :iscman:`named` continues the ongoing fetches,
    attempting to refresh the RRset in cache until the
    ``resolver-query-timeout`` interval is reached.
 
@@ -1918,7 +1918,7 @@ Boolean Options
 
 ``stale-refresh-time``
    If the name servers for a given zone are not answering, this sets the time
-   window for which ``named`` will promptly return "stale" cached answers for
+   window for which :iscman:`named` will promptly return "stale" cached answers for
    that RRSet being requested before a new attempt in contacting the servers
    is made. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
@@ -1926,7 +1926,7 @@ Boolean Options
    The default ``stale-refresh-time`` is 30 seconds, as :rfc:`8767` recommends
    that attempts to refresh to be done no more frequently than every 30
    seconds. A value of zero disables the feature, meaning that normal
-   resolution will take place first, if that fails only then ``named`` will
+   resolution will take place first, if that fails only then :iscman:`named` will
    return "stale" cached answers.
 
 ``nocookie-udp-size``
@@ -1949,7 +1949,7 @@ Boolean Options
    or "aes".
 
    If there are multiple secrets specified, the first one listed in
-   ``named.conf`` is used to generate new server cookies. The others
+   :iscman:`named.conf` is used to generate new server cookies. The others
    are only used to verify returned cookies.
 
 ``response-padding``
@@ -1973,7 +1973,7 @@ Boolean Options
    of two (for instance, 128), but this is not mandatory.
 
 ``trust-anchor-telemetry``
-   This causes ``named`` to send specially formed queries once per day to
+   This causes :iscman:`named` to send specially formed queries once per day to
    domains for which trust anchors have been configured via, e.g.,
    ``trust-anchors`` or ``dnssec-validation auto``.
 
@@ -2006,7 +2006,7 @@ Boolean Options
    operating systems that causes IPv4 TCP connections, such as zone
    transfers, to be accepted on an IPv6 socket using mapped addresses.
    This caused address-match lists designed for IPv4 to fail to match.
-   However, ``named`` now solves this problem internally. The use of
+   However, :iscman:`named` now solves this problem internally. The use of
    this option is discouraged.
 
 ``ixfr-from-differences``
@@ -2035,8 +2035,8 @@ Boolean Options
 
 ``multi-master``
    This should be set when there are multiple primary servers for a zone and the
-   addresses refer to different machines. If ``yes``, ``named`` does not
-   log when the serial number on the primary is less than what ``named``
+   addresses refer to different machines. If ``yes``, :iscman:`named` does not
+   log when the serial number on the primary is less than what :iscman:`named`
    currently has. The default is ``no``.
 
 ``auto-dnssec``
@@ -2045,19 +2045,19 @@ Boolean Options
    settings:
 
    ``auto-dnssec allow;`` permits keys to be updated and the zone fully
-   re-signed whenever the user issues the command ``rndc sign zonename``.
+   re-signed whenever the user issues the command :option:`rndc sign zonename <rndc sign>`.
 
    ``auto-dnssec maintain;`` includes the above, but also
    automatically adjusts the zone's DNSSEC keys on a schedule, according
    to the keys' timing metadata (see :ref:`man_dnssec-keygen` and
-   :ref:`man_dnssec-settime`). The command ``rndc sign zonename``
-   causes ``named`` to load keys from the key repository and sign the
-   zone with all keys that are active. ``rndc loadkeys zonename``
-   causes ``named`` to load keys from the key repository and schedule
+   :ref:`man_dnssec-settime`). The command :option:`rndc sign zonename <rndc sign>`
+   causes :iscman:`named` to load keys from the key repository and sign the
+   zone with all keys that are active. :option:`rndc loadkeys zonename <rndc loadkeys>`
+   causes :iscman:`named` to load keys from the key repository and schedule
    key maintenance events to occur in the future, but it does not sign
    the full zone immediately. Note: once keys have been loaded for a
    zone the first time, the repository is searched for changes
-   periodically, regardless of whether ``rndc loadkeys`` is used. The
+   periodically, regardless of whether :option:`rndc loadkeys` is used. The
    recheck interval is defined by ``dnssec-loadkeys-interval``.
 
    ``auto-dnssec off;`` does not allow for DNSSEC key management.
@@ -2069,7 +2069,7 @@ Boolean Options
 .. _dnssec-validation-option:
 
 ``dnssec-validation``
-   This option enables DNSSEC validation in ``named``.
+   This option enables DNSSEC validation in :iscman:`named`.
 
    If set to ``auto``, DNSSEC validation is enabled and a default trust
    anchor for the DNS root zone is used.
@@ -2086,18 +2086,18 @@ Boolean Options
    ``yes``.
 
    The default root trust anchor is stored in the file ``bind.keys``.
-   ``named`` loads that key at startup if ``dnssec-validation`` is
+   :iscman:`named` loads that key at startup if ``dnssec-validation`` is
    set to ``auto``. A copy of the file is installed along with BIND 9,
    and is current as of the release date. If the root key expires, a new
    copy of ``bind.keys`` can be downloaded from
    https://www.isc.org/bind-keys.
 
    (To prevent problems if ``bind.keys`` is not found, the current trust
-   anchor is also compiled in ``named``. Relying on this is not
-   recommended, however, as it requires ``named`` to be recompiled with
+   anchor is also compiled in :iscman:`named`. Relying on this is not
+   recommended, however, as it requires :iscman:`named` to be recompiled with
    a new key when the root key expires.)
 
-   .. note:: ``named`` loads *only* the root key from ``bind.keys``. The file
+   .. note:: :iscman:`named` loads *only* the root key from ``bind.keys``. The file
          cannot be used to store keys for other zones. The root key in
          ``bind.keys`` is ignored if ``dnssec-validation auto`` is not in
          use.
@@ -2119,7 +2119,7 @@ Boolean Options
 
 ``dnssec-accept-expired``
    This accepts expired signatures when verifying DNSSEC signatures. The
-   default is ``no``. Setting this option to ``yes`` leaves ``named``
+   default is ``no``. Setting this option to ``yes`` leaves :iscman:`named`
    vulnerable to replay attacks.
 
 ``querylog``
@@ -2128,10 +2128,10 @@ Boolean Options
    cost to performance which may be significant on heavily loaded servers.
 
    The ``querylog`` option specifies whether query logging should be active when
-   ``named`` first starts.  If ``querylog`` is not specified, then query logging
+   :iscman:`named` first starts.  If ``querylog`` is not specified, then query logging
    is determined by the presence of the logging category ``queries``.  Query
    logging can also be activated at runtime using the command ``rndc querylog
-   on``, or deactivated with ``rndc querylog off``.
+   on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
 ``check-names``
    This option is used to restrict the character set and syntax of
@@ -2172,9 +2172,9 @@ Boolean Options
    that MX and SRV records refer to address (A or AAAA) records and that
    glue address records exist for delegated zones. For MX and SRV
    records, only in-zone hostnames are checked (for out-of-zone hostnames,
-   use ``named-checkzone``). For NS records, only names below top-of-zone
+   use :iscman:`named-checkzone`). For NS records, only names below top-of-zone
    are checked (for out-of-zone names and glue consistency checks, use
-   ``named-checkzone``). The default is ``yes``.
+   :iscman:`named-checkzone`). The default is ``yes``.
 
    The use of the SPF record to publish Sender Policy Framework is
    deprecated, as the migration from using TXT records to SPF records was
@@ -2219,7 +2219,7 @@ Boolean Options
    the KSK bit set) are only used to sign the DNSKEY RRset at the zone
    apex. However, if this option is set to ``no``, then the KSK bit is
    ignored; KSKs are treated as if they were ZSKs and are used to sign
-   the entire zone. This is similar to the ``dnssec-signzone -z``
+   the entire zone. This is similar to the :option:`dnssec-signzone -z`
    command-line option.
 
    When this option is set to ``yes``, there must be at least two active
@@ -2234,7 +2234,7 @@ Boolean Options
    used to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
    Zone-signing keys (keys without the KSK bit set) are used to sign
    the remainder of the zone, but not the DNSKEY RRset. This is similar
-   to the ``dnssec-signzone -x`` command-line option.
+   to the :option:`dnssec-signzone -x` command-line option.
 
    The default is ``yes``. If ``update-check-ksk`` is set to ``no``, this
    option is ignored.
@@ -2257,7 +2257,7 @@ Boolean Options
 
    Note that if a zone has been configured with ``auto-dnssec maintain``
    and the private keys remain accessible in the key repository,
-   the zone will be automatically signed again the next time ``named``
+   the zone will be automatically signed again the next time :iscman:`named`
    is started.
 
 ``synth-from-dnssec``
@@ -2317,7 +2317,7 @@ on the host machine.
    able to resolve the name using only the transport it has. If the
    machine is dual-stacked, the ``dual-stack-servers`` parameter has no
    effect unless access to a transport has been disabled on the command
-   line (e.g., ``named -4``).
+   line (e.g., :option:`named -4`).
 
 .. _access_control:
 
@@ -2393,7 +2393,7 @@ for details on how to specify IP address lists.
    ``allow-recursion-on`` is not set, then ``allow-query-cache-on`` is
    used if set; otherwise, the default is to allow recursive queries on
    all addresses. Any client permitted to send recursive queries can
-   send them to any address on which ``named`` is listening. Note: both
+   send them to any address on which :iscman:`named` is listening. Note: both
    ``allow-recursion`` and ``allow-recursion-on`` must be satisfied
    before recursion is allowed; a client that is blocked by one cannot
    be allowed by the other.
@@ -2471,7 +2471,7 @@ for details on how to specify IP address lists.
 
 ``no-case-compress``
    This specifies a list of addresses which require responses to use
-   case-insensitive compression. This ACL can be used when ``named``
+   case-insensitive compression. This ACL can be used when :iscman:`named`
    needs to work with clients that do not comply with the requirement in
    :rfc:`1034` to use case-insensitive name comparisons when checking for
    matching domain names.
@@ -2493,7 +2493,7 @@ for details on how to specify IP address lists.
    Case-insensitive compression is *always* used in AXFR and IXFR
    responses, regardless of whether the client matches this ACL.
 
-   There are circumstances in which ``named`` does not preserve the case
+   There are circumstances in which :iscman:`named` does not preserve the case
    of owner names of records: if a zone file defines records of
    different types with the same name, but the capitalization of the
    name is different (e.g., "www.example.com/A" and
@@ -2537,16 +2537,16 @@ The server listens on all interfaces allowed by the address match list.
 If no ``listen-on-v6`` is specified, the default is to listen for standard
 DNS queries on port 53 of all IPv6 interfaces.
 
-If a TLS configuration is specified, ``named`` will listen for DNS-over-TLS
+If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
 (DoT) connections, using the key and certificate specified in the
 referenced ``tls`` statement. If the name ``ephemeral`` is used,
 an ephemeral key and certificate created for the currently running
-``named`` process will be used.
+:iscman:`named` process will be used.
 
-If an HTTP configuration is specified, ``named`` will listen for
+If an HTTP configuration is specified, :iscman:`named` will listen for
 DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
 referenced ``http`` statement.  If the name ``default`` is used, then
-``named`` will listen for connections at the default endpoint,
+:iscman:`named` will listen for connections at the default endpoint,
 ``/dns-query``.
 
 Use of an ``http`` specification requires ``tls`` to be specified
@@ -2631,9 +2631,9 @@ are:
    query-source-v6 address * port *;
 
 If ``use-v4-udp-ports`` or ``use-v6-udp-ports`` is unspecified,
-``named`` checks whether the operating system provides a programming
+:iscman:`named` checks whether the operating system provides a programming
 interface to retrieve the system's default range for ephemeral ports. If
-such an interface is available, ``named`` uses the corresponding
+such an interface is available, :iscman:`named` uses the corresponding
 system default range; otherwise, it uses its own defaults:
 
 ::
@@ -2653,15 +2653,15 @@ options are:
    desirable size depends on several parameters, but we generally recommend
    it contain at least 16384 ports (14 bits of entropy). Note also that the
    system's default range when used may be too small for this purpose, and
-   that the range may even be changed while ``named`` is running; the new
-   range is automatically applied when ``named`` is reloaded. Explicit
+   that the range may even be changed while :iscman:`named` is running; the new
+   range is automatically applied when :iscman:`named` is reloaded. Explicit
    configuration of ``use-v4-udp-ports`` and ``use-v6-udp-ports`` is encouraged,
    so that the ranges are sufficiently large and are reasonably
    independent from the ranges used by other applications.
 
-.. note:: The operational configuration where ``named`` runs may prohibit
+.. note:: The operational configuration where :iscman:`named` runs may prohibit
    the use of some ports. For example, Unix systems do not allow
-   ``named``, if run without root privilege, to use ports less than 1024.
+   :iscman:`named`, if run without root privilege, to use ports less than 1024.
    If such ports are included in the specified (or detected) set of query
    ports, the corresponding query attempts will fail, resulting in
    resolution failures or delay. It is therefore important to configure the
@@ -2881,11 +2881,11 @@ determined. For example, with the following configuration:
    use-v6-udp-ports { range 32768 65535; };
    avoid-v6-udp-ports { 40000; range 50000 60000; };
 
-UDP ports of IPv6 messages sent from ``named`` are in one of the
+UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
 following ranges: 32768 to 39999, 40001 to 49999, and 60001 to 65535.
 
 ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports`` can be used to prevent
-``named`` from choosing as its random source port a port that is blocked
+:iscman:`named` from choosing as its random source port a port that is blocked
 by a firewall or a port that is used by other applications; if a
 query went out with a source port blocked by a firewall, the answer
 would not pass through the firewall and the name server would have to query
@@ -2988,13 +2988,13 @@ system.
 ``clients-per-query``; ``max-clients-per-query``
    These set the initial value (minimum) and maximum number of recursive
    simultaneous clients for any given query (<qname,qtype,qclass>) that
-   the server accepts before dropping additional clients. ``named``
+   the server accepts before dropping additional clients. :iscman:`named`
    attempts to self-tune this value and changes are logged. The
    default values are 10 and 100.
 
    This value should reflect how many queries come in for a given name
    in the time it takes to resolve that name. If the number of queries
-   exceeds this value, ``named`` assumes that it is dealing with a
+   exceeds this value, :iscman:`named` assumes that it is dealing with a
    non-responsive zone and drops additional queries. If it gets a
    response after dropping queries, it raises the estimate. The
    estimate is then lowered in 20 minutes if it has remained
@@ -3031,7 +3031,7 @@ system.
    default is zero.
 
    The current list of active fetches can be dumped by running
-   ``rndc recursing``. The list includes the number of active fetches
+   :option:`rndc recursing`. The list includes the number of active fetches
    for each domain and the number of queries that have been passed
    (allowed) or dropped (spilled) as a result of the ``fetches-per-zone``
    limit. (Note: these counters are not cumulative over time;
@@ -3100,7 +3100,7 @@ system.
    :ref:`attach-cache <attach-cache>` option is used).
 
    When the amount of data in a cache database reaches the configured
-   limit, ``named`` starts purging non-expired records (following an
+   limit, :iscman:`named` starts purging non-expired records (following an
    LRU-based strategy).
 
    The default size limit for each individual cache is:
@@ -3132,7 +3132,7 @@ system.
    On systems where detection of the amount of physical memory is not
    supported, percentage-based values fall back to ``unlimited``. Note
    that the amount of physical memory available is only detected on
-   startup, so ``named`` does not adjust the cache size limits if the
+   startup, so :iscman:`named` does not adjust the cache size limits if the
    amount of physical memory is changed at runtime.
 
 ``tcp-listen-queue``
@@ -3151,7 +3151,7 @@ system.
    minimum are adjusted with a logged warning. (Note: this value
    must be greater than the expected round-trip delay time; otherwise, no
    client will ever have enough time to submit a message.) This value
-   can be updated at runtime by using ``rndc tcp-timeouts``.
+   can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-idle-timeout``
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
@@ -3161,7 +3161,7 @@ system.
    second). Values above the maximum or below the minimum are
    adjusted with a logged warning. See ``tcp-keepalive-timeout`` for
    clients using the EDNS TCP keepalive option. This value can be
-   updated at runtime by using ``rndc tcp-timeouts``.
+   updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-keepalive-timeout``
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
@@ -3172,7 +3172,7 @@ system.
    adjusted with a logged warning. This value may be greater than
    ``tcp-idle-timeout`` because clients using the EDNS TCP keepalive
    option are expected to use TCP connections for more than one message.
-   This value can be updated at runtime by using ``rndc tcp-timeouts``.
+   This value can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 ``tcp-advertised-timeout``
    This sets the timeout value (in units of 100 milliseconds) that the server sends
@@ -3182,7 +3182,7 @@ system.
    and the minimum is 0, which signals that the clients must close TCP
    connections immediately. Ordinarily this should be set to the same
    value as ``tcp-keepalive-timeout``. This value can be updated at
-   runtime by using ``rndc tcp-timeouts``.
+   runtime by using :option:`rndc tcp-timeouts`.
 
 .. _intervals:
 
@@ -3350,7 +3350,7 @@ The legal values for ``<ordering>`` are:
     long as the database is not modified.
 
 The default RRset order used depends on whether any ``rrset-order``
-statements are present in the configuration file used by ``named``:
+statements are present in the configuration file used by :iscman:`named`:
 
   - If no ``rrset-order`` statement is present in the configuration
     file, the implicit default is to return all records in ``random``
@@ -3467,7 +3467,7 @@ Tuning
    For stale answers to be returned, the retaining of them in cache must be
    enabled via the configuration option ``stale-cache-enable``, and returning
    cached answers must be enabled, either in the configuration file using the
-   ``stale-answer-enable`` option or by calling ``rndc serve-stale on``.
+   ``stale-answer-enable`` option or by calling :option:`rndc serve-stale on <rndc serve-stale>`.
 
    When ``stale-cache-enable`` is set to ``no``, setting the ``max-stale-ttl``
    has no effect, the value of ``max-cache-ttl`` will be ``0`` in such case.
@@ -3481,10 +3481,10 @@ Tuning
 
 ``sig-validity-interval``
    this specifies the upper bound of the number of days that RRSIGs
-   generated by ``named`` are valid; the default is ``30`` days,
+   generated by :iscman:`named` are valid; the default is ``30`` days,
    with a maximum of 3660 days (10 years). The optional second value
    specifies the minimum bound on those RRSIGs and also determines
-   how long before expiry ``named`` starts regenerating those RRSIGs.
+   how long before expiry :iscman:`named` starts regenerating those RRSIGs.
    The default value for the lower bound is 1/4 of the upper bound;
    it is expressed in days if the upper bound is greater than 7,
    and hours if it is less than or equal to 7 days.
@@ -3532,15 +3532,15 @@ Tuning
    This parameter may be removed in a future version,
    once there is a standard type.
 
-   Signing-state records are used internally by ``named`` to track
+   Signing-state records are used internally by :iscman:`named` to track
    the current state of a zone-signing process, i.e., whether it is
    still active or has been completed. The records can be inspected
-   using the command ``rndc signing -list zone``. Once ``named`` has
+   using the command :option:`rndc signing -list zone <rndc signing>`. Once :iscman:`named` has
    finished signing a zone with a particular key, the signing-state
    record associated with that key can be removed from the zone by
-   running ``rndc signing -clear keyid/algorithm zone``. To clear all of
+   running :option:`rndc signing -clear keyid/algorithm zone <rndc signing>`. To clear all of
    the completed signing-state records for a zone, use
-   ``rndc signing -clear all zone``.
+   :option:`rndc signing -clear all zone <rndc signing>`.
 
 ``min-refresh-time``; ``max-refresh-time``; ``min-retry-time``; ``max-retry-time``
    These options control the server's behavior on refreshing a zone
@@ -3570,7 +3570,7 @@ Tuning
    fragmented packets and/or block UDP DNS packets that are greater than
    512 bytes.
 
-   When ``named`` first queries a remote server, it advertises a UDP
+   When :iscman:`named` first queries a remote server, it advertises a UDP
    buffer size of 1232.
 
    Query timeouts observed for any given server affect the buffer size
@@ -3578,7 +3578,7 @@ Tuning
    dropping patterns, the query is retried over TCP.  Per-server EDNS statistics
    are only retained in memory for the lifetime of a given server's ADB entry.
 
-   The ``named`` now sets the DON'T FRAGMENT flag on outgoing UDP packets.
+   The :iscman:`named` now sets the DON'T FRAGMENT flag on outgoing UDP packets.
    According to the measurements done by multiple parties this should not be
    causing any operational problems as most of the Internet "core" is able to
    cope with IP message sizes between 1400-1500 bytes, the 1232 size was picked
@@ -3592,7 +3592,7 @@ Tuning
    the above rules.
 
 ``max-udp-size``
-   This sets the maximum EDNS UDP message size that ``named`` sends, in bytes.
+   This sets the maximum EDNS UDP message size that :iscman:`named` sends, in bytes.
    Valid values are 512 to 4096; values outside this range are
    silently adjusted to the nearest value within it. The default value
    is 1232.
@@ -3614,15 +3614,15 @@ Tuning
    for details).  The default value is ``text``, which is the standard
    textual representation, except for secondary zones, in which the default
    value is ``raw``. Files in formats other than ``text`` are typically
-   expected to be generated by the ``named-compilezone`` tool, or dumped by
-   ``named``.
+   expected to be generated by the :iscman:`named-compilezone` tool, or dumped by
+   :iscman:`named`.
 
    Note that when a zone file in a format other than ``text`` is loaded,
-   ``named`` may omit some of the checks which are performed for a file in
+   :iscman:`named` may omit some of the checks which are performed for a file in
    ``text`` format. For example, ``check-names`` only applies when loading
    zones in ``text`` format, and ``max-zone-ttl`` only applies to ``text``
    and ``raw``.  Zone files in binary formats should be generated with the
-   same check level as that specified in the ``named`` configuration file.
+   same check level as that specified in the :iscman:`named` configuration file.
 
    When configured in ``options``, this statement sets the
    ``masterfile-format`` for all zones, but it can be overridden on a
@@ -3673,7 +3673,7 @@ Tuning
 
 ``prefetch``
    When a query is received for cached data which is to expire shortly,
-   ``named`` can refresh the data from the authoritative server
+   :iscman:`named` can refresh the data from the authoritative server
    immediately, ensuring that the cache always has an answer available.
 
    ``prefetch`` specifies the "trigger" TTL value at which prefetch
@@ -3687,7 +3687,7 @@ Tuning
    An optional second argument specifies the "eligibility" TTL: the
    smallest *original* TTL value that is accepted for a record to
    be eligible for prefetching. The eligibility TTL must be at least six
-   seconds longer than the trigger TTL; if not, ``named``
+   seconds longer than the trigger TTL; if not, :iscman:`named`
    silently adjusts it upward. The default eligibility TTL is ``9``.
 
 ``v6-bias``
@@ -3762,7 +3762,7 @@ that matches all clients.
    type ``TXT`` and class ``CHAOS``. The primary purpose of such queries is
    to identify which of a group of anycast servers is actually answering
    the queries. Specifying ``server-id none;`` disables processing of
-   the queries. Specifying ``server-id hostname;`` causes ``named``
+   the queries. Specifying ``server-id hostname;`` causes :iscman:`named`
    to use the hostname as found by the ``gethostname()`` function. The
    default ``server-id`` is ``none``.
 
@@ -3771,7 +3771,7 @@ that matches all clients.
 Built-in Empty Zones
 ^^^^^^^^^^^^^^^^^^^^
 
-The ``named`` server has some built-in empty zones, for SOA and NS records
+The :iscman:`named` server has some built-in empty zones, for SOA and NS records
 only. These are for zones that should normally be answered locally and for
 which queries should not be sent to the Internet's root servers. The
 official servers that cover these namespaces return NXDOMAIN responses
@@ -4095,7 +4095,7 @@ Five policy triggers can be encoded in RPZ records.
    ``nsdname-enable`` phrase turns NSDNAME triggers off or on for a single
    policy zone or for all zones.
 
-   If authoritative name servers for the query name are not yet known, ``named``
+   If authoritative name servers for the query name are not yet known, :iscman:`named`
    recursively looks up the authoritative servers for the query name before
    applying an RPZ-NSDNAME rule, which can cause a processing delay. To speed up
    processing at the cost of precision, the ``nsdname-wait-recurse`` option can
@@ -4116,7 +4116,7 @@ Five policy triggers can be encoded in RPZ records.
    exclude top-level domains. The ``nsip-enable`` phrase turns NSIP
    triggers off or on for a single policy zone or for all zones.
 
-   If a name server's IP address is not yet known, ``named``
+   If a name server's IP address is not yet known, :iscman:`named`
    recursively looks up the IP address before applying an RPZ-NSIP rule,
    which can cause a processing delay. To speed up processing at the cost
    of precision, the ``nsip-wait-recurse`` option can be used; when set
@@ -4255,7 +4255,7 @@ such as SERVFAIL to appear to be rewritten, since no recursion is being
 done to discover problems at the authoritative server.
 
 The ``dnsrps-enable yes`` option turns on the DNS Response Policy Service
-(DNSRPS) interface, if it has been compiled in ``named`` using
+(DNSRPS) interface, if it has been compiled in :iscman:`named` using
 ``configure --enable-dnsrps``.
 
 The ``dnsrps-options`` block provides additional RPZ configuration
@@ -4272,7 +4272,7 @@ DNSRPS provider from Farsight Security takes options such as
 ``dnsrpzd-conf``, ``dnsrpzd-sock``, and ``dnzrpzd-args`` (for details of
 these options, see the ``librpz`` documentation). Other RPZ
 configuration settings could be included in ``dnsrps-options`` as well,
-but if ``named`` were switched back to traditional RPZ by setting
+but if :iscman:`named` were switched back to traditional RPZ by setting
 ``dnsrps-enable`` to "no", those options would be ignored.
 
 The TTL of a record modified by RPZ policies is set from the TTL of the
@@ -4525,12 +4525,12 @@ included in ``RateSlipped`` and ``RespTruncated``.
 NXDOMAIN Redirection
 ^^^^^^^^^^^^^^^^^^^^
 
-``named`` supports NXDOMAIN redirection via two methods:
+:iscman:`named` supports NXDOMAIN redirection via two methods:
 
 -  Redirect zone (:ref:`zone_statement_grammar`)
 -  Redirect namespace
 
-With either method, when ``named`` gets an NXDOMAIN response it examines a
+With either method, when :iscman:`named` gets an NXDOMAIN response it examines a
 separate namespace to see if the NXDOMAIN response should be replaced
 with an alternative response.
 
@@ -4565,7 +4565,7 @@ redirect zone is tried first.
 The ``server`` statement defines characteristics to be associated with a
 remote name server. If a prefix length is specified, then a range of
 servers is covered. Only the most specific server clause applies,
-regardless of the order in ``named.conf``.
+regardless of the order in :iscman:`named.conf`.
 
 The ``server`` statement can occur at the top level of the configuration
 file or inside a ``view`` statement. If a ``view`` statement contains
@@ -4614,13 +4614,13 @@ use EDNS when communicating with the remote server. The default is
 ``yes``.
 
 The ``edns-udp-size`` option sets the EDNS UDP size that is advertised
-by ``named`` when querying the remote server. Valid values are 512 to
+by :iscman:`named` when querying the remote server. Valid values are 512 to
 4096 bytes; values outside this range are silently adjusted to the
 nearest value within it. This option is useful when
 advertising a different value to this server than the value advertised
 globally: for example, when there is a firewall at the remote site that
 is blocking large replies. Note: currently, this sets a single UDP size
-for all packets sent to the server; ``named`` does not deviate from this
+for all packets sent to the server; :iscman:`named` does not deviate from this
 value. This differs from the behavior of ``edns-udp-size`` in
 ``options`` or ``view`` statements, where it specifies a maximum value.
 The ``server`` statement behavior may be brought into conformance with
@@ -4638,10 +4638,10 @@ values are silently adjusted. This option is not needed until
 higher EDNS versions than 0 are in use.
 
 The ``max-udp-size`` option sets the maximum EDNS UDP message size
-``named`` sends. Valid values are 512 to 4096 bytes; values outside
+:iscman:`named` sends. Valid values are 512 to 4096 bytes; values outside
 this range are silently adjusted. This option is useful when
 there is a firewall that is blocking large replies from
-``named``.
+:iscman:`named`.
 
 The ``padding`` option adds EDNS Padding options to outgoing messages,
 increasing the packet size to a multiple of the specified block size.
@@ -4706,7 +4706,7 @@ an NSID EDNS option to requests sent to the server. This overrides
 
 The ``send-cookie`` clause determines whether the local server adds
 a COOKIE EDNS option to requests sent to the server. This overrides
-``send-cookie`` set at the view or option level. The ``named`` server
+``send-cookie`` set at the view or option level. The :iscman:`named` server
 may determine that COOKIE is not supported by the remote server and not
 add a COOKIE EDNS option to requests.
 
@@ -4746,11 +4746,11 @@ If no port is specified, port 80 is used for HTTP channels. The asterisk
 Attempts to open a statistics channel are restricted by the
 optional ``allow`` clause. Connections to the statistics channel are
 permitted based on the ``address_match_list``. If no ``allow`` clause is
-present, ``named`` accepts connection attempts from any address; since
+present, :iscman:`named` accepts connection attempts from any address; since
 the statistics may contain sensitive internal information, it is highly
 recommended to restrict the source of connection requests appropriately.
 
-If no ``statistics-channels`` statement is present, ``named`` does not
+If no ``statistics-channels`` statement is present, :iscman:`named` does not
 open any communication channels.
 
 The statistics are available in various formats and views, depending on
@@ -4793,11 +4793,11 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 
 The ``tls`` statement is used to configure a TLS connection; this
 configuration can then be referenced by a ``listen-on`` or ``listen-on-v6``
-statement to cause ``named`` to listen for incoming requests via TLS,
+statement to cause :iscman:`named` to listen for incoming requests via TLS,
 or in the ``primaries`` statement for a zone of type ``secondary`` to
 cause zone transfer requests to be sent via TLS.
 
-``tls`` can only be set at the top level of ``named.conf``.
+``tls`` can only be set at the top level of :iscman:`named.conf`.
 
 The following options can be specified in a ``tls`` statement:
 
@@ -4880,7 +4880,7 @@ the remote virtual machine or server might be not). These files do
 not contain any sensitive data and can be shared if required.
 
 There are two built-in TLS connection configurations: ``ephemeral``,
-uses a temporary key and certificate created for the current ``named``
+uses a temporary key and certificate created for the current :iscman:`named`
 session only, and ``none``, which can be used when setting up an HTTP
 listener with no encryption.
 
@@ -4897,9 +4897,9 @@ listener with no encryption.
 The ``http`` statement is used to configure HTTP endpoints on which
 to listen for DNS-over-HTTPS (DoH) queries. This configuration can
 then be referenced by a ``listen-on`` or ``listen-on-v6`` statement to
-cause ``named`` to listen for incoming requests over HTTPS.
+cause :iscman:`named` to listen for incoming requests over HTTPS.
 
-``http`` can only be set at the top level of ``named.conf``.
+``http`` can only be set at the top level of :iscman:`named.conf`.
 
 The following options can be specified in an ``http`` statement:
 
@@ -4959,7 +4959,7 @@ has been validated and proven secure.
 
 The resolver attempts DNSSEC validation on all DNS data in subdomains of
 configured trust anchors. Validation below specified names can be
-temporarily disabled by using ``rndc nta``, or permanently disabled with
+temporarily disabled by using :option:`rndc nta`, or permanently disabled with
 the ``validate-except`` option.
 
 All keys listed in ``trust-anchors``, and their corresponding zones, are
@@ -4967,7 +4967,7 @@ deemed to exist regardless of what parent zones say. Only keys
 configured as trust anchors are used to validate the DNSKEY RRset for
 the corresponding name. The parent's DS RRset is not used.
 
-``trust-anchors`` may be set at the top level of ``named.conf`` or within
+``trust-anchors`` may be set at the top level of :iscman:`named.conf` or within
 a view. If it is set in both places, the configurations are additive;
 keys defined at the top level are inherited by all views, but keys
 defined in a view are only used within that view.
@@ -5013,9 +5013,9 @@ the new key.
 If, however, the trust anchor had been configured using
 ``initial-key`` or ``initial-ds``
 instead, the zone owner could add a "stand-by" key to
-the zone in advance. ``named`` would store
+the zone in advance. :iscman:`named` would store
 the stand-by key, and when the original key was revoked,
-``named`` would be able to transition smoothly
+:iscman:`named` would be able to transition smoothly
 to the new key.  It would also recognize that the old key had
 been revoked and cease using that key to validate answers,
 minimizing the damage that the compromised key could do.
@@ -5025,7 +5025,7 @@ up-to-date.
 Whereas ``static-key`` and
 ``static-ds`` trust anchors continue
 to be trusted until they are removed from
-``named.conf``, an
+:iscman:`named.conf`, an
 ``initial-key`` or ``initial-ds``
 is only trusted *once*: for as long as it
 takes to load the managed key database and start the
@@ -5034,9 +5034,9 @@ takes to load the managed key database and start the
 It is not possible to mix static with initial trust anchors
 for the same domain name.
 
-The first time ``named`` runs with an
+The first time :iscman:`named` runs with an
 ``initial-key`` or ``initial-ds``
-configured in ``named.conf``, it fetches the
+configured in :iscman:`named.conf`, it fetches the
 DNSKEY RRset directly from the zone apex,
 and validates it
 using the trust anchor specified in ``trust-anchors``.
@@ -5044,14 +5044,14 @@ If the DNSKEY RRset is validly signed by a key matching
 the trust anchor, then it is used as the basis for a new
 managed-keys database.
 
-From that point on, whenever ``named`` runs, it sees the ``initial-key`` or ``initial-ds``
+From that point on, whenever :iscman:`named` runs, it sees the ``initial-key`` or ``initial-ds``
 listed in ``trust-anchors``, checks to make sure :rfc:`5011` key maintenance
 has already been initialized for the specified domain, and if so,
 simply moves on. The key specified in the ``trust-anchors`` statement is
 not used to validate answers; it is superseded by the key or keys stored
 in the managed-keys database.
 
-The next time ``named`` runs after an ``initial-key`` or ``initial-ds`` has been *removed*
+The next time :iscman:`named` runs after an ``initial-key`` or ``initial-ds`` has been *removed*
 from the ``trust-anchors`` statement (or changed to a ``static-key`` or ``static-ds``), the
 corresponding zone is removed from the managed-keys database, and
 :rfc:`5011` key maintenance is no longer used for that domain.
@@ -5069,19 +5069,19 @@ When the key database is changed, the zone is updated. As with any other
 dynamic zone, changes are written into a journal file, e.g.,
 ``managed-keys.bind.jnl`` or ``internal.mkeys.jnl``. Changes are
 committed to the primary file as soon as possible afterward,
-usually within 30 seconds. Whenever ``named`` is using
+usually within 30 seconds. Whenever :iscman:`named` is using
 automatic key maintenance, the zone file and journal file can be
 expected to exist in the working directory. (For this reason, among
 others, the working directory should be always be writable by
-``named``.)
+:iscman:`named`.)
 
-If the ``dnssec-validation`` option is set to ``auto``, ``named``
+If the ``dnssec-validation`` option is set to ``auto``, :iscman:`named`
 automatically initializes an ``initial-key`` for the root zone. The key
 that is used to initialize the key-maintenance process is stored in
 ``bind.keys``; the location of this file can be overridden with the
 ``bindkeys-file`` option. As a fallback in the event no ``bind.keys``
 can be found, the initializing key is also compiled directly into
-``named``.
+:iscman:`named`.
 
 .. _dnssec_policy_grammar:
 
@@ -5114,7 +5114,7 @@ specifying the name of the policy that should be used.
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
 and propagation delays, to prevent validation failures.  When a key
-reaches the end of its lifetime, ``named`` generates and publishes a new
+reaches the end of its lifetime, :iscman:`named` generates and publishes a new
 key automatically, then deactivates the old key and activates the new
 one; finally, the old key is retired according to a computed schedule.
 
@@ -5140,7 +5140,7 @@ tree, in the file ``doc/misc/dnssec-policy.default.conf``.)
    ``default``.
 
 If a ``dnssec-policy`` statement is modified and the server restarted or
-reconfigured, ``named`` attempts to change the policy smoothly from the
+reconfigured, :iscman:`named` attempts to change the policy smoothly from the
 old one to the new.  For example, if the key algorithm is changed, then
 a new key is generated with the new algorithm, and the old algorithm is
 retired when the existing key's lifetime ends.
@@ -5211,7 +5211,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
   ``purge-keys``
     This is the time after when DNSSEC keys that have been deleted from
     the zone can be removed from disk. If a key still determined to have
-    presence (for example in some resolver cache), ``named`` will not
+    presence (for example in some resolver cache), :iscman:`named` will not
     remove the key files.
 
     The default is ``P90D`` (90 days). Set this option to ``0`` to never
@@ -5270,7 +5270,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
     The default is to use NSEC.  The ``iterations``, ``optout`` and
     ``salt-length`` parts are optional, but if not set, the values in
     the example above are the default NSEC3 parameters. Note that you don't
-    specify a specific salt string, ``named`` will create a salt for you
+    specify a specific salt string, :iscman:`named` will create a salt for you
     of the provided salt length.
 
   ``zone-propagation-delay``
@@ -5526,7 +5526,7 @@ or ``delegation-only``.
    data is subject to DNSSEC validation before being used in answers.
    Validation is applied to the entire zone during the zone transfer
    process, and again when the zone file is loaded from disk upon
-   restarting ``named``. If validation of a new version of a mirror zone
+   restarting :iscman:`named`. If validation of a new version of a mirror zone
    fails, a retransfer is scheduled; in the meantime, the most recent
    correctly validated version of that zone is used until it either
    expires or a newer version validates correctly. If no usable zone
@@ -5542,7 +5542,7 @@ or ``delegation-only``.
 
    Mirror zones are intended to be used to set up a fast local copy of
    the root zone (see :rfc:`8806`). A default list of primary servers
-   for the IANA root zone is built into ``named``, so its mirroring can
+   for the IANA root zone is built into :iscman:`named`, so its mirroring can
    be enabled using the following configuration:
 
    ::
@@ -5561,7 +5561,7 @@ or ``delegation-only``.
    relevant zone (or view). Other, more efficient zone verification
    methods may be added in the future.
 
-   To make mirror zone contents persist between ``named`` restarts, use
+   To make mirror zone contents persist between :iscman:`named` restarts, use
    the :ref:`file <file-option>` option.
 
    Mirroring a zone other than root requires an explicit list of primary
@@ -5602,7 +5602,7 @@ or ``delegation-only``.
 
    Stub zones can be used to eliminate the need for a glue NS record in a parent
    zone, at the expense of maintaining a stub zone entry and a set of name
-   server addresses in ``named.conf``. This usage is not recommended for
+   server addresses in :iscman:`named.conf`. This usage is not recommended for
    new configurations, and BIND 9 supports it only in a limited way. If a BIND 9
    primary, serving a parent zone, has child stub
    zones configured, all the secondary servers for the parent zone also need to
@@ -5627,7 +5627,7 @@ or ``delegation-only``.
 
    The zone data is maintained in the form of NS and (if necessary) glue A or
    AAAA RRs internally, which can be seen by dumping zone databases with
-   ``rndc dumpdb -all``. The configured RRs are considered local configuration
+   :option:`rndc dumpdb -all <rndc dumpdb>`. The configured RRs are considered local configuration
    parameters rather than public data. Non-recursive queries (i.e., those
    with the RD bit off) to a static-stub zone are therefore prohibited and
    are responded to with REFUSED.
@@ -5681,9 +5681,9 @@ or ``delegation-only``.
 
    Because redirect zones are not referenced directly by name, they are not
    kept in the zone lookup table with normal primary and secondary zones. To reload
-   a redirect zone, use ``rndc reload -redirect``; to retransfer a
-   redirect zone configured as a secondary, use ``rndc retransfer -redirect``.
-   When using ``rndc reload`` without specifying a zone name, redirect
+   a redirect zone, use :option:`rndc reload -redirect <rndc reload>`; to retransfer a
+   redirect zone configured as a secondary, use :option:`rndc retransfer -redirect <rndc retransfer>`.
+   When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
 
 ``delegation-only``
@@ -5908,7 +5908,7 @@ Zone Options
 ``server-names``
    This option is only meaningful for static-stub zones. This is a list of domain names
    of name servers that act as authoritative servers of the static-stub
-   zone. These names are resolved to IP addresses when ``named``
+   zone. These names are resolved to IP addresses when :iscman:`named`
    needs to send queries to these servers. For this supplemental
    resolution to be successful, these names must not be a subdomain of the
    origin name of the static-stub zone. That is, when "example.net" is the
@@ -6029,10 +6029,10 @@ configuration error to specify both ``allow-update`` and
 ``update-policy`` at the same time.
 
 A pre-defined ``update-policy`` rule can be switched on with the command
-``update-policy local;``. ``named`` automatically
+``update-policy local;``. :iscman:`named` automatically
 generates a TSIG session key when starting and stores it in a file;
 this key can then be used by local clients to update the zone while
-``named`` is running. By default, the session key is stored in the file
+:iscman:`named` is running. By default, the session key is stored in the file
 |session_key|, the key name is "local-ddns", and the
 key algorithm is HMAC-SHA256. These values are configurable with the
 ``session-keyfile``, ``session-keyname``, and ``session-keyalg`` options,
@@ -6049,7 +6049,7 @@ name is "local-ddns", this policy is equivalent to:
 with the additional restriction that only clients connecting from the
 local system are permitted to send updates.
 
-Note that only one session key is generated by ``named``; all zones
+Note that only one session key is generated by :iscman:`named`; all zones
 configured to use ``update-policy local`` accept the same key.
 
 The command ``nsupdate -l`` implements this feature, sending requests to
@@ -6213,7 +6213,7 @@ The ruletype field has 20 values: ``name``, ``subdomain``, ``zonesub``,
         It is theoretically possible to spoof these TCP sessions.
 
 ``external``
-    This rule allows ``named`` to defer the decision of whether to allow a given update to an external daemon.
+    This rule allows :iscman:`named` to defer the decision of whether to allow a given update to an external daemon.
 
     The method of communicating with the daemon is specified in the ``identity`` field, the format of which is "``local:``\ path", where "path" is the location of a Unix-domain socket. (Currently, "local" is the only supported mechanism.)
 
@@ -6574,7 +6574,7 @@ Syntax: ``$INCLUDE`` filename [origin] [comment]
 
 This reads and processes the file ``filename`` as if it were included in the
 file at this point. The ``filename`` can be an absolute path, or a relative
-path. In the latter case it is read from ``named``'s working directory. If
+path. In the latter case it is read from :iscman:`named`'s working directory. If
 ``origin`` is specified, the file is processed with ``$ORIGIN`` set to that
 value; otherwise, the current ``$ORIGIN`` is used.
 
@@ -6699,14 +6699,14 @@ similar to that used in zone transfers. Since it does not require
 parsing text, load time is significantly reduced.
 
 For a primary server, a zone file in ``raw`` format is expected
-to be generated from a text zone file by the ``named-compilezone`` command.
+to be generated from a text zone file by the :iscman:`named-compilezone` command.
 For a secondary server or a dynamic zone, the zone file is automatically
-generated when ``named`` dumps the zone contents after zone transfer or
+generated when :iscman:`named` dumps the zone contents after zone transfer or
 when applying prior updates, if one of these formats is specified by the
 ``masterfile-format`` option.
 
 If a zone file in ``raw`` format needs manual modification, it first must
-be converted to ``text`` format by the ``named-compilezone`` command,
+be converted to ``text`` format by the :iscman:`named-compilezone` command,
 then converted back after editing.  For example:
 
 ::

@@ -81,8 +81,9 @@ class GitLabRefRole(ReferenceRole):
         raise ValueError
 
 
-def setup(_):
+def setup(app):
     roles.register_local_role('gl', GitLabRefRole(GITLAB_BASE_URL))
+    app.add_crossref_type('iscman', 'iscman', 'pair: %s; manual page')
 
 #
 # Configuration file for the Sphinx documentation builder.
