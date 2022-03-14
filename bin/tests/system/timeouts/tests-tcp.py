@@ -18,6 +18,9 @@ import time
 
 import pytest
 
+pytest.importorskip('dns', minversion='2.0.0')
+
+
 TIMEOUT = 10
 
 
@@ -32,8 +35,6 @@ def timeout():
     return time.time() + TIMEOUT
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_initial_timeout(named_port):
     #
     # The initial timeout is 2.5 seconds, so this should timeout
@@ -55,8 +56,6 @@ def test_initial_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_idle_timeout(named_port):
     #
     # The idle timeout is 5 seconds, so the third message should fail
@@ -87,8 +86,6 @@ def test_idle_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_keepalive_timeout(named_port):
     #
     # Keepalive is 7 seconds, so the third message should succeed.
@@ -118,8 +115,6 @@ def test_keepalive_timeout(named_port):
         (response, rtime) = dns.query.receive_tcp(sock, timeout())
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_pipelining_timeout(named_port):
     #
     # The pipelining should only timeout after the last message is received
@@ -156,8 +151,6 @@ def test_pipelining_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_long_axfr(named_port):
     #
     # The timers should not fire during AXFR, thus the connection should not
@@ -192,8 +185,6 @@ def test_long_axfr(named_port):
         assert soa is not None
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_send_timeout(named_port):
     import dns.query
 
@@ -222,8 +213,6 @@ def test_send_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 @pytest.mark.long
 def test_max_transfer_idle_out(named_port):
     import dns.query
@@ -259,8 +248,6 @@ def test_max_transfer_idle_out(named_port):
             assert soa is None
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 @pytest.mark.long
 def test_max_transfer_time_out(named_port):
     import dns.query

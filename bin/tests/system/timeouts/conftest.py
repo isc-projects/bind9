@@ -15,12 +15,6 @@ import pytest
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "dnspython: mark tests that need dnspython to function"
-    )
-    config.addinivalue_line(
-        "markers", "dnspython2: mark tests that need dnspython >= 2.0.0"
-    )
-    config.addinivalue_line(
         "markers", "long: mark tests that take a long time to run"
     )
 
@@ -28,27 +22,6 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config, items):
     # pylint: disable=unused-argument,unused-import,too-many-branches
     # pylint: disable=import-outside-toplevel
-
-    # Test for dnspython module
-    skip_dnspython = pytest.mark.skip(
-        reason="need dnspython module to run")
-    try:
-        import dns.query  # noqa: F401
-    except ModuleNotFoundError:
-        for item in items:
-            if "dnspython" in item.keywords:
-                item.add_marker(skip_dnspython)
-
-    # Test for dnspython >= 2.0.0 module
-    skip_dnspython2 = pytest.mark.skip(
-        reason="need dnspython >= 2.0.0 module to run")
-    try:
-        from dns.query import send_tcp  # noqa: F401
-    except ImportError:
-        for item in items:
-            if "dnspython2" in item.keywords:
-                item.add_marker(skip_dnspython2)
-
     skip_long_tests = pytest.mark.skip(
         reason="need CI_ENABLE_ALL_TESTS environment variable")
     if not os.environ.get("CI_ENABLE_ALL_TESTS"):

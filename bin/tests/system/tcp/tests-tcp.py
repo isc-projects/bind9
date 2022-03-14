@@ -19,6 +19,9 @@ import time
 
 import pytest
 
+pytest.importorskip('dns', minversion='2.0.0')
+
+
 TIMEOUT = 10
 
 
@@ -39,8 +42,6 @@ def create_socket(host, port):
     return sock
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_tcp_garbage(named_port):
     import dns.query
 
@@ -66,8 +67,6 @@ def test_tcp_garbage(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_tcp_garbage_response(named_port):
     import dns.query
     import dns.message

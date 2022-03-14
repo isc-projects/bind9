@@ -22,6 +22,8 @@ import time
 import dns.resolver
 import pytest
 
+pytest.importorskip('dns')
+
 
 def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
     """Creates a number of A queries to run in parallel
@@ -126,7 +128,6 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
             assert ret_code == 0
 
 
-@pytest.mark.dnspython
 def test_named_shutdown(named_port, control_port):
     # pylint: disable-msg=too-many-locals
     cfg_dir = os.path.join(os.getcwd(), "resolver")
