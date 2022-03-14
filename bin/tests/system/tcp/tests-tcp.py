@@ -20,13 +20,14 @@ import time
 import pytest
 
 pytest.importorskip('dns', minversion='2.0.0')
+import dns.message
+import dns.query
 
 
 TIMEOUT = 10
 
 
 def create_msg(qname, qtype):
-    import dns.message
     msg = dns.message.make_query(qname, qtype, want_dnssec=True,
                                  use_edns=0, payload=4096)
     return msg
@@ -43,8 +44,6 @@ def create_socket(host, port):
 
 
 def test_tcp_garbage(named_port):
-    import dns.query
-
     with create_socket("10.53.0.7", named_port) as sock:
 
         msg = create_msg("a.example.", "A")
@@ -68,9 +67,6 @@ def test_tcp_garbage(named_port):
 
 
 def test_tcp_garbage_response(named_port):
-    import dns.query
-    import dns.message
-
     with create_socket("10.53.0.7", named_port) as sock:
 
         msg = create_msg("a.example.", "A")
