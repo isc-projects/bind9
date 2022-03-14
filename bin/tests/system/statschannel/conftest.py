@@ -13,26 +13,6 @@ import os
 import pytest
 
 
-def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "requests: mark tests that need requests to function"
-    )
-
-
-def pytest_collection_modifyitems(config, items):
-    # pylint: disable=unused-argument,unused-import,too-many-branches
-    # pylint: disable=import-outside-toplevel
-    # Test for requests module
-    skip_requests = pytest.mark.skip(
-        reason="need requests module to run")
-    try:
-        import requests  # noqa: F401
-    except ModuleNotFoundError:
-        for item in items:
-            if "requests" in item.keywords:
-                item.add_marker(skip_requests)
-
-
 @pytest.fixture
 def statsport(request):
     # pylint: disable=unused-argument
