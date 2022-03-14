@@ -20,6 +20,8 @@ import time
 import dns.resolver
 import pytest
 
+pytest.importorskip('dns', minversion='2.0.0')
+
 
 def has_signed_apex_nsec(zone, response):
     has_nsec = False
@@ -220,8 +222,6 @@ def wait_for_log(filename, log):
     assert found
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_checkds_dspublished(named_port):
     # We create resolver instances that will be used to send queries.
     server = dns.resolver.Resolver()
@@ -302,8 +302,6 @@ def test_checkds_dspublished(named_port):
     # TBD: Check with TSIG
 
 
-@pytest.mark.dnspython
-@pytest.mark.dnspython2
 def test_checkds_dswithdrawn(named_port):
     # We create resolver instances that will be used to send queries.
     server = dns.resolver.Resolver()
