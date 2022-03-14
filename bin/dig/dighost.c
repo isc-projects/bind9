@@ -795,6 +795,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->done_as_is = lookold->done_as_is;
 	looknew->dscp = lookold->dscp;
 	looknew->rrcomments = lookold->rrcomments;
+	looknew->fuzzing = lookold->fuzzing;
+	looknew->fuzztime = lookold->fuzztime;
 
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
@@ -2436,6 +2438,11 @@ setup_lookup(dig_lookup_t *lookup) {
 		debug("initializing keys");
 		result = dns_message_setsig0key(lookup->sendmsg, sig0key);
 		check_result(result, "dns_message_setsig0key");
+	}
+
+	if (lookup->fuzzing) {
+		lookup->sendmsg->fuzzing = true;
+		lookup->sendmsg->fuzztime = lookup->fuzztime;
 	}
 
 	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);

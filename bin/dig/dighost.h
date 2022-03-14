@@ -108,10 +108,11 @@ struct dig_lookup {
 	isc_refcount_t references;
 	bool aaonly, adflag, badcookie, besteffort, cdflag, cleared, comments,
 		dns64prefix, dnssec, doing_xfr, done_as_is, ednsneg, expandaaaa,
-		expire, header_only, identify, /*%< Append an "on server <foo>"
-						  message */
-		identify_previous_line,	       /*% Prepend a "Nameserver <foo>:"
-						  message, with newline and tab */
+		expire, fuzzing, header_only, identify, /*%< Append an "on
+							   server <foo>" message
+							 */
+		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
+					   message, with newline and tab */
 		idnin, idnout, ignore, multiline, need_search, new_search,
 		noclass, nocrypto, nottl, ns_search_only, /*%< dig +nssearch,
 							     host -C */
@@ -188,6 +189,7 @@ struct dig_lookup {
 		char *tls_key_file;
 		isc_tlsctx_cache_t *tls_ctx_cache;
 	};
+	isc_stdtime_t fuzztime;
 };
 
 /*% The dig_query structure */

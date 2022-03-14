@@ -1522,8 +1522,31 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		}
 		break;
 	case 'f': /* fail */
-		FULLCHECK("fail");
-		lookup->servfail_stops = state;
+		switch (cmd[1]) {
+		case 'a':
+			FULLCHECK("fail");
+			lookup->servfail_stops = state;
+			break;
+		case 'u':
+			FULLCHECK("fuzztime");
+			lookup->fuzzing = state;
+			if (lookup->fuzzing) {
+				if (value == NULL) {
+					lookup->fuzztime = 0x622acce1;
+					break;
+				}
+				result = parse_uint(&num, value, 0xffffffff,
+						    "fuzztime");
+				if (result != ISC_R_SUCCESS) {
+					warn("Couldn't parse fuzztime");
+					goto exit_or_usage;
+				}
+				lookup->fuzztime = num;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 'h':
 		switch (cmd[1]) {
