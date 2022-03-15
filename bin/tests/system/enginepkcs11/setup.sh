@@ -25,6 +25,8 @@ PWD=$(pwd)
 copy_setports ns1/named.conf.in ns1/named.conf
 sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns1/named.args.in >ns1/named.args
 
+mkdir ns1/keys
+
 keygen() {
   type="$1"
   bits="$2"
@@ -115,6 +117,9 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
     echo_i "Add zone $alg.kasp to named.conf"
     cp $infile ${dir}/zone.${alg}.kasp.db
 
+    echo_i "Add zone $alg.split to named.conf"
+    cp $infile ${dir}/zone.${alg}.split.db
+
     echo_i "Add zone $zone to named.conf"
     cat >>"${dir}/named.conf" <<EOF
 zone "$zone" {
@@ -134,6 +139,20 @@ zone "${alg}.kasp" {
 	type primary;
 	file "zone.${alg}.kasp.db";
 	dnssec-policy "$alg";
+	allow-update { any; };
+};
+
+dnssec-policy "${alg}-split" {
+	keys {
+		ksk key-store "hsm" lifetime unlimited algorithm ${alg};
+		zsk key-store "disk" lifetime unlimited algorithm ${alg};
+	};
+};
+
+zone "${alg}.split" {
+	type primary;
+	file "zone.${alg}.split.db";
+	dnssec-policy "${alg}-split";
 	allow-update { any; };
 };
 

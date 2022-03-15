@@ -176,10 +176,11 @@ EOF
   status=$((status + ret))
 
   # Check dnssec-policy interaction.
-  zone="${alg}.kasp"
 
   # Basic checks if setup was successful (dnssec-policy).
+  zone="${alg}.kasp"
   n=$((n + 1))
+  ret=0
   ret=0
   echo_i "Test key generation was successful for $zone ($n)"
   check_keys $zone 2 || ret=1
@@ -209,11 +210,27 @@ EOF
   }
   retry_quiet 2 _dig_policy_soa || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected a SOA RRSIG record)"
+
+  # Check a dnssec-policy that uses multiple key-stores.
+  zone="${alg}.split"
+  echo_i "Test key generation was successful for $zone ($n)"
+  # Check KSK.
+  check_keys $zone 1 || ret=1
+  # Check ZSK.
+  count=$(ls keys/K*.key | grep "K${_zone}" | wc -l)
+  test "$count" -eq 1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected 1 key, got $count)"
+  status=$((status + ret))
+  ret=0
+  count=$(cat keys/K${zone}*.private | grep Engine | wc -l)
+  test "$count" -eq 0 || ret=1
+  count=$(cat keys/K${zone}*.private | grep Label | wc -l)
+  test "$count" -eq 0 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (unexpected Engine and Label in key files)"
   status=$((status + ret))
 
   # Check dnssec-keygen with dnssec-policy and key-store.
   zone="${alg}.keygen"
-
   n=$((n + 1))
   ret=0
   echo_i "Test dnssec-keygen for $zone ($n)"
