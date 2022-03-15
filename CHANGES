@@ -1,3 +1,6 @@
+5830.	[func]		Implement incremental resizing of isc_ht hash tables to
+			perform the rehashing gradually. [GL #3212]
+
 5829.	[func]		Refactor and simplify isc_timer API in preparation
 			for further refactoring on top of network manager
 			loops. [GL #3202]
