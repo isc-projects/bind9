@@ -92,6 +92,7 @@ struct keygen_ctx {
 	const char *policy;
 	const char *configfile;
 	const char *directory;
+	dns_keystore_t *keystore;
 	char *algname;
 	char *nametype;
 	char *type;
@@ -690,17 +691,27 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 		if (!ctx->quiet && show_progress) {
 			fprintf(stderr, "Generating key pair.");
+		}
+
+		if (ctx->keystore != NULL) {
+			ret = dns_keystore_keygen(ctx->keystore, name,
+						  ctx->rdclass, mctx, ctx->alg,
+						  ctx->size, flags, &key);
+		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
 					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
-			putc('\n', stderr);
-			fflush(stderr);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
 					       ctx->rdclass, NULL, mctx, &key,
 					       NULL);
+		}
+
+		if (!ctx->quiet && show_progress) {
+			putc('\n', stderr);
+			fflush(stderr);
 		}
 
 		if (ret != ISC_R_SUCCESS) {
@@ -893,6 +904,18 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	dst_key_free(&key);
 	if (prevkey != NULL) {
 		dst_key_free(&prevkey);
+	}
+}
+
+static void
+check_keystore_options(keygen_ctx_t *ctx) {
+	ctx->directory = dns_keystore_directory(ctx->keystore);
+	if (ctx->directory != NULL) {
+		isc_result_t ret = try_dir(ctx->directory);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("cannot open directory %s: %s", ctx->directory,
+			      isc_result_totext(ret));
+		}
 	}
 }
 
@@ -1331,7 +1354,10 @@ main(int argc, char **argv) {
 				ctx.ksk = dns_kasp_key_ksk(kaspkey);
 				ctx.zsk = dns_kasp_key_zsk(kaspkey);
 				ctx.lifetime = dns_kasp_key_lifetime(kaspkey);
-
+				ctx.keystore = dns_kasp_key_keystore(kaspkey);
+				if (ctx.keystore != NULL) {
+					check_keystore_options(&ctx);
+				}
 				keygen(&ctx, mctx, argc, argv);
 
 				kaspkey = ISC_LIST_NEXT(kaspkey, link);
