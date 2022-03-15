@@ -273,3 +273,24 @@ annotations_added = lines_containing(configure_added_lines, '# [pairwise: ')
 if len(switches_added) > len(annotations_added):
     fail('This merge request adds at least one new `./configure` switch that '
          'is not annotated for pairwise testing purposes.')
+
+###############################################################################
+# USER-VISIBLE LOG LEVELS
+###############################################################################
+#
+# WARN if the merge request adds new user-visible log messages (INFO or above)
+
+user_visible_log_levels = [
+    'ISC_LOG_INFO',
+    'ISC_LOG_NOTICE',
+    'ISC_LOG_WARNING',
+    'ISC_LOG_ERROR',
+    'ISC_LOG_CRITICAL',
+]
+source_added_lines = added_lines(target_branch, ['*.[ch]'])
+for log_level in user_visible_log_levels:
+    if (lines_containing(source_added_lines, log_level)):
+        warn('This merge request adds new user-visible log messages with '
+             'level INFO or above. Please double-check log levels and make '
+             'sure none of the messages added is a leftover debug message.')
+        break
