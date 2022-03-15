@@ -886,6 +886,11 @@ VIEW
   	zone-statistics ( full | terse | none | boolean );
   };
 
+ZONE
+^^^^
+
+Any of these zone statements can also be set inside the view statement.
+
 .. include:: ../../doc/misc/primary.zoneopt.rst
 .. include:: ../../doc/misc/secondary.zoneopt.rst
 .. include:: ../../doc/misc/mirror.zoneopt.rst

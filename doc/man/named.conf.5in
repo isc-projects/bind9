@@ -975,6 +975,9 @@ view string [ class ] {
 .fi
 .UNINDENT
 .UNINDENT
+.SS ZONE
+.sp
+Any of these zone statements can also be set inside the view statement.
 .INDENT 0.0
 .INDENT 3.5
 .sp
