@@ -51,6 +51,7 @@ isc_ht_destroy(isc_ht_t **htp);
  *
  * Requires:
  *\li	'ht' is a valid hashtable
+ *\li   write-lock
  *
  * Returns:
  *\li	#ISC_R_NOMEMORY		-- not enough memory to create pool
@@ -58,7 +59,7 @@ isc_ht_destroy(isc_ht_t **htp);
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
 isc_result_t
-isc_ht_add(isc_ht_t *ht, const unsigned char *key, uint32_t keysize,
+isc_ht_add(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 	   void *value);
 
 /*%
@@ -69,27 +70,29 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, uint32_t keysize,
  *
  * Requires:
  * \li	'ht' is a valid hashtable
+ * \li  read-lock
  *
  * Returns:
  * \li	#ISC_R_SUCCESS		-- success
  * \li	#ISC_R_NOTFOUND		-- key not found
  */
 isc_result_t
-isc_ht_find(const isc_ht_t *ht, const unsigned char *key, uint32_t keysize,
-	    void **valuep);
+isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
+	    const uint32_t keysize, void **valuep);
 
 /*%
  * Delete node from hashtable
  *
  * Requires:
  *\li	ht is a valid hashtable
+ *\li   write-lock
  *
  * Returns:
  *\li	#ISC_R_NOTFOUND		-- key not found
  *\li	#ISC_R_SUCCESS		-- all is well
  */
 isc_result_t
-isc_ht_delete(isc_ht_t *ht, const unsigned char *key, uint32_t keysize);
+isc_ht_delete(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize);
 
 /*%
  * Create an iterator for the hashtable; point '*itp' to it.
@@ -177,5 +180,5 @@ isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize);
  * Requires:
  *\li	'ht' is a valid hashtable
  */
-unsigned int
-isc_ht_count(isc_ht_t *ht);
+size_t
+isc_ht_count(const isc_ht_t *ht);
