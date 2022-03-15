@@ -79,6 +79,8 @@ while (<FH>) {
 	}
 }
 
+my $UNDERLINE;
+
 my $blank = 0;
 while (<FH>) {
 	if (m{// not.*implemented} || m{// obsolete} ||
@@ -97,7 +99,7 @@ while (<FH>) {
 	s{        }{\t}g;
 	if (m{^([a-z0-9-]+) }) {
 		my $HEADING = uc $1;
-		my $UNDERLINE = $HEADING;
+		$UNDERLINE = $HEADING;
 		$UNDERLINE =~ s/./^/g;
 		print $HEADING . "\n";
 		print $UNDERLINE . "\n\n";
@@ -122,6 +124,12 @@ while (<FH>) {
 	print "  " . $_;
 
 }
+
+print "ZONE\n";
+$UNDERLINE = "ZONE";
+$UNDERLINE =~ s/./^/g;
+print $UNDERLINE . "\n\n";
+print "Any of these zone statements can also be set inside the view statement.\n\n";
 
 print <<END;
 .. include:: ../../doc/misc/primary.zoneopt.rst
