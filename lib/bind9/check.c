@@ -505,7 +505,14 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	return (result);
 }
 
-static const unsigned char zeros[16];
+static void
+dns64_error(const cfg_obj_t *obj, isc_log_t *logctx, isc_netaddr_t *netaddr,
+	    unsigned int prefixlen, const char *message) {
+	char buf[ISC_NETADDR_FORMATSIZE + 1];
+	isc_netaddr_format(netaddr, buf, sizeof(buf));
+	cfg_obj_log(obj, logctx, ISC_LOG_ERROR, "dns64 prefix %s/%u %s", buf,
+		    prefixlen, message);
+}
 
 static isc_result_t
 check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
@@ -544,16 +551,15 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 
 		cfg_obj_asnetprefix(obj, &na, &prefixlen);
 		if (na.family != AF_INET6) {
-			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
-				    "dns64 requires a IPv6 prefix");
+			dns64_error(map, logctx, &na, prefixlen,
+				    "must be IPv6");
 			result = ISC_R_FAILURE;
 			continue;
 		}
 
 		if (na.type.in6.s6_addr[8] != 0) {
-			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
-				    "invalid prefix, bits [64..71] must be "
-				    "zero");
+			dns64_error(map, logctx, &na, prefixlen,
+				    "bits [64..71] must be zero");
 			result = ISC_R_FAILURE;
 			continue;
 		}
@@ -561,9 +567,8 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		if (prefixlen != 32 && prefixlen != 40 && prefixlen != 48 &&
 		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96)
 		{
-			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
-				    "bad prefix length %u [32/40/48/56/64/96]",
-				    prefixlen);
+			dns64_error(map, logctx, &na, prefixlen,
+				    "length is not 32/40/48/56/64/96");
 			result = ISC_R_FAILURE;
 			continue;
 		}
@@ -590,6 +595,7 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		obj = NULL;
 		(void)cfg_map_get(map, "suffix", &obj);
 		if (obj != NULL) {
+			static const unsigned char zeros[16];
 			isc_netaddr_fromsockaddr(&sa, cfg_obj_assockaddr(obj));
 			if (sa.family != AF_INET6) {
 				cfg_obj_log(map, logctx, ISC_LOG_ERROR,
