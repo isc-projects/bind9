@@ -1,3 +1,7 @@
+5836.	[bug]		Quote the dns64 prefix in error messages that complain
+			about problems with it, to avoid confusion with the
+			following dns64 ACLs. [GL #3210]
+
 5835.	[cleanup]	Remove extrahandlesize from the netmgr, the callers
 			now have to allocate the object before calling
 			isc_nm_setdata() and deallocate the memory in the close
