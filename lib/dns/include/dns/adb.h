@@ -92,7 +92,9 @@ ISC_LANG_BEGINDECLS
  *** TYPES
  ***/
 
-typedef struct dns_adbname dns_adbname_t;
+typedef struct dns_adbname	  dns_adbname_t;
+typedef struct dns_adbnamebucket  dns_adbnamebucket_t;
+typedef struct dns_adbentrybucket dns_adbentrybucket_t;
 
 /*!
  *\brief
@@ -114,13 +116,13 @@ struct dns_adbfind {
 	ISC_LINK(dns_adbfind_t) publink;      /*%< RW: client use */
 
 	/* Private */
-	isc_mutex_t    lock; /* locks all below */
-	in_port_t      port;
-	int	       name_bucket;
-	unsigned int   flags;
-	dns_adbname_t *adbname;
-	dns_adb_t	  *adb;
-	isc_event_t    event;
+	isc_mutex_t	     lock; /* locks all below */
+	in_port_t	     port;
+	dns_adbnamebucket_t *bucket;
+	unsigned int	     flags;
+	dns_adbname_t	      *adbname;
+	dns_adb_t		  *adb;
+	isc_event_t	     event;
 	ISC_LINK(dns_adbfind_t) plink;
 };
 
