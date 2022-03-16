@@ -1629,6 +1629,9 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
  * \li	'sock' is a valid TLSDNS socket.
  */
 
+void
+isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock);
+
 #if HAVE_LIBNGHTTP2
 void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,

@@ -329,7 +329,7 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
 	sock->result = ISC_R_UNSET;
-	sock->tls.ctx = sslctx;
+	isc_tlsctx_attach(sslctx, &sock->tls.ctx);
 	atomic_init(&sock->client, true);
 	atomic_init(&sock->connecting, true);
 
@@ -432,7 +432,7 @@ start_tlsdns_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->extrahandlesize = sock->extrahandlesize;
 	csock->backlog = sock->backlog;
 	csock->tid = tid;
-	csock->tls.ctx = sock->tls.ctx;
+	isc_tlsctx_attach(sock->tls.ctx, &csock->tls.ctx);
 
 	/*
 	 * We don't attach to quota, just assign - to avoid
@@ -494,7 +494,7 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->backlog = backlog;
 	sock->pquota = quota;
 
-	sock->tls.ctx = sslctx;
+	isc_tlsctx_attach(sslctx, &sock->tls.ctx);
 
 	sock->tid = 0;
 	sock->fd = -1;
@@ -1795,7 +1795,9 @@ tlsdns_stop_cb(uv_handle_t *handle) {
 	BIO_free_all(sock->tls.app_rbio);
 	BIO_free_all(sock->tls.app_wbio);
 
-	sock->tls.ctx = NULL;
+	if (sock->tls.ctx != NULL) {
+		isc_tlsctx_free(&sock->tls.ctx);
+	}
 
 	isc__nmsocket_detach(&sock);
 }
@@ -1826,7 +1828,9 @@ tlsdns_close_sock(isc_nmsocket_t *sock) {
 	BIO_free_all(sock->tls.app_rbio);
 	BIO_free_all(sock->tls.app_wbio);
 
-	sock->tls.ctx = NULL;
+	if (sock->tls.ctx != NULL) {
+		isc_tlsctx_free(&sock->tls.ctx);
+	}
 
 	isc__nmsocket_prep_destroy(sock);
 }
@@ -2097,4 +2101,15 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 
 	return (sock->tls.alpn_negotiated);
+}
+
+
+void
+isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock) {
+	if ((sock->type == isc_nm_tlsdnslistener ||
+	     sock->type == isc_nm_tlsdnssocket) &&
+	    sock->tls.ctx != NULL)
+	{
+		isc_tlsctx_free(&sock->tls.ctx);
+	}
 }
