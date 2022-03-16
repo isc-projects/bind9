@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2021 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2022 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,11 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.36</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.37</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.37">Notes for BIND 9.11.37</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.36">Notes for BIND 9.11.36</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.35">Notes for BIND 9.11.35</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes-9.11.34">Notes for BIND 9.11.34</a></span></dt>
@@ -85,7 +86,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.36</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.37</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
@@ -138,6 +139,27 @@
     license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
     https://www.isc.org/mission/contact/</a>.
   </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes-9.11.37"></a>Notes for BIND 9.11.37</h3></div></div></div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="relnotes-9.11.37-security"></a>Security Fixes</h4></div></div></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p>
+          The rules for acceptance of records into the cache have been tightened
+          to prevent the possibility of poisoning if forwarders send records
+          outside the configured bailiwick. (CVE-2021-25220)
+        </p>
+<p>
+          ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
+          Network and Information Security Lab, Tsinghua University, and
+          Changgen Zou from Qi An Xin Group Corp. for bringing this
+          vulnerability to our attention. [GL #2950]
+        </p>
+</li></ul></div>
+</div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -2294,6 +2316,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.36 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.37 (Extended Support Version)</p>
 </body>
 </html>

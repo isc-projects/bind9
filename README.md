@@ -425,6 +425,11 @@ BIND 9.11.35 is a maintenance release.
 BIND 9.11.36 is a maintenance release, and also addresses the security
 vulnerability disclosed in CVE-2021-25219.
 
+#### BIND 9.11.37
+
+BIND 9.11.37 is a maintenance release, and also addresses the security
+vulnerability disclosed in CVE-2021-25220.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,

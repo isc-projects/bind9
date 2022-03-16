@@ -1,3 +1,10 @@
+	--- 9.11.37 released ---
+
+5817.	[security]	The rules for acceptance of records into the cache
+			have been tightened to prevent the possibility of
+			poisoning if forwarders send records outside
+			the configured bailiwick. (CVE-2021-25220) [GL #2950]
+
 	--- 9.11.36 released ---
 
 5736.	[security]	The "lame-ttl" option is now forcibly set to 0. This
