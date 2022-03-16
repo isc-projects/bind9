@@ -760,7 +760,7 @@ The following are the available categories and brief descriptions of the
 types of log information they contain. More categories may be added in
 future BIND releases.
 
-.. include:: logging-categories.rst
+.. include:: logging-categories.inc.rst
 
 .. _query_errors:
 

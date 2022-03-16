@@ -9,29 +9,4 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-*************************************
-BIND 9 Administrator Reference Manual
-*************************************
-
-.. toctree::
-   :numbered:
-   :maxdepth: 2
-
-   chapter1
-   chapter2
-   configuration
-   reference
-   advanced
-   security
-   troubleshooting
-   
-.. toctree::
-   :caption: Appendices
-   :name: appendices
-   :maxdepth: 2
-
-   notes
-   dnssec-guide
-   history
-   general
-   manpages
+.. include:: introduction.inc.rst

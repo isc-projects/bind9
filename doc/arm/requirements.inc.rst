@@ -70,5 +70,3 @@ much memory or CPU power as in the first alternative, but this has the
 disadvantage of making many more external queries, as none of the name
 servers share their cached data.
 
-.. include:: platforms.rst
-.. include:: build.rst

@@ -2,29 +2,32 @@ include $(top_srcdir)/Makefile.top
 include $(top_srcdir)/Makefile.docs
 
 EXTRA_DIST =					\
-	conf.py					\
-	isc-logo.pdf				\
 	advanced.rst				\
-	build.rst				\
-	catz.rst				\
+	build.inc.rst				\
+	catz.inc.rst				\
+	chapter1.rst				\
+	chapter2.rst				\
 	configuration.rst			\
-	dlz.rst					\
+	conf.py					\
+	dlz.inc.rst				\
 	dnssec-guide.rst			\
-	dnssec.rst				\
-	dyndb.rst				\
+	dnssec.inc.rst				\
+	dyndb.inc.rst				\
 	general.rst				\
 	history.rst				\
 	index.rst				\
-	introduction.rst			\
-	logging-categories.rst			\
-	managed-keys.rst			\
+	introduction.inc.rst			\
+	isc-logo.pdf				\
+	logging-categories.inc.rst		\
+	managed-keys.inc.rst			\
 	manpages.rst				\
 	notes.rst				\
-	pkcs11.rst				\
-	platforms.rst				\
-	plugins.rst				\
+	pkcs11.inc.rst				\
+	platforms.inc.rst			\
+	plugins.inc.rst				\
 	reference.rst				\
-	requirements.rst			\
+	requirements.inc.rst			\
+	requirements.txt			\
 	security.rst				\
 	troubleshooting.rst			\
 	../dnssec-guide				\

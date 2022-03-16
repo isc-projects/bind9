@@ -779,12 +779,12 @@ according to its parent, should have been secure.
    response; parent indicates it should be secure."
 
 
-.. include:: dnssec.rst
-.. include:: managed-keys.rst
-.. include:: pkcs11.rst
-.. include:: dlz.rst
-.. include:: dyndb.rst
-.. include:: catz.rst
+.. include:: dnssec.inc.rst
+.. include:: managed-keys.inc.rst
+.. include:: pkcs11.inc.rst
+.. include:: dlz.inc.rst
+.. include:: dyndb.inc.rst
+.. include:: catz.inc.rst
 
 .. _ipv6:
 

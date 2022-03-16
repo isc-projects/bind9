@@ -312,4 +312,4 @@ described in the following table. These signals can be sent using the
 | ``SIGINT``   | Causes the server to clean up and exit.                     |
 +--------------+-------------------------------------------------------------+
 
-.. include:: plugins.rst
+.. include:: plugins.inc.rst
