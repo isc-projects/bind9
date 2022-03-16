@@ -1732,8 +1732,12 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	handle = *handlep;
 	*handlep = NULL;
 
+	/*
+	 * If the closehandle_cb is set, it needs to run asynchronously to
+	 * ensure correct ordering of the isc__nm_process_sock_buffer().
+	 */
 	sock = handle->sock;
-	if (sock->tid == isc_nm_tid()) {
+	if (sock->tid == isc_nm_tid() && sock->closehandle_cb == NULL) {
 		nmhandle_detach_cb(&handle FLARG_PASS);
 	} else {
 		isc__netievent_detach_t *event =

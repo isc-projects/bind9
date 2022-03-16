@@ -24,6 +24,28 @@
 5821.	[bug]		Fix query context management issues in the TCP part
 			of dig. [GL #3184]
 
+	--- 9.18.1 released ---
+
+5820.	[security]	An assertion could occur in resume_dslookup() if the
+			fetch had been shut down earlier. (CVE-2022-0667)
+			[GL #3129]
+
+5819.	[security]	Lookups involving a DNAME could trigger an INSIST when
+			"synth-from-dnssec" was enabled. (CVE-2022-0635)
+			[GL #3158]
+
+5818.	[security]	A synchronous call to closehandle_cb() caused
+			isc__nm_process_sock_buffer() to be called recursively,
+			which in turn left TCP connections hanging in the
+			CLOSE_WAIT state blocking indefinitely when
+			out-of-order processing was disabled. (CVE-2022-0396)
+			[GL #3112]
+
+5817.	[security]	The rules for acceptance of records into the cache
+			have been tightened to prevent the possibility of
+			poisoning if forwarders send records outside
+			the configured bailiwick. (CVE-2021-25220) [GL #2950]
+
 5816.	[bug]		Make BIND compile with LibreSSL 3.5.0, as it was using
 			not very accurate pre-processor checks for using shims.
 			[GL #3172]
@@ -39,7 +61,7 @@
 			processed in a single TCP read callback. [GL #3141]
 
 5811.	[bug]		Reimplement the maximum and idle timeouts for outgoing
-			zone tranfers. [GL #1897]
+			zone transfers. [GL #1897]
 
 5809.	[bug]		Reset client TCP connection when data received cannot
 			be parsed as a valid DNS request. [GL #3149]
