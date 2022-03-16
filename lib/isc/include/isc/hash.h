@@ -16,8 +16,14 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include "isc/lang.h"
-#include "isc/types.h"
+#include <isc/assertions.h>
+#include <isc/lang.h>
+#include <isc/types.h>
+
+#define ISC_HASHSIZE(bits)  (UINT64_C(1) << (bits))
+#define ISC_HASH_OVERCOMMIT 3
+#define ISC_HASH_MIN_BITS   2U
+#define ISC_HASH_MAX_BITS   32U
 
 /***
  *** Functions
@@ -59,5 +65,27 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive);
  * Returns:
  * \li 32 or 64-bit hash value
  */
+
+/*!
+ * \brief Return a hash value of a specified number of bits
+ *
+ * This function uses Fibonacci Hashing to convert a 32 bit hash value
+ * 'val' into a smaller hash value of up to 'bits' bits. This results
+ * in better hash table distribution than the use of modulo.
+ *
+ * Requires:
+ * \li 'bits' is less than 32.
+ *
+ * Returns:
+ * \li a hash value of length 'bits'.
+ */
+#define ISC_HASH_GOLDENRATIO_32 0x61C88647
+#define isc_hash_bits32(val, bits)                                      \
+	({                                                              \
+		REQUIRE(bits <= 32U);                                   \
+		uint32_t __v = (val & 0xffff);                          \
+		__v = ((__v * ISC_HASH_GOLDENRATIO_32) >> (32 - bits)); \
+		__v;                                                    \
+	})
 
 ISC_LANG_ENDDECLS
