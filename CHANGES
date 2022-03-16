@@ -1,3 +1,7 @@
+5836.	[bug]		Quote the dns64 prefix in error messages that complain
+			about problems with it, to avoid confusion with the
+			following dns64 ACLs. [GL #3210]
+
 5834.	[cleanup]	C99 variable-length arrays are difficult to use safely,
 			so avoid them except in test code. [GL #3201]
 
