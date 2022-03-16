@@ -4,6 +4,20 @@
 			and the dnssec-policy is rejected if both roles are
 			not present for all algorithms in use. [GL #3142]
 
+	--- 9.16.27 released ---
+
+5818.	[security]	A synchronous call to closehandle_cb() caused
+			isc__nm_process_sock_buffer() to be called recursively,
+			which in turn left TCP connections hanging in the
+			CLOSE_WAIT state blocking indefinitely when
+			out-of-order processing was disabled. (CVE-2022-0396)
+			[GL #3112]
+
+5817.	[security]	The rules for acceptance of records into the cache
+			have been tightened to prevent the possibility of
+			poisoning if forwarders send records outside
+			the configured bailiwick. (CVE-2021-25220) [GL #2950]
+
 5816.	[bug]		Make BIND compile with LibreSSL 3.5.0, as it was using
 			not very accurate pre-processor checks for using shims.
 			[GL #3172]
@@ -16,7 +30,7 @@
 			in certain resolution scenarios. [GL #3147]
 
 5811.	[bug]		Reimplement the maximum and idle timeouts for outgoing
-			zone tranfers. [GL #1897]
+			zone transfers. [GL #1897]
 
 5807.	[bug]		Add a TCP "write" timer, and time out writing
 			connections after the "tcp-idle-timeout" period
