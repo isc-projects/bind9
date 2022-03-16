@@ -28,6 +28,12 @@ Security Fixes
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
   properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
 
+- Lookups involving a DNAME could trigger an assertion failure when
+  ``synth-from-dnssec`` was enabled (which is the default).
+  (CVE-2022-0635)
+
+  ISC would like to thank Vincent Levigneron from AFNIC for bringing
+  this vulnerability to our attention. :gl:`#3158`
 
 Known Issues
 ~~~~~~~~~~~~

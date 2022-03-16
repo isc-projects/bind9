@@ -3101,6 +3101,10 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	rbtdb_rdatatype_t type;
 	dns_rbtnode_t *node;
 
+	REQUIRE(search != NULL);
+	REQUIRE(search->zonecut != NULL);
+	REQUIRE(search->zonecut_rdataset != NULL);
+
 	/*
 	 * The caller MUST NOT be holding any node locks.
 	 */
@@ -4760,24 +4764,28 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 
 /*
  * Look for a potentially covering NSEC in the cache where `name`
- * is known to not exist.  This uses the auxiliary NSEC tree to find
- * the potential NSEC owner.
+ * is known not to exist.  This uses the auxiliary NSEC tree to find
+ * the potential NSEC owner. If found, we update 'foundname', 'nodep',
+ * 'rdataset' and 'sigrdataset', and return DNS_R_COVERINGNSEC.
+ * Otherwise, return ISC_R_NOTFOUND.
  */
 static isc_result_t
 find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 		  dns_dbnode_t **nodep, isc_stdtime_t now,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset) {
-	dns_fixedname_t fprefix, forigin, ftarget;
-	dns_name_t *prefix, *origin, *target;
+	dns_fixedname_t fprefix, forigin, ftarget, fixed;
+	dns_name_t *prefix = NULL, *origin = NULL;
+	dns_name_t *target = NULL, *fname = NULL;
 	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
 	isc_result_t result;
 	isc_rwlocktype_t locktype;
-	nodelock_t *lock;
+	nodelock_t *lock = NULL;
 	rbtdb_rdatatype_t matchtype, sigmatchtype;
-	rdatasetheader_t *found, *foundsig;
-	rdatasetheader_t *header, *header_next, *header_prev;
+	rdatasetheader_t *found = NULL, *foundsig = NULL;
+	rdatasetheader_t *header = NULL;
+	rdatasetheader_t *header_next = NULL, *header_prev = NULL;
 
 	/*
 	 * Look for the node in the auxilary tree.
@@ -4794,6 +4802,7 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 	prefix = dns_fixedname_initname(&fprefix);
 	origin = dns_fixedname_initname(&forigin);
 	target = dns_fixedname_initname(&ftarget);
+	fname = dns_fixedname_initname(&fixed);
 
 	locktype = isc_rwlocktype_read;
 	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
@@ -4818,15 +4827,11 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 	 * Lookup the predecessor in the main tree.
 	 */
 	node = NULL;
-	result = dns_rbt_findnode(search->rbtdb->tree, target, foundname, &node,
+	result = dns_rbt_findnode(search->rbtdb->tree, target, fname, &node,
 				  NULL, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
 	}
-
-	found = NULL;
-	foundsig = NULL;
-	header_prev = NULL;
 
 	lock = &(search->rbtdb->node_locks[node->locknum].lock);
 	NODE_LOCK(lock, locktype);
@@ -4862,6 +4867,9 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 				      locktype, sigrdataset);
 		}
 		new_reference(search->rbtdb, node, locktype);
+
+		dns_name_copy(fname, foundname);
+
 		*nodep = node;
 		result = DNS_R_COVERINGNSEC;
 	} else {
@@ -4910,6 +4918,8 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	search.need_cleanup = false;
 	search.wild = false;
 	search.zonecut = NULL;
+	search.zonecut_rdataset = NULL;
+	search.zonecut_sigrdataset = NULL;
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain);
 	search.now = now;
@@ -4928,7 +4938,14 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				  cache_zonecut_callback, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
-		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
+		/*
+		 * If dns_rbt_findnode discovered a covering DNAME skip
+		 * looking for a covering NSEC.
+		 */
+		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0 &&
+		    (search.zonecut_rdataset == NULL ||
+		     search.zonecut_rdataset->type != dns_rdatatype_dname))
+		{
 			result = find_coveringnsec(&search, name, nodep, now,
 						   foundname, rdataset,
 						   sigrdataset);
