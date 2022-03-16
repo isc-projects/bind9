@@ -65,7 +65,7 @@ test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, test_mctx, init_bits);
+	isc_ht_init(&ht, test_mctx, init_bits, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -212,7 +212,7 @@ test_ht_iterator(void) {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, test_mctx, HT_MIN_BITS);
+	isc_ht_init(&ht, test_mctx, HT_MIN_BITS, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
