@@ -1219,6 +1219,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_condition_destroy(&sock->scond);
 	isc_condition_destroy(&sock->cond);
 	isc_mutex_destroy(&sock->lock);
+	isc__nm_tlsdns_cleanup_data(sock);
 #if HAVE_LIBNGHTTP2
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
