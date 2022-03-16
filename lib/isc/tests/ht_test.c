@@ -34,6 +34,10 @@
 
 #include "isctest.h"
 
+/* INCLUDE LAST */
+
+#include "../ht.c"
+
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -56,12 +60,12 @@ _teardown(void **state) {
 }
 
 static void
-test_ht_full(int bits, uintptr_t count) {
+test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, test_mctx, bits);
+	isc_ht_init(&ht, test_mctx, init_bits);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -191,6 +195,8 @@ test_ht_full(int bits, uintptr_t count) {
 		assert_null(f);
 	}
 
+	assert_int_equal(ht->hashbits[ht->hindex], finish_bits);
+
 	isc_ht_destroy(&ht);
 	assert_null(ht);
 }
@@ -201,12 +207,12 @@ test_ht_iterator(void) {
 	isc_result_t result;
 	isc_ht_iter_t *iter = NULL;
 	uintptr_t i;
-	uintptr_t count = 10000;
+	uintptr_t count = 6300;
 	uint32_t walked;
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, test_mctx, 16);
+	isc_ht_init(&ht, test_mctx, HT_MIN_BITS);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -218,6 +224,9 @@ test_ht_iterator(void) {
 		result = isc_ht_add(ht, key, 16, (void *)i);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
+
+	/* We want to iterate while rehashing is in progress */
+	assert_true(rehashing_in_progress(ht));
 
 	walked = 0;
 	isc_ht_iter_create(ht, &iter);
@@ -298,6 +307,9 @@ test_ht_iterator(void) {
 	assert_int_equal(result, ISC_R_NOMORE);
 	assert_int_equal(walked, 0);
 
+	/* Iterator doesn't progress rehashing */
+	assert_true(rehashing_in_progress(ht));
+
 	isc_ht_iter_destroy(&iter);
 	assert_null(iter);
 
@@ -305,25 +317,25 @@ test_ht_iterator(void) {
 	assert_null(ht);
 }
 
-/* 20 bit, 200K elements test */
+/* 24 bit, 200K elements test, no rehashing */
 static void
-isc_ht_20(void **state) {
+isc_ht_24(void **state) {
 	UNUSED(state);
-	test_ht_full(20, 200000);
+	test_ht_full(24, 24, 200000);
 }
 
-/* 8 bit, 20000 elements crowded test */
+/* 15 bit, 45K elements test, full rehashing */
+static void
+isc_ht_15(void **state) {
+	UNUSED(state);
+	test_ht_full(1, 15, 48000);
+}
+
+/* 8 bit, 20k elements test, partial rehashing */
 static void
 isc_ht_8(void **state) {
 	UNUSED(state);
-	test_ht_full(8, 20000);
-}
-
-/* 8 bit, 100 elements corner case test */
-static void
-isc_ht_1(void **state) {
-	UNUSED(state);
-	test_ht_full(1, 100);
+	test_ht_full(8, 14, 20000);
 }
 
 /* test hashtable iterator */
@@ -336,9 +348,9 @@ isc_ht_iterator_test(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_ht_20),
+		cmocka_unit_test(isc_ht_24),
+		cmocka_unit_test(isc_ht_15),
 		cmocka_unit_test(isc_ht_8),
-		cmocka_unit_test(isc_ht_1),
 		cmocka_unit_test(isc_ht_iterator_test),
 	};
 
