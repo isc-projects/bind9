@@ -1,0 +1,51 @@
+.. Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+..
+.. SPDX-License-Identifier: MPL-2.0
+..
+.. This Source Code Form is subject to the terms of the Mozilla Public
+.. License, v. 2.0.  If a copy of the MPL was not distributed with this
+.. file, you can obtain one at https://mozilla.org/MPL/2.0/.
+..
+.. See the COPYRIGHT file distributed with this work for additional
+.. information regarding copyright ownership.
+
+Notes for BIND 9.18.2
+---------------------
+
+Security Fixes
+~~~~~~~~~~~~~~
+
+- None.
+
+Known Issues
+~~~~~~~~~~~~
+
+- None.
+
+New Features
+~~~~~~~~~~~~
+
+- None.
+
+Removed Features
+~~~~~~~~~~~~~~~~
+
+- None.
+
+Feature Changes
+~~~~~~~~~~~~~~~
+
+- None.
+
+Bug Fixes
+~~~~~~~~~
+
+- Invalid dnssec-policy definitions were being accepted where the
+  defined keys did not cover both KSK and ZSK roles for a given
+  algorithm.  This is now checked for and the dnssec-policy is
+  rejected if both roles are not present for all algorithms in use.
+  :gl:`#3142`
+
+- Handling of the TCP write timeouts has been improved to track timeout
+  for each TCP write separately leading to faster connection tear down
+  in case the other party is not reading the data. :gl:`#3200`
