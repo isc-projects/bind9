@@ -19,6 +19,7 @@ rm -f ns*/named.run
 rm -f ns*/named.run.prev
 rm -f ns1/*dom*example.db
 rm -f ns2/__catz__*db
+rm -f ns2/catalog-bad*.db
 rm -f ns2/named.conf.tmp
 rm -f ns3/dom2.example.db ns3/dom13.example.db ns3/dom14.example.db ns3/dom17.example.db ns3/dom18.example.db
 rm -f nsupdate.out.*

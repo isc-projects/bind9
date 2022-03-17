@@ -61,6 +61,24 @@ zone "catalog4.example" {
 	primaries { 10.53.0.1; };
 };
 
+zone "catalog-bad1.example" {
+    type secondary;
+    file "catalog-bad1.example.db";
+    primaries { 10.53.0.1; };
+};
+
+zone "catalog-bad2.example" {
+    type secondary;
+    file "catalog-bad2.example.db";
+    primaries { 10.53.0.1; };
+};
+
+zone "catalog-bad3.example" {
+    type secondary;
+    file "catalog-bad3.example.db";
+    primaries { 10.53.0.1; };
+};
+
 key tsig_key. {
 	secret "LSAnCU+Z";
 	algorithm hmac-md5;

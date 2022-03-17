@@ -80,6 +80,36 @@ wait_for_no_zonefile() (
 
 status=0
 n=0
+
+##########################################################################
+n=$((n+1))
+echo_i "checking that catalog-bad1.example (with no version) has failed to load ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: zone 'catalog-bad1.example' has no 'version' record" &&
+wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad1.example' is broken and will not be processed" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that catalog-bad2.example (with unsupported version) has failed to load ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: zone 'catalog-bad2.example' unsupported version '99'" &&
+wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad2.example' is broken and will not be processed" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that catalog-bad3.example (with two supported version records) has failed to load ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: 'version' property TXT RRset contains more than one record, which is invalid" &&
+wait_for_message ns2/named.run "catz: invalid record in catalog zone - version.catalog-bad3.example IN TXT (failure) - ignoring" &&
+wait_for_message ns2/named.run "catz: zone 'catalog-bad3.example' version is not set" &&
+wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad3.example' is broken and will not be processed" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
 ##########################################################################
 echo_i "Testing adding/removing of domain in catalog zone"
 n=$((n+1))
@@ -145,6 +175,8 @@ wait_for_zonefile "ns2/zonedir/__catz___default_catalog1.example_dom1.example.db
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+nextpart ns2/named.run >/dev/null
+
 n=$((n+1))
 echo_i "update dom1.example. ($n)"
 ret=0
@@ -176,6 +208,8 @@ test -f ns2/zonedir/__catz___default_catalog1.example_dom1.example.db.jnl || ret
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+nextpart ns2/named.run >/dev/null
+
 n=$((n+1))
 echo_i "update catalog zone serial ($n)"
 ret=0
@@ -201,6 +235,8 @@ wait_for_soa_equal_20() {
 retry_quiet 10 wait_for_soa_equal_20 || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
 
 n=$((n+1))
 echo_i "update dom1.example. again ($n)"
@@ -259,6 +295,8 @@ wait_for_no_zonefile "ns2/zonedir/__catz___default_catalog1.example_dom1.example
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+nextpart ns2/named.run >/dev/null
+
 ##########################################################################
 echo_i "Testing various simple operations on domains, including using multiple catalog zones and garbage in zone"
 n=$((n+1))
@@ -296,6 +334,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update add 636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example. 3600 IN PTR dom2.example.
+    update add coo.636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example. 3600 IN TXT "catalog2.example."
     update add b901f492f3ebf6c1e5b597e51766f02f0479eb03.zones.catalog1.example. 3600 IN PTR dom3.example.
     update add e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog1.example. 3600 IN NS foo.bar.
     update add trash.catalog1.example. 3600 IN A 1.2.3.4
@@ -322,10 +361,11 @@ END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom2.example' from catalog 'catalog1.example'" &&
+wait_for_message ns2/named.run "catz: adding zone 'dom3.example' from catalog 'catalog1.example'" &&
 wait_for_message ns2/named.run "catz: adding zone 'dom4.example' from catalog 'catalog2.example'" &&
 wait_for_message ns2/named.run "transfer of 'dom4.example/IN' from 10.53.0.1#${EXTRAPORT1}: Transfer status: success" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -337,7 +377,6 @@ ret=0
 wait_for_soa @10.53.0.2 dom4.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
-
 
 n=$((n+1))
 echo_i "checking that dom3.example. is not served by primary ($n)"
@@ -365,8 +404,6 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run "catz: adding zone 'dom2.example' from catalog 'catalog1.example'" &&
-wait_for_message ns2/named.run "catz: adding zone 'dom3.example' from catalog 'catalog1.example'" &&
 wait_for_message ns2/named.run  "transfer of 'dom2.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" &&
 wait_for_message ns2/named.run  "transfer of 'dom3.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -376,6 +413,43 @@ n=$((n+1))
 echo_i "checking that dom3.example. is served by secondary ($n)"
 ret=0
 wait_for_soa @10.53.0.2 dom3.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
+# The member zone's PTR RRset must have only one record in it.
+# Check that adding a second record to the RRset is caught and such a
+# catalog zone is not processed.
+n=$((n+1))
+echo_i "adding domain dom4-reused-label.example. to catalog2 zone, reusing a label ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.3 ${PORT}
+    update add de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example. 3600 IN PTR dom4-reused-label.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up, and checking that the reused label has been caught ($n)"
+ret=0
+wait_for_message ns2/named.run "de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example IN PTR (failure)" &&
+wait_for_message ns2/named.run "catz: new catalog zone 'catalog2.example' is broken and will not be processed" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n+1))
+echo_i "deleting domain dom4-reused-label.example. from catalog2 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.3 ${PORT}
+    update delete de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example. 3600 IN PTR dom4-reused-label.example.
+    send
+END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -615,6 +689,7 @@ ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete 636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example. 3600 IN PTR dom2.example.
+    update delete coo.636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example. 3600 IN TXT "catalog2.example."
     update delete b901f492f3ebf6c1e5b597e51766f02f0479eb03.zones.catalog1.example. 3600 IN PTR dom3.example.
     update delete e721433b6160b450260d4f54b3ec8bab30cb3b83.zones.catalog1.example. 3600 IN NS foo.bar.
     update delete trash.catalog1.example. 3600 IN A 1.2.3.4
@@ -2083,7 +2158,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run "catz: unknown record in catalog zone - primaries.dom17.zones.catalog1.example IN A(failure) - ignoring" &&
+wait_for_message ns2/named.run "catz: invalid record in catalog zone - primaries.dom17.zones.catalog1.example IN A (failure) - ignoring" &&
 wait_for_message ns2/named.run "catz: adding zone 'dom17.example' from catalog 'catalog1.example'" &&
 wait_for_message ns2/named.run "catz: adding zone 'dom18.example' from catalog 'catalog1.example'" &&
 wait_for_message ns2/named.run "transfer of 'dom17.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" &&
@@ -2174,7 +2249,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run "catz: unknown record in catalog zone - primaries.ext.dom18.zones.catalog2.example IN A(failure) - ignoring" &&
+wait_for_message ns2/named.run "catz: invalid record in catalog zone - primaries.ext.dom18.zones.catalog2.example IN A (failure) - ignoring" &&
 wait_for_message ns2/named.run "catz: adding zone 'dom17.example' from catalog 'catalog2.example'" &&
 wait_for_message ns2/named.run "catz: adding zone 'dom18.example' from catalog 'catalog2.example'" &&
 wait_for_message ns2/named.run "transfer of 'dom17.example/IN' from 10.53.0.3#${PORT}: Transfer status: success" &&
