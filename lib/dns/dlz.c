@@ -58,7 +58,9 @@
 #include <isc/commandline.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/once.h>
+#include <isc/random.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -454,7 +456,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	INSIST(dupzone == NULL);
 
 	/* Create it */
-	result = dns_zone_create(&zone, view->mctx);
+	result = dns_zone_create(&zone, view->mctx, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

@@ -81,7 +81,7 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count, isc_pooldeallocator_t free,
  */
 
 void *
-isc_pool_get(isc_pool_t *pool);
+isc_pool_get(isc_pool_t *pool, unsigned int tid);
 /*%<
  * Returns a pointer to an object from the pool. Currently the object
  * is chosen from the pool at random.

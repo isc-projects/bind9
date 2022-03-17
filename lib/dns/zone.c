@@ -234,6 +234,8 @@ struct dns_zone {
 	isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
 
+	unsigned int tid;
+
 	/* Locked */
 	dns_zonemgr_t *zmgr;
 	ISC_LINK(dns_zone_t) link; /* Used by zmgr. */
@@ -595,6 +597,7 @@ struct dns_zonemgr {
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
 	isc_nm_t *netmgr;
+	unsigned int workers;
 	atomic_uint_fast32_t nzonetasks;
 	isc_pool_t *zonetasks;
 	atomic_uint_fast32_t nloadtasks;
@@ -1103,48 +1106,50 @@ inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
  ***/
 
 isc_result_t
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_result_t result;
 	isc_time_t now;
 	dns_zone_t *zone = NULL;
-	dns_zone_t z = { .masterformat = dns_masterformat_none,
-			 .journalsize = -1,
-			 .rdclass = dns_rdataclass_none,
-			 .type = dns_zone_none,
-			 .refresh = DNS_ZONE_DEFAULTREFRESH,
-			 .retry = DNS_ZONE_DEFAULTRETRY,
-			 .maxrefresh = DNS_ZONE_MAXREFRESH,
-			 .minrefresh = DNS_ZONE_MINREFRESH,
-			 .maxretry = DNS_ZONE_MAXRETRY,
-			 .minretry = DNS_ZONE_MINRETRY,
-			 .notifytype = dns_notifytype_yes,
-			 .zero_no_soa_ttl = true,
-			 .check_names = dns_severity_ignore,
-			 .idlein = DNS_DEFAULT_IDLEIN,
-			 .idleout = DNS_DEFAULT_IDLEOUT,
-			 .notifysrc4dscp = -1,
-			 .notifysrc6dscp = -1,
-			 .parentalsrc4dscp = -1,
-			 .parentalsrc6dscp = -1,
-			 .xfrsource4dscp = -1,
-			 .xfrsource6dscp = -1,
-			 .altxfrsource4dscp = -1,
-			 .altxfrsource6dscp = -1,
-			 .maxxfrin = MAX_XFER_TIME,
-			 .maxxfrout = MAX_XFER_TIME,
-			 .sigvalidityinterval = 30 * 24 * 3600,
-			 .sigresigninginterval = 7 * 24 * 3600,
-			 .statlevel = dns_zonestat_none,
-			 .notifydelay = 5,
-			 .signatures = 10,
-			 .nodes = 100,
-			 .privatetype = (dns_rdatatype_t)0xffffU,
-			 .rpz_num = DNS_RPZ_INVALID_NUM,
-			 .requestixfr = true,
-			 .ixfr_ratio = 100,
-			 .requestexpire = true,
-			 .updatemethod = dns_updatemethod_increment,
-			 .magic = ZONE_MAGIC };
+	dns_zone_t z = {
+		.masterformat = dns_masterformat_none,
+		.journalsize = -1,
+		.rdclass = dns_rdataclass_none,
+		.type = dns_zone_none,
+		.refresh = DNS_ZONE_DEFAULTREFRESH,
+		.retry = DNS_ZONE_DEFAULTRETRY,
+		.maxrefresh = DNS_ZONE_MAXREFRESH,
+		.minrefresh = DNS_ZONE_MINREFRESH,
+		.maxretry = DNS_ZONE_MAXRETRY,
+		.minretry = DNS_ZONE_MINRETRY,
+		.notifytype = dns_notifytype_yes,
+		.zero_no_soa_ttl = true,
+		.check_names = dns_severity_ignore,
+		.idlein = DNS_DEFAULT_IDLEIN,
+		.idleout = DNS_DEFAULT_IDLEOUT,
+		.notifysrc4dscp = -1,
+		.notifysrc6dscp = -1,
+		.parentalsrc4dscp = -1,
+		.parentalsrc6dscp = -1,
+		.xfrsource4dscp = -1,
+		.xfrsource6dscp = -1,
+		.altxfrsource4dscp = -1,
+		.altxfrsource6dscp = -1,
+		.maxxfrin = MAX_XFER_TIME,
+		.maxxfrout = MAX_XFER_TIME,
+		.sigvalidityinterval = 30 * 24 * 3600,
+		.sigresigninginterval = 7 * 24 * 3600,
+		.statlevel = dns_zonestat_none,
+		.notifydelay = 5,
+		.signatures = 10,
+		.nodes = 100,
+		.privatetype = (dns_rdatatype_t)0xffffU,
+		.rpz_num = DNS_RPZ_INVALID_NUM,
+		.requestixfr = true,
+		.ixfr_ratio = 100,
+		.requestexpire = true,
+		.updatemethod = dns_updatemethod_increment,
+		.tid = tid,
+	};
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
@@ -1205,6 +1210,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS) {
 		goto free_refs;
 	}
+
+	zone->magic = ZONE_MAGIC;
 
 	/* Must be after magic is set. */
 	dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
@@ -18938,7 +18945,7 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
 	dns_zone_t *zone = NULL;
-	void *item;
+	unsigned int tid;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 	REQUIRE(zonep != NULL && *zonep == NULL);
@@ -18947,14 +18954,14 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 		return (ISC_R_FAILURE);
 	}
 
-	item = isc_pool_get(zmgr->mctxpool);
-	if (item == NULL) {
+	tid = isc_random_uniform(zmgr->workers);
+
+	mctx = isc_pool_get(zmgr->mctxpool, tid);
+	if (mctx == NULL) {
 		return (ISC_R_FAILURE);
 	}
 
-	isc_mem_attach((isc_mem_t *)item, &mctx);
-	result = dns_zone_create(&zone, mctx);
-	isc_mem_detach(&mctx);
+	result = dns_zone_create(&zone, mctx, tid);
 
 	if (result == ISC_R_SUCCESS) {
 		*zonep = zone;
@@ -18978,8 +18985,9 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_task_attach(isc_pool_get(zmgr->zonetasks), &zone->task);
-	isc_task_attach(isc_pool_get(zmgr->loadtasks), &zone->loadtask);
+	isc_task_attach(isc_pool_get(zmgr->zonetasks, zone->tid), &zone->task);
+	isc_task_attach(isc_pool_get(zmgr->loadtasks, zone->tid),
+			&zone->loadtask);
 
 	/*
 	 * Set the task name.  The tag will arbitrarily point to one
@@ -19200,6 +19208,8 @@ mctxfree(void **target) {
 static isc_result_t
 zonemgr_setsize(dns_zonemgr_t *zmgr, unsigned int workers) {
 	isc_result_t result;
+
+	zmgr->workers = workers;
 
 	/* Create the zone tasks pool. */
 	REQUIRE(zmgr->zonetasks == NULL);
@@ -23712,4 +23722,14 @@ dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t *zmgr,
 	isc_tlsctx_cache_attach(tlsctx_cache, &zmgr->tlsctx_cache);
 
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+}
+
+isc_mem_t *
+dns_zone_getmem(dns_zone_t *zone) {
+	return (zone->mctx);
+}
+
+unsigned int
+dns_zone_gettid(dns_zone_t *zone) {
+	return (zone->tid);
 }

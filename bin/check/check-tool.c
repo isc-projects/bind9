@@ -593,7 +593,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 			zonename, filename, classname);
 	}
 
-	CHECK(dns_zone_create(&zone, mctx));
+	CHECK(dns_zone_create(&zone, mctx, 0));
 
 	dns_zone_settype(zone, dns_zone_primary);
 

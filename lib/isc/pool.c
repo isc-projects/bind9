@@ -73,8 +73,10 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count,
 }
 
 void *
-isc_pool_get(isc_pool_t *pool) {
-	return (pool->pool[isc_random_uniform(pool->count)]);
+isc_pool_get(isc_pool_t *pool, unsigned int tid) {
+	REQUIRE(tid < pool->count);
+
+	return (pool->pool[tid]);
 }
 
 void

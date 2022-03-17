@@ -67,7 +67,7 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 
 	zone_argv[0] = inst->db_name;
 
-	result = dns_zone_create(&raw, inst->mctx);
+	result = dns_zone_create(&raw, inst->mctx, 0); /* FIXME */
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR, "create_zone: dns_zone_create -> %s\n",
 			  isc_result_totext(result));

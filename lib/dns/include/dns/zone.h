@@ -147,7 +147,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid);
 /*%<
  *	Creates a new empty zone and attach '*zonep' to it.
  *
@@ -2750,4 +2750,24 @@ const char *
 dns_zonetype_name(dns_zonetype_t type);
 /*%<
  * Return the name of the zone type 'type'.
+ */
+
+isc_mem_t *
+dns_zone_getmem(dns_zone_t *zone);
+/**<
+ * \brief Return memory context associated with the zone.
+ *
+ * @param zone valid dns_zone_t object.
+ *
+ * @return memory context associated with the zone
+ */
+
+unsigned int
+dns_zone_gettid(dns_zone_t *zone);
+/**<
+ * \brief Return thread-id associated with the zone.
+ *
+ * \param valid dns_zone_t object
+ *
+ * \return thread id associated with the zone
  */

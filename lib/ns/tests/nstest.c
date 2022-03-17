@@ -412,7 +412,7 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 
 	zone = *zonep;
 	if (zone == NULL) {
-		CHECK(dns_zone_create(&zone, mctx));
+		CHECK(dns_zone_create(&zone, mctx, 0));
 	}
 
 	isc_buffer_constinit(&buffer, name, strlen(name));
