@@ -256,7 +256,9 @@ isc_dir_createunique(char *templet) {
 	 */
 	for (x = templet + strlen(templet) - 1; *x == 'X' && x >= templet;
 	     x--, pid /= 10)
+	{
 		*x = pid % 10 + '0';
+	}
 
 	x++; /* Set x to start of ex-Xs. */
 

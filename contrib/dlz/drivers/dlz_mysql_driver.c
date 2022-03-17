@@ -289,7 +289,9 @@ mysql_get_resultset(const char *zone, const char *record, const char *client,
 			break;
 		}
 		for (j = 0; mysql_ping((MYSQL *)dbi->dbconn) != 0 && j < 4; j++)
+		{
 			;
+		}
 	}
 
 	if (qres == 0) {

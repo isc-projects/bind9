@@ -233,8 +233,9 @@ main(int argc, char *argv[]) {
 		perror("malloc");
 		exit(1);
 	}
-	for (i = 0; i < count; i++)
+	for (i = 0; i < count; i++) {
 		hKey[i] = CK_INVALID_HANDLE;
+	}
 
 	/* Initialize the CRYPTOKI library */
 	if (lib_name != NULL) {

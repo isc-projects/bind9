@@ -140,6 +140,7 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
 		switch (attr->type) {
 		case CKA_MODULUS:
 			INSIST(keyTemplate[6].type == attr->type);
@@ -206,6 +207,7 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 			keyTemplate[13].ulValueLen = attr->ulValueLen;
 			break;
 		}
+	}
 	pk11_ctx->object = CK_INVALID_HANDLE;
 	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
@@ -776,6 +778,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
 		switch (attr->type) {
 		case CKA_MODULUS:
 			INSIST(keyTemplate[6].type == attr->type);
@@ -842,6 +845,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 			keyTemplate[13].ulValueLen = attr->ulValueLen;
 			break;
 		}
+	}
 	pk11_ctx->object = CK_INVALID_HANDLE;
 	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
@@ -1259,6 +1263,7 @@ pkcs11rsa_destroy(dst_key_t *key) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
 		switch (attr->type) {
 		case CKA_LABEL:
 		case CKA_ID:
@@ -1278,6 +1283,7 @@ pkcs11rsa_destroy(dst_key_t *key) {
 			}
 			break;
 		}
+	}
 	if (rsa->repr != NULL) {
 		isc_safe_memwipe(rsa->repr, rsa->attrcnt * sizeof(*attr));
 		isc_mem_put(key->mctx, rsa->repr, rsa->attrcnt * sizeof(*attr));
@@ -1301,6 +1307,7 @@ pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
 		switch (attr->type) {
 		case CKA_PUBLIC_EXPONENT:
 			exponent = (CK_BYTE *)attr->pValue;
@@ -1311,6 +1318,7 @@ pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 			mod_bytes = (unsigned int)attr->ulValueLen;
 			break;
 		}
+	}
 	REQUIRE((exponent != NULL) && (modulus != NULL));
 
 	isc_buffer_availableregion(data, &r);
@@ -1440,6 +1448,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 
 	for (attr = pk11_attribute_first(rsa); attr != NULL;
 	     attr = pk11_attribute_next(rsa, attr))
+	{
 		switch (attr->type) {
 		case CKA_MODULUS:
 			modulus = attr;
@@ -1466,6 +1475,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 			iqmp = attr;
 			break;
 		}
+	}
 	if ((modulus == NULL) || (exponent == NULL)) {
 		return (DST_R_NULLKEY);
 	}

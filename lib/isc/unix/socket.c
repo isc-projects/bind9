@@ -1463,9 +1463,10 @@ dump_msg(struct msghdr *msg) {
 	printf("\tname %p, namelen %ld\n", msg->msg_name,
 	       (long)msg->msg_namelen);
 	printf("\tiov %p, iovlen %ld\n", msg->msg_iov, (long)msg->msg_iovlen);
-	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
+	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++) {
 		printf("\t\t%u\tbase %p, len %ld\n", i,
 		       msg->msg_iov[i].iov_base, (long)msg->msg_iov[i].iov_len);
+	}
 	printf("\tcontrol %p, controllen %ld\n", msg->msg_control,
 	       (long)msg->msg_controllen);
 }

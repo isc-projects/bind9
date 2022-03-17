@@ -180,6 +180,7 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	for (attr = pk11_attribute_first(ec); attr != NULL;
 	     attr = pk11_attribute_next(ec, attr))
+	{
 		switch (attr->type) {
 		case CKA_EC_PARAMS:
 			INSIST(keyTemplate[5].type == attr->type);
@@ -198,6 +199,7 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		}
+	}
 	pk11_ctx->object = CK_INVALID_HANDLE;
 	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
@@ -289,6 +291,7 @@ pkcs11eddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	for (attr = pk11_attribute_first(ec); attr != NULL;
 	     attr = pk11_attribute_next(ec, attr))
+	{
 		switch (attr->type) {
 		case CKA_EC_PARAMS:
 			INSIST(keyTemplate[5].type == attr->type);
@@ -307,6 +310,7 @@ pkcs11eddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			keyTemplate[6].ulValueLen = attr->ulValueLen;
 			break;
 		}
+	}
 	pk11_ctx->object = CK_INVALID_HANDLE;
 	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
@@ -577,6 +581,7 @@ pkcs11eddsa_destroy(dst_key_t *key) {
 
 	for (attr = pk11_attribute_first(ec); attr != NULL;
 	     attr = pk11_attribute_next(ec, attr))
+	{
 		switch (attr->type) {
 		case CKA_LABEL:
 		case CKA_ID:
@@ -586,6 +591,7 @@ pkcs11eddsa_destroy(dst_key_t *key) {
 			FREECURVE();
 			break;
 		}
+	}
 	if (ec->repr != NULL) {
 		memset(ec->repr, 0, ec->attrcnt * sizeof(*attr));
 		isc_mem_put(key->mctx, ec->repr, ec->attrcnt * sizeof(*attr));
