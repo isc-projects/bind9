@@ -6220,14 +6220,6 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 	}
 }
 static atomic_uint_fast32_t last_soft, last_hard;
-#ifdef ISC_MUTEX_ATOMICS
-static isc_once_t last_once = ISC_ONCE_INIT;
-static void
-last_init() {
-	atomic_init(&last_soft, 0);
-	atomic_init(&last_hard, 0);
-}
-#endif /* ifdef ISC_MUTEX_ATOMICS */
 
 isc_result_t
 ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
@@ -6274,9 +6266,6 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		}
 
 		if (result == ISC_R_SOFTQUOTA) {
-#ifdef ISC_MUTEX_ATOMICS
-			isc_once_do(&last_once, last_init);
-#endif /* ifdef ISC_MUTEX_ATOMICS */
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
 			if (now != atomic_load_relaxed(&last_soft)) {
@@ -6297,9 +6286,6 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			ns_client_killoldestquery(client);
 			result = ISC_R_SUCCESS;
 		} else if (result == ISC_R_QUOTA) {
-#ifdef ISC_MUTEX_ATOMICS
-			isc_once_do(&last_once, last_init);
-#endif /* ifdef ISC_MUTEX_ATOMICS */
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
 			if (now != atomic_load_relaxed(&last_hard)) {

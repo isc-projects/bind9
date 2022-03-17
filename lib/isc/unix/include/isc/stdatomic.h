@@ -47,8 +47,6 @@
 #endif /* if __has_extension(c_atomic) || __has_extension(cxx_atomic) */
 #endif /* if !defined(__CLANG_ATOMICS) && !defined(__GNUC_ATOMICS) */
 
-#define ATOMIC_VAR_INIT(x) x
-
 #ifndef __ATOMIC_RELAXED
 #define __ATOMIC_RELAXED 0
 #endif /* ifndef __ATOMIC_RELAXED */
