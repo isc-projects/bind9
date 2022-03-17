@@ -1059,12 +1059,14 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			result = dns_rdata_tostruct(&rdata, &rdata_a, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_sockaddr_fromin(&sockaddr, &rdata_a.in_addr, 0);
+			dns_rdata_freestruct(&rdata_a);
 			break;
 		case dns_rdatatype_aaaa:
 			result = dns_rdata_tostruct(&rdata, &rdata_aaaa, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_sockaddr_fromin6(&sockaddr, &rdata_aaaa.in6_addr,
 					     0);
+			dns_rdata_freestruct(&rdata_aaaa);
 			break;
 		case dns_rdatatype_txt:
 			result = dns_rdata_tostruct(&rdata, &rdata_txt, NULL);
@@ -1072,16 +1074,19 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 
 			result = dns_rdata_txt_first(&rdata_txt);
 			if (result != ISC_R_SUCCESS) {
+				dns_rdata_freestruct(&rdata_txt);
 				return (result);
 			}
 
 			result = dns_rdata_txt_current(&rdata_txt, &rdatastr);
 			if (result != ISC_R_SUCCESS) {
+				dns_rdata_freestruct(&rdata_txt);
 				return (result);
 			}
 
 			result = dns_rdata_txt_next(&rdata_txt);
 			if (result != ISC_R_NOMORE) {
+				dns_rdata_freestruct(&rdata_txt);
 				return (ISC_R_FAILURE);
 			}
 
@@ -1090,6 +1095,7 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			dns_name_init(keyname, 0);
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
+			dns_rdata_freestruct(&rdata_txt);
 			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
 				dns_name_free(keyname, mctx);
@@ -1167,16 +1173,17 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_sockaddr_fromin(&ipkl->addrs[ipkl->count],
 					    &rdata_a.in_addr, 0);
+			dns_rdata_freestruct(&rdata_a);
 		} else {
 			result = dns_rdata_tostruct(&rdata, &rdata_aaaa, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_sockaddr_fromin6(&ipkl->addrs[ipkl->count],
 					     &rdata_aaaa.in6_addr, 0);
+			dns_rdata_freestruct(&rdata_aaaa);
 		}
 		ipkl->keys[ipkl->count] = NULL;
 		ipkl->labels[ipkl->count] = NULL;
 		ipkl->count++;
-		dns_rdata_freestruct(&rdata_a);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -1418,6 +1425,7 @@ dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
 			/*
 			 * xxxwpk TODO do we want to save something from SOA?
 			 */
+			dns_rdata_freestruct(&soa);
 			return (result);
 		} else if (rdataset->type == dns_rdatatype_ns) {
 			return (ISC_R_SUCCESS);
