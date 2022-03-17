@@ -1943,11 +1943,15 @@ isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
 }
 
 void
-isc__nmsocket_writetimeout_cb(uv_timer_t *timer) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
+isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult) {
+	isc__nm_uvreq_t *req = data;
+	isc_nmsocket_t *sock = NULL;
 
-	int r = uv_timer_stop(&sock->write_timer);
-	UV_RUNTIME_CHECK(uv_timer_stop, r);
+	REQUIRE(eresult == ISC_R_TIMEDOUT);
+	REQUIRE(VALID_UVREQ(req));
+	REQUIRE(VALID_NMSOCK(req->sock));
+
+	sock = req->sock;
 
 	isc__nmsocket_reset(sock);
 }
@@ -2677,6 +2681,14 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 	nmhandle_detach_cb(&ievent->handle FLARG_PASS);
 }
 
+static void
+reset_shutdown(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+
+	isc__nmsocket_shutdown(sock);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nmsocket_reset(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -2695,15 +2707,20 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		break;
 	}
 
-	if (!uv_is_closing(&sock->uv_handle.handle)) {
+	if (!uv_is_closing(&sock->uv_handle.handle) &&
+	    uv_is_active(&sock->uv_handle.handle))
+	{
 		/*
 		 * The real shutdown will be handled in the respective
 		 * close functions.
 		 */
-		int r = uv_tcp_close_reset(&sock->uv_handle.tcp, NULL);
+		isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+		int r = uv_tcp_close_reset(&sock->uv_handle.tcp,
+					   reset_shutdown);
 		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+	} else {
+		isc__nmsocket_shutdown(sock);
 	}
-	isc__nmsocket_shutdown(sock);
 }
 
 void
@@ -2740,13 +2757,26 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 
 	switch (handle->type) {
 	case UV_UDP:
+		isc__nmsocket_shutdown(sock);
+		return;
 	case UV_TCP:
-		break;
+		switch (sock->type) {
+		case isc_nm_tcpsocket:
+		case isc_nm_tcpdnssocket:
+			if (sock->parent == NULL) {
+				/* Reset the TCP connections on shutdown */
+				isc__nmsocket_reset(sock);
+				return;
+			}
+			/* FALLTHROUGH */
+		default:
+			isc__nmsocket_shutdown(sock);
+		}
+
+		return;
 	default:
 		return;
 	}
-
-	isc__nmsocket_shutdown(sock);
 }
 
 void
@@ -3238,7 +3268,8 @@ isc_nm_timer_detach(isc_nm_timer_t **timerp) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (isc_refcount_decrement(&timer->references) == 1) {
-		uv_timer_stop(&timer->timer);
+		int r = uv_timer_stop(&timer->timer);
+		UV_RUNTIME_CHECK(uv_timer_stop, r);
 		uv_close((uv_handle_t *)&timer->timer, timer_destroy);
 	}
 }
