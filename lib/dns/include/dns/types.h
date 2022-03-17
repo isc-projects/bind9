@@ -42,6 +42,7 @@ typedef struct dns_byaddr	       dns_byaddr_t;
 typedef struct dns_catz_zonemodmethods dns_catz_zonemodmethods_t;
 typedef struct dns_catz_entry_options  dns_catz_options_t;
 typedef struct dns_catz_entry	       dns_catz_entry_t;
+typedef struct dns_catz_coo	       dns_catz_coo_t;
 typedef struct dns_catz_zone	       dns_catz_zone_t;
 typedef struct dns_catz_changed	       dns_catz_changed_t;
 typedef struct dns_catz_zones	       dns_catz_zones_t;

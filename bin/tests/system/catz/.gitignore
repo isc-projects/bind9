@@ -10,6 +10,7 @@
 /ns2/catalog*.example.db
 
 /ns1/*dom*.example.db
+/ns3/dom2.example.db
 /ns3/dom13.example.db
 /ns3/dom14.example.db
 /ns3/dom17.example.db

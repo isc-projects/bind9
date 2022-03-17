@@ -35,12 +35,23 @@
 #define DNS_CATZ_ZONE_MAGIC  ISC_MAGIC('c', 'a', 't', 'z')
 #define DNS_CATZ_ZONES_MAGIC ISC_MAGIC('c', 'a', 't', 's')
 #define DNS_CATZ_ENTRY_MAGIC ISC_MAGIC('c', 'a', 't', 'e')
+#define DNS_CATZ_COO_MAGIC   ISC_MAGIC('c', 'a', 't', 'c')
 
 #define DNS_CATZ_ZONE_VALID(catz)   ISC_MAGIC_VALID(catz, DNS_CATZ_ZONE_MAGIC)
 #define DNS_CATZ_ZONES_VALID(catzs) ISC_MAGIC_VALID(catzs, DNS_CATZ_ZONES_MAGIC)
 #define DNS_CATZ_ENTRY_VALID(entry) ISC_MAGIC_VALID(entry, DNS_CATZ_ENTRY_MAGIC)
+#define DNS_CATZ_COO_VALID(coo)	    ISC_MAGIC_VALID(coo, DNS_CATZ_COO_MAGIC)
 
 #define DNS_CATZ_VERSION_UNDEFINED ((uint32_t)(-1))
+
+/*%
+ * Change of ownership permissions
+ */
+struct dns_catz_coo {
+	unsigned int magic;
+	dns_name_t name;
+	isc_refcount_t refs;
+};
 
 /*%
  * Single member zone in a catalog
@@ -62,6 +73,9 @@ struct dns_catz_zone {
 	dns_rdata_t soa;
 	/* key in entries is 'mhash', not domain name! */
 	isc_ht_t *entries;
+	/* key in coos is domain name */
+	isc_ht_t *coos;
+
 	/*
 	 * defoptions are taken from named.conf
 	 * zoneoptions are global options from zone
@@ -206,6 +220,43 @@ dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 
 	/* This option is always taken from config, so it's always 'default' */
 	opts->in_memory = defaults->in_memory;
+}
+
+static void
+catz_coo_new(isc_mem_t *mctx, const dns_name_t *domain,
+	     dns_catz_coo_t **ncoop) {
+	dns_catz_coo_t *ncoo;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(domain != NULL);
+	REQUIRE(ncoop != NULL && *ncoop == NULL);
+
+	ncoo = isc_mem_get(mctx, sizeof(dns_catz_coo_t));
+	dns_name_init(&ncoo->name, NULL);
+	dns_name_dup(domain, mctx, &ncoo->name);
+	isc_refcount_init(&ncoo->refs, 1);
+	ncoo->magic = DNS_CATZ_COO_MAGIC;
+	*ncoop = ncoo;
+}
+
+static void
+catz_coo_detach(dns_catz_zone_t *zone, dns_catz_coo_t **coop) {
+	dns_catz_coo_t *coo;
+
+	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
+	REQUIRE(coop != NULL && DNS_CATZ_COO_VALID(*coop));
+	coo = *coop;
+	*coop = NULL;
+
+	if (isc_refcount_decrement(&coo->refs) == 1) {
+		isc_mem_t *mctx = zone->catzs->mctx;
+		coo->magic = 0;
+		isc_refcount_destroy(&coo->refs);
+		if (dns_name_dynamic(&coo->name)) {
+			dns_name_free(&coo->name, mctx);
+		}
+		isc_mem_put(mctx, coo, sizeof(dns_catz_coo_t));
+	}
 }
 
 void
@@ -418,6 +469,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	     result = delcur ? isc_ht_iter_delcurrent_next(iter1)
 			     : isc_ht_iter_next(iter1))
 	{
+		isc_result_t zt_find_result;
 		dns_catz_entry_t *nentry = NULL;
 		dns_catz_entry_t *oentry = NULL;
 		dns_zone_t *zone = NULL;
@@ -449,6 +501,53 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					    &target->zoneoptions,
 					    &nentry->opts);
 
+		/* Try to find the zone in the view */
+		zt_find_result = dns_zt_find(target->catzs->view->zonetable,
+					     dns_catz_entry_getname(nentry), 0,
+					     NULL, &zone);
+		if (zt_find_result == ISC_R_SUCCESS) {
+			dns_catz_zone_t *parentcatz = NULL;
+			dns_catz_coo_t *coo = NULL;
+			char pczname[DNS_NAME_FORMATSIZE];
+
+			/*
+			 * Change of ownership (coo) processing, if required
+			 */
+			parentcatz = dns_zone_get_parentcatz(zone);
+			if (parentcatz != NULL && parentcatz != target &&
+			    isc_ht_find(parentcatz->coos, nentry->name.ndata,
+					nentry->name.length,
+					(void **)&coo) == ISC_R_SUCCESS &&
+			    dns_name_equal(&coo->name, &target->name))
+			{
+				dns_name_format(&parentcatz->name, pczname,
+						DNS_NAME_FORMATSIZE);
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_DEBUG(3),
+					      "catz: zone '%s' "
+					      "change of ownership from "
+					      "'%s' to '%s'",
+					      zname, pczname, czname);
+				result = delzone(nentry, parentcatz,
+						 parentcatz->catzs->view,
+						 parentcatz->catzs->taskmgr,
+						 parentcatz->catzs->zmm->udata);
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_INFO,
+					      "catz: deleting zone '%s' "
+					      "from catalog '%s' - %s",
+					      zname, pczname,
+					      isc_result_totext(result));
+			}
+		}
+		if (zt_find_result == ISC_R_SUCCESS ||
+		    zt_find_result == DNS_R_PARTIALMATCH) {
+			dns_zone_detach(&zone);
+		}
+
+		/* Try to find the zone in the old catalog zone */
 		result = isc_ht_find(target->entries, key, (uint32_t)keysize,
 				     (void **)&oentry);
 		if (result != ISC_R_SUCCESS) {
@@ -458,10 +557,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 			continue;
 		}
 
-		result = dns_zt_find(target->catzs->view->zonetable,
-				     dns_catz_entry_getname(nentry), 0, NULL,
-				     &zone);
-		if (result != ISC_R_SUCCESS) {
+		if (zt_find_result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
 				      "catz: zone '%s' was expected to exist "
@@ -472,7 +568,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					      czname);
 			continue;
 		}
-		dns_zone_detach(&zone);
 
 		if (dns_catz_entry_cmp(oentry, nentry) != true) {
 			catz_entry_add_or_mod(target, tomod, key, keysize,
@@ -554,6 +649,33 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	target->entries = newzone->entries;
 	newzone->entries = NULL;
 
+	/*
+	 * We do not need to merge old coo (change of ownership) permission
+	 * records with the new ones, just replace them.
+	 */
+	if (target->coos != NULL && newzone->coos != NULL) {
+		isc_ht_iter_t *iter = NULL;
+
+		isc_ht_iter_create(target->coos, &iter);
+		for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
+		     result = isc_ht_iter_delcurrent_next(iter))
+		{
+			dns_catz_coo_t *coo = NULL;
+
+			isc_ht_iter_current(iter, (void **)&coo);
+			catz_coo_detach(target, &coo);
+		}
+		INSIST(result == ISC_R_NOMORE);
+		isc_ht_iter_destroy(&iter);
+
+		/* The hashtable has to be empty now. */
+		INSIST(isc_ht_count(target->coos) == 0);
+		isc_ht_destroy(&target->coos);
+
+		target->coos = newzone->coos;
+		newzone->coos = NULL;
+	}
+
 	result = ISC_R_SUCCESS;
 
 	isc_ht_iter_destroy(&iteradd);
@@ -633,6 +755,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	dns_name_dup(name, catzs->mctx, &new_zone->name);
 
 	isc_ht_init(&new_zone->entries, catzs->mctx, 4, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&new_zone->coos, catzs->mctx, 4, ISC_HT_CASE_INSENSITIVE);
 
 	new_zone->updatetimer = NULL;
 	isc_timer_create(catzs->timermgr, catzs->updater,
@@ -766,6 +889,26 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 			INSIST(isc_ht_count(zone->entries) == 0);
 			isc_ht_destroy(&zone->entries);
 		}
+		if (zone->coos != NULL) {
+			isc_ht_iter_t *iter = NULL;
+			isc_result_t result;
+			isc_ht_iter_create(zone->coos, &iter);
+			for (result = isc_ht_iter_first(iter);
+			     result == ISC_R_SUCCESS;
+			     result = isc_ht_iter_delcurrent_next(iter))
+			{
+				dns_catz_coo_t *coo = NULL;
+
+				isc_ht_iter_current(iter, (void **)&coo);
+				catz_coo_detach(zone, &coo);
+			}
+			INSIST(result == ISC_R_NOMORE);
+			isc_ht_iter_destroy(&iter);
+
+			/* The hashtable has to be empty now. */
+			INSIST(isc_ht_count(zone->coos) == 0);
+			isc_ht_destroy(&zone->coos);
+		}
 		zone->magic = 0;
 		isc_timer_destroy(&zone->updatetimer);
 		if (zone->db_registered) {
@@ -826,6 +969,7 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 typedef enum {
 	CATZ_OPT_NONE,
 	CATZ_OPT_ZONES,
+	CATZ_OPT_COO,
 	CATZ_OPT_VERSION,
 	CATZ_OPT_CUSTOM_START, /* CATZ custom properties must go below this */
 	CATZ_OPT_EXT,
@@ -859,6 +1003,8 @@ catz_get_option(const dns_label_t *option) {
 		return (CATZ_OPT_ALLOW_QUERY);
 	} else if (catz_opt_cmp(option, "allow-transfer")) {
 		return (CATZ_OPT_ALLOW_TRANSFER);
+	} else if (catz_opt_cmp(option, "coo")) {
+		return (CATZ_OPT_COO);
 	} else if (catz_opt_cmp(option, "version")) {
 		return (CATZ_OPT_VERSION);
 	} else {
@@ -894,6 +1040,80 @@ catz_process_zones(dns_catz_zone_t *zone, dns_rdataset_t *value,
 		return (catz_process_zones_suboption(zone, value, &mhash,
 						     &opt));
 	}
+}
+
+static isc_result_t
+catz_process_coo(dns_catz_zone_t *zone, dns_label_t *mhash,
+		 dns_rdataset_t *value) {
+	isc_result_t result;
+	dns_rdata_t rdata;
+	dns_rdata_ptr_t ptr;
+	dns_catz_entry_t *entry = NULL;
+	dns_catz_coo_t *ncoo = NULL;
+	dns_catz_coo_t *ocoo = NULL;
+
+	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
+	REQUIRE(mhash != NULL);
+	REQUIRE(DNS_RDATASET_VALID(value));
+
+	/* Change of Ownership was introduced in version "2" of the schema. */
+	if (zone->version < 2) {
+		return (ISC_R_FAILURE);
+	}
+
+	if (value->rdclass != dns_rdataclass_in ||
+	    value->type != dns_rdatatype_ptr) {
+		return (ISC_R_FAILURE);
+	}
+
+	result = dns_rdataset_first(value);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	dns_rdata_init(&rdata);
+	dns_rdataset_current(value, &rdata);
+
+	result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	if (dns_name_countlabels(&ptr.ptr) == 0) {
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+	result = isc_ht_find(zone->entries, mhash->base, mhash->length,
+			     (void **)&entry);
+	if (result != ISC_R_SUCCESS) {
+		/* The entry was not found .*/
+		goto cleanup;
+	}
+
+	if (dns_name_countlabels(&entry->name) == 0) {
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+	result = isc_ht_find(zone->coos, entry->name.ndata, entry->name.length,
+			     (void **)&ocoo);
+	if (result == ISC_R_SUCCESS) {
+		/* The change of ownership permission was already registered. */
+		goto cleanup;
+	}
+
+	catz_coo_new(zone->catzs->mctx, &ptr.ptr, &ncoo);
+	result = isc_ht_add(zone->coos, entry->name.ndata, entry->name.length,
+			    ncoo);
+	if (result != ISC_R_SUCCESS) {
+		catz_coo_detach(zone, &ncoo);
+	}
+
+cleanup:
+	dns_rdata_freestruct(&ptr);
+
+	return (result);
 }
 
 static isc_result_t
@@ -1330,6 +1550,8 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	dns_name_init(&prefix, NULL);
 	dns_name_split(name, suffix_labels, &prefix, NULL);
 	switch (opt) {
+	case CATZ_OPT_COO:
+		return (catz_process_coo(zone, mhash, value));
 	case CATZ_OPT_MASTERS:
 		return (catz_process_primaries(zone, &entry->opts.masters,
 					       value, &prefix));
