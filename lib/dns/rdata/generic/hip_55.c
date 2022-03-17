@@ -290,7 +290,9 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	myhip = *hip;
 	for (result = dns_rdata_hip_first(&myhip); result == ISC_R_SUCCESS;
 	     result = dns_rdata_hip_next(&myhip))
-		/* empty */;
+	{
+		/* initialize the names */
+	}
 
 	return (mem_tobuffer(target, hip->servers, hip->servers_len));
 }

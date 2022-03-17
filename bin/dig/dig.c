@@ -496,10 +496,12 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 	}
 
 	result = dns_dns64_findprefix(rdataset, prefix, &count);
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
 		return (ISC_R_SUCCESS);
-	if (count > 10)
+	}
+	if (count > 10) {
 		count = 10;
+	}
 	for (i = 0; i < count; i++) {
 		result = isc_netaddr_totext(&prefix[i].addr, buf);
 		if (result != ISC_R_SUCCESS) {
@@ -909,8 +911,9 @@ repopulate_buffer:
 			check_result(result, "dns_message_sectiontotext");
 		} else if (dns64prefix) {
 			result = dns64prefix_answer(msg, buf);
-			if (result == ISC_R_NOSPACE)
+			if (result == ISC_R_NOSPACE) {
 				goto buftoosmall;
+			}
 			check_result(result, "dns64prefix_answer");
 		} else {
 			result = short_answer(msg, flags, buf, query);
