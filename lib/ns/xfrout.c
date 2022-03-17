@@ -1172,7 +1172,7 @@ have_stream:
 
 	/* Start the timers */
 	if (xfr->maxtime > 0) {
-		xfrout_log(xfr, ISC_LOG_ERROR,
+		xfrout_log(xfr, ISC_LOG_DEBUG(1),
 			   "starting maxtime timer %" PRIu64 " ms",
 			   xfr->maxtime);
 		isc_nm_timer_start(xfr->maxtime_timer, xfr->maxtime);
