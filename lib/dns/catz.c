@@ -1798,11 +1798,12 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t rdataset;
 	char bname[DNS_NAME_FORMATSIZE];
-	isc_buffer_t ibname;
 	uint32_t vers;
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	dns_name_format(&db->origin, bname, DNS_NAME_FORMATSIZE);
 
 	/*
 	 * Create a new catz in the same context as current catz.
@@ -1816,10 +1817,6 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			      "catz: zone '%s' not in config", bname);
 		return;
 	}
-
-	isc_buffer_init(&ibname, bname, DNS_NAME_FORMATSIZE);
-	result = dns_name_totext(&db->origin, true, &ibname);
-	INSIST(result == ISC_R_SUCCESS);
 
 	result = dns_db_getsoaserial(db, oldzone->dbversion, &vers);
 	if (result != ISC_R_SUCCESS) {
