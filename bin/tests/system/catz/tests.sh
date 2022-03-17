@@ -473,6 +473,30 @@ status=$((status+ret))
 
 nextpart ns2/named.run >/dev/null
 
+# Test zone associated state reset.
+n=$((n+1))
+echo_i "renaming the label of domain dom4.example. in catalog2 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.3 ${PORT}
+    update delete de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example. 3600 IN PTR dom4.example.
+    update add dom4-renamed-label.zones.catalog2.example. 3600 IN PTR dom4.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up, and checking that the zone has been reset ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: zone 'dom4.example' unique label has changed, reset state" &&
+wait_for_message ns2/named.run "catz: deleting zone 'dom4.example' from catalog 'catalog2.example' - success" &&
+wait_for_message ns2/named.run "catz: adding zone 'dom4.example' from catalog 'catalog2.example' - success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
 n=$((n+1))
 echo_i "adding domain dom2.example. to catalog2 zone to test change of ownership ($n)"
 ret=0
@@ -732,7 +756,7 @@ $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     update delete dom2-with-coo.zones.catalog2.example. 3600 IN PTR dom2.example.
     update delete primaries.dom2-with-coo.zones.catalog2.example. 3600 IN A 10.53.0.3
     update delete coo.dom2-with-coo.zones.catalog2.example. 3600 IN PTR catalog1.example.
-    update delete de26b88d855397a03f77ff1162fd055d8b419584.zones.catalog2.example. 3600 IN PTR dom4.example.
+    update delete dom4-renamed-label.zones.catalog2.example. 3600 IN PTR dom4.example.
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

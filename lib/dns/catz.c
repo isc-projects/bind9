@@ -470,6 +470,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 			     : isc_ht_iter_next(iter1))
 	{
 		isc_result_t zt_find_result;
+		dns_catz_zone_t *parentcatz = NULL;
 		dns_catz_entry_t *nentry = NULL;
 		dns_catz_entry_t *oentry = NULL;
 		dns_zone_t *zone = NULL;
@@ -506,7 +507,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					     dns_catz_entry_getname(nentry), 0,
 					     NULL, &zone);
 		if (zt_find_result == ISC_R_SUCCESS) {
-			dns_catz_zone_t *parentcatz = NULL;
 			dns_catz_coo_t *coo = NULL;
 			char pczname[DNS_NAME_FORMATSIZE];
 
@@ -551,6 +551,28 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		result = isc_ht_find(target->entries, key, (uint32_t)keysize,
 				     (void **)&oentry);
 		if (result != ISC_R_SUCCESS) {
+			if (zt_find_result == ISC_R_SUCCESS &&
+			    parentcatz == target) {
+				/*
+				 * This means that the zone's unique label
+				 * has been changed, in that case we must
+				 * reset the zone's internal state by removing
+				 * and re-adding it.
+				 *
+				 * Scheduling the addition now, the removal will
+				 * be scheduled below, when walking the old
+				 * zone for remaining entries, and then we will
+				 * perform deletions earlier than additions and
+				 * modifications.
+				 */
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_INFO,
+					      "catz: zone '%s' unique label "
+					      "has changed, reset state",
+					      zname);
+			}
+
 			catz_entry_add_or_mod(target, toadd, key, keysize,
 					      nentry, NULL, "adding", zname,
 					      czname);
