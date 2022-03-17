@@ -261,4 +261,34 @@ Note that none of the global records for a custom property are inherited if any
 records are defined for that custom property for the specific zone. For example,
 if the zone had a ``primaries`` record of type A but not AAAA, it
 would *not* inherit the type AAAA record from the global custom property
-or from global the option in the configuration file.
+or from the global option in the configuration file.
+
+Change of Ownership (coo)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BIND supports the catalog zones "Change of Ownership" (coo) property. When the
+same entry which exists in one catalog zone is added into another catalog zone,
+the default behavior for BIND is to ignore it, and continue serving the zone
+using the catalog zone where it was originally existed, unless it is removed
+from there, then it can be added into the new one.
+
+Using the ``coo`` property it is possible to gracefully move a zone from one
+catalog zone into another, by letting the catalog consumers know that it is
+permitted to do so. To do that, the original catalog zone should be updated with
+a new record with ``coo`` custom property:
+
+::
+
+   uniquelabel.zones.catalog.example. IN PTR domain2.example.
+   coo.uniquelabel.zones.catalog.example. IN PTR catalog2.example.
+
+Here, the ``catalog.example`` catalog zone gives permission for the member zone
+with label "uniquelabel" to be transferred into ``catalog2.example`` catalog
+zone. Catalog consumers which support the ``coo`` property will then take note,
+and when the zone is finally added into ``catalog2.example`` catalog zone,
+catalog consumers will change the ownership of the zone from ``catalog.example``
+to ``catalog2.example``. BIND's implementation simply deletes the zone from the
+old catalog zone and adds it back into the new catalog zone. The record with
+``coo`` custom property can be later deleted by the catalog zone operator, if it
+is confirmed that all the consumers have received it and have successfully
+changed the ownership of the zone.

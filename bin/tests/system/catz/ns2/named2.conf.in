@@ -32,6 +32,11 @@ options {
 	# identical to named1.conf.in
 };
 
+zone "dom-existing.example" {
+    type primary;
+    file "dom-existing.example.db";
+};
+
 zone "catalog1.example" {
 	type secondary;
 	file "catalog1.example.db";
