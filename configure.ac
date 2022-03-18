@@ -117,7 +117,10 @@ AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
 STD_CFLAGS="-Wall -Wextra -Wwrite-strings -Wpointer-arith -Wno-missing-field-initializers -Wformat -Wshadow"
 
 # These should be always errors
-STD_CFLAGS="$STD_CFLAGS -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=format-security -Werror=parentheses -Werror=implicit -Werror=strict-prototypes"
+STD_CFLAGS="$STD_CFLAGS -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=format-security -Werror=parentheses -Werror=implicit -Werror=strict-prototypes -Werror=vla"
+
+# ... except in test code
+TEST_CFLAGS="-Wno-vla"
 
 # Fortify the sources by default
 STD_CPPFLAGS="-D_FORTIFY_SOURCE=2"
@@ -159,6 +162,7 @@ AS_IF([test "$enable_developer" = "yes"],
 AC_SUBST([DEVELOPER_MODE])
 AC_SUBST([STD_CFLAGS])
 AC_SUBST([STD_CPPFLAGS])
+AC_SUBST([TEST_CFLAGS])
 
 # [pairwise: --enable-warn-error, --disable-warn-error]
 AC_ARG_ENABLE([warn_error],

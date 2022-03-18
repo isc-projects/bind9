@@ -7,6 +7,9 @@ TESTS = $(check_PROGRAMS)
 
 LOG_COMPILER = $(builddir)/../../unit-test-driver.sh
 
+AM_CFLAGS +=					\
+	$(TEST_CFLAGS)
+
 AM_CPPFLAGS +=					\
 	$(CMOCKA_CFLAGS)			\
 	-DNAMED_PLUGINDIR=\"$(libdir)/named\"	\
