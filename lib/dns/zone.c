@@ -597,13 +597,11 @@ struct dns_zonemgr {
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
 	isc_nm_t *netmgr;
-	unsigned int workers;
-	atomic_uint_fast32_t nzonetasks;
-	isc_pool_t *zonetasks;
-	atomic_uint_fast32_t nloadtasks;
-	isc_pool_t *loadtasks;
+	uint32_t workers;
 	isc_task_t *task;
-	isc_pool_t *mctxpool;
+	isc_task_t **zonetasks;
+	isc_task_t **loadtasks;
+	isc_mem_t **mctxpool;
 	isc_ratelimiter_t *checkdsrl;
 	isc_ratelimiter_t *notifyrl;
 	isc_ratelimiter_t *refreshrl;
@@ -975,8 +973,6 @@ static void
 zonemgr_putio(dns_io_t **iop);
 static void
 zonemgr_cancelio(dns_io_t *io);
-static isc_result_t
-zonemgr_setsize(dns_zonemgr_t *zmgr, unsigned int workers);
 static void
 rss_post(dns_zone_t *, isc_event_t *);
 
@@ -16250,23 +16246,6 @@ dns_zone_getorigin(dns_zone_t *zone) {
 }
 
 void
-dns_zone_settask(dns_zone_t *zone, isc_task_t *task) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	if (zone->task != NULL) {
-		isc_task_detach(&zone->task);
-	}
-	isc_task_attach(task, &zone->task);
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
-		dns_db_settask(zone->db, zone->task);
-	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-	UNLOCK_ZONE(zone);
-}
-
-void
 dns_zone_gettask(dns_zone_t *zone, isc_task_t **target) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	isc_task_attach(zone->task, target);
@@ -18809,30 +18788,29 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
-		   unsigned int workers, dns_zonemgr_t **zmgrp) {
+		   dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 
-	REQUIRE(workers >= 1);
+	REQUIRE(mctx != NULL);
+	REQUIRE(taskmgr != NULL);
+	REQUIRE(timermgr != NULL);
+	REQUIRE(netmgr != NULL);
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
-	zmgr->mctx = NULL;
+
+	*zmgr = (dns_zonemgr_t){
+		.taskmgr = taskmgr,
+		.timermgr = timermgr,
+		.netmgr = netmgr,
+		.workers = isc_nm_getnworkers(netmgr),
+		.transfersin = 10,
+		.transfersperns = 2,
+	};
+
 	isc_refcount_init(&zmgr->refs, 1);
 	isc_mem_attach(mctx, &zmgr->mctx);
-	zmgr->taskmgr = taskmgr;
-	zmgr->timermgr = timermgr;
-	zmgr->netmgr = netmgr;
-	zmgr->zonetasks = NULL;
-	atomic_init(&zmgr->nzonetasks, 0);
-	zmgr->loadtasks = NULL;
-	atomic_init(&zmgr->nloadtasks, 0);
-	zmgr->mctxpool = NULL;
-	zmgr->task = NULL;
-	zmgr->checkdsrl = NULL;
-	zmgr->notifyrl = NULL;
-	zmgr->refreshrl = NULL;
-	zmgr->startupnotifyrl = NULL;
-	zmgr->startuprefreshrl = NULL;
+
 	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
@@ -18841,9 +18819,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		atomic_init(&zmgr->unreachable[i].expire, 0);
 	}
 	isc_rwlock_init(&zmgr->rwlock, 0, 0);
-
-	zmgr->transfersin = 10;
-	zmgr->transfersperns = 2;
 
 	/* Unreachable lock. */
 	isc_rwlock_init(&zmgr->urlock, 0, 0);
@@ -18885,9 +18860,37 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_startupnotifyrl;
 	}
 
-	result = zonemgr_setsize(zmgr, workers);
-	if (result != ISC_R_SUCCESS) {
-		goto free_startuprefreshrl;
+	zmgr->zonetasks = isc_mem_get(
+		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
+	memset(zmgr->zonetasks, 0, zmgr->workers * sizeof(zmgr->zonetasks[0]));
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		result = isc_task_create_bound(zmgr->taskmgr, 2,
+					       &zmgr->zonetasks[i], i);
+		if (result != ISC_R_SUCCESS) {
+			goto free_zonetasks;
+		}
+		isc_task_setname(zmgr->zonetasks[i], "zonemgr-zonetasks", NULL);
+	}
+
+	zmgr->loadtasks = isc_mem_get(
+		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]));
+	memset(zmgr->loadtasks, 0, zmgr->workers * sizeof(zmgr->loadtasks[0]));
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		result = isc_task_create_bound(zmgr->taskmgr, UINT_MAX,
+					       &zmgr->loadtasks[i], i);
+		if (result != ISC_R_SUCCESS) {
+			goto free_loadtasks;
+		}
+		isc_task_setname(zmgr->loadtasks[i], "zonemgr-loadtasks", NULL);
+		isc_task_setprivilege(zmgr->loadtasks[i], true);
+	}
+
+	zmgr->mctxpool = isc_mem_get(zmgr->mctx,
+				     zmgr->workers * sizeof(zmgr->mctxpool[0]));
+	memset(zmgr->mctxpool, 0, zmgr->workers * sizeof(zmgr->mctxpool[0]));
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		isc_mem_create(&zmgr->mctxpool[i]);
+		isc_mem_setname(zmgr->mctxpool[i], "zonemgr-mctxpool");
 	}
 
 	/* Key file I/O locks. */
@@ -18920,7 +18923,24 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_iolock:
 	isc_mutex_destroy(&zmgr->iolock);
 #endif /* if 0 */
-free_startuprefreshrl:
+free_loadtasks:
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		if (zmgr->loadtasks[i] != NULL) {
+			isc_task_detach(&zmgr->loadtasks[i]);
+		}
+	}
+	isc_mem_put(zmgr->mctx, zmgr->loadtasks,
+		    zmgr->workers * sizeof(zmgr->loadtasks[0]));
+
+free_zonetasks:
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		if (zmgr->zonetasks[i] != NULL) {
+			isc_task_detach(&zmgr->zonetasks[i]);
+		}
+	}
+	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
+		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
+
 	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 free_startupnotifyrl:
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
@@ -18956,7 +18976,7 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 
 	tid = isc_random_uniform(zmgr->workers);
 
-	mctx = isc_pool_get(zmgr->mctxpool, tid);
+	mctx = zmgr->mctxpool[tid];
 	if (mctx == NULL) {
 		return (ISC_R_FAILURE);
 	}
@@ -18985,9 +19005,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_task_attach(isc_pool_get(zmgr->zonetasks, zone->tid), &zone->task);
-	isc_task_attach(isc_pool_get(zmgr->loadtasks, zone->tid),
-			&zone->loadtask);
+	isc_task_attach(zmgr->zonetasks[zone->tid], &zone->task);
+	isc_task_attach(zmgr->loadtasks[zone->tid], &zone->loadtask);
 
 	/*
 	 * Set the task name.  The tag will arbitrarily point to one
@@ -19119,15 +19138,28 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	if (zmgr->task != NULL) {
 		isc_task_destroy(&zmgr->task);
 	}
-	if (zmgr->zonetasks != NULL) {
-		isc_pool_destroy(&zmgr->zonetasks);
+
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		isc_mem_detach(&zmgr->mctxpool[i]);
 	}
-	if (zmgr->loadtasks != NULL) {
-		isc_pool_destroy(&zmgr->loadtasks);
+	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
+		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
+
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		if (zmgr->loadtasks[i] != NULL) {
+			isc_task_detach(&zmgr->loadtasks[i]);
+		}
 	}
-	if (zmgr->mctxpool != NULL) {
-		isc_pool_destroy(&zmgr->mctxpool);
+	isc_mem_put(zmgr->mctx, zmgr->loadtasks,
+		    zmgr->workers * sizeof(zmgr->loadtasks[0]));
+
+	for (size_t i = 0; i < zmgr->workers; i++) {
+		if (zmgr->zonetasks[i] != NULL) {
+			isc_task_detach(&zmgr->zonetasks[i]);
+		}
 	}
+	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
+		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
@@ -19138,116 +19170,6 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		UNLOCK_ZONE(zone);
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
-}
-
-static isc_result_t
-taskinit(void **target, void *arg, uint32_t bindto, unsigned int quantum,
-	 bool priv) {
-	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
-	isc_task_t *task = NULL;
-	isc_result_t result = isc_task_create_bound(zmgr->taskmgr, quantum,
-						    &task, bindto);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	isc_task_setprivilege(task, priv);
-	isc_task_setname(task, "zonemgr-taskpool", NULL);
-	*target = task;
-
-	return (ISC_R_SUCCESS);
-}
-
-static void
-taskfree(void **target) {
-	isc_task_t *task = *target;
-	isc_task_detach(&task);
-}
-
-static isc_result_t
-zonetaskinit(void **target, void *arg) {
-	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
-	uint32_t bindto = atomic_fetch_add(&zmgr->nzonetasks, 1);
-	return (taskinit(target, arg, bindto, 2, false));
-}
-
-static isc_result_t
-loadtaskinit(void **target, void *arg) {
-	/*
-	 * We always set all tasks in the zone-load task pool to
-	 * privileged.  This prevents other tasks in the system from
-	 * running while the server task manager is in privileged
-	 * mode.
-	 */
-	dns_zonemgr_t *zmgr = (dns_zonemgr_t *)arg;
-	uint32_t bindto = atomic_fetch_add(&zmgr->nloadtasks, 1);
-	return (taskinit(target, arg, bindto, UINT_MAX, true));
-}
-
-static isc_result_t
-mctxinit(void **target, void *arg) {
-	isc_mem_t *mctx = NULL;
-
-	UNUSED(arg);
-
-	REQUIRE(target != NULL && *target == NULL);
-
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "zonemgr-pool");
-
-	*target = mctx;
-	return (ISC_R_SUCCESS);
-}
-
-static void
-mctxfree(void **target) {
-	isc_mem_t *mctx = *(isc_mem_t **)target;
-	isc_mem_detach(&mctx);
-	*target = NULL;
-}
-
-static isc_result_t
-zonemgr_setsize(dns_zonemgr_t *zmgr, unsigned int workers) {
-	isc_result_t result;
-
-	zmgr->workers = workers;
-
-	/* Create the zone tasks pool. */
-	REQUIRE(zmgr->zonetasks == NULL);
-	result = isc_pool_create(zmgr->mctx, workers, taskfree, zonetaskinit,
-				 zmgr, &zmgr->zonetasks);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	/* Create the zone load tasks pool. */
-	REQUIRE(zmgr->loadtasks == NULL);
-	result = isc_pool_create(zmgr->mctx, workers, taskfree, loadtaskinit,
-				 zmgr, &zmgr->loadtasks);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	/* Create the zone memory context pool. */
-	REQUIRE(zmgr->mctxpool == NULL);
-	result = isc_pool_create(zmgr->mctx, workers, mctxfree, mctxinit, NULL,
-				 &zmgr->mctxpool);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	return (ISC_R_SUCCESS);
-fail:
-	if (zmgr->mctxpool != NULL) {
-		isc_pool_destroy(&zmgr->mctxpool);
-	}
-	if (zmgr->loadtasks != NULL) {
-		isc_pool_destroy(&zmgr->loadtasks);
-	}
-	if (zmgr->zonetasks != NULL) {
-		isc_pool_destroy(&zmgr->zonetasks);
-	}
-
-	return (result);
 }
 
 static void

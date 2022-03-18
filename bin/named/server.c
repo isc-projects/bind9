@@ -10062,7 +10062,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
 				      named_g_timermgr, named_g_netmgr,
-				      named_g_cpus, &server->zonemgr),
+				      &server->zonemgr),
 		   "dns_zonemgr_create");
 
 	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");

@@ -103,15 +103,15 @@ get_objects(void **state) {
 				 &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	item = isc_pool_get(pool);
+	item = isc_pool_get(pool, 0);
 	assert_non_null(item);
 	isc_task_attach((isc_task_t *)item, &task1);
 
-	item = isc_pool_get(pool);
+	item = isc_pool_get(pool, 1);
 	assert_non_null(item);
 	isc_task_attach((isc_task_t *)item, &task2);
 
-	item = isc_pool_get(pool);
+	item = isc_pool_get(pool, 0);
 	assert_non_null(item);
 	isc_task_attach((isc_task_t *)item, &task3);
 
