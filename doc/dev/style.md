@@ -683,9 +683,14 @@ Declare variables as constant if they are not to be modified.
 
 #### Variable-Length Arrays
 
-Use VLAs where it is more appropriate to allocate the memory on the stack rather
-than allocate it using `isc_mem_get()` from the heap.  Usually, a short lived
-arrays local to that particular functions would be good fit for using VLAs.
+VLAs are unsafe when it is important to handle allocation failure in a
+controlled manner rather than an uncontrolled crash. They are safer if the
+array size is checked first, but then you lose a lot of their simplicity
+and readability.
+
+VLAs should not be used in most code in BIND. VLAs are OK in test code
+where the lack of safety doesn't matter. The default compiler flags enforce
+this rule.
 
 #### <a name="public_namespace"></a>Public Interface Namespace
 

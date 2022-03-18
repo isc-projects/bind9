@@ -1,3 +1,6 @@
+5834.	[cleanup]	C99 variable-length arrays are difficult to use safely,
+			so avoid them except in test code. [GL #3201]
+
 5833.	[bug]		When encountering socket error while trying to initiate
 			a TCP connection to a server, dig could hang
 			indefinitely, when there were more servers to try.
