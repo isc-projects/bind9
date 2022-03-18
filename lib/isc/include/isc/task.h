@@ -105,9 +105,9 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		isc_task_t **taskp);
 isc_result_t
 isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		      isc_task_t **taskp, int threadid);
+		      isc_task_t **taskp, int tid);
 /*%<
- * Create a task, optionally bound to a particular threadid.
+ * Create a task, optionally bound to a particular tid.
  *
  * Notes:
  *

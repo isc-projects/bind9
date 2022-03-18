@@ -648,15 +648,15 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle);
  */
 
 void
-isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
+isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int tid);
 /*%<
  * Enqueue the 'task' onto the netmgr ievents queue.
  *
  * Requires:
  * \li 'mgr' is a valid netmgr object
  * \li 'task' is a valid task
- * \li 'threadid' is either the preferred netmgr tid or -1, in which case
- *     tid will be picked randomly. The threadid is capped (by modulo) to
+ * \li 'tid' is either the preferred netmgr tid or -1, in which case
+ *     tid will be picked randomly. The tid is capped (by modulo) to
  *     maximum number of 'workers' as specifed in isc_nm_start()
  */
 
@@ -678,6 +678,12 @@ isc__nm_force_tid(int tid);
 /*%<
  * Force the thread ID to 'tid'. This is STRICTLY for use in unit
  * tests and should not be used in any production code.
+ */
+
+uint32_t
+isc_nm_getnworkers(const isc_nm_t *);
+/*%<
+ * Return the number of active workers
  */
 
 void

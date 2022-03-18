@@ -756,16 +756,10 @@ isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int threadid) {
+isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int tid) {
 	isc__netievent_t *event = NULL;
-	int tid;
 	isc__networker_t *worker = NULL;
-
-	if (threadid == -1) {
-		tid = (int)isc_random_uniform(nm->nworkers);
-	} else {
-		tid = threadid % nm->nworkers;
-	}
+	REQUIRE(tid >= 0 && tid < nm->nworkers);
 
 	worker = &nm->workers[tid];
 
@@ -3565,6 +3559,13 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 	};
 
 	return (false);
+}
+
+uint32_t
+isc_nm_getnworkers(const isc_nm_t *netmgr) {
+	REQUIRE(VALID_NM(netmgr));
+
+	return (netmgr->nworkers);
 }
 
 #ifdef NETMGR_TRACE

@@ -9934,8 +9934,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
 					  named_g_taskmgr, named_g_timermgr,
 					  named_g_netmgr, named_g_dispatchmgr,
-					  server->task, geoip, named_g_cpus,
-					  true, &server->interfacemgr),
+					  server->task, geoip, true,
+					  &server->interfacemgr),
 		   "creating interface manager");
 
 	isc_timer_create(named_g_timermgr, server->task, interface_timer_tick,
