@@ -998,6 +998,22 @@ if [ -x "$DIG" ] ; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
+  # See [GL #3020] for more information
+  n=$((n+1))
+  echo_i "check that dig handles UDP timeout followed by a SERVFAIL correctly ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig handles TCP timeout followed by a SERVFAIL correctly ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail +tcp @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
