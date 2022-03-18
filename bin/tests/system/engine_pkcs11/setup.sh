@@ -31,7 +31,7 @@ keygen() {
 
 	label="${id}-${zone}"
 	p11id=$(echo "${label}" | sha1sum - | awk '{print $1}')
-	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-engine_pkcs11" -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
+	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-engine_pkcs11" -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id 2> pkcs11-tool.err.$zone.$id || return 1
 }
 
 keyfromlabel() {
@@ -41,7 +41,7 @@ keyfromlabel() {
 	dir="$4"
         shift 4
 
-	$KEYFRLAB -K $dir -E pkcs11 -a $alg -l "token=softhsm2-engine_pkcs11;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id 2>> /dev/null || return 1
+	$KEYFRLAB -K $dir -E pkcs11 -a $alg -l "token=softhsm2-engine_pkcs11;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id 2> keyfromlabel.err.$zone.$id || return 1
 	cat keyfromlabel.out.$zone.$id
 }
 
