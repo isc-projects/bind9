@@ -3061,7 +3061,8 @@ force_next(dig_query_t *query) {
 
 	if (l->retries > 1) {
 		l->retries--;
-		debug("making new TCP request, %d tries left", l->retries);
+		debug("making new %s request, %d tries left",
+		      l->tcp_mode ? "TCP" : "UDP", l->retries);
 		requeue_lookup(l, true);
 		lookup_detach(&l);
 		isc_refcount_decrement0(&recvcount);
@@ -3625,13 +3626,14 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		dig_query_t *newq = NULL;
 
 		l->retries--;
-		debug("resending UDP request to first server, %d tries left",
-		      l->retries);
+		debug("making new UDP request, %d tries left", l->retries);
 		newq = new_query(l, query->servname, query->userarg);
 
-		ISC_LIST_PREPEND(l->q, newq, link);
-
-		start_udp(ISC_LIST_HEAD(l->q));
+		ISC_LIST_INSERTAFTER(l->q, query, newq, link);
+		if (l->current_query == query) {
+			query_detach(&l->current_query);
+		}
+		start_udp(newq);
 		goto detach_query;
 	}
 
@@ -3923,15 +3925,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			} else {
 				start_udp(next);
 			}
-		}
-
-		/*
-		 * If our query is at the head of the list and there
-		 * is no next, we're the only one left, so fall
-		 * through to print the message.
-		 */
-		if ((ISC_LIST_HEAD(l->q) != query) ||
-		    (ISC_LIST_NEXT(query, link) != NULL)) {
 			dighost_comments(l,
 					 "Got %s from %s, trying next "
 					 "server",
@@ -3939,7 +3932,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
-			goto next_lookup;
+			goto detach_query;
 		}
 	}
 
