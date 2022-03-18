@@ -3280,9 +3280,9 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 
 		if (l->retries > 1) {
+			l->retries--;
 			debug("making new TCP request, %d tries left",
 			      l->retries);
-			l->retries--;
 			requeue_lookup(l, true);
 			next = NULL;
 		} else if ((l->current_query != NULL) &&
@@ -3622,49 +3622,118 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		TIME_NOW(&query->time_recv);
 	}
 
-	if (eresult == ISC_R_TIMEDOUT && !l->tcp_mode && l->retries > 1) {
-		dig_query_t *newq = NULL;
-
-		l->retries--;
-		debug("making new UDP request, %d tries left", l->retries);
-		newq = new_query(l, query->servname, query->userarg);
-
-		ISC_LIST_INSERTAFTER(l->q, query, newq, link);
-		if (l->current_query == query) {
-			query_detach(&l->current_query);
-		}
-		start_udp(newq);
-		goto detach_query;
-	}
-
 	if ((!l->pending && !l->ns_search_only) || atomic_load(&cancel_now)) {
 		debug("no longer pending.  Got %s", isc_result_totext(eresult));
 
 		goto next_lookup;
 	}
 
-	if (eresult != ISC_R_SUCCESS) {
+	if (eresult == ISC_R_TIMEDOUT) {
+		if (l->retries > 1 && !l->tcp_mode) {
+			dig_query_t *newq = NULL;
+
+			/*
+			 * For UDP, insert a copy of the current query just
+			 * after itself in the list, and start it to retry the
+			 * request.
+			 */
+			newq = new_query(l, query->servname, query->userarg);
+			ISC_LIST_INSERTAFTER(l->q, query, newq, link);
+			if (l->current_query == query) {
+				query_detach(&l->current_query);
+			}
+			if (l->current_query == NULL) {
+				l->retries--;
+				debug("making new UDP request, %d tries left",
+				      l->retries);
+				start_udp(newq);
+			}
+
+			goto detach_query;
+		} else if (l->retries > 1 && l->tcp_mode) {
+			/*
+			 * For TCP, we have to requeue the whole lookup, see
+			 * the comments above the start_tcp() function.
+			 */
+			l->retries--;
+			debug("making new TCP request, %d tries left",
+			      l->retries);
+			requeue_lookup(l, true);
+
+			if (keep != NULL) {
+				isc_nmhandle_detach(&keep);
+			}
+
+			goto cancel_lookup;
+		} else {
+			dig_query_t *next = ISC_LIST_NEXT(query, link);
+
+			/*
+			 * No retries left, go to the next query, if there is
+			 * one.
+			 */
+			if (next != NULL) {
+				if (l->current_query == query) {
+					query_detach(&l->current_query);
+				}
+				if (l->current_query == NULL) {
+					debug("starting next query %p", next);
+					if (l->tcp_mode) {
+						start_tcp(next);
+					} else {
+						start_udp(next);
+					}
+				}
+				goto detach_query;
+			}
+
+			/*
+			 * Otherwise, print the cmdline and an error message,
+			 * and cancel the lookup.
+			 */
+			printf("%s", l->cmdline);
+			dighost_error("connection timed out; "
+				      "no servers could be reached\n");
+			if (exitcode < 9) {
+				exitcode = 9;
+			}
+
+			if (keep != NULL) {
+				isc_nmhandle_detach(&keep);
+			}
+
+			goto cancel_lookup;
+		}
+	} else if (eresult != ISC_R_SUCCESS) {
+		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 
-		if (eresult == ISC_R_TIMEDOUT) {
-			if (l->retries > 1) {
-				debug("making new TCP request, %d tries left",
-				      l->retries);
-				l->retries--;
-				requeue_lookup(l, true);
-			} else {
-				printf("%s", l->cmdline);
-				dighost_error("connection timed out; "
-					      "no servers could be reached\n");
-				if (exitcode < 9) {
-					exitcode = 9;
+		/*
+		 * There was a communication error with the current query,
+		 * go to the next query, if there is one.
+		 */
+		if (next != NULL) {
+			if (l->current_query == query) {
+				query_detach(&l->current_query);
+			}
+			if (l->current_query == NULL) {
+				debug("starting next query %p", next);
+				if (l->tcp_mode) {
+					start_tcp(next);
+				} else {
+					start_udp(next);
 				}
 			}
-		} else {
-			dighost_error("communications error to %s: %s\n",
-				      sockstr, isc_result_totext(eresult));
+			goto detach_query;
 		}
+
+		/*
+		 * Otherwise, print an error message and cancel the
+		 * lookup.
+		 */
+		dighost_error("communications error to %s: %s\n", sockstr,
+			      isc_result_totext(eresult));
 
 		if (keep != NULL) {
 			isc_nmhandle_detach(&keep);
