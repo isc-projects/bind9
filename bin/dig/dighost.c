@@ -3293,8 +3293,10 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			next = NULL;
 		}
 
-		cancel_lookup(l);
 		query_detach(&query);
+		if (next == NULL) {
+			cancel_lookup(l);
+		}
 		lookup_detach(&l);
 
 		if (next != NULL) {
