@@ -1,5 +1,8 @@
 include $(top_srcdir)/Makefile.top
 
+AM_CFLAGS +=				\
+	$(TEST_CFLAGS)
+
 AM_CPPFLAGS +=				\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
