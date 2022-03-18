@@ -1,3 +1,8 @@
+5833.	[bug]		When encountering socket error while trying to initiate
+			a TCP connection to a server, dig could hang
+			indefinitely, when there were more servers to try.
+			[GL #3205]
+
 5832.	[bug]		When timing-out or having other types of socket errors
 			during a query, dig wasn't trying to perform the lookup
 			using other servers, in case they exist. [GL #3128]
