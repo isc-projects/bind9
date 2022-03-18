@@ -7,6 +7,9 @@ noinst_PROGRAMS =	\
 	test_server	\
 	wire_test
 
+AM_CFLAGS +=			\
+	$(TEST_CFLAGS)
+
 test_client_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LIBISC_CFLAGS)
