@@ -63,7 +63,6 @@ libisc_la_HEADERS =			\
 	include/isc/once.h		\
 	include/isc/os.h		\
 	include/isc/parseint.h		\
-	include/isc/pool.h		\
 	include/isc/portset.h		\
 	include/isc/print.h		\
 	include/isc/quota.h		\
@@ -167,7 +166,6 @@ libisc_la_SOURCES =		\
 	os.c			\
 	os_p.h			\
 	parseint.c		\
-	pool.c			\
 	portset.c		\
 	quota.c			\
 	radix.c			\

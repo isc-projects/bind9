@@ -30,7 +30,6 @@ check_PROGRAMS =	\
 	netaddr_test	\
 	netmgr_test	\
 	parse_test	\
-	pool_test	\
 	quota_test	\
 	radix_test	\
 	random_test	\
