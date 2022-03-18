@@ -65,7 +65,6 @@ ns_clientmgr_t *clientmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
 bool app_running = false;
-int ncpus;
 bool debug_mem_record = true;
 static atomic_bool run_managers = false;
 
@@ -224,7 +223,7 @@ create_managers(void) {
 	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *listenon = NULL;
 	isc_event_t *event = NULL;
-	ncpus = isc_os_ncpus();
+	int ncpus = isc_os_ncpus();
 
 	isc_managers_create(mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
 	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
@@ -236,7 +235,7 @@ create_managers(void) {
 	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
-				     dispatchmgr, maintask, NULL, ncpus, false,
+				     dispatchmgr, maintask, NULL, false,
 				     &interfacemgr));
 
 	CHECK(ns_listenlist_default(mctx, port, -1, true, AF_INET, &listenon));

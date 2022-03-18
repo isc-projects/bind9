@@ -102,7 +102,7 @@ struct isc_task {
 	isc_taskmgr_t *manager;
 	isc_mutex_t lock;
 	/* Locked by task lock. */
-	int threadid;
+	int tid;
 	task_state_t state;
 	isc_refcount_t references;
 	isc_refcount_t running;
@@ -199,7 +199,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 
 isc_result_t
 isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		      isc_task_t **taskp, int threadid) {
+		      isc_task_t **taskp, int tid) {
 	isc_task_t *task = NULL;
 	bool exiting;
 
@@ -213,21 +213,21 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 
 	isc_taskmgr_attach(manager, &task->manager);
 
-	if (threadid == -1) {
+	if (tid == -1) {
 		/*
-		 * Task is not pinned to a queue, it's threadid will be
+		 * Task is not pinned to a queue, it's tid will be
 		 * chosen when first task will be sent to it - either
 		 * randomly or specified by isc_task_sendto.
 		 */
 		task->bound = false;
-		task->threadid = -1;
+		task->tid = -1;
 	} else {
 		/*
 		 * Task is pinned to a queue, it'll always be run
 		 * by a specific thread.
 		 */
 		task->bound = true;
-		task->threadid = threadid;
+		task->tid = tid % isc_nm_getnworkers(task->manager->netmgr);
 	}
 
 	isc_mutex_init(&task->lock);
@@ -338,7 +338,11 @@ task_ready(isc_task_t *task) {
 
 	isc_refcount_increment0(&task->running);
 	LOCK(&task->lock);
-	isc_nm_task_enqueue(manager->netmgr, task, task->threadid);
+	if (task->tid < 0) {
+		task->tid = (int)isc_random_uniform(
+			isc_nm_getnworkers(manager->netmgr));
+	}
+	isc_nm_task_enqueue(manager->netmgr, task, task->tid);
 	UNLOCK(&task->lock);
 }
 
@@ -419,15 +423,11 @@ task_send(isc_task_t *task, isc_event_t **eventp, int c) {
 
 	XTRACE("task_send");
 
-	if (task->bound) {
-		c = task->threadid;
-	} else if (c < 0) {
-		c = -1;
-	}
-
 	if (task->state == task_state_idle) {
 		was_idle = true;
-		task->threadid = c;
+		if (!task->bound) {
+			task->tid = c;
+		}
 		INSIST(EMPTY(task->events));
 		task->state = task_state_ready;
 	}
@@ -1055,7 +1055,7 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task) {
 	REQUIRE(VALID_TASK(task));
 
 	LOCK(&task->lock);
-	REQUIRE(task->threadid == 0);
+	REQUIRE(task->tid == 0);
 	UNLOCK(&task->lock);
 
 	LOCK(&mgr->lock);
