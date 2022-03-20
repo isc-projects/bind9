@@ -13,19 +13,31 @@ EXTRA_DIST =					\
 	dlz.inc.rst				\
 	dnssec-guide.rst			\
 	dnssec.inc.rst				\
+	dns-security-overview.dia		\
+	dns-security-overview.png		\
+	dns-servers.dia				\
+	dns-servers.png				\
+	dns-tree.dia				\
+	dns-tree.png				\
 	dyndb.inc.rst				\
 	general.rst				\
 	history.rst				\
 	index.rst				\
+	intro-dns-bind.inc.rst			\
 	introduction.inc.rst			\
+	intro-security.inc.rst			\
 	isc-logo.pdf				\
 	logging-categories.inc.rst		\
 	managed-keys.inc.rst			\
 	manpages.rst				\
+	name-resolution.dia			\
+	name-resolution.png			\
 	notes.rst				\
 	pkcs11.inc.rst				\
 	platforms.inc.rst			\
 	plugins.inc.rst				\
+	recursive-query.dia			\
+	recursive-query.png			\
 	reference.rst				\
 	requirements.inc.rst			\
 	requirements.txt			\
