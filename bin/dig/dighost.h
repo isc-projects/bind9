@@ -194,7 +194,7 @@ struct dig_lookup {
 struct dig_query {
 	unsigned int magic;
 	dig_lookup_t *lookup;
-	bool first_pass;
+	bool started;
 	bool first_soa_rcvd;
 	bool second_rr_rcvd;
 	bool first_repeat_rcvd;

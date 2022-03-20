@@ -1551,6 +1551,30 @@ check_if_done(void) {
 	}
 }
 
+/*%
+ * Check if we're done with all the queries in the lookup, except for
+ * the `except_q` query (can be NULL if no exception is required).
+ * Expects `l` to be a valid and locked lookup.
+ */
+static bool
+check_if_queries_done(dig_lookup_t *l, dig_query_t *except_q) {
+	dig_query_t *q = ISC_LIST_HEAD(l->q);
+
+	debug("check_if_queries_done(%p)", l);
+
+	while (q != NULL) {
+		if (!q->started || isc_refcount_current(&q->references) > 1) {
+			if (!q->canceled && q != except_q) {
+				debug("there is a pending query %p", q);
+				return (false);
+			}
+		}
+		q = ISC_LIST_NEXT(q, link);
+	}
+
+	return (true);
+}
+
 static void
 _destroy_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
@@ -2126,7 +2150,6 @@ _new_query(dig_lookup_t *lookup, char *servname, char *userarg,
 	*query = (dig_query_t){ .sendbuf = lookup->renderbuf,
 				.servname = servname,
 				.userarg = userarg,
-				.first_pass = true,
 				.warn_id = true,
 				.recvspace = isc_mem_get(mctx, COMMSIZE),
 				.tmpsendspace = isc_mem_get(mctx, COMMSIZE) };
@@ -3074,6 +3097,8 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *readquery = NULL;
 	int local_timeout = timeout * 1000;
 
+	query->started = true;
+
 	if (eresult == ISC_R_CANCELED || query->canceled) {
 		dig_lookup_t *l = query->lookup;
 
@@ -3413,14 +3438,17 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	char sockstr[ISC_SOCKADDR_FORMATSIZE];
 	dig_lookup_t *l = NULL;
 
+	REQUIRE(DIG_VALID_QUERY(query));
+	REQUIRE(query->handle == NULL);
+
 	debug("tcp_connected()");
+
+	query->started = true;
 
 	if (atomic_load(&cancel_now)) {
 		return;
 	}
 
-	REQUIRE(DIG_VALID_QUERY(query));
-	REQUIRE(query->handle == NULL);
 	INSIST(!free_now);
 
 	debug("tcp_connected(%p, %s, %p)", handle, isc_result_totext(eresult),
@@ -4310,7 +4338,12 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				l->trace_root = false;
 				usesearch = false;
 			} else {
+				/*
+				 * This is a query in the followup lookup
+				 */
 				dighost_printmessage(query, &b, msg, true);
+
+				docancel = check_if_queries_done(l, query);
 			}
 		}
 	}
