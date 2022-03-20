@@ -10,3 +10,5 @@
 .. information regarding copyright ownership.
 
 .. include:: introduction.inc.rst
+.. include:: intro-dns-bind.inc.rst
+.. include:: intro-security.inc.rst
