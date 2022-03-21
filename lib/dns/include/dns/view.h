@@ -566,9 +566,6 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
  * match for 'name' among the zones, however, the cache DB is not consulted
  * unless 'use_static_stub' is false (see below about this argument).
  *
- * dns_view_find() is a backward compatible version equivalent to
- * dns_view_find2() with use_static_stub argument being false.
- *
  * Notes:
  *
  *\li	See the description of dns_db_find() for information about 'options'.

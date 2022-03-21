@@ -116,13 +116,12 @@ struct dns_adbfind {
 	ISC_LINK(dns_adbfind_t) publink;      /*%< RW: client use */
 
 	/* Private */
-	isc_mutex_t	     lock; /* locks all below */
-	in_port_t	     port;
-	dns_adbnamebucket_t *bucket;
-	unsigned int	     flags;
-	dns_adbname_t	      *adbname;
-	dns_adb_t		  *adb;
-	isc_event_t	     event;
+	isc_mutex_t    lock; /* locks all below */
+	in_port_t      port;
+	unsigned int   flags;
+	dns_adbname_t *adbname;
+	dns_adb_t	  *adb;
+	isc_event_t    event;
 	ISC_LINK(dns_adbfind_t) plink;
 };
 
@@ -256,8 +255,8 @@ struct dns_adbaddrinfo {
 ****/
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
-	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
+	       dns_adb_t **newadb);
 /*%<
  * Create a new ADB.
  *
@@ -271,8 +270,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  *\li	'mem' must be a valid memory context.
  *
  *\li	'view' be a pointer to a valid view.
- *
- *\li	'tmgr' be a pointer to a valid timer manager.
  *
  *\li	'taskmgr' be a pointer to a valid task manager.
  *
