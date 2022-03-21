@@ -19,8 +19,8 @@ set -e
 rm -f dig.out.*
 rm -f dsset-*
 rm -f pin
-rm -f keyfromlabel.out.*
-rm -f pkcs11-tool.out.*
+rm -f keyfromlabel.err.* keyfromlabel.out.*
+rm -f pkcs11-tool.err.* pkcs11-tool.out.*
 rm -f signer.out.*
 rm -f ns1/*.example.db ns1/*.example.db.signed
 rm -f ns1/*.kskid1 ns1/*.kskid2 ns1/*.zskid1 ns1/*.zskid2
