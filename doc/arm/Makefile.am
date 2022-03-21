@@ -8,9 +8,12 @@ EXTRA_DIST =					\
 	chapter10.rst				\
 	chapter1.rst				\
 	chapter2.rst				\
-	configuration.rst			\
+	chapter3.rst				\
+	chapter4.rst				\
+	configuration.inc.rst			\
 	conf.py					\
 	dlz.inc.rst				\
+	dns-ops.inc.rst				\
 	dnssec-guide.rst			\
 	dnssec.inc.rst				\
 	dns-security-overview.dia		\
