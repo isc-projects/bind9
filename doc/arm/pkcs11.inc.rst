@@ -12,7 +12,7 @@
 .. _pkcs11:
 
 PKCS#11 (Cryptoki) Support
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Public Key Cryptography Standard #11 (PKCS#11) defines a
 platform-independent API for the control of hardware security modules
@@ -32,7 +32,7 @@ OpenSSL instead.
 .. _OpenSC: https://github.com/OpenSC/libp11
 
 Prerequisites
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 See the documentation provided by the HSM vendor for information about
 installing, initializing, testing, and troubleshooting the HSM.
@@ -65,7 +65,7 @@ with BIND.
    $  /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2
 
 OpenSSL-based PKCS#11
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 OpenSSL-based PKCS#11 uses engine_pkcs11 OpenSSL engine from libp11 project.
 
@@ -83,7 +83,7 @@ For more detailed howto including the examples, we recommend reading:
 https://gitlab.isc.org/isc-projects/bind9/-/wikis/BIND-9-PKCS11
 
 Using the HSM
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 The canonical documentation for configuring engine_pkcs11 is in the
 `libp11/README.md`_, but here's copy of working configuration for
@@ -132,7 +132,7 @@ Add following lines at the bottom of the file:
    init = 0
 
 Key Generation
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 HSM keys can now be created and used.  We are going to assume that you already
 have a BIND 9 installed, either from a package, or from the sources, and the
@@ -213,7 +213,7 @@ this is when creating ECDSA keys, you should specify a unique ID:
 
 
 Specifying the Engine on the Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When using OpenSSL-based PKCS#11, the "engine" to be used by OpenSSL can be
 specified in :iscman:`named` and all of the BIND ``dnssec-*`` tools by using the ``-E
@@ -228,7 +228,7 @@ provide the name of the OpenSSL engine using the -E command line option.
    dnssec-signzone -E pkcs11 -S -o example.net example.net
 
 Running :iscman:`named` With Automatic Zone Re-signing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The zone can also be signed automatically by named. Again, we need to provide
 the name of the OpenSSL engine using the :option:`-E <named -E>` command line option.

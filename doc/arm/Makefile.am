@@ -2,7 +2,7 @@ include $(top_srcdir)/Makefile.top
 include $(top_srcdir)/Makefile.docs
 
 EXTRA_DIST =					\
-	advanced.rst				\
+	advanced.inc.rst			\
 	build.inc.rst				\
 	catz.inc.rst				\
 	chapter10.rst				\
@@ -10,6 +10,9 @@ EXTRA_DIST =					\
 	chapter2.rst				\
 	chapter3.rst				\
 	chapter4.rst				\
+	chapter5.rst				\
+	chapter6.rst				\
+	chapter7.rst				\
 	configuration.inc.rst			\
 	conf.py					\
 	dlz.inc.rst				\
@@ -44,8 +47,11 @@ EXTRA_DIST =					\
 	reference.rst				\
 	requirements.inc.rst			\
 	requirements.txt			\
-	security.rst				\
+	security.inc.rst			\
+	sig0.inc.rst				\
+	tkey.inc.rst				\
 	troubleshooting.rst			\
+	tsig.inc.rst				\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
 	../misc/controls.grammar.rst		\
