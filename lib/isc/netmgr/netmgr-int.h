@@ -966,6 +966,7 @@ struct isc_nmsocket {
 						    worker */
 		size_t n_listener_tls_ctx;
 		isc_nmsocket_t *tlslistener;
+		isc_nmsocket_t *tlssocket;
 		atomic_bool result_updated;
 		enum {
 			TLS_INIT,

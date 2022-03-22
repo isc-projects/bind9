@@ -213,7 +213,6 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 
 	if (destroy) {
 		isc__nmsocket_prep_destroy(sock);
-		isc__nmsocket_detach(&sock);
 	}
 }
 
@@ -415,21 +414,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				send_data->cb.send(send_data->handle, result,
 						   send_data->cbarg);
 				send_data = NULL;
-				/* This situation might occur only when SSL
-				 * shutdown was already sent (see
-				 * tls_send_outgoing()), and we are in the
-				 * process of shutting down the connection (in
-				 * this case tls_senddone() will be called), but
-				 * some code tries to send data over the
-				 * connection and called isc_tls_send(). The
-				 * socket will be detached there, in
-				 * tls_senddone().*/
-				if (sent_shutdown || received_shutdown) {
-					return;
-				} else {
-					isc__nmsocket_detach(&sock);
-					return;
-				}
+				return;
 			}
 		}
 
@@ -632,6 +617,12 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->read_timeout = atomic_load(&handle->sock->mgr->init);
 	tlssock->tid = tid;
 
+	/*
+	 * Hold a reference to tlssock in the TCP socket: it will
+	 * detached in isc__nm_tls_cleanup_data().
+	 */
+	handle->sock->tlsstream.tlssocket = tlssock;
+
 	result = initialize_tls(tlssock, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	/* TODO: catch failure code, detach tlssock, and log the error */
@@ -829,7 +820,7 @@ tls_close_direct(isc_nmsocket_t *sock) {
 		isc__nmsocket_detach(&sock->listener);
 	}
 
-	/* further cleanup performed in isc__nm_tls_cleanup_data() */
+	/* Further cleanup performed in isc__nm_tls_cleanup_data() */
 	atomic_store(&sock->closed, true);
 	atomic_store(&sock->active, false);
 	sock->tlsstream.state = TLS_CLOSED;
@@ -952,6 +943,12 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	atomic_store(&tlssock->active, true);
 
+	/*
+	 * Hold a reference to tlssock in the TCP socket: it will
+	 * detached in isc__nm_tls_cleanup_data().
+	 */
+	handle->sock->tlsstream.tlssocket = tlssock;
+
 	tls_do_bio(tlssock, NULL, NULL, false);
 	return;
 error:
@@ -1019,8 +1016,9 @@ void
 isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 	if (sock->type == isc_nm_tcplistener &&
 	    sock->tlsstream.tlslistener != NULL) {
-		REQUIRE(VALID_NMSOCK(sock->tlsstream.tlslistener));
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
+	} else if (sock->type == isc_nm_tlslistener) {
+		tls_cleanup_listener_tlsctx(sock);
 	} else if (sock->type == isc_nm_tlssocket) {
 		if (sock->tlsstream.ctx != NULL) {
 			isc_tlsctx_free(&sock->tlsstream.ctx);
@@ -1031,8 +1029,13 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 			sock->tlsstream.bio_out = NULL;
 			sock->tlsstream.bio_in = NULL;
 		}
-	} else if (sock->type == isc_nm_tlslistener) {
-		tls_cleanup_listener_tlsctx(sock);
+	} else if (sock->type == isc_nm_tcpsocket &&
+		   sock->tlsstream.tlssocket != NULL) {
+		/*
+		 * The TLS socket can't be destroyed until its underlying TCP
+		 * socket is, to avoid possible use-after-free errors.
+		 */
+		isc__nmsocket_detach(&sock->tlsstream.tlssocket);
 	}
 }
 
