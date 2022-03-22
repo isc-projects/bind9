@@ -13,6 +13,7 @@ EXTRA_DIST =					\
 	chapter5.rst				\
 	chapter6.rst				\
 	chapter7.rst				\
+	chapter9.rst				\
 	configuration.inc.rst			\
 	conf.py					\
 	dlz.inc.rst				\
@@ -50,7 +51,7 @@ EXTRA_DIST =					\
 	security.inc.rst			\
 	sig0.inc.rst				\
 	tkey.inc.rst				\
-	troubleshooting.rst			\
+	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
