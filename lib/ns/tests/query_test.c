@@ -933,7 +933,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	}
 
 	/* Remember SERVFAIL counter */
-	srvfail_cnt = ns_stats_get_counter(qctx->client->sctx->nsstats,
+	srvfail_cnt = ns_stats_get_counter(qctx->client->manager->sctx->nsstats,
 					   ns_statscounter_servfail);
 
 	/*
@@ -983,9 +983,9 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 		INSIST(qctx->client->query.hookactx == NULL);
 		INSIST(qctx->client->state == NS_CLIENTSTATE_WORKING);
 		INSIST(qctx->client->recursionquota == NULL);
-		INSIST(ns_stats_get_counter(qctx->client->sctx->nsstats,
-					    ns_statscounter_recursclients) ==
-		       0);
+		INSIST(ns_stats_get_counter(
+			       qctx->client->manager->sctx->nsstats,
+			       ns_statscounter_recursclients) == 0);
 		INSIST(!ISC_LINK_LINKED(qctx->client, rlink));
 		if (!test->do_cancel) {
 			/*
@@ -1005,9 +1005,9 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	 * Also, the last-generated qctx should have detach_client being true.
 	 */
 	if (expect_servfail) {
-		INSIST(ns_stats_get_counter(qctx->client->sctx->nsstats,
-					    ns_statscounter_servfail) ==
-		       srvfail_cnt + 1);
+		INSIST(ns_stats_get_counter(
+			       qctx->client->manager->sctx->nsstats,
+			       ns_statscounter_servfail) == srvfail_cnt + 1);
 		if (test->do_cancel) {
 			/* qctx was created on resume and copied in hook */
 			INSIST(asdata.qctx.detach_client);
