@@ -1,3 +1,10 @@
+5838.	[cleanup]	When modifying a member zone in a catalog zone, and it
+			is detected that the zone exists and was not created by
+			the current catalog zone, distinguish the two cases when
+			the zone was not added by a catalog zone at all, and
+			when the zone was added by a different catalog zone,
+			and log a warning message accordingly. [GL #3221]
+
 5837.	[func]		Key timing options for `dnssec-keygen` and
 			`dnssec-settime` now accept times as printed by
 			`dnssec-settime -p`. [GL !2947]
