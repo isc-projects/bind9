@@ -1047,7 +1047,7 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig tries the next server after a TCP socket connection error/timeout ($n)"
   ret=0
   dig_with_opts +tcp @10.53.0.99 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
-  test $(grep "connection refused\|timed out" dig.out.test$n | wc -l) -eq 3 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
   grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
