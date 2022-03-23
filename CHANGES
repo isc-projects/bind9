@@ -1,3 +1,7 @@
+5849.	[cleanup]	Remove use of exclusive mode in ns_interfacemgr in
+			favor of rwlocked access to localhost and localnets
+			members of dns_aclenv_t structure. [GL #3229]
+
 5848.	[bug]		dig could hang in some cases involving multiple servers
 			in a lookup, when a request fails and the next one
 			refuses to start for some reason, for example if it was
