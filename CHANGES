@@ -1,3 +1,8 @@
+5835.	[cleanup]	Remove extrahandlesize from the netmgr, the callers
+			now have to allocate the object before calling
+			isc_nm_setdata() and deallocate the memory in the close
+			callback passed to isc_nm_setdata(). [GL #3227]
+
 5834.	[cleanup]	C99 variable-length arrays are difficult to use safely,
 			so avoid them except in test code. [GL #3201]
 
