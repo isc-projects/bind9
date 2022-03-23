@@ -118,7 +118,6 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 		client->state = 4;
 		ns__client_reset_cb(client);
 		ns__client_put_cb(client);
-		isc_mem_put(mctx, client, sizeof(ns_client_t));
 		atomic_store(&client_addrs[i], (uintptr_t)NULL);
 	}
 
@@ -557,7 +556,7 @@ ns_test_cleanup_zone(void) {
 isc_result_t
 ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 	isc_result_t result;
-	ns_client_t *client = isc_mem_get(mctx, sizeof(ns_client_t));
+	ns_client_t *client = isc_mem_get(clientmgr->mctx, sizeof(*client));
 	int i;
 
 	UNUSED(ifp0);

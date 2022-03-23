@@ -1547,9 +1547,8 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 
 static isc_nmhandle_t *
 alloc_handle(isc_nmsocket_t *sock) {
-	isc_nmhandle_t *handle =
-		isc_mem_get(sock->mgr->mctx,
-			    sizeof(isc_nmhandle_t) + sock->extrahandlesize);
+	isc_nmhandle_t *handle = isc_mem_get(sock->mgr->mctx,
+					     sizeof(isc_nmhandle_t));
 
 	*handle = (isc_nmhandle_t){ .magic = NMHANDLE_MAGIC };
 #ifdef NETMGR_TRACE
@@ -1666,8 +1665,6 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
-	size_t extra = sock->extrahandlesize;
-
 	isc_refcount_destroy(&handle->references);
 
 	if (handle->dofree != NULL) {
@@ -1676,7 +1673,7 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 	*handle = (isc_nmhandle_t){ .magic = 0 };
 
-	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t) + extra);
+	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t));
 }
 
 static void
@@ -2380,13 +2377,6 @@ isc_nmhandle_timer_running(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	return (isc__nmsocket_timer_running(handle->sock));
-}
-
-void *
-isc_nmhandle_getextra(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	return (handle->extra);
 }
 
 isc_sockaddr_t

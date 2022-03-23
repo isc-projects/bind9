@@ -1656,6 +1656,11 @@ ns__client_reset_cb(void *client0) {
 void
 ns__client_put_cb(void *client0) {
 	ns_client_t *client = client0;
+	ns_clientmgr_t *manager = NULL;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	manager = client->manager;
 
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(3), "freeing client");
@@ -1664,30 +1669,29 @@ ns__client_put_cb(void *client0) {
 	 * Call this first because it requires a valid client.
 	 */
 	ns_query_free(client);
+	client_extendederror_reset(client);
 
 	client->magic = 0;
 	client->shuttingdown = true;
 
-	isc_mem_put(client->manager->mctx, client->sendbuf,
-		    NS_CLIENT_SEND_BUFFER_SIZE);
+	isc_mem_put(manager->mctx, client->sendbuf, NS_CLIENT_SEND_BUFFER_SIZE);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
-	client_extendederror_reset(client);
 
 	dns_message_detach(&client->message);
-
-	if (client->manager != NULL) {
-		clientmgr_detach(&client->manager);
-	}
 
 	/*
 	 * Destroy the fetchlock mutex that was created in
 	 * ns_query_init().
 	 */
 	isc_mutex_destroy(&client->query.fetchlock);
+
+	isc_mem_put(manager->mctx, client, sizeof(*client));
+
+	clientmgr_detach(&manager);
 }
 
 /*
@@ -1728,8 +1732,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			ns_interfacemgr_getclientmgr(ifp->mgr);
 
 		INSIST(VALID_MANAGER(clientmgr));
+		INSIST(clientmgr->tid == isc_nm_tid());
 
-		client = isc_nmhandle_getextra(handle);
+		client = isc_mem_get(clientmgr->mctx, sizeof(*client));
 
 		result = ns__client_setup(client, clientmgr, true);
 		if (result != ISC_R_SUCCESS) {

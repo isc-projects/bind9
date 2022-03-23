@@ -949,7 +949,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	case DNS_TRANSPORT_TCP:
 		isc_nm_tcpdnsconnect(xfr->netmgr, &xfr->sourceaddr,
 				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000, 0);
+				     connect_xfr, 30000);
 		break;
 	case DNS_TRANSPORT_TLS: {
 		uint32_t tls_versions;
@@ -1025,7 +1025,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		}
 		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
 				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000, 0, tlsctx);
+				     connect_xfr, 30000, tlsctx);
 	} break;
 	default:
 		UNREACHABLE();

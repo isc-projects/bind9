@@ -605,7 +605,6 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (ISC_R_TLSERROR);
 	}
 
-	tlssock->extrahandlesize = tlslistensock->extrahandlesize;
 	isc__nmsocket_attach(tlslistensock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
@@ -624,9 +623,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 SSL_CTX *sslctx, isc_nmsocket_t **sockp) {
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
+		 isc_quota_t *quota, SSL_CTX *sslctx, isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_nmsocket_t *tsock = NULL;
@@ -639,7 +637,6 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	tlssock->result = ISC_R_UNSET;
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
-	tlssock->extrahandlesize = extrahandlesize;
 	tlssock->tlsstream.ctx = sslctx;
 	tlssock->tlsstream.tls = NULL;
 
@@ -648,8 +645,7 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	 * We set tlssock->outer to a socket listening for a TCP connection.
 	 */
 	result = isc_nm_listentcp(mgr, iface, tlslisten_acceptcb, tlssock,
-				  extrahandlesize, backlog, quota,
-				  &tlssock->outer);
+				  backlog, quota, &tlssock->outer);
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&tlssock->closed, true);
 		isc__nmsocket_detach(&tlssock);
@@ -880,7 +876,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg);
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, SSL_CTX *ctx,
-		  unsigned int timeout, size_t extrahandlesize) {
+		  unsigned int timeout) {
 	isc_nmsocket_t *nsock = NULL;
 #if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
 	fprintf(stderr, "TLS: isc_nm_tlsconnect(): in net thread: %s\n",
@@ -891,7 +887,6 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tlssocket, local);
-	nsock->extrahandlesize = extrahandlesize;
 	nsock->result = ISC_R_UNSET;
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
@@ -899,7 +894,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->tlsstream.ctx = ctx;
 
 	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, nsock,
-			  nsock->connect_timeout, 0);
+			  nsock->connect_timeout);
 }
 
 static void

@@ -1817,7 +1817,7 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 			dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
 			isc_nm_tcpdnsconnect(disp->mgr->nm, &disp->local,
 					     &disp->peer, tcp_connected, disp,
-					     resp->timeout, 0);
+					     resp->timeout);
 			break;
 
 		case DNS_DISPATCHSTATE_CONNECTING:
@@ -1843,7 +1843,7 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 
 	case isc_socktype_udp:
 		isc_nm_udpconnect(disp->mgr->nm, &resp->local, &resp->peer,
-				  udp_connected, resp, resp->timeout, 0);
+				  udp_connected, resp, resp->timeout);
 		break;
 
 	default:
