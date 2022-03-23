@@ -1672,7 +1672,6 @@ ns__client_put_cb(void *client0) {
 	client_extendederror_reset(client);
 
 	client->magic = 0;
-	client->shuttingdown = true;
 
 	isc_mem_put(manager->mctx, client->sendbuf, NS_CLIENT_SEND_BUFFER_SIZE);
 	if (client->opt != NULL) {
@@ -2362,11 +2361,6 @@ cleanup:
 	}
 
 	return (result);
-}
-
-bool
-ns_client_shuttingdown(ns_client_t *client) {
-	return (client->shuttingdown);
 }
 
 /***

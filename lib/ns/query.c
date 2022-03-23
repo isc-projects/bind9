@@ -6121,7 +6121,6 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client = NULL;
 	bool fetch_canceled = false;
 	bool fetch_answered = false;
-	bool client_shuttingdown = false;
 	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	isc_result_t result;
 	int errorloglevel;
@@ -6218,8 +6217,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	qctx_init(client, &devent, 0, &qctx);
 
-	client_shuttingdown = ns_client_shuttingdown(client);
-	if (fetch_canceled || fetch_answered || client_shuttingdown) {
+	if (fetch_canceled || fetch_answered) {
 		/*
 		 * We've timed out or are shutting down. We can now
 		 * free the event and other resources held by qctx, but
