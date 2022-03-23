@@ -334,6 +334,11 @@ named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 				 CFG_PCTX_NODEPRECATED, conf));
 }
 
+const char *
+named_config_getdefault() {
+	return (defaultconf);
+}
+
 isc_result_t
 named_config_get(cfg_obj_t const *const *maps, const char *name,
 		 const cfg_obj_t **obj) {

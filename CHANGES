@@ -1,3 +1,6 @@
+5880.	[func]		Add new named command-line option -C to print built-in
+			defaults. [GL #1326]
+
 5879.	[contrib]	dlz: Add FALLTHROUGH and UNREACHABLE macros. [GL #3306]
 
 5878.	[func]		Check the algorithm name or OID embedded at the start

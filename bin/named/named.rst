@@ -21,7 +21,7 @@ named - Internet domain name server
 Synopsis
 ~~~~~~~~
 
-:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] [**-X** lock-file]
+:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] [**-X** lock-file]
 
 Description
 ~~~~~~~~~~~
@@ -54,6 +54,14 @@ Options
    can be reloaded after the server has changed its working directory
    due to to a possible ``directory`` option in the configuration file,
    ``config-file`` should be an absolute pathname.
+
+.. option:: -C
+
+   This option prints out the default built-in configuration and exits.
+
+   NOTE: This is for debugging purposes only and is not an
+   accurate representation of the actual configuration used by :iscman:`named`
+   at runtime.
 
 .. option:: -d debug-level
 
