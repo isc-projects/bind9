@@ -2406,12 +2406,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 	dns_aclenv_detach(&manager->aclenv);
 
-	isc_mutex_destroy(&manager->lock);
 	isc_mutex_destroy(&manager->reclock);
-
-	if (manager->excl != NULL) {
-		isc_task_detach(&manager->excl);
-	}
 
 	isc_task_detach(&manager->task);
 	ns_server_detach(&manager->sctx);
@@ -2433,13 +2428,6 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	*manager = (ns_clientmgr_t){ .magic = 0, .mctx = mctx };
 
-	result = isc_taskmgr_excltask(taskmgr, &manager->excl);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (result);
-	}
-
-	isc_mutex_init(&manager->lock);
 	isc_mutex_init(&manager->reclock);
 
 	manager->taskmgr = taskmgr;
@@ -2448,7 +2436,6 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 
 	dns_aclenv_attach(aclenv, &manager->aclenv);
 
-	manager->exiting = false;
 	result = isc_task_create_bound(manager->taskmgr, 20, &manager->task,
 				       manager->tid);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -2471,32 +2458,15 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 
 void
 ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
-	isc_result_t result;
 	ns_clientmgr_t *manager;
-	bool unlock = false;
 
 	REQUIRE(managerp != NULL);
+	REQUIRE(VALID_MANAGER(*managerp));
+
 	manager = *managerp;
 	*managerp = NULL;
-	REQUIRE(VALID_MANAGER(manager));
 
 	MTRACE("destroy");
-
-	/*
-	 * Check for success because we may already be task-exclusive
-	 * at this point.  Only if we succeed at obtaining an exclusive
-	 * lock now will we need to relinquish it later.
-	 */
-	result = isc_task_beginexclusive(manager->excl);
-	if (result == ISC_R_SUCCESS) {
-		unlock = true;
-	}
-
-	manager->exiting = true;
-
-	if (unlock) {
-		isc_task_endexclusive(manager->excl);
-	}
 
 	if (isc_refcount_decrement(&manager->references) == 1) {
 		clientmgr_destroy(manager);
