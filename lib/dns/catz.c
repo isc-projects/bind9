@@ -1819,12 +1819,14 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	isc_result_t result;
 	isc_region_t r;
 	dns_dbnode_t *node = NULL;
+	const dns_dbnode_t *vers_node = NULL;
 	dns_dbiterator_t *it = NULL;
 	dns_fixedname_t fixname;
 	dns_name_t *name;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t rdataset;
 	char bname[DNS_NAME_FORMATSIZE];
+	bool is_vers_processed = false;
 	uint32_t vers;
 
 	REQUIRE(DNS_DB_VALID(db));
@@ -1884,16 +1886,38 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	name = dns_fixedname_initname(&fixname);
 
 	/*
-	 * Iterate over database to fill the new zone.
+	 * Take the version record to process first, because the other
+	 * records might be processed differently depending on the version of
+	 * the catalog zone's schema.
 	 */
-	result = dns_dbiterator_first(it);
+	result = dns_name_fromstring2(name, "version", &db->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
+		dns_dbiterator_destroy(&it);
+		dns_catz_zone_detach(&newzone);
+		dns_db_closeversion(db, &oldzone->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-			      "catz: failed to get db iterator - %s",
+			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
+		return;
+	}
+	result = dns_dbiterator_seek(it, name);
+	if (result != ISC_R_SUCCESS) {
+		dns_dbiterator_destroy(&it);
+		dns_catz_zone_detach(&newzone);
+		dns_db_closeversion(db, &oldzone->dbversion, false);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "catz: zone '%s' has no 'version' record (%s)",
+			      bname, isc_result_totext(result));
+		return;
 	}
 
+	name = dns_fixedname_initname(&fixname);
+
+	/*
+	 * Iterate over database to fill the new zone.
+	 */
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(it, &node, name);
 		if (result != ISC_R_SUCCESS) {
@@ -1902,6 +1926,16 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 				      "catz: failed to get db iterator - %s",
 				      isc_result_totext(result));
 			break;
+		}
+
+		if (!is_vers_processed) {
+			/* Keep the version node to skip it later in the loop */
+			vers_node = node;
+		} else if (node == vers_node) {
+			/* Skip the already processed version node */
+			dns_db_detachnode(db, &node);
+			result = dns_dbiterator_next(it);
+			continue;
 		}
 
 		result = dns_db_allrdatasets(db, node, oldzone->dbversion, 0,
@@ -1951,7 +1985,13 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		dns_rdatasetiter_destroy(&rdsiter);
 
 		dns_db_detachnode(db, &node);
-		result = dns_dbiterator_next(it);
+
+		if (!is_vers_processed) {
+			is_vers_processed = true;
+			result = dns_dbiterator_first(it);
+		} else {
+			result = dns_dbiterator_next(it);
+		}
 	}
 
 	dns_dbiterator_destroy(&it);
