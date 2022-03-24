@@ -147,7 +147,6 @@ struct ns_clientmgr {
 	ns_server_t    *sctx;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_task_t	   *excl;
 	isc_refcount_t	references;
 	int		tid;
 
@@ -155,10 +154,6 @@ struct ns_clientmgr {
 	isc_task_t *task;
 
 	dns_aclenv_t *aclenv;
-
-	/* Lock covers manager state. */
-	isc_mutex_t lock;
-	bool	    exiting;
 
 	/* Lock covers the recursing list */
 	isc_mutex_t   reclock;
