@@ -1,3 +1,6 @@
+5842.	[cleanup]	Remove the task exclusive mode use in ns_clientmgr.
+			[GL #3230]
+
 5841.	[bug]		Refactor the address database:
 			- Use self-resizing hash tables, eliminating the
 			  need to go into task-exclusive mode when resizing.
