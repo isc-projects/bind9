@@ -281,8 +281,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
  *\li	#ISC_R_NOMEMORY	after resource allocation failure.
  */
 
+#define dns_adb_attach(a, ap) \
+	dns__adb_attach(a, ap, __func__, __FILE__, __LINE__)
 void
-dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
+dns__adb_attach(dns_adb_t *adb, dns_adb_t **adbp, const char *func,
+		const char *file, unsigned int line);
 /*%
  * Attach to an 'adb' to 'adbp'.
  *
@@ -292,8 +295,10 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
  *	to NULL.
  */
 
+#define dns_adb_detach(ap) dns__adb_detach(ap, __func__, __FILE__, __LINE__)
 void
-dns_adb_detach(dns_adb_t **adb);
+dns__adb_detach(dns_adb_t **adb, const char *func, const char *file,
+		unsigned int line);
 /*%
  * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.
  *

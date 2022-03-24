@@ -47,6 +47,11 @@
 #include <dns/resolver.h>
 #include <dns/stats.h>
 
+/* Detailed logging of attach/detach */
+#ifndef ADB_TRACE
+#undef ADB_TRACE
+#endif
+
 #define DNS_ADB_MAGIC		 ISC_MAGIC('D', 'a', 'd', 'b')
 #define DNS_ADB_VALID(x)	 ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
 #define DNS_ADBNAME_MAGIC	 ISC_MAGIC('a', 'd', 'b', 'N')
@@ -524,17 +529,35 @@ ttlclamp(dns_ttl_t ttl) {
 	return (ttl);
 }
 
+#define entry_attach(s, t) _entry_attach(s, t, __func__, __FILE__, __LINE__)
+
 static void
-entry_attach(dns_adbentry_t *source, dns_adbentry_t **targetp) {
+_entry_attach(dns_adbentry_t *source, dns_adbentry_t **targetp,
+	      const char *func, const char *file, unsigned int line) {
+	uint_fast32_t refs;
+
 	REQUIRE(DNS_ADBENTRY_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references);
+	refs = isc_refcount_increment(&source->references);
+#ifdef ADB_TRACE
+	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
+		line, __func__, source, targetp, refs + 1);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+	UNUSED(refs);
+#endif /* ADB_TRACE */
+
 	*targetp = source;
 }
 
+#define entry_detach(ep) _entry_detach(ep, __func__, __FILE__, __LINE__)
+
 static void
-entry_detach(dns_adbentry_t **entryp) {
+_entry_detach(dns_adbentry_t **entryp, const char *func, const char *file,
+	      unsigned int line) {
 	dns_adbentry_t *entry = NULL;
 	uint_fast32_t refs;
 
@@ -546,6 +569,16 @@ entry_detach(dns_adbentry_t **entryp) {
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
 	refs = isc_refcount_decrement(&entry->references);
+
+#ifdef ADB_TRACE
+	fprintf(stderr, "%s:%s:%u:%s(%p, %p), %" PRIuFAST32 "\n", func, file,
+		line, __func__, entry, entryp, refs - 1);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif /* ADB_TRACE */
+
 	if (refs == 1) {
 		/*
 		 * If the entry is linked to a bucket, we need to
@@ -848,6 +881,8 @@ link_entry(dns_adbentrybucket_t *ebucket, dns_adbentry_t *entry) {
 	REQUIRE(entry != NULL && entry->bucket == NULL);
 	REQUIRE(!ISC_LINK_LINKED(entry, plink));
 
+	DP(DEF_LEVEL, "link ADB entry %p to bucket %p\n", entry, ebucket);
+
 	/*
 	 * If we're in the overmem condition, take this opportunity to
 	 * clean up the least-recently used entries in the bucket.
@@ -901,6 +936,8 @@ unlink_entry(dns_adbentry_t *entry) {
 	entry->bucket = NULL;
 
 	REQUIRE(ebucket != NULL);
+
+	DP(DEF_LEVEL, "unlink ADB entry %p from bucket %p\n", entry, ebucket);
 
 	if ((entry->flags & ENTRY_IS_DEAD) != 0) {
 		ISC_LIST_UNLINK(ebucket->deadentries, entry, plink);
@@ -2004,6 +2041,8 @@ destroy(dns_adb_t *adb) {
 	isc_result_t result;
 	isc_ht_iter_t *it = NULL;
 
+	DP(DEF_LEVEL, "destroying ADB %p\n", adb);
+
 	adb->magic = 0;
 
 	isc_task_detach(&adb->task);
@@ -2124,25 +2163,50 @@ free_lock:
 }
 
 void
-dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp) {
+dns__adb_attach(dns_adb_t *adb, dns_adb_t **adbp, const char *func,
+		const char *file, unsigned int line) {
+	uint_fast32_t refs;
+
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(adbp != NULL && *adbp == NULL);
 	REQUIRE(!atomic_load_acquire(&adb->exiting));
 
-	isc_refcount_increment(&adb->references);
+	refs = isc_refcount_increment(&adb->references);
+#ifdef ADB_TRACE
+	fprintf(stderr, "%s:%s:%u:%s(%p, %p) = %" PRIuFAST32 "\n", func, file,
+		line, __func__, adb, adbp, refs + 1);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+	UNUSED(refs);
+#endif /* ADB_TRACE */
+
 	*adbp = adb;
 }
 
 void
-dns_adb_detach(dns_adb_t **adbp) {
+dns__adb_detach(dns_adb_t **adbp, const char *func, const char *file,
+		unsigned int line) {
 	dns_adb_t *adb = NULL;
+	uint_fast32_t refs;
 
 	REQUIRE(adbp != NULL && DNS_ADB_VALID(*adbp));
 
 	adb = *adbp;
 	*adbp = NULL;
 
-	if (isc_refcount_decrement(&adb->references) == 1) {
+	refs = isc_refcount_decrement(&adb->references);
+#ifdef ADB_TRACE
+	fprintf(stderr, "%s:%s:%u:%s(%p, %p), %" PRIuFAST32 "\n", func, file,
+		line, __func__, adb, adbp, refs - 1);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif /* ADB_TRACE */
+
+	if (refs == 1) {
 		destroy(adb);
 	}
 }
@@ -2184,6 +2248,8 @@ dns_adb_shutdown(dns_adb_t *adb) {
 					    true)) {
 		return;
 	}
+
+	DP(DEF_LEVEL, "shutting down ADB %p\n", adb);
 
 	isc_mem_clearwater(adb->mctx);
 
