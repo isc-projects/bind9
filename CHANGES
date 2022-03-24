@@ -30,6 +30,9 @@
 			favor of rwlocked access to localhost and localnets
 			members of dns_aclenv_t structure. [GL #3229]
 
+5842.	[cleanup]	Remove the task exclusive mode use in ns_clientmgr.
+			[GL #3230]
+
 	--- 9.18.2 released ---
 
 5856.	[bug]		The "starting maxtime timer" message related to outgoing
