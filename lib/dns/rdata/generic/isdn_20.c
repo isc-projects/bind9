@@ -18,7 +18,7 @@
 
 #define RRTYPE_ISDN_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_isdn(ARGS_FROMTEXT) {
 	isc_token_t token;
 
@@ -47,7 +47,7 @@ fromtext_isdn(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_isdn(ARGS_TOTEXT) {
 	isc_region_t region;
 
@@ -65,7 +65,7 @@ totext_isdn(ARGS_TOTEXT) {
 	return (txt_totext(&region, true, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_isdn(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_isdn);
 
@@ -81,7 +81,7 @@ fromwire_isdn(ARGS_FROMWIRE) {
 	return (txt_fromwire(source, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_isdn(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
@@ -91,7 +91,7 @@ towire_isdn(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
+static int
 compare_isdn(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -107,7 +107,7 @@ compare_isdn(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_isdn(ARGS_FROMSTRUCT) {
 	dns_rdata_isdn_t *isdn = source;
 
@@ -128,7 +128,7 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, isdn->subaddress, isdn->subaddress_len));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_isdn(ARGS_TOSTRUCT) {
 	dns_rdata_isdn_t *isdn = target;
 	isc_region_t r;
@@ -174,7 +174,7 @@ cleanup:
 	return (ISC_R_NOMEMORY);
 }
 
-static inline void
+static void
 freestruct_isdn(ARGS_FREESTRUCT) {
 	dns_rdata_isdn_t *isdn = source;
 
@@ -193,7 +193,7 @@ freestruct_isdn(ARGS_FREESTRUCT) {
 	isdn->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_isdn(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_isdn);
 
@@ -205,7 +205,7 @@ additionaldata_isdn(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_isdn(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -216,7 +216,7 @@ digest_isdn(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_isdn(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_isdn);
 
@@ -228,7 +228,7 @@ checkowner_isdn(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_isdn(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_isdn);
 
@@ -239,7 +239,7 @@ checknames_isdn(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_isdn(ARGS_COMPARE) {
 	return (compare_isdn(rdata1, rdata2));
 }

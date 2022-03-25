@@ -16,7 +16,7 @@
 
 #define RRTYPE_MINFO_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_minfo(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
@@ -55,7 +55,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_minfo(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t rmail;
@@ -88,7 +88,7 @@ totext_minfo(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_minfo(ARGS_FROMWIRE) {
 	dns_name_t rmail;
 	dns_name_t email;
@@ -107,7 +107,7 @@ fromwire_minfo(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&email, source, dctx, options, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_minfo(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
@@ -136,7 +136,7 @@ towire_minfo(ARGS_TOWIRE) {
 	return (dns_name_towire(&rmail, cctx, target));
 }
 
-static inline int
+static int
 compare_minfo(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
@@ -177,7 +177,7 @@ compare_minfo(ARGS_COMPARE) {
 	return (order);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_minfo(ARGS_FROMSTRUCT) {
 	dns_rdata_minfo_t *minfo = source;
 	isc_region_t region;
@@ -196,7 +196,7 @@ fromstruct_minfo(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_minfo(ARGS_TOSTRUCT) {
 	dns_rdata_minfo_t *minfo = target;
 	isc_region_t region;
@@ -224,7 +224,7 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_minfo(ARGS_FREESTRUCT) {
 	dns_rdata_minfo_t *minfo = source;
 
@@ -240,7 +240,7 @@ freestruct_minfo(ARGS_FREESTRUCT) {
 	minfo->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_minfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
 
@@ -252,7 +252,7 @@ additionaldata_minfo(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_minfo(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
@@ -274,7 +274,7 @@ digest_minfo(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool
+static bool
 checkowner_minfo(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_minfo);
 
@@ -286,7 +286,7 @@ checkowner_minfo(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_minfo(ARGS_CHECKNAMES) {
 	isc_region_t region;
 	dns_name_t name;
@@ -315,7 +315,7 @@ checknames_minfo(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_minfo(ARGS_COMPARE) {
 	return (compare_minfo(rdata1, rdata2));
 }

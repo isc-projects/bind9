@@ -322,8 +322,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			RETERR(svcsortkeylist(target, used));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		len = isc_buffer_usedlength(target) -
@@ -524,7 +523,7 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 	}
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
@@ -597,7 +596,7 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	}
 }
 
-static inline isc_result_t
+static isc_result_t
 fromtext_in_svcb(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_svcb);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -608,7 +607,7 @@ fromtext_in_svcb(ARGS_FROMTEXT) {
 	return (generic_fromtext_in_svcb(CALL_FROMTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_totext_in_svcb(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
@@ -732,14 +731,13 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 			}
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_in_svcb(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -748,7 +746,7 @@ totext_in_svcb(ARGS_TOTEXT) {
 	return (generic_totext_in_svcb(CALL_TOTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	dns_name_t name;
 	isc_region_t region, man = { .base = NULL, .length = 0 };
@@ -890,7 +888,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_in_svcb(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_svcb);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -898,7 +896,7 @@ fromwire_in_svcb(ARGS_FROMWIRE) {
 	return (generic_fromwire_in_svcb(CALL_FROMWIRE));
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_towire_in_svcb(ARGS_TOWIRE) {
 	dns_name_t name;
 	dns_offsets_t offsets;
@@ -929,7 +927,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, region.base, region.length));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_in_svcb(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->length != 0);
@@ -937,7 +935,7 @@ towire_in_svcb(ARGS_TOWIRE) {
 	return (generic_towire_in_svcb(CALL_TOWIRE));
 }
 
-static inline int
+static int
 compare_in_svcb(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
@@ -955,7 +953,7 @@ compare_in_svcb(ARGS_COMPARE) {
 	return (isc_region_compare(&region1, &region2));
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	dns_rdata_in_svcb_t *svcb = source;
 	isc_region_t region;
@@ -974,7 +972,7 @@ generic_fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, svcb->svc, svcb->svclen));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	dns_rdata_in_svcb_t *svcb = source;
 
@@ -987,7 +985,7 @@ fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	return (generic_fromstruct_in_svcb(CALL_FROMSTRUCT));
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_in_svcb_t *svcb = target;
@@ -1027,7 +1025,7 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_in_svcb(ARGS_TOSTRUCT) {
 	dns_rdata_in_svcb_t *svcb = target;
 
@@ -1039,7 +1037,7 @@ tostruct_in_svcb(ARGS_TOSTRUCT) {
 	return (generic_tostruct_in_svcb(CALL_TOSTRUCT));
 }
 
-static inline void
+static void
 generic_freestruct_in_svcb(ARGS_FREESTRUCT) {
 	dns_rdata_in_svcb_t *svcb = source;
 
@@ -1054,7 +1052,7 @@ generic_freestruct_in_svcb(ARGS_FREESTRUCT) {
 	svcb->mctx = NULL;
 }
 
-static inline void
+static void
 freestruct_in_svcb(ARGS_FREESTRUCT) {
 	dns_rdata_in_svcb_t *svcb = source;
 
@@ -1065,7 +1063,7 @@ freestruct_in_svcb(ARGS_FREESTRUCT) {
 	generic_freestruct_in_svcb(CALL_FREESTRUCT);
 }
 
-static inline isc_result_t
+static isc_result_t
 generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	bool alias, done = false;
 	dns_fixedname_t fixed;
@@ -1148,7 +1146,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	return ((add)(arg, &name, dns_rdatatype_a, NULL));
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_in_svcb(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -1156,7 +1154,7 @@ additionaldata_in_svcb(ARGS_ADDLDATA) {
 	return (generic_additionaldata_in_svcb(CALL_ADDLDATA));
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_in_svcb(ARGS_DIGEST) {
 	isc_region_t region1;
 
@@ -1167,7 +1165,7 @@ digest_in_svcb(ARGS_DIGEST) {
 	return ((digest)(arg, &region1));
 }
 
-static inline bool
+static bool
 checkowner_in_svcb(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_svcb);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -1180,7 +1178,7 @@ checkowner_in_svcb(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 generic_checknames_in_svcb(ARGS_CHECKNAMES) {
 	isc_region_t region;
 	dns_name_t name;
@@ -1203,7 +1201,7 @@ generic_checknames_in_svcb(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_in_svcb(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -1211,7 +1209,7 @@ checknames_in_svcb(ARGS_CHECKNAMES) {
 	return (generic_checknames_in_svcb(CALL_CHECKNAMES));
 }
 
-static inline int
+static int
 casecompare_in_svcb(ARGS_COMPARE) {
 	return (compare_in_svcb(rdata1, rdata2));
 }

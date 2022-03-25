@@ -127,7 +127,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	return (ISC_R_SUCCESS);
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

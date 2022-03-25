@@ -703,7 +703,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				isc_buffer_putstr(target, KEYDATA);
 				break;
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) !=
 			    0) {
@@ -1580,8 +1580,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		dctx->dumpsets = dump_rdatasets_raw;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	result = totext_ctx_init(style, NULL, &dctx->tctx);
@@ -1701,8 +1700,7 @@ writeheader(dns_dumpctx_t *dctx) {
 
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);

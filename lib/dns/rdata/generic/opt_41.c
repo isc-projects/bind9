@@ -22,7 +22,7 @@
 
 #include <isc/utf8.h>
 
-static inline isc_result_t
+static isc_result_t
 fromtext_opt(ARGS_FROMTEXT) {
 	/*
 	 * OPT records do not have a text format.
@@ -41,7 +41,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_opt(ARGS_TOTEXT) {
 	isc_region_t r;
 	isc_region_t or ;
@@ -91,7 +91,7 @@ totext_opt(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_opt(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
@@ -233,7 +233,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_CLIENT_TAG:
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case DNS_OPT_SERVER_TAG:
 			if (length != 2) {
 				return (DNS_R_OPTERR);
@@ -259,7 +259,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_opt(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_opt);
 
@@ -268,7 +268,7 @@ towire_opt(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static inline int
+static int
 compare_opt(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -282,7 +282,7 @@ compare_opt(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_opt(ARGS_FROMSTRUCT) {
 	dns_rdata_opt_t *opt = source;
 	isc_region_t region;
@@ -315,7 +315,7 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, opt->options, opt->length));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_opt(ARGS_TOSTRUCT) {
 	dns_rdata_opt_t *opt = target;
 	isc_region_t r;
@@ -339,7 +339,7 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_opt(ARGS_FREESTRUCT) {
 	dns_rdata_opt_t *opt = source;
 
@@ -356,7 +356,7 @@ freestruct_opt(ARGS_FREESTRUCT) {
 	opt->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_opt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_opt);
 
@@ -368,7 +368,7 @@ additionaldata_opt(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_opt(ARGS_DIGEST) {
 	/*
 	 * OPT records are not digested.
@@ -383,7 +383,7 @@ digest_opt(ARGS_DIGEST) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static inline bool
+static bool
 checkowner_opt(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_opt);
 
@@ -394,7 +394,7 @@ checkowner_opt(ARGS_CHECKOWNER) {
 	return (dns_name_equal(name, dns_rootname));
 }
 
-static inline bool
+static bool
 checknames_opt(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_opt);
 
@@ -405,7 +405,7 @@ checknames_opt(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_opt(ARGS_COMPARE) {
 	return (compare_opt(rdata1, rdata2));
 }

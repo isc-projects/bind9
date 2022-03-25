@@ -96,7 +96,7 @@ isccc_symtab_create(unsigned int size,
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 free_elt(isccc_symtab_t *symtab, unsigned int bucket, elt_t *elt) {
 	ISC_LIST_UNLINK(symtab->table[bucket], elt, link);
 	if (symtab->undefine_action != NULL) {
@@ -129,7 +129,7 @@ isccc_symtab_destroy(isccc_symtab_t **symtabp) {
 	free(symtab);
 }
 
-static inline unsigned int
+static unsigned int
 hash(const char *key, bool case_sensitive) {
 	const char *s;
 	unsigned int h = 0;

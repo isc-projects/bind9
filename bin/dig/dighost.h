@@ -276,13 +276,13 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp);
 isc_result_t
 get_reverse(char *reverse, size_t len, char *value, bool strict);
 
-ISC_NORETURN void
+noreturn void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
 warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-ISC_NORETURN void
+noreturn void
 digexit(void);
 
 void

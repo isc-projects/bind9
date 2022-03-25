@@ -854,7 +854,7 @@ get_next_command(void) {
 	}
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void

@@ -685,8 +685,7 @@ isc__nm_tlsdns_stoplistening(isc_nmsocket_t *sock) {
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (!isc__nm_in_netthread()) {
@@ -760,8 +759,7 @@ isc__nm_async_tlsdnsshutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
 		tls_shutdown(sock);
 		return;
 	case 0:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	case SSL_ERROR_ZERO_RETURN:
 		tls_error(sock, ISC_R_EOF);
 		break;
@@ -1737,8 +1735,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	case SSL_ERROR_WANT_READ:
 		break;
 	case 0:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	default:
 		return (ISC_R_TLSERROR);
 	}
@@ -1764,8 +1761,7 @@ tlsdns_stop_cb(uv_handle_t *handle) {
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc__nm_incstats(sock, STATID_CLOSE);
@@ -1788,8 +1784,7 @@ tlsdns_close_sock(isc_nmsocket_t *sock) {
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc__nm_incstats(sock, STATID_CLOSE);

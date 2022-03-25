@@ -142,12 +142,10 @@ Good:
     	static char *	c	       /* Description of 'c'. */
 
 
-The following lint and lint-like comments should be used where appropriate:
+The following macros should be used where appropriate:
 
-    	/* ARGSUSED */
-    	/* FALLTHROUGH */
-    	/* NOTREACHED */
-    	/* VARARGS */
+    	FALLTHROUGH;
+    	UNREACHABLE();
 
 #### Header files
 
@@ -271,7 +269,7 @@ specifying the implementation of the function.  The opening curly brace
 should occur on the same line as the argument list, unless the argument
 list is more than one line long:
 
-    	static inline void
+    	static void
     	func1(int i) {
     		/* whatever */
     	}

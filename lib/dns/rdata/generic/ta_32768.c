@@ -18,28 +18,28 @@
 
 #define RRTYPE_TA_ATTRIBUTES 0
 
-static inline isc_result_t
+static isc_result_t
 fromtext_ta(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromtext_ds(CALL_FROMTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_ta(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	return (generic_totext_ds(CALL_TOTEXT));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_ta(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromwire_ds(CALL_FROMWIRE));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_ta(ARGS_TOWIRE) {
 	isc_region_t sr;
 
@@ -52,7 +52,7 @@ towire_ta(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
+static int
 compare_ta(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -68,14 +68,14 @@ compare_ta(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_ta(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_ta);
 
 	return (generic_fromstruct_ds(CALL_FROMSTRUCT));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_ta(ARGS_TOSTRUCT) {
 	dns_rdata_ds_t *ds = target;
 
@@ -92,7 +92,7 @@ tostruct_ta(ARGS_TOSTRUCT) {
 	return (generic_tostruct_ds(CALL_TOSTRUCT));
 }
 
-static inline void
+static void
 freestruct_ta(ARGS_FREESTRUCT) {
 	dns_rdata_ta_t *ds = source;
 
@@ -109,7 +109,7 @@ freestruct_ta(ARGS_FREESTRUCT) {
 	ds->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_ta(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
@@ -121,7 +121,7 @@ additionaldata_ta(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_ta(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -132,7 +132,7 @@ digest_ta(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_ta(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_ta);
 
@@ -144,7 +144,7 @@ checkowner_ta(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_ta(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
@@ -155,7 +155,7 @@ checknames_ta(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_ta(ARGS_COMPARE) {
 	return (compare_ta(rdata1, rdata2));
 }

@@ -215,7 +215,7 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 		default:
 			fatal("time value %s is invalid", str);
 		}
-		/* NOTREACHED */
+		UNREACHABLE();
 		break;
 	case 'W':
 	case 'w':
@@ -233,11 +233,11 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	default:
 		fatal("time value %s is invalid", str);
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (0); /* silence compiler warning */
 }
 
-static inline bool
+static bool
 isnone(const char *str) {
 	return ((strcasecmp(str, "none") == 0) ||
 		(strcasecmp(str, "never") == 0));

@@ -2468,8 +2468,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				memmove(addr, &sin6->sin6_addr, addrl);
 				break;
 			default:
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));

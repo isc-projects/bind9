@@ -66,8 +66,7 @@ dns_ecs_equals(const dns_ecs_t *ecs1, const dns_ecs_t *ecs2) {
 		addr2 = (const unsigned char *)&ecs2->addr.type.in6;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*

@@ -54,7 +54,7 @@ const char *progname;
 static enum { progmode_keygen, progmode_confgen } progmode;
 bool verbose = false; /* needed by util.c but not used here */
 
-ISC_NORETURN static void
+noreturn static void
 usage(int status);
 
 static void
@@ -121,8 +121,7 @@ main(int argc, char **argv) {
 	} else if (PROGCMP("ddns-confgen")) {
 		progmode = progmode_confgen;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc_commandline_errprint = false;

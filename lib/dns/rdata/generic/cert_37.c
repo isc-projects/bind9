@@ -18,7 +18,7 @@
 
 #define RRTYPE_CERT_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_cert(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_secalg_t secalg;
@@ -61,7 +61,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_cert(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof("64000 ")];
@@ -115,7 +115,7 @@ totext_cert(ARGS_TOTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_cert(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
@@ -135,7 +135,7 @@ fromwire_cert(ARGS_FROMWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_cert(ARGS_TOWIRE) {
 	isc_region_t sr;
 
@@ -148,7 +148,7 @@ towire_cert(ARGS_TOWIRE) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline int
+static int
 compare_cert(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -164,7 +164,7 @@ compare_cert(ARGS_COMPARE) {
 	return (isc_region_compare(&r1, &r2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_cert(ARGS_FROMSTRUCT) {
 	dns_rdata_cert_t *cert = source;
 
@@ -183,7 +183,7 @@ fromstruct_cert(ARGS_FROMSTRUCT) {
 	return (mem_tobuffer(target, cert->certificate, cert->length));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_cert(ARGS_TOSTRUCT) {
 	dns_rdata_cert_t *cert = target;
 	isc_region_t region;
@@ -215,7 +215,7 @@ tostruct_cert(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_cert(ARGS_FREESTRUCT) {
 	dns_rdata_cert_t *cert = source;
 
@@ -232,7 +232,7 @@ freestruct_cert(ARGS_FREESTRUCT) {
 	cert->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_cert(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cert);
 
@@ -244,7 +244,7 @@ additionaldata_cert(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_cert(ARGS_DIGEST) {
 	isc_region_t r;
 
@@ -255,7 +255,7 @@ digest_cert(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline bool
+static bool
 checkowner_cert(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_cert);
 
@@ -267,7 +267,7 @@ checkowner_cert(ARGS_CHECKOWNER) {
 	return (true);
 }
 
-static inline bool
+static bool
 checknames_cert(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_cert);
 
@@ -278,7 +278,7 @@ checknames_cert(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_cert(ARGS_COMPARE) {
 	return (compare_cert(rdata1, rdata2));
 }

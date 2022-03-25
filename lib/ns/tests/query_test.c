@@ -433,8 +433,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 			 test->id.description, test->id.lineno);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*

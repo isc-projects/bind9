@@ -16,7 +16,7 @@
 
 #define RRTYPE_MG_ATTRIBUTES (0)
 
-static inline isc_result_t
+static isc_result_t
 fromtext_mg(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
@@ -40,7 +40,7 @@ fromtext_mg(ARGS_FROMTEXT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 totext_mg(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
@@ -61,7 +61,7 @@ totext_mg(ARGS_TOTEXT) {
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromwire_mg(ARGS_FROMWIRE) {
 	dns_name_t name;
 
@@ -76,7 +76,7 @@ fromwire_mg(ARGS_FROMWIRE) {
 	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
-static inline isc_result_t
+static isc_result_t
 towire_mg(ARGS_TOWIRE) {
 	dns_name_t name;
 	dns_offsets_t offsets;
@@ -94,7 +94,7 @@ towire_mg(ARGS_TOWIRE) {
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static inline int
+static int
 compare_mg(ARGS_COMPARE) {
 	dns_name_t name1;
 	dns_name_t name2;
@@ -119,7 +119,7 @@ compare_mg(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline isc_result_t
+static isc_result_t
 fromstruct_mg(ARGS_FROMSTRUCT) {
 	dns_rdata_mg_t *mg = source;
 	isc_region_t region;
@@ -136,7 +136,7 @@ fromstruct_mg(ARGS_FROMSTRUCT) {
 	return (isc_buffer_copyregion(target, &region));
 }
 
-static inline isc_result_t
+static isc_result_t
 tostruct_mg(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_mg_t *mg = target;
@@ -159,7 +159,7 @@ tostruct_mg(ARGS_TOSTRUCT) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 freestruct_mg(ARGS_FREESTRUCT) {
 	dns_rdata_mg_t *mg = source;
 
@@ -173,7 +173,7 @@ freestruct_mg(ARGS_FREESTRUCT) {
 	mg->mctx = NULL;
 }
 
-static inline isc_result_t
+static isc_result_t
 additionaldata_mg(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_mg);
 
@@ -185,7 +185,7 @@ additionaldata_mg(ARGS_ADDLDATA) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 digest_mg(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
@@ -199,7 +199,7 @@ digest_mg(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline bool
+static bool
 checkowner_mg(ARGS_CHECKOWNER) {
 	REQUIRE(type == dns_rdatatype_mg);
 
@@ -210,7 +210,7 @@ checkowner_mg(ARGS_CHECKOWNER) {
 	return (dns_name_ismailbox(name));
 }
 
-static inline bool
+static bool
 checknames_mg(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_mg);
 
@@ -221,7 +221,7 @@ checknames_mg(ARGS_CHECKNAMES) {
 	return (true);
 }
 
-static inline int
+static int
 casecompare_mg(ARGS_COMPARE) {
 	return (compare_mg(rdata1, rdata2));
 }

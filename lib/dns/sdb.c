@@ -256,7 +256,7 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdbimplementation_t));
 }
 
-static inline unsigned int
+static unsigned int
 initial_size(unsigned int len) {
 	unsigned int size;
 
@@ -1069,8 +1069,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	UNUSED(db);
 	UNUSED(node);
 	UNUSED(now);
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 }
 
 static void

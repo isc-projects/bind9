@@ -77,14 +77,14 @@ typedef struct {
 	int val[2];
 } hex_decode_ctx_t;
 
-static inline void
+static void
 hex_decode_init(hex_decode_ctx_t *ctx, int length, isc_buffer_t *target) {
 	ctx->digits = 0;
 	ctx->length = length;
 	ctx->target = target;
 }
 
-static inline isc_result_t
+static isc_result_t
 hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 	const char *s;
 
@@ -109,7 +109,7 @@ hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 hex_decode_finish(hex_decode_ctx_t *ctx) {
 	if (ctx->length > 0) {
 		return (ISC_R_UNEXPECTEDEND);

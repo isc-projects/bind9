@@ -194,7 +194,7 @@ httpdmgr_attach(isc_httpdmgr_t *, isc_httpdmgr_t **);
 static void
 httpdmgr_detach(isc_httpdmgr_t **);
 
-static inline void
+static void
 free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	isc_region_t r;
 

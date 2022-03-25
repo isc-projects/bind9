@@ -263,7 +263,7 @@ emit(const char *dir, dns_rdata_t *rdata) {
 	dst_key_free(&key);
 }
 
-ISC_NORETURN static void
+noreturn static void
 usage(void);
 
 static void
@@ -385,7 +385,7 @@ main(int argc, char **argv) {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case 'h':
 			/* Does not return. */
 			usage();

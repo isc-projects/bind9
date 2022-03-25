@@ -1145,18 +1145,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			return (ret);
 		}
 	}
-#if defined(__clang__) && (__clang_major__ < 3 ||                           \
-			   (__clang_major__ == 3 && __clang_minor__ < 2) || \
-			   (__clang_major__ == 4 && __clang_minor__ < 2))
-	/* false positive: http://llvm.org/bugs/show_bug.cgi?id=14461 */
-	else
-	{
-		memset(&querytsig, 0, sizeof(querytsig));
-	}
-#endif /* if defined(__clang__) && (__clang_major__ < 3 || (__clang_major__ == \
-	* 3                                                                    \
-	* && __clang_minor__ < 2) || (__clang_major__ == 4 && __clang_minor__  \
-	* < 2)) */
 
 	/*
 	 * Do the key name and algorithm match that of the query?
