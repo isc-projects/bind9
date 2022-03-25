@@ -219,7 +219,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		attrs |= DNS_DISPATCHATTR_IPV6;
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 	attrmask = 0;
@@ -566,7 +566,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	client_resfind(rctx, fevent);
 }
 
-static inline isc_result_t
+static isc_result_t
 start_fetch(resctx_t *rctx) {
 	isc_result_t result;
 	int fopts = 0;

@@ -684,7 +684,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 					--pattern;
 				}
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 		norm:
 			if (c == *string) {
@@ -699,7 +699,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 			break;
 		}
 	}
-	/* NOTREACHED */
+	UNREACHABLE();
 }
 
 static int

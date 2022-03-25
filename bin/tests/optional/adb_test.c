@@ -107,12 +107,12 @@ free_client(client_t **c) {
 	isc_mempool_put(cmp, client);
 }
 
-static inline void
+static void
 CLOCK(void) {
 	RUNTIME_CHECK(isc_mutex_lock(&client_lock) == ISC_R_SUCCESS);
 }
 
-static inline void
+static void
 CUNLOCK(void) {
 	RUNTIME_CHECK(isc_mutex_unlock(&client_lock) == ISC_R_SUCCESS);
 }

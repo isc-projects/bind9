@@ -327,28 +327,28 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	dns_diff_append(add, &tuple);
 }
 
-static inline bool
+static bool
 issigningkey(dns_dnsseckey_t *key) {
 	return (key->force_sign || key->hint_sign);
 }
 
-static inline bool
+static bool
 ispublishedkey(dns_dnsseckey_t *key) {
 	return ((key->force_publish || key->hint_publish) && !key->hint_remove);
 }
 
-static inline bool
+static bool
 iszonekey(dns_dnsseckey_t *key) {
 	return (dns_name_equal(dst_key_name(key->key), gorigin) &&
 		dst_key_iszonekey(key->key));
 }
 
-static inline bool
+static bool
 isksk(dns_dnsseckey_t *key) {
 	return (key->ksk);
 }
 
-static inline bool
+static bool
 iszsk(dns_dnsseckey_t *key) {
 	return (ignore_kskflag || !key->ksk);
 }
@@ -463,11 +463,11 @@ expecttofindkey(dns_name_t *name) {
 	dns_name_format(name, namestr, sizeof(namestr));
 	fatal("failure looking for '%s DNSKEY' in database: %s", namestr,
 	      isc_result_totext(result));
-	/* NOTREACHED */
+	UNREACHABLE();
 	return (false); /* removes a warning */
 }
 
-static inline bool
+static bool
 setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	    dns_rdata_t *rrsig) {
 	isc_result_t result;
@@ -1246,7 +1246,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
  * See if the node contains any non RRSIG/NSEC records and report to
  * caller.  Clean out extraneous RRSIG records for node.
  */
-static inline bool
+static bool
 active_node(dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdatasetiter_t *rdsiter2 = NULL;
@@ -3662,14 +3662,14 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'F':
-		/* Reserved for FIPS mode */
-		/* FALLTHROUGH */
+			/* Reserved for FIPS mode */
+			FALLTHROUGH;
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case 'h':
 			/* Does not return. */
 			usage();

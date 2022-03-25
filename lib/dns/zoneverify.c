@@ -101,7 +101,7 @@ struct nsec3_chain_fixed {
  * Helper function used to calculate length of variable-length
  * data section in object pointed to by 'chain'.
  */
-static inline size_t
+static size_t
 chain_length(struct nsec3_chain_fixed *chain) {
 	return (chain->salt_length + 2 * chain->next_length);
 }
@@ -1105,7 +1105,7 @@ _checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	return (false);
 }
 
-static inline bool
+static bool
 checknext(isc_mem_t *mctx, const vctx_t *vctx,
 	  const struct nsec3_chain_fixed *first, struct nsec3_chain_fixed *prev,
 	  const struct nsec3_chain_fixed *cur) {
@@ -1118,7 +1118,7 @@ checknext(isc_mem_t *mctx, const vctx_t *vctx,
 	return (result);
 }
 
-static inline bool
+static bool
 checklast(isc_mem_t *mctx, const vctx_t *vctx, struct nsec3_chain_fixed *first,
 	  struct nsec3_chain_fixed *prev) {
 	bool result = _checknext(vctx, prev, first);

@@ -120,30 +120,29 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	switch (left) {
 	case 7:
 		b |= ((uint64_t)in[6]) << 48;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 6:
 		b |= ((uint64_t)in[5]) << 40;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 5:
 		b |= ((uint64_t)in[4]) << 32;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 4:
 		b |= ((uint64_t)in[3]) << 24;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 3:
 		b |= ((uint64_t)in[2]) << 16;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 2:
 		b |= ((uint64_t)in[1]) << 8;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 1:
 		b |= ((uint64_t)in[0]);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 0:
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	v3 ^= b;
@@ -198,18 +197,17 @@ isc_halfsiphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	switch (left) {
 	case 3:
 		b |= ((uint32_t)in[2]) << 16;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 2:
 		b |= ((uint32_t)in[1]) << 8;
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 1:
 		b |= ((uint32_t)in[0]);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case 0:
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	v3 ^= b;

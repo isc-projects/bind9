@@ -206,7 +206,7 @@ found:
 		break;
 
 	default:
-		INSIST(0);
+		UNREACHABLE();
 		ISC_UNREACHABLE();
 	}
 	proto = ((flags & NI_DGRAM) != 0) ? "udp" : "tcp";

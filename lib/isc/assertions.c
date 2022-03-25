@@ -47,7 +47,6 @@ isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		     const char *cond) {
 	isc_assertion_failed_cb(file, line, type, cond);
 	abort();
-	/* NOTREACHED */
 }
 
 /*% Set callback. */

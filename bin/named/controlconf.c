@@ -320,7 +320,7 @@ control_senddone(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static inline void
+static void
 log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t peeraddr;

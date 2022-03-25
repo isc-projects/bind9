@@ -135,7 +135,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			      "use -o to specify a different zone origin",
 			      origin, file);
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		fatal("failed loading zone from '%s': %s", file,
 		      isc_result_totext(result));
@@ -279,7 +279,7 @@ main(int argc, char *argv[]) {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 
 		case 'h':
 			/* Does not return. */

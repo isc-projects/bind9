@@ -706,8 +706,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	ISC_LIST_PREPEND(lcfg->channels, channel, link);
@@ -1811,7 +1810,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				}
 				channel->flags &= ~ISC_LOG_OPENERR;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 
 		case ISC_LOG_TOFILEDESC:
 			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s%s\n",

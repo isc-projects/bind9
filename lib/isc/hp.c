@@ -77,7 +77,7 @@ struct isc_hp {
 	isc_hp_deletefunc_t *deletefunc;
 };
 
-static inline int
+static int
 tid(void) {
 	return (isc_tid_v);
 }

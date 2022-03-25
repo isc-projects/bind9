@@ -37,7 +37,7 @@ process_message(isc_buffer_t *source);
 static isc_result_t
 printmessage(dns_message_t *msg);
 
-static inline void
+static void
 CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, dns_result_totext(result));
@@ -58,7 +58,7 @@ fromhex(char c) {
 
 	fprintf(stderr, "bad input format: %02x\n", c);
 	exit(3);
-	/* NOTREACHED */
+	UNREACHABLE();
 }
 
 static void

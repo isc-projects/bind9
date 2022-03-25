@@ -617,8 +617,7 @@ isc__netmgr_destroy(isc_nm_t **netmgrp) {
 #ifdef NETMGR_TRACE
 	if (isc_refcount_current(&mgr->references) > 1) {
 		isc__nm_dump_active(mgr);
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 #endif
 
@@ -800,8 +799,7 @@ process_all_queues(isc__networker_t *worker) {
 			reschedule = true;
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -879,8 +877,7 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 	case ISC_R_SUCCESS:
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -989,8 +986,7 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(resume);
 		NETIEVENT_CASE_NOMORE(pause);
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	return (true);
 }
@@ -1600,7 +1596,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		if (!atomic_load(&sock->client)) {
 			break;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	case isc_nm_tcpsocket:
 		INSIST(sock->statichandle == NULL);
 
@@ -1886,8 +1882,7 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 		isc__nm_tcpdns_failed_read_cb(sock, result);
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2098,8 +2093,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 		buf->len = ISC_NETMGR_TCP_RECVBUF_SIZE;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	REQUIRE(buf->len <= ISC_NETMGR_RECVBUF_SIZE);
@@ -2133,8 +2127,7 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	sock->reading = true;
 }
@@ -2158,8 +2151,7 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 		UV_RUNTIME_CHECK(uv_read_stop, r);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	sock->reading = false;
 }
@@ -2182,8 +2174,7 @@ processbuffer(isc_nmsocket_t *sock) {
 	case isc_nm_tcpdnssocket:
 		return (isc__nm_tcpdns_processbuffer(sock));
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2424,8 +2415,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 		isc__nm_tcpdns_send(handle, region, cb, cbarg);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2451,8 +2441,7 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		isc__nm_tcpdns_read(handle, cb, cbarg);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2471,8 +2460,7 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 		isc__nm_tcpdns_cancelread(handle);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2487,8 +2475,7 @@ isc_nm_pauseread(isc_nmhandle_t *handle) {
 		isc__nm_tcp_pauseread(handle);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2503,8 +2490,7 @@ isc_nm_resumeread(isc_nmhandle_t *handle) {
 		isc__nm_tcp_resumeread(handle);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2523,8 +2509,7 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		isc__nm_tcp_stoplistening(sock);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2703,7 +2688,7 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		break;
 	default:
 		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 		break;
 	}
 
@@ -2741,8 +2726,7 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	case isc_nm_tcpdnslistener:
 		return;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -2768,7 +2752,7 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 				isc__nmsocket_reset(sock);
 				return;
 			}
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			isc__nmsocket_shutdown(sock);
 		}
@@ -3317,8 +3301,7 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 	case isc_nm_tcpdnssocket:
 		return ("isc_nm_tcpdnssocket");
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 

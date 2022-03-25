@@ -93,8 +93,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		tsec->ukey.key = key;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	tsec->magic = DNS_TSEC_MAGIC;
@@ -120,8 +119,7 @@ dns_tsec_destroy(dns_tsec_t **tsecp) {
 		dst_key_free(&tsec->ukey.key);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	tsec->magic = 0;
@@ -148,7 +146,6 @@ dns_tsec_getkey(dns_tsec_t *tsec, void *keyp) {
 		*(dst_key_t **)keyp = tsec->ukey.key;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }

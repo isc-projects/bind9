@@ -48,7 +48,7 @@ isc_lfsr_init(isc_lfsr_t *lfsr, uint32_t state, unsigned int bits, uint32_t tap,
 /*!
  * Return the next state of the lfsr.
  */
-static inline uint32_t
+static uint32_t
 lfsr_generate(isc_lfsr_t *lfsr) {
 	/*
 	 * If the previous state is zero, we must fill it with something
@@ -107,7 +107,7 @@ isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count) {
 	}
 }
 
-static inline uint32_t
+static uint32_t
 lfsr_skipgenerate(isc_lfsr_t *lfsr, unsigned int skip) {
 	while (skip--) {
 		(void)lfsr_generate(lfsr);

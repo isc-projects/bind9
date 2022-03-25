@@ -146,7 +146,7 @@ typedef uintmax_t volatile atomic_uintmax_t;
 
 static inline void
 atomic_store_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -207,7 +207,7 @@ atomic_store_abort() {
 
 static inline int8_t
 atomic_load_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -277,7 +277,7 @@ atomic_load_abort() {
 
 static inline int8_t
 atomic_add_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -344,7 +344,7 @@ atomic_add_abort() {
 
 static inline int8_t
 atomic_and_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -405,7 +405,7 @@ atomic_and_abort() {
 
 static inline int8_t
 atomic_or_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -542,7 +542,7 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 
 static inline bool
 atomic_compare_exchange_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 
@@ -582,7 +582,7 @@ atomic_compare_exchange_abort() {
 
 static inline bool
 atomic_exchange_abort() {
-	INSIST(0);
+	UNREACHABLE();
 	ISC_UNREACHABLE();
 }
 

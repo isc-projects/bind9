@@ -240,7 +240,7 @@ maybe_destroy_httpd(isc_httpd_t *httpd) {
 	}
 }
 
-static inline void
+static void
 free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	isc_region_t r;
 
@@ -286,7 +286,7 @@ destroy_httpd(isc_httpd_t *httpd) {
 	isc_httpdmgr_detach(&httpdmgr);
 }
 
-static inline isc_result_t
+static isc_result_t
 httpdmgr_socket_accept(isc_task_t *task, isc_httpdmgr_t *httpdmgr) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -300,7 +300,7 @@ httpdmgr_socket_accept(isc_task_t *task, isc_httpdmgr_t *httpdmgr) {
 	return (result);
 }
 
-static inline void
+static void
 httpd_socket_recv(isc_httpd_t *httpd, isc_region_t *region, isc_task_t *task) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -313,7 +313,7 @@ httpd_socket_recv(isc_httpd_t *httpd, isc_region_t *region, isc_task_t *task) {
 	}
 }
 
-static inline void
+static void
 httpd_socket_send(isc_httpd_t *httpd, isc_region_t *region, isc_task_t *task) {
 	isc_result_t result = ISC_R_SUCCESS;
 

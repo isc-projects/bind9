@@ -308,8 +308,7 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (!isc__nm_in_netthread()) {
@@ -959,8 +958,7 @@ udp_stop_cb(uv_handle_t *handle) {
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);
@@ -981,8 +979,7 @@ udp_close_cb(uv_handle_t *handle) {
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
 					    true)) {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc__nm_incstats(sock->mgr, sock->statsindex[STATID_CLOSE]);

@@ -251,7 +251,7 @@ dns_sdlz_tolower(char *str) {
 	}
 }
 
-static inline unsigned int
+static unsigned int
 initial_size(const char *data) {
 	unsigned int len = (strlen(data) / 64) + 1;
 	return (len * 64 + 64);
@@ -736,8 +736,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	UNUSED(db);
 	UNUSED(node);
 	UNUSED(now);
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 }
 
 static void

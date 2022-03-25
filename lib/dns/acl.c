@@ -405,8 +405,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 		return (dns_geoip_match(reqaddr, env->geoip, &e->geoip_elem));
 #endif /* if defined(HAVE_GEOIP2) */
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	result = dns_acl_match(reqaddr, reqsigner, inner, env, &indirectmatch,
@@ -587,8 +586,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 			return (true);
 
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 

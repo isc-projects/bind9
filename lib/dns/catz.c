@@ -1358,7 +1358,7 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	return (ISC_R_FAILURE);
 }
 
-static inline void
+static void
 catz_entry_add_or_mod(dns_catz_zone_t *target, isc_ht_t *ht, unsigned char *key,
 		      size_t keysize, dns_catz_entry_t *nentry,
 		      dns_catz_entry_t *oentry, const char *msg,

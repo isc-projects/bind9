@@ -348,7 +348,7 @@ cleanup_name:
 	return (result);
 }
 
-static inline void
+static void
 destroy(dns_view_t *view) {
 	dns_dns64_t *dns64;
 	dns_dlzdb_t *dlzdb;

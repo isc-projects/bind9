@@ -131,8 +131,7 @@ main(int argc, char **argv) {
 	} else if (PROGCMP("ddns-confgen")) {
 		progmode = progmode_confgen;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc_commandline_errprint = false;
