@@ -985,7 +985,7 @@ typedef enum {
 	CATZ_OPT_VERSION,
 	CATZ_OPT_CUSTOM_START, /* CATZ custom properties must go below this */
 	CATZ_OPT_EXT,
-	CATZ_OPT_MASTERS,
+	CATZ_OPT_PRIMARIES,
 	CATZ_OPT_ALLOW_QUERY,
 	CATZ_OPT_ALLOW_TRANSFER,
 } catz_opt_t;
@@ -1010,7 +1010,7 @@ catz_get_option(const dns_label_t *option) {
 		return (CATZ_OPT_ZONES);
 	} else if (catz_opt_cmp(option, "masters") ||
 		   catz_opt_cmp(option, "primaries")) {
-		return (CATZ_OPT_MASTERS);
+		return (CATZ_OPT_PRIMARIES);
 	} else if (catz_opt_cmp(option, "allow-query")) {
 		return (CATZ_OPT_ALLOW_QUERY);
 	} else if (catz_opt_cmp(option, "allow-transfer")) {
@@ -1564,7 +1564,7 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	switch (opt) {
 	case CATZ_OPT_COO:
 		return (catz_process_coo(zone, mhash, value));
-	case CATZ_OPT_MASTERS:
+	case CATZ_OPT_PRIMARIES:
 		return (catz_process_primaries(zone, &entry->opts.masters,
 					       value, &prefix));
 	case CATZ_OPT_ALLOW_QUERY:
@@ -1643,7 +1643,7 @@ catz_process_value(dns_catz_zone_t *zone, dns_name_t *name,
 	switch (opt) {
 	case CATZ_OPT_ZONES:
 		return (catz_process_zones(zone, rdataset, &prefix));
-	case CATZ_OPT_MASTERS:
+	case CATZ_OPT_PRIMARIES:
 		return (catz_process_primaries(zone, &zone->zoneoptions.masters,
 					       rdataset, &prefix));
 	case CATZ_OPT_ALLOW_QUERY:
