@@ -642,7 +642,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 }
 
 isc_result_t
-isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
+isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 		 isc_quota_t *quota, SSL_CTX *sslctx, isc_nmsocket_t **sockp) {
 	isc_result_t result;
@@ -664,8 +664,8 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	 * tlssock will be a TLS 'wrapper' around an unencrypted stream.
 	 * We set tlssock->outer to a socket listening for a TCP connection.
 	 */
-	result = isc_nm_listentcp(mgr, iface, tlslisten_acceptcb, tlssock,
-				  backlog, quota, &tlssock->outer);
+	result = isc_nm_listentcp(mgr, workers, iface, tlslisten_acceptcb,
+				  tlssock, backlog, quota, &tlssock->outer);
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&tlssock->closed, true);
 		isc__nmsocket_detach(&tlssock);

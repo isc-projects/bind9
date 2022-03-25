@@ -1163,9 +1163,9 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	}
 #endif
 
-	CHECK(isc_nm_listentcp(named_g_netmgr, &listener->address,
-			       control_newconn, listener, 5, NULL,
-			       &listener->sock));
+	CHECK(isc_nm_listentcp(named_g_netmgr, ISC_NM_LISTEN_ONE,
+			       &listener->address, control_newconn, listener, 5,
+			       NULL, &listener->sock));
 #if 0
 	/* XXX: no unix socket support yet */
 	if (type == isc_socktype_unix) {

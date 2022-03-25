@@ -146,8 +146,8 @@ enqueue_stoplistening(isc_nmsocket_t *sock) {
 }
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
-		 void *cbarg, isc_nmsocket_t **sockp) {
+isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		 isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	size_t children_size = 0;
@@ -162,7 +162,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 	isc__nmsocket_init(sock, mgr, isc_nm_udplistener, iface);
 
 	atomic_init(&sock->rchildren, 0);
-	sock->nchildren = mgr->nworkers;
+	sock->nchildren = (workers == ISC_NM_LISTEN_ALL)
+				  ? (uint32_t)mgr->nworkers
+				  : workers;
 	children_size = sock->nchildren * sizeof(sock->children[0]);
 	sock->children = isc_mem_get(mgr->mctx, children_size);
 	memset(sock->children, 0, children_size);

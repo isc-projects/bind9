@@ -29,6 +29,12 @@
 #endif
 
 /*
+ * Convenience macros to specify on how many threads should socket listen
+ */
+#define ISC_NM_LISTEN_ALL 0
+#define ISC_NM_LISTEN_ONE 1
+
+/*
  * Replacement for isc_sockettype_t provided by socket.h.
  */
 typedef enum {
@@ -217,8 +223,8 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle);
  */
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
-		 void *cbarg, isc_nmsocket_t **sockp);
+isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		 isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
@@ -324,7 +330,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
+isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
@@ -359,7 +365,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
+isc_nm_listentcpdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		    int backlog, isc_quota_t *quota, isc_nmsocket_t **sockp);
@@ -383,7 +389,7 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
  */
 
 isc_result_t
-isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
+isc_nm_listentlsdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		    int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
@@ -507,7 +513,7 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
 #define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
 
 isc_result_t
-isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
+isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 		 isc_quota_t *quota, isc_tlsctx_t *sslctx,
 		 isc_nmsocket_t **sockp);
@@ -523,8 +529,8 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   isc_tlsctx_t *ctx, unsigned int timeout);
 
 isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
-		  isc_quota_t *quota, isc_tlsctx_t *ctx,
+isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
 		  isc_nmsocket_t **sockp);
 
