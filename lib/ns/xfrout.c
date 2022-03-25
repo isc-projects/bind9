@@ -110,7 +110,7 @@
 
 static void
 inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
-	ns_stats_increment(client->sctx->nsstats, counter);
+	ns_stats_increment(client->manager->sctx->nsstats, counter);
 	if (zone != NULL) {
 		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL) {
@@ -733,7 +733,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	dns_rdata_t soa_rdata = DNS_RDATA_INIT;
 	bool have_soa = false;
 	const char *mnemonic = NULL;
-	isc_mem_t *mctx = client->mctx;
+	isc_mem_t *mctx = client->manager->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
 	isc_quota_t *quota = NULL;
@@ -766,7 +766,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Apply quota.
 	 */
-	result = isc_quota_attach(&client->sctx->xfroutquota, &quota);
+	result = isc_quota_attach(&client->manager->sctx->xfroutquota, &quota);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "%s request denied: %s", mnemonic,
@@ -1535,7 +1535,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * here (TCP only).
 		 */
 		if ((isc_buffer_usedlength(&xfr->buf) >=
-		     xfr->client->sctx->transfer_tcp_message_size) &&
+		     xfr->client->manager->sctx->transfer_tcp_message_size) &&
 		    is_tcp)
 		{
 			break;

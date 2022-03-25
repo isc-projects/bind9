@@ -323,7 +323,7 @@ update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
  */
 static void
 inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
-	ns_stats_increment(client->sctx->nsstats, counter);
+	ns_stats_increment(client->manager->sctx->nsstats, counter);
 
 	if (zone != NULL) {
 		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
@@ -1642,8 +1642,8 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_task_t *zonetask = NULL;
 
 	event = (update_event_t *)isc_event_allocate(
-		client->mctx, client, DNS_EVENT_UPDATE, update_action, NULL,
-		sizeof(*event));
+		client->manager->mctx, client, DNS_EVENT_UPDATE, update_action,
+		NULL, sizeof(*event));
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
@@ -2651,7 +2651,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_diff_t diff; /* Pending updates. */
 	dns_diff_t temp; /* Pending RR existence assertions. */
 	bool soa_serial_changed = false;
-	isc_mem_t *mctx = client->mctx;
+	isc_mem_t *mctx = client->manager->mctx;
 	dns_rdatatype_t covers;
 	dns_message_t *request = client->message;
 	dns_rdataclass_t zoneclass;
@@ -3646,7 +3646,7 @@ common:
 	uev->ev_type = DNS_EVENT_UPDATEDONE;
 	uev->ev_action = updatedone_action;
 
-	isc_task_send(client->task, &event);
+	isc_task_send(client->manager->task, &event);
 
 	INSIST(ver == NULL);
 	INSIST(event == NULL);
@@ -3660,7 +3660,7 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	REQUIRE(event->ev_type == DNS_EVENT_UPDATEDONE);
-	REQUIRE(task == client->task);
+	REQUIRE(task == client->manager->task);
 	REQUIRE(client->updatehandle == client->handle);
 
 	INSIST(client->nupdates > 0);
@@ -3721,7 +3721,7 @@ forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
 		inc_stats(client, zone, ns_statscounter_updaterespfwd);
 	}
 
-	isc_task_send(client->task, ISC_EVENT_PTR(&uev));
+	isc_task_send(client->manager->task, ISC_EVENT_PTR(&uev));
 	dns_zone_detach(&zone);
 }
 
@@ -3752,7 +3752,7 @@ forward_action(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS) {
 		uev->ev_type = DNS_EVENT_UPDATEDONE;
 		uev->ev_action = forward_fail;
-		isc_task_send(client->task, &event);
+		isc_task_send(client->manager->task, &event);
 		inc_stats(client, zone, ns_statscounter_updatefwdfail);
 		dns_zone_detach(&zone);
 	} else {
@@ -3771,8 +3771,8 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_task_t *zonetask = NULL;
 
 	event = (update_event_t *)isc_event_allocate(
-		client->mctx, client, DNS_EVENT_UPDATE, forward_action, NULL,
-		sizeof(*event));
+		client->manager->mctx, client, DNS_EVENT_UPDATE, forward_action,
+		NULL, sizeof(*event));
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 

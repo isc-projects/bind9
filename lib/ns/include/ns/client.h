@@ -168,17 +168,12 @@ struct ns_clientmgr {
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int	 magic;
-	isc_mem_t	  *mctx;
-	int		 tid;
-	bool		 allocated; /* Do we need to free it? */
-	ns_server_t	    *sctx;
 	ns_clientmgr_t  *manager;
 	ns_clientstate_t state;
 	int		 nupdates;
 	bool		 nodetach;
 	bool		 shuttingdown;
 	unsigned int	 attributes;
-	isc_task_t	   *task;
 	dns_view_t	   *view;
 	dns_dispatch_t  *dispatch;
 	isc_nmhandle_t  *handle;	/* Permanent pointer to handle */
@@ -204,7 +199,6 @@ struct ns_client {
 	isc_time_t    tnow;
 	dns_name_t    signername; /*%< [T]SIG key name */
 	dns_name_t   *signer;	  /*%< NULL if not valid sig */
-	bool	      mortal;	  /*%< Die after handling request */
 	isc_quota_t  *recursionquota;
 
 	isc_sockaddr_t peeraddr;
@@ -214,8 +208,6 @@ struct ns_client {
 
 	dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
 
-	struct in6_pktinfo pktinfo;
-	isc_dscp_t	   dscp;
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each
