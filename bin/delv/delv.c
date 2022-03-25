@@ -1332,7 +1332,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		case 'h':
 			usage();
 			exit(0);
-			UNREACHABLE();
 		case 'i':
 			no_sigs = true;
 			root_validation = false;
@@ -1343,7 +1342,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		case 'v':
 			fputs("delv " VERSION "\n", stderr);
 			exit(0);
-			UNREACHABLE();
 		default:
 			UNREACHABLE();
 		}
