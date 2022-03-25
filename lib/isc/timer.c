@@ -118,7 +118,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		break;
 	default:
 		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*
@@ -426,7 +426,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			break;
 		default:
 			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		timer->index = 0;

@@ -26,7 +26,7 @@ static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
 
 #include <unistd.h>
 
-static inline long
+static long
 sysconf_ncpus(void) {
 #if defined(_SC_NPROCESSORS_ONLN)
 	return (sysconf((_SC_NPROCESSORS_ONLN)));

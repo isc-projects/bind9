@@ -277,7 +277,7 @@ parse_url_char(state_t s, const char ch) {
 			return (s_dead);
 		}
 
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case s_req_server_start:
 	case s_req_server:
 		if (ch == '/') {
@@ -399,7 +399,7 @@ http_parse_host_char(host_state_t s, const char ch) {
 			return (s_http_host);
 		}
 
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case s_http_host_v6_end:
 		if (ch == ':') {
 			return (s_http_host_port_start);
@@ -412,7 +412,7 @@ http_parse_host_char(host_state_t s, const char ch) {
 			return (s_http_host_v6_end);
 		}
 
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case s_http_host_v6_start:
 		if (isxdigit((unsigned char)ch) || ch == ':' || ch == '.') {
 			return (s_http_host_v6);
@@ -428,7 +428,7 @@ http_parse_host_char(host_state_t s, const char ch) {
 			return (s_http_host_v6_end);
 		}
 
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case s_http_host_v6_zone_start:
 		/* RFC 6874 Zone ID consists of 1*( unreserved / pct-encoded) */
 		if (isalnum((unsigned char)ch) || ch == '%' || ch == '.' ||
@@ -578,7 +578,7 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 
 		case s_req_server_with_at:
 			found_at = 1;
-			/* FALLTHROUGH */
+			FALLTHROUGH;
 		case s_req_server:
 			uf = ISC_UF_HOST;
 			break;
@@ -596,8 +596,7 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 			break;
 
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		/* Nothing's changed; soldier on */

@@ -327,8 +327,7 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 		return (true);
 	}
 
-	INSIST(0);
-	ISC_UNREACHABLE();
+	UNREACHABLE();
 	return false;
 }
 

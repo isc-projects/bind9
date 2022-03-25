@@ -257,7 +257,7 @@ cleanup_sendhandle:
 	isc_nmhandle_detach(&conn->sendhandle);
 }
 
-static inline void
+static void
 log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(ccmsg->handle);

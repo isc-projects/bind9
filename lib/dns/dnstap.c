@@ -635,8 +635,7 @@ dnstap_type(dns_dtmsgtype_t msgtype) {
 	case DNS_DTTYPE_UR:
 		return (DNSTAP__MESSAGE__TYPE__UPDATE_RESPONSE);
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -816,7 +815,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 			break;
 		}
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_DTTYPE_AQ:
 	case DNS_DTTYPE_CQ:
 	case DNS_DTTYPE_FQ:
@@ -985,8 +984,7 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	isc_mem_attach(mctx, &handle->mctx);

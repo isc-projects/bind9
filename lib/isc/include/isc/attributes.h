@@ -13,10 +13,12 @@
 
 #pragma once
 
-#if HAVE_FUNC_ATTRIBUTE_NORETURN
-#define ISC_NORETURN __attribute__((noreturn))
+#ifdef HAVE_STDNORETURN_H
+#include <stdnoreturn.h>
+#elif HAVE_FUNC_ATTRIBUTE_NORETURN
+#define noreturn __attribute__((noreturn))
 #else
-#define ISC_NORETURN
+#define noreturn
 #endif
 
 #if HAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL

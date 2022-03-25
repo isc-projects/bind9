@@ -32,7 +32,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-ISC_NORETURN void
+noreturn void
 _fail(const char *const file, const int line);
 
 #include <ns/hooks.h>

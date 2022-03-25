@@ -240,14 +240,14 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 		      msgbuf);
 }
 
-static inline void
+static void
 inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_increment(mgr->stats, counter);
 	}
 }
 
-static inline void
+static void
 dec_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL) {
 		isc_stats_decrement(mgr->stats, counter);
@@ -801,7 +801,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		}
 
 		/* Got an invalid DNS response, terminate the connection */
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		isc_sockaddr_format(&peer, buf, sizeof(buf));
 		dispatch_log(disp, ISC_LOG_ERROR,
@@ -1543,8 +1543,7 @@ dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -1710,8 +1709,7 @@ startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -1838,8 +1836,7 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 			break;
 
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		break;

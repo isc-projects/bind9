@@ -35,7 +35,7 @@
 
 const char *program = "nsec3hash";
 
-ISC_NORETURN static void
+noreturn static void
 fatal(const char *format, ...);
 
 static void

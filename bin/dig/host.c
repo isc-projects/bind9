@@ -101,7 +101,7 @@ rcode_totext(dns_rcode_t rcode) {
 	return (totext.deconsttext);
 }
 
-ISC_NORETURN static void
+noreturn static void
 show_usage(void);
 
 static void
@@ -770,7 +770,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			break;
 		case 'A':
 			list_almost_all = true;
-		/* FALL THROUGH */
+			FALLTHROUGH;
 		case 'a':
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr) {

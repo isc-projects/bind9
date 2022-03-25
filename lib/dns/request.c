@@ -339,7 +339,7 @@ mgr_gethash(dns_requestmgr_t *requestmgr) {
 	return (requestmgr->hash % DNS_REQUEST_NLOCKS);
 }
 
-static inline void
+static void
 req_send(dns_request_t *request) {
 	isc_region_t r;
 

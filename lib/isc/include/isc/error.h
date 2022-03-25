@@ -37,11 +37,11 @@ isc_error_unexpected(const char *, int, const char *, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
 /*% fatal error */
-ISC_NORETURN void
+noreturn void
 isc_error_fatal(const char *, int, const char *, ...) ISC_FORMAT_PRINTF(3, 4);
 
 /*% runtimecheck error */
-ISC_NORETURN void
+noreturn void
 isc_error_runtimecheck(const char *, int, const char *);
 
 #define ISC_ERROR_RUNTIMECHECK(cond) \

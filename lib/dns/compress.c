@@ -362,7 +362,7 @@ found:
 	return (true);
 }
 
-static inline unsigned int
+static unsigned int
 name_length(const dns_name_t *name) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);

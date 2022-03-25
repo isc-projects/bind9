@@ -172,7 +172,7 @@ disassociate_rdatasets(dns_validator_t *val) {
  * If we are validating a name that is marked as "must be secure", log a
  * warning and return DNS_R_MUSTBESECURE instead.
  */
-static inline isc_result_t
+static isc_result_t
 markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
 	if (val->mustbesecure && mbstext != NULL) {
 		validator_log(val, ISC_LOG_WARNING,
@@ -195,7 +195,7 @@ markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
 /*%
  * Mark the RRsets in val->event with trust level secure.
  */
-static inline void
+static void
 marksecure(dns_validatorevent_t *event) {
 	dns_rdataset_settrust(event->rdataset, dns_trust_secure);
 	if (event->sigrdataset != NULL) {
@@ -232,7 +232,7 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 /*
  * Called when deciding whether to destroy validator 'val'.
  */
-static inline bool
+static bool
 exit_check(dns_validator_t *val) {
 	/*
 	 * Caller must be holding the lock.
@@ -529,7 +529,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 			goto unexpected;
 		}
 
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case ISC_R_SUCCESS:
 		if (trustchain) {
 			/*
@@ -950,7 +950,7 @@ validator_callback_nsec(isc_task_t *task, isc_event_t *event) {
  * \li	DNS_R_NXDOMAIN
  * \li	DNS_R_BROKENCHAIN
  */
-static inline isc_result_t
+static isc_result_t
 view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	dns_fixedname_t fixedname;
 	dns_name_t *foundname;
@@ -1000,7 +1000,7 @@ notfound:
  * Checks to make sure we are not going to loop.  As we use a SHARED fetch
  * the validation process will stall if looping was to occur.
  */
-static inline bool
+static bool
 check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	dns_validator_t *parent;
@@ -1031,7 +1031,7 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 /*%
  * Start a fetch for the requested name and type.
  */
-static inline isc_result_t
+static isc_result_t
 create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	     isc_taskaction_t callback, const char *caller) {
 	unsigned int fopts = 0;
@@ -1062,7 +1062,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 /*%
  * Start a subvalidation process.
  */
-static inline isc_result_t
+static isc_result_t
 create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		 isc_taskaction_t action, const char *caller) {
@@ -3085,8 +3085,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 
 		result = validate_nx(val, false);
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	if (result != DNS_R_WAIT) {

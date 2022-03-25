@@ -397,7 +397,7 @@ const char *empty_zones[] = {
 	NULL
 };
 
-ISC_NORETURN static void
+noreturn static void
 fatal(named_server_t *server, const char *msg, isc_result_t result);
 
 static void
@@ -455,7 +455,7 @@ end_reserved_dispatches(named_server_t *server, bool all);
 static void
 newzone_cfgctx_destroy(void **cfgp);
 
-static inline isc_result_t
+static isc_result_t
 putstr(isc_buffer_t **b, const char *str);
 
 static isc_result_t
@@ -464,7 +464,7 @@ putmem(isc_buffer_t **b, const char *str, size_t len);
 static isc_result_t
 putuint8(isc_buffer_t **b, uint8_t val);
 
-static inline isc_result_t
+static isc_result_t
 putnull(isc_buffer_t **b);
 
 static int
@@ -866,8 +866,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		break;
 
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1273,8 +1272,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		INSIST(result == ISC_R_SUCCESS);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	sa = *(cfg_obj_assockaddr(obj));
@@ -1296,8 +1294,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		result = isc_net_probeipv6();
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
@@ -1401,8 +1398,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	} else if (!strcasecmp(str, "none")) {
 		mode = DNS_RDATASETATTR_NONE;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*
@@ -1558,8 +1554,7 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		} else if (strcasecmp(str, "one-answer") == 0) {
 			CHECK(dns_peer_settransferformat(peer, dns_one_answer));
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -2933,7 +2928,7 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 		break;
 	default:
 		REQUIRE(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	event = (catz_chgzone_event_t *)isc_event_allocate(
@@ -4329,8 +4324,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	} else if (strcasecmp(str, "ignore") == 0) {
 		view->checknames = false;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	obj = NULL;
@@ -4784,8 +4778,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			} else if (strcasecmp(resp, "fail") == 0) {
 				r = DNS_R_SERVFAIL;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 
 			dns_resolver_setquotaresponse(view->resolver,
@@ -5184,8 +5177,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		} else if (strcasecmp(str, "no-auth-recursive") == 0) {
 			view->minimalresponses = dns_minimal_noauthrec;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 	}
 
@@ -5198,8 +5190,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	} else if (strcasecmp(str, "one-answer") == 0) {
 		view->transfer_format = dns_one_answer;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	obj = NULL;
@@ -5511,8 +5502,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		} else if (strcasecmp(resp, "fail") == 0) {
 			r = DNS_R_SERVFAIL;
 		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		dns_resolver_setquotaresponse(view->resolver,
@@ -5739,8 +5729,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			} else if (strcasecmp(levelstr, "none") == 0) {
 				statlevel = dns_zonestat_none;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 		}
 
@@ -6281,8 +6270,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 			} else if (strcasecmp(forwardstr, "only") == 0) {
 				fwdpolicy = dns_fwdpolicy_only;
 			} else {
-				INSIST(0);
-				ISC_UNREACHABLE();
+				UNREACHABLE();
 			}
 		}
 	}
@@ -9575,8 +9563,7 @@ load_configuration(const char *filename, named_server_t *server,
 	} else if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
 		server->sctx->cookiealg = ns_cookiealg_aes;
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	obj = NULL;
@@ -13654,8 +13641,7 @@ newzone_parse(named_server_t *server, char *command, dns_view_t **viewp,
 	} else if (strncasecmp(command, "mod", 3) == 0) {
 		bn = "modzone";
 	} else {
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	/*
@@ -15051,7 +15037,7 @@ cleanup:
 	return (result);
 }
 
-static inline bool
+static bool
 argcheck(char *cmd, const char *full) {
 	size_t l;
 
@@ -15389,7 +15375,7 @@ putmem(isc_buffer_t **b, const char *str, size_t len) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 putstr(isc_buffer_t **b, const char *str) {
 	return (putmem(b, str, strlen(str)));
 }
@@ -15407,7 +15393,7 @@ putuint8(isc_buffer_t **b, uint8_t val) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 putnull(isc_buffer_t **b) {
 	return (putuint8(b, 0));
 }
@@ -16350,8 +16336,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 			CHECK(mkey_destroy(server, view, text));
 			break;
 		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
+			UNREACHABLE();
 		}
 
 		if (viewtxt != NULL) {

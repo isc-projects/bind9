@@ -73,7 +73,7 @@ digest_callback(void *arg, isc_region_t *data) {
 	return (dst_context_adddata(ctx, data));
 }
 
-static inline void
+static void
 inc_stat(isc_statscounter_t counter) {
 	if (dns_dnssec_stats != NULL) {
 		isc_stats_increment(dns_dnssec_stats, counter);
@@ -441,7 +441,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			inc_stat(dns_dnssecstats_fail);
 			return (DNS_R_SIGINVALID);
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	default:
 		if (!dns_name_issubdomain(name, &sig.signer)) {
 			inc_stat(dns_dnssecstats_fail);

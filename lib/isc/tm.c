@@ -322,7 +322,7 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
 
 		case 'k': /* The hour (24-hour clock representation). */
 			LEGAL_ALT(0);
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case 'H':
 			LEGAL_ALT(ALT_O);
 			if (!(conv_num(&bp, &tm->tm_hour, 0, 23))) {
@@ -332,7 +332,7 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm) {
 
 		case 'l': /* The hour (12-hour clock representation). */
 			LEGAL_ALT(0);
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		case 'I':
 			LEGAL_ALT(ALT_O);
 			if (!(conv_num(&bp, &tm->tm_hour, 1, 12))) {

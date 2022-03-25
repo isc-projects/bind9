@@ -251,8 +251,7 @@ dns_peer_new(isc_mem_t *mem, const isc_netaddr_t *addr, dns_peer_t **peerptr) {
 		prefixlen = 128;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	return (dns_peer_newprefix(mem, addr, prefixlen, peerptr));

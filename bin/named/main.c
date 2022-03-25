@@ -185,7 +185,7 @@ named_main_earlyfatal(const char *format, ...) {
 	exit(1);
 }
 
-ISC_NORETURN static void
+noreturn static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond);
 
@@ -239,7 +239,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	exit(1);
 }
 
-ISC_NORETURN static void
+noreturn static void
 library_fatal_error(const char *file, int line, const char *format,
 		    va_list args) ISC_FORMAT_PRINTF(3, 0);
 
@@ -728,8 +728,7 @@ parse_port(char *arg) {
 		named_g_httpport = port;
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 }
 
@@ -860,8 +859,8 @@ parse_command_line(int argc, char *argv[]) {
 			}
 			break;
 		case 'F':
-		/* Reserved for FIPS mode */
-		/* FALLTHROUGH */
+			/* Reserved for FIPS mode */
+			FALLTHROUGH;
 		case '?':
 			usage();
 			if (isc_commandline_option == '?') {
@@ -876,7 +875,7 @@ parse_command_line(int argc, char *argv[]) {
 						      "an argument",
 						      isc_commandline_option);
 			}
-		/* FALLTHROUGH */
+			FALLTHROUGH;
 		default:
 			named_main_earlyfatal("parsing options returned %d",
 					      ch);

@@ -187,7 +187,7 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 static void
 send_update(dns_name_t *zonename, isc_sockaddr_t *primary);
 
-ISC_NORETURN static void
+noreturn static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
@@ -304,7 +304,7 @@ ddebug(const char *format, ...) {
 	}
 }
 
-static inline void
+static void
 check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		fatal("%s: %s", msg, isc_result_totext(result));

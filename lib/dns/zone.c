@@ -879,9 +879,9 @@ static void
 zone_idetach(dns_zone_t **zonep);
 static isc_result_t
 zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump);
-static inline void
+static void
 zone_attachdb(dns_zone_t *zone, dns_db_t *db);
-static inline void
+static void
 zone_detachdb(dns_zone_t *zone);
 static void
 zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
@@ -1081,7 +1081,7 @@ struct stub_glue_request {
 /*%
  * Increment resolver-related statistics counters.  Zone must be locked.
  */
-static inline void
+static void
 inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
 	if (zone->stats != NULL) {
 		isc_stats_increment(zone->stats, counter);
@@ -1406,7 +1406,7 @@ zone_free(dns_zone_t *zone) {
  * Returns true iff this the signed side of an inline-signing zone.
  * Caller should hold zone lock.
  */
-static inline bool
+static bool
 inline_secure(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	if (zone->raw != NULL) {
@@ -1419,7 +1419,7 @@ inline_secure(dns_zone_t *zone) {
  * Returns true iff this the unsigned side of an inline-signing zone
  * Caller should hold zone lock.
  */
-static inline bool
+static bool
 inline_raw(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	if (zone->secure != NULL) {
@@ -6591,7 +6591,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 }
 
-static inline bool
+static bool
 was_dumping(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
@@ -10135,8 +10135,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 				     &dnskey, &buf);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -10195,7 +10194,7 @@ matchkey(dns_rdataset_t *rdset, dns_rdata_t *rr) {
  *			   1/10 * OrigTTL,
  *			   1/10 * RRSigExpirationInterval))
  */
-static inline isc_stdtime_t
+static isc_stdtime_t
 refresh_time(dns_keyfetch_t *kfetch, bool retry) {
 	isc_result_t result;
 	uint32_t t;
@@ -11307,7 +11306,7 @@ zone_maintenance(dns_zone_t *zone) {
 		if (zone->primaries == NULL) {
 			break;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_zone_secondary:
 	case dns_zone_mirror:
 	case dns_zone_stub:
@@ -11332,7 +11331,7 @@ zone_maintenance(dns_zone_t *zone) {
 		if (zone->primaries == NULL) {
 			break;
 		}
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case dns_zone_secondary:
 	case dns_zone_mirror:
 	case dns_zone_stub:
@@ -11704,7 +11703,7 @@ zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
 	switch (result) {
 	case ISC_R_SUCCESS:
 		*needdump = true;
-		/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_R_UPTODATE:
 		if (dns_journal_recovered(journal)) {
 			*fixjournal = true;
@@ -13035,7 +13034,7 @@ cleanup1:
 /***
  *** Private
  ***/
-static inline isc_result_t
+static isc_result_t
 create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	     dns_message_t **messagep) {
 	dns_message_t *message = NULL;
@@ -13438,7 +13437,7 @@ fail:
 	return (result);
 }
 
-static inline isc_result_t
+static isc_result_t
 save_nsrrset(dns_message_t *message, dns_name_t *name,
 	     struct stub_cb_args *cb_args, dns_db_t *db,
 	     dns_dbversion_t *version) {
@@ -13639,7 +13638,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 				     primary, source);
 			goto same_primary;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	default:
 		dns_zonemgr_unreachableadd(zone->zmgr, &zone->primaryaddr,
 					   &zone->sourceaddr, &now);
@@ -14049,7 +14048,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			}
 			goto next_primary;
 		}
-		/* fallthrough */
+		FALLTHROUGH;
 	default:
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: failure trying primary "
@@ -15147,8 +15146,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		if (zone->primaries != NULL) {
 			goto treat_as_secondary;
 		}
-		/* FALLTHROUGH */
-
+		FALLTHROUGH;
 	case dns_zone_primary:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
@@ -15211,8 +15209,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		{
 			next = zone->notifytime;
 		}
-		/* FALLTHROUGH */
-
+		FALLTHROUGH;
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOPRIMARIES) &&
@@ -17519,7 +17516,7 @@ fail:
 }
 
 /* The caller must hold the dblock as a writer. */
-static inline void
+static void
 zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
 	REQUIRE(zone->db == NULL && db != NULL);
 
@@ -17527,7 +17524,7 @@ zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
 }
 
 /* The caller must hold the dblock as a writer. */
-static inline void
+static void
 zone_detachdb(dns_zone_t *zone) {
 	REQUIRE(zone->db != NULL);
 
@@ -17577,7 +17574,7 @@ again:
 	switch (xfrresult) {
 	case ISC_R_SUCCESS:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-	/* FALLTHROUGH */
+		FALLTHROUGH;
 	case DNS_R_UPTODATE:
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER);
 		/*
@@ -17735,7 +17732,6 @@ again:
 			zone->curprimary++;
 		} while (zone->curprimary < zone->primariescnt &&
 			 zone->primariesok[zone->curprimary]);
-		/* FALLTHROUGH */
 	same_primary:
 		if (zone->curprimary >= zone->primariescnt) {
 			zone->curprimary = 0;
@@ -18179,8 +18175,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		}
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&primaryaddr) == isc_sockaddr_pf(&sourceaddr));
@@ -18520,7 +18515,7 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
 #define GOLDEN_RATIO_32 0x61C88647
 #define HASHSIZE(bits)	(UINT64_C(1) << (bits))
 
-static inline uint32_t
+static uint32_t
 hash_index(uint32_t val, uint32_t bits) {
 	return (val * GOLDEN_RATIO_32 >> (32 - bits));
 }
@@ -19955,8 +19950,7 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOREFRESH);
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -20038,8 +20032,7 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 		}
 		break;
 	default:
-		INSIST(0);
-		ISC_UNREACHABLE();
+		UNREACHABLE();
 	}
 
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
@@ -23664,7 +23657,7 @@ done:
 	return (result);
 }
 
-static inline dns_ttl_t
+static dns_ttl_t
 zone_nsecttl(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 

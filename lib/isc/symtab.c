@@ -107,7 +107,7 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 	isc_mem_putanddetach(&symtab->mctx, symtab, sizeof(*symtab));
 }
 
-static inline unsigned int
+static unsigned int
 hash(const char *key, bool case_sensitive) {
 	const char *s;
 	unsigned int h = 0;
