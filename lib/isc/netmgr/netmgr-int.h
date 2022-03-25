@@ -278,7 +278,6 @@ struct isc_nmhandle {
 	LINK(isc_nmhandle_t) active_link;
 #endif
 	void *opaque;
-	char extra[];
 };
 
 typedef enum isc__netievent_type {
@@ -816,7 +815,6 @@ typedef struct isc_nm_httphandler {
 	char *path;
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
-	size_t extrahandlesize;
 	LINK(struct isc_nm_httphandler) link;
 } isc_nm_httphandler_t;
 
@@ -986,9 +984,6 @@ struct isc_nmsocket {
 	isc_sockaddr_t iface;
 	isc_nmhandle_t *statichandle;
 	isc_nmhandle_t *outerhandle;
-
-	/*% Extra data allocated at the end of each isc_nmhandle_t */
-	size_t extrahandlesize;
 
 	/*% TCP backlog */
 	int backlog;

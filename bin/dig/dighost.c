@@ -2798,7 +2798,7 @@ start_tcp(dig_query_t *query) {
 			isc_tlsctx_enable_dot_client_alpn(query->tlsctx);
 			isc_nm_tlsdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,
-					     connectquery, local_timeout, 0,
+					     connectquery, local_timeout,
 					     query->tlsctx);
 #if HAVE_LIBNGHTTP2
 		} else if (query->lookup->https_mode) {
@@ -2819,12 +2819,12 @@ start_tcp(dig_query_t *query) {
 			isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr,
 					   uri, !query->lookup->https_get,
 					   tcp_connected, connectquery,
-					   query->tlsctx, local_timeout, 0);
+					   query->tlsctx, local_timeout);
 #endif
 		} else {
 			isc_nm_tcpdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,
-					     connectquery, local_timeout, 0);
+					     connectquery, local_timeout);
 		}
 
 		/* XXX: set DSCP */
@@ -3001,7 +3001,7 @@ start_udp(dig_query_t *query) {
 	query_attach(query, &connectquery);
 	isc_nm_udpconnect(netmgr, &localaddr, &query->sockaddr, udp_ready,
 			  connectquery,
-			  (timeout ? timeout : UDP_TIMEOUT) * 1000, 0);
+			  (timeout ? timeout : UDP_TIMEOUT) * 1000);
 }
 
 /*%

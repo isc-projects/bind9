@@ -289,8 +289,7 @@ error:
 
 void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		  size_t extrahandlesize) {
+		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__netievent_tcpconnect_t *ievent = NULL;
@@ -306,7 +305,6 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_tcpsocket, local);
 
-	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
 	sock->result = ISC_R_UNSET;
 	sock->fd = (uv_os_sock_t)-1;
@@ -395,7 +393,6 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->parent = sock;
 	csock->accept_cb = sock->accept_cb;
 	csock->accept_cbarg = sock->accept_cbarg;
-	csock->extrahandlesize = sock->extrahandlesize;
 	csock->backlog = sock->backlog;
 	csock->tid = tid;
 	/*
@@ -428,9 +425,8 @@ enqueue_stoplistening(isc_nmsocket_t *sock) {
 
 isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_nmsocket_t **sockp) {
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	size_t children_size = 0;
@@ -451,7 +447,6 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
 
 	sock->accept_cb = accept_cb;
 	sock->accept_cbarg = accept_cbarg;
-	sock->extrahandlesize = extrahandlesize;
 	sock->backlog = backlog;
 	sock->pquota = quota;
 
@@ -950,7 +945,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	csock = isc_mem_get(ssock->mgr->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(csock, ssock->mgr, isc_nm_tcpsocket, &ssock->iface);
 	csock->tid = ssock->tid;
-	csock->extrahandlesize = ssock->extrahandlesize;
 	isc__nmsocket_attach(ssock, &csock->server);
 	csock->recv_cb = ssock->recv_cb;
 	csock->recv_cbarg = ssock->recv_cbarg;

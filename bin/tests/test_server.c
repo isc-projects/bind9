@@ -266,20 +266,19 @@ run(void) {
 
 	switch (protocol) {
 	case UDP:
-		result = isc_nm_listenudp(netmgr, &sockaddr, read_cb, NULL, 0,
+		result = isc_nm_listenudp(netmgr, &sockaddr, read_cb, NULL,
 					  &sock);
 		break;
 	case TCP:
 		result = isc_nm_listentcpdns(netmgr, &sockaddr, read_cb, NULL,
-					     accept_cb, NULL, 0, 0, NULL,
-					     &sock);
+					     accept_cb, NULL, 0, NULL, &sock);
 		break;
 	case DOT: {
 		isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 
 		result = isc_nm_listentlsdns(netmgr, &sockaddr, read_cb, NULL,
-					     accept_cb, NULL, 0, 0, NULL,
-					     tls_ctx, &sock);
+					     accept_cb, NULL, 0, NULL, tls_ctx,
+					     &sock);
 		break;
 	}
 #if HAVE_LIBNGHTTP2
@@ -292,7 +291,7 @@ run(void) {
 		}
 		eps = isc_nm_http_endpoints_new(mctx);
 		result = isc_nm_http_endpoints_add(
-			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL, 0);
+			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL);
 
 		if (result == ISC_R_SUCCESS) {
 			result = isc_nm_listenhttp(netmgr, &sockaddr, 0, NULL,

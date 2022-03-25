@@ -172,7 +172,6 @@ struct ns_client {
 	ns_clientstate_t state;
 	int		 nupdates;
 	bool		 nodetach;
-	bool		 shuttingdown;
 	unsigned int	 attributes;
 	dns_view_t	   *view;
 	dns_dispatch_t  *dispatch;
@@ -314,12 +313,6 @@ ns_client_drop(ns_client_t *client, isc_result_t result);
 /*%<
  * Log the reason the current client request has failed; no response
  * will be sent.
- */
-
-bool
-ns_client_shuttingdown(ns_client_t *client);
-/*%<
- * Return true iff the client is currently shutting down.
  */
 
 isc_result_t

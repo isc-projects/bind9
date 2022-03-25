@@ -231,8 +231,8 @@ isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
 
 	isc_refcount_init(&httpdmgr->references, 1);
 
-	CHECK(isc_nm_listentcp(nm, addr, httpd_newconn, httpdmgr,
-			       sizeof(isc_httpd_t), 5, NULL, &httpdmgr->sock));
+	CHECK(isc_nm_listentcp(nm, addr, httpd_newconn, httpdmgr, 5, NULL,
+			       &httpdmgr->sock));
 
 	httpdmgr->magic = HTTPDMGR_MAGIC;
 	*httpdmgrp = httpdmgr;
@@ -649,6 +649,9 @@ httpd_put(void *arg) {
 
 	free_buffer(mgr->mctx, &httpd->headerbuffer);
 	free_buffer(mgr->mctx, &httpd->compbuffer);
+
+	isc_mem_put(mgr->mctx, httpd, sizeof(*httpd));
+
 	httpdmgr_detach(&mgr);
 
 #if ENABLE_AFL
@@ -667,7 +670,7 @@ new_httpd(isc_httpdmgr_t *httpdmgr, isc_nmhandle_t *handle) {
 
 	httpd = isc_nmhandle_getdata(handle);
 	if (httpd == NULL) {
-		httpd = isc_nmhandle_getextra(handle);
+		httpd = isc_mem_get(httpdmgr->mctx, sizeof(*httpd));
 		*httpd = (isc_httpd_t){ .handle = NULL };
 		httpdmgr_attach(httpdmgr, &httpd->mgr);
 	}

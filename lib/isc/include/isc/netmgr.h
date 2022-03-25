@@ -133,9 +133,6 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG);
 void *
 isc_nmhandle_getdata(isc_nmhandle_t *handle);
 
-void *
-isc_nmhandle_getextra(isc_nmhandle_t *handle);
-
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle);
 
@@ -200,7 +197,7 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle);
 
 isc_result_t
 isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
-		 void *cbarg, size_t extrasize, isc_nmsocket_t **sockp);
+		 void *cbarg, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
@@ -209,24 +206,15 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
  *
  * When a packet is received on the socket, 'cb' will be called with 'cbarg'
  * as its argument.
- *
- * When handles are allocated for the socket, 'extrasize' additional bytes
- * can be allocated along with the handle for an associated object, which
- * can then be freed automatically when the handle is destroyed.
  */
 
 void
 isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		  size_t extrahandlesize);
+		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 /*%<
  * Open a UDP socket, bind to 'local' and connect to 'peer', and
  * immediately call 'cb' with a handle so that the caller can begin
  * sending packets over UDP.
- *
- * When handles are allocated for the socket, 'extrasize' additional bytes
- * can be allocated along with the handle for an associated object, which
- * can then be freed automatically when the handle is destroyed.
  *
  * 'timeout' specifies the timeout interval in milliseconds.
  *
@@ -235,8 +223,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  */
 
 isc_result_t
-isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg,
-		    size_t extrahandlesize);
+isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Open a route/netlink socket and call 'cb', so the caller can be
  * begin listening for interface changes.  This behaves similarly to
@@ -317,9 +304,8 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 isc_result_t
 isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_nmsocket_t **sockp);
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
+		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for raw messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -330,9 +316,6 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
  * When connection is accepted on the socket, 'accept_cb' will be called with
  * 'accept_cbarg' as its argument. The callback is expected to start a read.
  *
- * When handles are allocated for the socket, 'extrasize' additional bytes
- * will be allocated along with the handle for an associated object.
- *
  * If 'quota' is not NULL, then the socket is attached to the specified
  * quota. This allows us to enforce TCP client quota limits.
  *
@@ -340,15 +323,13 @@ isc_nm_listentcp(isc_nm_t *mgr, isc_sockaddr_t *iface,
 
 void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		  size_t extrahandlesize);
+		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 /*%<
  * Create a socket using netmgr 'mgr', bind it to the address 'local',
  * and connect it to the address 'peer'.
  *
  * When the connection is complete or has timed out, call 'cb' with
- * argument 'cbarg'. Allocate 'extrahandlesize' additional bytes along
- * with the handle to use for an associated object.
+ * argument 'cbarg'.
  *
  * 'timeout' specifies the timeout interval in milliseconds.
  *
@@ -360,8 +341,7 @@ isc_result_t
 isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		    isc_nmsocket_t **sockp);
+		    int backlog, isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -378,10 +358,6 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
  * When a new TCPDNS connection is accepted, 'accept_cb' will be called
  * with 'accept_cbarg' as its argument.
  *
- * When handles are allocated for the socket, 'extrasize' additional bytes
- * will be allocated along with the handle for an associated object
- * (typically ns_client).
- *
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
 
@@ -389,8 +365,8 @@ isc_result_t
 isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		    size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		    isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
+		    int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
+		    isc_nmsocket_t **sockp);
 /*%<
  * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
  */
@@ -464,19 +440,17 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
 
 void
 isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		     size_t extrahandlesize);
+		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 void
 isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		     size_t extrahandlesize, isc_tlsctx_t *sslctx);
+		     isc_tlsctx_t *sslctx);
 /*%<
  * Establish a DNS client connection via a TCP or TLS connection, bound to
  * the address 'local' and connected to the address 'peer'.
  *
  * When the connection is complete or has timed out, call 'cb' with
- * argument 'cbarg'. Allocate 'extrahandlesize' additional bytes along
- * with the handle to use for an associated object.
+ * argument 'cbarg'.
  *
  * 'timeout' specifies the timeout interval in milliseconds.
  *
@@ -502,20 +476,19 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
 
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
-		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		 size_t extrahandlesize, int backlog, isc_quota_t *quota,
-		 isc_tlsctx_t *sslctx, isc_nmsocket_t **sockp);
+		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
+		 isc_quota_t *quota, isc_tlsctx_t *sslctx,
+		 isc_nmsocket_t **sockp);
 
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
-		  unsigned int timeout, size_t extrahandlesize);
+		  unsigned int timeout);
 
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *ctx, unsigned int timeout,
-		   size_t extrahandlesize);
+		   isc_tlsctx_t *ctx, unsigned int timeout);
 
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
@@ -535,7 +508,7 @@ isc_nm_http_endpoints_new(isc_mem_t *mctx);
 isc_result_t
 isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
 			  const char *uri, const isc_nm_recv_cb_t cb,
-			  void *cbarg, const size_t extrahandlesize);
+			  void *cbarg);
 /*%< Adds a new endpoint to the given HTTP endpoints set object.
  *
  * NOTE: adding an endpoint is allowed only if the endpoint object has

@@ -1130,10 +1130,12 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes in the write buffer, we
 		 * will flush the buffer. */
 		if (cb != NULL) {
-			isc__nm_uvreq_t *newcb = isc__nm_uvreq_get(
-				httphandle->sock->mgr, httphandle->sock);
+			isc__nm_uvreq_t *newcb = NULL;
 
 			INSIST(VALID_NMHANDLE(httphandle));
+
+			newcb = isc__nm_uvreq_get(httphandle->sock->mgr,
+						  httphandle->sock);
 			newcb->cb.send = cb;
 			newcb->cbarg = cbarg;
 			isc_nmhandle_attach(httphandle, &newcb->handle);
@@ -1422,8 +1424,7 @@ error:
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *tlsctx, unsigned int timeout,
-		   size_t extrahandlesize) {
+		   isc_tlsctx_t *tlsctx, unsigned int timeout) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 
@@ -1441,7 +1442,6 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_httpsocket, local);
 
-	sock->extrahandlesize = extrahandlesize;
 	sock->connect_timeout = timeout;
 	sock->result = ISC_R_UNSET;
 	sock->connect_cb = cb;
@@ -1485,10 +1485,10 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	if (tlsctx != NULL) {
 		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
-				  tlsctx, timeout, 0);
+				  tlsctx, timeout);
 	} else {
 		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
-				  timeout, 0);
+				  timeout);
 	}
 }
 
@@ -1687,7 +1687,6 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	if (handler != NULL) {
 		socket->h2.cb = handler->cb;
 		socket->h2.cbarg = handler->cbarg;
-		socket->extrahandlesize = handler->extrahandlesize;
 	} else {
 		isc_mem_free(socket->mgr->mctx, socket->h2.request_path);
 		socket->h2.request_path = NULL;
@@ -2487,11 +2486,9 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 
 	if (ctx != NULL) {
 		result = isc_nm_listentls(mgr, iface, httplisten_acceptcb, sock,
-					  sizeof(isc_nm_http_session_t),
 					  backlog, quota, ctx, &sock->outer);
 	} else {
 		result = isc_nm_listentcp(mgr, iface, httplisten_acceptcb, sock,
-					  sizeof(isc_nm_http_session_t),
 					  backlog, quota, &sock->outer);
 	}
 
@@ -2627,7 +2624,7 @@ http_callback(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *data,
 isc_result_t
 isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
 			  const char *uri, const isc_nm_recv_cb_t cb,
-			  void *cbarg, const size_t extrahandlesize) {
+			  void *cbarg) {
 	isc_mem_t *mctx;
 	isc_nm_httphandler_t *restrict handler = NULL;
 	isc_nm_httpcbarg_t *restrict httpcbarg = NULL;
@@ -2645,12 +2642,10 @@ isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
 
 	if (http_endpoints_find(uri, eps) == NULL) {
 		handler = isc_mem_get(mctx, sizeof(*handler));
-		*handler = (isc_nm_httphandler_t){
-			.cb = http_callback,
-			.cbarg = httpcbarg,
-			.extrahandlesize = extrahandlesize,
-			.path = isc_mem_strdup(mctx, uri)
-		};
+		*handler = (isc_nm_httphandler_t){ .cb = http_callback,
+						   .cbarg = httpcbarg,
+						   .path = isc_mem_strdup(
+							   mctx, uri) };
 		ISC_LINK_INIT(handler, link);
 
 		newhandler = true;

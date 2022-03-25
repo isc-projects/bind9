@@ -588,6 +588,9 @@ conn_put(void *arg) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 		      "freeing control connection");
+
+	isc_mem_put(listener->mctx, conn, sizeof(*conn));
+
 	maybe_free_listener(listener);
 }
 
@@ -597,7 +600,7 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 
 	conn = isc_nmhandle_getdata(handle);
 	if (conn == NULL) {
-		conn = isc_nmhandle_getextra(handle);
+		conn = isc_mem_get(listener->mctx, sizeof(*conn));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 			      "allocate new control connection");
@@ -1160,9 +1163,9 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	}
 #endif
 
-	CHECK(isc_nm_listentcp(
-		named_g_netmgr, &listener->address, control_newconn, listener,
-		sizeof(controlconnection_t), 5, NULL, &listener->sock));
+	CHECK(isc_nm_listentcp(named_g_netmgr, &listener->address,
+			       control_newconn, listener, 5, NULL,
+			       &listener->sock));
 #if 0
 	/* XXX: no unix socket support yet */
 	if (type == isc_socktype_unix) {

@@ -121,7 +121,6 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	atomic_init(&csock->reading, true);
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
-	csock->extrahandlesize = sock->extrahandlesize;
 	csock->tid = tid;
 
 #if HAVE_SO_REUSEPORT_LB
@@ -147,7 +146,7 @@ enqueue_stoplistening(isc_nmsocket_t *sock) {
 
 isc_result_t
 isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
-		 void *cbarg, size_t extrahandlesize, isc_nmsocket_t **sockp) {
+		 void *cbarg, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	size_t children_size = 0;
@@ -169,7 +168,6 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
-	sock->extrahandlesize = extrahandlesize;
 	sock->result = ISC_R_UNSET;
 
 	sock->tid = 0;
@@ -340,8 +338,7 @@ isc__nm_async_routeconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 #endif /* USE_ROUTE_SOCKET */
 
 isc_result_t
-isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg,
-		    size_t extrahandlesize) {
+isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 #ifdef USE_ROUTE_SOCKET
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
@@ -355,7 +352,6 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg,
 
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
-	sock->extrahandlesize = extrahandlesize;
 	sock->result = ISC_R_UNSET;
 	atomic_init(&sock->client, true);
 	sock->route_sock = true;
@@ -961,8 +957,7 @@ isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 void
 isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		  size_t extrahandlesize) {
+		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__netievent_udpconnect_t *event = NULL;
@@ -981,7 +976,6 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
 	sock->read_timeout = timeout;
-	sock->extrahandlesize = extrahandlesize;
 	sock->peer = *peer;
 	sock->result = ISC_R_UNSET;
 	atomic_init(&sock->client, true);

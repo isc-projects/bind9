@@ -363,7 +363,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 #endif /* if defined(HAVE_GEOIP2) */
 
 	if (scan) {
-		result = isc_nm_routeconnect(nm, route_connected, mgr, 0);
+		result = isc_nm_routeconnect(nm, route_connected, mgr);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 				      "unable to open route socket: %s",
@@ -514,8 +514,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
 	result = isc_nm_listenudp(ifp->mgr->nm, &ifp->addr, ns__client_request,
-				  ifp, sizeof(ns_client_t),
-				  &ifp->udplistensocket);
+				  ifp, &ifp->udplistensocket);
 	return (result);
 }
 
@@ -525,7 +524,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 
 	result = isc_nm_listentcpdns(
 		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
-		ns__client_tcpconn, ifp, sizeof(ns_client_t), ifp->mgr->backlog,
+		ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -565,7 +564,7 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 
 	result = isc_nm_listentlsdns(
 		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
-		ns__client_tcpconn, ifp, sizeof(ns_client_t), ifp->mgr->backlog,
+		ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
 
 	if (result != ISC_R_SUCCESS) {
@@ -603,8 +602,7 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 
 	for (size_t i = 0; i < neps; i++) {
 		result = isc_nm_http_endpoints_add(epset, eps[i],
-						   ns__client_request, ifp,
-						   sizeof(ns_client_t));
+						   ns__client_request, ifp);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
