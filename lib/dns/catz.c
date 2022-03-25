@@ -315,10 +315,9 @@ dns_catz_entry_detach(dns_catz_zone_t *zone, dns_catz_entry_t **entryp) {
 	dns_catz_entry_t *entry;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
-	REQUIRE(entryp != NULL);
+	REQUIRE(entryp != NULL && DNS_CATZ_ENTRY_VALID(*entryp));
 	entry = *entryp;
 	*entryp = NULL;
-	REQUIRE(DNS_CATZ_ENTRY_VALID(entry));
 
 	if (isc_refcount_decrement(&entry->refs) == 1) {
 		isc_mem_t *mctx = zone->catzs->mctx;
