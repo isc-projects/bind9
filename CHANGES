@@ -1,3 +1,6 @@
+5865.	[func]		Make statistics channel and control channel listen
+			on a single network manager thread. [GL !6032]
+
 5864.	[func]		The OID embedded at the start of a PRIVATEOID public
 			key in a KEY, DNSKEY, CDNSKEY, or RKEY RR is now
 			checked for validity when reading from wire or from
