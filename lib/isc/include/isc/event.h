@@ -15,14 +15,73 @@
 
 /*! \file isc/event.h */
 
+#include <isc/backtrace.h>
 #include <isc/lang.h>
+#include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 /*****
 ***** Events.
 *****/
 
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
+
+#if TASKMGR_TRACE
+#define ISC__EVENT_TRACE_SIZE 8
+#define ISC__EVENT_FILELINE   , __func__, __FILE__, __LINE__
+#define ISC__EVENT_FLARG      , const char *func, const char *file, unsigned int line
+
+#define ISC_EVENT_COMMON(ltype)                                 \
+	size_t		      ev_size;                          \
+	unsigned int	      ev_attributes;                    \
+	void		     *ev_tag;                           \
+	isc_eventtype_t	      ev_type;                          \
+	isc_taskaction_t      ev_action;                        \
+	void		     *ev_arg;                           \
+	void		     *ev_sender;                        \
+	isc_eventdestructor_t ev_destroy;                       \
+	void		     *ev_destroy_arg;                   \
+	void		     *backtrace[ISC__EVENT_TRACE_SIZE]; \
+	int		      backtrace_size;                   \
+	char		      func[PATH_MAX];                   \
+	char		      file[PATH_MAX];                   \
+	unsigned int	      line;                             \
+	ISC_LINK(ltype) ev_link;                                \
+	ISC_LINK(ltype) ev_ratelink
+
+#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da)            \
+	ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, __func__, \
+			__FILE__, __LINE__)
+
+#define ISC_EVENT_INIT_PASS(event, sz, at, ta, ty, ac, ar, sn, df, da)         \
+	ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, func, file, \
+			line)
+
+#define ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, fn, fl, ln) \
+	{                                                                      \
+		(event)->ev_size = (sz);                                       \
+		(event)->ev_attributes = (at);                                 \
+		(event)->ev_tag = (ta);                                        \
+		(event)->ev_type = (ty);                                       \
+		(event)->ev_action = (ac);                                     \
+		(event)->ev_arg = (ar);                                        \
+		(event)->ev_sender = (sn);                                     \
+		(event)->ev_destroy = (df);                                    \
+		(event)->ev_destroy_arg = (da);                                \
+		ISC_LINK_INIT((event), ev_link);                               \
+		ISC_LINK_INIT((event), ev_ratelink);                           \
+		strlcpy((event)->func, fn, sizeof((event)->func));             \
+		strlcpy((event)->file, fl, sizeof((event)->file));             \
+		(event)->line = ln;                                            \
+		(event)->backtrace_size = isc_backtrace(                       \
+			(event)->backtrace, ISC__EVENT_TRACE_SIZE);            \
+	}
+
+#else
+#define ISC__EVENT_FILELINE
+#define ISC__EVENT_FLARG
+#define ISC__EVENT_FLARG_PASS
 
 #define ISC_EVENT_COMMON(ltype)               \
 	size_t		      ev_size;        \
@@ -36,6 +95,25 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 	void		     *ev_destroy_arg; \
 	ISC_LINK(ltype) ev_link;              \
 	ISC_LINK(ltype) ev_ratelink
+
+#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
+	{                                                         \
+		(event)->ev_size = (sz);                          \
+		(event)->ev_attributes = (at);                    \
+		(event)->ev_tag = (ta);                           \
+		(event)->ev_type = (ty);                          \
+		(event)->ev_action = (ac);                        \
+		(event)->ev_arg = (ar);                           \
+		(event)->ev_sender = (sn);                        \
+		(event)->ev_destroy = (df);                       \
+		(event)->ev_destroy_arg = (da);                   \
+		ISC_LINK_INIT((event), ev_link);                  \
+		ISC_LINK_INIT((event), ev_ratelink);              \
+	}
+
+#define ISC_EVENT_INIT_PASS ISC_EVENT_INIT
+
+#endif
 
 /*%
  * Attributes matching a mask of 0x000000ff are reserved for the task library's
@@ -52,21 +130,6 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  */
 #define ISC_EVENTATTR_CANCELED 0x00000002
 
-#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
-	do {                                                      \
-		(event)->ev_size = (sz);                          \
-		(event)->ev_attributes = (at);                    \
-		(event)->ev_tag = (ta);                           \
-		(event)->ev_type = (ty);                          \
-		(event)->ev_action = (ac);                        \
-		(event)->ev_arg = (ar);                           \
-		(event)->ev_sender = (sn);                        \
-		(event)->ev_destroy = (df);                       \
-		(event)->ev_destroy_arg = (da);                   \
-		ISC_LINK_INIT((event), ev_link);                  \
-		ISC_LINK_INIT((event), ev_ratelink);              \
-	} while (0)
-
 /*%
  * This structure is public because "subclassing" it may be useful when
  * defining new event types.
@@ -79,9 +142,14 @@ struct isc_event {
 
 ISC_LANG_BEGINDECLS
 
+#define isc_event_allocate(mctx, sender, type, action, arg, size) \
+	isc__event_allocate(mctx, sender, type, action, arg,      \
+			    size ISC__EVENT_FILELINE)
+
 isc_event_t *
-isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-		   isc_taskaction_t action, void *arg, size_t size);
+isc__event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
+		    isc_taskaction_t action, void *arg,
+		    size_t size ISC__EVENT_FLARG);
 /*%<
  * Allocate an event structure.
  *

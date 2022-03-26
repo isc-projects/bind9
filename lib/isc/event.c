@@ -31,8 +31,9 @@ destroy(isc_event_t *event) {
 }
 
 isc_event_t *
-isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-		   isc_taskaction_t action, void *arg, size_t size) {
+isc__event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
+		    isc_taskaction_t action, void *arg,
+		    size_t size ISC__EVENT_FLARG) {
 	isc_event_t *event;
 
 	REQUIRE(size >= sizeof(struct isc_event));
@@ -40,8 +41,8 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 
 	event = isc_mem_get(mctx, size);
 
-	ISC_EVENT_INIT(event, size, 0, NULL, type, action, arg, sender, destroy,
-		       mctx);
+	ISC_EVENT_INIT_PASS(event, size, 0, NULL, type, action, arg, sender,
+			    destroy, mctx);
 
 	return (event);
 }
