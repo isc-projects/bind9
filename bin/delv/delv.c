@@ -1718,12 +1718,10 @@ main(int argc, char *argv[]) {
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
 	unsigned int resopt;
-	isc_appctx_t *actx = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_timermgr_t *timermgr = NULL;
 	dns_master_style_t *style = NULL;
-	struct sigaction sa;
 
 	progname = argv[0];
 	preparse_args(argc, argv);
@@ -1738,8 +1736,6 @@ main(int argc, char *argv[]) {
 		fatal("dst_lib_init failed: %d", result);
 	}
 
-	CHECK(isc_appctx_create(mctx, &actx));
-
 	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, &timermgr);
 
 	parse_args(argc, argv);
@@ -1748,18 +1744,9 @@ main(int argc, char *argv[]) {
 
 	setup_logging(stderr);
 
-	CHECK(isc_app_ctxstart(actx));
-
-	/* Unblock SIGINT if it's been blocked by isc_app_ctxstart() */
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	if (sigfillset(&sa.sa_mask) != 0 || sigaction(SIGINT, &sa, NULL) < 0) {
-		fatal("Couldn't set up signal handler");
-	}
-
 	/* Create client */
-	result = dns_client_create(mctx, actx, taskmgr, netmgr, timermgr, 0,
-				   &client, srcaddr4, srcaddr6);
+	result = dns_client_create(mctx, taskmgr, netmgr, timermgr, 0, &client,
+				   srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			 isc_result_totext(result));
@@ -1844,9 +1831,6 @@ cleanup:
 
 	isc_managers_destroy(&netmgr, &taskmgr, &timermgr);
 
-	if (actx != NULL) {
-		isc_appctx_destroy(&actx);
-	}
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
 	}

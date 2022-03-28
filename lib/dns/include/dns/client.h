@@ -89,8 +89,8 @@ typedef struct dns_clientresevent {
 } dns_clientresevent_t; /* too long? */
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		  isc_nm_t *nm, isc_timermgr_t *timermgr, unsigned int options,
+dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
+		  isc_timermgr_t *timermgr, unsigned int options,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6);
 /*%<
@@ -108,8 +108,6 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
  * Requires:
  *
  *\li	'mctx' is a valid memory context.
- *
- *\li	'actx' is a valid application context.
  *
  *\li	'taskmgr' is a valid task manager.
  *
