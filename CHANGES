@@ -1,3 +1,10 @@
+5838.	[cleanup]	When modifying a member zone in a catalog zone, and it
+			is detected that the zone exists and was not created by
+			the current catalog zone, distinguish the two cases when
+			the zone was not added by a catalog zone at all, and
+			when the zone was added by a different catalog zone,
+			and log a warning message accordingly. [GL #3221]
+
 5836.	[bug]		Quote the dns64 prefix in error messages that complain
 			about problems with it, to avoid confusion with the
 			following dns64 ACLs. [GL #3210]
