@@ -2285,7 +2285,7 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			}
 			break;
 		default:
-			INSIST(0);
+			UNREACHABLE();
 		}
 	}
 }
@@ -2818,7 +2818,6 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		REQUIRE(sock->parent == NULL);
 		break;
 	default:
-		INSIST(0);
 		UNREACHABLE();
 		break;
 	}
@@ -3544,7 +3543,6 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 	case isc_nm_tlssocket:
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
-		INSIST(0);
 		UNREACHABLE();
 		break;
 	}

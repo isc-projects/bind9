@@ -152,7 +152,7 @@ parse_options(int argc, char **argv) {
 			break;
 
 		default:
-			INSIST(0);
+			UNREACHABLE();
 		}
 	}
 
