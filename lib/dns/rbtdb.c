@@ -309,20 +309,7 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 	(((header)->rdh_ttl > (now)) || \
 	 ((header)->rdh_ttl == (now) && ZEROTTL(header)))
 
-#define DEFAULT_NODE_LOCK_COUNT	    7 /*%< Should be prime. */
-#define RBTDB_GLUE_TABLE_INIT_BITS  2U
-#define RBTDB_GLUE_TABLE_MAX_BITS   32U
-#define RBTDB_GLUE_TABLE_OVERCOMMIT 3
-
-#define GOLDEN_RATIO_32 0x61C88647
-#define HASHSIZE(bits)	(UINT64_C(1) << (bits))
-
-static uint32_t
-hash_32(uint32_t val, unsigned int bits) {
-	REQUIRE(bits <= RBTDB_GLUE_TABLE_MAX_BITS);
-	/* High bits are more random. */
-	return (val * GOLDEN_RATIO_32 >> (32 - bits));
-}
+#define DEFAULT_NODE_LOCK_COUNT 7 /*%< Should be prime. */
 
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
@@ -1252,10 +1239,10 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 	isc_refcount_init(&version->references, references);
 	isc_rwlock_init(&version->glue_rwlock, 0, 0);
 
-	version->glue_table_bits = RBTDB_GLUE_TABLE_INIT_BITS;
+	version->glue_table_bits = ISC_HASH_MIN_BITS;
 	version->glue_table_nodecount = 0U;
 
-	size = HASHSIZE(version->glue_table_bits) *
+	size = ISC_HASHSIZE(version->glue_table_bits) *
 	       sizeof(version->glue_table[0]);
 	version->glue_table = isc_mem_get(mctx, size);
 	memset(version->glue_table, 0, size);
@@ -9494,7 +9481,7 @@ free_gluetable(rbtdb_version_t *version) {
 
 	rbtdb = version->rbtdb;
 
-	for (i = 0; i < HASHSIZE(version->glue_table_bits); i++) {
+	for (i = 0; i < ISC_HASHSIZE(version->glue_table_bits); i++) {
 		rbtdb_glue_table_node_t *cur, *cur_next;
 
 		cur = version->glue_table[i];
@@ -9510,7 +9497,7 @@ free_gluetable(rbtdb_version_t *version) {
 		version->glue_table[i] = NULL;
 	}
 
-	size = HASHSIZE(version->glue_table_bits) *
+	size = ISC_HASHSIZE(version->glue_table_bits) *
 	       sizeof(*version->glue_table);
 	isc_mem_put(rbtdb->common.mctx, version->glue_table, size);
 
@@ -9522,8 +9509,8 @@ rehash_bits(rbtdb_version_t *version, size_t newcount) {
 	uint32_t oldbits = version->glue_table_bits;
 	uint32_t newbits = oldbits;
 
-	while (newcount >= HASHSIZE(newbits) &&
-	       newbits <= RBTDB_GLUE_TABLE_MAX_BITS) {
+	while (newcount >= ISC_HASHSIZE(newbits) &&
+	       newbits <= ISC_HASH_MAX_BITS) {
 		newbits += 1;
 	}
 
@@ -9540,11 +9527,11 @@ rehash_gluetable(rbtdb_version_t *version) {
 	rbtdb_glue_table_node_t **oldtable;
 
 	oldbits = version->glue_table_bits;
-	oldcount = HASHSIZE(oldbits);
+	oldcount = ISC_HASHSIZE(oldbits);
 	oldtable = version->glue_table;
 
 	newbits = rehash_bits(version, version->glue_table_nodecount);
-	newsize = HASHSIZE(newbits) * sizeof(version->glue_table[0]);
+	newsize = ISC_HASHSIZE(newbits) * sizeof(version->glue_table[0]);
 
 	version->glue_table = isc_mem_get(version->rbtdb->common.mctx, newsize);
 	version->glue_table_bits = newbits;
@@ -9557,7 +9544,7 @@ rehash_gluetable(rbtdb_version_t *version) {
 		     gluenode = nextgluenode) {
 			uint32_t hash = isc_hash32(
 				&gluenode->node, sizeof(gluenode->node), true);
-			uint32_t idx = hash_32(hash, newbits);
+			uint32_t idx = isc_hash_bits32(hash, newbits);
 			nextgluenode = gluenode->next;
 			gluenode->next = version->glue_table[idx];
 			version->glue_table[idx] = gluenode;
@@ -9577,8 +9564,8 @@ rehash_gluetable(rbtdb_version_t *version) {
 
 static void
 maybe_rehash_gluetable(rbtdb_version_t *version) {
-	size_t overcommit = HASHSIZE(version->glue_table_bits) *
-			    RBTDB_GLUE_TABLE_OVERCOMMIT;
+	size_t overcommit = ISC_HASHSIZE(version->glue_table_bits) *
+			    ISC_HASH_OVERCOMMIT;
 	if (version->glue_table_nodecount < overcommit) {
 		return;
 	}
@@ -9740,7 +9727,7 @@ restart:
 	 */
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
 
-	idx = hash_32(hash, rbtversion->glue_table_bits);
+	idx = isc_hash_bits32(hash, rbtversion->glue_table_bits);
 
 	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next) {
 		if (cur->node == node) {
@@ -9901,7 +9888,7 @@ no_glue:
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
 	maybe_rehash_gluetable(rbtversion);
-	idx = hash_32(hash, rbtversion->glue_table_bits);
+	idx = isc_hash_bits32(hash, rbtversion->glue_table_bits);
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
 					  glue_nsdname_cb, &ctx);

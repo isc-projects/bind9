@@ -1109,7 +1109,7 @@ isc_tlsctx_cache_new(isc_mem_t *mctx) {
 	isc_refcount_init(&nc->references, 1);
 	isc_mem_attach(mctx, &nc->mctx);
 
-	isc_ht_init(&nc->data, mctx, 5);
+	isc_ht_init(&nc->data, mctx, 5, ISC_HT_CASE_SENSITIVE);
 	isc_rwlock_init(&nc->rwlock, 0, 0);
 
 	return (nc);

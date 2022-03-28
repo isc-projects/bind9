@@ -19,6 +19,7 @@
 
 #include <isc/atomic.h>
 #include <isc/file.h>
+#include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
@@ -18504,26 +18505,10 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
  ***	Zone manager.
  ***/
 
-#define KEYMGMT_OVERCOMMIT 3
-#define KEYMGMT_BITS_MIN   2U
-#define KEYMGMT_BITS_MAX   32U
-
-/*
- * WMM: Static hash functions copied from lib/dns/rbtdb.c. Should be moved to
- * lib/isc/hash.c when we refactor the hash table code.
- */
-#define GOLDEN_RATIO_32 0x61C88647
-#define HASHSIZE(bits)	(UINT64_C(1) << (bits))
-
-static uint32_t
-hash_index(uint32_t val, uint32_t bits) {
-	return (val * GOLDEN_RATIO_32 >> (32 - bits));
-}
-
 static uint32_t
 hash_bits_grow(uint32_t bits, uint32_t count) {
 	uint32_t newbits = bits;
-	while (count >= HASHSIZE(newbits) && newbits < KEYMGMT_BITS_MAX) {
+	while (count >= ISC_HASHSIZE(newbits) && newbits < ISC_HASH_MAX_BITS) {
 		newbits++;
 	}
 	return (newbits);
@@ -18532,7 +18517,7 @@ hash_bits_grow(uint32_t bits, uint32_t count) {
 static uint32_t
 hash_bits_shrink(uint32_t bits, uint32_t count) {
 	uint32_t newbits = bits;
-	while (count <= HASHSIZE(newbits) && newbits > KEYMGMT_BITS_MIN) {
+	while (count <= ISC_HASHSIZE(newbits) && newbits > ISC_HASH_MIN_BITS) {
 		newbits--;
 	}
 	return (newbits);
@@ -18544,12 +18529,12 @@ zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 	uint32_t size;
 
 	*mgmt = (dns_keymgmt_t){
-		.bits = KEYMGMT_BITS_MIN,
+		.bits = ISC_HASH_MIN_BITS,
 	};
 	isc_mem_attach(zmgr->mctx, &mgmt->mctx);
 	isc_rwlock_init(&mgmt->lock, 0, 0);
 
-	size = HASHSIZE(mgmt->bits);
+	size = ISC_HASHSIZE(mgmt->bits);
 	mgmt->table = isc_mem_get(mgmt->mctx, sizeof(*mgmt->table) * size);
 	memset(mgmt->table, 0, size * sizeof(mgmt->table[0]));
 
@@ -18568,7 +18553,7 @@ zonemgr_keymgmt_destroy(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
-	size = HASHSIZE(mgmt->bits);
+	size = ISC_HASHSIZE(mgmt->bits);
 	for (unsigned int i = 0;
 	     atomic_load_relaxed(&mgmt->count) > 0 && i < size; i++) {
 		for (curr = mgmt->table[i]; curr != NULL; curr = next) {
@@ -18601,10 +18586,10 @@ zonemgr_keymgmt_resize(dns_zonemgr_t *zmgr) {
 	bits = mgmt->bits;
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_read);
 
-	size = HASHSIZE(bits);
+	size = ISC_HASHSIZE(bits);
 	INSIST(size > 0);
 
-	if (count >= (size * KEYMGMT_OVERCOMMIT)) {
+	if (count >= (size * ISC_HASH_OVERCOMMIT)) {
 		grow = true;
 	} else if (count < (size / 2)) {
 		grow = false;
@@ -18627,7 +18612,7 @@ zonemgr_keymgmt_resize(dns_zonemgr_t *zmgr) {
 		return;
 	}
 
-	newsize = HASHSIZE(newbits);
+	newsize = ISC_HASHSIZE(newbits);
 	INSIST(newsize > 0);
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
@@ -18638,7 +18623,7 @@ zonemgr_keymgmt_resize(dns_zonemgr_t *zmgr) {
 	for (unsigned int i = 0; i < size; i++) {
 		dns_keyfileio_t *kfio, *next;
 		for (kfio = mgmt->table[i]; kfio != NULL; kfio = next) {
-			uint32_t hash = hash_index(kfio->hashval, newbits);
+			uint32_t hash = isc_hash_bits32(kfio->hashval, newbits);
 			next = kfio->next;
 			kfio->next = newtable[hash];
 			newtable[hash] = kfio;
@@ -18665,7 +18650,7 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
 	hashval = dns_name_hash(&zone->origin, false);
-	hash = hash_index(hashval, mgmt->bits);
+	hash = isc_hash_bits32(hashval, mgmt->bits);
 
 	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
 		next = kfio->next;
@@ -18718,7 +18703,7 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
 	hashval = dns_name_hash(&zone->origin, false);
-	hash = hash_index(hashval, mgmt->bits);
+	hash = isc_hash_bits32(hashval, mgmt->bits);
 
 	prev = NULL;
 	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
@@ -18776,7 +18761,7 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	}
 
 	hashval = dns_name_hash(&zone->origin, false);
-	hash = hash_index(hashval, mgmt->bits);
+	hash = isc_hash_bits32(hashval, mgmt->bits);
 
 	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
 		next = kfio->next;

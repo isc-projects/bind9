@@ -19,6 +19,7 @@
 
 #include <isc/atomic.h>
 #include <isc/counter.h>
+#include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -211,21 +212,7 @@
 #endif /* ifndef RES_DOMAIN_HASH_BITS */
 #define RES_NOBUCKET 0xffffffff
 
-#define GOLDEN_RATIO_32 0x61C88647
-
-#define HASHSIZE(bits) (UINT64_C(1) << (bits))
-
-#define RES_DOMAIN_MAX_BITS   32
-#define RES_DOMAIN_OVERCOMMIT 3
-
 #define RES_DOMAIN_NEXTTABLE(hindex) ((hindex == 0) ? 1 : 0)
-
-static uint32_t
-hash_32(uint32_t val, unsigned int bits) {
-	REQUIRE(bits <= RES_DOMAIN_MAX_BITS);
-	/* High bits are more random. */
-	return (val * GOLDEN_RATIO_32 >> (32 - bits));
-}
 
 /*%
  * Maximum EDNS0 input packet size.
@@ -1578,7 +1565,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 
 	INSIST(fctx->dbucketnum == RES_NOBUCKET);
 	hashval = dns_name_fullhash(fctx->domain, false);
-	dbucketnum = hash_32(hashval, fctx->res->dhashbits);
+	dbucketnum = isc_hash_bits32(hashval, fctx->res->dhashbits);
 
 	dbucket = &fctx->res->dbuckets[dbucketnum];
 
@@ -10108,12 +10095,12 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_mem_put(res->mctx, res->buckets,
 		    res->nbuckets * sizeof(fctxbucket_t));
-	for (i = 0; i < HASHSIZE(res->dhashbits); i++) {
+	for (i = 0; i < ISC_HASHSIZE(res->dhashbits); i++) {
 		INSIST(ISC_LIST_EMPTY(res->dbuckets[i].list));
 		isc_mutex_destroy(&res->dbuckets[i].lock);
 	}
 	isc_mem_put(res->mctx, res->dbuckets,
-		    HASHSIZE(res->dhashbits) * sizeof(zonebucket_t));
+		    ISC_HASHSIZE(res->dhashbits) * sizeof(zonebucket_t));
 	if (res->dispatches4 != NULL) {
 		dns_dispatchset_destroy(&res->dispatches4);
 	}
@@ -10285,9 +10272,9 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 
 	res->dbuckets = isc_mem_get(view->mctx,
-				    HASHSIZE(res->dhashbits) *
+				    ISC_HASHSIZE(res->dhashbits) *
 					    sizeof(res->dbuckets[0]));
-	for (size_t i = 0; i < HASHSIZE(res->dhashbits); i++) {
+	for (size_t i = 0; i < ISC_HASHSIZE(res->dhashbits); i++) {
 		res->dbuckets[i] = (zonebucket_t){ .list = { 0 } };
 		ISC_LIST_INIT(res->dbuckets[i].list);
 		isc_mutex_init(&res->dbuckets[i].lock);
@@ -10333,11 +10320,11 @@ cleanup_primelock:
 		dns_dispatchset_destroy(&res->dispatches4);
 	}
 
-	for (size_t i = 0; i < HASHSIZE(res->dhashbits); i++) {
+	for (size_t i = 0; i < ISC_HASHSIZE(res->dhashbits); i++) {
 		isc_mutex_destroy(&res->dbuckets[i].lock);
 	}
 	isc_mem_put(view->mctx, res->dbuckets,
-		    HASHSIZE(res->dhashbits) * sizeof(zonebucket_t));
+		    ISC_HASHSIZE(res->dhashbits) * sizeof(zonebucket_t));
 
 cleanup_buckets:
 	for (size_t i = 0; i < ntasks; i++) {
@@ -11518,7 +11505,7 @@ dns_resolver_dumpfetches(dns_resolver_t *resolver, isc_statsformat_t format,
 	REQUIRE(fp != NULL);
 	REQUIRE(format == isc_statsformat_file);
 
-	for (size_t i = 0; i < HASHSIZE(resolver->dhashbits); i++) {
+	for (size_t i = 0; i < ISC_HASHSIZE(resolver->dhashbits); i++) {
 		fctxcount_t *fc;
 		LOCK(&resolver->dbuckets[i].lock);
 		for (fc = ISC_LIST_HEAD(resolver->dbuckets[i].list); fc != NULL;

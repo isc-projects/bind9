@@ -24,8 +24,14 @@
 typedef struct isc_ht	   isc_ht_t;
 typedef struct isc_ht_iter isc_ht_iter_t;
 
+enum { ISC_HT_CASE_SENSITIVE = 0x00, ISC_HT_CASE_INSENSITIVE = 0x01 };
+
 /*%
  * Initialize hashtable at *htp, using memory context and size of (1<<bits)
+ *
+ * If 'options' contains ISC_HT_CASE_INSENSITIVE, then upper- and lower-case
+ * letters in key values will generate the same hash values; this can be used
+ * when the key for a hash table is a DNS name.
  *
  * Requires:
  *\li	'htp' is not NULL and '*htp' is NULL.
@@ -34,7 +40,8 @@ typedef struct isc_ht_iter isc_ht_iter_t;
  *
  */
 void
-isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits);
+isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits,
+	    unsigned int options);
 
 /*%
  * Destroy hashtable, freeing everything

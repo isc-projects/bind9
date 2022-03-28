@@ -466,7 +466,6 @@ dns_name_hash(const dns_name_t *name, bool case_sensitive) {
 		length = 16;
 	}
 
-	/* High bits are more random. */
 	return (isc_hash32(name->ndata, length, case_sensitive));
 }
 
@@ -481,7 +480,6 @@ dns_name_fullhash(const dns_name_t *name, bool case_sensitive) {
 		return (0);
 	}
 
-	/* High bits are more random. */
 	return (isc_hash32(name->ndata, name->length, case_sensitive));
 }
 

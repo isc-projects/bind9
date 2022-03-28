@@ -19,6 +19,7 @@
 
 #include <isc/crc64.h>
 #include <isc/file.h>
+#include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -60,23 +61,7 @@
 #define CHAIN_MAGIC	   ISC_MAGIC('0', '-', '0', '-')
 #define VALID_CHAIN(chain) ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
 
-#define RBT_HASH_NO_BITS    0
-#define RBT_HASH_MIN_BITS   4
-#define RBT_HASH_MAX_BITS   32
-#define RBT_HASH_OVERCOMMIT 3
-
 #define RBT_HASH_NEXTTABLE(hindex) ((hindex == 0) ? 1 : 0)
-
-#define GOLDEN_RATIO_32 0x61C88647
-
-#define HASHSIZE(bits) (UINT64_C(1) << (bits))
-
-static uint32_t
-hash_32(uint32_t val, unsigned int bits) {
-	REQUIRE(bits <= RBT_HASH_MAX_BITS);
-	/* High bits are more random. */
-	return (val * GOLDEN_RATIO_32 >> (32 - bits));
-}
 
 struct dns_rbt {
 	unsigned int magic;
@@ -322,7 +307,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
 
 	isc_mem_attach(mctx, &rbt->mctx);
 
-	hashtable_new(rbt, 0, RBT_HASH_MIN_BITS);
+	hashtable_new(rbt, 0, ISC_HASH_MIN_BITS);
 
 	rbt->magic = RBT_MAGIC;
 
@@ -932,7 +917,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			 * by the computed hash value.
 			 */
 
-			hash = hash_32(hashval, rbt->hashbits[hindex]);
+			hash = isc_hash_bits32(hashval, rbt->hashbits[hindex]);
 
 			for (hnode = rbt->hashtable[hindex][hash];
 			     hnode != NULL; hnode = HASHNEXT(hnode))
@@ -1616,7 +1601,7 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 
 	HASHVAL(node) = dns_name_fullhash(name, false);
 
-	hash = hash_32(HASHVAL(node), rbt->hashbits[rbt->hindex]);
+	hash = isc_hash_bits32(HASHVAL(node), rbt->hashbits[rbt->hindex]);
 	HASHNEXT(node) = rbt->hashtable[rbt->hindex][hash];
 
 	rbt->hashtable[rbt->hindex][hash] = node;
@@ -1629,24 +1614,25 @@ static void
 hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits) {
 	size_t size;
 
-	REQUIRE(rbt->hashbits[index] == RBT_HASH_NO_BITS);
+	REQUIRE(rbt->hashbits[index] == 0U);
 	REQUIRE(rbt->hashtable[index] == NULL);
-	REQUIRE(bits >= RBT_HASH_MIN_BITS);
-	REQUIRE(bits < RBT_HASH_MAX_BITS);
+	REQUIRE(bits >= ISC_HASH_MIN_BITS);
+	REQUIRE(bits < ISC_HASH_MAX_BITS);
 
 	rbt->hashbits[index] = bits;
 
-	size = HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
+	size = ISC_HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
 	rbt->hashtable[index] = isc_mem_get(rbt->mctx, size);
 	memset(rbt->hashtable[index], 0, size);
 }
 
 static void
 hashtable_free(dns_rbt_t *rbt, uint8_t index) {
-	size_t size = HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
+	size_t size = ISC_HASHSIZE(rbt->hashbits[index]) *
+		      sizeof(dns_rbtnode_t *);
 	isc_mem_put(rbt->mctx, rbt->hashtable[index], size);
 
-	rbt->hashbits[index] = RBT_HASH_NO_BITS;
+	rbt->hashbits[index] = 0U;
 	rbt->hashtable[index] = NULL;
 }
 
@@ -1654,7 +1640,8 @@ static uint32_t
 rehash_bits(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rbt->hashbits[rbt->hindex];
 
-	while (newcount >= HASHSIZE(newbits) && newbits < RBT_HASH_MAX_BITS) {
+	while (newcount >= ISC_HASHSIZE(newbits) && newbits < ISC_HASH_MAX_BITS)
+	{
 		newbits += 1;
 	}
 
@@ -1670,12 +1657,12 @@ hashtable_rehash(dns_rbt_t *rbt, uint32_t newbits) {
 	uint32_t oldbits = rbt->hashbits[oldindex];
 	uint8_t newindex = RBT_HASH_NEXTTABLE(oldindex);
 
-	REQUIRE(rbt->hashbits[oldindex] >= RBT_HASH_MIN_BITS);
-	REQUIRE(rbt->hashbits[oldindex] <= RBT_HASH_MAX_BITS);
+	REQUIRE(rbt->hashbits[oldindex] >= ISC_HASH_MIN_BITS);
+	REQUIRE(rbt->hashbits[oldindex] <= ISC_HASH_MAX_BITS);
 	REQUIRE(rbt->hashtable[oldindex] != NULL);
 
-	REQUIRE(newbits <= RBT_HASH_MAX_BITS);
-	REQUIRE(rbt->hashbits[newindex] == RBT_HASH_NO_BITS);
+	REQUIRE(newbits <= ISC_HASH_MAX_BITS);
+	REQUIRE(rbt->hashbits[newindex] == 0U);
 	REQUIRE(rbt->hashtable[newindex] == NULL);
 
 	REQUIRE(newbits > oldbits);
@@ -1691,7 +1678,7 @@ static void
 hashtable_rehash_one(dns_rbt_t *rbt) {
 	dns_rbtnode_t **newtable = rbt->hashtable[rbt->hindex];
 	uint32_t oldsize =
-		HASHSIZE(rbt->hashbits[RBT_HASH_NEXTTABLE(rbt->hindex)]);
+		ISC_HASHSIZE(rbt->hashbits[RBT_HASH_NEXTTABLE(rbt->hindex)]);
 	dns_rbtnode_t **oldtable =
 		rbt->hashtable[RBT_HASH_NEXTTABLE(rbt->hindex)];
 	dns_rbtnode_t *node = NULL;
@@ -1711,8 +1698,8 @@ hashtable_rehash_one(dns_rbt_t *rbt) {
 
 	/* Move the first non-empty node from old hashtable to new hashtable */
 	for (node = oldtable[rbt->hiter]; node != NULL; node = nextnode) {
-		uint32_t hash = hash_32(HASHVAL(node),
-					rbt->hashbits[rbt->hindex]);
+		uint32_t hash = isc_hash_bits32(HASHVAL(node),
+						rbt->hashbits[rbt->hindex]);
 		nextnode = HASHNEXT(node);
 		HASHNEXT(node) = newtable[hash];
 		newtable[hash] = node;
@@ -1728,7 +1715,7 @@ maybe_rehash(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rehash_bits(rbt, newcount);
 
 	if (rbt->hashbits[rbt->hindex] < newbits &&
-	    newbits <= RBT_HASH_MAX_BITS) {
+	    newbits <= ISC_HASH_MAX_BITS) {
 		hashtable_rehash(rbt, newbits);
 	}
 }
@@ -1740,8 +1727,8 @@ rehashing_in_progress(dns_rbt_t *rbt) {
 
 static bool
 hashtable_is_overcommited(dns_rbt_t *rbt) {
-	return (rbt->nodecount >=
-		(HASHSIZE(rbt->hashbits[rbt->hindex]) * RBT_HASH_OVERCOMMIT));
+	return (rbt->nodecount >= (ISC_HASHSIZE(rbt->hashbits[rbt->hindex]) *
+				   ISC_HASH_OVERCOMMIT));
 }
 
 /*
@@ -1781,7 +1768,7 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *dnode) {
 	 *  c) other table: the node hasn't been moved yet.
 	 */
 nexttable:
-	hash = hash_32(HASHVAL(dnode), rbt->hashbits[hindex]);
+	hash = isc_hash_bits32(HASHVAL(dnode), rbt->hashbits[hindex]);
 
 	hnode = rbt->hashtable[hindex][hash];
 

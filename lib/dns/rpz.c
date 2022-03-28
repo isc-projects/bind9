@@ -1530,7 +1530,7 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	 * simplifies update_from_db
 	 */
 
-	isc_ht_init(&zone->nodes, rpzs->mctx, 1);
+	isc_ht_init(&zone->nodes, rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
 	dns_name_init(&zone->origin, NULL);
 	dns_name_init(&zone->client_ip, NULL);
@@ -1676,30 +1676,12 @@ static isc_result_t
 setup_update(dns_rpz_zone_t *rpz) {
 	isc_result_t result;
 	char domain[DNS_NAME_FORMATSIZE];
-	unsigned int nodecount;
-	uint32_t hashsize;
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
-	nodecount = dns_db_nodecount(rpz->updb, dns_dbtree_main);
-	hashsize = 1;
-	while (nodecount != 0 &&
-	       hashsize <= (DNS_RPZ_HTSIZE_MAX + DNS_RPZ_HTSIZE_DIV)) {
-		hashsize++;
-		nodecount >>= 1;
-	}
-
-	if (hashsize > DNS_RPZ_HTSIZE_DIV) {
-		hashsize -= DNS_RPZ_HTSIZE_DIV;
-	}
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
-		      ISC_LOG_DEBUG(1), "rpz: %s: using hashtable size %d",
-		      domain, hashsize);
-
-	isc_ht_init(&rpz->newnodes, rpz->rpzs->mctx, hashsize);
+	isc_ht_init(&rpz->newnodes, rpz->rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
 	result = dns_db_createiterator(rpz->updb, DNS_DB_NONSEC3, &rpz->updbit);
 	if (result != ISC_R_SUCCESS) {
