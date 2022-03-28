@@ -293,7 +293,7 @@ get_hooktab(query_ctx_t *qctx) {
 				result = _res;                      \
 				goto cleanup;                       \
 			default:                                    \
-				INSIST(0);                          \
+				UNREACHABLE();                      \
 			}                                           \
 		}                                                   \
 	} while (false)

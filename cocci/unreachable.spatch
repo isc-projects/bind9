@@ -11,3 +11,9 @@
 -   INSIST(0);
 -   ISC_UNREACHABLE();
 +   UNREACHABLE();
+
+@@
+@@
+
+- UNREACHABLE();
+  UNREACHABLE();
