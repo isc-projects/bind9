@@ -25,18 +25,46 @@ tls tls-forward-secrecy {
 	protocols { TLSv1.2; };
 	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
 	prefer-server-ciphers yes;
-	key-file "../ns2/key.pem";
-	cert-file "../ns2/cert.pem";
-	dhparam-file "../ns2/dhparam3072.pem";
+	key-file "../CA/certs/srv01.crt01.example.com.key";
+	cert-file "../CA/certs/srv01.crt01.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
 };
 
 tls tls-pfs-aes256 {
 	protocols { TLSv1.2; };
 	ciphers "AES256:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
 	prefer-server-ciphers yes;
-	key-file "../ns2/key.pem";
-	cert-file "../ns2/cert.pem";
-	dhparam-file "../ns2/dhparam3072.pem";
+	key-file "../CA/certs/srv01.crt01.example.com.key";
+	cert-file "../CA/certs/srv01.crt01.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
+};
+
+tls tls-no-subject-alt-name {
+	protocols { TLSv1.2; };
+	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../CA/certs/srv01.crt02-no-san.example.com.key";
+	cert-file "../CA/certs/srv01.crt02-no-san.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
+};
+
+tls tls-expired {
+	protocols { TLSv1.2; };
+	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../CA/certs/srv01.crt03-expired.example.com.key";
+	cert-file "../CA/certs/srv01.crt03-expired.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
+};
+
+tls tls-forward-secrecy-mutual-tls {
+	protocols { TLSv1.2; };
+	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../CA/certs/srv01.crt01.example.com.key";
+	cert-file "../CA/certs/srv01.crt01.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
+	ca-file "../CA/CA.pem";
 };
 
 options {
@@ -55,6 +83,11 @@ options {
 	listen-on-v6 { none; };
 	listen-on port @EXTRAPORT1@ tls tls-pfs-aes256 { 10.53.0.1; };             // DoT
 	listen-on-v6 port @EXTRAPORT1@ tls tls-pfs-aes256 { fd92:7065:b8e:ffff::1;};
+	listen-on port @EXTRAPORT2@ tls tls-no-subject-alt-name { 10.53.0.1; };             // DoT
+	listen-on port @EXTRAPORT3@ tls tls-no-subject-alt-name http local { 10.53.0.1; };  // DoH
+	listen-on port @EXTRAPORT4@ tls tls-expired { 10.53.0.1; };             // DoT
+	listen-on port @EXTRAPORT5@ tls tls-forward-secrecy-mutual-tls { 10.53.0.1; }; // DoT
+	listen-on port @EXTRAPORT6@ tls tls-forward-secrecy-mutual-tls http local { 10.53.0.1; }; // DoH
 	recursion no;
 	notify explicit;
 	also-notify { 10.53.0.2 port @PORT@; };
@@ -79,4 +112,58 @@ zone "example2" {
 	type primary;
 	file "example.db";
 	allow-transfer port @EXTRAPORT1@ transport tls { any; };
+};
+
+zone "example3" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT3@ transport tls { any; };
+};
+
+zone "example4" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
+zone "example5" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
+zone "example6" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
+zone "example7" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
+zone "example8" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
+zone "example9" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT5@ transport tls { any; };
+};
+
+zone "example10" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT5@ transport tls { any; };
+};
+
+zone "example11" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT5@ transport tls { any; };
 };

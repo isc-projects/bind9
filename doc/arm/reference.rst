@@ -294,7 +294,7 @@ The following statements are supported:
         Declares communication channels to get access to :iscman:`named` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``dhparam-file``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -4803,12 +4803,30 @@ The following options can be specified in a ``tls`` statement:
     Path to a file containing the TLS certificate to be used for
     the connection.
 
+  ``ca-file``
+    Path to a file containing trusted CA-authorities TLS
+    certificates used to verify remote peer certificates. Specifying
+    this option enables remote peer certificates verification. For
+    incoming connections specifying this option will make BIND require
+    a valid TLS certificate from a client. In the case of outgoing
+    connections, if ``hostname`` is not specified, then the remote
+    server IP address is used instead.
+
   ``dhparam-file``
     Path to a file containing Diffie-Hellman parameters,
     which is needed to enable the cipher suites depending on the
     Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
     specified is essential for enabling perfect forward secrecy capable
     ciphers in TLSv1.2.
+
+  ``hostname``
+    The expected hostname in the TLS certificate of the
+    remote server. This option enables a remote server certificate
+    verification. If ``ca-file`` is not specified, then the
+    platform-specific certificates store is used for
+    verification. This option is used when connecting to a remote peer
+    only and, thus, is ignored when ``tls`` statements are referenced
+    by ``listen-on`` or ``listen-on-v6`` statements.
 
   ``protocols``
     Allowed versions of the TLS protocol. TLS version 1.2 and higher are
@@ -4877,6 +4895,56 @@ There are two built-in TLS connection configurations: ``ephemeral``,
 uses a temporary key and certificate created for the current :iscman:`named`
 session only, and ``none``, which can be used when setting up an HTTP
 listener with no encryption.
+
+BIND supports the following TLS authentication mechanisms described in
+the RFC 9103, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
+TLS.
+
+Opportunistic TLS provides encryption for data but does not provide
+any authentication for the channel. This mode is the default one and
+it is used whenever ``hostname`` and ``ca-file`` options are not set
+in ``tls`` statements in use. RFC 9103 allows optional fallback to
+clear-text DNS in the cases when TLS is not available. Still, BIND
+intentionally does not support that in order to protect from
+unexpected data leaks due to misconfiguration. Both BIND and its
+complementary tools either successfully establish a secure channel via
+TLS when instructed to do so or fail to establish a connection
+otherwise.
+
+Strict TLS provides server authentication via a pre-configured
+hostname for outgoing connections. This mechanism offers both channel
+confidentiality and channel authentication (of the server). In order
+to achieve Strict TLS, one needs to use ``hostname`` and, optionally,
+``ca-file`` options in the ``tls`` statements used for establishing
+outgoing connections (e.g. the ones used to download zone from
+primaries via TLS). Providing any of the mentioned options will enable
+server authentication. If ``hostname`` is provided but ``ca-file`` is
+missed, then the platform-specific certificate authority certificates
+are used for authentication. The set roughly corresponds to the one
+used by WEB-browsers to authenticate HTTPS hosts. On the other hand,
+if ``ca-file`` is provided but ``hostname`` is missing, then the
+remote side's IP address is used instead.
+
+Mutual TLS is an extension to Strict TLS that provides channel
+confidentiality and mutual channel authentication. It builds up upon
+the clients offering client certificates when establishing connections
+and them doing the server authentication as in the case of Strict
+TLS. The server verifies the provided client certificates and accepts
+the TLS connection in case of successful verification or rejects it
+otherwise. In order to instruct the server to require and verify
+client TLS certificates, one needs to specify the ``ca-file`` option
+in ``tls`` configurations used to configure server listeners. The
+provided file must contain certificate authority certificates used to
+issue client certificates. In most cases, one should build one's own
+TLS certificate authority specifically to issue client certificates
+and include the certificate authority certificate into the file.
+
+For authenticating zone transfers over TLS, Mutual TLS might be
+considered a standalone solution, while Strict TLS paired with
+TSIG-based authentication and, optionally, IP-based access lists,
+might be considered acceptable for most practical purposes. Mutual TLS
+has the advantage of not requiring TSIG and thus, not having security
+issues related to shared cryptographic secrets.
 
 .. _http:
 

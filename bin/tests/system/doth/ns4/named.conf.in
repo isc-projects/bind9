@@ -25,9 +25,9 @@ controls {
 };
 
 tls local {
-	key-file "../ns2/key.pem";
-	cert-file "../ns2/cert.pem";
-	dhparam-file "../ns2/dhparam3072.pem";
+	key-file "../CA/certs/srv04.crt01.example.com.key";
+	cert-file "../CA/certs/srv04.crt01.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
 };
 
 http local {

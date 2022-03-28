@@ -16,6 +16,38 @@
 
 common_dig_options="+noadd +nosea +nostat +noquest +nocmd"
 msg_xfrs_not_allowed=";; zone transfers over the established TLS connection are not allowed"
+msg_peer_verification_failed=";; TLS peer certificate verification"
+
+ca_file="./CA/CA.pem"
+
+if [ -x "$PYTHON" ]; then
+	OPENSSL_VERSION=$("$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/get_openssl_version.py")
+	OPENSSL_VERSION_MAJOR=$(echo "$OPENSSL_VERSION" | cut -d ' ' -f 1)
+	OPENSSL_VERSION_MINOR=$(echo "$OPENSSL_VERSION" | cut -d ' ' -f 2)
+fi
+
+# According to the RFC 8310, Section 8.1, Subject field MUST
+# NOT be inspected when verifying a hostname when using
+# DoT. Only SubjectAltName must be checked instead. That is
+# not the case for HTTPS, though.
+
+# Unfortunately, some quite old versions of OpenSSL (< 1.1.1)
+# might lack the functionality to implement that. It should
+# have very little real-world consequences, as most of the
+# production-ready certificates issued by real CAs will have
+# SubjectAltName set. In such a case, the Subject field is
+# ignored.
+#
+# On the platforms with too old TLS versions, e.g. RedHat 7, we should
+# ignore the tests checking the correct handling of absence of
+# SubjectAltName.
+if [ -n "$OPENSSL_VERSION" ]; then
+	if [ $OPENSSL_VERSION_MAJOR -gt 1 ]; then
+		run_san_tests=1
+	elif  [ $OPENSSL_VERSION_MAJOR -eq 1 ] && [ $OPENSSL_VERSION_MINOR -ge 1 ]; then
+		run_san_tests=1
+	fi
+fi
 
 dig_with_tls_opts() {
 	# shellcheck disable=SC2086
@@ -72,6 +104,120 @@ else
 fi
 if test $ret != 0 ; then echo_i "failed"; fi
 status=$((status+ret))
+
+if [ -n "$run_san_tests" ]; then
+	n=$((n + 1))
+	echo_i "testing incoming XoT functionality (from the first secondary, no SubjectAltName, failure expected) ($n)"
+	ret=0
+	if retry_quiet 10 wait_for_tls_xfer 2 example3; then
+		grep "^;" "dig.out.ns2.example3.test$n" | cat_i
+		test -f "ns2/example3.db" && ret=1
+	else
+		echo_i "timed out waiting for zone transfer"
+	fi
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
+fi
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via implicit IP) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example4; then
+	grep "^;" "dig.out.ns2.example4.test$n" | cat_i
+	test -f "ns2/example4.db" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via specified IPv4) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example5; then
+	grep "^;" "dig.out.ns2.example5.test$n" | cat_i
+	test -f "ns2/example5.db" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via specified IPv6) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example6; then
+	grep "^;" "dig.out.ns2.example6.test$n" | cat_i
+	test -f "ns2/example6.db" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, wrong hostname, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example7; then
+	grep "^;" "dig.out.ns2.example7.test$n" | cat_i
+	test -f "ns2/example7.db" && ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, expired certificate, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example8; then
+	grep "^;" "dig.out.ns2.example8.test$n" | cat_i
+	test -f "ns2/example8.db" && ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example9; then
+	grep "^;" "dig.out.ns2.example9.test$n" | cat_i
+	test -f "ns2/example9.db" || ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS, no client cert, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example10; then
+	grep "^;" "dig.out.ns2.example10.test$n" | cat_i
+	test -f "ns2/example10.db" && ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS, expired client cert, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example11; then
+	grep "^;" "dig.out.ns2.example11.test$n" | cat_i
+	test -f "ns2/example11.db" && ret=1
+else
+	echo_i "timed out waiting for zone transfer"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "testing incoming XoT functionality (from the second secondary) ($n)"
@@ -470,6 +616,128 @@ n=$((n + 1))
 echo_i "checking DoH query (POST) after a reconfiguration ($n)"
 ret=0
 dig_with_https_opts @10.53.0.4 example SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query (with TLS verification enabled) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt01.example.com" @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (with TLS verification enabled, self-signed cert, failure expected) ($n)"
+ret=0
+dig_with_https_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt01.example.com" @10.53.0.1 . SOA > dig.out.test$n
+grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query (with TLS verification using the system's CA store, failure expected) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca +tls-hostname="srv01.crt01.example.com" @10.53.0.1 . SOA > dig.out.test$n
+grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (with TLS verification using the system's CA store, failure expected) ($n)"
+ret=0
+dig_with_https_opts +tls-ca +tls-hostname="srv01.crt01.example.com" @10.53.0.1 . SOA > dig.out.test$n
+grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# the primary server's certificate contains the IP address in the
+# SubjectAltName section
+n=$((n + 1))
+echo_i "checking DoT query (with TLS verification, hostname is not specified, IP address is used instead) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" @10.53.0.1 . SOA > dig.out.test$n
+grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+if [ -n "$run_san_tests" ]; then
+	# SubjectAltName is required for DoT as according to RFC 8310, Subject
+	# field MUST NOT be inspected when verifying hostname for DoT.
+	n=$((n + 1))
+	echo_i "checking DoT query (with TLS verification enabled when SubjectAltName is not set, failure expected) ($n)"
+	ret=0
+	dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" @10.53.0.1 . SOA > dig.out.test$n
+	grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
+
+	n=$((n + 1))
+	echo_i "checking DoT XFR over a TLS port where SubjectAltName is not set (failure expected) ($n)"
+	ret=0
+	# shellcheck disable=SC2086
+	dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT2}" +comm @10.53.0.1 . AXFR > dig.out.test$n
+	grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
+fi
+
+# SubjectAltName is not required for HTTPS. Having a properly set
+# Common Name in the Subject field is enough.
+n=$((n + 1))
+echo_i "checking DoH query (when SubjectAltName is not set) ($n)"
+ret=0
+dig_with_https_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT3}" +comm @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query (expired certificate, Opportunistic TLS) ($n)"
+ret=0
+dig_with_tls_opts +tls -p "${EXTRAPORT4}" +comm @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoT query (expired certificate, Strict TLS, failure expected) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" -p "${EXTRAPORT4}" +comm @10.53.0.1 . SOA > dig.out.test$n
+grep "$msg_peer_verification_failed" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n+1))
+echo_i "testing XoT server functionality (using dig, client certificate required, failure expected) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" -p "${EXTRAPORT5}" example8. -b 10.53.0.10 @10.53.0.1 axfr > dig.out.ns1.test$n
+grep "; Transfer failed." dig.out.ns1.test$n > /dev/null || ret=1
+if test $ret != 0 ; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n+1))
+echo_i "testing XoT server functionality (using dig, client certificate used) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" +tls-certfile="./CA/certs/srv01.client01.example.com.pem" +tls-keyfile="./CA/certs/srv01.client01.example.com.key" -p "${EXTRAPORT5}" example8. -b 10.53.0.10 @10.53.0.1 axfr > dig.out.ns1.test$n
+digcomp dig.out.ns1.test$n example8.axfr.good > /dev/null || ret=1
+if test $ret != 0 ; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (client certificate required, failure expected) ($n)"
+ret=0
+dig_with_https_opts +tls-ca="$ca_file" -p "${EXTRAPORT6}" +comm @10.53.0.1 . SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (client certificate used) ($n)"
+ret=0
+# shellcheck disable=SC2086
+dig_with_https_opts +https +tls-ca="$ca_file" +tls-certfile="./CA/certs/srv01.client01.example.com.pem" +tls-keyfile="./CA/certs/srv01.client01.example.com.key" -p "${EXTRAPORT6}" +comm @10.53.0.1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

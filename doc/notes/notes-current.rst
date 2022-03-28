@@ -42,7 +42,16 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- According to RFC 8310, Section 8.1, the Subject field MUST NOT be
+  inspected when verifying a remote certificate while establishing a
+  DNS-over-TLS connection. Only SubjectAltName must be checked
+  instead. Unfortunately, some quite old versions of cryptographic
+  libraries might lack the functionality to ignore the Subject
+  field. It should have minimal production use consequences, as most
+  of the production-ready certificates issued by certificate
+  authorities will have SubjectAltNames set. In such a case, the
+  Subject field is ignored. Only old platforms are affected by this,
+  e.g., those supplied with OpenSSL versions older than 1.1.1.
 
 New Features
 ~~~~~~~~~~~~
@@ -50,6 +59,10 @@ New Features
 - :iscman:`dnssec-verify` and :iscman:`dnssec-signzone` now accept a ``-J`` option to
   specify a journal file to read when loading the zone to be verified or
   signed. :gl:`#2486`
+
+- Add support for remote TLS certificates verification, both to BIND
+  and ``dig``, making it possible to implement Strict and Mutual TLS
+  authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

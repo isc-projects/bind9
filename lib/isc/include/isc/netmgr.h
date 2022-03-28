@@ -620,6 +620,17 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle);
  *  \li 'handle' is a valid netmgr handle object.
  */
 
+const char *
+isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+/*%<
+ * Returns user-readable message describing TLS peer's certificate
+ * validation result. Returns 'NULL' for the transport handles for
+ * which peer verification was not performed.
+ *
+ * Requires:
+ *  \li 'handle' is a valid netmgr handle object.
+ */
+
 void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int tid);
 /*%<

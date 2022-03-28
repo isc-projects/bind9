@@ -12,12 +12,14 @@
  */
 
 #include <inttypes.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #if HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
 #endif /* HAVE_LIBNGHTTP2 */
+#include <arpa/inet.h>
 
 #include <openssl/bn.h>
 #include <openssl/conf.h>
@@ -28,6 +30,8 @@
 #include <openssl/opensslv.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#include <openssl/x509_vfy.h>
+#include <openssl/x509v3.h>
 
 #include <isc/atomic.h>
 #include <isc/ht.h>
@@ -256,6 +260,26 @@ ssl_error:
 }
 
 isc_result_t
+isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
+			    const char *certfile) {
+	int rv;
+	REQUIRE(ctx != NULL);
+	REQUIRE(keyfile != NULL);
+	REQUIRE(certfile != NULL);
+
+	rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
+	if (rv != 1) {
+		return (ISC_R_TLSERROR);
+	}
+	rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
+	if (rv != 1) {
+		return (ISC_R_TLSERROR);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			isc_tlsctx_t **ctxp) {
 	int rv;
@@ -443,13 +467,9 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		X509_free(cert);
 		EVP_PKEY_free(pkey);
 	} else {
-		rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
-		if (rv != 1) {
-			goto ssl_error;
-		}
-		rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile,
-						 SSL_FILETYPE_PEM);
-		if (rv != 1) {
+		isc_result_t result;
+		result = isc_tlsctx_load_certificate(ctx, keyfile, certfile);
+		if (result != ISC_R_SUCCESS) {
 			goto ssl_error;
 		}
 	}
@@ -740,6 +760,13 @@ isc_tls_free(isc_tls_t **tlsp) {
 	*tlsp = NULL;
 }
 
+const char *
+isc_tls_verify_peer_result_string(isc_tls_t *tls) {
+	REQUIRE(tls != NULL);
+
+	return (X509_verify_cert_error_string(SSL_get_verify_result(tls)));
+}
+
 #if HAVE_LIBNGHTTP2
 #ifndef OPENSSL_NO_NEXTPROTONEG
 /*
@@ -900,6 +927,152 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
 #endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
 }
 
+isc_result_t
+isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
+				    isc_tls_cert_store_t *store,
+				    const char *hostname,
+				    bool hostname_ignore_subject) {
+	int ret = 0;
+	REQUIRE(tlsctx != NULL);
+	REQUIRE(store != NULL);
+
+	/* Set the hostname/IP address. */
+	if (!is_server && hostname != NULL && *hostname != '\0') {
+		struct in6_addr sa6;
+		struct in_addr sa;
+		X509_VERIFY_PARAM *param = SSL_CTX_get0_param(tlsctx);
+		unsigned int hostflags = X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
+
+		/* It might be an IP address. */
+		if (inet_pton(AF_INET6, hostname, &sa6) == 1 ||
+		    inet_pton(AF_INET, hostname, &sa) == 1)
+		{
+			ret = X509_VERIFY_PARAM_set1_ip_asc(param, hostname);
+		} else {
+			/* It seems that it is a host name. Let's set it. */
+			ret = X509_VERIFY_PARAM_set1_host(param, hostname, 0);
+		}
+		if (ret != 1) {
+			return (ISC_R_FAILURE);
+		}
+
+#ifdef X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
+		/*
+		 * According to the RFC 8310, Section 8.1, Subject field MUST
+		 * NOT be inspected when verifying a hostname when using
+		 * DoT. Only SubjectAltName must be checked instead. That is
+		 * not the case for HTTPS, though.
+		 *
+		 * Unfortunately, some quite old versions of OpenSSL (< 1.1.1)
+		 * might lack the functionality to implement that. It should
+		 * have very little real-world consequences, as most of the
+		 * production-ready certificates issued by real CAs will have
+		 * SubjectAltName set. In such a case, the Subject field is
+		 * ignored.
+		 */
+		if (hostname_ignore_subject) {
+			hostflags |= X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
+		}
+#else
+		UNUSED(hostname_ignore_subject);
+#endif
+		X509_VERIFY_PARAM_set_hostflags(param, hostflags);
+	}
+
+	/* "Attach" the cert store to the context */
+#if defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER >= 0x3050000fL)
+	(void)X509_STORE_up_ref(store);
+	SSL_CTX_set_cert_store(tlsctx, store);
+#elif defined(CRYPTO_LOCK_X509_STORE)
+	/*
+	 * That is the case for OpenSSL < 1.1.X and LibreSSL < 3.5.0.
+	 * No SSL_CTX_set1_cert_store(), no X509_STORE_up_ref(). Sigh...
+	 */
+	(void)CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
+	SSL_CTX_set_cert_store(tlsctx, store);
+#else
+	SSL_CTX_set1_cert_store(tlsctx, store);
+#endif
+
+	/* enable verification */
+	if (is_server) {
+		SSL_CTX_set_verify(tlsctx,
+				   SSL_VERIFY_PEER |
+					   SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+				   NULL);
+	} else {
+		SSL_CTX_set_verify(tlsctx, SSL_VERIFY_PEER, NULL);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file) {
+	STACK_OF(X509_NAME) * cert_names;
+	REQUIRE(ctx != NULL);
+	REQUIRE(ca_bundle_file != NULL);
+
+	cert_names = SSL_load_client_CA_file(ca_bundle_file);
+	if (cert_names == NULL) {
+		return (ISC_R_FAILURE);
+	}
+
+	SSL_CTX_set_client_CA_list(ctx, cert_names);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_tls_cert_store_create(const char *ca_bundle_filename,
+			  isc_tls_cert_store_t **pstore) {
+	int ret = 0;
+	isc_tls_cert_store_t *store = NULL;
+	REQUIRE(pstore != NULL && *pstore == NULL);
+
+	store = X509_STORE_new();
+	if (store == NULL) {
+		goto error;
+	}
+
+	/* Let's treat empty string as the default (system wide) store */
+	if (ca_bundle_filename != NULL && *ca_bundle_filename == '\0') {
+		ca_bundle_filename = NULL;
+	}
+
+	if (ca_bundle_filename == NULL) {
+		ret = X509_STORE_set_default_paths(store);
+	} else {
+		ret = X509_STORE_load_locations(store, ca_bundle_filename,
+						NULL);
+	}
+
+	if (ret == 0) {
+		goto error;
+	}
+
+	*pstore = store;
+	return (ISC_R_SUCCESS);
+
+error:
+	if (store != NULL) {
+		X509_STORE_free(store);
+	}
+	return (ISC_R_FAILURE);
+}
+
+void
+isc_tls_cert_store_free(isc_tls_cert_store_t **pstore) {
+	isc_tls_cert_store_t *store;
+	REQUIRE(pstore != NULL && *pstore != NULL);
+
+	store = *pstore;
+
+	X509_STORE_free(store);
+
+	*pstore = NULL;
+}
+
 #define TLSCTX_CACHE_MAGIC    ISC_MAGIC('T', 'l', 'S', 'c')
 #define VALID_TLSCTX_CACHE(t) ISC_MAGIC_VALID(t, TLSCTX_CACHE_MAGIC)
 
@@ -911,13 +1084,10 @@ typedef struct isc_tlsctx_cache_entry {
 	 */
 	isc_tlsctx_t *ctx[isc_tlsctx_cache_count - 1][2];
 	/*
-	 * TODO: add a certificate store for an intermediate certificates
-	 * from a CA-bundle file. One is enough for all the contexts defined
-	 * above. We will need that for validation.
-	 *
-	 * X509_STORE *ca_bundle_store; // TODO:  define the utilities to
-	 * operate on these ones
+	 * One certificate store is enough for all the contexts defined
+	 * above. We need that for peer validation.
 	 */
+	isc_tls_cert_store_t *ca_store;
 } isc_tlsctx_cache_entry_t;
 
 struct isc_tlsctx_cache {
@@ -967,6 +1137,9 @@ tlsctx_cache_entry_destroy(isc_mem_t *mctx, isc_tlsctx_cache_entry_t *entry) {
 			}
 		}
 	}
+	if (entry->ca_store != NULL) {
+		isc_tls_cert_store_free(&entry->ca_store);
+	}
 	isc_mem_put(mctx, entry, sizeof(*entry));
 }
 
@@ -1014,7 +1187,8 @@ isc_result_t
 isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		     const isc_tlsctx_cache_transport_t transport,
 		     const uint16_t family, isc_tlsctx_t *ctx,
-		     isc_tlsctx_t **pfound) {
+		     isc_tls_cert_store_t *store, isc_tlsctx_t **pfound,
+		     isc_tls_cert_store_t **pfound_store) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t name_len, tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
@@ -1041,14 +1215,27 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 			INSIST(*pfound == NULL);
 			*pfound = entry->ctx[tr_offset][ipv6];
 		}
+
+		if (pfound_store != NULL && entry->ca_store != NULL) {
+			INSIST(*pfound_store == NULL);
+			*pfound_store = entry->ca_store;
+		}
 		result = ISC_R_EXISTS;
 	} else if (result == ISC_R_SUCCESS &&
 		   entry->ctx[tr_offset][ipv6] == NULL) {
 		/*
-		 * The hast table entry exists, but is not filled for this
+		 * The hash table entry exists, but is not filled for this
 		 * particular transport/IP type combination.
 		 */
 		entry->ctx[tr_offset][ipv6] = ctx;
+		/*
+		 * As the passed certificates store object is supposed to be
+		 * internally managed by the cache object anyway, we might
+		 * destroy the unneeded store object right now.
+		 */
+		if (store != NULL && store != entry->ca_store) {
+			isc_tls_cert_store_free(&store);
+		}
 		result = ISC_R_SUCCESS;
 	} else {
 		/*
@@ -1059,6 +1246,7 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		/* Oracle/Red Hat Linux, GCC bug #53119 */
 		memset(entry, 0, sizeof(*entry));
 		entry->ctx[tr_offset][ipv6] = ctx;
+		entry->ca_store = store;
 		RUNTIME_CHECK(isc_ht_add(cache->data, (const uint8_t *)name,
 					 name_len,
 					 (void *)entry) == ISC_R_SUCCESS);
@@ -1073,7 +1261,8 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 isc_result_t
 isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 		      const isc_tlsctx_cache_transport_t transport,
-		      const uint16_t family, isc_tlsctx_t **pctx) {
+		      const uint16_t family, isc_tlsctx_t **pctx,
+		      isc_tls_cert_store_t **pstore) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
@@ -1093,6 +1282,12 @@ isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 
 	result = isc_ht_find(cache->data, (const uint8_t *)name, strlen(name),
 			     (void **)&entry);
+
+	if (result == ISC_R_SUCCESS && pstore != NULL &&
+	    entry->ca_store != NULL) {
+		*pstore = entry->ca_store;
+	}
+
 	if (result == ISC_R_SUCCESS && entry->ctx[tr_offset][ipv6] != NULL) {
 		*pctx = entry->ctx[tr_offset][ipv6];
 	} else if (result == ISC_R_SUCCESS &&

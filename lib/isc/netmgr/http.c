@@ -1350,6 +1350,8 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	INSIST(http_sock->h2.connect.uri != NULL);
 
 	http_sock->tid = transp_sock->tid;
+	http_sock->h2.connect.tls_peer_verify_string =
+		isc_nm_verify_tls_peer_result_string(handle);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
@@ -2902,6 +2904,36 @@ isc__nm_http_has_encryption(const isc_nmhandle_t *handle) {
 	INSIST(VALID_HTTP2_SESSION(session));
 
 	return (isc_nm_socket_type(session->handle) == isc_nm_tlssocket);
+}
+
+const char *
+isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+	isc_nm_http_session_t *session;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_httpsocket);
+
+	sock = handle->sock;
+	session = sock->h2.session;
+
+	/*
+	 * In the case of a low-level error the session->handle is not
+	 * attached nor session object is created.
+	 */
+	if (session == NULL && sock->h2.connect.tls_peer_verify_string != NULL)
+	{
+		return (sock->h2.connect.tls_peer_verify_string);
+	}
+
+	if (session == NULL) {
+		return (NULL);
+	}
+
+	INSIST(VALID_HTTP2_SESSION(session));
+
+	return (isc_nm_verify_tls_peer_result_string(session->handle));
 }
 
 static const bool base64url_validation_table[256] = {

@@ -21,6 +21,8 @@
 typedef struct ssl_ctx_st isc_tlsctx_t;
 typedef struct ssl_st	  isc_tls_t;
 
+typedef struct x509_store_st isc_tls_cert_store_t;
+
 void
 isc_tlsctx_free(isc_tlsctx_t **ctpx);
 /*%<
@@ -50,6 +52,17 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp);
  *
  * Requires:
  *\li	'ctxp' != NULL and '*ctxp' == NULL.
+ */
+
+isc_result_t
+isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
+			    const char *certfile);
+/*%<
+ * Load a TLS certificate into a TLS context.
+ *
+ * Requires:
+ *\li	'ctx' != NULL;
+ *\li	'keyfile' and 'certfile' are both non-NULL.
  */
 
 typedef enum isc_tls_protocol_version {
@@ -154,6 +167,16 @@ isc_tls_free(isc_tls_t **tlsp);
  *\li	'tlsp' != NULL and '*tlsp' != NULL.
  */
 
+const char *
+isc_tls_verify_peer_result_string(isc_tls_t *tls);
+/*%<
+ * Return a user readable description of a remote peer's certificate
+ * validation.
+ *
+ * Requires:
+ *\li	'tls' != NULL.
+ */
+
 #if HAVE_LIBNGHTTP2
 void
 isc_tlsctx_enable_http2client_alpn(isc_tlsctx_t *ctx);
@@ -183,6 +206,54 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
  *
  * Requires:
  *\li	'ctx' is not NULL.
+ */
+
+isc_result_t
+isc_tlsctx_enable_peer_verification(isc_tlsctx_t *ctx, const bool is_server,
+				    isc_tls_cert_store_t *store,
+				    const char	       *hostname,
+				    bool hostname_ignore_subject);
+/*%<
+ * Enable peer certificate and, optionally, hostname (for client contexts)
+ * verification.
+ *
+ * Requires:
+ *\li	'ctx' is not NULL;
+ *\li	'store' is not NULL.
+ */
+
+isc_result_t
+isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file);
+/*%<
+ * Load the list of CA-certificate names from a CA-bundle file to
+ * send by the server to a client when requesting a peer certificate.
+ * Usually used in conjunction with
+ * isc_tlsctx_enable_peer_validation().
+ *
+ * Requires:
+ *\li	'ctx' is not NULL;
+ *\li	'ca_bundle_file' is not NULL.
+ */
+
+isc_result_t
+isc_tls_cert_store_create(const char	     *ca_bundle_filename,
+			  isc_tls_cert_store_t **pstore);
+/*%<
+ * Create X509 certificate store. The 'ca_bundle_filename' might be
+ * 'NULL' or an empty string, which means use the default system wide
+ * bundle/directory.
+ *
+ * Requires:
+ *\li	'pstore' is a valid pointer to a pointer containing 'NULL'.
+ */
+
+void
+isc_tls_cert_store_free(isc_tls_cert_store_t **pstore);
+/*%<
+ * Free X509 certificate store.
+ *
+ * Requires:
+ *\li	'pstore' is a valid pointer to a pointer containing a non-'NULL' value.
  */
 
 typedef struct isc_tlsctx_cache isc_tlsctx_cache_t;
@@ -255,12 +326,17 @@ isc_result_t
 isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		     const isc_tlsctx_cache_transport_t transport,
 		     const uint16_t family, isc_tlsctx_t *ctx,
-		     isc_tlsctx_t **pfound);
+		     isc_tls_cert_store_t *store, isc_tlsctx_t **pfound,
+		     isc_tls_cert_store_t **pfound_store);
 /*%<
  *
  * Add a new TLS context to the TLS context cache. 'pfound' is an
  * optional pointer, which can be used to retrieve an already
  * existing TLS context object in a case it exists.
+ *
+ * The passed certificates store object ('store') possession is
+ * transferred to the cache object in a case of success. In some cases
+ * it might be destroyed immediately upon the call completion.
  *
  * Requires:
  *\li	'cache' is a valid pointer to a TLS context cache object;
@@ -278,7 +354,8 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 isc_result_t
 isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 		      const isc_tlsctx_cache_transport_t transport,
-		      const uint16_t family, isc_tlsctx_t **pctx);
+		      const uint16_t family, isc_tlsctx_t **pctx,
+		      isc_tls_cert_store_t **pstore);
 /*%<
  * Look up a TLS context in the TLS context cache.
  *

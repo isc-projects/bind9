@@ -44,11 +44,16 @@
 #define TLS_BUF_SIZE (UINT16_MAX)
 
 static isc_result_t
-tls_error_to_result(int tls_err) {
+tls_error_to_result(const int tls_err, const int tls_state, isc_tls_t *tls) {
 	switch (tls_err) {
 	case SSL_ERROR_ZERO_RETURN:
 		return (ISC_R_EOF);
 	case SSL_ERROR_SSL:
+		if (tls != NULL && tls_state < TLS_IO &&
+		    SSL_get_verify_result(tls) != X509_V_OK)
+		{
+			return (ISC_R_TLSBADPEERCERT);
+		}
 		return (ISC_R_TLSERROR);
 	default:
 		return (ISC_R_UNEXPECTED);
@@ -315,14 +320,15 @@ tls_try_handshake(isc_nmsocket_t *sock) {
 
 	rv = SSL_do_handshake(sock->tlsstream.tls);
 	if (rv == 1) {
+		isc_result_t result = ISC_R_SUCCESS;
 		INSIST(SSL_is_init_finished(sock->tlsstream.tls) == 1);
 		INSIST(sock->statichandle == NULL);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
-			sock->listener->accept_cb(tlshandle, ISC_R_SUCCESS,
+			sock->listener->accept_cb(tlshandle, result,
 						  sock->listener->accept_cbarg);
 		} else {
-			tls_call_connect_cb(sock, tlshandle, ISC_R_SUCCESS);
+			tls_call_connect_cb(sock, tlshandle, result);
 		}
 		isc_nmhandle_detach(&tlshandle);
 		sock->tlsstream.state = TLS_IO;
@@ -505,7 +511,8 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		}
 		return;
 	default:
-		result = tls_error_to_result(tls_status);
+		result = tls_error_to_result(tls_status, sock->tlsstream.state,
+					     sock->tlsstream.tls);
 		break;
 	}
 
@@ -1058,4 +1065,20 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value) {
 
 		isc_nmhandle_keepalive(sock->outerhandle, value);
 	}
+}
+
+const char *
+isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlssocket);
+
+	sock = handle->sock;
+	if (sock->tlsstream.tls == NULL) {
+		return (NULL);
+	}
+
+	return (isc_tls_verify_peer_result_string(sock->tlsstream.tls));
 }
