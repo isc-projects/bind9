@@ -207,7 +207,6 @@ found:
 
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 	proto = ((flags & NI_DGRAM) != 0) ? "udp" : "tcp";
 

@@ -2233,7 +2233,7 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			}
 			break;
 		default:
-			INSIST(0);
+			UNREACHABLE();
 		}
 	}
 }
@@ -2687,7 +2687,6 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		REQUIRE(sock->parent == NULL);
 		break;
 	default:
-		INSIST(0);
 		UNREACHABLE();
 		break;
 	}

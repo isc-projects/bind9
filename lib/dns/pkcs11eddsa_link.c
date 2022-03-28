@@ -151,7 +151,6 @@ pkcs11eddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	pk11_ctx = isc_mem_get(dctx->mctx, sizeof(*pk11_ctx));
@@ -426,7 +425,6 @@ pkcs11eddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		break;                                                         \
 	default:                                                               \
 		UNREACHABLE();                                                 \
-		ISC_UNREACHABLE();                                             \
 	}
 
 #define FREECURVE()                                                     \
@@ -536,7 +534,6 @@ pkcs11eddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -619,7 +616,6 @@ pkcs11eddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	ec = key->keydata.pkey;
@@ -660,7 +656,6 @@ pkcs11eddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	isc_buffer_remainingregion(data, &r);
@@ -955,7 +950,6 @@ pkcs11eddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1077,7 +1071,6 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	pk11_return_session(pk11_ctx);

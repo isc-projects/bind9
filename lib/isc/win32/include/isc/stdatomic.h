@@ -147,7 +147,6 @@ typedef uintmax_t volatile atomic_uintmax_t;
 static inline void
 atomic_store_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_store_explicit(obj, desired, order)                             \
@@ -208,7 +207,6 @@ atomic_store_abort() {
 static inline int8_t
 atomic_load_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_load_explicit(obj, order)                                       \
@@ -278,7 +276,6 @@ atomic_load_abort() {
 static inline int8_t
 atomic_add_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_fetch_add_explicit(obj, arg, order)                              \
@@ -345,7 +342,6 @@ atomic_add_abort() {
 static inline int8_t
 atomic_and_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_fetch_and_explicit(obj, arg, order)                              \
@@ -406,7 +402,6 @@ atomic_and_abort() {
 static inline int8_t
 atomic_or_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_fetch_or_explicit(obj, arg, order)                              \
@@ -543,7 +538,6 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 static inline bool
 atomic_compare_exchange_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, succ,                 \
@@ -583,7 +577,6 @@ atomic_compare_exchange_abort() {
 static inline bool
 atomic_exchange_abort() {
 	UNREACHABLE();
-	ISC_UNREACHABLE();
 }
 
 #define atomic_exchange_explicit(obj, desired, order)                        \
