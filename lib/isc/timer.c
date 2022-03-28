@@ -117,7 +117,6 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		due = timer->idle;
 		break;
 	default:
-		INSIST(0);
 		UNREACHABLE();
 	}
 
@@ -425,7 +424,6 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			need_schedule = false;
 			break;
 		default:
-			INSIST(0);
 			UNREACHABLE();
 		}
 

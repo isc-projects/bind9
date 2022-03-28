@@ -82,7 +82,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		}
 		break;
 	default:
-		INSIST(0);
+		UNREACHABLE();
 	}
 
 	switch (ret) {
