@@ -1,3 +1,6 @@
+5840.	[cleanup]	Remove multiple application context use in dns_client
+			unit. [GL !6041]
+
 5839.	[func]		Add support for remote TLS certificates
 			verification, both to BIND and dig, making it possible
 			to implement Strict and Mutual TLS authentication,
