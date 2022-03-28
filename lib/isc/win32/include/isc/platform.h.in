@@ -44,6 +44,8 @@ typedef uint32_t socklen_t;
 
 #endif
 
+#define __builtin_unreachable() __assume(0)
+
 /*
  * Remove __attribute__ ((foo)) on Windows
  */
