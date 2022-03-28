@@ -93,7 +93,6 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 }
 

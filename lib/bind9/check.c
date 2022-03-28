@@ -3182,7 +3182,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "deprecated");
 		} else {
 			UNREACHABLE();
-			ISC_UNREACHABLE();
 		}
 	}
 

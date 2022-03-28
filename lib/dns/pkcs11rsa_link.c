@@ -229,7 +229,6 @@ token_key:
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	PK11_RET(pkcs_C_SignInit, (pk11_ctx->session, &mech, pk11_ctx->object),
@@ -387,7 +386,6 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	PK11_RET(pkcs_C_VerifyInit,
@@ -602,7 +600,6 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	pk11_ctx = isc_mem_get(dctx->mctx, sizeof(*pk11_ctx));
@@ -751,7 +748,6 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 	dgstlen = derlen + hashlen;
 	INSIST(dgstlen <= sizeof(digest));
@@ -945,7 +941,6 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 	dgstlen = derlen + hashlen;
 	INSIST(dgstlen <= sizeof(digest));
@@ -1143,7 +1138,6 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	pk11_ctx = isc_mem_get(key->mctx, sizeof(*pk11_ctx));

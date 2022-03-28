@@ -1577,7 +1577,6 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	if (sock->type == isc_sockettype_udp) {
@@ -2466,7 +2465,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 
 	sock->pf = pf;

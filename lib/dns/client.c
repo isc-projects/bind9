@@ -220,7 +220,6 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		break;
 	default:
 		UNREACHABLE();
-		ISC_UNREACHABLE();
 	}
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP;

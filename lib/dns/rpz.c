@@ -2604,8 +2604,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 			zbits &= have.nsipv4;
 			break;
 		default:
-			INSIST(0);
-			break;
+			UNREACHABLE();
 		}
 	} else if (netaddr->family == AF_INET6) {
 		dns_rpz_cidr_key_t src_ip6;
@@ -2630,8 +2629,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 			zbits &= have.nsipv6;
 			break;
 		default:
-			INSIST(0);
-			break;
+			UNREACHABLE();
 		}
 	} else {
 		return (DNS_RPZ_INVALID_NUM);
