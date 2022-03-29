@@ -84,7 +84,9 @@ struct dns_client {
 	unsigned int attributes;
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
-	isc_appctx_t *actx;
+	bool readydone;
+	isc_mutex_t readylock;
+	isc_condition_t ready;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
 	isc_nm_t *nm;
@@ -261,8 +263,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 }
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		  isc_nm_t *nm, isc_timermgr_t *timermgr, unsigned int options,
+dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
+		  isc_timermgr_t *timermgr, unsigned int options,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
@@ -281,10 +283,15 @@ dns_client_create(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 
 	client = isc_mem_get(mctx, sizeof(*client));
 	*client = (dns_client_t){
-		.actx = actx, .taskmgr = taskmgr, .timermgr = timermgr, .nm = nm
+		.taskmgr = taskmgr,
+		.timermgr = timermgr,
+		.nm = nm,
 	};
 
 	isc_mutex_init(&client->lock);
+
+	isc_mutex_init(&client->readylock);
+	isc_condition_init(&client->ready);
 
 	result = isc_task_create(client->taskmgr, 0, &client->task);
 	if (result != ISC_R_SUCCESS) {
@@ -394,6 +401,9 @@ destroyclient(dns_client_t *client) {
 	dns_dispatchmgr_detach(&client->dispatchmgr);
 
 	isc_task_detach(&client->task);
+
+	isc_condition_destroy(&client->ready);
+	isc_mutex_destroy(&client->readylock);
 
 	isc_mutex_destroy(&client->lock);
 	client->magic = 0;
@@ -931,22 +941,11 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 }
 
 static void
-suspend(isc_task_t *task, isc_event_t *event) {
-	isc_appctx_t *actx = event->ev_arg;
-
-	UNUSED(task);
-
-	isc_app_ctxsuspend(actx);
-	isc_event_free(&event);
-}
-
-static void
 resolve_done(isc_task_t *task, isc_event_t *event) {
 	resarg_t *resarg = event->ev_arg;
 	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
 	dns_name_t *name = NULL;
 	dns_client_t *client = resarg->client;
-	isc_result_t result;
 
 	UNUSED(task);
 
@@ -967,16 +966,12 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK(&resarg->lock);
 
 		/*
-		 * We may or may not be running.  isc__appctx_onrun will
-		 * fail if we are currently running otherwise we post a
-		 * action to call isc_app_ctxsuspend when we do start
-		 * running.
+		 * Signal that the entire process is done.
 		 */
-		result = isc_app_ctxonrun(resarg->actx, client->mctx, task,
-					  suspend, resarg->actx);
-		if (result == ISC_R_ALREADYRUNNING) {
-			isc_app_ctxsuspend(resarg->actx);
-		}
+		LOCK(&client->readylock);
+		client->readydone = true;
+		SIGNAL(&client->ready);
+		UNLOCK(&client->readylock);
 	} else {
 		/*
 		 * We have already exited from the loop (due to some
@@ -998,13 +993,11 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	resarg_t *resarg = NULL;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
-	REQUIRE(client->actx != NULL);
 	REQUIRE(namelist != NULL && ISC_LIST_EMPTY(*namelist));
 
 	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
 
 	*resarg = (resarg_t){
-		.actx = client->actx,
 		.client = client,
 		.result = DNS_R_SERVFAIL,
 		.namelist = namelist,
@@ -1022,10 +1015,13 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	}
 
 	/*
-	 * Start internal event loop.  It blocks until the entire process
-	 * is completed.
+	 * Block until the entire process is completed.
 	 */
-	result = isc_app_ctxrun(client->actx);
+	LOCK(&client->readylock);
+	if (!client->readydone) {
+		WAIT(&client->ready, &client->readylock);
+	}
+	UNLOCK(&client->readylock);
 
 	LOCK(&resarg->lock);
 	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {

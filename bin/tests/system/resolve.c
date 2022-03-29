@@ -56,7 +56,6 @@
  */
 
 isc_mem_t *ctxs_mctx = NULL;
-isc_appctx_t *ctxs_actx = NULL;
 isc_nm_t *ctxs_netmgr = NULL;
 isc_taskmgr_t *ctxs_taskmgr = NULL;
 isc_timermgr_t *ctxs_timermgr = NULL;
@@ -65,40 +64,15 @@ static void
 ctxs_destroy(void) {
 	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr);
 
-	if (ctxs_actx != NULL) {
-		isc_appctx_destroy(&ctxs_actx);
-	}
-
-	if (ctxs_mctx != NULL) {
-		isc_mem_destroy(&ctxs_mctx);
-	}
+	isc_mem_destroy(&ctxs_mctx);
 }
 
-static isc_result_t
+static void
 ctxs_init(void) {
-	isc_result_t result;
-
 	isc_mem_create(&ctxs_mctx);
-
-	result = isc_appctx_create(ctxs_mctx, &ctxs_actx);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
 
 	isc_managers_create(ctxs_mctx, 1, 0, &ctxs_netmgr, &ctxs_taskmgr,
 			    &ctxs_timermgr);
-
-	result = isc_app_ctxstart(ctxs_actx);
-	if (result != ISC_R_SUCCESS) {
-		goto fail;
-	}
-
-	return (ISC_R_SUCCESS);
-
-fail:
-	ctxs_destroy();
-
-	return (result);
 }
 
 static char *algname = NULL;
@@ -392,10 +366,7 @@ main(int argc, char *argv[]) {
 		altserveraddr = cp + 1;
 	}
 
-	result = ctxs_init();
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	ctxs_init();
 
 	result = dst_lib_init(ctxs_mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -404,9 +375,9 @@ main(int argc, char *argv[]) {
 	}
 
 	clientopt = 0;
-	result = dns_client_create(ctxs_mctx, ctxs_actx, ctxs_taskmgr,
-				   ctxs_netmgr, ctxs_timermgr, clientopt,
-				   &client, addr4, addr6);
+	result = dns_client_create(ctxs_mctx, ctxs_taskmgr, ctxs_netmgr,
+				   ctxs_timermgr, clientopt, &client, addr4,
+				   addr6);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,
 			isc_result_totext(result));
@@ -490,10 +461,7 @@ main(int argc, char *argv[]) {
 	dns_client_freeresanswer(client, &namelist);
 
 	/* Cleanup */
-cleanup:
-	if (client != NULL) {
-		dns_client_detach(&client);
-	}
+	dns_client_detach(&client);
 
 	ctxs_destroy();
 	dst_lib_destroy();
