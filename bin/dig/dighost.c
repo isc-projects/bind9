@@ -3844,6 +3844,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 		query_detach(&query);
 		lookup_detach(&l);
+		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
 	}
