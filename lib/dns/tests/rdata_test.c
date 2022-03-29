@@ -2072,33 +2072,81 @@ isdn(void **state) {
  */
 static void
 key(void **state) {
-	wire_ok_t wire_ok[] = { /*
-				 * RDATA is comprised of:
-				 *
-				 *   - 2 octets for Flags,
-				 *   - 1 octet for Protocol,
-				 *   - 1 octet for Algorithm,
-				 *   - variable number of octets for Public Key.
-				 *
-				 * RFC 2535 section 3.1.2 states that if bits
-				 * 0-1 of Flags are both set, the RR stops after
-				 * the algorithm octet and thus its length must
-				 * be 4 octets.  In any other case, though, the
-				 * Public Key part must not be empty.
+	wire_ok_t wire_ok[] = {
+		/*
+		 * RDATA is comprised of:
+		 *
+		 *   - 2 octets for Flags,
+		 *   - 1 octet for Protocol,
+		 *   - 1 octet for Algorithm,
+		 *   - variable number of octets for Public Key.
+		 *
+		 * RFC 2535 section 3.1.2 states that if bits
+		 * 0-1 of Flags are both set, the RR stops after
+		 * the algorithm octet and thus its length must
+		 * be 4 octets.  In any other case, though, the
+		 * Public Key part must not be empty.
+		 *
+		 * Algorithms PRIVATEDNS (253) and PRIVATEOID (254)
+		 * have an algorithm identifier embedded and the start
+		 * of the public key.
+		 */
+		WIRE_INVALID(0x00), WIRE_INVALID(0x00, 0x00),
+		WIRE_INVALID(0x00, 0x00, 0x00),
+		WIRE_VALID(0xc0, 0x00, 0x00, 0x00),
+		WIRE_INVALID(0xc0, 0x00, 0x00, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
+		/* PRIVATEDNS example. */
+		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0x07, 'e', 'x', 'a', 'm',
+			     'p', 'l', 'e', 0x00),
+		/* PRIVATEDNS example. + keydata */
+		WIRE_VALID(0x00, 0x00, 0x00, 253, 0x07, 'e', 'x', 'a', 'm', 'p',
+			   'l', 'e', 0x00, 0x00),
+		/* PRIVATEDNS compression pointer. */
+		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0xc0, 0x00, 0x00),
+		/* PRIVATEOID */
+		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x00),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06,
+			     0x01, 0x04, 0x01, 0x93, 0x3f),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 + keydata */
+		WIRE_VALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06, 0x01,
+			   0x04, 0x01, 0x93, 0x3f, 0x00),
+		/* PRIVATEOID malformed OID - high-bit set on last octet */
+		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06,
+			     0x01, 0x04, 0x01, 0x93, 0xbf, 0x00),
+		/* PRIVATEOID malformed OID - wrong tag */
+		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x07, 0x07, 0x2b, 0x06,
+			     0x01, 0x04, 0x01, 0x93, 0x3f, 0x00),
+		WIRE_SENTINEL()
+	};
+	text_ok_t text_ok[] = { /* PRIVATEDNS example. */
+				TEXT_INVALID("0 0 253 B2V4YW1wbGUA"),
+				/* PRIVATEDNS example. + keydata */
+				TEXT_VALID("0 0 253 B2V4YW1wbGUAAA=="),
+				/* PRIVATEDNS compression pointer. */
+				TEXT_INVALID("0 0 253 wAAA"),
+				/* PRIVATEOID */
+				TEXT_INVALID("0 0 254 AA=="),
+				/* PRIVATEOID 1.3.6.1.4.1.2495 */
+				TEXT_INVALID("0 0 254 BgcrBgEEAZM/"),
+				/* PRIVATEOID 1.3.6.1.4.1.2495 + keydata */
+				TEXT_VALID("0 0 254 BgcrBgEEAZM/AA=="),
+				/* PRIVATEOID malformed OID - high-bit set on
+				   last octet */
+				TEXT_INVALID("0 0 254 BgcrBgEEAZO/AA=="),
+				/* PRIVATEOID malformed OID - wrong tag */
+				TEXT_INVALID("0 0 254 BwcrBgEEAZM/AA=="),
+				/*
+				 * Sentinel.
 				 */
-				WIRE_INVALID(0x00),
-				WIRE_INVALID(0x00, 0x00),
-				WIRE_INVALID(0x00, 0x00, 0x00),
-				WIRE_VALID(0xc0, 0x00, 0x00, 0x00),
-				WIRE_INVALID(0xc0, 0x00, 0x00, 0x00, 0x00),
-				WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
-				WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
-				WIRE_SENTINEL()
+				TEXT_SENTINEL()
 	};
 
 	UNUSED(state);
 
-	check_rdata(NULL, wire_ok, NULL, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_key, sizeof(dns_rdata_key_t));
 }
 
