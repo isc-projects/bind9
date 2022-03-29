@@ -932,6 +932,8 @@ struct isc_nmsocket {
 		BIO *bio_out;
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
+		isc_tlsctx_t **listener_tls_ctx; /*%< A context reference per
+						    worker */
 		isc_nmsocket_t *tlslistener;
 		atomic_bool result_updated;
 		enum {
