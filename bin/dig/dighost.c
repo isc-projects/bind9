@@ -3097,7 +3097,21 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *readquery = NULL;
 	int local_timeout = timeout * 1000;
 
+	REQUIRE(DIG_VALID_QUERY(query));
+	REQUIRE(query->handle == NULL);
+
+	debug("udp_ready()");
+
 	query->started = true;
+
+	if (atomic_load(&cancel_now)) {
+		return;
+	}
+
+	INSIST(!free_now);
+
+	debug("udp_ready(%p, %s, %p)", handle, isc_result_totext(eresult),
+	      query);
 
 	if (eresult == ISC_R_CANCELED || query->canceled) {
 		dig_lookup_t *l = query->lookup;
