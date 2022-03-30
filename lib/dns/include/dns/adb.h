@@ -92,7 +92,9 @@ ISC_LANG_BEGINDECLS
  *** TYPES
  ***/
 
-typedef struct dns_adbname dns_adbname_t;
+typedef struct dns_adbname	  dns_adbname_t;
+typedef struct dns_adbnamebucket  dns_adbnamebucket_t;
+typedef struct dns_adbentrybucket dns_adbentrybucket_t;
 
 /*!
  *\brief
@@ -116,7 +118,6 @@ struct dns_adbfind {
 	/* Private */
 	isc_mutex_t    lock; /* locks all below */
 	in_port_t      port;
-	int	       name_bucket;
 	unsigned int   flags;
 	dns_adbname_t *adbname;
 	dns_adb_t	  *adb;
@@ -254,8 +255,8 @@ struct dns_adbaddrinfo {
 ****/
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
-	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
+	       dns_adb_t **newadb);
 /*%<
  * Create a new ADB.
  *
@@ -270,8 +271,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  *
  *\li	'view' be a pointer to a valid view.
  *
- *\li	'tmgr' be a pointer to a valid timer manager.
- *
  *\li	'taskmgr' be a pointer to a valid task manager.
  *
  *\li	'newadb' != NULL && '*newadb' == NULL.
@@ -282,8 +281,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  *\li	#ISC_R_NOMEMORY	after resource allocation failure.
  */
 
+#define dns_adb_attach(a, ap) \
+	dns__adb_attach(a, ap, __func__, __FILE__, __LINE__)
 void
-dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
+dns__adb_attach(dns_adb_t *adb, dns_adb_t **adbp, const char *func,
+		const char *file, unsigned int line);
 /*%
  * Attach to an 'adb' to 'adbp'.
  *
@@ -293,8 +295,10 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
  *	to NULL.
  */
 
+#define dns_adb_detach(ap) dns__adb_detach(ap, __func__, __FILE__, __LINE__)
 void
-dns_adb_detach(dns_adb_t **adb);
+dns__adb_detach(dns_adb_t **adb, const char *func, const char *file,
+		unsigned int line);
 /*%
  * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.
  *

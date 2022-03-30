@@ -1,3 +1,9 @@
+5841.	[bug]		Refactor the address database:
+			- Use self-resizing hash tables, eliminating the
+			  need to go into task-exclusive mode when resizing.
+			- Simplify reference counting of ADB objects
+			  and the process for shutting down. [GL #3213]
+
 5840.	[cleanup]	Remove multiple application context use in dns_client
 			unit. [GL !6041]
 
