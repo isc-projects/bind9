@@ -83,6 +83,32 @@ digcomp knowngood.ns1.before dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
+echo_i "ensure an unrelated zone is mentioned in its NOTAUTH log"
+$NSUPDATE -k ns1/ddns.key > nsupdate.out 2>&1 << END && ret=1
+server 10.53.0.1 ${PORT}
+zone unconfigured.test
+update add unconfigured.test 600 IN A 10.53.0.1
+send
+END
+grep NOTAUTH nsupdate.out > /dev/null 2>&1 || ret=1
+grep ' unconfigured.test: not authoritative' ns1/named.run \
+     > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+ret=0
+echo_i "ensure a subdomain is mentioned in its NOTAUTH log"
+$NSUPDATE -k ns1/ddns.key > nsupdate.out 2>&1 << END && ret=1
+server 10.53.0.1 ${PORT}
+zone sub.sub.example.nil
+update add sub.sub.sub.example.nil 600 IN A 10.53.0.1
+send
+END
+grep NOTAUTH nsupdate.out > /dev/null 2>&1 || ret=1
+grep ' sub.sub.example.nil: not authoritative' ns1/named.run \
+     > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+ret=0
 echo_i "updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1
