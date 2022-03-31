@@ -620,12 +620,10 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
 
 bool
 isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
-	isc_event_t *curr_event, *next_event;
+	bool found = false;
 
 	/*
 	 * Purge 'event' from a task's event queue.
-	 *
-	 * XXXRTH:  WARNING:  This method may be removed before beta.
 	 */
 
 	REQUIRE(VALID_TASK(task));
@@ -641,23 +639,18 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	LOCK(&task->lock);
-	for (curr_event = HEAD(task->events); curr_event != NULL;
-	     curr_event = next_event)
-	{
-		next_event = NEXT(curr_event, ev_link);
-		if (curr_event == event && PURGE_OK(event)) {
-			DEQUEUE(task->events, curr_event, ev_link);
-			task->nevents--;
-			break;
-		}
+	if (ISC_LINK_LINKED(event, ev_link)) {
+		DEQUEUE(task->events, event, ev_link);
+		task->nevents--;
+		found = true;
 	}
 	UNLOCK(&task->lock);
 
-	if (curr_event == NULL) {
+	if (!found) {
 		return (false);
 	}
 
-	isc_event_free(&curr_event);
+	isc_event_free(&event);
 
 	return (true);
 }

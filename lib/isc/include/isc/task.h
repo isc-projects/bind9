@@ -373,27 +373,27 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag,
  *
  * Notes:
  *
- *\li	This function is equivalent to
+ *\li  This function is equivalent to
  *
  *\code
- *		isc_task_unsendrange(task, sender, type, type, tag, events);
+ *             isc_task_unsendrange(task, sender, type, type, tag, events);
  *\endcode
  *
  * Requires:
  *
- *\li	'task' is a valid task.
+ *\li  'task' is a valid task.
  *
- *\li	*events is a valid list.
+ *\li  *events is a valid list.
  *
  * Ensures:
  *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is 'type', and whose tag is 'tag' will be dequeued and appended
- *	to *events.
+ *\li  Events in the event queue of 'task' whose sender is 'sender', whose
+ *     type is 'type', and whose tag is 'tag' will be dequeued and appended
+ *     to *events.
  *
  * Returns:
  *
- *\li	The number of events unsent.
+ *\li  The number of events unsent.
  */
 
 isc_result_t
