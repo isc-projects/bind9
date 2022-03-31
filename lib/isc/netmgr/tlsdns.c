@@ -2103,6 +2103,14 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
 	return (sock->tls.alpn_negotiated);
 }
 
+void
+isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+				const int tid) {
+	REQUIRE(tid >= 0);
+
+	isc_tlsctx_free(&listener->children[tid].tls.ctx);
+	isc_tlsctx_attach(tlsctx, &listener->children[tid].tls.ctx);
+}
 
 void
 isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock) {
