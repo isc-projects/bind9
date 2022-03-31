@@ -42,7 +42,6 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  * definition.  Attributes of 0xffffff00 may be used by the application
  * or non-ISC libraries.
  */
-#define ISC_EVENTATTR_NOPURGE 0x00000001
 
 /*%
  * The ISC_EVENTATTR_CANCELED attribute is intended to indicate

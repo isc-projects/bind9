@@ -234,63 +234,6 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-unsigned int
-isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last, void *tag);
-/*%<
- * Purge events from a task's event queue.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	last >= first
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is >= first and <= last, and whose tag is 'tag' will be purged,
- *	unless they are marked as unpurgable.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events purged.
- */
-
-unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag);
-/*%<
- * Purge events from a task's event queue.
- *
- * Notes:
- *
- *\li	This function is equivalent to
- *
- *\code
- *		isc_task_purgerange(task, sender, type, type, tag);
- *\endcode
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is 'type', and whose tag is 'tag' will be purged, unless they
- *	are marked as unpurgable.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events purged.
- */
-
 bool
 isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*%<

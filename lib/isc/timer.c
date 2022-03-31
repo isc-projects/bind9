@@ -192,8 +192,6 @@ deschedule(isc_timer_t *timer) {
 
 static void
 timerevent_unlink(isc_timer_t *timer, isc_timerevent_t *event) {
-	fprintf(stderr, "unlinking %p from %p\n", event, &timer->active);
-
 	REQUIRE(ISC_LINK_LINKED(event, ev_timerlink));
 	ISC_LIST_UNLINK(timer->active, event, ev_timerlink);
 }
@@ -204,6 +202,7 @@ timerevent_destroy(isc_event_t *event0) {
 	isc_timerevent_t *event = (isc_timerevent_t *)event0;
 
 	if (ISC_LINK_LINKED(event, ev_timerlink)) {
+		/* The event was unlinked via timer_purge() */
 		timerevent_unlink(timer, event);
 	}
 
@@ -216,8 +215,15 @@ timer_purge(isc_timer_t *timer) {
 	isc_timerevent_t *event = NULL;
 
 	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
-		(void)isc_task_purgeevent(timer->task, (isc_event_t *)event);
-		timerevent_unlink(timer, event);
+		bool purged = isc_task_purgeevent(timer->task,
+						  (isc_event_t *)event);
+		if (!purged) {
+			/*
+			 * The event has already been executed, but not
+			 * yet destroyed.
+			 */
+			timerevent_unlink(timer, event);
+		}
 	}
 }
 
@@ -383,7 +389,6 @@ isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
 void
 isc_timer_detach(isc_timer_t **timerp) {
 	isc_timer_t *timer;
-
 	/*
 	 * Detach *timerp from its timer.
 	 */
@@ -415,6 +420,7 @@ post_event(isc_timermgr_t *manager, isc_timer_t *timer, isc_eventtype_t type) {
 	((isc_event_t *)event)->ev_destroy_arg = timer;
 
 	event->due = timer->due;
+
 	ISC_LIST_APPEND(timer->active, event, ev_timerlink);
 
 	isc_task_send(timer->task, ISC_EVENT_PTR(&event));
