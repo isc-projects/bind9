@@ -3135,7 +3135,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query_attach(query, &readquery);
 
 	debug("recving with lookup=%p, query=%p, handle=%p", query->lookup,
-	      query, query->handle);
+	      query, handle);
 
 	query->handle = handle;
 	isc_nmhandle_attach(handle, &query->readhandle);
