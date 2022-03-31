@@ -963,7 +963,7 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/* Make sure we don't reschedule anymore. */
-	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
+	(void)isc_task_purgeevent(task, cache->cleaner.resched_event);
 
 	isc_refcount_decrementz(&cache->live_tasks);
 
