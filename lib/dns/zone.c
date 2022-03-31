@@ -2404,6 +2404,9 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 		(asl->loaded)(asl->loaded_arg, zone, task);
 	}
 
+	/* Reduce the quantum */
+	isc_task_setquantum(zone->loadtask, 1);
+
 	isc_mem_put(zone->mctx, asl, sizeof(*asl));
 	dns_zone_idetach(&zone);
 }
@@ -19078,7 +19081,7 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	pool = NULL;
 	if (zmgr->loadtasks == NULL) {
 		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx, ntasks,
-					     2, true, &pool);
+					     UINT_MAX, true, &pool);
 	} else {
 		result = isc_taskpool_expand(&zmgr->loadtasks, ntasks, true,
 					     &pool);
