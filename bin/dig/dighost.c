@@ -2901,10 +2901,9 @@ send_udp(dig_query_t *query) {
 	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
 
 	/* XXX qrflag, print_query, etc... */
-	if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
+	if (query->lookup->qr) {
 		extrabytes = 0;
-		dighost_printmessage(ISC_LIST_HEAD(query->lookup->q),
-				     &query->lookup->renderbuf,
+		dighost_printmessage(query, &query->lookup->renderbuf,
 				     query->lookup->sendmsg, true);
 		if (query->lookup->stats) {
 			print_query_size(query);
@@ -3247,10 +3246,10 @@ launch_next_query(dig_query_t *query) {
 		      isc_refcount_current(&sendcount));
 
 		/* XXX qrflag, print_query, etc... */
-		if (!ISC_LIST_EMPTY(l->q) && l->qr) {
+		if (l->qr) {
 			extrabytes = 0;
-			dighost_printmessage(ISC_LIST_HEAD(l->q), &l->renderbuf,
-					     l->sendmsg, true);
+			dighost_printmessage(query, &l->renderbuf, l->sendmsg,
+					     true);
 			if (l->stats) {
 				print_query_size(query);
 			}
