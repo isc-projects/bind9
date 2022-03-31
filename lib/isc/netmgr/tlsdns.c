@@ -2115,6 +2115,14 @@ isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	return (isc_tls_verify_peer_result_string(sock->tls.tls));
 }
 
+void
+isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+				const int tid) {
+	REQUIRE(tid >= 0);
+
+	isc_tlsctx_free(&listener->children[tid].tls.ctx);
+	isc_tlsctx_attach(tlsctx, &listener->children[tid].tls.ctx);
+}
 
 void
 isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock) {

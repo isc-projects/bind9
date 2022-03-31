@@ -1101,17 +1101,17 @@ isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 
 static void
 tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
-	uint32_t nworkers;
+	size_t nworkers;
 
 	REQUIRE(VALID_NM(listener->mgr));
-
-	nworkers = isc_nm_getnworkers(listener->mgr);
-
-	REQUIRE(nworkers > 0);
 	REQUIRE(ctx != NULL);
+
+	nworkers = (size_t)isc_nm_getnworkers(listener->mgr);
+	INSIST(nworkers > 0);
 
 	listener->tlsstream.listener_tls_ctx = isc_mem_get(
 		listener->mgr->mctx, sizeof(isc_tlsctx_t *) * nworkers);
+	listener->tlsstream.n_listener_tls_ctx = nworkers;
 	for (size_t i = 0; i < nworkers; i++) {
 		listener->tlsstream.listener_tls_ctx[i] = NULL;
 		isc_tlsctx_attach(ctx,
@@ -1121,22 +1121,19 @@ tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
 
 static void
 tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
-	uint32_t nworkers;
-
 	REQUIRE(VALID_NM(listener->mgr));
 
-	nworkers = isc_nm_getnworkers(listener->mgr);
-
-	REQUIRE(nworkers > 0);
 	if (listener->tlsstream.listener_tls_ctx == NULL) {
 		return;
 	}
 
-	for (size_t i = 0; i < nworkers; i++) {
+	for (size_t i = 0; i < listener->tlsstream.n_listener_tls_ctx; i++) {
 		isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[i]);
 	}
 	isc_mem_put(listener->mgr->mctx, listener->tlsstream.listener_tls_ctx,
-		    sizeof(isc_tlsctx_t *) * nworkers);
+		    sizeof(isc_tlsctx_t *) *
+			    listener->tlsstream.n_listener_tls_ctx);
+	listener->tlsstream.n_listener_tls_ctx = 0;
 }
 
 static isc_tlsctx_t *
@@ -1149,4 +1146,13 @@ tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid) {
 	}
 
 	return (listener->tlsstream.listener_tls_ctx[tid]);
+}
+
+void
+isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+			     const int tid) {
+	REQUIRE(tid >= 0);
+
+	isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[tid]);
+	isc_tlsctx_attach(tlsctx, &listener->tlsstream.listener_tls_ctx[tid]);
 }
