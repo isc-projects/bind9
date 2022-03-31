@@ -9,10 +9,10 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. _Requirements:
+.. _requirements:
 
-BIND Resource Requirements
-==========================
+Resource Requirements
+=====================
 
 .. _hw_req:
 
@@ -45,7 +45,7 @@ Memory Requirements
 -------------------
 
 Server memory must be sufficient to hold both the cache and the
-zones loaded from disk. The ``max-cache-size`` option can
+zones loaded from disk. The :ref:`max-cache-size<max-cache-size>` option can
 limit the amount of memory used by the cache, at the expense of reducing
 cache hit rates and causing more DNS traffic. It is still good practice
 to have enough memory to load all zone and cache data into memory;
