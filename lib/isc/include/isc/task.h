@@ -54,18 +54,6 @@
  *
  * Purging calls isc_event_free() on the matching events.
  *
- * Unsending returns a list of events that matched the pattern.
- * The caller is then responsible for them.
- *
- * Consumers of events should purge, not unsend.
- *
- * Producers of events often want to remove events when the caller indicates
- * it is no longer interested in the object, e.g. by canceling a timer.
- * Sometimes this can be done by purging, but for some event types, the
- * calls to isc_event_free() cause deadlock because the event free routine
- * wants to acquire a lock the caller is already holding.  Unsending instead
- * of purging solves this problem.  As a general rule, producers should only
- * unsend events which they have sent.
  */
 
 /***
@@ -338,34 +326,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  */
 
 unsigned int
-isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		     isc_eventtype_t last, void *tag, isc_eventlist_t *events);
-/*%<
- * Remove events from a task's event queue.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	last >= first.
- *
- *\li	*events is a valid list.
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is >= first and <= last, and whose tag is 'tag' will be dequeued
- *	and appended to *events.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events unsent.
- */
-
-unsigned int
 isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag,
 		isc_eventlist_t *events);
 /*%<
@@ -373,27 +333,27 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag,
  *
  * Notes:
  *
- *\li	This function is equivalent to
+ *\li  This function is equivalent to
  *
  *\code
- *		isc_task_unsendrange(task, sender, type, type, tag, events);
+ *             isc_task_unsendrange(task, sender, type, type, tag, events);
  *\endcode
  *
  * Requires:
  *
- *\li	'task' is a valid task.
+ *\li  'task' is a valid task.
  *
- *\li	*events is a valid list.
+ *\li  *events is a valid list.
  *
  * Ensures:
  *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is 'type', and whose tag is 'tag' will be dequeued and appended
- *	to *events.
+ *\li  Events in the event queue of 'task' whose sender is 'sender', whose
+ *     type is 'type', and whose tag is 'tag' will be dequeued and appended
+ *     to *events.
  *
  * Returns:
  *
- *\li	The number of events unsent.
+ *\li  The number of events unsent.
  */
 
 isc_result_t
