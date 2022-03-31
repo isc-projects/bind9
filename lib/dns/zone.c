@@ -18881,7 +18881,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 			goto free_loadtasks;
 		}
 		isc_task_setname(zmgr->loadtasks[i], "zonemgr-loadtasks", NULL);
-		isc_task_setprivilege(zmgr->loadtasks[i], true);
 	}
 
 	zmgr->mctxpool = isc_mem_get(zmgr->mctx,

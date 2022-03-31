@@ -202,10 +202,9 @@ isc__nm_dump_active(isc_nm_t *nm);
  */
 typedef enum {
 	NETIEVENT_PRIORITY = 0,
-	NETIEVENT_PRIVILEGED = 1,
-	NETIEVENT_TASK = 2,
-	NETIEVENT_NORMAL = 3,
-	NETIEVENT_MAX = 4,
+	NETIEVENT_TASK = 1,
+	NETIEVENT_NORMAL = 2,
+	NETIEVENT_MAX = 3,
 } netievent_type_t;
 
 typedef struct isc__nm_uvreq isc__nm_uvreq_t;
@@ -332,7 +331,6 @@ typedef enum isc__netievent_type {
 	netievent_sendcb,
 
 	netievent_task,
-	netievent_privilegedtask,
 
 	/*
 	 * event type values higher than this will be treated
@@ -1961,7 +1959,6 @@ NETIEVENT_TYPE(shutdown);
 NETIEVENT_TYPE(stop);
 
 NETIEVENT_TASK_TYPE(task);
-NETIEVENT_TASK_TYPE(privilegedtask);
 
 /* Now declared the helper functions */
 
@@ -2029,7 +2026,6 @@ NETIEVENT_DECL(shutdown);
 NETIEVENT_DECL(stop);
 
 NETIEVENT_TASK_DECL(task);
-NETIEVENT_TASK_DECL(privilegedtask);
 
 void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);

@@ -117,13 +117,11 @@ struct isc_task {
 	bool bound;
 	/* Protected by atomics */
 	atomic_bool shuttingdown;
-	atomic_bool privileged;
 	/* Locked by task manager lock. */
 	LINK(isc_task_t) link;
 };
 
 #define TASK_SHUTTINGDOWN(t) (atomic_load_acquire(&(t)->shuttingdown))
-#define TASK_PRIVILEGED(t)   (atomic_load_acquire(&(t)->privileged))
 
 #define TASK_MANAGER_MAGIC ISC_MAGIC('T', 'S', 'K', 'M')
 #define VALID_MANAGER(m)   ISC_MAGIC_VALID(m, TASK_MANAGER_MAGIC)
@@ -240,7 +238,6 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	task->nevents = 0;
 	task->quantum = (quantum > 0) ? quantum : manager->default_quantum;
 	atomic_init(&task->shuttingdown, false);
-	atomic_init(&task->privileged, false);
 	task->now = 0;
 	isc_time_settoepoch(&task->tnow);
 	memset(task->name, 0, sizeof(task->name));
@@ -854,7 +851,6 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	}
 
 	INIT_LIST(manager->tasks);
-	atomic_init(&manager->mode, isc_taskmgrmode_normal);
 	atomic_init(&manager->exclusive_req, false);
 	atomic_init(&manager->tasks_count, 0);
 
@@ -1042,37 +1038,6 @@ isc_task_endexclusive(isc_task_t *task) {
 
 	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
 					       &(bool){ true }, false));
-}
-
-void
-isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode) {
-	atomic_store(&manager->mode, mode);
-}
-
-isc_taskmgrmode_t
-isc_taskmgr_mode(isc_taskmgr_t *manager) {
-	return (atomic_load(&manager->mode));
-}
-
-void
-isc_task_setprivilege(isc_task_t *task, bool priv) {
-	REQUIRE(VALID_TASK(task));
-
-	atomic_store_release(&task->privileged, priv);
-}
-
-bool
-isc_task_getprivilege(isc_task_t *task) {
-	REQUIRE(VALID_TASK(task));
-
-	return (TASK_PRIVILEGED(task));
-}
-
-bool
-isc_task_privileged(isc_task_t *task) {
-	REQUIRE(VALID_TASK(task));
-
-	return (isc_taskmgr_mode(task->manager) && TASK_PRIVILEGED(task));
 }
 
 bool

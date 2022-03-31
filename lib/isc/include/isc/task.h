@@ -81,11 +81,6 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-typedef enum {
-	isc_taskmgrmode_normal = 0,
-	isc_taskmgrmode_privileged
-} isc_taskmgrmode_t;
-
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		isc_task_t **taskp);
@@ -450,42 +445,6 @@ isc_task_exiting(isc_task_t *t);
  *\li	'task' is a valid task.
  */
 
-void
-isc_task_setprivilege(isc_task_t *task, bool priv);
-/*%<
- * Set or unset the task's "privileged" flag depending on the value of
- * 'priv'.
- *
- * Under normal circumstances this flag has no effect on the task behavior,
- * but when the task manager has been set to privileged execution mode via
- * isc_taskmgr_setmode(), only tasks with the flag set will be executed,
- * and all other tasks will wait until they're done.  Once all privileged
- * tasks have finished executing, the task manager resumes running
- * non-privileged tasks.
- *
- * Requires:
- *\li	'task' is a valid task.
- */
-
-bool
-isc_task_getprivilege(isc_task_t *task);
-/*%<
- * Returns the current value of the task's privilege flag.
- *
- * Requires:
- *\li	'task' is a valid task.
- */
-
-bool
-isc_task_privileged(isc_task_t *task);
-/*%<
- * Returns true if the task's privilege flag is set *and* the task
- * manager is currently in privileged mode.
- *
- * Requires:
- *\li	'task' is a valid task.
- */
-
 /*****
  ***** Task Manager.
  *****/
@@ -496,27 +455,6 @@ void
 isc_taskmgr_detach(isc_taskmgr_t **);
 /*%<
  * Attach/detach the task manager.
- */
-
-void
-isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
-isc_taskmgrmode_t
-isc_taskmgr_mode(isc_taskmgr_t *manager);
-/*%<
- * Set/get the operating mode of the task manager. Valid modes are:
- *
- *\li	isc_taskmgrmode_normal
- *\li	isc_taskmgrmode_privileged
- *
- * In privileged execution mode, only tasks that have had the "privilege"
- * flag set via isc_task_setprivilege() can be executed. When all such
- * tasks are complete, non-privileged tasks resume running. The task calling
- * this function should be in task-exclusive mode; the privileged tasks
- * will be run after isc_task_endexclusive() is called.
- *
- * Requires:
- *
- *\li	'manager' is a valid task manager.
  */
 
 void
