@@ -1,3 +1,7 @@
+5847.	[cleanup]	Remove task privileged mode in favor of processing
+			all events in the loadzone task in a single run
+			by setting the quantum to UINT_MAX. [GL #3253]
+
 5846.	[func]		In dns_zonemgr, create per-thread task, zonetask, and
 			loadtask and pin the zones to individual threads,
 			instead of having "many", spreading the zones among
