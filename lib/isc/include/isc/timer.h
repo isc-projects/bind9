@@ -87,10 +87,13 @@ typedef enum {
 	isc_timertype_inactive = 3    /*%< Inactive */
 } isc_timertype_t;
 
-typedef struct isc_timerevent {
+typedef struct isc_timerevent isc_timerevent_t;
+
+struct isc_timerevent {
 	struct isc_event common;
 	isc_time_t	 due;
-} isc_timerevent_t;
+	ISC_LINK(isc_timerevent_t) ev_timerlink;
+};
 
 #define ISC_TIMEREVENT_FIRSTEVENT (ISC_EVENTCLASS_TIMER + 0)
 #define ISC_TIMEREVENT_TICK	  (ISC_EVENTCLASS_TIMER + 1)

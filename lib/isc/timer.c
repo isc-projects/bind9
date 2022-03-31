@@ -72,6 +72,7 @@ struct isc_timer {
 	void *arg;
 	unsigned int index;
 	isc_time_t due;
+	ISC_LIST(isc_timerevent_t) active;
 	LINK(isc_timer_t) link;
 };
 
@@ -205,17 +206,30 @@ deschedule(isc_timer_t *timer) {
 }
 
 static void
+timerevent_unlink(isc_timer_t *timer, isc_timerevent_t *event) {
+	fprintf(stderr, "unlinking %p from %p\n", event, &timer->active);
+
+	REQUIRE(ISC_LINK_LINKED(event, ev_timerlink));
+	ISC_LIST_UNLINK(timer->active, event, ev_timerlink);
+}
+
+static void
+timer_purge(isc_timer_t *timer) {
+	isc_timerevent_t *event = NULL;
+
+	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
+		(void)isc_task_purgeevent(timer->task, (isc_event_t *)event);
+		timerevent_unlink(timer, event);
+	}
+}
+
+static void
 destroy(isc_timer_t *timer) {
 	isc_timermgr_t *manager = timer->manager;
 
-	/*
-	 * The caller must ensure it is safe to destroy the timer.
-	 */
-
 	LOCK(&manager->lock);
 
-	(void)isc_task_purgerange(timer->task, timer, ISC_TIMEREVENT_FIRSTEVENT,
-				  ISC_TIMEREVENT_LASTEVENT, NULL);
+	timer_purge(timer);
 	deschedule(timer);
 
 	UNLINK(manager->timers, timer, link);
@@ -309,6 +323,9 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	timer->index = 0;
 	isc_mutex_init(&timer->lock);
 	ISC_LINK_INIT(timer, link);
+
+	ISC_LIST_INIT(timer->active);
+
 	timer->magic = TIMER_MAGIC;
 
 	LOCK(&manager->lock);
@@ -388,9 +405,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	LOCK(&timer->lock);
 
 	if (purge) {
-		(void)isc_task_purgerange(timer->task, timer,
-					  ISC_TIMEREVENT_FIRSTEVENT,
-					  ISC_TIMEREVENT_LASTEVENT, NULL);
+		timer_purge(timer);
 	}
 	timer->type = type;
 	timer->expires = *expires;
