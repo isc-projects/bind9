@@ -9697,9 +9697,8 @@ view_loaded(void *arg) {
 }
 
 static isc_result_t
-load_zones(named_server_t *server, bool init, bool reconfig) {
+load_zones(named_server_t *server, bool reconfig) {
 	isc_result_t result;
-	isc_taskmgr_t *taskmgr = dns_zonemgr_gettaskmgr(server->zonemgr);
 	ns_zoneload_t *zl = NULL;
 	dns_view_t *view = NULL;
 
@@ -9755,25 +9754,7 @@ cleanup:
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
 	}
 
-	if (init) {
-		/*
-		 * If we're setting up the server for the first time, set
-		 * the task manager into privileged mode; this ensures
-		 * that no other tasks will begin to run until after zone
-		 * loading is complete. We won't return from exclusive mode
-		 * until the loading is finished; we can then drop out of
-		 * privileged mode.
-		 *
-		 * We do *not* want to do this in the case of reload or
-		 * reconfig, as loading a large zone could cause the server
-		 * to be inactive for too long a time.
-		 */
-		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
-		isc_task_endexclusive(server->task);
-		isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
-	} else {
-		isc_task_endexclusive(server->task);
-	}
+	isc_task_endexclusive(server->task);
 
 	return (result);
 }
@@ -9830,7 +9811,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(load_configuration(named_g_conffile, server, true),
 		   "loading configuration");
 
-	CHECKFATAL(load_zones(server, true, false), "loading zones");
+	CHECKFATAL(load_zones(server, false), "loading zones");
 #ifdef ENABLE_AFL
 	named_g_run_done = true;
 #endif /* ifdef ENABLE_AFL */
@@ -10330,7 +10311,7 @@ reload(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, false, false);
+	result = load_zones(server, false);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -10704,7 +10685,7 @@ named_server_reconfigcommand(named_server_t *server) {
 
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, false, true);
+	result = load_zones(server, true);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,

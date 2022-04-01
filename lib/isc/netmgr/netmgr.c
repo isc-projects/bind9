@@ -442,8 +442,6 @@ isc_nm_resume(isc_nm_t *mgr) {
 	}
 
 	if (isc__nm_in_netthread()) {
-		drain_queue(&mgr->workers[isc_nm_tid()], NETIEVENT_PRIVILEGED);
-
 		atomic_fetch_sub(&mgr->workers_paused, 1);
 		isc_barrier_wait(&mgr->resuming);
 	}
@@ -608,19 +606,11 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
  *    is needed to properly start listening on the interfaces, free
  *    resources on shutdown, or resume from a pause.
  *
- * 2. privileged task queue - only privileged tasks are queued here and
- *    this is the first queue that gets processed when network manager
- *    is unpaused using isc_nm_resume().  All netmgr workers need to
- *    clean the privileged task queue before they all proceed to normal
- *    operation.  Both task queues are processed when the workers are
- *    shutting down.
+ * 2. task queue - only (traditional) tasks are scheduled here, and this queue
+ *    is processed when the netmgr workers are finishing.  This is needed to
+ *    process the task shutdown events.
  *
- * 3. task queue - only (traditional) tasks are scheduled here, and this
- *    queue and the privileged task queue are both processed when the
- *    netmgr workers are finishing.  This is needed to process the task
- *    shutdown events.
- *
- * 4. normal queue - this is the queue with netmgr events, e.g. reading,
+ * 3. normal queue - this is the queue with netmgr events, e.g. reading,
  *    sending, callbacks, etc.
  */
 
@@ -635,8 +625,8 @@ nm_thread(isc_threadarg_t worker0) {
 		/*
 		 * uv_run() runs async_cb() in a loop, which processes
 		 * all four event queues until a "pause" or "stop" event
-		 * is encountered. On pause, we process only priority and
-		 * privileged events until resuming.
+		 * is encountered. On pause, we process only priority
+		 * events until resuming.
 		 */
 		int r = uv_run(&worker->loop, UV_RUN_DEFAULT);
 		INSIST(r > 0 || worker->finished);
@@ -654,12 +644,6 @@ nm_thread(isc_threadarg_t worker0) {
 			while (worker->paused) {
 				wait_for_priority_queue(worker);
 			}
-
-			/*
-			 * All workers must drain the privileged event
-			 * queue before we resume from pause.
-			 */
-			drain_queue(worker, NETIEVENT_PRIVILEGED);
 
 			atomic_fetch_sub(&mgr->workers_paused, 1);
 			if (isc_barrier_wait(&mgr->resuming) != 0) {
@@ -680,7 +664,6 @@ nm_thread(isc_threadarg_t worker0) {
 	/*
 	 * We are shutting down.  Drain the queues.
 	 */
-	drain_queue(worker, NETIEVENT_PRIVILEGED);
 	drain_queue(worker, NETIEVENT_TASK);
 
 	for (size_t type = 0; type < NETIEVENT_MAX; type++) {
@@ -761,19 +744,10 @@ isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int tid) {
 
 	worker = &nm->workers[tid];
 
-	if (isc_task_privileged(task)) {
-		event = (isc__netievent_t *)
-			isc__nm_get_netievent_privilegedtask(nm, task);
-	} else {
-		event = (isc__netievent_t *)isc__nm_get_netievent_task(nm,
-								       task);
-	}
+	event = (isc__netievent_t *)isc__nm_get_netievent_task(nm, task);
 
 	isc__nm_enqueue_ievent(worker, event);
 }
-
-#define isc__nm_async_privilegedtask(worker, ev0) \
-	isc__nm_async_task(worker, ev0)
 
 static void
 isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
@@ -853,7 +827,6 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		/* Don't process more ievents when we are stopping */
 		NETIEVENT_CASE_NOMORE(stop);
 
-		NETIEVENT_CASE(privilegedtask);
 		NETIEVENT_CASE(task);
 
 		NETIEVENT_CASE(udpconnect);
@@ -1044,7 +1017,6 @@ NETIEVENT_DEF(shutdown);
 NETIEVENT_DEF(stop);
 
 NETIEVENT_TASK_DEF(task);
-NETIEVENT_TASK_DEF(privilegedtask);
 
 void
 isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
@@ -1071,9 +1043,6 @@ isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
 		switch (event->type) {
 		case netievent_prio:
 			UNREACHABLE();
-			break;
-		case netievent_privilegedtask:
-			type = NETIEVENT_PRIVILEGED;
 			break;
 		case netievent_task:
 			type = NETIEVENT_TASK;
