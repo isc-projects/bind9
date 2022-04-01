@@ -8316,6 +8316,7 @@ load_configuration(const char *filename, named_server_t *server,
 	uint32_t softquota = 0;
 	uint32_t max;
 	uint64_t initial, idle, keepalive, advertised;
+	bool loadbalancesockets;
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
@@ -8787,6 +8788,28 @@ load_configuration(const char *filename, named_server_t *server,
 		backlog = 10;
 	}
 	ns_interfacemgr_setbacklog(server->interfacemgr, backlog);
+
+	obj = NULL;
+	result = named_config_get(maps, "load-balance-sockets", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	loadbalancesockets = cfg_obj_asboolean(obj);
+#if HAVE_SO_REUSEPORT_LB
+	if (first_time) {
+		isc_nm_setloadbalancesockets(named_g_netmgr,
+					     cfg_obj_asboolean(obj));
+	} else if (loadbalancesockets !=
+		   isc_nm_getloadbalancesockets(named_g_netmgr)) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "changing load-balance-sockets value requires "
+			    "server restart");
+	}
+#else
+	if (loadbalancesockets) {
+		cfg_obj_log(
+			obj, named_g_lctx, ISC_LOG_WARNING,
+			"load-balance-sockets has no effect on this system");
+	}
+#endif
 
 	/*
 	 * Configure the interface manager according to the "listen-on"

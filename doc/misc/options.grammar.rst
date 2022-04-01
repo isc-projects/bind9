@@ -145,6 +145,7 @@
   	    <integer> ] {
   	    <address_match_element>; ... };
   	lmdb-mapsize <sizeval>;
+  	load-balance-sockets <boolean>;
   	lock-file ( <quoted_string> | none );
   	managed-keys-directory <quoted_string>;
   	masterfile-format ( map | raw | text );
