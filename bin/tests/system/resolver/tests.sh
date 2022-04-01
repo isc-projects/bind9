@@ -832,25 +832,27 @@ grep "1\.2\.3\.4" dig.ns5.out.${n} > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-n=$((n+1))
-echo_i "check that SERVFAIL is returned for an empty question section via TCP ($n)"
-ret=0
-nextpart ns5/named.run > /dev/null
-# bind to local address so that addresses in log messages are consistent
-# between platforms
-dig_with_opts @10.53.0.5 -b 10.53.0.5 tcpalso.no-questions. a +tries=2 +timeout=15 > dig.ns5.out.${n} || ret=1
-grep "status: SERVFAIL" dig.ns5.out.${n} > /dev/null || ret=1
-check_namedrun() {
-nextpartpeek ns5/named.run > nextpart.out.${n}
-grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section, accepting it anyway as TC=1' nextpart.out.${n} > /dev/null || return 1
-grep '(tcpalso.no-questions/A): connecting via TCP' nextpart.out.${n} > /dev/null || return 1
-grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section$' nextpart.out.${n} > /dev/null || return 1
-grep '(tcpalso.no-questions/A): nextitem' nextpart.out.${n} > /dev/null || return 1
-return 0
-}
-retry_quiet 12 check_namedrun || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
+if ${FEATURETEST} --enable-querytrace; then
+    n=$((n+1))
+    echo_i "check that SERVFAIL is returned for an empty question section via TCP ($n)"
+    ret=0
+    nextpart ns5/named.run > /dev/null
+    # bind to local address so that addresses in log messages are consistent
+    # between platforms
+    dig_with_opts @10.53.0.5 -b 10.53.0.5 tcpalso.no-questions. a +tries=2 +timeout=15 > dig.ns5.out.${n} || ret=1
+    grep "status: SERVFAIL" dig.ns5.out.${n} > /dev/null || ret=1
+    check_namedrun() {
+    nextpartpeek ns5/named.run > nextpart.out.${n}
+    grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section, accepting it anyway as TC=1' nextpart.out.${n} > /dev/null || return 1
+    grep '(tcpalso.no-questions/A): connecting via TCP' nextpart.out.${n} > /dev/null || return 1
+    grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section$' nextpart.out.${n} > /dev/null || return 1
+    grep '(tcpalso.no-questions/A): nextitem' nextpart.out.${n} > /dev/null || return 1
+    return 0
+    }
+    retry_quiet 12 check_namedrun || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+fi
 
 n=$((n+1))
 echo_i "checking SERVFAIL is returned when all authoritative servers return FORMERR ($n)"
