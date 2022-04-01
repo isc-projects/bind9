@@ -1279,6 +1279,7 @@ static cfg_clausedef_t options_clauses[] = {
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
+	{ "load-balance-sockets", &cfg_type_boolean, 0 },
 	{ "lock-file", &cfg_type_qstringornone, 0 },
 	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },

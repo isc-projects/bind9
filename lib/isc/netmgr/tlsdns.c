@@ -401,7 +401,7 @@ failure:
 }
 
 static uv_os_sock_t
-isc__nm_tlsdns_lb_socket(sa_family_t sa_family) {
+isc__nm_tlsdns_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	isc_result_t result;
 	uv_os_sock_t sock;
 
@@ -416,10 +416,10 @@ isc__nm_tlsdns_lb_socket(sa_family_t sa_family) {
 	result = isc__nm_socket_reuse(sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-#if HAVE_SO_REUSEPORT_LB
-	result = isc__nm_socket_reuse_lb(sock);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-#endif
+	if (mgr->load_balance_sockets) {
+		result = isc__nm_socket_reuse_lb(sock);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
 
 	return (sock);
 }
@@ -447,12 +447,13 @@ start_tlsdns_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->pquota = sock->pquota;
 	isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
 
-#if HAVE_SO_REUSEPORT_LB
-	UNUSED(fd);
-	csock->fd = isc__nm_tlsdns_lb_socket(iface->type.sa.sa_family);
-#else
-	csock->fd = dup(fd);
-#endif
+	if (mgr->load_balance_sockets) {
+		UNUSED(fd);
+		csock->fd = isc__nm_tlsdns_lb_socket(mgr,
+						     iface->type.sa.sa_family);
+	} else {
+		csock->fd = dup(fd);
+	}
 	REQUIRE(csock->fd >= 0);
 
 	ievent = isc__nm_get_netievent_tlsdnslisten(mgr, csock);
@@ -503,9 +504,9 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->tid = 0;
 	sock->fd = -1;
 
-#if !HAVE_SO_REUSEPORT_LB
-	fd = isc__nm_tlsdns_lb_socket(iface->type.sa.sa_family);
-#endif
+	if (!mgr->load_balance_sockets) {
+		fd = isc__nm_tlsdns_lb_socket(mgr, iface->type.sa.sa_family);
+	}
 
 	isc_barrier_init(&sock->startlistening, sock->nchildren);
 
@@ -520,9 +521,9 @@ isc_nm_listentlsdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		start_tlsdns_child(mgr, iface, sock, fd, isc_nm_tid());
 	}
 
-#if !HAVE_SO_REUSEPORT_LB
-	isc__nm_closesocket(fd);
-#endif
+	if (!mgr->load_balance_sockets) {
+		isc__nm_closesocket(fd);
+	}
 
 	LOCK(&sock->lock);
 	while (atomic_load(&sock->rchildren) != sock->nchildren) {
@@ -555,6 +556,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	int flags = 0;
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result = ISC_R_UNSET;
+	isc_nm_t *mgr;
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(ievent->sock->tid == isc_nm_tid());
@@ -562,6 +564,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	sock = ievent->sock;
 	sa_family = sock->iface.type.sa.sa_family;
+	mgr = sock->mgr;
 
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 	REQUIRE(sock->parent != NULL);
@@ -594,28 +597,30 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		flags = UV_TCP_IPV6ONLY;
 	}
 
-#if HAVE_SO_REUSEPORT_LB
-	r = isc_uv_tcp_freebind(&sock->uv_handle.tcp, &sock->iface.type.sa,
-				flags);
-	if (r < 0) {
-		isc__nm_incstats(sock, STATID_BINDFAIL);
-		goto done;
-	}
-#else
-	if (sock->parent->fd == -1) {
+	if (mgr->load_balance_sockets) {
 		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
 					&sock->iface.type.sa, flags);
 		if (r < 0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
-		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
-		sock->parent->fd = sock->fd;
 	} else {
-		/* The socket is already bound, just copy the flags */
-		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
+		if (sock->parent->fd == -1) {
+			r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
+						&sock->iface.type.sa, flags);
+			if (r < 0) {
+				isc__nm_incstats(sock, STATID_BINDFAIL);
+				goto done;
+			}
+			sock->parent->uv_handle.tcp.flags =
+				sock->uv_handle.tcp.flags;
+			sock->parent->fd = sock->fd;
+		} else {
+			/* The socket is already bound, just copy the flags */
+			sock->uv_handle.tcp.flags =
+				sock->parent->uv_handle.tcp.flags;
+		}
 	}
-#endif
 
 	isc__nm_set_network_buffers(sock->mgr, &sock->uv_handle.handle);
 
