@@ -97,11 +97,8 @@ struct dns_rbtnode {
 	unsigned int namelen	   : 8; /*%< range is 1..255 */
 	unsigned int offsetlen	   : 8; /*%< range is 1..128 */
 	unsigned int oldnamelen	   : 8; /*%< range is 1..255 */
+	unsigned int		   : 0; /* end of bitfields c/o tree lock */
 	/*@}*/
-
-	/* node needs to be cleaned from rpz */
-	unsigned int rpz : 1;
-	unsigned int	 : 0; /* end of bitfields c/o tree lock */
 
 	/*%
 	 * These are needed for hashing. The 'uppernode' points to the
