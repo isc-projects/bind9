@@ -4379,7 +4379,7 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
 
-	isc_timer_detach(&fctx->timer);
+	isc_timer_destroy(&fctx->timer);
 
 	dns_resolver_detach(&fctx->res);
 
@@ -4927,7 +4927,7 @@ cleanup_mctx:
 	dns_db_detach(&fctx->cache);
 
 cleanup_timer:
-	isc_timer_detach(&fctx->timer);
+	isc_timer_destroy(&fctx->timer);
 
 cleanup_qmessage:
 	dns_message_detach(&fctx->qmessage);
@@ -10118,7 +10118,7 @@ destroy(dns_resolver_t *res) {
 	dns_resolver_reset_ds_digests(res);
 	dns_badcache_destroy(&res->badcache);
 	dns_resolver_resetmustbesecure(res);
-	isc_timer_detach(&res->spillattimer);
+	isc_timer_destroy(&res->spillattimer);
 	res->magic = 0;
 	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 }
