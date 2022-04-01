@@ -10,3 +10,4 @@
 .. information regarding copyright ownership.
 
 .. include:: configuration.inc.rst
+.. include:: zones.inc.rst
