@@ -176,3 +176,23 @@ SSL_CTX_up_ref(SSL_CTX *ctx) {
 	return (CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX) > 0);
 }
 #endif /* !HAVE_SSL_CTX_UP_REF */
+
+#if !HAVE_X509_STORE_UP_REF
+
+int
+X509_STORE_up_ref(X509_STORE *store) {
+	return (CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE));
+}
+
+#endif /* !HAVE_OPENSSL_CLEANUP */
+
+#if !HAVE_SSL_CTX_SET1_CERT_STORE
+
+void
+SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store) {
+	(void)X509_STORE_up_ref(store);
+
+	SSL_CTX_set_cert_store(ctx, store);
+}
+
+#endif /* !HAVE_SSL_CTX_SET1_CERT_STORE */

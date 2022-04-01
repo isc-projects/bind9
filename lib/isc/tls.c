@@ -990,19 +990,7 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 	}
 
 	/* "Attach" the cert store to the context */
-#if defined(LIBRESSL_VERSION_NUMBER) && (LIBRESSL_VERSION_NUMBER >= 0x3050000fL)
-	(void)X509_STORE_up_ref(store);
-	SSL_CTX_set_cert_store(tlsctx, store);
-#elif defined(CRYPTO_LOCK_X509_STORE)
-	/*
-	 * That is the case for OpenSSL < 1.1.X and LibreSSL < 3.5.0.
-	 * No SSL_CTX_set1_cert_store(), no X509_STORE_up_ref(). Sigh...
-	 */
-	(void)CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE);
-	SSL_CTX_set_cert_store(tlsctx, store);
-#else
 	SSL_CTX_set1_cert_store(tlsctx, store);
-#endif
 
 	/* enable verification */
 	if (is_server) {
