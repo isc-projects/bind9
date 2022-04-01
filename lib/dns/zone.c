@@ -15065,7 +15065,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	forward_cancel(zone);
 
 	if (zone->timer != NULL) {
-		isc_timer_detach(&zone->timer);
+		isc_timer_destroy(&zone->timer);
 		isc_refcount_decrement(&zone->irefs);
 	}
 

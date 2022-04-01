@@ -236,14 +236,14 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	isc_mutex_unlock(&lasttime_mx);
 	subthread_assert_result_equal(result, ISC_R_SUCCESS);
 
+	isc_event_free(&event);
+
 	if (atomic_load(&eventcnt) == nevents) {
 		result = isc_time_now(&endtime);
 		subthread_assert_result_equal(result, ISC_R_SUCCESS);
-		isc_timer_detach(&timer);
+		isc_timer_destroy(&timer);
 		isc_task_shutdown(task);
 	}
-
-	isc_event_free(&event);
 }
 
 /*
@@ -329,9 +329,10 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 
 	subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_IDLE);
 
-	isc_timer_detach(&timer);
-	isc_task_shutdown(task);
 	isc_event_free(&event);
+
+	isc_timer_destroy(&timer);
+	isc_task_shutdown(task);
 }
 
 /* timer type once idles out */
@@ -415,14 +416,15 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 						 &expires, &interval, false);
 			subthread_assert_result_equal(result, ISC_R_SUCCESS);
 		}
+
+		isc_event_free(&event);
 	} else {
 		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_LIFE);
 
-		isc_timer_detach(&timer);
+		isc_event_free(&event);
+		isc_timer_destroy(&timer);
 		isc_task_shutdown(task);
 	}
-
-	isc_event_free(&event);
 }
 
 ISC_RUN_TEST_IMPL(reset) {
@@ -578,8 +580,8 @@ ISC_RUN_TEST_IMPL(purge) {
 
 	assert_int_equal(atomic_load(&eventcnt), 1);
 
-	isc_timer_detach(&tickertimer);
-	isc_timer_detach(&oncetimer);
+	isc_timer_destroy(&tickertimer);
+	isc_timer_destroy(&oncetimer);
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
 }
