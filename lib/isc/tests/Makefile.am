@@ -30,7 +30,6 @@ check_PROGRAMS =	\
 	netaddr_test	\
 	netmgr_test	\
 	parse_test	\
-	pool_test	\
 	quota_test	\
 	radix_test	\
 	random_test	\
@@ -42,7 +41,6 @@ check_PROGRAMS =	\
 	stats_test	\
 	symtab_test	\
 	task_test	\
-	taskpool_test	\
 	time_test	\
 	timer_test
 

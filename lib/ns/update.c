@@ -19,7 +19,6 @@
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/string.h>
-#include <isc/taskpool.h>
 #include <isc/util.h>
 
 #include <dns/db.h>

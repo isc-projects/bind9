@@ -1,3 +1,10 @@
+5846.	[func]		In dns_zonemgr, create per-thread task, zonetask, and
+			loadtask and pin the zones to individual threads,
+			instead of having "many", spreading the zones among
+			them and hoping for the best.  This also removes any
+			need to dynamically reallocate the pools with memory
+			contexts and tasks. [GL #3226]
+
 5845.	[bug]		Refactor the timer to keep track of posted events
 			as to use isc_task_purgeevent() instead of using
 			isc_task_purgerange().  The isc_task_purgeevent()

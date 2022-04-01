@@ -39,6 +39,7 @@
 #include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -236,7 +237,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Create the zone structure.
 	 */
-	result = dns_zone_create(&zone, dt_mctx);
+	result = dns_zone_create(&zone, dt_mctx, 0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -292,7 +293,8 @@ dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, NULL, &zonemgr);
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, netmgr,
+				    &zonemgr);
 	return (result);
 }
 
@@ -300,11 +302,6 @@ isc_result_t
 dns_test_managezone(dns_zone_t *zone) {
 	isc_result_t result;
 	REQUIRE(zonemgr != NULL);
-
-	result = dns_zonemgr_setsize(zonemgr, 1);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
 
 	result = dns_zonemgr_managezone(zonemgr, zone);
 	return (result);

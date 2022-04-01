@@ -147,7 +147,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid);
 /*%<
  *	Creates a new empty zone and attach '*zonep' to it.
  *
@@ -1480,16 +1480,6 @@ dns_zone_getredirecttype(dns_zone_t *zone);
  */
 
 void
-dns_zone_settask(dns_zone_t *zone, isc_task_t *task);
-/*%<
- * Give a zone a task to work with.  Any current task will be detached.
- *
- * Requires:
- *\li	'zone' to be valid.
- *\li	'task' to be valid.
- */
-
-void
 dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
 /*%<
  * Attach '*target' to the zone's task.
@@ -1785,26 +1775,13 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
 		   dns_zonemgr_t **zmgrp);
 /*%<
- * Create a zone manager.  Note: the zone manager will not be able to
- * manage any zones until dns_zonemgr_setsize() has been run.
+ * Create a zone manager.
  *
  * Requires:
  *\li	'mctx' to be a valid memory context.
  *\li	'taskmgr' to be a valid task manager.
  *\li	'timermgr' to be a valid timer manager.
  *\li	'zmgrp'	to point to a NULL pointer.
- */
-
-isc_result_t
-dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones);
-/*%<
- *	Set the size of the zone manager task pool.  This must be run
- *	before zmgr can be used for managing zones.  Currently, it can only
- *	be run once; the task pool cannot be resized.
- *
- * Requires:
- *\li	zmgr is a valid zone manager.
- *\li	zmgr->zonetasks has been initialized.
  */
 
 isc_result_t
@@ -2763,4 +2740,24 @@ const char *
 dns_zonetype_name(dns_zonetype_t type);
 /*%<
  * Return the name of the zone type 'type'.
+ */
+
+isc_mem_t *
+dns_zone_getmem(dns_zone_t *zone);
+/**<
+ * \brief Return memory context associated with the zone.
+ *
+ * \param zone valid dns_zone_t object.
+ *
+ * \return memory context associated with the zone
+ */
+
+unsigned int
+dns_zone_gettid(dns_zone_t *zone);
+/**<
+ * \brief Return thread-id associated with the zone.
+ *
+ * \param valid dns_zone_t object
+ *
+ * \return thread id associated with the zone
  */

@@ -26,7 +26,6 @@
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
-#include <isc/taskpool.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
