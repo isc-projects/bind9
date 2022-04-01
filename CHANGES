@@ -1,3 +1,10 @@
+5845.	[bug]		Refactor the timer to keep track of posted events
+			as to use isc_task_purgeevent() instead of using
+			isc_task_purgerange().  The isc_task_purgeevent()
+			has been refactored to purge a single event instead
+			of walking through the list of posted events.
+			[GL #3252]
+
 5844.	[bug]		dig +nssearch was hanging until manually interrupted.
 			[GL #3145]
 

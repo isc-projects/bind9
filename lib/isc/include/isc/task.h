@@ -54,18 +54,6 @@
  *
  * Purging calls isc_event_free() on the matching events.
  *
- * Unsending returns a list of events that matched the pattern.
- * The caller is then responsible for them.
- *
- * Consumers of events should purge, not unsend.
- *
- * Producers of events often want to remove events when the caller indicates
- * it is no longer interested in the object, e.g. by canceling a timer.
- * Sometimes this can be done by purging, but for some event types, the
- * calls to isc_event_free() cause deadlock because the event free routine
- * wants to acquire a lock the caller is already holding.  Unsending instead
- * of purging solves this problem.  As a general rule, producers should only
- * unsend events which they have sent.
  */
 
 /***
@@ -80,10 +68,8 @@
 #include <isc/stdtime.h>
 #include <isc/types.h>
 
-#define ISC_TASKEVENT_FIRSTEVENT (ISC_EVENTCLASS_TASK + 0)
-#define ISC_TASKEVENT_SHUTDOWN	 (ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_TEST	 (ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_LASTEVENT	 (ISC_EVENTCLASS_TASK + 65535)
+#define ISC_TASKEVENT_SHUTDOWN (ISC_EVENTCLASS_TASK + 0)
+#define ISC_TASKEVENT_TEST     (ISC_EVENTCLASS_TASK + 1)
 
 /*****
  ***** Tasks.
@@ -248,63 +234,6 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-unsigned int
-isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last, void *tag);
-/*%<
- * Purge events from a task's event queue.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	last >= first
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is >= first and <= last, and whose tag is 'tag' will be purged,
- *	unless they are marked as unpurgable.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events purged.
- */
-
-unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag);
-/*%<
- * Purge events from a task's event queue.
- *
- * Notes:
- *
- *\li	This function is equivalent to
- *
- *\code
- *		isc_task_purgerange(task, sender, type, type, tag);
- *\endcode
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is 'type', and whose tag is 'tag' will be purged, unless they
- *	are marked as unpurgable.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events purged.
- */
-
 bool
 isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*%<
@@ -335,65 +264,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *\li	#true			The event was purged.
  *\li	#false			The event was not in the event queue,
  *					or was marked unpurgeable.
- */
-
-unsigned int
-isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		     isc_eventtype_t last, void *tag, isc_eventlist_t *events);
-/*%<
- * Remove events from a task's event queue.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	last >= first.
- *
- *\li	*events is a valid list.
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is >= first and <= last, and whose tag is 'tag' will be dequeued
- *	and appended to *events.
- *
- *\li	A sender of NULL will match any sender.  A NULL tag matches any
- *	tag.
- *
- * Returns:
- *
- *\li	The number of events unsent.
- */
-
-unsigned int
-isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type, void *tag,
-		isc_eventlist_t *events);
-/*%<
- * Remove events from a task's event queue.
- *
- * Notes:
- *
- *\li	This function is equivalent to
- *
- *\code
- *		isc_task_unsendrange(task, sender, type, type, tag, events);
- *\endcode
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	*events is a valid list.
- *
- * Ensures:
- *
- *\li	Events in the event queue of 'task' whose sender is 'sender', whose
- *	type is 'type', and whose tag is 'tag' will be dequeued and appended
- *	to *events.
- *
- * Returns:
- *
- *\li	The number of events unsent.
  */
 
 isc_result_t
@@ -526,6 +396,15 @@ isc_task_gettag(isc_task_t *task);
  *
  * Requires:
  *\li	'task' is a valid task.
+ */
+
+void
+isc_task_setquantum(isc_task_t *task, unsigned int quantum);
+/*%<
+ * Set future 'task' quantum to 'quantum'.  The current 'task' quantum will be
+ * kept for the current isc_task_run() loop, and will be changed for the next
+ * run.  Therefore, the function is save to use from the event callback as it
+ * will not affect the current event loop processing.
  */
 
 isc_result_t

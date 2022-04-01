@@ -534,8 +534,6 @@ basic(void **state) {
 		isc_task_send(task1, &event);
 	}
 
-	(void)isc_task_purge(task3, NULL, 0, 0);
-
 	isc_task_detach(&task1);
 	isc_task_detach(&task2);
 	isc_task_detach(&task3);
@@ -959,348 +957,9 @@ post_shutdown(void **state) {
 #define TAGCNT	  5
 #define NEVENTS	  (SENDERCNT * TYPECNT * TAGCNT)
 
-static bool testrange;
-static void *purge_sender;
-static isc_eventtype_t purge_type_first;
-static isc_eventtype_t purge_type_last;
-static void *purge_tag;
 static int eventcnt;
 
 atomic_bool started;
-
-static void
-pg_event1(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	LOCK(&lock);
-	while (!atomic_load(&started)) {
-		WAIT(&cv, &lock);
-	}
-	UNLOCK(&lock);
-
-	isc_event_free(&event);
-}
-
-static void
-pg_event2(isc_task_t *task, isc_event_t *event) {
-	bool sender_match = false;
-	bool type_match = false;
-	bool tag_match = false;
-
-	UNUSED(task);
-
-	if ((purge_sender == NULL) || (purge_sender == event->ev_sender)) {
-		sender_match = true;
-	}
-
-	if (testrange) {
-		if ((purge_type_first <= event->ev_type) &&
-		    (event->ev_type <= purge_type_last)) {
-			type_match = true;
-		}
-	} else {
-		if (purge_type_first == event->ev_type) {
-			type_match = true;
-		}
-	}
-
-	if ((purge_tag == NULL) || (purge_tag == event->ev_tag)) {
-		tag_match = true;
-	}
-
-	if (sender_match && type_match && tag_match) {
-		if ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) {
-			if (verbose) {
-				print_message("# event %p,%d,%p "
-					      "matched but was not "
-					      "purgeable\n",
-					      event->ev_sender,
-					      (int)event->ev_type,
-					      event->ev_tag);
-			}
-			++eventcnt;
-		} else if (verbose) {
-			print_message("# event %p,%d,%p not purged\n",
-				      event->ev_sender, (int)event->ev_type,
-				      event->ev_tag);
-		}
-	} else {
-		++eventcnt;
-	}
-
-	isc_event_free(&event);
-}
-
-static void
-pg_sde(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	LOCK(&lock);
-	atomic_store(&done, true);
-	SIGNAL(&cv);
-	UNLOCK(&lock);
-
-	isc_event_free(&event);
-}
-
-static void
-test_purge(int sender, int type, int tag, int exp_purged) {
-	isc_result_t result;
-	isc_task_t *task = NULL;
-	isc_event_t *eventtab[NEVENTS];
-	isc_event_t *event = NULL;
-	isc_interval_t interval;
-	isc_time_t now;
-	int sender_cnt, type_cnt, tag_cnt, event_cnt, i;
-	int purged = 0;
-
-	atomic_init(&started, false);
-	atomic_init(&done, false);
-	eventcnt = 0;
-
-	isc_condition_init(&cv);
-
-	result = isc_task_create(taskmgr, 0, &task);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_onshutdown(task, pg_sde, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/*
-	 * Block the task on cv.
-	 */
-	event = isc_event_allocate(test_mctx, (void *)1, 9999, pg_event1, NULL,
-				   sizeof(*event));
-
-	assert_non_null(event);
-	isc_task_send(task, &event);
-
-	/*
-	 * Fill the task's queue with some messages with varying
-	 * sender, type, tag, and purgeable attribute values.
-	 */
-	event_cnt = 0;
-	for (sender_cnt = 0; sender_cnt < SENDERCNT; ++sender_cnt) {
-		for (type_cnt = 0; type_cnt < TYPECNT; ++type_cnt) {
-			for (tag_cnt = 0; tag_cnt < TAGCNT; ++tag_cnt) {
-				eventtab[event_cnt] = isc_event_allocate(
-					test_mctx,
-					&senders[sender + sender_cnt],
-					(isc_eventtype_t)(type + type_cnt),
-					pg_event2, NULL, sizeof(*event));
-
-				assert_non_null(eventtab[event_cnt]);
-
-				eventtab[event_cnt]->ev_tag =
-					(void *)((uintptr_t)tag + tag_cnt);
-
-				/*
-				 * Mark events as non-purgeable if
-				 * sender, type and tag are all
-				 * odd-numbered. (There should be 4
-				 * of these out of 60 events total.)
-				 */
-				if (((sender_cnt % 2) != 0) &&
-				    ((type_cnt % 2) != 0) &&
-				    ((tag_cnt % 2) != 0)) {
-					eventtab[event_cnt]->ev_attributes |=
-						ISC_EVENTATTR_NOPURGE;
-				}
-				++event_cnt;
-			}
-		}
-	}
-
-	for (i = 0; i < event_cnt; ++i) {
-		isc_task_send(task, &eventtab[i]);
-	}
-
-	if (testrange) {
-		/*
-		 * We're testing isc_task_purgerange.
-		 */
-		purged = isc_task_purgerange(
-			task, purge_sender, (isc_eventtype_t)purge_type_first,
-			(isc_eventtype_t)purge_type_last, purge_tag);
-		assert_int_equal(purged, exp_purged);
-	} else {
-		/*
-		 * We're testing isc_task_purge.
-		 */
-		if (verbose) {
-			print_message("# purge events %p,%u,%p\n", purge_sender,
-				      purge_type_first, purge_tag);
-		}
-		purged = isc_task_purge(task, purge_sender,
-					(isc_eventtype_t)purge_type_first,
-					purge_tag);
-		if (verbose) {
-			print_message("# purged %d expected %d\n", purged,
-				      exp_purged);
-		}
-
-		assert_int_equal(purged, exp_purged);
-	}
-
-	/*
-	 * Unblock the task, allowing event processing.
-	 */
-	LOCK(&lock);
-	atomic_store(&started, true);
-	SIGNAL(&cv);
-
-	isc_task_shutdown(task);
-
-	isc_interval_set(&interval, 5, 0);
-
-	/*
-	 * Wait for shutdown processing to complete.
-	 */
-	while (!atomic_load(&done)) {
-		result = isc_time_nowplusinterval(&now, &interval);
-		assert_int_equal(result, ISC_R_SUCCESS);
-
-		WAITUNTIL(&cv, &lock, &now);
-	}
-
-	UNLOCK(&lock);
-
-	isc_task_detach(&task);
-
-	assert_int_equal(eventcnt, event_cnt - exp_purged);
-}
-
-/*
- * Purge test:
- * A call to isc_task_purge(task, sender, type, tag) purges all events of
- * type 'type' and with tag 'tag' not marked as unpurgeable from sender
- * from the task's " queue and returns the number of events purged.
- */
-static void
-purge(void **state) {
-	UNUSED(state);
-
-	/* Try purging on a specific sender. */
-	if (verbose) {
-		print_message("# testing purge on 2,4,8 expecting 1\n");
-	}
-	purge_sender = &senders[2];
-	purge_type_first = 4;
-	purge_type_last = 4;
-	purge_tag = (void *)8;
-	testrange = false;
-	test_purge(1, 4, 7, 1);
-
-	/* Try purging on all senders. */
-	if (verbose) {
-		print_message("# testing purge on 0,4,8 expecting 3\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 4;
-	purge_type_last = 4;
-	purge_tag = (void *)8;
-	testrange = false;
-	test_purge(1, 4, 7, 3);
-
-	/* Try purging on all senders, specified type, all tags. */
-	if (verbose) {
-		print_message("# testing purge on 0,4,0 expecting 15\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 4;
-	purge_type_last = 4;
-	purge_tag = NULL;
-	testrange = false;
-	test_purge(1, 4, 7, 15);
-
-	/* Try purging on a specified tag, no such type. */
-	if (verbose) {
-		print_message("# testing purge on 0,99,8 expecting 0\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 99;
-	purge_type_last = 99;
-	purge_tag = (void *)8;
-	testrange = false;
-	test_purge(1, 4, 7, 0);
-
-	/* Try purging on specified sender, type, all tags. */
-	if (verbose) {
-		print_message("# testing purge on 3,5,0 expecting 5\n");
-	}
-	purge_sender = &senders[3];
-	purge_type_first = 5;
-	purge_type_last = 5;
-	purge_tag = NULL;
-	testrange = false;
-	test_purge(1, 4, 7, 5);
-}
-
-/*
- * Purge range test:
- * A call to isc_event_purgerange(task, sender, first, last, tag) purges
- * all events not marked unpurgeable from sender 'sender' and of type within
- * the range 'first' to 'last' inclusive from the task's event queue and
- * returns the number of tasks purged.
- */
-
-static void
-purgerange(void **state) {
-	UNUSED(state);
-
-	/* Now let's try some ranges. */
-	/* testing purgerange on 2,4-5,8 expecting 1 */
-	purge_sender = &senders[2];
-	purge_type_first = 4;
-	purge_type_last = 5;
-	purge_tag = (void *)8;
-	testrange = true;
-	test_purge(1, 4, 7, 1);
-
-	/* Try purging on all senders. */
-	if (verbose) {
-		print_message("# testing purge on 0,4-5,8 expecting 5\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 4;
-	purge_type_last = 5;
-	purge_tag = (void *)8;
-	testrange = true;
-	test_purge(1, 4, 7, 5);
-
-	/* Try purging on all senders, specified type, all tags. */
-	if (verbose) {
-		print_message("# testing purge on 0,5-6,0 expecting 28\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 5;
-	purge_type_last = 6;
-	purge_tag = NULL;
-	testrange = true;
-	test_purge(1, 4, 7, 28);
-
-	/* Try purging on a specified tag, no such type. */
-	if (verbose) {
-		print_message("# testing purge on 0,99-101,8 expecting 0\n");
-	}
-	purge_sender = NULL;
-	purge_type_first = 99;
-	purge_type_last = 101;
-	purge_tag = (void *)8;
-	testrange = true;
-	test_purge(1, 4, 7, 0);
-
-	/* Try purging on specified sender, type, all tags. */
-	if (verbose) {
-		print_message("# testing purge on 3,5-6,0 expecting 10\n");
-	}
-	purge_sender = &senders[3];
-	purge_type_first = 5;
-	purge_type_last = 6;
-	purge_tag = NULL;
-	testrange = true;
-	test_purge(1, 4, 7, 10);
-}
 
 /*
  * Helpers for purge event tests
@@ -1339,7 +998,7 @@ pge_sde(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-try_purgeevent(bool purgeable) {
+try_purgeevent(void) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 	bool purged;
@@ -1375,16 +1034,11 @@ try_purgeevent(bool purgeable) {
 
 	event2_clone = event2;
 
-	if (purgeable) {
-		event2->ev_attributes &= ~ISC_EVENTATTR_NOPURGE;
-	} else {
-		event2->ev_attributes |= ISC_EVENTATTR_NOPURGE;
-	}
-
 	isc_task_send(task, &event2);
 
 	purged = isc_task_purgeevent(task, event2_clone);
-	assert_int_equal(purgeable, purged);
+
+	assert_true(purged);
 
 	/*
 	 * Unblock the task, allowing event processing.
@@ -1410,8 +1064,6 @@ try_purgeevent(bool purgeable) {
 	UNLOCK(&lock);
 
 	isc_task_detach(&task);
-
-	assert_int_equal(eventcnt, (purgeable ? 0 : 1));
 }
 
 /*
@@ -1425,21 +1077,7 @@ static void
 purgeevent(void **state) {
 	UNUSED(state);
 
-	try_purgeevent(true);
-}
-
-/*
- * Purge event not purgeable test:
- * When the event is not marked as purgable, a call to
- * isc_task_purgeevent(task, event) does not purge the event
- * 'event' from the task's queue and returns false.
- */
-
-static void
-purgeevent_notpurge(void **state) {
-	UNUSED(state);
-
-	try_purgeevent(false);
+	try_purgeevent();
 }
 
 int
@@ -1455,11 +1093,7 @@ main(int argc, char **argv) {
 						_teardown),
 		cmocka_unit_test_setup_teardown(privileged_events, _setup,
 						_teardown),
-		cmocka_unit_test_setup_teardown(purge, _setup2, _teardown),
 		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(purgeevent_notpurge, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(task_shutdown, _setup4,
 						_teardown),
 		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
