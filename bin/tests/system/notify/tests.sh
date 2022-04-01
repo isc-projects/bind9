@@ -211,5 +211,9 @@ grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null |
 
 test_end
 
+test_start "checking notify retries expire within 45 seconds ($n)"
+wait_for_log 45 'retries exceeded' ns3/named.run || ret=1
+test_end
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

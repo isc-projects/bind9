@@ -32,4 +32,6 @@ zone "example" {
 	type secondary;
 	primaries { 10.53.0.2; };
 	file "example.bk";
+	# non-responsive notify recipient (no reply, no ICMP errors)
+	also-notify { 10.53.10.53; };
 };
