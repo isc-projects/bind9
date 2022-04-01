@@ -304,8 +304,8 @@ basic(void **state) {
 	isc_task_detach(&task4);
 
 	sleep(10);
-	isc_timer_detach(&ti1);
-	isc_timer_detach(&ti2);
+	isc_timer_destroy(&ti1);
+	isc_timer_destroy(&ti2);
 }
 
 /*

@@ -59,9 +59,9 @@ struct isc_timer {
 	unsigned int magic;
 	isc_timermgr_t *manager;
 	isc_mutex_t lock;
-	isc_refcount_t references;
 	/*! Locked by timer lock. */
 	isc_time_t idle;
+	ISC_LIST(isc_timerevent_t) active;
 	/*! Locked by manager lock. */
 	isc_timertype_t type;
 	isc_interval_t interval;
@@ -70,7 +70,6 @@ struct isc_timer {
 	void *arg;
 	unsigned int index;
 	isc_time_t due;
-	ISC_LIST(isc_timerevent_t) active;
 	LINK(isc_timer_t) link;
 };
 
@@ -201,13 +200,14 @@ timerevent_destroy(isc_event_t *event0) {
 	isc_timer_t *timer = event0->ev_destroy_arg;
 	isc_timerevent_t *event = (isc_timerevent_t *)event0;
 
+	LOCK(&timer->lock);
 	if (ISC_LINK_LINKED(event, ev_timerlink)) {
 		/* The event was unlinked via timer_purge() */
 		timerevent_unlink(timer, event);
 	}
+	UNLOCK(&timer->lock);
 
 	isc_mem_put(timer->manager->mctx, event, event0->ev_size);
-	isc_timer_detach(&timer);
 }
 
 static void
@@ -215,8 +215,10 @@ timer_purge(isc_timer_t *timer) {
 	isc_timerevent_t *event = NULL;
 
 	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
+		UNLOCK(&timer->lock);
 		bool purged = isc_task_purgeevent(timer->task,
 						  (isc_event_t *)event);
+		LOCK(&timer->lock);
 		if (!purged) {
 			/*
 			 * The event has already been executed, but not
@@ -225,25 +227,6 @@ timer_purge(isc_timer_t *timer) {
 			timerevent_unlink(timer, event);
 		}
 	}
-}
-
-static void
-destroy(isc_timer_t *timer) {
-	isc_timermgr_t *manager = timer->manager;
-
-	LOCK(&manager->lock);
-
-	timer_purge(timer);
-	deschedule(timer);
-
-	UNLINK(manager->timers, timer, link);
-
-	UNLOCK(&manager->lock);
-
-	isc_task_detach(&timer->task);
-	isc_mutex_destroy(&timer->lock);
-	timer->magic = 0;
-	isc_mem_put(manager->mctx, timer, sizeof(*timer));
 }
 
 void
@@ -271,8 +254,6 @@ isc_timer_create(isc_timermgr_t *manager, isc_task_t *task,
 		.action = action,
 		.arg = arg,
 	};
-
-	isc_refcount_init(&timer->references, 1);
 
 	isc_time_settoepoch(&timer->idle);
 
@@ -378,30 +359,32 @@ isc_timer_gettype(isc_timer_t *timer) {
 }
 
 void
-isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
-	REQUIRE(VALID_TIMER(timer));
-	REQUIRE(timerp != NULL && *timerp == NULL);
-	isc_refcount_increment(&timer->references);
+isc_timer_destroy(isc_timer_t **timerp) {
+	isc_timer_t *timer = NULL;
+	isc_timermgr_t *manager = NULL;
 
-	*timerp = timer;
-}
+	REQUIRE(timerp != NULL && VALID_TIMER(*timerp));
 
-void
-isc_timer_detach(isc_timer_t **timerp) {
-	isc_timer_t *timer;
-	/*
-	 * Detach *timerp from its timer.
-	 */
-
-	REQUIRE(timerp != NULL);
 	timer = *timerp;
-	REQUIRE(VALID_TIMER(timer));
-
-	if (isc_refcount_decrement(&timer->references) == 1) {
-		destroy(timer);
-	}
-
 	*timerp = NULL;
+
+	manager = timer->manager;
+
+	LOCK(&manager->lock);
+
+	LOCK(&timer->lock);
+	timer_purge(timer);
+	deschedule(timer);
+	UNLOCK(&timer->lock);
+
+	UNLINK(manager->timers, timer, link);
+
+	UNLOCK(&manager->lock);
+
+	isc_task_detach(&timer->task);
+	isc_mutex_destroy(&timer->lock);
+	timer->magic = 0;
+	isc_mem_put(manager->mctx, timer, sizeof(*timer));
 }
 
 static void
@@ -415,13 +398,13 @@ post_event(isc_timermgr_t *manager, isc_timer_t *timer, isc_eventtype_t type) {
 
 	ISC_LINK_INIT(event, ev_timerlink);
 	((isc_event_t *)event)->ev_destroy = timerevent_destroy;
-
-	isc_timer_attach(timer, &(isc_timer_t *){ NULL });
 	((isc_event_t *)event)->ev_destroy_arg = timer;
 
 	event->due = timer->due;
 
+	LOCK(&timer->lock);
 	ISC_LIST_APPEND(timer->active, event, ev_timerlink);
+	UNLOCK(&timer->lock);
 
 	isc_task_send(timer->task, ISC_EVENT_PTR(&event));
 }
