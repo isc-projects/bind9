@@ -323,6 +323,7 @@ stages:
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
     - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" *.log ); fi
   after_script:
+    - (source bin/tests/system/conf.sh; $PYTHON bin/tests/convert-trs-to-junit.py . > junit.xml)
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - test -d bind-* && cd bind-*
     - cat bin/tests/system/test-suite.log
@@ -333,7 +334,9 @@ stages:
   artifacts:
     untracked: true
     expire_in: "1 day"
-    when: on_failure
+    when: always
+    reports:
+      junit: junit.xml
 
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
@@ -347,10 +350,13 @@ stages:
   after_script:
     - cat bin/tests/system/test-suite.log
     - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - (source bin/tests/system/conf.sh; $PYTHON bin/tests/convert-trs-to-junit.py . > junit.xml)
   artifacts:
     expire_in: "1 day"
     untracked: true
-    when: on_failure
+    when: always
+    reports:
+      junit: junit.xml
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
@@ -360,6 +366,7 @@ stages:
   script:
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
   after_script:
+    - (source bin/tests/system/conf.sh; $PYTHON bin/tests/convert-trs-to-junit.py . > junit.xml)
     - *save_out_of_tree_workspace
 
 .unit_test: &unit_test_job
@@ -367,7 +374,9 @@ stages:
   artifacts:
     untracked: true
     expire_in: "1 day"
-    when: on_failure
+    when: always
+    reports:
+      junit: junit.xml
 
 .unit_test_gcov: &unit_test_gcov_job
   <<: *unit_test_common
@@ -380,12 +389,16 @@ stages:
   <<: *unit_test_common
   after_script:
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - (source bin/tests/system/conf.sh; $PYTHON bin/tests/convert-trs-to-junit.py . > junit.xml)
   artifacts:
     expire_in: "1 day"
     paths:
       - lib/*/tests/tsan.*
       - tsan/
-    when: on_failure
+      - junit.xml
+    when: always
+    reports:
+      junit: junit.xml
 
 .docs: &docs_job
   stage: docs
