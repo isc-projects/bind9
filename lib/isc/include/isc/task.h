@@ -488,6 +488,15 @@ isc_task_gettag(isc_task_t *task);
  *\li	'task' is a valid task.
  */
 
+void
+isc_task_setquantum(isc_task_t *task, unsigned int quantum);
+/*%<
+ * Set future 'task' quantum to 'quantum'.  The current 'task' quantum will be
+ * kept for the current isc_task_run() loop, and will be changed for the next
+ * run.  Therefore, the function is save to use from the event callback as it
+ * will not affect the current event loop processing.
+ */
+
 isc_result_t
 isc_task_beginexclusive(isc_task_t *task);
 /*%<
