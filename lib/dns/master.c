@@ -790,7 +790,8 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_textregion_t r;
-	int i, n, start, stop, step = 0;
+	int n, start, stop, step = 0;
+	unsigned int i;
 	dns_incctx_t *ictx;
 	char dummy[2];
 
@@ -845,7 +846,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		goto insist_cleanup;
 	}
 
-	for (i = start; i <= stop; i += step) {
+	for (i = start; i <= (unsigned int)stop; i += step) {
 		result = genname(lhs, i, lhsbuf, DNS_MASTER_LHS);
 		if (result != ISC_R_SUCCESS) {
 			goto error_cleanup;
