@@ -535,7 +535,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		tcp = true;
 		request->timeout = timeout * 1000;
 	} else {
-		if (udptimeout == 0 && udpretries != 0) {
+		if (udptimeout == 0) {
 			udptimeout = timeout / (udpretries + 1);
 		}
 		if (udptimeout == 0) {
@@ -1080,7 +1080,8 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 
 	if (result == ISC_R_TIMEDOUT) {
 		LOCK(&request->requestmgr->locks[request->hash]);
-		if (--request->udpcount != 0) {
+		if (request->udpcount != 0) {
+			request->udpcount -= 1;
 			dns_dispatch_resume(request->dispentry,
 					    request->timeout);
 			if (!DNS_REQUEST_SENDING(request)) {

@@ -1458,7 +1458,6 @@ plus_option(char *option, struct query *query, bool global) {
 				result = parse_uint(&query->udpretries, value,
 						    MAXTRIES - 1, "udpretries");
 				CHECK("parse_uint(udpretries)", result);
-				query->udpretries++;
 				break;
 			default:
 				goto invalid_option;
@@ -1579,8 +1578,8 @@ plus_option(char *option, struct query *query, bool global) {
 			result = parse_uint(&query->udpretries, value, MAXTRIES,
 					    "udpretries");
 			CHECK("parse_uint(udpretries)", result);
-			if (query->udpretries == 0) {
-				query->udpretries = 1;
+			if (query->udpretries > 0) {
+				query->udpretries -= 1;
 			}
 			break;
 		case 't':
@@ -1947,7 +1946,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 		default_query.ecs_addr = NULL;
 		default_query.timeout = 0;
 		default_query.udptimeout = 0;
-		default_query.udpretries = 3;
+		default_query.udpretries = 2;
 		ISC_LINK_INIT(&default_query, link);
 	}
 
