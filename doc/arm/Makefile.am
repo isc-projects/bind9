@@ -53,6 +53,7 @@ EXTRA_DIST =					\
 	tkey.inc.rst				\
 	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
+	zones.inc.rst				\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
 	../misc/controls.grammar.rst		\
