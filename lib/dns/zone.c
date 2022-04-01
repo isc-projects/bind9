@@ -850,6 +850,11 @@ unsigned int dns_zone_mkey_month = MONTH;
 #define SEND_BUFFER_SIZE 2048
 
 static void
+zone_timer_start(dns_zone_t *zone, isc_time_t *next, isc_time_t *now);
+static void
+zone_timer_stop(dns_zone_t *zone);
+
+static void
 zone_settimer(dns_zone_t *, isc_time_t *);
 static void
 cancel_refresh(dns_zone_t *);
@@ -15077,6 +15082,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	forward_cancel(zone);
 
 	if (zone->timer != NULL) {
+		zone_timer_stop(zone);
 		isc_timer_detach(&zone->timer);
 		isc_refcount_decrement(&zone->irefs);
 	}
@@ -15130,10 +15136,40 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
+zone_timer_start(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
+	isc_interval_t interval;
+	isc_result_t result;
+
+	if (isc_time_compare(next, now) <= 0) {
+		isc_interval_set(&interval, 0, 1);
+	} else {
+		isc_time_subtract(next, now, &interval);
+	}
+
+	result = isc_timer_reset(zone->timer, isc_timertype_once, &interval,
+				 true);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "could not reset zone timer: %s",
+			     isc_result_totext(result));
+	}
+}
+
+static void
+zone_timer_stop(dns_zone_t *zone) {
+	isc_result_t result = isc_timer_reset(
+		zone->timer, isc_timertype_inactive, NULL, true);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "could not deactivate zone timer: %s",
+			     isc_result_totext(result));
+	}
+}
+
+static void
 zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	const char me[] = "zone_settimer";
 	isc_time_t next;
-	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
@@ -15272,28 +15308,9 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 	if (isc_time_isepoch(&next)) {
 		zone_debuglog(zone, me, 10, "settimer inactive");
-		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
-					 NULL, true);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "could not deactivate zone timer: %s",
-				     isc_result_totext(result));
-		}
+		zone_timer_stop(zone);
 	} else {
-		isc_interval_t interval;
-		if (isc_time_compare(&next, now) <= 0) {
-			isc_interval_set(&interval, 0, 1);
-		} else {
-			isc_time_subtract(&next, now, &interval);
-		}
-
-		result = isc_timer_reset(zone->timer, isc_timertype_once,
-					 &interval, true);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "could not reset zone timer: %s",
-				     isc_result_totext(result));
-		}
+		zone_timer_start(zone, &next, now);
 	}
 }
 
