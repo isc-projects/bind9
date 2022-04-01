@@ -37,6 +37,7 @@ usage(void) {
 	fprintf(stderr, "\t--edns-version\n");
 	fprintf(stderr, "\t--enable-dnsrps\n");
 	fprintf(stderr, "\t--enable-dnstap\n");
+	fprintf(stderr, "\t--enable-querytrace\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
 	fprintf(stderr, "\t--have-geoip2\n");
@@ -79,6 +80,14 @@ main(int argc, char **argv) {
 #else  /* ifdef HAVE_DNSTAP */
 		return (1);
 #endif /* ifdef HAVE_DNSTAP */
+	}
+
+	if (strcmp(argv[1], "--enable-querytrace") == 0) {
+#ifdef WANT_QUERYTRACE
+		return (0);
+#else  /* ifdef WANT_QUERYTRACE */
+		return (1);
+#endif /* ifdef WANT_QUERYTRACE */
 	}
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
