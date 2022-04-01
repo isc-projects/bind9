@@ -120,3 +120,13 @@ OPENSSL_cleanup(void);
 #if !HAVE_TLS_CLIENT_METHOD
 #define TLS_client_method SSLv23_client_method
 #endif
+
+#if !HAVE_X509_STORE_UP_REF
+int
+X509_STORE_up_ref(X509_STORE *v);
+#endif /* !HAVE_OPENSSL_CLEANUP */
+
+#if !HAVE_SSL_CTX_SET1_CERT_STORE
+void
+SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store);
+#endif /* !HAVE_SSL_CTX_SET1_CERT_STORE */
