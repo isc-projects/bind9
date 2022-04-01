@@ -800,6 +800,16 @@ isc_task_getnetmgr(isc_task_t *task) {
 	return (task->manager->netmgr);
 }
 
+void
+isc_task_setquantum(isc_task_t *task, unsigned int quantum) {
+	REQUIRE(VALID_TASK(task));
+
+	LOCK(&task->lock);
+	task->quantum = (quantum > 0) ? quantum
+				      : task->manager->default_quantum;
+	UNLOCK(&task->lock);
+}
+
 /***
  *** Task Manager.
  ***/
@@ -810,10 +820,13 @@ task_run(isc_task_t *task) {
 	bool finished = false;
 	isc_event_t *event = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
+	uint32_t quantum;
 
 	REQUIRE(VALID_TASK(task));
 
 	LOCK(&task->lock);
+	quantum = task->quantum;
+
 	/*
 	 * It is possible because that we have a paused task in the queue - it
 	 * might have been paused in the meantime and we never hold both queue
@@ -905,7 +918,7 @@ task_run(isc_task_t *task) {
 			XTRACE("pausing");
 			task->state = task_state_paused;
 			break;
-		} else if (dispatch_count >= task->quantum) {
+		} else if (dispatch_count >= quantum) {
 			/*
 			 * Our quantum has expired, but there is more work to be
 			 * done.  We'll requeue it to the ready queue later.

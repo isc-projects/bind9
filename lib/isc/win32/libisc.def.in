@@ -647,6 +647,7 @@ isc_task_sendto
 isc_task_sendtoanddetach
 isc_task_setname
 isc_task_setprivilege
+isc_task_setquantum
 isc_task_shutdown
 isc_task_unpause
 isc_task_unsend
