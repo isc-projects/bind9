@@ -226,25 +226,9 @@ isc_timer_touch(isc_timer_t *timer);
  */
 
 void
-isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp);
+isc_timer_destroy(isc_timer_t **timerp);
 /*%<
- * Attach *timerp to timer.
- *
- * Requires:
- *
- *\li	'timer' is a valid timer.
- *
- *\li	'timerp' points to a NULL timer.
- *
- * Ensures:
- *
- *\li	*timerp is attached to timer.
- */
-
-void
-isc_timer_detach(isc_timer_t **timerp);
-/*%<
- * Detach *timerp from its timer.
+ * Destroy *timerp.
  *
  * Requires:
  *
@@ -254,9 +238,6 @@ isc_timer_detach(isc_timer_t **timerp);
  *
  *\li	*timerp is NULL.
  *
- *\li	If '*timerp' is the last reference to the timer,
- *	then:
- *
  *\code
  *		The timer will be shutdown
  *
@@ -265,9 +246,13 @@ isc_timer_detach(isc_timer_t **timerp);
  *		All resources used by the timer have been freed
  *
  *		Any events already posted by the timer will be purged.
- *		Therefore, if isc_timer_detach() is called in the context
+ *		Therefore, if isc_timer_destroy() is called in the context
  *		of the timer's task, it is guaranteed that no more
  *		timer event callbacks will run after the call.
+ *
+ *		If this function is called from the timer event callback
+ *		the event itself must be destroyed before the timer
+ *		itself.
  *\endcode
  */
 

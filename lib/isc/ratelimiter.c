@@ -242,6 +242,7 @@ void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	isc_event_t *ev;
 	isc_task_t *task;
+	isc_result_t result;
 
 	REQUIRE(rl != NULL);
 
@@ -257,7 +258,11 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	}
 	task = NULL;
 	isc_task_attach(rl->task, &task);
-	isc_timer_detach(&rl->timer);
+
+	result = isc_timer_reset(rl->timer, isc_timertype_inactive, NULL, NULL,
+				 false);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_timer_destroy(&rl->timer);
 
 	/*
 	 * Send an event to our task.  The delivery of this event

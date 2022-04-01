@@ -631,8 +631,8 @@ basic(void **state) {
 #else  /* ifndef WIN32 */
 	Sleep(10000);
 #endif /* ifndef WIN32 */
-	isc_timer_detach(&ti1);
-	isc_timer_detach(&ti2);
+	isc_timer_destroy(&ti1);
+	isc_timer_destroy(&ti2);
 }
 
 /*

@@ -77,7 +77,7 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 			(void)isc_timer_reset(nta->timer,
 					      isc_timertype_inactive, NULL,
 					      NULL, true);
-			isc_timer_detach(&nta->timer);
+			isc_timer_destroy(&nta->timer);
 		}
 		if (dns_rdataset_isassociated(&nta->rdataset)) {
 			dns_rdataset_disassociate(&nta->rdataset);
@@ -293,6 +293,9 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 	result = isc_timer_create(ntatable->timermgr, isc_timertype_ticker,
 				  NULL, &interval, ntatable->task, checkbogus,
 				  nta, &nta->timer);
+	if (result != ISC_R_SUCCESS) {
+		isc_timer_destroy(&nta->timer);
+	}
 	return (result);
 }
 
@@ -479,7 +482,7 @@ again:
 			(void)isc_timer_reset(nta->timer,
 					      isc_timertype_inactive, NULL,
 					      NULL, true);
-			isc_timer_detach(&nta->timer);
+			isc_timer_destroy(&nta->timer);
 		}
 
 		result = deletenode(ntatable, foundname);
