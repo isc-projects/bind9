@@ -24,7 +24,7 @@ unsupportedkey=Kunknown.+255+00000
 cp unsupported-managed.key "${unsupportedkey}.key"
 
 # root key
-rootkey=`cat ../ns1/managed.key`
+rootkey=$(cat ../ns1/managed.key)
 cp "../ns1/${rootkey}.key" .
 
 # Configure the resolving server with an initializing key.
