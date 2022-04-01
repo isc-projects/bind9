@@ -19,6 +19,7 @@
 #include <isc/assertions.h>
 #include <isc/lang.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #define ISC_HASHSIZE(bits)  (UINT64_C(1) << (bits))
 #define ISC_HASH_OVERCOMMIT 3
@@ -80,12 +81,12 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive);
  * \li a hash value of length 'bits'.
  */
 #define ISC_HASH_GOLDENRATIO_32 0x61C88647
-#define isc_hash_bits32(val, bits)                                      \
-	({                                                              \
-		REQUIRE(bits <= 32U);                                   \
-		uint32_t __v = (val & 0xffff);                          \
-		__v = ((__v * ISC_HASH_GOLDENRATIO_32) >> (32 - bits)); \
-		__v;                                                    \
-	})
+
+static inline uint32_t
+isc_hash_bits32(uint32_t val, unsigned int bits) {
+	ISC_REQUIRE(bits <= ISC_HASH_MAX_BITS);
+	/* High bits are more random. */
+	return (val * ISC_HASH_GOLDENRATIO_32 >> (32 - bits));
+}
 
 ISC_LANG_ENDDECLS
