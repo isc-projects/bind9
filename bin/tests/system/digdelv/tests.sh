@@ -1071,6 +1071,16 @@ if [ -x "$DIG" ] ; then
   grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
+
+  # See [GL #3248] for more information
+  n=$((n+1))
+  echo_i "check that dig correctly refuses to use a server with a IPv4 mapped IPv6 address after failing with a regular IP address ($n)"
+  ret=0
+  dig_with_opts @10.53.0.8 @::ffff:10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Skipping mapped address" dig.out.test$n > /dev/null || ret=1
+  grep -F ";; No acceptable nameservers" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
