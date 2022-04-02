@@ -9,10 +9,10 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. Reference:
+.. _reference:
 
-BIND 9 Configuration Reference
-==============================
+Configuration Reference
+=======================
 
 .. _configuration_file_elements:
 
@@ -245,7 +245,7 @@ line, as in C++ comments. For example:
    in a zone file. The semicolon indicates the end of a
    configuration statement.
 
-.. _Configuration_File_Grammar:
+.. _configuration_file_grammar:
 
 Configuration File Grammar
 --------------------------
@@ -284,6 +284,8 @@ The following statements are supported:
     ``parental-agents``
         Defines a named list of servers for inclusion in primary and secondary zones' ``parental-agents`` lists.
 
+.. _primaries:
+
     ``primaries``
         Defines a named list of servers for inclusion in stub and secondary zones' ``primaries`` or ``also-notify`` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
 
@@ -310,6 +312,8 @@ The following statements are supported:
 
     ``view``
         Defines a view.
+
+.. _zone_clause:
 
     ``zone``
         Defines a zone.
@@ -585,6 +589,8 @@ handles messages sent to this facility is described in the
 ``syslog.conf`` man page. On a system which uses a very old
 version of ``syslog``, which only uses two arguments to the ``openlog()``
 function, this clause is silently ignored.
+
+.. _severity:
 
 The ``severity`` clause works like ``syslog``'s "priorities," except
 that they can also be used when writing straight to a file rather
@@ -981,6 +987,8 @@ default is used.
    answer does not make sense or could even be harmful. It is the
    administrator's responsibility to ensure that configuration differences in
    different views do not cause disruption with a shared cache.
+
+.. _directory:
 
 ``directory``
    This sets the working directory of the server. Any non-absolute pathnames in
@@ -1819,9 +1827,11 @@ Boolean Options
    unnecessary records are added to the authority or additional
    sections. The default is ``no``.
 
+.. _notify_st:
+
 ``notify``
    If set to ``yes`` (the default), DNS NOTIFY messages are sent when a
-   zone the server is authoritative for changes; see :ref:`notify`.
+   zone the server is authoritative for changes; see :ref:`using notify<notify>`.
    The messages are sent to the servers listed in the zone's NS records
    (except the primary server identified in the SOA MNAME field), and to
    any servers listed in the ``also-notify`` option.
@@ -1844,6 +1854,8 @@ Boolean Options
    hidden primary configurations; in that case, the
    ultimate primary should be set to still send NOTIFY messages to all the name servers
    listed in the NS RRset.
+
+.. _recursion:
 
 ``recursion``
    If ``yes``, and a DNS query requests recursion, then the server
@@ -2310,12 +2322,16 @@ access to the Internet, but wish to look up exterior names anyway.
 Forwarding occurs only on those queries for which the server is not
 authoritative and does not have the answer in its cache.
 
+.. _forward:
+
 ``forward``
    This option is only meaningful if the forwarders list is not empty. A
    value of ``first`` is the default and causes the server to query the
    forwarders first; if that does not answer the question, the
    server then looks for the answer itself. If ``only`` is
    specified, the server only queries the forwarders.
+
+.. _forwarders:
 
 ``forwarders``
    This specifies a list of IP addresses to which queries are forwarded. The
@@ -2394,6 +2410,8 @@ for details on how to specify IP address lists.
 
    .. note:: ``allow-query-cache`` is used to specify access to the cache.
 
+.. _allow-query-cache:
+
 ``allow-query-cache``
    This specifies which hosts are allowed to get answers from the cache. If
    ``allow-recursion`` is not set, BIND checks to see if the following parameters
@@ -2460,6 +2478,8 @@ for details on how to specify IP address lists.
    forwarding updates.
 
 .. _allow-transfer-access:
+
+.. _allow-transfer:
 
 ``allow-transfer``
    This specifies which hosts are allowed to receive zone transfers from the
@@ -2719,6 +2739,8 @@ Zone Transfers
 BIND has mechanisms in place to facilitate zone transfers and set limits
 on the amount of load that transfers place on the system. The following
 options apply to zone transfers.
+
+.. _also-notify:
 
 ``also-notify``
    This option defines a global list of IP addresses of name servers that are also
@@ -3119,6 +3141,8 @@ system.
 
 ``reserved-sockets``
    This option is deprecated and no longer has any effect.
+
+.. _max-cache-size:
 
 ``max-cache-size``
    This sets the maximum amount of memory to use for an individual cache
@@ -3948,8 +3972,12 @@ away from the infrastructure servers.
    This specifies the contact name that appears in the returned SOA record for
    empty zones. If none is specified, "." is used.
 
+.. _empty-zones-enable:
+
 ``empty-zones-enable``
    This enables or disables all empty zones. By default, they are enabled.
+
+.. _disable-empty-zone:
 
 ``disable-empty-zone``
    This disables individual empty zones. By default, none are disabled. This
@@ -5581,6 +5609,8 @@ Here is an example of a typical split DNS setup implemented using
 
 .. _zone_types:
 
+.. _type:
+
 Zone Types
 ^^^^^^^^^^
 
@@ -5834,6 +5864,8 @@ Zone Options
 ``allow-notify``
    See the description of ``allow-notify`` in :ref:`access_control`.
 
+.. _allow-query:
+
 ``allow-query``
    See the description of ``allow-query`` in :ref:`access_control`.
 
@@ -5929,6 +5961,8 @@ Zone Options
    See caveats in :ref:`root-delegation-only <root-delegation-only>`.
 
 .. _file-option:
+
+.. _file:
 
 ``file``
    This sets the zone's filename. In ``primary``, ``hint``, and ``redirect``
