@@ -9,5 +9,9 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. include:: configuration.inc.rst
+.. highlight:: none
+
+.. include:: config-intro.inc.rst
+.. include:: config-auth.inc.rst
+.. include:: config-resolve.inc.rst
 .. include:: zones.inc.rst
