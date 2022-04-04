@@ -81,7 +81,7 @@ _teardown(void **state) {
 }
 
 static void
-shutdown(isc_task_t *task, isc_event_t *event) {
+test_shutdown(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	UNUSED(task);
@@ -121,7 +121,7 @@ setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_task_onshutdown(task, shutdown, NULL);
+	result = isc_task_onshutdown(task, test_shutdown, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mutex_lock(&lasttime_mx);
