@@ -1,3 +1,6 @@
+5850.	[func]		Run the RPZ update process on the offload threads.
+			[GL #3190]
+
 5848.	[bug]		dig could hang in some cases involving multiple servers
 			in a lookup, when a request fails and the next one
 			refuses to start for some reason, for example if it was
