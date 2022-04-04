@@ -1726,6 +1726,29 @@ Boolean Options
    If ``yes``, respond to root key sentinel probes as described in
    draft-ietf-dnsop-kskroll-sentinel-08. The default is ``yes``.
 
+``load-balance-sockets``
+
+   This option enables kernel load-balancing of sockets on systems which support
+   it, including Linux and FreeBSD. This instructs the kernel to distribute
+   incoming socket connections among the networking threads based on a hashing
+   scheme. For more information, see the receive network flow classification
+   options (``rx-flow-hash``) section in the ``ethtool`` manual page. The
+   default is ``yes``.
+
+   Enabling ``load-balance-sockets`` significantly increases general throughput
+   when incoming traffic is distributed uniformly onto the threads by the
+   operating system. However, in cases where a worker thread is busy with a
+   long-lasting operation, such as processing a Response Policy Zone (RPZ) or
+   Catalog Zone update or an unusually large zone transfer, incoming traffic
+   that hashes onto that thread may be delayed. On servers where these events
+   occur frequently, it may be preferable to disable socket load-balancing so
+   that other threads can pick up the traffic that would have been sent to the
+   busy thread.
+
+   Note: this option can only be set when ``named`` first starts.
+   Changes will not take effect during reconfiguration; the server
+   must be restarted.
+
 ``message-compression``
    If ``yes``, DNS name compression is used in responses to regular
    queries (not including AXFR or IXFR, which always use compression).

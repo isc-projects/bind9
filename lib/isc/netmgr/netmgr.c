@@ -233,6 +233,11 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	atomic_init(&mgr->send_tcp_buffer_size, 0);
 	atomic_init(&mgr->recv_udp_buffer_size, 0);
 	atomic_init(&mgr->send_udp_buffer_size, 0);
+#if HAVE_SO_REUSEPORT_LB
+	mgr->load_balance_sockets = true;
+#else
+	mgr->load_balance_sockets = false;
+#endif
 
 #ifdef NETMGR_TRACE
 	ISC_LIST_INIT(mgr->active_sockets);
@@ -571,6 +576,17 @@ isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
 	atomic_store(&mgr->send_tcp_buffer_size, send_tcp);
 	atomic_store(&mgr->recv_udp_buffer_size, recv_udp);
 	atomic_store(&mgr->send_udp_buffer_size, send_udp);
+}
+
+void
+isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled) {
+	REQUIRE(VALID_NM(mgr));
+
+#if HAVE_SO_REUSEPORT_LB
+	mgr->load_balance_sockets = enabled;
+#else
+	UNUSED(enabled);
+#endif
 }
 
 void

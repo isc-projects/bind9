@@ -59,17 +59,25 @@ options {\n\
 	edns-udp-size 1232;\n\
 	files unlimited;\n"
 #if defined(HAVE_GEOIP2)
-			    "	geoip-directory \"" MAXMINDDB_PREFIX "/share/"
-			    "GeoIP\";"
-			    "\n"
+			    "\
+	geoip-directory \"" MAXMINDDB_PREFIX "/share/GeoIP\";\n"
 #elif defined(HAVE_GEOIP2)
-			    "	geoip-directory \".\";\n"
+			    "\
+	geoip-directory \".\";\n"
 #endif /* if defined(HAVE_GEOIP2) */
 			    "\
 	heartbeat-interval 60;\n\
 	interface-interval 60;\n\
 	listen-on {any;};\n\
-	listen-on-v6 {any;};\n\
+	listen-on-v6 {any;};\n"
+#if HAVE_SO_REUSEPORT_LB
+			    "\
+	load-balance-sockets yes;\n"
+#else
+			    "\
+	load-balance-sockets no;\n"
+#endif
+			    "\
 #	lock-file \"" NAMED_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	match-mapped-addresses no;\n\
 	max-ixfr-ratio 100%;\n\
@@ -84,10 +92,11 @@ options {\n\
 	port 53;\n\
 	tls-port 853;\n"
 #if HAVE_LIBNGHTTP2
-			    "http-port 80;\n"
-			    "https-port 443;\n"
-			    "http-listener-clients 300;\n"
-			    "http-streams-per-connection 100;\n"
+			    "\
+	http-port 80;\n\
+	https-port 443;\n\
+	http-listener-clients 300;\n\
+	http-streams-per-connection 100;\n"
 #endif
 			    "\
 	prefetch 2 9;\n\

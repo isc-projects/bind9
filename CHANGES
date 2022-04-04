@@ -1,3 +1,6 @@
+5852.	[func]		Add new "load-balance-socket" option to
+			enable/disable load balancing of sockets. [GL #3249]
+
 5851.	[placeholder]
 
 5850.	[func]		Run the RPZ update process on the offload threads.
