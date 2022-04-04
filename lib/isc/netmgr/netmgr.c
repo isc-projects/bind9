@@ -580,6 +580,13 @@ isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
 	atomic_store(&mgr->send_udp_buffer_size, send_udp);
 }
 
+bool
+isc_nm_getloadbalancesockets(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
+
+	return (mgr->load_balance_sockets);
+}
+
 void
 isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled) {
 	REQUIRE(VALID_NM(mgr));
