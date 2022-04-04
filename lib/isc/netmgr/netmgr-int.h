@@ -714,6 +714,8 @@ struct isc_nm {
 	atomic_uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;
 
+	bool load_balance_sockets;
+
 	atomic_bool paused;
 
 	/*
