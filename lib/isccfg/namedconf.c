@@ -1222,6 +1222,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "keep-response-order", &cfg_type_bracketed_aml, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
+	{ "load-balance-sockets", &cfg_type_boolean, 0 },
 	{ "lock-file", &cfg_type_qstringornone, 0 },
 	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },

@@ -472,6 +472,7 @@ isc_nm_read
 isc_nm_resume
 isc_nm_resumeread
 isc_nm_send
+isc_nm_setloadbalancesockets
 isc_nm_setstats
 isc_nm_settimeouts
 isc_nm_stoplistening

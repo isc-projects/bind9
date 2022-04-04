@@ -310,6 +310,11 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	atomic_init(&mgr->workers_paused, 0);
 	atomic_init(&mgr->paused, false);
 	atomic_init(&mgr->closing, false);
+#if HAVE_SO_REUSEPORT_LB
+	mgr->load_balance_sockets = true;
+#else
+	mgr->load_balance_sockets = false;
+#endif
 
 #ifdef NETMGR_TRACE
 	ISC_LIST_INIT(mgr->active_sockets);
@@ -658,6 +663,17 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 	atomic_store(&mgr->idle, idle);
 	atomic_store(&mgr->keepalive, keepalive);
 	atomic_store(&mgr->advertised, advertised);
+}
+
+void
+isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled) {
+	REQUIRE(VALID_NM(mgr));
+
+#if HAVE_SO_REUSEPORT_LB
+	mgr->load_balance_sockets = enabled;
+#else
+	UNUSED(enabled);
+#endif
 }
 
 void
