@@ -14,7 +14,9 @@ EXTRA_DIST =					\
 	chapter6.rst				\
 	chapter7.rst				\
 	chapter9.rst				\
-	configuration.inc.rst			\
+	config-auth.inc.rst			\
+	config-intro.inc.rst			\
+	config-resolve.inc.rst			\
 	conf.py					\
 	dlz.inc.rst				\
 	dns-ops.inc.rst				\
@@ -43,11 +45,15 @@ EXTRA_DIST =					\
 	pkcs11.inc.rst				\
 	platforms.inc.rst			\
 	plugins.inc.rst				\
+	primary-secondary.dia			\
+	primary-secondary.png			\
 	recursive-query.dia			\
 	recursive-query.png			\
 	reference.rst				\
 	requirements.inc.rst			\
 	requirements.txt			\
+	resolver-forward.dia			\
+	resolver-forward.png			\
 	security.inc.rst			\
 	sig0.inc.rst				\
 	tkey.inc.rst				\
