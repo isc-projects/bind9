@@ -665,6 +665,13 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 	atomic_store(&mgr->advertised, advertised);
 }
 
+bool
+isc_nm_getloadbalancesockets(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
+
+	return (mgr->load_balance_sockets);
+}
+
 void
 isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled) {
 	REQUIRE(VALID_NM(mgr));

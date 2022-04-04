@@ -13,10 +13,21 @@
 
 #pragma once
 
+#include <unistd.h>
+
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
+
+#ifndef _WIN32
+#include <sys/socket.h>
+#include <sys/types.h>
+#endif
+
+#if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
+#define HAVE_SO_REUSEPORT_LB 1
+#endif
 
 /*
  * Replacement for isc_sockettype_t provided by socket.h.

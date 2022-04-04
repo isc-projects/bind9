@@ -38,6 +38,7 @@
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/meminfo.h>
+#include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/platform.h>
@@ -8795,10 +8796,10 @@ load_configuration(const char *filename, named_server_t *server,
 	loadbalancesockets = cfg_obj_asboolean(obj);
 #if HAVE_SO_REUSEPORT_LB
 	if (first_time) {
-		isc_nm_setloadbalancesockets(named_g_netmgr,
+		isc_nm_setloadbalancesockets(named_g_nm,
 					     cfg_obj_asboolean(obj));
 	} else if (loadbalancesockets !=
-		   isc_nm_getloadbalancesockets(named_g_netmgr)) {
+		   isc_nm_getloadbalancesockets(named_g_nm)) {
 		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
 			    "changing load-balance-sockets value requires "
 			    "server restart");
