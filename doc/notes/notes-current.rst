@@ -64,6 +64,11 @@ New Features
   and ``dig``, making it possible to implement Strict and Mutual TLS
   authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
 
+- Run RPZ updates on the specialized "offload" threads to reduce the amount
+  of time they block query processing on the main networking threads.  This
+  should increase the responsiveness of ``named`` when RPZ updates are being
+  applied after an RPZ zone has been successfully transfered.  :gl:`#3190`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
