@@ -39,6 +39,7 @@
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/meminfo.h>
+#include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/portset.h>

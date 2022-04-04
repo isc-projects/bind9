@@ -111,10 +111,6 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  */
 #define NM_MAXSEG (1280 - 20 - 40)
 
-#if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
-#define HAVE_SO_REUSEPORT_LB 1
-#endif
-
 /*
  * Define NETMGR_TRACE to activate tracing of handles and sockets.
  * This will impair performance but enables us to quickly determine,
