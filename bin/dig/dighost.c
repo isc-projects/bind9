@@ -3691,6 +3691,9 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 				      l->retries);
 				start_udp(newq);
 			}
+			if (check_if_queries_done(l, query)) {
+				goto cancel_lookup;
+			}
 
 			goto detach_query;
 		} else if (l->retries > 1 && l->tcp_mode) {
@@ -3727,6 +3730,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						start_udp(next);
 					}
 				}
+				if (check_if_queries_done(l, query)) {
+					goto cancel_lookup;
+				}
+
 				goto detach_query;
 			}
 
@@ -3768,6 +3775,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 					start_udp(next);
 				}
 			}
+			if (check_if_queries_done(l, query)) {
+				goto cancel_lookup;
+			}
+
 			goto detach_query;
 		}
 
@@ -4044,6 +4055,10 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 						 ? "SERVFAIL reply"
 						 : "recursion not available",
 					 query->servname);
+			if (check_if_queries_done(l, query)) {
+				goto cancel_lookup;
+			}
+
 			goto detach_query;
 		}
 	}

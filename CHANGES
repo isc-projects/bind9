@@ -1,3 +1,8 @@
+5848.	[bug]		dig could hang in some cases involving multiple servers
+			in a lookup, when a request fails and the next one
+			refuses to start for some reason, for example if it was
+			an IPv4 mapped IPv6 address. [GL #3248]
+
 5844.	[bug]		dig +nssearch was hanging until manually interrupted.
 			[GL #3145]
 
