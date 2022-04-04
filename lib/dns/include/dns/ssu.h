@@ -143,7 +143,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
-			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
+			bool tcp, dns_aclenv_t *env, dns_rdatatype_t type,
 			const dns_name_t *target, const dst_key_t *key,
 			const dns_ssurule_t **rulep);
 /*%<

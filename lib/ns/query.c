@@ -11584,20 +11584,25 @@ query_setup_sortlist(query_ctx_t *qctx) {
 	isc_netaddr_t netaddr;
 	ns_client_t *client = qctx->client;
 	dns_aclenv_t *env = client->manager->aclenv;
-	const void *order_arg = NULL;
+	dns_acl_t *acl = NULL;
+	dns_aclelement_t *elt = NULL;
+	void *order_arg = NULL;
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (ns_sortlist_setup(client->view->sortlist, env, &netaddr,
 				  &order_arg)) {
 	case NS_SORTLISTTYPE_1ELEMENT:
+		elt = order_arg;
 		dns_message_setsortorder(client->message,
 					 query_sortlist_order_1element, env,
-					 NULL, order_arg);
+					 NULL, elt);
 		break;
 	case NS_SORTLISTTYPE_2ELEMENT:
+		acl = order_arg;
 		dns_message_setsortorder(client->message,
 					 query_sortlist_order_2element, env,
-					 order_arg, NULL);
+					 acl, NULL);
+		dns_acl_detach(&acl);
 		break;
 	case NS_SORTLISTTYPE_NONE:
 		break;

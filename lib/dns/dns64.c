@@ -128,7 +128,7 @@ dns_dns64_destroy(dns_dns64_t **dns64p) {
 
 isc_result_t
 dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
-		    const dns_name_t *reqsigner, const dns_aclenv_t *env,
+		    const dns_name_t *reqsigner, dns_aclenv_t *env,
 		    unsigned int flags, unsigned char *a, unsigned char *aaaa) {
 	unsigned int nbytes, i;
 	isc_result_t result;
@@ -212,7 +212,7 @@ dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64) {
 
 bool
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
-		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
+		 const dns_name_t *reqsigner, dns_aclenv_t *env,
 		 unsigned int flags, dns_rdataset_t *rdataset, bool *aaaaok,
 		 size_t aaaaoklen) {
 	struct in6_addr in6;
