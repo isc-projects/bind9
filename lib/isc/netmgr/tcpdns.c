@@ -332,10 +332,12 @@ isc__nm_tcpdns_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	result = isc__nm_socket_reuse(sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
+#ifndef _WIN32
 	if (mgr->load_balance_sockets) {
 		result = isc__nm_socket_reuse_lb(sock);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
+#endif
 
 	return (sock);
 }
@@ -370,6 +372,10 @@ start_tcpdns_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->pquota = sock->pquota;
 	isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
 
+#ifdef _WIN32
+	UNUSED(fd);
+	csock->fd = isc__nm_tcpdns_lb_socket(mgr, iface->type.sa.sa_family);
+#else
 	if (mgr->load_balance_sockets) {
 		UNUSED(fd);
 		csock->fd = isc__nm_tcpdns_lb_socket(mgr,
@@ -377,6 +383,7 @@ start_tcpdns_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	} else {
 		csock->fd = dup(fd);
 	}
+#endif
 	REQUIRE(csock->fd >= 0);
 
 	ievent = isc__nm_get_netievent_tcpdnslisten(mgr, csock);
@@ -421,9 +428,11 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	sock->tid = 0;
 	sock->fd = -1;
 
+#ifndef _WIN32
 	if (!mgr->load_balance_sockets) {
 		fd = isc__nm_tcpdns_lb_socket(mgr, iface->type.sa.sa_family);
 	}
+#endif
 
 	isc_barrier_init(&sock->startlistening, sock->nchildren);
 
@@ -438,9 +447,11 @@ isc_nm_listentcpdns(isc_nm_t *mgr, isc_sockaddr_t *iface,
 		start_tcpdns_child(mgr, iface, sock, fd, isc_nm_tid());
 	}
 
+#ifndef _WIN32
 	if (!mgr->load_balance_sockets) {
 		isc__nm_closesocket(fd);
 	}
+#endif
 
 	LOCK(&sock->lock);
 	while (atomic_load(&sock->rchildren) != sock->nchildren) {
@@ -513,6 +524,14 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		flags = UV_TCP_IPV6ONLY;
 	}
 
+#ifdef _WIN32
+	r = isc_uv_tcp_freebind(&sock->uv_handle.tcp, &sock->iface.type.sa,
+				flags);
+	if (r < 0) {
+		isc__nm_incstats(sock->mgr, sock->statsindex[STATID_BINDFAIL]);
+		goto done;
+	}
+#else
 	if (mgr->load_balance_sockets) {
 		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
 					&sock->iface.type.sa, flags);
@@ -538,6 +557,7 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 				sock->parent->uv_handle.tcp.flags;
 		}
 	}
+#endif
 
 	/*
 	 * The callback will run in the same thread uv_listen() was called
