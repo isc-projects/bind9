@@ -11,23 +11,18 @@
 
 .. _zone_file:
 
+.. _soa_rr:
+
 Zone File
 ---------
 
-.. _types_of_resource_records_and_when_to_use_them:
-
-Types of Resource Records and When to Use Them
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 This section, largely borrowed from :rfc:`1034`, describes the concept of a
-Resource Record (RR) and explains when each type is used. Since the
-publication of :rfc:`1034`, several new RRs have been identified and
-implemented in the DNS. These are also included.
+Resource Record (RR) and explains how to use them.
 
 Resource Records
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
-A domain name identifies a node. Each node has a set of resource
+A domain name identifies a node in the DNS tree namespace. Each node has a set of resource
 information, which may be empty. The set of resource information
 associated with a particular name is composed of separate RRs. The order
 of RRs in a set is not significant and need not be preserved by name
@@ -38,36 +33,43 @@ specify that a particular nearby server be tried first. See
 
 The components of a Resource Record are:
 
-owner name
-    The domain name where the RR is found.
+.. glossary::
 
-type
-    An encoded 16-bit value that specifies the type of the resource record.
+   owner name
+      The domain name where the RR is found.
 
-TTL
-    The time-to-live of the RR. This field is a 32-bit integer in units of seconds, and is primarily used by resolvers when they cache RRs. The TTL describes how long a RR can be cached before it should be discarded.
+   type
+      An encoded 16-bit value that specifies the type of the resource record.
+      For a list of *types* of valid RRs, including those that have been obsoleted, please refer to
+      `https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4`.
 
-class
-    An encoded 16-bit value that identifies a protocol family or an instance of a protocol.
+   TTL
+      The time-to-live of the RR. This field is a 32-bit integer in units of seconds,
+      and is primarily used by resolvers when they cache RRs. The TTL describes how long
+      a RR can be cached before it should be discarded.
 
-RDATA
-    The resource data. The format of the data is type- and sometimes class-specific.
+   class
+      An encoded 16-bit value that identifies a protocol family or an instance of a protocol.
 
-For a complete list of *types* of valid RRs, including those that have been obsoleted, please refer to https://en.wikipedia.org/wiki/List_of_DNS_record_types.
+   RDATA
+      The resource data. The format of the data is type- and sometimes class-specific.
+
 
 The following *classes* of resource records are currently valid in the
 DNS:
 
-IN
-    The Internet.
+.. glossary::
 
-CH
-    Chaosnet, a LAN protocol created at MIT in the mid-1970s. It was rarely used for its historical purpose, but was reused for BIND's built-in server information zones, e.g., ``version.bind``.
+   IN
+      The Internet. The only widely :term:`class` used today.
 
-HS
-    Hesiod, an information service developed by MIT's Project Athena. It was used to share information about various systems databases, such as users, groups, printers, etc.
+   CH
+      Chaosnet, a LAN protocol created at MIT in the mid-1970s. It was rarely used for its historical purpose, but was reused for BIND's built-in server information zones, e.g., **version.bind**.
 
-The owner name is often implicit, rather than forming an integral part
+   HS
+      Hesiod, an information service developed by MIT's Project Athena. It was used to share information about various systems databases, such as users, groups, printers, etc.
+
+The :term:`owner name` is often implicit, rather than forming an integral part
 of the RR. For example, many name servers internally form tree or hash
 structures for the name space, and chain RRs off nodes. The remaining RR
 parts are the fixed header (type, class, TTL), which is consistent for
@@ -118,17 +120,17 @@ of the typical representation for the data.
 For example, the RRs carried in a message might be shown as:
 
  +---------------------+---------------+--------------------------------+
- | ``ISI.EDU.``        | ``MX``        | ``10 VENERA.ISI.EDU.``         |
+ | **ISI.EDU.**        | **MX**        | **10 VENERA.ISI.EDU.**         |
  +---------------------+---------------+--------------------------------+
- |                     | ``MX``        | ``10 VAXA.ISI.EDU``            |
+ |                     | **MX**        | **10 VAXA.ISI.EDU**            |
  +---------------------+---------------+--------------------------------+
- | ``VENERA.ISI.EDU``  | ``A``         | ``128.9.0.32``                 |
+ | **VENERA.ISI.EDU**  | **A**         | **128.9.0.32**                 |
  +---------------------+---------------+--------------------------------+
- |                     | ``A``         | ``10.1.0.52``                  |
+ |                     | **A**         | **10.1.0.52**                  |
  +---------------------+---------------+--------------------------------+
- | ``VAXA.ISI.EDU``    | ``A``         | ``10.2.0.27``                  |
+ | **VAXA.ISI.EDU**    | **A**         | **10.2.0.27**                  |
  +---------------------+---------------+--------------------------------+
- |                     | ``A``         | ``128.9.0.33``                 |
+ |                     | **A**         | **128.9.0.33**                 |
  +---------------------+---------------+--------------------------------+
 
 The MX RRs have an RDATA section which consists of a 16-bit number
@@ -141,12 +143,12 @@ names.
 Here is another possible example:
 
  +----------------------+---------------+-------------------------------+
- | ``XX.LCS.MIT.EDU.``  | ``IN A``      | ``10.0.0.44``                 |
+ | **XX.LCS.MIT.EDU.**  | **IN A**      | **10.0.0.44**                 |
  +----------------------+---------------+-------------------------------+
- |                      | ``CH A``      | ``MIT.EDU. 2420``             |
+ |                      | **CH A**      | **MIT.EDU. 2420**             |
  +----------------------+---------------+-------------------------------+
 
-This shows two addresses for ``XX.LCS.MIT.EDU``, each of a
+This shows two addresses for **XX.LCS.MIT.EDU**, each of a
 different class.
 
 .. _mx_records:
@@ -179,20 +181,20 @@ delivered to the server specified in the MX record pointed to by the
 CNAME. For example:
 
  +------------------------+--------+--------+--------------+------------------------+
- | ``example.com.``       | ``IN`` | ``MX`` | ``10``       | ``mail.example.com.``  |
+ | **example.com.**       | **IN** | **MX** | **10**       | **mail.example.com.**  |
  +------------------------+--------+--------+--------------+------------------------+
- |                        | ``IN`` | ``MX`` | ``10``       | ``mail2.example.com.`` |
+ |                        | **IN** | **MX** | **10**       | **mail2.example.com.** |
  +------------------------+--------+--------+--------------+------------------------+
- |                        | ``IN`` | ``MX`` | ``20``       | ``mail.backup.org.``   |
+ |                        | **IN** | **MX** | **20**       | **mail.backup.org.**   |
  +------------------------+--------+--------+--------------+------------------------+
- | ``mail.example.com.``  | ``IN`` | ``A``  | ``10.0.0.1`` |                        |
+ | **mail.example.com.**  | **IN** | **A**  | **10.0.0.1** |                        |
  +------------------------+--------+--------+--------------+------------------------+
- | ``mail2.example.com.`` | ``IN`` | ``A``  | ``10.0.0.2`` |                        |
+ | **mail2.example.com.** | **IN** | **A**  | **10.0.0.2** |                        |
  +------------------------+--------+--------+--------------+------------------------+
 
-Mail delivery is attempted to ``mail.example.com`` and
-``mail2.example.com`` (in any order); if neither of those succeeds,
-delivery to ``mail.backup.org`` is attempted.
+Mail delivery is attempted to **mail.example.com** and
+**mail2.example.com** (in any order); if neither of those succeeds,
+delivery to **mail.backup.org** is attempted.
 
 .. _Setting_TTLs:
 
@@ -205,19 +207,23 @@ RRs. The TTL describes how long an RR can be cached before it should be
 discarded. The following three types of TTLs are currently used in a zone
 file.
 
-SOA
-    The last field in the SOA is the negative caching TTL. This controls how long other servers cache no-such-domain (NXDOMAIN) responses from this server.
+.. glossary::
 
-    The maximum time for negative caching is 3 hours (3h).
+   SOA minimum
+       The last field in the SOA is the negative caching TTL.
+       This controls how long other servers cache no-such-domain (NXDOMAIN)
+       responses from this server. Further details can be found in :rfc:`2308`.
 
-$TTL
-    The $TTL directive at the top of the zone file (before the SOA) gives a default TTL for every RR without a specific TTL set.
+       The maximum time for negative caching is 3 hours (3h).
 
-RR TTLs
-    Each RR can have a TTL as the second field in the RR, which controls how long other servers can cache it.
+   $TTL
+       The $TTL directive at the top of the zone file (before the SOA) gives a default TTL for every RR without a specific TTL set.
+
+   RR TTLs
+       Each RR can have a TTL as the second field in the RR, which controls how long other servers can cache it.
 
 All of these TTLs default to units of seconds, though units can be
-explicitly specified: for example, ``1h30m``.
+explicitly specified: for example, **1h30m**.
 
 .. _ipv4_reverse:
 
@@ -225,7 +231,7 @@ Inverse Mapping in IPv4
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Reverse name resolution (that is, translation from IP address to name)
-is achieved by means of the ``in-addr.arpa`` domain and PTR records.
+is achieved by means of the **in-addr.arpa** domain and PTR records.
 Entries in the in-addr.arpa domain are made in least-to-most significant
 order, read left to right. This is the opposite order to the way IP
 addresses are usually written. Thus, a machine with an IP address of
@@ -233,17 +239,17 @@ addresses are usually written. Thus, a machine with an IP address of
 3.2.1.10.in-addr.arpa. This name should have a PTR resource record whose
 data field is the name of the machine or, optionally, multiple PTR
 records if the machine has more than one name. For example, in the
-``example.com`` domain:
+**example.com** domain:
 
  +--------------+-------------------------------------------------------+
- | ``$ORIGIN``  | ``2.1.10.in-addr.arpa``                               |
+ | **$ORIGIN**  | **2.1.10.in-addr.arpa**                               |
  +--------------+-------------------------------------------------------+
- | ``3``        | ``IN PTR foo.example.com.``                           |
+ | **3**        | **IN PTR foo.example.com.**                           |
  +--------------+-------------------------------------------------------+
 
 .. note::
 
-   The ``$ORIGIN`` line in this example is only to provide context;
+   The **$ORIGIN** line in this example is only to provide context;
    it does not necessarily appear in the actual
    usage. It is only used here to indicate that the example is
    relative to the listed origin.
@@ -257,29 +263,29 @@ The DNS "master file" format was initially defined in :rfc:`1035` and has
 subsequently been extended. While the format itself is class-independent,
 all records in a zone file must be of the same class.
 
-Master file directives include ``$ORIGIN``, ``$INCLUDE``, and ``$TTL.``
+Master file directives include **$ORIGIN**, **$INCLUDE**, and **$TTL.**
 
 .. _atsign:
 
-The ``@`` (at-sign)
+The **@** (at-sign)
 ^^^^^^^^^^^^^^^^^^^
 
 When used in the label (or name) field, the asperand or at-sign (@)
 symbol represents the current origin. At the start of the zone file, it
-is the <``zone_name``>, followed by a trailing dot (.).
+is the <**zone_name**>, followed by a trailing dot (.).
 
 .. _origin_directive:
 
-The ``$ORIGIN`` Directive
+The **$ORIGIN** Directive
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Syntax: ``$ORIGIN`` domain-name [comment]
+Syntax: **$ORIGIN** domain-name [comment]
 
-``$ORIGIN`` sets the domain name that is appended to any
+**$ORIGIN** sets the domain name that is appended to any
 unqualified records. When a zone is first read, there is an implicit
-``$ORIGIN`` <``zone_name``>``.``; note the trailing dot. The
-current ``$ORIGIN`` is appended to the domain specified in the
-``$ORIGIN`` argument if it is not absolute.
+``$ORIGIN <zone_name>.``; note the trailing dot. The
+current **$ORIGIN** is appended to the domain specified in the
+**$ORIGIN** argument if it is not absolute.
 
 ::
 
@@ -294,48 +300,48 @@ is equivalent to
 
 .. _include_directive:
 
-The ``$INCLUDE`` Directive
+The **$INCLUDE** Directive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Syntax: ``$INCLUDE`` filename [origin] [comment]
+Syntax: **$INCLUDE** filename [origin] [comment]
 
-This reads and processes the file ``filename`` as if it were included in the
-file at this point. The ``filename`` can be an absolute path, or a relative
+This reads and processes the file **filename** as if it were included in the
+file at this point. The **filename** can be an absolute path, or a relative
 path. In the latter case it is read from :iscman:`named`'s working directory. If
-``origin`` is specified, the file is processed with ``$ORIGIN`` set to that
-value; otherwise, the current ``$ORIGIN`` is used.
+**origin** is specified, the file is processed with **$ORIGIN** set to that
+value; otherwise, the current **$ORIGIN** is used.
 
 The origin and the current domain name revert to the values they had
-prior to the ``$INCLUDE`` once the file has been read.
+prior to the **$INCLUDE** once the file has been read.
 
 .. note::
 
    :rfc:`1035` specifies that the current origin should be restored after
-   an ``$INCLUDE``, but it is silent on whether the current domain name
+   an **$INCLUDE**, but it is silent on whether the current domain name
    should also be restored. BIND 9 restores both of them. This could be
    construed as a deviation from :rfc:`1035`, a feature, or both.
 
 .. _ttl_directive:
 
-The ``$TTL`` Directive
+The **$TTL** Directive
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Syntax: ``$TTL`` default-ttl [comment]
+Syntax: **$TTL** default-ttl [comment]
 
 This sets the default Time-To-Live (TTL) for subsequent records with undefined
 TTLs. Valid TTLs are of the range 0-2147483647 seconds.
 
-``$TTL`` is defined in :rfc:`2308`.
+**$TTL** is defined in :rfc:`2308`.
 
 .. _generate_directive:
 
-BIND Primary File Extension: the ``$GENERATE`` Directive
+BIND Primary File Extension: the **$GENERATE** Directive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Syntax: ``$GENERATE`` range lhs [ttl] [class] type rhs [comment]
+Syntax: **$GENERATE** range lhs [ttl] [class] type rhs [comment]
 
-``$GENERATE`` is used to create a series of resource records that only
-differ from each other by an iterator. ``$GENERATE`` can be used to
+**$GENERATE** is used to create a series of resource records that only
+differ from each other by an iterator. **$GENERATE** can be used to
 easily generate the sets of records required to support sub-/24 reverse
 delegations described in :rfc:`2317`.
 
@@ -380,37 +386,37 @@ is equivalent to
    HOST-127.EXAMPLE. A  1.2.3.127
    HOST-127.EXAMPLE. MX 0 .
 
-``range``
+**range**
     This can be one of two forms: start-stop or start-stop/step. If the first form is used, then step is set to 1. "start", "stop", and "step" must be positive integers between 0 and (2^31)-1. "start" must not be larger than "stop".
 
-``owner``
-    This describes the owner name of the resource records to be created. Any single ``$`` (dollar sign) symbols within the ``owner`` string are replaced by the iterator value. To get a ``$`` in the output, escape the ``$`` using a backslash ``\``, e.g., ``\$``. The ``$`` may optionally be followed by modifiers which change the offset from the iterator, field width, and base.
+**owner**
+    This describes the owner name of the resource records to be created. Any single **$** (dollar sign) symbols within the **owner** string are replaced by the iterator value. To get a **$** in the output, escape the **$** using a backslash **\\**, e.g., ``\$``. The **$** may optionally be followed by modifiers which change the offset from the iterator, field width, and base.
 
-    Modifiers are introduced by a ``{`` (left brace) immediately following the ``$``, as in  ``${offset[,width[,base]]}``. For example, ``${-20,3,d}`` subtracts 20 from the current value and prints the result as a decimal in a zero-padded field of width 3. Available output forms are decimal (``d``), octal (``o``), hexadecimal (``x`` or ``X`` for uppercase), and nibble (``n`` or ``N`` for uppercase).
+    Modifiers are introduced by a **{** (left brace) immediately following the **$**, as in  **${offset[,width[,base]]}**. For example, **${-20,3,d}** subtracts 20 from the current value and prints the result as a decimal in a zero-padded field of width 3. Available output forms are decimal (**d**), octal (**o**), hexadecimal (**x** or **X** for uppercase), and nibble (**n** or **N** for uppercase).
 
-    The default modifier is ``${0,0,d}``. If the ``owner`` is not absolute, the current ``$ORIGIN`` is appended to the name.
+    The default modifier is **${0,0,d}**. If the **owner** is not absolute, the current **$ORIGIN** is appended to the name.
 
     In nibble mode, the value is treated as if it were a reversed hexadecimal string, with each hexadecimal digit as a separate label. The width field includes the label separator.
 
-    For compatibility with earlier versions, ``$$`` is still recognized as indicating a literal $ in the output.
+    For compatibility with earlier versions, **$$** is still recognized as indicating a literal **$** in the output.
 
-``ttl``
+**ttl**
     This specifies the time-to-live of the generated records. If not specified, this is inherited using the normal TTL inheritance rules.
 
-    ``class`` and ``ttl`` can be entered in either order.
+    **class** and **ttl** can be entered in either order.
 
-``class``
+**class**
     This specifies the class of the generated records. This must match the zone class if it is specified.
 
-    ``class`` and ``ttl`` can be entered in either order.
+    **class** and **ttl** can be entered in either order.
 
-``type``
+**type**
     This can be any valid type.
 
-``rdata``
+**rdata**
     This is a string containing the RDATA of the resource record to be created. It may be quoted if there are spaces in the string; the quotation marks do not appear in the generated record.
 
-The ``$GENERATE`` directive is a BIND extension and not part of the
+The **$GENERATE** directive is a BIND extension and not part of the
 standard zone file format.
 
 .. _zonefile_format:
@@ -421,19 +427,19 @@ Additional File Formats
 In addition to the standard text format, BIND 9 supports the ability
 to read or dump to zone files in other formats.
 
-The ``raw`` format is a binary representation of zone data in a manner
+The **raw** format is a binary representation of zone data in a manner
 similar to that used in zone transfers. Since it does not require
 parsing text, load time is significantly reduced.
 
-For a primary server, a zone file in ``raw`` format is expected
+For a primary server, a zone file in **raw** format is expected
 to be generated from a text zone file by the :iscman:`named-compilezone` command.
 For a secondary server or a dynamic zone, the zone file is automatically
 generated when :iscman:`named` dumps the zone contents after zone transfer or
 when applying prior updates, if one of these formats is specified by the
-``masterfile-format`` option.
+**masterfile-format** option.
 
-If a zone file in ``raw`` format needs manual modification, it first must
-be converted to ``text`` format by the :iscman:`named-compilezone` command,
+If a zone file in **raw** format needs manual modification, it first must
+be converted to **text** format by the :iscman:`named-compilezone` command,
 then converted back after editing.  For example:
 
 ::
