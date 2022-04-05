@@ -3080,10 +3080,9 @@ send_udp(dig_query_t *query) {
 	debug("sendcount=%" PRIuFAST32, isc_refcount_current(&sendcount));
 
 	/* XXX qrflag, print_query, etc... */
-	if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
+	if (query->lookup->qr) {
 		extrabytes = 0;
-		dighost_printmessage(ISC_LIST_HEAD(query->lookup->q),
-				     &query->lookup->renderbuf,
+		dighost_printmessage(query, &query->lookup->renderbuf,
 				     query->lookup->sendmsg, true);
 		if (query->lookup->stats) {
 			print_query_size(query);
@@ -3136,7 +3135,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query_attach(query, &readquery);
 
 	debug("recving with lookup=%p, query=%p, handle=%p", query->lookup,
-	      query, query->handle);
+	      query, handle);
 
 	query->handle = handle;
 	isc_nmhandle_attach(handle, &query->readhandle);
@@ -3426,10 +3425,10 @@ launch_next_query(dig_query_t *query) {
 		      isc_refcount_current(&sendcount));
 
 		/* XXX qrflag, print_query, etc... */
-		if (!ISC_LIST_EMPTY(l->q) && l->qr) {
+		if (l->qr) {
 			extrabytes = 0;
-			dighost_printmessage(ISC_LIST_HEAD(l->q), &l->renderbuf,
-					     l->sendmsg, true);
+			dighost_printmessage(query, &l->renderbuf, l->sendmsg,
+					     true);
 			if (l->stats) {
 				print_query_size(query);
 			}
@@ -3845,6 +3844,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 		query_detach(&query);
 		lookup_detach(&l);
+		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
 	}
