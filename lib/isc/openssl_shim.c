@@ -181,7 +181,7 @@ SSL_CTX_up_ref(SSL_CTX *ctx) {
 
 int
 X509_STORE_up_ref(X509_STORE *store) {
-	return (CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE));
+	return (CRYPTO_add(&store->references, 1, CRYPTO_LOCK_X509_STORE) > 0);
 }
 
 #endif /* !HAVE_OPENSSL_CLEANUP */
