@@ -20,6 +20,7 @@
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/parseint.h>
 #include <isc/region.h>
 #include <isc/result.h>

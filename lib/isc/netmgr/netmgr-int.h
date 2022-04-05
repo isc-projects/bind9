@@ -92,10 +92,6 @@
  */
 #define NM_BIG_BUF ISC_NETMGR_TCP_RECVBUF_SIZE * 2
 
-#if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
-#define HAVE_SO_REUSEPORT_LB 1
-#endif
-
 /*
  * Define NETMGR_TRACE to activate tracing of handles and sockets.
  * This will impair performance but enables us to quickly determine,

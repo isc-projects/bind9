@@ -461,6 +461,7 @@ isc_nmhandle_setwritetimeout
 isc_nm_attach
 isc_nm_cancelread
 isc_nm_detach
+isc_nm_getloadbalancesockets
 isc_nm_gettimeouts
 isc_nm_listentcp
 isc_nm_listentcpdns
