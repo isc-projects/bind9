@@ -106,3 +106,6 @@ man_pages = [
     ('rndc', 'rndc', 'name server control utility', author, 8),
     ('tsig-keygen', 'tsig-keygen', 'TSIG key generation tool', author, 8),
     ]
+
+def setup(app):
+    app.add_crossref_type('iscman', 'iscman', 'pair: %s; manual page')
