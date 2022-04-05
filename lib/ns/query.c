@@ -7005,7 +7005,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 		ISC_LOG_DEBUG(99),
 		"rrl=%p, HAVECOOKIE=%u, result=%s, "
 		"fname=%p(%u), is_zone=%u, RECURSIONOK=%u, "
-		"query.rpz_st=%p(%u), RRL_CHECKED=%u\n",
+		"query.rpz_st=%p(%u), RRL_CHECKED=%u",
 		qctx->client->view->rrl, HAVECOOKIE(qctx->client),
 		isc_result_toid(result), qctx->fname,
 		qctx->fname != NULL ? dns_name_isabsolute(qctx->fname) : 0,
