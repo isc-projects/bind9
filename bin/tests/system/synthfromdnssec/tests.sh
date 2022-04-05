@@ -850,5 +850,26 @@ n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+echo_i "regression test for CVE-2022-0635 ($n)"
+ret=0
+# add DNAME to cache
+dig_with_opts dname.dnamed. dname @10.53.0.5 > dig.out.ns5-1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5-1.test$n >/dev/null || ret=1
+# add A record to cache at name before DNAME owner
+dig_with_opts a.dnamed. a @10.53.0.5 > dig.out.ns5-2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5-2.test$n >/dev/null || ret=1
+# add NSEC record to cache at name before DNAME owner
+dig_with_opts a.dnamed. aaaa @10.53.0.5 > dig.out.ns5-3.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5-3.test$n >/dev/null || ret=1
+# wait for NSEC to timeout
+sleep 6
+# use DNAME for lookup
+dig_with_opts b.dname.dnamed a @10.53.0.5 > dig.out.ns5-4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns5-4.test$n >/dev/null || ret=1
+n=$((n+1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
