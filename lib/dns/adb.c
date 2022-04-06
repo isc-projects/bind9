@@ -2687,14 +2687,14 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 	adbname = find->adbname;
 	find->adbname = NULL;
 	nbucket = adbname->bucket;
-	UNLOCK(&find->lock);
 
+	UNLOCK(&find->lock);
 	LOCK(&nbucket->lock);
 	ISC_LIST_UNLINK(adbname->finds, find, plink);
 	UNLOCK(&nbucket->lock);
+	LOCK(&find->lock);
 
 cleanup:
-	LOCK(&find->lock);
 	if (!FIND_EVENTSENT(find)) {
 		ev = &find->event;
 		task = ev->ev_sender;
