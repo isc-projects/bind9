@@ -76,15 +76,7 @@ options {\n\
 	interface-interval 60;\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
-	listen-on-v6 {any;};\n"
-#if HAVE_SO_REUSEPORT_LB
-			    "\
-	load-balance-sockets yes;\n"
-#else
-			    "\
-	load-balance-sockets no;\n"
-#endif
-			    "\
+	listen-on-v6 {any;};\n\
 #	lock-file \"" NAMED_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	match-mapped-addresses no;\n\
 	max-ixfr-ratio unlimited;\n\
@@ -96,7 +88,15 @@ options {\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
 #	pid-file \"" NAMED_LOCALSTATEDIR "/run/named/named.pid\"; \n\
-	port 53;\n\
+	port 53;\n"
+#if HAVE_SO_REUSEPORT_LB
+			    "\
+	reuseport yes;\n"
+#else
+			    "\
+	reuseport no;\n"
+#endif
+			    "\
 	prefetch 2 9;\n\
 	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\

@@ -93,15 +93,12 @@
   	dnssec-secure-to-insecure <boolean>;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder |
-  	    resolver | update ) [ ( query | response ) ];
-  	    ... };
-  	dnstap-identity ( <quoted_string> | none |
-  	    hostname );
-  	dnstap-output ( file | unix ) <quoted_string> [
-  	    size ( unlimited | <size> ) ] [ versions (
-  	    unlimited | <integer> ) ] [ suffix ( increment
-  	    | timestamp ) ];
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+  	    ( query | response ) ]; ... };
+  	dnstap-identity ( <quoted_string> | none | hostname );
+  	dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
+  	    <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
+  	    increment | timestamp ) ];
   	dnstap-version ( <quoted_string> | none );
   	dscp <integer>;
   	dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
@@ -145,7 +142,6 @@
   	    <integer> ] {
   	    <address_match_element>; ... };
   	lmdb-mapsize <sizeval>;
-  	load-balance-sockets <boolean>;
   	lock-file ( <quoted_string> | none );
   	managed-keys-directory <quoted_string>;
   	masterfile-format ( map | raw | text );
@@ -254,6 +250,7 @@
   	    [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [
   	    nsdname-enable <boolean> ] [ dnsrps-enable <boolean> ] [
   	    dnsrps-options { <unspecified-text> } ];
+  	reuseport <boolean>;
   	root-delegation-only [ exclude { <string>; ... } ];
   	root-key-sentinel <boolean>;
   	rrset-order { [ class <string> ] [ type <string> ] [ name
