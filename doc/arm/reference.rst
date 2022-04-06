@@ -1691,17 +1691,16 @@ Boolean Options
    If ``yes``, respond to root key sentinel probes as described in
    draft-ietf-dnsop-kskroll-sentinel-08. The default is ``yes``.
 
-``load-balance-sockets``
-
+``reuseport``
    This option enables kernel load-balancing of sockets on systems which support
-   it, including Linux and FreeBSD. This instructs the kernel to distribute
-   incoming socket connections among the networking threads based on a hashing
-   scheme. For more information, see the receive network flow classification
-   options (``rx-flow-hash``) section in the ``ethtool`` manual page. The
-   default is ``yes``.
+   it, including Linux (SO_REUSEPORT) and FreeBSD (SO_REUSEPORT_LB). This
+   instructs the kernel to distribute incoming socket connections among the
+   networking threads based on a hashing scheme. For more information, see the
+   receive network flow classification options (``rx-flow-hash``) section in the
+   ``ethtool`` manual page. The default is ``yes``.
 
-   Enabling ``load-balance-sockets`` significantly increases general throughput
-   when incoming traffic is distributed uniformly onto the threads by the
+   Enabling ``reuseport`` significantly increases general throughput when
+   incoming traffic is distributed uniformly onto the threads by the
    operating system. However, in cases where a worker thread is busy with a
    long-lasting operation, such as processing a Response Policy Zone (RPZ) or
    Catalog Zone update or an unusually large zone transfer, incoming traffic

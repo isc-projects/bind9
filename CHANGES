@@ -1,5 +1,5 @@
-5852.	[func]		Add new "load-balance-socket" option to
-			enable/disable load balancing of sockets. [GL #3249]
+5852.	[func]		Add new "reuseport" option to enable/disable load
+			balancing of sockets. [GL #3249]
 
 5843.	[bug]		When an UPDATE targets a zone that is not configured,
 			the requested zone name is now logged in the "not

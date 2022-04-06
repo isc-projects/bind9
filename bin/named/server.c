@@ -8791,7 +8791,7 @@ load_configuration(const char *filename, named_server_t *server,
 	ns_interfacemgr_setbacklog(server->interfacemgr, backlog);
 
 	obj = NULL;
-	result = named_config_get(maps, "load-balance-sockets", &obj);
+	result = named_config_get(maps, "reuseport", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	loadbalancesockets = cfg_obj_asboolean(obj);
 #if HAVE_SO_REUSEPORT_LB
@@ -8801,14 +8801,12 @@ load_configuration(const char *filename, named_server_t *server,
 	} else if (loadbalancesockets !=
 		   isc_nm_getloadbalancesockets(named_g_nm)) {
 		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
-			    "changing load-balance-sockets value requires "
-			    "server restart");
+			    "changing reuseport value requires server restart");
 	}
 #else
 	if (loadbalancesockets) {
-		cfg_obj_log(
-			obj, named_g_lctx, ISC_LOG_WARNING,
-			"load-balance-sockets has no effect on this system");
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "reuseport has no effect on this system");
 	}
 #endif
 
