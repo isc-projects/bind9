@@ -2612,17 +2612,15 @@ post_copy:
 	find->result_v4 = find_err_map[adbname->fetch_err];
 	find->result_v6 = find_err_map[adbname->fetch6_err];
 
-	if (find != NULL) {
-		if (want_event) {
-			INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
-			isc_task_attach(task, &(isc_task_t *){ NULL });
-			find->event.ev_sender = task;
-			find->event.ev_action = action;
-			find->event.ev_arg = arg;
-		}
-
-		*findp = find;
+	if (want_event) {
+		INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
+		isc_task_attach(task, &(isc_task_t *){ NULL });
+		find->event.ev_sender = task;
+		find->event.ev_action = action;
+		find->event.ev_arg = arg;
 	}
+
+	*findp = find;
 
 	UNLOCK(&nbucket->lock);
 	return (result);
@@ -2689,14 +2687,14 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 	adbname = find->adbname;
 	find->adbname = NULL;
 	nbucket = adbname->bucket;
-	UNLOCK(&find->lock);
 
+	UNLOCK(&find->lock);
 	LOCK(&nbucket->lock);
 	ISC_LIST_UNLINK(adbname->finds, find, plink);
 	UNLOCK(&nbucket->lock);
+	LOCK(&find->lock);
 
 cleanup:
-	LOCK(&find->lock);
 	if (!FIND_EVENTSENT(find)) {
 		ev = &find->event;
 		task = ev->ev_sender;
