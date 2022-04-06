@@ -37,7 +37,7 @@ Feature Changes
 
 - None.
 
-- Add a new configuration option ``load-balance-sockets`` to disable
+- Add a new configuration option ``reuseport`` to disable
   load balancing on sockets in scenarios in which processing of
   Response Policy Zones (RPZ), Catalog Zones, or large zone transfers
   can cause service disruptions. See the BIND 9 ARM for more detail.
