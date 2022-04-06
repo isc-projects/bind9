@@ -233,17 +233,10 @@ timer_purge(isc_timer_t *timer) {
 	isc_timerevent_t *event = NULL;
 
 	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
+		timerevent_unlink(timer, event);
 		UNLOCK(&timer->lock);
-		bool purged = isc_task_purgeevent(timer->task,
-						  (isc_event_t *)event);
+		(void)isc_task_purgeevent(timer->task, (isc_event_t *)event);
 		LOCK(&timer->lock);
-		if (!purged) {
-			/*
-			 * The event has already been executed, but not
-			 * yet destroyed.
-			 */
-			timerevent_unlink(timer, event);
-		}
 	}
 }
 
