@@ -246,9 +246,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	 * Skip checks when using an alternate data source.
 	 */
 	cfg_map_get(zoptions, "database", &dbobj);
-	if (dbobj != NULL && strcmp("rbt", cfg_obj_asstring(dbobj)) != 0 &&
-	    strcmp("rbt64", cfg_obj_asstring(dbobj)) != 0)
-	{
+	if (dbobj != NULL && strcmp("rbt", cfg_obj_asstring(dbobj)) != 0) {
 		return (ISC_R_SUCCESS);
 	}
 

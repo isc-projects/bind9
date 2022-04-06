@@ -1779,10 +1779,6 @@ check_dbtype(dns_zone_t *zone, unsigned int dbtypec, const char **dbargv,
 	for (i = 0; i < dbtypec; i++) {
 		if (argv[i] == NULL || strcmp(argv[i], dbargv[i]) != 0) {
 			CHECK(ISC_R_FAILURE);
-
-			/*
-			 * Check that there are not extra arguments.
-			 */
 		}
 	}
 
