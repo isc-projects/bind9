@@ -11,13 +11,27 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+# shellcheck disable=SC2034
+
 . ../conf.sh
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+dig_plus_opts() {
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p "${PORT}" "$@"
+}
 
 status=0
 n=0
+
+test_start() {
+	n=$((n+1))
+	echo_i "$* ($n)"
+	ret=0
+}
+
+test_end() {
+	[ $ret = 0 ] || echo_i "failed"
+	status=$((status + ret))
+}
 
 #
 # Wait up to 10 seconds for the servers to finish starting before testing.
@@ -25,35 +39,31 @@ n=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG +tcp -p ${PORT} example @10.53.0.2 soa > dig.out.ns2.test$n || ret=1
+	$DIG +tcp -p "${PORT}" example @10.53.0.2 soa > dig.out.ns2.test$n || ret=1
 	grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 	grep "flags:.* aa[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-	$DIG +tcp -p ${PORT} example @10.53.0.3 soa > dig.out.ns3.test$n || ret=1
+	$DIG +tcp -p "${PORT}" example @10.53.0.3 soa > dig.out.ns3.test$n || ret=1
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 	grep "flags:.* aa[ ;]" dig.out.ns3.test$n > /dev/null || ret=1
-        nr=`grep 'x[0-9].*sending notify to' ns2/named.run | wc -l`
-        [ $nr -eq 20 ] || ret=1
+        nr=$(grep -c 'x[0-9].*sending notify to' ns2/named.run)
+        [ "$nr" -eq 20 ] || ret=1
 	[ $ret = 0 ] && break
 	sleep 1
 done
 
-n=`expr $n + 1`
-echo_i "checking initial status ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+test_start "checking initial status"
+
+dig_plus_opts a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "10.0.0.1" dig.out.ns2.test$n > /dev/null || ret=1
 
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+dig_plus_opts a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.1" dig.out.ns3.test$n > /dev/null || ret=1
 
 digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
-n=`expr $n + 1`
-echo_i "checking startup notify rate limit ($n)"
-ret=0
+test_start "checking startup notify rate limit"
 awk '/x[0-9].*sending notify to/ {
 	split($2, a, ":");
 	this = a[1] * 3600 + a[2] * 60 + a[3];
@@ -86,8 +96,7 @@ END {
 	if (average < 0.180) exit(1);
 	if (count < 20) exit(1);
 }' ns2/named.run > awk.out.ns2.test$n || ret=1
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
 nextpart ns3/named.run > /dev/null
 
@@ -95,46 +104,37 @@ sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
 echo_i "reloading with example2 using HUP and waiting up to 45 seconds"
-kill -HUP `cat ns2/named.pid`
+kill -HUP "$(cat ns2/named.pid)"
 
 try=0
-while test $try -lt 45
+while [ $try -lt 45 ]
 do
     nextpart ns3/named.run > tmp
     grep "transfer of 'example/IN' from 10.53.0.2#.*success" tmp > /dev/null && break
     sleep 1
-    try=`expr $try + 1`
+    try=$((try + 1))
 done
 
-n=`expr $n + 1`
-echo_i "checking notify message was logged ($n)"
-ret=0
+test_start "checking notify message was logged"
 grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run > /dev/null || ret=1
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
-n=`expr $n + 1`
-echo_i "checking example2 loaded ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+test_start "checking example2 loaded"
+dig_plus_opts a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "10.0.0.2" dig.out.ns2.test$n > /dev/null || ret=1
+test_end
+
+test_start "checking example2 contents have been transferred after HUP reload"
+
+dig_plus_opts a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "10.0.0.2" dig.out.ns2.test$n > /dev/null || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
-
-n=`expr $n + 1`
-echo_i "checking example2 contents have been transferred after HUP reload ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "10.0.0.2" dig.out.ns2.test$n > /dev/null || ret=1
-
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+dig_plus_opts a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.2" dig.out.ns3.test$n > /dev/null || ret=1
 
 digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
 echo_i "stopping primary and restarting with example4 then waiting up to 45 seconds"
 stop_server notify ns2
@@ -142,69 +142,48 @@ stop_server notify ns2
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
-start_server --noclean --restart --port ${PORT} notify ns2
+start_server --noclean --restart --port "${PORT}" notify ns2
+wait_for_log 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named.run
 
-try=0
-while test $try -lt 45
-do
-    nextpart ns3/named.run > tmp
-    grep "transfer of 'example/IN' from 10.53.0.2#.*success" tmp > /dev/null && break
-    sleep 1
-    try=`expr $try + 1`
-done
-
-n=`expr $n + 1`
-echo_i "checking notify message was logged ($n)"
-ret=0
+test_start "checking notify message was logged"
 grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 4$' ns3/named.run > /dev/null || ret=1
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
-n=`expr $n + 1`
-echo_i "checking example4 loaded ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+test_start "checking example4 loaded"
+dig_plus_opts a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "10.0.0.4" dig.out.ns2.test$n > /dev/null || ret=1
+test_end
+
+test_start "checking example4 contents have been transferred after restart"
+
+dig_plus_opts a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "10.0.0.4" dig.out.ns2.test$n > /dev/null || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
-
-n=`expr $n + 1`
-echo_i "checking example4 contents have been transferred after restart ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "10.0.0.4" dig.out.ns2.test$n > /dev/null || ret=1
-
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+dig_plus_opts a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.4" dig.out.ns3.test$n > /dev/null || ret=1
 
 digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
-n=`expr $n + 1`
-echo_i "checking notify to alternate port with primary server inheritance ($n)"
+test_start "checking notify to alternate port with primary server inheritance"
 $NSUPDATE << EOF
 server 10.53.0.2 ${PORT}
 zone x21
 update add added.x21 0 in txt "test string"
 send
 EOF
+fn="dig.out.ns4.test$n"
 for i in 1 2 3 4 5 6 7 8 9
 do
-	$DIG $DIGOPTS added.x21. @10.53.0.4 txt -p $EXTRAPORT1 > dig.out.ns4.test$n || ret=1
-	grep "test string" dig.out.ns4.test$n > /dev/null && break
+	dig_plus_opts added.x21. @10.53.0.4 txt -p "$EXTRAPORT1" > "$fn" || ret=1
+	grep "test string" "$fn" > /dev/null && break
 	sleep 1
 done
-grep "test string" dig.out.ns4.test$n > /dev/null || ret=1
+grep "test string" "$fn" > /dev/null || ret=1
+test_end
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
-
-n=`expr $n + 1`
-echo_i "checking notify to multiple views using tsig ($n)"
-ret=0
+test_start "checking notify to multiple views using tsig"
 $NSUPDATE << EOF
 server 10.53.0.5 ${PORT}
 zone x21
@@ -212,25 +191,25 @@ key a aaaaaaaaaaaaaaaaaaaa
 update add added.x21 0 in txt "test string"
 send
 EOF
-
+fnb="dig.out.b.ns5.test$n"
+fnc="dig.out.c.ns5.test$n"
 for i in 1 2 3 4 5 6 7 8 9
 do
-	$DIG $DIGOPTS added.x21. -y b:bbbbbbbbbbbbbbbbbbbb @10.53.0.5 \
-		txt > dig.out.b.ns5.test$n || ret=1
-	$DIG $DIGOPTS added.x21. -y c:cccccccccccccccccccc @10.53.0.5 \
-		txt > dig.out.c.ns5.test$n || ret=1
-	grep "test string" dig.out.b.ns5.test$n > /dev/null &&
-	grep "test string" dig.out.c.ns5.test$n > /dev/null &&
+	dig_plus_opts added.x21. -y b:bbbbbbbbbbbbbbbbbbbb @10.53.0.5 \
+		txt > "$fnb" || ret=1
+	dig_plus_opts added.x21. -y c:cccccccccccccccccccc @10.53.0.5 \
+		txt > "$fnc" || ret=1
+	grep "test string" "$fnb" > /dev/null &&
+	grep "test string" "$fnc" > /dev/null &&
 	break
 	sleep 1
 done
-grep "test string" dig.out.b.ns5.test$n > /dev/null || ret=1
-grep "test string" dig.out.c.ns5.test$n > /dev/null || ret=1
+grep "test string" "$fnb" > /dev/null || ret=1
+grep "test string" "$fnc" > /dev/null || ret=1
 grep "sending notify to 10.53.0.5#[0-9]* : TSIG (b)" ns5/named.run > /dev/null || ret=1
 grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null || ret=1
 
-[ $ret = 0 ] || echo_i "failed"
-status=`expr $ret + $status`
+test_end
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
