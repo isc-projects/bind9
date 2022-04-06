@@ -1,3 +1,6 @@
+5855.	[bug]		Ensure that zone maintenance queries have a retry limit.
+			[GL #3242]
+
 5853.	[bug]		When using both the `+qr` and `+y` options `dig` could
 			crash if the connection to the first server was not
 			successful. [GL #3244]
