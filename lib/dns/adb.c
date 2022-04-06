@@ -2114,7 +2114,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
 	isc_rwlock_init(&adb->names_lock, 0, 0);
 
-	isc_ht_init(&adb->entrybuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
+	isc_ht_init(&adb->entrybuckets, adb->mctx, 1, ISC_HT_CASE_SENSITIVE);
 	isc_rwlock_init(&adb->entries_lock, 0, 0);
 
 	isc_mutex_init(&adb->lock);
