@@ -156,3 +156,12 @@ Bug Fixes
 - Handling of the TCP write timeouts has been improved to track timeout
   for each TCP write separately leading to faster connection tear down
   in case the other party is not reading the data. :gl:`#3200`
+
+- Zone maintenance DNS queries would retry forever while the
+  destination server was unreachable. These queries include outgoing
+  NOTIFY messages, refresh SOA queries, parental DS checks, and stub
+  zone NS queries. For example, if a zone has any nameservers with
+  IPv6 addresses and a secondary server without IPv6 connectivity, the
+  IPv4-only server would keep trying to send a growing amount of
+  NOTIFY traffic over IPv6. This futile traffic was not logged.
+  :gl:`#3242`
