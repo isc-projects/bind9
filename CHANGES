@@ -2,8 +2,8 @@
 			crash if the connection to the first server was not
 			successful. [GL #3244]
 
-5852.	[func]		Add new "load-balance-socket" option to
-			enable/disable load balancing of sockets. [GL #3249]
+5852.	[func]		Add new "reuseport" option to enable/disable load
+			balancing of sockets. [GL #3249]
 
 5848.	[bug]		dig could hang in some cases involving multiple servers
 			in a lookup, when a request fails and the next one

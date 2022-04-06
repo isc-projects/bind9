@@ -301,7 +301,6 @@ OPTIONS
   	    string ] {
   	    address_match_element; ... };
   	lmdb-mapsize sizeval;
-  	load-balance-sockets boolean;
   	lock-file ( quoted_string | none );
   	managed-keys-directory quoted_string;
   	masterfile-format ( raw | text );
@@ -411,6 +410,7 @@ OPTIONS
   	    [ nsip-enable boolean ] [ nsdname-enable boolean ] [
   	    dnsrps-enable boolean ] [ dnsrps-options { unspecified-text
   	    } ];
+  	reuseport boolean;
   	root-delegation-only [ exclude { string; ... } ];
   	root-key-sentinel boolean;
   	rrset-order { [ class string ] [ type string ] [ name
