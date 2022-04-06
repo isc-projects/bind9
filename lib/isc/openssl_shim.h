@@ -130,3 +130,8 @@ X509_STORE_up_ref(X509_STORE *v);
 void
 SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store);
 #endif /* !HAVE_SSL_CTX_SET1_CERT_STORE */
+
+#if !HAVE_SSL_CTX_UP_REF
+int
+SSL_CTX_up_ref(SSL_CTX *store);
+#endif /* !HAVE_SSL_CTX_UP_REF */

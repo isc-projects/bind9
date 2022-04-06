@@ -2936,6 +2936,14 @@ isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	return (isc_nm_verify_tls_peer_result_string(session->handle));
 }
 
+void
+isc__nm_http_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->type == isc_nm_httplistener);
+
+	isc_nmsocket_set_tlsctx(listener->outer, tlsctx);
+}
+
 static const bool base64url_validation_table[256] = {
 	false, false, false, false, false, false, false, false, false, false,
 	false, false, false, false, false, false, false, false, false, false,

@@ -903,6 +903,7 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 #endif
+		NETIEVENT_CASE(settlsctx);
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
@@ -1040,6 +1041,8 @@ NETIEVENT_DEF(shutdown);
 NETIEVENT_DEF(stop);
 
 NETIEVENT_TASK_DEF(task);
+
+NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
 
 void
 isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
@@ -1219,6 +1222,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_condition_destroy(&sock->scond);
 	isc_condition_destroy(&sock->cond);
 	isc_mutex_destroy(&sock->lock);
+	isc__nm_tlsdns_cleanup_data(sock);
 #if HAVE_LIBNGHTTP2
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
@@ -3551,6 +3555,71 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	}
 
 	return (NULL);
+}
+
+void
+isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent__tlsctx_t *ev_tlsctx = (isc__netievent__tlsctx_t *)ev0;
+	const int tid = isc_nm_tid();
+	isc_nmsocket_t *listener = ev_tlsctx->sock;
+	isc_tlsctx_t *tlsctx = ev_tlsctx->tlsctx;
+
+	UNUSED(worker);
+
+	switch (listener->type) {
+	case isc_nm_tlsdnslistener:
+		isc__nm_async_tlsdns_set_tlsctx(listener, tlsctx, tid);
+		break;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlslistener:
+		isc__nm_async_tls_set_tlsctx(listener, tlsctx, tid);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		UNREACHABLE();
+		break;
+	};
+}
+
+static void
+set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
+	/* Update the TLS context reference for every worker thread. */
+	for (size_t i = 0; i < isc_nm_getnworkers(listener->mgr); i++) {
+		isc__netievent__tlsctx_t *ievent =
+			isc__nm_get_netievent_settlsctx(listener->mgr, listener,
+							tlsctx);
+		isc__nm_enqueue_ievent(&listener->mgr->workers[i],
+				       (isc__netievent_t *)ievent);
+	}
+}
+
+void
+isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(tlsctx != NULL);
+
+	switch (listener->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httplistener:
+		/*
+		 * We handle HTTP listener sockets differently, as they rely
+		 * on underlying TLS sockets for networking. The TLS context
+		 * will get passed to these underlying sockets via the call to
+		 * isc__nm_http_set_tlsctx().
+		 */
+		isc__nm_http_set_tlsctx(listener, tlsctx);
+		break;
+	case isc_nm_tlslistener:
+		set_tlsctx_workers(listener, tlsctx);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_tlsdnslistener:
+		set_tlsctx_workers(listener, tlsctx);
+		break;
+	default:
+		UNREACHABLE();
+		break;
+	};
 }
 
 #ifdef NETMGR_TRACE
