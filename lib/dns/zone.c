@@ -19139,24 +19139,18 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		isc_mem_detach(&zmgr->mctxpool[i]);
 	}
-	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
-		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
 
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		if (zmgr->loadtasks[i] != NULL) {
 			isc_task_detach(&zmgr->loadtasks[i]);
 		}
 	}
-	isc_mem_put(zmgr->mctx, zmgr->loadtasks,
-		    zmgr->workers * sizeof(zmgr->loadtasks[0]));
 
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		if (zmgr->zonetasks[i] != NULL) {
 			isc_task_detach(&zmgr->zonetasks[i]);
 		}
 	}
-	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
-		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
@@ -19184,6 +19178,13 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	isc_ratelimiter_detach(&zmgr->refreshrl);
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
 	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
+
+	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
+		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
+	isc_mem_put(zmgr->mctx, zmgr->loadtasks,
+		    zmgr->workers * sizeof(zmgr->loadtasks[0]));
+	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
+		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
