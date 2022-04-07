@@ -1,3 +1,7 @@
+5856.	[bug]		The "starting maxtime timer" message related to outgoing
+			zone transfers was incorrectly logged at the ERROR level
+			instead of DEBUG(1). [GL #3208]
+
 5852.	[func]		Add new "reuseport" option to enable/disable load
 			balancing of sockets. [GL #3249]
 
