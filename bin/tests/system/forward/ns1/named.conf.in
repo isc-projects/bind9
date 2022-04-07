@@ -65,3 +65,23 @@ zone "sld.tld" {
 zone "example6" {
 	type forward;
 };
+
+zone "diditwork.net" {
+	type primary;
+	file "diditwork.net.db";
+};
+
+zone "spoofed.net" {
+	type primary;
+	file "spoofed.net.db";
+};
+
+zone "sub.local.net" {
+	type primary;
+	file "sub.local.net.db";
+};
+
+zone "net.example.lll" {
+	type master;
+	file "net.example.lll";
+};
