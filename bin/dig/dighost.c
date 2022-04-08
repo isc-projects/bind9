@@ -2940,6 +2940,10 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		dig_lookup_t *l = query->lookup;
 
 		debug("udp setup failed: %s", isc_result_totext(eresult));
+
+		if (exitcode < 9) {
+			exitcode = 9;
+		}
 		query_detach(&query);
 		cancel_lookup(l);
 		lookup_detach(&l);
@@ -3789,6 +3793,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 		if (eresult == ISC_R_EOF) {
 			requeue_or_update_exitcode(l);
+		} else if (exitcode < 9) {
+			exitcode = 9;
 		}
 
 		goto cancel_lookup;
