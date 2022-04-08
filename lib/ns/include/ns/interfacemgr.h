@@ -190,3 +190,11 @@ ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr);
  * Returns the client manager for the current worker thread.
  * (This cannot be run from outside a network manager thread.)
  */
+
+bool
+ns_interfacemgr_dynamic_updates_are_reliable(void);
+/*%<
+ * Returns 'true' if periodic interface re-scans timer should be
+ * disabled. That is the case on the platforms where kernel-based
+ * mechanisms for tracking networking interface states is reliable enough.
+ */

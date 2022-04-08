@@ -8981,13 +8981,18 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "interface-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	interface_interval = cfg_obj_asduration(obj);
-	if (interface_interval == 0) {
-		CHECK(isc_timer_reset(server->interface_timer,
-				      isc_timertype_inactive, NULL, true));
-	} else if (server->interface_interval != interface_interval) {
-		isc_interval_set(&interval, interface_interval, 0);
-		CHECK(isc_timer_reset(server->interface_timer,
-				      isc_timertype_ticker, &interval, false));
+
+	if (server->interface_timer != NULL) {
+		if (interface_interval == 0) {
+			CHECK(isc_timer_reset(server->interface_timer,
+					      isc_timertype_inactive, NULL,
+					      true));
+		} else if (server->interface_interval != interface_interval) {
+			isc_interval_set(&interval, interface_interval, 0);
+			CHECK(isc_timer_reset(server->interface_timer,
+					      isc_timertype_ticker, &interval,
+					      false));
+		}
 	}
 	server->interface_interval = interface_interval;
 
@@ -9824,8 +9829,23 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  &server->interfacemgr),
 		   "creating interface manager");
 
-	isc_timer_create(named_g_timermgr, server->task, interface_timer_tick,
-			 server, &server->interface_timer);
+	/*
+	 * In some cases the user might expect a certain behaviour from
+	 * the rescan timer, let's try to deduce that from the
+	 * configuration options.
+	 */
+	if ((ns_interfacemgr_dynamic_updates_are_reliable() &&
+	     server->interface_auto) ||
+	    (server->interface_interval == 0))
+	{
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "Disabling periodic interface re-scans timer");
+	} else {
+		isc_timer_create(named_g_timermgr, server->task,
+				 interface_timer_tick, server,
+				 &server->interface_timer);
+	}
 
 	isc_timer_create(named_g_timermgr, server->task, heartbeat_timer_tick,
 			 server, &server->heartbeat_timer);
@@ -9926,7 +9946,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
 	}
 
-	isc_timer_destroy(&server->interface_timer);
+	if (server->interface_timer != NULL) {
+		isc_timer_destroy(&server->interface_timer);
+	}
 	isc_timer_destroy(&server->heartbeat_timer);
 	isc_timer_destroy(&server->pps_timer);
 	isc_timer_destroy(&server->tat_timer);
