@@ -1,3 +1,6 @@
+5862.	[bug]		dig returned a 0 exit status on UDP connection failure.
+			[GL #3235]
+
 5861.	[func]		Implement support for catalog zones change of ownership
 			(coo) mechanism described in the DNS catalog zones draft
 			version 5 document. [GL #3223]
