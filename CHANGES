@@ -1,3 +1,8 @@
+5894.	[func]		Avoid periodic interface re-scans on Linux by
+			default, where a reliable event-based mechanism for
+			detecting interface state changes is available.
+			[GL #3064]
+
 5893.	[func]		Add TLS session resumption support to the client-side
 			TLS code. [GL !6274]
 
