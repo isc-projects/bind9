@@ -60,3 +60,8 @@ zone "malicious." {
 	type master;
 	file "malicious.db";
 };
+
+zone "sibling.tld" {
+	type master;
+	file "sibling.tld.db";
+};

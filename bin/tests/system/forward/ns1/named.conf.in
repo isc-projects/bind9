@@ -54,3 +54,23 @@ zone "example5." {
 zone "example6" {
 	type forward;
 };
+
+zone "diditwork.net" {
+	type master;
+	file "diditwork.net.db";
+};
+
+zone "spoofed.net" {
+	type master;
+	file "spoofed.net.db";
+};
+
+zone "sub.local.net" {
+	type master;
+	file "sub.local.net.db";
+};
+
+zone "net.example.lll" {
+	type master;
+	file "net.example.lll";
+};
