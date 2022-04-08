@@ -15,7 +15,7 @@
 rm -f ./dig.out.*
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
-rm -f ./*/named.run ./*/named.run.prev
+rm -f ./*/named.run ./*/named.run.prev ./*/ans.run
 rm -f ./*/named_dump.db
 rm -f ./ns*/named.lock
 rm -f ./ns*/managed-keys.bind*
