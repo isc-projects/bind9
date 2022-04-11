@@ -1,3 +1,5 @@
+	--- 9.19.0 released ---
+
 5856.	[bug]		The "starting maxtime timer" message related to outgoing
 			zone transfers was incorrectly logged at the ERROR level
 			instead of DEBUG(1). [GL #3208]
