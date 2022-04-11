@@ -52,6 +52,10 @@ Bug Fixes
   over IPv6. This futile traffic was not logged. This excessive retry
   behavior has been fixed. :gl:`#3242`
 
+- A number of crashes and hangs which could be triggered in
+  :iscman:`dig` were identified and addressed. :gl:`#3020` :gl:`#3128`
+  :gl:`#3145` :gl:`#3184` :gl:`#3205` :gl:`#3244` :gl:`#3248`
+
 - Invalid ``dnssec-policy`` definitions, where the defined keys did not
   cover both KSK and ZSK roles for a given algorithm, were being
   accepted. These are now checked, and the ``dnssec-policy`` is rejected
