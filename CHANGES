@@ -259,8 +259,6 @@
 			when receiving NOTIFY query with SOA record in
 			ANSWER section. [GL #3086]
 
-	--- 9.17.22 released ---
-
 5790.	[bug]		The control channel was incorrectly looking for
 			ISC_R_CANCELED as a signal that the named is
 			shutting down.  In the dispatch refactoring,
@@ -268,6 +266,8 @@
 			is now ISC_R_SHUTTINGDOWN.  Change the control
 			channel code to use ISC_R_SHUTTINGDOWN result
 			code to detect named being shut down. [GL #3079]
+
+	--- 9.17.22 released ---
 
 5789.	[bug]		Allow replacing expired zone signatures with
 			signatures created by the KSK. [GL #3049]
