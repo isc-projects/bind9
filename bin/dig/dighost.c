@@ -3097,6 +3097,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query->started = true;
 
 	if (atomic_load(&cancel_now)) {
+		query_detach(&query);
 		return;
 	}
 
@@ -3452,6 +3453,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query->started = true;
 
 	if (atomic_load(&cancel_now)) {
+		query_detach(&query);
 		return;
 	}
 
