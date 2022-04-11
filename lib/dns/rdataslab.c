@@ -70,7 +70,9 @@
 
 struct xrdata {
 	dns_rdata_t rdata;
+#if DNS_RDATASET_FIXED
 	unsigned int order;
+#endif /* if DNS_RDATASET_FIXED */
 };
 
 /*% Note: the "const void *" are just to make qsort happy.  */
@@ -122,18 +124,16 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	static unsigned char removed;
 	struct xrdata *x;
 	unsigned char *rawbuf;
-#if DNS_RDATASET_FIXED
-	unsigned char *offsetbase;
-#endif /* if DNS_RDATASET_FIXED */
 	unsigned int buflen;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
+	unsigned int length;
 	unsigned int i;
 #if DNS_RDATASET_FIXED
+	unsigned char *offsetbase;
 	unsigned int *offsettable;
 #endif /* if DNS_RDATASET_FIXED */
-	unsigned int length;
 
 	buflen = reservelen + 2;
 
