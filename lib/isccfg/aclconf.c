@@ -17,7 +17,7 @@
 
 #include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>

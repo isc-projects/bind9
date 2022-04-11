@@ -20,7 +20,7 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
-#include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/dnssec.h>

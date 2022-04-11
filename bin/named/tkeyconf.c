@@ -17,7 +17,7 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
-#include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/string.h>
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
