@@ -25,7 +25,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Add a new configuration option ``reuseport`` to disable load balancing
+  on sockets in situations where processing of Response Policy Zones
+  (RPZ), Catalog Zones, or large zone transfers can cause service
+  disruptions. See the BIND 9 ARM for more detail. :gl:`#3249`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -36,11 +39,6 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 - None.
-
-- Add a new configuration option ``reuseport`` to disable load balancing
-  on sockets in situations where processing of Response Policy Zones
-  (RPZ), Catalog Zones, or large zone transfers can cause service
-  disruptions. See the BIND 9 ARM for more detail. :gl:`#3249`
 
 Bug Fixes
 ~~~~~~~~~
