@@ -20,39 +20,41 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- According to RFC 8310, Section 8.1, the Subject field MUST NOT be
-  inspected when verifying a remote certificate while establishing a
-  DNS-over-TLS connection. Only SubjectAltName must be checked
+- According to :rfc:`8310`, Section 8.1, the ``Subject`` field MUST NOT
+  be inspected when verifying a remote certificate while establishing a
+  DNS-over-TLS connection. Only ``subjectAltName`` must be checked
   instead. Unfortunately, some quite old versions of cryptographic
-  libraries might lack the functionality to ignore the Subject
-  field. It should have minimal production use consequences, as most
-  of the production-ready certificates issued by certificate
-  authorities will have SubjectAltNames set. In such a case, the
-  Subject field is ignored. Only old platforms are affected by this,
-  e.g., those supplied with OpenSSL versions older than 1.1.1.
+  libraries might lack the ability to ignore the ``Subject`` field. This
+  should have minimal production-use consequences, as most of the
+  production-ready certificates issued by certificate authorities will
+  have ``subjectAltName`` set. In such cases, the ``Subject`` field is
+  ignored. Only old platforms are affected by this, e.g. those supplied
+  with OpenSSL versions older than 1.1.1. :gl:`#3163`
 
 New Features
 ~~~~~~~~~~~~
 
-- :iscman:`dnssec-verify` and :iscman:`dnssec-signzone` now accept a ``-J`` option to
-  specify a journal file to read when loading the zone to be verified or
-  signed. :gl:`#2486`
+- :iscman:`dnssec-verify` and :iscman:`dnssec-signzone` now accept a
+  ``-J`` option to specify a journal file to read when loading the zone
+  to be verified or signed. :gl:`#2486`
 
-- Add support for remote TLS certificates verification, both to BIND
-  and ``dig``, making it possible to implement Strict and Mutual TLS
-  authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
+- Add support for remote TLS certificate verification, both to
+  :iscman:`named` and :iscman:`dig`, making it possible to implement
+  Strict and Mutual TLS authentication, as described in :rfc:`9103`,
+  Section 9.3. :gl:`#3163`
 
-- Run RPZ updates on the specialized "offload" threads to reduce the amount
-  of time they block query processing on the main networking threads.  This
-  should increase the responsiveness of ``named`` when RPZ updates are being
-  applied after an RPZ zone has been successfully transfered.  :gl:`#3190`
+- Run RPZ updates on the specialized "offload" threads to reduce the
+  amount of time they block query processing on the main networking
+  threads. This should increase the responsiveness of :iscman:`named`
+  when RPZ updates are being applied after an RPZ zone has been
+  successfully transferred. :gl:`#3190`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
 - The ``keep-order-response`` option has been declared obsolete and the
-  functionality has been removed.  :iscman:`named` expects DNS clients to be
-  fully compliant with :rfc:`7766`. :gl:`#3140`
+  functionality has been removed. :iscman:`named` expects DNS clients to
+  be fully compliant with :rfc:`7766`. :gl:`#3140`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
