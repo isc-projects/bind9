@@ -40,16 +40,11 @@
 
 ### Before the Tagging Deadline
 
- - [ ] ***(QA)*** Look for outstanding documentation issues (e.g. `CHANGES` mistakes) and address them if any are found.
  - [ ] ***(QA)*** Ensure release notes are correct, ask Support and Marketing to check them as well.
- - [ ] ***(QA)*** Update API files for libraries with new version information.
- - [ ] ***(QA)*** Change software version and library versions in `configure.ac` (new major release only).
- - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org`.
+ - [ ] ***(QA)*** Update BIND 9 version in `configure.ac` (9.18+) or `version` (9.16).
+ - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org` (9.16).
  - [ ] ***(QA)*** Update `CHANGES`.
  - [ ] ***(QA)*** Update `CHANGES.SE` (Subscription Edition only).
- - [ ] ***(QA)*** Update `README.md`.
- - [ ] ***(QA)*** Update `version`.
- - [ ] ***(QA)*** Build documentation on `docs.isc.org`.
  - [ ] ***(QA)*** Check that the formatting is correct for text, PDF, and HTML versions of release notes.
  - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
@@ -77,17 +72,15 @@
  - [ ] ***(Support)*** Update tickets in case of waiting support customers.
  - [ ] ***(QA)*** Build and test any outstanding private packages.
  - [ ] ***(QA)*** Build public RPMs.
- - [ ] ***(SwEng) *** Build Debian/Ubuntu packages.
- - [ ] ***(SwEng) *** Update Docker images.
+ - [ ] ***(SwEng)*** Build Debian/Ubuntu packages.
+ - [ ] ***(SwEng)*** Update Docker images.
  - [ ] ***(QA)*** Inform Marketing of the release.
- - [ ] ***(QA)*** Update the internal [BIND release dates wiki page](https://wiki.isc.org/bin/view/Main/BindReleaseDates) when public announcement has been made.
  - [ ] ***(Marketing)*** Post short note to Twitter.
  - [ ] ***(Marketing)*** Update [Wikipedia entry for BIND](https://en.wikipedia.org/wiki/BIND).
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed.
  - [ ] ***(QA)*** Push tags for the published releases to the public repository.
  - [ ] ***(QA)*** Merge the automatically prepared `prep 9.x.y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_x`).
- - [ ] ***(QA)*** For each maintained branch, update the `BIND_BASELINE_VERSION` variable for the `abi-check` job in `.gitlab-ci.yml` to the latest published BIND version tag for a given branch.
  - [ ] ***(QA)*** Prepare empty release notes for the next set of releases.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
