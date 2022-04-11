@@ -12,16 +12,6 @@
 Notes for BIND 9.16.28
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -29,16 +19,6 @@ New Features
   on sockets in situations where processing of Response Policy Zones
   (RPZ), Catalog Zones, or large zone transfers can cause service
   disruptions. See the BIND 9 ARM for more detail. :gl:`#3249`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
