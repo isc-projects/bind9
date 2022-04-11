@@ -9,13 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.17.23
-----------------------
-
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
+Notes for BIND 9.19.0
+---------------------
 
 Known Issues
 ~~~~~~~~~~~~
@@ -58,8 +53,3 @@ Feature Changes
   threads. This should increase the responsiveness of :iscman:`named`
   when RPZ updates are being applied after an RPZ zone has been
   successfully transferred. :gl:`#3190`
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
