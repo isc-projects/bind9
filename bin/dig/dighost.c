@@ -1591,6 +1591,7 @@ clear_query(dig_query_t *query) {
 	}
 
 	if (ISC_LINK_LINKED(query, link)) {
+		query->saved_next = ISC_LIST_NEXT(query, link);
 		ISC_LIST_UNLINK(lookup->q, query, link);
 	}
 	if (ISC_LINK_LINKED(query, clink)) {
@@ -1609,6 +1610,7 @@ clear_query(dig_query_t *query) {
 	isc_buffer_invalidate(&query->lengthbuf);
 
 	if (query->waiting_senddone) {
+		debug("waiting senddone, delay freeing query");
 		query->pending_free = true;
 	} else {
 		query->magic = 0;
@@ -2583,6 +2585,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 		ISC_LINK_INIT(query, clink);
 		ISC_LINK_INIT(query, link);
+		query->saved_next = NULL;
 
 		query->magic = DIG_QUERY_MAGIC;
 
@@ -2617,10 +2620,11 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 	query->waiting_senddone = false;
 	l = query->lookup;
 
-	if (!query->pending_free && l->ns_search_only && !l->trace_root &&
+	if (l == current_lookup && l->ns_search_only && !l->trace_root &&
 	    !l->tcp_mode) {
 		debug("sending next, since searching");
-		next = ISC_LIST_NEXT(query, link);
+		next = query->pending_free ? query->saved_next
+					   : ISC_LIST_NEXT(query, link);
 		if (next != NULL) {
 			send_udp(next);
 		}
