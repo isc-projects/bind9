@@ -105,15 +105,7 @@ rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
 echo_i "reloading with example2 using HUP and waiting up to 45 seconds"
 kill -HUP "$(cat ns2/named.pid)"
-
-try=0
-while [ $try -lt 45 ]
-do
-    nextpart ns3/named.run > tmp
-    grep "transfer of 'example/IN' from 10.53.0.2#.*success" tmp > /dev/null && break
-    sleep 1
-    try=$((try + 1))
-done
+wait_for_log_re 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named.run
 
 test_start "checking notify message was logged"
 grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run > /dev/null || ret=1
@@ -143,7 +135,7 @@ rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
 start_server --noclean --restart --port "${PORT}" notify ns2
-wait_for_log 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named.run
+wait_for_log_re 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named.run
 
 test_start "checking notify message was logged"
 grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 4$' ns3/named.run > /dev/null || ret=1
@@ -208,10 +200,14 @@ grep "test string" "$fnb" > /dev/null || ret=1
 grep "test string" "$fnc" > /dev/null || ret=1
 grep "sending notify to 10.53.0.5#[0-9]* : TSIG (b)" ns5/named.run > /dev/null || ret=1
 grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null || ret=1
-
 test_end
 
+# notify messages were sent to unresponsive 10.53.10.53 during the tests
+# above, which should time out at some point; we need to wait for them to
+# appear in the logs in case the tests run faster than the notify timeouts
+
 test_start "checking notify retries expire within 45 seconds ($n)"
+nextpartreset ns3/named.run
 wait_for_log 45 'retries exceeded' ns3/named.run || ret=1
 test_end
 
