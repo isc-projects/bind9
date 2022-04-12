@@ -1,3 +1,7 @@
+5881.	[bug]		dig +nssearch could hang in rare cases when recv_done()
+			callback was being called earlier than send_done().
+			[GL #3278]
+
 5879.	[contrib]	dlz: Add FALLTHROUGH and UNREACHABLE macros. [GL #3306]
 
 5874.	[bug]		keymgr didn't work with python 3.11. [GL !6157]
