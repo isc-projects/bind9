@@ -489,6 +489,13 @@ _search_log() (
 	nextpart "$file" | grep -F -e "$msg" > /dev/null
 )
 
+# _search_log_re: same as _search_log but the message is an egrep regex
+_search_log_re() (
+	msg="$1"
+	file="$2"
+	nextpart "$file" | grep -E -e "$msg" > /dev/null
+)
+
 # _search_log_peek: look for message $1 in file $2 with nextpartpeek().
 _search_log_peek() (
 	msg="$1"
@@ -506,7 +513,17 @@ wait_for_log() (
 	msg="$2"
 	file="$3"
 	retry_quiet "$timeout" _search_log "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for '$msg' in $file"
+	echo_i "exceeded time limit waiting for literal '$msg' in $file"
+        return 1
+)
+
+# wait_for_log_re: same as wait_for_log, but the message is an egrep regex
+wait_for_log_re() (
+	timeout="$1"
+	msg="$2"
+	file="$3"
+	retry_quiet "$timeout" _search_log_re "$msg" "$file" && return 0
+	echo_i "exceeded time limit waiting for regex '$msg' in $file"
         return 1
 )
 
@@ -517,7 +534,7 @@ wait_for_log_peek() (
 	msg="$2"
 	file="$3"
 	retry_quiet "$timeout" _search_log_peek "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for '$msg' in $file"
+	echo_i "exceeded time limit waiting for literal '$msg' in $file"
         return 1
 )
 
