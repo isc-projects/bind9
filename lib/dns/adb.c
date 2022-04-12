@@ -1009,7 +1009,7 @@ shutdown_entries(dns_adb_t *adb) {
 			 * entries not in use.
 			 */
 			next_entry = ISC_LIST_NEXT(entry, plink);
-			if (isc_refcount_current(&entry->references) &&
+			if (isc_refcount_current(&entry->references) == 1 &&
 			    entry->expires == 0) {
 				unlink_entry(entry);
 			}
