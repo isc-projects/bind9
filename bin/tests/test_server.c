@@ -202,7 +202,7 @@ teardown(void) {
 }
 
 static void
-yield(void) {
+test_server_yield(void) {
 	sigset_t sset;
 	int sig;
 
@@ -307,7 +307,7 @@ run(void) {
 	}
 	REQUIRE(result == ISC_R_SUCCESS);
 
-	yield();
+	test_server_yield();
 
 	isc_nm_stoplistening(sock);
 	isc_nmsocket_close(&sock);
