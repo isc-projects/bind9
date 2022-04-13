@@ -1435,6 +1435,8 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 				  .inactivereqs = isc_astack_new(
 					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
 
+	ISC_LIST_INIT(sock->tls.sendreqs);
+
 	if (iface != NULL) {
 		family = iface->type.sa.sa_family;
 		sock->iface = *iface;
