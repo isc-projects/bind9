@@ -21641,16 +21641,69 @@ zone_rekey(dns_zone_t *zone) {
 	KASP_UNLOCK(kasp);
 
 	if (result == ISC_R_SUCCESS) {
-		bool cds_delete = false;
+		bool cdsdel = false;
+		bool cdnskeydel = false;
 		isc_stdtime_t when;
 
 		/*
 		 * Publish CDS/CDNSKEY DELETE records if the zone is
 		 * transitioning from secure to insecure.
 		 */
-		if (kasp != NULL &&
-		    strcmp(dns_kasp_getname(kasp), "insecure") == 0) {
-			cds_delete = true;
+		if (kasp != NULL) {
+			if (strcmp(dns_kasp_getname(kasp), "insecure") == 0) {
+				cdsdel = true;
+				cdnskeydel = true;
+			}
+		} else {
+			/* Check if there is a CDS DELETE record. */
+			if (dns_rdataset_isassociated(&cdsset)) {
+				for (result = dns_rdataset_first(&cdsset);
+				     result == ISC_R_SUCCESS;
+				     result = dns_rdataset_next(&cdsset))
+				{
+					dns_rdata_t crdata = DNS_RDATA_INIT;
+					dns_rdataset_current(&cdsset, &crdata);
+					/*
+					 * CDS deletion record has this form
+					 * "0 0 0 00" which is 5 zero octets.
+					 */
+					if (crdata.length == 5U &&
+					    memcmp(crdata.data,
+						   (unsigned char[5]){ 0, 0, 0,
+								       0, 0 },
+						   5) == 0)
+					{
+						cdsdel = true;
+						break;
+					}
+				}
+			}
+
+			/* Check if there is a CDNSKEY DELETE record. */
+			if (dns_rdataset_isassociated(&cdnskeyset)) {
+				for (result = dns_rdataset_first(&cdnskeyset);
+				     result == ISC_R_SUCCESS;
+				     result = dns_rdataset_next(&cdnskeyset))
+				{
+					dns_rdata_t crdata = DNS_RDATA_INIT;
+					dns_rdataset_current(&cdnskeyset,
+							     &crdata);
+					/*
+					 * CDNSKEY deletion record has this form
+					 * "0 3 0 AA==" which is 2 zero octets,
+					 * a 3, and 2 zero octets.
+					 */
+					if (crdata.length == 5U &&
+					    memcmp(crdata.data,
+						   (unsigned char[5]){ 0, 0, 3,
+								       0, 0 },
+						   5) == 0)
+					{
+						cdnskeydel = true;
+						break;
+					}
+				}
+			}
 		}
 
 		/*
@@ -21687,36 +21740,36 @@ zone_rekey(dns_zone_t *zone) {
 			goto failure;
 		}
 
-		if (cds_delete) {
+		if (cdsdel || cdnskeydel) {
 			/*
 			 * Only publish CDS/CDNSKEY DELETE records if there is
 			 * a KSK that can be used to verify the RRset. This
 			 * means there must be a key with the KSK role that is
 			 * published and is used for signing.
 			 */
-			cds_delete = false;
+			bool allow = false;
 			for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
 			     key = ISC_LIST_NEXT(key, link)) {
 				dst_key_t *dstk = key->key;
-				bool ksk = false;
-				(void)dst_key_getbool(dstk, DST_BOOL_KSK, &ksk);
-				if (!ksk) {
-					continue;
-				}
 
-				if (dst_key_haskasp(dstk) &&
-				    dst_key_is_published(dstk, now, &when) &&
+				if (dst_key_is_published(dstk, now, &when) &&
 				    dst_key_is_signing(dstk, DST_BOOL_KSK, now,
 						       &when))
 				{
-					cds_delete = true;
+					allow = true;
 					break;
 				}
 			}
+			if (cdsdel) {
+				cdsdel = allow;
+			}
+			if (cdnskeydel) {
+				cdnskeydel = allow;
+			}
 		}
-		result = dns_dnssec_syncdelete(&cdsset, &cdnskeyset,
-					       &zone->origin, zone->rdclass,
-					       ttl, &diff, mctx, cds_delete);
+		result = dns_dnssec_syncdelete(
+			&cdsset, &cdnskeyset, &zone->origin, zone->rdclass, ttl,
+			&diff, mctx, cdsdel, cdnskeydel);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY "

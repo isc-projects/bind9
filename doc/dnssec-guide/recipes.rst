@@ -1067,6 +1067,12 @@ Below is an example showing how to remove DS records using the
 
       Revert to Unsigned Step #4
 
+If your parent allows managing DS record via CDS/CDNSKEY, as described in
+:rfc:`5155`, you could add CDS/CDNSKEY DELETE records in your zone to signal
+that the corresponding DS records from the parent zone needs to be removed.
+If it is unclear which format the parent zone is expecting, you should publish
+both CDS and CDNSKEY DELETE records.
+
 To be on the safe side, wait a while before actually deleting
 all signed data from your zone, just in case some validating resolvers
 have cached information. After you are certain that all cached
@@ -1099,7 +1105,8 @@ Then use :option:`rndc reload` to reload the zone.
 
 The "insecure" policy is a built-in policy (like "default"). It will make sure
 the zone is still DNSSEC maintained, to allow for a graceful transition to
-unsigned.
+unsigned. It also publishes the CDS and CDNSKEY DELETE records for you when
+the time is right.
 
 When the DS records have been removed from the parent zone, use
 :option:`rndc dnssec -checkds -key id withdrawn example.com <rndc dnssec>` to tell :iscman:`named` that
