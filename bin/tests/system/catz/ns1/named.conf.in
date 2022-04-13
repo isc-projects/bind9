@@ -32,63 +32,83 @@ options {
 	allow-transfer { any; };
 };
 
-zone "catalog1.example" {
-	type primary;
-	file "catalog1.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
+view "default" {
+
+	zone "catalog1.example" {
+		type primary;
+		file "catalog1.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
+	/* catalog2 is provided by the ns3 primary */
+
+	zone "catalog3.example" {
+		type primary;
+		file "catalog3.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
+	zone "catalog4.example" {
+		type primary;
+		file "catalog4.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
+	/* catalog5 is missing on purpose */
+
+	# No "version" property
+	zone "catalog-bad1.example" {
+		type primary;
+		file "catalog-bad1.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
+	# Unsupported "version" property
+	zone "catalog-bad2.example" {
+		type primary;
+		file "catalog-bad2.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
+	# Two RRs in TXT RRset for the "version" property
+	zone "catalog-bad3.example" {
+		type primary;
+		file "catalog-bad3.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
+
 };
 
-zone "catalog3.example" {
-	type primary;
-	file "catalog3.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
-};
+view "ch" ch {
 
-zone "catalog4.example" {
-	type primary;
-	file "catalog4.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
-};
+	# Non-IN class catalog zone
+	zone "catalog-bad5.example" ch {
+		type primary;
+		file "catalog-bad5.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
 
-/* catalog5 is missing on purpose */
-
-# No "version" property
-zone "catalog-bad1.example" {
-	type primary;
-	file "catalog-bad1.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
-};
-
-# Unsupported "version" property
-zone "catalog-bad2.example" {
-	type primary;
-	file "catalog-bad2.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
-};
-
-# Two RRs in TXT RRset for the "version" property
-zone "catalog-bad3.example" {
-	type primary;
-	file "catalog-bad3.example.db";
-	allow-transfer { any; };
-	allow-update { any; };
-	also-notify { 10.53.0.2; };
-	notify explicit;
 };
 
 key tsig_key. {
