@@ -40,4 +40,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- CDS and CDNSKEY DELETE records are removed from the zone when configured with
+  'auto-dnssec maintain;'. This has been fixed. :gl:`#2931`.
