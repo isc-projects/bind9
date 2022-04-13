@@ -4133,6 +4133,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	}
 
 	obj = NULL;
+	if (view->rdclass != dns_rdataclass_in && need_hints &&
+	    named_config_get(maps, "catalog-zones", &obj) == ISC_R_SUCCESS)
+	{
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "'catalog-zones' option is only supported "
+			    "for views with class IN");
+	}
+
+	obj = NULL;
 	if (view->rdclass == dns_rdataclass_in && need_hints &&
 	    named_config_get(maps, "catalog-zones", &obj) == ISC_R_SUCCESS)
 	{
