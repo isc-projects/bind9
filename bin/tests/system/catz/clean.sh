@@ -12,6 +12,7 @@
 rm -f dig.out.*
 rm -f ns*/*.jnl
 rm -f ns*/*.nzf
+rm -f ns*/*.mkeys
 rm -f ns*/named.lock
 rm -f ns*/named.memstats
 rm -f ns*/named.conf
