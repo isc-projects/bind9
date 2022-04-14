@@ -1,3 +1,10 @@
+5859.	[bug]		Fix an assertion failure when using dig with +nssearch
+			and +tcp options by starting the next query in the
+			send_done() callback (like in the UDP mode) instead
+			of doing that recursively in start_tcp(). Also
+			ensure that queries interrupted while connecting
+			are detached properly. [GL #3144]
+
 5858.	[bug]		Don't remove CDS/CDNSKEY DELETE records on zone sign
 			when using 'auto-dnssec maintain;'. [GL #2931]
 

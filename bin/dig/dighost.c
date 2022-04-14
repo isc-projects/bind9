@@ -232,6 +232,9 @@ static void
 start_udp(dig_query_t *query);
 
 static void
+start_tcp(dig_query_t *query);
+
+static void
 force_next(dig_query_t *query);
 
 static void
@@ -2658,7 +2661,9 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		return;
 	}
 
-	if (l->ns_search_only && !l->trace_root && !l->tcp_mode) {
+	if (l->ns_search_only && !l->trace_root) {
+		bool tcp_mode = l->tcp_mode;
+
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 
@@ -2668,7 +2673,11 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		if (next == NULL) {
 			clear_current_lookup();
 		} else {
-			start_udp(next);
+			if (tcp_mode) {
+				start_tcp(next);
+			} else {
+				start_udp(next);
+			}
 		}
 
 		check_if_done();
@@ -2852,23 +2861,6 @@ start_tcp(dig_query_t *query) {
 
 		/* XXX: set DSCP */
 	}
-
-	/*
-	 * If we're at the endgame of a nameserver search, we need to
-	 * immediately bring up all the queries.  Do it here.
-	 */
-	if (query->lookup->ns_search_only && !query->lookup->trace_root) {
-		debug("sending next, since searching");
-		if (ISC_LINK_LINKED(query, link)) {
-			next = ISC_LIST_NEXT(query, link);
-			ISC_LIST_DEQUEUE(query->lookup->q, query, link);
-		} else {
-			next = NULL;
-		}
-		if (next != NULL) {
-			start_tcp(next);
-		}
-	}
 }
 
 static void
@@ -2925,6 +2917,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query->started = true;
 
 	if (atomic_load(&cancel_now)) {
+		query_detach(&query);
 		return;
 	}
 
@@ -3280,6 +3273,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	query->started = true;
 
 	if (atomic_load(&cancel_now)) {
+		query_detach(&query);
 		return;
 	}
 
