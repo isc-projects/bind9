@@ -1,3 +1,6 @@
+5871.	[bug]		Fix dig hanging on TLS context creation errors.
+			[GL #3285]
+
 5870.	[cleanup]	Remove redundant macros in the RBT implementation.
 			[GL !6158]
 
