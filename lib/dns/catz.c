@@ -40,6 +40,8 @@
 #define DNS_CATZ_ZONES_VALID(catzs) ISC_MAGIC_VALID(catzs, DNS_CATZ_ZONES_MAGIC)
 #define DNS_CATZ_ENTRY_VALID(entry) ISC_MAGIC_VALID(entry, DNS_CATZ_ENTRY_MAGIC)
 
+#define DNS_CATZ_VERSION_UNDEFINED ((uint32_t)(-1))
+
 /*%
  * Single member zone in a catalog
  */
@@ -651,7 +653,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	dns_catz_options_init(&new_zone->zoneoptions);
 	new_zone->active = true;
 	new_zone->db_registered = false;
-	new_zone->version = (uint32_t)(-1);
+	new_zone->version = DNS_CATZ_VERSION_UNDEFINED;
 	isc_refcount_init(&new_zone->refs, 1);
 	new_zone->magic = DNS_CATZ_ZONE_MAGIC;
 
@@ -836,10 +838,12 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 typedef enum {
 	CATZ_OPT_NONE,
 	CATZ_OPT_ZONES,
+	CATZ_OPT_VERSION,
+	CATZ_OPT_CUSTOM_START, /* CATZ custom properties must go below this */
+	CATZ_OPT_EXT,
 	CATZ_OPT_MASTERS,
 	CATZ_OPT_ALLOW_QUERY,
 	CATZ_OPT_ALLOW_TRANSFER,
-	CATZ_OPT_VERSION,
 } catz_opt_t;
 
 static bool
@@ -856,7 +860,9 @@ catz_opt_cmp(const dns_label_t *option, const char *opt) {
 
 static catz_opt_t
 catz_get_option(const dns_label_t *option) {
-	if (catz_opt_cmp(option, "zones")) {
+	if (catz_opt_cmp(option, "ext")) {
+		return (CATZ_OPT_EXT);
+	} else if (catz_opt_cmp(option, "zones")) {
 		return (CATZ_OPT_ZONES);
 	} else if (catz_opt_cmp(option, "masters") ||
 		   catz_opt_cmp(option, "primaries")) {
@@ -1291,17 +1297,31 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	dns_label_t option;
 	dns_name_t prefix;
 	catz_opt_t opt;
+	unsigned int suffix_labels = 1;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(mhash != NULL);
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (name->labels == 0) {
+	if (name->labels < 1) {
 		return (ISC_R_FAILURE);
 	}
 	dns_name_getlabel(name, name->labels - 1, &option);
 	opt = catz_get_option(&option);
+
+	/*
+	 * The custom properties in version 2 schema must be placed under the
+	 * "ext" label.
+	 */
+	if (zone->version >= 2 && opt >= CATZ_OPT_CUSTOM_START) {
+		if (opt != CATZ_OPT_EXT || name->labels < 2) {
+			return (ISC_R_FAILURE);
+		}
+		suffix_labels++;
+		dns_name_getlabel(name, name->labels - 2, &option);
+		opt = catz_get_option(&option);
+	}
 
 	/*
 	 * We're adding this entry now, in case the option is invalid we'll get
@@ -1320,7 +1340,7 @@ catz_process_zones_suboption(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	}
 
 	dns_name_init(&prefix, NULL);
-	dns_name_split(name, 1, &prefix, NULL);
+	dns_name_split(name, suffix_labels, &prefix, NULL);
 	switch (opt) {
 	case CATZ_OPT_MASTERS:
 		return (catz_process_primaries(zone, &entry->opts.masters,
@@ -1370,15 +1390,34 @@ catz_process_value(dns_catz_zone_t *zone, dns_name_t *name,
 	dns_label_t option;
 	dns_name_t prefix;
 	catz_opt_t opt;
+	unsigned int suffix_labels = 1;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
+	if (name->labels < 1) {
+		return (ISC_R_FAILURE);
+	}
 	dns_name_getlabel(name, name->labels - 1, &option);
 	opt = catz_get_option(&option);
+
+	/*
+	 * The custom properties in version 2 schema must be placed under the
+	 * "ext" label.
+	 */
+	if (zone->version >= 2 && opt >= CATZ_OPT_CUSTOM_START) {
+		if (opt != CATZ_OPT_EXT || name->labels < 2) {
+			return (ISC_R_FAILURE);
+		}
+		suffix_labels++;
+		dns_name_getlabel(name, name->labels - 2, &option);
+		opt = catz_get_option(&option);
+	}
+
 	dns_name_init(&prefix, NULL);
-	dns_name_split(name, 1, &prefix, NULL);
+	dns_name_split(name, suffix_labels, &prefix, NULL);
+
 	switch (opt) {
 	case CATZ_OPT_ZONES:
 		return (catz_process_zones(zone, rdataset, &prefix));
@@ -1792,12 +1831,14 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	isc_result_t result;
 	isc_region_t r;
 	dns_dbnode_t *node = NULL;
+	const dns_dbnode_t *vers_node = NULL;
 	dns_dbiterator_t *it = NULL;
 	dns_fixedname_t fixname;
 	dns_name_t *name;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t rdataset;
 	char bname[DNS_NAME_FORMATSIZE];
+	bool is_vers_processed = false;
 	uint32_t vers;
 
 	REQUIRE(DNS_DB_VALID(db));
@@ -1857,16 +1898,38 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	name = dns_fixedname_initname(&fixname);
 
 	/*
-	 * Iterate over database to fill the new zone.
+	 * Take the version record to process first, because the other
+	 * records might be processed differently depending on the version of
+	 * the catalog zone's schema.
 	 */
-	result = dns_dbiterator_first(it);
+	result = dns_name_fromstring2(name, "version", &db->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
+		dns_dbiterator_destroy(&it);
+		dns_catz_zone_detach(&newzone);
+		dns_db_closeversion(db, &oldzone->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-			      "catz: failed to get db iterator - %s",
+			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
+		return;
+	}
+	result = dns_dbiterator_seek(it, name);
+	if (result != ISC_R_SUCCESS) {
+		dns_dbiterator_destroy(&it);
+		dns_catz_zone_detach(&newzone);
+		dns_db_closeversion(db, &oldzone->dbversion, false);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "catz: zone '%s' has no 'version' record (%s)",
+			      bname, isc_result_totext(result));
+		return;
 	}
 
+	name = dns_fixedname_initname(&fixname);
+
+	/*
+	 * Iterate over database to fill the new zone.
+	 */
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(it, &node, name);
 		if (result != ISC_R_SUCCESS) {
@@ -1875,6 +1938,16 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 				      "catz: failed to get db iterator - %s",
 				      isc_result_totext(result));
 			break;
+		}
+
+		if (!is_vers_processed) {
+			/* Keep the version node to skip it later in the loop */
+			vers_node = node;
+		} else if (node == vers_node) {
+			/* Skip the already processed version node */
+			dns_db_detachnode(db, &node);
+			result = dns_dbiterator_next(it);
+			continue;
 		}
 
 		result = dns_db_allrdatasets(db, node, oldzone->dbversion, 0,
@@ -1915,16 +1988,19 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 					      isc_result_totext(result));
 			}
 			dns_rdataset_disassociate(&rdataset);
-			if (result != ISC_R_SUCCESS) {
-				break;
-			}
 			result = dns_rdatasetiter_next(rdsiter);
 		}
 
 		dns_rdatasetiter_destroy(&rdsiter);
 
 		dns_db_detachnode(db, &node);
-		result = dns_dbiterator_next(it);
+
+		if (!is_vers_processed) {
+			is_vers_processed = true;
+			result = dns_dbiterator_first(it);
+		} else {
+			result = dns_dbiterator_next(it);
+		}
 	}
 
 	dns_dbiterator_destroy(&it);
