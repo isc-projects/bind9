@@ -54,6 +54,11 @@ options {
 #T3	database "dlopen bad-dlz.so example.org";
 #T3};
 
+zone "dom-existing.example" {
+    type primary;
+    file "dom-existing.example.db";
+};
+
 zone "catalog1.example" {
 	type secondary;
 	file "catalog1.example.db";

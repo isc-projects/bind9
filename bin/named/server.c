@@ -2669,7 +2669,6 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	dns_name_totext(dns_catz_entry_getname(ev->entry), true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	/* Zone shouldn't already exist */
 	result = dns_zt_find(ev->view->zonetable,
 			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
 
@@ -2680,7 +2679,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "catz: error \"%s\" while trying to "
-				      "modify zone \"%s\"",
+				      "modify zone '%s'",
 				      isc_result_totext(result), nameb);
 			goto cleanup;
 		}
@@ -2718,19 +2717,37 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 		dns_zone_detach(&zone);
 	} else {
+		/* Zone shouldn't already exist when adding */
 		if (result == ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "catz: zone \"%s\" is overridden "
-				      "by explicitly configured zone",
-				      nameb);
+			if (dns_zone_get_parentcatz(zone) == NULL) {
+				isc_log_write(
+					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					"catz: "
+					"catz_addmodzone_taskaction: "
+					"zone '%s' will not be added "
+					"because it is an explicitly "
+					"configured zone",
+					nameb);
+			} else {
+				isc_log_write(
+					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					"catz: "
+					"catz_addmodzone_taskaction: "
+					"zone '%s' will not be added "
+					"because another catalog zone "
+					"already contains an entry with "
+					"that zone",
+					nameb);
+			}
 			goto cleanup;
 		} else if (result != ISC_R_NOTFOUND &&
 			   result != DNS_R_PARTIALMATCH) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "catz: error \"%s\" while trying to "
-				      "add zone \"%s\"",
+				      "add zone '%s'",
 				      isc_result_totext(result), nameb);
 			goto cleanup;
 		} else { /* this can happen in case of DNS_R_PARTIALMATCH */
@@ -2757,7 +2774,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "catz: error \"%s\" while trying to generate "
-			      "config for zone \"%s\"",
+			      "config for zone '%s'",
 			      isc_result_totext(result), nameb);
 		goto cleanup;
 	}
@@ -2784,8 +2801,8 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: failed to configure zone \"%s\" - %d",
-			      nameb, result);
+			      "catz: failed to configure zone '%s' - %d", nameb,
+			      result);
 		goto cleanup;
 	}
 
