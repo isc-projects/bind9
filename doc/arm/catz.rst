@@ -154,35 +154,60 @@ then a catalog zone may not be used by that server.
 ::
 
    catalog.example.    IN SOA . . 2016022901 900 600 86400 1
-   catalog.example.    IN NS nsexample.
-   version.catalog.example.    IN TXT "1"
+   catalog.example.    IN NS invalid.
+   version.catalog.example.    IN TXT "2"
 
 Note that this record must have the domain name
 ``version.catalog-zone-name``. The data
 stored in a catalog zone is indicated by the domain name label
-immediately before the catalog zone domain.
+immediately before the catalog zone domain. Currently BIND supports catalog zone
+schema versions "1" and "2".
 
-Catalog zone options can be set either globally for the whole catalog
-zone or for a single member zone. Global options override the settings
-in the configuration file, and member zone options override global
-options.
+Also note that the catalog zone must have an NS record in order to be a valid
+DNS zone, and using the value "invalid." for NS is recommended.
 
-Global options are set at the apex of the catalog zone, e.g.:
+A member zone is added by including a ``PTR`` resource record in the
+``zones`` sub-domain of the catalog zone. The record label can be any unique label.
+The target of the PTR record is the member zone name. For example, to add member zones
+``domain.example`` and ``domain2.example``:
 
 ::
 
-    primaries.catalog.example.    IN AAAA 2001:db8::1
+   5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN PTR domain.example.
+   uniquelabel.zones.catalog.example. IN PTR domain2.example.
 
-BIND currently supports the following options:
+The label is necessary to identify custom properties (see below) for a specific member zone.
+Also, the zone state can be reset by changing its label.
+
+Catalog Zone Custom Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BIND uses catalog zones custom properties to define different properties which
+can be set either globally for the whole catalog
+zone or for a single member zone. Global custom properties override the settings
+in the configuration file, and member zone custom properties override global
+custom properties.
+
+For the version "1" of the schema custom properties must be placed without a special suffix.
+
+For the version "2" of the schema custom properties must be placed under the ".ext" suffix.
+
+Global custom properties are set at the apex of the catalog zone, e.g.:
+
+::
+
+    primaries.ext.catalog.example.    IN AAAA 2001:db8::1
+
+BIND currently supports the following custom properties:
 
 -  A simple ``primaries`` definition:
 
    ::
 
-           primaries.catalog.example.    IN A 192.0.2.1
+           primaries.ext.catalog.example.    IN A 192.0.2.1
 
 
-   This option defines a primary server for the member zones, which can be
+   This custom property defines a primary server for the member zones, which can be
    either an A or AAAA record. If multiple primaries are set, the order in
    which they are used is random.
 
@@ -192,11 +217,11 @@ BIND currently supports the following options:
 
    ::
 
-               label.primaries.catalog.example.     IN A 192.0.2.2
-               label.primaries.catalog.example.     IN TXT "tsig_key_name"
+               label.primaries.ext.catalog.example.     IN A 192.0.2.2
+               label.primaries.ext.catalog.example.     IN TXT "tsig_key_name"
 
 
-   This option defines a primary server for the member zone with a TSIG
+   This custom property defines a primary server for the member zone with a TSIG
    key set. The TSIG key must be configured in the configuration file.
    ``label`` can be any valid DNS label.
 
@@ -206,43 +231,34 @@ BIND currently supports the following options:
 
    ::
 
-               allow-query.catalog.example.   IN APL 1:10.0.0.1/24
-               allow-transfer.catalog.example.    IN APL !1:10.0.0.1/32 1:10.0.0.0/24
+               allow-query.ext.catalog.example.   IN APL 1:10.0.0.1/24
+               allow-transfer.ext.catalog.example.    IN APL !1:10.0.0.1/32 1:10.0.0.0/24
 
 
-   These options are the equivalents of ``allow-query`` and
-   ``allow-transfer`` in a zone declaration in the :iscman:`named.conf`
+   These custom properties are the equivalents of ``allow-query`` and
+   ``allow-transfer`` options in a zone declaration in the :iscman:`named.conf`
    configuration file. The ACL is processed in order; if there is no
    match to any rule, the default policy is to deny access. For the
    syntax of the APL RR, see :rfc:`3123`.
 
-A member zone is added by including a ``PTR`` resource record in the
-``zones`` sub-domain of the catalog zone. The record label is a
-``SHA-1`` hash of the member zone name in wire format. The target of the
-PTR record is the member zone name. For example, to add the member zone
-``domain.example``:
+The member zone-specific custom properties are defined the same way as global
+custom properties, but in the member zone subdomain:
 
 ::
 
-   5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN PTR domain.example.
+   primaries.ext.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN A 192.0.2.2
+   label.primaries.ext.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
+   label.primaries.ext.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN TXT "tsig_key_name"
+   allow-query.ext.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN APL 1:10.0.0.0/24
+   primaries.ext.uniquelabel.zones.catalog.example. IN A 192.0.2.3
 
-The hash is necessary to identify options for a specific member zone.
-The member zone-specific options are defined the same way as global
-options, but in the member zone subdomain:
-
-::
-
-   primaries.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN A 192.0.2.2
-   label.primaries.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
-   label.primaries.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN TXT "tsig_key"
-   allow-query.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN APL 1:10.0.0.0/24
-
-Options defined for a specific zone override the
-global options defined in the catalog zone. These in turn override the
+Custom properties defined for a specific zone override the
+global custom properties defined in the catalog zone. These in turn override the
 global options defined in the ``catalog-zones`` statement in the
 configuration file.
 
-Note that none of the global records for an option are inherited if any
-records are defined for that option for the specific zone. For example,
+Note that none of the global records for a custom property are inherited if any
+records are defined for that custom property for the specific zone. For example,
 if the zone had a ``primaries`` record of type A but not AAAA, it
-would *not* inherit the type AAAA record from the global option.
+would *not* inherit the type AAAA record from the global custom property
+or from global the option in the configuration file.
