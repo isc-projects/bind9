@@ -4420,5 +4420,23 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+# Check that a query against a validating resolver succeeds when there is
+# a negative cache entry with trust level "pending" for the DS.  Prime
+# with a +cd DS query to produce the negative cache entry, then send a
+# query that uses that entry as part of the validation process. [GL #3279]
+echo_i "check that pending negative DS cache entry validates ($n)"
+ret=0
+dig_with_opts @10.53.0.4 +cd insecure2.example. ds > dig.out.prime.ns4.test$n || ret=1
+grep "flags: qr rd ra cd;" dig.out.prime.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.prime.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 4, " dig.out.prime.ns4.test$n > /dev/null || ret=1
+dig_with_opts @10.53.0.4 a.insecure2.example. a > dig.out.ns4.test$n || ret=1
+grep "ANSWER: 1, AUTHORITY: 1, " dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n+1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
