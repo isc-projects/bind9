@@ -45,22 +45,6 @@
 #include "entropy_private.h"
 
 /*
- * The specific implementation for PRNG is included as a C file
- * that has to provide a static variable named seed, and a function
- * uint32_t next(void) that provides next random number.
- *
- * The implementation must be thread-safe.
- */
-
-/*
- * Two contestants have been considered: the xoroshiro family of the
- * functions by Villa&Blackman, and PCG by O'Neill.  After
- * consideration, the xoshiro128starstar function has been chosen as
- * the uint32_t random number provider because it is very fast and has
- * good enough properties for our usage pattern.
- */
-
-/*
  * Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
  *
  * To the extent possible under law, the author has dedicated all
@@ -76,11 +60,9 @@
  * It has excellent (sub-ns) speed, a state size (128 bits) that is large
  * enough for mild parallelism, and it passes all tests we are aware of.
  *
- * For generating just single-precision (i.e., 32-bit) floating-point
- * numbers, xoshiro128+ is even faster.
- *
  * The state must be seeded so that it is not everywhere zero.
  */
+
 static thread_local uint32_t seed[4] = { 0 };
 
 static uint32_t
@@ -128,14 +110,14 @@ uint8_t
 isc_random8(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-	return (next() & 0xff);
+	return ((uint8_t)next());
 }
 
 uint16_t
 isc_random16(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-	return (next() & 0xffff);
+	return ((uint16_t)next());
 }
 
 uint32_t
