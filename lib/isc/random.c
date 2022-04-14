@@ -166,41 +166,77 @@ isc_random_buf(void *buf, size_t buflen) {
 }
 
 uint32_t
-isc_random_uniform(uint32_t upper_bound) {
-	/* Copy of arc4random_uniform from OpenBSD */
-	uint32_t r, min;
-
+isc_random_uniform(uint32_t limit) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-
-	if (upper_bound < 2) {
-		return (0);
-	}
-
-#if (ULONG_MAX > 0xffffffffUL)
-	min = 0x100000000UL % upper_bound;
-#else  /* if (ULONG_MAX > 0xffffffffUL) */
-	/* Calculate (2**32 % upper_bound) avoiding 64-bit math */
-	if (upper_bound > 0x80000000) {
-		min = 1 + ~upper_bound; /* 2**32 - upper_bound */
-	} else {
-		/* (2**32 - (x * 2)) % x == 2**32 % x when x <= 2**31 */
-		min = ((0xffffffff - (upper_bound * 2)) + 1) % upper_bound;
-	}
-#endif /* if (ULONG_MAX > 0xffffffffUL) */
-
 	/*
-	 * This could theoretically loop forever but each retry has
-	 * p > 0.5 (worst case, usually far better) of selecting a
-	 * number inside the range we need, so it should rarely need
-	 * to re-roll.
+	 * Daniel Lemire's nearly-divisionless unbiased bounded random numbers.
+	 *
+	 * https://lemire.me/blog/?p=17551
+	 *
+	 * The raw random number generator `next()` returns a 32-bit value.
+	 * We do a 64-bit multiply `next() * limit` and treat the product as a
+	 * 32.32 fixed-point value less than the limit. Our result will be the
+	 * integer part (upper 32 bits), and we will use the fraction part
+	 * (lower 32 bits) to determine whether or not we need to resample.
 	 */
-	for (;;) {
-		r = next();
-		if (r >= min) {
-			break;
+	uint64_t num = (uint64_t)next() * (uint64_t)limit;
+	/*
+	 * In the fast path, we avoid doing a division in most cases by
+	 * comparing the fraction part of `num` with the limit, which is
+	 * a slight over-estimate for the exact resample threshold.
+	 */
+	if ((uint32_t)(num) < limit) {
+		/*
+		 * We are in the slow path where we re-do the approximate test
+		 * more accurately. The exact threshold for the resample loop
+		 * is the remainder after dividing the raw RNG limit `1 << 32`
+		 * by the caller's limit. We use a trick to calculate it
+		 * within 32 bits:
+		 *
+		 *     (1 << 32) % limit
+		 * == ((1 << 32) - limit) % limit
+		 * ==  (uint32_t)(-limit) % limit
+		 *
+		 * This division is safe: we know that `limit` is strictly
+		 * greater than zero because of the slow-path test above.
+		 */
+		uint32_t residue = (uint32_t)(-limit) % limit;
+		/*
+		 * Unless we get one of `N = (1 << 32) - residue` valid
+		 * values, we reject the sample. This `N` is a multiple of
+		 * `limit`, so our results will be unbiased; and `N` is the
+		 * largest multiple that fits in 32 bits, so rejections are as
+		 * rare as possible.
+		 *
+		 * There are `limit` possible values for the integer part of
+		 * our fixed-point number. Each one corresponds to `N/limit`
+		 * or `N/limit + 1` possible fraction parts. For our result to
+		 * be unbiased, every possible integer part must have the same
+		 * number of possible valid fraction parts. So, when we get
+		 * the superfluous value in the `N/limit + 1` cases, we need
+		 * to reject and resample.
+		 *
+		 * Because of the multiplication, the possible values in the
+		 * fraction part are equally spaced by `limit`, with varying
+		 * gaps at each end of the fraction's 32-bit range. We will
+		 * choose a range of size `N` (a multiple of `limit`) into
+		 * which valid fraction values must fall, with the rest of the
+		 * 32-bit range covered by the `residue`. Lemire's paper says
+		 * that exactly `N/limit` possible values spaced apart by
+		 * `limit` will fit into our size `N` valid range, regardless
+		 * of the size of the end gaps, the phase alignment of the
+		 * values, or the position of the range.
+		 *
+		 * So, when a fraction value falls in the `residue` outside
+		 * our valid range, it is superfluous, and we resample.
+		 */
+		while ((uint32_t)(num) < residue) {
+			num = (uint64_t)next() * (uint64_t)limit;
 		}
 	}
-
-	return (r % upper_bound);
+	/*
+	 * Return the integer part (upper 32 bits).
+	 */
+	return ((uint32_t)(num >> 32));
 }
