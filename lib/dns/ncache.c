@@ -504,6 +504,7 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 	unsigned char *raw = rdataset->private3;
 
 	raw[-1] = (unsigned char)trust;
+	rdataset->trust = trust;
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
