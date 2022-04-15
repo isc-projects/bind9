@@ -1022,10 +1022,6 @@ catz_process_zones(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (value->rdclass != dns_rdataclass_in) {
-		return (ISC_R_FAILURE);
-	}
-
 	if (name->labels == 0) {
 		return (ISC_R_FAILURE);
 	}
@@ -1061,8 +1057,7 @@ catz_process_coo(dns_catz_zone_t *zone, dns_label_t *mhash,
 		return (ISC_R_FAILURE);
 	}
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_ptr) {
+	if (value->type != dns_rdatatype_ptr) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -1133,8 +1128,7 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	dns_rdata_ptr_t ptr;
 	dns_catz_entry_t *entry = NULL;
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_ptr) {
+	if (value->type != dns_rdatatype_ptr) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -1199,8 +1193,7 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(DNS_RDATASET_VALID(value));
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_txt) {
+	if (value->type != dns_rdatatype_txt) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -1299,10 +1292,6 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 	 * - label and IN A/IN AAAA
 	 * - label and IN TXT - TSIG key name
 	 */
-	if (value->rdclass != dns_rdataclass_in) {
-		return (ISC_R_FAILURE);
-	}
-
 	if (name->labels > 0) {
 		isc_sockaddr_t sockaddr;
 		size_t i;
@@ -1466,8 +1455,7 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(dns_rdataset_isassociated(value));
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_apl) {
+	if (value->type != dns_rdatatype_apl) {
 		return (ISC_R_FAILURE);
 	}
 
