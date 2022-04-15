@@ -95,6 +95,15 @@ view "default" {
 		notify explicit;
 	};
 
+	# Type A "version" property
+	zone "catalog-bad4.example" {
+		type primary;
+		file "catalog-bad4.example.db";
+		allow-transfer { any; };
+		allow-update { any; };
+		also-notify { 10.53.0.2; };
+		notify explicit;
+	};
 };
 
 view "ch" ch {
