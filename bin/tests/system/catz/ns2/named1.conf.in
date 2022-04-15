@@ -62,6 +62,9 @@ view "default" {
 		zone "catalog-bad3.example"
 			default-masters { 10.53.0.1; }
 			in-memory yes;
+		zone "catalog-bad4.example"
+			default-masters { 10.53.0.1; }
+			in-memory yes;
 	};
 
 	# A faulty dlz configuration to check if named and catz survive a certain class
@@ -101,21 +104,31 @@ view "default" {
 		primaries { 10.53.0.1; };
 	};
 
+	# No "version" property
 	zone "catalog-bad1.example" {
 		type secondary;
 		file "catalog-bad1.example.db";
 		primaries { 10.53.0.1; };
 	};
 
+	# Unsupported "version" property
 	zone "catalog-bad2.example" {
 		type secondary;
 		file "catalog-bad2.example.db";
 		primaries { 10.53.0.1; };
 	};
 
+	# Two RRs in TXT RRset for the "version" property
 	zone "catalog-bad3.example" {
 		type secondary;
 		file "catalog-bad3.example.db";
+		primaries { 10.53.0.1; };
+	};
+
+	# Type A "version" property
+	zone "catalog-bad4.example" {
+		type secondary;
+		file "catalog-bad4.example.db";
 		primaries { 10.53.0.1; };
 	};
 
@@ -129,6 +142,7 @@ view "ch" ch {
 			in-memory yes;
 	};
 
+	# Non-IN class catalog zone
 	zone "catalog-bad5.example" ch {
 		type secondary;
 		file "catalog-bad5.example.db";

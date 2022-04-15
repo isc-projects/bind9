@@ -109,6 +109,15 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "checking that catalog-bad4.example (with only spurious type A version record) has failed to load ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: invalid record in catalog zone - version.catalog-bad4.example IN A (failure) - ignoring" &&
+wait_for_message ns2/named.run "catz: zone 'catalog-bad4.example' version is not set" &&
+wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad4.example' is broken and will not be processed" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "checking that catalog-bad5.example (non-IN class) has failed to load ($n)"
 ret=0
 wait_for_message ns2/named.run "'catalog-zones' option is only supported for views with class IN" &&
