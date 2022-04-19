@@ -27,6 +27,13 @@ New Features
 
 - None.
 
+- The Object Identifier (OID) embedded at the start of a PRIVATEOID public
+  key in a KEY, DNSKEY, CDNSKEY, or RKEY resource record is now checked to
+  ensure that it is valid when reading from zone files or receiving data
+  on the wire, and the OID is now printed when the ``dig +rrcomments``
+  option is used. Similarly, the name embedded at the start of a PRIVATEDNS
+  public key is also checked for validity. :gl:`#3234`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

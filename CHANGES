@@ -1,3 +1,11 @@
+5864.	[func]		The OID embedded at the start of a PRIVATEOID public
+			key in a KEY, DNSKEY, CDNSKEY, or RKEY RR is now
+			checked for validity when reading from wire or from
+			zone files, and the OID is printed when
+			'dig +rrcomments' is used. Similarly, the name
+			embedded at the start of a PRIVATEDNS public key
+			is also checked for validity. [GL #3234]
+
 5863.	[bug]		If there was a pending negative cache DS entry,
 			validations depending upon it could fail. [GL #3279]
 
