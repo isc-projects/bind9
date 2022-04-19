@@ -67,6 +67,17 @@
 #include <isc/netmgr.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
+#include <isc/util.h>
+
+#if TASKMGR_TRACE
+#define ISC__TASKTRACE_SIZE 8
+#define ISC__TASKFILELINE   , __func__, __FILE__, __LINE__
+#define ISC__TASKFLARG	    , const char *func, const char *file, unsigned int line
+
+#else
+#define ISC__TASKFILELINE
+#define ISC__TASKFLARG
+#endif
 
 #define ISC_TASKEVENT_SHUTDOWN (ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_TEST     (ISC_EVENTCLASS_TASK + 1)
@@ -81,12 +92,14 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
+#define isc_task_create(m, q, t) \
+	isc__task_create_bound(m, q, t, -1 ISC__TASKFILELINE)
+#define isc_task_create_bound(m, q, t, i) \
+	isc__task_create_bound(m, q, t, i ISC__TASKFILELINE)
+
 isc_result_t
-isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
-		isc_task_t **taskp);
-isc_result_t
-isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		      isc_task_t **taskp, int tid);
+isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
+		       isc_task_t **taskp, int tid ISC__TASKFLARG);
 /*%<
  * Create a task, optionally bound to a particular tid.
  *

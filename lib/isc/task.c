@@ -20,9 +20,11 @@
 
 #include <stdbool.h>
 #include <unistd.h>
+#include <uv.h>
 
 #include <isc/app.h>
 #include <isc/atomic.h>
+#include <isc/backtrace.h>
 #include <isc/condition.h>
 #include <isc/event.h>
 #include <isc/log.h>
@@ -47,6 +49,7 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
+#include "netmgr/uv-compat.h"
 #include "task_p.h"
 
 /*
@@ -95,6 +98,11 @@ static const char *statenames[] = {
 #define TASK_MAGIC    ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t) ISC_MAGIC_VALID(t, TASK_MAGIC)
 
+#if TASKMGR_TRACE
+void
+isc__taskmgr_dump_active(isc_taskmgr_t *taskmgr);
+#endif
+
 struct isc_task {
 	/* Not locked. */
 	unsigned int magic;
@@ -117,6 +125,13 @@ struct isc_task {
 	/* Protected by atomics */
 	atomic_bool shuttingdown;
 	/* Locked by task manager lock. */
+#if TASKMGR_TRACE
+	char func[PATH_MAX];
+	char file[PATH_MAX];
+	unsigned int line;
+	void *backtrace[ISC__TASKTRACE_SIZE];
+	int backtrace_size;
+#endif
 	LINK(isc_task_t) link;
 };
 
@@ -190,14 +205,8 @@ task_finished(isc_task_t *task) {
 }
 
 isc_result_t
-isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
-		isc_task_t **taskp) {
-	return (isc_task_create_bound(manager, quantum, taskp, -1));
-}
-
-isc_result_t
-isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		      isc_task_t **taskp, int tid) {
+isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
+		       isc_task_t **taskp, int tid ISC__TASKFLARG) {
 	isc_task_t *task = NULL;
 	bool exiting;
 
@@ -208,6 +217,14 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 
 	task = isc_mem_get(manager->mctx, sizeof(*task));
 	*task = (isc_task_t){ 0 };
+
+#if TASKMGR_TRACE
+	strlcpy(task->func, func, sizeof(task->func));
+	strlcpy(task->file, file, sizeof(task->file));
+	task->line = line;
+	task->backtrace_size = isc_backtrace(task->backtrace,
+					     ISC__TASKTRACE_SIZE);
+#endif
 
 	isc_taskmgr_attach(manager, &task->manager);
 
@@ -909,19 +926,23 @@ void
 isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	REQUIRE(managerp != NULL && VALID_MANAGER(*managerp));
 	XTHREADTRACE("isc_taskmgr_destroy");
-
-#ifdef ISC_TASK_TRACE
 	int counter = 0;
+
 	while (isc_refcount_current(&(*managerp)->references) > 1 &&
 	       counter++ < 1000) {
-		usleep(10 * 1000);
+		uv_sleep(10);
 	}
-	INSIST(counter < 1000);
-#else
-	while (isc_refcount_current(&(*managerp)->references) > 1) {
-		usleep(10 * 1000);
+
+#if TASKMGR_TRACE
+	if (isc_refcount_current(&(*managerp)->references) > 1) {
+		isc__taskmgr_dump_active(*managerp);
 	}
+	INSIST(isc_refcount_current(&(*managerp)->references) == 1);
 #endif
+
+	while (isc_refcount_current(&(*managerp)->references) > 1) {
+		uv_sleep(10);
+	}
 
 	isc_taskmgr_detach(managerp);
 }
@@ -1215,3 +1236,55 @@ error:
 	return (result);
 }
 #endif /* ifdef HAVE_JSON_C */
+
+#if TASKMGR_TRACE
+
+static void
+event_dump(isc_event_t *event) {
+	fprintf(stderr, "  - event: %p\n", event);
+	fprintf(stderr, "    func: %s\n", event->func);
+	fprintf(stderr, "    file: %s\n", event->file);
+	fprintf(stderr, "    line: %u\n", event->line);
+	fprintf(stderr, "    backtrace: |\n");
+	isc_backtrace_symbols_fd(event->backtrace, event->backtrace_size,
+				 STDERR_FILENO);
+}
+
+static void
+task_dump(isc_task_t *task) {
+	LOCK(&task->lock);
+	fprintf(stderr, "- task: %p\n", task);
+	fprintf(stderr, "  tid: %" PRIu32 "\n", task->tid);
+	fprintf(stderr, "  nevents: %u\n", task->nevents);
+	fprintf(stderr, "    func: %s\n", task->func);
+	fprintf(stderr, "    file: %s\n", task->file);
+	fprintf(stderr, "    line: %u\n", task->line);
+	fprintf(stderr, "  backtrace: |\n");
+	isc_backtrace_symbols_fd(task->backtrace, task->backtrace_size,
+				 STDERR_FILENO);
+	fprintf(stderr, "\n");
+
+	for (isc_event_t *event = ISC_LIST_HEAD(task->events); event != NULL;
+	     event = ISC_LIST_NEXT(event, ev_link))
+	{
+		event_dump(event);
+	}
+
+	UNLOCK(&task->lock);
+}
+
+void
+isc__taskmgr_dump_active(isc_taskmgr_t *taskmgr) {
+	LOCK(&taskmgr->lock);
+	fprintf(stderr, "- taskmgr: %p\n", taskmgr);
+
+	for (isc_task_t *task = ISC_LIST_HEAD(taskmgr->tasks); task != NULL;
+	     task = ISC_LIST_NEXT(task, link))
+	{
+		task_dump(task);
+	}
+
+	UNLOCK(&taskmgr->lock);
+}
+
+#endif
