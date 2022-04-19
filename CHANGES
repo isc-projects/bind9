@@ -1,3 +1,6 @@
+5863.	[bug]		If there was a pending negative cache DS entry,
+			validations depending upon it could fail. [GL #3279]
+
 5862.	[bug]		dig returned a 0 exit status on UDP connection failure.
 			[GL #3235]
 
