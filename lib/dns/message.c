@@ -97,6 +97,8 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 		} else                                            \
 			isc_buffer_putstr(b, s);                  \
 	}
+#define VALID_NAMED_PSEUDOSECTION(s) \
+	(((s) > DNS_PSEUDOSECTION_ANY) && ((s) < DNS_PSEUDOSECTION_MAX))
 #define VALID_PSEUDOSECTION(s) \
 	(((s) >= DNS_PSEUDOSECTION_ANY) && ((s) < DNS_PSEUDOSECTION_MAX))
 
@@ -2452,7 +2454,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	 * to be filled in, that we can in fact fill it in.
 	 */
 	REQUIRE(msg != NULL);
-	REQUIRE(VALID_SECTION(section));
+	REQUIRE(VALID_NAMED_SECTION(section));
 	REQUIRE(target != NULL);
 	REQUIRE(name == NULL || *name == NULL);
 
@@ -3302,7 +3304,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
-	REQUIRE(VALID_SECTION(section));
+	REQUIRE(VALID_NAMED_SECTION(section));
 
 	saved_count = msg->indent.count;
 
@@ -3518,7 +3520,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
-	REQUIRE(VALID_PSEUDOSECTION(section));
+	REQUIRE(VALID_NAMED_PSEUDOSECTION(section));
 
 	saved_count = msg->indent.count;
 
@@ -3882,7 +3884,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
-	REQUIRE(VALID_PSEUDOSECTION(section));
+	REQUIRE(VALID_NAMED_PSEUDOSECTION(section));
 
 	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0) {
 		return (dns_message_pseudosectiontoyaml(msg, section, style,
