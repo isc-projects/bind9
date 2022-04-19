@@ -52,9 +52,8 @@
 /*
  * Task manager is built around 'as little locking as possible' concept.
  * Each thread has his own queue of tasks to be run, if a task is in running
- * state it will stay on the runner it's currently on, if a task is in idle
- * state it can be woken up on a specific runner with isc_task_sendto - that
- * helps with data locality on CPU.
+ * state it will stay on the runner it's currently on - that helps with data
+ * locality on CPU.
  *
  * To make load even some tasks (from task pools) are bound to specific
  * queues using isc_task_create_bound. This way load balancing between
@@ -134,6 +133,7 @@ struct isc_taskmgr {
 	isc_mutex_t lock;
 	atomic_uint_fast32_t tasks_count;
 	isc_nm_t *netmgr;
+	uint32_t nworkers;
 
 	/* Locked by task manager lock. */
 	unsigned int default_quantum;
@@ -214,8 +214,7 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	if (tid == -1) {
 		/*
 		 * Task is not pinned to a queue, it's tid will be
-		 * chosen when first task will be sent to it - either
-		 * randomly or specified by isc_task_sendto.
+		 * randomly chosen when first task will be sent to it.
 		 */
 		task->bound = false;
 		task->tid = -1;
@@ -225,7 +224,7 @@ isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 		 * by a specific thread.
 		 */
 		task->bound = true;
-		task->tid = tid % isc_nm_getnworkers(task->manager->netmgr);
+		task->tid = tid % task->manager->nworkers;
 	}
 
 	isc_mutex_init(&task->lock);
@@ -336,8 +335,7 @@ task_ready(isc_task_t *task) {
 	isc_refcount_increment0(&task->running);
 	LOCK(&task->lock);
 	if (task->tid < 0) {
-		task->tid = (int)isc_random_uniform(
-			isc_nm_getnworkers(manager->netmgr));
+		task->tid = (int)isc_random_uniform(manager->nworkers);
 	}
 	isc_nm_task_enqueue(manager->netmgr, task, task->tid);
 	UNLOCK(&task->lock);
@@ -402,7 +400,7 @@ isc_task_detach(isc_task_t **taskp) {
 }
 
 static bool
-task_send(isc_task_t *task, isc_event_t **eventp, int c) {
+task_send(isc_task_t *task, isc_event_t **eventp) {
 	bool was_idle = false;
 	isc_event_t *event;
 
@@ -423,7 +421,8 @@ task_send(isc_task_t *task, isc_event_t **eventp, int c) {
 	if (task->state == task_state_idle) {
 		was_idle = true;
 		if (!task->bound) {
-			task->tid = c;
+			task->tid = (int)isc_random_uniform(
+				task->manager->nworkers);
 		}
 		INSIST(EMPTY(task->events));
 		task->state = task_state_ready;
@@ -438,16 +437,6 @@ task_send(isc_task_t *task, isc_event_t **eventp, int c) {
 
 void
 isc_task_send(isc_task_t *task, isc_event_t **eventp) {
-	isc_task_sendto(task, eventp, -1);
-}
-
-void
-isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
-	isc_task_sendtoanddetach(taskp, eventp, -1);
-}
-
-void
-isc_task_sendto(isc_task_t *task, isc_event_t **eventp, int c) {
 	bool was_idle;
 
 	/*
@@ -463,7 +452,7 @@ isc_task_sendto(isc_task_t *task, isc_event_t **eventp, int c) {
 	 * some processing is deferred until after the lock is released.
 	 */
 	LOCK(&task->lock);
-	was_idle = task_send(task, eventp, c);
+	was_idle = task_send(task, eventp);
 	UNLOCK(&task->lock);
 
 	if (was_idle) {
@@ -487,7 +476,7 @@ isc_task_sendto(isc_task_t *task, isc_event_t **eventp, int c) {
 }
 
 void
-isc_task_sendtoanddetach(isc_task_t **taskp, isc_event_t **eventp, int c) {
+isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 	bool idle1, idle2;
 	isc_task_t *task;
 
@@ -502,7 +491,7 @@ isc_task_sendtoanddetach(isc_task_t **taskp, isc_event_t **eventp, int c) {
 	XTRACE("isc_task_sendanddetach");
 
 	LOCK(&task->lock);
-	idle1 = task_send(task, eventp, c);
+	idle1 = task_send(task, eventp);
 	idle2 = task_detach(task);
 	UNLOCK(&task->lock);
 
@@ -846,9 +835,8 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 	}
 	manager->default_quantum = default_quantum;
 
-	if (nm != NULL) {
-		isc_nm_attach(nm, &manager->netmgr);
-	}
+	isc_nm_attach(nm, &manager->netmgr);
+	manager->nworkers = isc_nm_getnworkers(nm);
 
 	INIT_LIST(manager->tasks);
 	atomic_init(&manager->exclusive_req, false);

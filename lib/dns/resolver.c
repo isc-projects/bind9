@@ -4413,8 +4413,8 @@ fctx_shutdown(fetchctx_t *fctx) {
 	if (fctx->state != fetchstate_init) {
 		FCTXTRACE("posting control event");
 		cevent = &fctx->control_event;
-		isc_task_sendto(fctx->res->buckets[fctx->bucketnum].task,
-				&cevent, fctx->bucketnum);
+		isc_task_send(fctx->res->buckets[fctx->bucketnum].task,
+			      &cevent);
 	}
 }
 
