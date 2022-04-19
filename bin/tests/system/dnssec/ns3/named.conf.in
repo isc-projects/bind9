@@ -78,6 +78,12 @@ zone "insecure.example" {
 	allow-update { any; };
 };
 
+zone "insecure2.example" {
+	type primary;
+	file "insecure2.example.db";
+	allow-update { any; };
+};
+
 zone "insecure.nsec3.example" {
 	type primary;
 	file "insecure.nsec3.example.db";

@@ -55,6 +55,10 @@ ns3.secure		A	10.53.0.3
 insecure		NS	ns.insecure
 ns.insecure		A	10.53.0.3
 
+; A second insecure subdomain
+insecure2		NS	ns.insecure2
+ns.insecure2		A	10.53.0.3
+
 ; A secure subdomain we're going to inject bogus data into
 bogus			NS	ns.bogus
 ns.bogus		A	10.53.0.3
