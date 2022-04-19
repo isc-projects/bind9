@@ -2461,8 +2461,8 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 }
 
 isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
-		  isc_quota_t *quota, isc_tlsctx_t *ctx,
+isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
 		  isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
@@ -2487,11 +2487,13 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	isc_nm_http_endpoints_attach(eps, &sock->h2.listener_endpoints);
 
 	if (ctx != NULL) {
-		result = isc_nm_listentls(mgr, iface, httplisten_acceptcb, sock,
-					  backlog, quota, ctx, &sock->outer);
+		result = isc_nm_listentls(mgr, workers, iface,
+					  httplisten_acceptcb, sock, backlog,
+					  quota, ctx, &sock->outer);
 	} else {
-		result = isc_nm_listentcp(mgr, iface, httplisten_acceptcb, sock,
-					  backlog, quota, &sock->outer);
+		result = isc_nm_listentcp(mgr, workers, iface,
+					  httplisten_acceptcb, sock, backlog,
+					  quota, &sock->outer);
 	}
 
 	if (result != ISC_R_SUCCESS) {

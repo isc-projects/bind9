@@ -494,8 +494,9 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
-	result = isc_nm_listenudp(ifp->mgr->nm, &ifp->addr, ns__client_request,
-				  ifp, &ifp->udplistensocket);
+	result = isc_nm_listenudp(ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
+				  ns__client_request, ifp,
+				  &ifp->udplistensocket);
 	return (result);
 }
 
@@ -504,8 +505,8 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	result = isc_nm_listentcpdns(
-		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
-		ns__client_tcpconn, ifp, ifp->mgr->backlog,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -544,8 +545,8 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
 
 	result = isc_nm_listentlsdns(
-		ifp->mgr->nm, &ifp->addr, ns__client_request, ifp,
-		ns__client_tcpconn, ifp, ifp->mgr->backlog,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
 
 	if (result != ISC_R_SUCCESS) {
@@ -590,9 +591,10 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	}
 
 	if (result == ISC_R_SUCCESS) {
-		result = isc_nm_listenhttp(
-			ifp->mgr->nm, &ifp->addr, ifp->mgr->backlog, quota,
-			sslctx, epset, max_concurrent_streams, &sock);
+		result = isc_nm_listenhttp(ifp->mgr->nm, ISC_NM_LISTEN_ALL,
+					   &ifp->addr, ifp->mgr->backlog, quota,
+					   sslctx, epset,
+					   max_concurrent_streams, &sock);
 	}
 
 	isc_nm_http_endpoints_detach(&epset);

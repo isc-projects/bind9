@@ -231,8 +231,8 @@ isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
 
 	isc_refcount_init(&httpdmgr->references, 1);
 
-	CHECK(isc_nm_listentcp(nm, addr, httpd_newconn, httpdmgr, 5, NULL,
-			       &httpdmgr->sock));
+	CHECK(isc_nm_listentcp(nm, ISC_NM_LISTEN_ONE, addr, httpd_newconn,
+			       httpdmgr, 5, NULL, &httpdmgr->sock));
 
 	httpdmgr->magic = HTTPDMGR_MAGIC;
 	*httpdmgrp = httpdmgr;
