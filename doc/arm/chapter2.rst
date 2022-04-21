@@ -11,4 +11,3 @@
 
 .. include:: requirements.inc.rst
 .. include:: platforms.inc.rst
-.. include:: build.inc.rst

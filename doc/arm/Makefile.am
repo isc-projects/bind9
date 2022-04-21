@@ -5,6 +5,7 @@ EXTRA_DIST =					\
 	advanced.rst				\
 	build.inc.rst				\
 	catz.inc.rst				\
+	chapter10.rst				\
 	chapter1.rst				\
 	chapter2.rst				\
 	configuration.rst			\
