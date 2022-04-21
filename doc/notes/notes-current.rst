@@ -25,7 +25,8 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Add DNS Extended Errors (:rfc:`8914`) when stale answers are returned from
+  cache. :gl:`#2267`
 
 - The Object Identifier (OID) embedded at the start of a PRIVATEOID public
   key in a KEY, DNSKEY, CDNSKEY, or RKEY resource record is now checked to
