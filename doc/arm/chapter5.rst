@@ -13,3 +13,4 @@
 .. include:: dlz.inc.rst
 .. include:: dyndb.inc.rst
 .. include:: catz.inc.rst
+.. include:: rpz.inc.rst
