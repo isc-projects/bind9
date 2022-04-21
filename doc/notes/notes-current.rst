@@ -35,6 +35,12 @@ New Features
   option is used. Similarly, the name embedded at the start of a PRIVATEDNS
   public key is also checked for validity. :gl:`#3234`
 
+- The Object Identifier (OID) embedded at the start of a PRIVATEOID
+  signature in a SIG, or RRSIG resource record is now checked to
+  ensure that it is valid when reading from zone files or receiving
+  data on the wire.  Similarly, the name embedded at the start of
+  a PRIVATEDNS public key is also checked for validity. :gl:`#3296`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
