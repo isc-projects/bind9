@@ -33,6 +33,7 @@ options {
 	stale-answer-ttl 3;
 	stale-answer-enable yes;
 	stale-cache-enable yes;
+	stale-refresh-time 0;
 	servfail-ttl 0;
 };
 
