@@ -36,22 +36,25 @@
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding merge requests in the private repository[^1] (Subscription Edition only).
  - [ ] ***(QA)*** Ensure all merge requests marked for backporting have been indeed backported.
+ - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is in effect.
 
 ### Before the Tagging Deadline
 
  - [ ] ***(QA)*** Ensure release notes are correct, ask Support and Marketing to check them as well.
+ - [ ] ***(QA)*** Add a release marker to `CHANGES`.
+ - [ ] ***(QA)*** Add a release marker to `CHANGES.SE` (Subscription Edition only).
  - [ ] ***(QA)*** Update BIND 9 version in `configure.ac` (9.18+) or `version` (9.16).
  - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org` (9.16).
- - [ ] ***(QA)*** Update `CHANGES`.
- - [ ] ***(QA)*** Update `CHANGES.SE` (Subscription Edition only).
- - [ ] ***(QA)*** Check that the formatting is correct for text, PDF, and HTML versions of release notes.
- - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 
+ - [ ] ***(QA)*** Check that the formatting is correct for HTML and PDF versions of release notes.
+ - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Verify GitLab CI results for the tags created and prepare a QA report for the releases to be published.
+ - [ ] ***(QA)*** Update GitLab settings for all maintained branches to allow merging to them again.
+ - [ ] ***(QA)*** Prepare and merge MRs resetting the release notes and updating the version string for each maintained branch.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
  - [ ] ***(QA)*** Request signatures for the tarballs, providing their location and checksums.
  - [ ] ***(Signers)*** Validate tarball checksums, sign tarballs, and upload signatures.
@@ -80,8 +83,7 @@
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed.
  - [ ] ***(QA)*** Push tags for the published releases to the public repository.
- - [ ] ***(QA)*** Merge the automatically prepared `prep 9.x.y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_x`).
- - [ ] ***(QA)*** Prepare empty release notes for the next set of releases.
+ - [ ] ***(QA)*** Merge published release tags (non-linearly) back into the their relevant development/maintenance branches.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Flake8, PyLint) by modifying the relevant `Dockerfile`.
