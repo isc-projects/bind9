@@ -1,3 +1,6 @@
+5866.	[bug]		Work around a jemalloc quirk which could trigger an
+			out-of-memory condition in named over time. [GL #3287]
+
 5865.	[func]		Make statistics channel and control channel listen
 			on a single network manager thread. [GL !6032]
 
