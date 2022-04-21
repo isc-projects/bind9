@@ -31,6 +31,7 @@ struct isc__trampoline {
 	uintptr_t self;
 	isc_threadfunc_t start;
 	isc_threadarg_t arg;
+	void *jemalloc_enforce_init;
 };
 
 static isc_once_t isc__trampoline_initialize_once = ISC_ONCE_INIT;
@@ -170,6 +171,7 @@ isc__trampoline_detach(isc__trampoline_t *trampoline) {
 		isc__trampoline_min = trampoline->tid;
 	}
 
+	free(trampoline->jemalloc_enforce_init);
 	free(trampoline);
 
 	UNLOCK(&isc__trampoline_lock);
@@ -185,6 +187,15 @@ isc__trampoline_attach(isc__trampoline_t *trampoline) {
 	/* Initialize the trampoline */
 	isc_tid_v = trampoline->tid;
 	trampoline->self = isc_thread_self();
+
+	/*
+	 * Ensure every thread starts with a malloc() call to prevent memory
+	 * bloat caused by a jemalloc quirk.  While this dummy allocation is
+	 * not used for anything, free() must not be immediately called for it
+	 * so that an optimizing compiler does not strip away such a pair of
+	 * malloc() + free() calls altogether, as it would foil the fix.
+	 */
+	trampoline->jemalloc_enforce_init = malloc(8);
 }
 
 isc_threadresult_t
