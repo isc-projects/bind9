@@ -90,7 +90,7 @@ class dnskey:
                 self.sep = False
         kfp.close()
 
-        pfp = open(private_file, "rU")
+        pfp = open(private_file, "r")
 
         self.metadata = dict()
         self._changed = dict()
