@@ -2420,6 +2420,105 @@ rkey(void **state) {
 		    dns_rdatatype_rkey, sizeof(dns_rdata_rkey_t));
 }
 
+/*
+ * rrsig (sig) tests.
+ */
+static void
+sig_rrsig(void **state) {
+	wire_ok_t wire_ok[] = {
+		/*
+		 * RDATA is comprised of:
+		 *
+		 * type covered: 2
+		 * algorithm: 1
+		 * labels: 1
+		 * original ttl: 4
+		 * signature expiration: 4
+		 * time signed: 4
+		 * key footprint: 2
+		 * signer: variable
+		 * signature: variable
+		 * - if algorithm is PRIVATEDNS the algorithm name is embedded
+		 *   at the start of the signature
+		 * - if algorithm is PRIVATEOID the algorithm OID is embedded
+		 *   at the start of the signature
+		 */
+		/* PRIVATEDNS example. */
+		WIRE_INVALID(0x00, 0x01, 253, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
+			     0x00, 0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
+			     0x00),
+		/* PRIVATEDNS example. + sigdata */
+		WIRE_VALID(0x00, 0x01, 253, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+			   0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			   0x06, 's', 'i', 'g', 'n', 'e', 'r', 0x00, 0x07, 'e',
+			   'x', 'a', 'm', 'p', 'l', 'e', 0x00, 0x00),
+		/* PRIVATEDNS compression pointer. */
+		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0xc0, 0x00, 0x00),
+		/* PRIVATEOID */
+		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
+			     0x00, 0x00),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 */
+		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
+			     0x00, 0x06, 0x07, 0x2b, 0x06, 0x01, 0x04, 0x01,
+			     0x93, 0x3f),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 + sigdata */
+		WIRE_VALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+			   0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			   0x06, 's', 'i', 'g', 'n', 'e', 'r', 0x00, 0x06, 0x07,
+			   0x2b, 0x06, 0x01, 0x04, 0x01, 0x93, 0x3f, 0x00),
+		/* PRIVATEOID malformed OID - high-bit set on last octet */
+		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
+			     0x00, 0x06, 0x07, 0x2b, 0x06, 0x01, 0x04, 0x01,
+			     0x93, 0xbf, 0x00),
+		WIRE_SENTINEL()
+	};
+	text_ok_t text_ok[] = {
+		/* PRIVATEDNS example. */
+		TEXT_INVALID("A 253 1 0 19700101000001 19700101000000 0 "
+			     "signer. B2V4YW1wbGUA"),
+		/* PRIVATEDNS example. + sigdata */
+		TEXT_VALID("A 253 1 0 19700101000001 19700101000000 0 signer. "
+			   "B2V4YW1wbGUAAA=="),
+		/* PRIVATEDNS compression pointer. */
+		TEXT_INVALID("A 253 1 0 19700101000001 19700101000000 0 "
+			     "signer. wAAA"),
+		/* PRIVATEOID */
+		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
+			     "signer. AA=="),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 */
+		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
+			     "signer. BgcrBgEEAZM/"),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 + sigdata */
+		TEXT_VALID("A 254 1 0 19700101000001 19700101000000 0 signer. "
+			   "BgcrBgEEAZM/AA=="),
+		/* PRIVATEOID malformed OID - high-bit set on last octet */
+		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
+			     "signer.  BgcrBgEEAZO/AA=="),
+		/* PRIVATEOID malformed OID - wrong tag */
+		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
+			     "signer. BwcrBgEEAZM/AA=="),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_sig, sizeof(dns_rdata_sig_t));
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_rrsig, sizeof(dns_rdata_rrsig_t));
+}
+
 /* SSHFP RDATA manipulations */
 static void
 sshfp(void **state) {
@@ -3209,6 +3308,7 @@ main(int argc, char **argv) {
 		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nxt, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(rkey, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(sig_rrsig, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(sshfp, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(wks, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(zonemd, _setup, _teardown),
