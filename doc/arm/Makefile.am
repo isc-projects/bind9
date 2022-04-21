@@ -54,6 +54,7 @@ EXTRA_DIST =					\
 	requirements.txt			\
 	resolver-forward.dia			\
 	resolver-forward.png			\
+	rpz.inc.rst				\
 	security.inc.rst			\
 	sig0.inc.rst				\
 	tkey.inc.rst				\
