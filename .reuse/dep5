@@ -82,6 +82,8 @@ Files: **/*.after*
        cocci/*.cocci
        cocci/*.disabled
        cocci/*.spatch
+       doc/arm/*.dia
+       doc/arm/*.png
        doc/arm/isc-logo.pdf
        doc/arm/requirements.txt
        doc/man/*.1in
