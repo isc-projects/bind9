@@ -971,6 +971,8 @@ struct isc_nmsocket {
 		isc_tlsctx_t **listener_tls_ctx; /*%< A context reference per
 						    worker */
 		size_t n_listener_tls_ctx;
+		isc_tlsctx_client_session_cache_t *client_sess_cache;
+		bool client_session_saved;
 		isc_nmsocket_t *tlslistener;
 		isc_nmsocket_t *tlssocket;
 		atomic_bool result_updated;
@@ -2175,3 +2177,6 @@ isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
 		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s\n", #func, \
 				uv_strerror(ret));                            \
 	}
+
+void
+isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls);

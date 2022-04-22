@@ -559,13 +559,15 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int timeout, size_t extrahandlesize);
 
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *ctx, unsigned int timeout,
-		   size_t extrahandlesize);
+		   isc_tlsctx_t			*ctx,
+		   isc_tlsctx_client_session_cache_t *client_sess_cache,
+		   unsigned int timeout, size_t extrahandlesize);
 
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,

@@ -86,6 +86,12 @@ tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener);
 static isc_tlsctx_t *
 tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid);
 
+static void
+tls_keep_client_tls_session(isc_nmsocket_t *sock);
+
+static void
+tls_try_shutdown(isc_tls_t *tls, const bool quite);
+
 /*
  * The socket is closing, outerhandle has been detached, listener is
  * inactive, or the netmgr is closing: any operation on it should abort
@@ -127,6 +133,10 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	tlssock = send_req->tlssock;
 	send_req->tlssock = NULL;
+
+	if (finish) {
+		tls_try_shutdown(tlssock->tlsstream.tls, true);
+	}
 
 	if (send_req->cb != NULL) {
 		INSIST(VALID_NMHANDLE(tlssock->statichandle));
@@ -241,10 +251,9 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 		return (0);
 	}
 
-	if (finish && (SSL_get_shutdown(sock->tlsstream.tls) &
-		       SSL_SENT_SHUTDOWN) != SSL_SENT_SHUTDOWN)
-	{
-		(void)SSL_shutdown(sock->tlsstream.tls);
+	if (finish) {
+		tls_try_shutdown(sock->tlsstream.tls, false);
+		tls_keep_client_tls_session(sock);
 	}
 
 	pending = BIO_pending(sock->tlsstream.bio_out);
@@ -293,22 +302,21 @@ tls_process_outgoing(isc_nmsocket_t *sock, bool finish,
 		     isc__nm_uvreq_t *send_data) {
 	int pending;
 
+	bool received_shutdown = ((SSL_get_shutdown(sock->tlsstream.tls) &
+				   SSL_RECEIVED_SHUTDOWN) != 0);
+	bool sent_shutdown = ((SSL_get_shutdown(sock->tlsstream.tls) &
+			       SSL_SENT_SHUTDOWN) != 0);
+
+	if (received_shutdown && !sent_shutdown) {
+		finish = true;
+	}
+
 	/* Data from TLS to network */
 	if (send_data != NULL) {
 		pending = tls_send_outgoing(sock, finish, send_data->handle,
 					    send_data->cb.send,
 					    send_data->cbarg);
 	} else {
-		bool received_shutdown =
-			((SSL_get_shutdown(sock->tlsstream.tls) &
-			  SSL_RECEIVED_SHUTDOWN) != 0);
-		bool sent_shutdown = ((SSL_get_shutdown(sock->tlsstream.tls) &
-				       SSL_SENT_SHUTDOWN) != 0);
-
-		if (received_shutdown && !sent_shutdown) {
-			finish = true;
-			(void)SSL_shutdown(sock->tlsstream.tls);
-		}
 		pending = tls_send_outgoing(sock, finish, NULL, NULL, NULL);
 	}
 
@@ -331,6 +339,7 @@ tls_try_handshake(isc_nmsocket_t *sock) {
 		isc_result_t result = ISC_R_SUCCESS;
 		INSIST(SSL_is_init_finished(sock->tlsstream.tls) == 1);
 		INSIST(sock->statichandle == NULL);
+		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
 			sock->listener->accept_cb(tlshandle, result,
@@ -889,7 +898,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg);
 
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, SSL_CTX *ctx,
+		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int timeout, size_t extrahandlesize) {
 	isc_nmsocket_t *nsock = NULL;
 #if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
@@ -907,6 +917,13 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
 	isc_tlsctx_attach(ctx, &nsock->tlsstream.ctx);
+	atomic_init(&nsock->client, true);
+	if (client_sess_cache != NULL) {
+		INSIST(isc_tlsctx_client_session_cache_getctx(
+			       client_sess_cache) == ctx);
+		isc_tlsctx_client_session_cache_attach(
+			client_sess_cache, &nsock->tlsstream.client_sess_cache);
+	}
 
 	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, nsock,
 			  nsock->connect_timeout, 0);
@@ -948,6 +965,12 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	atomic_store(&tlssock->active, true);
+
+	if (tlssock->tlsstream.client_sess_cache != NULL) {
+		isc_tlsctx_client_session_cache_reuse_sockaddr(
+			tlssock->tlsstream.client_sess_cache, &tlssock->peer,
+			tlssock->tlsstream.tls);
+	}
 
 	/*
 	 * Hold a reference to tlssock in the TCP socket: it will
@@ -1026,14 +1049,25 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 	} else if (sock->type == isc_nm_tlslistener) {
 		tls_cleanup_listener_tlsctx(sock);
 	} else if (sock->type == isc_nm_tlssocket) {
-		if (sock->tlsstream.ctx != NULL) {
-			isc_tlsctx_free(&sock->tlsstream.ctx);
-		}
 		if (sock->tlsstream.tls != NULL) {
+			/*
+			 * Let's shutdown the TLS session properly so that the
+			 * session will remain resumable, if required.
+			 */
+			tls_try_shutdown(sock->tlsstream.tls, true);
+			tls_keep_client_tls_session(sock);
 			isc_tls_free(&sock->tlsstream.tls);
 			/* These are destroyed when we free SSL */
 			sock->tlsstream.bio_out = NULL;
 			sock->tlsstream.bio_in = NULL;
+		}
+		if (sock->tlsstream.ctx != NULL) {
+			isc_tlsctx_free(&sock->tlsstream.ctx);
+		}
+		if (sock->tlsstream.client_sess_cache != NULL) {
+			INSIST(atomic_load(&sock->client));
+			isc_tlsctx_client_session_cache_detach(
+				&sock->tlsstream.client_sess_cache);
 		}
 	} else if (sock->type == isc_nm_tcpsocket &&
 		   sock->tlsstream.tlssocket != NULL) {
@@ -1163,4 +1197,31 @@ isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
 
 	isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[tid]);
 	isc_tlsctx_attach(tlsctx, &listener->tlsstream.listener_tls_ctx[tid]);
+}
+
+static void
+tls_keep_client_tls_session(isc_nmsocket_t *sock) {
+	/*
+	 * Ensure that the isc_tls_t is being accessed from
+	 * within the worker thread the socket is bound to.
+	 */
+	REQUIRE(sock->tid == isc_nm_tid());
+	if (sock->tlsstream.client_sess_cache != NULL &&
+	    sock->tlsstream.client_session_saved == false)
+	{
+		INSIST(atomic_load(&sock->client));
+		isc_tlsctx_client_session_cache_keep_sockaddr(
+			sock->tlsstream.client_sess_cache, &sock->peer,
+			sock->tlsstream.tls);
+		sock->tlsstream.client_session_saved = true;
+	}
+}
+
+static void
+tls_try_shutdown(isc_tls_t *tls, const bool force) {
+	if (force) {
+		(void)SSL_set_shutdown(tls, SSL_SENT_SHUTDOWN);
+	} else if ((SSL_get_shutdown(tls) & SSL_SENT_SHUTDOWN) == 0) {
+		(void)SSL_shutdown(tls);
+	}
 }
