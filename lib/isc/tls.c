@@ -1086,6 +1086,8 @@ typedef struct isc_tlsctx_cache_entry {
 	 * session-resumption cache.
 	 */
 	isc_tlsctx_t *ctx[isc_tlsctx_cache_count - 1][2];
+	isc_tlsctx_client_session_cache_t
+		*client_sess_cache[isc_tlsctx_cache_count - 1][2];
 	/*
 	 * One certificate store is enough for all the contexts defined
 	 * above. We need that for peer validation.
@@ -1138,6 +1140,11 @@ tlsctx_cache_entry_destroy(isc_mem_t *mctx, isc_tlsctx_cache_entry_t *entry) {
 			if (entry->ctx[i][k] != NULL) {
 				isc_tlsctx_free(&entry->ctx[i][k]);
 			}
+
+			if (entry->client_sess_cache[i][k] != NULL) {
+				isc_tlsctx_client_session_cache_detach(
+					&entry->client_sess_cache[i][k]);
+			}
 		}
 	}
 	if (entry->ca_store != NULL) {
@@ -1187,17 +1194,21 @@ isc_tlsctx_cache_detach(isc_tlsctx_cache_t **cachep) {
 }
 
 isc_result_t
-isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
-		     const isc_tlsctx_cache_transport_t transport,
-		     const uint16_t family, isc_tlsctx_t *ctx,
-		     isc_tls_cert_store_t *store, isc_tlsctx_t **pfound,
-		     isc_tls_cert_store_t **pfound_store) {
+isc_tlsctx_cache_add(
+	isc_tlsctx_cache_t *cache, const char *name,
+	const isc_tlsctx_cache_transport_t transport, const uint16_t family,
+	isc_tlsctx_t *ctx, isc_tls_cert_store_t *store,
+	isc_tlsctx_client_session_cache_t *client_sess_cache,
+	isc_tlsctx_t **pfound, isc_tls_cert_store_t **pfound_store,
+	isc_tlsctx_client_session_cache_t **pfound_client_sess_cache) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t name_len, tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
 	bool ipv6;
 
 	REQUIRE(VALID_TLSCTX_CACHE(cache));
+	REQUIRE(client_sess_cache == NULL ||
+		VALID_TLSCTX_CLIENT_SESSION_CACHE(client_sess_cache));
 	REQUIRE(name != NULL && *name != '\0');
 	REQUIRE(transport > isc_tlsctx_cache_none &&
 		transport < isc_tlsctx_cache_count);
@@ -1213,6 +1224,7 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 	result = isc_ht_find(cache->data, (const uint8_t *)name, name_len,
 			     (void **)&entry);
 	if (result == ISC_R_SUCCESS && entry->ctx[tr_offset][ipv6] != NULL) {
+		isc_tlsctx_client_session_cache_t *found_client_sess_cache;
 		/* The entry exists. */
 		if (pfound != NULL) {
 			INSIST(*pfound == NULL);
@@ -1223,6 +1235,14 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 			INSIST(*pfound_store == NULL);
 			*pfound_store = entry->ca_store;
 		}
+
+		found_client_sess_cache =
+			entry->client_sess_cache[tr_offset][ipv6];
+		if (pfound_client_sess_cache != NULL &&
+		    found_client_sess_cache != NULL) {
+			INSIST(*pfound_client_sess_cache == NULL);
+			*pfound_client_sess_cache = found_client_sess_cache;
+		}
 		result = ISC_R_EXISTS;
 	} else if (result == ISC_R_SUCCESS &&
 		   entry->ctx[tr_offset][ipv6] == NULL) {
@@ -1231,10 +1251,11 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		 * particular transport/IP type combination.
 		 */
 		entry->ctx[tr_offset][ipv6] = ctx;
+		entry->client_sess_cache[tr_offset][ipv6] = client_sess_cache;
 		/*
-		 * As the passed certificates store object is supposed to be
-		 * internally managed by the cache object anyway, we might
-		 * destroy the unneeded store object right now.
+		 * As the passed certificates store object is supposed
+		 * to be internally managed by the cache object anyway,
+		 * we might destroy the unneeded store object right now.
 		 */
 		if (store != NULL && store != entry->ca_store) {
 			isc_tls_cert_store_free(&store);
@@ -1249,6 +1270,7 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 		/* Oracle/Red Hat Linux, GCC bug #53119 */
 		memset(entry, 0, sizeof(*entry));
 		entry->ctx[tr_offset][ipv6] = ctx;
+		entry->client_sess_cache[tr_offset][ipv6] = client_sess_cache;
 		entry->ca_store = store;
 		RUNTIME_CHECK(isc_ht_add(cache->data, (const uint8_t *)name,
 					 name_len,
@@ -1262,10 +1284,11 @@ isc_tlsctx_cache_add(isc_tlsctx_cache_t *cache, const char *name,
 }
 
 isc_result_t
-isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
-		      const isc_tlsctx_cache_transport_t transport,
-		      const uint16_t family, isc_tlsctx_t **pctx,
-		      isc_tls_cert_store_t **pstore) {
+isc_tlsctx_cache_find(
+	isc_tlsctx_cache_t *cache, const char *name,
+	const isc_tlsctx_cache_transport_t transport, const uint16_t family,
+	isc_tlsctx_t **pctx, isc_tls_cert_store_t **pstore,
+	isc_tlsctx_client_session_cache_t **pfound_client_sess_cache) {
 	isc_result_t result = ISC_R_FAILURE;
 	size_t tr_offset;
 	isc_tlsctx_cache_entry_t *entry = NULL;
@@ -1292,7 +1315,16 @@ isc_tlsctx_cache_find(isc_tlsctx_cache_t *cache, const char *name,
 	}
 
 	if (result == ISC_R_SUCCESS && entry->ctx[tr_offset][ipv6] != NULL) {
+		isc_tlsctx_client_session_cache_t *found_client_sess_cache =
+			entry->client_sess_cache[tr_offset][ipv6];
+
 		*pctx = entry->ctx[tr_offset][ipv6];
+
+		if (pfound_client_sess_cache != NULL &&
+		    found_client_sess_cache != NULL) {
+			INSIST(*pfound_client_sess_cache == NULL);
+			*pfound_client_sess_cache = found_client_sess_cache;
+		}
 	} else if (result == ISC_R_SUCCESS &&
 		   entry->ctx[tr_offset][ipv6] == NULL) {
 		result = ISC_R_NOTFOUND;
