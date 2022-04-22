@@ -35,7 +35,7 @@ named.conf \- configuration file for **named**
 \fBnamed.conf\fP
 .SH DESCRIPTION
 .sp
-\fBnamed.conf\fP is the configuration file for \fBnamed\fP\&.
+\fBnamed.conf\fP is the configuration file for \fI\%named\fP\&.
 Statements are enclosed in braces and terminated with a semi\-colon.
 Clauses in the statements are also semi\-colon terminated. The usual
 comment styles are supported:
@@ -1311,7 +1311,7 @@ zone <string> [ <class> ] {
 \fB@sysconfdir@/named.conf\fP
 .SH SEE ALSO
 .sp
-\fBnamed(8)\fP, \fBnamed\-checkconf(8)\fP, \fBrndc(8)\fP, \fBrndc\-confgen(8)\fP, \fBtsig\-keygen(8)\fP, BIND 9 Administrator Reference Manual.
+\fI\%named(8)\fP, \fI\%named\-checkconf(8)\fP, \fI\%rndc(8)\fP, \fI\%rndc\-confgen(8)\fP, \fI\%tsig\-keygen(8)\fP, BIND 9 Administrator Reference Manual.
 .SH AUTHOR
 Internet Systems Consortium
 .SH COPYRIGHT
