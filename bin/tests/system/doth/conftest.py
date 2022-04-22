@@ -25,13 +25,10 @@ def gnutls_cli_executable():
         pytest.skip('gnutls-cli not found in PATH')
 
     # Ensure gnutls-cli supports the --logfile command-line option.
-    args = [executable, '--logfile=/dev/null']
-    try:
-        with subprocess.check_output(args, stderr=subprocess.STDOUT) as _:
-            pass
-    except subprocess.CalledProcessError as exc:
-        stderr = exc.output
-    if b'illegal option' in stderr:
+    output = subprocess.run([executable, '--logfile=/dev/null'],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            check=False).stdout
+    if b'illegal option' in output:
         pytest.skip('gnutls-cli does not support the --logfile option')
 
     return executable
