@@ -1,7 +1,7 @@
 include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=				\
-	-DNAMED_PLUGINDIR=\"$(libdir)/named\"
+	-DNAMED_PLUGINDIR=\"$(pkglibdir)\"
 
 lib_LTLIBRARIES = libns.la
 
