@@ -934,6 +934,8 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
 	isc_tlsctx_t *tlsctx = NULL, *found = NULL;
 	isc_tls_cert_store_t *store = NULL, *found_store = NULL;
+	isc_tlsctx_client_session_cache_t *sess_cache = NULL,
+					  *found_sess_cache = NULL;
 
 	(void)isc_refcount_increment0(&xfr->connects);
 	dns_xfrin_attach(xfr, &connect_xfr);
@@ -972,9 +974,9 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		 * full TLS handshake procedure, making establishing
 		 * subsequent TLS connections for XoT faster.
 		 */
-		result = isc_tlsctx_cache_find(xfr->tlsctx_cache, tlsname,
-					       isc_tlsctx_cache_tls, family,
-					       &tlsctx, &found_store);
+		result = isc_tlsctx_cache_find(
+			xfr->tlsctx_cache, tlsname, isc_tlsctx_cache_tls,
+			family, &tlsctx, &found_store, &found_sess_cache);
 		if (result != ISC_R_SUCCESS) {
 			const char *hostname =
 				dns_transport_get_remote_hostname(
@@ -1079,11 +1081,16 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 
 			isc_tlsctx_enable_dot_client_alpn(tlsctx);
 
+			sess_cache = isc_tlsctx_client_session_cache_new(
+				xfr->mctx, tlsctx,
+				ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+
 			found_store = NULL;
 			result = isc_tlsctx_cache_add(
 				xfr->tlsctx_cache, tlsname,
 				isc_tlsctx_cache_tls, family, tlsctx, store,
-				&found, &found_store);
+				sess_cache, &found, &found_store,
+				&found_sess_cache);
 			if (result == ISC_R_EXISTS) {
 				/*
 				 * It seems the entry has just been created
@@ -1101,7 +1108,10 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				INSIST(found != NULL);
 				isc_tlsctx_free(&tlsctx);
 				isc_tls_cert_store_free(&store);
+				isc_tlsctx_client_session_cache_detach(
+					&sess_cache);
 				tlsctx = found;
+				sess_cache = found_sess_cache;
 			} else {
 				INSIST(result == ISC_R_SUCCESS);
 			}
@@ -1129,6 +1139,11 @@ failure:
 	if (store != NULL && store != found_store) {
 		isc_tls_cert_store_free(&store);
 	}
+
+	if (sess_cache != NULL && sess_cache != found_sess_cache) {
+		isc_tlsctx_client_session_cache_detach(&sess_cache);
+	}
+
 	isc_refcount_decrement0(&xfr->connects);
 	dns_xfrin_detach(&connect_xfr);
 	return (result);
