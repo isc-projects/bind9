@@ -1,3 +1,7 @@
+5868.	[cleanup]	Use Daniel Lemire's "nearly divisionless" algorithm
+			for unbiased bounded random numbers, and move
+			re-seeding out of the hot path. [GL !6161]
+
 5867.	[bug]		Fix assertion failure triggered by attaching to dns_adb
 			in dns_adb_createfind() that has been triggered to shut
 			down in different thread between the check for shutting
