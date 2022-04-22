@@ -76,39 +76,10 @@ struct dns_rbt {
 	uint32_t hiter;
 };
 
-#define RED   0
-#define BLACK 1
-
-/*%
- * Elements of the rbtnode structure.
- */
-#define PARENT(node)	   ((node)->parent)
-#define LEFT(node)	   ((node)->left)
-#define RIGHT(node)	   ((node)->right)
-#define DOWN(node)	   ((node)->down)
-#define UPPERNODE(node)	   ((node)->uppernode)
-#define DATA(node)	   ((node)->data)
 #define IS_EMPTY(node)	   ((node)->data == NULL)
-#define HASHNEXT(node)	   ((node)->hashnext)
-#define HASHVAL(node)	   ((node)->hashval)
-#define COLOR(node)	   ((node)->color)
-#define NAMELEN(node)	   ((node)->namelen)
-#define OLDNAMELEN(node)   ((node)->oldnamelen)
-#define OFFSETLEN(node)	   ((node)->offsetlen)
-#define ATTRS(node)	   ((node)->attributes)
-#define IS_ROOT(node)	   ((node)->is_root)
-#define FINDCALLBACK(node) ((node)->find_callback)
 
 #define WANTEMPTYDATA_OR_DATA(options, node) \
 	((options & DNS_RBTFIND_EMPTYDATA) != 0 || node->data != NULL)
-
-/*%
- * Structure elements from the rbtdb.c, not
- * used as part of the rbt.c algorithms.
- */
-#define DIRTY(node)   ((node)->dirty)
-#define WILD(node)    ((node)->wild)
-#define LOCKNUM(node) ((node)->locknum)
 
 /*%
  * The variable length stuff stored after the node has the following
@@ -133,10 +104,10 @@ struct dns_rbt {
 /*%
  * Color management.
  */
+#define RED   0
+#define BLACK 1
 #define IS_RED(node)	 ((node) != NULL && (node)->color == RED)
 #define IS_BLACK(node)	 ((node) == NULL || (node)->color == BLACK)
-#define MAKE_RED(node)	 ((node)->color = RED)
-#define MAKE_BLACK(node) ((node)->color = BLACK)
 
 /*%
  * Chain management.
