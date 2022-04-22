@@ -2169,7 +2169,6 @@ dns__adb_attach(dns_adb_t *adb, dns_adb_t **adbp, const char *func,
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(adbp != NULL && *adbp == NULL);
-	REQUIRE(!atomic_load_acquire(&adb->exiting));
 
 	refs = isc_refcount_increment(&adb->references);
 #ifdef ADB_TRACE

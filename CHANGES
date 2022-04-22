@@ -1,3 +1,8 @@
+5867.	[bug]		Fix assertion failure triggered by attaching to dns_adb
+			in dns_adb_createfind() that has been triggered to shut
+			down in different thread between the check for shutting
+			down condition and the attach to dns_adb. [GL #3298]
+
 5866.	[bug]		Work around a jemalloc quirk which could trigger an
 			out-of-memory condition in named over time. [GL #3287]
 
