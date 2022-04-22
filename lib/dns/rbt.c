@@ -85,12 +85,11 @@ struct dns_rbt {
  * The variable length stuff stored after the node has the following
  * structure.
  *
- *	&lt;name_data&gt;{1..255}&lt;oldoffsetlen&gt;{1}&lt;offsets&gt;{1..128}
+ *	NAME_DATA{1..255} OLDOFFSETLEN{1} OFFSETS{1..128}
  *
- * &lt;name_data&gt; contains the name of the node when it was created.
- * &lt;oldoffsetlen&gt; contains the length of &lt;offsets&gt; when the node
- * was created.
- * &lt;offsets&gt; contains the offsets into name for each label when the node
+ * NAME_DATA contains the name of the node when it was created.
+ * OLDOFFSETLEN contains the length of OFFSETS when the node was created.
+ * OFFSETS contains the offsets into name for each label when the node
  * was created.
  */
 
@@ -122,12 +121,9 @@ struct dns_rbt {
 		(chain)->levels[(chain)->level_count++] = (node);  \
 	} while (0)
 
-/*%
- * The following macros directly access normally private name variables.
- * These macros are used to avoid a lot of function calls in the critical
- * path of the tree traversal code.
+/*
+ * Initialize a dns_name_t that refers to a node's name.
  */
-
 static void
 node_name(dns_rbtnode_t *node, dns_name_t *name) {
 	name->length = node->namelen;
