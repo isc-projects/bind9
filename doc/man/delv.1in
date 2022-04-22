@@ -42,7 +42,7 @@ delv \- DNS lookup and validation utility
 .SH DESCRIPTION
 .sp
 \fBdelv\fP is a tool for sending DNS queries and validating the results,
-using the same internal resolver and validator logic as \fBnamed\fP\&.
+using the same internal resolver and validator logic as \fI\%named\fP\&.
 .sp
 \fBdelv\fP sends to a specified name server all queries needed to
 fetch and validate the requested data; this includes the original
@@ -127,7 +127,7 @@ Note: When reading the trust anchor file, \fBdelv\fP treats \fBtrust\-anchors\fP
 \fBinitial\-key\fP, and \fBstatic\-key\fP identically. That is, for a managed key,
 it is the \fIinitial\fP key that is trusted; \fI\%RFC 5011\fP key management is not
 supported. \fBdelv\fP does not consult the managed\-keys database maintained by
-\fBnamed\fP, which means that if either of the keys in \fB@sysconfdir@/bind.keys\fP is
+\fI\%named\fP, which means that if either of the keys in \fB@sysconfdir@/bind.keys\fP is
 revoked and rolled over, \fB@sysconfdir@/bind.keys\fP must be updated to
 use DNSSEC validation in \fBdelv\fP\&.
 .UNINDENT
@@ -362,7 +362,7 @@ parsing of the \fBdelv\fP output.
 .TP
 .B +[no]dnssec
 This option indicates whether to display RRSIG records in the \fBdelv\fP output.
-The default is to do so. Note that (unlike in \fBdig\fP) this does
+The default is to do so. Note that (unlike in \fI\%dig\fP) this does
 \fInot\fP control whether to request DNSSEC records or to
 validate them. DNSSEC records are always requested, and validation
 always occurs unless suppressed by the use of \fI\%\-i\fP or
@@ -402,7 +402,7 @@ This option prints response data in YAML format.
 \fB/etc/resolv.conf\fP
 .SH SEE ALSO
 .sp
-\fBdig(1)\fP, \fBnamed(8)\fP, \fI\%RFC 4034\fP, \fI\%RFC 4035\fP, \fI\%RFC 4431\fP, \fI\%RFC 5074\fP, \fI\%RFC 5155\fP\&.
+\fI\%dig(1)\fP, \fI\%named(8)\fP, \fI\%RFC 4034\fP, \fI\%RFC 4035\fP, \fI\%RFC 4431\fP, \fI\%RFC 5074\fP, \fI\%RFC 5155\fP\&.
 .SH AUTHOR
 Internet Systems Consortium
 .SH COPYRIGHT

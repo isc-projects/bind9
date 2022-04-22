@@ -71,7 +71,7 @@ option, which copies the algorithm from the predecessor key.
 .sp
 In prior releases, HMAC algorithms could be generated for use as TSIG
 keys, but that feature was removed in BIND 9.13.0. Use
-\fBtsig\-keygen\fP to generate TSIG keys.
+\fI\%tsig\-keygen\fP to generate TSIG keys.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -347,7 +347,7 @@ string. \fBKnnnn.+aaa+iiiii.key\fP contains the public key, and
 \fBKnnnn.+aaa+iiiii.private\fP contains the private key.
 .sp
 The \fB\&.key\fP file contains a DNSKEY or KEY record. When a zone is being
-signed by \fBnamed\fP or \fBdnssec\-signzone \-S\fP, DNSKEY records are
+signed by \fI\%named\fP or \fI\%dnssec\-signzone \-S\fP, DNSKEY records are
 included automatically. In other cases, the \fB\&.key\fP file can be
 inserted into a zone file manually or with an \fB$INCLUDE\fP statement.
 .sp
@@ -372,7 +372,7 @@ To generate a matching key\-signing key, issue the command:
 \fBdnssec\-keygen \-a ECDSAP256SHA256 \-f KSK example.com\fP
 .SH SEE ALSO
 .sp
-\fBdnssec\-signzone(8)\fP, BIND 9 Administrator Reference Manual, \fI\%RFC 2539\fP,
+\fI\%dnssec\-signzone(8)\fP, BIND 9 Administrator Reference Manual, \fI\%RFC 2539\fP,
 \fI\%RFC 2845\fP, \fI\%RFC 4034\fP\&.
 .SH AUTHOR
 Internet Systems Consortium
