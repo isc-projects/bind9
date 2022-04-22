@@ -129,7 +129,7 @@ struct dns_rbt {
  */
 
 static void
-NODENAME(dns_rbtnode_t *node, dns_name_t *name) {
+node_name(dns_rbtnode_t *node, dns_name_t *name) {
 	name->length = node->namelen;
 	name->labels = node->offsetlen;
 	name->ndata = NAME(node);
@@ -150,7 +150,7 @@ Name(dns_rbtnode_t *node) {
 
 	dns_name_init(&name, NULL);
 	if (node != NULL) {
-		NODENAME(node, &name);
+		node_name(node, &name);
 	}
 
 	return (name);
@@ -245,7 +245,7 @@ dns__rbtnode_namelen(dns_rbtnode_t *node) {
 
 	do {
 		if (node != NULL) {
-			NODENAME(node, &current);
+			node_name(node, &current);
 			len += current.length;
 		} else {
 			len += 1;
@@ -353,14 +353,14 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	dns_name_init(&nodename, NULL);
 
 	if (include_chain_end && chain->end != NULL) {
-		NODENAME(chain->end, &nodename);
+		node_name(chain->end, &nodename);
 		dns_name_copy(&nodename, name);
 	} else {
 		dns_name_reset(name);
 	}
 
 	for (i = (int)chain->level_count - 1; i >= 0; i--) {
-		NODENAME(chain->levels[i], &nodename);
+		node_name(chain->levels[i], &nodename);
 		result = dns_name_concatenate(name, &nodename, name, NULL);
 
 		if (result != ISC_R_SUCCESS) {
@@ -493,7 +493,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	do {
 		current = child;
 
-		NODENAME(current, &current_name);
+		node_name(current, &current_name);
 		compared = dns_name_fullcompare(add_name, &current_name, &order,
 						&common_labels);
 
@@ -809,7 +809,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	current = rbt->root;
 
 	while (current != NULL) {
-		NODENAME(current, &current_name);
+		node_name(current, &current_name);
 		compared = dns_name_fullcompare(search_name, &current_name,
 						&order, &common_labels);
 		/*
@@ -909,7 +909,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				}
 
 				dns_name_init(&hnode_name, NULL);
-				NODENAME(hnode, &hnode_name);
+				node_name(hnode, &hnode_name);
 				if (dns_name_equal(&hnode_name, &hash_name)) {
 					break;
 				}
@@ -1177,7 +1177,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				}
 
 				while (current != NULL) {
-					NODENAME(current, &current_name);
+					node_name(current, &current_name);
 					compared = dns_name_fullcompare(
 						search_name, &current_name,
 						&order, &common_labels);
@@ -1438,7 +1438,7 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 	REQUIRE(name != NULL);
 	REQUIRE(name->offsets == NULL);
 
-	NODENAME(node, name);
+	node_name(node, name);
 }
 
 isc_result_t
@@ -1456,7 +1456,7 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 	do {
 		INSIST(node != NULL);
 
-		NODENAME(node, &current);
+		node_name(node, &current);
 
 		result = dns_name_concatenate(name, &current, name, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -1864,10 +1864,10 @@ addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 	POST(child);
 
 	dns_name_init(&add_name, add_offsets);
-	NODENAME(node, &add_name);
+	node_name(node, &add_name);
 
 	dns_name_init(&current_name, current_offsets);
-	NODENAME(current, &current_name);
+	node_name(current, &current_name);
 
 	if (order < 0) {
 		INSIST(current->left == NULL);
@@ -2584,7 +2584,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 	}
 
 	if (name != NULL) {
-		NODENAME(chain->end, name);
+		node_name(chain->end, name);
 
 		if (chain->level_count == 0) {
 			/*
@@ -2781,7 +2781,7 @@ dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 */
 
 		if (name != NULL) {
-			NODENAME(chain->end, name);
+			node_name(chain->end, name);
 		}
 
 		if (new_origin) {
@@ -2837,7 +2837,7 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name) {
 		chain->end = successor;
 
 		if (name != NULL) {
-			NODENAME(chain->end, name);
+			node_name(chain->end, name);
 		}
 
 		result = ISC_R_SUCCESS;
@@ -2972,7 +2972,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 */
 
 		if (name != NULL) {
-			NODENAME(chain->end, name);
+			node_name(chain->end, name);
 		}
 
 		if (new_origin) {
