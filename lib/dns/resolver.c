@@ -7282,19 +7282,17 @@ fctx__detach(fetchctx_t **fctxp, const char *file, unsigned int line,
 
 static void
 resume_dslookup(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *fevent = NULL;
-	dns_resolver_t *res = NULL;
-	fetchctx_t *fctx = NULL, *ds_fctx = NULL;
 	isc_result_t result;
+	dns_fetchevent_t *fevent = (dns_fetchevent_t *)event;
+	fetchctx_t *fctx = event->ev_arg;
+	dns_resolver_t *res = NULL;
+	dns_rdataset_t *frdataset = NULL, *nsrdataset = NULL;
 	dns_rdataset_t nameservers;
 	dns_fixedname_t fixed;
 	dns_name_t *domain = NULL;
+	unsigned int n;
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
-
-	fevent = (dns_fetchevent_t *)event;
-	fctx = event->ev_arg;
-	ds_fctx = fctx;
 
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
@@ -7309,51 +7307,56 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		dns_db_detach(&fevent->db);
 	}
 
-	dns_rdataset_init(&nameservers);
+	/* Preserve data from fevent before freeing it. */
+	frdataset = fevent->rdataset;
+	result = fevent->result;
+	isc_event_free(&event);
 
-	/*
-	 * Note: fevent->rdataset must be disassociated and
-	 * isc_event_free(&event) be called before resuming
-	 * processing of the 'fctx' to prevent use-after-free.
-	 */
-	if (fevent->result == ISC_R_CANCELED) {
-		if (dns_rdataset_isassociated(fevent->rdataset)) {
-			dns_rdataset_disassociate(fevent->rdataset);
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+	if (SHUTTINGDOWN(fctx)) {
+		maybe_cancel_validators(fctx, true);
+		UNLOCK(&res->buckets[fctx->bucketnum].lock);
+
+		if (dns_rdataset_isassociated(frdataset)) {
+			dns_rdataset_disassociate(frdataset);
 		}
 
 		dns_resolver_destroyfetch(&fctx->nsfetch);
+		fctx_detach(&fctx);
+		return;
+	}
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 
-		LOCK(&res->buckets[fctx->bucketnum].lock);
-		if (SHUTTINGDOWN(fctx)) {
-			maybe_cancel_validators(fctx, true);
-			UNLOCK(&res->buckets[fctx->bucketnum].lock);
-			goto cleanup;
+	/*
+	 * Detach the extra reference that was set in rctx_chaseds()
+	 * or a prior iteration of this function.
+	 */
+	fctx_unref(fctx);
+
+	switch (result) {
+	case ISC_R_CANCELED:
+		dns_resolver_destroyfetch(&fctx->nsfetch);
+		if (dns_rdataset_isassociated(frdataset)) {
+			dns_rdataset_disassociate(frdataset);
 		}
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
 		fctx_done_detach(&fctx, ISC_R_CANCELED);
-	} else if (fevent->result == ISC_R_SUCCESS) {
+		break;
+
+	case ISC_R_SUCCESS:
 		FCTXTRACE("resuming DS lookup");
 
 		dns_resolver_destroyfetch(&fctx->nsfetch);
 		if (dns_rdataset_isassociated(&fctx->nameservers)) {
 			dns_rdataset_disassociate(&fctx->nameservers);
 		}
-		dns_rdataset_clone(fevent->rdataset, &fctx->nameservers);
+
+		dns_rdataset_clone(frdataset, &fctx->nameservers);
+		if (dns_rdataset_isassociated(frdataset)) {
+			dns_rdataset_disassociate(frdataset);
+		}
 		fctx->ns_ttl = fctx->nameservers.ttl;
 		fctx->ns_ttl_ok = true;
 		log_ns_ttl(fctx, "resume_dslookup");
-
-		if (dns_rdataset_isassociated(fevent->rdataset)) {
-			dns_rdataset_disassociate(fevent->rdataset);
-		}
-
-		LOCK(&res->buckets[fctx->bucketnum].lock);
-		if (SHUTTINGDOWN(fctx)) {
-			maybe_cancel_validators(fctx, true);
-			UNLOCK(&res->buckets[fctx->bucketnum].lock);
-			goto cleanup;
-		}
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
 
 		fcount_decr(fctx);
 		dns_name_copy(fctx->nsname, fctx->domain);
@@ -7366,71 +7369,46 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		} else {
 			fctx_done_detach(&fctx, DNS_R_SERVFAIL);
 		}
-	} else {
-		unsigned int n;
-		dns_rdataset_t *nsrdataset = NULL;
+		break;
+
+	default:
+		if (dns_rdataset_isassociated(frdataset)) {
+			dns_rdataset_disassociate(frdataset);
+		}
 
 		/*
 		 * Get domain and nameservers from fctx->nsfetch
 		 * before we destroy it.
 		 */
-		domain = dns_fixedname_initname(&fixed);
-		dns_name_copy(fctx->nsfetch->private->domain, domain);
-		if (dns_name_equal(fctx->nsname, domain)) {
-			if (dns_rdataset_isassociated(fevent->rdataset)) {
-				dns_rdataset_disassociate(fevent->rdataset);
-			}
-
-			dns_resolver_destroyfetch(&fctx->nsfetch);
-
-			LOCK(&res->buckets[fctx->bucketnum].lock);
-			if (SHUTTINGDOWN(fctx)) {
-				maybe_cancel_validators(fctx, true);
-				UNLOCK(&res->buckets[fctx->bucketnum].lock);
-				goto cleanup;
-			}
-			UNLOCK(&res->buckets[fctx->bucketnum].lock);
-
-			fctx_done(&fctx, DNS_R_SERVFAIL);
-			goto cleanup;
-		}
+		dns_rdataset_init(&nameservers);
 		if (dns_rdataset_isassociated(
 			    &fctx->nsfetch->private->nameservers)) {
+			domain = dns_fixedname_initname(&fixed);
+			dns_name_copy(fctx->nsfetch->private->domain, domain);
+			if (dns_name_equal(fctx->nsname, domain)) {
+				dns_resolver_destroyfetch(&fctx->nsfetch);
+				fctx_done_detach(&fctx, DNS_R_SERVFAIL);
+				return;
+			}
 			dns_rdataset_clone(&fctx->nsfetch->private->nameservers,
 					   &nameservers);
 			nsrdataset = &nameservers;
-		} else {
-			domain = NULL;
 		}
+
 		dns_resolver_destroyfetch(&fctx->nsfetch);
+
 		n = dns_name_countlabels(fctx->nsname);
 		dns_name_getlabelsequence(fctx->nsname, 1, n - 1, fctx->nsname);
 
-		if (dns_rdataset_isassociated(fevent->rdataset)) {
-			dns_rdataset_disassociate(fevent->rdataset);
-		}
-
-		LOCK(&res->buckets[fctx->bucketnum].lock);
-		if (SHUTTINGDOWN(fctx)) {
-			maybe_cancel_validators(fctx, true);
-			UNLOCK(&res->buckets[fctx->bucketnum].lock);
-			goto cleanup;
-		}
-		UNLOCK(&res->buckets[fctx->bucketnum].lock);
-
 		FCTXTRACE("continuing to look for parent's NS records");
 
+		/* Starting a new fetch, so restore the extra reference */
 		fctx_addref(fctx);
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
 			NULL, NULL, 0, fctx->options, 0, NULL, task,
 			resume_dslookup, fctx, &fctx->nsrrset, NULL,
 			&fctx->nsfetch);
-		/*
-		 * fevent->rdataset (a.k.a. fctx->nsrrset) must not be
-		 * accessed below this point to prevent races with
-		 * another thread concurrently processing the fetch.
-		 */
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_DUPLICATE) {
 				result = DNS_R_SERVFAIL;
@@ -7438,15 +7416,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 			fctx_unref(fctx);
 			fctx_done_detach(&fctx, result);
 		}
-	}
 
-cleanup:
-	if (dns_rdataset_isassociated(&nameservers)) {
-		dns_rdataset_disassociate(&nameservers);
+		if (dns_rdataset_isassociated(&nameservers)) {
+			dns_rdataset_disassociate(&nameservers);
+		}
 	}
-
-	isc_event_free(&event);
-	fctx_detach(&ds_fctx);
 }
 
 static void
