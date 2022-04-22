@@ -76,7 +76,7 @@ struct dns_rbt {
 	uint32_t hiter;
 };
 
-#define IS_EMPTY(node)	   ((node)->data == NULL)
+#define IS_EMPTY(node) ((node)->data == NULL)
 
 #define WANTEMPTYDATA_OR_DATA(options, node) \
 	((options & DNS_RBTFIND_EMPTYDATA) != 0 || node->data != NULL)
@@ -103,10 +103,10 @@ struct dns_rbt {
 /*%
  * Color management.
  */
-#define RED   0
-#define BLACK 1
-#define IS_RED(node)	 ((node) != NULL && (node)->color == RED)
-#define IS_BLACK(node)	 ((node) == NULL || (node)->color == BLACK)
+#define RED	       0
+#define BLACK	       1
+#define IS_RED(node)   ((node) != NULL && (node)->color == RED)
+#define IS_BLACK(node) ((node) == NULL || (node)->color == BLACK)
 
 /*%
  * Chain management.
@@ -996,7 +996,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				 * the callback is used to learn what the
 				 * caller wants to do.
 				 */
-				if (callback != NULL && current->find_callback) {
+				if (callback != NULL && current->find_callback)
+				{
 					result = chain_name(
 						chain, callback_name, false);
 					if (result != ISC_R_SUCCESS) {
@@ -1379,8 +1380,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse) {
 			deletetreeflat(rbt, 0, true, &node->down);
 		} else {
 			if (node->data != NULL && rbt->data_deleter != NULL) {
-				rbt->data_deleter(node->data,
-						  rbt->deleter_arg);
+				rbt->data_deleter(node->data, rbt->deleter_arg);
 			}
 			node->data = NULL;
 
@@ -2214,8 +2214,7 @@ deletetreeflat(dns_rbt_t *rbt, unsigned int quantum, bool unhash,
 			root = root->parent;
 
 			if (rbt->data_deleter != NULL && node->data != NULL) {
-				rbt->data_deleter(node->data,
-						  rbt->deleter_arg);
+				rbt->data_deleter(node->data, rbt->deleter_arg);
 			}
 			if (unhash) {
 				unhash_node(rbt, node);
@@ -2448,8 +2447,7 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth,
 		if (root->color == RED && IS_RED(root->left)) {
 			fprintf(f, "** Red/Red color violation on left\n");
 		}
-		print_text_helper(root->left, root, depth, "left",
-				  data_printer,
+		print_text_helper(root->left, root, depth, "left", data_printer,
 				  f);
 
 		if (root->color == RED && IS_RED(root->right)) {
@@ -2458,8 +2456,7 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth,
 		print_text_helper(root->right, root, depth, "right",
 				  data_printer, f);
 
-		print_text_helper(root->down, NULL, depth, "down",
-				  data_printer,
+		print_text_helper(root->down, NULL, depth, "down", data_printer,
 				  f);
 	} else {
 		fprintf(f, "NULL (%s)\n", direction);
