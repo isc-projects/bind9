@@ -241,6 +241,11 @@ stages:
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
 
+# change directory to the workspace before including this
+.find_python: &find_python
+  - PYTHON="$(source bin/tests/system/conf.sh; echo $PYTHON)"
+  - test -x "$PYTHON"
+
 .check_readline_setup: &check_readline_setup
     - if [[ -n "${WITHOUT_READLINE}" ]]; then
         ! grep "^#define HAVE_READLINE" config.h;
@@ -305,10 +310,13 @@ stages:
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
     - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" *.log ); fi
   after_script:
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - test -d bind-* && cd bind-*
+    - REALSOURCEDIR="$PWD"
+    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - cat bin/tests/system/test-suite.log
-    - (source bin/tests/system/conf.sh && "${PYTHON}" "${CI_PROJECT_DIR}/bin/tests/convert-trs-to-junit.py" . > "${CI_PROJECT_DIR}/junit.xml")
+    - *find_python
+    - >
+      "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -331,7 +339,9 @@ stages:
   after_script:
     - cat bin/tests/system/test-suite.log
     - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-    - (source bin/tests/system/conf.sh && "${PYTHON}" "${CI_PROJECT_DIR}/bin/tests/convert-trs-to-junit.py" . > "${CI_PROJECT_DIR}/junit.xml")
+    - *find_python
+    - >
+      "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
     expire_in: "1 day"
     untracked: true
@@ -347,9 +357,12 @@ stages:
   script:
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
   after_script:
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - test -d bind-* && cd bind-*
-    - (source bin/tests/system/conf.sh && "${PYTHON}" "${CI_PROJECT_DIR}/bin/tests/convert-trs-to-junit.py" . > "${CI_PROJECT_DIR}/junit.xml")
+    - REALSOURCEDIR="$PWD"
+    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - *find_python
+    - >
+      "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
 
 .unit_test: &unit_test_job
   <<: *unit_test_common
@@ -371,7 +384,9 @@ stages:
   <<: *unit_test_common
   after_script:
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-    - (source bin/tests/system/conf.sh && "${PYTHON}" "${CI_PROJECT_DIR}/bin/tests/convert-trs-to-junit.py" . > "${CI_PROJECT_DIR}/junit.xml")
+    - *find_python
+    - >
+      "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
     expire_in: "1 day"
     paths:
