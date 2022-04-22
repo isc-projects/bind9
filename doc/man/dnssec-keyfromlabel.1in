@@ -38,7 +38,7 @@ dnssec-keyfromlabel \- DNSSEC key generation tool
 \fBdnssec\-keyfromlabel\fP generates a pair of key files that reference a
 key object stored in a cryptographic hardware service module (HSM). The
 private key file can be used for DNSSEC signing of zone data as if it
-were a conventional signing key created by \fBdnssec\-keygen\fP, but the
+were a conventional signing key created by \fI\%dnssec\-keygen\fP, but the
 key material is stored within the HSM and the actual signing takes
 place there.
 .sp
@@ -303,7 +303,7 @@ The \fB\&.private\fP file contains algorithm\-specific fields. For obvious
 security reasons, this file does not have general read permission.
 .SH SEE ALSO
 .sp
-\fBdnssec\-keygen(8)\fP, \fBdnssec\-signzone(8)\fP, BIND 9 Administrator Reference Manual,
+\fI\%dnssec\-keygen(8)\fP, \fI\%dnssec\-signzone(8)\fP, BIND 9 Administrator Reference Manual,
 \fI\%RFC 4034\fP, \fI\%RFC 7512\fP\&.
 .SH AUTHOR
 Internet Systems Consortium
