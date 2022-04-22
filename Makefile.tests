@@ -12,7 +12,7 @@ AM_CFLAGS +=					\
 
 AM_CPPFLAGS +=					\
 	$(CMOCKA_CFLAGS)			\
-	-DNAMED_PLUGINDIR=\"$(libdir)/named\"	\
+	-DNAMED_PLUGINDIR=\"$(pkglibdir)\"	\
 	-DSKIPPED_TEST_EXIT_CODE=77		\
 	-DTESTS_DIR=\"$(abs_srcdir)\"
 
