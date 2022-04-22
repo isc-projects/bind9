@@ -9,7 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    # pylint: disable=deprecated-module
+    from distutils.core import setup
+
 setup(name='isc',
       version='2.0',
       description='Python functions to support BIND utilities',

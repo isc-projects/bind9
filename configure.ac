@@ -206,7 +206,10 @@ except: exit(1)'
 testply='try: import ply
 except: exit(1)'
 
-testsetup='try: from distutils.core import setup
+testsetuptools='try: from setuptools import setup
+except: exit(1)'
+
+testdistutils='try: from distutils.core import setup
 except: exit(1)'
 
 default_with_python="python python3 python3.8 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
@@ -268,12 +271,16 @@ AS_IF([test "$with_python" = "no"],
 		unset PYTHON
 		continue])
 
-	 AC_MSG_CHECKING([Python module 'distutils.core setup'])
-	 AS_IF(["$PYTHON" -c "$testsetup" 2>/dev/null],
+	 AC_MSG_CHECKING([Python module 'setuptools'])
+	 AS_IF(["$PYTHON" -c "$testsetuptools" 2>/dev/null],
 	       [AC_MSG_RESULT([yes])],
 	       [AC_MSG_RESULT([no])
-		unset PYTHON
-		continue])
+		AC_MSG_CHECKING([Python module 'distutils'])
+		AS_IF(["$PYTHON" -c "$testdistutils" 2>/dev/null],
+		      [AC_MSG_RESULT([yes])],
+		      [AC_MSG_RESULT([no])
+		       unset PYTHON
+		       continue])])
 
 	 # Stop looking any further once we find a Python interpreter
 	 # satisfying all requirements.
