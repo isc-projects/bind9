@@ -653,7 +653,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 static void
 validated(isc_task_t *task, isc_event_t *event);
 static void
-maybe_destroy(fetchctx_t *fctx, bool locked);
+maybe_cancel_validators(fetchctx_t *fctx, bool locked);
 static void
 add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	isc_result_t reason, badnstype_t badtype);
@@ -4247,7 +4247,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 	if (SHUTTINGDOWN(fctx)) {
-		maybe_destroy(fctx, true);
+		maybe_cancel_validators(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		fctx_detach(&fctx);
 		return;
@@ -5235,18 +5235,14 @@ clone_results(fetchctx_t *fctx) {
 #define CHECKNAMES(r) (((r)->attributes & DNS_RDATASETATTR_CHECKNAMES) != 0)
 
 /*
- * Destroy '*fctx' if it is ready to be destroyed (i.e., if it has
- * no references and is no longer waiting for any events).
+ * Cancel validators associated with '*fctx' if it is ready to be
+ * destroyed (i.e., no queries waiting for it and no pending ADB finds).
  *
  * Requires:
  *      '*fctx' is shutting down.
- *
- * Returns:
- *	true if the resolver is exiting and this is the last fctx in the
- *bucket.
  */
 static void
-maybe_destroy(fetchctx_t *fctx, bool locked) {
+maybe_cancel_validators(fetchctx_t *fctx, bool locked) {
 	unsigned int bucketnum;
 	dns_resolver_t *res = fctx->res;
 	dns_validator_t *validator, *next_validator;
@@ -5706,7 +5702,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 */
 		dns_db_detachnode(fctx->cache, &node);
 		if (SHUTTINGDOWN(fctx)) {
-			maybe_destroy(fctx, true);
+			maybe_cancel_validators(fctx, true);
 		}
 		UNLOCK(&res->buckets[bucketnum].lock);
 		goto cleanup_event;
@@ -7321,7 +7317,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		LOCK(&res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx)) {
-			maybe_destroy(fctx, true);
+			maybe_cancel_validators(fctx, true);
 			UNLOCK(&res->buckets[fctx->bucketnum].lock);
 			goto cleanup;
 		}
@@ -7345,7 +7341,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		LOCK(&res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx)) {
-			maybe_destroy(fctx, true);
+			maybe_cancel_validators(fctx, true);
 			UNLOCK(&res->buckets[fctx->bucketnum].lock);
 			goto cleanup;
 		}
@@ -7381,7 +7377,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 			LOCK(&res->buckets[fctx->bucketnum].lock);
 			if (SHUTTINGDOWN(fctx)) {
-				maybe_destroy(fctx, true);
+				maybe_cancel_validators(fctx, true);
 				UNLOCK(&res->buckets[fctx->bucketnum].lock);
 				goto cleanup;
 			}
@@ -7408,7 +7404,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		LOCK(&res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx)) {
-			maybe_destroy(fctx, true);
+			maybe_cancel_validators(fctx, true);
 			UNLOCK(&res->buckets[fctx->bucketnum].lock);
 			goto cleanup;
 		}
