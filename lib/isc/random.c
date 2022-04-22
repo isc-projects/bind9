@@ -35,7 +35,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <isc/once.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/thread.h>
@@ -43,6 +42,7 @@
 #include <isc/util.h>
 
 #include "entropy_private.h"
+#include "random_p.h"
 
 /*
  * Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
@@ -88,11 +88,8 @@ next(void) {
 
 	return (result_starstar);
 }
-
-static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
-
-static void
-isc_random_initialize(void) {
+void
+isc__random_initialize(void) {
 	int useed[4] = { 0, 0, 0, 1 };
 #if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/*
@@ -108,22 +105,16 @@ isc_random_initialize(void) {
 
 uint8_t
 isc_random8(void) {
-	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
-		      ISC_R_SUCCESS);
 	return ((uint8_t)next());
 }
 
 uint16_t
 isc_random16(void) {
-	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
-		      ISC_R_SUCCESS);
 	return ((uint16_t)next());
 }
 
 uint32_t
 isc_random32(void) {
-	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
-		      ISC_R_SUCCESS);
 	return (next());
 }
 
@@ -134,9 +125,6 @@ isc_random_buf(void *buf, size_t buflen) {
 
 	REQUIRE(buf != NULL);
 	REQUIRE(buflen > 0);
-
-	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
-		      ISC_R_SUCCESS);
 
 	for (i = 0; i + sizeof(r) <= buflen; i += sizeof(r)) {
 		r = next();
@@ -149,8 +137,6 @@ isc_random_buf(void *buf, size_t buflen) {
 
 uint32_t
 isc_random_uniform(uint32_t limit) {
-	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
-		      ISC_R_SUCCESS);
 	/*
 	 * Daniel Lemire's nearly-divisionless unbiased bounded random numbers.
 	 *

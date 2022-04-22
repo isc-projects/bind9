@@ -22,6 +22,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "random_p.h"
 #include "trampoline_p.h"
 
 #define ISC__TRAMPOLINE_UNUSED 0
@@ -185,6 +186,11 @@ isc__trampoline_attach(isc__trampoline_t *trampoline) {
 	 * malloc() + free() calls altogether, as it would foil the fix.
 	 */
 	trampoline->jemalloc_enforce_init = malloc(8);
+
+	/*
+	 * Re-seed the random number generator in each thread.
+	 */
+	isc__random_initialize();
 }
 
 isc_threadresult_t
