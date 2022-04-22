@@ -9729,6 +9729,7 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	fetchctx_t *fctx = rctx->fctx;
 	unsigned int n;
 	fetchctx_t *ev_fctx = NULL;
+	isc_task_t *task = NULL;
 
 	add_bad(fctx, message, addrinfo, result, rctx->broken_type);
 	fctx_cancelqueries(fctx, true, false);
@@ -9741,10 +9742,11 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 
 	fctx_attach(fctx, &ev_fctx);
 
+	task = fctx->res->buckets[fctx->bucketnum].task;
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, fctx->options, 0, NULL, fctx->task, resume_dslookup,
-		ev_fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+		NULL, 0, fctx->options, 0, NULL, task, resume_dslookup, ev_fctx,
+		&fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
 			result = DNS_R_SERVFAIL;
