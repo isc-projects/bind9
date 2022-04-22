@@ -22,6 +22,7 @@
 #include "config.h"
 #include "mem_p.h"
 #include "os_p.h"
+#include "random_p.h"
 #include "tls_p.h"
 #include "trampoline_p.h"
 
@@ -42,6 +43,7 @@ void
 isc__initialize(void) {
 	isc__os_initialize();
 	isc__mem_initialize();
+	isc__random_initialize();
 	isc__tls_initialize();
 	isc__trampoline_initialize();
 	(void)isc_os_ncpus();

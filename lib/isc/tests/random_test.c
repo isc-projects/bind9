@@ -87,6 +87,11 @@ _setup(void **state) {
 	result = isc_test_begin(NULL, true, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	/*
+	 * Ensure the RNG has been seeded.
+	 */
+	assert_int_not_equal(isc_random32(), 0);
+
 	return (0);
 }
 
