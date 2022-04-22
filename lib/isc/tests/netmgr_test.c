@@ -58,6 +58,7 @@ static isc_sockaddr_t tcp_listen_addr;
 static isc_sockaddr_t tcp_connect_addr;
 static isc_tlsctx_t *tcp_listen_tlsctx = NULL;
 static isc_tlsctx_t *tcp_connect_tlsctx = NULL;
+static isc_tlsctx_client_session_cache_t *tcp_tlsctx_client_sess_cache = NULL;
 
 static uint64_t send_magic = 0;
 static uint64_t stop_magic = 0;
@@ -226,6 +227,10 @@ _setup(void **state __attribute__((unused))) {
 
 	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
 
+	tcp_tlsctx_client_sess_cache = isc_tlsctx_client_session_cache_new(
+		test_mctx, tcp_connect_tlsctx,
+		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+
 	return (0);
 }
 
@@ -233,6 +238,8 @@ static int
 _teardown(void **state __attribute__((unused))) {
 	isc_tlsctx_free(&tcp_connect_tlsctx);
 	isc_tlsctx_free(&tcp_listen_tlsctx);
+
+	isc_tlsctx_client_session_cache_detach(&tcp_tlsctx_client_sess_cache);
 
 	isc_test_end();
 
@@ -1201,7 +1208,8 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	if (stream_use_TLS) {
 		isc_nm_tlsconnect(connect_nm, &tcp_connect_addr,
 				  &tcp_listen_addr, cb, cbarg,
-				  tcp_connect_tlsctx, timeout);
+				  tcp_connect_tlsctx,
+				  tcp_tlsctx_client_sess_cache, timeout);
 		return;
 	}
 #endif
@@ -2139,7 +2147,7 @@ static void
 tls_connect(isc_nm_t *nm) {
 	isc_nm_tlsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 			  connect_connect_cb, NULL, tcp_connect_tlsctx,
-			  T_CONNECT);
+			  tcp_tlsctx_client_sess_cache, T_CONNECT);
 }
 
 static void

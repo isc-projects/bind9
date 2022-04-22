@@ -963,6 +963,8 @@ struct isc_nmsocket {
 		isc_tlsctx_t **listener_tls_ctx; /*%< A context reference per
 						    worker */
 		size_t n_listener_tls_ctx;
+		isc_tlsctx_client_session_cache_t *client_sess_cache;
+		bool client_session_saved;
 		isc_nmsocket_t *tlslistener;
 		isc_nmsocket_t *tlssocket;
 		atomic_bool result_updated;
@@ -2145,3 +2147,6 @@ isc__nm_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 int
 isc__nm_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 		     unsigned int flags);
+
+void
+isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls);

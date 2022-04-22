@@ -3020,7 +3020,7 @@ start_tcp(dig_query_t *query) {
 			isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr,
 					   uri, !query->lookup->https_get,
 					   tcp_connected, connectquery, tlsctx,
-					   local_timeout);
+					   sess_cache, local_timeout);
 #endif
 		} else {
 			isc_nm_tcpdnsconnect(netmgr, &localaddr,
