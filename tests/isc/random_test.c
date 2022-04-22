@@ -640,6 +640,13 @@ binarymatrixrank(uint16_t *values, size_t length) {
  *** Tests for isc_random32() function
  ***/
 
+/* Ensure the RNG has been automatically seeded. */
+ISC_RUN_TEST_IMPL(isc_random32_initialized) {
+	UNUSED(state);
+
+	assert_int_not_equal(isc_random32(), 0);
+}
+
 /* Monobit test for the RANDOM */
 ISC_RUN_TEST_IMPL(isc_random32_monobit) {
 	UNUSED(state);
@@ -764,6 +771,7 @@ ISC_RUN_TEST_IMPL(isc_nonce_bytes_binarymatrixrank) {
 
 ISC_TEST_LIST_START
 
+ISC_TEST_ENTRY(isc_random32_initialized)
 ISC_TEST_ENTRY(isc_random32_monobit)
 ISC_TEST_ENTRY(isc_random32_runs)
 ISC_TEST_ENTRY(isc_random32_blockfrequency)
