@@ -932,6 +932,8 @@ struct isc_nmsocket {
 	struct tls {
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
+		isc_tlsctx_client_session_cache_t *client_sess_cache;
+		bool client_session_saved;
 		BIO *app_rbio;
 		BIO *app_wbio;
 		BIO *ssl_rbio;

@@ -3000,7 +3000,7 @@ start_tcp(dig_query_t *query) {
 			isc_nm_tlsdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,
 					     connectquery, local_timeout,
-					     tlsctx);
+					     tlsctx, sess_cache);
 #if HAVE_LIBNGHTTP2
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
