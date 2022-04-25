@@ -455,11 +455,12 @@ This command schedules zone maintenance for the given zone.
 .TP
 .B reload
 This command reloads the configuration file and zones.
-.UNINDENT
-.INDENT 0.0
+.INDENT 7.0
 .TP
-.B reload zone [class [view]]
-This command reloads the given zone.
+.B zone [class [view]]
+.UNINDENT
+.sp
+If a zone is specified, this command reloads only the given zone.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -641,13 +642,15 @@ See also \fI\%rndc freeze\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B trace
-This command increments the server\(aqs debugging level by one.
-.UNINDENT
-.INDENT 0.0
+.B trace [level]
+If no level is specified, this command increments the server\(aqs debugging
+level by one.
+.INDENT 7.0
 .TP
-.B trace level
-This command sets the server\(aqs debugging level to an explicit value.
+.B level
+If specified, this command sets the server\(aqs debugging level to the
+provided value.
+.UNINDENT
 .sp
 See also \fI\%rndc notrace\fP\&.
 .UNINDENT
