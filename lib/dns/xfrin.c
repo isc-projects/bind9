@@ -1118,7 +1118,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 		}
 		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
 				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000, 0, tlsctx);
+				     connect_xfr, 30000, 0, tlsctx, sess_cache);
 	} break;
 	default:
 		UNREACHABLE();

@@ -2229,7 +2229,7 @@ static void
 tlsdns_connect(isc_nm_t *nm) {
 	isc_nm_tlsdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
 ISC_RUN_TEST_IMPL(tlsdns_noop) {
@@ -2249,7 +2249,7 @@ ISC_RUN_TEST_IMPL(tlsdns_noop) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -2276,7 +2276,7 @@ ISC_RUN_TEST_IMPL(tlsdns_noresponse) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_EQ(csends, 1);
@@ -2330,7 +2330,7 @@ ISC_RUN_TEST_IMPL(tlsdns_timeout_recovery) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_SOFT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_GE(csends, 1);
@@ -2361,7 +2361,7 @@ ISC_RUN_TEST_IMPL(tlsdns_recv_one) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_LE(nsends, 0);
@@ -2403,14 +2403,14 @@ ISC_RUN_TEST_IMPL(tlsdns_recv_two) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 2);
 
@@ -2673,7 +2673,7 @@ ISC_RUN_TEST_IMPL(tlsdns_connect_noalpn) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     tlsdns_connect_connect_noalpn, NULL, T_CONNECT, 0,
-			     connect_tlsctx_noalpn);
+			     connect_tlsctx_noalpn, NULL);
 
 	WAIT_FOR_EQ(active_cconnects, 0);
 
@@ -2739,7 +2739,7 @@ ISC_RUN_TEST_IMPL(tlsdns_listen_noalpn) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT, 0,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(saccepts, 1);
 	WAIT_FOR_EQ(cconnects, 1);
