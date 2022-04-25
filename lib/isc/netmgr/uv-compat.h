@@ -23,6 +23,23 @@
 
 #define UV_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
+/*
+ * Copied verbatim from libuv/src/version.c
+ */
+
+#define UV_STRINGIFY(v)	       UV_STRINGIFY_HELPER(v)
+#define UV_STRINGIFY_HELPER(v) #v
+
+#define UV_VERSION_STRING_BASE         \
+	UV_STRINGIFY(UV_VERSION_MAJOR) \
+	"." UV_STRINGIFY(UV_VERSION_MINOR) "." UV_STRINGIFY(UV_VERSION_PATCH)
+
+#if UV_VERSION_IS_RELEASE
+#define UV_VERSION_STRING UV_VERSION_STRING_BASE
+#else
+#define UV_VERSION_STRING UV_VERSION_STRING_BASE "-" UV_VERSION_SUFFIX
+#endif
+
 #if !defined(UV__ERR)
 #define UV__ERR(x) (-(x))
 #endif
