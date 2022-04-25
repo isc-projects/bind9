@@ -125,30 +125,30 @@ queries on a non\-standard port number.
 The global query options are:
 .INDENT 0.0
 .TP
-.B +[no]additional
+.B +additional, +noadditional
 This option displays [or does not display] the additional section of a reply. The
 default is to display it.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]all
+.B +all, +noall
 This option sets or clears all display flags.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]answer
+.B +answer, +noanswer
 This option displays [or does not display] the answer section of a reply. The default
 is to display it.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]authority
+.B +authority, +noauthority
 This option displays [or does not display] the authority section of a reply. The
 default is to display it.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]besteffort
+.B +besteffort, +nobesteffort
 This option attempts to display [or does not display] the contents of messages which are malformed. The
 default is to not display malformed answers.
 .UNINDENT
@@ -159,23 +159,23 @@ This option delays queries until the start of the next second.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]cl
+.B +cl, +nocl
 This option displays [or does not display] the CLASS when printing the record.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]comments
+.B +comments, +nocomments
 This option toggles the display of comment lines in the output. The default is to
 print comments.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]continue
+.B +continue, +nocontinue
 This option toggles continuation on errors (e.g. timeouts).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]crypto
+.B +crypto, +nocrypto
 This option toggles the display of cryptographic fields in DNSSEC records. The
 contents of these fields are unnecessary to debug most DNSSEC
 validation failures and removing them makes it easier to see the
@@ -192,28 +192,28 @@ explicitly set.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]multiline
+.B +multiline, +nomultiline
 This option toggles printing of records, like the SOA records, in a verbose multi\-line format
 with human\-readable comments. The default is to print each record on
 a single line, to facilitate machine parsing of the \fBmdig\fP output.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]question
+.B +question, +noquestion
 This option prints [or does not print] the question section of a query when an answer
 is returned. The default is to print the question section as a
 comment.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]rrcomments
+.B +rrcomments, +norrcomments
 This option toggles the display of per\-record comments in the output (for example,
 human\-readable key information about DNSKEY records). The default is
 not to print record comments unless multiline mode is active.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]short
+.B +short, +noshort
 This option provides [or does not provide] a terse answer. The default is to print the answer in a
 verbose form.
 .UNINDENT
@@ -228,25 +228,25 @@ multiline mode is active.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]tcp
+.B +tcp, +notcp
 This option uses [or does not use] TCP when querying name servers. The default behavior
 is to use UDP.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]ttlid
+.B +ttlid, +nottlid
 This option displays [or does not display] the TTL when printing the record.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]ttlunits
+.B +ttlunits, +nottlunits
 This option displays [or does not display] the TTL in friendly human\-readable time
 units of "s", "m", "h", "d", and "w", representing seconds, minutes,
 hours, days, and weeks. This implies +ttlid.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]vc
+.B +vc, +novc
 This option uses [or does not use] TCP when querying name servers. This alternate
 syntax to \fB+[no]tcp\fP is provided for backwards compatibility. The
 \fBvc\fP stands for "virtual circuit".
@@ -282,17 +282,17 @@ domain.
 The local query options are:
 .INDENT 0.0
 .TP
-.B +[no]aaflag
+.B +aaflag, +noaaflag
 This is a synonym for \fB+[no]aaonly\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]aaonly
+.B +aaonly, +noaaonly
 This sets the \fBaa\fP flag in the query.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]adflag
+.B +adflag, +noadflag
 This sets [or does not set] the AD (authentic data) bit in the query. This
 requests the server to return whether all of the answer and authority
 sections have all been validated as secure, according to the security
@@ -312,26 +312,26 @@ sent.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]cdflag
+.B +cdflag, +nocdflag
 This sets [or does not set] the CD (checking disabled) bit in the query. This
 requests the server to not perform DNSSEC validation of responses.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]cookie=####
+.B +cookie=####, +nocookie
 This sends [or does not send] a COOKIE EDNS option, with an optional value. Replaying a COOKIE
 from a previous response allows the server to identify a previous
 client. The default is \fB+nocookie\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]dnssec
+.B +dnssec, +nodnssec
 This requests that DNSSEC records be sent by setting the DNSSEC OK (DO) bit in
 the OPT record in the additional section of the query.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]edns[=#]
+.B +edns[=#], +noedns
 This specifies [or does not specify] the EDNS version to query with. Valid values are 0 to 255.
 Setting the EDNS version causes an EDNS query to be sent.
 \fB+noedns\fP clears the remembered EDNS version. EDNS is set to 0 by
@@ -339,31 +339,31 @@ default.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]ednsflags[=#]
+.B +ednsflags[=#], +noednsflags
 This sets the must\-be\-zero EDNS flag bits (Z bits) to the specified value.
 Decimal, hex, and octal encodings are accepted. Setting a named flag
 (e.g. DO) is silently ignored. By default, no Z bits are set.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]ednsopt[=code[:value]]
+.B +ednsopt[=code[:value]], +noednsopt
 This specifies [or does not specify] an EDNS option with code point \fBcode\fP and an optional payload
 of \fBvalue\fP as a hexadecimal string. \fB+noednsopt\fP clears the EDNS
 options to be sent.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]expire
+.B +expire, +noexpire
 This toggles sending of an EDNS Expire option.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]nsid
+.B +nsid, +nonsid
 This toggles inclusion of an EDNS name server ID request when sending a query.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]recurse
+.B +recurse, +norecurse
 This toggles the setting of the RD (recursion desired) bit in the query.
 This bit is set by default, which means \fBmdig\fP normally sends
 recursive queries.
@@ -377,7 +377,7 @@ the initial query.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]subnet=addr[/prefix\-length]
+.B +subnet=addr[/prefix\-length], +nosubnet
 This sends [or does not send] an EDNS Client Subnet option with the specified IP
 address or network prefix.
 .UNINDENT
@@ -410,19 +410,19 @@ This sets the timeout between UDP query retries to \fBT\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]unknownformat
+.B +unknownformat, +nounknownformat
 This prints [or does not print] all RDATA in unknown RR\-type presentation format (see \fI\%RFC 3597\fP).
 The default is to print RDATA for known types in the type\(aqs
 presentation format.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]yaml
+.B +yaml, +noyaml
 This toggles printing of the responses in a detailed YAML format.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]zflag
+.B +zflag, +nozflag
 This sets [or does not set] the last unassigned DNS header flag in a DNS query.
 This flag is off by default.
 .UNINDENT

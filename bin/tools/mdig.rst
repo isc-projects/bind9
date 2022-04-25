@@ -111,26 +111,26 @@ Global Options
 
 The global query options are:
 
-.. option:: +[no]additional
+.. option:: +additional, +noadditional
 
    This option displays [or does not display] the additional section of a reply. The
    default is to display it.
 
-.. option:: +[no]all
+.. option:: +all, +noall
 
    This option sets or clears all display flags.
 
-.. option:: +[no]answer
+.. option:: +answer, +noanswer
 
    This option displays [or does not display] the answer section of a reply. The default
    is to display it.
 
-.. option:: +[no]authority
+.. option:: +authority, +noauthority
 
    This option displays [or does not display] the authority section of a reply. The
    default is to display it.
 
-.. option:: +[no]besteffort
+.. option:: +besteffort, +nobesteffort
 
    This option attempts to display [or does not display] the contents of messages which are malformed. The
    default is to not display malformed answers.
@@ -139,20 +139,20 @@ The global query options are:
 
    This option delays queries until the start of the next second.
 
-.. option:: +[no]cl
+.. option:: +cl, +nocl
 
    This option displays [or does not display] the CLASS when printing the record.
 
-.. option:: +[no]comments
+.. option:: +comments, +nocomments
 
    This option toggles the display of comment lines in the output. The default is to
    print comments.
 
-.. option:: +[no]continue
+.. option:: +continue, +nocontinue
 
    This option toggles continuation on errors (e.g. timeouts).
 
-.. option:: +[no]crypto
+.. option:: +crypto, +nocrypto
 
    This option toggles the display of cryptographic fields in DNSSEC records. The
    contents of these fields are unnecessary to debug most DNSSEC
@@ -167,25 +167,25 @@ The global query options are:
    code points are in the range [0...63]. By default no code point is
    explicitly set.
 
-.. option:: +[no]multiline
+.. option:: +multiline, +nomultiline
 
    This option toggles printing of records, like the SOA records, in a verbose multi-line format
    with human-readable comments. The default is to print each record on
    a single line, to facilitate machine parsing of the :program:`mdig` output.
 
-.. option:: +[no]question
+.. option:: +question, +noquestion
 
    This option prints [or does not print] the question section of a query when an answer
    is returned. The default is to print the question section as a
    comment.
 
-.. option:: +[no]rrcomments
+.. option:: +rrcomments, +norrcomments
 
    This option toggles the display of per-record comments in the output (for example,
    human-readable key information about DNSKEY records). The default is
    not to print record comments unless multiline mode is active.
 
-.. option:: +[no]short
+.. option:: +short, +noshort
 
    This option provides [or does not provide] a terse answer. The default is to print the answer in a
    verbose form.
@@ -198,22 +198,22 @@ The global query options are:
    split. The default is 56 characters, or 44 characters when
    multiline mode is active.
 
-.. option:: +[no]tcp
+.. option:: +tcp, +notcp
 
    This option uses [or does not use] TCP when querying name servers. The default behavior
    is to use UDP.
 
-.. option:: +[no]ttlid
+.. option:: +ttlid, +nottlid
 
    This option displays [or does not display] the TTL when printing the record.
 
-.. option:: +[no]ttlunits
+.. option:: +ttlunits, +nottlunits
 
    This option displays [or does not display] the TTL in friendly human-readable time
    units of "s", "m", "h", "d", and "w", representing seconds, minutes,
    hours, days, and weeks. This implies +ttlid.
 
-.. option:: +[no]vc
+.. option:: +vc, +novc
 
    This option uses [or does not use] TCP when querying name servers. This alternate
    syntax to ``+[no]tcp`` is provided for backwards compatibility. The
@@ -247,15 +247,15 @@ Local Options
 
 The local query options are:
 
-.. option:: +[no]aaflag
+.. option:: +aaflag, +noaaflag
 
    This is a synonym for ``+[no]aaonly``.
 
-.. option:: +[no]aaonly
+.. option:: +aaonly, +noaaonly
 
    This sets the ``aa`` flag in the query.
 
-.. option:: +[no]adflag
+.. option:: +adflag, +noadflag
 
    This sets [or does not set] the AD (authentic data) bit in the query. This
    requests the server to return whether all of the answer and authority
@@ -273,50 +273,50 @@ The local query options are:
    appropriately. Values other than zero cause a EDNS query to be
    sent.
 
-.. option:: +[no]cdflag
+.. option:: +cdflag, +nocdflag
 
    This sets [or does not set] the CD (checking disabled) bit in the query. This
    requests the server to not perform DNSSEC validation of responses.
 
-.. option:: +[no]cookie=####
+.. option:: +cookie=####, +nocookie
 
    This sends [or does not send] a COOKIE EDNS option, with an optional value. Replaying a COOKIE
    from a previous response allows the server to identify a previous
    client. The default is ``+nocookie``.
 
-.. option:: +[no]dnssec
+.. option:: +dnssec, +nodnssec
 
    This requests that DNSSEC records be sent by setting the DNSSEC OK (DO) bit in
    the OPT record in the additional section of the query.
 
-.. option:: +[no]edns[=#]
+.. option:: +edns[=#], +noedns
 
    This specifies [or does not specify] the EDNS version to query with. Valid values are 0 to 255.
    Setting the EDNS version causes an EDNS query to be sent.
    ``+noedns`` clears the remembered EDNS version. EDNS is set to 0 by
    default.
 
-.. option:: +[no]ednsflags[=#]
+.. option:: +ednsflags[=#], +noednsflags
 
    This sets the must-be-zero EDNS flag bits (Z bits) to the specified value.
    Decimal, hex, and octal encodings are accepted. Setting a named flag
    (e.g. DO) is silently ignored. By default, no Z bits are set.
 
-.. option:: +[no]ednsopt[=code[:value]]
+.. option:: +ednsopt[=code[:value]], +noednsopt
 
    This specifies [or does not specify] an EDNS option with code point ``code`` and an optional payload
    of ``value`` as a hexadecimal string. ``+noednsopt`` clears the EDNS
    options to be sent.
 
-.. option:: +[no]expire
+.. option:: +expire, +noexpire
 
    This toggles sending of an EDNS Expire option.
 
-.. option:: +[no]nsid
+.. option:: +nsid, +nonsid
 
    This toggles inclusion of an EDNS name server ID request when sending a query.
 
-.. option:: +[no]recurse
+.. option:: +recurse, +norecurse
 
    This toggles the setting of the RD (recursion desired) bit in the query.
    This bit is set by default, which means :program:`mdig` normally sends
@@ -328,7 +328,7 @@ The local query options are:
    instead of the default, 2. Unlike ``+tries``, this does not include
    the initial query.
 
-.. option:: +[no]subnet=addr[/prefix-length]
+.. option:: +subnet=addr[/prefix-length], +nosubnet
 
    This sends [or does not send] an EDNS Client Subnet option with the specified IP
    address or network prefix.
@@ -355,17 +355,17 @@ The local query options are:
 
    This sets the timeout between UDP query retries to ``T``.
 
-.. option:: +[no]unknownformat
+.. option:: +unknownformat, +nounknownformat
 
    This prints [or does not print] all RDATA in unknown RR-type presentation format (see :rfc:`3597`).
    The default is to print RDATA for known types in the type's
    presentation format.
 
-.. option:: +[no]yaml
+.. option:: +yaml, +noyaml
 
    This toggles printing of the responses in a detailed YAML format.
 
-.. option:: +[no]zflag
+.. option:: +zflag, +nozflag
 
    This sets [or does not set] the last unassigned DNS header flag in a DNS query.
    This flag is off by default.

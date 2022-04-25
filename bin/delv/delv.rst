@@ -214,7 +214,7 @@ the string ``no`` to negate the meaning of that keyword. Other keywords
 assign values to options like the timeout interval. They have the form
 ``+keyword=value``. The query options are:
 
-.. option:: +[no]cdflag
+.. option:: +cdflag, +nocdflag
 
    This option controls whether to set the CD (checking disabled) bit in queries
    sent by :program:`delv`. This may be useful when troubleshooting DNSSEC
@@ -224,17 +224,17 @@ assign values to options like the timeout interval. They have the form
    to return invalid responses, which :program:`delv` can then validate
    internally and report the errors in detail.
 
-.. option:: +[no]class
+.. option:: +class, +noclass
 
    This option controls whether to display the CLASS when printing a record. The
    default is to display the CLASS.
 
-.. option:: +[no]ttl
+.. option:: +ttl, +nottl
 
    This option controls whether to display the TTL when printing a record. The
    default is to display the TTL.
 
-.. option:: +[no]rtrace
+.. option:: +rtrace, +nortrace
 
    This option toggles resolver fetch logging. This reports the name and type of each
    query sent by :program:`delv` in the process of carrying out the resolution
@@ -247,7 +247,7 @@ assign values to options like the timeout interval. They have the form
    :option:`-d` option produces the same output, but affects other
    logging categories as well.
 
-.. option:: +[no]mtrace
+.. option:: +mtrace, +nomtrace
 
    This option toggles message logging. This produces a detailed dump of the
    responses received by :program:`delv` in the process of carrying out the
@@ -258,7 +258,7 @@ assign values to options like the timeout interval. They have the form
    debug level to 10 using the :option:`-d` option produces the same
    output, but affects other logging categories as well.
 
-.. option:: +[no]vtrace
+.. option:: +vtrace, +novtrace
 
    This option toggles validation logging. This shows the internal process of the
    validator as it determines whether an answer is validly signed,
@@ -269,23 +269,23 @@ assign values to options like the timeout interval. They have the form
    systemwide debug level to 3 using the :option:`-d` option produces the
    same output, but affects other logging categories as well.
 
-.. option:: +[no]short
+.. option:: +short, +noshort
 
    This option toggles between verbose and terse answers. The default is to print the answer in a
    verbose form.
 
-.. option:: +[no]comments
+.. option:: +comments, +nocomments
 
    This option toggles the display of comment lines in the output. The default is to
    print comments.
 
-.. option:: +[no]rrcomments
+.. option:: +rrcomments, +norrcomments
 
    This option toggles the display of per-record comments in the output (for example,
    human-readable key information about DNSKEY records). The default is
    to print per-record comments.
 
-.. option:: +[no]crypto
+.. option:: +crypto, +nocrypto
 
    This option toggles the display of cryptographic fields in DNSSEC records. The
    contents of these fields are unnecessary to debug most DNSSEC
@@ -294,12 +294,12 @@ assign values to options like the timeout interval. They have the form
    they are replaced by the string ``[omitted]`` or, in the DNSKEY case, the
    key ID is displayed as the replacement, e.g. ``[ key id = value ]``.
 
-.. option:: +[no]trust
+.. option:: +trust, +notrust
 
    This option controls whether to display the trust level when printing a record.
    The default is to display the trust level.
 
-.. option:: +[no]split[=W]
+.. option:: +split[=W], +nosplit
 
    This option splits long hex- or base64-formatted fields in resource records into
    chunks of ``W`` characters (where ``W`` is rounded up to the nearest
@@ -307,19 +307,19 @@ assign values to options like the timeout interval. They have the form
    split at all. The default is 56 characters, or 44 characters when
    multiline mode is active.
 
-.. option:: +[no]all
+.. option:: +all, +noall
 
    This option sets or clears the display options ``+[no]comments``,
    ``+[no]rrcomments``, and ``+[no]trust`` as a group.
 
-.. option:: +[no]multiline
+.. option:: +multiline, +nomultiline
 
    This option prints long records (such as RRSIG, DNSKEY, and SOA records) in a
    verbose multi-line format with human-readable comments. The default
    is to print each record on a single line, to facilitate machine
    parsing of the :program:`delv` output.
 
-.. option:: +[no]dnssec
+.. option:: +dnssec, +nodnssec
 
    This option indicates whether to display RRSIG records in the :program:`delv` output.
    The default is to do so. Note that (unlike in :iscman:`dig`) this does
@@ -328,7 +328,7 @@ assign values to options like the timeout interval. They have the form
    always occurs unless suppressed by the use of :option:`-i` or
    ``+noroot``.
 
-.. option:: +[no]root[=ROOT]
+.. option:: +root[=ROOT], +noroot
 
    This option indicates whether to perform conventional DNSSEC validation, and if so,
    specifies the name of a trust anchor. The default is to validate using a
@@ -336,18 +336,18 @@ assign values to options like the timeout interval. They have the form
    specifying a different trust anchor, then :option:`-a` must be used to specify a
    file containing the key.
 
-.. option:: +[no]tcp
+.. option:: +tcp, +notcp
 
    This option controls whether to use TCP when sending queries. The default is to
    use UDP unless a truncated response has been received.
 
-.. option:: +[no]unknownformat
+.. option:: +unknownformat, +nounknownformat
 
    This option prints all RDATA in unknown RR-type presentation format (:rfc:`3597`).
    The default is to print RDATA for known types in the type's
    presentation format.
 
-.. option:: +[no]yaml
+.. option:: +yaml, +noyaml
 
    This option prints response data in YAML format.
 

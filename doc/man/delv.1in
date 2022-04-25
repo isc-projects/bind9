@@ -241,7 +241,7 @@ assign values to options like the timeout interval. They have the form
 \fB+keyword=value\fP\&. The query options are:
 .INDENT 0.0
 .TP
-.B +[no]cdflag
+.B +cdflag, +nocdflag
 This option controls whether to set the CD (checking disabled) bit in queries
 sent by \fBdelv\fP\&. This may be useful when troubleshooting DNSSEC
 problems from behind a validating resolver. A validating resolver
@@ -252,19 +252,19 @@ internally and report the errors in detail.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]class
+.B +class, +noclass
 This option controls whether to display the CLASS when printing a record. The
 default is to display the CLASS.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]ttl
+.B +ttl, +nottl
 This option controls whether to display the TTL when printing a record. The
 default is to display the TTL.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]rtrace
+.B +rtrace, +nortrace
 This option toggles resolver fetch logging. This reports the name and type of each
 query sent by \fBdelv\fP in the process of carrying out the resolution
 and validation process, including the original query
@@ -278,7 +278,7 @@ logging categories as well.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]mtrace
+.B +mtrace, +nomtrace
 This option toggles message logging. This produces a detailed dump of the
 responses received by \fBdelv\fP in the process of carrying out the
 resolution and validation process.
@@ -290,7 +290,7 @@ output, but affects other logging categories as well.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]vtrace
+.B +vtrace, +novtrace
 This option toggles validation logging. This shows the internal process of the
 validator as it determines whether an answer is validly signed,
 unsigned, or invalid.
@@ -302,26 +302,26 @@ same output, but affects other logging categories as well.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]short
+.B +short, +noshort
 This option toggles between verbose and terse answers. The default is to print the answer in a
 verbose form.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]comments
+.B +comments, +nocomments
 This option toggles the display of comment lines in the output. The default is to
 print comments.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]rrcomments
+.B +rrcomments, +norrcomments
 This option toggles the display of per\-record comments in the output (for example,
 human\-readable key information about DNSKEY records). The default is
 to print per\-record comments.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]crypto
+.B +crypto, +nocrypto
 This option toggles the display of cryptographic fields in DNSSEC records. The
 contents of these fields are unnecessary to debug most DNSSEC
 validation failures and removing them makes it easier to see the
@@ -331,13 +331,13 @@ key ID is displayed as the replacement, e.g. \fB[ key id = value ]\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]trust
+.B +trust, +notrust
 This option controls whether to display the trust level when printing a record.
 The default is to display the trust level.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]split[=W]
+.B +split[=W], +nosplit
 This option splits long hex\- or base64\-formatted fields in resource records into
 chunks of \fBW\fP characters (where \fBW\fP is rounded up to the nearest
 multiple of 4). \fB+nosplit\fP or \fB+split=0\fP causes fields not to be
@@ -346,13 +346,13 @@ multiline mode is active.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]all
+.B +all, +noall
 This option sets or clears the display options \fB+[no]comments\fP,
 \fB+[no]rrcomments\fP, and \fB+[no]trust\fP as a group.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]multiline
+.B +multiline, +nomultiline
 This option prints long records (such as RRSIG, DNSKEY, and SOA records) in a
 verbose multi\-line format with human\-readable comments. The default
 is to print each record on a single line, to facilitate machine
@@ -360,7 +360,7 @@ parsing of the \fBdelv\fP output.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]dnssec
+.B +dnssec, +nodnssec
 This option indicates whether to display RRSIG records in the \fBdelv\fP output.
 The default is to do so. Note that (unlike in \fI\%dig\fP) this does
 \fInot\fP control whether to request DNSSEC records or to
@@ -370,7 +370,7 @@ always occurs unless suppressed by the use of \fI\%\-i\fP or
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]root[=ROOT]
+.B +root[=ROOT], +noroot
 This option indicates whether to perform conventional DNSSEC validation, and if so,
 specifies the name of a trust anchor. The default is to validate using a
 trust anchor of "." (the root zone), for which there is a built\-in key. If
@@ -379,20 +379,20 @@ file containing the key.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]tcp
+.B +tcp, +notcp
 This option controls whether to use TCP when sending queries. The default is to
 use UDP unless a truncated response has been received.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]unknownformat
+.B +unknownformat, +nounknownformat
 This option prints all RDATA in unknown RR\-type presentation format (\fI\%RFC 3597\fP).
 The default is to print RDATA for known types in the type\(aqs
 presentation format.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +[no]yaml
+.B +yaml, +noyaml
 This option prints response data in YAML format.
 .UNINDENT
 .SH FILES

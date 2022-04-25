@@ -227,20 +227,20 @@ assign values to options, like the timeout interval. They have the form
 abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 ``+cdflag``. The query options are:
 
-.. option:: +[no]aaflag
+.. option:: +aaflag, +noaaflag
 
-   This option is a synonym for ``+[no]aaonly``.
+   This option is a synonym for :option:`+aaonly`, :option:`+noaaonly`.
 
-.. option:: +[no]aaonly
+.. option:: +aaonly, +noaaonly
 
    This option sets the ``aa`` flag in the query.
 
-.. option:: +[no]additional
+.. option:: +additional, +noadditional
 
    This option displays [or does not display] the additional section of a reply. The
    default is to display it.
 
-.. option:: +[no]adflag
+.. option:: +adflag, +noadflag
 
    This option sets [or does not set] the AD (authentic data) bit in the query. This
    requests the server to return whether all of the answer and authority
@@ -250,26 +250,26 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    indicates that some part of the answer was insecure or not validated.
    This bit is set by default.
 
-.. option:: +[no]all
+.. option:: +all, +noall
 
    This option sets or clears all display flags.
 
-.. option:: +[no]answer
+.. option:: +answer, +noanswer
 
    This option displays [or does not display] the answer section of a reply. The default
    is to display it.
 
-.. option:: +[no]authority
+.. option:: +authority, +noauthority
 
    This option displays [or does not display] the authority section of a reply. The
    default is to display it.
 
-.. option:: +[no]badcookie
+.. option:: +badcookie, +nobadcookie
 
    This option retries the lookup with a new server cookie if a BADCOOKIE response is
    received.
 
-.. option:: +[no]besteffort
+.. option:: +besteffort, +nobesteffort
 
    This option attempts to display the contents of messages which are malformed. The
    default is to not display malformed answers.
@@ -280,23 +280,23 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``B`` bytes.  The maximum and minimum sizes of this buffer are 65535 and
    0, respectively.  ``+bufsize`` restores the default buffer size.
 
-.. option:: +[no]cdflag
+.. option:: +cdflag, +nocdflag
 
    This option sets [or does not set] the CD (checking disabled) bit in the query. This
    requests the server to not perform DNSSEC validation of responses.
 
-.. option:: +[no]class
+.. option:: +class, +noclass
 
    This option displays [or does not display] the CLASS when printing the record.
 
-.. option:: +[no]cmd
+.. option:: +cmd, +nocmd
 
    This option toggles the printing of the initial comment in the output, identifying the
    version of :program:`dig` and the query options that have been applied. This option
    always has a global effect; it cannot be set globally and then overridden on a
    per-lookup basis. The default is to print this comment.
 
-.. option:: +[no]comments
+.. option:: +comments, +nocomments
 
    This option toggles the display of some comment lines in the output, with
    information about the packet header and OPT pseudosection, and the names of
@@ -306,7 +306,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    can be controlled using other command-line switches. These include
    ``+[no]cmd``, ``+[no]question``, ``+[no]stats``, and ``+[no]rrcomments``.
 
-.. option:: +[no]cookie=####
+.. option:: +cookie=####, +nocookie
 
    This option sends [or does not send] a COOKIE EDNS option, with an optional value. Replaying a COOKIE
    from a previous response allows the server to identify a previous
@@ -315,7 +315,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``+cookie`` is also set when ``+trace`` is set to better emulate the
    default queries from a nameserver.
 
-.. option:: +[no]crypto
+.. option:: +crypto, +nocrypto
 
    This option toggles the display of cryptographic fields in DNSSEC records. The
    contents of these fields are unnecessary for debugging most DNSSEC
@@ -324,15 +324,15 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    they are replaced by the string ``[omitted]`` or, in the DNSKEY case, the
    key ID is displayed as the replacement, e.g. ``[ key id = value ]``.
 
-.. option:: +[no]defname
+.. option:: +defname, +nodefname
 
    This option, which is deprecated, is treated as a synonym for ``+[no]search``.
 
-.. option:: +[no]dns64prefix
+.. option:: +dns64prefix, +nodns64prefix
 
    Lookup IPV4ONLY.ARPA AAAA and print any DNS64 prefixes found.
 
-.. option:: +[no]dnssec
+.. option:: +dnssec, +nodnssec
 
    This option requests that DNSSEC records be sent by setting the DNSSEC OK (DO) bit in
    the OPT record in the additional section of the query.
@@ -350,48 +350,48 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    code points are in the range [0...63]. By default no code point is
    explicitly set.
 
-.. option:: +[no]edns[=#]
+.. option:: +edns[=#], +noedns
 
    This option specifies the EDNS version to query with. Valid values are 0 to 255.
    Setting the EDNS version causes an EDNS query to be sent.
    ``+noedns`` clears the remembered EDNS version. EDNS is set to 0 by
    default.
 
-.. option:: +[no]ednsflags[=#]
+.. option:: +ednsflags[=#], +noednsflags
 
    This option sets the must-be-zero EDNS flags bits (Z bits) to the specified value.
    Decimal, hex, and octal encodings are accepted. Setting a named flag
    (e.g., DO) is silently ignored. By default, no Z bits are set.
 
-.. option:: +[no]ednsnegotiation
+.. option:: +ednsnegotiation, +noednsnegotiation
 
    This option enables/disables EDNS version negotiation. By default, EDNS version
    negotiation is enabled.
 
-.. option:: +[no]ednsopt[=code[:value]]
+.. option:: +ednsopt[=code[:value]], +noednsopt
 
    This option specifies the EDNS option with code point ``code`` and an optional payload
    of ``value`` as a hexadecimal string. ``code`` can be either an EDNS
    option name (for example, ``NSID`` or ``ECS``) or an arbitrary
    numeric value. ``+noednsopt`` clears the EDNS options to be sent.
 
-.. option:: +[no]expire
+.. option:: +expire, +noexpire
 
    This option sends an EDNS Expire option.
 
-.. option:: +[no]fail
+.. option:: +fail, +nofail
 
    This option indicates that :iscman:`named` should try [or not try] the next server if a SERVFAIL is received. The default is
    to not try the next server, which is the reverse of normal stub
    resolver behavior.
 
-.. option:: +[no]header-only
+.. option:: +header-only, +noheader-only
 
    This option sends a query with a DNS header without a question section. The
    default is to add a question section. The query type and query name
    are ignored when this is set.
 
-.. option:: +[no]https[=value]
+.. option:: +https[=value], +nohttps
 
    This option indicates whether to use DNS over HTTPS (DoH) when querying
    name servers.  When this option is in use, the port number defaults to 443.
@@ -401,37 +401,37 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    query URI; the default is ``/dns-query``. So, for example, ``dig
    @example.com +https`` will use the URI ``https://example.com/dns-query``.
 
-.. option:: +[no]https-get[=value]
+.. option:: +https-get[=value], +nohttps-get
 
    Similar to ``+https``, except that the HTTP GET request mode is used
    when sending the query.
 
-.. option:: +[no]https-post[=value]
+.. option:: +https-post[=value], +nohttps-post
 
    Same as ``+https``.
 
-.. option:: +[no]http-plain[=value]
+.. option:: +http-plain[=value], +nohttp-plain
 
    Similar to ``+https``, except that HTTP queries will be sent over a
    non-encrypted channel. When this option is in use, the port number
    defaults to 80 and the HTTP request mode is POST.
 
-.. option:: +[no]http-plain-get[=value]
+.. option:: +http-plain-get[=value], +nohttp-plain-get
 
    Similar to ``+http-plain``, except that the HTTP request mode is GET.
 
-.. option:: +[no]http-plain-post[=value]
+.. option:: +http-plain-post[=value], +nohttp-plain-post
 
    Same as ``+http-plain``.
 
-.. option:: +[no]identify
+.. option:: +identify, +noidentify
 
    This option shows [or does not show] the IP address and port number that
    supplied the answer, when the ``+short`` option is enabled. If short
    form answers are requested, the default is not to show the source
    address and port number of the server that provided the answer.
 
-.. option:: +[no]idnin
+.. option:: +idnin, +noidnin
 
    This option processes [or does not process] IDN domain names on input. This requires
    ``IDN SUPPORT`` to have been enabled at compile time.
@@ -440,7 +440,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    The IDN processing on input is disabled when :program:`dig` output is redirected
    to files, pipes, and other non-tty file descriptors.
 
-.. option:: +[no]idnout
+.. option:: +idnout, +noidnout
 
    This option converts [or does not convert] puny code on output. This requires
    ``IDN SUPPORT`` to have been enabled at compile time.
@@ -449,22 +449,22 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    a tty. The puny code processing on output is disabled when :program:`dig` output
    is redirected to files, pipes, and other non-tty file descriptors.
 
-.. option:: +[no]ignore
+.. option:: +ignore, +noignore
 
    This option ignores [or does not ignore] truncation in UDP responses instead of retrying with TCP. By
    default, TCP retries are performed.
 
-.. option:: +[no]keepalive
+.. option:: +keepalive, +nokeepalive
 
    This option sends [or does not send] an EDNS Keepalive option.
 
-.. option:: +[no]keepopen
+.. option:: +keepopen, +nokeepopen
 
    This option keeps [or does not keep] the TCP socket open between queries, and reuses it rather than
    creating a new TCP socket for each lookup. The default is
    ``+nokeepopen``.
 
-.. option:: +[no]multiline
+.. option:: +multiline, +nomultiline
 
    This option prints [or does not print] records, like the SOA records, in a verbose multi-line format
    with human-readable comments. The default is to print each record on
@@ -480,23 +480,23 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``search`` or ``domain`` directive in ``/etc/resolv.conf`` if
    ``+search`` is set.
 
-.. option:: +[no]nsid
+.. option:: +nsid, +nonsid
 
    When enabled, this option includes an EDNS name server ID request when sending a query.
 
-.. option:: +[no]nssearch
+.. option:: +nssearch, +nonssearch
 
    When this option is set, :program:`dig` attempts to find the authoritative
    name servers for the zone containing the name being looked up, and
    display the SOA record that each name server has for the zone.
    Addresses of servers that did not respond are also printed.
 
-.. option:: +[no]onesoa
+.. option:: +onesoa, +noonesoa
 
    When enabled, this option prints only one (starting) SOA record when performing an AXFR. The
    default is to print both the starting and ending SOA records.
 
-.. option:: +[no]opcode=value
+.. option:: +opcode=value, +noopcode
 
    When enabled, this option sets (restores) the DNS message opcode to the specified value. The
    default value is QUERY (0).
@@ -515,27 +515,27 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    This option specifies the query ID to use when sending queries.
 
-.. option:: +[no]qr
+.. option:: +qr, +noqr
 
    This option toggles the display of the query message as it is sent. By default, the query
    is not printed.
 
-.. option:: +[no]question
+.. option:: +question, +noquestion
 
    This option toggles the display of the question section of a query when an answer is
    returned. The default is to print the question section as a comment.
 
-.. option:: +[no]raflag
+.. option:: +raflag, +noraflag
 
    This option sets [or does not set] the RA (Recursion Available) bit in the query. The
    default is ``+noraflag``. This bit is ignored by the server for
    QUERY.
 
-.. option:: +[no]rdflag
+.. option:: +rdflag, +nordflag
 
    This option is a synonym for ``+[no]recurse``.
 
-.. option:: +[no]recurse
+.. option:: +recurse, +norecurse
 
    This option toggles the setting of the RD (recursion desired) bit in the query.
    This bit is set by default, which means :program:`dig` normally sends
@@ -548,13 +548,13 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    instead of the default, 2.  Unlike ``+tries``, this does not include
    the initial query.
 
-.. option:: +[no]rrcomments
+.. option:: +rrcomments, +norrcomments
 
    This option toggles the display of per-record comments in the output (for example,
    human-readable key information about DNSKEY records). The default is
    not to print record comments unless multiline mode is active.
 
-.. option:: +[no]search
+.. option:: +search, +nosearch
 
    This option uses [or does not use] the search list defined by the searchlist or domain
    directive in ``resolv.conf``, if any. The search list is not used by
@@ -564,23 +564,23 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``+ndots``, determines whether the name is treated as relative
    and hence whether a search is eventually performed.
 
-.. option:: +[no]short
+.. option:: +short, +noshort
 
    This option toggles whether a terse answer is provided. The default is to print the answer in a verbose
    form. This option always has a global effect; it cannot be set globally and
    then overridden on a per-lookup basis.
 
-.. option:: +[no]showbadcookie
+.. option:: +showbadcookie, +noshowbadcookie
 
    This option toggles whether to show the message containing the
    BADCOOKIE rcode before retrying the request or not. The default
    is to not show the messages.
 
-.. option:: +[no]showsearch
+.. option:: +showsearch, +noshowsearch
 
    This option performs [or does not perform] a search showing intermediate results.
 
-.. option:: +[no]sigchase
+.. option:: +sigchase, +nosigchase
 
    This feature is now obsolete and has been removed; use :iscman:`delv`
    instead.
@@ -593,13 +593,13 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    split at all. The default is 56 characters, or 44 characters when
    multiline mode is active.
 
-.. option:: +[no]stats
+.. option:: +stats, +nostats
 
    This option toggles the printing of statistics: when the query was made, the size of the
    reply, etc. The default behavior is to print the query statistics as a
    comment after each lookup.
 
-.. option:: +[no]subnet=addr[/prefix-length]
+.. option:: +subnet=addr[/prefix-length], +nosubnet
 
    This option sends [or does not send] an EDNS CLIENT-SUBNET option with the specified IP
    address or network prefix.
@@ -609,12 +609,12 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    prefix-length of zero, which signals a resolver that the client's
    address information must *not* be used when resolving this query.
 
-.. option:: +[no]tcflag
+.. option:: +tcflag, +notcflag
 
    This option sets [or does not set] the TC (TrunCation) bit in the query. The default is
    ``+notcflag``. This bit is ignored by the server for QUERY.
 
-.. option:: +[no]tcp
+.. option:: +tcp, +notcp
 
    This option indicates whether to use TCP when querying name servers.
    The default behavior is to use UDP unless a type ``any`` or ``ixfr=N``
@@ -626,7 +626,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    This option sets the timeout for a query to ``T`` seconds. The default timeout is
    5 seconds. An attempt to set ``T`` to less than 1 is silently set to 1.
 
-.. option:: +[no]tls
+.. option:: +tls, +notls
 
    This option indicates whether to use DNS over TLS (DoT) when querying
    name servers. When this option is in use, the port number defaults
@@ -650,12 +650,12 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    server TLS certificate verification. Otherwise, the DNS server name
    is used. This option has no effect if ``+tls-ca`` is not specified.
 
-.. option:: +[no]topdown
+.. option:: +topdown, +notopdown
 
    This feature is related to ``dig +sigchase``, which is obsolete and
    has been removed. Use :iscman:`delv` instead.
 
-.. option:: +[no]trace
+.. option:: +trace, +notrace
 
    This option toggles tracing of the delegation path from the root name servers for
    the name being looked up. Tracing is disabled by default. When
@@ -681,34 +681,34 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    This option formerly specified trusted keys for use with ``dig +sigchase``. This
    feature is now obsolete and has been removed; use :iscman:`delv` instead.
 
-.. option:: +[no]ttlid
+.. option:: +ttlid, +nottlid
 
    This option displays [or does not display] the TTL when printing the record.
 
-.. option:: +[no]ttlunits
+.. option:: +ttlunits, +nottlunits
 
    This option displays [or does not display] the TTL in friendly human-readable time
    units of ``s``, ``m``, ``h``, ``d``, and ``w``, representing seconds, minutes,
    hours, days, and weeks. This implies ``+ttlid``.
 
-.. option:: +[no]unknownformat
+.. option:: +unknownformat, +nounknownformat
 
    This option prints all RDATA in unknown RR type presentation format (:rfc:`3597`).
    The default is to print RDATA for known types in the type's
    presentation format.
 
-.. option:: +[no]vc
+.. option:: +vc, +novc
 
    This option uses [or does not use] TCP when querying name servers. This alternate
    syntax to ``+[no]tcp`` is provided for backwards compatibility. The
    ``vc`` stands for "virtual circuit."
 
-.. option:: +[no]yaml
+.. option:: +yaml, +noyaml
 
    When enabled, this option prints the responses (and, if ``+qr`` is in use, also the
    outgoing queries) in a detailed YAML format.
 
-.. option:: +[no]zflag
+.. option:: +zflag, +nozflag
 
    This option sets [or does not set] the last unassigned DNS header flag in a DNS query.
    This flag is off by default.
