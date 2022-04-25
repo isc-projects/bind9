@@ -107,7 +107,7 @@ Options
    or more trust anchors for the root zone (".").
 
    Keys that do not match the root zone name are ignored. An alternate
-   key name can be specified using the ``+root=NAME`` options.
+   key name can be specified using the :option:`+root` option.
 
    Note: When reading the trust anchor file, :program:`delv` treats ``trust-anchors``,
    ``initial-key``, and ``static-key`` identically. That is, for a managed key,
@@ -134,7 +134,7 @@ Options
    This option sets the systemwide debug level to ``level``. The allowed range is
    from 0 to 99. The default is 0 (no debugging). Debugging traces from
    :program:`delv` become more verbose as the debug level increases. See the
-   ``+mtrace``, ``+rtrace``, and ``+vtrace`` options below for
+   :option:`+mtrace`, :option:`+rtrace`, and :option:`+vtrace` options below for
    additional debugging details.
 
 .. option:: -h
@@ -148,7 +148,7 @@ Options
    server being queried is performing DNSSEC validation, then it does
    not return invalid data; this can cause :program:`delv` to time out. When it
    is necessary to examine invalid data to debug a DNSSEC problem, use
-   ``dig +cd``.)
+   :option:`dig +cd`.)
 
 .. option:: -m
 
@@ -309,8 +309,8 @@ assign values to options like the timeout interval. They have the form
 
 .. option:: +all, +noall
 
-   This option sets or clears the display options ``+[no]comments``,
-   ``+[no]rrcomments``, and ``+[no]trust`` as a group.
+   This option sets or clears the display options :option:`+comments`,
+   :option:`+rrcomments`, and :option:`+trust` as a group.
 
 .. option:: +multiline, +nomultiline
 
@@ -326,7 +326,7 @@ assign values to options like the timeout interval. They have the form
    *not* control whether to request DNSSEC records or to
    validate them. DNSSEC records are always requested, and validation
    always occurs unless suppressed by the use of :option:`-i` or
-   ``+noroot``.
+   :option:`+noroot`.
 
 .. option:: +root[=ROOT], +noroot
 

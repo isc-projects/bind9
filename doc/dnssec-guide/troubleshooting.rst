@@ -100,7 +100,7 @@ Visible DNSSEC Validation Symptoms
 
 After determining the query path, it is necessary to
 determine whether the problem is actually related to DNSSEC
-validation. You can use the ``+cd`` flag in :iscman:`dig` to disable
+validation. You can use the :option:`dig +cd` flag to disable
 validation, as described in
 :ref:`how_do_i_know_validation_problem`.
 
@@ -318,9 +318,9 @@ shortened for ease of display):
 
 Next, we query for the DNSKEY and RRSIG of ``example.net`` to see if
 there's anything wrong. Since we are having trouble validating, we
-can use the ``+cd`` option to temporarily disable checking and return
+can use the :option:`dig +cd` option to temporarily disable checking and return
 results, even though they do not pass the validation tests. The
-``+multiline`` option tells :iscman:`dig` to print the type, algorithm type,
+:option:`dig +multiline` option causes :iscman:`dig` to print the type, algorithm type,
 and key id for DNSKEY records. Again,
 some long strings are shortened for ease of display:
 
