@@ -95,10 +95,13 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    that date, the key is included in the zone but is not used
    to sign it.
 
-.. option:: -P sync date/offset
+   .. program:: dnssec-importkey -P
+   .. option:: sync date/offset
 
-   This option sets the date on which CDS and CDNSKEY records that match this key
-   are to be published to the zone.
+      This option sets the date on which CDS and CDNSKEY records that match this key
+      are to be published to the zone.
+
+.. program:: dnssec-importkey
 
 .. option:: -D date/offset
 
@@ -106,10 +109,14 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-.. option:: -D sync date/offset
+   .. program:: dnssec-importkey -D
+   .. option:: sync date/offset
 
-   This option sets the date on which the CDS and CDNSKEY records that match this
-   key are to be deleted.
+      This option sets the date on which the CDS and CDNSKEY records that match this
+      key are to be deleted.
+
+.. program:: dnssec-importkey
+
 
 Files
 ~~~~~
