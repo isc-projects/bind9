@@ -121,7 +121,7 @@ is \fB@sysconfdir@/bind.keys\fP, which is included with BIND 9 and contains one
 or more trust anchors for the root zone (".").
 .sp
 Keys that do not match the root zone name are ignored. An alternate
-key name can be specified using the \fB+root=NAME\fP options.
+key name can be specified using the \fI\%+root\fP option.
 .sp
 Note: When reading the trust anchor file, \fBdelv\fP treats \fBtrust\-anchors\fP,
 \fBinitial\-key\fP, and \fBstatic\-key\fP identically. That is, for a managed key,
@@ -151,7 +151,7 @@ This option sets the query class for the requested data. Currently, only class
 This option sets the systemwide debug level to \fBlevel\fP\&. The allowed range is
 from 0 to 99. The default is 0 (no debugging). Debugging traces from
 \fBdelv\fP become more verbose as the debug level increases. See the
-\fB+mtrace\fP, \fB+rtrace\fP, and \fB+vtrace\fP options below for
+\fI\%+mtrace\fP, \fI\%+rtrace\fP, and \fI\%+vtrace\fP options below for
 additional debugging details.
 .UNINDENT
 .INDENT 0.0
@@ -167,7 +167,7 @@ however, that this does not set the CD bit on upstream queries. If the
 server being queried is performing DNSSEC validation, then it does
 not return invalid data; this can cause \fBdelv\fP to time out. When it
 is necessary to examine invalid data to debug a DNSSEC problem, use
-\fBdig +cd\fP\&.)
+\fI\%dig +cd\fP\&.)
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -347,8 +347,8 @@ multiline mode is active.
 .INDENT 0.0
 .TP
 .B +all, +noall
-This option sets or clears the display options \fB+[no]comments\fP,
-\fB+[no]rrcomments\fP, and \fB+[no]trust\fP as a group.
+This option sets or clears the display options \fI\%+comments\fP,
+\fI\%+rrcomments\fP, and \fI\%+trust\fP as a group.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -366,7 +366,7 @@ The default is to do so. Note that (unlike in \fI\%dig\fP) this does
 \fInot\fP control whether to request DNSSEC records or to
 validate them. DNSSEC records are always requested, and validation
 always occurs unless suppressed by the use of \fI\%\-i\fP or
-\fB+noroot\fP\&.
+\fI\%+noroot\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP

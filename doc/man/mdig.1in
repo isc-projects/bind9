@@ -248,7 +248,7 @@ hours, days, and weeks. This implies +ttlid.
 .TP
 .B +vc, +novc
 This option uses [or does not use] TCP when querying name servers. This alternate
-syntax to \fB+[no]tcp\fP is provided for backwards compatibility. The
+syntax to \fI\%+tcp\fP is provided for backwards compatibility. The
 \fBvc\fP stands for "virtual circuit".
 .UNINDENT
 .SH LOCAL OPTIONS
@@ -283,7 +283,7 @@ The local query options are:
 .INDENT 0.0
 .TP
 .B +aaflag, +noaaflag
-This is a synonym for \fB+[no]aaonly\fP\&.
+This is a synonym for \fI\%+aaonly\fP, \fI\%+noaaonly\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -372,7 +372,7 @@ recursive queries.
 .TP
 .B +retry=T
 This sets the number of times to retry UDP queries to server to \fBT\fP
-instead of the default, 2. Unlike \fB+tries\fP, this does not include
+instead of the default, 2. Unlike \fI\%+tries\fP, this does not include
 the initial query.
 .UNINDENT
 .INDENT 0.0

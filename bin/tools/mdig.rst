@@ -216,7 +216,7 @@ The global query options are:
 .. option:: +vc, +novc
 
    This option uses [or does not use] TCP when querying name servers. This alternate
-   syntax to ``+[no]tcp`` is provided for backwards compatibility. The
+   syntax to :option:`+tcp` is provided for backwards compatibility. The
    ``vc`` stands for "virtual circuit".
 
 Local Options
@@ -249,7 +249,7 @@ The local query options are:
 
 .. option:: +aaflag, +noaaflag
 
-   This is a synonym for ``+[no]aaonly``.
+   This is a synonym for :option:`+aaonly`, :option:`+noaaonly`.
 
 .. option:: +aaonly, +noaaonly
 
@@ -325,7 +325,7 @@ The local query options are:
 .. option:: +retry=T
 
    This sets the number of times to retry UDP queries to server to ``T``
-   instead of the default, 2. Unlike ``+tries``, this does not include
+   instead of the default, 2. Unlike :option:`+tries`, this does not include
    the initial query.
 
 .. option:: +subnet=addr[/prefix-length], +nosubnet

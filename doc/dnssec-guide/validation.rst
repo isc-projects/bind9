@@ -324,10 +324,10 @@ How Do I Know I Have a Validation Problem?
 
 Since all DNSSEC validation failures result in a general ``SERVFAIL``
 message, how do we know if it was really a validation error?
-Fortunately, there is a flag in :iscman:`dig`, (``+cd``, for "checking
+Fortunately, there is a flag in :iscman:`dig`, ("CD" for "checking
 disabled") which tells the server to disable DNSSEC validation. If
 you receive a ``SERVFAIL`` message, re-run the query a second time
-and set the ``+cd`` flag. If the query succeeds with ``+cd``, but
+and set the :option:`dig +cd` flag. If the query succeeds with :option:`dig +cd`, but
 ends in ``SERVFAIL`` without it, you know you are dealing with a
 validation problem. So using the previous example of
 ``www.dnssec-failed.org`` and with DNSSEC validation enabled in the
@@ -748,7 +748,7 @@ larger packets over UDP. To support EDNS, both the DNS server
 and the network need to be properly prepared to support the larger
 packet sizes and multiple fragments.
 
-This is important for DNSSEC, since the ``+do`` bit that signals
+This is important for DNSSEC, since the :option:`dig +do` bit that signals
 DNSSEC-awareness is carried within EDNS, and DNSSEC responses are larger
 than traditional DNS ones. If DNS servers and the network environment cannot
 support large UDP packets, it will cause retransmission over TCP, or the

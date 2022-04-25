@@ -224,8 +224,8 @@ Each query option is identified by a keyword preceded by a plus sign
 the string ``no`` to negate the meaning of that keyword. Other keywords
 assign values to options, like the timeout interval. They have the form
 ``+keyword=value``. Keywords may be abbreviated, provided the
-abbreviation is unambiguous; for example, ``+cd`` is equivalent to
-``+cdflag``. The query options are:
+abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
+:option:`+cdflag`. The query options are:
 
 .. option:: +aaflag, +noaaflag
 
@@ -280,7 +280,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    ``B`` bytes.  The maximum and minimum sizes of this buffer are 65535 and
    0, respectively.  ``+bufsize`` restores the default buffer size.
 
-.. option:: +cdflag, +nocdflag
+.. option:: +cd, +cdflag, +nocdflag
 
    This option sets [or does not set] the CD (checking disabled) bit in the query. This
    requests the server to not perform DNSSEC validation of responses.
@@ -304,7 +304,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    Other types of comments in the output are not affected by this option, but
    can be controlled using other command-line switches. These include
-   ``+[no]cmd``, ``+[no]question``, ``+[no]stats``, and ``+[no]rrcomments``.
+   :option:`+cmd`, :option:`+question`, :option:`+stats`, and :option:`+rrcomments`.
 
 .. option:: +cookie=####, +nocookie
 
@@ -312,7 +312,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    from a previous response allows the server to identify a previous
    client. The default is ``+cookie``.
 
-   ``+cookie`` is also set when ``+trace`` is set to better emulate the
+   ``+cookie`` is also set when :option:`+trace` is set to better emulate the
    default queries from a nameserver.
 
 .. option:: +crypto, +nocrypto
@@ -326,13 +326,14 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +defname, +nodefname
 
-   This option, which is deprecated, is treated as a synonym for ``+[no]search``.
+   This option, which is deprecated, is treated as a synonym for
+   :option:`+search`, :option:`+nosearch`.
 
 .. option:: +dns64prefix, +nodns64prefix
 
    Lookup IPV4ONLY.ARPA AAAA and print any DNS64 prefixes found.
 
-.. option:: +dnssec, +nodnssec
+.. option:: +dnssec, +do, +nodnssec, +nodo
 
    This option requests that DNSSEC records be sent by setting the DNSSEC OK (DO) bit in
    the OPT record in the additional section of the query.
@@ -341,7 +342,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    This option sets the search list to contain the single domain ``somename``, as if
    specified in a ``domain`` directive in ``/etc/resolv.conf``, and
-   enables search list processing as if the ``+search`` option were
+   enables search list processing as if the :option:`+search` option were
    given.
 
 .. option:: +dscp=value
@@ -403,31 +404,31 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +https-get[=value], +nohttps-get
 
-   Similar to ``+https``, except that the HTTP GET request mode is used
+   Similar to :option:`+https`, except that the HTTP GET request mode is used
    when sending the query.
 
 .. option:: +https-post[=value], +nohttps-post
 
-   Same as ``+https``.
+   Same as :option:`+https`.
 
 .. option:: +http-plain[=value], +nohttp-plain
 
-   Similar to ``+https``, except that HTTP queries will be sent over a
+   Similar to :option:`+https`, except that HTTP queries will be sent over a
    non-encrypted channel. When this option is in use, the port number
    defaults to 80 and the HTTP request mode is POST.
 
 .. option:: +http-plain-get[=value], +nohttp-plain-get
 
-   Similar to ``+http-plain``, except that the HTTP request mode is GET.
+   Similar to :option:`+http-plain`, except that the HTTP request mode is GET.
 
 .. option:: +http-plain-post[=value], +nohttp-plain-post
 
-   Same as ``+http-plain``.
+   Same as :option:`+http-plain`.
 
 .. option:: +identify, +noidentify
 
    This option shows [or does not show] the IP address and port number that
-   supplied the answer, when the ``+short`` option is enabled. If short
+   supplied the answer, when the :option:`+short` option is enabled. If short
    form answers are requested, the default is not to show the source
    address and port number of the server that provided the answer.
 
@@ -478,7 +479,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    statement is present. Names with fewer dots are interpreted as
    relative names, and are searched for in the domains listed in the
    ``search`` or ``domain`` directive in ``/etc/resolv.conf`` if
-   ``+search`` is set.
+   :option:`+search` is set.
 
 .. option:: +nsid, +nonsid
 
@@ -533,19 +534,19 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +rdflag, +nordflag
 
-   This option is a synonym for ``+[no]recurse``.
+   This option is a synonym for :option:`+recurse`, :option:`+norecurse`.
 
 .. option:: +recurse, +norecurse
 
    This option toggles the setting of the RD (recursion desired) bit in the query.
    This bit is set by default, which means :program:`dig` normally sends
    recursive queries. Recursion is automatically disabled when the
-   ``+nssearch`` or ``+trace`` query option is used.
+   :option:`+nssearch` or :option:`+trace` query option is used.
 
 .. option:: +retry=T
 
    This option sets the number of times to retry UDP and TCP queries to server to ``T``
-   instead of the default, 2.  Unlike ``+tries``, this does not include
+   instead of the default, 2.  Unlike :option:`+tries`, this does not include
    the initial query.
 
 .. option:: +rrcomments, +norrcomments
@@ -561,7 +562,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    default.
 
    ``ndots`` from ``resolv.conf`` (default 1), which may be overridden by
-   ``+ndots``, determines whether the name is treated as relative
+   :option:`+ndots`, determines whether the name is treated as relative
    and hence whether a search is eventually performed.
 
 .. option:: +short, +noshort
@@ -632,27 +633,30 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    name servers. When this option is in use, the port number defaults
    to 853.
 
-``+[no]tls-ca[=file-name]``
+.. option:: +tls-ca[=file-name], +notls-ca
+
    This option enables remote server TLS certificate validation for
    DNS transports, relying on TLS. Certificate authorities
    certificates are loaded from the specified PEM file
    (``file-name``). If the file is not specified, the default
    certificates from the global certificates store are used.
 
-``+[no]tls-certfile=file-name`` and ``+[no]tls-keyfile=file-name``
+.. option:: +tls-certfile=file-name, +tls-keyfile=file-name, +notls-certfile, +notls-keyfile
+
    These options set the state of certificate-based client
    authentication for DNS transports, relying on TLS. Both certificate
    chain file and private key file are expected to be in PEM format.
    Both options must be specified at the same time.
 
-``+[no]tls-hostname=hostname``
-   This option makes ``dig`` use the provided hostname during remote
+.. option:: +tls-hostname=hostname, +notls-hostname
+
+   This option makes :program:`dig` use the provided hostname during remote
    server TLS certificate verification. Otherwise, the DNS server name
-   is used. This option has no effect if ``+tls-ca`` is not specified.
+   is used. This option has no effect if :option:`+tls-ca` is not specified.
 
 .. option:: +topdown, +notopdown
 
-   This feature is related to ``dig +sigchase``, which is obsolete and
+   This feature is related to :option:`dig +sigchase`, which is obsolete and
    has been removed. Use :iscman:`delv` instead.
 
 .. option:: +trace, +notrace
@@ -667,7 +671,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
    If ``@server`` is also specified, it affects only the initial query for
    the root zone name servers.
 
-   ``+dnssec`` is also set when ``+trace`` is set, to better emulate the
+   :option:`+dnssec` is also set when :option:`+trace` is set, to better emulate the
    default queries from a name server.
 
 .. option:: +tries=T
@@ -678,7 +682,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
 .. option:: +trusted-key=####
 
-   This option formerly specified trusted keys for use with ``dig +sigchase``. This
+   This option formerly specified trusted keys for use with :option:`dig +sigchase`. This
    feature is now obsolete and has been removed; use :iscman:`delv` instead.
 
 .. option:: +ttlid, +nottlid
@@ -689,7 +693,7 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 
    This option displays [or does not display] the TTL in friendly human-readable time
    units of ``s``, ``m``, ``h``, ``d``, and ``w``, representing seconds, minutes,
-   hours, days, and weeks. This implies ``+ttlid``.
+   hours, days, and weeks. This implies :option:`+ttlid`.
 
 .. option:: +unknownformat, +nounknownformat
 
@@ -700,12 +704,12 @@ abbreviation is unambiguous; for example, ``+cd`` is equivalent to
 .. option:: +vc, +novc
 
    This option uses [or does not use] TCP when querying name servers. This alternate
-   syntax to ``+[no]tcp`` is provided for backwards compatibility. The
+   syntax to :option:`+tcp` is provided for backwards compatibility. The
    ``vc`` stands for "virtual circuit."
 
 .. option:: +yaml, +noyaml
 
-   When enabled, this option prints the responses (and, if ``+qr`` is in use, also the
+   When enabled, this option prints the responses (and, if :option:`+qr` is in use, also the
    outgoing queries) in a detailed YAML format.
 
 .. option:: +zflag, +nozflag
@@ -730,8 +734,8 @@ query.
 A global set of query options, which should be applied to all queries,
 can also be supplied. These global query options must precede the first
 tuple of name, class, type, options, flags, and query options supplied
-on the command line. Any global query options (except ``+[no]cmd`` and
-``+[no]short`` options) can be overridden by a query-specific set of
+on the command line. Any global query options (except :option:`+cmd` and
+:option:`+short` options) can be overridden by a query-specific set of
 query options. For example:
 
 ::
@@ -741,8 +745,8 @@ query options. For example:
 shows how :program:`dig` can be used from the command line to make three
 lookups: an ANY query for ``www.isc.org``, a reverse lookup of 127.0.0.1,
 and a query for the NS records of ``isc.org``. A global query option of
-``+qr`` is applied, so that :program:`dig` shows the initial query it made for
-each lookup. The final query has a local query option of ``+noqr`` which
+:option:`+qr` is applied, so that :program:`dig` shows the initial query it made for
+each lookup. The final query has a local query option of :option:`+qr` which
 means that :program:`dig` does not print the initial query when it looks up the
 NS records for ``isc.org``.
 
@@ -754,7 +758,7 @@ support, it can accept and display non-ASCII domain names. :program:`dig`
 appropriately converts character encoding of a domain name before sending
 a request to a DNS server or displaying a reply from the server.
 To turn off IDN support, use the parameters
-``+noidnin`` and ``+noidnout``, or define the ``IDN_DISABLE`` environment
+:option:`+idnin` and :option:`+idnout`, or define the ``IDN_DISABLE`` environment
 variable.
 
 Return Codes
