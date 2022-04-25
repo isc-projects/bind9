@@ -170,7 +170,6 @@ libisc_la_SOURCES =		\
 	quota.c			\
 	radix.c			\
 	random.c		\
-	random_p.h		\
 	ratelimiter.c		\
 	regex.c			\
 	region.c		\
