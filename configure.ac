@@ -562,6 +562,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <sys/socket.h>],
 		  [AC_MSG_RESULT([no])
 		   AC_CHECK_DECLS([UV_UDP_RECVMMSG], [], [], [[#include <uv.h>]])])
 
+# libuv recverr support
+AC_CHECK_DECLS([UV_UDP_LINUX_RECVERR], [], [], [[#include <uv.h>]])
+
 # [pairwise: --enable-doh --with-libnghttp2=auto, --enable-doh --with-libnghttp2=yes, --disable-doh]
 AC_ARG_ENABLE([doh],
 	      [AS_HELP_STRING([--disable-doh], [enable DNS over HTTPS, requires libnghttp2 (default=yes)])],
