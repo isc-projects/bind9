@@ -882,6 +882,10 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
+#if HAVE_DECL_UV_UDP_LINUX_RECVERR
+	uv_bind_flags |= UV_UDP_LINUX_RECVERR;
+#endif
+
 	r = uv_udp_bind(&sock->uv_handle.udp, &sock->iface.type.sa,
 			uv_bind_flags);
 	if (r != 0) {

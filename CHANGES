@@ -1,3 +1,8 @@
+5869.	[func]		Enable use of IP(V6)_RECVERR on Linux that allows
+			the kernel to report destination host/network
+			unreachable errors to the userspace application.
+			[GL #4251]
+
 5868.	[cleanup]	Use Daniel Lemire's "nearly divisionless" algorithm
 			for unbiased bounded random numbers, and move
 			re-seeding out of the hot path. [GL !6161]
