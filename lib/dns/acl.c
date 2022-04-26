@@ -177,7 +177,7 @@ dns_acl_isnone(dns_acl_t *acl) {
 
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
-	      const dns_acl_t *acl, const dns_aclenv_t *env, int *match,
+	      const dns_acl_t *acl, dns_aclenv_t *env, int *match,
 	      const dns_aclelement_t **matchelt) {
 	uint16_t bitlen;
 	isc_prefix_t pfx;
@@ -251,7 +251,7 @@ dns_acl_match_port_transport(const isc_netaddr_t *reqaddr,
 			     const in_port_t local_port,
 			     const isc_nmsocket_type_t transport,
 			     const bool encrypted, const dns_name_t *reqsigner,
-			     const dns_acl_t *acl, const dns_aclenv_t *env,
+			     const dns_acl_t *acl, dns_aclenv_t *env,
 			     int *match, const dns_aclelement_t **matchelt) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_acl_port_transports_t *next;
@@ -420,7 +420,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 
 bool
 dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
-		     const dns_aclelement_t *e, const dns_aclenv_t *env,
+		     const dns_aclelement_t *e, dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt) {
 	dns_acl_t *inner = NULL;
 	int indirectmatch;
@@ -439,21 +439,33 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 		}
 
 	case dns_aclelementtype_nestedacl:
-		inner = e->nestedacl;
+		dns_acl_attach(e->nestedacl, &inner);
 		break;
 
 	case dns_aclelementtype_localhost:
-		if (env == NULL || env->localhost == NULL) {
+		if (env == NULL) {
 			return (false);
 		}
-		inner = env->localhost;
+		RWLOCK(&env->rwlock, isc_rwlocktype_read);
+		if (env->localhost == NULL) {
+			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
+			return (false);
+		}
+		dns_acl_attach(env->localhost, &inner);
+		RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
 		break;
 
 	case dns_aclelementtype_localnets:
-		if (env == NULL || env->localnets == NULL) {
+		if (env == NULL) {
 			return (false);
 		}
-		inner = env->localnets;
+		RWLOCK(&env->rwlock, isc_rwlocktype_read);
+		if (env->localnets == NULL) {
+			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
+			return (false);
+		}
+		dns_acl_attach(env->localnets, &inner);
+		RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
 		break;
 
 #if defined(HAVE_GEOIP2)
@@ -470,6 +482,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	result = dns_acl_match(reqaddr, reqsigner, inner, env, &indirectmatch,
 			       matchelt);
 	INSIST(result == ISC_R_SUCCESS);
+
+	dns_acl_detach(&inner);
 
 	/*
 	 * Treat negative matches in indirect ACLs as "no match".
@@ -695,10 +709,11 @@ dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 
 	isc_mem_attach(mctx, &env->mctx);
 	isc_refcount_init(&env->references, 1);
+	isc_rwlock_init(&env->rwlock, 0, 0);
 
 	result = dns_acl_create(mctx, 0, &env->localhost);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_nothing;
+		goto cleanup_rwlock;
 	}
 	result = dns_acl_create(mctx, 0, &env->localnets);
 	if (result != ISC_R_SUCCESS) {
@@ -717,8 +732,22 @@ dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 
 cleanup_localhost:
 	dns_acl_detach(&env->localhost);
-cleanup_nothing:
+cleanup_rwlock:
+	isc_rwlock_destroy(&env->rwlock);
+	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
 	return (result);
+}
+
+void
+dns_aclenv_set(dns_aclenv_t *env, dns_acl_t *localhost, dns_acl_t *localnets) {
+	REQUIRE(VALID_ACLENV(env));
+
+	RWLOCK(&env->rwlock, isc_rwlocktype_write);
+	dns_acl_detach(&env->localhost);
+	dns_acl_attach(localhost, &env->localhost);
+	dns_acl_detach(&env->localnets);
+	dns_acl_attach(localnets, &env->localnets);
+	RWUNLOCK(&env->rwlock, isc_rwlocktype_write);
 }
 
 void
@@ -726,6 +755,8 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 	REQUIRE(VALID_ACLENV(s));
 	REQUIRE(VALID_ACLENV(t));
 
+	RWLOCK(&t->rwlock, isc_rwlocktype_write);
+	RWLOCK(&s->rwlock, isc_rwlocktype_read);
 	dns_acl_detach(&t->localhost);
 	dns_acl_attach(s->localhost, &t->localhost);
 	dns_acl_detach(&t->localnets);
@@ -735,6 +766,9 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 #if defined(HAVE_GEOIP2)
 	t->geoip = s->geoip;
 #endif /* if defined(HAVE_GEOIP2) */
+
+	RWUNLOCK(&s->rwlock, isc_rwlocktype_read);
+	RWUNLOCK(&t->rwlock, isc_rwlocktype_write);
 }
 
 static void
@@ -743,12 +777,10 @@ dns__aclenv_destroy(dns_aclenv_t *aclenv) {
 
 	aclenv->magic = 0;
 
-	if (aclenv->localhost != NULL) {
-		dns_acl_detach(&aclenv->localhost);
-	}
-	if (aclenv->localnets != NULL) {
-		dns_acl_detach(&aclenv->localnets);
-	}
+	isc_refcount_destroy(&aclenv->references);
+	dns_acl_detach(&aclenv->localhost);
+	dns_acl_detach(&aclenv->localnets);
+	isc_rwlock_destroy(&aclenv->rwlock);
 
 	isc_mem_putanddetach(&aclenv->mctx, aclenv, sizeof(*aclenv));
 }

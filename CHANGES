@@ -26,6 +26,10 @@
 5858.	[bug]		Don't remove CDS/CDNSKEY DELETE records on zone sign
 			when using 'auto-dnssec maintain;'. [GL #2931]
 
+5849.	[cleanup]	Remove use of exclusive mode in ns_interfacemgr in
+			favor of rwlocked access to localhost and localnets
+			members of dns_aclenv_t structure. [GL #3229]
+
 	--- 9.18.2 released ---
 
 5856.	[bug]		The "starting maxtime timer" message related to outgoing
