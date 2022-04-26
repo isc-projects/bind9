@@ -111,4 +111,4 @@ man_pages = [
 def setup(app):
     app.add_crossref_type('iscman', 'iscman', 'pair: %s; manual page')
     # ignore :option: references to simplify doc backports to v9_16 branch
-    app.add_role_to_domain('std', 'option', roles.code_role, override=True)
+    app.add_role_to_domain('std', 'option', roles.code_role)
