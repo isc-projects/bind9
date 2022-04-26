@@ -284,12 +284,32 @@ isc__nm_threadpool_initialize(uint32_t workers) {
 	}
 }
 
+#if HAVE_DECL_UV_UDP_LINUX_RECVERR
+#define MINIMAL_UV_VERSION UV_VERSION(1, 42, 0)
+#elif HAVE_DECL_UV_UDP_MMSG_FREE
+#define MINIMAL_UV_VERSION UV_VERSION(1, 40, 0)
+#elif HAVE_DECL_UV_UDP_RECVMMSG
+#define MINIMAL_UV_VERSION UV_VERSION(1, 37, 0)
+#elif HAVE_DECL_UV_UDP_MMSG_CHUNK
+#define MINIMAL_UV_VERSION UV_VERSION(1, 35, 0)
+#else
+#define MINIMAL_UV_VERSION UV_VERSION(1, 0, 0)
+#endif
+
 void
 isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	isc_nm_t *mgr = NULL;
 	char name[32];
 
 	REQUIRE(workers > 0);
+
+	if (uv_version() < MINIMAL_UV_VERSION) {
+		isc_error_fatal(__FILE__, __LINE__,
+				"libuv version too old: running with libuv %s "
+				"when compiled with libuv %s will lead to "
+				"libuv failures because of unknown flags",
+				uv_version_string(), UV_VERSION_STRING);
+	}
 
 #ifdef WIN32
 	isc__nm_winsock_initialize();
