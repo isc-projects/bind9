@@ -2662,41 +2662,15 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 	free_adbfind(&find);
 }
 
-void
-dns_adb_cancelfind(dns_adbfind_t *find) {
-	isc_event_t *ev = NULL;
-	isc_task_t *task = NULL;
-	dns_adb_t *adb = NULL;
-	dns_adbname_t *adbname = NULL;
-	dns_adbnamebucket_t *nbucket = NULL;
-
-	LOCK(&find->lock);
-
-	DP(DEF_LEVEL, "dns_adb_cancelfind on find %p", find);
-
-	adb = find->adb;
-	REQUIRE(DNS_ADB_VALID(adb));
-
-	REQUIRE(!FIND_EVENTFREED(find));
-	REQUIRE(FIND_WANTEVENT(find));
-
-	if (find->adbname == NULL) {
-		goto cleanup;
-	}
-	adbname = find->adbname;
-	find->adbname = NULL;
-	nbucket = adbname->bucket;
-
-	UNLOCK(&find->lock);
-	LOCK(&nbucket->lock);
-	ISC_LIST_UNLINK(adbname->finds, find, plink);
-	UNLOCK(&nbucket->lock);
-	LOCK(&find->lock);
-
-cleanup:
+/*
+ * Caller must hold find lock.
+ */
+static void
+find_sendevent(dns_adbfind_t *find) {
 	if (!FIND_EVENTSENT(find)) {
-		ev = &find->event;
-		task = ev->ev_sender;
+		isc_event_t *ev = &find->event;
+		isc_task_t *task = ev->ev_sender;
+
 		ev->ev_sender = find;
 		ev->ev_type = DNS_EVENT_ADBCANCELED;
 		ev->ev_destroy = event_freefind;
@@ -2709,7 +2683,45 @@ cleanup:
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&ev);
 	}
-	UNLOCK(&find->lock);
+}
+
+void
+dns_adb_cancelfind(dns_adbfind_t *find) {
+	dns_adbname_t *adbname = NULL;
+
+	DP(DEF_LEVEL, "dns_adb_cancelfind on find %p", find);
+
+	REQUIRE(DNS_ADBFIND_VALID(find));
+	REQUIRE(DNS_ADB_VALID(find->adb));
+
+	LOCK(&find->lock);
+	REQUIRE(!FIND_EVENTFREED(find));
+	REQUIRE(FIND_WANTEVENT(find));
+
+	adbname = find->adbname;
+
+	if (adbname == NULL) {
+		find_sendevent(find);
+		UNLOCK(&find->lock);
+	} else {
+		/*
+		 * Release the find lock, then acquire the bucket and find
+		 * locks in that order, to match locking hierarchy
+		 * elsewhere.
+		 */
+		UNLOCK(&find->lock);
+		LOCK(&adbname->bucket->lock);
+		LOCK(&find->lock);
+
+		if (find->adbname != NULL) {
+			ISC_LIST_UNLINK(adbname->finds, find, plink);
+			find->adbname = NULL;
+		}
+		find_sendevent(find);
+
+		UNLOCK(&find->lock);
+		UNLOCK(&adbname->bucket->lock);
+	}
 }
 
 void
