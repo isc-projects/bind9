@@ -215,16 +215,9 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		return;
 	}
 
-	if (eresult == ISC_R_SHUTTINGDOWN) {
-		/*
-		 * The mgr->route and mgr is detached in
-		 * ns_interfacemgr_shutdown()
-		 */
-		return;
-	}
-
 	if (eresult != ISC_R_SUCCESS) {
-		if (eresult != ISC_R_CANCELED) {
+		if (eresult != ISC_R_CANCELED && eresult != ISC_R_SHUTTINGDOWN)
+		{
 			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				      "automatic interface scanning "
 				      "terminated: %s",
@@ -451,8 +444,7 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	purge_old_interfaces(mgr);
 
 	if (mgr->route != NULL) {
-		isc_nmhandle_detach(&mgr->route);
-		ns_interfacemgr_detach(&mgr);
+		isc_nm_cancelread(mgr->route);
 	}
 }
 
