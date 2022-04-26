@@ -5400,7 +5400,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res = NULL;
 	dns_valarg_t *valarg = NULL;
 	dns_validatorevent_t *vevent = NULL;
-	fetchctx_t *fctx = NULL, *vfctx = NULL;
+	fetchctx_t *fctx = NULL;
 	bool chaining;
 	bool negative;
 	bool sentresponse;
@@ -5424,7 +5424,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	fctx = valarg->fctx;
 	valarg->fctx = NULL;
-	vfctx = fctx;
 
 	FCTXTRACE("received validation completion event");
 
@@ -5467,6 +5466,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
 		UNLOCK(&res->buckets[bucketnum].lock);
+		fctx_detach(&fctx);
 		goto cleanup_event;
 	}
 
@@ -5566,6 +5566,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		}
 		result = fctx->vresult;
 		add_bad(fctx, message, addrinfo, result, badns_validation);
+		dns_message_detach(&message);
 		isc_event_free(&event);
 
 		UNLOCK(&res->buckets[bucketnum].lock);
@@ -5574,7 +5575,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 		fctx->validator = ISC_LIST_HEAD(fctx->validators);
 		if (fctx->validator != NULL) {
 			dns_validator_send(fctx->validator);
+			fctx_detach(&fctx);
 		} else if (sentresponse) {
+			/* Detach the extra ref that was set in valcreate() */
+			fctx_unref(fctx);
 			fctx_done_detach(&fctx, result); /* Locks bucket */
 		} else if (result == DNS_R_BROKENCHAIN) {
 			isc_result_t tresult;
@@ -5591,13 +5595,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 				dns_resolver_addbadcache(res, fctx->name,
 							 fctx->type, &expire);
 			}
+
+			/* Detach the extra ref that was set in valcreate() */
+			fctx_unref(fctx);
 			fctx_done_detach(&fctx, result); /* Locks bucket */
 		} else {
 			fctx_try(fctx, true, true); /* Locks bucket */
+			fctx_detach(&fctx);
 		}
-
-		dns_message_detach(&message);
-		fctx_detach(&vfctx);
 		return;
 	}
 
@@ -5721,6 +5726,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			maybe_cancel_validators(fctx, true);
 		}
 		UNLOCK(&res->buckets[bucketnum].lock);
+		fctx_detach(&fctx);
 		goto cleanup_event;
 	}
 
@@ -5737,6 +5743,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(fctx->cache, &node);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
+		fctx_detach(&fctx);
 		goto cleanup_event;
 	}
 
@@ -5893,12 +5900,13 @@ noanswer_response:
 	}
 
 	UNLOCK(&res->buckets[bucketnum].lock);
+	/* Detach the extra reference that was set in valcreate() */
+	fctx_unref(fctx);
 	fctx_done_detach(&fctx, result); /* Locks bucket. */
 
 cleanup_event:
 	INSIST(node == NULL);
 	dns_message_detach(&message);
-	fctx_detach(&vfctx);
 	isc_event_free(&event);
 }
 
