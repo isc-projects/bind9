@@ -1,2 +1,1 @@
 Sphinx>=2
-docutils<0.17
