@@ -134,18 +134,18 @@ explicitly prevent a date from being set, use \fBnone\fP or \fBnever\fP\&.
 This option sets the date on which a key is to be published to the zone. After
 that date, the key is included in the zone but is not used
 to sign it.
-.UNINDENT
-.INDENT 0.0
+.INDENT 7.0
 .TP
-.B \-P ds date/offset
+.B ds date/offset
 This option sets the date on which DS records that match this key have been
 seen in the parent zone.
 .UNINDENT
-.INDENT 0.0
+.INDENT 7.0
 .TP
-.B \-P sync date/offset
+.B sync date/offset
 This option sets the date on which CDS and CDNSKEY records that match this key
 are to be published to the zone.
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -173,18 +173,18 @@ sign it.
 This option sets the date on which the key is to be deleted. After that date, the
 key is no longer included in the zone. (However, it may remain in the key
 repository.)
-.UNINDENT
-.INDENT 0.0
+.INDENT 7.0
 .TP
-.B \-D ds date/offset
+.B ds date/offset
 This option sets the date on which the DS records that match this key have
 been seen removed from the parent zone.
 .UNINDENT
-.INDENT 0.0
+.INDENT 7.0
 .TP
-.B \-D sync date/offset
+.B sync date/offset
 This option sets the date on which the CDS and CDNSKEY records that match this
 key are to be deleted.
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP

@@ -123,15 +123,18 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    that date, the key is included in the zone but is not used
    to sign it.
 
-.. option:: -P ds date/offset
+   .. program:: dnssec-settime -P
+   .. option:: ds date/offset
 
-   This option sets the date on which DS records that match this key have been
-   seen in the parent zone.
+      This option sets the date on which DS records that match this key have been
+      seen in the parent zone.
 
-.. option:: -P sync date/offset
+   .. option:: sync date/offset
 
-   This option sets the date on which CDS and CDNSKEY records that match this key
-   are to be published to the zone.
+      This option sets the date on which CDS and CDNSKEY records that match this key
+      are to be published to the zone.
+
+.. program:: dnssec-settime
 
 .. option:: -A date/offset
 
@@ -156,15 +159,18 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-.. option:: -D ds date/offset
+   .. program:: dnssec-settime -D
+   .. option:: ds date/offset
 
-   This option sets the date on which the DS records that match this key have
-   been seen removed from the parent zone.
+      This option sets the date on which the DS records that match this key have
+      been seen removed from the parent zone.
 
-.. option:: -D sync date/offset
+   .. option:: sync date/offset
 
-   This option sets the date on which the CDS and CDNSKEY records that match this
-   key are to be deleted.
+      This option sets the date on which the CDS and CDNSKEY records that match this
+      key are to be deleted.
+
+.. program:: dnssec-settime
 
 .. option:: -S predecessor key
 

@@ -237,10 +237,13 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    to sign it. If not set, and if the :option:`-G` option has not been used, the
    default is the current date.
 
-.. option:: -P sync date/offset
+   .. program:: dnssec-keygen -P
+   .. option:: sync date/offset
 
-   This option sets the date on which CDS and CDNSKEY records that match this key
-   are to be published to the zone.
+      This option sets the date on which CDS and CDNSKEY records that match this key
+      are to be published to the zone.
+
+.. program:: dnssec-keygen
 
 .. option:: -A date/offset
 
@@ -262,16 +265,20 @@ explicitly prevent a date from being set, use ``none`` or ``never``.
    key is still included in the zone, but it is not used to
    sign it.
 
+
 .. option:: -D date/offset
 
    This option sets the date on which the key is to be deleted. After that date, the
    key is no longer included in the zone. (However, it may remain in the key
    repository.)
 
-.. option:: -D sync date/offset
+   .. program:: dnssec-keygen -D
+   .. option:: sync date/offset
 
-   This option sets the date on which the CDS and CDNSKEY records that match this
-   key are to be deleted.
+      This option sets the date on which the CDS and CDNSKEY records that match this
+      key are to be deleted.
+
+.. program:: dnssec-keygen
 
 .. option:: -i interval
 
