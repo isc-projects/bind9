@@ -1013,7 +1013,7 @@ static isc_result_t
 zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
 			 bool *fixjournal);
 
-#define ENTER zone_debuglog(zone, me, 1, "enter")
+#define ENTER zone_debuglog(zone, __func__, 1, "enter")
 
 static const unsigned int dbargc_default = 1;
 static const char *dbargv_default[] = { "rbt" };
@@ -2657,7 +2657,6 @@ get_raw_serial(dns_zone_t *raw, dns_masterrawheader_t *rawdata) {
 
 static void
 zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "zone_gotwritehandle";
 	dns_zone_t *zone = event->ev_arg;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dbversion_t *version = NULL;
@@ -2747,7 +2746,6 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header) {
 
 static isc_result_t
 zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
-	const char me[] = "zone_startload";
 	dns_load_t *load;
 	isc_result_t result;
 	isc_result_t tresult;
@@ -4156,7 +4154,6 @@ cleanup:
 static void
 set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 		    isc_stdtime_t now, bool force) {
-	const char me[] = "set_refreshkeytimer";
 	isc_stdtime_t then;
 	isc_time_t timenow, timethen;
 	char timebuf[80];
@@ -4203,7 +4200,6 @@ static isc_result_t
 create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       dns_diff_t *diff, dns_keynode_t *keynode, dns_name_t *keyname,
 	       bool *changed) {
-	const char me[] = "create_keydata";
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t kd;
@@ -4512,7 +4508,6 @@ failure:
 static isc_result_t
 zone_journal(dns_zone_t *zone, dns_diff_t *diff, uint32_t *sourceserial,
 	     const char *caller) {
-	const char me[] = "zone_journal";
 	const char *journalfile;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *journal = NULL;
@@ -5452,7 +5447,7 @@ done:
 		}
 	}
 
-	zone_debuglog(zone, "zone_postload", 99, "done");
+	zone_debuglog(zone, __func__, 99, "done");
 
 	return (result);
 }
@@ -6594,7 +6589,6 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
  */
 void
 dns_zone_maintenance(dns_zone_t *zone) {
-	const char me[] = "dns_zone_maintenance";
 	isc_time_t now;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -7344,7 +7338,6 @@ failure:
 
 static void
 zone_resigninc(dns_zone_t *zone) {
-	const char *me = "zone_resigninc";
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t _sig_diff;
@@ -8506,7 +8499,6 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
  */
 static void
 zone_nsec3chain(dns_zone_t *zone) {
-	const char *me = "zone_nsec3chain";
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
@@ -9505,7 +9497,6 @@ failure:
  */
 static void
 zone_sign(dns_zone_t *zone) {
-	const char *me = "zone_sign";
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
@@ -11069,7 +11060,6 @@ cleanup:
  */
 static void
 zone_refreshkeys(dns_zone_t *zone) {
-	const char me[] = "zone_refreshkeys";
 	isc_result_t result;
 	dns_rriterator_t rrit;
 	dns_db_t *db = NULL;
@@ -11277,7 +11267,6 @@ failure:
 
 static void
 zone_maintenance(dns_zone_t *zone) {
-	const char me[] = "zone_maintenance";
 	isc_time_t now;
 	isc_result_t result;
 	bool dumping, load_pending, viewok;
@@ -11785,11 +11774,10 @@ zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial) {
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIXJOURNAL)) {
 		options |= DNS_JOURNAL_COMPACTALL;
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FIXJOURNAL);
-		zone_debuglog(zone, "zone_journal_compact", 1,
-			      "repair full journal");
+		zone_debuglog(zone, __func__, 1, "repair full journal");
 	} else {
-		zone_debuglog(zone, "zone_journal_compact", 1,
-			      "target journal size %d", journalsize);
+		zone_debuglog(zone, __func__, 1, "target journal size %d",
+			      journalsize);
 	}
 	result = dns_journal_compact(zone->mctx, zone->journal, serial, options,
 				     journalsize);
@@ -11850,7 +11838,6 @@ dns_zone_dump(dns_zone_t *zone) {
 
 static void
 zone_needdump(dns_zone_t *zone, unsigned int delay) {
-	const char me[] = "zone_needdump";
 	isc_time_t dumptime;
 	isc_time_t now;
 
@@ -11887,7 +11874,6 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 
 static void
 dump_done(void *arg, isc_result_t result) {
-	const char me[] = "dump_done";
 	dns_zone_t *zone = arg;
 	dns_zone_t *secure = NULL;
 	dns_db_t *db;
@@ -12012,7 +11998,6 @@ dump_done(void *arg, isc_result_t result) {
 
 static isc_result_t
 zone_dump(dns_zone_t *zone, bool compact) {
-	const char me[] = "zone_dump";
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	bool again;
@@ -13181,7 +13166,6 @@ stub_finish_zone_update(dns_stub_t *stub, isc_time_t now) {
  */
 static void
 stub_glue_response_cb(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "stub_glue_response_cb";
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_stub_t *stub = NULL;
 	dns_message_t *msg = NULL;
@@ -13212,7 +13196,7 @@ stub_glue_response_cb(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		zone_debuglog(zone, me, 1, "exiting");
+		zone_debuglog(zone, __func__, 1, "exiting");
 		goto cleanup;
 	}
 
@@ -13413,7 +13397,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, args->udpsize, args->reqnsid, false);
 		if (result != ISC_R_SUCCESS) {
-			zone_debuglog(zone, "stub_send_query", 1,
+			zone_debuglog(zone, __func__, 1,
 				      "unable to add opt record: %s",
 				      isc_result_totext(result));
 			goto fail;
@@ -13431,7 +13415,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	if (result != ISC_R_SUCCESS) {
 		INSIST(atomic_fetch_sub_release(&args->stub->pending_requests,
 						1) > 1);
-		zone_debuglog(zone, "stub_send_query", 1,
+		zone_debuglog(zone, __func__, 1,
 			      "dns_request_createvia() failed: %s",
 			      isc_result_totext(result));
 		goto fail;
@@ -13604,7 +13588,6 @@ done:
 
 static void
 stub_callback(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "stub_callback";
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_stub_t *stub = NULL;
 	dns_message_t *msg = NULL;
@@ -13801,7 +13784,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	return;
 
 exiting:
-	zone_debuglog(zone, me, 1, "exiting");
+	zone_debuglog(zone, __func__, 1, "exiting");
 	exiting = true;
 
 next_primary:
@@ -13985,7 +13968,6 @@ setmodtime(dns_zone_t *zone, isc_time_t *expiretime) {
  */
 static void
 refresh_callback(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "refresh_callback";
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_zone_t *zone;
 	dns_message_t *msg = NULL;
@@ -14272,11 +14254,11 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 					  NULL, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		RUNTIME_CHECK(dbsoacount > 0U);
-		zone_debuglog(zone, me, 1, "serial: new %u, old %u", serial,
-			      oldserial);
+		zone_debuglog(zone, __func__, 1, "serial: new %u, old %u",
+			      serial, oldserial);
 	} else {
-		zone_debuglog(zone, me, 1, "serial: new %u, old not loaded",
-			      serial);
+		zone_debuglog(zone, __func__, 1,
+			      "serial: new %u, old not loaded", serial);
 	}
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
@@ -14343,7 +14325,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "received from primary %s < ours (%u)",
 				     soa.serial, primary, oldserial);
 		} else {
-			zone_debuglog(zone, me, 1, "ahead");
+			zone_debuglog(zone, __func__, 1, "ahead");
 		}
 		zone->primariesok[zone->curprimary] = true;
 		goto next_primary;
@@ -14437,7 +14419,6 @@ detach:
 
 static void
 queue_soa_query(dns_zone_t *zone) {
-	const char me[] = "queue_soa_query";
 	isc_event_t *e;
 	dns_zone_t *dummy = NULL;
 	isc_result_t result;
@@ -14474,7 +14455,6 @@ queue_soa_query(dns_zone_t *zone) {
 
 static void
 soa_query(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "soa_query";
 	isc_result_t result = ISC_R_FAILURE;
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = event->ev_arg;
@@ -14660,7 +14640,7 @@ again:
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid, reqexpire);
 		if (result != ISC_R_SUCCESS) {
-			zone_debuglog(zone, me, 1,
+			zone_debuglog(zone, __func__, 1,
 				      "unable to add opt record: %s",
 				      isc_result_totext(result));
 		}
@@ -14677,7 +14657,8 @@ again:
 		zone->task, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
-		zone_debuglog(zone, me, 1, "dns_request_createvia() failed: %s",
+		zone_debuglog(zone, __func__, 1,
+			      "dns_request_createvia() failed: %s",
 			      isc_result_totext(result));
 		goto skip_primary;
 	} else {
@@ -14738,7 +14719,6 @@ skip_primary:
 
 static void
 ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
-	const char me[] = "ns_query";
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	isc_netaddr_t primaryip;
@@ -14899,7 +14879,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid, false);
 		if (result != ISC_R_SUCCESS) {
-			zone_debuglog(zone, me, 1,
+			zone_debuglog(zone, __func__, 1,
 				      "unable to add opt record: %s",
 				      isc_result_totext(result));
 		}
@@ -14962,7 +14942,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		&zone->primaryaddr, dscp, DNS_REQUESTOPT_TCP, key, timeout * 3,
 		timeout, 2, zone->task, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
-		zone_debuglog(zone, me, 1, "dns_request_createvia() failed: %s",
+		zone_debuglog(zone, __func__, 1,
+			      "dns_request_createvia() failed: %s",
 			      isc_result_totext(result));
 		goto cleanup;
 	}
@@ -15007,7 +14988,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
 	INSIST(isc_refcount_current(&zone->erefs) == 0);
 
-	zone_debuglog(zone, "zone_shutdown", 3, "shutting down");
+	zone_debuglog(zone, __func__, 3, "shutting down");
 
 	/*
 	 * Stop things being restarted after we cancel them below.
@@ -15127,7 +15108,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 
 static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "zone_timer";
 	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
 
 	UNUSED(task);
@@ -15173,7 +15153,6 @@ zone_timer_stop(dns_zone_t *zone) {
 
 static void
 zone_settimer(dns_zone_t *zone, isc_time_t *now) {
-	const char me[] = "zone_settimer";
 	isc_time_t next;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -15312,7 +15291,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	}
 
 	if (isc_time_isepoch(&next)) {
-		zone_debuglog(zone, me, 10, "settimer inactive");
+		zone_debuglog(zone, __func__, 10, "settimer inactive");
 		zone_timer_stop(zone);
 	} else {
 		zone_timer_start(zone, &next, now);
@@ -15321,7 +15300,6 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 static void
 cancel_refresh(dns_zone_t *zone) {
-	const char me[] = "cancel_refresh";
 	isc_time_t now;
 
 	/*
@@ -16526,7 +16504,6 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 
 static void
 receive_secure_serial(isc_task_t *task, isc_event_t *event) {
-	static char me[] = "receive_secure_serial";
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *rjournal = NULL;
 	dns_journal_t *sjournal = NULL;
@@ -17835,7 +17812,6 @@ again:
 
 static void
 zone_loaddone(void *arg, isc_result_t result) {
-	static char me[] = "zone_loaddone";
 	dns_load_t *load = arg;
 	dns_zone_t *zone;
 	isc_result_t tresult;
@@ -17989,7 +17965,6 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone) {
 
 static void
 queue_xfrin(dns_zone_t *zone) {
-	const char me[] = "queue_xfrin";
 	isc_result_t result;
 	dns_zonemgr_t *zmgr = zone->zmgr;
 
@@ -18306,7 +18281,6 @@ unlock:
 
 static void
 forward_callback(isc_task_t *task, isc_event_t *event) {
-	const char me[] = "forward_callback";
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_message_t *msg = NULL;
 	char primary[ISC_SOCKADDR_FORMATSIZE];
@@ -19868,7 +19842,7 @@ void
 dns_zone_dialup(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	zone_debuglog(zone, "dns_zone_dialup", 3, "notify = %d, refresh = %d",
+	zone_debuglog(zone, __func__, 3, "notify = %d, refresh = %d",
 		      DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY),
 		      DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH));
 
@@ -22559,7 +22533,6 @@ struct keydone {
 
 static void
 keydone(isc_task_t *task, isc_event_t *event) {
-	const char *me = "keydone";
 	bool commit = false;
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -22765,7 +22738,6 @@ failure:
  */
 static void
 setnsec3param(isc_task_t *task, isc_event_t *event) {
-	const char *me = "setnsec3param";
 	dns_zone_t *zone = event->ev_arg;
 	bool loadpending;
 
@@ -22837,7 +22809,6 @@ salt2text(unsigned char *salt, uint8_t saltlen, unsigned char *text,
  */
 static void
 rss_post(dns_zone_t *zone, isc_event_t *event) {
-	const char *me = "rss_post";
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
@@ -23461,7 +23432,6 @@ dns_zone_getstatlevel(dns_zone_t *zone) {
 static void
 setserial(isc_task_t *task, isc_event_t *event) {
 	uint32_t oldserial, desired;
-	const char *me = "setserial";
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
@@ -23626,8 +23596,6 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 	dns_keytable_t *secroots = NULL;
 	isc_result_t result;
 	dns_name_t *origin;
-
-	const char me[] = "dns_zone_verifydb";
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(db != NULL);
