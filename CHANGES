@@ -1,3 +1,7 @@
+5872.	[bug]		udp_recv() in dispatch could trigger an INSIST when the
+			callback's result indicated success but the response
+			was canceled in the meantime. [GL #3300]
+
 5866.	[bug]		Work around a jemalloc quirk which could trigger an
 			out-of-memory condition in named over time. [GL #3287]
 
