@@ -13,7 +13,6 @@
 
 #include <inttypes.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 #include <isc/backtrace.h>
@@ -39,12 +38,12 @@
 #include <isc/thread.h>
 #include <isc/tls.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
 #include "netmgr_p.h"
 #include "openssl_shim.h"
 #include "trampoline_p.h"
-#include "uv-compat.h"
 
 /*%
  * How many isc_nmhandles and isc_nm_uvreqs will we be
@@ -3097,7 +3096,7 @@ isc__nm_after_work_cb(uv_work_t *req, int status) {
 	isc_nm_t *netmgr = work->netmgr;
 
 	if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 	}
 
 	work->after_cb(work->data, result);

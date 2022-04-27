@@ -13,7 +13,6 @@
 
 #include <libgen.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 #include <isc/barrier.h>
@@ -33,9 +32,9 @@
 #include <isc/stdtime.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
-#include "uv-compat.h"
 
 static atomic_uint_fast32_t last_tcpdnsquota_log = 0;
 
@@ -145,7 +144,7 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	atomic_store(&sock->connected, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 error:
 	LOCK(&sock->lock);
 	sock->result = result;
@@ -225,7 +224,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 		result = ISC_R_TIMEDOUT;
 		goto error;
 	} else if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 		goto error;
 	}
 
@@ -233,7 +232,7 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
 			       &(int){ sizeof(ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto error;
 	}
 
@@ -325,7 +324,7 @@ isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 static uv_os_sock_t
 isc__nm_tcpdns_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	isc_result_t result;
-	uv_os_sock_t sock;
+	uv_os_sock_t sock = -1;
 
 	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -552,7 +551,7 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
 			      "uv_listen failed: %s",
-			      isc_result_totext(isc__nm_uverr2result(r)));
+			      isc_result_totext(isc_uverr2result(r)));
 		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
@@ -560,7 +559,7 @@ isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	atomic_store(&sock->listening, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 	if (result != ISC_R_SUCCESS) {
 		sock->pquota = NULL;
 	}
@@ -582,7 +581,7 @@ tcpdns_connection_cb(uv_stream_t *server, int status) {
 	isc_quota_t *quota = NULL;
 
 	if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 		goto done;
 	}
 
@@ -853,7 +852,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 			isc__nm_incstats(sock, STATID_RECVFAIL);
 		}
 
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
+		isc__nm_failed_read_cb(sock, isc_uverr2result(nread), true);
 		goto free;
 	}
 
@@ -972,7 +971,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 
@@ -980,7 +979,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 			       (struct sockaddr *)&peer_ss,
 			       &(int){ sizeof(peer_ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 
@@ -994,7 +993,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 			       (struct sockaddr *)&local_ss,
 			       &(int){ sizeof(local_ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 
@@ -1115,8 +1114,7 @@ tcpdns_send_cb(uv_write_t *req, int status) {
 
 	if (status < 0) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq,
-				       isc__nm_uverr2result(status));
+		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status));
 		return;
 	}
 
@@ -1175,14 +1173,14 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 		/* uv_try_write not supported, send asynchronously */
 	} else {
 		/* error sending data */
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto fail;
 	}
 
 	r = uv_write(&uvreq->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcpdns_send_cb);
 	if (r < 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto fail;
 	}
 

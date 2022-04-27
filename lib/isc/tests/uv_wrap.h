@@ -23,14 +23,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include "../netmgr/uv-compat.h"
+#include <isc/uv.h>
 
 /* uv_udp_t */
 

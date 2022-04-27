@@ -18,7 +18,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <uv.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -30,6 +29,7 @@
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "uv_wrap.h"
 #define KEEP_BEFORE
@@ -37,8 +37,6 @@
 #include "../netmgr/netmgr-int.h"
 #include "../netmgr/socket.c"
 #include "../netmgr/udp.c"
-#include "../netmgr/uv-compat.c"
-#include "../netmgr/uv-compat.h"
 #include "../netmgr_p.h"
 #include "isctest.h"
 
@@ -244,7 +242,7 @@ _teardown(void **state __attribute__((unused))) {
 static int
 setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	socklen_t addrlen = sizeof(*addr);
-	uv_os_sock_t fd;
+	uv_os_sock_t fd = -1;
 	int r;
 
 	isc_sockaddr_fromin6(addr, &in6addr_loopback, 0);

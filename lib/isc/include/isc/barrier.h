@@ -28,7 +28,7 @@
 
 #else
 
-#include <uv.h>
+#include <isc/uv.h>
 
 #define isc_barrier_t uv_barrier_t
 

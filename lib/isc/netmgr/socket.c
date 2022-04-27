@@ -12,9 +12,9 @@
  */
 
 #include <isc/errno.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
-#include "uv-compat.h"
 
 #define setsockopt_on(socket, level, name) \
 	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
@@ -67,7 +67,7 @@ int
 isc__nm_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 		     unsigned int flags) {
 	int r;
-	uv_os_sock_t fd;
+	uv_os_sock_t fd = -1;
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {
@@ -119,7 +119,7 @@ int
 isc__nm_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 		     unsigned int flags) {
 	int r;
-	uv_os_sock_t fd;
+	uv_os_sock_t fd = -1;
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {

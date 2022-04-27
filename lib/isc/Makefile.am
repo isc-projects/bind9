@@ -97,7 +97,8 @@ libisc_la_HEADERS =			\
 	include/isc/types.h		\
 	include/isc/url.h		\
 	include/isc/utf8.h		\
-	include/isc/util.h
+	include/isc/util.h		\
+	include/isc/uv.h
 
 libisc_la_SOURCES =		\
 	$(libisc_la_HEADERS)	\
@@ -109,9 +110,6 @@ libisc_la_SOURCES =		\
 	netmgr/timer.c		\
 	netmgr/tlsdns.c		\
 	netmgr/udp.c		\
-	netmgr/uv-compat.c	\
-	netmgr/uv-compat.h	\
-	netmgr/uverr2result.c	\
 	aes.c			\
 	app.c			\
 	assertions.c		\
@@ -199,7 +197,8 @@ libisc_la_SOURCES =		\
 	trampoline.c		\
 	trampoline_p.h		\
 	url.c			\
-	utf8.c
+	utf8.c			\
+	uv.c
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\

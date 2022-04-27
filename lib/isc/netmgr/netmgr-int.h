@@ -14,7 +14,6 @@
 #pragma once
 
 #include <unistd.h>
-#include <uv.h>
 
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -37,8 +36,7 @@
 #include <isc/thread.h>
 #include <isc/tls.h>
 #include <isc/util.h>
-
-#include "uv-compat.h"
+#include <isc/uv.h>
 
 #define ISC_NETMGR_TID_UNKNOWN -1
 
@@ -1821,18 +1819,6 @@ isc__nm_http_set_tlsctx(isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx);
 void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
-#define isc__nm_uverr2result(x) \
-	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
-isc_result_t
-isc___nm_uverr2result(int uverr, bool dolog, const char *file,
-		      unsigned int line, const char *func);
-/*%<
- * Convert a libuv error value into an isc_result_t.  The
- * list of supported error values is not complete; new users
- * of this function should add any expected errors that are
- * not already there.
- */
-
 bool
 isc__nm_acquire_interlocked(isc_nm_t *mgr);
 /*%<
@@ -2148,12 +2134,6 @@ void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
-
-#define UV_RUNTIME_CHECK(func, ret)                                         \
-	if (ret != 0) {                                                     \
-		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s", #func, \
-				uv_strerror(ret));                          \
-	}
 
 /*
  * Bind to the socket, but allow binding to IPv6 tentative addresses reported by

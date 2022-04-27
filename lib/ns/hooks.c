@@ -16,7 +16,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <uv.h>
 
 #include <isc/errno.h>
 #include <isc/list.h>
@@ -27,6 +26,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include <dns/view.h>
 

@@ -12,7 +12,6 @@
  */
 
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 #include <isc/barrier.h>
@@ -29,9 +28,9 @@
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
-#include "uv-compat.h"
 
 #ifdef HAVE_NET_ROUTE_H
 #include <net/route.h>
@@ -87,7 +86,7 @@ stop_udp_child(isc_nmsocket_t *sock);
 static uv_os_sock_t
 isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	isc_result_t result;
-	uv_os_sock_t sock;
+	uv_os_sock_t sock = -1;
 
 	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -223,7 +222,7 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 static isc_result_t
 route_socket(uv_os_sock_t *fdp) {
 	isc_result_t result;
-	uv_os_sock_t fd;
+	uv_os_sock_t fd = -1;
 #ifdef USE_NETLINK
 	struct sockaddr_nl sa;
 	int r;
@@ -286,7 +285,7 @@ route_connect_direct(isc_nmsocket_t *sock) {
 	atomic_store(&sock->connected, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 error:
 
 	LOCK(&sock->lock);
@@ -502,7 +501,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	atomic_store(&sock->listening, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 	atomic_fetch_add(&sock->parent->rchildren, 1);
 	if (sock->parent->result == ISC_R_UNSET) {
 		sock->parent->result = result;
@@ -603,8 +602,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 * - If there was a networking error.
 	 */
 	if (nrecv < 0) {
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nrecv),
-				       false);
+		isc__nm_failed_read_cb(sock, isc_uverr2result(nrecv), false);
 		goto free;
 	}
 
@@ -796,7 +794,7 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (status < 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 		isc__nm_incstats(sock, STATID_SENDFAIL);
 	}
 
@@ -837,7 +835,7 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	r = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
 			&req->uvbuf, 1, sa, udp_send_cb);
 	if (r < 0) {
-		return (isc__nm_uverr2result(r));
+		return (isc_uverr2result(r));
 	}
 
 	return (ISC_R_SUCCESS);
@@ -914,7 +912,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	atomic_store(&sock->connected, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 error:
 
 	LOCK(&sock->lock);

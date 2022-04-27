@@ -20,7 +20,6 @@
 
 #include <stdbool.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/app.h>
 #include <isc/atomic.h>
@@ -39,6 +38,7 @@
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlwriter.h>
@@ -49,7 +49,6 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
-#include "netmgr/uv-compat.h"
 #include "task_p.h"
 
 /*
