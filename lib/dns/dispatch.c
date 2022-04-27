@@ -491,6 +491,8 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	 */
 	if (ISC_LINK_LINKED(resp, alink)) {
 		response = resp->response;
+	} else if (eresult == ISC_R_SUCCESS) {
+		eresult = ISC_R_CANCELED;
 	}
 
 	if (eresult != ISC_R_SUCCESS) {
@@ -502,8 +504,6 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		 */
 		goto done;
 	}
-
-	INSIST(ISC_LINK_LINKED(resp, alink));
 
 	peer = isc_nmhandle_peeraddr(handle);
 	isc_netaddr_fromsockaddr(&netaddr, &peer);
