@@ -116,11 +116,3 @@ uv_os_getenv(const char *name, char *buffer, size_t *size) {
 
 #define uv_os_setenv(name, value) setenv(name, value, 0)
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 12, 0) */
-
-int
-isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
-		    unsigned int flags);
-
-int
-isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
-		    unsigned int flags);

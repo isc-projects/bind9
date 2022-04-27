@@ -463,9 +463,9 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	if (mgr->load_balance_sockets) {
-		r = isc_uv_udp_freebind(&sock->uv_handle.udp,
-					&sock->parent->iface.type.sa,
-					uv_bind_flags);
+		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
+					 &sock->parent->iface.type.sa,
+					 uv_bind_flags);
 		if (r < 0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
@@ -473,9 +473,9 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	} else {
 		if (sock->parent->fd == -1) {
 			/* This thread is first, bind the socket */
-			r = isc_uv_udp_freebind(&sock->uv_handle.udp,
-						&sock->parent->iface.type.sa,
-						uv_bind_flags);
+			r = isc__nm_udp_freebind(&sock->uv_handle.udp,
+						 &sock->parent->iface.type.sa,
+						 uv_bind_flags);
 			if (r < 0) {
 				isc__nm_incstats(sock, STATID_BINDFAIL);
 				goto done;

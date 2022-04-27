@@ -603,16 +603,16 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	if (mgr->load_balance_sockets) {
-		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-					&sock->iface.type.sa, flags);
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
 		if (r < 0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
 	} else {
 		if (sock->parent->fd == -1) {
-			r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-						&sock->iface.type.sa, flags);
+			r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+						 &sock->iface.type.sa, flags);
 			if (r < 0) {
 				isc__nm_incstats(sock, STATID_BINDFAIL);
 				goto done;

@@ -43,6 +43,7 @@
 
 #include "../netmgr/http.c"
 #include "../netmgr/netmgr-int.h"
+#include "../netmgr/socket.c"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
 #include "../netmgr_p.h"

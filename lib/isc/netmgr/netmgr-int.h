@@ -1876,12 +1876,6 @@ isc__nm_closesocket(uv_os_sock_t sock);
  */
 
 isc_result_t
-isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family);
-/*%<
- * Set the IP_FREEBIND (or equivalent) socket option on the uv_handle
- */
-
-isc_result_t
 isc__nm_socket_reuse(uv_os_sock_t fd);
 /*%<
  * Set the SO_REUSEADDR or SO_REUSEPORT (or equivalent) socket option on the fd
@@ -2160,3 +2154,15 @@ isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
 		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s", #func, \
 				uv_strerror(ret));                          \
 	}
+
+/*
+ * Bind to the socket, but allow binding to IPv6 tentative addresses reported by
+ * the route socket by setting IP_FREEBIND (or equivalent).
+ */
+int
+isc__nm_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
+		     unsigned int flags);
+
+int
+isc__nm_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
+		     unsigned int flags);

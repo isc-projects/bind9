@@ -35,6 +35,7 @@
 #define KEEP_BEFORE
 
 #include "../netmgr/netmgr-int.h"
+#include "../netmgr/socket.c"
 #include "../netmgr/udp.c"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
