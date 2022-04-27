@@ -1280,6 +1280,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
 #endif
+
+	INSIST(ISC_LIST_EMPTY(sock->tls.sendreqs));
 #ifdef NETMGR_TRACE
 	LOCK(&sock->mgr->lock);
 	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
@@ -1467,6 +1469,8 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
 				  .inactivereqs = isc_astack_new(
 					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
+
+	ISC_LIST_INIT(sock->tls.sendreqs);
 
 	if (iface != NULL) {
 		family = iface->type.sa.sa_family;

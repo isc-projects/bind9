@@ -916,6 +916,7 @@ struct isc_nmsocket {
 			TLS_STATE_CLOSING
 		} state;
 		isc_region_t senddata;
+		ISC_LIST(isc__nm_uvreq_t) sendreqs;
 		bool cycle;
 		isc_result_t pending_error;
 		/* List of active send requests. */
