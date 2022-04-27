@@ -1,3 +1,5 @@
+5879.	[contrib]	dlz: Add FALLTHROUGH and UNREACHABLE macros. [GL #3306]
+
 5878.	[func]		Check the algorithm name or OID embedded at the start
 			of the signature field for PRIVATEDNS and PRIVATEOID
 			SIG and RRSIG records are well formed. [GL #3296]
