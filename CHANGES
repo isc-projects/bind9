@@ -1,3 +1,5 @@
+5879.	[contrib]	dlz: Add FALLTHROUGH and UNREACHABLE macros. [GL #3306]
+
 5874.	[bug]		keymgr didn't work with python 3.11. [GL !6157]
 
 5866.	[bug]		Work around a jemalloc quirk which could trigger an
