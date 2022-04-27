@@ -28,6 +28,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -87,6 +88,24 @@ typedef uint32_t     dns_ttl_t;
 		_u.k = konst;          \
 		var = _u.v;            \
 	} while (0)
+
+#if !defined(__has_attribute)
+#define __has_attribute(x) 0
+#endif /* if !defined(__has_attribute) */
+
+#if __GNUC__ >= 7 || __has_attribute(fallthrough)
+#define FALLTHROUGH __attribute__((fallthrough))
+#else
+/* clang-format off */
+#define FALLTHROUGH do {} while (0) /* FALLTHROUGH */
+/* clang-format on */
+#endif
+
+#ifdef __GNUC__
+#define UNREACHABLE() __builtin_unreachable()
+#else
+#define UNREACHABLE() abort()
+#endif
 
 /* opaque structures */
 typedef void *dns_sdlzlookup_t;
