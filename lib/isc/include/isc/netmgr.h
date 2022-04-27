@@ -109,6 +109,18 @@ isc_nmsocket_close(isc_nmsocket_t **sockp);
  * sockets with active handles, the socket will be closed.
  */
 
+void
+isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx);
+/*%<
+ * Asynchronously replace the TLS context within the listener socket object.
+ * The function is intended to be used during reconfiguration.
+ *
+ * Requires:
+ * \li	'listener' is a pointer to a valid network manager listener socket
+ object with TLS support;
+ * \li	'tlsctx' is a valid pointer to a TLS context object.
+ */
+
 #ifdef NETMGR_TRACE
 #define isc_nmhandle_attach(handle, dest) \
 	isc__nmhandle_attach(handle, dest, __FILE__, __LINE__, __func__)

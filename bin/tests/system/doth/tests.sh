@@ -451,10 +451,17 @@ grep "ANSWER: 2500" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+wait_for_tlsctx_update_ns4 () {
+	grep "updating TLS context on 10.53.0.4#${HTTPSPORT}" ns4/named.run > /dev/null || return 1
+	grep "updating TLS context on 10.53.0.4#${TLSPORT}" ns4/named.run > /dev/null || return 1
+	return 0
+}
+
 n=$((n + 1))
 echo_i "doing rndc reconfig to see that queries keep being served after that ($n)"
 ret=0
 rndc_reconfig ns4 10.53.0.4 60
+retry_quiet 15 wait_for_tlsctx_update_ns4 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

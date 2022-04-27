@@ -30,6 +30,11 @@
 5858.	[bug]		Don't remove CDS/CDNSKEY DELETE records on zone sign
 			when using 'auto-dnssec maintain;'. [GL #2931]
 
+5854.	[func]		Implement reference counting for TLS contexts and
+			allow reloading of TLS certificates on reconfiguration
+			without destroying the underlying TCP listener sockets
+			for TLS-based DNS transports. [GL #3122]
+
 5849.	[cleanup]	Remove use of exclusive mode in ns_interfacemgr in
 			favor of rwlocked access to localhost and localnets
 			members of dns_aclenv_t structure. [GL #3229]

@@ -169,3 +169,10 @@ OPENSSL_cleanup(void) {
 	return;
 }
 #endif
+
+#if !HAVE_SSL_CTX_UP_REF
+int
+SSL_CTX_up_ref(SSL_CTX *ctx) {
+	return (CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX) > 0);
+}
+#endif /* !HAVE_SSL_CTX_UP_REF */

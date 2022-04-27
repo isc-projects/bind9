@@ -331,6 +331,8 @@ typedef enum isc__netievent_type {
 	netievent_task,
 	netievent_privilegedtask,
 
+	netievent_settlsctx,
+
 	/*
 	 * event type values higher than this will be treated
 	 * as high-priority events, which can be processed
@@ -668,6 +670,38 @@ typedef struct isc__netievent {
 		isc__nm_put_netievent(nm, ievent);                             \
 	}
 
+typedef struct isc__netievent__tlsctx {
+	NETIEVENT__SOCKET;
+	isc_tlsctx_t *tlsctx;
+} isc__netievent__tlsctx_t;
+
+#define NETIEVENT_SOCKET_TLSCTX_TYPE(type) \
+	typedef isc__netievent__tlsctx_t isc__netievent_##type##_t;
+
+#define NETIEVENT_SOCKET_TLSCTX_DECL(type)                                 \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(           \
+		isc_nm_t *nm, isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx); \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,                    \
+					  isc__netievent_##type##_t *ievent);
+
+#define NETIEVENT_SOCKET_TLSCTX_DEF(type)                                      \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
+		isc_nm_t *nm, isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx) {    \
+		isc__netievent_##type##_t *ievent =                            \
+			isc__nm_get_netievent(nm, netievent_##type);           \
+		isc__nmsocket_attach(sock, &ievent->sock);                     \
+		isc_tlsctx_attach(tlsctx, &ievent->tlsctx);                    \
+                                                                               \
+		return (ievent);                                               \
+	}                                                                      \
+                                                                               \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+					  isc__netievent_##type##_t *ievent) { \
+		isc_tlsctx_free(&ievent->tlsctx);                              \
+		isc__nmsocket_detach(&ievent->sock);                           \
+		isc__nm_put_netievent(nm, ievent);                             \
+	}
+
 typedef union {
 	isc__netievent_t ni;
 	isc__netievent__socket_t nis;
@@ -675,6 +709,7 @@ typedef union {
 	isc__netievent_udpsend_t nius;
 	isc__netievent__socket_quota_t nisq;
 	isc__netievent_tlsconnect_t nitc;
+	isc__netievent__tlsctx_t nitls;
 } isc__netievent_storage_t;
 
 /*
@@ -932,6 +967,9 @@ struct isc_nmsocket {
 		BIO *bio_out;
 		isc_tls_t *tls;
 		isc_tlsctx_t *ctx;
+		isc_tlsctx_t **listener_tls_ctx; /*%< A context reference per
+						    worker */
+		size_t n_listener_tls_ctx;
 		isc_nmsocket_t *tlslistener;
 		atomic_bool result_updated;
 		enum {
@@ -1615,6 +1653,9 @@ void
 isc__nm_async_tlsdnsshutdown(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
+void
+isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+				const int tid);
 /*%<
  * Callback handlers for asynchronous TLSDNS events.
  */
@@ -1628,6 +1669,9 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
  * Requires:
  * \li	'sock' is a valid TLSDNS socket.
  */
+
+void
+isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock);
 
 #if HAVE_LIBNGHTTP2
 void
@@ -1684,6 +1728,10 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
  * Set the keepalive value on the underlying TCP handle.
  */
+
+void
+isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+			     const int tid);
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
@@ -1767,7 +1815,13 @@ isc__nm_httpsession_attach(isc_nm_http_session_t *source,
 void
 isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp);
 
+void
+isc__nm_http_set_tlsctx(isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx);
+
 #endif
+
+void
+isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
 #define isc__nm_uverr2result(x) \
 	isc___nm_uverr2result(x, true, __FILE__, __LINE__, __func__)
@@ -1962,6 +2016,8 @@ NETIEVENT_TYPE(stop);
 NETIEVENT_TASK_TYPE(task);
 NETIEVENT_TASK_TYPE(privilegedtask);
 
+NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
+
 /* Now declared the helper functions */
 
 NETIEVENT_SOCKET_DECL(close);
@@ -2029,6 +2085,8 @@ NETIEVENT_DECL(stop);
 
 NETIEVENT_TASK_DECL(task);
 NETIEVENT_TASK_DECL(privilegedtask);
+
+NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 
 void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);

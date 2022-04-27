@@ -72,6 +72,15 @@ tls_close_direct(isc_nmsocket_t *sock);
 static void
 async_tls_do_bio(isc_nmsocket_t *sock);
 
+static void
+tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx);
+
+static void
+tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener);
+
+static isc_tlsctx_t *
+tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid);
+
 /*
  * The socket is closing, outerhandle has been detached, listener is
  * inactive, or the netmgr is closing: any operation on it should abort
@@ -578,6 +587,8 @@ static isc_result_t
 tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *tlssock = NULL;
+	isc_tlsctx_t *tlsctx = NULL;
+	int tid;
 
 	/* If accept() was unsuccessful we can't do anything */
 	if (result != ISC_R_SUCCESS) {
@@ -596,11 +607,15 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc__nmsocket_init(tlssock, handle->sock->mgr, isc_nm_tlssocket,
 			   &handle->sock->iface);
 
+	tid = isc_nm_tid();
 	/* We need to initialize SSL now to reference SSL_CTX properly */
-	tlssock->tlsstream.ctx = tlslistensock->tlsstream.ctx;
+	tlsctx = tls_get_listener_tlsctx(tlslistensock, tid);
+	RUNTIME_CHECK(tlsctx != NULL);
+	isc_tlsctx_attach(tlsctx, &tlssock->tlsstream.ctx);
 	tlssock->tlsstream.tls = isc_tls_create(tlssock->tlsstream.ctx);
 	if (tlssock->tlsstream.tls == NULL) {
 		atomic_store(&tlssock->closed, true);
+		isc_tlsctx_free(&tlssock->tlsstream.ctx);
 		isc__nmsocket_detach(&tlssock);
 		return (ISC_R_TLSERROR);
 	}
@@ -610,9 +625,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
 	tlssock->read_timeout = atomic_load(&handle->sock->mgr->init);
-	tlssock->tid = isc_nm_tid();
-
-	tlssock->tlsstream.ctx = tlslistensock->tlsstream.ctx;
+	tlssock->tid = tid;
 
 	result = initialize_tls(tlssock, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -640,7 +653,7 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
 	tlssock->extrahandlesize = extrahandlesize;
-	tlssock->tlsstream.ctx = sslctx;
+	tls_init_listener_tlsctx(tlssock, sslctx);
 	tlssock->tlsstream.tls = NULL;
 
 	/*
@@ -863,10 +876,9 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	atomic_store(&sock->closed, true);
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;
-	if (sock->tlsstream.tls != NULL) {
-		isc_tls_free(&sock->tlsstream.tls);
-		sock->tlsstream.ctx = NULL;
-	}
+
+	INSIST(sock->tlsstream.tls == NULL);
+	INSIST(sock->tlsstream.ctx == NULL);
 
 	if (sock->outer != NULL) {
 		isc_nm_stoplistening(sock->outer);
@@ -896,7 +908,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
-	nsock->tlsstream.ctx = ctx;
+	isc_tlsctx_attach(ctx, &nsock->tlsstream.ctx);
 
 	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, nsock,
 			  nsock->connect_timeout, 0);
@@ -1009,13 +1021,17 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 		REQUIRE(VALID_NMSOCK(sock->tlsstream.tlslistener));
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
 	} else if (sock->type == isc_nm_tlssocket) {
+		if (sock->tlsstream.ctx != NULL) {
+			isc_tlsctx_free(&sock->tlsstream.ctx);
+		}
 		if (sock->tlsstream.tls != NULL) {
 			isc_tls_free(&sock->tlsstream.tls);
 			/* These are destroyed when we free SSL */
-			sock->tlsstream.ctx = NULL;
 			sock->tlsstream.bio_out = NULL;
 			sock->tlsstream.bio_in = NULL;
 		}
+	} else if (sock->type == isc_nm_tlslistener) {
+		tls_cleanup_listener_tlsctx(sock);
 	}
 }
 
@@ -1063,4 +1079,62 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value) {
 
 		isc_nmhandle_keepalive(sock->outerhandle, value);
 	}
+}
+
+static void
+tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
+	size_t nworkers;
+
+	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(ctx != NULL);
+
+	nworkers = (size_t)listener->mgr->nworkers;
+	INSIST(nworkers > 0);
+
+	listener->tlsstream.listener_tls_ctx = isc_mem_get(
+		listener->mgr->mctx, sizeof(isc_tlsctx_t *) * nworkers);
+	listener->tlsstream.n_listener_tls_ctx = nworkers;
+	for (size_t i = 0; i < nworkers; i++) {
+		listener->tlsstream.listener_tls_ctx[i] = NULL;
+		isc_tlsctx_attach(ctx,
+				  &listener->tlsstream.listener_tls_ctx[i]);
+	}
+}
+
+static void
+tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
+	REQUIRE(VALID_NM(listener->mgr));
+
+	if (listener->tlsstream.listener_tls_ctx == NULL) {
+		return;
+	}
+
+	for (size_t i = 0; i < listener->tlsstream.n_listener_tls_ctx; i++) {
+		isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[i]);
+	}
+	isc_mem_put(listener->mgr->mctx, listener->tlsstream.listener_tls_ctx,
+		    sizeof(isc_tlsctx_t *) *
+			    listener->tlsstream.n_listener_tls_ctx);
+	listener->tlsstream.n_listener_tls_ctx = 0;
+}
+
+static isc_tlsctx_t *
+tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid) {
+	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(tid >= 0);
+
+	if (listener->tlsstream.listener_tls_ctx == NULL) {
+		return (NULL);
+	}
+
+	return (listener->tlsstream.listener_tls_ctx[tid]);
+}
+
+void
+isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
+			     const int tid) {
+	REQUIRE(tid >= 0);
+
+	isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[tid]);
+	isc_tlsctx_attach(tlsctx, &listener->tlsstream.listener_tls_ctx[tid]);
 }

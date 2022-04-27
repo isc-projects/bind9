@@ -184,6 +184,16 @@ isc_tlsctx_free(isc_tlsctx_t **ctxp) {
 	SSL_CTX_free(ctx);
 }
 
+void
+isc_tlsctx_attach(isc_tlsctx_t *src, isc_tlsctx_t **ptarget) {
+	REQUIRE(src != NULL);
+	REQUIRE(ptarget != NULL && *ptarget == NULL);
+
+	RUNTIME_CHECK(SSL_CTX_up_ref(src) == 1);
+
+	*ptarget = src;
+}
+
 #if HAVE_SSL_CTX_SET_KEYLOG_CALLBACK
 /*
  * Callback invoked by the SSL library whenever a new TLS pre-master secret

@@ -901,6 +901,25 @@ clearlistenon(ns_interfacemgr_t *mgr) {
 	}
 }
 
+static void
+replace_listener_tlsctx(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
+			isc_tlsctx_t *newctx) {
+	char sabuf[ISC_SOCKADDR_FORMATSIZE];
+	REQUIRE(NS_INTERFACE_VALID(ifp));
+
+	LOCK(&mgr->lock);
+	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+		      "updating TLS context on %s", sabuf);
+	if (ifp->tcplistensocket != NULL) {
+		/* 'tcplistensocket' is used for DoT */
+		isc_nmsocket_set_tlsctx(ifp->tcplistensocket, newctx);
+	} else if (ifp->http_secure_listensocket != NULL) {
+		isc_nmsocket_set_tlsctx(ifp->http_secure_listensocket, newctx);
+	}
+	UNLOCK(&mgr->lock);
+}
+
 static isc_result_t
 do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_interfaceiter_t *iter = NULL;
@@ -968,42 +987,30 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 
 			ifp = find_matching_interface(mgr, &listen_addr);
 			if (ifp != NULL) {
-				/*
-				 * We need to recreate the TLS/HTTPS listeners
-				 * during reconfiguration because the
-				 * certificates could have been changed.
-				 */
-				if (config && LISTENING(ifp) &&
-				    le->sslctx != NULL) {
-					INSIST(NS_INTERFACE_VALID(ifp));
-					LOCK(&mgr->lock);
-					isc_sockaddr_format(&ifp->addr, sabuf,
+				ifp->generation = mgr->generation;
+				if (le->dscp != -1 && ifp->dscp == -1) {
+					ifp->dscp = le->dscp;
+				} else if (le->dscp != ifp->dscp) {
+					isc_sockaddr_format(&listen_addr, sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_INFO,
-						      "no longer listening on "
-						      "%s",
-						      sabuf);
-					interface_destroy(&ifp);
-					UNLOCK(&mgr->lock);
-				} else {
-					ifp->generation = mgr->generation;
-					if (le->dscp != -1 && ifp->dscp == -1) {
-						ifp->dscp = le->dscp;
-					} else if (le->dscp != ifp->dscp) {
-						isc_sockaddr_format(
-							&listen_addr, sabuf,
-							sizeof(sabuf));
-						isc_log_write(
-							IFMGR_COMMON_LOGARGS,
-							ISC_LOG_WARNING,
-							"%s: conflicting DSCP "
-							"values, using %d",
-							sabuf, ifp->dscp);
+						      ISC_LOG_WARNING,
+						      "%s: conflicting DSCP "
+						      "values, using %d",
+						      sabuf, ifp->dscp);
+				}
+				if (LISTENING(ifp)) {
+					/*
+					 * We need to update the TLS contexts
+					 * inside the TLS/HTTPS listeners during
+					 * a reconfiguration because the
+					 * certificates could have been changed.
+					 */
+					if (config && le->sslctx != NULL) {
+						replace_listener_tlsctx(
+							mgr, ifp, le->sslctx);
 					}
-					if (LISTENING(ifp)) {
-						continue;
-					}
+					continue;
 				}
 			}
 
@@ -1144,42 +1151,32 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
-				/*
-				 * We need to recreate the TLS/HTTPS listeners
-				 * during a reconfiguration because the
-				 * certificates could have been changed.
-				 */
-				if (config && LISTENING(ifp) &&
-				    le->sslctx != NULL) {
-					INSIST(NS_INTERFACE_VALID(ifp));
-					LOCK(&mgr->lock);
-					isc_sockaddr_format(&ifp->addr, sabuf,
+				ifp->generation = mgr->generation;
+				if (le->dscp != -1 && ifp->dscp == -1) {
+					ifp->dscp = le->dscp;
+				} else if (le->dscp != ifp->dscp) {
+					isc_sockaddr_format(&listen_sockaddr,
+							    sabuf,
 							    sizeof(sabuf));
 					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_INFO,
-						      "no longer listening on "
-						      "%s",
-						      sabuf);
-					interface_destroy(&ifp);
-					UNLOCK(&mgr->lock);
-				} else {
-					ifp->generation = mgr->generation;
-					if (le->dscp != -1 && ifp->dscp == -1) {
-						ifp->dscp = le->dscp;
-					} else if (le->dscp != ifp->dscp) {
-						isc_sockaddr_format(
-							&listen_sockaddr, sabuf,
-							sizeof(sabuf));
-						isc_log_write(
-							IFMGR_COMMON_LOGARGS,
-							ISC_LOG_WARNING,
-							"%s: conflicting DSCP "
-							"values, using %d",
-							sabuf, ifp->dscp);
+						      ISC_LOG_WARNING,
+						      "%s: conflicting DSCP "
+						      "values, using %d",
+						      sabuf, ifp->dscp);
+				}
+				if (LISTENING(ifp)) {
+					/*
+					 * We need to update the TLS contexts
+					 * inside the TLS/HTTPS listeners during
+					 * a reconfiguration because the
+					 * certificates could have been changed.
+					 */
+					if (config && le->sslctx != NULL) {
+						replace_listener_tlsctx(
+							mgr, ifp, le->sslctx);
 					}
-					if (LISTENING(ifp)) {
-						continue;
-					}
+
+					continue;
 				}
 			}
 

@@ -30,6 +30,17 @@ isc_tlsctx_free(isc_tlsctx_t **ctpx);
  *\li	'ctxp' != NULL and '*ctxp' != NULL.
  */
 
+void
+isc_tlsctx_attach(isc_tlsctx_t *src, isc_tlsctx_t **ptarget);
+/*%<
+ * Attach to the TLS context.
+ *
+ * Requires:
+ *\li	'src' != NULL;
+ *\li	'ptarget' != NULL;
+ *\li	'*ptarget' == NULL.
+ */
+
 isc_result_t
 isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 			isc_tlsctx_t **ctxp);
