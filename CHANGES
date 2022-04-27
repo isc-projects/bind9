@@ -1,3 +1,6 @@
+5870.	[cleanup]	Remove redundant macros in the RBT implementation.
+			[GL !6158]
+
 5869.	[func]		Enable use of IP(V6)_RECVERR on Linux that allows
 			the kernel to report destination host/network
 			unreachable errors to the userspace application.
