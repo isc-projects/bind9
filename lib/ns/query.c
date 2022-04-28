@@ -5789,6 +5789,7 @@ query_lookup(query_ctx_t *qctx) {
 	bool stale_found = false;
 	bool refresh_rrset = false;
 	bool stale_refresh_window = false;
+	uint16_t ede = 0;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -5901,8 +5902,14 @@ query_lookup(query_ctx_t *qctx) {
 		    dns_rdataset_count(qctx->rdataset) > 0 &&
 		    STALE(qctx->rdataset))
 		{
-			qctx->rdataset->ttl = qctx->view->staleanswerttl;
 			stale_found = true;
+			if (result == DNS_R_NCACHENXDOMAIN ||
+			    result == DNS_R_NXDOMAIN) {
+				ede = DNS_EDE_STALENXANSWER;
+			} else {
+				ede = DNS_EDE_STALEANSWER;
+			}
+			qctx->rdataset->ttl = qctx->view->staleanswerttl;
 			inc_stats(qctx->client, ns_statscounter_usedstale);
 		} else {
 			stale_found = false;
@@ -5914,7 +5921,10 @@ query_lookup(query_ctx_t *qctx) {
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "%s resolver failure, stale answer %s", namebuf,
 			      stale_found ? "used" : "unavailable");
-		if (!stale_found) {
+		if (stale_found) {
+			ns_client_extendederror(qctx->client, ede,
+						"resolver failure");
+		} else {
 			/*
 			 * Resolver failure, no stale data, nothing more we
 			 * can do, return SERVFAIL.
@@ -5933,7 +5943,11 @@ query_lookup(query_ctx_t *qctx) {
 			      "answer %s",
 			      namebuf, stale_found ? "used" : "unavailable");
 
-		if (!stale_found) {
+		if (stale_found) {
+			ns_client_extendederror(
+				qctx->client, ede,
+				"query within stale refresh time window");
+		} else {
 			/*
 			 * During the stale refresh window explicitly do not try
 			 * to refresh the data, because a recent lookup failed.
@@ -5973,6 +5987,9 @@ query_lookup(query_ctx_t *qctx) {
 					namebuf);
 				refresh_rrset = STALE(qctx->rdataset);
 				qctx->client->nodetach = refresh_rrset;
+				ns_client_extendederror(
+					qctx->client, ede,
+					"stale data prioritized over lookup");
 			}
 		} else {
 			/*
@@ -5985,7 +6002,10 @@ query_lookup(query_ctx_t *qctx) {
 				      "%s client timeout, stale answer %s",
 				      namebuf,
 				      stale_found ? "used" : "unavailable");
-			if (!stale_found) {
+			if (stale_found) {
+				ns_client_extendederror(qctx->client, ede,
+							"client timeout");
+			} else {
 				return (result);
 			}
 

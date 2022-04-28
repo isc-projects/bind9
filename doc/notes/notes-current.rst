@@ -25,7 +25,8 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Add DNS Extended Errors (:rfc:`8914`) when stale answers are returned from
+  cache. :gl:`#2267`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

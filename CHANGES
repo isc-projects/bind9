@@ -1,3 +1,6 @@
+5876.	[func]		Add DNS Extended Errors when stale answers are returned
+			from cache. [GL #2267]
+
 5875.	[bug]		Fixed a deadlock that could occur if an rndc
 			connection arrived during the shutdown of network
 			interfaces. [GL #3272]
