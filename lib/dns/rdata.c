@@ -17,6 +17,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <openssl/objects.h>
+
 #include <isc/base64.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
@@ -603,6 +605,46 @@ typemap_test(isc_region_t *sr, bool allow_empty) {
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
+
+static isc_result_t
+check_private(isc_buffer_t *source, dns_secalg_t alg) {
+	isc_region_t sr;
+	if (alg == DNS_KEYALG_PRIVATEDNS) {
+		dns_fixedname_t fixed;
+		dns_decompress_t dctx;
+
+		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
+		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
+					 &dctx, 0, NULL));
+		/*
+		 * There should be a public key or signature after the key name.
+		 */
+		isc_buffer_activeregion(source, &sr);
+		if (sr.length == 0) {
+			return (ISC_R_UNEXPECTEDEND);
+		}
+	} else if (alg == DNS_KEYALG_PRIVATEOID) {
+		/*
+		 * Check that we can extract the OID from the start of the
+		 * key data.
+		 */
+		const unsigned char *in = NULL;
+		ASN1_OBJECT *obj = NULL;
+
+		isc_buffer_activeregion(source, &sr);
+		in = sr.base;
+		obj = d2i_ASN1_OBJECT(NULL, &in, sr.length);
+		if (obj == NULL) {
+			RETERR(DNS_R_FORMERR);
+		}
+		ASN1_OBJECT_free(obj);
+		/* There should be a public key or signature after the OID. */
+		if (in >= sr.base + sr.length) {
+			return (ISC_R_UNEXPECTEDEND);
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
 
 #include "code.h"
 

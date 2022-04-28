@@ -23,7 +23,7 @@
 static isc_result_t
 fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_token_t token;
-	unsigned char c;
+	unsigned char alg, c;
 	long i;
 	dns_rdatatype_t covered;
 	char *e;
@@ -31,6 +31,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
+	unsigned int used;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -61,8 +62,8 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
-	RETERR(mem_tobuffer(target, &c, 1));
+	RETTOK(dns_secalg_fromtext(&alg, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &alg, 1));
 
 	/*
 	 * Labels.
@@ -154,7 +155,24 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	/*
 	 * Sig.
 	 */
-	return (isc_base64_tobuffer(lexer, target, -2));
+	used = isc_buffer_usedlength(target);
+
+	RETERR(isc_base64_tobuffer(lexer, target, -2));
+
+	if (alg == DNS_KEYALG_PRIVATEDNS || alg == DNS_KEYALG_PRIVATEOID) {
+		isc_buffer_t b;
+
+		/*
+		 * Set up 'b' so that the signature data can be parsed.
+		 */
+		b = *target;
+		b.active = b.used;
+		b.current = used;
+
+		RETERR(check_private(&b, alg));
+	}
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -278,6 +296,7 @@ static isc_result_t
 fromwire_rrsig(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	unsigned char algorithm;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -300,6 +319,8 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
+	algorithm = sr.base[2];
+
 	isc_buffer_forward(source, 18);
 	RETERR(mem_tobuffer(target, sr.base, 18));
 
@@ -316,6 +337,13 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	if (sr.length < 1) {
 		return (DNS_R_FORMERR);
 	}
+
+	if (algorithm == DNS_KEYALG_PRIVATEDNS ||
+	    algorithm == DNS_KEYALG_PRIVATEOID) {
+		isc_buffer_t b = *source;
+		RETERR(check_private(&b, algorithm));
+	}
+
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }

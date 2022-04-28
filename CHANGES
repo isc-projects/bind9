@@ -1,3 +1,7 @@
+5878.	[func]		Check the algorithm name or OID embedded at the start
+			of the signature field for PRIVATEDNS and PRIVATEOID
+			SIG and RRSIG records are well formed. [GL #3296]
+
 5877.	[func]		Introduce the concept of broken catalog zones described
 			in the DNS catalog zones draft version 5 document.
 			[GL #3224]
