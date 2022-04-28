@@ -53,6 +53,11 @@
 5842.	[cleanup]	Remove the task exclusive mode use in ns_clientmgr.
 			[GL #3230]
 
+5839.	[func]		Add support for remote TLS certificates
+			verification, both to BIND and dig, making it possible
+			to implement Strict and Mutual TLS authentication,
+			as described in RFC 9103, Section 9.3. [GL #3163]
+
 	--- 9.18.2 released ---
 
 5856.	[bug]		The "starting maxtime timer" message related to outgoing

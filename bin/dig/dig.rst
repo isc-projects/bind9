@@ -633,6 +633,27 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    name servers. When this option is in use, the port number defaults
    to 853.
 
+.. option:: +tls-ca[=file-name], +notls-ca
+
+   This option enables remote server TLS certificate validation for
+   DNS transports, relying on TLS. Certificate authorities
+   certificates are loaded from the specified PEM file
+   (``file-name``). If the file is not specified, the default
+   certificates from the global certificates store are used.
+
+.. option:: +tls-certfile=file-name, +tls-keyfile=file-name, +notls-certfile, +notls-keyfile
+
+   These options set the state of certificate-based client
+   authentication for DNS transports, relying on TLS. Both certificate
+   chain file and private key file are expected to be in PEM format.
+   Both options must be specified at the same time.
+
+.. option:: +tls-hostname=hostname, +notls-hostname
+
+   This option makes :program:`dig` use the provided hostname during remote
+   server TLS certificate verification. Otherwise, the DNS server name
+   is used. This option has no effect if :option:`+tls-ca` is not specified.
+
 .. option:: +topdown, +notopdown
 
    This feature is related to :option:`dig +sigchase`, which is obsolete and

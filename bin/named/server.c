@@ -11106,8 +11106,8 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *http_server = NULL;
 	in_port_t port = 0;
 	isc_dscp_t dscp = -1;
-	const char *key = NULL, *cert = NULL, *dhparam_file = NULL,
-		   *ciphers = NULL;
+	const char *key = NULL, *cert = NULL, *ca_file = NULL,
+		   *dhparam_file = NULL, *ciphers = NULL;
 	bool tls_prefer_server_ciphers = false,
 	     tls_prefer_server_ciphers_set = false;
 	bool tls_session_tickets = false, tls_session_tickets_set = false;
@@ -11132,7 +11132,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			do_tls = true;
 		} else {
 			const cfg_obj_t *keyobj = NULL, *certobj = NULL,
-					*dhparam_obj = NULL;
+					*ca_obj = NULL, *dhparam_obj = NULL;
 			const cfg_obj_t *tlsmap = NULL;
 			const cfg_obj_t *tls_proto_list = NULL;
 			const cfg_obj_t *ciphers_obj = NULL;
@@ -11154,6 +11154,11 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 
 			CHECK(cfg_map_get(tlsmap, "cert-file", &certobj));
 			cert = cfg_obj_asstring(certobj);
+
+			if (cfg_map_get(tlsmap, "ca-file", &ca_obj) ==
+			    ISC_R_SUCCESS) {
+				ca_file = cfg_obj_asstring(ca_obj);
+			}
 
 			if (cfg_map_get(tlsmap, "protocols", &tls_proto_list) ==
 			    ISC_R_SUCCESS) {
@@ -11210,6 +11215,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		.name = tlsname,
 		.key = key,
 		.cert = cert,
+		.ca_file = ca_file,
 		.protocols = tls_protos,
 		.dhparam_file = dhparam_file,
 		.ciphers = ciphers,

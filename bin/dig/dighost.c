@@ -642,6 +642,8 @@ make_empty_lookup(void) {
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 
+	looknew->tls_ctx_cache = isc_tlsctx_cache_new(mctx);
+
 	isc_refcount_init(&looknew->references, 1);
 
 	looknew->magic = DIG_LOOKUP_MAGIC;
@@ -732,6 +734,30 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->https_get = lookold->https_get;
 	looknew->http_plain = lookold->http_plain;
 
+	looknew->tls_ca_set = lookold->tls_ca_set;
+	if (lookold->tls_ca_file != NULL) {
+		looknew->tls_ca_file = isc_mem_strdup(mctx,
+						      lookold->tls_ca_file);
+	};
+
+	looknew->tls_hostname_set = lookold->tls_hostname_set;
+	if (lookold->tls_hostname != NULL) {
+		looknew->tls_hostname = isc_mem_strdup(mctx,
+						       lookold->tls_hostname);
+	}
+
+	looknew->tls_key_file_set = lookold->tls_key_file_set;
+	if (lookold->tls_key_file != NULL) {
+		looknew->tls_key_file = isc_mem_strdup(mctx,
+						       lookold->tls_key_file);
+	}
+
+	looknew->tls_cert_file_set = lookold->tls_cert_file_set;
+	if (lookold->tls_cert_file != NULL) {
+		looknew->tls_cert_file = isc_mem_strdup(mctx,
+							lookold->tls_cert_file);
+	}
+
 	looknew->showbadcookie = lookold->showbadcookie;
 	looknew->sendcookie = lookold->sendcookie;
 	looknew->seenbadcookie = lookold->seenbadcookie;
@@ -797,6 +823,11 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 		      dns_fixedname_name(&looknew->fdomain));
 
 	if (servers) {
+		if (lookold->tls_ctx_cache != NULL) {
+			isc_tlsctx_cache_detach(&looknew->tls_ctx_cache);
+			isc_tlsctx_cache_attach(lookold->tls_ctx_cache,
+						&looknew->tls_ctx_cache);
+		}
 		clone_server_list(lookold->my_server_list,
 				  &looknew->my_server_list);
 	}
@@ -1599,6 +1630,26 @@ _destroy_lookup(dig_lookup_t *lookup) {
 
 	if (lookup->https_path) {
 		isc_mem_free(mctx, lookup->https_path);
+	}
+
+	if (lookup->tls_ctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&lookup->tls_ctx_cache);
+	}
+
+	if (lookup->tls_ca_file != NULL) {
+		isc_mem_free(mctx, lookup->tls_ca_file);
+	}
+
+	if (lookup->tls_hostname != NULL) {
+		isc_mem_free(mctx, lookup->tls_hostname);
+	}
+
+	if (lookup->tls_key_file != NULL) {
+		isc_mem_free(mctx, lookup->tls_key_file);
+	}
+
+	if (lookup->tls_cert_file != NULL) {
+		isc_mem_free(mctx, lookup->tls_cert_file);
 	}
 
 	isc_mem_free(mctx, lookup);
@@ -2720,6 +2771,106 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 	check_if_done();
 }
 
+static isc_tlsctx_t *
+get_create_tls_context(dig_query_t *query, const bool is_https) {
+	isc_result_t result;
+	isc_tlsctx_t *ctx = NULL, *found_ctx = NULL;
+	isc_tls_cert_store_t *store = NULL, *found_store = NULL;
+	char tlsctxname[ISC_SOCKADDR_FORMATSIZE];
+	const uint16_t family = isc_sockaddr_pf(&query->sockaddr) == PF_INET6
+					? AF_INET6
+					: AF_INET;
+	isc_tlsctx_cache_transport_t transport =
+		is_https ? isc_tlsctx_cache_https : isc_tlsctx_cache_tls;
+	const bool hostname_ignore_subject = !is_https;
+
+	if (query->lookup->tls_key_file_set != query->lookup->tls_cert_file_set)
+	{
+		return (NULL);
+	}
+
+	isc_sockaddr_format(&query->sockaddr, tlsctxname, sizeof(tlsctxname));
+
+	result = isc_tlsctx_cache_find(query->lookup->tls_ctx_cache, tlsctxname,
+				       transport, family, &found_ctx,
+				       &found_store);
+	if (result != ISC_R_SUCCESS) {
+		if (query->lookup->tls_ca_set) {
+			if (found_store == NULL) {
+				result = isc_tls_cert_store_create(
+					query->lookup->tls_ca_file, &store);
+
+				if (result != ISC_R_SUCCESS) {
+					goto failure;
+				}
+			} else {
+				store = found_store;
+			}
+		}
+
+		result = isc_tlsctx_createclient(&ctx);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
+
+		if (store != NULL) {
+			const char *hostname =
+				query->lookup->tls_hostname_set
+					? query->lookup->tls_hostname
+					: query->userarg;
+			/*
+			 * According to RFC 8310, Subject field MUST NOT be
+			 * inspected when verifying hostname for DoT. Only
+			 * SubjectAltName must be checked. That is NOT the case
+			 * for HTTPS.
+			 */
+			result = isc_tlsctx_enable_peer_verification(
+				ctx, false, store, hostname,
+				hostname_ignore_subject);
+			if (result != ISC_R_SUCCESS) {
+				goto failure;
+			}
+		}
+
+		if (query->lookup->tls_key_file_set &&
+		    query->lookup->tls_cert_file_set) {
+			result = isc_tlsctx_load_certificate(
+				ctx, query->lookup->tls_key_file,
+				query->lookup->tls_cert_file);
+			if (result != ISC_R_SUCCESS) {
+				goto failure;
+			}
+		}
+
+		if (!is_https) {
+			isc_tlsctx_enable_dot_client_alpn(ctx);
+		}
+
+#if HAVE_LIBNGHTTP2
+		if (is_https) {
+			isc_tlsctx_enable_http2client_alpn(ctx);
+		}
+#endif /* HAVE_LIBNGHTTP2 */
+
+		result = isc_tlsctx_cache_add(query->lookup->tls_ctx_cache,
+					      tlsctxname, transport, family,
+					      ctx, store, NULL, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		return (ctx);
+	}
+
+	INSIST(!query->lookup->tls_ca_set || found_store != NULL);
+	return (found_ctx);
+failure:
+	if (ctx != NULL && found_ctx != ctx) {
+		isc_tlsctx_free(&ctx);
+	}
+	if (store != NULL && store != found_store) {
+		isc_tls_cert_store_free(&store);
+	}
+	return (NULL);
+}
+
 static void
 tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg);
 
@@ -2733,18 +2884,22 @@ start_tcp(dig_query_t *query) {
 	isc_result_t result;
 	dig_query_t *next = NULL;
 	dig_query_t *connectquery = NULL;
+	isc_tlsctx_t *tlsctx = NULL;
+	bool tls_mode = false;
 	REQUIRE(DIG_VALID_QUERY(query));
 
 	debug("start_tcp(%p)", query);
 
 	query_attach(query, &query->lookup->current_query);
 
+	tls_mode = dig_lookup_is_tls(query->lookup);
+
 	/*
 	 * For TLS connections, we want to override the default
 	 * port number.
 	 */
 	if (!port_set) {
-		if (query->lookup->tls_mode) {
+		if (tls_mode) {
 			port = 853;
 		} else if (query->lookup->https_mode &&
 			   !query->lookup->http_plain) {
@@ -2824,14 +2979,15 @@ start_tcp(dig_query_t *query) {
 
 		query_attach(query, &connectquery);
 
-		if (query->lookup->tls_mode) {
-			result = isc_tlsctx_createclient(&query->tlsctx);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_tlsctx_enable_dot_client_alpn(query->tlsctx);
+		if (tls_mode) {
+			tlsctx = get_create_tls_context(connectquery, false);
+			if (tlsctx == NULL) {
+				goto failure_tls;
+			}
 			isc_nm_tlsdnsconnect(netmgr, &localaddr,
 					     &query->sockaddr, tcp_connected,
 					     connectquery, local_timeout, 0,
-					     query->tlsctx);
+					     tlsctx);
 #if HAVE_LIBNGHTTP2
 		} else if (query->lookup->https_mode) {
 			char uri[4096] = { 0 };
@@ -2841,17 +2997,17 @@ start_tcp(dig_query_t *query) {
 					    uri, sizeof(uri));
 
 			if (!query->lookup->http_plain) {
-				result =
-					isc_tlsctx_createclient(&query->tlsctx);
-				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				isc_tlsctx_enable_http2client_alpn(
-					query->tlsctx);
+				tlsctx = get_create_tls_context(connectquery,
+								true);
+				if (tlsctx == NULL) {
+					goto failure_tls;
+				}
 			}
 
 			isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr,
 					   uri, !query->lookup->https_get,
-					   tcp_connected, connectquery,
-					   query->tlsctx, local_timeout, 0);
+					   tcp_connected, connectquery, tlsctx,
+					   local_timeout, 0);
 #endif
 		} else {
 			isc_nm_tcpdnsconnect(netmgr, &localaddr,
@@ -2860,6 +3016,32 @@ start_tcp(dig_query_t *query) {
 		}
 
 		/* XXX: set DSCP */
+	}
+
+	return;
+failure_tls:
+	if (query->lookup->tls_key_file_set != query->lookup->tls_cert_file_set)
+	{
+		dighost_warning(
+			"both TLS client certificate and key file must be "
+			"specified a the same time");
+	} else {
+		dighost_warning("TLS context cannot be created");
+	}
+
+	if (ISC_LINK_LINKED(query, link)) {
+		next = ISC_LIST_NEXT(query, link);
+	} else {
+		next = NULL;
+	}
+	if (connectquery != NULL) {
+		query_detach(&connectquery);
+	}
+	query_detach(&query);
+	if (next == NULL) {
+		clear_current_lookup();
+	} else {
+		start_tcp(next);
 	}
 }
 
@@ -3289,16 +3471,27 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
 
-	if (query->tlsctx != NULL) {
-		isc_tlsctx_free(&query->tlsctx);
-	}
-
-	if (eresult == ISC_R_CANCELED || query->canceled) {
+	if (eresult == ISC_R_CANCELED || eresult == ISC_R_TLSBADPEERCERT ||
+	    query->canceled)
+	{
 		debug("in cancel handler");
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
+		if (eresult == ISC_R_TLSBADPEERCERT) {
+			dighost_warning(
+				"TLS peer certificate verification for "
+				"%s failed: %s",
+				sockstr,
+				isc_nm_verify_tls_peer_result_string(handle));
+		} else if (query->lookup->rdtype == dns_rdatatype_ixfr ||
+			   query->lookup->rdtype == dns_rdatatype_axfr)
+		{
+			puts("; Transfer failed.");
+		}
+
 		if (!query->canceled) {
 			cancel_lookup(l);
 		}
+
 		query_detach(&query);
 		lookup_detach(&l);
 		clear_current_lookup();
@@ -4632,4 +4825,13 @@ dig_idnsetup(dig_lookup_t *lookup, bool active) {
 	UNUSED(active);
 	return;
 #endif /* HAVE_LIBIDN2 */
+}
+
+bool
+dig_lookup_is_tls(const dig_lookup_t *lookup) {
+	if (lookup->tls_mode || (lookup->tls_ca_set && !lookup->https_mode)) {
+		return (true);
+	}
+
+	return (false);
 }

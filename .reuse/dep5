@@ -33,6 +33,11 @@ Files: **/*.after*
        bin/tests/system/checkzone/zones/bad1.db
        bin/tests/system/checkzone/zones/crashzone.db
        bin/tests/system/dnstap/large-answer.fstrm
+       bin/tests/system/doth/CA/CA.cfg
+       bin/tests/system/doth/CA/README
+       bin/tests/system/doth/CA/index.txt
+       bin/tests/system/doth/CA/index.txt.attr
+       bin/tests/system/doth/CA/serial
        bin/tests/system/notify/ns4/named.port.in
        bin/tests/system/formerr/nametoolong
        bin/tests/system/formerr/noquestions

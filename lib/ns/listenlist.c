@@ -34,6 +34,7 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	ns_listenelt_t *elt = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_tlsctx_t *sslctx = NULL;
+	isc_tls_cert_store_t *store = NULL, *found_store = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(!tls || (tls_params != NULL && tlsctx_cache != NULL));
@@ -47,7 +48,8 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 		 * order to avoid excessive TLS contexts creation.
 		 */
 		result = isc_tlsctx_cache_find(tlsctx_cache, tls_params->name,
-					       transport, family, &sslctx);
+					       transport, family, &sslctx,
+					       &found_store);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * The lookup failed, let's try to create a new context
@@ -59,7 +61,39 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			result = isc_tlsctx_createserver(
 				tls_params->key, tls_params->cert, &sslctx);
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				goto tls_error;
+			}
+
+			/*
+			 * If CA-bundle file is specified - enable client
+			 * certificates validation.
+			 */
+			if (tls_params->ca_file != NULL) {
+				if (found_store == NULL) {
+					result = isc_tls_cert_store_create(
+						tls_params->ca_file, &store);
+					if (result != ISC_R_SUCCESS) {
+						goto tls_error;
+					}
+				} else {
+					store = found_store;
+				}
+
+				result = isc_tlsctx_enable_peer_verification(
+					sslctx, true, store, NULL, false);
+				if (result != ISC_R_SUCCESS) {
+					goto tls_error;
+				}
+
+				/*
+				 * Load the list of allowed client certificate
+				 * issuers to send to TLS clients.
+				 */
+				result = isc_tlsctx_load_client_ca_names(
+					sslctx, tls_params->ca_file);
+				if (result != ISC_R_SUCCESS) {
+					goto tls_error;
+				}
 			}
 
 			if (tls_params->protocols != 0) {
@@ -70,8 +104,8 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			if (tls_params->dhparam_file != NULL) {
 				if (!isc_tlsctx_load_dhparams(
 					    sslctx, tls_params->dhparam_file)) {
-					isc_tlsctx_free(&sslctx);
-					return (ISC_R_FAILURE);
+					result = ISC_R_FAILURE;
+					goto tls_error;
 				}
 			}
 
@@ -105,11 +139,18 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			 * The storing in the cache should not fail because the
 			 * (re)initialisation happens from within a single
 			 * thread.
+			 *
+			 * Taking into account that the most recent call to
+			 * 'isc_tlsctx_cache_find()' has failed, it means that
+			 * the TLS context has not been found. Considering that
+			 * the initialisation happens from within the context of
+			 * a single thread, the call to 'isc_tlsctx_cache_add()'
+			 * is expected not to fail.
 			 */
 			RUNTIME_CHECK(isc_tlsctx_cache_add(
 					      tlsctx_cache, tls_params->name,
-					      transport, family, sslctx,
-					      NULL) == ISC_R_SUCCESS);
+					      transport, family, sslctx, store,
+					      NULL, NULL) == ISC_R_SUCCESS);
 		} else {
 			INSIST(sslctx != NULL);
 		}
@@ -133,6 +174,15 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 	*target = elt;
 	return (ISC_R_SUCCESS);
+tls_error:
+	if (sslctx != NULL) {
+		isc_tlsctx_free(&sslctx);
+	}
+
+	if (store != NULL && store != found_store) {
+		isc_tls_cert_store_free(&store);
+	}
+	return (result);
 }
 
 isc_result_t
