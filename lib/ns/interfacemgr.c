@@ -742,10 +742,6 @@ interface_destroy(ns_interface_t **interfacep) {
 
 	ns_interface_shutdown(ifp);
 
-	if (ISC_LINK_LINKED(ifp, link)) {
-		ISC_LIST_UNLINK(mgr->interfaces, ifp, link);
-	}
-
 	ifp->magic = 0;
 	isc_mutex_destroy(&ifp->lock);
 	ns_interfacemgr_detach(&ifp->mgr);
@@ -779,26 +775,34 @@ find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
  */
 static void
 purge_old_interfaces(ns_interfacemgr_t *mgr) {
-	ns_interface_t *ifp, *next;
+	ns_interface_t *ifp = NULL, *next = NULL;
+	ISC_LIST(ns_interface_t) interfaces;
+
+	ISC_LIST_INIT(interfaces);
+
 	LOCK(&mgr->lock);
 	for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL; ifp = next) {
 		INSIST(NS_INTERFACE_VALID(ifp));
 		next = ISC_LIST_NEXT(ifp, link);
 		if (ifp->generation != mgr->generation) {
 			ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
-			if (LISTENING(ifp)) {
-				char sabuf[256];
-				isc_sockaddr_format(&ifp->addr, sabuf,
-						    sizeof(sabuf));
-				isc_log_write(
-					IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-					"no longer listening on %s", sabuf);
-				ns_interface_shutdown(ifp);
-			}
-			interface_destroy(&ifp);
+			ISC_LIST_APPEND(interfaces, ifp, link);
 		}
 	}
 	UNLOCK(&mgr->lock);
+
+	for (ifp = ISC_LIST_HEAD(interfaces); ifp != NULL; ifp = next) {
+		next = ISC_LIST_NEXT(ifp, link);
+		if (LISTENING(ifp)) {
+			char sabuf[256];
+			isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "no longer listening on %s", sabuf);
+			ns_interface_shutdown(ifp);
+		}
+		ISC_LIST_UNLINK(interfaces, ifp, link);
+		interface_destroy(&ifp);
+	}
 }
 
 static bool
