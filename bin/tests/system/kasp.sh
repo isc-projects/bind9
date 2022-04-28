@@ -1021,7 +1021,7 @@ _check_apex_dnskey() {
 		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
 	_flags="$(key_get KEY2 FLAGS)"
@@ -1030,7 +1030,7 @@ _check_apex_dnskey() {
 		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
 	_flags="$(key_get KEY3 FLAGS)"
