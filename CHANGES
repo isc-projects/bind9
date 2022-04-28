@@ -1,3 +1,5 @@
+5874.	[placeholder]
+
 5873.	[bug]		Refactor the fctx_done() function to set fctx to
 			NULL after detaching, so that reference counting
 			errors will be easier to avoid. [GL #2969]
