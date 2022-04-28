@@ -177,7 +177,8 @@ The target of the PTR record is the member zone name. For example, to add member
    uniquelabel.zones.catalog.example. IN PTR domain2.example.
 
 The label is necessary to identify custom properties (see below) for a specific member zone.
-Also, the zone state can be reset by changing its label.
+Also, the zone state can be reset by changing its label, in which case BIND will remove
+the member zone and add it back.
 
 Catalog Zone Custom Properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -288,7 +289,10 @@ zone. Catalog consumers which support the ``coo`` property will then take note,
 and when the zone is finally added into ``catalog2.example`` catalog zone,
 catalog consumers will change the ownership of the zone from ``catalog.example``
 to ``catalog2.example``. BIND's implementation simply deletes the zone from the
-old catalog zone and adds it back into the new catalog zone. The record with
-``coo`` custom property can be later deleted by the catalog zone operator, if it
-is confirmed that all the consumers have received it and have successfully
-changed the ownership of the zone.
+old catalog zone and adds it back into the new catalog zone, which also means
+that all associated state for the just migrated zone will be reset, including
+when the unique label is the same.
+
+The record with ``coo`` custom property can be later deleted by the
+catalog zone operator after confirming that all the consumers have received
+it and have successfully changed the ownership of the zone.
