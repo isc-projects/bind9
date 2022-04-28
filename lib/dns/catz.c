@@ -94,6 +94,7 @@ struct dns_catz_zone {
 
 	bool active;
 	bool db_registered;
+	bool broken;
 
 	isc_refcount_t refs;
 };
@@ -1021,10 +1022,6 @@ catz_process_zones(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (value->rdclass != dns_rdataclass_in) {
-		return (ISC_R_FAILURE);
-	}
-
 	if (name->labels == 0) {
 		return (ISC_R_FAILURE);
 	}
@@ -1060,8 +1057,16 @@ catz_process_coo(dns_catz_zone_t *zone, dns_label_t *mhash,
 		return (ISC_R_FAILURE);
 	}
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_ptr) {
+	if (value->type != dns_rdatatype_ptr) {
+		return (ISC_R_FAILURE);
+	}
+
+	if (dns_rdataset_count(value) != 1) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: 'coo' property PTR RRset contains "
+			      "more than one record, which is invalid");
+		zone->broken = true;
 		return (ISC_R_FAILURE);
 	}
 
@@ -1123,24 +1128,31 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	dns_rdata_ptr_t ptr;
 	dns_catz_entry_t *entry = NULL;
 
-	/*
-	 * We only take -first- value, as mhash must be
-	 * different.
-	 */
 	if (value->type != dns_rdatatype_ptr) {
+		return (ISC_R_FAILURE);
+	}
+
+	if (dns_rdataset_count(value) != 1) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: member zone PTR RRset contains "
+			      "more than one record, which is invalid");
+		zone->broken = true;
 		return (ISC_R_FAILURE);
 	}
 
 	result = dns_rdataset_first(value);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_FAILURE);
+		return (result);
 	}
 
 	dns_rdata_init(&rdata);
 	dns_rdataset_current(value, &rdata);
 
 	result = dns_rdata_tostruct(&rdata, &ptr, NULL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	result = isc_ht_find(zone->entries, mhash->base, mhash->length,
 			     (void **)&entry);
@@ -1181,8 +1193,16 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(DNS_RDATASET_VALID(value));
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_txt) {
+	if (value->type != dns_rdatatype_txt) {
+		return (ISC_R_FAILURE);
+	}
+
+	if (dns_rdataset_count(value) != 1) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: 'version' property TXT RRset contains "
+			      "more than one record, which is invalid");
+		zone->broken = true;
 		return (ISC_R_FAILURE);
 	}
 
@@ -1195,7 +1215,9 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 	dns_rdataset_current(value, &rdata);
 
 	result = dns_rdata_tostruct(&rdata, &rdatatxt, NULL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	result = dns_rdata_txt_first(&rdatatxt);
 	if (result != ISC_R_SUCCESS) {
@@ -1227,6 +1249,13 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 
 cleanup:
 	dns_rdata_freestruct(&rdatatxt);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: invalid record for the catalog "
+			      "zone version property");
+		zone->broken = true;
+	}
 	return (result);
 }
 
@@ -1263,10 +1292,6 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 	 * - label and IN A/IN AAAA
 	 * - label and IN TXT - TSIG key name
 	 */
-	if (value->rdclass != dns_rdataclass_in) {
-		return (ISC_R_FAILURE);
-	}
-
 	if (name->labels > 0) {
 		isc_sockaddr_t sockaddr;
 		size_t i;
@@ -1430,8 +1455,7 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(dns_rdataset_isassociated(value));
 
-	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_apl) {
+	if (value->type != dns_rdatatype_apl) {
 		return (ISC_R_FAILURE);
 	}
 
@@ -1669,6 +1693,14 @@ dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 	REQUIRE(ISC_MAGIC_VALID(src_name, DNS_NAME_MAGIC));
+
+	if (rdataset->rdclass != dns_rdataclass_in) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "catz: RR found which has a non-IN class");
+		zone->broken = true;
+		return (ISC_R_FAILURE);
+	}
 
 	nrres = dns_name_fullcompare(src_name, &zone->name, &order, &nlabels);
 	if (nrres == dns_namereln_equal) {
@@ -2047,8 +2079,10 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t rdataset;
 	char bname[DNS_NAME_FORMATSIZE];
+	char cname[DNS_NAME_FORMATSIZE];
 	bool is_vers_processed = false;
 	uint32_t vers;
+	uint32_t catz_vers;
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
@@ -2125,13 +2159,13 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	result = dns_dbiterator_seek(it, name);
 	if (result != ISC_R_SUCCESS) {
 		dns_dbiterator_destroy(&it);
-		dns_catz_zone_detach(&newzone);
 		dns_db_closeversion(db, &oldzone->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' has no 'version' record (%s)",
 			      bname, isc_result_totext(result));
-		return;
+		newzone->broken = true;
+		goto final;
 	}
 
 	name = dns_fixedname_initname(&fixname);
@@ -2177,7 +2211,6 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			result = dns_catz_update_process(catzs, newzone, name,
 							 &rdataset);
 			if (result != ISC_R_SUCCESS) {
-				char cname[DNS_NAME_FORMATSIZE];
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 				char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
@@ -2191,8 +2224,8 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_WARNING,
-					      "catz: unknown record in catalog "
-					      "zone - %s %s %s(%s) - ignoring",
+					      "catz: invalid record in catalog "
+					      "zone - %s %s %s (%s) - ignoring",
 					      cname, classbuf, typebuf,
 					      isc_result_totext(result));
 			}
@@ -2217,6 +2250,40 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: iteration finished");
+
+	/*
+	 * Check catalog zone version compatibilites.
+	 */
+	catz_vers = (newzone->version == DNS_CATZ_VERSION_UNDEFINED)
+			    ? oldzone->version
+			    : newzone->version;
+	if (catz_vers == DNS_CATZ_VERSION_UNDEFINED) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: zone '%s' version is not set", bname);
+		newzone->broken = true;
+	} else if (catz_vers != 1 && catz_vers != 2) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: zone '%s' unsupported version "
+			      "'%" PRIu32 "'",
+			      bname, catz_vers);
+		newzone->broken = true;
+	} else {
+		oldzone->version = catz_vers;
+	}
+
+final:
+	if (newzone->broken) {
+		dns_name_format(name, cname, DNS_NAME_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "catz: new catalog zone '%s' is broken and "
+			      "will not be processed",
+			      bname);
+		dns_catz_zone_detach(&newzone);
+		return;
+	}
 
 	/*
 	 * Finally merge new zone into old zone.
