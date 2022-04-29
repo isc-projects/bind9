@@ -1024,7 +1024,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	UNLOCK(&client->readylock);
 
 	LOCK(&resarg->lock);
-	if (result == ISC_R_SUCCESS || result == ISC_R_SUSPEND) {
+	if (result == ISC_R_SUCCESS) {
 		result = resarg->result;
 	}
 	if (result != ISC_R_SUCCESS && resarg->vresult != ISC_R_SUCCESS) {
