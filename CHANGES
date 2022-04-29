@@ -1,3 +1,5 @@
+5879.	[contrib]	dlz: Add FALLTHROUGH and UNREACHABLE macros. [GL #3306]
+
 5877.	[func]		Introduce the concept of broken catalog zones described
 			in the DNS catalog zones draft version 5 document.
 			[GL #3224]
