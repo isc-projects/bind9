@@ -1,3 +1,5 @@
+5886.	[placeholder]
+
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
 			and static-stub zones at or above the query name.  This
 			has now been addressed. [GL #3232]
