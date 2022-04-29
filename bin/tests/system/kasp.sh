@@ -1008,6 +1008,15 @@ check_cds() {
 	status=$((status+ret))
 }
 
+_find_dnskey() {
+	_owner="${ZONE}."
+	_alg="$(key_get $1 ALG_NUM)"
+	_flags="$(key_get $1 FLAGS)"
+	_key_file="$(key_get $1 BASEFILE).key"
+
+	awk '$1 == "'"$_owner"'" && $2 == "'"$DNSKEY_TTL"'" && $3 == "IN" && $4 == "DNSKEY" && $5 == "'"$_flags"'" && $6 == "3" && $7 == "'"$_alg"'" { print $8 }' < "$_key_file"
+}
+
 
 # Test DNSKEY query.
 _check_apex_dnskey() {
@@ -1015,40 +1024,49 @@ _check_apex_dnskey() {
 	grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || return 1
 
 	_checksig=0
-	_flags="$(key_get KEY1 FLAGS)"
 
 	if [ "$(key_get KEY1 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_pubkey=$(_find_dnskey KEY1)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY1 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		_pubkey=$(_find_dnskey KEY1)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
-
-	_flags="$(key_get KEY2 FLAGS)"
 
 	if [ "$(key_get KEY2 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_pubkey=$(_find_dnskey KEY2)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY2 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		_pubkey=$(_find_dnskey KEY2)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
-
-	_flags="$(key_get KEY3 FLAGS)"
 
 	if [ "$(key_get KEY3 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_pubkey=$(_find_dnskey KEY3)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY3 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		_pubkey=$(_find_dnskey KEY3)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
-	_flags="$(key_get KEY4 FLAGS)"
-
 	if [ "$(key_get KEY4 STATE_DNSKEY)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DNSKEY)" = "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null || return 1
+		_pubkey=$(_find_dnskey KEY4)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null || return 1
 		_checksig=1
 	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*DNSKEY.*${_flags}.*.3.*$(key_get KEY4 ALG_NUM)" "dig.out.$DIR.test$n" > /dev/null && return 1
+		_pubkey=$(_find_dnskey KEY4)
+		test -z "$_pubkey" && return 1
+		grep -F "$_pubkey" "dig.out.$DIR.test$n" > /dev/null && return 1
 	fi
 
 	test "$_checksig" -eq 0 && return 0
