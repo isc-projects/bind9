@@ -183,6 +183,7 @@ struct dig_query {
 	isc_socket_t *sock;
 	ISC_LINK(dig_query_t) link;
 	ISC_LINK(dig_query_t) clink;
+	dig_query_t   *saved_next;
 	isc_sockaddr_t sockaddr;
 	isc_time_t     time_sent;
 	isc_time_t     time_recv;
