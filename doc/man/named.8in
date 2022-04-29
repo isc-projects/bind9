@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 named \- Internet domain name server
 .SH SYNOPSIS
 .sp
-\fBnamed\fP [ [\fB\-4\fP] | [\fB\-6\fP] ] [\fB\-c\fP config\-file] [\fB\-d\fP debug\-level] [\fB\-D\fP string] [\fB\-E\fP engine\-name] [\fB\-f\fP] [\fB\-g\fP] [\fB\-L\fP logfile] [\fB\-M\fP option] [\fB\-m\fP flag] [\fB\-n\fP #cpus] [\fB\-p\fP port] [\fB\-s\fP] [\fB\-t\fP directory] [\fB\-U\fP #listeners] [\fB\-u\fP user] [\fB\-v\fP] [\fB\-V\fP] [\fB\-X\fP lock\-file]
+\fBnamed\fP [ [\fB\-4\fP] | [\fB\-6\fP] ] [\fB\-c\fP config\-file] [\fB\-C\fP] [\fB\-d\fP debug\-level] [\fB\-D\fP string] [\fB\-E\fP engine\-name] [\fB\-f\fP] [\fB\-g\fP] [\fB\-L\fP logfile] [\fB\-M\fP option] [\fB\-m\fP flag] [\fB\-n\fP #cpus] [\fB\-p\fP port] [\fB\-s\fP] [\fB\-t\fP directory] [\fB\-U\fP #listeners] [\fB\-u\fP user] [\fB\-v\fP] [\fB\-V\fP] [\fB\-X\fP lock\-file]
 .SH DESCRIPTION
 .sp
 \fBnamed\fP is a Domain Name System (DNS) server, part of the BIND 9
@@ -63,6 +63,15 @@ This option tells \fBnamed\fP to use \fBconfig\-file\fP as its configuration fil
 can be reloaded after the server has changed its working directory
 due to to a possible \fBdirectory\fP option in the configuration file,
 \fBconfig\-file\fP should be an absolute pathname.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-C
+This option prints out the default built\-in configuration and exits.
+.sp
+NOTE: This is for debugging purposes only and is not an
+accurate representation of the actual configuration used by \fI\%named\fP
+at runtime.
 .UNINDENT
 .INDENT 0.0
 .TP

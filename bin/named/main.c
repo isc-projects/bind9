@@ -316,7 +316,7 @@ usage(void) {
 			"             [-X lockfile] [-m "
 			"{usage|trace|record|size|mctx}]\n"
 			"             [-M fill|nofill]\n"
-			"usage: named [-v|-V]\n");
+			"usage: named [-v|-V|-C]\n");
 }
 
 static void
@@ -778,6 +778,11 @@ parse_command_line(int argc, char *argv[]) {
 			named_g_conffile = isc_commandline_argument;
 			named_g_conffileset = true;
 			break;
+		case 'C':
+			printf("# Built-in default values. "
+			       "This is NOT the run-time configuration!\n");
+			printf("%s", named_config_getdefault());
+			exit(0);
 		case 'd':
 			named_g_debuglevel = parse_int(isc_commandline_argument,
 						       "debug "
