@@ -2025,7 +2025,7 @@ dnssec_verify
 # Schedule KSK rollover now.
 set_policy "manual-rollover" "3" "3600"
 set_keystate "KEY1" "GOAL" "hidden"
-# This key was activated one day agao, so lifetime is set to 1d plus
+# This key was activated one day ago, so lifetime is set to 1d plus
 # prepublication duration (7500 seconds) = 93900 seconds.
 set_keylifetime  "KEY1" "93900"
 created=$(key_get KEY1 CREATED)
@@ -2052,7 +2052,7 @@ dnssec_verify
 # Schedule ZSK rollover now.
 set_policy "manual-rollover" "4" "3600"
 set_keystate "KEY2" "GOAL" "hidden"
-# This key was activated one day agao, so lifetime is set to 1d plus
+# This key was activated one day ago, so lifetime is set to 1d plus
 # prepublication duration (7500 seconds) = 93900 seconds.
 set_keylifetime  "KEY2" "93900"
 created=$(key_get KEY2 CREATED)
