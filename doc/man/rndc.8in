@@ -184,7 +184,7 @@ See also \fI\%rndc addzone\fP and \fI\%rndc modzone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B dnssec (\-status | \-rollover \-key id [\-alg algorithm] [\-when time] | \-checkds [\-key id [\-alg algorithm]] [\-when time]  published | withdraw)) zone [class [view]]
+.B dnssec (\-status | \-rollover \-key id [\-alg algorithm] [\-when time] | \-checkds [\-key id [\-alg algorithm]] [\-when time]  published | withdrawn)) zone [class [view]]
 This command allows you to interact with the "dnssec\-policy" of a given
 zone.
 .sp
