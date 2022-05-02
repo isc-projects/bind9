@@ -1006,7 +1006,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 }
 
 static isc_result_t
-is_empty(const vctx_t *vctx, dns_dbnode_t *node, bool *empty) {
+is_empty(const vctx_t *vctx, dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 
@@ -1019,9 +1019,7 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node, bool *empty) {
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	*empty = (result == ISC_R_NOMORE);
-
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
@@ -1773,7 +1771,6 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);
 		while (result == ISC_R_SUCCESS) {
-			bool empty;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			if (result != ISC_R_SUCCESS &&
@@ -1800,15 +1797,16 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 				result = dns_dbiterator_next(dbiter);
 				continue;
 			}
-			result = is_empty(vctx, nextnode, &empty);
+			result = is_empty(vctx, nextnode);
 			dns_db_detachnode(vctx->db, &nextnode);
-			if (result != ISC_R_SUCCESS) {
-				dns_db_detachnode(vctx->db, &node);
-				goto done;
-			}
-			if (empty) {
+			switch (result) {
+			case ISC_R_SUCCESS:
+				break;
+			case ISC_R_NOMORE:
 				result = dns_dbiterator_next(dbiter);
 				continue;
+			default:
+				dns_db_detachnode(vctx->db, &node);
 			}
 			break;
 		}
