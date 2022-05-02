@@ -881,7 +881,7 @@ link_entry(dns_adbentrybucket_t *ebucket, dns_adbentry_t *entry) {
 	REQUIRE(entry != NULL && entry->bucket == NULL);
 	REQUIRE(!ISC_LINK_LINKED(entry, plink));
 
-	DP(DEF_LEVEL, "link ADB entry %p to bucket %p\n", entry, ebucket);
+	DP(DEF_LEVEL, "link ADB entry %p to bucket %p", entry, ebucket);
 
 	/*
 	 * If we're in the overmem condition, take this opportunity to
@@ -937,7 +937,7 @@ unlink_entry(dns_adbentry_t *entry) {
 
 	REQUIRE(ebucket != NULL);
 
-	DP(DEF_LEVEL, "unlink ADB entry %p from bucket %p\n", entry, ebucket);
+	DP(DEF_LEVEL, "unlink ADB entry %p from bucket %p", entry, ebucket);
 
 	if ((entry->flags & ENTRY_IS_DEAD) != 0) {
 		ISC_LIST_UNLINK(ebucket->deadentries, entry, plink);
@@ -2041,7 +2041,7 @@ destroy(dns_adb_t *adb) {
 	isc_result_t result;
 	isc_ht_iter_t *it = NULL;
 
-	DP(DEF_LEVEL, "destroying ADB %p\n", adb);
+	DP(DEF_LEVEL, "destroying ADB %p", adb);
 
 	adb->magic = 0;
 
@@ -2248,7 +2248,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
 		return;
 	}
 
-	DP(DEF_LEVEL, "shutting down ADB %p\n", adb);
+	DP(DEF_LEVEL, "shutting down ADB %p", adb);
 
 	isc_mem_clearwater(adb->mctx);
 
