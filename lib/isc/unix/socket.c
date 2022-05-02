@@ -5091,7 +5091,7 @@ isc_socket_gettype(isc_socket_t *sock) {
 
 void
 isc_socket_ipv6only(isc_socket_t *sock, bool yes) {
-#if defined(IPV6_V6ONLY)
+#if defined(IPV6_V6ONLY) && !defined(__OpenBSD__)
 	int onoff = yes ? 1 : 0;
 #else  /* if defined(IPV6_V6ONLY) */
 	UNUSED(yes);
@@ -5101,7 +5101,7 @@ isc_socket_ipv6only(isc_socket_t *sock, bool yes) {
 	REQUIRE(VALID_SOCKET(sock));
 	INSIST(!sock->dupped);
 
-#ifdef IPV6_V6ONLY
+#if defined(IPV6_V6ONLY) && !defined(__OpenBSD__)
 	if (sock->pf == AF_INET6) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
 			       (void *)&onoff, sizeof(int)) < 0)
