@@ -1513,7 +1513,6 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	node->left = NULL;
 	node->down = NULL;
 	node->data = NULL;
-	node->rpz = 0;
 
 	node->hashnext = NULL;
 	node->hashval = 0;
