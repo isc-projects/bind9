@@ -182,8 +182,8 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
  * Returns:
  * \li	ISC_R_SUCCESS if action was applied to all nodes.  If 'stop' is
  *	false and 'sub' is non NULL then the first error (if any)
- *	reported by 'action' is returned in '*sub';
- *	any error code from 'action'.
+ *	reported by 'action' is returned in '*sub'. If 'stop' is true,
+ *	the first error code from 'action' is returned.
  */
 
 bool
@@ -203,7 +203,7 @@ dns_zt_setviewcommit(dns_zt_t *zt);
  * zone table.
  *
  * Requires:
- *\li	'view' to be valid.
+ *\li	'zt' to be valid.
  */
 
 void
@@ -213,7 +213,7 @@ dns_zt_setviewrevert(dns_zt_t *zt);
  * zone table.
  *
  * Requires:
- *\li	'view' to be valid.
+ *\li	'zt' to be valid.
  */
 
 ISC_LANG_ENDDECLS
