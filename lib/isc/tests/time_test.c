@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -29,6 +27,8 @@
 #include <isc/util.h>
 
 #include "../time.c"
+
+#include <isc/test.h>
 
 #define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
 #define MAX_NS	 (NS_PER_S - 1)
@@ -66,8 +66,7 @@ const struct time_vectors vectors_sub[7] = {
 	{ { 0, 0 }, { 0, MAX_NS }, { 0, 0 }, ISC_R_RANGE },
 };
 
-static void
-isc_time_add_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_time_add_test) {
 	UNUSED(state);
 
 	for (size_t i = 0; i < ARRAY_SIZE(vectors_add); i++) {
@@ -100,8 +99,7 @@ isc_time_add_test(void **state) {
 		&(isc_time_t){ 0, 0 }, &(isc_interval_t){ 0, 0 }, NULL));
 }
 
-static void
-isc_time_sub_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_time_sub_test) {
 	UNUSED(state);
 
 	for (size_t i = 0; i < ARRAY_SIZE(vectors_sub); i++) {
@@ -134,8 +132,8 @@ isc_time_sub_test(void **state) {
 }
 
 /* parse http time stamp */
-static void
-isc_time_parsehttptimestamp_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_parsehttptimestamp_test) {
 	isc_result_t result;
 	isc_time_t t, x;
 	char buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
@@ -153,8 +151,8 @@ isc_time_parsehttptimestamp_test(void **state) {
 }
 
 /* print UTC in ISO8601 */
-static void
-isc_time_formatISO8601_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -189,8 +187,8 @@ isc_time_formatISO8601_test(void **state) {
 }
 
 /* print UTC in ISO8601 with milliseconds */
-static void
-isc_time_formatISO8601ms_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601ms_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -226,8 +224,8 @@ isc_time_formatISO8601ms_test(void **state) {
 }
 
 /* print UTC in ISO8601 with microseconds */
-static void
-isc_time_formatISO8601us_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601us_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -263,8 +261,8 @@ isc_time_formatISO8601us_test(void **state) {
 }
 
 /* print local time in ISO8601 */
-static void
-isc_time_formatISO8601L_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601L_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -298,8 +296,8 @@ isc_time_formatISO8601L_test(void **state) {
 }
 
 /* print local time in ISO8601 with milliseconds */
-static void
-isc_time_formatISO8601Lms_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lms_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -334,8 +332,8 @@ isc_time_formatISO8601Lms_test(void **state) {
 }
 
 /* print local time in ISO8601 with microseconds */
-static void
-isc_time_formatISO8601Lus_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lus_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -370,8 +368,8 @@ isc_time_formatISO8601Lus_test(void **state) {
 }
 
 /* print UTC time as yyyymmddhhmmsssss */
-static void
-isc_time_formatshorttimestamp_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_time_formatshorttimestamp_test) {
 	isc_result_t result;
 	isc_time_t t;
 	char buf[64];
@@ -399,32 +397,19 @@ isc_time_formatshorttimestamp_test(void **state) {
 	assert_string_equal(buf, "20151213094640123");
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_time_add_test),
-		cmocka_unit_test(isc_time_sub_test),
-		cmocka_unit_test(isc_time_parsehttptimestamp_test),
-		cmocka_unit_test(isc_time_formatISO8601_test),
-		cmocka_unit_test(isc_time_formatISO8601ms_test),
-		cmocka_unit_test(isc_time_formatISO8601us_test),
-		cmocka_unit_test(isc_time_formatISO8601L_test),
-		cmocka_unit_test(isc_time_formatISO8601Lms_test),
-		cmocka_unit_test(isc_time_formatISO8601Lus_test),
-		cmocka_unit_test(isc_time_formatshorttimestamp_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_time_add_test)
+ISC_TEST_ENTRY(isc_time_sub_test)
+ISC_TEST_ENTRY(isc_time_parsehttptimestamp_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601ms_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601us_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601L_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601Lms_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601Lus_test)
+ISC_TEST_ENTRY(isc_time_formatshorttimestamp_test)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

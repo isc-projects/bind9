@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -29,28 +27,7 @@
 #include <dns/name.h>
 #include <dns/rdatalist.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 #define BUFLEN	    255
 #define BIGBUFLEN   (64 * 1024)
@@ -61,16 +38,12 @@ _teardown(void **state) {
  */
 
 /* test multiple calls to dns_db_getoriginnode */
-static void
-getoriginnode_test(void **state) {
+ISC_RUN_TEST_IMPL(getoriginnode) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
-
-	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
@@ -85,20 +58,15 @@ getoriginnode_test(void **state) {
 	dns_db_detachnode(db, &node);
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mctx);
 }
 
 /* test getservestalettl and setservestalettl */
-static void
-getsetservestalettl_test(void **state) {
+ISC_RUN_TEST_IMPL(getsetservestalettl) {
 	dns_db_t *db = NULL;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	dns_ttl_t ttl;
 
 	UNUSED(state);
-
-	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
@@ -119,12 +87,10 @@ getsetservestalettl_test(void **state) {
 	assert_int_equal(ttl, 6 * 3600);
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mctx);
 }
 
 /* check DNS_DBFIND_STALEOK works */
-static void
-dns_dbfind_staleok_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_dbfind_staleok) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t example_fixed;
@@ -135,13 +101,10 @@ dns_dbfind_staleok_test(void **state) {
 	dns_rdataset_t rdataset;
 	int count;
 	int pass;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	unsigned char data[] = { 0x0a, 0x00, 0x00, 0x01 };
 
 	UNUSED(state);
-
-	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
@@ -277,18 +240,16 @@ dns_dbfind_staleok_test(void **state) {
 	}
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mctx);
 }
 
 /* database class */
-static void
-class_test(void **state) {
+ISC_RUN_TEST_IMPL(class) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
 	UNUSED(state);
 
-	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -302,15 +263,14 @@ class_test(void **state) {
 }
 
 /* database type */
-static void
-dbtype_test(void **state) {
+ISC_RUN_TEST_IMPL(dbtype) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
 	UNUSED(state);
 
 	/* DB has zone semantics */
-	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_db_load(db, "testdata/db/data.db", dns_masterformat_text,
@@ -321,7 +281,7 @@ dbtype_test(void **state) {
 	dns_db_detach(&db);
 
 	/* DB has cache semantics */
-	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_db_load(db, "testdata/db/data.db", dns_masterformat_text,
@@ -333,8 +293,7 @@ dbtype_test(void **state) {
 }
 
 /* database versions */
-static void
-version_test(void **state) {
+ISC_RUN_TEST_IMPL(version) {
 	isc_result_t result;
 	dns_fixedname_t fname, ffound;
 	dns_name_t *name, *foundname;
@@ -400,29 +359,13 @@ version_test(void **state) {
 	dns_db_detach(&db);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(getoriginnode_test),
-		cmocka_unit_test(getsetservestalettl_test),
-		cmocka_unit_test(dns_dbfind_staleok_test),
-		cmocka_unit_test_setup_teardown(class_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(dbtype_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(version_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(getoriginnode)
+ISC_TEST_ENTRY(getsetservestalettl)
+ISC_TEST_ENTRY(dns_dbfind_staleok)
+ISC_TEST_ENTRY(class)
+ISC_TEST_ENTRY(dbtype)
+ISC_TEST_ENTRY(version)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

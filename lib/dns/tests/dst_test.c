@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -34,25 +32,23 @@
 #include <dst/dst.h>
 
 #include "../dst_internal.h"
-#include "dnstest.h"
+
+#include <dns/test.h>
 
 static int
-_setup(void **state) {
-	isc_result_t result;
-
+setup_test(void **state) {
 	UNUSED(state);
 
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dst_lib_init(mctx, NULL);
 
 	return (0);
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
-	dns_test_end();
+	dst_lib_destroy();
 
 	return (0);
 }
@@ -73,7 +69,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(dt_mctx, (size + 1));
+	data = isc_mem_get(mctx, (size + 1));
 	assert_non_null(data);
 
 	len = (size_t)size;
@@ -123,7 +119,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = ISC_R_SUCCESS;
 
 err:
-	isc_mem_put(dt_mctx, data, size + 1);
+	isc_mem_put(mctx, data, size + 1);
 	return (result);
 }
 
@@ -154,7 +150,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(dt_mctx, (size + 1));
+	data = isc_mem_get(mctx, (size + 1));
 	assert_non_null(data);
 
 	p = data;
@@ -175,7 +171,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	isc_buffer_add(&b, strlen(keyname));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dst_key_fromfile(name, id, alg, type, "testdata/dst", dt_mctx,
+	result = dst_key_fromfile(name, id, alg, type, "testdata/dst", mctx,
 				  &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -197,8 +193,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 */
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
-	result = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_GENERAL,
-				    false, 0, &ctx);
+	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, false,
+				    0, &ctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_context_adddata(ctx, &datareg);
@@ -215,8 +211,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		isc_result_t result2;
 
 		dst_context_destroy(&ctx);
-		result2 = dst_context_create(
-			key, dt_mctx, DNS_LOGCATEGORY_GENERAL, false, 0, &ctx);
+		result2 = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
+					     false, 0, &ctx);
 		assert_int_equal(result2, ISC_R_SUCCESS);
 
 		result2 = dst_context_adddata(ctx, &datareg);
@@ -241,7 +237,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		fprintf(stderr, "# %s:\n# %s\n", sigpath, hexbuf);
 	}
 
-	isc_mem_put(dt_mctx, data, size + 1);
+	isc_mem_put(mctx, data, size + 1);
 	dst_context_destroy(&ctx);
 	dst_key_free(&key);
 
@@ -251,10 +247,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	return;
 }
 
-static void
-sig_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(sig_test) {
 	struct {
 		const char *datapath;
 		const char *sigpath;
@@ -310,7 +303,7 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	result = dns_name_fromtext(name1, &b1, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name1, key1_id, alg, type, "comparekeys",
-				  dt_mctx, &key1);
+				  mctx, &key1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -322,7 +315,7 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	result = dns_name_fromtext(name2, &b2, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name2, key2_id, alg, type, "comparekeys",
-				  dt_mctx, &key2);
+				  mctx, &key2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -346,10 +339,7 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	return;
 }
 
-static void
-cmp_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(cmp_test) {
 	struct {
 		const char *key1_name;
 		dns_keytag_t key1_id;
@@ -477,24 +467,9 @@ cmp_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(sig_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(cmp_test, _setup, _teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(sig_test, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(cmp_test, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

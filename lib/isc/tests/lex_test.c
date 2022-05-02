@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -29,36 +27,12 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
 #define AS_STR(x) (x).value.as_textregion.base
 
-static bool debug = false;
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
-
 /* check handling of 0xff */
-static void
-lex_0xff(void **state) {
+ISC_RUN_TEST_IMPL(lex_0xff) {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
 	isc_buffer_t death_buf;
@@ -68,7 +42,7 @@ lex_0xff(void **state) {
 
 	UNUSED(state);
 
-	result = isc_lex_create(test_mctx, 1024, &lex);
+	result = isc_lex_create(mctx, 1024, &lex);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&death_buf, &death[0], sizeof(death));
@@ -84,8 +58,7 @@ lex_0xff(void **state) {
 }
 
 /* check setting of source line */
-static void
-lex_setline(void **state) {
+ISC_RUN_TEST_IMPL(lex_setline) {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
 	unsigned char text[] = "text\nto\nbe\nprocessed\nby\nlexer";
@@ -96,7 +69,7 @@ lex_setline(void **state) {
 
 	UNUSED(state);
 
-	result = isc_lex_create(test_mctx, 1024, &lex);
+	result = isc_lex_create(mctx, 1024, &lex);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&buf, &text[0], sizeof(text));
@@ -209,8 +182,7 @@ static struct {
 /*%
  * string
  */
-static void
-lex_string(void **state) {
+ISC_RUN_TEST_IMPL(lex_string) {
 	isc_buffer_t buf;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
@@ -220,7 +192,7 @@ lex_string(void **state) {
 	UNUSED(state);
 
 	for (i = 0; i < ARRAY_SIZE(parse_tests); i++) {
-		result = isc_lex_create(test_mctx, 1024, &lex);
+		result = isc_lex_create(mctx, 1024, &lex);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_buffer_constinit(&buf, parse_tests[i].text,
@@ -236,12 +208,6 @@ lex_string(void **state) {
 		memset(&token, 0, sizeof(token));
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_string, true);
-		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
-				parse_tests[i].text, isc_result_toid(result),
-				isc_result_toid(parse_tests[i].string_result),
-				token.type, parse_tests[i].string_type);
-		}
 
 		assert_int_equal(result, parse_tests[i].string_result);
 		if (result == ISC_R_SUCCESS) {
@@ -250,10 +216,6 @@ lex_string(void **state) {
 			case isc_tokentype_qstring:
 			case isc_tokentype_vpair:
 			case isc_tokentype_qvpair:
-				if (debug) {
-					fprintf(stdout, "# value='%s'\n",
-						AS_STR(token));
-				}
 				assert_int_equal(token.type,
 						 parse_tests[i].string_type);
 				assert_string_equal(
@@ -274,8 +236,7 @@ lex_string(void **state) {
 /*%
  * qstring
  */
-static void
-lex_qstring(void **state) {
+ISC_RUN_TEST_IMPL(lex_qstring) {
 	isc_buffer_t buf;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
@@ -285,7 +246,7 @@ lex_qstring(void **state) {
 	UNUSED(state);
 
 	for (i = 0; i < ARRAY_SIZE(parse_tests); i++) {
-		result = isc_lex_create(test_mctx, 1024, &lex);
+		result = isc_lex_create(mctx, 1024, &lex);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_buffer_constinit(&buf, parse_tests[i].text,
@@ -301,12 +262,6 @@ lex_qstring(void **state) {
 		memset(&token, 0, sizeof(token));
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_qstring, true);
-		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
-				parse_tests[i].text, isc_result_toid(result),
-				isc_result_toid(parse_tests[i].qstring_result),
-				token.type, parse_tests[i].qstring_type);
-		}
 
 		assert_int_equal(result, parse_tests[i].qstring_result);
 		if (result == ISC_R_SUCCESS) {
@@ -315,10 +270,6 @@ lex_qstring(void **state) {
 			case isc_tokentype_qstring:
 			case isc_tokentype_vpair:
 			case isc_tokentype_qvpair:
-				if (debug) {
-					fprintf(stdout, "# value='%s'\n",
-						AS_STR(token));
-				}
 				assert_int_equal(token.type,
 						 parse_tests[i].qstring_type);
 				assert_string_equal(
@@ -340,8 +291,7 @@ lex_qstring(void **state) {
  * keypair is <string>=<qstring>.  This has implications double quotes
  * in key names.
  */
-static void
-lex_keypair(void **state) {
+ISC_RUN_TEST_IMPL(lex_keypair) {
 	isc_buffer_t buf;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
@@ -351,7 +301,7 @@ lex_keypair(void **state) {
 	UNUSED(state);
 
 	for (i = 0; i < ARRAY_SIZE(parse_tests); i++) {
-		result = isc_lex_create(test_mctx, 1024, &lex);
+		result = isc_lex_create(mctx, 1024, &lex);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_buffer_constinit(&buf, parse_tests[i].text,
@@ -367,12 +317,6 @@ lex_keypair(void **state) {
 		memset(&token, 0, sizeof(token));
 		result = isc_lex_getmastertoken(lex, &token,
 						isc_tokentype_qvpair, true);
-		if (debug) {
-			fprintf(stdout, "# '%s' -> result=%s/%s, type=%d/%d\n",
-				parse_tests[i].text, isc_result_toid(result),
-				isc_result_toid(parse_tests[i].qvpair_result),
-				token.type, parse_tests[i].qvpair_type);
-		}
 
 		assert_int_equal(result, parse_tests[i].qvpair_result);
 		if (result == ISC_R_SUCCESS) {
@@ -381,10 +325,6 @@ lex_keypair(void **state) {
 			case isc_tokentype_qstring:
 			case isc_tokentype_vpair:
 			case isc_tokentype_qvpair:
-				if (debug) {
-					fprintf(stdout, "# value='%s'\n",
-						AS_STR(token));
-				}
 				assert_int_equal(token.type,
 						 parse_tests[i].qvpair_type);
 				assert_string_equal(
@@ -402,31 +342,13 @@ lex_keypair(void **state) {
 	}
 }
 
-int
-main(int argc, char *argv[]) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(lex_0xff),    cmocka_unit_test(lex_keypair),
-		cmocka_unit_test(lex_setline), cmocka_unit_test(lex_string),
-		cmocka_unit_test(lex_qstring),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(lex_0xff)
+ISC_TEST_ENTRY(lex_keypair)
+ISC_TEST_ENTRY(lex_setline)
+ISC_TEST_ENTRY(lex_string)
+ISC_TEST_ENTRY(lex_qstring)
 
-	UNUSED(argv);
+ISC_TEST_LIST_END
 
-	if (argc > 1) {
-		debug = true;
-	}
-
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

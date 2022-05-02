@@ -2,16 +2,18 @@ include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
+	$(LIBUV_CFLAGS)		\
 	-I..
 
 LDADD +=			\
 	libisctest.la		\
-	$(LIBISC_LIBS)
+	$(LIBISC_LIBS)		\
+	$(LIBUV_LIBS)
 
 check_LTLIBRARIES = libisctest.la
-libisctest_la_SOURCES =		\
-	isctest.c		\
-	isctest.h		\
+libisctest_la_SOURCES =			\
+	../../isc/test.c		\
+	../../isc/include/isc/test.h	\
 	uv_wrap.h
 
 check_PROGRAMS =	\
@@ -51,14 +53,12 @@ check_PROGRAMS +=	\
 
 doh_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
-	$(LIBUV_CFLAGS)	\
 	$(LIBNGHTTP2_CFLAGS)	\
 	$(OPENSSL_CFLAGS)
 
 doh_test_LDADD =	\
 	$(LDADD)	\
-	$(LIBNGHTTP2_LIBS)	\
-	$(LIBUV_LIBS)
+	$(LIBNGHTTP2_LIBS)
 endif HAVE_LIBNGHTTP2
 
 hmac_test_CPPFLAGS =	\
@@ -81,14 +81,22 @@ random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
 
-netmgr_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)	\
-	$(LIBUV_CFLAGS)	\
-	$(OPENSSL_CFLAGS)
+task_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)
 
-netmgr_test_LDADD =	\
-	$(LDADD)	\
-	$(LIBUV_LIBS)
+task_test_LDADD =	\
+	$(LDADD)
+
+if HAVE_LIBXML2
+task_test_CPPFLAGS += $(LIBXML2_CFLAGS)
+task_test_LDADD += $(LIBXML2_LIBS)
+endif HAVE_LIBXML2
+
+if HAVE_JSON_C
+task_test_CPPFLAGS += $(JSON_C_CFLAGS)
+task_test_LDADD += $(JSON_C_LIBS)
+endif HAVE_JSON_C
+
 
 EXTRA_DIST = testdata
 

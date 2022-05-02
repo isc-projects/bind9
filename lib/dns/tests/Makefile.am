@@ -15,7 +15,11 @@ LDADD +=				\
 	$(LIBDNS_LIBS)
 
 check_LTLIBRARIES = libdnstest.la
-libdnstest_la_SOURCES = dnstest.c dnstest.h
+libdnstest_la_SOURCES =			\
+	../../isc/test.c		\
+	../../isc/include/isc/test.h	\
+	../../dns/test.c		\
+	../../dns/include/dns/test.h
 
 check_PROGRAMS =		\
 	acl_test		\

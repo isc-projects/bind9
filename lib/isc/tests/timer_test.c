@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -21,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <uv.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -36,7 +35,8 @@
 #include <isc/util.h>
 
 #include "../timer.c"
-#include "isctest.h"
+
+#include <isc/test.h>
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
@@ -58,24 +58,16 @@ static int nevents;
 
 static int
 _setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	/* Timer tests require two worker threads */
-	result = isc_test_begin(NULL, true, 2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
 	atomic_init(&errcnt, ISC_R_SUCCESS);
+
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
+	teardown_managers(state);
 
 	return (0);
 }
@@ -176,7 +168,8 @@ subthread_assert_result_equal(isc_result_t result, isc_result_t expected,
 			      const char *file, unsigned int line) {
 	if (result != expected) {
 		printf("# %s:%u subthread_assert_result_equal(%u != %u)\n",
-		       file, line, result, expected);
+		       file, line, (unsigned int)result,
+		       (unsigned int)expected);
 		set_global_error(result);
 	}
 }
@@ -251,8 +244,7 @@ ticktock(isc_task_t *task, isc_event_t *event) {
  */
 
 /* timer type ticker */
-static void
-ticker(void **state) {
+ISC_RUN_TEST_IMPL(ticker) {
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -316,8 +308,7 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 }
 
 /* timer type once idles out */
-static void
-once_idle(void **state) {
+ISC_RUN_TEST_IMPL(once_idle) {
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -398,8 +389,7 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-reset(void **state) {
+ISC_RUN_TEST_IMPL(reset) {
 	isc_interval_t interval;
 
 	UNUSED(state);
@@ -480,8 +470,7 @@ once_event(isc_task_t *task, isc_event_t *event) {
 }
 
 /* timer events purged */
-static void
-purge(void **state) {
+ISC_RUN_TEST_IMPL(purge) {
 	isc_result_t result;
 	isc_interval_t interval;
 
@@ -520,7 +509,7 @@ purge(void **state) {
 	 * Wait for shutdown processing to complete.
 	 */
 	while (!atomic_load(&shutdownflag)) {
-		isc_test_nap(1000);
+		uv_sleep(1000);
 	}
 
 	assert_int_equal(atomic_load(&errcnt), ISC_R_SUCCESS);
@@ -533,37 +522,12 @@ purge(void **state) {
 	isc_task_detach(&task2);
 }
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(ticker),
-		cmocka_unit_test(once_idle),
-		cmocka_unit_test(reset),
-		cmocka_unit_test(purge),
-	};
-	int c;
+ISC_TEST_LIST_START
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
-		switch (c) {
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			break;
-		}
-	}
+ISC_TEST_ENTRY_CUSTOM(once_idle, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(reset, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(purge, _setup, _teardown)
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

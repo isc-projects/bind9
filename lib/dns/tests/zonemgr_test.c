@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -33,38 +31,16 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 /* create zone manager */
-static void
-zonemgr_create(void **state) {
+ISC_RUN_TEST_IMPL(dns_zonemgr_create) {
 	dns_zonemgr_t *myzonemgr = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, netmgr,
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -74,15 +50,14 @@ zonemgr_create(void **state) {
 }
 
 /* manage and release a zone */
-static void
-zonemgr_managezone(void **state) {
+ISC_RUN_TEST_IMPL(dns_zonemgr_managezone) {
 	dns_zonemgr_t *myzonemgr = NULL;
 	dns_zone_t *zone = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, netmgr,
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -108,15 +83,14 @@ zonemgr_managezone(void **state) {
 }
 
 /* create and release a zone */
-static void
-zonemgr_createzone(void **state) {
+ISC_RUN_TEST_IMPL(dns_zonemgr_createzone) {
 	dns_zonemgr_t *myzonemgr = NULL;
 	dns_zone_t *zone = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, netmgr,
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -134,8 +108,7 @@ zonemgr_createzone(void **state) {
 }
 
 /* manage and release a zone */
-static void
-zonemgr_unreachable(void **state) {
+ISC_RUN_TEST_IMPL(dns_zonemgr_unreachable) {
 	dns_zonemgr_t *myzonemgr = NULL;
 	dns_zone_t *zone = NULL;
 	isc_sockaddr_t addr1, addr2;
@@ -147,7 +120,7 @@ zonemgr_unreachable(void **state) {
 
 	TIME_NOW(&now);
 
-	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, netmgr,
+	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -217,30 +190,14 @@ zonemgr_unreachable(void **state) {
  * 	- dns_zonemgr_getserialqueryrate
  */
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(zonemgr_create, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(zonemgr_managezone, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(zonemgr_createzone, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(zonemgr_unreachable, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(dns_zonemgr_create, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_zonemgr_managezone, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_zonemgr_createzone, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_zonemgr_unreachable, setup_managers,
+		      teardown_managers)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -33,6 +31,8 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+
+#include <dns/test.h>
 
 static void
 multiple_prefixes(void) {
@@ -121,8 +121,7 @@ multiple_prefixes(void) {
 	assert_true(have_p1 != have_p2);
 }
 
-static void
-dns64_findprefix(void **state) {
+ISC_RUN_TEST_IMPL(dns64_findprefix) {
 	unsigned int i, j, o;
 	isc_result_t result;
 	struct {
@@ -164,8 +163,6 @@ dns64_findprefix(void **state) {
 		  96,
 		  ISC_R_NOTFOUND },
 	};
-
-	UNUSED(state);
 
 	for (i = 0; i < ARRAY_SIZE(tests); i++) {
 		size_t count = 2;
@@ -231,22 +228,8 @@ dns64_findprefix(void **state) {
 	multiple_prefixes();
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = { cmocka_unit_test_setup_teardown(
-		dns64_findprefix, NULL, NULL) };
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(dns64_findprefix)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif
+ISC_TEST_MAIN

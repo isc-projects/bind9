@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -26,9 +25,10 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include <isc/test.h>
+
 /* convert result to identifier string */
-static void
-isc_result_toid_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_result_toid) {
 	const char *id;
 
 	UNUSED(state);
@@ -41,8 +41,7 @@ isc_result_toid_test(void **state) {
 }
 
 /* convert result to description string */
-static void
-isc_result_totext_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_result_totext) {
 	const char *str;
 
 	UNUSED(state);
@@ -54,24 +53,11 @@ isc_result_totext_test(void **state) {
 	assert_string_equal("failure", str);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_result_toid_test),
-		cmocka_unit_test(isc_result_totext_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_result_toid)
+ISC_TEST_ENTRY(isc_result_totext)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

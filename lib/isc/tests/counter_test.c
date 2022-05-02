@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -27,39 +25,17 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 /* test isc_counter object */
-static void
-isc_counter_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_counter) {
 	isc_result_t result;
 	isc_counter_t *counter = NULL;
 	int i;
 
 	UNUSED(state);
 
-	result = isc_counter_create(test_mctx, 0, &counter);
+	result = isc_counter_create(mctx, 0, &counter);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < 10; i++) {
@@ -82,24 +58,10 @@ isc_counter_test(void **state) {
 	isc_counter_detach(&counter);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_counter_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_counter)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

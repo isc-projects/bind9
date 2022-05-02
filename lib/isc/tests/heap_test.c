@@ -13,8 +13,6 @@
 
 /* ! \file */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -29,28 +27,7 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 struct e {
 	unsigned int value;
@@ -73,14 +50,13 @@ idx(void *p, unsigned int i) {
 }
 
 /* test isc_heap_delete() */
-static void
-isc_heap_delete_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_heap_delete) {
 	isc_heap_t *heap = NULL;
 	struct e e1 = { 100, 0 };
 
 	UNUSED(state);
 
-	isc_heap_create(test_mctx, compare, idx, 0, &heap);
+	isc_heap_create(mctx, compare, idx, 0, &heap);
 	assert_non_null(heap);
 
 	isc_heap_insert(heap, &e1);
@@ -93,23 +69,10 @@ isc_heap_delete_test(void **state) {
 	assert_null(heap);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_heap_delete_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_ENTRY(isc_heap_delete)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

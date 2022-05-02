@@ -11,9 +11,8 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -33,11 +32,10 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define TEST_INPUT(x) (x), sizeof(x) - 1
+#include <isc/test.h>
 
-/*Hash function test */
-static void
-isc_hash_function_test(void **state) {
+/* Hash function test */
+ISC_RUN_TEST_IMPL(isc_hash_function) {
 	unsigned int h1;
 	unsigned int h2;
 
@@ -69,8 +67,7 @@ isc_hash_function_test(void **state) {
 }
 
 /* Hash function initializer test */
-static void
-isc_hash_initializer_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hash_initializer) {
 	unsigned int h1;
 	unsigned int h2;
 
@@ -89,24 +86,11 @@ isc_hash_initializer_test(void **state) {
 	assert_int_equal(h1, h2);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_hash_function_test),
-		cmocka_unit_test(isc_hash_initializer_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_hash_function)
+ISC_TEST_ENTRY(isc_hash_initializer)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

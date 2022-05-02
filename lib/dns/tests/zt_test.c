@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -39,34 +37,29 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
-#include "dnstest.h"
-
-struct args {
-	void *arg1;
-	void *arg2;
-	bool arg3;
-};
+#include <dns/test.h>
 
 static int
 _setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_app_start();
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
+	teardown_managers(state);
+	isc_app_finish();
 
 	return (0);
 }
+
+struct args {
+	void *arg1;
+	void *arg2;
+	bool arg3;
+};
 
 static isc_result_t
 count_zone(dns_zone_t *zone, void *uap) {
@@ -122,8 +115,7 @@ start_zone_asyncload(isc_task_t *task, isc_event_t *event) {
 }
 
 /* apply a function to a zone table */
-static void
-apply(void **state) {
+ISC_RUN_TEST_IMPL(dns_zt_apply) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_view_t *view = NULL;
@@ -157,8 +149,7 @@ apply(void **state) {
 }
 
 /* asynchronous zone load */
-static void
-asyncload_zone(void **state) {
+ISC_RUN_TEST_IMPL(dns_zt_asyncload_zone) {
 	isc_result_t result;
 	int n;
 	dns_zone_t *zone = NULL;
@@ -202,7 +193,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = false;
-	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 	while (dns__zone_loadpending(zone) && i++ < 5000) {
@@ -224,7 +215,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = true;
-	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 
@@ -241,7 +232,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = false;
-	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 
@@ -266,8 +257,7 @@ asyncload_zone(void **state) {
 }
 
 /* asynchronous zone table load */
-static void
-asyncload_zt(void **state) {
+ISC_RUN_TEST_IMPL(dns_zt_asyncload_zt) {
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL, *zone3 = NULL;
 	dns_view_t *view;
@@ -316,7 +306,7 @@ asyncload_zt(void **state) {
 
 	args.arg1 = zt;
 	args.arg2 = &done;
-	isc_app_onrun(dt_mctx, maintask, start_zt_asyncload, &args);
+	isc_app_onrun(mctx, maintask, start_zt_asyncload, &args);
 
 	isc_app_run();
 	while (!atomic_load(&done) && i++ < 5000) {
@@ -350,27 +340,12 @@ asyncload_zt(void **state) {
 	dns_view_detach(&view);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(apply, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(asyncload_zone, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(asyncload_zt, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(dns_zt_apply, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_zt_asyncload_zone, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_zt_asyncload_zt, _setup, _teardown)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

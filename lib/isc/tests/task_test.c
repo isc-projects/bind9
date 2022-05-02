@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -22,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <uv.h>
 
 #define UNIT_TESTING
 
@@ -39,7 +38,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
@@ -53,60 +52,45 @@ static atomic_bool done;
 
 static int
 _setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 0;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _setup2(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
 	/* Two worker threads */
-	result = isc_test_begin(NULL, true, 2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 2;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _setup4(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
 	/* Four worker threads */
-	result = isc_test_begin(NULL, true, 4);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 4;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
+	teardown_managers(state);
 
-	isc_test_end();
 	isc_condition_destroy(&cv);
+	isc_mutex_destroy(&lock);
 
 	return (0);
 }
@@ -124,8 +108,7 @@ set(isc_task_t *task, isc_event_t *event) {
 #include <isc/thread.h>
 
 /* Create a task */
-static void
-create_task(void **state) {
+ISC_RUN_TEST_IMPL(create_task) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 
@@ -139,8 +122,7 @@ create_task(void **state) {
 }
 
 /* Process events */
-static void
-all_events(void **state) {
+ISC_RUN_TEST_IMPL(all_events) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 	isc_event_t *event = NULL;
@@ -157,14 +139,14 @@ all_events(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First event */
-	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST, set, &a,
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &a,
 				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&a), 0);
 	isc_task_send(task, &event);
 
-	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST, set, &b,
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &b,
 				   sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -172,7 +154,7 @@ all_events(void **state) {
 	isc_task_send(task, &event);
 
 	while ((atomic_load(&a) == 0 || atomic_load(&b) == 0) && i++ < 5000) {
-		isc_test_nap(1000);
+		uv_sleep(1000);
 	}
 
 	assert_int_not_equal(atomic_load(&a), 0);
@@ -223,8 +205,7 @@ static char four[] = "4";
 static char tick[] = "tick";
 static char tock[] = "tock";
 
-static void
-basic(void **state) {
+ISC_RUN_TEST_IMPL(basic) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL;
 	isc_task_t *task2 = NULL;
@@ -272,7 +253,7 @@ basic(void **state) {
 		 * structure (socket, timer, task, etc) but this is just a
 		 * test program.
 		 */
-		event = isc_event_allocate(test_mctx, (void *)1, 1, basic_cb,
+		event = isc_event_allocate(mctx, (void *)1, 1, basic_cb,
 					   testarray[i], sizeof(*event));
 		assert_non_null(event);
 		isc_task_send(task1, &event);
@@ -347,8 +328,7 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-task_exclusive(void **state) {
+ISC_RUN_TEST_IMPL(task_exclusive) {
 	isc_task_t *tasks[10];
 	isc_result_t result;
 	int i;
@@ -374,12 +354,12 @@ task_exclusive(void **state) {
 			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 
-		v = isc_mem_get(test_mctx, sizeof *v);
+		v = isc_mem_get(mctx, sizeof *v);
 		assert_non_null(v);
 
 		*v = i;
 
-		event = isc_event_allocate(test_mctx, NULL, 1, exclusive_cb, v,
+		event = isc_event_allocate(mctx, NULL, 1, exclusive_cb, v,
 					   sizeof(*event));
 		assert_non_null(event);
 
@@ -392,7 +372,7 @@ task_exclusive(void **state) {
 	}
 
 	while (atomic_load(&counter) > 0) {
-		isc_test_nap(1000);
+		uv_sleep(1000);
 	}
 }
 
@@ -429,8 +409,7 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-manytasks(void **state) {
+ISC_RUN_TEST_IMPL(manytasks) {
 	isc_event_t *event = NULL;
 	uintptr_t ntasks = 2; /* 0000; */
 
@@ -443,8 +422,8 @@ manytasks(void **state) {
 
 	atomic_init(&done, false);
 
-	event = isc_event_allocate(test_mctx, NULL, 1, maxtask_cb,
-				   (void *)ntasks, sizeof(*event));
+	event = isc_event_allocate(mctx, NULL, 1, maxtask_cb, (void *)ntasks,
+				   sizeof(*event));
 	assert_non_null(event);
 
 	LOCK(&lock);
@@ -518,12 +497,12 @@ try_purgeevent(void) {
 	/*
 	 * Block the task on cv.
 	 */
-	event1 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
+	event1 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event1, NULL, sizeof(*event1));
 	assert_non_null(event1);
 	isc_task_send(task, &event1);
 
-	event2 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
+	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event2, NULL, sizeof(*event2));
 	assert_non_null(event2);
 
@@ -553,7 +532,6 @@ try_purgeevent(void) {
 
 		WAITUNTIL(&cv, &lock, &now);
 	}
-
 	UNLOCK(&lock);
 
 	isc_task_detach(&task);
@@ -566,72 +544,21 @@ try_purgeevent(void) {
  * task's queue and returns true.
  */
 
-static void
-purgeevent(void **state) {
+ISC_RUN_TEST_IMPL(purgeevent) {
 	UNUSED(state);
 
 	try_purgeevent();
 }
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(manytasks, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(all_events, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(basic, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
-						_teardown),
-	};
-	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
-	size_t i;
-	int c;
+ISC_TEST_LIST_START
 
-	memset(selected, 0, sizeof(selected));
+ISC_TEST_ENTRY_CUSTOM(manytasks, _setup4, _teardown)
+ISC_TEST_ENTRY_CUSTOM(all_events, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(basic, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(create_task, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(purgeevent, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(task_exclusive, _setup4, _teardown)
 
-	while ((c = isc_commandline_parse(argc, argv, "lt:v")) != -1) {
-		switch (c) {
-		case 'l':
-			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
-			{
-				if (tests[i].name != NULL) {
-					fprintf(stdout, "%s\n", tests[i].name);
-				}
-			}
-			return (0);
-		case 't':
-			if (!cmocka_add_test_byname(
-				    tests, isc_commandline_argument, selected))
-			{
-				fprintf(stderr, "unknown test '%s'\n",
-					isc_commandline_argument);
-				exit(1);
-			}
-			break;
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			break;
-		}
-	}
+ISC_TEST_LIST_END
 
-	if (selected[0].name != NULL) {
-		return (cmocka_run_group_tests(selected, NULL, NULL));
-	} else {
-		return (cmocka_run_group_tests(tests, NULL, NULL));
-	}
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -13,8 +13,6 @@
 
 /* ! \file */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -32,6 +30,8 @@
 #include <isc/result.h>
 
 #include "../hmac.c"
+
+#include <isc/test.h>
 
 #define TEST_INPUT(x) (x), sizeof(x) - 1
 
@@ -65,8 +65,7 @@ _reset(void **state) {
 	return (0);
 }
 
-static void
-isc_hmac_new_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_new) {
 	UNUSED(state);
 
 	isc_hmac_t *hmac = isc_hmac_new();
@@ -74,8 +73,7 @@ isc_hmac_new_test(void **state) {
 	isc_hmac_free(hmac); /* Cleanup */
 }
 
-static void
-isc_hmac_free_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_free) {
 	UNUSED(state);
 
 	isc_hmac_t *hmac = isc_hmac_new();
@@ -87,13 +85,13 @@ isc_hmac_free_test(void **state) {
 static void
 isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
 	      const isc_md_type_t *type, const char *buf, size_t buflen,
-	      const char *result, const int repeats) {
+	      const char *result, const size_t repeats) {
+	isc_result_t res;
+
 	assert_non_null(hmac);
 	assert_int_equal(isc_hmac_init(hmac, key, keylen, type), ISC_R_SUCCESS);
 
-	int i;
-
-	for (i = 0; i < repeats; i++) {
+	for (size_t i = 0; i < repeats; i++) {
 		assert_int_equal(isc_hmac_update(hmac,
 						 (const unsigned char *)buf,
 						 buflen),
@@ -110,14 +108,15 @@ isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
 	isc_buffer_t b;
 	isc_buffer_init(&b, hexdigest, sizeof(hexdigest));
 
-	assert_return_code(isc_hex_totext(&r, 0, "", &b), ISC_R_SUCCESS);
+	res = isc_hex_totext(&r, 0, "", &b);
+
+	assert_return_code(res, ISC_R_SUCCESS);
 
 	assert_memory_equal(hexdigest, result, (result ? strlen(result) : 0));
 	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
 }
 
-static void
-isc_hmac_init_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_init) {
 	isc_hmac_t *hmac = *state;
 	assert_non_null(hmac);
 
@@ -152,8 +151,7 @@ isc_hmac_init_test(void **state) {
 	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
 }
 
-static void
-isc_hmac_update_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_update) {
 	isc_hmac_t *hmac = *state;
 	assert_non_null(hmac);
 
@@ -165,8 +163,7 @@ isc_hmac_update_test(void **state) {
 			 ISC_R_SUCCESS);
 }
 
-static void
-isc_hmac_reset_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_reset) {
 	isc_hmac_t *hmac = *state;
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
@@ -194,8 +191,7 @@ isc_hmac_reset_test(void **state) {
 #endif /* if 0 */
 }
 
-static void
-isc_hmac_final_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_final) {
 	isc_hmac_t *hmac = *state;
 	assert_non_null(hmac);
 
@@ -213,8 +209,7 @@ isc_hmac_final_test(void **state) {
 	expect_assert_failure(isc_hmac_final(hmac, digest, NULL));
 }
 
-static void
-isc_hmac_md5_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -311,8 +306,7 @@ isc_hmac_md5_test(void **state) {
 #endif /* if 0 */
 }
 
-static void
-isc_hmac_sha1_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -395,8 +389,7 @@ isc_hmac_sha1_test(void **state) {
 		      "E8E99D0F45237D786D6BBAA7965C7808BBFF1A91", 1);
 }
 
-static void
-isc_hmac_sha224_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -519,8 +512,7 @@ isc_hmac_sha224_test(void **state) {
 		      1);
 }
 
-static void
-isc_hmac_sha256_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -643,8 +635,7 @@ isc_hmac_sha256_test(void **state) {
 		      1);
 }
 
-static void
-isc_hmac_sha384_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -773,8 +764,7 @@ isc_hmac_sha384_test(void **state) {
 		      1);
 }
 
-static void
-isc_hmac_sha512_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 	isc_hmac_t *hmac = *state;
 
 	/* Test 0 */
@@ -904,47 +894,25 @@ isc_hmac_sha512_test(void **state) {
 		      1);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		/* isc_hmac_new() */
-		cmocka_unit_test(isc_hmac_new_test),
+ISC_TEST_LIST_START
 
-		/* isc_hmac_init() */
-		cmocka_unit_test_setup_teardown(isc_hmac_init_test, _reset,
-						_reset),
+ISC_TEST_ENTRY(isc_hmac_new)
+ISC_TEST_ENTRY_CUSTOM(isc_hmac_init, _reset, _reset)
 
-		/* isc_hmac_reset() */
-		cmocka_unit_test_setup_teardown(isc_hmac_reset_test, _reset,
-						_reset),
+ISC_TEST_ENTRY_CUSTOM(isc_hmac_reset, _reset, _reset)
 
-		/* isc_hmac_init() -> isc_hmac_update() -> isc_hmac_final() */
-		cmocka_unit_test(isc_hmac_md5_test),
-		cmocka_unit_test(isc_hmac_sha1_test),
-		cmocka_unit_test(isc_hmac_sha224_test),
-		cmocka_unit_test(isc_hmac_sha256_test),
-		cmocka_unit_test(isc_hmac_sha384_test),
-		cmocka_unit_test(isc_hmac_sha512_test),
+ISC_TEST_ENTRY(isc_hmac_md5)
+ISC_TEST_ENTRY(isc_hmac_sha1)
+ISC_TEST_ENTRY(isc_hmac_sha224)
+ISC_TEST_ENTRY(isc_hmac_sha256)
+ISC_TEST_ENTRY(isc_hmac_sha384)
+ISC_TEST_ENTRY(isc_hmac_sha512)
 
-		cmocka_unit_test_setup_teardown(isc_hmac_update_test, _reset,
-						_reset),
-		cmocka_unit_test_setup_teardown(isc_hmac_final_test, _reset,
-						_reset),
+ISC_TEST_ENTRY_CUSTOM(isc_hmac_update, _reset, _reset)
+ISC_TEST_ENTRY_CUSTOM(isc_hmac_final, _reset, _reset)
 
-		cmocka_unit_test(isc_hmac_free_test),
-	};
+ISC_TEST_ENTRY(isc_hmac_free)
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN_CUSTOM(_setup, _teardown)

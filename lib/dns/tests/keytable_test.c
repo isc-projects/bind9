@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -42,28 +40,7 @@
 
 #include <dst/dst.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 dns_keytable_t *keytable = NULL;
 dns_ntatable_t *ntatable = NULL;
@@ -123,7 +100,7 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 
 	keystruct->common.rdclass = rdclass;
 	keystruct->common.rdtype = dns_rdatatype_dnskey;
-	keystruct->mctx = dt_mctx;
+	keystruct->mctx = mctx;
 	ISC_LINK_INIT(&keystruct->common, link);
 	keystruct->flags = flags;
 	keystruct->protocol = proto;
@@ -134,7 +111,7 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 			 ISC_R_SUCCESS);
 	isc_buffer_usedregion(&keydatabuf, &r);
 	keystruct->datalen = r.length;
-	keystruct->data = isc_mem_allocate(dt_mctx, r.length);
+	keystruct->data = isc_mem_allocate(mctx, r.length);
 	memmove(keystruct->data, r.base, r.length);
 }
 
@@ -182,11 +159,10 @@ create_tables(void) {
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 	isc_stdtime_t now;
 
-	result = dns_test_makeview("view", &view);
+	result = dns_test_makeview("view", false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	assert_int_equal(dns_keytable_create(dt_mctx, &keytable),
-			 ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_ntatable_create(view, taskmgr, timermgr, &ntatable),
 		ISC_R_SUCCESS);
@@ -229,8 +205,7 @@ destroy_tables(void) {
 }
 
 /* add keys to the keytable */
-static void
-add_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_add) {
 	dns_keynode_t *keynode = NULL;
 	dns_keynode_t *null_keynode = NULL;
 	unsigned char digest[ISC_MAX_MD_SIZE];
@@ -380,10 +355,7 @@ add_test(void **state) {
 }
 
 /* delete keys from the keytable */
-static void
-delete_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(dns_keytable_delete) {
 	create_tables();
 
 	/* dns_keytable_delete requires exact match */
@@ -409,8 +381,7 @@ delete_test(void **state) {
 }
 
 /* delete key nodes from the keytable */
-static void
-deletekey_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_deletekey) {
 	dns_rdata_dnskey_t dnskey;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
@@ -475,8 +446,7 @@ deletekey_test(void **state) {
 }
 
 /* check find-variant operations */
-static void
-find_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_find) {
 	dns_keynode_t *keynode = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -530,8 +500,7 @@ find_test(void **state) {
 }
 
 /* check issecuredomain() */
-static void
-issecuredomain_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_issecuredomain) {
 	bool issecure;
 	const char **n;
 	const char *names[] = { "example.com", "sub.example.com",
@@ -568,8 +537,7 @@ issecuredomain_test(void **state) {
 }
 
 /* check dns_keytable_dump() */
-static void
-dump_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_dump) {
 	FILE *f = fopen("/dev/null", "w");
 
 	UNUSED(state);
@@ -587,8 +555,7 @@ dump_test(void **state) {
 }
 
 /* check negative trust anchors */
-static void
-nta_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_keytable_nta) {
 	isc_result_t result;
 	bool issecure, covered;
 	dns_fixedname_t fn;
@@ -600,13 +567,13 @@ nta_test(void **state) {
 
 	UNUSED(state);
 
-	result = dns_test_makeview("view", &myview);
+	result = dns_test_makeview("view", false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &myview->task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initsecroots(myview, dt_mctx);
+	result = dns_view_initsecroots(myview, mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -692,29 +659,17 @@ nta_test(void **state) {
 	dns_view_detach(&myview);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(add_test),
-		cmocka_unit_test(delete_test),
-		cmocka_unit_test(deletekey_test),
-		cmocka_unit_test(find_test),
-		cmocka_unit_test(issecuredomain_test),
-		cmocka_unit_test(dump_test),
-		cmocka_unit_test(nta_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_add, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_delete, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_deletekey, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_find, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_issecuredomain, setup_managers,
+		      teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_dump, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(dns_keytable_nta, setup_managers, teardown_managers)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

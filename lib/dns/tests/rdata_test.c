@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -35,7 +33,7 @@
 
 #include <dns/rdata.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 static bool debug = false;
 
@@ -55,27 +53,6 @@ struct textvsunknown {
 	const char *text2;
 };
 typedef struct textvsunknown textvsunknown_t;
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
 
 /*
  * An array of these structures is passed to check_text_ok().
@@ -199,7 +176,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	dns_compress_init(&cctx, -1, dt_mctx);
+	dns_compress_init(&cctx, -1, mctx);
 	result = dns_rdata_towire(rdata, &cctx, &target);
 	dns_compress_invalidate(&cctx);
 
@@ -285,7 +262,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	char buf[1024];
 	unsigned int count = 0;
 
-	rdata_struct = isc_mem_allocate(dt_mctx, structsize);
+	rdata_struct = isc_mem_allocate(mctx, structsize);
 	assert_non_null(rdata_struct);
 
 	/*
@@ -365,7 +342,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	}
 	}
 
-	isc_mem_free(dt_mctx, rdata_struct);
+	isc_mem_free(mctx, rdata_struct);
 }
 
 /*
@@ -892,8 +869,7 @@ key_required(void **state, dns_rdatatype_t type, size_t size) {
 }
 
 /* APL RDATA manipulations */
-static void
-apl(void **state) {
+ISC_RUN_TEST_IMPL(apl) {
 	text_ok_t text_ok[] = {
 		/* empty list */
 		TEXT_VALID(""),
@@ -933,8 +909,6 @@ apl(void **state) {
 				 */
 				WIRE_SENTINEL()
 	};
-
-	UNUSED(state);
 
 	check_rdata(text_ok, wire_ok, NULL, true, dns_rdataclass_in,
 		    dns_rdatatype_apl, sizeof(dns_rdata_in_apl_t));
@@ -977,8 +951,7 @@ apl(void **state) {
  *
  * ATMA RRs cause no additional section processing.
  */
-static void
-atma(void **state) {
+ISC_RUN_TEST_IMPL(atma) {
 	text_ok_t text_ok[] = { TEXT_VALID("00"),
 				TEXT_VALID_CHANGED("0.0", "00"),
 				/*
@@ -1041,15 +1014,12 @@ atma(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
 }
 
 /* AMTRELAY RDATA manipulations */
-static void
-amtrelay(void **state) {
+ISC_RUN_TEST_IMPL(amtrelay) {
 	text_ok_t text_ok[] = {
 		TEXT_INVALID(""), TEXT_INVALID("0"), TEXT_INVALID("0 0"),
 		/* gateway type 0 */
@@ -1121,14 +1091,11 @@ amtrelay(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_amtrelay, sizeof(dns_rdata_amtrelay_t));
 }
 
-static void
-cdnskey(void **state) {
+ISC_RUN_TEST_IMPL(cdnskey) {
 	key_required(state, dns_rdatatype_cdnskey, sizeof(dns_rdata_cdnskey_t));
 }
 
@@ -1196,8 +1163,7 @@ cdnskey(void **state) {
  *    must understand the semantics associated with a bit in the Type Bit
  *    Map field that has been set to 1.
  */
-static void
-csync(void **state) {
+ISC_RUN_TEST_IMPL(csync) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),
 				TEXT_INVALID("0"),
 				TEXT_VALID("0 0"),
@@ -1252,14 +1218,11 @@ csync(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_csync, sizeof(dns_rdata_csync_t));
 }
 
-static void
-dnskey(void **state) {
+ISC_RUN_TEST_IMPL(dnskey) {
 	key_required(state, dns_rdatatype_dnskey, sizeof(dns_rdata_dnskey_t));
 }
 
@@ -1323,8 +1286,7 @@ dnskey(void **state) {
  *    character ("-", ASCII 45).  White space is permitted within Base64
  *    data.
  */
-static void
-doa(void **state) {
+ISC_RUN_TEST_IMPL(doa) {
 	text_ok_t text_ok[] = {
 		/*
 		 * Valid, non-empty DOA-DATA.
@@ -1471,8 +1433,6 @@ doa(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_doa, sizeof(dns_rdata_doa_t));
 }
@@ -1539,8 +1499,7 @@ doa(void **state) {
  *    DNSKEY RR size.  As of the time of this writing, the only defined
  *    digest algorithm is SHA-1, which produces a 20 octet digest.
  */
-static void
-ds(void **state) {
+ISC_RUN_TEST_IMPL(ds) {
 	text_ok_t text_ok[] = {
 		/*
 		 * Invalid, empty record.
@@ -1742,8 +1701,6 @@ ds(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_ds, sizeof(dns_rdata_ds_t));
 }
@@ -1808,8 +1765,7 @@ ds(void **state) {
  *    All fields are in network byte order ("big-endian", per [RFC1700],
  *    Data Notation).
  */
-static void
-edns_client_subnet(void **state) {
+ISC_RUN_TEST_IMPL(edns_client_subnet) {
 	wire_ok_t wire_ok[] = {
 		/*
 		 * Option code with no content.
@@ -1883,8 +1839,6 @@ edns_client_subnet(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(NULL, wire_ok, NULL, true, dns_rdataclass_in,
 		    dns_rdatatype_opt, sizeof(dns_rdata_opt_t));
 }
@@ -1898,8 +1852,7 @@ edns_client_subnet(void **state) {
  * significant.  For readability, whitespace may be included in the value
  * field and should be ignored when reading a master file.
  */
-static void
-eid(void **state) {
+ISC_RUN_TEST_IMPL(eid) {
 	text_ok_t text_ok[] = { TEXT_VALID("AABBCC"),
 				TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
 				TEXT_INVALID("aab"),
@@ -1913,8 +1866,6 @@ eid(void **state) {
 				 */
 				WIRE_SENTINEL() };
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_eid, sizeof(dns_rdata_in_eid_t));
 }
@@ -1922,8 +1873,7 @@ eid(void **state) {
 /*
  * test that an oversized HIP record will be rejected
  */
-static void
-hip(void **state) {
+ISC_RUN_TEST_IMPL(hip) {
 	text_ok_t text_ok[] = {
 		/* RFC 8005 examples. */
 		TEXT_VALID_LOOP(0, "2 200100107B1A74DF365639CC39F1D578 "
@@ -1958,8 +1908,6 @@ hip(void **state) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	size_t i;
-
-	UNUSED(state);
 
 	/*
 	 * Fill the rest of input buffer with compression pointers.
@@ -2037,8 +1985,7 @@ hip(void **state) {
  *    as one or two <character-string>s, i.e., count followed by
  *    characters.
  */
-static void
-isdn(void **state) {
+ISC_RUN_TEST_IMPL(isdn) {
 	wire_ok_t wire_ok[] = { /*
 				 * "".
 				 */
@@ -2061,8 +2008,6 @@ isdn(void **state) {
 				WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(NULL, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_isdn, sizeof(dns_rdata_isdn_t));
 }
@@ -2070,8 +2015,7 @@ isdn(void **state) {
 /*
  * KEY tests.
  */
-static void
-key(void **state) {
+ISC_RUN_TEST_IMPL(key) {
 	wire_ok_t wire_ok[] = {
 		/*
 		 * RDATA is comprised of:
@@ -2144,8 +2088,6 @@ key(void **state) {
 				TEXT_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_key, sizeof(dns_rdata_key_t));
 }
@@ -2153,8 +2095,7 @@ key(void **state) {
 /*
  * LOC tests.
  */
-static void
-loc(void **state) {
+ISC_RUN_TEST_IMPL(loc) {
 	text_ok_t text_ok[] = {
 		TEXT_VALID_CHANGED("0 N 0 E 0", "0 0 0.000 N 0 0 0.000 E 0.00m "
 						"1m 10000m 10m"),
@@ -2209,8 +2150,6 @@ loc(void **state) {
 		TEXT_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, 0, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_loc, sizeof(dns_rdata_loc_t));
 }
@@ -2224,8 +2163,7 @@ loc(void **state) {
  * significant.  For readability, whitespace may be included in the value
  * field and should be ignored when reading a master file.
  */
-static void
-nimloc(void **state) {
+ISC_RUN_TEST_IMPL(nimloc) {
 	text_ok_t text_ok[] = { TEXT_VALID("AABBCC"),
 				TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
 				TEXT_INVALID("aab"),
@@ -2238,8 +2176,6 @@ nimloc(void **state) {
 				 * Sentinel.
 				 */
 				WIRE_SENTINEL() };
-
-	UNUSED(state);
 
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nimloc, sizeof(dns_rdata_in_nimloc_t));
@@ -2311,16 +2247,13 @@ nimloc(void **state) {
  *    Bits representing pseudo-types MUST be clear, as they do not appear
  *    in zone data.  If encountered, they MUST be ignored upon being read.
  */
-static void
-nsec(void **state) {
+ISC_RUN_TEST_IMPL(nsec) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""), TEXT_INVALID("."),
 				TEXT_VALID(". RRSIG"), TEXT_SENTINEL() };
 	wire_ok_t wire_ok[] = { WIRE_INVALID(0x00), WIRE_INVALID(0x00, 0x00),
 				WIRE_INVALID(0x00, 0x00, 0x00),
 				WIRE_VALID(0x00, 0x00, 0x01, 0x02),
 				WIRE_SENTINEL() };
-
-	UNUSED(state);
 
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec, sizeof(dns_rdata_nsec_t));
@@ -2331,8 +2264,7 @@ nsec(void **state) {
  *
  * RFC 5155.
  */
-static void
-nsec3(void **state) {
+ISC_RUN_TEST_IMPL(nsec3) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),
 				TEXT_INVALID("."),
 				TEXT_INVALID(". RRSIG"),
@@ -2352,15 +2284,12 @@ nsec3(void **state) {
 					   "AJHVGTICN6K0VDA53GCHFMT219SRRQLM"),
 				TEXT_SENTINEL() };
 
-	UNUSED(state);
-
 	check_rdata(text_ok, NULL, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec3, sizeof(dns_rdata_nsec3_t));
 }
 
 /* NXT RDATA manipulations */
-static void
-nxt(void **state) {
+ISC_RUN_TEST_IMPL(nxt) {
 	compare_ok_t compare_ok[] = {
 		COMPARE("a. A SIG", "a. A SIG", 0),
 		/*
@@ -2379,14 +2308,11 @@ nxt(void **state) {
 		COMPARE("b. A SIG AAAA", "b. A AAAA SIG", 0), COMPARE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(NULL, NULL, compare_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_nxt, sizeof(dns_rdata_nxt_t));
 }
 
-static void
-rkey(void **state) {
+ISC_RUN_TEST_IMPL(rkey) {
 	text_ok_t text_ok[] = { /*
 				 * Valid, flags set to 0 and a key is present.
 				 */
@@ -2420,108 +2346,8 @@ rkey(void **state) {
 		    dns_rdatatype_rkey, sizeof(dns_rdata_rkey_t));
 }
 
-/*
- * rrsig (sig) tests.
- */
-static void
-sig_rrsig(void **state) {
-	wire_ok_t wire_ok[] = {
-		/*
-		 * RDATA is comprised of:
-		 *
-		 * type covered: 2
-		 * algorithm: 1
-		 * labels: 1
-		 * original ttl: 4
-		 * signature expiration: 4
-		 * time signed: 4
-		 * key footprint: 2
-		 * signer: variable
-		 * signature: variable
-		 * - if algorithm is PRIVATEDNS the algorithm name is embedded
-		 *   at the start of the signature
-		 * - if algorithm is PRIVATEOID the algorithm OID is embedded
-		 *   at the start of the signature
-		 */
-		/* PRIVATEDNS example. */
-		WIRE_INVALID(0x00, 0x01, 253, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
-			     0x00, 0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
-			     0x00),
-		/* PRIVATEDNS example. + sigdata */
-		WIRE_VALID(0x00, 0x01, 253, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
-			   0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			   0x06, 's', 'i', 'g', 'n', 'e', 'r', 0x00, 0x07, 'e',
-			   'x', 'a', 'm', 'p', 'l', 'e', 0x00, 0x00),
-		/* PRIVATEDNS compression pointer. */
-		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0xc0, 0x00, 0x00),
-		/* PRIVATEOID */
-		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
-			     0x00, 0x00),
-		/* PRIVATEOID 1.3.6.1.4.1.2495 */
-		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
-			     0x00, 0x06, 0x07, 0x2b, 0x06, 0x01, 0x04, 0x01,
-			     0x93, 0x3f),
-		/* PRIVATEOID 1.3.6.1.4.1.2495 + sigdata */
-		WIRE_VALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
-			   0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			   0x06, 's', 'i', 'g', 'n', 'e', 'r', 0x00, 0x06, 0x07,
-			   0x2b, 0x06, 0x01, 0x04, 0x01, 0x93, 0x3f, 0x00),
-		/* PRIVATEOID malformed OID - high-bit set on last octet */
-		WIRE_INVALID(0x00, 0x01, 254, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-			     0x00, 0x00, 0x06, 's', 'i', 'g', 'n', 'e', 'r',
-			     0x00, 0x06, 0x07, 0x2b, 0x06, 0x01, 0x04, 0x01,
-			     0x93, 0xbf, 0x00),
-		WIRE_SENTINEL()
-	};
-	text_ok_t text_ok[] = {
-		/* PRIVATEDNS example. */
-		TEXT_INVALID("A 253 1 0 19700101000001 19700101000000 0 "
-			     "signer. B2V4YW1wbGUA"),
-		/* PRIVATEDNS example. + sigdata */
-		TEXT_VALID("A 253 1 0 19700101000001 19700101000000 0 signer. "
-			   "B2V4YW1wbGUAAA=="),
-		/* PRIVATEDNS compression pointer. */
-		TEXT_INVALID("A 253 1 0 19700101000001 19700101000000 0 "
-			     "signer. wAAA"),
-		/* PRIVATEOID */
-		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
-			     "signer. AA=="),
-		/* PRIVATEOID 1.3.6.1.4.1.2495 */
-		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
-			     "signer. BgcrBgEEAZM/"),
-		/* PRIVATEOID 1.3.6.1.4.1.2495 + sigdata */
-		TEXT_VALID("A 254 1 0 19700101000001 19700101000000 0 signer. "
-			   "BgcrBgEEAZM/AA=="),
-		/* PRIVATEOID malformed OID - high-bit set on last octet */
-		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
-			     "signer.  BgcrBgEEAZO/AA=="),
-		/* PRIVATEOID malformed OID - wrong tag */
-		TEXT_INVALID("A 254 1 0 19700101000001 19700101000000 0 "
-			     "signer. BwcrBgEEAZM/AA=="),
-		/*
-		 * Sentinel.
-		 */
-		TEXT_SENTINEL()
-	};
-
-	UNUSED(state);
-
-	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
-		    dns_rdatatype_sig, sizeof(dns_rdata_sig_t));
-	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
-		    dns_rdatatype_rrsig, sizeof(dns_rdata_rrsig_t));
-}
-
 /* SSHFP RDATA manipulations */
-static void
-sshfp(void **state) {
+ISC_RUN_TEST_IMPL(sshfp) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),     /* too short */
 				TEXT_INVALID("0"),    /* reserved, too short */
 				TEXT_VALID("0 0"),    /* no finger print */
@@ -2598,8 +2424,6 @@ sshfp(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_sshfp, sizeof(dns_rdata_sshfp_t));
 }
@@ -2643,8 +2467,7 @@ sshfp(void **state) {
  * port 25; if zero, SMTP service is not supported on the specified
  * address.
  */
-static void
-wks(void **state) {
+ISC_RUN_TEST_IMPL(wks) {
 	text_ok_t text_ok[] = { /*
 				 * Valid, IPv4 address in dotted-quad form.
 				 */
@@ -2681,14 +2504,11 @@ wks(void **state) {
 				WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
-static void
-https_svcb(void **state) {
+ISC_RUN_TEST_IMPL(https_svcb) {
 	/*
 	 * Known keys: mandatory, apln, no-default-alpn, port,
 	 *             ipv4hint, port, ipv6hint.
@@ -2932,8 +2752,6 @@ https_svcb(void **state) {
 		{ NULL, NULL }
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_svcb, sizeof(dns_rdata_in_svcb_t));
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
@@ -3030,8 +2848,7 @@ https_svcb(void **state) {
  *
  */
 
-static void
-zonemd(void **state) {
+ISC_RUN_TEST_IMPL(zonemd) {
 	text_ok_t text_ok[] = {
 		TEXT_INVALID(""),
 		/* No digest scheme or digest type*/
@@ -3198,16 +3015,13 @@ zonemd(void **state) {
 		WIRE_SENTINEL()
 	};
 
-	UNUSED(state);
-
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_zonemd, sizeof(dns_rdata_zonemd_t));
 }
 
-static void
-atcname(void **state) {
+ISC_RUN_TEST_IMPL(atcname) {
 	unsigned int i;
-	UNUSED(state);
+
 #define UNR "# Unexpected result from dns_rdatatype_atcname for type %u\n"
 	for (i = 0; i < 0xffffU; i++) {
 		bool tf = dns_rdatatype_atcname((dns_rdatatype_t)i);
@@ -3231,10 +3045,9 @@ atcname(void **state) {
 #undef UNR
 }
 
-static void
-atparent(void **state) {
+ISC_RUN_TEST_IMPL(atparent) {
 	unsigned int i;
-	UNUSED(state);
+
 #define UNR "# Unexpected result from dns_rdatatype_atparent for type %u\n"
 	for (i = 0; i < 0xffffU; i++) {
 		bool tf = dns_rdatatype_atparent((dns_rdatatype_t)i);
@@ -3256,10 +3069,8 @@ atparent(void **state) {
 #undef UNR
 }
 
-static void
-iszonecutauth(void **state) {
+ISC_RUN_TEST_IMPL(iszonecutauth) {
 	unsigned int i;
-	UNUSED(state);
 #define UNR "# Unexpected result from dns_rdatatype_iszonecutauth for type %u\n"
 	for (i = 0; i < 0xffffU; i++) {
 		bool tf = dns_rdatatype_iszonecutauth((dns_rdatatype_t)i);
@@ -3285,88 +3096,37 @@ iszonecutauth(void **state) {
 #undef UNR
 }
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		/* types */
-		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(atma, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(cdnskey, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(dnskey, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(ds, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(hip, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(https_svcb, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(isdn, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(key, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(loc, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(nimloc, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(nsec, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(nxt, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rkey, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(sig_rrsig, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(sshfp, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(wks, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(zonemd, _setup, _teardown),
-		/* other tests */
-		cmocka_unit_test_setup_teardown(edns_client_subnet, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(atcname, NULL, NULL),
-		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
-		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
-	};
-	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
-	size_t i;
-	int c;
+ISC_TEST_LIST_START
 
-	memset(selected, 0, sizeof(selected));
+/* types */
+ISC_TEST_ENTRY(amtrelay)
+ISC_TEST_ENTRY(apl)
+ISC_TEST_ENTRY(atma)
+ISC_TEST_ENTRY(cdnskey)
+ISC_TEST_ENTRY(csync)
+ISC_TEST_ENTRY(dnskey)
+ISC_TEST_ENTRY(doa)
+ISC_TEST_ENTRY(ds)
+ISC_TEST_ENTRY(eid)
+ISC_TEST_ENTRY(hip)
+ISC_TEST_ENTRY(https_svcb)
+ISC_TEST_ENTRY(isdn)
+ISC_TEST_ENTRY(key)
+ISC_TEST_ENTRY(loc)
+ISC_TEST_ENTRY(nimloc)
+ISC_TEST_ENTRY(nsec)
+ISC_TEST_ENTRY(nsec3)
+ISC_TEST_ENTRY(nxt)
+ISC_TEST_ENTRY(rkey)
+ISC_TEST_ENTRY(sshfp)
+ISC_TEST_ENTRY(wks)
+ISC_TEST_ENTRY(zonemd)
 
-	while ((c = isc_commandline_parse(argc, argv, "dlt:")) != -1) {
-		switch (c) {
-		case 'd':
-			debug = true;
-			break;
-		case 'l':
-			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
-			{
-				if (tests[i].name != NULL) {
-					fprintf(stdout, "%s\n", tests[i].name);
-				}
-			}
-			return (0);
-		case 't':
-			if (!cmocka_add_test_byname(
-				    tests, isc_commandline_argument, selected))
-			{
-				fprintf(stderr, "unknown test '%s'\n",
-					isc_commandline_argument);
-				exit(1);
-			}
-			break;
-		default:
-			break;
-		}
-	}
+/* other tests */
+ISC_TEST_ENTRY(edns_client_subnet)
+ISC_TEST_ENTRY(atcname)
+ISC_TEST_ENTRY(atparent)
+ISC_TEST_ENTRY(iszonecutauth)
+ISC_TEST_LIST_END
 
-	if (selected[0].name != NULL) {
-		return (cmocka_run_group_tests(selected, NULL, NULL));
-	} else {
-		return (cmocka_run_group_tests(tests, NULL, NULL));
-	}
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

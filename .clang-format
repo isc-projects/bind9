@@ -34,6 +34,12 @@ PointerAlignment: Right
 PointerBindsToType: false
 IncludeBlocks: Regroup
 IncludeCategories:
+  - Regex:           '^<isc/test.h>$'
+    Priority:        100
+  - Regex:           '^<dns/test.h>$'
+    Priority:        101
+  - Regex:           '^<ns/test.h>$'
+    Priority:        102
   - Regex:           '^<isc/'
     Priority:        5
   - Regex:           '^<(pk11|pkcs11)/'

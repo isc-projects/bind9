@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -21,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <uv.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -30,10 +29,9 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
-static void
-isc_quota_get_set_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_quota_get_set) {
 	UNUSED(state);
 	isc_quota_t quota;
 	isc_quota_t *quota2 = NULL;
@@ -79,8 +77,7 @@ add_quota(isc_quota_t *source, isc_quota_t **target,
 	assert_int_equal(isc_quota_getused(source), expected_used);
 }
 
-static void
-isc_quota_hard_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_quota_hard) {
 	isc_quota_t quota;
 	isc_quota_t *quotas[110];
 	int i;
@@ -111,8 +108,7 @@ isc_quota_hard_test(void **state) {
 	isc_quota_destroy(&quota);
 }
 
-static void
-isc_quota_soft_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_quota_soft) {
 	isc_quota_t quota;
 	isc_quota_t *quotas[110];
 	int i;
@@ -165,8 +161,7 @@ callback(isc_quota_t *quota, void *data) {
 	}
 }
 
-static void
-isc_quota_callback_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_quota_callback) {
 	isc_result_t result;
 	isc_quota_t quota;
 	isc_quota_t *quotas[30];
@@ -260,7 +255,7 @@ isc_thread_t g_threads[10 * 100];
 static void *
 quota_detach(void *quotap) {
 	isc_quota_t *quota = (isc_quota_t *)quotap;
-	isc_test_nap(10000);
+	uv_sleep(10000);
 	isc_quota_detach(&quota);
 	return ((isc_threadresult_t)0);
 }
@@ -291,8 +286,7 @@ quota_thread(void *qtip) {
 	return ((isc_threadresult_t)0);
 }
 
-static void
-isc_quota_callback_mt_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_quota_callback_mt) {
 	UNUSED(state);
 	isc_quota_t quota;
 	int i;
@@ -313,14 +307,14 @@ isc_quota_callback_mt_test(void **state) {
 	for (i = 0; i < (int)atomic_load(&g_tnum); i++) {
 		isc_thread_join(g_threads[i], NULL);
 	}
-	int direct = 0, callback = 0;
+	int direct = 0, ncallback = 0;
 
 	for (i = 0; i < 10; i++) {
 		direct += atomic_load(&qtis[i].direct);
-		callback += atomic_load(&qtis[i].callback);
+		ncallback += atomic_load(&qtis[i].callback);
 	}
 	/* Total quota gained must be 10 threads * 100 tries */
-	assert_int_equal(direct + callback, 10 * 100);
+	assert_int_equal(direct + ncallback, 10 * 100);
 	/*
 	 * At least 100 must be direct, the rest is virtually random:
 	 * - in a regular run I'm constantly getting 100:900 ratio
@@ -332,27 +326,14 @@ isc_quota_callback_mt_test(void **state) {
 	isc_quota_destroy(&quota);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_quota_get_set_test),
-		cmocka_unit_test(isc_quota_hard_test),
-		cmocka_unit_test(isc_quota_soft_test),
-		cmocka_unit_test(isc_quota_callback_test),
-		cmocka_unit_test(isc_quota_callback_mt_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_quota_get_set)
+ISC_TEST_ENTRY(isc_quota_hard)
+ISC_TEST_ENTRY(isc_quota_soft)
+ISC_TEST_ENTRY(isc_quota_callback)
+ISC_TEST_ENTRY(isc_quota_callback_mt)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

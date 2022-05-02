@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -30,32 +28,10 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 /* test sockaddr hash */
-static void
-sockaddr_hash(void **state) {
+ISC_RUN_TEST_IMPL(sockaddr_hash) {
 	isc_sockaddr_t addr;
 	struct in_addr in;
 	struct in6_addr in6;
@@ -80,13 +56,12 @@ sockaddr_hash(void **state) {
 }
 
 /* test isc_sockaddr_isnetzero() */
-static void
-sockaddr_isnetzero(void **state) {
+ISC_RUN_TEST_IMPL(sockaddr_isnetzero) {
 	isc_sockaddr_t addr;
 	struct in_addr in;
 	struct in6_addr in6;
 	bool r;
-	int ret;
+
 	size_t i;
 	struct {
 		const char *string;
@@ -123,7 +98,7 @@ sockaddr_isnetzero(void **state) {
 	}
 
 	for (i = 0; i < sizeof(data6) / sizeof(data6[0]); i++) {
-		ret = inet_pton(AF_INET6, data6[i].string, &in6);
+		int ret = inet_pton(AF_INET6, data6[i].string, &in6);
 		assert_int_equal(ret, 1);
 		isc_sockaddr_fromin6(&addr, &in6, 1);
 		r = isc_sockaddr_isnetzero(&addr);
@@ -135,8 +110,7 @@ sockaddr_isnetzero(void **state) {
  * test that isc_sockaddr_eqaddrprefix() returns true when prefixes of a
  * and b are equal, and false when they are not equal
  */
-static void
-sockaddr_eqaddrprefix(void **state) {
+ISC_RUN_TEST_IMPL(sockaddr_eqaddrprefix) {
 	struct in_addr ina_a;
 	struct in_addr ina_b;
 	struct in_addr ina_c;
@@ -163,26 +137,12 @@ sockaddr_eqaddrprefix(void **state) {
 	assert_false(isc_sockaddr_eqaddrprefix(&isa_a, &isa_c, 16));
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(sockaddr_hash, _setup,
-						_teardown),
-		cmocka_unit_test(sockaddr_isnetzero),
-		cmocka_unit_test(sockaddr_eqaddrprefix),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(sockaddr_hash)
+ISC_TEST_ENTRY(sockaddr_isnetzero)
+ISC_TEST_ENTRY(sockaddr_eqaddrprefix)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

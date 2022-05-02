@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -35,7 +33,8 @@
 #include <dns/geoip.h>
 
 #include "../geoip2.c"
-#include "dnstest.h"
+
+#include <dns/test.h>
 
 /* Use GeoIP2 databases from the 'geoip2' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
@@ -50,13 +49,8 @@ static void
 close_geoip(void);
 
 static int
-_setup(void **state) {
-	isc_result_t result;
-
+setup_test(void **state) {
 	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
 	load_geoip(TEST_GEOIP_DATA);
@@ -65,12 +59,10 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
 	close_geoip();
-
-	dns_test_end();
 
 	return (0);
 }
@@ -135,8 +127,7 @@ entry_exists(dns_geoip_subtype_t subtype, const char *addr) {
  * present in all databases, 192.0.2.128 should only be present in the country
  * database, ::1 should be absent from all databases).
  */
-static void
-baseline(void **state) {
+ISC_RUN_TEST_IMPL(baseline) {
 	dns_geoip_subtype_t subtype;
 
 	UNUSED(state);
@@ -214,8 +205,7 @@ do_lookup_string_v6(const char *addr, dns_geoip_subtype_t subtype,
 }
 
 /* GeoIP country matching */
-static void
-country(void **state) {
+ISC_RUN_TEST_IMPL(country) {
 	bool match;
 
 	UNUSED(state);
@@ -240,8 +230,7 @@ country(void **state) {
 }
 
 /* GeoIP country (ipv6) matching */
-static void
-country_v6(void **state) {
+ISC_RUN_TEST_IMPL(country_v6) {
 	bool match;
 
 	UNUSED(state);
@@ -260,8 +249,7 @@ country_v6(void **state) {
 }
 
 /* GeoIP city (ipv4) matching */
-static void
-city(void **state) {
+ISC_RUN_TEST_IMPL(city) {
 	bool match;
 
 	UNUSED(state);
@@ -298,8 +286,7 @@ city(void **state) {
 }
 
 /* GeoIP city (ipv6) matching */
-static void
-city_v6(void **state) {
+ISC_RUN_TEST_IMPL(city_v6) {
 	bool match;
 
 	UNUSED(state);
@@ -339,8 +326,7 @@ city_v6(void **state) {
 }
 
 /* GeoIP asnum matching */
-static void
-asnum(void **state) {
+ISC_RUN_TEST_IMPL(asnum) {
 	bool match;
 
 	UNUSED(state);
@@ -354,8 +340,7 @@ asnum(void **state) {
 }
 
 /* GeoIP isp matching */
-static void
-isp(void **state) {
+ISC_RUN_TEST_IMPL(isp) {
 	bool match;
 
 	UNUSED(state);
@@ -370,8 +355,7 @@ isp(void **state) {
 }
 
 /* GeoIP org matching */
-static void
-org(void **state) {
+ISC_RUN_TEST_IMPL(org) {
 	bool match;
 
 	UNUSED(state);
@@ -386,8 +370,7 @@ org(void **state) {
 }
 
 /* GeoIP domain matching */
-static void
-domain(void **state) {
+ISC_RUN_TEST_IMPL(domain) {
 	bool match;
 
 	UNUSED(state);
@@ -400,27 +383,16 @@ domain(void **state) {
 	assert_true(match);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(baseline),   cmocka_unit_test(country),
-		cmocka_unit_test(country_v6), cmocka_unit_test(city),
-		cmocka_unit_test(city_v6),    cmocka_unit_test(asnum),
-		cmocka_unit_test(isp),	      cmocka_unit_test(org),
-		cmocka_unit_test(domain),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(baseline, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(country, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(country_v6, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(city, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(city_v6, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(asnum, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(isp, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(org, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(domain, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* HAVE_CMOCKA */
+ISC_TEST_MAIN

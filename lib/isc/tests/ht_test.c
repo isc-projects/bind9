@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -32,32 +30,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
 /* INCLUDE LAST */
 
+#define mctx __mctx
 #include "../ht.c"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#undef mctx
 
 static void
 test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
@@ -65,7 +44,7 @@ test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, test_mctx, init_bits, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&ht, mctx, init_bits, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -212,7 +191,7 @@ test_ht_iterator(void) {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, test_mctx, HT_MIN_BITS, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&ht, mctx, HT_MIN_BITS, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -318,53 +297,35 @@ test_ht_iterator(void) {
 }
 
 /* 24 bit, 200K elements test, no rehashing */
-static void
-isc_ht_24(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_24) {
 	UNUSED(state);
 	test_ht_full(24, 24, 200000);
 }
 
 /* 15 bit, 45K elements test, full rehashing */
-static void
-isc_ht_15(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_15) {
 	UNUSED(state);
 	test_ht_full(1, 15, 48000);
 }
 
 /* 8 bit, 20k elements test, partial rehashing */
-static void
-isc_ht_8(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_8) {
 	UNUSED(state);
 	test_ht_full(8, 14, 20000);
 }
 
 /* test hashtable iterator */
-static void
-isc_ht_iterator_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_ht_iterator) {
 	UNUSED(state);
 	test_ht_iterator();
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_ht_24),
-		cmocka_unit_test(isc_ht_15),
-		cmocka_unit_test(isc_ht_8),
-		cmocka_unit_test(isc_ht_iterator_test),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(isc_ht_24)
+ISC_TEST_ENTRY(isc_ht_15)
+ISC_TEST_ENTRY(isc_ht_8)
+ISC_TEST_ENTRY(isc_ht_iterator)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

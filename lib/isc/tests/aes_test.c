@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -29,6 +28,8 @@
 #include <isc/region.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <isc/test.h>
 
 /*
  * Test data from NIST KAT
@@ -77,8 +78,7 @@ typedef struct aes_testcase {
 } aes_testcase_t;
 
 /* AES 128 test vectors */
-static void
-isc_aes128_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_aes128_test) {
 	aes_testcase_t testcases[] = { /* Test 1 (KAT ECBVarTxt128 #3) */
 				       { "00000000000000000000000000000000",
 					 "F0000000000000000000000000000000",
@@ -124,8 +124,7 @@ isc_aes128_test(void **state) {
 }
 
 /* AES 192 test vectors */
-static void
-isc_aes192_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_aes192_test) {
 	aes_testcase_t testcases[] = {
 		/* Test 1 (KAT ECBVarTxt192 #3) */
 		{ "000000000000000000000000000000000000000000000000",
@@ -156,8 +155,6 @@ isc_aes192_test(void **state) {
 
 	aes_testcase_t *testcase = testcases;
 
-	UNUSED(state);
-
 	while (testcase->key != NULL) {
 		len = fromhexstr(testcase->key, key);
 		assert_int_equal(len, ISC_AES192_KEYLENGTH);
@@ -172,8 +169,7 @@ isc_aes192_test(void **state) {
 }
 
 /* AES 256 test vectors */
-static void
-isc_aes256_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_aes256_test) {
 	aes_testcase_t testcases[] = { /* Test 1 (KAT ECBVarTxt256 #3) */
 				       { "00000000000000000000000000000000"
 					 "00000000000000000000000000000000",
@@ -224,25 +220,12 @@ isc_aes256_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_aes128_test),
-		cmocka_unit_test(isc_aes192_test),
-		cmocka_unit_test(isc_aes256_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_aes128_test)
+ISC_TEST_ENTRY(isc_aes192_test)
+ISC_TEST_ENTRY(isc_aes256_test)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -37,7 +35,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 static char tempname[11] = "dtXXXXXXXX";
 static dns_db_t *db1 = NULL, *db2 = NULL;
@@ -72,23 +70,20 @@ local_callback(const char *file, int line, isc_assertiontype_t type,
 }
 
 static int
-_setup(void **state) {
+setup_test(void **state) {
 	isc_result_t res;
 
 	UNUSED(state);
 
 	isc_assertion_setcallback(local_callback);
 
-	res = dns_test_begin(NULL, false);
-	assert_int_equal(res, ISC_R_SUCCESS);
-
-	res = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	res = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			    dns_rdataclass_in, 0, NULL, &db1);
 	assert_int_equal(res, ISC_R_SUCCESS);
 	dns_db_newversion(db1, &v1);
 	assert_non_null(v1);
 
-	res = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	res = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			    dns_rdataclass_in, 0, NULL, &db2);
 	assert_int_equal(res, ISC_R_SUCCESS);
 	dns_db_newversion(db2, &v2);
@@ -98,7 +93,7 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
 	if (strcmp(tempname, "dtXXXXXXXX") != 0) {
@@ -123,8 +118,6 @@ _teardown(void **state) {
 		assert_null(db2);
 	}
 
-	dns_test_end();
-
 	return (0);
 }
 
@@ -132,8 +125,7 @@ _teardown(void **state) {
  * Check dns_db_attachversion() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-attachversion(void **state) {
+ISC_RUN_TEST_IMPL(attachversion) {
 	dns_dbversion_t *v = NULL;
 
 	UNUSED(state);
@@ -150,8 +142,7 @@ attachversion(void **state) {
  * Check dns_db_closeversion() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-closeversion(void **state) {
+ISC_RUN_TEST_IMPL(closeversion) {
 	UNUSED(state);
 
 	assert_non_null(v1);
@@ -165,8 +156,7 @@ closeversion(void **state) {
  * Check dns_db_find() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-find(void **state) {
+ISC_RUN_TEST_IMPL(find) {
 	isc_result_t res;
 	dns_rdataset_t rdataset;
 	dns_fixedname_t fixed;
@@ -195,8 +185,7 @@ find(void **state) {
  * Check dns_db_allrdatasets() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-allrdatasets(void **state) {
+ISC_RUN_TEST_IMPL(allrdatasets) {
 	isc_result_t res;
 	dns_dbnode_t *node = NULL;
 	dns_rdatasetiter_t *iterator = NULL;
@@ -222,8 +211,7 @@ allrdatasets(void **state) {
  * Check dns_db_findrdataset() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-findrdataset(void **state) {
+ISC_RUN_TEST_IMPL(findrdataset) {
 	isc_result_t res;
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
@@ -254,8 +242,7 @@ findrdataset(void **state) {
  * Check dns_db_deleterdataset() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-deleterdataset(void **state) {
+ISC_RUN_TEST_IMPL(deleterdataset) {
 	isc_result_t res;
 	dns_dbnode_t *node = NULL;
 
@@ -277,8 +264,7 @@ deleterdataset(void **state) {
  * Check dns_db_subtractrdataset() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-subtract(void **state) {
+ISC_RUN_TEST_IMPL(subtract) {
 	isc_result_t res;
 	dns_rdataset_t rdataset;
 	dns_rdatalist_t rdatalist;
@@ -319,8 +305,7 @@ subtract(void **state) {
  * Check dns_db_dump() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-dump(void **state) {
+ISC_RUN_TEST_IMPL(dump) {
 	isc_result_t res;
 	FILE *f = NULL;
 
@@ -340,8 +325,7 @@ dump(void **state) {
  * Check dns_db_addrdataset() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-addrdataset(void **state) {
+ISC_RUN_TEST_IMPL(addrdataset) {
 	isc_result_t res;
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
@@ -374,8 +358,7 @@ addrdataset(void **state) {
  * Check dns_db_getnsec3parameters() passes with matching db and version,
  * and asserts with mis-matching db and version.
  */
-static void
-getnsec3parameters(void **state) {
+ISC_RUN_TEST_IMPL(getnsec3parameters) {
 	isc_result_t res;
 	dns_hash_t hash;
 	uint8_t flags;
@@ -397,8 +380,7 @@ getnsec3parameters(void **state) {
  * Check dns_db_resigned() passes with matching db and version, and
  * asserts with mis-matching db and version.
  */
-static void
-resigned(void **state) {
+ISC_RUN_TEST_IMPL(resigned) {
 	isc_result_t res;
 	dns_rdataset_t rdataset, added;
 	dns_dbnode_t *node = NULL;
@@ -461,39 +443,18 @@ resigned(void **state) {
 	dns_rdataset_disassociate(&added);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dump, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(find, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(allrdatasets, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(findrdataset, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(deleterdataset, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(subtract, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(addrdataset, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(getnsec3parameters, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(resigned, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(attachversion, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(closeversion, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(dump, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(find, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(allrdatasets, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(findrdataset, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(deleterdataset, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(subtract, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(addrdataset, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(getnsec3parameters, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(resigned, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(attachversion, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(closeversion, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

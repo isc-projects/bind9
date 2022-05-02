@@ -11,10 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/util.h>
-
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -23,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <isc/util.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -39,31 +37,20 @@
 #include <ns/client.h>
 #include <ns/notify.h>
 
-#include "nstest.h"
+#include <dns/test.h>
+
+#include <ns/test.h>
 
 static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
+setup_test(void **state) {
 	isc__nm_force_tid(0);
-
-	result = ns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
+	return (setup_server(state));
 }
 
 static int
-_teardown(void **state) {
-	UNUSED(state);
-
+teardown_test(void **state) {
 	isc__nm_force_tid(-1);
-
-	ns_test_end();
-
-	return (0);
+	return (teardown_server(state));
 }
 
 static void
@@ -88,8 +75,7 @@ check_response(isc_buffer_t *buf) {
 }
 
 /* test ns_notify_start() */
-static void
-notify_start(void **state) {
+ISC_RUN_TEST_IMPL(ns_notify_start) {
 	isc_result_t result;
 	ns_client_t *client = NULL;
 	isc_nmhandle_t *handle = NULL;
@@ -103,7 +89,7 @@ notify_start(void **state) {
 	result = ns_test_getclient(NULL, false, &client);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = ns_test_makeview("view", false, &client->view);
+	result = dns_test_makeview("view", false, &client->view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = ns_test_serve_zone("example.com", "testdata/notify/zone1.db",
@@ -148,24 +134,8 @@ notify_start(void **state) {
 	isc_nmhandle_detach(&handle);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(notify_start, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(ns_notify_start, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* HAVE_CMOCKA */
+ISC_TEST_MAIN

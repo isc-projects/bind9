@@ -6,9 +6,15 @@ AM_CPPFLAGS +=			\
 	$(LIBISCCFG_CFLAGS)
 
 LDADD +=			\
+	libisccfgtest.la		\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)
+
+check_LTLIBRARIES = libisccfgtest.la
+libisccfgtest_la_SOURCES =			\
+	../../isc/test.c		\
+	../../isc/include/isc/test.h
 
 check_PROGRAMS =		\
 	duration_test		\

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,38 +26,16 @@
 #include <isc/stats.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 /* test stats */
-static void
-isc_stats_basic_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_stats_basic) {
 	isc_stats_t *stats = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = isc_stats_create(test_mctx, &stats, 4);
+	result = isc_stats_create(mctx, &stats, 4);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_stats_ncounters(stats), 4);
 
@@ -118,24 +94,10 @@ isc_stats_basic_test(void **state) {
 	isc_stats_detach(&stats);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_stats_basic_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_stats_basic)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -37,30 +35,7 @@ _fail(const char *const file, const int line);
 
 #include <ns/hooks.h>
 
-#include "nstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = ns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	if (*state != NULL) {
-		isc_mem_free(mctx, *state);
-	}
-
-	ns_test_end();
-
-	return (0);
-}
+#include <ns/test.h>
 
 /*%
  * Structure containing parameters for run_full_path_test().
@@ -125,8 +100,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 }
 
 /* test ns_plugin_expandpath() */
-static void
-ns_plugin_expandpath_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 	size_t i;
 
 	const ns_plugin_expandpath_test_params_t tests[] = {
@@ -182,23 +156,10 @@ ns_plugin_expandpath_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(ns_plugin_expandpath_test,
-						_setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-#else /* HAVE_CMOCKA */
+ISC_TEST_ENTRY_CUSTOM(ns_plugin_expandpath, setup_managers, teardown_managers)
 
-#include <stdio.h>
+ISC_TEST_LIST_END
 
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

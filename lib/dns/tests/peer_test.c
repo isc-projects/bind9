@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,46 +26,22 @@
 
 #include <dns/peer.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 /* Test DSCP set/get functions */
-static void
-dscp(void **state) {
+ISC_RUN_TEST_IMPL(dscp) {
 	isc_result_t result;
 	isc_netaddr_t netaddr;
 	struct in_addr ina;
 	dns_peer_t *peer = NULL;
 	isc_dscp_t dscp;
 
-	UNUSED(state);
-
 	/*
 	 * Create peer structure for the loopback address.
 	 */
 	ina.s_addr = INADDR_LOOPBACK;
 	isc_netaddr_fromin(&netaddr, &ina);
-	result = dns_peer_new(dt_mctx, &netaddr, &peer);
+	result = dns_peer_new(mctx, &netaddr, &peer);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -153,23 +127,10 @@ dscp(void **state) {
 	dns_peer_detach(&peer);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dscp, _setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(dscp)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

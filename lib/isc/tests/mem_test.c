@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <fcntl.h>
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
@@ -38,28 +36,8 @@
 #include <isc/util.h>
 
 #include "../mem_p.h"
-#include "isctest.h"
 
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 #define MP1_FREEMAX  10
 #define MP1_FILLCNT  10
@@ -69,8 +47,7 @@ _teardown(void **state) {
 #define MP2_FILLCNT 25
 
 /* general memory system tests */
-static void
-isc_mem_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem) {
 	void *items1[50];
 	void *items2[50];
 	void *tmp;
@@ -80,8 +57,8 @@ isc_mem_test(void **state) {
 
 	UNUSED(state);
 
-	isc_mempool_create(test_mctx, 24, &mp1);
-	isc_mempool_create(test_mctx, 31, &mp2);
+	isc_mempool_create(mctx, 24, &mp1);
+	isc_mempool_create(mctx, 31, &mp2);
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
@@ -141,7 +118,7 @@ isc_mem_test(void **state) {
 	isc_mempool_destroy(&mp1);
 	isc_mempool_destroy(&mp2);
 
-	isc_mempool_create(test_mctx, 2, &mp1);
+	isc_mempool_create(mctx, 2, &mp1);
 
 	tmp = isc_mempool_get(mp1);
 	assert_non_null(tmp);
@@ -153,8 +130,7 @@ isc_mem_test(void **state) {
 
 #if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
 /* aligned memory system tests */
-static void
-isc_mem_aligned_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_aligned) {
 	isc_mem_t *mctx2 = NULL;
 	void *ptr;
 	size_t alignment;
@@ -165,22 +141,21 @@ isc_mem_aligned_test(void **state) {
 	/* Check different alignment sizes up to the page size */
 	for (alignment = sizeof(void *); alignment <= 4096; alignment *= 2) {
 		size_t size = alignment / 2 - 1;
-		ptr = isc_mem_get_aligned(test_mctx, size, alignment);
+		ptr = isc_mem_get_aligned(mctx, size, alignment);
 
 		/* Check if the pointer is properly aligned */
 		aligned = (((uintptr_t)ptr / alignment) * alignment);
 		assert_ptr_equal(aligned, (uintptr_t)ptr);
 
 		/* Check if we can resize to <alignment, 2*alignment> range */
-		ptr = isc_mem_reget_aligned(test_mctx, ptr, size,
+		ptr = isc_mem_reget_aligned(mctx, ptr, size,
 					    size * 2 + alignment, alignment);
 
 		/* Check if the pointer is still properly aligned */
 		aligned = (((uintptr_t)ptr / alignment) * alignment);
 		assert_ptr_equal(aligned, (uintptr_t)ptr);
 
-		isc_mem_put_aligned(test_mctx, ptr, size * 2 + alignment,
-				    alignment);
+		isc_mem_put_aligned(mctx, ptr, size * 2 + alignment, alignment);
 
 		/* Check whether isc_mem_putanddetach_detach() also works */
 		isc_mem_create(&mctx2);
@@ -191,8 +166,7 @@ isc_mem_aligned_test(void **state) {
 #endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
 
 /* test TotalUse calculation */
-static void
-isc_mem_total_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_total) {
 	isc_mem_t *mctx2 = NULL;
 	size_t before, after;
 	ssize_t diff;
@@ -220,16 +194,16 @@ isc_mem_total_test(void **state) {
 
 	/* ISC_MEMFLAG_INTERNAL */
 
-	before = isc_mem_total(test_mctx);
+	before = isc_mem_total(mctx);
 
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_get(test_mctx, 2048);
-		isc_mem_put(test_mctx, ptr, 2048);
+		ptr = isc_mem_get(mctx, 2048);
+		isc_mem_put(mctx, ptr, 2048);
 	}
 
-	after = isc_mem_total(test_mctx);
+	after = isc_mem_total(mctx);
 	diff = after - before;
 
 	assert_int_equal(diff, (2048) * 100000);
@@ -238,8 +212,7 @@ isc_mem_total_test(void **state) {
 }
 
 /* test InUse calculation */
-static void
-isc_mem_inuse_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_inuse) {
 	isc_mem_t *mctx2 = NULL;
 	size_t before, after;
 	ssize_t diff;
@@ -262,43 +235,41 @@ isc_mem_inuse_test(void **state) {
 	isc_mem_destroy(&mctx2);
 }
 
-static void
-isc_mem_zeroget_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_zeroget) {
 	uint8_t *data = NULL;
 	UNUSED(state);
 
-	data = isc_mem_get(test_mctx, 0);
+	data = isc_mem_get(mctx, 0);
 	assert_non_null(data);
-	isc_mem_put(test_mctx, data, 0);
+	isc_mem_put(mctx, data, 0);
 }
 
 #define REGET_INIT_SIZE	  1024
 #define REGET_GROW_SIZE	  2048
 #define REGET_SHRINK_SIZE 512
 
-static void
-isc_mem_reget_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_reget) {
 	uint8_t *data = NULL;
 
 	UNUSED(state);
 
 	/* test that we can reget NULL */
-	data = isc_mem_reget(test_mctx, NULL, 0, REGET_INIT_SIZE);
+	data = isc_mem_reget(mctx, NULL, 0, REGET_INIT_SIZE);
 	assert_non_null(data);
-	isc_mem_put(test_mctx, data, REGET_INIT_SIZE);
+	isc_mem_put(mctx, data, REGET_INIT_SIZE);
 
 	/* test that we can re-get a zero-length allocation */
-	data = isc_mem_get(test_mctx, 0);
+	data = isc_mem_get(mctx, 0);
 	assert_non_null(data);
 
-	data = isc_mem_reget(test_mctx, data, 0, REGET_INIT_SIZE);
+	data = isc_mem_reget(mctx, data, 0, REGET_INIT_SIZE);
 	assert_non_null(data);
 
 	for (size_t i = 0; i < REGET_INIT_SIZE; i++) {
 		data[i] = i % UINT8_MAX;
 	}
 
-	data = isc_mem_reget(test_mctx, data, REGET_INIT_SIZE, REGET_GROW_SIZE);
+	data = isc_mem_reget(mctx, data, REGET_INIT_SIZE, REGET_GROW_SIZE);
 	assert_non_null(data);
 
 	for (size_t i = 0; i < REGET_INIT_SIZE; i++) {
@@ -309,22 +280,20 @@ isc_mem_reget_test(void **state) {
 		data[i - 1] = i % UINT8_MAX;
 	}
 
-	data = isc_mem_reget(test_mctx, data, REGET_GROW_SIZE,
-			     REGET_SHRINK_SIZE);
+	data = isc_mem_reget(mctx, data, REGET_GROW_SIZE, REGET_SHRINK_SIZE);
 	assert_non_null(data);
 
 	for (size_t i = REGET_SHRINK_SIZE; i > 0; i--) {
 		assert_int_equal(data[i - 1], i % UINT8_MAX);
 	}
 
-	isc_mem_put(test_mctx, data, REGET_SHRINK_SIZE);
+	isc_mem_put(mctx, data, REGET_SHRINK_SIZE);
 }
 
 #if ISC_MEM_TRACKLINES
 
 /* test mem with no flags */
-static void
-isc_mem_noflags_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
 	char buf[4096], *p, *q;
@@ -368,8 +337,7 @@ isc_mem_noflags_test(void **state) {
 }
 
 /* test mem with record flag */
-static void
-isc_mem_recordflag_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_recordflag) {
 	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
 	char buf[4096], *p;
@@ -409,8 +377,7 @@ isc_mem_recordflag_test(void **state) {
 }
 
 /* test mem with trace flag */
-static void
-isc_mem_traceflag_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
 	char buf[4096], *p;
@@ -470,7 +437,7 @@ static atomic_size_t mem_size;
 
 static isc_threadresult_t
 mem_thread(isc_threadarg_t arg) {
-	isc_mem_t *mctx = (isc_mem_t *)arg;
+	isc_mem_t *mctx2 = (isc_mem_t *)arg;
 	void *items[NUM_ITEMS];
 	size_t size = atomic_load(&mem_size);
 	while (!atomic_compare_exchange_weak(&mem_size, &size, size / 2)) {
@@ -479,18 +446,17 @@ mem_thread(isc_threadarg_t arg) {
 
 	for (int i = 0; i < ITERS; i++) {
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			items[j] = isc_mem_get(mctx, size);
+			items[j] = isc_mem_get(mctx2, size);
 		}
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			isc_mem_put(mctx, items[j], size);
+			isc_mem_put(mctx2, items[j], size);
 		}
 	}
 
 	return ((isc_threadresult_t)0);
 }
 
-static void
-isc_mem_benchmark(void **state) {
+ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
 	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
 	isc_thread_t threads[32];
 	isc_time_t ts1, ts2;
@@ -505,7 +471,7 @@ isc_mem_benchmark(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (int i = 0; i < nthreads; i++) {
-		isc_thread_create(mem_thread, test_mctx, &threads[i]);
+		isc_thread_create(mem_thread, mctx, &threads[i]);
 	}
 	for (int i = 0; i < nthreads; i++) {
 		isc_thread_join(threads[i], NULL);
@@ -525,58 +491,31 @@ isc_mem_benchmark(void **state) {
 
 #endif /* __SANITIZE_THREAD */
 
-/*
- * Main
- */
+ISC_TEST_LIST_START
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_mem_test, _setup,
-						_teardown),
+ISC_TEST_ENTRY(isc_mem)
 #if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
-		cmocka_unit_test_setup_teardown(isc_mem_aligned_test, _setup,
-						_teardown),
+ISC_TEST_ENTRY(isc_mem_aligned)
 #endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
-		cmocka_unit_test_setup_teardown(isc_mem_total_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_inuse_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_zeroget_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_reget_test, _setup,
-						_teardown),
+ISC_TEST_ENTRY(isc_mem_total)
+ISC_TEST_ENTRY(isc_mem_inuse)
+ISC_TEST_ENTRY(isc_mem_zeroget)
+ISC_TEST_ENTRY(isc_mem_reget)
 
 #if !defined(__SANITIZE_THREAD__)
-		cmocka_unit_test_setup_teardown(isc_mem_benchmark, _setup,
-						_teardown),
+ISC_TEST_ENTRY(isc_mem_benchmark)
 #endif /* __SANITIZE_THREAD__ */
 #if ISC_MEM_TRACKLINES
-		cmocka_unit_test_setup_teardown(isc_mem_noflags_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_mem_recordflag_test, _setup,
-						_teardown),
-		/*
-		 * traceflag_test closes stderr, which causes weird
-		 * side effects for any next test trying to use libuv.
-		 * This test has to be the last one to avoid problems.
-		 */
-		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test, _setup,
-						_teardown),
+ISC_TEST_ENTRY(isc_mem_noflags)
+ISC_TEST_ENTRY(isc_mem_recordflag)
+/*
+ * traceflag_test closes stderr, which causes weird
+ * side effects for any next test trying to use libuv.
+ * This test has to be the last one to avoid problems.
+ */
+ISC_TEST_ENTRY(isc_mem_traceflag)
 #endif /* if ISC_MEM_TRACKLINES */
-	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

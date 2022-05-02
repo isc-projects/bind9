@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -38,14 +36,8 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#define CHECK(r)                             \
-	do {                                 \
-		result = (r);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
+#include <isc/test.h>
 
-isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 static isc_logcategory_t categories[] = { { "", 0 },
 					  { "client", 0 },
@@ -57,24 +49,8 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { "query-errors", 0 },
 					  { NULL, 0 } };
 
-static void
-cleanup(void) {
-	if (lctx != NULL) {
-		isc_log_setcontext(NULL);
-		isc_log_destroy(&lctx);
-	}
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
-	}
-}
-
-static isc_result_t
-setup(void) {
+ISC_SETUP_TEST_IMPL(group) {
 	isc_result_t result;
-
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create(&mctx);
-
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
@@ -88,32 +64,22 @@ setup(void) {
 	destination.file.maximum_size = 0;
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
 
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	cleanup();
-	return (result);
-}
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = setup();
-	assert_int_equal(result, ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		return (-1);
+	}
 
 	return (0);
 }
 
-static int
-_teardown(void **state) {
-	UNUSED(state);
+ISC_TEARDOWN_TEST_IMPL(group) {
+	if (lctx == NULL) {
+		return (-1);
+	}
 
-	cleanup();
+	isc_log_setcontext(NULL);
+	isc_log_destroy(&lctx);
 
 	return (0);
 }
@@ -126,8 +92,7 @@ append(void *arg, const char *str, int len) {
 	snprintf(buf + l, 1024 - l, "%.*s", len, str);
 }
 
-static void
-addzoneconf(void **state) {
+ISC_RUN_TEST_IMPL(addzoneconf) {
 	isc_result_t result;
 	isc_buffer_t b;
 	cfg_parser_t *p = NULL;
@@ -141,8 +106,6 @@ addzoneconf(void **state) {
 		"zone \"test\\010.baz\" { type primary; file \"e.db\"; };"
 	};
 	char buf[1024];
-
-	UNUSED(state);
 
 	/* Parse with default line numbering */
 	result = cfg_parser_create(mctx, lctx, &p);
@@ -182,15 +145,12 @@ addzoneconf(void **state) {
 }
 
 /* test cfg_parse_buffer() */
-static void
-parse_buffer_test(void **state) {
+ISC_RUN_TEST_IMPL(parse_buffer) {
 	isc_result_t result;
 	unsigned char text[] = "options\n{\nrecursion yes;\n};\n";
 	isc_buffer_t buf1, buf2;
 	cfg_parser_t *p1 = NULL, *p2 = NULL;
 	cfg_obj_t *c1 = NULL, *c2 = NULL;
-
-	UNUSED(state);
 
 	isc_buffer_init(&buf1, &text[0], sizeof(text) - 1);
 	isc_buffer_add(&buf1, sizeof(text) - 1);
@@ -224,13 +184,10 @@ parse_buffer_test(void **state) {
 }
 
 /* test cfg_map_firstclause() */
-static void
-cfg_map_firstclause_test(void **state) {
+ISC_RUN_TEST_IMPL(cfg_map_firstclause) {
 	const char *name = NULL;
 	const void *clauses = NULL;
 	unsigned int idx;
-
-	UNUSED(state);
 
 	name = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &idx);
 	assert_non_null(name);
@@ -239,13 +196,10 @@ cfg_map_firstclause_test(void **state) {
 }
 
 /* test cfg_map_nextclause() */
-static void
-cfg_map_nextclause_test(void **state) {
+ISC_RUN_TEST_IMPL(cfg_map_nextclause) {
 	const char *name = NULL;
 	const void *clauses = NULL;
 	unsigned int idx;
-
-	UNUSED(state);
 
 	name = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &idx);
 	assert_non_null(name);
@@ -263,26 +217,13 @@ cfg_map_nextclause_test(void **state) {
 	} while (name != NULL);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(addzoneconf),
-		cmocka_unit_test(parse_buffer_test),
-		cmocka_unit_test(cfg_map_firstclause_test),
-		cmocka_unit_test(cfg_map_nextclause_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_ENTRY(addzoneconf)
+ISC_TEST_ENTRY(parse_buffer)
+ISC_TEST_ENTRY(cfg_map_firstclause)
+ISC_TEST_ENTRY(cfg_map_nextclause)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN_CUSTOM(setup_test_group, teardown_test_group)

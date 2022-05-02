@@ -19,7 +19,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/hash.h>
@@ -51,25 +50,82 @@
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
 
-#include "nstest.h"
+#include <ns/test.h>
 
-isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
-isc_nm_t *netmgr = NULL;
-isc_taskmgr_t *taskmgr = NULL;
-isc_task_t *maintask = NULL;
-isc_timermgr_t *timermgr = NULL;
-dns_zonemgr_t *zonemgr = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_clientmgr_t *clientmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
-bool app_running = false;
 bool debug_mem_record = true;
-static atomic_bool run_managers = false;
 
-static bool dst_active = false;
-static bool test_running = false;
+static isc_result_t
+matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
+	  dns_view_t **viewp) {
+	UNUSED(srcaddr);
+	UNUSED(destaddr);
+	UNUSED(message);
+	UNUSED(env);
+	UNUSED(sigresultp);
+	UNUSED(viewp);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+int
+setup_server(void **state) {
+	isc_result_t result;
+	ns_listenlist_t *listenon = NULL;
+	in_port_t port = 5300 + isc_random8();
+
+	setup_managers(state);
+
+	ns_server_create(mctx, matchview, &sctx);
+
+	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+	if (result != ISC_R_SUCCESS) {
+		return (-1);
+	}
+
+	result = ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
+					dispatchmgr, maintask, NULL, false,
+					&interfacemgr);
+	if (result != ISC_R_SUCCESS) {
+		return (-1);
+	}
+
+	result = ns_listenlist_default(mctx, port, -1, true, AF_INET,
+				       &listenon);
+	if (result != ISC_R_SUCCESS) {
+		return (-1);
+	}
+
+	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
+	ns_listenlist_detach(&listenon);
+
+	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
+
+	return (0);
+}
+
+int
+teardown_server(void **state) {
+	if (interfacemgr != NULL) {
+		ns_interfacemgr_shutdown(interfacemgr);
+		ns_interfacemgr_detach(&interfacemgr);
+	}
+
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_detach(&dispatchmgr);
+	}
+
+	if (sctx != NULL) {
+		ns_server_detach(&sctx);
+	}
+
+	teardown_managers(state);
+	return (0);
+}
 
 static dns_zone_t *served_zone = NULL;
 
@@ -124,359 +180,6 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	return;
 }
 
-/*
- * Logging categories: this needs to match the list in lib/ns/log.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "client", 0 },
-					  { "network", 0 },
-					  { "update", 0 },
-					  { "queries", 0 },
-					  { "unmatched", 0 },
-					  { "update-security", 0 },
-					  { "query-errors", 0 },
-					  { NULL, 0 } };
-
-static isc_result_t
-matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
-	  dns_view_t **viewp) {
-	UNUSED(srcaddr);
-	UNUSED(destaddr);
-	UNUSED(message);
-	UNUSED(env);
-	UNUSED(sigresultp);
-	UNUSED(viewp);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-/*
- * These need to be shut down from a running task.
- */
-static atomic_bool shutdown_done = false;
-static void
-shutdown_managers(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	if (interfacemgr != NULL) {
-		ns_interfacemgr_shutdown(interfacemgr);
-		ns_interfacemgr_detach(&interfacemgr);
-	}
-
-	if (dispatchmgr != NULL) {
-		dns_dispatchmgr_detach(&dispatchmgr);
-	}
-
-	atomic_store(&shutdown_done, true);
-	atomic_store(&run_managers, false);
-}
-
-static void
-cleanup_managers(void) {
-	atomic_store(&shutdown_done, false);
-
-	if (maintask != NULL) {
-		isc_event_t *event = isc_event_allocate(
-			mctx, NULL, ISC_TASKEVENT_TEST, shutdown_managers, NULL,
-			sizeof(*event));
-		isc_task_send(maintask, &event);
-		isc_task_detach(&maintask);
-	}
-
-	while (atomic_load(&run_managers) && !atomic_load(&shutdown_done)) {
-		/*
-		 * There's no straightforward way to determine
-		 * whether all the clients have shut down, so
-		 * we'll just sleep for a bit and hope.
-		 */
-		ns_test_nap(500000);
-	}
-
-	if (sctx != NULL) {
-		ns_server_detach(&sctx);
-	}
-	if (interfacemgr != NULL) {
-		ns_interfacemgr_detach(&interfacemgr);
-	}
-
-	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,
-			     taskmgr == NULL ? NULL : &taskmgr,
-			     timermgr == NULL ? NULL : &timermgr);
-
-	if (app_running) {
-		isc_app_finish();
-	}
-}
-
-static void
-scan_interfaces(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	ns_interfacemgr_scan(interfacemgr, true, false);
-	isc_event_free(&event);
-}
-
-static isc_result_t
-create_managers(void) {
-	isc_result_t result;
-	in_port_t port = 5300 + isc_random8();
-	ns_listenlist_t *listenon = NULL;
-	isc_event_t *event = NULL;
-	int ncpus = isc_os_ncpus();
-
-	isc_managers_create(mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
-	CHECK(isc_task_create(taskmgr, 0, &maintask, 0));
-	isc_taskmgr_setexcltask(taskmgr, maintask);
-
-	CHECK(ns_server_create(mctx, matchview, &sctx));
-
-	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
-
-	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
-				     dispatchmgr, maintask, NULL, false,
-				     &interfacemgr));
-
-	CHECK(ns_listenlist_default(mctx, port, -1, true, AF_INET, &listenon));
-	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
-	ns_listenlist_detach(&listenon);
-
-	event = isc_event_allocate(mctx, maintask, ISC_TASKEVENT_TEST,
-				   scan_interfaces, NULL, sizeof(isc_event_t));
-	isc_task_send(maintask, &event);
-
-	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
-
-	atomic_store(&run_managers, true);
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	cleanup_managers();
-	return (result);
-}
-
-isc_result_t
-ns_test_begin(FILE *logfile, bool start_managers) {
-	isc_result_t result;
-
-	INSIST(!test_running);
-	test_running = true;
-
-	if (start_managers) {
-		isc_resourcevalue_t files;
-
-		/*
-		 * The 'listenlist_test', 'notify_test', and 'query_test'
-		 * tests need more than 256 descriptors with 8 cpus.
-		 * Bump up to at least 1024.
-		 */
-		result = isc_resource_getcurlimit(isc_resource_openfiles,
-						  &files);
-		if (result == ISC_R_SUCCESS) {
-			if (files < 1024) {
-				files = 1024;
-				(void)isc_resource_setlimit(
-					isc_resource_openfiles, files);
-			}
-		}
-		CHECK(isc_app_start());
-	}
-	if (debug_mem_record) {
-		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	}
-
-	INSIST(mctx == NULL);
-	isc_mem_create(&mctx);
-
-	if (!dst_active) {
-		CHECK(dst_lib_init(mctx, NULL));
-		dst_active = true;
-	}
-
-	if (logfile != NULL) {
-		isc_logdestination_t destination;
-		isc_logconfig_t *logconfig = NULL;
-
-		INSIST(lctx == NULL);
-		isc_log_create(mctx, &lctx, &logconfig);
-
-		isc_log_registercategories(lctx, categories);
-		isc_log_setcontext(lctx);
-		dns_log_init(lctx);
-		dns_log_setcontext(lctx);
-
-		destination.file.stream = logfile;
-		destination.file.name = NULL;
-		destination.file.versions = ISC_LOG_ROLLNEVER;
-		destination.file.maximum_size = 0;
-		isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DYNAMIC, &destination, 0);
-		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
-	}
-
-	if (start_managers) {
-		CHECK(create_managers());
-	}
-
-	/*
-	 * atf-run changes us to a /tmp directory, so tests
-	 * that access test data files must first chdir to the proper
-	 * location.
-	 */
-	if (chdir(TESTS_DIR) == -1) {
-		CHECK(ISC_R_FAILURE);
-	}
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	ns_test_end();
-	return (result);
-}
-
-void
-ns_test_end(void) {
-	cleanup_managers();
-
-	dst_lib_destroy();
-	dst_active = false;
-
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
-
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
-	}
-
-	test_running = false;
-}
-
-isc_result_t
-ns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
-	dns_cache_t *cache = NULL;
-	dns_view_t *view = NULL;
-	isc_result_t result;
-
-	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
-
-	if (with_cache) {
-		CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
-				       dns_rdataclass_in, "", "rbt", 0, NULL,
-				       &cache));
-		dns_view_setcache(view, cache, false);
-		/*
-		 * Reference count for "cache" is now at 2, so decrement it in
-		 * order for the cache to be automatically freed when "view"
-		 * gets freed.
-		 */
-		dns_cache_detach(&cache);
-	}
-
-	*viewp = view;
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (view != NULL) {
-		dns_view_detach(&view);
-	}
-	return (result);
-}
-
-/*
- * Create a zone with origin 'name', return a pointer to the zone object in
- * 'zonep'.  If 'view' is set, add the zone to that view; otherwise, create
- * a new view for the purpose.
- *
- * If the created view is going to be needed by the caller subsequently,
- * then 'keepview' should be set to true; this will prevent the view
- * from being detached.  In this case, the caller is responsible for
- * detaching the view.
- */
-isc_result_t
-ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		 bool keepview) {
-	isc_result_t result;
-	dns_zone_t *zone = NULL;
-	isc_buffer_t buffer;
-	dns_fixedname_t fixorigin;
-	dns_name_t *origin;
-
-	if (view == NULL) {
-		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	} else if (!keepview) {
-		keepview = true;
-	}
-
-	zone = *zonep;
-	if (zone == NULL) {
-		CHECK(dns_zone_create(&zone, mctx, 0));
-	}
-
-	isc_buffer_constinit(&buffer, name, strlen(name));
-	isc_buffer_add(&buffer, strlen(name));
-	origin = dns_fixedname_initname(&fixorigin);
-	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
-	CHECK(dns_zone_setorigin(zone, origin));
-	dns_zone_setview(zone, view);
-	dns_zone_settype(zone, dns_zone_primary);
-	dns_zone_setclass(zone, view->rdclass);
-	dns_view_addzone(view, zone);
-
-	if (!keepview) {
-		dns_view_detach(&view);
-	}
-
-	*zonep = zone;
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (zone != NULL) {
-		dns_zone_detach(&zone);
-	}
-	if (view != NULL) {
-		dns_view_detach(&view);
-	}
-	return (result);
-}
-
-isc_result_t
-ns_test_setupzonemgr(void) {
-	isc_result_t result;
-	REQUIRE(zonemgr == NULL);
-
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr, &zonemgr);
-	return (result);
-}
-
-isc_result_t
-ns_test_managezone(dns_zone_t *zone) {
-	isc_result_t result;
-	REQUIRE(zonemgr != NULL);
-
-	result = dns_zonemgr_managezone(zonemgr, zone);
-	return (result);
-}
-
-void
-ns_test_releasezone(dns_zone_t *zone) {
-	REQUIRE(zonemgr != NULL);
-	dns_zonemgr_releasezone(zonemgr, zone);
-}
-
-void
-ns_test_closezonemgr(void) {
-	REQUIRE(zonemgr != NULL);
-
-	dns_zonemgr_shutdown(zonemgr);
-	dns_zonemgr_detach(&zonemgr);
-}
-
 isc_result_t
 ns_test_serve_zone(const char *zonename, const char *filename,
 		   dns_view_t *view) {
@@ -486,7 +189,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Prepare zone structure for further processing.
 	 */
-	result = ns_test_makezone(zonename, &served_zone, view, true);
+	result = dns_test_makezone(zonename, &served_zone, view, false);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -494,7 +197,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Start zone manager.
 	 */
-	result = ns_test_setupzonemgr();
+	result = dns_test_setupzonemgr();
 	if (result != ISC_R_SUCCESS) {
 		goto free_zone;
 	}
@@ -502,7 +205,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Add the zone to the zone manager.
 	 */
-	result = ns_test_managezone(served_zone);
+	result = dns_test_managezone(served_zone);
 	if (result != ISC_R_SUCCESS) {
 		goto close_zonemgr;
 	}
@@ -533,9 +236,9 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	return (ISC_R_SUCCESS);
 
 release_zone:
-	ns_test_releasezone(served_zone);
+	dns_test_releasezone(served_zone);
 close_zonemgr:
-	ns_test_closezonemgr();
+	dns_test_closezonemgr();
 free_zone:
 	dns_zone_detach(&served_zone);
 
@@ -544,8 +247,8 @@ free_zone:
 
 void
 ns_test_cleanup_zone(void) {
-	ns_test_releasezone(served_zone);
-	ns_test_closezonemgr();
+	dns_test_releasezone(served_zone);
+	dns_test_closezonemgr();
 
 	dns_zone_detach(&served_zone);
 }
@@ -776,7 +479,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	/*
 	 * Every client needs to belong to a view.
 	 */
-	result = ns_test_makeview("view", params->with_cache, &client->view);
+	result = dns_test_makeview("view", params->with_cache, &client->view);
 	if (result != ISC_R_SUCCESS) {
 		goto detach_client;
 	}
@@ -858,18 +561,6 @@ ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp) {
 	*resultp = ISC_R_UNSET;
 
 	return (NS_HOOK_RETURN);
-}
-
-/*
- * Sleep for 'usec' microseconds.
- */
-void
-ns_test_nap(uint32_t usec) {
-	struct timespec ts;
-
-	ts.tv_sec = usec / 1000000;
-	ts.tv_nsec = (usec % 1000000) * 1000;
-	nanosleep(&ts, NULL);
 }
 
 isc_result_t

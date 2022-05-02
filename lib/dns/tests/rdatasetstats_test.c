@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -31,28 +29,7 @@
 
 #include <dns/stats.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 static void
 set_typestats(dns_stats_t *stats, dns_rdatatype_t type) {
@@ -220,7 +197,7 @@ rdatasetstats(void **state, bool servestale) {
 
 	UNUSED(state);
 
-	result = dns_rdatasetstats_create(dt_mctx, &stats);
+	result = dns_rdatasetstats_create(mctx, &stats);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First 255 types. */
@@ -272,41 +249,17 @@ rdatasetstats(void **state, bool servestale) {
  * Test that rdatasetstats counters are properly set when moving from
  * active -> stale -> ancient.
  */
-static void
-test_rdatasetstats_active_stale_ancient(void **state) {
-	rdatasetstats(state, true);
-}
+ISC_RUN_TEST_IMPL(active_stale_ancient) { rdatasetstats(state, true); }
 
 /*
  * Test that rdatasetstats counters are properly set when moving from
  * active -> ancient.
  */
-static void
-test_rdatasetstats_active_ancient(void **state) {
-	rdatasetstats(state, false);
-}
+ISC_RUN_TEST_IMPL(active_ancient) { rdatasetstats(state, false); }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(
-			test_rdatasetstats_active_stale_ancient, _setup,
-			_teardown),
-		cmocka_unit_test_setup_teardown(
-			test_rdatasetstats_active_ancient, _setup, _teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(active_stale_ancient)
+ISC_TEST_ENTRY(active_ancient)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN
