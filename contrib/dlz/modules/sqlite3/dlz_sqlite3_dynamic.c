@@ -75,11 +75,11 @@ typedef struct {
  * SQLite3 result set
  */
 typedef struct {
-	char **pazResult;      /* Result of the query */
-	unsigned int pnRow;    /* Number of result rows */
-	unsigned int pnColumn; /* Number of result columns */
-	unsigned int curRow;   /* Current row */
-	char *pzErrmsg;	       /* Error message */
+	char **pazResult;    /* Result of the query */
+	int pnRow;	     /* Number of result rows */
+	int pnColumn;	     /* Number of result columns */
+	unsigned int curRow; /* Current row */
+	char *pzErrmsg;	     /* Error message */
 } sqlite3_res_t;
 
 /* forward references */
@@ -97,8 +97,8 @@ b9_add_helper(sqlite3_instance_t *db, const char *helper_name, void *ptr);
  * Private methods
  */
 
-void
-sqlite3_destroy(dbinstance_t *db) {
+static void
+dlz_sqlite3_destroy(dbinstance_t *db) {
 	/* release DB connection */
 	if (db->dbconn != NULL) {
 		sqlite3_close((sqlite3 *)db->dbconn);
@@ -115,7 +115,7 @@ sqlite3_destroy(dbinstance_t *db) {
  * multithreaded operation.
  */
 static void
-sqlite3_destroy_dblist(db_list_t *dblist) {
+dlz_sqlite3_destroy_dblist(db_list_t *dblist) {
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -124,7 +124,7 @@ sqlite3_destroy_dblist(db_list_t *dblist) {
 		dbi = ndbi;
 		ndbi = DLZ_LIST_NEXT(dbi, link);
 
-		sqlite3_destroy(dbi);
+		dlz_sqlite3_destroy(dbi);
 	}
 
 	/* release memory for the list structure */
@@ -234,8 +234,6 @@ sqlite3_get_resultset(const char *zone, const char *record, const char *client,
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 	char *querystring = NULL;
 	sqlite3_res_t *rs = NULL;
-	unsigned int i = 0;
-	unsigned int j = 0;
 	int qres = 0;
 
 	if ((query == COUNTZONE && rsp != NULL) ||
@@ -442,8 +440,8 @@ cleanup:
  * into this function to minimize code.
  */
 
-char **
-sqlite3_fetch_row(sqlite3_res_t *rs) {
+static char **
+dlz_sqlite3_fetch_row(sqlite3_res_t *rs) {
 	char **retval = NULL;
 	if (rs != NULL) {
 		if (rs->pnRow > 0U && rs->curRow < rs->pnRow) {
@@ -455,8 +453,8 @@ sqlite3_fetch_row(sqlite3_res_t *rs) {
 	return (retval);
 }
 
-unsigned int
-sqlite3_num_fields(sqlite3_res_t *rs) {
+static unsigned int
+dlz_sqlite3_num_fields(sqlite3_res_t *rs) {
 	unsigned int retval = 0;
 	if (rs != NULL) {
 		retval = rs->pnColumn;
@@ -464,8 +462,8 @@ sqlite3_num_fields(sqlite3_res_t *rs) {
 	return (retval);
 }
 
-unsigned int
-sqlite3_num_rows(sqlite3_res_t *rs) {
+static unsigned int
+dlz_sqlite3_num_rows(sqlite3_res_t *rs) {
 	unsigned int retval = 0;
 	if (rs != NULL) {
 		retval = rs->pnRow;
@@ -473,8 +471,8 @@ sqlite3_num_rows(sqlite3_res_t *rs) {
 	return (retval);
 }
 
-void
-sqlite3_free_result(sqlite3_res_t *rs) {
+static void
+dlz_sqlite3_free_result(sqlite3_res_t *rs) {
 	if (rs != NULL) {
 		sqlite3_free_table(rs->pazResult);
 		free(rs);
@@ -482,18 +480,19 @@ sqlite3_free_result(sqlite3_res_t *rs) {
 }
 
 static isc_result_t
-sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
-		   sqlite3_res_t *rs) {
+dlz_sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
+		       sqlite3_res_t *rs) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	char **row;
 	unsigned int fields;
-	unsigned int i, j;
+	unsigned int j;
 	char *tmpString;
 	char *endp;
 	int ttl;
 
-	row = sqlite3_fetch_row(rs);	 /* get a row from the result set */
-	fields = sqlite3_num_fields(rs); /* how many columns in result set */
+	row = dlz_sqlite3_fetch_row(rs);     /* get a row from the result set */
+	fields = dlz_sqlite3_num_fields(rs); /* how many columns in result set
+					      */
 	while (row != NULL) {
 		unsigned int len = 0;
 
@@ -551,7 +550,7 @@ sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 						       "to allocate "
 						       "memory for temporary "
 						       "string");
-				sqlite3_free_result(rs);
+				dlz_sqlite3_free_result(rs);
 				return (ISC_R_FAILURE);
 			}
 
@@ -576,16 +575,16 @@ sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			sqlite3_free_result(rs);
+			dlz_sqlite3_free_result(rs);
 			db->log(ISC_LOG_ERROR, "putrr returned error: %d",
 				result);
 			return (ISC_R_FAILURE);
 		}
 
-		row = sqlite3_fetch_row(rs);
+		row = dlz_sqlite3_fetch_row(rs);
 	}
 
-	sqlite3_free_result(rs);
+	dlz_sqlite3_free_result(rs);
 	return (result);
 }
 
@@ -608,7 +607,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	result = sqlite3_get_resultset(name, NULL, NULL, FINDZONE, dbdata, &rs);
 	if (result != ISC_R_SUCCESS || rs == NULL) {
 		if (rs != NULL) {
-			sqlite3_free_result(rs);
+			dlz_sqlite3_free_result(rs);
 		}
 
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
@@ -620,8 +619,8 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	/*
 	 * if we returned any rows, the zone is supported.
 	 */
-	rows = sqlite3_num_rows(rs);
-	sqlite3_free_result(rs);
+	rows = dlz_sqlite3_num_rows(rs);
+	dlz_sqlite3_free_result(rs);
 	if (rows > 0) {
 		sqlite3_get_resultset(name, NULL, NULL, COUNTZONE, dbdata,
 				      NULL);
@@ -659,7 +658,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 
 	if (result != ISC_R_SUCCESS || rs == NULL) {
 		if (rs != NULL) {
-			sqlite3_free_result(rs);
+			dlz_sqlite3_free_result(rs);
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for ALLOWXFR query");
@@ -670,8 +669,8 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 * count how many rows in result set; if we returned any,
 	 * zone xfr is allowed.
 	 */
-	rows = sqlite3_num_rows(rs);
-	sqlite3_free_result(rs);
+	rows = dlz_sqlite3_num_rows(rs);
+	dlz_sqlite3_free_result(rs);
 	if (rows > 0) {
 		return (ISC_R_SUCCESS);
 	}
@@ -710,8 +709,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 	result = ISC_R_NOTFOUND;
 
-	fields = sqlite3_num_fields(rs);
-	row = sqlite3_fetch_row(rs);
+	fields = dlz_sqlite3_num_fields(rs);
+	row = dlz_sqlite3_fetch_row(rs);
 	while (row != NULL) {
 		if (fields < 4) {
 			db->log(ISC_LOG_ERROR, "SQLite3 module: too few fields "
@@ -773,12 +772,12 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 			break;
 		}
 
-		row = sqlite3_fetch_row(rs);
+		row = dlz_sqlite3_fetch_row(rs);
 	}
 
 cleanup:
 	if (rs != NULL) {
-		sqlite3_free_result(rs);
+		dlz_sqlite3_free_result(rs);
 	}
 
 	return (result);
@@ -802,7 +801,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 
 	if (result != ISC_R_SUCCESS) {
 		if (rs != NULL) {
-			sqlite3_free_result(rs);
+			dlz_sqlite3_free_result(rs);
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for AUTHORITY query");
@@ -811,9 +810,9 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 
 	/*
 	 * lookup and authority result sets are processed in the same
-	 * manner: sqlite3_process_rs does the job for both functions.
+	 * manner: dlz_sqlite3_process_rs does the job for both functions.
 	 */
-	return (sqlite3_process_rs(db, lookup, rs));
+	return (dlz_sqlite3_process_rs(db, lookup, rs));
 }
 
 /*% If zone is supported, lookup up a (or multiple) record(s) in it */
@@ -833,7 +832,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	/* if we didn't get a result set, log an err msg. */
 	if (result != ISC_R_SUCCESS) {
 		if (rs != NULL) {
-			sqlite3_free_result(rs);
+			dlz_sqlite3_free_result(rs);
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for LOOKUP query");
@@ -842,9 +841,9 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 	/*
 	 * lookup and authority result sets are processed in the same
-	 * manner: sqlite3_process_rs does the job for both functions.
+	 * manner: dlz_sqlite3_process_rs does the job for both functions.
 	 */
-	return (sqlite3_process_rs(db, lookup, rs));
+	return (dlz_sqlite3_process_rs(db, lookup, rs));
 }
 
 /*%
@@ -1019,7 +1018,7 @@ dlz_destroy(void *dbdata) {
 	sqlite3_instance_t *db = (sqlite3_instance_t *)dbdata;
 	/* cleanup the list of DBI's */
 	if (db->db != NULL) {
-		sqlite3_destroy_dblist((db_list_t *)(db->db));
+		dlz_sqlite3_destroy_dblist((db_list_t *)(db->db));
 	}
 
 	if (db->dbname != NULL) {
