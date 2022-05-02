@@ -12,9 +12,13 @@ LDADD +=			\
 	$(LIBNS_LIBS)
 
 check_LTLIBRARIES = libnstest.la
-libnstest_la_SOURCES =		\
-	nstest.c		\
-	nstest.h
+libnstest_la_SOURCES =			\
+	../../isc/test.c		\
+	../../isc/include/isc/test.h	\
+	../../dns/test.c		\
+	../../dns/include/dns/test.h	\
+	../../ns/test.c			\
+	../../ns/include/ns/test.h
 
 check_PROGRAMS =		\
 	listenlist_test		\

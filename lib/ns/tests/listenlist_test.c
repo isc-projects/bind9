@@ -11,10 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/util.h>
-
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -23,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <isc/util.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -35,36 +33,28 @@
 
 #include <ns/listenlist.h>
 
-#include "nstest.h"
+#include <ns/test.h>
 
 static int
 _setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc__nm_force_tid(0);
 
-	result = ns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
-
 	isc__nm_force_tid(-1);
 
-	ns_test_end();
+	teardown_managers(state);
 
 	return (0);
 }
 
 /* test that ns_listenlist_default() works */
-static void
-ns_listenlist_default_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_listenlist_default) {
 	isc_result_t result;
 	in_port_t port = 5300 + isc_random8();
 	ns_listenlist_t *list = NULL;
@@ -120,25 +110,10 @@ ns_listenlist_default_test(void **state) {
 	ns_listenlist_detach(&list);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(ns_listenlist_default_test,
-						_setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(ns_listenlist_default, _setup, _teardown)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -33,34 +31,14 @@
 #include <dns/nsec3.h>
 
 #include "../zone_p.h"
-#include "dnstest.h"
+
+#include <dns/test.h>
 
 #define HASH	1
 #define FLAGS	0
 #define ITER	5
 #define SALTLEN 4
 #define SALT	"FEDCBA98"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
 
 /*%
  * Structures containing parameters for nsec3param_salttotext_test().
@@ -184,8 +162,7 @@ nsec3param_change_test(const nsec3param_change_test_params_t *test) {
 	dns_zone_detach(&zone);
 }
 
-static void
-nsec3param_change(void **state) {
+ISC_RUN_TEST_IMPL(nsec3param_change) {
 	size_t i;
 
 	/*
@@ -281,24 +258,8 @@ nsec3param_change(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(nsec3param_change, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(nsec3param_change)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

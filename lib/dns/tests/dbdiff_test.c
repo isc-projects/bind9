@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -31,32 +29,11 @@
 #include <dns/journal.h>
 #include <dns/name.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 #define BUFLEN	    255
 #define BIGBUFLEN   (64 * 1024)
 #define TEST_ORIGIN "test"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
 
 static void
 test_create(const char *oldfile, dns_db_t **old, const char *newfile,
@@ -71,8 +48,7 @@ test_create(const char *oldfile, dns_db_t **old, const char *newfile,
 }
 
 /* dns_db_diffx of identical content */
-static void
-diffx_same(void **state) {
+ISC_RUN_TEST_IMPL(diffx_same) {
 	dns_db_t *newdb = NULL, *olddb = NULL;
 	isc_result_t result;
 	dns_diff_t diff;
@@ -82,7 +58,7 @@ diffx_same(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone1.data", &newdb);
 
-	dns_diff_init(dt_mctx, &diff);
+	dns_diff_init(mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -95,8 +71,7 @@ diffx_same(void **state) {
 }
 
 /* dns_db_diffx of zone with record added */
-static void
-diffx_add(void **state) {
+ISC_RUN_TEST_IMPL(diffx_add) {
 	dns_db_t *newdb = NULL, *olddb = NULL;
 	dns_difftuple_t *tuple;
 	isc_result_t result;
@@ -108,7 +83,7 @@ diffx_add(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone2.data", &newdb);
 
-	dns_diff_init(dt_mctx, &diff);
+	dns_diff_init(mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -128,8 +103,7 @@ diffx_add(void **state) {
 }
 
 /* dns_db_diffx of zone with record removed */
-static void
-diffx_remove(void **state) {
+ISC_RUN_TEST_IMPL(diffx_remove) {
 	dns_db_t *newdb = NULL, *olddb = NULL;
 	dns_difftuple_t *tuple;
 	isc_result_t result;
@@ -141,7 +115,7 @@ diffx_remove(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone3.data", &newdb);
 
-	dns_diff_init(dt_mctx, &diff);
+	dns_diff_init(mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -160,26 +134,10 @@ diffx_remove(void **state) {
 	dns_db_detach(&olddb);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(diffx_same, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(diffx_add, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(diffx_remove, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(diffx_same)
+ISC_TEST_ENTRY(diffx_add)
+ISC_TEST_ENTRY(diffx_remove)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

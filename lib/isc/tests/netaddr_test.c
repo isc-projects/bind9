@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -28,9 +27,10 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
+#include <isc/test.h>
+
 /* test isc_netaddr_isnetzero() */
-static void
-netaddr_isnetzero(void **state) {
+ISC_RUN_TEST_IMPL(netaddr_isnetzero) {
 	unsigned int i;
 	struct in_addr ina;
 	struct {
@@ -41,12 +41,12 @@ netaddr_isnetzero(void **state) {
 		      { "10.0.0.0", false },  { "10.9.0.0", false },
 		      { "10.9.8.0", false },  { "10.9.8.7", false },
 		      { "127.0.0.0", false }, { "127.0.0.1", false } };
-	bool result;
 	isc_netaddr_t netaddr;
 
 	UNUSED(state);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
+		bool result;
 		ina.s_addr = inet_addr(tests[i].address);
 		isc_netaddr_fromin(&netaddr, &ina);
 		result = isc_netaddr_isnetzero(&netaddr);
@@ -55,8 +55,7 @@ netaddr_isnetzero(void **state) {
 }
 
 /* test isc_netaddr_masktoprefixlen() calculates correct prefix lengths */
-static void
-netaddr_masktoprefixlen(void **state) {
+ISC_RUN_TEST_IMPL(netaddr_masktoprefixlen) {
 	struct in_addr na_a;
 	struct in_addr na_b;
 	struct in_addr na_c;
@@ -97,8 +96,7 @@ netaddr_masktoprefixlen(void **state) {
 }
 
 /* check multicast addresses are detected properly */
-static void
-netaddr_multicast(void **state) {
+ISC_RUN_TEST_IMPL(netaddr_multicast) {
 	unsigned int i;
 	struct {
 		int family;
@@ -135,25 +133,12 @@ netaddr_multicast(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(netaddr_isnetzero),
-		cmocka_unit_test(netaddr_masktoprefixlen),
-		cmocka_unit_test(netaddr_multicast),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(netaddr_isnetzero)
+ISC_TEST_ENTRY(netaddr_masktoprefixlen)
+ISC_TEST_ENTRY(netaddr_multicast)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

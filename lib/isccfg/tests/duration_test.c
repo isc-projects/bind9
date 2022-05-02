@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -36,14 +34,8 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
-#define CHECK(r)                             \
-	do {                                 \
-		result = (r);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
+#include <isc/test.h>
 
-isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 static isc_logcategory_t categories[] = { { "", 0 },
 					  { "client", 0 },
@@ -55,23 +47,8 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { "query-errors", 0 },
 					  { NULL, 0 } };
 
-static void
-cleanup(void) {
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
-	}
-}
-
-static isc_result_t
-setup(void) {
+ISC_SETUP_TEST_IMPL(group) {
 	isc_result_t result;
-
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create(&mctx);
-
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
@@ -85,13 +62,24 @@ setup(void) {
 	destination.file.maximum_size = 0;
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
 
-	return (ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		return (-1);
+	}
 
-cleanup:
-	cleanup();
-	return (result);
+	return (0);
+}
+
+ISC_TEARDOWN_TEST_IMPL(group) {
+	if (lctx == NULL) {
+		return (-1);
+	}
+
+	isc_log_setcontext(NULL);
+	isc_log_destroy(&lctx);
+
+	return (0);
 }
 
 struct duration_conf {
@@ -101,8 +89,7 @@ struct duration_conf {
 typedef struct duration_conf duration_conf_t;
 
 /* test cfg_obj_asduration() */
-static void
-cfg_obj_asduration_test(void **state) {
+ISC_RUN_TEST_IMPL(cfg_obj_asduration) {
 	isc_result_t result;
 	duration_conf_t durations[] = {
 		{ .string = "PT0S", .time = 0 },
@@ -132,10 +119,6 @@ cfg_obj_asduration_test(void **state) {
 	isc_buffer_t buf1;
 	cfg_parser_t *p1 = NULL;
 	cfg_obj_t *c1 = NULL;
-
-	UNUSED(state);
-
-	setup();
 
 	for (int i = 0; i < num; i++) {
 		const cfg_listelt_t *element;
@@ -177,27 +160,12 @@ cfg_obj_asduration_test(void **state) {
 		cfg_obj_destroy(p1, &c1);
 		cfg_parser_destroy(&p1);
 	}
-
-	cleanup();
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(cfg_obj_asduration_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(cfg_obj_asduration)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN_CUSTOM(setup_test_group, teardown_test_group)

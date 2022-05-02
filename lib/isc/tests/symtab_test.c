@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,41 +26,19 @@
 #include <isc/symtab.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 static void
 undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
 	UNUSED(arg);
 
 	assert_int_equal(type, 1);
-	isc_mem_free(test_mctx, key);
-	isc_mem_free(test_mctx, value.as_pointer);
+	isc_mem_free(mctx, key);
+	isc_mem_free(mctx, value.as_pointer);
 }
 
 /* test symbol table growth */
-static void
-symtab_grow(void **state) {
+ISC_RUN_TEST_IMPL(symtab_grow) {
 	isc_result_t result;
 	isc_symtab_t *st = NULL;
 	isc_symvalue_t value;
@@ -71,7 +47,7 @@ symtab_grow(void **state) {
 
 	UNUSED(state);
 
-	result = isc_symtab_create(test_mctx, 3, undefine, NULL, false, &st);
+	result = isc_symtab_create(mctx, 3, undefine, NULL, false, &st);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(st);
 
@@ -85,9 +61,9 @@ symtab_grow(void **state) {
 		char str[16], *key;
 
 		snprintf(str, sizeof(str), "%04x", i);
-		key = isc_mem_strdup(test_mctx, str);
+		key = isc_mem_strdup(mctx, str);
 		assert_non_null(key);
-		value.as_pointer = isc_mem_strdup(test_mctx, str);
+		value.as_pointer = isc_mem_strdup(mctx, str);
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_SUCCESS);
@@ -103,9 +79,9 @@ symtab_grow(void **state) {
 		char str[16], *key;
 
 		snprintf(str, sizeof(str), "%04x", i);
-		key = isc_mem_strdup(test_mctx, str);
+		key = isc_mem_strdup(mctx, str);
 		assert_non_null(key);
-		value.as_pointer = isc_mem_strdup(test_mctx, str);
+		value.as_pointer = isc_mem_strdup(mctx, str);
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(st, key, 1, value, policy);
 		assert_int_equal(result, ISC_R_EXISTS);
@@ -149,23 +125,10 @@ symtab_grow(void **state) {
 	isc_symtab_destroy(&st);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(symtab_grow, _setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(symtab_grow)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

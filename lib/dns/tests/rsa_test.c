@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -29,25 +27,29 @@
 #include <isc/util.h>
 
 #include "../dst_internal.h"
-#include "dnstest.h"
+
+#include <dns/test.h>
 
 static int
-_setup(void **state) {
+setup_test(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_lib_init(mctx, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		return (1);
+	}
 
 	return (0);
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
-	dns_test_end();
+	dst_lib_destroy();
 
 	return (0);
 }
@@ -131,8 +133,7 @@ static unsigned char sigsha512[512] = {
 };
 
 /* RSA verify */
-static void
-isc_rsa_verify_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 	isc_result_t ret;
 	dns_fixedname_t fname;
 	isc_buffer_t buf;
@@ -150,12 +151,12 @@ isc_rsa_verify_test(void **state) {
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29235, DST_ALG_RSASHA1, DST_TYPE_PUBLIC,
-			       "./", dt_mctx, &key);
+			       "./", mctx, &key);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	/* RSASHA1 */
 
-	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -175,7 +176,7 @@ isc_rsa_verify_test(void **state) {
 
 	key->key_alg = DST_ALG_RSASHA256;
 
-	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -195,7 +196,7 @@ isc_rsa_verify_test(void **state) {
 
 	key->key_alg = DST_ALG_RSASHA512;
 
-	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -214,24 +215,8 @@ isc_rsa_verify_test(void **state) {
 	dst_key_free(&key);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_rsa_verify_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(isc_rsa_verify, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* HAVE_CMOCKA */
+ISC_TEST_MAIN

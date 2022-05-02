@@ -11,9 +11,8 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <errno.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -26,6 +25,8 @@
 #include <isc/errno.h>
 #include <isc/result.h>
 #include <isc/util.h>
+
+#include <isc/test.h>
 
 typedef struct {
 	int err;
@@ -87,12 +88,9 @@ testpair_t testpair[] = { { EPERM, ISC_R_NOPERM },
 			  { 0, ISC_R_UNEXPECTED } };
 
 /* convert errno to ISC result */
-static void
-isc_errno_toresult_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_errno_toresult) {
 	isc_result_t result, expect;
 	size_t i;
-
-	UNUSED(state);
 
 	for (i = 0; i < sizeof(testpair) / sizeof(testpair[0]); i++) {
 		result = isc_errno_toresult(testpair[i].err);
@@ -101,23 +99,10 @@ isc_errno_toresult_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_errno_toresult_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_errno_toresult)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

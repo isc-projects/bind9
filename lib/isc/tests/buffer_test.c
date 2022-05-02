@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <fcntl.h>
 #include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
@@ -34,39 +32,17 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 /* reserve space in dynamic buffers */
-static void
-isc_buffer_reserve_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	isc_result_t result;
 	isc_buffer_t *b;
 
 	UNUSED(state);
 
 	b = NULL;
-	isc_buffer_allocate(test_mctx, &b, 1024);
+	isc_buffer_allocate(mctx, &b, 1024);
 	assert_int_equal(b->length, 1024);
 
 	/*
@@ -125,8 +101,7 @@ isc_buffer_reserve_test(void **state) {
 }
 
 /* dynamic buffer automatic reallocation */
-static void
-isc_buffer_dynamic_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 	isc_buffer_t *b;
 	size_t last_length = 10;
 	int i;
@@ -134,7 +109,7 @@ isc_buffer_dynamic_test(void **state) {
 	UNUSED(state);
 
 	b = NULL;
-	isc_buffer_allocate(test_mctx, &b, last_length);
+	isc_buffer_allocate(mctx, &b, last_length);
 	assert_non_null(b);
 	assert_int_equal(b->length, last_length);
 
@@ -178,8 +153,7 @@ isc_buffer_dynamic_test(void **state) {
 }
 
 /* copy a region into a buffer */
-static void
-isc_buffer_copyregion_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_buffer_copyregion) {
 	unsigned char data[] = { 0x11, 0x22, 0x33, 0x44 };
 	isc_buffer_t *b = NULL;
 	isc_result_t result;
@@ -191,7 +165,7 @@ isc_buffer_copyregion_test(void **state) {
 
 	UNUSED(state);
 
-	isc_buffer_allocate(test_mctx, &b, sizeof(data));
+	isc_buffer_allocate(mctx, &b, sizeof(data));
 
 	/*
 	 * Fill originally allocated buffer space.
@@ -216,8 +190,7 @@ isc_buffer_copyregion_test(void **state) {
 }
 
 /* sprintf() into a buffer */
-static void
-isc_buffer_printf_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_buffer_printf) {
 	unsigned int used, prev_used;
 	const char *empty_fmt;
 	isc_result_t result;
@@ -230,7 +203,7 @@ isc_buffer_printf_test(void **state) {
 	 * Prepare a buffer with auto-reallocation enabled.
 	 */
 	b = NULL;
-	isc_buffer_allocate(test_mctx, &b, 0);
+	isc_buffer_allocate(mctx, &b, 0);
 	isc_buffer_setautorealloc(b, true);
 
 	/*
@@ -322,30 +295,13 @@ isc_buffer_printf_test(void **state) {
 	assert_int_equal(used, 7);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(isc_buffer_reserve_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_buffer_dynamic_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(isc_buffer_copyregion_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(isc_buffer_printf_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_buffer_reserve)
+ISC_TEST_ENTRY(isc_buffer_dynamic)
+ISC_TEST_ENTRY(isc_buffer_copyregion)
+ISC_TEST_ENTRY(isc_buffer_printf)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

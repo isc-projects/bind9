@@ -11,10 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/util.h>
-
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -23,6 +19,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <isc/util.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -40,30 +38,19 @@
 #include <ns/server.h>
 #include <ns/stats.h>
 
-#include "nstest.h"
+#include <ns/test.h>
 
 static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
+setup_test(void **state) {
 	isc__nm_force_tid(0);
-
-	result = ns_test_begin(NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
+	setup_server(state);
 	return (0);
 }
 
 static int
-_teardown(void **state) {
-	UNUSED(state);
-
+teardown_test(void **state) {
 	isc__nm_force_tid(-1);
-
-	ns_test_end();
-
+	teardown_server(state);
 	return (0);
 }
 
@@ -183,8 +170,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 }
 
 /* test ns__query_sfcache() */
-static void
-ns__query_sfcache_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_query_sfcache) {
 	size_t i;
 
 	const ns__query_sfcache_test_params_t tests[] = {
@@ -326,6 +312,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_lookup() or ns_query_done() is called.
 	 */
+
 	ns_hooktable_create(mctx, &query_hooks);
 	ns_hook_add(query_hooks, mctx, NS_QUERY_LOOKUP_BEGIN, &hook);
 	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
@@ -447,8 +434,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 }
 
 /* test ns__query_start() */
-static void
-ns__query_start_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_query_start) {
 	size_t i;
 
 	const ns__query_start_test_params_t tests[] = {
@@ -1027,8 +1013,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	}
 }
 
-static void
-ns__query_hookasync_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_query_hookasync) {
 	size_t i;
 
 	UNUSED(state);
@@ -1461,8 +1446,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	ns_hooktable_free(mctx, (void **)&ns__hook_table);
 }
 
-static void
-ns__query_hookasync_e2e_test(void **state) {
+ISC_RUN_TEST_IMPL(ns_query_hookasync_e2e) {
 	UNUSED(state);
 
 	const ns__query_hookasync_e2e_test_params_t tests[] = {
@@ -1505,31 +1489,12 @@ ns__query_hookasync_e2e_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(ns__query_sfcache_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(ns__query_start_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(ns__query_hookasync_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(ns__query_hookasync_e2e_test,
-						_setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(ns_query_sfcache, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(ns_query_start, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(ns_query_hookasync, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(ns_query_hookasync_e2e, setup_test, teardown_test)
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
+ISC_TEST_MAIN

@@ -11,7 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if defined(HAVE_CMOCKA) && defined(HAVE_LIBNGHTTP2)
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -46,7 +45,8 @@
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
 #include "../netmgr_p.h"
-#include "isctest.h"
+
+#include <isc/test.h>
 
 #define MAX_NM 2
 
@@ -69,8 +69,6 @@ static atomic_int_fast64_t total_sends = 0;
 
 static atomic_bool was_error = false;
 
-static unsigned int workers = 0;
-
 static bool reuse_supported = true;
 static bool noanswer = false;
 
@@ -86,6 +84,8 @@ static isc_quota_t listener_quota;
 static atomic_bool check_listener_quota = false;
 
 static isc_nm_http_endpoints_t *endpoints = NULL;
+
+static bool skip_long_tests = false;
 
 /* Timeout for soft-timeout tests (0.05 seconds) */
 #define T_SOFT 50
@@ -112,6 +112,12 @@ static isc_nm_http_endpoints_t *endpoints = NULL;
 #else
 #define X(v)
 #endif
+
+#define SKIP_IN_CI             \
+	if (skip_long_tests) { \
+		skip();        \
+		return;        \
+	}
 
 typedef struct csdata {
 	isc_nm_recv_cb_t reply_cb;
@@ -239,39 +245,6 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	return (fd);
 }
 
-static int
-_setup(void **state) {
-	char *p = NULL;
-
-	UNUSED(state);
-
-	if (workers == 0) {
-		workers = isc_os_ncpus();
-	}
-	p = getenv("ISC_TASK_WORKERS");
-	if (p != NULL) {
-		workers = atoi(p);
-	}
-	INSIST(workers != 0);
-
-	if (isc_test_begin(NULL, false, workers) != ISC_R_SUCCESS) {
-		return (-1);
-	}
-
-	signal(SIGPIPE, SIG_IGN);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
-
 /* Generic */
 
 static void
@@ -287,9 +260,10 @@ thread_local uint8_t tcp_buffer_storage[4096];
 thread_local size_t tcp_buffer_length = 0;
 
 static int
-nm_setup(void **state) {
-	size_t nworkers = ISC_MAX(ISC_MIN(workers, 32), 1);
-	int tcp_listen_sock = -1;
+setup_test(void **state) {
+	char *env_workers = getenv("ISC_TASK_WORKERS");
+	size_t nworkers;
+	uv_os_sock_t tcp_listen_sock = -1;
 	isc_nm_t **nm = NULL;
 
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
@@ -299,6 +273,18 @@ nm_setup(void **state) {
 	}
 	close(tcp_listen_sock);
 	tcp_listen_sock = -1;
+
+	if (env_workers != NULL) {
+		workers = atoi(env_workers);
+	} else {
+		workers = isc_os_ncpus();
+	}
+	INSIST(workers > 0);
+	nworkers = ISC_MAX(ISC_MIN(workers, 32), 1);
+
+	if (!reuse_supported || getenv("CI") != NULL) {
+		skip_long_tests = true;
+	}
 
 	atomic_store(&total_sends, NSENDS * NWRITES);
 	atomic_store(&nsends, atomic_load(&total_sends));
@@ -323,9 +309,9 @@ nm_setup(void **state) {
 		return (-1);
 	}
 
-	nm = isc_mem_get(test_mctx, MAX_NM * sizeof(nm[0]));
+	nm = isc_mem_get(mctx, MAX_NM * sizeof(nm[0]));
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc__netmgr_create(test_mctx, nworkers, &nm[i]);
+		isc__netmgr_create(mctx, nworkers, &nm[i]);
 		assert_non_null(nm[i]);
 	}
 
@@ -340,7 +326,7 @@ nm_setup(void **state) {
 	atomic_store(&check_listener_quota, false);
 
 	INSIST(endpoints == NULL);
-	endpoints = isc_nm_http_endpoints_new(test_mctx);
+	endpoints = isc_nm_http_endpoints_new(mctx);
 
 	*state = nm;
 
@@ -348,14 +334,14 @@ nm_setup(void **state) {
 }
 
 static int
-nm_teardown(void **state) {
+teardown_test(void **state) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 
 	for (size_t i = 0; i < MAX_NM; i++) {
 		isc__netmgr_destroy(&nm[i]);
 		assert_null(nm[i]);
 	}
-	isc_mem_put(test_mctx, nm, MAX_NM * sizeof(nm[0]));
+	isc_mem_put(mctx, nm, MAX_NM * sizeof(nm[0]));
 
 	if (server_tlsctx != NULL) {
 		isc_tlsctx_free(&server_tlsctx);
@@ -462,8 +448,7 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 }
 
-static void
-mock_doh_uv_tcp_bind(void **state) {
+ISC_RUN_TEST_IMPL(mock_doh_uv_tcp_bind) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -518,14 +503,12 @@ doh_noop(void **state) {
 	assert_int_equal(0, atomic_load(&ssends));
 }
 
-static void
-doh_noop_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_noop_POST) {
 	atomic_store(&POST, true);
 	doh_noop(state);
 }
 
-static void
-doh_noop_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_noop_GET) {
 	atomic_store(&POST, false);
 	doh_noop(state);
 }
@@ -560,14 +543,12 @@ doh_noresponse(void **state) {
 	isc__netmgr_shutdown(connect_nm);
 }
 
-static void
-doh_noresponse_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_noresponse_POST) {
 	atomic_store(&POST, true);
 	doh_noresponse(state);
 }
 
-static void
-doh_noresponse_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_noresponse_GET) {
 	atomic_store(&POST, false);
 	doh_noresponse(state);
 }
@@ -672,7 +653,7 @@ doh_timeout_recovery(void **state) {
 		if (atomic_load(&ctimeouts) == 5) {
 			break;
 		}
-		isc_test_nap(1000);
+		isc_test_nap(1);
 	}
 	assert_true(atomic_load(&ctimeouts) == 5);
 
@@ -682,14 +663,16 @@ doh_timeout_recovery(void **state) {
 	isc__netmgr_shutdown(connect_nm);
 }
 
-static void
-doh_timeout_recovery_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_timeout_recovery_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_timeout_recovery(state);
 }
 
-static void
-doh_timeout_recovery_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_timeout_recovery_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_timeout_recovery(state);
 }
@@ -743,7 +726,7 @@ doh_connect_thread(isc_threadarg_t arg) {
 		 */
 		int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
 		if (atomic_load(&slowdown) || active > workers) {
-			isc_test_nap(1000 * (active - workers));
+			isc_test_nap(active - workers);
 			atomic_store(&slowdown, false);
 		}
 		connect_send_request(
@@ -822,56 +805,64 @@ doh_recv_one(void **state) {
 	assert_int_equal(atomic_load(&ssends), 1);
 }
 
-static void
-doh_recv_one_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_one(state);
 }
 
-static void
-doh_recv_one_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_one_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
@@ -976,56 +967,64 @@ doh_recv_two(void **state) {
 	assert_int_equal(atomic_load(&ssends), 2);
 }
 
-static void
-doh_recv_two_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_two(state);
 }
 
-static void
-doh_recv_two_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_two_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
@@ -1061,7 +1060,7 @@ doh_recv_send(void **state) {
 		if (atomic_load(&was_error)) {
 			break;
 		}
-		isc_test_nap(100);
+		isc_test_nap(1);
 	}
 
 	for (size_t i = 0; i < nthreads; i++) {
@@ -1085,56 +1084,64 @@ doh_recv_send(void **state) {
 	CHECK_RANGE_FULL(ssends);
 }
 
-static void
-doh_recv_send_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&use_TLS, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&use_TLS, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_send(state);
 }
 
-static void
-doh_recv_send_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_send_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, true);
 	atomic_store(&check_listener_quota, true);
@@ -1195,56 +1202,64 @@ doh_recv_half_send(void **state) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-doh_recv_half_send_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_recv_half_send(state);
 }
 
-static void
-doh_recv_half_send_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
@@ -1305,56 +1320,64 @@ doh_half_recv_send(void **state) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-doh_half_recv_send_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_send(state);
 }
 
-static void
-doh_half_recv_send_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
@@ -1414,56 +1437,64 @@ doh_half_recv_half_send(void **state) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-doh_half_recv_half_send_POST(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_GET(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_POST_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_GET_TLS(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_TLS) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_POST_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_GET_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_POST_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
 	doh_half_recv_half_send(state);
 }
 
-static void
-doh_half_recv_half_send_GET_TLS_quota(void **state) {
+ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_TLS_quota) {
+	SKIP_IN_CI;
+
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
@@ -1471,8 +1502,7 @@ doh_half_recv_half_send_GET_TLS_quota(void **state) {
 }
 
 /* See: GL #2858, !5319 */
-static void
-doh_bad_connect_uri(void **state) {
+ISC_RUN_TEST_IMPL(doh_bad_connect_uri) {
 	isc_nm_t **nm = (isc_nm_t **)*state;
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
@@ -1531,8 +1561,7 @@ doh_bad_connect_uri(void **state) {
 	assert_int_equal(atomic_load(&ssends), 0);
 }
 
-static void
-doh_parse_GET_query_string(void **state) {
+ISC_RUN_TEST_IMPL(doh_parse_GET_query_string) {
 	UNUSED(state);
 	/* valid */
 	{
@@ -1754,8 +1783,7 @@ doh_parse_GET_query_string(void **state) {
 	}
 }
 
-static void
-doh_base64url_to_base64(void **state) {
+ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 	UNUSED(state);
 	char *res;
 	size_t res_len = 0;
@@ -1764,90 +1792,90 @@ doh_base64url_to_base64(void **state) {
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4=";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3U";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3U=";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "PDw_Pz8-Pg";
 		char res_test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "PDw_Pz8-Pg";
 		char res_test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  NULL);
 		assert_non_null(res);
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* invalid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, 0, &res_len);
+		res = isc__nm_base64url_to_base64(mctx, test, 0, &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1856,7 +1884,7 @@ doh_base64url_to_base64(void **state) {
 		char test[] = "";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -1866,7 +1894,7 @@ doh_base64url_to_base64(void **state) {
 		char test[] = "PDw_Pz8-Pg==";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -1877,7 +1905,7 @@ doh_base64url_to_base64(void **state) {
 						     end */
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(test_mctx, test, strlen(test),
+		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -1886,15 +1914,13 @@ doh_base64url_to_base64(void **state) {
 	{
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(test_mctx, NULL, 31231,
-						  &res_len);
+		res = isc__nm_base64url_to_base64(mctx, NULL, 31231, &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
 }
 
-static void
-doh_base64_to_base64url(void **state) {
+ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 	char *res;
 	size_t res_len = 0;
 	UNUSED(state);
@@ -1903,90 +1929,90 @@ doh_base64_to_base64url(void **state) {
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4=";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3U";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3U=";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "PDw_Pz8-Pg";
 		char test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "PDw_Pz8-Pg";
 		char test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  NULL);
 		assert_non_null(res);
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(test_mctx, res);
+		isc_mem_free(mctx, res);
 	}
 	/* invalid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, 0, &res_len);
+		res = isc__nm_base64_to_base64url(mctx, test, 0, &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1995,7 +2021,7 @@ doh_base64_to_base64url(void **state) {
 		char test[] = "";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -2005,7 +2031,7 @@ doh_base64_to_base64url(void **state) {
 		char test[] = "PDw_Pz8-Pg==";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -2016,7 +2042,7 @@ doh_base64_to_base64url(void **state) {
 						     end */
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(test_mctx, test, strlen(test),
+		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
 						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
@@ -2025,15 +2051,13 @@ doh_base64_to_base64url(void **state) {
 	{
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(test_mctx, NULL, 31231,
-						  &res_len);
+		res = isc__nm_base64_to_base64url(mctx, NULL, 31231, &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
 }
 
-static void
-doh_path_validation(void **state) {
+ISC_RUN_TEST_IMPL(doh_path_validation) {
 	UNUSED(state);
 
 	assert_true(isc_nm_http_path_isvalid("/"));
@@ -2067,8 +2091,7 @@ doh_path_validation(void **state) {
 	assert_true(isc_nm_http_path_isvalid("/123"));
 }
 
-static void
-doh_connect_makeuri(void **state) {
+ISC_RUN_TEST_IMPL(doh_connect_makeuri) {
 	struct in_addr localhostv4 = { .s_addr = ntohl(INADDR_LOOPBACK) };
 	isc_sockaddr_t sa;
 	char uri[256];
@@ -2193,195 +2216,78 @@ doh_connect_makeuri(void **state) {
 	assert_true(strcmp("https://[::1]:44343/dns-query", uri) == 0);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests_short[] = {
-		cmocka_unit_test_setup_teardown(mock_doh_uv_tcp_bind, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_parse_GET_query_string,
-						NULL, NULL),
-		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_connect_makeuri, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noop_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noresponse_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noresponse_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_bad_connect_uri, nm_setup,
-						nm_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(mock_doh_uv_tcp_bind, setup_test, teardown_test)
+ISC_TEST_ENTRY(doh_parse_GET_query_string)
+ISC_TEST_ENTRY(doh_base64url_to_base64)
+ISC_TEST_ENTRY(doh_base64_to_base64url)
+ISC_TEST_ENTRY(doh_path_validation)
+ISC_TEST_ENTRY(doh_connect_makeuri)
+ISC_TEST_ENTRY_CUSTOM(doh_noop_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_noop_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_noresponse_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_noresponse_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_TLS, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_TLS, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_TLS, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_TLS_quota, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_bad_connect_uri, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	const struct CMUnitTest tests_long[] = {
-		cmocka_unit_test_setup_teardown(mock_doh_uv_tcp_bind, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_parse_GET_query_string,
-						NULL, NULL),
-		cmocka_unit_test_setup_teardown(doh_base64url_to_base64, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_base64_to_base64url, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_path_validation, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_connect_makeuri, NULL,
-						NULL),
-		cmocka_unit_test_setup_teardown(doh_noop_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noop_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noresponse_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_noresponse_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_timeout_recovery_POST,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_timeout_recovery_GET,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_POST_TLS, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_GET_TLS, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_POST_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_GET_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_POST_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_one_GET_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_POST_TLS, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_GET_TLS, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_POST_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_GET_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_POST_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_two_GET_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_GET, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_POST, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_GET_TLS, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_POST_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_GET_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_POST_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_GET_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_send_POST_TLS_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_GET,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_POST,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_GET_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_POST_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_GET_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_recv_half_send_POST_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_recv_half_send_GET_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_recv_half_send_POST_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_GET,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_GET_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_GET_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_send_POST_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_send_GET_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_send_POST_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_half_send_GET,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_half_send_POST,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_half_recv_half_send_GET_TLS,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_half_send_POST_TLS, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_half_send_GET_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_half_send_POST_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_half_send_GET_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			doh_half_recv_half_send_POST_TLS_quota, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(doh_bad_connect_uri, nm_setup,
-						nm_teardown),
-	};
-	int result = 0;
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	UNUSED(tests_long);
-	result = (cmocka_run_group_tests(tests_short, _setup, _teardown));
-#else
-	if (getenv("CI") != NULL || !reuse_supported) {
-		result = (cmocka_run_group_tests(tests_short, _setup,
-						 _teardown));
-	} else {
-		result =
-			(cmocka_run_group_tests(tests_long, _setup, _teardown));
-	}
-#endif
-	return result;
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-#if HAVE_LIBNGHTTP2
-	printf("1..0 # Skipped: cmocka not available\n");
-#else
-	printf("1..0 # Skipped: libnghttp2 is not available\n");
-#endif
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

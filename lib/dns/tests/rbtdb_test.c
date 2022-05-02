@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -30,32 +28,15 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 /* Include the main file */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#undef CHECK
 #include "../rbtdb.c"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#pragma GCC diagnostic pop
 
 const char *ownercase_vectors[12][2] = {
 	{
@@ -157,8 +138,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	return (dns_name_caseequal(name1, name2));
 }
 
-static void
-ownercase_test(void **state) {
+ISC_RUN_TEST_IMPL(ownercase) {
 	UNUSED(state);
 
 	for (size_t n = 0; n < ARRAY_SIZE(ownercase_vectors); n++) {
@@ -172,8 +152,7 @@ ownercase_test(void **state) {
 	assert_false(ownercase_test_one("\\216", "\\246"));
 }
 
-static void
-setownercase_test(void **state) {
+ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
@@ -222,24 +201,9 @@ setownercase_test(void **state) {
 	assert_true(dns_name_caseequal(name1, name2));
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(ownercase_test),
-		cmocka_unit_test(setownercase_test),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(ownercase)
+ISC_TEST_ENTRY(setownercase)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

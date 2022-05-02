@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -31,6 +30,8 @@
 #include <isc/result.h>
 
 #include "../md.c"
+
+#include <isc/test.h>
 
 #define TEST_INPUT(x) (x), sizeof(x) - 1
 
@@ -64,19 +65,13 @@ _reset(void **state) {
 	return (0);
 }
 
-static void
-isc_md_new_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(isc_md_new) {
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
 	isc_md_free(md); /* Cleanup */
 }
 
-static void
-isc_md_free_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(isc_md_free) {
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
 	isc_md_free(md);   /* Test freeing valid message digest context */
@@ -85,13 +80,13 @@ isc_md_free_test(void **state) {
 
 static void
 isc_md_test(isc_md_t *md, const isc_md_type_t *type, const char *buf,
-	    size_t buflen, const char *result, const int repeats) {
+	    size_t buflen, const char *result, const size_t repeats) {
+	isc_result_t res;
+
 	assert_non_null(md);
 	assert_int_equal(isc_md_init(md, type), ISC_R_SUCCESS);
 
-	int i;
-
-	for (i = 0; i < repeats; i++) {
+	for (size_t i = 0; i < repeats; i++) {
 		assert_int_equal(
 			isc_md_update(md, (const unsigned char *)buf, buflen),
 			ISC_R_SUCCESS);
@@ -106,14 +101,15 @@ isc_md_test(isc_md_t *md, const isc_md_type_t *type, const char *buf,
 	isc_buffer_t b;
 	isc_buffer_init(&b, hexdigest, sizeof(hexdigest));
 
-	assert_return_code(isc_hex_totext(&r, 0, "", &b), ISC_R_SUCCESS);
+	res = isc_hex_totext(&r, 0, "", &b);
+
+	assert_return_code(res, ISC_R_SUCCESS);
 
 	assert_memory_equal(hexdigest, result, (result ? strlen(result) : 0));
 	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
 }
 
-static void
-isc_md_init_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_init) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
@@ -140,8 +136,7 @@ isc_md_init_test(void **state) {
 	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
 }
 
-static void
-isc_md_update_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_update) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
@@ -153,8 +148,7 @@ isc_md_update_test(void **state) {
 			 ISC_R_SUCCESS);
 }
 
-static void
-isc_md_reset_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_reset) {
 	isc_md_t *md = *state;
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
@@ -181,8 +175,7 @@ isc_md_reset_test(void **state) {
 #endif /* if 0 */
 }
 
-static void
-isc_md_final_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_final) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
@@ -198,8 +191,7 @@ isc_md_final_test(void **state) {
 	assert_int_equal(isc_md_final(md, digest, NULL), ISC_R_SUCCESS);
 }
 
-static void
-isc_md_md5_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_md5) {
 	isc_md_t *md = *state;
 	isc_md_test(md, ISC_MD_MD5, NULL, 0, NULL, 0);
 	isc_md_test(md, ISC_MD_MD5, TEST_INPUT(""),
@@ -222,8 +214,7 @@ isc_md_md5_test(void **state) {
 		    "57EDF4A22BE3C955AC49DA2E2107B67A", 1);
 }
 
-static void
-isc_md_sha1_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_sha1) {
 	isc_md_t *md = *state;
 	isc_md_test(md, ISC_MD_SHA1, NULL, 0, NULL, 0);
 	isc_md_test(md, ISC_MD_SHA1, TEST_INPUT(""),
@@ -266,8 +257,7 @@ isc_md_sha1_test(void **state) {
 		    "CB0082C8F197D260991BA6A460E76E202BAD27B3", 1);
 }
 
-static void
-isc_md_sha224_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_sha224) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA224, NULL, 0, NULL, 0);
@@ -326,8 +316,7 @@ isc_md_sha224_test(void **state) {
 		    1);
 }
 
-static void
-isc_md_sha256_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_sha256) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA256, NULL, 0, NULL, 0);
@@ -388,8 +377,7 @@ isc_md_sha256_test(void **state) {
 		    1);
 }
 
-static void
-isc_md_sha384_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_sha384) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA384, NULL, 0, NULL, 0);
@@ -465,8 +453,7 @@ isc_md_sha384_test(void **state) {
 		    1);
 }
 
-static void
-isc_md_sha512_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_md_sha512) {
 	isc_md_t *md = *state;
 
 	isc_md_test(md, ISC_MD_SHA512, NULL, 0, NULL, 0);
@@ -541,47 +528,27 @@ isc_md_sha512_test(void **state) {
 		    1);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		/* isc_md_new() */
-		cmocka_unit_test(isc_md_new_test),
+ISC_TEST_LIST_START
 
-		/* isc_md_init() */
-		cmocka_unit_test_setup_teardown(isc_md_init_test, _reset,
-						_reset),
+ISC_TEST_ENTRY(isc_md_new)
 
-		/* isc_md_reset() */
-		cmocka_unit_test_setup_teardown(isc_md_reset_test, _reset,
-						_reset),
+ISC_TEST_ENTRY_CUSTOM(isc_md_init, _reset, _reset)
 
-		/* isc_md_init() -> isc_md_update() -> isc_md_final() */
-		cmocka_unit_test(isc_md_md5_test),
-		cmocka_unit_test(isc_md_sha1_test),
-		cmocka_unit_test(isc_md_sha224_test),
-		cmocka_unit_test(isc_md_sha256_test),
-		cmocka_unit_test(isc_md_sha384_test),
-		cmocka_unit_test(isc_md_sha512_test),
+ISC_TEST_ENTRY_CUSTOM(isc_md_reset, _reset, _reset)
 
-		cmocka_unit_test_setup_teardown(isc_md_update_test, _reset,
-						_reset),
-		cmocka_unit_test_setup_teardown(isc_md_final_test, _reset,
-						_reset),
+ISC_TEST_ENTRY(isc_md_md5)
+ISC_TEST_ENTRY(isc_md_sha1)
 
-		cmocka_unit_test(isc_md_free_test),
-	};
+ISC_TEST_ENTRY(isc_md_sha224)
+ISC_TEST_ENTRY(isc_md_sha256)
+ISC_TEST_ENTRY(isc_md_sha384)
+ISC_TEST_ENTRY(isc_md_sha512)
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_ENTRY_CUSTOM(isc_md_update, _reset, _reset)
+ISC_TEST_ENTRY_CUSTOM(isc_md_final, _reset, _reset)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_ENTRY(isc_md_free)
 
-#include <stdio.h>
+ISC_TEST_LIST_END
 
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN_CUSTOM(_setup, _teardown)

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -30,32 +28,11 @@
 #include <dns/dbiterator.h>
 #include <dns/name.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 #define BUFLEN	    255
 #define BIGBUFLEN   (64 * 1024)
 #define TEST_ORIGIN "test"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
 
 static isc_result_t
 make_name(const char *src, dns_name_t *name) {
@@ -82,15 +59,13 @@ test_create(const char *filename) {
 	dns_db_detach(&db);
 }
 
-static void
-create(void **state) {
+ISC_RUN_TEST_IMPL(create) {
 	UNUSED(state);
 
 	test_create("testdata/dbiterator/zone1.data");
 }
 
-static void
-create_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(create_nsec3) {
 	UNUSED(state);
 
 	test_create("testdata/dbiterator/zone2.data");
@@ -133,15 +108,13 @@ test_walk(const char *filename, int nodes) {
 	dns_db_detach(&db);
 }
 
-static void
-walk(void **state) {
+ISC_RUN_TEST_IMPL(walk) {
 	UNUSED(state);
 
 	test_walk("testdata/dbiterator/zone1.data", 12);
 }
 
-static void
-walk_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(walk_nsec3) {
 	UNUSED(state);
 
 	test_walk("testdata/dbiterator/zone2.data", 33);
@@ -184,15 +157,13 @@ test_reverse(const char *filename) {
 	dns_db_detach(&db);
 }
 
-static void
-reverse(void **state) {
+ISC_RUN_TEST_IMPL(reverse) {
 	UNUSED(state);
 
 	test_reverse("testdata/dbiterator/zone1.data");
 }
 
-static void
-reverse_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(reverse_nsec3) {
 	UNUSED(state);
 
 	test_reverse("testdata/dbiterator/zone2.data");
@@ -241,15 +212,13 @@ test_seek_node(const char *filename, int nodes) {
 	dns_db_detach(&db);
 }
 
-static void
-seek_node(void **state) {
+ISC_RUN_TEST_IMPL(seek_node) {
 	UNUSED(state);
 
 	test_seek_node("testdata/dbiterator/zone1.data", 9);
 }
 
-static void
-seek_node_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(seek_node_nsec3) {
 	UNUSED(state);
 
 	test_seek_node("testdata/dbiterator/zone2.data", 30);
@@ -285,15 +254,13 @@ test_seek_empty(const char *filename) {
 	dns_db_detach(&db);
 }
 
-static void
-seek_empty(void **state) {
+ISC_RUN_TEST_IMPL(seek_empty) {
 	UNUSED(state);
 
 	test_seek_empty("testdata/dbiterator/zone1.data");
 }
 
-static void
-seek_empty_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(seek_empty_nsec3) {
 	UNUSED(state);
 
 	test_seek_empty("testdata/dbiterator/zone2.data");
@@ -334,15 +301,13 @@ test_seek_nx(const char *filename) {
 	dns_db_detach(&db);
 }
 
-static void
-seek_nx(void **state) {
+ISC_RUN_TEST_IMPL(seek_nx) {
 	UNUSED(state);
 
 	test_seek_nx("testdata/dbiterator/zone1.data");
 }
 
-static void
-seek_nx_nsec3(void **state) {
+ISC_RUN_TEST_IMPL(seek_nx_nsec3) {
 	UNUSED(state);
 
 	test_seek_nx("testdata/dbiterator/zone2.data");
@@ -356,39 +321,19 @@ seek_nx_nsec3(void **state) {
  * dns_dbiterator_origin
  * dns_dbiterator_setcleanmode
  */
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(create_nsec3, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(walk, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(walk_nsec3, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(reverse, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(reverse_nsec3, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(seek_node, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_node_nsec3, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(seek_empty, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_empty_nsec3, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(seek_nx, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(seek_nx_nsec3, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(create)
+ISC_TEST_ENTRY(create_nsec3)
+ISC_TEST_ENTRY(walk)
+ISC_TEST_ENTRY(walk_nsec3)
+ISC_TEST_ENTRY(reverse)
+ISC_TEST_ENTRY(reverse_nsec3)
+ISC_TEST_ENTRY(seek_node)
+ISC_TEST_ENTRY(seek_node_nsec3)
+ISC_TEST_ENTRY(seek_empty)
+ISC_TEST_ENTRY(seek_empty_nsec3)
+ISC_TEST_ENTRY(seek_nx)
+ISC_TEST_ENTRY(seek_nx_nsec3)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

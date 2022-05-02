@@ -13,8 +13,6 @@
 
 /* ! \file */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,9 +26,10 @@
 #include <isc/safe.h>
 #include <isc/util.h>
 
+#include <isc/test.h>
+
 /* test isc_safe_memequal() */
-static void
-isc_safe_memequal_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_safe_memequal) {
 	UNUSED(state);
 
 	assert_true(isc_safe_memequal("test", "test", 4));
@@ -44,8 +43,7 @@ isc_safe_memequal_test(void **state) {
 }
 
 /* test isc_safe_memwipe() */
-static void
-isc_safe_memwipe_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_safe_memwipe) {
 	UNUSED(state);
 
 	/* These should pass. */
@@ -84,24 +82,10 @@ isc_safe_memwipe_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_safe_memequal_test),
-		cmocka_unit_test(isc_safe_memwipe_test),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(isc_safe_memequal)
+ISC_TEST_ENTRY(isc_safe_memwipe)
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

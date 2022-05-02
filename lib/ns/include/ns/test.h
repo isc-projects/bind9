@@ -34,9 +34,11 @@
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 
+#include <dns/test.h>
+
 typedef struct ns_test_id {
 	const char *description;
-	int lineno;
+	int	    lineno;
 } ns_test_id_t;
 
 #define NS_TEST_ID(desc)                                \
@@ -51,57 +53,24 @@ typedef struct ns_test_id {
 			goto cleanup;        \
 	} while (0)
 
-extern isc_mem_t *mctx;
-extern isc_log_t *lctx;
-extern isc_taskmgr_t *taskmgr;
-extern isc_task_t *maintask;
-extern isc_timermgr_t *timermgr;
-extern dns_zonemgr_t *zonemgr;
 extern dns_dispatchmgr_t *dispatchmgr;
-extern ns_clientmgr_t *clientmgr;
+extern ns_clientmgr_t    *clientmgr;
 extern ns_interfacemgr_t *interfacemgr;
-extern ns_server_t *sctx;
-extern bool app_running;
-extern int ncpus;
-extern bool debug_mem_record;
+extern ns_server_t	   *sctx;
 
 #ifdef NETMGR_TRACE
 #define FLARG                                              \
-	, const char *file __attribute__((unused)),        \
+	, const char	     *file __attribute__((unused)), \
 		unsigned int line __attribute__((unused)), \
-		const char *func __attribute__((unused))
+		const char  *func __attribute__((unused))
 #else
 #define FLARG
 #endif
 
-isc_result_t
-ns_test_begin(FILE *logfile, bool create_managers);
-
-void
-ns_test_end(void);
-
-/*%
- * Create a view.  If "with_cache" is set to true, a cache database will
- * also be created and attached to the created view.
- */
-isc_result_t
-ns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp);
-
-isc_result_t
-ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		 bool keepview);
-
-isc_result_t
-ns_test_setupzonemgr(void);
-
-isc_result_t
-ns_test_managezone(dns_zone_t *zone);
-
-void
-ns_test_releasezone(dns_zone_t *zone);
-
-void
-ns_test_closezonemgr(void);
+int
+setup_server(void **state);
+int
+teardown_server(void **state);
 
 /*%
  * Load data for zone "zonename" from file "filename" and start serving it to
@@ -118,9 +87,6 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 void
 ns_test_cleanup_zone(void);
 
-void
-ns_test_nap(uint32_t usec);
-
 isc_result_t
 ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	       const char *testfile);
@@ -136,10 +102,10 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp);
  * Structure containing parameters for ns_test_qctx_create().
  */
 typedef struct ns_test_qctx_create_params {
-	const char *qname;
+	const char	   *qname;
 	dns_rdatatype_t qtype;
-	unsigned int qflags;
-	bool with_cache;
+	unsigned int	qflags;
+	bool		with_cache;
 } ns_test_qctx_create_params_t;
 
 /*%
@@ -151,7 +117,7 @@ typedef struct ns_test_qctx_create_params {
  */
 isc_result_t
 ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
-		    query_ctx_t **qctxp);
+		    query_ctx_t			**qctxp);
 
 /*%
  * Destroy a query context created by ns_test_qctx_create().

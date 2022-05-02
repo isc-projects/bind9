@@ -13,8 +13,6 @@
 
 /*! \file */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -31,36 +29,12 @@
 #include <isc/parseint.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 /* Test for 32 bit overflow on 64 bit machines in isc_parse_uint32 */
-static void
-parse_overflow(void **state) {
+ISC_RUN_TEST_IMPL(parse_overflow) {
 	isc_result_t result;
 	uint32_t output;
-
-	UNUSED(state);
 
 	result = isc_parse_uint32(&output, "1234567890", 10);
 	assert_int_equal(ISC_R_SUCCESS, result);
@@ -73,24 +47,10 @@ parse_overflow(void **state) {
 	assert_int_equal(ISC_R_RANGE, result);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(parse_overflow, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(parse_overflow)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

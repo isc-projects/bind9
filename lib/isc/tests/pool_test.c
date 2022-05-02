@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,28 +26,7 @@
 #include <isc/pool.h>
 #include <isc/util.h>
 
-#include "isctest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#include <isc/test.h>
 
 static isc_result_t
 poolinit(void **target, void *arg) {
@@ -74,15 +51,13 @@ poolfree(void **target) {
 }
 
 /* Create a pool */
-static void
-create_pool(void **state) {
+ISC_RUN_TEST_IMPL(create_pool) {
 	isc_result_t result;
 	isc_pool_t *pool = NULL;
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 8, poolfree, poolinit, taskmgr,
-				 &pool);
+	result = isc_pool_create(mctx, 8, poolfree, poolinit, taskmgr, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 8);
 
@@ -91,15 +66,13 @@ create_pool(void **state) {
 }
 
 /* Resize a pool */
-static void
-expand_pool(void **state) {
+ISC_RUN_TEST_IMPL(expand_pool) {
 	isc_result_t result;
 	isc_pool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 10, poolfree, poolinit, taskmgr,
-				 &pool1);
+	result = isc_pool_create(mctx, 10, poolfree, poolinit, taskmgr, &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool1), 10);
 
@@ -136,8 +109,7 @@ expand_pool(void **state) {
 }
 
 /* Get objects */
-static void
-get_objects(void **state) {
+ISC_RUN_TEST_IMPL(get_objects) {
 	isc_result_t result;
 	isc_pool_t *pool = NULL;
 	void *item;
@@ -145,8 +117,7 @@ get_objects(void **state) {
 
 	UNUSED(state);
 
-	result = isc_pool_create(test_mctx, 2, poolfree, poolinit, taskmgr,
-				 &pool);
+	result = isc_pool_create(mctx, 2, poolfree, poolinit, taskmgr, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 2);
 
@@ -170,25 +141,12 @@ get_objects(void **state) {
 	assert_null(pool);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(get_objects, _setup, _teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(create_pool, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(expand_pool, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(get_objects, setup_managers, teardown_managers)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

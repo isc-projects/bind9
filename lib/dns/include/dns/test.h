@@ -28,15 +28,20 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/cache.h>
 #include <dns/diff.h>
 #include <dns/zone.h>
 
+#include <isc/test.h>
+
+extern dns_zonemgr_t *zonemgr;
+
 typedef struct {
 	dns_diffop_t op;
-	const char *owner;
-	dns_ttl_t ttl;
-	const char *type;
-	const char *rdata;
+	const char  *owner;
+	dns_ttl_t    ttl;
+	const char  *type;
+	const char  *rdata;
 } zonechange_t;
 
 #define ZONECHANGE_SENTINEL            \
@@ -44,25 +49,8 @@ typedef struct {
 		0, NULL, 0, NULL, NULL \
 	}
 
-extern isc_mem_t *dt_mctx;
-extern isc_log_t *lctx;
-extern isc_taskmgr_t *taskmgr;
-extern isc_task_t *maintask;
-extern isc_timermgr_t *timermgr;
-extern isc_nm_t *netmgr;
-extern dns_zonemgr_t *zonemgr;
-extern bool app_running;
-extern int ncpus;
-extern bool debug_mem_record;
-
 isc_result_t
-dns_test_begin(FILE *logfile, bool create_managers);
-
-void
-dns_test_end(void);
-
-isc_result_t
-dns_test_makeview(const char *name, dns_view_t **viewp);
+dns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp);
 
 /*%
  * Create a zone with origin 'name', return a pointer to the zone object in

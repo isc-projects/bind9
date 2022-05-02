@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -35,27 +33,30 @@
 
 #include <dst/dst.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 static dns_rdatatype_t privatetype = 65534;
 
 static int
-_setup(void **state) {
+setup_test(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_lib_init(mctx, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		return (1);
+	}
 
 	return (0);
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
-	dns_test_end();
+	dst_lib_destroy();
 
 	return (0);
 }
@@ -147,8 +148,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 }
 
 /* convert private signing records to text */
-static void
-private_signing_totext_test(void **state) {
+ISC_RUN_TEST_IMPL(private_signing_totext) {
 	dns_rdata_t private;
 	int i;
 
@@ -180,8 +180,7 @@ private_signing_totext_test(void **state) {
 }
 
 /* convert private chain records to text */
-static void
-private_nsec3_totext_test(void **state) {
+ISC_RUN_TEST_IMPL(private_nsec3_totext) {
 	dns_rdata_t private;
 	int i;
 
@@ -215,26 +214,9 @@ private_nsec3_totext_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(private_signing_totext_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(private_nsec3_totext_test,
-						_setup, _teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(private_signing_totext, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(private_nsec3_totext, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

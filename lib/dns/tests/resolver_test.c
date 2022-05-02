@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -36,7 +34,7 @@
 #include <dns/resolver.h>
 #include <dns/view.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_dispatch_t *dispatch = NULL;
@@ -47,15 +45,12 @@ _setup(void **state) {
 	isc_result_t result;
 	isc_sockaddr_t local;
 
-	UNUSED(state);
+	setup_managers(state);
 
-	result = dns_test_begin(NULL, true);
+	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(dt_mctx, netmgr, &dispatchmgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = dns_test_makeview("view", &view);
+	result = dns_test_makeview("view", true, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_sockaddr_any(&local);
@@ -67,12 +62,11 @@ _setup(void **state) {
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
-
 	dns_dispatch_detach(&dispatch);
 	dns_view_detach(&view);
 	dns_dispatchmgr_detach(&dispatchmgr);
-	dns_test_end();
+
+	teardown_managers(state);
 
 	return (0);
 }
@@ -93,8 +87,7 @@ destroy_resolver(dns_resolver_t **resolverp) {
 }
 
 /* dns_resolver_create */
-static void
-create_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_create) {
 	dns_resolver_t *resolver = NULL;
 
 	UNUSED(state);
@@ -104,8 +97,7 @@ create_test(void **state) {
 }
 
 /* dns_resolver_gettimeout */
-static void
-gettimeout_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_gettimeout) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int timeout;
 
@@ -120,8 +112,7 @@ gettimeout_test(void **state) {
 }
 
 /* dns_resolver_settimeout */
-static void
-settimeout_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_settimeout) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
 
@@ -138,8 +129,7 @@ settimeout_test(void **state) {
 }
 
 /* dns_resolver_settimeout */
-static void
-settimeout_default_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_settimeout_default) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
 
@@ -161,8 +151,7 @@ settimeout_default_test(void **state) {
 }
 
 /* dns_resolver_settimeout below minimum */
-static void
-settimeout_belowmin_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_settimeout_belowmin) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
 
@@ -180,8 +169,7 @@ settimeout_belowmin_test(void **state) {
 }
 
 /* dns_resolver_settimeout over maximum */
-static void
-settimeout_overmax_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_resolver_settimeout_overmax) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int timeout;
 
@@ -195,33 +183,15 @@ settimeout_overmax_test(void **state) {
 	destroy_resolver(&resolver);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(gettimeout_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(settimeout_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(settimeout_default_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(settimeout_belowmin_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(settimeout_overmax_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_create, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_gettimeout, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_default, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_belowmin, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_overmax, _setup, _teardown)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

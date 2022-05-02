@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <sched.h>
 #include <setjmp.h>
 #include <stdarg.h>
@@ -25,6 +24,8 @@
 #include <isc/siphash.h>
 
 #include "../siphash.c"
+
+#include <isc/test.h>
 
 const uint8_t vectors_sip64[64][8] = {
 	{ 0x31, 0x0e, 0x0e, 0xdd, 0x47, 0xdb, 0x6f, 0x72 },
@@ -128,8 +129,7 @@ const uint8_t vectors_hsip32[64][4] = {
 	{ 0xbd, 0x83, 0x99, 0x7a }, { 0x59, 0xea, 0x4a, 0x74 }
 };
 
-static void
-isc_siphash24_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_siphash24) {
 	UNUSED(state);
 
 	uint8_t in[64], out[8], key[16];
@@ -144,8 +144,7 @@ isc_siphash24_test(void **state) {
 	}
 }
 
-static void
-isc_halfsiphash24_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_halfsiphash24) {
 	UNUSED(state);
 
 	uint8_t in[64], out[4], key[16];
@@ -160,24 +159,11 @@ isc_halfsiphash24_test(void **state) {
 	}
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_siphash24_test),
-		cmocka_unit_test(isc_halfsiphash24_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_siphash24)
+ISC_TEST_ENTRY(isc_halfsiphash24)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

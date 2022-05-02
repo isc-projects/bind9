@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -32,34 +30,24 @@
 
 #include <dns/update.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 /*
  * Fix the linking order problem for overridden isc_stdtime_get() by making
  * everything local.  This also allows static functions from update.c to be
  * tested.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#undef CHECK
 #include "../update.c"
+#pragma GCC diagnostic pop
 
 static int
-_setup(void **state) {
-	isc_result_t result;
-
+setup_test(void **state) {
 	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
 
 	setenv("TZ", "", 1);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
 
 	return (0);
 }
@@ -83,8 +71,7 @@ isc_stdtime_get(isc_stdtime_t *now) {
 }
 
 /* simple increment by 1 */
-static void
-increment_test(void **state) {
+ISC_RUN_TEST_IMPL(increment) {
 	uint32_t old = 50;
 	uint32_t serial;
 
@@ -97,8 +84,7 @@ increment_test(void **state) {
 }
 
 /* increment past zero, 0xfffffffff -> 1 */
-static void
-increment_past_zero_test(void **state) {
+ISC_RUN_TEST_IMPL(increment_past_zero) {
 	uint32_t old = 0xffffffffu;
 	uint32_t serial;
 
@@ -111,8 +97,7 @@ increment_past_zero_test(void **state) {
 }
 
 /* past to unixtime */
-static void
-past_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(past_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -128,8 +113,7 @@ past_to_unix_test(void **state) {
 }
 
 /* now to unixtime */
-static void
-now_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(now_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -145,8 +129,7 @@ now_to_unix_test(void **state) {
 }
 
 /* future to unixtime */
-static void
-future_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(future_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -162,8 +145,7 @@ future_to_unix_test(void **state) {
 }
 
 /* undefined plus 1 to unixtime */
-static void
-undefined_plus1_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(undefined_plus1_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -180,8 +162,7 @@ undefined_plus1_to_unix_test(void **state) {
 }
 
 /* undefined minus 1 to unixtime */
-static void
-undefined_minus1_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(undefined_minus1_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -198,8 +179,7 @@ undefined_minus1_to_unix_test(void **state) {
 }
 
 /* undefined to unixtime */
-static void
-undefined_to_unix_test(void **state) {
+ISC_RUN_TEST_IMPL(undefined_to_unix) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -215,8 +195,7 @@ undefined_to_unix_test(void **state) {
 }
 
 /* handle unixtime being zero */
-static void
-unixtime_zero_test(void **state) {
+ISC_RUN_TEST_IMPL(unixtime_zero) {
 	uint32_t old;
 	uint32_t serial;
 
@@ -232,8 +211,7 @@ unixtime_zero_test(void **state) {
 }
 
 /* past to date */
-static void
-past_to_date_test(void **state) {
+ISC_RUN_TEST_IMPL(past_to_date) {
 	uint32_t old, serial;
 	dns_updatemethod_t used = dns_updatemethod_none;
 
@@ -251,8 +229,7 @@ past_to_date_test(void **state) {
 }
 
 /* now to date */
-static void
-now_to_date_test(void **state) {
+ISC_RUN_TEST_IMPL(now_to_date) {
 	uint32_t old;
 	uint32_t serial;
 	dns_updatemethod_t used = dns_updatemethod_none;
@@ -287,8 +264,7 @@ now_to_date_test(void **state) {
 }
 
 /* future to date */
-static void
-future_to_date_test(void **state) {
+ISC_RUN_TEST_IMPL(future_to_date) {
 	uint32_t old;
 	uint32_t serial;
 	dns_updatemethod_t used = dns_updatemethod_none;
@@ -313,46 +289,19 @@ future_to_date_test(void **state) {
 	assert_int_equal(dns_updatemethod_increment, used);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(increment_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(increment_past_zero_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(past_to_unix_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(now_to_unix_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(future_to_unix_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(undefined_to_unix_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(undefined_plus1_to_unix_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(undefined_minus1_to_unix_test,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(unixtime_zero_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(past_to_date_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(now_to_date_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(future_to_date_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(increment, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(increment_past_zero, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(past_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(now_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(future_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(undefined_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(undefined_plus1_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(undefined_minus1_to_unix, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(unixtime_zero, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(past_to_date, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(now_to_date, setup_test, NULL)
+ISC_TEST_ENTRY_CUSTOM(future_to_date, setup_test, NULL)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

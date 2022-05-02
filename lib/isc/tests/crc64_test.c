@@ -13,8 +13,7 @@
 
 /* ! \file */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -29,20 +28,12 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include <isc/test.h>
+
 #define TEST_INPUT(x) (x), sizeof(x) - 1
 
-typedef struct hash_testcase {
-	const char *input;
-	size_t input_len;
-	const char *result;
-	int repeats;
-} hash_testcase_t;
-
-static void
-isc_crc64_init_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_crc64_init) {
 	uint64_t crc;
-
-	UNUSED(state);
 
 	isc_crc64_init(&crc);
 	assert_int_equal(crc, 0xffffffffffffffffUL);
@@ -68,10 +59,7 @@ _crc64(const char *buf, size_t buflen, const char *result, const int repeats) {
 }
 
 /* 64-bit cyclic redundancy check */
-static void
-isc_crc64_test(void **state) {
-	UNUSED(state);
-
+ISC_RUN_TEST_IMPL(isc_crc64) {
 	_crc64(TEST_INPUT(""), "0000000000000000", 1);
 	_crc64(TEST_INPUT("a"), "CE73F427ACC0A99A", 1);
 	_crc64(TEST_INPUT("abc"), "048B813AF9F49702", 1);
@@ -85,24 +73,11 @@ isc_crc64_test(void **state) {
 	       "81E5EB73C8E7874A", 1);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_crc64_init_test),
-		cmocka_unit_test(isc_crc64_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_crc64_init)
+ISC_TEST_ENTRY(isc_crc64)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

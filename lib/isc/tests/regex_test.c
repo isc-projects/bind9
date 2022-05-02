@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -33,12 +32,10 @@
 #include <isc/regex.h>
 #include <isc/util.h>
 
-/* Set to true (or use -v option) for verbose output */
-static bool verbose = false;
+#include <isc/test.h>
 
 /* test isc_regex_validate() */
-static void
-regex_validate(void **state) {
+ISC_RUN_TEST_IMPL(regex_validate) {
 	/*
 	 *  test regex were generated using http://code.google.com/p/regfuzz/
 	 *  modified to use only printable characters
@@ -2303,23 +2300,10 @@ regex_validate(void **state) {
 		     (r == 0 && tests[i].expect == -1)) &&
 		    !tests[i].exception)
 		{
-			if (verbose) {
-				print_error("regcomp(%s) -> %s expected %s\n",
-					    tests[i].expression,
-					    r != 0 ? "bad" : "good",
-					    tests[i].expect == -1 ? "bad"
-								  : "good");
-			}
 		} else if (r == 0 &&
 			   preg.re_nsub != (unsigned int)tests[i].expect &&
 			   !tests[i].exception)
 		{
-			if (verbose) {
-				print_error("%s preg.re_nsub %lu expected %d\n",
-					    tests[i].expression,
-					    (unsigned long)preg.re_nsub,
-					    tests[i].expect);
-			}
 			tests[i].expect = preg.re_nsub;
 		}
 		if (r == 0) {
@@ -2341,34 +2325,10 @@ regex_validate(void **state) {
 	}
 }
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(regex_validate),
-	};
-	int c;
+ISC_TEST_LIST_START
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
-		switch (c) {
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			break;
-		}
-	}
+ISC_TEST_ENTRY(regex_validate)
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

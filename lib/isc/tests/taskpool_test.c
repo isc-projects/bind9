@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -28,41 +26,19 @@
 #include <isc/taskpool.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
 #define TASK_MAGIC    ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t) ISC_MAGIC_VALID(t, TASK_MAGIC)
 
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
-
 /* Create a taskpool */
-static void
-create_pool(void **state) {
+ISC_RUN_TEST_IMPL(create_pool) {
 	isc_result_t result;
 	isc_taskpool_t *pool = NULL;
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 8, 2, false, &pool);
+	result = isc_taskpool_create(taskmgr, mctx, 8, 2, false, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 8);
 
@@ -71,14 +47,13 @@ create_pool(void **state) {
 }
 
 /* Resize a taskpool */
-static void
-expand_pool(void **state) {
+ISC_RUN_TEST_IMPL(expand_pool) {
 	isc_result_t result;
 	isc_taskpool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 10, 2, false, &pool1);
+	result = isc_taskpool_create(taskmgr, mctx, 10, 2, false, &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool1), 10);
 
@@ -115,15 +90,14 @@ expand_pool(void **state) {
 }
 
 /* Get tasks */
-static void
-get_tasks(void **state) {
+ISC_RUN_TEST_IMPL(get_tasks) {
 	isc_result_t result;
 	isc_taskpool_t *pool = NULL;
 	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, false, &pool);
+	result = isc_taskpool_create(taskmgr, mctx, 2, 2, false, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
 
@@ -146,15 +120,14 @@ get_tasks(void **state) {
 }
 
 /* Set privileges */
-static void
-set_privilege(void **state) {
+ISC_RUN_TEST_IMPL(set_privilege) {
 	isc_result_t result;
 	isc_taskpool_t *pool = NULL;
 	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, true, &pool);
+	result = isc_taskpool_create(taskmgr, mctx, 2, 2, true, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
 
@@ -178,27 +151,13 @@ set_privilege(void **state) {
 	assert_null(pool);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(create_pool, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(expand_pool, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(get_tasks, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(set_privilege, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY_CUSTOM(create_pool, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(expand_pool, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(get_tasks, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(set_privilege, setup_managers, teardown_managers)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -31,36 +29,14 @@
 
 #include <dns/acl.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 #define BUFLEN	    255
 #define BIGBUFLEN   (70 * 1024)
 #define TEST_ORIGIN "test"
 
 /* test that dns_acl_isinsecure works */
-static void
-dns_acl_isinsecure_test(void **state) {
+ISC_RUN_TEST_IMPL(dns_acl_isinsecure) {
 	isc_result_t result;
 	dns_acl_t *any = NULL;
 	dns_acl_t *none = NULL;
@@ -74,16 +50,16 @@ dns_acl_isinsecure_test(void **state) {
 
 	UNUSED(state);
 
-	result = dns_acl_any(dt_mctx, &any);
+	result = dns_acl_any(mctx, &any);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_acl_none(dt_mctx, &none);
+	result = dns_acl_none(mctx, &none);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_acl_create(dt_mctx, 1, &notnone);
+	result = dns_acl_create(mctx, 1, &notnone);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_acl_create(dt_mctx, 1, &notany);
+	result = dns_acl_create(mctx, 1, &notany);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notnone, none, false);
@@ -93,7 +69,7 @@ dns_acl_isinsecure_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 #if defined(HAVE_GEOIP2)
-	result = dns_acl_create(dt_mctx, 1, &geoip);
+	result = dns_acl_create(mctx, 1, &geoip);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	de = geoip->elements;
@@ -108,7 +84,7 @@ dns_acl_isinsecure_test(void **state) {
 	de->node_num = dns_acl_node_count(geoip);
 	geoip->length++;
 
-	result = dns_acl_create(dt_mctx, 1, &notgeoip);
+	result = dns_acl_create(mctx, 1, &notgeoip);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notgeoip, geoip, false);
@@ -135,24 +111,8 @@ dns_acl_isinsecure_test(void **state) {
 #endif /* HAVE_GEOIP2 */
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dns_acl_isinsecure_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(dns_acl_isinsecure)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

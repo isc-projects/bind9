@@ -11,9 +11,8 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <fcntl.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -27,6 +26,8 @@
 #include <isc/file.h>
 #include <isc/result.h>
 #include <isc/util.h>
+
+#include <isc/test.h>
 
 #define NAME	  "internal"
 #define SHA	  "3bed2cb3a3acf7b6a8ef408420cc682d5520e26976d354254f528c965612054f"
@@ -52,8 +53,7 @@ touch(const char *filename) {
 }
 
 /* test sanitized filenames */
-static void
-isc_file_sanitize_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_file_sanitize) {
 	isc_result_t result;
 	char buf[1024];
 
@@ -88,8 +88,7 @@ isc_file_sanitize_test(void **state) {
 }
 
 /* test filename templates */
-static void
-isc_file_template_test(void **state) {
+ISC_RUN_TEST_IMPL(isc_file_template) {
 	isc_result_t result;
 	char buf[1024];
 
@@ -131,24 +130,11 @@ isc_file_template_test(void **state) {
 	assert_string_equal(buf, "file-XXXXXXXX");
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_file_sanitize_test),
-		cmocka_unit_test(isc_file_template_test),
-	};
+ISC_TEST_LIST_START
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_ENTRY(isc_file_sanitize)
+ISC_TEST_ENTRY(isc_file_template)
 
-#else /* HAVE_CMOCKA */
+ISC_TEST_LIST_END
 
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

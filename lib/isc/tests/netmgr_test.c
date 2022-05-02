@@ -11,7 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <signal.h>
@@ -34,12 +33,16 @@
 #include "uv_wrap.h"
 #define KEEP_BEFORE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include "../netmgr/netmgr-int.h"
 #include "../netmgr/udp.c"
 #include "../netmgr/uv-compat.c"
 #include "../netmgr/uv-compat.h"
 #include "../netmgr_p.h"
-#include "isctest.h"
+#pragma GCC diagnostic pop
+
+#include <isc/test.h>
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
 
@@ -70,7 +73,6 @@ static isc_region_t stop_msg = { .base = (unsigned char *)&stop_magic,
 				 .length = sizeof(stop_magic) };
 
 static atomic_bool do_send = false;
-static unsigned int workers = 0;
 
 static atomic_int_fast64_t nsends;
 static int_fast64_t esends; /* expected sends */
@@ -119,9 +121,9 @@ static isc_nm_recv_cb_t connect_readcb = NULL;
 #define T_ADVERTISED 120 * 1000
 #define T_CONNECT    30 * 1000
 
-/* Wait for 1 second (1000 * 1000 microseconds) */
+/* Wait for 1 second (1000 milliseconds) */
 #define WAIT_REPEATS 1000
-#define T_WAIT	     1000 /* In microseconds */
+#define T_WAIT	     1 /* 1 millisecond */
 
 #define WAIT_FOR(v, op, val)                                \
 	{                                                   \
@@ -192,55 +194,6 @@ static isc_nm_recv_cb_t connect_readcb = NULL;
 #define atomic_assert_int_gt(val, exp) assert_true(atomic_load(&val) > exp)
 
 static int
-_setup(void **state __attribute__((unused))) {
-	char *p = NULL;
-
-	if (workers == 0) {
-		workers = isc_os_ncpus();
-	}
-	p = getenv("ISC_TASK_WORKERS");
-	if (p != NULL) {
-		workers = atoi(p);
-	}
-	INSIST(workers != 0);
-
-	if (isc_test_begin(NULL, false, workers) != ISC_R_SUCCESS) {
-		return (-1);
-	}
-
-	signal(SIGPIPE, SIG_IGN);
-
-	if (getenv("CI") == NULL || getenv("CI_ENABLE_ALL_TESTS") != NULL) {
-		esends = NSENDS * workers;
-	} else {
-		esends = workers;
-		skip_long_tests = true;
-	}
-
-	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
-	    ISC_R_SUCCESS) {
-		return (-1);
-	}
-	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {
-		return (-1);
-	}
-
-	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
-
-	return (0);
-}
-
-static int
-_teardown(void **state __attribute__((unused))) {
-	isc_tlsctx_free(&tcp_connect_tlsctx);
-	isc_tlsctx_free(&tcp_listen_tlsctx);
-
-	isc_test_end();
-
-	return (0);
-}
-
-static int
 setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	socklen_t addrlen = sizeof(*addr);
 	uv_os_sock_t fd;
@@ -285,9 +238,26 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 }
 
 static int
-nm_setup(void **state __attribute__((unused))) {
+setup_test(void **state __attribute__((unused))) {
+	char *env_workers = getenv("ISC_TASK_WORKERS");
 	uv_os_sock_t tcp_listen_sock = -1;
 	uv_os_sock_t udp_listen_sock = -1;
+	size_t nworkers;
+
+	if (env_workers != NULL) {
+		workers = atoi(env_workers);
+	} else {
+		workers = isc_os_ncpus();
+	}
+	INSIST(workers > 0);
+	nworkers = ISC_MAX(ISC_MIN(workers, 32), 1);
+
+	if (getenv("CI") != NULL && getenv("CI_ENABLE_ALL_TESTS") == NULL) {
+		skip_long_tests = true;
+		esends = nworkers;
+	} else {
+		esends = NSENDS * nworkers;
+	}
 
 	udp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&udp_connect_addr, &in6addr_loopback, 0);
@@ -337,12 +307,12 @@ nm_setup(void **state __attribute__((unused))) {
 		return (-1);
 	}
 
-	isc__netmgr_create(test_mctx, workers, &listen_nm);
+	isc__netmgr_create(mctx, nworkers, &listen_nm);
 	assert_non_null(listen_nm);
 	isc_nm_settimeouts(listen_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
 
-	isc__netmgr_create(test_mctx, workers, &connect_nm);
+	isc__netmgr_create(mctx, nworkers, &connect_nm);
 	assert_non_null(connect_nm);
 	isc_nm_settimeouts(connect_nm, T_INIT, T_IDLE, T_KEEPALIVE,
 			   T_ADVERTISED);
@@ -353,12 +323,25 @@ nm_setup(void **state __attribute__((unused))) {
 	connect_readcb = connect_read_cb;
 	noanswer = false;
 
+	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
+	    ISC_R_SUCCESS) {
+		return (-1);
+	}
+	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {
+		return (-1);
+	}
+
+	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
+
 	return (0);
 }
 
 static int
-nm_teardown(void **state __attribute__((unused))) {
+teardown_test(void **state __attribute__((unused))) {
 	UNUSED(state);
+
+	isc_tlsctx_free(&tcp_connect_tlsctx);
+	isc_tlsctx_free(&tcp_listen_tlsctx);
 
 	isc__netmgr_destroy(&connect_nm);
 	assert_null(connect_nm);
@@ -608,7 +591,7 @@ connect_thread(isc_threadarg_t arg) {
 			 * start slowing down the connections to prevent the
 			 * thundering herd problem.
 			 */
-			isc_test_nap((active - workers) * 1000);
+			isc_test_nap(active - workers);
 		}
 		connect(connect_nm);
 	}
@@ -624,8 +607,7 @@ udp_connect(isc_nm_t *nm) {
 			  connect_connect_cb, NULL, T_CONNECT, 0);
 }
 
-static void
-mock_listenudp_uv_udp_open(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_listenudp_uv_udp_open) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -639,8 +621,7 @@ mock_listenudp_uv_udp_open(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-mock_listenudp_uv_udp_bind(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_listenudp_uv_udp_bind) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -654,8 +635,7 @@ mock_listenudp_uv_udp_bind(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-mock_listenudp_uv_udp_recv_start(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_listenudp_uv_udp_recv_start) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -669,8 +649,7 @@ mock_listenudp_uv_udp_recv_start(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-mock_udpconnect_uv_udp_open(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_udpconnect_uv_udp_open) {
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
 	connect_readcb = NULL;
@@ -682,8 +661,7 @@ mock_udpconnect_uv_udp_open(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_udpconnect_uv_udp_bind) {
 	WILL_RETURN(uv_udp_bind, UV_ENOMEM);
 
 	connect_readcb = NULL;
@@ -696,8 +674,7 @@ mock_udpconnect_uv_udp_bind(void **state __attribute__((unused))) {
 }
 
 #if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
-static void
-mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_udpconnect_uv_udp_connect) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
 
 	connect_readcb = NULL;
@@ -710,8 +687,7 @@ mock_udpconnect_uv_udp_connect(void **state __attribute__((unused))) {
 }
 #endif
 
-static void
-mock_udpconnect_uv_recv_buffer_size(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_udpconnect_uv_recv_buffer_size) {
 	WILL_RETURN(uv_recv_buffer_size, UV_ENOMEM);
 
 	connect_readcb = NULL;
@@ -723,8 +699,7 @@ mock_udpconnect_uv_recv_buffer_size(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-mock_udpconnect_uv_send_buffer_size(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(mock_udpconnect_uv_send_buffer_size) {
 	WILL_RETURN(uv_send_buffer_size, UV_ENOMEM);
 
 	connect_readcb = NULL;
@@ -736,8 +711,7 @@ mock_udpconnect_uv_send_buffer_size(void **state __attribute__((unused))) {
 	RESET_RETURN;
 }
 
-static void
-udp_noop(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_noop) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -762,8 +736,7 @@ udp_noop(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-udp_noresponse(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_noresponse) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -818,8 +791,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_detach(&handle);
 }
 
-static void
-udp_timeout_recovery(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_timeout_recovery) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -856,8 +828,7 @@ udp_timeout_recovery(void **state __attribute__((unused))) {
 	isc__netmgr_shutdown(connect_nm);
 }
 
-static void
-udp_recv_one(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_recv_one) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -896,8 +867,7 @@ udp_recv_one(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-udp_recv_two(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_recv_two) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -942,8 +912,7 @@ udp_recv_two(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 1);
 }
 
-static void
-udp_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -987,8 +956,7 @@ udp_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_FULL(ssends);
 }
 
-static void
-udp_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -1033,8 +1001,7 @@ udp_recv_half_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-udp_half_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_half_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -1061,7 +1028,7 @@ udp_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	isc_test_nap((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -1082,8 +1049,7 @@ udp_half_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-udp_half_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(udp_half_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -1514,7 +1480,7 @@ stream_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	isc_test_nap((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -1587,147 +1553,114 @@ stream_half_recv_half_send(void **state __attribute__((unused))) {
 }
 
 /* TCP */
-static void
-tcp_noop(void **state) {
-	stream_noop(state);
-}
+ISC_RUN_TEST_IMPL(tcp_noop) { stream_noop(state); }
 
-static void
-tcp_noresponse(void **state) {
-	stream_noresponse(state);
-}
+ISC_RUN_TEST_IMPL(tcp_noresponse) { stream_noresponse(state); }
 
-static void
-tcp_timeout_recovery(void **state) {
-	stream_timeout_recovery(state);
-}
+ISC_RUN_TEST_IMPL(tcp_timeout_recovery) { stream_timeout_recovery(state); }
 
-static void
-tcp_recv_one(void **state) {
-	stream_recv_one(state);
-}
+ISC_RUN_TEST_IMPL(tcp_recv_one) { stream_recv_one(state); }
 
-static void
-tcp_recv_two(void **state) {
-	stream_recv_two(state);
-}
+ISC_RUN_TEST_IMPL(tcp_recv_two) { stream_recv_two(state); }
 
-static void
-tcp_recv_send(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_send) {
 	SKIP_IN_CI;
 	stream_recv_send(state);
 }
 
-static void
-tcp_recv_half_send(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_half_send) {
 	SKIP_IN_CI;
 	stream_recv_half_send(state);
 }
 
-static void
-tcp_half_recv_send(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_send) {
 	SKIP_IN_CI;
 	stream_half_recv_send(state);
 }
 
-static void
-tcp_half_recv_half_send(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_half_send) {
 	SKIP_IN_CI;
 	stream_half_recv_half_send(state);
 }
 
-static void
-tcp_recv_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_send_sendback) {
 	SKIP_IN_CI;
 	stream_recv_send(state);
 }
 
-static void
-tcp_recv_half_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_half_send_sendback) {
 	SKIP_IN_CI;
 	stream_recv_half_send(state);
 }
 
-static void
-tcp_half_recv_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_send_sendback) {
 	SKIP_IN_CI;
 	stream_half_recv_send(state);
 }
 
-static void
-tcp_half_recv_half_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_half_send_sendback) {
 	SKIP_IN_CI;
 	stream_half_recv_half_send(state);
 }
 
 /* TCP Quota */
 
-static void
-tcp_recv_one_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_one_quota) {
 	atomic_store(&check_listener_quota, true);
 	stream_recv_one(state);
 }
 
-static void
-tcp_recv_two_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_two_quota) {
 	atomic_store(&check_listener_quota, true);
 	stream_recv_two(state);
 }
 
-static void
-tcp_recv_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_send_quota) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_send(state);
 }
 
-static void
-tcp_recv_half_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_half_send_quota) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_half_send(state);
 }
 
-static void
-tcp_half_recv_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_send_quota) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	stream_half_recv_send(state);
 }
 
-static void
-tcp_half_recv_half_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_half_send_quota) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	stream_half_recv_half_send(state);
 }
 
-static void
-tcp_recv_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_send_quota_sendback) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	allow_send_back = true;
 	stream_recv_send(state);
 }
 
-static void
-tcp_recv_half_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_recv_half_send_quota_sendback) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	allow_send_back = true;
 	stream_recv_half_send(state);
 }
 
-static void
-tcp_half_recv_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_send_quota_sendback) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	allow_send_back = true;
 	stream_half_recv_send(state);
 }
 
-static void
-tcp_half_recv_half_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tcp_half_recv_half_send_quota_sendback) {
 	SKIP_IN_CI;
 	atomic_store(&check_listener_quota, true);
 	allow_send_back = true;
@@ -1742,8 +1675,7 @@ tcpdns_connect(isc_nm_t *nm) {
 			     connect_connect_cb, NULL, T_CONNECT, 0);
 }
 
-static void
-tcpdns_noop(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_noop) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -1769,8 +1701,7 @@ tcpdns_noop(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tcpdns_noresponse(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_noresponse) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -1780,7 +1711,7 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 				     &listen_sock);
 	if (result != ISC_R_SUCCESS) {
 		isc_refcount_decrement(&active_cconnects);
-		isc_test_nap(1000);
+		isc_test_nap(1);
 	}
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -1808,8 +1739,7 @@ tcpdns_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tcpdns_timeout_recovery(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_timeout_recovery) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -1850,8 +1780,7 @@ tcpdns_timeout_recovery(void **state __attribute__((unused))) {
 	isc__netmgr_shutdown(connect_nm);
 }
 
-static void
-tcpdns_recv_one(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_recv_one) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -1891,8 +1820,7 @@ tcpdns_recv_one(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tcpdns_recv_two(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_recv_two) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -1939,8 +1867,7 @@ tcpdns_recv_two(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 1);
 }
 
-static void
-tcpdns_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -1985,8 +1912,7 @@ tcpdns_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_FULL(ssends);
 }
 
-static void
-tcpdns_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2032,8 +1958,7 @@ tcpdns_recv_half_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-tcpdns_half_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_half_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2061,7 +1986,7 @@ tcpdns_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	isc_test_nap((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -2082,8 +2007,7 @@ tcpdns_half_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-tcpdns_half_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tcpdns_half_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2138,90 +2062,77 @@ tls_connect(isc_nm_t *nm) {
 			  T_CONNECT, 0);
 }
 
-static void
-tls_noop(void **state) {
+ISC_RUN_TEST_IMPL(tls_noop) {
 	stream_use_TLS = true;
 	stream_noop(state);
 }
 
-static void
-tls_noresponse(void **state) {
+ISC_RUN_TEST_IMPL(tls_noresponse) {
 	stream_use_TLS = true;
 	stream_noresponse(state);
 }
 
-static void
-tls_timeout_recovery(void **state) {
+ISC_RUN_TEST_IMPL(tls_timeout_recovery) {
 	stream_use_TLS = true;
 	stream_timeout_recovery(state);
 }
 
-static void
-tls_recv_one(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_one) {
 	stream_use_TLS = true;
 	stream_recv_one(state);
 }
 
-static void
-tls_recv_two(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_two) {
 	stream_use_TLS = true;
 	stream_recv_two(state);
 }
 
-static void
-tls_recv_send(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_send) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	stream_recv_send(state);
 }
 
-static void
-tls_recv_half_send(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_half_send) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	stream_recv_half_send(state);
 }
 
-static void
-tls_half_recv_send(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_send) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	stream_half_recv_send(state);
 }
 
-static void
-tls_half_recv_half_send(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_half_send) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	stream_half_recv_half_send(state);
 }
 
-static void
-tls_recv_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_send_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
 	stream_recv_send(state);
 }
 
-static void
-tls_recv_half_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_half_send_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
 	stream_recv_half_send(state);
 }
 
-static void
-tls_half_recv_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_send_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
 	stream_half_recv_send(state);
 }
 
-static void
-tls_half_recv_half_send_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_half_send_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
@@ -2230,54 +2141,47 @@ tls_half_recv_half_send_sendback(void **state) {
 
 /* TLS quota */
 
-static void
-tls_recv_one_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_one_quota) {
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_one(state);
 }
 
-static void
-tls_recv_two_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_two_quota) {
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_two(state);
 }
 
-static void
-tls_recv_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_send_quota) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_send(state);
 }
 
-static void
-tls_recv_half_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_half_send_quota) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_recv_half_send(state);
 }
 
-static void
-tls_half_recv_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_send_quota) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_half_recv_send(state);
 }
 
-static void
-tls_half_recv_half_send_quota(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_half_send_quota) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	atomic_store(&check_listener_quota, true);
 	stream_half_recv_half_send(state);
 }
 
-static void
-tls_recv_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_send_quota_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
@@ -2285,8 +2189,7 @@ tls_recv_send_quota_sendback(void **state) {
 	stream_recv_send(state);
 }
 
-static void
-tls_recv_half_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_recv_half_send_quota_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
@@ -2294,8 +2197,7 @@ tls_recv_half_send_quota_sendback(void **state) {
 	stream_recv_half_send(state);
 }
 
-static void
-tls_half_recv_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_send_quota_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
@@ -2303,8 +2205,7 @@ tls_half_recv_send_quota_sendback(void **state) {
 	stream_half_recv_send(state);
 }
 
-static void
-tls_half_recv_half_send_quota_sendback(void **state) {
+ISC_RUN_TEST_IMPL(tls_half_recv_half_send_quota_sendback) {
 	SKIP_IN_CI;
 	stream_use_TLS = true;
 	allow_send_back = true;
@@ -2322,8 +2223,7 @@ tlsdns_connect(isc_nm_t *nm) {
 			     tcp_connect_tlsctx);
 }
 
-static void
-tlsdns_noop(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_noop) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -2351,8 +2251,7 @@ tlsdns_noop(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tlsdns_noresponse(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_noresponse) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_sockaddr_t connect_addr;
@@ -2391,8 +2290,7 @@ tlsdns_noresponse(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tlsdns_timeout_recovery(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_timeout_recovery) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_sockaddr_t connect_addr;
@@ -2439,8 +2337,7 @@ tlsdns_timeout_recovery(void **state __attribute__((unused))) {
 	isc__netmgr_shutdown(connect_nm);
 }
 
-static void
-tlsdns_recv_one(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_recv_one) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -2482,8 +2379,7 @@ tlsdns_recv_one(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
-static void
-tlsdns_recv_two(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_recv_two) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 
@@ -2533,8 +2429,7 @@ tlsdns_recv_two(void **state __attribute__((unused))) {
 	atomic_assert_int_eq(ssends, 1);
 }
 
-static void
-tlsdns_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2580,8 +2475,7 @@ tlsdns_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_FULL(ssends);
 }
 
-static void
-tlsdns_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2628,8 +2522,7 @@ tlsdns_recv_half_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-tlsdns_half_recv_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_half_recv_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2658,7 +2551,7 @@ tlsdns_half_recv_send(void **state __attribute__((unused))) {
 	assert_null(listen_sock);
 
 	/* Try to send a little while longer */
-	isc_test_nap((esends / 2) * 10000);
+	isc_test_nap((esends / 2) * 10);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -2679,8 +2572,7 @@ tlsdns_half_recv_send(void **state __attribute__((unused))) {
 	CHECK_RANGE_HALF(ssends);
 }
 
-static void
-tlsdns_half_recv_half_send(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_half_recv_half_send) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_thread_t threads[workers];
@@ -2752,8 +2644,7 @@ tlsdns_connect_connect_noalpn(isc_nmhandle_t *handle, isc_result_t eresult,
 	connect_send(handle);
 }
 
-static void
-tlsdns_connect_noalpn(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_connect_noalpn) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_sockaddr_t connect_addr;
@@ -2817,8 +2708,7 @@ tls_accept_cb_noalpn(isc_nmhandle_t *handle, isc_result_t eresult,
 	return (stream_accept_cb(handle, eresult, cbarg));
 }
 
-static void
-tlsdns_listen_noalpn(void **state __attribute__((unused))) {
+ISC_RUN_TEST_IMPL(tlsdns_listen_noalpn) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_sockaddr_t connect_addr;
@@ -2868,218 +2758,120 @@ tlsdns_listen_noalpn(void **state __attribute__((unused))) {
 }
 #endif /* HAVE_LIBNGHTTP2 */
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		/* UDP */
-		cmocka_unit_test_setup_teardown(mock_listenudp_uv_udp_open,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(mock_listenudp_uv_udp_bind,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			mock_listenudp_uv_udp_recv_start, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(mock_udpconnect_uv_udp_open,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(mock_udpconnect_uv_udp_bind,
-						nm_setup, nm_teardown),
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_open, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_bind, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_recv_start, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_open, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_bind, setup_test, teardown_test)
 #if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
-		cmocka_unit_test_setup_teardown(mock_udpconnect_uv_udp_connect,
-						nm_setup, nm_teardown),
+ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_connect, setup_test, teardown_test)
 #endif
-		cmocka_unit_test_setup_teardown(
-			mock_udpconnect_uv_recv_buffer_size, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			mock_udpconnect_uv_send_buffer_size, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_noop, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_noresponse, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_timeout_recovery, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_recv_one, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_recv_two, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_recv_half_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_half_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(udp_half_recv_half_send,
-						nm_setup, nm_teardown),
+ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_recv_buffer_size, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_send_buffer_size, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_noop, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_noresponse, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_timeout_recovery, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_recv_two, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_half_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(udp_half_recv_half_send, setup_test, teardown_test)
 
-		/* TCP */
-		cmocka_unit_test_setup_teardown(tcp_noop, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_noresponse, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_timeout_recovery, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_one, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_two, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_half_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_half_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_half_recv_half_send,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_half_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_half_recv_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tcp_half_recv_half_send_sendback, nm_setup,
-			nm_teardown),
+/* TCP */
+ISC_TEST_ENTRY_CUSTOM(tcp_noop, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_noresponse, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_timeout_recovery, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_two, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_half_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_half_send_sendback, setup_test,
+		      teardown_test)
 
-		/* TCP Quota */
-		cmocka_unit_test_setup_teardown(tcp_recv_one_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_two_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_send_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_half_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_half_recv_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_half_recv_half_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcp_recv_send_quota_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tcp_recv_half_send_quota_sendback, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tcp_half_recv_send_quota_sendback, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tcp_half_recv_half_send_quota_sendback, nm_setup,
-			nm_teardown),
+/* TCP Quota */
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_one_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_two_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_half_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_half_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_send_quota_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_recv_half_send_quota_sendback, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_send_quota_sendback, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcp_half_recv_half_send_quota_sendback, setup_test,
+		      teardown_test)
 
-		/* TCPDNS */
-		cmocka_unit_test_setup_teardown(tcpdns_recv_one, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_recv_two, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_noop, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_noresponse, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_timeout_recovery,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_recv_half_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_half_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tcpdns_half_recv_half_send,
-						nm_setup, nm_teardown),
+/* TCPDNS */
+ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_two, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_noop, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_noresponse, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_timeout_recovery, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_half_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tcpdns_half_recv_half_send, setup_test, teardown_test)
 
 #if HAVE_LIBNGHTTP2
-		/* TLS */
-		cmocka_unit_test_setup_teardown(tls_noop, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_noresponse, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_timeout_recovery, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_one, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_two, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_half_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_half_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_half_recv_half_send,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_half_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_half_recv_send_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tls_half_recv_half_send_sendback, nm_setup,
-			nm_teardown),
+/* TLS */
+ISC_TEST_ENTRY_CUSTOM(tls_noop, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_noresponse, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_timeout_recovery, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_two, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_half_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_send_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_half_send_sendback, setup_test,
+		      teardown_test)
 
-		/* TLS quota */
-		cmocka_unit_test_setup_teardown(tls_recv_one_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_two_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_send_quota, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_half_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_half_recv_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_half_recv_half_send_quota,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tls_recv_send_quota_sendback,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tls_recv_half_send_quota_sendback, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tls_half_recv_send_quota_sendback, nm_setup,
-			nm_teardown),
-		cmocka_unit_test_setup_teardown(
-			tls_half_recv_half_send_quota_sendback, nm_setup,
-			nm_teardown),
+/* TLS quota */
+ISC_TEST_ENTRY_CUSTOM(tls_recv_one_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_two_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_half_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_half_send_quota, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_send_quota_sendback, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_recv_half_send_quota_sendback, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_send_quota_sendback, setup_test,
+		      teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tls_half_recv_half_send_quota_sendback, setup_test,
+		      teardown_test)
 #endif
 
-		/* TLSDNS */
-		cmocka_unit_test_setup_teardown(tlsdns_recv_one, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_recv_two, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_noop, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_noresponse, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_timeout_recovery,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_recv_half_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_half_recv_send, nm_setup,
-						nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_half_recv_half_send,
-						nm_setup, nm_teardown),
-		cmocka_unit_test_setup_teardown(tlsdns_connect_noalpn, nm_setup,
-						nm_teardown),
+/* TLSDNS */
+ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_two, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_noop, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_noresponse, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_timeout_recovery, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_half_recv_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_half_recv_half_send, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_connect_noalpn, setup_test, teardown_test)
 #ifdef HAVE_LIBNGHTTP2
-		cmocka_unit_test_setup_teardown(tlsdns_listen_noalpn, nm_setup,
-						nm_teardown),
+ISC_TEST_ENTRY_CUSTOM(tlsdns_listen_noalpn, setup_test, teardown_test)
 #endif
-	};
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

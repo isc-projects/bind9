@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -22,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <uv.h>
 
 #define UNIT_TESTING
 
@@ -39,7 +38,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
@@ -53,60 +52,45 @@ static atomic_bool done;
 
 static int
 _setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 0;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _setup2(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
 	/* Two worker threads */
-	result = isc_test_begin(NULL, true, 2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 2;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _setup4(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
 	isc_mutex_init(&lock);
-
 	isc_condition_init(&cv);
 
 	/* Four worker threads */
-	result = isc_test_begin(NULL, true, 4);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	workers = 4;
+	setup_managers(state);
 
 	return (0);
 }
 
 static int
 _teardown(void **state) {
-	UNUSED(state);
+	teardown_managers(state);
 
-	isc_test_end();
 	isc_condition_destroy(&cv);
+	isc_mutex_destroy(&lock);
 
 	return (0);
 }
@@ -136,8 +120,7 @@ set_and_drop(isc_task_t *task, isc_event_t *event) {
 }
 
 /* Create a task */
-static void
-create_task(void **state) {
+ISC_RUN_TEST_IMPL(create_task) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 
@@ -151,8 +134,7 @@ create_task(void **state) {
 }
 
 /* Process events */
-static void
-all_events(void **state) {
+ISC_RUN_TEST_IMPL(all_events) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 	isc_event_t *event = NULL;
@@ -169,14 +151,14 @@ all_events(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First event */
-	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST, set, &a,
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &a,
 				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&a), 0);
 	isc_task_send(task, &event);
 
-	event = isc_event_allocate(test_mctx, task, ISC_TASKEVENT_TEST, set, &b,
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &b,
 				   sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -184,7 +166,7 @@ all_events(void **state) {
 	isc_task_send(task, &event);
 
 	while ((atomic_load(&a) == 0 || atomic_load(&b) == 0) && i++ < 5000) {
-		isc_test_nap(1000);
+		uv_sleep(1000);
 	}
 
 	assert_int_not_equal(atomic_load(&a), 0);
@@ -195,8 +177,7 @@ all_events(void **state) {
 }
 
 /* Privileged events */
-static void
-privileged_events(void **state) {
+ISC_RUN_TEST_IMPL(privileged_events) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL, *task2 = NULL;
 	isc_event_t *event = NULL;
@@ -232,40 +213,40 @@ privileged_events(void **state) {
 	assert_false(isc_task_getprivilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST, set,
-				   &a, sizeof(isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &a,
+				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&a), -1);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST, set,
-				   &b, sizeof(isc_event_t));
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, set, &b,
+				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&b), -1);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST, set,
-				   &c, sizeof(isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &c,
+				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&c), -1);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST, set,
-				   &d, sizeof(isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &d,
+				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&d), -1);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST, set,
-				   &e, sizeof(isc_event_t));
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, set, &e,
+				   sizeof(isc_event_t));
 	assert_non_null(event);
 
 	assert_int_equal(atomic_load(&e), -1);
@@ -310,8 +291,7 @@ privileged_events(void **state) {
  * Edge case: this tests that the task manager behaves as expected when
  * we explicitly set it into normal mode *while* running privileged.
  */
-static void
-privilege_drop(void **state) {
+ISC_RUN_TEST_IMPL(privilege_drop) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL, *task2 = NULL;
 	isc_event_t *event = NULL;
@@ -347,7 +327,7 @@ privilege_drop(void **state) {
 	assert_false(isc_task_getprivilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &a, sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -355,7 +335,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &b, sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -363,7 +343,7 @@ privilege_drop(void **state) {
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &c, sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -371,7 +351,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(test_mctx, task1, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &d, sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -379,7 +359,7 @@ privilege_drop(void **state) {
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(test_mctx, task2, ISC_TASKEVENT_TEST,
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &e, sizeof(isc_event_t));
 	assert_non_null(event);
 
@@ -470,8 +450,7 @@ static char four[] = "4";
 static char tick[] = "tick";
 static char tock[] = "tock";
 
-static void
-basic(void **state) {
+ISC_RUN_TEST_IMPL(basic) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL;
 	isc_task_t *task2 = NULL;
@@ -531,7 +510,7 @@ basic(void **state) {
 		 * structure (socket, timer, task, etc) but this is just a
 		 * test program.
 		 */
-		event = isc_event_allocate(test_mctx, (void *)1, 1, basic_cb,
+		event = isc_event_allocate(mctx, (void *)1, 1, basic_cb,
 					   testarray[i], sizeof(*event));
 		assert_non_null(event);
 		isc_task_send(task1, &event);
@@ -608,8 +587,7 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-task_exclusive(void **state) {
+ISC_RUN_TEST_IMPL(task_exclusive) {
 	isc_task_t *tasks[10];
 	isc_result_t result;
 	int i;
@@ -636,12 +614,12 @@ task_exclusive(void **state) {
 			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 
-		v = isc_mem_get(test_mctx, sizeof *v);
+		v = isc_mem_get(mctx, sizeof *v);
 		assert_non_null(v);
 
 		*v = i;
 
-		event = isc_event_allocate(test_mctx, NULL, 1, exclusive_cb, v,
+		event = isc_event_allocate(mctx, NULL, 1, exclusive_cb, v,
 					   sizeof(*event));
 		assert_non_null(event);
 
@@ -654,7 +632,7 @@ task_exclusive(void **state) {
 	}
 
 	while (atomic_load(&counter) > 0) {
-		isc_test_nap(1000);
+		uv_sleep(1000);
 	}
 }
 
@@ -704,9 +682,7 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-manytasks(void **state) {
-	isc_mem_t *mctx = NULL;
+ISC_RUN_TEST_IMPL(manytasks) {
 	isc_event_t *event = NULL;
 	uintptr_t ntasks = 10000;
 
@@ -716,14 +692,6 @@ manytasks(void **state) {
 		print_message("# Testing with %lu tasks\n",
 			      (unsigned long)ntasks);
 	}
-
-	isc_mutex_init(&lock);
-	isc_condition_init(&cv);
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-	isc_mem_create(&mctx);
-
-	isc_managers_create(mctx, 4, 0, &netmgr, &taskmgr, NULL);
 
 	atomic_init(&done, false);
 
@@ -737,12 +705,6 @@ manytasks(void **state) {
 		WAIT(&cv, &lock);
 	}
 	UNLOCK(&lock);
-
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-
-	isc_mem_destroy(&mctx);
-	isc_condition_destroy(&cv);
-	isc_mutex_destroy(&lock);
 }
 
 /*
@@ -818,8 +780,7 @@ sd_event2(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static void
-task_shutdown(void **state) {
+ISC_RUN_TEST_IMPL(task_shutdown) {
 	isc_result_t result;
 	isc_eventtype_t event_type;
 	isc_event_t *event = NULL;
@@ -841,8 +802,8 @@ task_shutdown(void **state) {
 	/*
 	 * This event causes the task to wait on cv.
 	 */
-	event = isc_event_allocate(test_mctx, &senders[1], event_type,
-				   sd_event1, NULL, sizeof(*event));
+	event = isc_event_allocate(mctx, &senders[1], event_type, sd_event1,
+				   NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task, &event);
 
@@ -850,7 +811,7 @@ task_shutdown(void **state) {
 	 * Now we fill up the task's event queue with some events.
 	 */
 	for (i = 0; i < 256; ++i) {
-		event = isc_event_allocate(test_mctx, &senders[1], event_type,
+		event = isc_event_allocate(mctx, &senders[1], event_type,
 					   sd_event2, NULL, sizeof(*event));
 		assert_non_null(event);
 		isc_task_send(task, &event);
@@ -909,8 +870,7 @@ psd_sde(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static void
-post_shutdown(void **state) {
+ISC_RUN_TEST_IMPL(post_shutdown) {
 	isc_result_t result;
 	isc_eventtype_t event_type;
 	isc_event_t *event;
@@ -932,8 +892,8 @@ post_shutdown(void **state) {
 	/*
 	 * This event causes the task to wait on cv.
 	 */
-	event = isc_event_allocate(test_mctx, &senders[1], event_type,
-				   psd_event1, NULL, sizeof(*event));
+	event = isc_event_allocate(mctx, &senders[1], event_type, psd_event1,
+				   NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task, &event);
 
@@ -1072,7 +1032,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	/*
 	 * Block the task on cv.
 	 */
-	event = isc_event_allocate(test_mctx, (void *)1, 9999, pg_event1, NULL,
+	event = isc_event_allocate(mctx, (void *)1, 9999, pg_event1, NULL,
 				   sizeof(*event));
 
 	assert_non_null(event);
@@ -1087,8 +1047,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 		for (type_cnt = 0; type_cnt < TYPECNT; ++type_cnt) {
 			for (tag_cnt = 0; tag_cnt < TAGCNT; ++tag_cnt) {
 				eventtab[event_cnt] = isc_event_allocate(
-					test_mctx,
-					&senders[sender + sender_cnt],
+					mctx, &senders[sender + sender_cnt],
 					(isc_eventtype_t)(type + type_cnt),
 					pg_event2, NULL, sizeof(*event));
 
@@ -1179,8 +1138,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
  * type 'type' and with tag 'tag' not marked as unpurgeable from sender
  * from the task's " queue and returns the number of events purged.
  */
-static void
-purge(void **state) {
+ISC_RUN_TEST_IMPL(purge) {
 	UNUSED(state);
 
 	/* Try purging on a specific sender. */
@@ -1247,8 +1205,7 @@ purge(void **state) {
  * returns the number of tasks purged.
  */
 
-static void
-purgerange(void **state) {
+ISC_RUN_TEST_IMPL(purgerange) {
 	UNUSED(state);
 
 	/* Now let's try some ranges. */
@@ -1367,12 +1324,12 @@ try_purgeevent(bool purgeable) {
 	/*
 	 * Block the task on cv.
 	 */
-	event1 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
+	event1 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event1, NULL, sizeof(*event1));
 	assert_non_null(event1);
 	isc_task_send(task, &event1);
 
-	event2 = isc_event_allocate(test_mctx, (void *)1, (isc_eventtype_t)1,
+	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event2, NULL, sizeof(*event2));
 	assert_non_null(event2);
 
@@ -1409,7 +1366,6 @@ try_purgeevent(bool purgeable) {
 
 		WAITUNTIL(&cv, &lock, &now);
 	}
-
 	UNLOCK(&lock);
 
 	isc_task_detach(&task);
@@ -1424,8 +1380,7 @@ try_purgeevent(bool purgeable) {
  * task's queue and returns true.
  */
 
-static void
-purgeevent(void **state) {
+ISC_RUN_TEST_IMPL(purgeevent) {
 	UNUSED(state);
 
 	try_purgeevent(true);
@@ -1438,84 +1393,27 @@ purgeevent(void **state) {
  * 'event' from the task's queue and returns false.
  */
 
-static void
-purgeevent_notpurge(void **state) {
+ISC_RUN_TEST_IMPL(purgeevent_notpurge) {
 	UNUSED(state);
 
 	try_purgeevent(false);
 }
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(manytasks),
-		cmocka_unit_test_setup_teardown(all_events, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(basic, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(post_shutdown, _setup2,
-						_teardown),
-		cmocka_unit_test_setup_teardown(privilege_drop, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(privileged_events, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(purge, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(purgeevent_notpurge, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(task_shutdown, _setup4,
-						_teardown),
-		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
-						_teardown),
-	};
-	struct CMUnitTest selected[sizeof(tests) / sizeof(tests[0])];
-	size_t i;
-	int c;
+ISC_TEST_LIST_START
 
-	memset(selected, 0, sizeof(selected));
+ISC_TEST_ENTRY_CUSTOM(manytasks, _setup4, _teardown)
+ISC_TEST_ENTRY_CUSTOM(all_events, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(basic, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(create_task, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(post_shutdown, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(privilege_drop, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(privileged_events, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(purge, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(purgeevent, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(purgeevent_notpurge, _setup2, _teardown)
+ISC_TEST_ENTRY_CUSTOM(task_shutdown, _setup4, _teardown)
+ISC_TEST_ENTRY_CUSTOM(task_exclusive, _setup4, _teardown)
 
-	while ((c = isc_commandline_parse(argc, argv, "lt:v")) != -1) {
-		switch (c) {
-		case 'l':
-			for (i = 0; i < (sizeof(tests) / sizeof(tests[0])); i++)
-			{
-				if (tests[i].name != NULL) {
-					fprintf(stdout, "%s\n", tests[i].name);
-				}
-			}
-			return (0);
-		case 't':
-			if (!cmocka_add_test_byname(
-				    tests, isc_commandline_argument, selected))
-			{
-				fprintf(stderr, "unknown test '%s'\n",
-					isc_commandline_argument);
-				exit(1);
-			}
-			break;
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			break;
-		}
-	}
+ISC_TEST_LIST_END
 
-	if (selected[0].name != NULL) {
-		return (cmocka_run_group_tests(selected, NULL, NULL));
-	} else {
-		return (cmocka_run_group_tests(tests, NULL, NULL));
-	}
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

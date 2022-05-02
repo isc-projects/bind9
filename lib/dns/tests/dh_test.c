@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -31,32 +29,35 @@
 #include <dns/name.h>
 
 #include "../dst_internal.h"
-#include "dnstest.h"
+
+#include <dns/test.h>
 
 static int
-_setup(void **state) {
+setup_test(void **state) {
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_lib_init(mctx, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		return (1);
+	}
 
 	return (0);
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	UNUSED(state);
 
-	dns_test_end();
+	dst_lib_destroy();
 
 	return (0);
 }
 
 /* OpenSSL DH_compute_key() failure */
-static void
-dh_computesecret(void **state) {
+ISC_RUN_TEST_IMPL(dh_computesecret) {
 	dst_key_t *key = NULL;
 	isc_buffer_t buf;
 	unsigned char array[1024];
@@ -73,7 +74,7 @@ dh_computesecret(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_key_fromfile(name, 18602, DST_ALG_DH,
-				  DST_TYPE_PUBLIC | DST_TYPE_KEY, "./", dt_mctx,
+				  DST_TYPE_PUBLIC | DST_TYPE_KEY, "./", mctx,
 				  &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -86,24 +87,8 @@ dh_computesecret(void **state) {
 	dst_key_free(&key);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(dh_computesecret, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(dh_computesecret, setup_test, teardown_test)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

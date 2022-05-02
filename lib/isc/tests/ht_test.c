@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -32,28 +30,13 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include "isctest.h"
+#include <isc/test.h>
 
-static int
-_setup(void **state) {
-	isc_result_t result;
+/* INCLUDE LAST */
 
-	UNUSED(state);
-
-	result = isc_test_begin(NULL, true, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
+#define mctx __mctx
+#include "../ht.c"
+#undef mctx
 
 static void
 test_ht_full(int bits, uintptr_t count) {
@@ -61,7 +44,7 @@ test_ht_full(int bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, test_mctx, bits);
+	isc_ht_init(&ht, mctx, bits);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -206,7 +189,7 @@ test_ht_iterator(void) {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, test_mctx, 16);
+	isc_ht_init(&ht, mctx, 16);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -306,53 +289,34 @@ test_ht_iterator(void) {
 }
 
 /* 20 bit, 200K elements test */
-static void
-isc_ht_20(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_20) {
 	UNUSED(state);
 	test_ht_full(20, 200000);
 }
 
 /* 8 bit, 20000 elements crowded test */
-static void
-isc_ht_8(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_8) {
 	UNUSED(state);
 	test_ht_full(8, 20000);
 }
 
-/* 8 bit, 100 elements corner case test */
-static void
-isc_ht_1(void **state) {
+ISC_RUN_TEST_IMPL(isc_ht_1) {
 	UNUSED(state);
 	test_ht_full(1, 100);
 }
 
 /* test hashtable iterator */
-static void
-isc_ht_iterator_test(void **state) {
+
+ISC_RUN_TEST_IMPL(isc_ht_iterator) {
 	UNUSED(state);
 	test_ht_iterator();
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_ht_20),
-		cmocka_unit_test(isc_ht_8),
-		cmocka_unit_test(isc_ht_1),
-		cmocka_unit_test(isc_ht_iterator_test),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(isc_ht_20)
+ISC_TEST_ENTRY(isc_ht_8)
+ISC_TEST_ENTRY(isc_ht_1)
+ISC_TEST_ENTRY(isc_ht_iterator)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, _setup, _teardown));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

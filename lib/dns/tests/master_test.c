@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
@@ -40,28 +38,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
-#include "dnstest.h"
-
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
+#include <dns/test.h>
 
 static void
 nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
@@ -174,7 +151,7 @@ test_master(const char *workdir, const char *testfile,
 
 	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
 				     dns_rdataclass_in, true, 0, &callbacks,
-				     NULL, NULL, dt_mctx, format, 0);
+				     NULL, NULL, mctx, format, 0);
 
 	return (result);
 }
@@ -182,15 +159,14 @@ test_master(const char *workdir, const char *testfile,
 static void
 include_callback(const char *filename, void *arg) {
 	char **argp = (char **)arg;
-	*argp = isc_mem_strdup(dt_mctx, filename);
+	*argp = isc_mem_strdup(mctx, filename);
 }
 
 /*
  * Successful load test:
  * dns_master_loadfile() loads a valid master file and returns success
  */
-static void
-load_test(void **state) {
+ISC_RUN_TEST_IMPL(load) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -204,8 +180,7 @@ load_test(void **state) {
  * Unexpected end of file test:
  * dns_master_loadfile() returns DNS_R_UNEXPECTED when file ends too soon
  */
-static void
-unexpected_test(void **state) {
+ISC_RUN_TEST_IMPL(unexpected) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -220,8 +195,7 @@ unexpected_test(void **state) {
  * dns_master_loadfile() accepts broken zones with no TTL for first record
  * if it is an SOA
  */
-static void
-noowner_test(void **state) {
+ISC_RUN_TEST_IMPL(noowner) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -236,8 +210,7 @@ noowner_test(void **state) {
  * dns_master_loadfile() returns DNS_R_NOOWNER when no owner name is
  * specified
  */
-static void
-nottl_test(void **state) {
+ISC_RUN_TEST_IMPL(nottl) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -252,8 +225,7 @@ nottl_test(void **state) {
  * dns_master_loadfile() returns DNS_R_BADCLASS when record class doesn't
  * match zone class
  */
-static void
-badclass_test(void **state) {
+ISC_RUN_TEST_IMPL(badclass) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -267,8 +239,7 @@ badclass_test(void **state) {
  * Too big rdata test:
  * dns_master_loadfile() returns ISC_R_NOSPACE when record is too big
  */
-static void
-toobig_test(void **state) {
+ISC_RUN_TEST_IMPL(toobig) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -282,8 +253,7 @@ toobig_test(void **state) {
  * Maximum rdata test:
  * dns_master_loadfile() returns ISC_R_SUCCESS when record is maximum size
  */
-static void
-maxrdata_test(void **state) {
+ISC_RUN_TEST_IMPL(maxrdata) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -297,8 +267,7 @@ maxrdata_test(void **state) {
  * DNSKEY test:
  * dns_master_loadfile() understands DNSKEY with key material
  */
-static void
-dnskey_test(void **state) {
+ISC_RUN_TEST_IMPL(dnskey) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -315,8 +284,7 @@ dnskey_test(void **state) {
  * RFC 4034 removed the ability to signal NOKEY, so empty key material should
  * be rejected.
  */
-static void
-dnsnokey_test(void **state) {
+ISC_RUN_TEST_IMPL(dnsnokey) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -330,8 +298,7 @@ dnsnokey_test(void **state) {
  * Include test:
  * dns_master_loadfile() understands $INCLUDE
  */
-static void
-include_test(void **state) {
+ISC_RUN_TEST_IMPL(include) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -345,8 +312,7 @@ include_test(void **state) {
  * Include file list test:
  * dns_master_loadfile4() returns names of included file
  */
-static void
-master_includelist_test(void **state) {
+ISC_RUN_TEST_IMPL(master_includelist) {
 	isc_result_t result;
 	char *filename = NULL;
 
@@ -361,12 +327,12 @@ master_includelist_test(void **state) {
 	result = dns_master_loadfile(
 		"testdata/master/master8.data", &dns_origin, &dns_origin,
 		dns_rdataclass_in, 0, true, &callbacks, include_callback,
-		&filename, dt_mctx, dns_masterformat_text, 0);
+		&filename, mctx, dns_masterformat_text, 0);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 	assert_non_null(filename);
 	if (filename != NULL) {
 		assert_string_equal(filename, "testdata/master/master6.data");
-		isc_mem_free(dt_mctx, filename);
+		isc_mem_free(mctx, filename);
 	}
 }
 
@@ -374,8 +340,7 @@ master_includelist_test(void **state) {
  * Include failure test:
  * dns_master_loadfile() understands $INCLUDE failures
  */
-static void
-includefail_test(void **state) {
+ISC_RUN_TEST_IMPL(includefail) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -389,8 +354,7 @@ includefail_test(void **state) {
  * Non-empty blank lines test:
  * dns_master_loadfile() handles non-empty blank lines
  */
-static void
-blanklines_test(void **state) {
+ISC_RUN_TEST_IMPL(blanklines) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -405,8 +369,7 @@ blanklines_test(void **state) {
  * dns_master_loadfile() allows leading zeroes in SOA
  */
 
-static void
-leadingzero_test(void **state) {
+ISC_RUN_TEST_IMPL(leadingzero) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -417,8 +380,7 @@ leadingzero_test(void **state) {
 }
 
 /* masterfile totext tests */
-static void
-totext_test(void **state) {
+ISC_RUN_TEST_IMPL(totext) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdatalist_t rdatalist;
@@ -455,8 +417,7 @@ totext_test(void **state) {
  * Raw load test:
  * dns_master_loadfile() loads a valid raw file and returns success
  */
-static void
-loadraw_test(void **state) {
+ISC_RUN_TEST_IMPL(loadraw) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -488,8 +449,7 @@ loadraw_test(void **state) {
  * Raw dump test:
  * dns_master_dump*() functions dump valid raw files
  */
-static void
-dumpraw_test(void **state) {
+ISC_RUN_TEST_IMPL(dumpraw) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
@@ -512,7 +472,7 @@ dumpraw_test(void **state) {
 				   &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(dt_mctx, "rbt", &dnsorigin, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", &dnsorigin, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -528,9 +488,8 @@ dumpraw_test(void **state) {
 
 	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump(dt_mctx, db, version,
-				 &dns_master_style_default, "test.dump",
-				 dns_masterformat_raw, NULL);
+	result = dns_master_dump(mctx, db, version, &dns_master_style_default,
+				 "test.dump", dns_masterformat_raw, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,
@@ -544,9 +503,8 @@ dumpraw_test(void **state) {
 	header.flags |= DNS_MASTERRAW_SOURCESERIALSET;
 
 	unlink("test.dump");
-	result = dns_master_dump(dt_mctx, db, version,
-				 &dns_master_style_default, "test.dump",
-				 dns_masterformat_raw, &header);
+	result = dns_master_dump(mctx, db, version, &dns_master_style_default,
+				 "test.dump", dns_masterformat_raw, &header);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,
@@ -587,8 +545,7 @@ warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
  * Origin change test:
  * dns_master_loadfile() rejects zones with inherited name following $ORIGIN
  */
-static void
-neworigin_test(void **state) {
+ISC_RUN_TEST_IMPL(neworigin) {
 	isc_result_t result;
 
 	UNUSED(state);
@@ -600,53 +557,25 @@ neworigin_test(void **state) {
 	assert_true(warn_expect_result);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(load_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(unexpected_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(noowner_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(nottl_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(badclass_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(dnskey_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(dnsnokey_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(include_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(master_includelist_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(includefail_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(blanklines_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(leadingzero_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(totext_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(loadraw_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(dumpraw_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(toobig_test, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(maxrdata_test, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(neworigin_test, _setup,
-						_teardown),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(load)
+ISC_TEST_ENTRY(unexpected)
+ISC_TEST_ENTRY(noowner)
+ISC_TEST_ENTRY(nottl)
+ISC_TEST_ENTRY(badclass)
+ISC_TEST_ENTRY(dnskey)
+ISC_TEST_ENTRY(dnsnokey)
+ISC_TEST_ENTRY(include)
+ISC_TEST_ENTRY(master_includelist)
+ISC_TEST_ENTRY(includefail)
+ISC_TEST_ENTRY(blanklines)
+ISC_TEST_ENTRY(leadingzero)
+ISC_TEST_ENTRY(totext)
+ISC_TEST_ENTRY(loadraw)
+ISC_TEST_ENTRY(dumpraw)
+ISC_TEST_ENTRY(toobig)
+ISC_TEST_ENTRY(maxrdata)
+ISC_TEST_ENTRY(neworigin)
+ISC_TEST_LIST_END
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

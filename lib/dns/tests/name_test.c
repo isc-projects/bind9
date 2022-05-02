@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -38,35 +36,13 @@
 #include <dns/fixedname.h>
 #include <dns/name.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
-
 /* dns_name_fullcompare test */
-static void
-fullcompare_test(void **state) {
+ISC_RUN_TEST_IMPL(fullcompare) {
 	dns_fixedname_t fixed1;
 	dns_fixedname_t fixed2;
 	dns_name_t *name1;
@@ -182,8 +158,7 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 }
 
 /* name compression test */
-static void
-compression_test(void **state) {
+ISC_RUN_TEST_IMPL(compression) {
 	unsigned int allowed;
 	dns_compress_t cctx;
 	dns_decompress_t dctx;
@@ -216,7 +191,7 @@ compression_test(void **state) {
 
 	/* Test 1: NONE */
 	allowed = DNS_COMPRESS_NONE;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -229,7 +204,7 @@ compression_test(void **state) {
 
 	/* Test2: GLOBAL14 */
 	allowed = DNS_COMPRESS_GLOBAL14;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -242,7 +217,7 @@ compression_test(void **state) {
 
 	/* Test3: ALL */
 	allowed = DNS_COMPRESS_ALL;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -255,7 +230,7 @@ compression_test(void **state) {
 
 	/* Test4: NONE disabled */
 	allowed = DNS_COMPRESS_NONE;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
@@ -269,7 +244,7 @@ compression_test(void **state) {
 
 	/* Test5: GLOBAL14 disabled */
 	allowed = DNS_COMPRESS_GLOBAL14;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
@@ -283,7 +258,7 @@ compression_test(void **state) {
 
 	/* Test6: ALL disabled */
 	allowed = DNS_COMPRESS_ALL;
-	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
@@ -297,8 +272,7 @@ compression_test(void **state) {
 }
 
 /* is trust-anchor-telemetry test */
-static void
-istat_test(void **state) {
+ISC_RUN_TEST_IMPL(istat) {
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	isc_result_t result;
@@ -341,8 +315,7 @@ istat_test(void **state) {
 }
 
 /* dns_nane_init */
-static void
-init_test(void **state) {
+ISC_RUN_TEST_IMPL(init) {
 	dns_name_t name;
 	unsigned char offsets[1];
 
@@ -359,8 +332,7 @@ init_test(void **state) {
 }
 
 /* dns_nane_invalidate */
-static void
-invalidate_test(void **state) {
+ISC_RUN_TEST_IMPL(invalidate) {
 	dns_name_t name;
 	unsigned char offsets[1];
 
@@ -378,8 +350,7 @@ invalidate_test(void **state) {
 }
 
 /* dns_nane_setbuffer/hasbuffer */
-static void
-buffer_test(void **state) {
+ISC_RUN_TEST_IMPL(buffer) {
 	dns_name_t name;
 	unsigned char buf[BUFSIZ];
 	isc_buffer_t b;
@@ -394,8 +365,7 @@ buffer_test(void **state) {
 }
 
 /* dns_nane_isabsolute */
-static void
-isabsolute_test(void **state) {
+ISC_RUN_TEST_IMPL(isabsolute) {
 	struct {
 		const char *namestr;
 		bool expect;
@@ -429,8 +399,7 @@ isabsolute_test(void **state) {
 }
 
 /* dns_nane_hash */
-static void
-hash_test(void **state) {
+ISC_RUN_TEST_IMPL(hash) {
 	struct {
 		const char *name1;
 		const char *name2;
@@ -493,8 +462,7 @@ hash_test(void **state) {
 }
 
 /* dns_nane_issubdomain */
-static void
-issubdomain_test(void **state) {
+ISC_RUN_TEST_IMPL(issubdomain) {
 	struct {
 		const char *name1;
 		const char *name2;
@@ -537,8 +505,7 @@ issubdomain_test(void **state) {
 }
 
 /* dns_nane_countlabels */
-static void
-countlabels_test(void **state) {
+ISC_RUN_TEST_IMPL(countlabels) {
 	struct {
 		const char *namestr;
 		unsigned int expect;
@@ -573,8 +540,7 @@ countlabels_test(void **state) {
 }
 
 /* dns_nane_getlabel */
-static void
-getlabel_test(void **state) {
+ISC_RUN_TEST_IMPL(getlabel) {
 	struct {
 		const char *name1;
 		unsigned int pos1;
@@ -617,8 +583,7 @@ getlabel_test(void **state) {
 }
 
 /* dns_nane_getlabelsequence */
-static void
-getlabelsequence_test(void **state) {
+ISC_RUN_TEST_IMPL(getlabelsequence) {
 	struct {
 		const char *name1;
 		unsigned int pos1;
@@ -673,8 +638,7 @@ getlabelsequence_test(void **state) {
 
 /* Benchmark dns_name_fromwire() implementation */
 
-static void *
-fromwire_thread(void *arg) {
+ISC_RUN_TEST_IMPL(fromwire_thread(void *arg) {
 	unsigned int maxval = 32000000;
 	uint8_t data[] = { 3,	'w', 'w', 'w', 7,   'e', 'x',
 			   'a', 'm', 'p', 'l', 'e', 7,	 'i',
@@ -709,8 +673,7 @@ fromwire_thread(void *arg) {
 	return (NULL);
 }
 
-static void
-benchmark_test(void **state) {
+ISC_RUN_TEST_IMPL(benchmark) {
 	isc_result_t result;
 	unsigned int i;
 	isc_time_t ts1, ts2;
@@ -747,50 +710,22 @@ benchmark_test(void **state) {
 
 #endif /* DNS_BENCHMARK_TESTS */
 
-int
-main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(fullcompare_test),
-		cmocka_unit_test_setup_teardown(compression_test, _setup,
-						_teardown),
-		cmocka_unit_test(istat_test),
-		cmocka_unit_test(init_test),
-		cmocka_unit_test(invalidate_test),
-		cmocka_unit_test(buffer_test),
-		cmocka_unit_test(isabsolute_test),
-		cmocka_unit_test(hash_test),
-		cmocka_unit_test(issubdomain_test),
-		cmocka_unit_test(countlabels_test),
-		cmocka_unit_test(getlabel_test),
-		cmocka_unit_test(getlabelsequence_test),
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(fullcompare)
+ISC_TEST_ENTRY(compression)
+ISC_TEST_ENTRY(istat)
+ISC_TEST_ENTRY(init)
+ISC_TEST_ENTRY(invalidate)
+ISC_TEST_ENTRY(buffer)
+ISC_TEST_ENTRY(isabsolute)
+ISC_TEST_ENTRY(hash)
+ISC_TEST_ENTRY(issubdomain)
+ISC_TEST_ENTRY(countlabels)
+ISC_TEST_ENTRY(getlabel)
+ISC_TEST_ENTRY(getlabelsequence)
 #ifdef DNS_BENCHMARK_TESTS
-		cmocka_unit_test_setup_teardown(benchmark_test, _setup,
-						_teardown),
+ISC_TEST_ENTRY(benchmark)
 #endif /* DNS_BENCHMARK_TESTS */
-	};
-	int c;
+ISC_TEST_LIST_END
 
-	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
-		switch (c) {
-		case 'v':
-			verbose = true;
-			break;
-		default:
-			break;
-		}
-	}
-
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN

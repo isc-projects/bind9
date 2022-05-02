@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <ctype.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -29,7 +27,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/hash.h>
@@ -54,7 +51,7 @@
 
 #include <dst/dst.h>
 
-#include "dnstest.h"
+#include <dns/test.h>
 
 typedef struct {
 	dns_rbt_t *rbt;
@@ -127,31 +124,11 @@ static const char *const ordered_names[] = {
 static const size_t ordered_names_count =
 	(sizeof(ordered_names) / sizeof(*ordered_names));
 
-static int
-_setup(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dns_test_begin(NULL, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	dns_test_end();
-
-	return (0);
-}
 static void
 delete_data(void *data, void *arg) {
 	UNUSED(arg);
 
-	isc_mem_put(dt_mctx, data, sizeof(size_t));
+	isc_mem_put(mctx, data, sizeof(size_t));
 }
 
 static test_context_t *
@@ -160,16 +137,15 @@ test_context_setup(void) {
 	isc_result_t result;
 	size_t i;
 
-	ctx = isc_mem_get(dt_mctx, sizeof(*ctx));
+	ctx = isc_mem_get(mctx, sizeof(*ctx));
 	assert_non_null(ctx);
 
 	ctx->rbt = NULL;
-	result = dns_rbt_create(dt_mctx, delete_data, NULL, &ctx->rbt);
+	result = dns_rbt_create(mctx, delete_data, NULL, &ctx->rbt);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ctx->rbt_distances = NULL;
-	result = dns_rbt_create(dt_mctx, delete_data, NULL,
-				&ctx->rbt_distances);
+	result = dns_rbt_create(mctx, delete_data, NULL, &ctx->rbt_distances);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < domain_names_count; i++) {
@@ -181,13 +157,13 @@ test_context_setup(void) {
 
 		name = dns_fixedname_name(&fname);
 
-		n = isc_mem_get(dt_mctx, sizeof(size_t));
+		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = i + 1;
 		result = dns_rbt_addname(ctx->rbt, name, n);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		n = isc_mem_get(dt_mctx, sizeof(size_t));
+		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = node_distances[i];
 		result = dns_rbt_addname(ctx->rbt_distances, name, n);
@@ -202,7 +178,7 @@ test_context_teardown(test_context_t *ctx) {
 	dns_rbt_destroy(&ctx->rbt);
 	dns_rbt_destroy(&ctx->rbt_distances);
 
-	isc_mem_put(dt_mctx, ctx, sizeof(*ctx));
+	isc_mem_put(mctx, ctx, sizeof(*ctx));
 }
 
 /*
@@ -233,12 +209,9 @@ check_test_data(dns_rbt_t *rbt) {
 }
 
 /* Test the creation of an rbt */
-static void
-rbt_create(void **state) {
+ISC_RUN_TEST_IMPL(rbt_create) {
 	test_context_t *ctx;
 	bool tree_ok;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -253,11 +226,8 @@ rbt_create(void **state) {
 }
 
 /* Test dns_rbt_nodecount() on a tree */
-static void
-rbt_nodecount(void **state) {
+ISC_RUN_TEST_IMPL(rbt_nodecount) {
 	test_context_t *ctx;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -269,8 +239,7 @@ rbt_nodecount(void **state) {
 }
 
 /* Test dns_rbtnode_get_distance() on a tree */
-static void
-rbtnode_get_distance(void **state) {
+ISC_RUN_TEST_IMPL(rbtnode_get_distance) {
 	isc_result_t result;
 	test_context_t *ctx;
 	const char *name_str = "a";
@@ -278,8 +247,6 @@ rbtnode_get_distance(void **state) {
 	dns_name_t *name;
 	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -322,19 +289,16 @@ rbtnode_get_distance(void **state) {
  * path from a sub-tree's root to a node is no more than
  * 2log(n). This check verifies that the tree is balanced.
  */
-static void
-rbt_check_distance_random(void **state) {
+ISC_RUN_TEST_IMPL(rbt_check_distance_random) {
 	dns_rbt_t *mytree = NULL;
 	const unsigned int log_num_nodes = 16;
 	isc_result_t result;
 	bool tree_ok;
 	int i;
 
-	UNUSED(state);
-
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_rbt_create(dt_mctx, delete_data, NULL, &mytree);
+	result = dns_rbt_create(mctx, delete_data, NULL, &mytree);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Names are inserted in random order. */
@@ -351,7 +315,7 @@ rbt_check_distance_random(void **state) {
 		size_t *n;
 		char namebuf[34];
 
-		n = isc_mem_get(dt_mctx, sizeof(size_t));
+		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = i + 1;
 
@@ -400,19 +364,16 @@ rbt_check_distance_random(void **state) {
  * path from a sub-tree's root to a node is no more than
  * 2log(n). This check verifies that the tree is balanced.
  */
-static void
-rbt_check_distance_ordered(void **state) {
+ISC_RUN_TEST_IMPL(rbt_check_distance_ordered) {
 	dns_rbt_t *mytree = NULL;
 	const unsigned int log_num_nodes = 16;
 	isc_result_t result;
 	bool tree_ok;
 	int i;
 
-	UNUSED(state);
-
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_rbt_create(dt_mctx, delete_data, NULL, &mytree);
+	result = dns_rbt_create(mctx, delete_data, NULL, &mytree);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Names are inserted in sorted order. */
@@ -431,7 +392,7 @@ rbt_check_distance_ordered(void **state) {
 		dns_fixedname_t fname;
 		dns_name_t *name;
 
-		n = isc_mem_get(dt_mctx, sizeof(size_t));
+		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = i + 1;
 
@@ -479,24 +440,21 @@ compare_labelsequences(dns_rbtnode_t *node, const char *labelstr) {
 	dns_name_init(&name, NULL);
 	dns_rbt_namefromnode(node, &name);
 
-	result = dns_name_tostring(&name, &nodestr, dt_mctx);
+	result = dns_name_tostring(&name, &nodestr, mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	is_equal = strcmp(labelstr, nodestr) == 0 ? true : false;
 
-	isc_mem_free(dt_mctx, nodestr);
+	isc_mem_free(mctx, nodestr);
 
 	return (is_equal);
 }
 
 /* Test insertion into a tree */
-static void
-rbt_insert(void **state) {
+ISC_RUN_TEST_IMPL(rbt_insert) {
 	isc_result_t result;
 	test_context_t *ctx;
 	dns_rbtnode_t *node;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -653,12 +611,9 @@ rbt_insert(void **state) {
  * as a red-black tree. This test checks node deletion when upper nodes
  * have data.
  */
-static void
-rbt_remove(void **state) {
+ISC_RUN_TEST_IMPL(rbt_remove) {
 	isc_result_t result;
 	size_t j;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -675,7 +630,7 @@ rbt_remove(void **state) {
 		size_t start_node;
 
 		/* Create a tree. */
-		result = dns_rbt_create(dt_mctx, delete_data, NULL, &mytree);
+		result = dns_rbt_create(mctx, delete_data, NULL, &mytree);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		/* Insert test data into the tree. */
@@ -703,7 +658,7 @@ rbt_remove(void **state) {
 			assert_non_null(node);
 			assert_null(node->data);
 
-			n = isc_mem_get(dt_mctx, sizeof(size_t));
+			n = isc_mem_get(mctx, sizeof(size_t));
 			assert_non_null(n);
 			*n = i;
 
@@ -843,7 +798,7 @@ insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 		size_t *n;
 		char namebuf[34];
 
-		n = isc_mem_get(dt_mctx, sizeof(size_t));
+		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 
 		*n = i; /* Unused value */
@@ -868,7 +823,7 @@ insert_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 			result = dns_rbt_addnode(mytree, name, &node);
 			if (result == ISC_R_SUCCESS) {
 				node->data = n;
-				names[*names_count] = isc_mem_strdup(dt_mctx,
+				names[*names_count] = isc_mem_strdup(mctx,
 								     namebuf);
 				assert_non_null(names[*names_count]);
 				*names_count += 1;
@@ -899,7 +854,7 @@ remove_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 		result = dns_rbt_deletename(mytree, name, false);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		isc_mem_free(dt_mctx, names[node]);
+		isc_mem_free(mctx, names[node]);
 		if (*names_count > 0) {
 			names[node] = names[*names_count - 1];
 			names[*names_count - 1] = NULL;
@@ -944,8 +899,7 @@ check_tree(dns_rbt_t *mytree, char **names, size_t names_count) {
  * forest. The number of nodes in the tree level doesn't grow
  * over 1024.
  */
-static void
-rbt_insert_and_remove(void **state) {
+ISC_RUN_TEST_IMPL(rbt_insert_and_remove) {
 	isc_result_t result;
 	dns_rbt_t *mytree = NULL;
 	size_t *n;
@@ -953,14 +907,12 @@ rbt_insert_and_remove(void **state) {
 	size_t names_count;
 	int i;
 
-	UNUSED(state);
-
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_rbt_create(dt_mctx, delete_data, NULL, &mytree);
+	result = dns_rbt_create(mctx, delete_data, NULL, &mytree);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	n = isc_mem_get(dt_mctx, sizeof(size_t));
+	n = isc_mem_get(mctx, sizeof(size_t));
 	assert_non_null(n);
 	result = dns_rbt_addname(mytree, dns_rootname, n);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -999,7 +951,7 @@ rbt_insert_and_remove(void **state) {
 
 	for (i = 0; i < 1024; i++) {
 		if (names[i] != NULL) {
-			isc_mem_free(dt_mctx, names[i]);
+			isc_mem_free(mctx, names[i]);
 		}
 	}
 
@@ -1011,15 +963,12 @@ rbt_insert_and_remove(void **state) {
 }
 
 /* Test findname return values */
-static void
-rbt_findname(void **state) {
+ISC_RUN_TEST_IMPL(rbt_findname) {
 	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname, found;
 	dns_name_t *name = NULL, *foundname = NULL;
 	size_t *n = NULL;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -1059,21 +1008,18 @@ rbt_findname(void **state) {
 }
 
 /* Test addname return values */
-static void
-rbt_addname(void **state) {
+ISC_RUN_TEST_IMPL(rbt_addname) {
 	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name = NULL;
 	size_t *n;
 
-	UNUSED(state);
-
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
 	ctx = test_context_setup();
 
-	n = isc_mem_get(dt_mctx, sizeof(size_t));
+	n = isc_mem_get(mctx, sizeof(size_t));
 	assert_non_null(n);
 	*n = 1;
 
@@ -1085,25 +1031,22 @@ rbt_addname(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Now add again, should get ISC_R_EXISTS */
-	n = isc_mem_get(dt_mctx, sizeof(size_t));
+	n = isc_mem_get(mctx, sizeof(size_t));
 	assert_non_null(n);
 	*n = 2;
 	result = dns_rbt_addname(ctx->rbt, name, n);
 	assert_int_equal(result, ISC_R_EXISTS);
-	isc_mem_put(dt_mctx, n, sizeof(size_t));
+	isc_mem_put(mctx, n, sizeof(size_t));
 
 	test_context_teardown(ctx);
 }
 
 /* Test deletename return values */
-static void
-rbt_deletename(void **state) {
+ISC_RUN_TEST_IMPL(rbt_deletename) {
 	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name = NULL;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -1125,16 +1068,13 @@ rbt_deletename(void **state) {
 }
 
 /* Test nodechain */
-static void
-rbt_nodechain(void **state) {
+ISC_RUN_TEST_IMPL(rbt_nodechain) {
 	isc_result_t result;
 	test_context_t *ctx;
 	dns_fixedname_t fname, found, expect;
 	dns_name_t *name, *foundname, *expected;
 	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -1186,14 +1126,11 @@ rbt_nodechain(void **state) {
 }
 
 /* Test addname return values */
-static void
-rbtnode_namelen(void **state) {
+ISC_RUN_TEST_IMPL(rbtnode_namelen) {
 	isc_result_t result;
 	test_context_t *ctx = NULL;
 	dns_rbtnode_t *node;
 	unsigned int len;
-
-	UNUSED(state);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
@@ -1267,8 +1204,7 @@ find_thread(void *arg) {
 }
 
 /* Benchmark RBT implementation */
-static void
-benchmark(void **state) {
+ISC_RUN_TEST_IMPL(benchmark) {
 	isc_result_t result;
 	char namestr[sizeof("name18446744073709551616.example.org.")];
 	unsigned int r;
@@ -1280,8 +1216,6 @@ benchmark(void **state) {
 	double t;
 	unsigned int nthreads;
 	isc_thread_t threads[32];
-
-	UNUSED(state);
 
 	srandom(time(NULL));
 
@@ -1301,7 +1235,7 @@ benchmark(void **state) {
 
 	/* Create a tree. */
 	mytree = NULL;
-	result = dns_rbt_create(dt_mctx, NULL, NULL, &mytree);
+	result = dns_rbt_create(mctx, NULL, NULL, &mytree);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Insert test data into the tree. */
@@ -1343,47 +1277,24 @@ benchmark(void **state) {
 }
 #endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)  */
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(rbt_create, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_nodecount, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbtnode_get_distance, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbt_check_distance_random,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_check_distance_ordered,
-						_setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_insert, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_remove, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_insert_and_remove, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbt_findname, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbt_addname, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(rbt_deletename, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbt_nodechain, _setup,
-						_teardown),
-		cmocka_unit_test_setup_teardown(rbtnode_namelen, _setup,
-						_teardown),
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(rbt_create)
+ISC_TEST_ENTRY(rbt_nodecount)
+ISC_TEST_ENTRY(rbtnode_get_distance)
+ISC_TEST_ENTRY(rbt_check_distance_random)
+ISC_TEST_ENTRY(rbt_check_distance_ordered)
+ISC_TEST_ENTRY(rbt_insert)
+ISC_TEST_ENTRY(rbt_remove)
+ISC_TEST_ENTRY(rbt_insert_and_remove)
+ISC_TEST_ENTRY(rbt_findname)
+ISC_TEST_ENTRY(rbt_addname)
+ISC_TEST_ENTRY(rbt_deletename)
+ISC_TEST_ENTRY(rbt_nodechain)
+ISC_TEST_ENTRY(rbtnode_namelen)
 #if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
-		cmocka_unit_test_setup_teardown(benchmark, _setup, _teardown),
+ISC_TEST_ENTRY(benchmark)
 #endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__) */
-	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
-}
+ISC_TEST_LIST_END
 
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN
