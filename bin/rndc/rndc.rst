@@ -165,7 +165,7 @@ Currently supported commands are:
 
    See also :option:`rndc addzone` and :option:`rndc modzone`.
 
-.. option:: dnssec (-status | -rollover -key id [-alg algorithm] [-when time] | -checkds [-key id [-alg algorithm]] [-when time]  published | withdraw)) zone [class [view]]
+.. option:: dnssec (-status | -rollover -key id [-alg algorithm] [-when time] | -checkds [-key id [-alg algorithm]] [-when time]  published | withdrawn)) zone [class [view]]
 
    This command allows you to interact with the "dnssec-policy" of a given
    zone.
