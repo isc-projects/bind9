@@ -2746,7 +2746,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 			if (dns_zone_get_parentcatz(zone) == NULL) {
 				isc_log_write(
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
 					"catz_addmodzone_taskaction: "
 					"zone '%s' will not be added "
@@ -2756,7 +2756,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 			} else {
 				isc_log_write(
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
 					"catz_addmodzone_taskaction: "
 					"zone '%s' will not be added "
