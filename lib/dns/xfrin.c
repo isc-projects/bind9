@@ -977,7 +977,8 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 					       &tlsctx, &found_store);
 		if (result != ISC_R_SUCCESS) {
 			const char *hostname =
-				dns_transport_get_hostname(xfr->transport);
+				dns_transport_get_remote_hostname(
+					xfr->transport);
 			const char *ca_file =
 				dns_transport_get_cafile(xfr->transport);
 			const char *cert_file =

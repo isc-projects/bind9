@@ -124,8 +124,8 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 			dns_transport_set_prefer_server_ciphers)
 			parse_transport_option(doh, transport, "ca-file",
 					       dns_transport_set_cafile);
-		parse_transport_option(doh, transport, "hostname",
-				       dns_transport_set_hostname);
+		parse_transport_option(doh, transport, "remote-hostname",
+				       dns_transport_set_remote_hostname);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -176,8 +176,8 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 			dns_transport_set_prefer_server_ciphers)
 			parse_transport_option(tls, transport, "ca-file",
 					       dns_transport_set_cafile);
-		parse_transport_option(tls, transport, "hostname",
-				       dns_transport_set_hostname);
+		parse_transport_option(tls, transport, "remote-hostname",
+				       dns_transport_set_remote_hostname);
 	}
 
 	return (ISC_R_SUCCESS);
