@@ -1,3 +1,6 @@
+5895.	[test]		Add new set of unit test macros and move the unit
+			tests under single namespace in /tests/. [GL !6243]
+
 5891.	[func]		Key timing options for `dnssec-settime` and related
 			utilities now accept "UNSET" times as printed by
 			`dnssec-settime -p`. [GL #3361]
