@@ -21,7 +21,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
-#include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>

@@ -23,7 +23,7 @@
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
-#include <isc/string.h> /* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/time.h>
