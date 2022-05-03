@@ -2639,6 +2639,8 @@ static void
 catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	catz_chgzone_event_t *ev = (catz_chgzone_event_t *)event0;
 	isc_result_t result;
+	dns_forwarders_t *dnsforwarders = NULL;
+	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
 	isc_buffer_t *confbuf;
 	char nameb[DNS_NAME_FORMATSIZE];
@@ -2657,12 +2659,26 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
+	name = dns_catz_entry_getname(ev->entry);
+
 	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
-	dns_name_totext(dns_catz_entry_getname(ev->entry), true, &namebuf);
+	dns_name_totext(name, true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	result = dns_zt_find(ev->view->zonetable,
-			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	result = dns_fwdtable_find(ev->view->fwdtable, name, NULL,
+				   &dnsforwarders);
+	if (result == ISC_R_SUCCESS &&
+	    dnsforwarders->fwdpolicy == dns_fwdpolicy_only) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: catz_addmodzone_taskaction: "
+			      "zone '%s' will not be processed because of the "
+			      "explicitly configured forwarding for that zone",
+			      nameb);
+		goto cleanup;
+	}
+
+	result = dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone);
 
 	if (ev->mod) {
 		dns_catz_zone_t *parentcatz;
@@ -2799,8 +2815,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(ev->view->zonetable,
-			  dns_catz_entry_getname(ev->entry), 0, NULL, &zone));
+	CHECK(dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone));
 
 	/*
 	 * Load the zone from the master file.	If this fails, we'll
@@ -5784,8 +5799,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 */
 			result = dns_fwdtable_find(view->fwdtable, name, NULL,
 						   &dnsforwarders);
-			if (result == ISC_R_SUCCESS &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only) {
+			if ((result == ISC_R_SUCCESS ||
+			     result == DNS_R_PARTIALMATCH) &&
+			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			{
 				continue;
 			}
 
@@ -5870,8 +5887,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 */
 			result = dns_fwdtable_find(view->fwdtable, name, NULL,
 						   &dnsforwarders);
-			if (result == ISC_R_SUCCESS &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only) {
+			if ((result == ISC_R_SUCCESS ||
+			     result == DNS_R_PARTIALMATCH) &&
+			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			{
 				continue;
 			}
 

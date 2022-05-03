@@ -176,13 +176,8 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	RWLOCK(&fwdtable->rwlock, isc_rwlocktype_read);
-
 	result = dns_rbt_findname(fwdtable->table, name, 0, foundname,
 				  (void **)forwardersp);
-	if (result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_SUCCESS;
-	}
-
 	RWUNLOCK(&fwdtable->rwlock, isc_rwlocktype_read);
 
 	return (result);
