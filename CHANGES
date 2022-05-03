@@ -1,3 +1,7 @@
+5901.	[bug]		When processing a catalog zone member zone make sure
+			that there is no configured pre-existing forward-only
+			forward zone with that name. [GL #2506]
+
 5900.	[placeholder]
 
 5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
