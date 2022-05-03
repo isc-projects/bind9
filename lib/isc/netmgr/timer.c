@@ -11,10 +11,9 @@
  * information regarding copyright ownership.
  */
 
-#include <uv.h>
-
 #include <isc/netmgr.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
 

@@ -13,7 +13,6 @@
 
 #include <libgen.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 #include <isc/barrier.h>
@@ -33,10 +32,10 @@
 #include <isc/stdtime.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
 #include "openssl_shim.h"
-#include "uv-compat.h"
 
 static atomic_uint_fast32_t last_tlsdnsquota_log = 0;
 
@@ -175,7 +174,7 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	atomic_store(&sock->connected, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 error:
 	LOCK(&sock->lock);
 	sock->result = result;
@@ -254,7 +253,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 		result = ISC_R_TIMEDOUT;
 		goto error;
 	} else if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 		goto error;
 	}
 
@@ -262,7 +261,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	r = uv_tcp_getpeername(&sock->uv_handle.tcp, (struct sockaddr *)&ss,
 			       &(int){ sizeof(ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto error;
 	}
 
@@ -603,16 +602,16 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	if (mgr->load_balance_sockets) {
-		r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-					&sock->iface.type.sa, flags);
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
 		if (r < 0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
 	} else {
 		if (sock->parent->fd == -1) {
-			r = isc_uv_tcp_freebind(&sock->uv_handle.tcp,
-						&sock->iface.type.sa, flags);
+			r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+						 &sock->iface.type.sa, flags);
 			if (r < 0) {
 				isc__nm_incstats(sock, STATID_BINDFAIL);
 				goto done;
@@ -640,7 +639,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
 			      "uv_listen failed: %s",
-			      isc_result_totext(isc__nm_uverr2result(r)));
+			      isc_result_totext(isc_uverr2result(r)));
 		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
@@ -648,7 +647,7 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	atomic_store(&sock->listening, true);
 
 done:
-	result = isc__nm_uverr2result(r);
+	result = isc_uverr2result(r);
 	if (result != ISC_R_SUCCESS) {
 		sock->pquota = NULL;
 	}
@@ -670,7 +669,7 @@ tlsdns_connection_cb(uv_stream_t *server, int status) {
 	isc_quota_t *quota = NULL;
 
 	if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 		goto done;
 	}
 
@@ -1195,7 +1194,7 @@ free_senddata(isc_nmsocket_t *sock, const isc_result_t result) {
 
 static void
 tls_write_cb(uv_write_t *req, int status) {
-	isc_result_t result = status != 0 ? isc__nm_uverr2result(status)
+	isc_result_t result = status != 0 ? isc_uverr2result(status)
 					  : ISC_R_SUCCESS;
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
 	isc_nmsocket_t *sock = uvreq->sock;
@@ -1271,7 +1270,7 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 			/* uv_try_write is not supported, send
 			 * asynchronously */
 		} else {
-			result = isc__nm_uverr2result(r);
+			result = isc_uverr2result(r);
 			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock, result);
 			break;
@@ -1280,7 +1279,7 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		r = uv_write(&req->uv_req.write, &sock->uv_handle.stream,
 			     &req->uvbuf, 1, tls_write_cb);
 		if (r < 0) {
-			result = isc__nm_uverr2result(r);
+			result = isc_uverr2result(r);
 			isc__nm_uvreq_put(&req, sock);
 			free_senddata(sock, result);
 			break;
@@ -1408,7 +1407,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 			isc__nm_incstats(sock, STATID_RECVFAIL);
 		}
 
-		isc__nm_failed_read_cb(sock, isc__nm_uverr2result(nread), true);
+		isc__nm_failed_read_cb(sock, isc_uverr2result(nread), true);
 
 		goto free;
 	}
@@ -1528,7 +1527,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 
@@ -1536,7 +1535,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 			       (struct sockaddr *)&peer_ss,
 			       &(int){ sizeof(peer_ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 
@@ -1550,7 +1549,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 			       (struct sockaddr *)&local_ss,
 			       &(int){ sizeof(local_ss) });
 	if (r != 0) {
-		result = isc__nm_uverr2result(r);
+		result = isc_uverr2result(r);
 		goto failure;
 	}
 

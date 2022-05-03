@@ -12,13 +12,15 @@
  */
 
 #pragma once
+
+#include <stdbool.h>
 #include <uv.h>
+
+#include <isc/result.h>
 
 /*
  * These functions were introduced in newer libuv, but we still
  * want BIND9 compile on older ones so we emulate them.
- * They're inline to avoid conflicts when running with a newer
- * library version.
  */
 
 #define UV_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
@@ -43,6 +45,13 @@
 #if !defined(UV__ERR)
 #define UV__ERR(x) (-(x))
 #endif
+
+#if UV_VERSION_HEX < UV_VERSION(1, 12, 0)
+int
+uv_os_getenv(const char *name, char *buffer, size_t *size);
+
+#define uv_os_setenv(name, value) setenv(name, value, 0)
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 12, 0) */
 
 #if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
 static inline void *
@@ -89,38 +98,33 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr);
 #define isc_uv_udp_connect uv_udp_connect
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 
-#if UV_VERSION_HEX < UV_VERSION(1, 12, 0)
-#include <stdlib.h>
-#include <string.h>
+/*
+ * These are used with all versions of libuv:
+ */
 
-static inline int
-uv_os_getenv(const char *name, char *buffer, size_t *size) {
-	size_t len;
-	char *buf = getenv(name);
-
-	if (buf == NULL) {
-		return (UV_ENOENT);
+#define UV_RUNTIME_CHECK(func, ret)                                           \
+	if (ret != 0) {                                                       \
+		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s\n", #func, \
+				uv_strerror(ret));                            \
 	}
 
-	len = strlen(buf) + 1;
-	if (len > *size) {
-		*size = len;
-		return (UV_ENOBUFS);
-	}
+#define isc_uverr2result(x) \
+	isc__uverr2result(x, true, __FILE__, __LINE__, __func__)
+isc_result_t
+isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
+		  const char *func);
+/*%<
+ * Convert a libuv error value into an isc_result_t.  The
+ * list of supported error values is not complete; new users
+ * of this function should add any expected errors that are
+ * not already there.
+ */
 
-	*size = len;
-	memmove(buffer, buf, len);
+/**
+ * Type-casting helpers
+ */
 
-	return (0);
-}
-
-#define uv_os_setenv(name, value) setenv(name, value, 0)
-#endif /* UV_VERSION_HEX < UV_VERSION(1, 12, 0) */
-
-int
-isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
-		    unsigned int flags);
-
-int
-isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
-		    unsigned int flags);
+#define uv_handle_set_data(handle, data) \
+	uv_handle_set_data((uv_handle_t *)(handle), (data))
+#define uv_handle_get_data(handle) uv_handle_get_data((uv_handle_t *)(handle))
+#define uv_close(handle, close_cb) uv_close((uv_handle_t *)handle, close_cb)

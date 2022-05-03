@@ -1,7 +1,8 @@
 include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=			\
-	$(LIBISC_CFLAGS)
+	$(LIBISC_CFLAGS)	\
+	-I..
 
 LDADD +=			\
 	libisctest.la		\

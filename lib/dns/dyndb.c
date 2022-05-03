@@ -12,7 +12,6 @@
  */
 
 #include <string.h>
-#include <uv.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -23,6 +22,7 @@
 #include <isc/task.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include <dns/dyndb.h>
 #include <dns/log.h>

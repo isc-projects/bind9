@@ -11,15 +11,62 @@
  * information regarding copyright ownership.
  */
 
-#include <stdbool.h>
-#include <uv.h>
+#include <unistd.h>
 
-#include <isc/result.h>
-#include <isc/strerr.h>
-#include <isc/string.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
-#include "netmgr-int.h"
+#if UV_VERSION_HEX < UV_VERSION(1, 12, 0)
+#include <stdlib.h>
+#include <string.h>
+
+#endif
+
+#if UV_VERSION_HEX < UV_VERSION(1, 27, 0)
+int
+isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
+	int err = 0;
+
+	do {
+		int addrlen = (addr->sa_family == AF_INET)
+				      ? sizeof(struct sockaddr_in)
+				      : sizeof(struct sockaddr_in6);
+		err = connect(handle->io_watcher.fd, addr, addrlen);
+	} while (err == -1 && errno == EINTR);
+
+	if (err) {
+#if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
+		return (uv_translate_sys_error(errno));
+#else
+		return (-errno);
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
+	}
+
+	return (0);
+}
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
+
+#if UV_VERSION_HEX < UV_VERSION(1, 32, 0)
+int
+uv_tcp_close_reset(uv_tcp_t *handle, uv_close_cb close_cb) {
+	if (setsockopt(handle->io_watcher.fd, SOL_SOCKET, SO_LINGER,
+		       &(struct linger){ 1, 0 }, sizeof(struct linger)) == -1)
+	{
+#if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
+		return (uv_translate_sys_error(errno));
+#else
+		return (-errno);
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
+	}
+
+	INSIST(!uv_is_closing((uv_handle_t *)handle));
+	uv_close((uv_handle_t *)handle, close_cb);
+	return (0);
+}
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 32, 0) */
+
+#define setsockopt_on(socket, level, name) \
+	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
 
 /*%
  * Convert a libuv error value into an isc_result_t.  The
@@ -28,8 +75,8 @@
  * not already there.
  */
 isc_result_t
-isc___nm_uverr2result(int uverr, bool dolog, const char *file,
-		      unsigned int line, const char *func) {
+isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
+		  const char *func) {
 	switch (uverr) {
 	case 0:
 		return (ISC_R_SUCCESS);

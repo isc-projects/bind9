@@ -16,12 +16,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <uv.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include <dns/dlz_dlopen.h>
 #include <dns/log.h>

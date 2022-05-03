@@ -19,7 +19,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <uv.h>
 
 #ifdef HAVE_DNSTAP
 #include <protobuf-c/protobuf-c.h>
@@ -44,6 +43,7 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include <dns/dispatch.h>
 #include <dns/dyndb.h>

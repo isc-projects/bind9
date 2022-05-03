@@ -13,7 +13,6 @@
 
 #include <inttypes.h>
 #include <unistd.h>
-#include <uv.h>
 
 #include <isc/atomic.h>
 #include <isc/backtrace.h>
@@ -39,12 +38,12 @@
 #include <isc/thread.h>
 #include <isc/tls.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "netmgr-int.h"
 #include "netmgr_p.h"
 #include "openssl_shim.h"
 #include "trampoline_p.h"
-#include "uv-compat.h"
 
 /*%
  * How many isc_nmhandles and isc_nm_uvreqs will we be
@@ -2979,213 +2978,6 @@ isc__nm_decstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
 }
 
 isc_result_t
-isc__nm_socket(int domain, int type, int protocol, uv_os_sock_t *sockp) {
-	int sock = socket(domain, type, protocol);
-	if (sock < 0) {
-		return (isc_errno_toresult(errno));
-	}
-
-	*sockp = (uv_os_sock_t)sock;
-	return (ISC_R_SUCCESS);
-}
-
-void
-isc__nm_closesocket(uv_os_sock_t sock) {
-	close(sock);
-}
-
-#define setsockopt_on(socket, level, name) \
-	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
-
-#define setsockopt_off(socket, level, name) \
-	setsockopt(socket, level, name, &(int){ 0 }, sizeof(int))
-
-isc_result_t
-isc__nm_socket_freebind(uv_os_sock_t fd, sa_family_t sa_family) {
-	/*
-	 * Set the IP_FREEBIND (or equivalent option) on the uv_handle.
-	 */
-#ifdef IP_FREEBIND
-	UNUSED(sa_family);
-	if (setsockopt_on(fd, IPPROTO_IP, IP_FREEBIND) == -1) {
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-#elif defined(IP_BINDANY) || defined(IPV6_BINDANY)
-	if (sa_family == AF_INET) {
-#if defined(IP_BINDANY)
-		if (setsockopt_on(fd, IPPROTO_IP, IP_BINDANY) == -1) {
-			return (ISC_R_FAILURE);
-		}
-		return (ISC_R_SUCCESS);
-#endif
-	} else if (sa_family == AF_INET6) {
-#if defined(IPV6_BINDANY)
-		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_BINDANY) == -1) {
-			return (ISC_R_FAILURE);
-		}
-		return (ISC_R_SUCCESS);
-#endif
-	}
-	return (ISC_R_NOTIMPLEMENTED);
-#elif defined(SO_BINDANY)
-	UNUSED(sa_family);
-	if (setsockopt_on(fd, SOL_SOCKET, SO_BINDANY) == -1) {
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-#else
-	UNUSED(fd);
-	UNUSED(sa_family);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_reuse(uv_os_sock_t fd) {
-	/*
-	 * Generally, the SO_REUSEADDR socket option allows reuse of
-	 * local addresses.
-	 *
-	 * On the BSDs, SO_REUSEPORT implies SO_REUSEADDR but with some
-	 * additional refinements for programs that use multicast.
-	 *
-	 * On Linux, SO_REUSEPORT has different semantics: it _shares_ the port
-	 * rather than steal it from the current listener, so we don't use it
-	 * here, but rather in isc__nm_socket_reuse_lb().
-	 *
-	 * On Windows, it also allows a socket to forcibly bind to a port in use
-	 * by another socket.
-	 */
-
-#if defined(SO_REUSEPORT) && !defined(__linux__)
-	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-#elif defined(SO_REUSEADDR)
-	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEADDR) == -1) {
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-#else
-	UNUSED(fd);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_reuse_lb(uv_os_sock_t fd) {
-	/*
-	 * On FreeBSD 12+, SO_REUSEPORT_LB socket option allows sockets to be
-	 * bound to an identical socket address. For UDP sockets, the use of
-	 * this option can provide better distribution of incoming datagrams to
-	 * multiple processes (or threads) as compared to the traditional
-	 * technique of having multiple processes compete to receive datagrams
-	 * on the same socket.
-	 *
-	 * On Linux, the same thing is achieved simply with SO_REUSEPORT.
-	 */
-#if defined(SO_REUSEPORT_LB)
-	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT_LB) == -1) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#elif defined(SO_REUSEPORT) && defined(__linux__)
-	if (setsockopt_on(fd, SOL_SOCKET, SO_REUSEPORT) == -1) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#else
-	UNUSED(fd);
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_incoming_cpu(uv_os_sock_t fd) {
-#ifdef SO_INCOMING_CPU
-	if (setsockopt_on(fd, SOL_SOCKET, SO_INCOMING_CPU) == -1) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#else
-	UNUSED(fd);
-#endif
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
-isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family) {
-	/*
-	 * Disable the Path MTU Discovery on IP packets
-	 */
-	if (sa_family == AF_INET6) {
-#if defined(IPV6_DONTFRAG)
-		if (setsockopt_off(fd, IPPROTO_IPV6, IPV6_DONTFRAG) == -1) {
-			return (ISC_R_FAILURE);
-		} else {
-			return (ISC_R_SUCCESS);
-		}
-#elif defined(IPV6_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
-		if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
-			       &(int){ IP_PMTUDISC_OMIT }, sizeof(int)) == -1)
-		{
-			return (ISC_R_FAILURE);
-		} else {
-			return (ISC_R_SUCCESS);
-		}
-#else
-		UNUSED(fd);
-#endif
-	} else if (sa_family == AF_INET) {
-#if defined(IP_DONTFRAG)
-		if (setsockopt_off(fd, IPPROTO_IP, IP_DONTFRAG) == -1) {
-			return (ISC_R_FAILURE);
-		} else {
-			return (ISC_R_SUCCESS);
-		}
-#elif defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_OMIT)
-		if (setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
-			       &(int){ IP_PMTUDISC_OMIT }, sizeof(int)) == -1)
-		{
-			return (ISC_R_FAILURE);
-		} else {
-			return (ISC_R_SUCCESS);
-		}
-#else
-		UNUSED(fd);
-#endif
-	} else {
-		return (ISC_R_FAMILYNOSUPPORT);
-	}
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
-isc__nm_socket_v6only(uv_os_sock_t fd, sa_family_t sa_family) {
-	/*
-	 * Enable the IPv6-only option on IPv6 sockets
-	 */
-	if (sa_family == AF_INET6) {
-#if defined(IPV6_V6ONLY)
-		if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_V6ONLY) == -1) {
-			return (ISC_R_FAILURE);
-		} else {
-			return (ISC_R_SUCCESS);
-		}
-#else
-		UNUSED(fd);
-#endif
-	}
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
 isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 	int proto, pf, addrlen, fd, r;
 
@@ -3241,81 +3033,6 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 #define TIMEOUT_DIV	1000
 #define TIMEOUT_OPTNAME TCP_KEEPINIT
 #endif
-
-isc_result_t
-isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms) {
-#if defined(TIMEOUT_OPTNAME)
-	TIMEOUT_TYPE timeout = timeout_ms / TIMEOUT_DIV;
-
-	if (timeout == 0) {
-		timeout = 1;
-	}
-
-	if (setsockopt(fd, IPPROTO_TCP, TIMEOUT_OPTNAME, &timeout,
-		       sizeof(timeout)) == -1)
-	{
-		return (ISC_R_FAILURE);
-	}
-
-	return (ISC_R_SUCCESS);
-#else
-	UNUSED(fd);
-	UNUSED(timeout_ms);
-
-	return (ISC_R_SUCCESS);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_tcp_nodelay(uv_os_sock_t fd) {
-#ifdef TCP_NODELAY
-	if (setsockopt_on(fd, IPPROTO_TCP, TCP_NODELAY) == -1) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#else
-	UNUSED(fd);
-	return (ISC_R_SUCCESS);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_tcp_maxseg(uv_os_sock_t fd, int size) {
-#ifdef TCP_MAXSEG
-	if (setsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, (void *)&size,
-		       sizeof(size))) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#else
-	UNUSED(fd);
-	UNUSED(size);
-	return (ISC_R_SUCCESS);
-#endif
-}
-
-isc_result_t
-isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family) {
-	if (sa_family != AF_INET6) {
-		return (ISC_R_SUCCESS);
-	}
-#ifdef IPV6_USE_MIN_MTU
-	if (setsockopt_on(fd, IPPROTO_IPV6, IPV6_USE_MIN_MTU) == -1) {
-		return (ISC_R_FAILURE);
-	}
-#elif defined(IPV6_MTU)
-	if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &(int){ 1280 },
-		       sizeof(int)) == -1) {
-		return (ISC_R_FAILURE);
-	}
-#else
-	UNUSED(fd);
-#endif
-
-	return (ISC_R_SUCCESS);
-}
 
 void
 isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
@@ -3379,7 +3096,7 @@ isc__nm_after_work_cb(uv_work_t *req, int status) {
 	isc_nm_t *netmgr = work->netmgr;
 
 	if (status != 0) {
-		result = isc__nm_uverr2result(status);
+		result = isc_uverr2result(status);
 	}
 
 	work->after_cb(work->data, result);
