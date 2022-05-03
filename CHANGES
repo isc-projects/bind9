@@ -1,3 +1,6 @@
+5895.	[test]		Add new set of unit test macros and move the unit
+			tests under single namespace in /tests/. [GL !6243]
+
 5894.	[func]		Avoid periodic interface re-scans on Linux by
 			default, where a reliable event-based mechanism for
 			detecting interface state changes is available.
