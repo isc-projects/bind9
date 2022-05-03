@@ -11,7 +11,8 @@ AM_CPPFLAGS =					\
 	-include $(top_builddir)/config.h	\
 	-I$(srcdir)/include
 
-AM_LDFLAGS =
+AM_LDFLAGS =					\
+	$(STD_LDFLAGS)
 LDADD =
 
 if HOST_MACOS
