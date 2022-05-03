@@ -112,12 +112,14 @@ AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
       [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
 #
-# Set the default CFLAGS and CPPFLAGS
+# Set the default CFLAGS, CPPFLAGS, and LDFLAGS
 #
 STD_CFLAGS="-Wall -Wextra -Wwrite-strings -Wpointer-arith -Wno-missing-field-initializers -Wformat -Wshadow"
 
 # These should be always errors
 STD_CFLAGS="$STD_CFLAGS -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=format-security -Werror=parentheses -Werror=implicit -Werror=strict-prototypes -Werror=vla"
+
+STD_LDFLAGS=""
 
 # ... except in test code
 TEST_CFLAGS="-Wno-vla"
@@ -135,6 +137,9 @@ AX_CHECK_COMPILE_FLAG([-Werror -fno-delete-null-pointer-checks],
 		      [STD_CFLAGS="$STD_CFLAGS -fno-delete-null-pointer-checks"])
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
 		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
+
+AX_CHECK_LINK_FLAG([-Wl,--export-dynamic],
+		   [STD_LDFLAGS="$STD_LDFLAGS -Wl,--export-dynamic"])
 
 host_macos=no
 AS_CASE([$host],[*-darwin*],[host_macos=yes])
@@ -162,6 +167,7 @@ AS_IF([test "$enable_developer" = "yes"],
 AC_SUBST([DEVELOPER_MODE])
 AC_SUBST([STD_CFLAGS])
 AC_SUBST([STD_CPPFLAGS])
+AC_SUBST([STD_LDFLAGS])
 AC_SUBST([TEST_CFLAGS])
 
 # [pairwise: --enable-warn-error, --disable-warn-error]
