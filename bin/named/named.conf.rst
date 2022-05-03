@@ -565,10 +565,10 @@ TLS
   	cert-file quoted_string;
   	ciphers string;
   	dhparam-file quoted_string;
-  	hostname quoted_string;
   	key-file quoted_string;
   	prefer-server-ciphers boolean;
   	protocols { string; ... };
+  	remote-hostname quoted_string;
   	session-tickets boolean;
   };
 

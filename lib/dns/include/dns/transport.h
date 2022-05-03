@@ -49,7 +49,7 @@ dns_transport_get_keyfile(dns_transport_t *transport);
 char *
 dns_transport_get_cafile(dns_transport_t *transport);
 char *
-dns_transport_get_hostname(dns_transport_t *transport);
+dns_transport_get_remote_hostname(dns_transport_t *transport);
 char *
 dns_transport_get_endpoint(dns_transport_t *transport);
 dns_http_mode_t
@@ -79,7 +79,8 @@ dns_transport_set_keyfile(dns_transport_t *transport, const char *keyfile);
 void
 dns_transport_set_cafile(dns_transport_t *transport, const char *cafile);
 void
-dns_transport_set_hostname(dns_transport_t *transport, const char *hostname);
+dns_transport_set_remote_hostname(dns_transport_t *transport,
+				  const char	     *hostname);
 void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint);
 void

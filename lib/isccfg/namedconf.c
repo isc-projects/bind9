@@ -3938,7 +3938,7 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "key-file", &cfg_type_qstring, 0 },
 	{ "cert-file", &cfg_type_qstring, 0 },
 	{ "ca-file", &cfg_type_qstring, 0 },
-	{ "hostname", &cfg_type_qstring, 0 },
+	{ "remote-hostname", &cfg_type_qstring, 0 },
 	{ "dhparam-file", &cfg_type_qstring, 0 },
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, 0 },

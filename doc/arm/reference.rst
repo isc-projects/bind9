@@ -294,7 +294,7 @@ The following statements are supported:
         Declares communication channels to get access to :iscman:`named` statistics.
 
     ``tls``
-        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``hostname``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
+        Specifies configuration information for a TLS connection, including a ``key-file``, ``cert-file``, ``ca-file``, ``dhparam-file``, ``remote-hostname``, ``ciphers``, ``protocols``, ``prefer-server-ciphers``, and ``session-tickets``.
 
     ``http``
         Specifies configuration information for an HTTP connection, including ``endponts``, ``listener-clients`` and ``streams-per-connection``.
@@ -893,7 +893,7 @@ where ``tls-configuration-name`` refers to a previously defined
 .. warning::
 
    Please note that TLS connections to primaries are **not
-   authenticated** unless ``hostname`` or ``ca-file`` are specified
+   authenticated** unless ``remote-hostname`` or ``ca-file`` are specified
    within the :ref:`tls statement <tls>` in use (see information on
    :ref:`Strict TLS <strict-tls>` and :ref:`Mutual TLS <mutual-tls>`
    for more details).  **Not authenticated mode** (:ref:`Opportunistic
@@ -4838,7 +4838,7 @@ The following options can be specified in a ``tls`` statement:
     this option enables remote peer certificates verification. For
     incoming connections specifying this option will make BIND require
     a valid TLS certificate from a client. In the case of outgoing
-    connections, if ``hostname`` is not specified, then the remote
+    connections, if ``remote-hostname`` is not specified, then the remote
     server IP address is used instead.
 
   ``dhparam-file``
@@ -4848,7 +4848,7 @@ The following options can be specified in a ``tls`` statement:
     specified is essential for enabling perfect forward secrecy capable
     ciphers in TLSv1.2.
 
-  ``hostname``
+  ``remote-hostname``
     The expected hostname in the TLS certificate of the
     remote server. This option enables a remote server certificate
     verification. If ``ca-file`` is not specified, then the
@@ -4933,7 +4933,7 @@ TLS.
 
 Opportunistic TLS provides encryption for data but does not provide
 any authentication for the channel. This mode is the default one and
-it is used whenever ``hostname`` and ``ca-file`` options are not set
+it is used whenever ``remote-hostname`` and ``ca-file`` options are not set
 in ``tls`` statements in use. RFC 9103 allows optional fallback to
 clear-text DNS in the cases when TLS is not available. Still, BIND
 intentionally does not support that in order to protect from
@@ -4947,15 +4947,15 @@ otherwise.
 Strict TLS provides server authentication via a pre-configured
 hostname for outgoing connections. This mechanism offers both channel
 confidentiality and channel authentication (of the server). In order
-to achieve Strict TLS, one needs to use ``hostname`` and, optionally,
+to achieve Strict TLS, one needs to use ``remote-hostname`` and, optionally,
 ``ca-file`` options in the ``tls`` statements used for establishing
 outgoing connections (e.g. the ones used to download zone from
 primaries via TLS). Providing any of the mentioned options will enable
-server authentication. If ``hostname`` is provided but ``ca-file`` is
+server authentication. If ``remote-hostname`` is provided but ``ca-file`` is
 missed, then the platform-specific certificate authority certificates
 are used for authentication. The set roughly corresponds to the one
 used by WEB-browsers to authenticate HTTPS hosts. On the other hand,
-if ``ca-file`` is provided but ``hostname`` is missing, then the
+if ``ca-file`` is provided but ``remote-hostname`` is missing, then the
 remote side's IP address is used instead.
 
 .. _mutual-tls:
