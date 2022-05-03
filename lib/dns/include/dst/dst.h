@@ -1107,6 +1107,26 @@ dst_key_isexternal(dst_key_t *key);
  *	'key' to be valid.
  */
 
+void
+dst_key_setmodified(dst_key_t *key, bool value);
+/*%<
+ * If 'value' is true, this marks the key to indicate that key file metadata
+ * has been modified. If 'value' is false, this resets the value, for example
+ * after you have written the key to file.
+ *
+ * Requires:
+ *	'key' to be valid.
+ */
+
+bool
+dst_key_ismodified(dst_key_t *key);
+/*%<
+ * Check if the key file has been modified.
+ *
+ * Requires:
+ *	'key' to be valid.
+ */
+
 bool
 dst_key_haskasp(dst_key_t *key);
 /*%<
