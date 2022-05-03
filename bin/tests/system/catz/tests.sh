@@ -713,7 +713,7 @@ n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
 wait_for_message ns2/named.run "catz: adding zone 'dom-existing.example' from catalog 'catalog1.example'" &&
-wait_for_message ns2/named.run  "catz_addmodzone_taskaction: zone 'dom-existing.example' will not be added because it is an explicitly configured zone" || ret=1
+wait_for_message ns2/named.run "catz_addmodzone_taskaction: zone 'dom-existing.example' will not be added because it is an explicitly configured zone" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -722,6 +722,95 @@ echo_i "checking that dom-existing.example. is served by secondary and that it's
 ret=0
 wait_for_a @10.53.0.2 dom-existing.example. dig.out.test$n || ret=1
 grep "192.0.2.1" dig.out.test$n > /dev/null && ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n+1))
+echo_i "adding a domain dom-existing-forward.example. to primary via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom-existing-forward.example.db
+echo "@ IN NS invalid." >> ns1/dom-existing-forward.example.db
+echo "@ IN A 192.0.2.1" >> ns1/dom-existing-forward.example.db
+rndccmd 10.53.0.1 addzone dom-existing-forward.example. in default '{type primary; file "dom-existing-forward.example.db"; also-notify { 10.53.0.2; }; notify explicit; };' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that dom-existing-forward.example. is served by primary ($n)"
+ret=0
+wait_for_a @10.53.0.1 dom-existing-forward.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "adding domain dom-existing-forward.example. to catalog1 zone to test that existing forward zones don't get overwritten ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add dom-existing-forward.zones.catalog1.example. 3600 IN PTR dom-existing-forward.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom-existing-forward.example' from catalog 'catalog1.example'" &&
+wait_for_message ns2/named.run "catz_addmodzone_taskaction: zone 'dom-existing-forward.example' will not be processed because of the explicitly configured forwarding for that zone" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that dom-existing-forward.example. is not served by secondary ($n)"
+ret=0
+wait_for_no_soa @10.53.0.2 dom-existing-forward.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n+1))
+echo_i "adding a domain dom-existing-forward-off.example. to primary via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom-existing-forward-off.example.db
+echo "@ IN NS invalid." >> ns1/dom-existing-forward-off.example.db
+echo "@ IN A 192.0.2.1" >> ns1/dom-existing-forward-off.example.db
+rndccmd 10.53.0.1 addzone dom-existing-forward-off.example. in default '{type primary; file "dom-existing-forward-off.example.db"; also-notify { 10.53.0.2; }; notify explicit; };' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that dom-existing-forward-off.example. is served by primary ($n)"
+ret=0
+wait_for_a @10.53.0.1 dom-existing-forward-off.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "adding domain dom-existing-forward-off.example. to catalog1 zone to test that a zone with turned off forwarding can be used in a catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add dom-existing-forward-off.zones.catalog1.example. 3600 IN PTR dom-existing-forward-off.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom-existing-forward-off.example' from catalog 'catalog1.example'" &&
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that dom-existing-forward-off.example. is served by secondary ($n)"
+ret=0
+wait_for_soa @10.53.0.2 dom-existing-forward-off.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -743,6 +832,8 @@ $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     update delete blahblah.636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example. 3600 IN TXT "blah blah"
     update delete version.catalog1.example. 3600 IN A 1.2.3.4
     update delete dom-existing.zones.catalog1.example. 3600 IN PTR dom-existing.example.
+    update delete dom-existing-forward.zones.catalog1.example. 3600 IN PTR dom-existing-forward.example.
+    update delete dom-existing-forward-off.zones.catalog1.example. 3600 IN PTR dom-existing-forward.example.
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
