@@ -1576,14 +1576,15 @@ AC_CONFIG_FILES([doc/Makefile
 
 # Unit Tests
 
-AC_CONFIG_FILES([lib/isc/tests/Makefile
-		 lib/dns/tests/Makefile
-		 lib/ns/tests/Makefile
-		 lib/irs/tests/Makefile
-		 lib/isccfg/tests/Makefile])
+AC_CONFIG_FILES([tests/Makefile
+		 tests/isc/Makefile
+		 tests/dns/Makefile
+		 tests/ns/Makefile
+		 tests/irs/Makefile
+		 tests/isccfg/Makefile])
 
-AC_CONFIG_FILES([lib/unit-test-driver.sh],
-		[chmod +x lib/unit-test-driver.sh])
+AC_CONFIG_FILES([tests/unit-test-driver.sh],
+		[chmod +x tests/unit-test-driver.sh])
 
 # System Tests
 

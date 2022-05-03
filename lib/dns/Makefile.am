@@ -323,7 +323,3 @@ if HAVE_LMDB
 libdns_la_CPPFLAGS += $(LMDB_CFLAGS)
 libdns_la_LIBADD += $(LMDB_LIBS)
 endif
-
-if HAVE_CMOCKA
-SUBDIRS = tests
-endif
