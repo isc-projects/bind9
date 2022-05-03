@@ -34,8 +34,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
 		 void *driverarg, dns_db_t **dbp);
 
 /*%<
- * Create a new database of type "rbt" (or "rbt64").  Called via
- * dns_db_create(); see documentation for that function for more details.
+ * Create a new database of type "rbt". Called via dns_db_create();
+ * see documentation for that function for more details.
  *
  * If argv[0] is set, it points to a valid memory context to be used for
  * allocation of heap memory.  Generally this is used for cache databases

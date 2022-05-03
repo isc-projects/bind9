@@ -3738,7 +3738,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * If the zone type is rbt/rbt64 then primary/hint zones require file
+	 * If the zone type is rbt then primary/hint zones require file
 	 * clauses. If inline-signing is used, then secondary zones require a
 	 * file clause as well.
 	 */
@@ -3759,8 +3759,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		result = ISC_R_FAILURE;
 	} else if (!dlz && (tresult == ISC_R_NOTFOUND ||
 			    (tresult == ISC_R_SUCCESS &&
-			     (strcmp("rbt", cfg_obj_asstring(obj)) == 0 ||
-			      strcmp("rbt64", cfg_obj_asstring(obj)) == 0))))
+			     strcmp("rbt", cfg_obj_asstring(obj)) == 0)))
 	{
 		isc_result_t res1;
 		const cfg_obj_t *fileobj = NULL;
