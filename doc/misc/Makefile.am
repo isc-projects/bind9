@@ -45,6 +45,7 @@ OPTIONS_FILES =				\
 EXTRA_DIST =			\
 	$(OPTIONS_FILES)	\
 	format-options.pl	\
+	parsegrammar.py		\
 	rst-grammars.pl		\
 	rst-options.pl		\
 	rst-zoneopt.pl		\
