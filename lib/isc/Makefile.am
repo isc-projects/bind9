@@ -251,7 +251,3 @@ libisc_la_CPPFLAGS +=		\
 libisc_la_LIBADD +=		\
 	$(LIBXML2_LIBS)
 endif HAVE_LIBXML2
-
-if HAVE_CMOCKA
-SUBDIRS = tests
-endif
