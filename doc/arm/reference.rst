@@ -892,9 +892,14 @@ where ``tls-configuration-name`` refers to a previously defined
 
 .. warning::
 
-   Please note that TLS connections to primaries are currently
-   **not authenticated**. This mode provides protection from passive observers
-   but does not protect from man-in-the-middle attacks on zone transfers.
+   Please note that TLS connections to primaries are **not
+   authenticated** unless ``hostname`` or ``ca-file`` are specified
+   within the :ref:`tls statement <tls>` in use (see information on
+   :ref:`Strict TLS <strict-tls>` and :ref:`Mutual TLS <mutual-tls>`
+   for more details).  **Not authenticated mode** (:ref:`Opportunistic
+   TLS <opportunistic-tls>`) provides protection from passive
+   observers but does not protect from man-in-the-middle attacks on
+   zone transfers.
 
 
 .. _options_grammar:
@@ -2476,9 +2481,11 @@ for details on how to specify IP address lists.
 
 .. warning::
 
-   Please note that incoming TLS connections are currently
-   **not authenticated at the TLS level**.
-   Please use :ref:`tsig` to authenticate requestors.
+   Please note that incoming TLS connections are
+   **not authenticated at the TLS level by default**.
+   Please use :ref:`tsig` to authenticate requestors
+   or consider implementing :ref:`Mutual TLS <mutual-tls>`
+   authentication.
 
 ``blackhole``
    This specifies a list of addresses which the server does not accept queries
@@ -4922,6 +4929,8 @@ BIND supports the following TLS authentication mechanisms described in
 the RFC 9103, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
 TLS.
 
+.. _opportunistic-tls:
+
 Opportunistic TLS provides encryption for data but does not provide
 any authentication for the channel. This mode is the default one and
 it is used whenever ``hostname`` and ``ca-file`` options are not set
@@ -4932,6 +4941,8 @@ unexpected data leaks due to misconfiguration. Both BIND and its
 complementary tools either successfully establish a secure channel via
 TLS when instructed to do so or fail to establish a connection
 otherwise.
+
+.. _strict-tls:
 
 Strict TLS provides server authentication via a pre-configured
 hostname for outgoing connections. This mechanism offers both channel
@@ -4946,6 +4957,8 @@ are used for authentication. The set roughly corresponds to the one
 used by WEB-browsers to authenticate HTTPS hosts. On the other hand,
 if ``ca-file`` is provided but ``hostname`` is missing, then the
 remote side's IP address is used instead.
+
+.. _mutual-tls:
 
 Mutual TLS is an extension to Strict TLS that provides channel
 confidentiality and mutual channel authentication. It builds up upon
