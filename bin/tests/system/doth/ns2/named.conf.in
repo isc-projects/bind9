@@ -57,7 +57,7 @@ zone "." {
 };
 
 tls tls-example-primary {
-	hostname "srv01.crt01.example.com"; // enable Strict TLS
+	remote-hostname "srv01.crt01.example.com"; // enable Strict TLS
 	ca-file "../CA/CA.pem";
 };
 
@@ -70,7 +70,7 @@ zone "example" {
 
 # the server's certificate does not contain SubjectAltName, which is required for DoT
 tls tls-example-primary-no-san {
-	hostname "srv01.crt02-no-san.example.com"; // enable Strict TLS
+	remote-hostname "srv01.crt02-no-san.example.com"; // enable Strict TLS
 	ca-file "../CA/CA.pem";
 };
 
@@ -81,7 +81,7 @@ zone "example3" {
 	allow-transfer { any; };
 };
 
-# As you can see, the "hostname" is missing, but "ca-file" is
+# As you can see, the "remote-hostname" is missing, but "ca-file" is
 # specified. As the result, the primaries server certificate will be
 # verified using the IP address instead of hostname. That is fine,
 # because the server certificate is issued with IP address in the
@@ -98,7 +98,7 @@ zone "example4" {
 };
 
 tls tls-example-primary-strict-tls-ipv4 {
-	hostname "10.53.0.1"; # the IP is in the server's cert SAN
+	remote-hostname "10.53.0.1"; # the IP is in the server's cert SAN
 	ca-file "../CA/CA.pem"; # enable Strict TLS
 };
 
@@ -110,7 +110,7 @@ zone "example5" {
 };
 
 tls tls-example-primary-strict-tls-ipv6 {
-	hostname "fd92:7065:b8e:ffff::1"; # the IP is in the server's cert SAN
+	remote-hostname "fd92:7065:b8e:ffff::1"; # the IP is in the server's cert SAN
 	ca-file "../CA/CA.pem"; # enable Strict TLS
 };
 
@@ -122,7 +122,7 @@ zone "example6" {
 };
 
 tls tls-example-primary-strict-tls-wrong-host {
-	hostname "not-present.example.com"; # this is not present in the server's cert SAN
+	remote-hostname "not-present.example.com"; # this is not present in the server's cert SAN
 	ca-file "../CA/CA.pem"; # enable Strict TLS
 };
 
@@ -134,7 +134,7 @@ zone "example7" {
 };
 
 tls tls-example-primary-strict-tls-expired {
-	hostname "srv01.crt03-expired.example.com";
+	remote-hostname "srv01.crt03-expired.example.com";
 	ca-file "../CA/CA.pem";
 };
 
@@ -146,7 +146,7 @@ zone "example8" {
 };
 
 tls tls-example-primary-mutual-tls {
-    hostname "srv01.crt01.example.com";
+    remote-hostname "srv01.crt01.example.com";
 	ca-file "../CA/CA.pem";
 	cert-file "../CA/certs/srv01.client02-ns2.example.com.pem";
 	key-file "../CA/certs/srv01.client02-ns2.example.com.key";
@@ -167,7 +167,7 @@ zone "example10" {
 };
 
 tls tls-example-primary-mutual-tls-expired {
-    hostname "srv01.crt01.example.com";
+    remote-hostname "srv01.crt01.example.com";
 	ca-file "../CA/CA.pem";
 	cert-file "../CA/certs/srv01.client03-ns2-expired.example.com.pem";
 	key-file "../CA/certs/srv01.client03-ns2-expired.example.com.key";
