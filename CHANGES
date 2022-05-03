@@ -1,3 +1,7 @@
+5883.	[cleanup]	Move netmgr/uv-compat.{c,h} to <isc/uv.h>, so
+			the compatibility libuv shims could be used outside
+			the network manager. [GL !6199]
+
 5882.	[contrib]	Avoid name space collision in dlz modules by prefixing
 			functions with 'dlz_'. [GL !5778]
 
