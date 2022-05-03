@@ -122,6 +122,7 @@ struct dst_key {
 	bool inactive; /*%< private key not present as it is
 			* inactive */
 	bool external; /*%< external key */
+	bool modified; /*%< set to true if key file metadata has changed */
 
 	int fmt_major; /*%< private key format, major version
 			* */
