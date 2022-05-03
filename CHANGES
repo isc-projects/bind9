@@ -1,3 +1,6 @@
+5884.	[cleanup]	Reduce struct padding in ADB address entries, and use a
+			binary hash function to find addresses. [GL !6219]
+
 5883.	[cleanup]	Move netmgr/uv-compat.{c,h} to <isc/uv.h>, so
 			the compatibility libuv shims could be used outside
 			the network manager. [GL !6199]

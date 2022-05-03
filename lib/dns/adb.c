@@ -232,16 +232,16 @@ struct dns_adbentry {
 	dns_adb_t *adb;
 	dns_adbentrybucket_t *bucket;
 
+	unsigned int nh;
 	unsigned int flags;
 	unsigned int srtt;
-	uint16_t udpsize;
 	unsigned int completed;
 	unsigned int timeouts;
 	unsigned char plain;
 	unsigned char plainto;
 	unsigned char edns;
 	unsigned char ednsto;
-	unsigned int nh;
+	uint16_t udpsize;
 
 	uint8_t mode;
 	atomic_uint_fast32_t quota;
@@ -2114,7 +2114,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
 	isc_rwlock_init(&adb->names_lock, 0, 0);
 
-	isc_ht_init(&adb->entrybuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
+	isc_ht_init(&adb->entrybuckets, adb->mctx, 1, ISC_HT_CASE_SENSITIVE);
 	isc_rwlock_init(&adb->entries_lock, 0, 0);
 
 	isc_mutex_init(&adb->lock);
