@@ -4258,6 +4258,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			}
 			switch (result) {
 			case ISC_R_SUCCESS:
+			case DNS_R_GLUE:
 				result = dns_rdataset_first(st->r.ns_rdataset);
 				if (result != ISC_R_SUCCESS) {
 					goto cleanup;
