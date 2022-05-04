@@ -161,10 +161,6 @@ dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name) {
 	result = dns_rbt_deletename(fwdtable->table, name, false);
 	RWUNLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
 
-	if (result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_NOTFOUND;
-	}
-
 	return (result);
 }
 

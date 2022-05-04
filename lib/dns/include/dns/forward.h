@@ -86,6 +86,7 @@ dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name);
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_NOSPACE
  */
 
 isc_result_t
