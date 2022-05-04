@@ -3956,6 +3956,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	dns_rpz_have_t have;
 	dns_rpz_popt_t popt;
 	int rpz_ver;
+	unsigned int options;
 #ifdef USE_DNSRPS
 	librpz_emsg_t emsg;
 #endif /* ifdef USE_DNSRPS */
@@ -4206,7 +4207,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 
 	dns_fixedname_init(&nsnamef);
 	dns_name_clone(client->query.qname, dns_fixedname_name(&nsnamef));
+	options = DNS_DBFIND_GLUEOK;
 	while (st->r.label > st->popt.min_ns_labels) {
+		bool was_glue = false;
 		/*
 		 * Get NS rrset for each domain in the current qname.
 		 */
@@ -4220,10 +4223,10 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		if (st->r.ns_rdataset == NULL ||
 		    !dns_rdataset_isassociated(st->r.ns_rdataset)) {
 			dns_db_t *db = NULL;
-			result = rpz_rrset_find(
-				client, nsname, dns_rdatatype_ns,
-				DNS_DBFIND_GLUEOK, DNS_RPZ_TYPE_NSDNAME, &db,
-				NULL, &st->r.ns_rdataset, resuming);
+			result = rpz_rrset_find(client, nsname,
+						dns_rdatatype_ns, options,
+						DNS_RPZ_TYPE_NSDNAME, &db, NULL,
+						&st->r.ns_rdataset, resuming);
 			if (db != NULL) {
 				dns_db_detach(&db);
 			}
@@ -4231,8 +4234,10 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 				goto cleanup;
 			}
 			switch (result) {
-			case ISC_R_SUCCESS:
 			case DNS_R_GLUE:
+				was_glue = true;
+				FALLTHROUGH;
+			case ISC_R_SUCCESS:
 				result = dns_rdataset_first(st->r.ns_rdataset);
 				if (result != ISC_R_SUCCESS) {
 					goto cleanup;
@@ -4271,6 +4276,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 				continue;
 			}
 		}
+
 		/*
 		 * Check all NS names.
 		 */
@@ -4321,7 +4327,17 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			result = dns_rdataset_next(st->r.ns_rdataset);
 		} while (result == ISC_R_SUCCESS);
 		dns_rdataset_disassociate(st->r.ns_rdataset);
-		st->r.label--;
+
+		/*
+		 * If we just checked a glue NS RRset retry without allowing
+		 * glue responses, otherwise setup for the next name.
+		 */
+		if (was_glue) {
+			options = 0;
+		} else {
+			options = DNS_DBFIND_GLUEOK;
+			st->r.label--;
+		}
 
 		if (rpz_get_zbits(client, dns_rdatatype_any,
 				  DNS_RPZ_TYPE_NSDNAME) == 0 &&
