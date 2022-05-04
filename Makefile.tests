@@ -18,6 +18,6 @@ AM_CPPFLAGS +=					\
 	-DNAMED_PLUGINDIR=\"$(pkglibdir)\"	\
 	-DTESTS_DIR=\"$(abs_srcdir)\"
 
-LDADD +=					\
-	$(top_builddir)/tests/libtest.la		\
+LDADD +=						\
+	$(top_builddir)/tests/libtest/libtest.la	\
 	$(CMOCKA_LIBS)
