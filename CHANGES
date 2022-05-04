@@ -1,3 +1,7 @@
+5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
+			and static-stub zones at or above the query name.  This
+			has now been addressed. [GL #3232]
+
 5884.	[cleanup]	Reduce struct padding in ADB address entries, and use a
 			binary hash function to find addresses. [GL !6219]
 

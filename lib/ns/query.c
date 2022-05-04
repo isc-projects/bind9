@@ -2822,7 +2822,7 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
  */
 static isc_result_t
 rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
-	       dns_rpz_type_t rpz_type, dns_db_t **dbp,
+	       unsigned int options, dns_rpz_type_t rpz_type, dns_db_t **dbp,
 	       dns_dbversion_t *version, dns_rdataset_t **rdatasetp,
 	       bool resuming) {
 	dns_rpz_st_t *st;
@@ -2891,9 +2891,8 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 	found = dns_fixedname_initname(&fixed);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL, NULL);
-	result = dns_db_findext(*dbp, name, version, type, DNS_DBFIND_GLUEOK,
-				client->now, &node, found, &cm, &ci, *rdatasetp,
-				NULL);
+	result = dns_db_findext(*dbp, name, version, type, options, client->now,
+				&node, found, &cm, &ci, *rdatasetp, NULL);
 	if (result == DNS_R_DELEGATION && is_zone && USECACHE(client)) {
 		/*
 		 * Try the cache if we're authoritative for an
@@ -3636,82 +3635,104 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 	struct in_addr ina;
 	struct in6_addr in6a;
 	isc_result_t result;
+	unsigned int options = DNS_DBFIND_GLUEOK;
+	bool done = false;
 
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_rewrite_ip_rrset");
 
-	zbits = rpz_get_zbits(client, ip_type, rpz_type);
-	if (zbits == 0) {
-		return (ISC_R_SUCCESS);
-	}
+	do {
+		zbits = rpz_get_zbits(client, ip_type, rpz_type);
+		if (zbits == 0) {
+			return (ISC_R_SUCCESS);
+		}
 
-	/*
-	 * Get the A or AAAA rdataset.
-	 */
-	result = rpz_rrset_find(client, name, ip_type, rpz_type, ip_dbp,
-				ip_version, ip_rdatasetp, resuming);
-	switch (result) {
-	case ISC_R_SUCCESS:
-	case DNS_R_GLUE:
-	case DNS_R_ZONECUT:
-		break;
-	case DNS_R_EMPTYNAME:
-	case DNS_R_EMPTYWILD:
-	case DNS_R_NXDOMAIN:
-	case DNS_R_NCACHENXDOMAIN:
-	case DNS_R_NXRRSET:
-	case DNS_R_NCACHENXRRSET:
-	case ISC_R_NOTFOUND:
-		return (ISC_R_SUCCESS);
-	case DNS_R_DELEGATION:
-	case DNS_R_DUPLICATE:
-	case DNS_R_DROP:
-		return (result);
-	case DNS_R_CNAME:
-	case DNS_R_DNAME:
-		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, name, rpz_type,
-			     "NS address rewrite rrset", result);
-		return (ISC_R_SUCCESS);
-	default:
-		if (client->query.rpz_st->m.policy != DNS_RPZ_POLICY_ERROR) {
-			client->query.rpz_st->m.policy = DNS_RPZ_POLICY_ERROR;
-			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
+		/*
+		 * Get the A or AAAA rdataset.
+		 */
+		result = rpz_rrset_find(client, name, ip_type, options,
+					rpz_type, ip_dbp, ip_version,
+					ip_rdatasetp, resuming);
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case DNS_R_GLUE:
+		case DNS_R_ZONECUT:
+			break;
+		case DNS_R_EMPTYNAME:
+		case DNS_R_EMPTYWILD:
+		case DNS_R_NXDOMAIN:
+		case DNS_R_NCACHENXDOMAIN:
+		case DNS_R_NXRRSET:
+		case DNS_R_NCACHENXRRSET:
+		case ISC_R_NOTFOUND:
+			return (ISC_R_SUCCESS);
+		case DNS_R_DELEGATION:
+		case DNS_R_DUPLICATE:
+		case DNS_R_DROP:
+			return (result);
+		case DNS_R_CNAME:
+		case DNS_R_DNAME:
+			rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, name,
 				     rpz_type, "NS address rewrite rrset",
 				     result);
-		}
-		CTRACE(ISC_LOG_ERROR, "rpz_rewrite_ip_rrset: unexpected "
-				      "result");
-		return (DNS_R_SERVFAIL);
-	}
-
-	/*
-	 * Check all of the IP addresses in the rdataset.
-	 */
-	for (result = dns_rdataset_first(*ip_rdatasetp);
-	     result == ISC_R_SUCCESS; result = dns_rdataset_next(*ip_rdatasetp))
-	{
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		dns_rdataset_current(*ip_rdatasetp, &rdata);
-		switch (rdata.type) {
-		case dns_rdatatype_a:
-			INSIST(rdata.length == 4);
-			memmove(&ina.s_addr, rdata.data, 4);
-			isc_netaddr_fromin(&netaddr, &ina);
-			break;
-		case dns_rdatatype_aaaa:
-			INSIST(rdata.length == 16);
-			memmove(in6a.s6_addr, rdata.data, 16);
-			isc_netaddr_fromin6(&netaddr, &in6a);
-			break;
+			return (ISC_R_SUCCESS);
 		default:
-			continue;
+			if (client->query.rpz_st->m.policy !=
+			    DNS_RPZ_POLICY_ERROR) {
+				client->query.rpz_st->m.policy =
+					DNS_RPZ_POLICY_ERROR;
+				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
+					     rpz_type,
+					     "NS address rewrite rrset",
+					     result);
+			}
+			CTRACE(ISC_LOG_ERROR,
+			       "rpz_rewrite_ip_rrset: unexpected "
+			       "result");
+			return (DNS_R_SERVFAIL);
 		}
 
-		result = rpz_rewrite_ip(client, &netaddr, qtype, rpz_type,
-					zbits, p_rdatasetp);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
+		/*
+		 * If we are processing glue setup for the next loop
+		 * otherwise we are done.
+		 */
+		if (result == DNS_R_GLUE) {
+			options = 0;
+		} else {
+			done = true;
 		}
-	}
+
+		/*
+		 * Check all of the IP addresses in the rdataset.
+		 */
+		for (result = dns_rdataset_first(*ip_rdatasetp);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(*ip_rdatasetp))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdataset_current(*ip_rdatasetp, &rdata);
+			switch (rdata.type) {
+			case dns_rdatatype_a:
+				INSIST(rdata.length == 4);
+				memmove(&ina.s_addr, rdata.data, 4);
+				isc_netaddr_fromin(&netaddr, &ina);
+				break;
+			case dns_rdatatype_aaaa:
+				INSIST(rdata.length == 16);
+				memmove(in6a.s6_addr, rdata.data, 16);
+				isc_netaddr_fromin6(&netaddr, &in6a);
+				break;
+			default:
+				continue;
+			}
+
+			result = rpz_rewrite_ip(client, &netaddr, qtype,
+						rpz_type, zbits, p_rdatasetp);
+			if (result != ISC_R_SUCCESS) {
+				return (result);
+			}
+		}
+	} while (!done &&
+		 client->query.rpz_st->m.policy == DNS_RPZ_POLICY_MISS);
 
 	return (ISC_R_SUCCESS);
 }
@@ -3985,6 +4006,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	dns_rpz_have_t have;
 	dns_rpz_popt_t popt;
 	int rpz_ver;
+	unsigned int options;
 #ifdef USE_DNSRPS
 	librpz_emsg_t emsg;
 #endif /* ifdef USE_DNSRPS */
@@ -4235,7 +4257,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 
 	dns_fixedname_init(&nsnamef);
 	dns_name_clone(client->query.qname, dns_fixedname_name(&nsnamef));
+	options = DNS_DBFIND_GLUEOK;
 	while (st->r.label > st->popt.min_ns_labels) {
+		bool was_glue = false;
 		/*
 		 * Get NS rrset for each domain in the current qname.
 		 */
@@ -4250,7 +4274,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		    !dns_rdataset_isassociated(st->r.ns_rdataset)) {
 			dns_db_t *db = NULL;
 			result = rpz_rrset_find(client, nsname,
-						dns_rdatatype_ns,
+						dns_rdatatype_ns, options,
 						DNS_RPZ_TYPE_NSDNAME, &db, NULL,
 						&st->r.ns_rdataset, resuming);
 			if (db != NULL) {
@@ -4260,6 +4284,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 				goto cleanup;
 			}
 			switch (result) {
+			case DNS_R_GLUE:
+				was_glue = true;
+				FALLTHROUGH;
 			case ISC_R_SUCCESS:
 				result = dns_rdataset_first(st->r.ns_rdataset);
 				if (result != ISC_R_SUCCESS) {
@@ -4299,6 +4326,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 				continue;
 			}
 		}
+
 		/*
 		 * Check all NS names.
 		 */
@@ -4349,7 +4377,17 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			result = dns_rdataset_next(st->r.ns_rdataset);
 		} while (result == ISC_R_SUCCESS);
 		dns_rdataset_disassociate(st->r.ns_rdataset);
-		st->r.label--;
+
+		/*
+		 * If we just checked a glue NS RRset retry without allowing
+		 * glue responses, otherwise setup for the next name.
+		 */
+		if (was_glue) {
+			options = 0;
+		} else {
+			options = DNS_DBFIND_GLUEOK;
+			st->r.label--;
+		}
 
 		if (rpz_get_zbits(client, dns_rdatatype_any,
 				  DNS_RPZ_TYPE_NSDNAME) == 0 &&
