@@ -336,7 +336,7 @@ named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 }
 
 const char *
-named_config_getdefault() {
+named_config_getdefault(void) {
 	return (defaultconf);
 }
 
