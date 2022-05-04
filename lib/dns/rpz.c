@@ -279,6 +279,9 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 	case DNS_RPZ_POLICY_DNS64:
 		str = "DNS64";
 		break;
+	case DNS_RPZ_POLICY_ERROR:
+		str = "ERROR";
+		break;
 	default:
 		UNREACHABLE();
 	}
