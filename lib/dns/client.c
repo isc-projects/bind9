@@ -1285,7 +1285,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	}
 
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 	dns_rdata_init(&rdata);
 	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
 	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype, databuf, &dctx, 0,

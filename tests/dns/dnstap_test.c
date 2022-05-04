@@ -171,7 +171,7 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 
 	memset(&zr, 0, sizeof(zr));
 	isc_buffer_init(&zb, zone, sizeof(zone));
-	result = dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
 	result = dns_name_towire(zname, &cctx, &zb);

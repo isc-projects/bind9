@@ -613,7 +613,7 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 		dns_fixedname_t fixed;
 		dns_decompress_t dctx;
 
-		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
+		dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
 		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
 					 &dctx, 0, NULL));
 		/*
@@ -927,7 +927,7 @@ rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 	dns_decompress_t dctx;
 	isc_result_t result;
 
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
 	result = dns_rdata_fromwire(NULL, rdclass, type, src, &dctx, 0, dest);
 	dns_decompress_invalidate(&dctx);

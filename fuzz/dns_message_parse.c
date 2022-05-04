@@ -112,7 +112,7 @@ render_message(dns_message_t **messagep) {
 		message->counts[i] = 0;
 	}
 
-	result = dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, mctx);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

@@ -764,7 +764,7 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, unsigned int options,
 	 */
 	isc_buffer_allocate(mctx, &buf1, 65535);
 
-	result = dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, mctx);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

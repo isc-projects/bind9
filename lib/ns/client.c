@@ -537,7 +537,7 @@ ns_client_send(ns_client_t *client) {
 
 	client_allocsendbuf(client, &buffer, &data);
 
-	result = dns_compress_init(&cctx, -1, client->manager->mctx);
+	result = dns_compress_init(&cctx, client->manager->mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

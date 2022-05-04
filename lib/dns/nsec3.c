@@ -988,7 +988,7 @@ dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 	isc_buffer_add(&buf1, src->length - 1);
 	isc_buffer_setactive(&buf1, src->length - 1);
 	isc_buffer_init(&buf2, buf, (unsigned int)buflen);
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 	result = dns_rdata_fromwire(target, src->rdclass,
 				    dns_rdatatype_nsec3param, &buf1, &dctx, 0,
 				    &buf2);

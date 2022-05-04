@@ -136,7 +136,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	callbacks.warn = callbacks.error = nullmsg;
 
 	/* Disallow decompression as we are reading a packet */
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 
 	isc_buffer_constinit(&source, data, size);
 	isc_buffer_add(&source, size);
@@ -206,7 +206,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	/*
 	 * Convert rdata back to wire.
 	 */
-	CHECK(dns_compress_init(&cctx, -1, mctx));
+	CHECK(dns_compress_init(&cctx, mctx));
 	dns_compress_disable(&cctx);
 	isc_buffer_init(&target, towire, sizeof(towire));
 	result = dns_rdata_towire(&rdata1, &cctx, &target);

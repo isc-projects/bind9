@@ -738,7 +738,7 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	 */
 	isc_buffer_init(&j->it.source, NULL, 0);
 	isc_buffer_init(&j->it.target, NULL, 0);
-	dns_decompress_init(&j->it.dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&j->it.dctx, DNS_DECOMPRESS_NONE);
 
 	j->state = writable ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;
 

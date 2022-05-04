@@ -1526,7 +1526,7 @@ sendstream(xfrout_ctx_t *xfr) {
 
 	if (is_tcp) {
 		isc_region_t used;
-		CHECK(dns_compress_init(&cctx, -1, xfr->mctx));
+		CHECK(dns_compress_init(&cctx, xfr->mctx));
 		dns_compress_setsensitive(&cctx, true);
 		cleanup_cctx = true;
 		CHECK(dns_message_renderbegin(msg, &cctx, &xfr->txbuf));

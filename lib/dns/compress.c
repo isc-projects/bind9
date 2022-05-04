@@ -123,11 +123,10 @@ static unsigned char tableindex[256] = {
  ***/
 
 isc_result_t
-dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
+dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL); /* See: rdataset.c:towiresorted(). */
 
-	cctx->edns = edns;
 	cctx->mctx = mctx;
 	cctx->count = 0;
 	cctx->allowed = DNS_COMPRESS_ENABLED;
@@ -164,7 +163,6 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 
 	cctx->magic = 0;
 	cctx->allowed = 0;
-	cctx->edns = -1;
 }
 
 void
@@ -203,12 +201,6 @@ dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
-}
-
-int
-dns_compress_getedns(dns_compress_t *cctx) {
-	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->edns);
 }
 
 /*
@@ -521,13 +513,10 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
  ***/
 
 void
-dns_decompress_init(dns_decompress_t *dctx, int edns,
-		    dns_decompresstype_t type) {
+dns_decompress_init(dns_decompress_t *dctx, dns_decompresstype_t type) {
 	REQUIRE(dctx != NULL);
-	REQUIRE(edns >= -1 && edns <= 255);
 
 	dctx->allowed = DNS_COMPRESS_NONE;
-	dctx->edns = edns;
 	dctx->type = type;
 	dctx->magic = DCTX_MAGIC;
 }
@@ -561,18 +550,4 @@ dns_decompress_getmethods(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->allowed);
-}
-
-int
-dns_decompress_edns(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->edns);
-}
-
-dns_decompresstype_t
-dns_decompress_type(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->type);
 }

@@ -1681,11 +1681,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->header_ok = 1;
 	msg->state = DNS_SECTION_QUESTION;
 
-	/*
-	 * -1 means no EDNS.
-	 */
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
-
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_ANY);
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 
 	ret = getquestions(source, msg, &dctx, options);

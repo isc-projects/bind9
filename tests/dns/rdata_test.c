@@ -150,7 +150,7 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_ANY);
 	result = dns_rdata_fromwire(rdata, rdclass, type, &source, &dctx, 0,
 				    &target);
 	dns_decompress_invalidate(&dctx);
@@ -176,7 +176,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	dns_compress_init(&cctx, -1, mctx);
+	dns_compress_init(&cctx, mctx);
 	result = dns_rdata_towire(rdata, &cctx, &target);
 	dns_compress_invalidate(&cctx);
 

@@ -2342,7 +2342,7 @@ load_raw(dns_loadctx_t *lctx) {
 	dns_decompress_t dctx;
 
 	callbacks = lctx->callbacks;
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 
 	if (lctx->first) {
 		result = load_header(lctx);

@@ -208,13 +208,11 @@ security area and must be paranoid about its input.
                                     bool downcase,
                                     isc_buffer_t *target);
 
-`fromwire_classname_typename()` is required to set the valid
-decompression methods if there is a domain name in the rdata.
+`fromwire_classname_typename()` is required to set whether
+name compression is allowed, according to RFC 3597.
 
-        if (dns_decompress_edns(dctx) >= # || !dns_decompress_strict(dctx))
-                dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-        else
-                dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+        dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+                                  /* or DNS_COMPRESS_NONE */
 
 |Parameter|Description |
 |---------|-----------------------|
@@ -245,14 +243,11 @@ will return `DNS_R_EXTRADATA`.
                                   dns_compress_t *cctx,
                                   isc_buffer_t *target);
 
-`towire_classname_typename()` is required to set the
-allowed name compression methods based on the EDNS version, if there
-is a domain name in the rdata.
+`towire_classname_typename()` is required to set whether
+name compression is allowed, according to RFC 3597.
 
-        if (dns_compress_getedns(cctx) >= #)
-                dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-        else
-                dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+        dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+                                /* or DNS_COMPRESS_NONE */
 
 |Parameter|Description |
 |---------|-----------------------|

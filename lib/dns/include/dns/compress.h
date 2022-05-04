@@ -68,7 +68,6 @@ struct dns_compressnode {
 struct dns_compress {
 	unsigned int magic;   /*%< Magic number. */
 	unsigned int allowed; /*%< Allowed methods. */
-	int	     edns;    /*%< Edns version or -1. */
 	/*% Global compression table. */
 	dns_compressnode_t *table[DNS_COMPRESS_TABLESIZE];
 	/*% Preallocated arena for names. */
@@ -89,12 +88,11 @@ typedef enum {
 struct dns_decompress {
 	unsigned int	     magic;   /*%< Magic number. */
 	unsigned int	     allowed; /*%< Allowed methods. */
-	int		     edns;    /*%< Edns version or -1. */
 	dns_decompresstype_t type;    /*%< Strict checking */
 };
 
 isc_result_t
-dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
+dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx);
 /*%<
  *	Initialise the compression context structure pointed to by
  *	'cctx'. A freshly initialized context has name compression
@@ -175,19 +173,6 @@ dns_compress_getsensitive(dns_compress_t *cctx);
  *		'cctx' to be initialized.
  */
 
-int
-dns_compress_getedns(dns_compress_t *cctx);
-
-/*%<
- *	Gets edns value.
- *
- *	Requires:
- *\li		'cctx' to be initialized.
- *
- *	Returns:
- *\li		-1 .. 255
- */
-
 bool
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 			dns_name_t *prefix, uint16_t *offset);
@@ -235,8 +220,7 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
  */
 
 void
-dns_decompress_init(dns_decompress_t *dctx, int edns,
-		    dns_decompresstype_t type);
+dns_decompress_init(dns_decompress_t *dctx, dns_decompresstype_t type);
 
 /*%<
  *	Initializes 'dctx'.
@@ -271,26 +255,6 @@ dns_decompress_getmethods(dns_decompress_t *dctx);
 
 /*%<
  *	Returns 'dctx->allowed'
- *
- *	Requires:
- *\li		'dctx' to be initialized
- */
-
-int
-dns_decompress_edns(dns_decompress_t *dctx);
-
-/*%<
- *	Returns 'dctx->edns'
- *
- *	Requires:
- *\li		'dctx' to be initialized
- */
-
-dns_decompresstype_t
-dns_decompress_type(dns_decompress_t *dctx);
-
-/*%<
- *	Returns 'dctx->type'
  *
  *	Requires:
  *\li		'dctx' to be initialized
