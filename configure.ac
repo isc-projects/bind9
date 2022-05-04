@@ -1581,7 +1581,8 @@ AC_CONFIG_FILES([tests/Makefile
 		 tests/dns/Makefile
 		 tests/ns/Makefile
 		 tests/irs/Makefile
-		 tests/isccfg/Makefile])
+		 tests/isccfg/Makefile
+		 tests/libtest/Makefile])
 
 AC_CONFIG_FILES([tests/unit-test-driver.sh],
 		[chmod +x tests/unit-test-driver.sh])

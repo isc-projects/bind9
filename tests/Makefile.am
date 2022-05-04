@@ -12,19 +12,5 @@ LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBNS_LIBS)
 
-SUBDIRS = . isc dns ns isccfg irs
-
-check_LTLIBRARIES = libtest.la
-
-noinst_libtest_ladir = .
-noinst_libtest_la_HEADERS =		\
-	include/tests/dns.h		\
-	include/tests/isc.h		\
-	include/tests/ns.h
-libtest_la_SOURCES =			\
-	$(noinst_libtest_la_HEADERS)	\
-	dns.c				\
-	isc.c				\
-	ns.c
-
-include $(top_srcdir)/Makefile.tests
+SUBDIRS = libtest isc dns ns isccfg irs
+check_PROGRAMS =
