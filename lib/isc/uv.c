@@ -20,6 +20,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+int
+uv_os_getenv(const char *name, char *buffer, size_t *size) {
+	size_t len;
+	char *buf = getenv(name);
+	if (buf == NULL) {
+		return (UV_ENOENT);
+	}
+	len = strlen(buf) + 1;
+	if (len > *size) {
+		*size = len;
+		return (UV_ENOBUFS);
+	}
+	*size = len;
+	memmove(buffer, buf, len);
+	return (0);
+}
+
 #endif
 
 #if UV_VERSION_HEX < UV_VERSION(1, 27, 0)
