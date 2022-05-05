@@ -17,6 +17,14 @@ Security Fixes
 
 - None.
 
+- Previously, TLS socket objects could be destroyed prematurely, which
+  triggered assertion failures in :iscman:`named` instances serving
+  DNS-over-HTTPS (DoH) clients. This has been fixed.
+
+  ISC would like to thank Thomas Amgarten from arcade solutions ag for
+  bringing this vulnerability to our attention. (CVE-2022-1183)
+  :gl:`#3216`
+
 Known Issues
 ~~~~~~~~~~~~
 
