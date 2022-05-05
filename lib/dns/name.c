@@ -1839,19 +1839,11 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				}
 				n = c;
 				state = fw_ordinary;
-			} else if (c >= 128 && c < 192) {
-				/*
-				 * 14 bit local compression pointer.
-				 * Local compression is no longer an
-				 * IETF draft.
-				 */
-				return (DNS_R_BADLABELTYPE);
 			} else if (c >= 192) {
 				/*
-				 * Ordinary 14-bit pointer.
+				 * 14-bit compression pointer
 				 */
-				if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) ==
-				    0) {
+				if (!dctx->permitted) {
 					return (DNS_R_DISALLOWED);
 				}
 				new_current = c & 0x3F;
@@ -1928,7 +1920,7 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 isc_result_t
 dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 		 isc_buffer_t *target, uint16_t *comp_offsetp) {
-	unsigned int methods;
+	bool compress;
 	uint16_t offset;
 	dns_name_t gp; /* Global compression prefix */
 	bool gf;       /* Global compression target found */
@@ -1945,16 +1937,15 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 	REQUIRE(cctx != NULL);
 	REQUIRE(ISC_BUFFER_VALID(target));
 
+	compress = (name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
+		   dns_compress_getpermitted(cctx);
+
 	/*
 	 * If this exact name was already rendered before, and the
 	 * offset of the previously rendered name is passed to us, write
 	 * a compression pointer directly.
 	 */
-	methods = dns_compress_getmethods(cctx);
-	if (comp_offsetp != NULL && *comp_offsetp < 0x4000 &&
-	    (name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
-	    (methods & DNS_COMPRESS_GLOBAL14) != 0)
-	{
+	if (comp_offsetp != NULL && *comp_offsetp < 0x4000 && compress) {
 		if (target->length - target->used < 2) {
 			return (ISC_R_NOSPACE);
 		}
@@ -1977,9 +1968,7 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 
 	offset = target->used; /*XXX*/
 
-	if ((name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
-	    (methods & DNS_COMPRESS_GLOBAL14) != 0)
-	{
+	if (compress) {
 		gf = dns_compress_findglobal(cctx, name, &gp, &go);
 	} else {
 		gf = false;

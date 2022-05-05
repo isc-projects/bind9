@@ -134,7 +134,7 @@ fromwire_mx(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name, NULL);
 
@@ -156,7 +156,7 @@ towire_mx(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_mx);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+	dns_compress_setpermitted(cctx, true);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(mem_tobuffer(target, region.base, 2));

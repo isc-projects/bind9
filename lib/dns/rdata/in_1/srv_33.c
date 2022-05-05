@@ -149,7 +149,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
 
@@ -178,7 +178,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_srv);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	/*
 	 * Priority, weight, port.
 	 */

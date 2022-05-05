@@ -127,9 +127,14 @@ dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL); /* See: rdataset.c:towiresorted(). */
 
+	/*
+	 * not using a structure literal here to avoid large memset()s
+	 */
 	cctx->mctx = mctx;
 	cctx->count = 0;
-	cctx->allowed = DNS_COMPRESS_ENABLED;
+	cctx->permitted = true;
+	cctx->disabled = false;
+	cctx->sensitive = false;
 	cctx->arena_off = 0;
 
 	memset(&cctx->table[0], 0, sizeof(cctx->table));
@@ -162,45 +167,39 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 	}
 
 	cctx->magic = 0;
-	cctx->allowed = 0;
+	cctx->permitted = false;
+	cctx->disabled = false;
+	cctx->sensitive = false;
 }
 
 void
-dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
+dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	cctx->allowed &= ~DNS_COMPRESS_ALL;
-	cctx->allowed |= (allowed & DNS_COMPRESS_ALL);
+	cctx->permitted = permitted;
 }
 
-unsigned int
-dns_compress_getmethods(dns_compress_t *cctx) {
+bool
+dns_compress_getpermitted(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->allowed & DNS_COMPRESS_ALL);
+	return (cctx->permitted);
 }
 
 void
 dns_compress_disable(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	cctx->allowed &= ~DNS_COMPRESS_ENABLED;
+	cctx->disabled = true;
 }
 
 void
 dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	if (sensitive) {
-		cctx->allowed |= DNS_COMPRESS_CASESENSITIVE;
-	} else {
-		cctx->allowed &= ~DNS_COMPRESS_CASESENSITIVE;
-	}
+	cctx->sensitive = sensitive;
 }
 
 bool
 dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
+	return (cctx->sensitive);
 }
 
 /*
@@ -221,7 +220,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(offset != NULL);
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return (false);
 	}
 
@@ -250,7 +249,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		 */
 		ch = p[1];
 		i = tableindex[ch];
-		if ((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0) {
+		if (cctx->sensitive) {
 			for (node = cctx->table[i]; node != NULL;
 			     node = node->next) {
 				if (node->name.length != length) {
@@ -380,7 +379,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return;
 	}
 
@@ -481,7 +480,7 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 
 	REQUIRE(VALID_CCTX(cctx));
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return;
 	}
 
@@ -516,38 +515,38 @@ void
 dns_decompress_init(dns_decompress_t *dctx, dns_decompresstype_t type) {
 	REQUIRE(dctx != NULL);
 
-	dctx->allowed = DNS_COMPRESS_NONE;
-	dctx->type = type;
-	dctx->magic = DCTX_MAGIC;
+	*dctx = (dns_decompress_t){
+		.magic = DCTX_MAGIC,
+		.type = type,
+	};
 }
 
 void
 dns_decompress_invalidate(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
-
 	dctx->magic = 0;
 }
 
 void
-dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
+dns_decompress_setpermitted(dns_decompress_t *dctx, bool permitted) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	switch (dctx->type) {
 	case DNS_DECOMPRESS_ANY:
-		dctx->allowed = DNS_COMPRESS_ALL;
+		dctx->permitted = true;
 		break;
 	case DNS_DECOMPRESS_NONE:
-		dctx->allowed = DNS_COMPRESS_NONE;
+		dctx->permitted = false;
 		break;
 	case DNS_DECOMPRESS_STRICT:
-		dctx->allowed = allowed;
+		dctx->permitted = permitted;
 		break;
 	}
 }
 
-unsigned int
-dns_decompress_getmethods(dns_decompress_t *dctx) {
+bool
+dns_decompress_getpermitted(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
-	return (dctx->allowed);
+	return (dctx->permitted);
 }

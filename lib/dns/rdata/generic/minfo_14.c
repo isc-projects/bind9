@@ -98,7 +98,7 @@ fromwire_minfo(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -118,7 +118,7 @@ towire_minfo(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+	dns_compress_setpermitted(cctx, true);
 
 	dns_name_init(&rmail, roffsets);
 	dns_name_init(&email, eoffsets);

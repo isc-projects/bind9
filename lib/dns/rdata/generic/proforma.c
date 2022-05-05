@@ -40,8 +40,8 @@ static isc_result_t fromwire_ #(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_proforma.c #);
 	REQUIRE(rdclass == #);
 
-	/* NONE or GLOBAL14 */
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	/* see RFC 3597 */
+	dns_decompress_setpermitted(dctx, false);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -51,8 +51,8 @@ static isc_result_t towire_ #(ARGS_TOWIRE) {
 	REQUIRE(rdata->rdclass == #);
 	REQUIRE(rdata->length != 0); /* XXX */
 
-	/* NONE or GLOBAL14 */
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	/* see RFC 3597 */
+	dns_compress_setpermitted(cctx, false);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

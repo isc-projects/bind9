@@ -159,7 +159,7 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 
 /* name compression test */
 ISC_RUN_TEST_IMPL(compression) {
-	unsigned int allowed;
+	bool permitted;
 	dns_compress_t cctx;
 	dns_decompress_t dctx;
 	dns_name_t name1;
@@ -189,12 +189,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	r.length = sizeof(plain3);
 	dns_name_fromregion(&name3, &r);
 
-	/* Test 1: NONE */
-	allowed = DNS_COMPRESS_NONE;
+	/* Test 1: off */
+	permitted = false;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
+	dns_compress_setpermitted(&cctx, permitted);
 	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
 		      &dctx);
@@ -202,12 +202,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
 
-	/* Test2: GLOBAL14 */
-	allowed = DNS_COMPRESS_GLOBAL14;
+	/* Test2: on */
+	permitted = true;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
+	dns_compress_setpermitted(&cctx, permitted);
 	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
 		      &dctx);
@@ -215,26 +215,13 @@ ISC_RUN_TEST_IMPL(compression) {
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
 
-	/* Test3: ALL */
-	allowed = DNS_COMPRESS_ALL;
+	/* Test3: off, disabled */
+	permitted = false;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
-
-	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
-
-	dns_compress_rollback(&cctx, 0);
-	dns_compress_invalidate(&cctx);
-
-	/* Test4: NONE disabled */
-	allowed = DNS_COMPRESS_NONE;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
+	dns_compress_setpermitted(&cctx, permitted);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
 		      &dctx);
@@ -242,27 +229,13 @@ ISC_RUN_TEST_IMPL(compression) {
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
 
-	/* Test5: GLOBAL14 disabled */
-	allowed = DNS_COMPRESS_GLOBAL14;
+	/* Test4: on, disabled */
+	permitted = true;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
+	dns_compress_setpermitted(&cctx, permitted);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
-
-	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
-
-	dns_compress_rollback(&cctx, 0);
-	dns_compress_invalidate(&cctx);
-
-	/* Test6: ALL disabled */
-	allowed = DNS_COMPRESS_ALL;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
-	dns_compress_setmethods(&cctx, allowed);
-	dns_compress_disable(&cctx);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, allowed);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
 		      &dctx);

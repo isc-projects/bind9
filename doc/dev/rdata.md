@@ -211,8 +211,7 @@ security area and must be paranoid about its input.
 `fromwire_classname_typename()` is required to set whether
 name compression is allowed, according to RFC 3597.
 
-        dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-                                  /* or DNS_COMPRESS_NONE */
+        dns_decompress_setpermitted(dctx, true); /* or false */
 
 |Parameter|Description |
 |---------|-----------------------|
@@ -246,8 +245,7 @@ will return `DNS_R_EXTRADATA`.
 `towire_classname_typename()` is required to set whether
 name compression is allowed, according to RFC 3597.
 
-        dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
-                                /* or DNS_COMPRESS_NONE */
+        dns_compress_setpermitted(cctx, true); /* or false */
 
 |Parameter|Description |
 |---------|-----------------------|

@@ -88,7 +88,7 @@ fromwire_talink(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&prev, NULL);
 	dns_name_init(&next, NULL);
@@ -108,7 +108,7 @@ towire_talink(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 
 	dns_name_init(&prev, moffsets);
 	dns_name_init(&next, roffsets);

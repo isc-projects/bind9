@@ -453,7 +453,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		 */
 
 		rrbuffer = *target;
-		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+		dns_compress_setpermitted(cctx, true);
 		result = dns_name_towire2(name, cctx, target, &offset);
 		if (result != ISC_R_SUCCESS) {
 			goto rollback;

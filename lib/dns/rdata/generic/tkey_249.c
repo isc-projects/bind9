@@ -253,7 +253,7 @@ fromwire_tkey(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setpermitted(dctx, false);
 
 	/*
 	 * Algorithm.
@@ -312,7 +312,7 @@ towire_tkey(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	/*
 	 * Algorithm.
 	 */

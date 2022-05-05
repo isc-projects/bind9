@@ -633,7 +633,7 @@ renderend:
 		dns_name_t *zo = dns_zone_getorigin(client->query.authzone);
 
 		isc_buffer_init(&b, zone, sizeof(zone));
-		dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+		dns_compress_setpermitted(&cctx, false);
 		eresult = dns_name_towire(zo, &cctx, &b);
 		if (eresult == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(&b, &zr);

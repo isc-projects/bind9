@@ -263,7 +263,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setpermitted(dctx, false);
 
 	/*
 	 * Algorithm Name.
@@ -330,7 +330,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_any);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);

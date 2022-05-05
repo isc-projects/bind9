@@ -756,7 +756,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
 
@@ -904,7 +904,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 
 	/*
 	 * SvcPriority.

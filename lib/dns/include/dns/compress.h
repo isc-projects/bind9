@@ -27,23 +27,14 @@ ISC_LANG_BEGINDECLS
 /*! \file dns/compress.h
  * Direct manipulation of the structures is strongly discouraged.
  *
- * A name compression context handles compression of multiple DNS names
- * in relation to a single DNS message. The context can be used to
- * selectively turn on/off compression for specific names (depending on
- * the RR type) by using \c dns_compress_setmethods(). Alternately,
- * compression can be disabled completely using \c
- * dns_compress_disable().
+ * A name compression context handles compression of multiple DNS names in
+ * relation to a single DNS message. The context can be used to selectively
+ * turn on/off compression for specific names (depending on the RR type,
+ * according to RFC 3597) by using \c dns_compress_setpermitted().
  *
- * \c dns_compress_setmethods() is intended for use by RDATA towire()
- * implementations, whereas \c dns_compress_disable() is intended to be
- * used by a nameserver's configuration manager.
+ * The nameserver can be configured not to use compression at all using
+ * \c dns_compress_disable().
  */
-
-#define DNS_COMPRESS_NONE	   0x00 /*%< no compression */
-#define DNS_COMPRESS_GLOBAL14	   0x01 /*%< "normal" compression. */
-#define DNS_COMPRESS_ALL	   0x01 /*%< all compression. */
-#define DNS_COMPRESS_CASESENSITIVE 0x02 /*%< case sensitive compression. */
-#define DNS_COMPRESS_ENABLED	   0x04
 
 /*
  * DNS_COMPRESS_TABLESIZE must be a power of 2. The compress code
@@ -66,8 +57,10 @@ struct dns_compressnode {
 };
 
 struct dns_compress {
-	unsigned int magic;   /*%< Magic number. */
-	unsigned int allowed; /*%< Allowed methods. */
+	unsigned int magic; /*%< Magic number. */
+	bool	     permitted;
+	bool	     disabled;
+	bool	     sensitive;
 	/*% Global compression table. */
 	dns_compressnode_t *table[DNS_COMPRESS_TABLESIZE];
 	/*% Preallocated arena for names. */
@@ -87,8 +80,8 @@ typedef enum {
 
 struct dns_decompress {
 	unsigned int	     magic;   /*%< Magic number. */
-	unsigned int	     allowed; /*%< Allowed methods. */
 	dns_decompresstype_t type;    /*%< Strict checking */
+	bool permitted;
 };
 
 isc_result_t
@@ -120,17 +113,17 @@ dns_compress_invalidate(dns_compress_t *cctx);
  */
 
 void
-dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed);
+dns_compress_setpermitted(dns_compress_t *cctx, bool permitted);
 
 /*%<
- *	Sets allowed compression methods.
+ *	Sets whether compression is allowed, according to RFC 3597
  *
  *	Requires:
  *\li		'cctx' to be initialized.
  */
 
-unsigned int
-dns_compress_getmethods(dns_compress_t *cctx);
+bool
+dns_compress_getpermitted(dns_compress_t *cctx);
 
 /*%<
  *	Gets allowed compression methods.
@@ -186,7 +179,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
  *\li		'offset' to point to an uint16_t.
  *
  *	Ensures:
- *\li		'prefix' and 'offset' are valid if true is 	returned.
+ *\li		'prefix' and 'offset' are valid if true is returned.
  *
  *	Returns:
  *\li		#true / #false
@@ -241,20 +234,20 @@ dns_decompress_invalidate(dns_decompress_t *dctx);
  */
 
 void
-dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed);
+dns_decompress_setpermitted(dns_decompress_t *dctx, bool permitted);
 
 /*%<
- *	Sets 'dctx->allowed' to 'allowed'.
+ *	Sets whether decompression is allowed, according to RFC 3597
  *
  *	Requires:
  *\li		'dctx' to be initialized
  */
 
-unsigned int
-dns_decompress_getmethods(dns_decompress_t *dctx);
+bool
+dns_decompress_getpermitted(dns_decompress_t *dctx);
 
 /*%<
- *	Returns 'dctx->allowed'
+ *	Returns whether decompression is allowed here
  *
  *	Requires:
  *\li		'dctx' to be initialized

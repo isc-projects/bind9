@@ -81,7 +81,7 @@ fromwire_ns(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name, NULL);
 	return (dns_name_fromwire(&name, source, dctx, options, target));
@@ -96,7 +96,7 @@ towire_ns(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_ns);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+	dns_compress_setpermitted(cctx, true);
 
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);

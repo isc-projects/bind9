@@ -88,7 +88,7 @@ fromwire_lp(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name, NULL);
 

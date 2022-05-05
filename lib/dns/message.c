@@ -1682,7 +1682,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->state = DNS_SECTION_QUESTION;
 
 	dns_decompress_init(&dctx, DNS_DECOMPRESS_ANY);
-	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+	dns_decompress_setpermitted(&dctx, true);
 
 	ret = getquestions(source, msg, &dctx, options);
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
