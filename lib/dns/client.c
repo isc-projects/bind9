@@ -1263,7 +1263,6 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	char rdatabuf[DST_KEY_MAXSIZE];
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
-	dns_decompress_t dctx;
 	dns_rdata_t rdata;
 	isc_buffer_t b;
 
@@ -1285,12 +1284,10 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	}
 
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 	dns_rdata_init(&rdata);
 	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
-	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype, databuf, &dctx, 0,
-				 &b));
-	dns_decompress_invalidate(&dctx);
+	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype, databuf,
+				 DNS_DECOMPRESS_NEVER, 0, &b));
 
 	if (rdtype == dns_rdatatype_ds) {
 		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));

@@ -41,7 +41,7 @@ static isc_result_t fromwire_ #(ARGS_FROMWIRE) {
 	REQUIRE(rdclass == #);
 
 	/* see RFC 3597 */
-	dns_decompress_setpermitted(dctx, false);
+	dctx = dns_decompress_setpermitted(dctx, false);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

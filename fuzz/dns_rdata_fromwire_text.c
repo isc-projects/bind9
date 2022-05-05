@@ -78,7 +78,6 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	char totext[64 * 1044 * 4];
 	dns_compress_t cctx;
-	dns_decompress_t dctx;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
@@ -135,9 +134,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_rdatacallbacks_init(&callbacks);
 	callbacks.warn = callbacks.error = nullmsg;
 
-	/* Disallow decompression as we are reading a packet */
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
-
 	isc_buffer_constinit(&source, data, size);
 	isc_buffer_add(&source, size);
 	isc_buffer_setactive(&source, size);
@@ -145,10 +141,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromwire, sizeof(fromwire));
 
 	/*
-	 * Reject invalid rdata.
+	 * Reject invalid rdata. (Disallow decompression as we are
+	 * reading a packet)
 	 */
-	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source, &dctx, 0,
-				 &target));
+	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source,
+				 DNS_DECOMPRESS_NEVER, 0, &target));
 	assert(rdata1.length == size);
 
 	/*

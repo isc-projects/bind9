@@ -30,9 +30,6 @@
 #define CCTX_MAGIC    ISC_MAGIC('C', 'C', 'T', 'X')
 #define VALID_CCTX(x) ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
-#define DCTX_MAGIC    ISC_MAGIC('D', 'C', 'T', 'X')
-#define VALID_DCTX(x) ISC_MAGIC_VALID(x, DCTX_MAGIC)
-
 static unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
 	0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -505,48 +502,4 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 			node = cctx->table[i];
 		}
 	}
-}
-
-/***
- ***	Decompression
- ***/
-
-void
-dns_decompress_init(dns_decompress_t *dctx, dns_decompresstype_t type) {
-	REQUIRE(dctx != NULL);
-
-	*dctx = (dns_decompress_t){
-		.magic = DCTX_MAGIC,
-		.type = type,
-	};
-}
-
-void
-dns_decompress_invalidate(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-	dctx->magic = 0;
-}
-
-void
-dns_decompress_setpermitted(dns_decompress_t *dctx, bool permitted) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	switch (dctx->type) {
-	case DNS_DECOMPRESS_ANY:
-		dctx->permitted = true;
-		break;
-	case DNS_DECOMPRESS_NONE:
-		dctx->permitted = false;
-		break;
-	case DNS_DECOMPRESS_STRICT:
-		dctx->permitted = permitted;
-		break;
-	}
-}
-
-bool
-dns_decompress_getpermitted(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->permitted);
 }

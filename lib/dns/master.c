@@ -2342,7 +2342,7 @@ load_raw(dns_loadctx_t *lctx) {
 	dns_decompress_t dctx;
 
 	callbacks = lctx->callbacks;
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
+	dctx = DNS_DECOMPRESS_NEVER;
 
 	if (lctx->first) {
 		result = load_header(lctx);
@@ -2475,7 +2475,7 @@ load_raw(dns_loadctx_t *lctx) {
 		}
 
 		isc_buffer_setactive(&target, (unsigned int)namelen);
-		result = dns_name_fromwire(name, &target, &dctx, 0, NULL);
+		result = dns_name_fromwire(name, &target, dctx, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -2564,7 +2564,7 @@ load_raw(dns_loadctx_t *lctx) {
 					(unsigned int)rdlen);
 			result = dns_rdata_fromwire(
 				&rdata[i], rdatalist.rdclass, rdatalist.type,
-				&target, &dctx, 0, &buf);
+				&target, dctx, 0, &buf);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

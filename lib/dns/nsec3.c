@@ -971,7 +971,6 @@ failure:
 bool
 dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 			   unsigned char *buf, size_t buflen) {
-	dns_decompress_t dctx;
 	isc_result_t result;
 	isc_buffer_t buf1;
 	isc_buffer_t buf2;
@@ -988,11 +987,9 @@ dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 	isc_buffer_add(&buf1, src->length - 1);
 	isc_buffer_setactive(&buf1, src->length - 1);
 	isc_buffer_init(&buf2, buf, (unsigned int)buflen);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
 	result = dns_rdata_fromwire(target, src->rdclass,
-				    dns_rdatatype_nsec3param, &buf1, &dctx, 0,
-				    &buf2);
-	dns_decompress_invalidate(&dctx);
+				    dns_rdatatype_nsec3param, &buf1,
+				    DNS_DECOMPRESS_NEVER, 0, &buf2);
 
 	return (result == ISC_R_SUCCESS);
 }

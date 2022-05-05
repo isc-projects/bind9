@@ -738,7 +738,7 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	 */
 	isc_buffer_init(&j->it.source, NULL, 0);
 	isc_buffer_init(&j->it.target, NULL, 0);
-	dns_decompress_init(&j->it.dctx, DNS_DECOMPRESS_NONE);
+	j->it.dctx = DNS_DECOMPRESS_NEVER;
 
 	j->state = writable ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;
 
@@ -1438,7 +1438,6 @@ dns_journal_destroy(dns_journal_t **journalp) {
 
 	j->it.result = ISC_R_FAILURE;
 	dns_name_invalidate(&j->it.name);
-	dns_decompress_invalidate(&j->it.dctx);
 	if (j->rawindex != NULL) {
 		isc_mem_put(j->mctx, j->rawindex,
 			    j->header.index_size * sizeof(journal_rawpos_t));
@@ -2029,7 +2028,7 @@ read_one_rr(dns_journal_t *j) {
 	 */
 	isc_buffer_setactive(&j->it.source,
 			     j->it.source.used - j->it.source.current);
-	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, &j->it.dctx, 0,
+	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, j->it.dctx, 0,
 				&j->it.target));
 
 	/*
@@ -2061,7 +2060,7 @@ read_one_rr(dns_journal_t *j) {
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass, rdtype, &j->it.source,
-				 &j->it.dctx, 0, &j->it.target));
+				 j->it.dctx, 0, &j->it.target));
 	j->it.ttl = ttl;
 
 	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;

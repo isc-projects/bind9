@@ -281,7 +281,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r);
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t *dctx, unsigned int options,
+		   dns_decompress_t dctx, unsigned int options,
 		   isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed rdata at source into the target region.

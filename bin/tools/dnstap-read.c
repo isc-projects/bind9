@@ -291,15 +291,14 @@ print_yaml(dns_dtdata_t *dt) {
 		dns_fixedname_t fn;
 		dns_name_t *name;
 		isc_buffer_t b;
-		dns_decompress_t dctx;
 
 		name = dns_fixedname_initname(&fn);
 
 		isc_buffer_init(&b, m->query_zone.data, m->query_zone.len);
 		isc_buffer_add(&b, m->query_zone.len);
 
-		dns_decompress_init(&dctx, DNS_DECOMPRESS_NONE);
-		result = dns_name_fromwire(name, &b, &dctx, 0, NULL);
+		result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER, 0,
+					   NULL);
 		if (result == ISC_R_SUCCESS) {
 			printf("  query_zone: ");
 			dns_name_print(name, stdout);

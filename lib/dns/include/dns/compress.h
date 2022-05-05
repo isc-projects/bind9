@@ -72,16 +72,11 @@ struct dns_compress {
 	isc_mem_t	  *mctx;  /*%< Memory context. */
 };
 
-typedef enum {
-	DNS_DECOMPRESS_ANY,    /*%< Any compression */
-	DNS_DECOMPRESS_STRICT, /*%< Allowed compression */
-	DNS_DECOMPRESS_NONE    /*%< No compression */
-} dns_decompresstype_t;
-
-struct dns_decompress {
-	unsigned int	     magic;   /*%< Magic number. */
-	dns_decompresstype_t type;    /*%< Strict checking */
-	bool permitted;
+enum dns_decompress {
+	DNS_DECOMPRESS_DEFAULT,
+	DNS_DECOMPRESS_PERMITTED,
+	DNS_DECOMPRESS_NEVER,
+	DNS_DECOMPRESS_ALWAYS,
 };
 
 isc_result_t
@@ -204,7 +199,6 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 
 void
 dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
-
 /*%<
  *	Remove any compression pointers from global table >= offset.
  *
@@ -212,45 +206,27 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
  *\li		'cctx' is initialized.
  */
 
-void
-dns_decompress_init(dns_decompress_t *dctx, dns_decompresstype_t type);
-
-/*%<
- *	Initializes 'dctx'.
- *	Records 'edns' and 'type' into the structure.
- *
- *	Requires:
- *\li		'dctx' to be a valid pointer.
+/*%
+ *	Set whether decompression is allowed, according to RFC 3597
  */
+static inline dns_decompress_t /* inline to suppress code generation */
+dns_decompress_setpermitted(dns_decompress_t dctx, bool permitted) {
+	if (dctx == DNS_DECOMPRESS_NEVER || dctx == DNS_DECOMPRESS_ALWAYS) {
+		return (dctx);
+	} else if (permitted) {
+		return (DNS_DECOMPRESS_PERMITTED);
+	} else {
+		return (DNS_DECOMPRESS_DEFAULT);
+	}
+}
 
-void
-dns_decompress_invalidate(dns_decompress_t *dctx);
-
-/*%<
- *	Invalidates 'dctx'.
- *
- *	Requires:
- *\li		'dctx' to be initialized
- */
-
-void
-dns_decompress_setpermitted(dns_decompress_t *dctx, bool permitted);
-
-/*%<
- *	Sets whether decompression is allowed, according to RFC 3597
- *
- *	Requires:
- *\li		'dctx' to be initialized
- */
-
-bool
-dns_decompress_getpermitted(dns_decompress_t *dctx);
-
-/*%<
+/*%
  *	Returns whether decompression is allowed here
- *
- *	Requires:
- *\li		'dctx' to be initialized
  */
+static inline bool /* inline to suppress code generation */
+dns_decompress_getpermitted(dns_decompress_t dctx) {
+	return (dctx == DNS_DECOMPRESS_ALWAYS ||
+		dctx == DNS_DECOMPRESS_PERMITTED);
+}
 
 ISC_LANG_ENDDECLS

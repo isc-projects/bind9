@@ -124,7 +124,7 @@ ISC_RUN_TEST_IMPL(fullcompare) {
 static void
 compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 	      unsigned char *expected, unsigned int length,
-	      dns_compress_t *cctx, dns_decompress_t *dctx) {
+	      dns_compress_t *cctx, dns_decompress_t dctx) {
 	isc_buffer_t source;
 	isc_buffer_t target;
 	dns_name_t name;
@@ -151,7 +151,6 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
 		      ISC_R_SUCCESS);
-	dns_decompress_invalidate(dctx);
 
 	assert_int_equal(target.used, length);
 	assert_true(memcmp(target.base, expected, target.used) == 0);
@@ -193,11 +192,10 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = false;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setpermitted(&dctx, permitted);
+	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
+		      dctx);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -206,11 +204,10 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setpermitted(&dctx, permitted);
+	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
+		      dctx);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -220,11 +217,10 @@ ISC_RUN_TEST_IMPL(compression) {
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
 	dns_compress_setpermitted(&cctx, permitted);
 	dns_compress_disable(&cctx);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setpermitted(&dctx, permitted);
+	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
+		      dctx);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -234,11 +230,10 @@ ISC_RUN_TEST_IMPL(compression) {
 	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
 	dns_compress_setpermitted(&cctx, permitted);
 	dns_compress_disable(&cctx);
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setpermitted(&dctx, permitted);
+	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), &cctx,
-		      &dctx);
+		      dctx);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);

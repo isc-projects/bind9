@@ -1737,9 +1737,8 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 }
 
 isc_result_t
-dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-		  dns_decompress_t *dctx, unsigned int options,
-		  isc_buffer_t *target) {
+dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
+		  unsigned int options, isc_buffer_t *target) {
 	unsigned char *cdata, *ndata;
 	unsigned int cused; /* Bytes of compressed name data used */
 	unsigned int nused, labels, n, nmax;
@@ -1769,7 +1768,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		isc_buffer_clear(target);
 	}
 
-	REQUIRE(dctx != NULL);
 	REQUIRE(BINDABLE(name));
 
 	INIT_OFFSETS(name, offsets, odata);
@@ -1843,7 +1841,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				/*
 				 * 14-bit compression pointer
 				 */
-				if (!dctx->permitted) {
+				if (!dns_decompress_getpermitted(dctx)) {
 					return (DNS_R_DISALLOWED);
 				}
 				new_current = c & 0x3F;

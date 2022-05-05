@@ -70,7 +70,7 @@ fromwire_mf(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setpermitted(dctx, true);
+	dctx = dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name, NULL);
 	return (dns_name_fromwire(&name, source, dctx, options, target));
