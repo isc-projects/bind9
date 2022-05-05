@@ -28,6 +28,10 @@ options {
 	fetches-per-server 400;
 };
 
+server 10.53.0.4 {
+	edns no;
+};
+
 key rndc_key {
 	secret "1234abcd8765";
 	algorithm hmac-sha256;
