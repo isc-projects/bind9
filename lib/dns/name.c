@@ -1919,10 +1919,10 @@ isc_result_t
 dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 		 isc_buffer_t *target, uint16_t *comp_offsetp) {
 	bool compress;
-	uint16_t offset;
-	dns_name_t gp; /* Global compression prefix */
-	bool gf;       /* Global compression target found */
-	uint16_t go;   /* Global compression offset */
+	bool found;
+	uint16_t here;	/* start of the name we are adding to the message */
+	uint16_t there; /* target of the compression pointer */
+	dns_name_t prefix;
 	dns_offsets_t clo;
 	dns_name_t clname;
 
@@ -1947,9 +1947,8 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 		if (target->length - target->used < 2) {
 			return (ISC_R_NOSPACE);
 		}
-		offset = *comp_offsetp;
-		offset |= 0xc000;
-		isc_buffer_putuint16(target, offset);
+		here = *comp_offsetp;
+		isc_buffer_putuint16(target, here | 0xc000);
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1962,52 +1961,52 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 		dns_name_clone(name, &clname);
 		name = &clname;
 	}
-	DNS_NAME_INIT(&gp, NULL);
+	DNS_NAME_INIT(&prefix, NULL);
 
-	offset = target->used; /*XXX*/
+	here = target->used; /*XXX*/
 
 	if (compress) {
-		gf = dns_compress_findglobal(cctx, name, &gp, &go);
+		found = dns_compress_find(cctx, name, &prefix, &there);
 	} else {
-		gf = false;
+		found = false;
 	}
 
 	/*
-	 * If the offset is too high for 14 bit global compression, we're
-	 * out of luck.
+	 * If the offset does not fit in a 14 bit compression pointer,
+	 * we're out of luck.
 	 */
-	if (gf && go >= 0x4000) {
-		gf = false;
+	if (found && there >= 0x4000) {
+		found = false;
 	}
 
 	/*
 	 * Will the compression pointer reduce the message size?
 	 */
-	if (gf && (gp.length + 2) >= name->length) {
-		gf = false;
+	if (found && (prefix.length + 2) >= name->length) {
+		found = false;
 	}
 
-	if (gf) {
-		if (target->length - target->used < gp.length) {
+	if (found) {
+		if (target->length - target->used < prefix.length) {
 			return (ISC_R_NOSPACE);
 		}
-		if (gp.length != 0) {
+		if (prefix.length != 0) {
 			unsigned char *base = target->base;
-			(void)memmove(base + target->used, gp.ndata,
-				      (size_t)gp.length);
+			(void)memmove(base + target->used, prefix.ndata,
+				      (size_t)prefix.length);
 		}
-		isc_buffer_add(target, gp.length);
+		isc_buffer_add(target, prefix.length);
 		if (target->length - target->used < 2) {
 			return (ISC_R_NOSPACE);
 		}
-		isc_buffer_putuint16(target, go | 0xc000);
-		if (gp.length != 0) {
-			dns_compress_add(cctx, name, &gp, offset);
+		isc_buffer_putuint16(target, there | 0xc000);
+		if (prefix.length != 0) {
+			dns_compress_add(cctx, name, &prefix, here);
 			if (comp_offsetp != NULL) {
-				*comp_offsetp = offset;
+				*comp_offsetp = here;
 			}
 		} else if (comp_offsetp != NULL) {
-			*comp_offsetp = go;
+			*comp_offsetp = there;
 		}
 	} else {
 		if (target->length - target->used < name->length) {
@@ -2019,9 +2018,9 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 				      (size_t)name->length);
 		}
 		isc_buffer_add(target, name->length);
-		dns_compress_add(cctx, name, name, offset);
+		dns_compress_add(cctx, name, name, here);
 		if (comp_offsetp != NULL) {
-			*comp_offsetp = offset;
+			*comp_offsetp = here;
 		}
 	}
 

@@ -61,7 +61,7 @@ struct dns_compress {
 	bool	     permitted;
 	bool	     disabled;
 	bool	     sensitive;
-	/*% Global compression table. */
+	/*% Compression pointer table. */
 	dns_compressnode_t *table[DNS_COMPRESS_TABLESIZE];
 	/*% Preallocated arena for names. */
 	unsigned char arena[DNS_COMPRESS_ARENA_SIZE];
@@ -91,7 +91,8 @@ dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx);
  *	\li	'cctx' is a valid dns_compress_t structure.
  *	\li	'mctx' is an initialized memory context.
  *	Ensures:
- *	\li	cctx->global is initialized.
+ *	\li	'cctx' is initialized.
+ *	\li	'cctx->permitted' is true.
  *
  *	Returns:
  *	\li	#ISC_R_SUCCESS
@@ -162,10 +163,10 @@ dns_compress_getsensitive(dns_compress_t *cctx);
  */
 
 bool
-dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, uint16_t *offset);
+dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
+		  dns_name_t *prefix, uint16_t *offset);
 /*%<
- *	Finds longest possible match of 'name' in the global compression table.
+ *	Finds longest possible match of 'name' in the compression table.
  *
  *	Requires:
  *\li		'cctx' to be initialized.
@@ -194,13 +195,13 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
  *		valid until the message compression is complete.
  *
  *\li		'prefix' must be a prefix returned by
- *		dns_compress_findglobal(), or the same as 'name'.
+ *		dns_compress_find(), or the same as 'name'.
  */
 
 void
 dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
 /*%<
- *	Remove any compression pointers from global table >= offset.
+ *	Remove any compression pointers from the table that are >= offset.
  *
  *	Requires:
  *\li		'cctx' is initialized.

@@ -205,8 +205,8 @@ dns_compress_getsensitive(dns_compress_t *cctx) {
  * If no match is found return false.
  */
 bool
-dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, uint16_t *offset) {
+dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
+		  dns_name_t *prefix, uint16_t *offset) {
 	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
 	unsigned int labels, i, n;
