@@ -15,8 +15,6 @@ Notes for BIND 9.18.3
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
-
 - Previously, TLS socket objects could be destroyed prematurely, which
   triggered assertion failures in :iscman:`named` instances serving
   DNS-over-HTTPS (DoH) clients. This has been fixed.
@@ -60,16 +58,6 @@ New Features
   validation error, a corresponding error message is logged to help with
   diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223` :gl:`#3224`
   :gl:`#3225`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
