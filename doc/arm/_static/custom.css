@@ -15,3 +15,11 @@ information regarding copyright ownership.
 .wy-table-responsive table td {
     white-space:normal;
 }
+
+/* readability improvements */
+.rst-content code.literal {
+    color: black;
+}
+.rst-content code.xref {
+    text-decoration: underline dotted gray;
+}
