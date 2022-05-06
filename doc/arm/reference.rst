@@ -5357,7 +5357,9 @@ The following options can be specified in a ``dnssec-policy`` statement:
     refreshed.  The signature is renewed when the time until the
     expiration time is less than the specified interval.  The default is
     ``P5D`` (5 days), meaning signatures that expire in 5 days or sooner
-    are refreshed.
+    are refreshed. The ``signatures-refresh`` value must be less than
+    90% of the minimum value of ``signatures-validity`` and
+    ``signatures-validity-dnskey``.
 
   ``signatures-validity``
     This indicates the validity period of an RRSIG record (subject to
