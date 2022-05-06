@@ -26,41 +26,45 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- According to RFC 8310, Section 8.1, the Subject field MUST NOT be
-  inspected when verifying a remote certificate while establishing a
-  DNS-over-TLS connection. Only SubjectAltName must be checked
+- According to :rfc:`8310`, Section 8.1, the ``Subject`` field MUST NOT
+  be inspected when verifying a remote certificate while establishing a
+  DNS-over-TLS connection. Only ``subjectAltName`` must be checked
   instead. Unfortunately, some quite old versions of cryptographic
-  libraries might lack the functionality to ignore the Subject
-  field. It should have minimal production use consequences, as most
-  of the production-ready certificates issued by certificate
-  authorities will have SubjectAltNames set. In such a case, the
-  Subject field is ignored. Only old platforms are affected by this,
-  e.g., those supplied with OpenSSL versions older than 1.1.1.
+  libraries might lack the ability to ignore the ``Subject`` field. This
+  should have minimal production-use consequences, as most of the
+  production-ready certificates issued by certificate authorities will
+  have ``subjectAltName`` set. In such cases, the ``Subject`` field is
+  ignored. Only old platforms are affected by this, e.g. those supplied
+  with OpenSSL versions older than 1.1.1. :gl:`#3163`
 
 New Features
 ~~~~~~~~~~~~
 
-- Add DNS Extended Errors (:rfc:`8914`) when stale answers are returned from
-  cache. :gl:`#2267`
+- Support DNS Extended Errors (:rfc:`8914`) ``Stale Answer`` and
+  ``Stale NXDOMAIN Answer`` when stale answers are returned from cache.
+  :gl:`#2267`
 
-- Add support for remote TLS certificates verification, both to BIND
-  and ``dig``, making it possible to implement Strict and Mutual TLS
-  authentication, as described in RFC 9103, Section 9.3. :gl:`#3163`
+- Add support for remote TLS certificate verification, both to
+  :iscman:`named` and :iscman:`dig`, making it possible to implement
+  Strict and Mutual TLS authentication, as described in :rfc:`9103`,
+  Section 9.3. :gl:`#3163`
 
-- Catalog Zones schema version 2, as described in the "DNS Catalog Zones" IETF
-  draft version 5 document, is now supported by :iscman:`named`. All of the
-  previously supported BIND-specific catalog zone custom properties
-  (``primaries``, ``allow-query``, and ``allow-transfer``), as well as the new
-  Change of Ownership (``coo``) property, are now implemented. Schema version 1
-  is still supported, with some additional validation rules applied from
-  schema version 2: for example, the ``version`` property is mandatory, and a
-  member zone PTR RRset must not contain more than one record. In the event of a
+- Catalog Zones schema version 2, as described in the
+  "DNS Catalog Zones" IETF draft version 5 document, is now supported by
+  :iscman:`named`. All of the previously supported BIND-specific catalog
+  zone custom properties (``primaries``, ``allow-query``, and
+  ``allow-transfer``), as well as the new Change of Ownership (``coo``)
+  property, are now implemented. Schema version 1 is still supported,
+  with some additional validation rules applied from schema version 2:
+  for example, the ``version`` property is mandatory, and a member zone
+  PTR RRset must not contain more than one record. In the event of a
   validation error, a corresponding error message is logged to help with
-  diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223` :gl:`#3224`
-  :gl:`#3225`
+  diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223`
+  :gl:`#3224` :gl:`#3225`
 
 Bug Fixes
 ~~~~~~~~~
 
-- CDS and CDNSKEY DELETE records are removed from the zone when configured with
-  'auto-dnssec maintain;'. This has been fixed. :gl:`#2931`.
+- Previously, CDS and CDNSKEY DELETE records were removed from the zone
+  when configured with the ``auto-dnssec maintain;`` option. This has
+  been fixed. :gl:`#2931`
