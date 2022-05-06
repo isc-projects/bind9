@@ -324,6 +324,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	(void)confget(maps, "keys", &keys);
 	if (keys != NULL) {
 		char role[256] = { 0 };
+		bool warn[256][2] = { { false } };
 		dns_kasp_key_t *kkey = NULL;
 
 		for (element = cfg_list_first(keys); element != NULL;
@@ -344,23 +345,45 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 			INSIST(keyalg < ARRAY_SIZE(role));
 
 			if (dns_kasp_key_zsk(kkey)) {
+				if ((role[keyalg] & DNS_KASP_KEY_ROLE_ZSK) != 0)
+				{
+					warn[keyalg][0] = true;
+				}
 				role[keyalg] |= DNS_KASP_KEY_ROLE_ZSK;
 			}
 
 			if (dns_kasp_key_ksk(kkey)) {
+				if ((role[keyalg] & DNS_KASP_KEY_ROLE_KSK) != 0)
+				{
+					warn[keyalg][1] = true;
+				}
 				role[keyalg] |= DNS_KASP_KEY_ROLE_KSK;
 			}
 		}
 		dns_kasp_thaw(kasp);
 		for (i = 0; i < ARRAY_SIZE(role); i++) {
-			if (role[i] != 0 && role[i] != (DNS_KASP_KEY_ROLE_ZSK |
-							DNS_KASP_KEY_ROLE_KSK))
-			{
+			if (role[i] == 0) {
+				continue;
+			}
+			if (role[i] !=
+			    (DNS_KASP_KEY_ROLE_ZSK | DNS_KASP_KEY_ROLE_KSK)) {
 				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 					    "dnssec-policy: algorithm %zu "
 					    "requires both KSK and ZSK roles",
 					    i);
 				result = ISC_R_FAILURE;
+			}
+			if (warn[i][0]) {
+				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: algorithm %zu has "
+					    "multiple keys with ZSK role",
+					    i);
+			}
+			if (warn[i][1]) {
+				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: algorithm %zu has "
+					    "multiple keys with KSK role",
+					    i);
 			}
 		}
 		if (result != ISC_R_SUCCESS) {
