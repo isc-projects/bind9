@@ -537,6 +537,19 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp warns about weird policies ($n)"
+ret=0
+$CHECKCONF kasp-warning.conf > checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with KSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines != 4 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check that a good 'kasp' configuration is accepted ($n)"
 ret=0
 $CHECKCONF good-kasp.conf > checkconf.out$n 2>/dev/null || ret=1
