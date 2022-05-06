@@ -544,8 +544,9 @@ grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.ou
 grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-policy: algorithm 13 has multiple keys with KSK role" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-policy: algorithm 13 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: key lifetime is shorter than 30 days" < checkconf.out$n > /dev/null || ret=1
 lines=$(wc -l < "checkconf.out$n")
-if [ $lines != 4 ]; then ret=1; fi
+if [ $lines != 5 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

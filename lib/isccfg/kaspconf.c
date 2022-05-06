@@ -108,6 +108,11 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		if (cfg_obj_isduration(obj)) {
 			key->lifetime = cfg_obj_asduration(obj);
 		}
+		if (key->lifetime > 0 && key->lifetime < 30 * (24 * 3600)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "dnssec-policy: key lifetime is shorter "
+				    "than 30 days");
+		}
 
 		obj = cfg_tuple_get(config, "algorithm");
 		alg.base = cfg_obj_asstring(obj);
