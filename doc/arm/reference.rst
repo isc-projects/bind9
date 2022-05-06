@@ -5426,13 +5426,11 @@ old DNSSEC key.
 The following options apply to DS queries sent to ``parental-agents``:
 
 ``parental-source``
-   ``parental-source`` determines which local source address, and
-   optionally UDP port, is used to send parental DS queries. This
-   address must appear in the secondary server's ``parental-agents`` zone
-   clause. This statement sets the ``parental-source`` for all zones, but can
-   be overridden on a per-zone or per-view basis by including a
-   ``parental-source`` statement within the ``zone`` or ``view`` block in the
-   configuration file.
+   ``parental-source`` determines which local source address, and optionally
+   UDP port, is used to send parental DS queries. This statement sets the
+   ``parental-source`` for all zones, but can be overridden on a per-zone or
+   per-view basis by including a ``parental-source`` statement within the
+   ``zone`` or ``view`` block in the configuration file.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
