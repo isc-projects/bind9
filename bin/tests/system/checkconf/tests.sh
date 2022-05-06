@@ -529,6 +529,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp signatures refresh errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-signatures-refresh.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh' signatures-refresh must be at most 90% of the signatures-validity" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh-dnskey' signatures-refresh must be at most 90% of the signatures-validity-dnskey" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking named-checkconf kasp predefined key length ($n)"
 ret=0
 $CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1

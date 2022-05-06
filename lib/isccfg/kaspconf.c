@@ -268,6 +268,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
+	uint32_t sigrefresh = 0, sigvalidity = 0;
 
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
@@ -308,13 +309,36 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	maps[i] = NULL;
 
 	/* Configuration: Signatures */
-	dns_kasp_setsigrefresh(kasp, get_duration(maps, "signatures-refresh",
-						  DNS_KASP_SIG_REFRESH));
-	dns_kasp_setsigvalidity(kasp, get_duration(maps, "signatures-validity",
-						   DNS_KASP_SIG_VALIDITY));
-	dns_kasp_setsigvalidity_dnskey(
-		kasp, get_duration(maps, "signatures-validity-dnskey",
-				   DNS_KASP_SIG_VALIDITY_DNSKEY));
+	sigrefresh = get_duration(maps, "signatures-refresh",
+				  DNS_KASP_SIG_REFRESH);
+	dns_kasp_setsigrefresh(kasp, sigrefresh);
+
+	sigvalidity = get_duration(maps, "signatures-validity",
+				   DNS_KASP_SIG_VALIDITY);
+	if (sigrefresh >= (sigvalidity * 0.9)) {
+		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: policy '%s' signatures-refresh "
+			    "must be at most 90%% of the signatures-validity",
+			    kaspname);
+		result = ISC_R_FAILURE;
+	}
+	dns_kasp_setsigvalidity(kasp, sigvalidity);
+
+	sigvalidity = get_duration(maps, "signatures-validity-dnskey",
+				   DNS_KASP_SIG_VALIDITY_DNSKEY);
+	if (sigrefresh >= (sigvalidity * 0.9)) {
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: policy '%s' signatures-refresh must be "
+			"at most 90%% of the signatures-validity-dnskey",
+			kaspname);
+		result = ISC_R_FAILURE;
+	}
+	dns_kasp_setsigvalidity_dnskey(kasp, sigvalidity);
+
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	/* Configuration: Keys */
 	dns_kasp_setdnskeyttl(
