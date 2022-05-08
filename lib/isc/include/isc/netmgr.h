@@ -102,6 +102,8 @@ isc_nm_detach(isc_nm_t **mgr0);
  * for all other references to be gone.
  */
 
+#define ISC_NETMGR_TID_UNKNOWN -1
+
 /* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */
 int
 isc_nm_tid(void);

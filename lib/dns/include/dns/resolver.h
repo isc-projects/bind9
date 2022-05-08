@@ -165,10 +165,10 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    unsigned int ntasks, unsigned int ndisp, isc_nm_t *nm,
-		    isc_timermgr_t *timermgr, unsigned int options,
-		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
-		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
+		    unsigned int ndisp, isc_nm_t *nm, isc_timermgr_t *timermgr,
+		    unsigned int options, dns_dispatchmgr_t *dispatchmgr,
+		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
+		    dns_resolver_t **resp);
 
 /*%<
  * Create a resolver.

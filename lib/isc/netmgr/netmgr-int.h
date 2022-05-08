@@ -38,8 +38,6 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
-#define ISC_NETMGR_TID_UNKNOWN -1
-
 /* Must be different from ISC_NETMGR_TID_UNKNOWN */
 #define ISC_NETMGR_NON_INTERLOCKED -2
 

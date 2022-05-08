@@ -617,7 +617,7 @@ dns_view_createzonetable(dns_view_t *view) {
 
 isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
-			unsigned int ntasks, unsigned int ndisp, isc_nm_t *nm,
+			unsigned int ndisp, isc_nm_t *nm,
 			isc_timermgr_t *timermgr, unsigned int options,
 			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
@@ -635,7 +635,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	isc_task_setname(view->task, "view", view);
 
-	result = dns_resolver_create(view, taskmgr, ntasks, ndisp, nm, timermgr,
+	result = dns_resolver_create(view, taskmgr, ndisp, nm, timermgr,
 				     options, dispatchmgr, dispatchv4,
 				     dispatchv6, &view->resolver);
 	if (result != ISC_R_SUCCESS) {
