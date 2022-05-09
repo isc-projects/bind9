@@ -1,3 +1,6 @@
+5896.	[func]		Add some more dnssec-policy checks to detect weird
+			policies. [GL #1611]
+
 5895.	[test]		Add new set of unit test macros and move the unit
 			tests under single namespace in /tests/. [GL !6243]
 
