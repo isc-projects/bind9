@@ -1,3 +1,5 @@
+	--- 9.18.3 released ---
+
 5886.	[security]	Fix a crash in DNS-over-HTTPS (DoH) code caused by
 			premature TLS stream socket object deletion.
 			(CVE-2022-1183) [GL #3216]
