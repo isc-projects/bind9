@@ -20,7 +20,6 @@ vs. '( unlimited | <duration> ) used in options.
 
 from collections import namedtuple
 from itertools import groupby
-from pprint import pformat
 import fileinput
 
 import parsegrammar
@@ -101,6 +100,35 @@ def diff_statements(whole_grammar, places):
     return out
 
 
+def pformat_grammar(node, level=1):
+    """Pretty print a given grammar node in the same way as cfg_test would"""
+    if "_grammar" in node:  # no nesting
+        assert "_id" not in node
+        assert "_mapbody" not in node
+        out = node["_grammar"] + ";"
+        if "_flags" in node:
+            out += " // " + ", ".join(node["_flags"])
+        return out + "\n"
+
+    # a nested map
+    out = ""
+    indent = level * "\t"
+    if "_id" in node:
+        out += node["_id"] + " "
+    out += "{\n"
+
+    for key in node["_mapbody"]:
+        out += f"{indent}{key}"
+        inner_grammar = pformat_grammar(node["_mapbody"][key], level=level + 1)
+        if inner_grammar[0] != ";":  # we _did_ find some arguments
+            out += " "
+        out += inner_grammar
+    out += indent[:-1] + "};"  # unindent the closing bracket
+    if "_flags" in node:
+        out += " // " + ", ".join(node["_flags"])
+    return out + "\n"
+
+
 def main():
     """
     Ingest output from cfg_test --grammar and print out statements which use
@@ -117,7 +145,7 @@ def main():
                 print(
                     "- path:", ", ".join(" -> ".join(variant.path) for variant in group)
                 )
-                print(" ", pformat(group[0].subgrammar))
+                print(" ", pformat_grammar(group[0].subgrammar, level=1))
             print()
 
 
