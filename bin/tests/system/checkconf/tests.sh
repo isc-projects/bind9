@@ -540,6 +540,15 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp key lifetime errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-lifetime.conf > checkconf.out$n 2>&1 && ret=1
+lines=$(grep "dnssec-policy: key lifetime is shorter than the time it takes to do a rollover" < checkconf.out$n | wc -l) || ret=1
+if [ $lines != 3 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking named-checkconf kasp predefined key length ($n)"
 ret=0
 $CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
