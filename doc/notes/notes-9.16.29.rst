@@ -12,33 +12,9 @@
 Notes for BIND 9.16.29
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
-- CDS and CDNSKEY DELETE records are removed from the zone when configured with
-  'auto-dnssec maintain;'. This has been fixed. :gl:`#2931`.
+- Previously, CDS and CDNSKEY DELETE records were removed from the zone
+  when configured with the ``auto-dnssec maintain;`` option. This has
+  been fixed. :gl:`#2931`
