@@ -80,6 +80,7 @@ extern isc_logmodule_t	 dns_modules[];
 #define DNS_LOGMODULE_DYNDB	 (&dns_modules[30])
 #define DNS_LOGMODULE_DNSTAP	 (&dns_modules[31])
 #define DNS_LOGMODULE_SSU	 (&dns_modules[32])
+#define DNS_LOGMODULE_QP	 (&dns_modules[33])
 
 ISC_LANG_BEGINDECLS
 
