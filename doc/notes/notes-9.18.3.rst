@@ -40,15 +40,6 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Support DNS Extended Errors (:rfc:`8914`) ``Stale Answer`` and
-  ``Stale NXDOMAIN Answer`` when stale answers are returned from cache.
-  :gl:`#2267`
-
-- Add support for remote TLS certificate verification, both to
-  :iscman:`named` and :iscman:`dig`, making it possible to implement
-  Strict and Mutual TLS authentication, as described in :rfc:`9103`,
-  Section 9.3. :gl:`#3163`
-
 - Catalog Zones schema version 2, as described in the
   "DNS Catalog Zones" IETF draft version 5 document, is now supported by
   :iscman:`named`. All of the previously supported BIND-specific catalog
@@ -61,6 +52,15 @@ New Features
   validation error, a corresponding error message is logged to help with
   diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223`
   :gl:`#3224` :gl:`#3225`
+
+- Support DNS Extended Errors (:rfc:`8914`) ``Stale Answer`` and
+  ``Stale NXDOMAIN Answer`` when stale answers are returned from cache.
+  :gl:`#2267`
+
+- Add support for remote TLS certificate verification, both to
+  :iscman:`named` and :iscman:`dig`, making it possible to implement
+  Strict and Mutual TLS authentication, as described in :rfc:`9103`,
+  Section 9.3. :gl:`#3163`
 
 Bug Fixes
 ~~~~~~~~~
