@@ -1258,6 +1258,8 @@ setup(void) {
 
 static void
 cleanup(void) {
+	named_server_shutdown(named_g_server);
+
 	destroy_managers();
 
 	if (named_g_mapped != NULL) {

@@ -410,6 +410,12 @@ dns_cache_detach(dns_cache_t **cachep) {
 		 * If the cleaner task exists, let it free the cache.
 		 */
 		if (isc_refcount_decrement(&cache->live_tasks) > 1) {
+			isc_event_t *event = isc_event_allocate(
+				cache->mctx, &cache->cleaner,
+				DNS_EVENT_CACHESHUTDOWN,
+				cleaner_shutdown_action, &cache->cleaner,
+				sizeof(*event));
+			isc_task_send(cache->cleaner.task, &event);
 			isc_task_shutdown(cache->cleaner.task);
 		} else {
 			cache_free(cache);
@@ -475,17 +481,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		}
 		isc_refcount_increment(&cleaner->cache->live_tasks);
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
-
-		result = isc_task_onshutdown(cleaner->task,
-					     cleaner_shutdown_action, cache);
-		if (result != ISC_R_SUCCESS) {
-			isc_refcount_decrement0(&cleaner->cache->live_tasks);
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "cache cleaner: "
-					 "isc_task_onshutdown() failed: %s",
-					 isc_result_totext(result));
-			goto cleanup;
-		}
 
 		cleaner->resched_event = isc_event_allocate(
 			cache->mctx, cleaner, DNS_EVENT_CACHECLEAN,

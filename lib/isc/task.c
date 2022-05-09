@@ -113,7 +113,6 @@ struct isc_task {
 	isc_refcount_t references;
 	isc_refcount_t running;
 	isc_eventlist_t events;
-	isc_eventlist_t on_shutdown;
 	unsigned int nevents;
 	unsigned int quantum;
 	isc_stdtime_t now;
@@ -183,7 +182,6 @@ task_finished(isc_task_t *task) {
 	isc_mem_t *mctx = manager->mctx;
 	REQUIRE(EMPTY(task->events));
 	REQUIRE(task->nevents == 0);
-	REQUIRE(EMPTY(task->on_shutdown));
 	REQUIRE(task->state == task_state_done);
 
 	XTRACE("task_finished");
@@ -249,7 +247,6 @@ isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	isc_refcount_init(&task->references, 1);
 	isc_refcount_init(&task->running, 0);
 	INIT_LIST(task->events);
-	INIT_LIST(task->on_shutdown);
 	task->nevents = 0;
 	task->quantum = (quantum > 0) ? quantum : manager->default_quantum;
 	atomic_init(&task->shuttingdown, false);
@@ -302,7 +299,6 @@ isc_task_attach(isc_task_t *source, isc_task_t **targetp) {
 static bool
 task_shutdown(isc_task_t *task) {
 	bool was_idle = false;
-	isc_event_t *event, *prev;
 
 	/*
 	 * Caller must be holding the task's lock.
@@ -320,17 +316,6 @@ task_shutdown(isc_task_t *task) {
 		}
 		INSIST(task->state == task_state_ready ||
 		       task->state == task_state_running);
-
-		/*
-		 * Note that we post shutdown events LIFO.
-		 */
-		for (event = TAIL(task->on_shutdown); event != NULL;
-		     event = prev) {
-			prev = PREV(event, ev_link);
-			DEQUEUE(task->on_shutdown, event, ev_link);
-			ENQUEUE(task->events, event, ev_link);
-			task->nevents++;
-		}
 	}
 
 	return (was_idle);
@@ -560,40 +545,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	return (true);
-}
-
-isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
-	bool disallowed = false;
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_event_t *event;
-
-	/*
-	 * Send a shutdown event with action 'action' and argument 'arg' when
-	 * 'task' is shutdown.
-	 */
-
-	REQUIRE(VALID_TASK(task));
-	REQUIRE(action != NULL);
-
-	event = isc_event_allocate(task->manager->mctx, NULL,
-				   ISC_TASKEVENT_SHUTDOWN, action, arg,
-				   sizeof(*event));
-
-	if (TASK_SHUTTINGDOWN(task)) {
-		disallowed = true;
-		result = ISC_R_SHUTTINGDOWN;
-	} else {
-		LOCK(&task->lock);
-		ENQUEUE(task->on_shutdown, event, ev_link);
-		UNLOCK(&task->lock);
-	}
-
-	if (disallowed) {
-		isc_mem_put(task->manager->mctx, event, sizeof(*event));
-	}
-
-	return (result);
 }
 
 void

@@ -16,12 +16,7 @@ and termination model.  Here's how things now work:
 
 When a task is shutdown:
 
-	Any "on shutdown" events for the task are posted
-
 	The "shutting down" attribute of the task is set
-
-	Any attempts to add shutdown events with isc_task_onshutdown()
-	will fail, since the task is already shutting down
 
 Task shutdown can be initiated explicitly, via a call to isc_task_shutdown(),
 or implicitly, when the following conditions occur:
@@ -31,7 +26,6 @@ or implicitly, when the following conditions occur:
 	The task has no references
 
 	The task has an empty event queue
-
 
 Task termination occurs when:
 

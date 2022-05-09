@@ -37,11 +37,12 @@
 
 #include <named/types.h>
 
-#define NAMED_EVENTCLASS    ISC_EVENTCLASS(0x4E43)
-#define NAMED_EVENT_RELOAD  (NAMED_EVENTCLASS + 0)
-#define NAMED_EVENT_DELZONE (NAMED_EVENTCLASS + 1)
-#define NAMED_EVENT_COMMAND (NAMED_EVENTCLASS + 2)
-#define NAMED_EVENT_TATSEND (NAMED_EVENTCLASS + 3)
+#define NAMED_EVENTCLASS     ISC_EVENTCLASS(0x4E43)
+#define NAMED_EVENT_RELOAD   (NAMED_EVENTCLASS + 0)
+#define NAMED_EVENT_DELZONE  (NAMED_EVENTCLASS + 1)
+#define NAMED_EVENT_COMMAND  (NAMED_EVENTCLASS + 2)
+#define NAMED_EVENT_TATSEND  (NAMED_EVENTCLASS + 3)
+#define NAMED_EVENT_SHUTDOWN (NAMED_EVENTCLASS + 4)
 
 /*%
  * Name server state.  Better here than in lots of separate global variables.
@@ -132,6 +133,12 @@ void
 named_server_destroy(named_server_t **serverp);
 /*%<
  * Destroy a server object, freeing its memory.
+ */
+
+void
+named_server_shutdown(named_server_t *server);
+/*%<
+ * Initiate the server shutdown.
  */
 
 void

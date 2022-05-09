@@ -266,35 +266,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *					or was marked unpurgeable.
  */
 
-isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
-/*%<
- * Send a shutdown event with action 'action' and argument 'arg' when
- * 'task' is shutdown.
- *
- * Notes:
- *
- *\li	Shutdown events are posted in LIFO order.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	'action' is a valid task action.
- *
- * Ensures:
- *
- *\li	When the task is shutdown, shutdown events requested with
- *	isc_task_onshutdown() will be appended to the task's event queue.
- *
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SHUTTINGDOWN			Task is shutting down.
- */
-
 void
 isc_task_shutdown(isc_task_t *task);
 /*%<
@@ -302,10 +273,7 @@ isc_task_shutdown(isc_task_t *task);
  *
  * Notes:
  *
- *\li	Shutting down a task causes any shutdown events requested with
- *	isc_task_onshutdown() to be posted (in LIFO order).  The task
- *	moves into a "shutting down" mode which prevents further calls
- *	to isc_task_onshutdown().
+ *\li	The task moves into a "shutting down" mode.
  *
  *\li	Trying to shutdown a task that has already been shutdown has no
  *	effect.
@@ -314,10 +282,6 @@ isc_task_shutdown(isc_task_t *task);
  *
  *\li	'task' is a valid task.
  *
- * Ensures:
- *
- *\li	Any shutdown events requested with isc_task_onshutdown() have been
- *	posted (in LIFO order).
  */
 
 void

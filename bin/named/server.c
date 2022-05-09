@@ -9963,6 +9963,14 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+void
+named_server_shutdown(named_server_t *server) {
+	isc_event_t *event =
+		isc_event_allocate(named_g_mctx, server, NAMED_EVENT_SHUTDOWN,
+				   shutdown_server, server, sizeof(*event));
+	isc_task_send(server->task, &event);
+}
+
 /*%
  * Find a view that matches the source and destination addresses of a query.
  */
@@ -10069,8 +10077,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->sctx->fuzznotify = named_fuzz_notify;
 #endif /* ifdef ENABLE_AFL */
 
-	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
-		   "isc_task_onshutdown");
 	CHECKFATAL(
 		isc_app_onrun(named_g_mctx, server->task, run_server, server),
 		"isc_app_onrun");
