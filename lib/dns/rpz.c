@@ -2145,7 +2145,7 @@ rpz_destroy_rpzs(dns_rpz_zones_t *rpzs) {
 	if (rpzs->rbt != NULL) {
 		dns_rbt_destroy(&rpzs->rbt);
 	}
-	isc_task_destroy(&rpzs->updater);
+	isc_task_detach(&rpzs->updater);
 	isc_mutex_destroy(&rpzs->maint_lock);
 	isc_rwlock_destroy(&rpzs->search_lock);
 	isc_refcount_destroy(&rpzs->refs);

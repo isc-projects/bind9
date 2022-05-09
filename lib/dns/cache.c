@@ -416,7 +416,6 @@ dns_cache_detach(dns_cache_t **cachep) {
 				cleaner_shutdown_action, &cache->cleaner,
 				sizeof(*event));
 			isc_task_send(cache->cleaner.task, &event);
-			isc_task_shutdown(cache->cleaner.task);
 		} else {
 			cache_free(cache);
 		}

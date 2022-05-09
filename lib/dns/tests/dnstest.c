@@ -95,8 +95,7 @@ static isc_logcategory_t categories[] = { { "", 0 },
 static void
 cleanup_managers(void) {
 	if (maintask != NULL) {
-		isc_task_shutdown(maintask);
-		isc_task_destroy(&maintask);
+		isc_task_detach(&maintask);
 	}
 
 	isc_managers_destroy(netmgr == NULL ? NULL : &netmgr,

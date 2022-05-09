@@ -134,7 +134,7 @@ create_task(void **state) {
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_task_destroy(&task);
+	isc_task_detach(&task);
 	assert_null(task);
 }
 
@@ -178,7 +178,7 @@ all_events(void **state) {
 	assert_int_not_equal(atomic_load(&a), 0);
 	assert_int_not_equal(atomic_load(&b), 0);
 
-	isc_task_destroy(&task);
+	isc_task_detach(&task);
 	assert_null(task);
 }
 
@@ -442,9 +442,6 @@ manytasks(void **state) {
 			      (unsigned long)ntasks);
 	}
 
-	isc_mutex_init(&lock);
-	isc_condition_init(&cv);
-
 	atomic_init(&done, false);
 
 	event = isc_event_allocate(test_mctx, NULL, 1, maxtask_cb,
@@ -457,9 +454,6 @@ manytasks(void **state) {
 		WAIT(&cv, &lock);
 	}
 	UNLOCK(&lock);
-
-	isc_condition_destroy(&cv);
-	isc_mutex_destroy(&lock);
 }
 
 /*
@@ -519,8 +513,6 @@ try_purgeevent(void) {
 	atomic_init(&done, false);
 	eventcnt = 0;
 
-	isc_condition_init(&cv);
-
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -550,8 +542,6 @@ try_purgeevent(void) {
 	LOCK(&lock);
 	atomic_store(&started, true);
 	SIGNAL(&cv);
-
-	isc_task_shutdown(task);
 
 	isc_interval_set(&interval, 5, 0);
 

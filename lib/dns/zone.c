@@ -19104,7 +19104,7 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
 
 	if (zmgr->task != NULL) {
-		isc_task_destroy(&zmgr->task);
+		isc_task_detach(&zmgr->task);
 	}
 
 	for (size_t i = 0; i < zmgr->workers; i++) {

@@ -183,8 +183,7 @@ cleanup_managers(void) {
 			mctx, NULL, ISC_TASKEVENT_TEST, shutdown_managers, NULL,
 			sizeof(*event));
 		isc_task_send(maintask, &event);
-		isc_task_shutdown(maintask);
-		isc_task_destroy(&maintask);
+		isc_task_detach(&maintask);
 	}
 
 	while (atomic_load(&run_managers) && !atomic_load(&shutdown_done)) {

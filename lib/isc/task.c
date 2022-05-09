@@ -111,7 +111,6 @@ struct isc_task {
 	int tid;
 	task_state_t state;
 	isc_refcount_t references;
-	isc_refcount_t running;
 	isc_eventlist_t events;
 	unsigned int nevents;
 	unsigned int quantum;
@@ -132,8 +131,6 @@ struct isc_task {
 #endif
 	LINK(isc_task_t) link;
 };
-
-#define TASK_SHUTTINGDOWN(t) (atomic_load_acquire(&(t)->shuttingdown))
 
 #define TASK_MANAGER_MAGIC ISC_MAGIC('T', 'S', 'K', 'M')
 #define VALID_MANAGER(m)   ISC_MAGIC_VALID(m, TASK_MANAGER_MAGIC)
@@ -177,7 +174,7 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
  ***/
 
 static void
-task_finished(isc_task_t *task) {
+task_destroy(isc_task_t *task) {
 	isc_taskmgr_t *manager = task->manager;
 	isc_mem_t *mctx = manager->mctx;
 	REQUIRE(EMPTY(task->events));
@@ -186,7 +183,6 @@ task_finished(isc_task_t *task) {
 
 	XTRACE("task_finished");
 
-	isc_refcount_destroy(&task->running);
 	isc_refcount_destroy(&task->references);
 
 	LOCK(&manager->lock);
@@ -245,7 +241,6 @@ isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	task->state = task_state_idle;
 
 	isc_refcount_init(&task->references, 1);
-	isc_refcount_init(&task->running, 0);
 	INIT_LIST(task->events);
 	task->nevents = 0;
 	task->quantum = (quantum > 0) ? quantum : manager->default_quantum;
@@ -266,7 +261,6 @@ isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 	UNLOCK(&manager->lock);
 
 	if (exiting) {
-		isc_refcount_destroy(&task->running);
 		isc_refcount_decrement(&task->references);
 		isc_refcount_destroy(&task->references);
 		isc_mutex_destroy(&task->lock);
@@ -296,31 +290,6 @@ isc_task_attach(isc_task_t *source, isc_task_t **targetp) {
 	*targetp = source;
 }
 
-static bool
-task_shutdown(isc_task_t *task) {
-	bool was_idle = false;
-
-	/*
-	 * Caller must be holding the task's lock.
-	 */
-
-	XTRACE("task_shutdown");
-
-	if (atomic_compare_exchange_strong(&task->shuttingdown,
-					   &(bool){ false }, true)) {
-		XTRACE("shutting down");
-		if (task->state == task_state_idle) {
-			INSIST(EMPTY(task->events));
-			task->state = task_state_ready;
-			was_idle = true;
-		}
-		INSIST(task->state == task_state_ready ||
-		       task->state == task_state_running);
-	}
-
-	return (was_idle);
-}
-
 /*
  * Moves a task onto the appropriate run queue.
  *
@@ -333,7 +302,7 @@ task_ready(isc_task_t *task) {
 
 	XTRACE("task_ready");
 
-	isc_refcount_increment0(&task->running);
+	isc_task_attach(task, &(isc_task_t *){ NULL });
 	LOCK(&task->lock);
 	if (task->tid < 0) {
 		task->tid = (int)isc_random_uniform(manager->nworkers);
@@ -347,57 +316,25 @@ isc_task_ready(isc_task_t *task) {
 	task_ready(task);
 }
 
-static bool
-task_detach(isc_task_t *task) {
-	/*
-	 * Caller must be holding the task lock.
-	 */
-
-	XTRACE("detach");
-
-	if (isc_refcount_decrement(&task->references) == 1 &&
-	    task->state == task_state_idle)
-	{
-		INSIST(EMPTY(task->events));
-		/*
-		 * There are no references to this task, and no
-		 * pending events.  We could try to optimize and
-		 * either initiate shutdown or clean up the task,
-		 * depending on its state, but it's easier to just
-		 * make the task ready and allow run() or the event
-		 * loop to deal with shutting down and termination.
-		 */
-		task->state = task_state_ready;
-		return (true);
-	}
-
-	return (false);
-}
-
 void
 isc_task_detach(isc_task_t **taskp) {
 	isc_task_t *task;
-	bool was_idle;
-
-	/*
-	 * Detach *taskp from its task.
-	 */
 
 	REQUIRE(taskp != NULL);
+	REQUIRE(VALID_TASK(*taskp));
+
 	task = *taskp;
-	REQUIRE(VALID_TASK(task));
+	*taskp = NULL;
 
 	XTRACE("isc_task_detach");
 
-	LOCK(&task->lock);
-	was_idle = task_detach(task);
-	UNLOCK(&task->lock);
+	if (isc_refcount_decrement(&task->references) == 1) {
+		LOCK(&task->lock);
+		task->state = task_state_done;
+		UNLOCK(&task->lock);
 
-	if (was_idle) {
-		task_ready(task);
+		task_destroy(task);
 	}
-
-	*taskp = NULL;
 }
 
 static bool
@@ -478,36 +415,16 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 
 void
 isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
-	bool idle1, idle2;
 	isc_task_t *task;
-
-	/*
-	 * Send '*event' to '*taskp' and then detach '*taskp' from its
-	 * task.
-	 */
 
 	REQUIRE(taskp != NULL);
 	task = *taskp;
+	*taskp = NULL;
 	REQUIRE(VALID_TASK(task));
 	XTRACE("isc_task_sendanddetach");
 
-	LOCK(&task->lock);
-	idle1 = task_send(task, eventp);
-	idle2 = task_detach(task);
-	UNLOCK(&task->lock);
-
-	/*
-	 * If idle1, then idle2 shouldn't be true as well since we're holding
-	 * the task lock, and thus the task cannot switch from ready back to
-	 * idle.
-	 */
-	INSIST(!(idle1 && idle2));
-
-	if (idle1 || idle2) {
-		task_ready(task);
-	}
-
-	*taskp = NULL;
+	isc_task_send(task, eventp);
+	isc_task_detach(&task);
 }
 
 bool
@@ -545,37 +462,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	return (true);
-}
-
-void
-isc_task_shutdown(isc_task_t *task) {
-	bool was_idle;
-
-	/*
-	 * Shutdown 'task'.
-	 */
-
-	REQUIRE(VALID_TASK(task));
-
-	LOCK(&task->lock);
-	was_idle = task_shutdown(task);
-	UNLOCK(&task->lock);
-
-	if (was_idle) {
-		task_ready(task);
-	}
-}
-
-void
-isc_task_destroy(isc_task_t **taskp) {
-	/*
-	 * Destroy '*taskp'.
-	 */
-
-	REQUIRE(taskp != NULL);
-
-	isc_task_shutdown(*taskp);
-	isc_task_detach(taskp);
 }
 
 void
@@ -630,7 +516,6 @@ isc_task_setquantum(isc_task_t *task, unsigned int quantum) {
 static isc_result_t
 task_run(isc_task_t *task) {
 	unsigned int dispatch_count = 0;
-	bool finished = false;
 	isc_event_t *event = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	uint32_t quantum;
@@ -671,37 +556,12 @@ task_run(isc_task_t *task) {
 			dispatch_count++;
 		}
 
-		if (isc_refcount_current(&task->references) == 0 &&
-		    EMPTY(task->events) && !TASK_SHUTTINGDOWN(task))
-		{
-			/*
-			 * There are no references and no pending events for
-			 * this task, which means it will not become runnable
-			 * again via an external action (such as sending an
-			 * event or detaching).
-			 *
-			 * We initiate shutdown to prevent it from becoming a
-			 * zombie.
-			 *
-			 * We do this here instead of in the "if
-			 * EMPTY(task->events)" block below because:
-			 *
-			 *	If we post no shutdown events, we want the task
-			 *	to finish.
-			 *
-			 *	If we did post shutdown events, will still want
-			 *	the task's quantum to be applied.
-			 */
-			INSIST(!task_shutdown(task));
-		}
-
 		if (EMPTY(task->events)) {
 			/*
 			 * Nothing else to do for this task right now.
 			 */
 			XTRACE("empty");
-			if (isc_refcount_current(&task->references) == 0 &&
-			    TASK_SHUTTINGDOWN(task)) {
+			if (isc_refcount_current(&task->references) == 0) {
 				/*
 				 * The task is done.
 				 */
@@ -728,16 +588,8 @@ task_run(isc_task_t *task) {
 	}
 
 done:
-	if (isc_refcount_decrement(&task->running) == 1 &&
-	    task->state == task_state_done)
-	{
-		finished = true;
-	}
 	UNLOCK(&task->lock);
-
-	if (finished) {
-		task_finished(task);
-	}
+	isc_task_detach(&task);
 
 	return (result);
 }
@@ -820,7 +672,7 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int default_quantum, isc_nm_t *nm,
 
 void
 isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
-	isc_task_t *task;
+	isc_task_t *task = NULL;
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -832,18 +684,10 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	 * isc_taskmgr_destroy(), e.g. by signalling a condition variable
 	 * that the startup thread is sleeping on.
 	 */
-
-	/*
-	 * Unlike elsewhere, we're going to hold this lock a long time.
-	 * We need to do so, because otherwise the list of tasks could
-	 * change while we were traversing it.
-	 *
-	 * This is also the only function where we will hold both the
-	 * task manager lock and a task lock at the same time.
-	 */
 	LOCK(&manager->lock);
 	if (manager->excl != NULL) {
-		isc_task_detach((isc_task_t **)&manager->excl);
+		task = manager->excl;
+		manager->excl = NULL;
 	}
 
 	/*
@@ -852,24 +696,11 @@ isc__taskmgr_shutdown(isc_taskmgr_t *manager) {
 	INSIST(manager->exiting == false);
 	manager->exiting = true;
 
-	/*
-	 * Post shutdown event(s) to every task (if they haven't already been
-	 * posted).
-	 */
-	for (task = HEAD(manager->tasks); task != NULL; task = NEXT(task, link))
-	{
-		bool was_idle;
-
-		LOCK(&task->lock);
-		was_idle = task_shutdown(task);
-		UNLOCK(&task->lock);
-
-		if (was_idle) {
-			task_ready(task);
-		}
-	}
-
 	UNLOCK(&manager->lock);
+
+	if (task != NULL) {
+		isc_task_detach(&task);
+	}
 }
 
 void
@@ -997,13 +828,6 @@ isc_task_endexclusive(isc_task_t *task) {
 
 	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
 					       &(bool){ true }, false));
-}
-
-bool
-isc_task_exiting(isc_task_t *task) {
-	REQUIRE(VALID_TASK(task));
-
-	return (TASK_SHUTTINGDOWN(task));
 }
 
 #ifdef HAVE_LIBXML2

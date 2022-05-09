@@ -267,53 +267,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  */
 
 void
-isc_task_shutdown(isc_task_t *task);
-/*%<
- * Shutdown 'task'.
- *
- * Notes:
- *
- *\li	The task moves into a "shutting down" mode.
- *
- *\li	Trying to shutdown a task that has already been shutdown has no
- *	effect.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- */
-
-void
-isc_task_destroy(isc_task_t **taskp);
-/*%<
- * Destroy '*taskp'.
- *
- * Notes:
- *
- *\li	This call is equivalent to:
- *
- *\code
- *		isc_task_shutdown(*taskp);
- *		isc_task_detach(taskp);
- *\endcode
- *
- * Requires:
- *
- *	'*taskp' is a valid task.
- *
- * Ensures:
- *
- *\li	Any shutdown events requested with isc_task_onshutdown() have been
- *	posted (in LIFO order).
- *
- *\li	*taskp == NULL
- *
- *\li	If '*taskp' is the last reference to the task,
- *		all resources used by the task will be freed.
- */
-
-void
 isc_task_setname(isc_task_t *task, const char *name, void *tag);
 /*%<
  * Name 'task'.
@@ -402,16 +355,6 @@ isc_task_endexclusive(isc_task_t *task);
  * Requires:
  *\li	'task' is the calling task, and has obtained
  *		exclusive access by calling isc_task_spl().
- */
-
-bool
-isc_task_exiting(isc_task_t *t);
-/*%<
- * Returns true if the task is in the process of shutting down,
- * false otherwise.
- *
- * Requires:
- *\li	'task' is a valid task.
  */
 
 /*****

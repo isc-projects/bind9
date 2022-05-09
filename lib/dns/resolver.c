@@ -10106,7 +10106,6 @@ destroy(dns_resolver_t *res) {
 	isc_mutex_destroy(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
 		INSIST(ISC_LIST_EMPTY(res->buckets[i].fctxs));
-		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
 		isc_mutex_destroy(&res->buckets[i].lock);
 	}
@@ -10346,7 +10345,6 @@ cleanup_primelock:
 cleanup_buckets:
 	for (size_t i = 0; i < ntasks; i++) {
 		isc_mutex_destroy(&res->buckets[i].lock);
-		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
 	}
 	isc_mem_put(view->mctx, res->buckets,

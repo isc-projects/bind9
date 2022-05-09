@@ -14,22 +14,7 @@ information regarding copyright ownership.
 Changes I made last week to the task code simplified the task shutdown
 and termination model.  Here's how things now work:
 
-When a task is shutdown:
-
-	The "shutting down" attribute of the task is set
-
-Task shutdown can be initiated explicitly, via a call to isc_task_shutdown(),
-or implicitly, when the following conditions occur:
-
-	The "shutting down" attribute of the task is not set
-
-	The task has no references
-
-	The task has an empty event queue
-
 Task termination occurs when:
-
-	The "shutting down" attribute of the task is set
 
 	The task has no references
 

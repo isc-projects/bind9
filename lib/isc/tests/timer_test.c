@@ -529,8 +529,8 @@ purge(void **state) {
 
 	isc_timer_destroy(&tickertimer);
 	isc_timer_destroy(&oncetimer);
-	isc_task_destroy(&task1);
-	isc_task_destroy(&task2);
+	isc_task_detach(&task1);
+	isc_task_detach(&task2);
 }
 
 int
