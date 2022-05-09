@@ -653,7 +653,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 static void
 validated(isc_task_t *task, isc_event_t *event);
 static void
-maybe_cancel_validators(fetchctx_t *fctx, bool locked);
+maybe_cancel_validators(fetchctx_t *fctx);
 static void
 add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	isc_result_t reason, badnstype_t badtype);
@@ -4247,7 +4247,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 	if (SHUTTINGDOWN(fctx)) {
-		maybe_cancel_validators(fctx, true);
+		maybe_cancel_validators(fctx);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		fctx_detach(&fctx);
 		return;
@@ -5237,27 +5237,21 @@ clone_results(fetchctx_t *fctx) {
 /*
  * Cancel validators associated with '*fctx' if it is ready to be
  * destroyed (i.e., no queries waiting for it and no pending ADB finds).
+ * Caller must hold fctx bucket lock.
  *
  * Requires:
  *      '*fctx' is shutting down.
  */
 static void
-maybe_cancel_validators(fetchctx_t *fctx, bool locked) {
-	unsigned int bucketnum;
-	dns_resolver_t *res = fctx->res;
-	dns_validator_t *validator, *next_validator;
-
-	bucketnum = fctx->bucketnum;
-	if (!locked) {
-		LOCK(&res->buckets[bucketnum].lock);
-	}
+maybe_cancel_validators(fetchctx_t *fctx) {
+	dns_validator_t *validator = NULL, *next_validator = NULL;
 
 	REQUIRE(SHUTTINGDOWN(fctx));
 
 	if (atomic_load_acquire(&fctx->pending) != 0 ||
 	    atomic_load_acquire(&fctx->nqueries) != 0)
 	{
-		goto unlock;
+		return;
 	}
 
 	for (validator = ISC_LIST_HEAD(fctx->validators); validator != NULL;
@@ -5265,10 +5259,6 @@ maybe_cancel_validators(fetchctx_t *fctx, bool locked) {
 	{
 		next_validator = ISC_LIST_NEXT(validator, link);
 		dns_validator_cancel(validator);
-	}
-unlock:
-	if (!locked) {
-		UNLOCK(&res->buckets[bucketnum].lock);
 	}
 }
 
@@ -5707,7 +5697,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 */
 		dns_db_detachnode(fctx->cache, &node);
 		if (SHUTTINGDOWN(fctx)) {
-			maybe_cancel_validators(fctx, true);
+			maybe_cancel_validators(fctx);
 		}
 		UNLOCK(&res->buckets[bucketnum].lock);
 		fctx_detach(&fctx);
@@ -7314,7 +7304,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 	if (SHUTTINGDOWN(fctx)) {
-		maybe_cancel_validators(fctx, true);
+		maybe_cancel_validators(fctx);
 		UNLOCK(&res->buckets[fctx->bucketnum].lock);
 
 		if (dns_rdataset_isassociated(frdataset)) {
