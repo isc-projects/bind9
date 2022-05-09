@@ -196,3 +196,11 @@ SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store) {
 }
 
 #endif /* !HAVE_SSL_CTX_SET1_CERT_STORE */
+
+#if !HAVE_SSL_SESSION_IS_RESUMABLE
+int
+SSL_SESSION_is_resumable(const SSL_SESSION *sess) {
+	return (!sess->not_resumable &&
+		(sess->session_id_length > 0 || sess->tlsext_ticklen > 0));
+}
+#endif /* HAVE_SSL_SESSION_IS_RESUMABLE */
