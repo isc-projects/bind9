@@ -44,6 +44,7 @@ OPTIONS_FILES =				\
 
 EXTRA_DIST =			\
 	$(OPTIONS_FILES)	\
+	checkgrammar.py		\
 	format-options.pl	\
 	parsegrammar.py		\
 	rst-grammars.pl		\
