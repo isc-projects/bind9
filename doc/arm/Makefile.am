@@ -61,6 +61,9 @@ EXTRA_DIST =					\
 	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
 	zones.inc.rst				\
+	_ext/iscconf.py				\
+	_ext/namedconf.py			\
+	_ext/rndcconf.py			\
 	_static/custom.css			\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
