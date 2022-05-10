@@ -10234,10 +10234,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	res->quotaresp[dns_quotatype_zone] = DNS_R_DROP;
 	res->quotaresp[dns_quotatype_server] = DNS_R_SERVFAIL;
 	isc_refcount_init(&res->references, 1);
-	atomic_init(&res->exiting, false);
-	atomic_init(&res->priming, false);
-	atomic_init(&res->zspill, 0);
-	atomic_init(&res->nfctx, 0);
 	ISC_LIST_INIT(res->whenshutdown);
 	ISC_LIST_INIT(res->alternates);
 
@@ -10343,8 +10339,7 @@ cleanup_buckets:
 	dns_badcache_destroy(&res->badcache);
 
 cleanup_res:
-	isc_mem_put(view->mctx, res, sizeof(*res));
-
+	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 	return (result);
 }
 
