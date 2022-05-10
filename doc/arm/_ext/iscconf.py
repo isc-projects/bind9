@@ -34,6 +34,17 @@ from sphinx.util.nodes import make_refnode
 from sphinx.util.docutils import SphinxDirective
 
 
+def split_csv(argument, required):
+    argument = argument or ""
+    outlist = list(filter(len, (s.strip() for s in argument.split(","))))
+    if required and not outlist:
+        raise ValueError(
+            "a non-empty list required; provide at least one value or remove"
+            " this option"
+        )
+    return outlist
+
+
 # pylint: disable=too-many-statements
 def domain_factory(domainname, domainlabel, todolist):
     """
@@ -72,7 +83,7 @@ def domain_factory(domainname, domainlabel, todolist):
             has_content = True
             required_arguments = 1
             option_spec = {
-                "tags": directives.unchanged_required,
+                "tags": lambda arg: split_csv(arg, required=False),
                 # one-sentece description for use in summary tables
                 "short": directives.unchanged_required,
             }
@@ -83,11 +94,27 @@ def domain_factory(domainname, domainlabel, todolist):
 
             def add_target_and_index(self, _name_cls, sig, signode):
                 signode["ids"].append(domainname + "-statement-" + sig)
-                tags = [x.strip() for x in self.options.get("tags", "").split(",")]
-                short = self.options.get("short")
 
                 iscconf = self.env.get_domain(domainname)
-                iscconf.add_statement(sig, tags, short)
+                iscconf.add_statement(sig, self.isc_tags, self.isc_short)
+
+            @property
+            def isc_tags(self):
+                return self.options.get("tags", [])
+
+            @property
+            def isc_short(self):
+                return self.options.get("short", "")
+
+            def transform_content(self, contentnode: addnodes.desc_content) -> None:
+                """autogenerate content from structured data"""
+                if self.isc_short:
+                    contentnode.insert(0, nodes.paragraph(text=self.isc_short))
+                if self.isc_tags:
+                    tags = nodes.paragraph()
+                    tags += nodes.strong(text="Tags: ")
+                    tags += nodes.Text(", ".join(self.isc_tags))
+                    contentnode.insert(0, tags)
 
         name = domainname
         label = domainlabel
