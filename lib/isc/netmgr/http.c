@@ -1509,7 +1509,12 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	REQUIRE(region != NULL);
 	REQUIRE(region->base != NULL);
 	REQUIRE(region->length <= MAX_DNS_MESSAGE_SIZE);
-	REQUIRE(cstream != NULL);
+
+	if (session->closed) {
+		return (ISC_R_CANCELED);
+	}
+
+	INSIST(cstream != NULL);
 
 	if (cstream->post) {
 		/* POST */
