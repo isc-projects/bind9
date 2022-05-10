@@ -2077,6 +2077,10 @@ void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	if (uv_is_closing((uv_handle_t *)&sock->read_timer)) {
+		return;
+	}
+
 	if (atomic_load(&sock->connecting)) {
 		int r;
 
