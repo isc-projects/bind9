@@ -14,7 +14,7 @@
 . ../conf.sh
 
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
-DIG="$DIG +time=11"
+DIG="$DIG +time=12 +tries=1"
 
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
 stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
