@@ -53,7 +53,12 @@ def domain_factory(domainname, domainlabel):
 
             has_content = True
             required_arguments = 1
-            option_spec = {}
+            # currently both options are unused
+            option_spec = {
+                "tags": directives.unchanged_required,
+                # one-sentece description for use in summary tables, in the future
+                "short": directives.unchanged_required,
+            }
 
             def handle_signature(self, sig, signode):
                 signode += addnodes.desc_name(text=sig)
@@ -61,9 +66,11 @@ def domain_factory(domainname, domainlabel):
 
             def add_target_and_index(self, _name_cls, sig, signode):
                 signode["ids"].append(domainname + "-statement-" + sig)
+                tags = [x.strip() for x in self.options.get("tags", "").split(",")]
+                short = self.options.get("short")
 
                 iscconf = self.env.get_domain(domainname)
-                iscconf.add_statement(sig)
+                iscconf.add_statement(sig, tags, short)
 
         name = domainname
         label = domainlabel
@@ -75,6 +82,8 @@ def domain_factory(domainname, domainlabel):
         roles = {"ref": XRefRole(warn_dangling=True)}
         initial_data = {
             "statements": [],  # object list for Sphinx API
+            # our own metadata: name -> {"tags": [list of tags], "short": "short desc"}
+            "statements_extra": {},
         }
 
         indices = {}  # no custom indicies
@@ -113,7 +122,7 @@ def domain_factory(domainname, domainlabel):
             """
             raise NotImplementedError
 
-        def add_statement(self, signature):
+        def add_statement(self, signature, tags, short):
             """
             Add a new statement to the domain data structures.
             No visible effect.
@@ -121,6 +130,7 @@ def domain_factory(domainname, domainlabel):
             name = "{}.{}.{}".format(domainname, "statement", signature)
             anchor = "{}-statement-{}".format(domainname, signature)
 
+            self.data["statements_extra"][name] = {"tags": tags, "short": short}
             # Sphinx API: name, dispname, type, docname, anchor, priority
             self.data["statements"].append(
                 (
@@ -139,6 +149,11 @@ def domain_factory(domainname, domainlabel):
 
             Remove traces of a document in the domain-specific inventories.
             """
+            # use name->doc mapping from Sphinx metadata
+            for name, _, _, cur_docname, _, _ in self.data["statements"]:
+                if cur_docname == docname:
+                    if name in self.data["statements_extra"]:
+                        del self.data["statements_extra"][name]
             self.data["statements"] = list(
                 obj for obj in self.data["statements"] if obj[3] != docname
             )
@@ -157,6 +172,7 @@ def domain_factory(domainname, domainlabel):
             self.data["statements"] = list(
                 set(self.data["statements"] + otherdata["statements"])
             )
+            self.data["statements_extra"].update(otherdata["statements_extra"])
 
     return ISCConfDomain
 
