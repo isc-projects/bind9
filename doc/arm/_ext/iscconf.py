@@ -21,25 +21,43 @@ https://www.sphinx-doc.org/en/master/development/tutorials/todo.html
 https://www.sphinx-doc.org/en/master/development/tutorials/recipe.html
 """
 
+from collections import namedtuple
+
+from docutils.parsers.rst import directives
+from docutils import nodes
+
 from sphinx import addnodes
 from sphinx.directives import ObjectDescription
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
 from sphinx.util.nodes import make_refnode
+from sphinx.util.docutils import SphinxDirective
 
 
 # pylint: disable=too-many-statements
-def domain_factory(domainname, domainlabel):
+def domain_factory(domainname, domainlabel, todolist):
     """
     Return parametrized Sphinx domain object.
     @param domainname Name used when referencing domain in .rst: e.g. namedconf
     @param confname Humand-readable name for texts, e.g. named.conf
+    @param todolist A placeholder object which must be pickable.
+                    See StatementListDirective.
     """
+
+    class StatementListDirective(SphinxDirective):
+        """A custom directive to generate list of statements.
+        It only installs placeholder which is later replaced by
+        process_statementlist_nodes() callback.
+        """
+
+        def run(self):
+            return [todolist("")]
 
     class ISCConfDomain(Domain):
         """
         Custom Sphinx domain for ISC config.
-        Provides .. statement:: directive to define config statement.
+        Provides .. statement:: directive to define config statement and
+        .. statementlist:: to generate summary tables.
         :ref:`statementname` works as usual.
 
         See https://www.sphinx-doc.org/en/master/extdev/domainapi.html
@@ -53,10 +71,9 @@ def domain_factory(domainname, domainlabel):
 
             has_content = True
             required_arguments = 1
-            # currently both options are unused
             option_spec = {
                 "tags": directives.unchanged_required,
-                # one-sentece description for use in summary tables, in the future
+                # one-sentece description for use in summary tables
                 "short": directives.unchanged_required,
             }
 
@@ -77,6 +94,7 @@ def domain_factory(domainname, domainlabel):
 
         directives = {
             "statement": StatementDirective,
+            "statementlist": StatementListDirective,
         }
 
         roles = {"ref": XRefRole(warn_dangling=True)}
@@ -174,16 +192,121 @@ def domain_factory(domainname, domainlabel):
             )
             self.data["statements_extra"].update(otherdata["statements_extra"])
 
+        @classmethod
+        def process_statementlist_nodes(cls, app, doctree, fromdocname):
+            """
+            Replace todolist objects (placed into document using
+            .. statementlist::) with automatically generated table
+            of statements.
+            """
+            env = app.builder.env
+            iscconf = env.get_domain(cls.name)
+
+            table_header = [
+                TableColumn("ref", "Statement name"),
+                TableColumn("short", "Short desc"),
+                TableColumn("tags", "Tags"),
+            ]
+            table_b = DictToDocutilsTableBuilder(table_header)
+            table_b.append_iterable(iscconf.list_all(fromdocname))
+            table = table_b.get_docutils()
+            for node in doctree.traverse(todolist):
+                node.replace_self(table)
+
+        def list_all(self, fromdocname):
+            for statement in self.data["statements"]:
+                name, sig, _const, _doc, _anchor, _prio = statement
+                extra = self.data["statements_extra"][name]
+                short = extra["short"]
+                tags = ", ".join(extra["tags"])
+
+                refpara = nodes.inline()
+                refpara += self.resolve_xref(
+                    self.env,
+                    fromdocname,
+                    self.env.app.builder,
+                    None,
+                    sig,
+                    None,
+                    nodes.Text(sig),
+                )
+
+                yield {
+                    "fullname": name,
+                    "ref": refpara,
+                    "short": short,
+                    "tags": tags,
+                }
+
     return ISCConfDomain
 
 
-def setup(app, domainname, confname):
+# source dict key: human description
+TableColumn = namedtuple("TableColumn", ["dictkey", "description"])
+
+
+class DictToDocutilsTableBuilder:
+    """generate docutils table"""
+
+    def __init__(self, header):
+        """@param header: [ordered list of TableColumn]s"""
+        self.header = header
+        self.table = nodes.table()
+        self.table["classes"] += ["colwidths-auto"]
+        self.returned = False
+        # inner nodes of the table
+        self.tgroup = nodes.tgroup(cols=len(self.header))
+        for _ in range(len(self.header)):
+            # ignored because of colwidths-auto, but must be present
+            colspec = nodes.colspec(colwidth=1)
+            self.tgroup.append(colspec)
+        self.table += self.tgroup
+        self._gen_header()
+
+        self.tbody = nodes.tbody()
+        self.tgroup += self.tbody
+
+    def _gen_header(self):
+        thead = nodes.thead()
+
+        row = nodes.row()
+        for column in self.header:
+            entry = nodes.entry()
+            entry += nodes.Text(column.description)
+            row += entry
+
+        thead.append(row)
+        self.tgroup += thead
+
+    def append_iterable(self, objects):
+        """Append rows for each object (dict), ir order.
+        Extract column values from keys listed in self.header."""
+        for obj in objects:
+            row = nodes.row()
+            for column in self.header:
+                entry = nodes.entry()
+                value = obj[column.dictkey]
+                if isinstance(value, str):
+                    value = nodes.Text(value)
+                entry += value
+                row += entry
+            self.tbody.append(row)
+
+    def get_docutils(self):
+        # guard against table reuse - that's most likely an error
+        assert not self.returned
+        self.returned = True
+        return self.table
+
+
+def setup(app, domainname, confname, docutilsplaceholder):
     """
     Install new parametrized Sphinx domain.
     """
 
-    Conf = domain_factory(domainname, confname)
+    Conf = domain_factory(domainname, confname, docutilsplaceholder)
     app.add_domain(Conf)
+    app.connect("doctree-resolved", Conf.process_statementlist_nodes)
 
     return {
         "version": "0.1",

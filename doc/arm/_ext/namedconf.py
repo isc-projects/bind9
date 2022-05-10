@@ -15,8 +15,17 @@
 Sphinx domain "namedconf". See iscconf.py for details.
 
 """
+from docutils import nodes
+
 import iscconf
 
 
+class ToBeReplacedStatementList(nodes.General, nodes.Element):
+    """
+    Placeholder, does nothing, but must be picklable
+    (= cannot be in generated class).
+    """
+
+
 def setup(app):
-    return iscconf.setup(app, "namedconf", "named.conf")
+    return iscconf.setup(app, "namedconf", "named.conf", ToBeReplacedStatementList)
