@@ -9917,11 +9917,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(server->viewlist, view, link);
-		if (flush) {
-			dns_view_flushanddetach(&view);
-		} else {
-			dns_view_detach(&view);
-		}
+		dns_view_flushonshutdown(view, flush);
+		dns_view_detach(&view);
 	}
 
 	/*

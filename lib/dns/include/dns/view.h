@@ -298,7 +298,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 void
 dns_view_attach(dns_view_t *source, dns_view_t **targetp);
 /*%<
- * Attach '*targetp' to 'source'.
+ * Attach '*targetp' to 'source', incrementing the view's reference
+ * counter.
  *
  * Requires:
  *
@@ -316,22 +317,12 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp);
 void
 dns_view_detach(dns_view_t **viewp);
 /*%<
- * Detach '*viewp' from its view.
- *
- * Requires:
- *
- *\li	'viewp' points to a valid dns_view_t *
- *
- * Ensures:
- *
- *\li	*viewp is NULL.
- */
-
-void
-dns_view_flushanddetach(dns_view_t **viewp);
-/*%<
- * Detach '*viewp' from its view.  If this was the last reference
- * uncommitted changed in zones will be flushed to disk.
+ * Detach '*viewp' and decrement the view's reference counter.  If this was
+ * the last reference, then the associated resolver, requestmgr, ADB and
+ * zones will be shut down; if dns_view_flushonshutdown() has been called
+ * with 'true', uncommitted changed in zones will also be flushed to disk.
+ * The view will not be fully destroyed, however, until the weak references
+ * (see below) reach zero as well.
  *
  * Requires:
  *
@@ -345,7 +336,13 @@ dns_view_flushanddetach(dns_view_t **viewp);
 void
 dns_view_weakattach(dns_view_t *source, dns_view_t **targetp);
 /*%<
- * Weakly attach '*targetp' to 'source'.
+ * Attach '*targetp' to 'source', incrementing the view's weak reference
+ * counter.
+ *
+ * Weak references are used by objects such as the resolver, requestmgr,
+ * ADB, and zones, which are subsidiary to the view; they need the view
+ * object to remain in existence as long as they persist, but they do
+ * not need to prevent it from being shut down.
  *
  * Requires:
  *
@@ -363,7 +360,8 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp);
 void
 dns_view_weakdetach(dns_view_t **targetp);
 /*%<
- * Detach '*viewp' from its view.
+ * Detach '*viewp' from its view. If this is the last weak reference,
+ * the view will be destroyed.
  *
  * Requires:
  *
@@ -1359,4 +1357,13 @@ dns_view_staleanswerenabled(dns_view_t *view);
  *\li	'view' to be valid.
  */
 
+void
+dns_view_flushonshutdown(dns_view_t *view, bool flush);
+/*%<
+ * Inform the view that the zones should (or should not) be flushed to
+ * disk on shutdown.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
 ISC_LANG_ENDDECLS

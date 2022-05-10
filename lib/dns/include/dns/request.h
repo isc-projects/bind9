@@ -65,8 +65,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  *
  *\li	'mctx' is a valid memory context.
  *
- *\li	'socketmgr' is a valid socket manager.
- *
  *\li	'taskmgr' is a valid task manager.
  *
  *\li	'dispatchv4' is a valid dispatcher with an IPv4 UDP socket, or is NULL.
