@@ -2760,7 +2760,8 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 		debug("canceling pending query %p, belonging to %p", query,
 		      query->lookup);
 		query->canceled = true;
-		if (query->readhandle != NULL) {
+		if (query->readhandle != NULL &&
+		    !isc_nm_is_http_handle(query->readhandle)) {
 			isc_nm_cancelread(query->readhandle);
 		}
 		query_detach(&query);
@@ -4618,7 +4619,8 @@ cancel_all(void) {
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			q->canceled = true;
-			if (q->readhandle != NULL) {
+			if (q->readhandle != NULL &&
+			    !isc_nm_is_http_handle(q->readhandle)) {
 				isc_nm_cancelread(q->readhandle);
 			}
 			query_detach(&q);
