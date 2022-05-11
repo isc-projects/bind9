@@ -2,6 +2,7 @@ include $(top_srcdir)/Makefile.top
 include $(top_srcdir)/Makefile.docs
 
 OPTIONS_FILES =				\
+	rndc.grammar			\
 	options				\
 	options.active			\
 	primary.zoneopt			\
@@ -68,6 +69,9 @@ cfg_test_LDADD =			\
 
 BUILT_SOURCES =				\
 	$(OPTIONS_FILES)
+
+rndc.grammar: cfg_test
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --rndc --grammar | $(PERL) $(srcdir)/sort-options.pl > $@
 
 options: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl > $@
