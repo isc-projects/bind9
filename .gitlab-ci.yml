@@ -198,17 +198,6 @@ stages:
     - web
     - schedules
 
-.release-branch-triggering-rules: &release_branch_triggering_rules
-  only:
-    - api
-    - merge_requests
-    - tags
-    - triggers
-    - web
-    - schedules
-    - main@isc-projects/bind9
-    - /^v9_[1-9][0-9]$/@isc-projects/bind9
-
 .schedules-tags-web-triggering-rules: &schedules_tags_web_triggering_rules
   only:
     - api
@@ -223,7 +212,7 @@ stages:
   stage: precheck
 
 .autoconf: &autoconf_job
-  <<: *release_branch_triggering_rules
+  <<: *default_triggering_rules
   <<: *base_image
   stage: precheck
   script:
@@ -525,7 +514,7 @@ tarball-create:
 # Jobs for doc builds on Debian 11 "bullseye" (amd64)
 
 docs:
-  <<: *release_branch_triggering_rules
+  <<: *default_triggering_rules
   <<: *base_image
   stage: docs
   before_script:
