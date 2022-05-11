@@ -65,7 +65,6 @@ stages:
   - system
   - performance
   - docs
-  - push
   - postcheck
   - release
 
@@ -527,7 +526,6 @@ tarball-create:
       artifacts: true
 
 # Jobs for doc builds on Debian 11 "bullseye" (amd64)
-# Long "docs" job artifact retention is needed for bind.isc.org web site
 
 docs:
   <<: *release_branch_triggering_rules
@@ -540,7 +538,6 @@ docs:
       artifacts: true
   artifacts:
     untracked: true
-    expire_in: "1 month"
 
 docs:tarball:
   <<: *default_triggering_rules
@@ -552,18 +549,6 @@ docs:tarball:
   needs:
     - job: tarball-create
       artifacts: true
-
-push:docs:
-  <<: *base_image
-  stage: push
-  needs:
-    - job: docs
-      artifacts: false
-  script:
-    - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=main $GITLAB_PAGES_DOCS_TRIGGER_URL
-  only:
-    - main@isc-projects/bind9
-    - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 # Jobs for regular GCC builds on Alpine Linux 3.15 (amd64)
 
