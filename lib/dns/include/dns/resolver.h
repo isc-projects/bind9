@@ -736,4 +736,64 @@ void
 dns_resolver_setfuzzing(void);
 #endif /* ifdef ENABLE_AFL */
 
+void
+dns_resolver_setstats(dns_resolver_t *res, isc_stats_t *stats);
+/*%<
+ * Set a general resolver statistics counter set 'stats' for 'res'.
+ *
+ * Requires:
+ * \li	'res' is valid.
+ *
+ *\li	stats is a valid statistics supporting resolver statistics counters
+ *	(see dns/stats.h).
+ */
+
+void
+dns_resolver_getstats(dns_resolver_t *res, isc_stats_t **statsp);
+/*%<
+ * Get the general statistics counter set for 'res'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'res' is valid.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL
+ */
+
+void
+dns_resolver_incstats(dns_resolver_t *res, isc_statscounter_t counter);
+/*%<
+ * Increment the specified statistics counter in res->stats, if res->stats
+ * is set.
+ *
+ * Requires:
+ * \li	'res' is valid.
+ */
+
+void
+dns_resolver_setquerystats(dns_resolver_t *res, dns_stats_t *stats);
+/*%<
+ * Set a statistics counter set of rdata type, 'stats', for 'res'.  Once the
+ * statistic set is installed, the resolver will count outgoing queries
+ * per rdata type.
+ *
+ * Requires:
+ * \li	'res' is valid.
+ *
+ *\li	stats is a valid statistics created by dns_rdatatypestats_create().
+ */
+
+void
+dns_resolver_getquerystats(dns_resolver_t *res, dns_stats_t **statsp);
+/*%<
+ * Get the rdatatype statistics counter set for 'res'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'res' is valid.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL
+ */
 ISC_LANG_ENDDECLS

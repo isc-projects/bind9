@@ -115,6 +115,8 @@ struct dns_adb {
 	isc_ht_t *entrybuckets;
 	isc_rwlock_t entries_lock;
 
+	isc_stats_t *stats;
+
 	isc_event_t cevent;
 	bool cevent_out;
 	atomic_bool exiting;
@@ -487,10 +489,8 @@ DP(int level, const char *format, ...) {
  * Increment resolver-related statistics counters.
  */
 static void
-inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->resstats != NULL) {
-		isc_stats_increment(adb->view->resstats, counter);
-	}
+inc_resstats(dns_adb_t *adb, isc_statscounter_t counter) {
+	dns_resolver_incstats(adb->view->resolver, counter);
 }
 
 /*%
@@ -498,22 +498,22 @@ inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
  */
 static void
 set_adbstat(dns_adb_t *adb, uint64_t val, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_set(adb->view->adbstats, val, counter);
+	if (adb->stats != NULL) {
+		isc_stats_set(adb->stats, val, counter);
 	}
 }
 
 static void
 dec_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_decrement(adb->view->adbstats, counter);
+	if (adb->stats != NULL) {
+		isc_stats_decrement(adb->stats, counter);
 	}
 }
 
 static void
 inc_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_increment(adb->view->adbstats, counter);
+	if (adb->stats != NULL) {
+		isc_stats_increment(adb->stats, counter);
 	}
 }
 
@@ -2075,6 +2075,7 @@ destroy(dns_adb_t *adb) {
 	isc_rwlock_destroy(&adb->entries_lock);
 	isc_mutex_destroy(&adb->lock);
 
+	isc_stats_detach(&adb->stats);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
 
@@ -2129,7 +2130,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	isc_task_setname(adb->task, "ADB", adb);
 
-	result = isc_stats_create(adb->mctx, &view->adbstats, dns_adbstats_max);
+	result = isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS) {
 		goto free_task;
 	}
@@ -3244,7 +3245,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			} else {
 				name->fetch_err = FIND_ERR_NXRRSET;
 			}
-			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
@@ -3257,7 +3258,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			} else {
 				name->fetch6_err = FIND_ERR_NXRRSET;
 			}
-			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3301,11 +3302,11 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 10);
 			name->fetch_err = FIND_ERR_FAILURE;
-			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			name->expire_v6 = ISC_MIN(name->expire_v6, now + 10);
 			name->fetch6_err = FIND_ERR_FAILURE;
-			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3396,10 +3397,10 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 
 	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
-		inc_stats(adb, dns_resstatscounter_gluefetchv4);
+		inc_resstats(adb, dns_resstatscounter_gluefetchv4);
 	} else {
 		adbname->fetch_aaaa = fetch;
-		inc_stats(adb, dns_resstatscounter_gluefetchv6);
+		inc_resstats(adb, dns_resstatscounter_gluefetchv6);
 	}
 	fetch = NULL; /* Keep us from cleaning this up below. */
 
@@ -4021,4 +4022,11 @@ dns_adb_endudpfetch(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
 	REQUIRE(atomic_fetch_sub_release(&addr->entry->active, 1) != 0);
+}
+
+isc_stats_t *
+dns_adb_getstats(dns_adb_t *adb) {
+	REQUIRE(DNS_ADB_VALID(adb));
+
+	return (adb->stats);
 }

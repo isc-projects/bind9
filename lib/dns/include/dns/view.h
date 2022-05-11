@@ -101,16 +101,13 @@ struct dns_view {
 	dns_keytable_t *secroots_priv;
 	dns_ntatable_t *ntatable_priv;
 
-	isc_mutex_t  lock;
-	bool	     frozen;
-	isc_task_t  *task;
-	isc_event_t  resevent;
-	isc_event_t  adbevent;
-	isc_event_t  reqevent;
-	isc_stats_t *adbstats;
-	isc_stats_t *resstats;
-	dns_stats_t *resquerystats;
-	bool	     cacheshared;
+	isc_mutex_t lock;
+	bool	    frozen;
+	isc_task_t *task;
+	isc_event_t resevent;
+	isc_event_t adbevent;
+	isc_event_t reqevent;
+	bool	    cacheshared;
 
 	/* Configurable data. */
 	dns_transport_list_t *transports;
@@ -1016,82 +1013,6 @@ dns_view_freezezones(dns_view_t *view, bool freeze);
  *
  * Requires:
  * \li	'view' is valid.
- */
-
-void
-dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats);
-/*%<
- * Set a adb statistics set 'stats' for 'view'.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics supporting adb statistics
- *	(see dns/stats.h).
- */
-
-void
-dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp);
-/*%<
- * Get the adb statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
- */
-
-void
-dns_view_setresstats(dns_view_t *view, isc_stats_t *stats);
-/*%<
- * Set a general resolver statistics counter set 'stats' for 'view'.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics supporting resolver statistics counters
- *	(see dns/stats.h).
- */
-
-void
-dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp);
-/*%<
- * Get the general statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
- */
-
-void
-dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats);
-/*%<
- * Set a statistics counter set of rdata type, 'stats', for 'view'.  Once the
- * statistic set is installed, view's resolver will count outgoing queries
- * per rdata type.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics created by dns_rdatatypestats_create().
- */
-
-void
-dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
-/*%<
- * Get the rdatatype statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 bool

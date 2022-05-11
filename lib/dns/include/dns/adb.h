@@ -807,4 +807,12 @@ dns_adb_endudpfetch(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
  *\li	addr be valid.
  */
 
+isc_stats_t *
+dns_adb_getstats(dns_adb_t *adb);
+/*%<
+ * Get the adb statistics counter set for 'adb'.
+ *
+ * Requires:
+ * \li 'adb' is valid.
+ */
 ISC_LANG_ENDDECLS

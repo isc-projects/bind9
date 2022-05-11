@@ -556,6 +556,8 @@ struct dns_resolver {
 	unsigned int maxdepth;
 	unsigned int maxqueries;
 	isc_result_t quotaresp[2];
+	isc_stats_t *stats;
+	dns_stats_t *querystats;
 
 	/* Additions for serve-stale feature. */
 	unsigned int retryinterval; /* in milliseconds */
@@ -911,15 +913,22 @@ rctx_ncache(respctx_t *rctx);
  */
 static void
 inc_stats(dns_resolver_t *res, isc_statscounter_t counter) {
-	if (res->view->resstats != NULL) {
-		isc_stats_increment(res->view->resstats, counter);
+	if (res->stats != NULL) {
+		isc_stats_increment(res->stats, counter);
 	}
 }
 
 static void
 dec_stats(dns_resolver_t *res, isc_statscounter_t counter) {
-	if (res->view->resstats != NULL) {
-		isc_stats_decrement(res->view->resstats, counter);
+	if (res->stats != NULL) {
+		isc_stats_decrement(res->stats, counter);
+	}
+}
+
+static void
+set_stats(dns_resolver_t *res, isc_statscounter_t counter, uint64_t val) {
+	if (res->stats != NULL) {
+		isc_stats_set(res->stats, val, counter);
 	}
 }
 
@@ -2933,8 +2942,8 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		} else {
 			inc_stats(res, dns_resstatscounter_queryv6);
 		}
-		if (res->view->resquerystats != NULL) {
-			dns_rdatatypestats_increment(res->view->resquerystats,
+		if (res->querystats != NULL) {
+			dns_rdatatypestats_increment(res->querystats,
 						     fctx->type);
 		}
 		break;
@@ -10092,6 +10101,13 @@ destroy(dns_resolver_t *res) {
 
 	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
 
+	if (res->querystats != NULL) {
+		dns_stats_detach(&res->querystats);
+	}
+	if (res->stats != NULL) {
+		isc_stats_detach(&res->stats);
+	}
+
 	isc_mutex_destroy(&res->primelock);
 	isc_mutex_destroy(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
@@ -10241,11 +10257,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 				   &res->badcache);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_res;
-	}
-
-	if (view->resstats != NULL) {
-		isc_stats_set(view->resstats, ntasks,
-			      dns_resstatscounter_buckets);
 	}
 
 	res->buckets = isc_mem_get(view->mctx,
@@ -11565,4 +11576,50 @@ dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries) {
 	REQUIRE(tries > 0);
 
 	resolver->nonbackofftries = tries;
+}
+
+void
+dns_resolver_setstats(dns_resolver_t *res, isc_stats_t *stats) {
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->stats == NULL);
+
+	isc_stats_attach(stats, &res->stats);
+
+	/* initialize the bucket "counter"; it's a static value */
+	set_stats(res, dns_resstatscounter_buckets, res->nbuckets);
+}
+
+void
+dns_resolver_getstats(dns_resolver_t *res, isc_stats_t **statsp) {
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (res->stats != NULL) {
+		isc_stats_attach(res->stats, statsp);
+	}
+}
+
+void
+dns_resolver_incstats(dns_resolver_t *res, isc_statscounter_t counter) {
+	REQUIRE(VALID_RESOLVER(res));
+
+	isc_stats_increment(res->stats, counter);
+}
+
+void
+dns_resolver_setquerystats(dns_resolver_t *res, dns_stats_t *stats) {
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->querystats == NULL);
+
+	dns_stats_attach(stats, &res->querystats);
+}
+
+void
+dns_resolver_getquerystats(dns_resolver_t *res, dns_stats_t **statsp) {
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (res->querystats != NULL) {
+		dns_stats_attach(res->querystats, statsp);
+	}
 }
