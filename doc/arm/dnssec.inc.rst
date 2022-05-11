@@ -37,24 +37,114 @@ anchor. Typically this is the public key of the DNS root zone, although you
 can also configure a trust anchor that is the public key of this zone or
 another zone above this on in the DNS tree.
 
-.. _generating_dnssec_keys:
+.. _dnssec_keys:
 
 DNSSEC Keys
 ~~~~~~~~~~~
 
-Generating Keys
-^^^^^^^^^^^^^^^
-
-The :iscman:`dnssec-keygen` program is used to generate keys.
-
 A secure zone must contain one or more zone keys. The zone keys
 sign all other records in the zone, as well as the zone keys of any
-secure delegated zones. Zone keys must have the same name as the zone, have a
+secure delegated zones. It is recommended that zone keys use one of the
+cryptographic algorithms designated as "mandatory to implement" by the
+IETF, that is either RSASHA256 or ECDSAP256SHA256.
+
+Zone keys must have the same name as the zone, have a
 name type of ``ZONE``, and be usable for authentication. It is
 recommended that zone keys use a cryptographic algorithm designated as
 "mandatory to implement" by the IETF. Currently there are two algorithms,
 RSASHA256 and ECDSAP256SHA256; ECDSAP256SHA256 is recommended for
 current and future deployments.
+
+Keys are stored in files, ``Kdnssec.example.+013+12345.key`` and
+``Kdnssec.example.+013+12345.private`` (where 12345 is an example of a
+key tag). The key filenames contain the key name (``dnssec.example.``),
+the algorithm (5 is RSASHA1, 8 is RSASHA256, 13 is ECDSAP256SHA256, 15 is
+ED25519, etc.), and the key tag (12345 in this case). The private key (in
+the ``.private`` file) is used to generate signatures, and the public
+key (in the ``.key`` file) is used for signature verification.
+
+.. _dnssec_zone_signing:
+
+Zone Signing
+~~~~~~~~~~~~
+
+To sign a zone, configure a key and signing policy for the zone. The
+configuration below will sign the zone ``dnssec.example`` according to the
+built-in default policy:
+
+::
+
+    zone "dnssec.example" {
+        type primary;
+        dnssec-policy default;
+        file "dnssec.example.db";
+    };
+
+..
+
+This will create the necessary keys and generates ``DNSKEY``, ``RRSIG`` and
+``NSEC`` records for the zone. BIND will now also take care of any DNSSEC
+maintenance for this zone, including replacing signatures that are about to
+expire and managing key rollovers.
+
+The file ``dnssec.example.db`` remains untouched and the signed zone is stored
+on disk in ``dnssec.example.db.signed``. In addition to the
+``Kdnssec.example.+013+12345.key`` and ``Kdnssec.example.+013+12345.private``
+key files, this method stores another file on disk,
+``Kdnssec.example+013+12345.state``, that tracks DNSSEC key timings and are
+used to perform key rollovers safely.
+
+The default policy creates one key that is used to sign the complete zone,
+and uses ``NSEC`` to enable authenticated denial of existence (a secure way
+to tell which records do not exist in your zone). How to create your own
+policy is decribed in the section below.
+
+.. _dnssec_kasp:
+
+Key and Signing Policy
+^^^^^^^^^^^^^^^^^^^^^^
+
+A key and signing policy (KASP) is a piece of configuration that describes
+how to make a zone DNSSEC secure. The built-in ``default`` policy uses the most
+common DNSSEC practices, but you can define a custom policy by adding a
+``dnssec-policy`` clause in your configuration:
+
+::
+
+    dnssec-policy "custom" {
+        dnskey-ttl 600;
+        keys {
+            ksk lifetime PT1Y algorithm rsasha256 2048;
+            zsk lifetime 60d  algorithm rsasha256 2048;
+        };
+    };
+
+..
+
+This ``custom`` policy for example, uses a short ``DNSKEY`` TTL (600 seconds)
+and it uses two keys to sign the zone (a KSK to sign the key related RRsets,
+``DNSKEY``, ``CDS``, and ``CDNSKEY``, and a ZSK to sign the rest of the zone).
+The configured keys also have a lifetime set and use a different algorithm.
+
+``dnssec-policy`` is described in more detail later in this document.
+
+The :ref:`dnssec_advanced_discussions` in the DNSSEC Guide discusses the
+various policy settings and may help you determining which values you should
+use.
+
+.. _dnssec_tools:
+
+DNSSEC Tools
+^^^^^^^^^^^^
+
+There are several tools available if you want to sign your zone manually.
+
+.. warning::
+
+   Please note manual procedures are available mainly for backwards
+   compatibility and should be used only by expert users with specific needs.
+
+The :iscman:`dnssec-keygen` program is used to generate keys.
 
 The following command generates an ECDSAP256SHA256 key for the
 ``child.example`` zone:
@@ -79,17 +169,13 @@ crypto hardware device and build the key files. Its usage is similar to
 The public keys should be inserted into the zone file by including the
 ``.key`` files using ``$INCLUDE`` statements.
 
-.. _dnssec_zone_signing:
-
-Signing the Zone
-^^^^^^^^^^^^^^^^
-
 The :iscman:`dnssec-signzone` program is used to sign a zone.
 
 Any ``keyset`` files corresponding to secure sub-zones should be
 present. The zone signer generates ``NSEC``, ``NSEC3``, and ``RRSIG``
-records for the zone, as well as ``DS`` for the child zones if :option:`-g <dnssec-signzone -g>`
-is specified. If :option:`-g <dnssec-signzone -g>` is not specified, then DS RRsets for the
+records for the zone, as well as ``DS`` for the child zones if
+:option:`-g <dnssec-signzone -g>` is specified. If
+:option:`-g <dnssec-signzone -g>` is not specified, then DS RRsets for the
 secure child zones need to be added manually.
 
 By default, all zone keys which have an available private key are used
@@ -107,8 +193,8 @@ corresponding ``DS`` records) that are the secure entry point to the zone.
 
 .. _dnssec_config:
 
-Configuring Servers for DNSSEC
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DNSSEC Validation
+~~~~~~~~~~~~~~~~~
 
 To enable :iscman:`named` to validate answers received from other servers, the
 ``dnssec-validation`` option must be set to either ``yes`` or ``auto``.
