@@ -531,8 +531,6 @@ docs:
   <<: *release_branch_triggering_rules
   <<: *base_image
   <<: *docs_job
-  before_script:
-    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   needs:
     - job: autoreconf
       artifacts: true
@@ -544,7 +542,6 @@ docs:tarball:
   <<: *base_image
   <<: *docs_job
   before_script:
-    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - *unpack_release_tarball
   needs:
     - job: tarball-create
