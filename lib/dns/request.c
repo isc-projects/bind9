@@ -58,7 +58,6 @@ struct dns_requestmgr {
 	dns_dispatch_t *dispatchv4;
 	dns_dispatch_t *dispatchv6;
 	atomic_bool exiting;
-	isc_eventlist_t whenshutdown;
 	unsigned int hash;
 	isc_mutex_t locks[DNS_REQUEST_NLOCKS];
 	dns_requestlist_t requests;
@@ -103,9 +102,6 @@ static void
 mgr_destroy(dns_requestmgr_t *requestmgr);
 static unsigned int
 mgr_gethash(dns_requestmgr_t *requestmgr);
-static void
-send_shutdown_events(dns_requestmgr_t *requestmgr);
-
 static isc_result_t
 req_render(dns_message_t *message, isc_buffer_t **buffer, unsigned int options,
 	   isc_mem_t *mctx);
@@ -166,7 +162,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	isc_refcount_init(&requestmgr->references, 1);
 
-	ISC_LIST_INIT(requestmgr->whenshutdown);
 	ISC_LIST_INIT(requestmgr->requests);
 
 	atomic_init(&requestmgr->exiting, false);
@@ -177,37 +172,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	*requestmgrp = requestmgr;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
-			    isc_event_t **eventp) {
-	isc_task_t *tclone;
-	isc_event_t *event;
-
-	req_log(ISC_LOG_DEBUG(3), "dns_requestmgr_whenshutdown");
-
-	REQUIRE(VALID_REQUESTMGR(requestmgr));
-	REQUIRE(eventp != NULL);
-
-	event = *eventp;
-	*eventp = NULL;
-
-	LOCK(&requestmgr->lock);
-
-	if (atomic_load_acquire(&requestmgr->exiting)) {
-		/*
-		 * We're already shutdown.  Send the event.
-		 */
-		event->ev_sender = requestmgr;
-		isc_task_send(task, &event);
-	} else {
-		tclone = NULL;
-		isc_task_attach(task, &tclone);
-		event->ev_sender = tclone;
-		ISC_LIST_APPEND(requestmgr->whenshutdown, event, ev_link);
-	}
-	UNLOCK(&requestmgr->lock);
 }
 
 void
@@ -230,11 +194,6 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 	{
 		dns_request_cancel(request);
 	}
-
-	if (ISC_LIST_EMPTY(requestmgr->requests)) {
-		send_shutdown_events(requestmgr);
-	}
-
 	UNLOCK(&requestmgr->lock);
 }
 
@@ -275,28 +234,6 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 	if (ref == 1) {
 		INSIST(ISC_LIST_EMPTY(requestmgr->requests));
 		mgr_destroy(requestmgr);
-	}
-}
-
-/* FIXME */
-static void
-send_shutdown_events(dns_requestmgr_t *requestmgr) {
-	isc_event_t *event, *next_event;
-	isc_task_t *etask;
-
-	req_log(ISC_LOG_DEBUG(3), "send_shutdown_events: %p", requestmgr);
-
-	/*
-	 * Caller must be holding the manager lock.
-	 */
-	for (event = ISC_LIST_HEAD(requestmgr->whenshutdown); event != NULL;
-	     event = next_event)
-	{
-		next_event = ISC_LIST_NEXT(event, ev_link);
-		ISC_LIST_UNLINK(requestmgr->whenshutdown, event, ev_link);
-		etask = event->ev_sender;
-		event->ev_sender = requestmgr;
-		isc_task_sendanddetach(&etask, &event);
 	}
 }
 
@@ -1163,27 +1100,13 @@ req_attach(dns_request_t *source, dns_request_t **targetp) {
 static void
 req_detach(dns_request_t **requestp) {
 	dns_request_t *request = NULL;
-	uint_fast32_t ref;
 
 	REQUIRE(requestp != NULL && VALID_REQUEST(*requestp));
 
 	request = *requestp;
 	*requestp = NULL;
 
-	ref = isc_refcount_decrement(&request->references);
-
-	if (request->requestmgr != NULL &&
-	    atomic_load_acquire(&request->requestmgr->exiting))
-	{
-		/* We are shutting down and this was last request */
-		LOCK(&request->requestmgr->lock);
-		if (ISC_LIST_EMPTY(request->requestmgr->requests)) {
-			send_shutdown_events(request->requestmgr);
-		}
-		UNLOCK(&request->requestmgr->lock);
-	}
-
-	if (ref == 1) {
+	if (isc_refcount_decrement(&request->references) == 1) {
 		req_destroy(request);
 	}
 }

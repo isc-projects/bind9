@@ -75,9 +75,6 @@
 #define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
 
-static void
-req_shutdown(isc_task_t *task, isc_event_t *event);
-
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
@@ -125,10 +122,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	ISC_LIST_INIT(view->dns64);
 
 	ISC_LINK_INIT(view, link);
-
-	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
-		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown, view, NULL,
-		       NULL, NULL);
 
 	isc_mem_attach(mctx, &view->mctx);
 
@@ -520,6 +513,7 @@ dns_view_detach(dns_view_t **viewp) {
 		}
 		if (view->requestmgr != NULL) {
 			dns_requestmgr_shutdown(view->requestmgr);
+			dns_requestmgr_detach(&view->requestmgr);
 		}
 
 		LOCK(&view->lock);
@@ -612,21 +606,6 @@ dns_view_weakdetach(dns_view_t **viewp) {
 	}
 }
 
-static void
-req_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->task == task);
-
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	dns_view_weakdetach(&view);
-}
-
 isc_result_t
 dns_view_createzonetable(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -644,7 +623,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
-	isc_event_t *event = NULL;
 	isc_mem_t *mctx = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -680,10 +658,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_adb;
 	}
-
-	dns_view_weakattach(view, &(dns_view_t *){ NULL });
-	event = &view->reqevent;
-	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
 
 	return (ISC_R_SUCCESS);
 

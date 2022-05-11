@@ -104,7 +104,6 @@ struct dns_view {
 	isc_mutex_t lock;
 	bool	    frozen;
 	isc_task_t *task;
-	isc_event_t reqevent;
 	bool	    cacheshared;
 
 	/* Configurable data. */
