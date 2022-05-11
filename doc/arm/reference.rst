@@ -2721,9 +2721,6 @@ options are:
    UDP and TCP queries, but the port applies only to UDP queries. TCP
    queries always use a random unprivileged port.
 
-.. note:: Solaris 2.5.1 and earlier does not support setting the source address
-   for TCP sockets.
-
 .. warning:: Specifying a single port is discouraged, as it removes a layer of
    protection against spoofing errors.
 
@@ -2866,9 +2863,6 @@ options apply to zone transfers.
    ``transfer-source`` statement within the ``view`` or ``zone`` block
    in the configuration file.
 
-   .. note:: Solaris 2.5.1 and earlier does not support setting the source
-      address for TCP sockets.
-
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
@@ -2903,9 +2897,6 @@ options apply to zone transfers.
    ``notify-source`` for all zones, but can be overridden on a per-zone
    or per-view basis by including a ``notify-source`` statement within
    the ``zone`` or ``view`` block in the configuration file.
-
-   .. note:: Solaris 2.5.1 and earlier does not support setting the source
-      address for TCP sockets.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
@@ -5442,9 +5433,6 @@ The following options apply to DS queries sent to ``parental-agents``:
    be overridden on a per-zone or per-view basis by including a
    ``parental-source`` statement within the ``zone`` or ``view`` block in the
    configuration file.
-
-   .. note:: Solaris 2.5.1 and earlier does not support setting the source
-      address for TCP sockets.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
