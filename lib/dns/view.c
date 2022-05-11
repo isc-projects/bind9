@@ -72,13 +72,6 @@
 			goto cleanup;        \
 	} while (0)
 
-#define RESSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_RESSHUTDOWN) != 0)
-#define ADBSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
-#define REQSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_REQSHUTDOWN) != 0)
-
 #define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
 
@@ -146,10 +139,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
 		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown, view, NULL,
 		       NULL, NULL);
-
-	atomic_init(&view->attributes,
-		    (DNS_VIEWATTR_RESSHUTDOWN | DNS_VIEWATTR_ADBSHUTDOWN |
-		     DNS_VIEWATTR_REQSHUTDOWN));
 
 	isc_mem_attach(mctx, &view->mctx);
 
@@ -261,9 +250,6 @@ destroy(dns_view_t *view) {
 	dns_dlzdb_t *dlzdb;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
-	REQUIRE(RESSHUTDOWN(view));
-	REQUIRE(ADBSHUTDOWN(view));
-	REQUIRE(REQSHUTDOWN(view));
 
 	isc_refcount_destroy(&view->references);
 	isc_refcount_destroy(&view->weakrefs);
@@ -543,13 +529,13 @@ dns_view_detach(dns_view_t **viewp) {
 
 		isc_refcount_destroy(&view->references);
 
-		if (!RESSHUTDOWN(view)) {
+		if (view->resolver != NULL) {
 			dns_resolver_shutdown(view->resolver);
 		}
-		if (!ADBSHUTDOWN(view)) {
+		if (view->adb != NULL) {
 			dns_adb_shutdown(view->adb);
 		}
-		if (!REQSHUTDOWN(view)) {
+		if (view->requestmgr != NULL) {
 			dns_requestmgr_shutdown(view->requestmgr);
 		}
 
@@ -655,7 +641,6 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_RESSHUTDOWN);
 	dns_view_weakdetach(&view);
 }
 
@@ -671,8 +656,6 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_ADBSHUTDOWN);
-
 	dns_view_weakdetach(&view);
 }
 
@@ -687,8 +670,6 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_event_free(&event);
-
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_REQSHUTDOWN);
 
 	dns_view_weakdetach(&view);
 }
@@ -732,7 +713,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	event = &view->resevent;
 	dns_resolver_whenshutdown(view->resolver, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_RESSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	isc_mem_create(&mctx);
@@ -746,7 +726,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	event = &view->adbevent;
 	dns_adb_whenshutdown(view->adb, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_ADBSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	result = dns_requestmgr_create(
@@ -760,7 +739,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	event = &view->reqevent;
 	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_REQSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	return (ISC_R_SUCCESS);
