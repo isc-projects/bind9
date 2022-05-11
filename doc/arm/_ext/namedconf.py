@@ -18,6 +18,7 @@ Sphinx domain "namedconf". See iscconf.py for details.
 from docutils import nodes
 
 import iscconf
+import mergegrammar
 
 
 class ToBeReplacedStatementList(nodes.General, nodes.Element):
@@ -28,4 +29,7 @@ class ToBeReplacedStatementList(nodes.General, nodes.Element):
 
 
 def setup(app):
-    return iscconf.setup(app, "namedconf", "named.conf", ToBeReplacedStatementList)
+    grammar = mergegrammar.combine()
+    return iscconf.setup(
+        app, "namedconf", "named.conf", ToBeReplacedStatementList, grammar
+    )

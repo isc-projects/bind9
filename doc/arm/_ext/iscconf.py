@@ -34,6 +34,8 @@ from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import make_refnode
 
+import checkgrammar
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ def split_csv(argument, required):
 
 
 # pylint: disable=too-many-statements
-def domain_factory(domainname, domainlabel, todolist):
+def domain_factory(domainname, domainlabel, todolist, grammar):
     """
     Return parametrized Sphinx domain object.
     @param domainname Name used when referencing domain in .rst: e.g. namedconf
@@ -147,6 +149,14 @@ def domain_factory(domainname, domainlabel, todolist):
         }
 
         indices = {}  # no custom indicies
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.grammar = grammar
+            self.statement_blocks = checkgrammar.statement2block(grammar, ["_top"])
+            self.statement_grammar_groups = checkgrammar.diff_statements(
+                self.grammar, self.statement_blocks
+            )
 
         def get_objects(self):
             """
@@ -388,12 +398,12 @@ class DictToDocutilsTableBuilder:
         return self.table
 
 
-def setup(app, domainname, confname, docutilsplaceholder):
+def setup(app, domainname, confname, docutilsplaceholder, grammar):
     """
     Install new parametrized Sphinx domain.
     """
 
-    Conf = domain_factory(domainname, confname, docutilsplaceholder)
+    Conf = domain_factory(domainname, confname, docutilsplaceholder, grammar)
     app.add_domain(Conf)
     app.connect("doctree-resolved", Conf.process_statementlist_nodes)
 
