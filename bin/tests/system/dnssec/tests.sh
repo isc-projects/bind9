@@ -940,7 +940,7 @@ if [ -x ${DELV} ] ; then
    ret=0
    echo_i "checking that validation fails when key record is missing using dns_client ($n)"
    delv_with_opts +cd @10.53.0.4 a a.b.keyless.example > delv.out$n 2>&1 || ret=1
-   grep "resolution failed: broken trust chain" delv.out$n > /dev/null || ret=1
+   grep "resolution failed: insecurity proof failed" delv.out$n > /dev/null || ret=1
    n=$((n+1))
    test "$ret" -eq 0 || echo_i "failed"
    status=$((status+ret))
