@@ -62,6 +62,7 @@ EXTRA_DIST =					\
 	tsig.inc.rst				\
 	zones.inc.rst				\
 	_ext/iscconf.py				\
+	_ext/mergegrammar.py			\
 	_ext/namedconf.py			\
 	_ext/rndcconf.py			\
 	_static/custom.css			\
