@@ -14,7 +14,7 @@
 Supported Platforms
 -------------------
 
-Current support status of various platforms and BIND 9 versions can be
+The current support status of BIND 9 versions across various platforms can be
 found in the ISC Knowledgebase:
 
 https://kb.isc.org/docs/supported-platforms
@@ -27,22 +27,22 @@ the :ref:`required libraries <build_dependencies>`.
 The following C11 features are used in BIND 9:
 
 -  Atomic operations support, either in the form of C11 atomics or
-   ``__atomic`` builtin operations.
+   **__atomic** builtin operations.
 
 -  Thread Local Storage support, either in the form of C11
-   ``_Thread_local``/``thread_local``, or the ``__thread`` GCC
+   **_Thread_local**/**thread_local**, or the **__thread** GCC
    extension.
 
 The C11 variants are preferred.
 
 ISC regularly tests BIND on many operating systems and architectures,
 but lacks the resources to test all of them. Consequently, ISC is only
-able to offer support on a “best effort” basis for some.
+able to offer support on a “best-effort” basis for some.
 
-Regularly tested platforms
+Regularly Tested Platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As of Jan 2022, BIND 9.18 is fully supported and regularly tested on the
+As of April 2022, current versions of BIND 9 are fully supported and regularly tested on the
 following systems:
 
 -  Debian 9, 10, 11
@@ -53,10 +53,10 @@ following systems:
 -  OpenBSD 7.0
 -  Alpine Linux 3.15
 
-The amd64, i386, armhf and arm64 CPU architectures are all fully
+The amd64, i386, armhf, and arm64 CPU architectures are all fully
 supported.
 
-Best effort
+Best-Effort
 ~~~~~~~~~~~
 
 The following are platforms on which BIND is known to build and run. ISC
@@ -77,11 +77,11 @@ regularly by ISC.
 -  OpenWRT/LEDE 17.01+
 -  Other CPU architectures (mips, mipsel, sparc, …)
 
-Community maintained
+Community-Maintained
 ~~~~~~~~~~~~~~~~~~~~
 
 These systems may not all have the required dependencies for building
-BIND easily available, although it will be possible in many cases to
+BIND easily available, although it is possible in many cases to
 compile those directly from source. The community and interested parties
 may wish to help with maintenance, and we welcome patch contributions,
 although we cannot guarantee that we will accept them. All contributions
@@ -98,13 +98,22 @@ supported platforms.
 Unsupported Platforms
 ---------------------
 
-These are platforms on which BIND 9.18 is known *not* to build or run:
+These are platforms on which current versions of BIND 9 are known *not* to build or run:
 
 -  Platforms without at least OpenSSL 1.0.2
 -  Windows
 -  Solaris 10 and older
--  Platforms that don’t support IPv6 Advanced Socket API (RFC 3542)
--  Platforms that don’t support atomic operations (via compiler or
+-  Platforms that do not support IPv6 Advanced Socket API (RFC 3542)
+-  Platforms that do not support atomic operations (via compiler or
    library)
 -  Linux without NPTL (Native POSIX Thread Library)
--  Platforms on which ``libuv`` cannot be compiled
+-  Platforms on which **libuv** cannot be compiled
+
+Installing BIND 9
+-----------------
+
+:ref:`build_bind` contains complete instructions for how to build BIND 9.
+
+The ISC `Knowledgebase <https://kb.isc.org/>`_ contains many useful articles about installing
+BIND 9 on specific platforms.
+

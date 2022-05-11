@@ -142,18 +142,7 @@ exclude_patterns = [
     '_build',
     'Thumbs.db',
     '.DS_Store',
-    '*.grammar.rst',
-    '*.zoneopts.rst',
-    'build.rst',
-    'catz.rst',
-    'dlz.rst',
-    'dnssec.rst',
-    'dyndb.rst',
-    'logging-categories.rst',
-    'managed-keys.rst',
-    'pkcs11.rst',
-    'platforms.rst',
-    'plugins.rst'
+    '*.inc.rst'
     ]
 
 # The master toctree document.

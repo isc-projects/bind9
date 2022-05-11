@@ -12,7 +12,7 @@
 .. _module-info:
 
 Plugins
--------
+~~~~~~~
 
 Plugins are a mechanism to extend the functionality of :iscman:`named` using
 dynamically loadable libraries. By using plugins, core server

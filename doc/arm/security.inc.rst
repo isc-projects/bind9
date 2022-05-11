@@ -9,12 +9,14 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. Security:
+.. _security:
 
-BIND 9 Security Considerations
-==============================
+Security Configurations
+=======================
 
-.. _Access_Control_Lists:
+.. _file_permissions:
+
+.. _access_Control_Lists:
 
 Access Control Lists
 --------------------
@@ -226,3 +228,7 @@ Some sites choose to keep all dynamically updated DNS data in a
 subdomain and delegate that subdomain to a separate zone. This way, the
 top-level zone containing critical data, such as the IP addresses of
 public web and mail servers, need not allow dynamic updates at all.
+
+.. _sec_file_transfer:
+
+.. _dns_over_tls:

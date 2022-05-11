@@ -12,7 +12,7 @@
 .. _rfc5011.support:
 
 Dynamic Trust Anchor Management
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 BIND is able to maintain DNSSEC trust anchors using :rfc:`5011` key
 management. This feature allows :iscman:`named` to keep track of changes to
@@ -20,7 +20,7 @@ critical DNSSEC keys without any need for the operator to make changes
 to configuration files.
 
 Validating Resolver
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 To configure a validating resolver to use :rfc:`5011` to maintain a trust
 anchor, configure the trust anchor using a ``trust-anchors`` statement and
@@ -28,7 +28,7 @@ the ``initial-key`` keyword. Information about this can be found in
 :ref:`trust-anchors`.
 
 Authoritative Server
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 To set up an authoritative zone for :rfc:`5011` trust anchor maintenance,
 generate two (or more) key signing keys (KSKs) for the zone. Sign the
