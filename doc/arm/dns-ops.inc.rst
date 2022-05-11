@@ -115,14 +115,29 @@ server.
    what associate the secret keys to the servers with which they are
    meant to be shared. The order of statements is not significant.
 
+.. rndcconf:statement:: options
+
    The ``options`` statement has three clauses: ``default-server``,
-   ``default-key``, and ``default-port``. ``default-server`` takes a
-   host name or address argument and represents the server that is
-   contacted if no :option:`-s <rndc -s>` option is provided on the command line.
-   ``default-key`` takes the name of a key as its argument, as defined
-   by a ``key`` statement. ``default-port`` specifies the port to which
-   :iscman:`rndc` should connect if no port is given on the command line or in
-   a ``server`` statement.
+   ``default-key``, and ``default-port``.
+
+   .. rndcconf:statement:: default-server
+
+      ``default-server`` takes a
+      host name or address argument and represents the server that is
+      contacted if no :option:`-s <rndc -s>` option is provided on the command line.
+
+   .. rndcconf:statement:: default-key
+
+      ``default-key`` takes the name of a key as its argument, as defined
+      by a ``key`` statement.
+
+   .. rndcconf:statement:: default-port
+
+      ``default-port`` specifies the port to which
+      :iscman:`rndc` should connect if no port is given on the command line or in
+      a ``server`` statement.
+
+.. rndcconf:statement:: key
 
    The ``key`` statement defines a key to be used by :iscman:`rndc` when
    authenticating with :iscman:`named`. Its syntax is identical to the ``key``
@@ -130,11 +145,20 @@ server.
    name, which must be a valid domain name, though it need not actually
    be hierarchical; thus, a string like ``rndc_key`` is a valid name.
    The ``key`` statement has two clauses: ``algorithm`` and ``secret``.
-   While the configuration parser accepts any string as the argument
-   to ``algorithm``, currently only the strings ``hmac-md5``,
-   ``hmac-sha1``, ``hmac-sha224``, ``hmac-sha256``,
-   ``hmac-sha384``, and ``hmac-sha512`` have any meaning. The secret
-   is a Base64-encoded string as specified in :rfc:`3548`.
+
+   .. rndcconf:statement:: algorithm
+
+      While the configuration parser accepts any string as the argument
+      to ``algorithm``, currently only the strings ``hmac-md5``,
+      ``hmac-sha1``, ``hmac-sha224``, ``hmac-sha256``,
+      ``hmac-sha384``, and ``hmac-sha512`` have any meaning.
+
+   .. rndcconf:statement:: secret
+
+      The secret
+      is a Base64-encoded string as specified in :rfc:`3548`.
+
+.. rndcconf:statement:: server
 
    The ``server`` statement associates a key defined using the ``key``
    statement with a server. The keyword ``server`` is followed by a host
