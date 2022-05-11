@@ -105,7 +105,6 @@ struct dns_view {
 	bool	    frozen;
 	isc_task_t *task;
 	isc_event_t resevent;
-	isc_event_t adbevent;
 	isc_event_t reqevent;
 	bool	    cacheshared;
 

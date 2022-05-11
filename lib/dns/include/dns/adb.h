@@ -309,25 +309,6 @@ dns__adb_detach(dns_adb_t **adb, const char *func, const char *file,
  */
 
 void
-dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp);
-/*%
- * Send '*eventp' to 'task' when 'adb' has shutdown.
- *
- * Requires:
- *
- *\li	'*adb' is a valid dns_adb_t.
- *
- *\li	eventp != NULL && *eventp is a valid event.
- *
- * Ensures:
- *
- *\li	*eventp == NULL
- *
- *\li	The event's sender field is set to the value of adb when the event
- *	is sent.
- */
-
-void
 dns_adb_shutdown(dns_adb_t *adb);
 /*%<
  * Shutdown 'adb'.

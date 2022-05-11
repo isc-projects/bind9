@@ -117,10 +117,7 @@ struct dns_adb {
 
 	isc_stats_t *stats;
 
-	isc_event_t cevent;
-	bool cevent_out;
 	atomic_bool exiting;
-	isc_eventlist_t whenshutdown;
 
 	uint32_t quota;
 	uint32_t atr_freq;
@@ -1237,7 +1234,9 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev->ev_destroy = event_freefind;
 			ev->ev_destroy_arg = find;
 
-			DP(DEF_LEVEL, "sending event %p to task %p for find %p",
+			DP(DEF_LEVEL,
+			   "cfan: sending event %p "
+			   "to task %p for find %p",
 			   ev, task, find);
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -2045,8 +2044,7 @@ destroy(dns_adb_t *adb) {
 
 	adb->magic = 0;
 
-	isc_task_detach(&adb->task);
-
+	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(adb->namebuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -2058,7 +2056,10 @@ destroy(dns_adb_t *adb) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&adb->namebuckets);
+	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
+	isc_rwlock_destroy(&adb->names_lock);
 
+	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(adb->entrybuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -2070,12 +2071,14 @@ destroy(dns_adb_t *adb) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&adb->entrybuckets);
-
-	isc_rwlock_destroy(&adb->names_lock);
+	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&adb->entries_lock);
+
 	isc_mutex_destroy(&adb->lock);
 
+	isc_task_detach(&adb->task);
 	isc_stats_detach(&adb->stats);
+	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
 
@@ -2096,7 +2099,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
-		.view = view,
 		.taskmgr = taskmgr,
 	};
 
@@ -2105,11 +2107,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	 * that must be NULL for the error return to work properly.
 	 */
 	isc_refcount_init(&adb->references, 1);
-	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL, 0, NULL,
-		       NULL, NULL, NULL, NULL);
-	ISC_LIST_INIT(adb->whenshutdown);
-	atomic_init(&adb->exiting, false);
-
+	dns_view_weakattach(view, &adb->view);
 	isc_mem_attach(mem, &adb->mctx);
 
 	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
@@ -2158,6 +2156,7 @@ free_lock:
 	isc_rwlock_destroy(&adb->names_lock);
 	isc_ht_destroy(&adb->namebuckets);
 
+	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 
 	return (result);
@@ -2212,38 +2211,7 @@ dns__adb_detach(dns_adb_t **adbp, const char *func, const char *file,
 }
 
 void
-dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
-	isc_event_t *event = NULL;
-
-	/*
-	 * Send '*eventp' to 'task' when 'adb' has shutdown.
-	 */
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(eventp != NULL);
-
-	event = *eventp;
-	*eventp = NULL;
-
-	if (atomic_load(&adb->exiting)) {
-		/*
-		 * We're already shutdown.  Send the event.
-		 */
-		event->ev_sender = adb;
-		isc_task_send(task, &event);
-	} else {
-		LOCK(&adb->lock);
-		isc_task_attach(task, &(isc_task_t *){ NULL });
-		event->ev_sender = task;
-		ISC_LIST_APPEND(adb->whenshutdown, event, ev_link);
-		UNLOCK(&adb->lock);
-	}
-}
-
-void
 dns_adb_shutdown(dns_adb_t *adb) {
-	isc_event_t *event = NULL;
-
 	if (!atomic_compare_exchange_strong(&adb->exiting, &(bool){ false },
 					    true)) {
 		return;
@@ -2255,17 +2223,6 @@ dns_adb_shutdown(dns_adb_t *adb) {
 
 	shutdown_names(adb);
 	shutdown_entries(adb);
-
-	LOCK(&adb->lock);
-	for (event = ISC_LIST_HEAD(adb->whenshutdown); event != NULL;
-	     event = ISC_LIST_HEAD(adb->whenshutdown))
-	{
-		isc_task_t *task = event->ev_sender;
-		event->ev_sender = adb;
-		ISC_LIST_UNLINK(adb->whenshutdown, event, ev_link);
-		isc_task_sendanddetach(&task, &event);
-	}
-	UNLOCK(&adb->lock);
 }
 
 /*
@@ -3175,7 +3132,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	name = ev->ev_arg;
 
 	REQUIRE(DNS_ADBNAME_VALID(name));
-	adb = name->adb;
+	dns_adb_attach(name->adb, &adb);
 
 	REQUIRE(DNS_ADB_VALID(adb));
 
@@ -3199,9 +3156,6 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 	INSIST(address_type != 0 && fetch != NULL);
 
-	dns_resolver_destroyfetch(&fetch->fetch);
-	dev->fetch = NULL;
-
 	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
 
 	/*
@@ -3219,11 +3173,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * potentially good data.
 	 */
 	if (NAME_DEAD(name)) {
-		free_adbfetch(adb, &fetch);
-		isc_event_free(&ev);
-		expire_name(&name, DNS_EVENT_ADBCANCELED);
-		UNLOCK(&nbucket->lock);
-		return;
+		ev_status = DNS_EVENT_ADBCANCELED;
+		goto out;
 	}
 
 	isc_stdtime_get(&now);
@@ -3327,12 +3278,16 @@ check_result:
 	}
 
 out:
+	dns_resolver_destroyfetch(&fetch->fetch);
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
-
-	clean_finds_at_name(name, ev_status, address_type);
-
+	if (ev_status == DNS_EVENT_ADBCANCELED) {
+		expire_name(&name, ev_status);
+	} else {
+		clean_finds_at_name(name, ev_status, address_type);
+	}
 	UNLOCK(&nbucket->lock);
+	dns_adb_detach(&adb);
 }
 
 static isc_result_t
