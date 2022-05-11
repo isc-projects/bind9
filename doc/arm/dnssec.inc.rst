@@ -15,7 +15,7 @@ DNSSEC
 ------
 
 Cryptographic authentication of DNS information is possible through the
-DNS Security ("DNSSEC-bis") extensions, defined in :rfc:`4033`, :rfc:`4034`,
+DNS Security Extensions (DNSSEC), defined in :rfc:`4033`, :rfc:`4034`,
 and :rfc:`4035`. This section describes the creation and use of DNSSEC
 signed zones.
 
@@ -32,9 +32,10 @@ indicated by the parent zone for a DNSSEC-capable resolver to trust its
 data. This is done through the presence or absence of a ``DS`` record at
 the delegation point.
 
-For other servers to trust data in this zone, they must be
-statically configured with either this zone's zone key or the zone key of
-another zone above this one in the DNS tree.
+For resolvers to trust data in this zone, they must be configured with a trust
+anchor. Typically this is the public key of the DNS root zone, although you
+can also configure a trust anchor that is the public key of this zone or
+another zone above this on in the DNS tree.
 
 .. _generating_dnssec_keys:
 
