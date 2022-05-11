@@ -19,8 +19,8 @@ GetOptions ('strip-not-configured' => \$strip_not_configured);
 
 print <<END;
 
-This is a summary of the named.conf options supported by
-this version of BIND 9.
+// This is a summary of the named.conf options supported by
+// this version of BIND 9.
 
 END
 
