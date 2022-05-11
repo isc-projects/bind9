@@ -32,6 +32,7 @@ database.
 
 Configuring DLZ
 ~~~~~~~~~~~~~~~
+.. namedconf:statement:: dlz
 
 A DLZ database is configured with a ``dlz`` statement in :iscman:`named.conf`:
 

@@ -170,7 +170,7 @@ the :iscman:`named.conf` file has been modified as shown:
 The added statements and clauses are commented in the above file.
 
 The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
-:ref:`allow-query-cache<allow-query-cache>`,
+:any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
 statements are described in detail in the appropriate sections.
@@ -253,7 +253,7 @@ The :iscman:`named.conf` file has been modified as shown:
 The statements and clauses added are all commented in the above file.
 
 The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
-:ref:`allow-query-cache<allow-query-cache>`,
+:any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`primaries<primaries>`,
 :ref:`recursion<recursion>`, and :ref:`type<type>` statements are described in

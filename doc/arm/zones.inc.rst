@@ -298,8 +298,6 @@ is equivalent to
 
    WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 
-.. _include_directive:
-
 The **$INCLUDE** Directive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
