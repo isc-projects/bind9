@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.1
+Notes for BIND 9.19.2
 ---------------------
 
 Security Fixes
@@ -25,33 +25,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Add DNS Extended Errors (:rfc:`8914`) when stale answers are returned from
-  cache. :gl:`#2267`
-
-- The Object Identifier (OID) embedded at the start of a PRIVATEOID public
-  key in a KEY, DNSKEY, CDNSKEY, or RKEY resource record is now checked to
-  ensure that it is valid when reading from zone files or receiving data
-  on the wire, and the OID is now printed when the ``dig +rrcomments``
-  option is used. Similarly, the name embedded at the start of a PRIVATEDNS
-  public key is also checked for validity. :gl:`#3234`
-
-- The Object Identifier (OID) embedded at the start of a PRIVATEOID
-  signature in a SIG, or RRSIG resource record is now checked to
-  ensure that it is valid when reading from zone files or receiving
-  data on the wire.  Similarly, the name embedded at the start of
-  a PRIVATEDNS public key is also checked for validity. :gl:`#3296`
-
-- Catalog Zones schema version 2, as described in the "DNS Catalog Zones" IETF
-  draft version 5 document, is now supported by :iscman:`named`. All of the
-  previously supported BIND-specific catalog zone custom properties
-  (``primaries``, ``allow-query``, and ``allow-transfer``), as well as the new
-  Change of Ownership (``coo``) property, are now implemented. Schema version 1
-  is still supported, with some additional validation rules applied from
-  schema version 2: for example, the ``version`` property is mandatory, and a
-  member zone PTR RRset must not contain more than one record. In the event of a
-  validation error, a corresponding error message is logged to help with
-  diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223` :gl:`#3224`
-  :gl:`#3225`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -66,5 +40,4 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- CDS and CDNSKEY DELETE records are removed from the zone when configured with
-  'auto-dnssec maintain;'. This has been fixed. :gl:`#2931`.
+- None.
