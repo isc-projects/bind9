@@ -76,8 +76,6 @@
 #define DNS_VIEW_FAILCACHESIZE 1021
 
 static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event);
-static void
 req_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
@@ -128,9 +126,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	ISC_LINK_INIT(view, link);
 
-	ISC_EVENT_INIT(&view->resevent, sizeof(view->resevent), 0, NULL,
-		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown, view, NULL,
-		       NULL, NULL);
 	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
 		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown, view, NULL,
 		       NULL, NULL);
@@ -517,6 +512,7 @@ dns_view_detach(dns_view_t **viewp) {
 
 		if (view->resolver != NULL) {
 			dns_resolver_shutdown(view->resolver);
+			dns_resolver_detach(&view->resolver);
 		}
 		if (view->adb != NULL) {
 			dns_adb_shutdown(view->adb);
@@ -617,21 +613,6 @@ dns_view_weakdetach(dns_view_t **viewp) {
 }
 
 static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->task == task);
-
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	dns_view_weakdetach(&view);
-}
-
-static void
 req_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 
@@ -684,17 +665,12 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		return (result);
 	}
 
-	dns_view_weakattach(view, &(dns_view_t *){ NULL });
-	event = &view->resevent;
-	dns_resolver_whenshutdown(view->resolver, view->task, &event);
-
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "ADB");
 	result = dns_adb_create(mctx, view, taskmgr, &view->adb);
 	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
-		dns_resolver_shutdown(view->resolver);
-		return (result);
+		goto cleanup_resolver;
 	}
 
 	result = dns_requestmgr_create(
@@ -702,10 +678,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		dns_resolver_dispatchmgr(view->resolver), dispatchv4,
 		dispatchv6, &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
-		dns_adb_shutdown(view->adb);
-		dns_adb_detach(&view->adb);
-		dns_resolver_shutdown(view->resolver);
-		return (result);
+		goto cleanup_adb;
 	}
 
 	dns_view_weakattach(view, &(dns_view_t *){ NULL });
@@ -713,6 +686,16 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
 
 	return (ISC_R_SUCCESS);
+
+cleanup_adb:
+	dns_adb_shutdown(view->adb);
+	dns_adb_detach(&view->adb);
+
+cleanup_resolver:
+	dns_resolver_shutdown(view->resolver);
+	dns_resolver_detach(&view->resolver);
+
+	return (result);
 }
 
 void

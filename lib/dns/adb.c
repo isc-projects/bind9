@@ -487,7 +487,9 @@ DP(int level, const char *format, ...) {
  */
 static void
 inc_resstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	dns_resolver_incstats(adb->view->resolver, counter);
+	if (adb->view != NULL && adb->view->resolver != NULL) {
+		dns_resolver_incstats(adb->view->resolver, counter);
+	}
 }
 
 /*%

@@ -242,30 +242,6 @@ dns_resolver_prime(dns_resolver_t *res);
  */
 
 void
-dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
-			  isc_event_t **eventp);
-/*%<
- * Send '*eventp' to 'task' when 'res' has completed shutdown.
- *
- * Notes:
- *
- *\li	It is not safe to detach the last reference to 'res' until
- *	shutdown is complete.
- *
- * Requires:
- *
- *\li	'res' is a valid resolver.
- *
- *\li	'task' is a valid task.
- *
- *\li	*eventp is a valid event.
- *
- * Ensures:
- *
- *\li	*eventp == NULL.
- */
-
-void
 dns_resolver_shutdown(dns_resolver_t *res);
 /*%<
  * Start the shutdown process for 'res'.

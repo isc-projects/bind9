@@ -570,7 +570,6 @@ struct dns_resolver {
 	atomic_bool priming;
 
 	/* Locked by lock. */
-	isc_eventlist_t whenshutdown;
 	isc_refcount_t activebuckets;
 	unsigned int spillat; /* clients-per-query */
 
@@ -645,8 +644,6 @@ static isc_result_t
 fctx_minimize_qname(fetchctx_t *fctx);
 static void
 fctx_destroy(fetchctx_t *fctx, bool exiting);
-static void
-send_shutdown_events(dns_resolver_t *res);
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
@@ -4360,7 +4357,6 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	isc_sockaddr_t *sa = NULL, *next_sa = NULL;
 	struct tried *tried = NULL;
 	unsigned int bucketnum;
-	bool bucket_empty = false;
 
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(ISC_LIST_EMPTY(fctx->events));
@@ -4377,26 +4373,18 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 	REQUIRE(fctx->state != fetchstate_active);
-
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
 
 	INSIST(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
 
 	dec_stats(res, dns_resstatscounter_nfetch);
 
-	if (atomic_load_acquire(&res->buckets[bucketnum].exiting) &&
+	if (exiting && atomic_load_acquire(&res->buckets[bucketnum].exiting) &&
 	    ISC_LIST_EMPTY(res->buckets[bucketnum].fctxs))
 	{
-		bucket_empty = true;
+		isc_refcount_decrement(&res->activebuckets);
 	}
 	UNLOCK(&res->buckets[bucketnum].lock);
-
-	if (bucket_empty && exiting &&
-	    isc_refcount_decrement(&res->activebuckets) == 1) {
-		LOCK(&res->lock);
-		send_shutdown_events(res);
-		UNLOCK(&res->lock);
-	}
 
 	isc_refcount_destroy(&fctx->references);
 
@@ -10101,6 +10089,13 @@ destroy(dns_resolver_t *res) {
 
 	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
 
+	/* These must be run before zeroing the magic number */
+	dns_resolver_reset_algorithms(res);
+	dns_resolver_reset_ds_digests(res);
+	dns_resolver_resetmustbesecure(res);
+
+	res->magic = 0;
+
 	if (res->querystats != NULL) {
 		dns_stats_detach(&res->querystats);
 	}
@@ -10136,33 +10131,10 @@ destroy(dns_resolver_t *res) {
 		}
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
-	dns_resolver_reset_algorithms(res);
-	dns_resolver_reset_ds_digests(res);
 	dns_badcache_destroy(&res->badcache);
-	dns_resolver_resetmustbesecure(res);
 	isc_timer_destroy(&res->spillattimer);
-	res->magic = 0;
+	dns_view_weakdetach(&res->view);
 	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
-}
-
-static void
-send_shutdown_events(dns_resolver_t *res) {
-	isc_event_t *event, *next_event;
-	isc_task_t *etask;
-
-	/*
-	 * Caller must be holding the resolver lock.
-	 */
-
-	for (event = ISC_LIST_HEAD(res->whenshutdown); event != NULL;
-	     event = next_event)
-	{
-		next_event = ISC_LIST_NEXT(event, ev_link);
-		ISC_LIST_UNLINK(res->whenshutdown, event, ev_link);
-		etask = event->ev_sender;
-		event->ev_sender = res;
-		isc_task_sendanddetach(&etask, &event);
-	}
 }
 
 static void
@@ -10227,7 +10199,6 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 				 .timermgr = timermgr,
 				 .taskmgr = taskmgr,
 				 .dispatchmgr = dispatchmgr,
-				 .view = view,
 				 .options = options,
 				 .udpsize = DEFAULT_EDNS_BUFSIZE,
 				 .spillatmin = 10,
@@ -10245,12 +10216,12 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	atomic_init(&res->activebuckets, ntasks);
 
+	dns_view_weakattach(view, &res->view);
 	isc_mem_attach(view->mctx, &res->mctx);
 
 	res->quotaresp[dns_quotatype_zone] = DNS_R_DROP;
 	res->quotaresp[dns_quotatype_server] = DNS_R_SERVFAIL;
 	isc_refcount_init(&res->references, 1);
-	ISC_LIST_INIT(res->whenshutdown);
 	ISC_LIST_INIT(res->alternates);
 
 	result = dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
@@ -10350,6 +10321,7 @@ cleanup_buckets:
 	dns_badcache_destroy(&res->badcache);
 
 cleanup_res:
+	dns_view_weakdetach(&res->view);
 	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 	return (result);
 }
@@ -10479,42 +10451,11 @@ dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp) {
 }
 
 void
-dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
-			  isc_event_t **eventp) {
-	isc_event_t *event = NULL;
-
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(eventp != NULL);
-
-	event = *eventp;
-	*eventp = NULL;
-
-	LOCK(&res->lock);
-
-	if (atomic_load_acquire(&res->exiting) &&
-	    atomic_load_acquire(&res->activebuckets) == 0)
-	{
-		/*
-		 * We're already shutdown.  Send the event.
-		 */
-		event->ev_sender = res;
-		isc_task_send(task, &event);
-	} else {
-		isc_task_attach(task, &(isc_task_t *){ NULL });
-		event->ev_sender = task;
-		ISC_LIST_APPEND(res->whenshutdown, event, ev_link);
-	}
-
-	UNLOCK(&res->lock);
-}
-
-void
 dns_resolver_shutdown(dns_resolver_t *res) {
 	unsigned int i;
 	fetchctx_t *fctx;
 	isc_result_t result;
 	bool is_false = false;
-	bool is_done = false;
 
 	REQUIRE(VALID_RESOLVER(res));
 
@@ -10533,15 +10474,9 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			}
 			atomic_store(&res->buckets[i].exiting, true);
 			if (ISC_LIST_EMPTY(res->buckets[i].fctxs)) {
-				if (isc_refcount_decrement(
-					    &res->activebuckets) == 1) {
-					is_done = true;
-				}
+				isc_refcount_decrement(&res->activebuckets);
 			}
 			UNLOCK(&res->buckets[i].lock);
-		}
-		if (is_done) {
-			send_shutdown_events(res);
 		}
 		result = isc_timer_reset(res->spillattimer,
 					 isc_timertype_inactive, NULL, true);
