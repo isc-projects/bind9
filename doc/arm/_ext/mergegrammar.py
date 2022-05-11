@@ -16,7 +16,7 @@
 import json
 from pathlib import Path
 
-from . import parsegrammar
+import parsegrammar
 
 
 def read_zone():

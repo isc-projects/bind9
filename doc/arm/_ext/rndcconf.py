@@ -18,6 +18,7 @@ Sphinx domain "rndcconf". See iscconf.py for details.
 from docutils import nodes
 
 import iscconf
+import parsegrammar
 
 
 class ToBeReplacedStatementList(nodes.General, nodes.Element):
@@ -28,4 +29,8 @@ class ToBeReplacedStatementList(nodes.General, nodes.Element):
 
 
 def setup(app):
-    return iscconf.setup(app, "rndcconf", "rndc.conf", ToBeReplacedStatementList)
+    with open("../misc/rndc.grammar", encoding="utf-8") as filein:
+        grammar = parsegrammar.parse_mapbody(filein)
+    return iscconf.setup(
+        app, "rndcconf", "rndc.conf", ToBeReplacedStatementList, grammar
+    )
