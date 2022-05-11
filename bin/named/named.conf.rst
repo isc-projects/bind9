@@ -35,28 +35,14 @@ C style: /\* \*/
 
 Unix style: # to end of line
 
-ACL
-^^^
-
-::
-
-  acl string { address_match_element; ... };
-
 CONTROLS
 ^^^^^^^^
 
 ::
 
   controls {
-  	inet ( ipv4_address | ipv6_address |
-  	    * ) [ port ( integer | * ) ] allow
-  	    { address_match_element; ... } [
-  	    keys { string; ... } ] [ read-only
-  	    boolean ];
-  	unix quoted_string perm integer
-  	    owner integer group integer [
-  	    keys { string; ... } ] [ read-only
-  	    boolean ];
+  	inet ( ipv4_address | ipv6_address | * ) [ port ( integer | * ) ] allow { address_match_element; ... } [ keys { string; ... } ] [ read-only boolean ];
+  	unix quoted_string perm integer owner integer group integer [ keys { string; ... } ] [ read-only boolean ];
   };
 
 DLZ
@@ -76,11 +62,9 @@ DNSSEC-POLICY
 
   dnssec-policy string {
   	dnskey-ttl duration;
-  	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime
-  	    duration_or_unlimited algorithm string [ integer ]; ... };
+  	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime duration_or_unlimited algorithm string [ integer ]; ... };
   	max-zone-ttl duration;
-  	nsec3param [ iterations integer ] [ optout boolean ] [
-  	    salt-length integer ];
+  	nsec3param [ iterations integer ] [ optout boolean ] [ salt-length integer ];
   	parent-ds-ttl duration;
   	parent-propagation-delay duration;
   	publish-safety duration;
@@ -97,8 +81,7 @@ DYNDB
 
 ::
 
-  dyndb string quoted_string {
-      unspecified-text };
+  dyndb string quoted_string { unspecified-text };
 
 HTTP
 ^^^^
@@ -130,8 +113,7 @@ LOGGING
   	category string { string; ... };
   	channel string {
   		buffered boolean;
-  		file quoted_string [ versions ( unlimited | integer ) ]
-  		    [ size size ] [ suffix ( increment | timestamp ) ];
+  		file quoted_string [ versions ( unlimited | integer ) ] [ size size ] [ suffix ( increment | timestamp ) ];
   		null;
   		print-category boolean;
   		print-severity boolean;
@@ -149,10 +131,7 @@ See DNSSEC-KEYS.
 
 ::
 
-  managed-keys { string ( static-key
-      | initial-key | static-ds |
-      initial-ds ) integer integer
-      integer quoted_string; ... };, deprecated
+  managed-keys { string ( static-key | initial-key | static-ds | initial-ds ) integer integer integer quoted_string; ... };, deprecated
 
 OPTIONS
 ^^^^^^^
@@ -168,18 +147,12 @@ OPTIONS
   	allow-query-on { address_match_element; ... };
   	allow-recursion { address_match_element; ... };
   	allow-recursion-on { address_match_element; ... };
-  	allow-transfer [ port integer ] [ transport string ] {
-  	    address_match_element; ... };
+  	allow-transfer [ port integer ] [ transport string ] { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { (
-  	    remote-servers | ipv4_address [ port integer ] |
-  	    ipv6_address [ port integer ] ) [ key string ] [ tls
-  	    string ]; ... };
-  	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
-  	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
-  	    * ) ] [ dscp integer ];
+  	also-notify [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... };
+  	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	answer-cookie boolean;
   	attach-cache string;
   	auth-nxdomain boolean;
@@ -189,19 +162,12 @@ OPTIONS
   	avoid-v6-udp-ports { portrange; ... };
   	bindkeys-file quoted_string;
   	blackhole { address_match_element; ... };
-  	catalog-zones { zone string [ default-primaries [ port integer
-  	    ] [ dscp integer ] { ( remote-servers | ipv4_address [
-  	    port integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ zone-directory
-  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
-  	    duration ]; ... };
+  	catalog-zones { zone string [ default-primaries [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... } ] [ zone-directory quoted_string ] [ in-memory boolean ] [ min-update-interval duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );
   	check-mx-cname ( fail | warn | ignore );
-  	check-names ( primary | master |
-  	    secondary | slave | response ) (
-  	    fail | warn | ignore );
+  	check-names ( primary | master | secondary | slave | response ) ( fail | warn | ignore );
   	check-sibling boolean;
   	check-spf ( warn | ignore );
   	check-srv-cname ( fail | warn | ignore );
@@ -211,16 +177,12 @@ OPTIONS
   	cookie-secret string;
   	coresize ( default | unlimited | sizeval );
   	datasize ( default | unlimited | sizeval );
-  	deny-answer-addresses { address_match_element; ... } [
-  	    except-from { string; ... } ];
-  	deny-answer-aliases { string; ... } [ except-from { string; ...
-  	    } ];
+  	deny-answer-addresses { address_match_element; ... } [ except-from { string; ... } ];
+  	deny-answer-aliases { string; ... } [ except-from { string; ... } ];
   	dialup ( notify | notify-passive | passive | refresh | boolean );
   	directory quoted_string;
-  	disable-algorithms string { string;
-  	    ... };
-  	disable-ds-digests string { string;
-  	    ... };
+  	disable-algorithms string { string; ... };
+  	disable-ds-digests string { string; ... };
   	disable-empty-zone string;
   	dns64 netprefix {
   		break-dnssec boolean;
@@ -243,18 +205,12 @@ OPTIONS
   	dnssec-secure-to-insecure boolean;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-  	    ( query | response ) ]; ... };
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... };
   	dnstap-identity ( quoted_string | none | hostname );
-  	dnstap-output ( file | unix ) quoted_string [ size ( unlimited |
-  	    size ) ] [ versions ( unlimited | integer ) ] [ suffix (
-  	    increment | timestamp ) ];
+  	dnstap-output ( file | unix ) quoted_string [ size ( unlimited | size ) ] [ versions ( unlimited | integer ) ] [ suffix ( increment | timestamp ) ];
   	dnstap-version ( quoted_string | none );
   	dscp integer;
-  	dual-stack-servers [ port integer ] { ( quoted_string [ port
-  	    integer ] [ dscp integer ] | ipv4_address [ port
-  	    integer ] [ dscp integer ] | ipv6_address [ port
-  	    integer ] [ dscp integer ] ); ... };
+  	dual-stack-servers [ port integer ] { ( quoted_string [ port integer ] [ dscp integer ] | ipv4_address [ port integer ] [ dscp integer ] | ipv6_address [ port integer ] [ dscp integer ] ); ... };
   	dump-file quoted_string;
   	edns-udp-size integer;
   	empty-contact string;
@@ -266,8 +222,7 @@ OPTIONS
   	files ( default | unlimited | sizeval );
   	flush-zones-on-shutdown boolean;
   	forward ( first | only );
-  	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
-  	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
+  	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
   	fstrm-set-buffer-hint integer;
   	fstrm-set-flush-timeout integer;
   	fstrm-set-input-queue-size integer;
@@ -287,19 +242,12 @@ OPTIONS
   	ipv4only-contact string;
   	ipv4only-enable boolean;
   	ipv4only-server string;
-  	ixfr-from-differences ( primary | master | secondary | slave |
-  	    boolean );
+  	ixfr-from-differences ( primary | master | secondary | slave | boolean );
   	keep-response-order { address_match_element; ... };
   	key-directory quoted_string;
   	lame-ttl duration;
-  	listen-on [ port integer ] [ dscp
-  	    integer ] [ tls string ] [ http
-  	    string ] {
-  	    address_match_element; ... };
-  	listen-on-v6 [ port integer ] [ dscp
-  	    integer ] [ tls string ] [ http
-  	    string ] {
-  	    address_match_element; ... };
+  	listen-on [ port integer ] [ dscp integer ] [ tls string ] [ http string ] { address_match_element; ... };
+  	listen-on-v6 [ port integer ] [ dscp integer ] [ tls string ] [ http string ] { address_match_element; ... };
   	lmdb-mapsize sizeval;
   	lock-file ( quoted_string | none );
   	managed-keys-directory quoted_string;
@@ -341,30 +289,22 @@ OPTIONS
   	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
   	notify-rate integer;
-  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
-  	    [ dscp integer ];
+  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	notify-to-soa boolean;
   	nta-lifetime duration;
   	nta-recheck duration;
   	nxdomain-redirect string;
-  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
+  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	pid-file ( quoted_string | none );
   	port integer;
   	preferred-glue string;
   	prefetch integer [ integer ];
   	provide-ixfr boolean;
   	qname-minimization ( strict | relaxed | disabled | off );
-  	query-source ( ( [ address ] ( ipv4_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
-  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
+  	query-source ( ( [ address ] ( ipv4_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
+  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
   	querylog boolean;
   	random-device ( quoted_string | none );
   	rate-limit {
@@ -395,26 +335,12 @@ OPTIONS
   	resolver-nonbackoff-tries integer;
   	resolver-query-timeout integer;
   	resolver-retry-interval integer;
-  	response-padding { address_match_element; ... } block-size
-  	    integer;
-  	response-policy { zone string [ add-soa boolean ] [ log
-  	    boolean ] [ max-policy-ttl duration ] [ min-update-interval
-  	    duration ] [ policy ( cname | disabled | drop | given | no-op
-  	    | nodata | nxdomain | passthru | tcp-only quoted_string ) ] [
-  	    recursive-only boolean ] [ nsip-enable boolean ] [
-  	    nsdname-enable boolean ]; ... } [ add-soa boolean ] [
-  	    break-dnssec boolean ] [ max-policy-ttl duration ] [
-  	    min-update-interval duration ] [ min-ns-dots integer ] [
-  	    nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean
-  	    ] [ qname-wait-recurse boolean ] [ recursive-only boolean ]
-  	    [ nsip-enable boolean ] [ nsdname-enable boolean ] [
-  	    dnsrps-enable boolean ] [ dnsrps-options { unspecified-text
-  	    } ];
+  	response-padding { address_match_element; ... } block-size integer;
+  	response-policy { zone string [ add-soa boolean ] [ log boolean ] [ max-policy-ttl duration ] [ min-update-interval duration ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only quoted_string ) ] [ recursive-only boolean ] [ nsip-enable boolean ] [ nsdname-enable boolean ]; ... } [ add-soa boolean ] [ break-dnssec boolean ] [ max-policy-ttl duration ] [ min-update-interval duration ] [ min-ns-dots integer ] [ nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean ] [ qname-wait-recurse boolean ] [ recursive-only boolean ] [ nsip-enable boolean ] [ nsdname-enable boolean ] [ dnsrps-enable boolean ] [ dnsrps-options { unspecified-text } ];
   	reuseport boolean;
   	root-delegation-only [ exclude { string; ... } ];
   	root-key-sentinel boolean;
-  	rrset-order { [ class string ] [ type string ] [ name
-  	    quoted_string ] string string; ... };
+  	rrset-order { [ class string ] [ type string ] [ name quoted_string ] string string; ... };
   	secroots-file quoted_string;
   	send-cookie boolean;
   	serial-query-rate integer;
@@ -453,10 +379,8 @@ OPTIONS
   	tls-port integer;
   	transfer-format ( many-answers | one-answer );
   	transfer-message-size integer;
-  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
+  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	transfers-in integer;
   	transfers-out integer;
   	transfers-per-ns integer;
@@ -481,30 +405,21 @@ PARENTAL-AGENTS
 
 ::
 
-  parental-agents string [ port integer ] [
-      dscp integer ] { ( remote-servers |
-      ipv4_address [ port integer ] |
-      ipv6_address [ port integer ] ) [ key
-      string ] [ tls string ]; ... };
+  parental-agents string [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... };
 
 PLUGIN
 ^^^^^^
 
 ::
 
-  plugin ( query ) string [ { unspecified-text
-      } ];
+  plugin ( query ) string [ { unspecified-text } ];
 
 PRIMARIES
 ^^^^^^^^^
 
 ::
 
-  primaries string [ port integer ] [ dscp
-      integer ] { ( remote-servers |
-      ipv4_address [ port integer ] |
-      ipv6_address [ port integer ] ) [ key
-      string ] [ tls string ]; ... };
+  primaries string [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... };
 
 SERVER
 ^^^^^^
@@ -518,18 +433,12 @@ SERVER
   	edns-version integer;
   	keys server_key;
   	max-udp-size integer;
-  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
-  	    [ dscp integer ];
+  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	padding integer;
   	provide-ixfr boolean;
-  	query-source ( ( [ address ] ( ipv4_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
-  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
+  	query-source ( ( [ address ] ( ipv4_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
+  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
   	request-expire boolean;
   	request-ixfr boolean;
   	request-nsid boolean;
@@ -537,10 +446,8 @@ SERVER
   	tcp-keepalive boolean;
   	tcp-only boolean;
   	transfer-format ( many-answers | one-answer );
-  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
+  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	transfers integer;
   };
 
@@ -550,10 +457,7 @@ STATISTICS-CHANNELS
 ::
 
   statistics-channels {
-  	inet ( ipv4_address | ipv6_address |
-  	    * ) [ port ( integer | * ) ] [
-  	    allow { address_match_element; ...
-  	    } ];
+  	inet ( ipv4_address | ipv6_address | * ) [ port ( integer | * ) ] [ allow { address_match_element; ... } ];
   };
 
 TLS
@@ -578,10 +482,7 @@ TRUST-ANCHORS
 
 ::
 
-  trust-anchors { string ( static-key |
-      initial-key | static-ds | initial-ds )
-      integer integer integer
-      quoted_string; ... };
+  trust-anchors { string ( static-key | initial-key | static-ds | initial-ds ) integer integer integer quoted_string; ... };
 
 TRUSTED-KEYS
 ^^^^^^^^^^^^
@@ -590,9 +491,7 @@ Deprecated - see DNSSEC-KEYS.
 
 ::
 
-  trusted-keys { string integer
-      integer integer
-      quoted_string; ... };, deprecated
+  trusted-keys { string integer integer integer quoted_string; ... };, deprecated
 
 VIEW
 ^^^^
@@ -608,48 +507,31 @@ VIEW
   	allow-query-on { address_match_element; ... };
   	allow-recursion { address_match_element; ... };
   	allow-recursion-on { address_match_element; ... };
-  	allow-transfer [ port integer ] [ transport string ] {
-  	    address_match_element; ... };
+  	allow-transfer [ port integer ] [ transport string ] { address_match_element; ... };
   	allow-update { address_match_element; ... };
   	allow-update-forwarding { address_match_element; ... };
-  	also-notify [ port integer ] [ dscp integer ] { (
-  	    remote-servers | ipv4_address [ port integer ] |
-  	    ipv6_address [ port integer ] ) [ key string ] [ tls
-  	    string ]; ... };
-  	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
-  	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer |
-  	    * ) ] [ dscp integer ];
+  	also-notify [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... };
+  	alt-transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	alt-transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	attach-cache string;
   	auth-nxdomain boolean;
   	auto-dnssec ( allow | maintain | off );
-  	catalog-zones { zone string [ default-primaries [ port integer
-  	    ] [ dscp integer ] { ( remote-servers | ipv4_address [
-  	    port integer ] | ipv6_address [ port integer ] ) [ key
-  	    string ] [ tls string ]; ... } ] [ zone-directory
-  	    quoted_string ] [ in-memory boolean ] [ min-update-interval
-  	    duration ]; ... };
+  	catalog-zones { zone string [ default-primaries [ port integer ] [ dscp integer ] { ( remote-servers | ipv4_address [ port integer ] | ipv6_address [ port integer ] ) [ key string ] [ tls string ]; ... } ] [ zone-directory quoted_string ] [ in-memory boolean ] [ min-update-interval duration ]; ... };
   	check-dup-records ( fail | warn | ignore );
   	check-integrity boolean;
   	check-mx ( fail | warn | ignore );
   	check-mx-cname ( fail | warn | ignore );
-  	check-names ( primary | master |
-  	    secondary | slave | response ) (
-  	    fail | warn | ignore );
+  	check-names ( primary | master | secondary | slave | response ) ( fail | warn | ignore );
   	check-sibling boolean;
   	check-spf ( warn | ignore );
   	check-srv-cname ( fail | warn | ignore );
   	check-wildcard boolean;
   	clients-per-query integer;
-  	deny-answer-addresses { address_match_element; ... } [
-  	    except-from { string; ... } ];
-  	deny-answer-aliases { string; ... } [ except-from { string; ...
-  	    } ];
+  	deny-answer-addresses { address_match_element; ... } [ except-from { string; ... } ];
+  	deny-answer-aliases { string; ... } [ except-from { string; ... } ];
   	dialup ( notify | notify-passive | passive | refresh | boolean );
-  	disable-algorithms string { string;
-  	    ... };
-  	disable-ds-digests string { string;
-  	    ... };
+  	disable-algorithms string { string; ... };
+  	disable-ds-digests string { string; ... };
   	disable-empty-zone string;
   	dlz string {
   		database string;
@@ -676,14 +558,9 @@ VIEW
   	dnssec-secure-to-insecure boolean;
   	dnssec-update-mode ( maintain | no-resign );
   	dnssec-validation ( yes | no | auto );
-  	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-  	    ( query | response ) ]; ... };
-  	dual-stack-servers [ port integer ] { ( quoted_string [ port
-  	    integer ] [ dscp integer ] | ipv4_address [ port
-  	    integer ] [ dscp integer ] | ipv6_address [ port
-  	    integer ] [ dscp integer ] ); ... };
-  	dyndb string quoted_string {
-  	    unspecified-text };
+  	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... };
+  	dual-stack-servers [ port integer ] { ( quoted_string [ port integer ] [ dscp integer ] | ipv4_address [ port integer ] [ dscp integer ] | ipv6_address [ port integer ] [ dscp integer ] ); ... };
+  	dyndb string quoted_string { unspecified-text };
   	edns-udp-size integer;
   	empty-contact string;
   	empty-server string;
@@ -692,14 +569,12 @@ VIEW
   	fetches-per-server integer [ ( drop | fail ) ];
   	fetches-per-zone integer [ ( drop | fail ) ];
   	forward ( first | only );
-  	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
-  	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
+  	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
   	glue-cache boolean;// deprecated
   	ipv4only-contact string;
   	ipv4only-enable boolean;
   	ipv4only-server string;
-  	ixfr-from-differences ( primary | master | secondary | slave |
-  	    boolean );
+  	ixfr-from-differences ( primary | master | secondary | slave | boolean );
   	key string {
   		algorithm string;
   		secret string;
@@ -707,12 +582,7 @@ VIEW
   	key-directory quoted_string;
   	lame-ttl duration;
   	lmdb-mapsize sizeval;
-  	managed-keys { string (
-  	    static-key | initial-key
-  	    | static-ds | initial-ds
-  	    ) integer integer
-  	    integer
-  	    quoted_string; ... };, deprecated
+  	managed-keys { string ( static-key | initial-key | static-ds | initial-ds ) integer integer integer quoted_string; ... };, deprecated
   	masterfile-format ( raw | text );
   	masterfile-style ( full | relative );
   	match-clients { address_match_element; ... };
@@ -749,30 +619,21 @@ VIEW
   	nocookie-udp-size integer;
   	notify ( explicit | master-only | primary-only | boolean );
   	notify-delay integer;
-  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ]
-  	    [ dscp integer ];
+  	notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	notify-to-soa boolean;
   	nta-lifetime duration;
   	nta-recheck duration;
   	nxdomain-redirect string;
-  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
-  	plugin ( query ) string [ {
-  	    unspecified-text } ];
+  	parental-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	parental-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	plugin ( query ) string [ { unspecified-text } ];
   	preferred-glue string;
   	prefetch integer [ integer ];
   	provide-ixfr boolean;
   	qname-minimization ( strict | relaxed | disabled | off );
-  	query-source ( ( [ address ] ( ipv4_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
-  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port (
-  	    integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ]
-  	    port ( integer | * ) ) ) [ dscp integer ];
+  	query-source ( ( [ address ] ( ipv4_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
+  	query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
   	rate-limit {
   		all-per-second integer;
   		errors-per-second integer;
@@ -798,25 +659,11 @@ VIEW
   	resolver-nonbackoff-tries integer;
   	resolver-query-timeout integer;
   	resolver-retry-interval integer;
-  	response-padding { address_match_element; ... } block-size
-  	    integer;
-  	response-policy { zone string [ add-soa boolean ] [ log
-  	    boolean ] [ max-policy-ttl duration ] [ min-update-interval
-  	    duration ] [ policy ( cname | disabled | drop | given | no-op
-  	    | nodata | nxdomain | passthru | tcp-only quoted_string ) ] [
-  	    recursive-only boolean ] [ nsip-enable boolean ] [
-  	    nsdname-enable boolean ]; ... } [ add-soa boolean ] [
-  	    break-dnssec boolean ] [ max-policy-ttl duration ] [
-  	    min-update-interval duration ] [ min-ns-dots integer ] [
-  	    nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean
-  	    ] [ qname-wait-recurse boolean ] [ recursive-only boolean ]
-  	    [ nsip-enable boolean ] [ nsdname-enable boolean ] [
-  	    dnsrps-enable boolean ] [ dnsrps-options { unspecified-text
-  	    } ];
+  	response-padding { address_match_element; ... } block-size integer;
+  	response-policy { zone string [ add-soa boolean ] [ log boolean ] [ max-policy-ttl duration ] [ min-update-interval duration ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only quoted_string ) ] [ recursive-only boolean ] [ nsip-enable boolean ] [ nsdname-enable boolean ]; ... } [ add-soa boolean ] [ break-dnssec boolean ] [ max-policy-ttl duration ] [ min-update-interval duration ] [ min-ns-dots integer ] [ nsip-wait-recurse boolean ] [ nsdname-wait-recurse boolean ] [ qname-wait-recurse boolean ] [ recursive-only boolean ] [ nsip-enable boolean ] [ nsdname-enable boolean ] [ dnsrps-enable boolean ] [ dnsrps-options { unspecified-text } ];
   	root-delegation-only [ exclude { string; ... } ];
   	root-key-sentinel boolean;
-  	rrset-order { [ class string ] [ type string ] [ name
-  	    quoted_string ] string string; ... };
+  	rrset-order { [ class string ] [ type string ] [ name quoted_string ] string string; ... };
   	send-cookie boolean;
   	serial-update-method ( date | increment | unixtime );
   	server netprefix {
@@ -826,20 +673,12 @@ VIEW
   		edns-version integer;
   		keys server_key;
   		max-udp-size integer;
-  		notify-source ( ipv4_address | * ) [ port ( integer | *
-  		    ) ] [ dscp integer ];
-  		notify-source-v6 ( ipv6_address | * ) [ port ( integer
-  		    | * ) ] [ dscp integer ];
+  		notify-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  		notify-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   		padding integer;
   		provide-ixfr boolean;
-  		query-source ( ( [ address ] ( ipv4_address | * ) [ port
-  		    ( integer | * ) ] ) | ( [ [ address ] (
-  		    ipv4_address | * ) ] port ( integer | * ) ) ) [
-  		    dscp integer ];
-  		query-source-v6 ( ( [ address ] ( ipv6_address | * ) [
-  		    port ( integer | * ) ] ) | ( [ [ address ] (
-  		    ipv6_address | * ) ] port ( integer | * ) ) ) [
-  		    dscp integer ];
+  		query-source ( ( [ address ] ( ipv4_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv4_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
+  		query-source-v6 ( ( [ address ] ( ipv6_address | * ) [ port ( integer | * ) ] ) | ( [ [ address ] ( ipv6_address | * ) ] port ( integer | * ) ) ) [ dscp integer ];
   		request-expire boolean;
   		request-ixfr boolean;
   		request-nsid boolean;
@@ -847,10 +686,8 @@ VIEW
   		tcp-keepalive boolean;
   		tcp-only boolean;
   		transfer-format ( many-answers | one-answer );
-  		transfer-source ( ipv4_address | * ) [ port ( integer |
-  		    * ) ] [ dscp integer ];
-  		transfer-source-v6 ( ipv6_address | * ) [ port (
-  		    integer | * ) ] [ dscp integer ];
+  		transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  		transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   		transfers integer;
   	};
   	servfail-ttl duration;
@@ -866,19 +703,11 @@ VIEW
   	stale-refresh-time duration;
   	synth-from-dnssec boolean;
   	transfer-format ( many-answers | one-answer );
-  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [
-  	    dscp integer ];
-  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * )
-  	    ] [ dscp integer ];
+  	transfer-source ( ipv4_address | * ) [ port ( integer | * ) ] [ dscp integer ];
+  	transfer-source-v6 ( ipv6_address | * ) [ port ( integer | * ) ] [ dscp integer ];
   	trust-anchor-telemetry boolean; // experimental
-  	trust-anchors { string ( static-key |
-  	    initial-key | static-ds | initial-ds
-  	    ) integer integer integer
-  	    quoted_string; ... };
-  	trusted-keys { string
-  	    integer integer
-  	    integer
-  	    quoted_string; ... };, deprecated
+  	trust-anchors { string ( static-key | initial-key | static-ds | initial-ds ) integer integer integer quoted_string; ... };
+  	trusted-keys { string integer integer integer quoted_string; ... };, deprecated
   	try-tcp-refresh boolean;
   	update-check-ksk boolean;
   	use-alt-transfer-source boolean;
