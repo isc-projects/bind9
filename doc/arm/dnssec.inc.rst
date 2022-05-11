@@ -132,6 +132,50 @@ The :ref:`dnssec_advanced_discussions` in the DNSSEC Guide discusses the
 various policy settings and may help you determining which values you should
 use.
 
+.. _dnssec_denial_of_existence:
+
+Denial of Existence
+^^^^^^^^^^^^^^^^^^^
+
+To prove that some data does not exist in the zone, ``NSEC`` records are added
+to the zone for each domain name. This record contains a list that tells
+which record types are present at that name, so that if a query comes in for
+a type that is not in the list, the requestor can proof its non-existence.
+The ``NSEC`` record also contains a next owner name, proving that all names
+between the owner name and next owner name do not exist.
+
+The ``NSEC`` method allows for trivial zone walking, where one would query
+for the apex ``NSEC`` record and then queries the ``NSEC`` of each next owner
+name to learn about all names that exist in a certain zone. While this may not
+be a problem for most, you can mitigate against this by using ``NSEC3``, hashed
+denial of existence (defined in :rfc:`5155`). This uses one-way hashes to
+obfuscate the next owner names.
+
+With ``NSEC3`` you can also opt-out insecure delegations from denial of
+existence, which may be useful for parent zones with a lot of insecure child
+zones.
+
+To enable ``NSEC3``, add an ``nsec3param`` option to your DNSSEC Policy:
+
+::
+
+    dnssec-policy "nsec3" {
+        nsec3param iterations 5 optout yes salt-length 8;
+    };
+
+..
+
+The ``nsec3`` policy above creates ``NSEC3`` records using the SHA-1 hash
+algorithm, using 5 iterations and a salt that is 8 characters long. It also
+skips insecure delegations.
+
+The ``NSEC3`` chain is generated and the ``NSEC3PARAM`` record is added before
+the existing ``NSEC`` chain (if any) is destroyed.
+
+You can also switch back to ``NSEC`` by removing the ``nsec3param`` option.
+In this case, the ``NSEC`` chain is generated before the ``NSEC3`` chain
+is removed.
+
 .. _dnssec_tools:
 
 DNSSEC Tools
