@@ -19,7 +19,7 @@ list1=$(
 	sort -u
 )
 list2=$(
-	sed -ne 's/^``\(.*\)``/\1/p' doc/arm/logging-categories.rst |
+	sed -ne 's/^``\(.*\)``/\1/p' doc/arm/logging-categories.inc.rst |
 	sort -u
 )
 status=0

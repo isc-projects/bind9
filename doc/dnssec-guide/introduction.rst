@@ -219,7 +219,7 @@ trust one key: the root key.
 .. _dnssec_12_steps:
 
 The 12-Step DNSSEC Validation Process (Simplified)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows the 12 steps of the DNSSEC validating process 
 at a very high level, looking up the name ``www.isc.org`` :
@@ -306,7 +306,7 @@ at a very high level, looking up the name ``www.isc.org`` :
 .. _chain_of_trust:
 
 Chain of Trust
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 But what about the root server itself? Who do we go to verify root's
 keys? There's no parent zone for root. In security, you have to trust

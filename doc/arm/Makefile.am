@@ -2,31 +2,65 @@ include $(top_srcdir)/Makefile.top
 include $(top_srcdir)/Makefile.docs
 
 EXTRA_DIST =					\
+	advanced.inc.rst			\
+	build.inc.rst				\
+	catz.inc.rst				\
+	chapter10.rst				\
+	chapter1.rst				\
+	chapter2.rst				\
+	chapter3.rst				\
+	chapter4.rst				\
+	chapter5.rst				\
+	chapter6.rst				\
+	chapter7.rst				\
+	chapter9.rst				\
+	config-auth.inc.rst			\
+	config-intro.inc.rst			\
+	config-resolve.inc.rst			\
 	conf.py					\
-	isc-logo.pdf				\
-	advanced.rst				\
-	build.rst				\
-	catz.rst				\
-	configuration.rst			\
-	dlz.rst					\
+	dlz.inc.rst				\
+	dns-ops.inc.rst				\
 	dnssec-guide.rst			\
-	dnssec.rst				\
-	dyndb.rst				\
+	dnssec.inc.rst				\
+	dns-security-overview.dia		\
+	dns-security-overview.png		\
+	dns-servers.dia				\
+	dns-servers.png				\
+	dns-tree.dia				\
+	dns-tree.png				\
+	dyndb.inc.rst				\
 	general.rst				\
 	history.rst				\
 	index.rst				\
-	introduction.rst			\
-	logging-categories.rst			\
-	managed-keys.rst			\
+	intro-dns-bind.inc.rst			\
+	introduction.inc.rst			\
+	intro-security.inc.rst			\
+	isc-logo.pdf				\
+	logging-categories.inc.rst		\
+	managed-keys.inc.rst			\
 	manpages.rst				\
+	name-resolution.dia			\
+	name-resolution.png			\
 	notes.rst				\
-	pkcs11.rst				\
-	platforms.rst				\
-	plugins.rst				\
+	pkcs11.inc.rst				\
+	platforms.inc.rst			\
+	plugins.inc.rst				\
+	primary-secondary.dia			\
+	primary-secondary.png			\
+	recursive-query.dia			\
+	recursive-query.png			\
 	reference.rst				\
-	requirements.rst			\
-	security.rst				\
-	troubleshooting.rst			\
+	requirements.inc.rst			\
+	requirements.txt			\
+	resolver-forward.dia			\
+	resolver-forward.png			\
+	rpz.inc.rst				\
+	security.inc.rst			\
+	sig0.inc.rst				\
+	tkey.inc.rst				\
+	troubleshooting.inc.rst			\
+	tsig.inc.rst				\
+	zones.inc.rst				\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
 	../misc/controls.grammar.rst		\
