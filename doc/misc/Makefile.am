@@ -70,10 +70,10 @@ BUILT_SOURCES =				\
 	$(OPTIONS_FILES)
 
 options: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar | $(PERL) $(srcdir)/sort-options.pl > $@
 
 options.active: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl | $(PERL) $(srcdir)/format-options.pl --strip-not-configured > $@
+	$(AM_V_CFG_TEST)$(builddir)/cfg_test --named --grammar --active | $(PERL) $(srcdir)/sort-options.pl > $@
 
 primary.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar primary --active > $@

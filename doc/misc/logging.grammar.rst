@@ -15,8 +15,7 @@
   	category <string> { <string>; ... };
   	channel <string> {
   		buffered <boolean>;
-  		file <quoted_string> [ versions ( unlimited | <integer> ) ]
-  		    [ size <size> ] [ suffix ( increment | timestamp ) ];
+  		file <quoted_string> [ versions ( unlimited | <integer> ) ] [ size <size> ] [ suffix ( increment | timestamp ) ];
   		null;
   		print-category <boolean>;
   		print-severity <boolean>;
