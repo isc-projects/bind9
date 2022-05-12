@@ -126,17 +126,29 @@ def domain_factory(domainname, domainlabel, todolist):
 
         roles = {"ref": XRefRole(warn_dangling=True)}
         initial_data = {
-            "statements": [],  # object list for Sphinx API
-            # our own metadata: name -> {"tags": [list of tags], "short": "short desc"}
-            "statements_extra": {},
+            # name -> {"tags": [list of tags], ...}; see add_statement()
+            "statements": {},
         }
 
         indices = {}  # no custom indicies
 
         def get_objects(self):
-            """Sphinx API: iterable of object descriptions"""
-            for obj in self.data["statements"]:
-                yield obj
+            """
+            Sphinx API:
+            Iterable of Sphinx object descriptions (tuples defined in the API).
+            """
+            for obj in self.data["statements"].values():
+                yield tuple(
+                    obj[key]
+                    for key in [
+                        "fullname",
+                        "signature",
+                        "label",
+                        "docname",
+                        "anchor",
+                        "priority",
+                    ]
+                )
 
         # pylint: disable=too-many-arguments
         def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
@@ -175,18 +187,17 @@ def domain_factory(domainname, domainlabel, todolist):
             name = "{}.{}.{}".format(domainname, "statement", signature)
             anchor = "{}-statement-{}".format(domainname, signature)
 
-            self.data["statements_extra"][name] = {"tags": tags, "short": short}
-            # Sphinx API: name, dispname, type, docname, anchor, priority
-            self.data["statements"].append(
-                (
-                    name,
-                    signature,
-                    domainlabel + " statement",
-                    self.env.docname,
-                    anchor,
-                    1,
-                )
-            )
+            self.data["statements"][name] = {
+                "tags": tags,
+                "short": short,
+                # Sphinx API
+                "fullname": name,  # internal name
+                "signature": signature,  # display name
+                "label": domainlabel + " statement",  # description for index
+                "docname": self.env.docname,
+                "anchor": anchor,
+                "priority": 1,  # search priority
+            }
 
         def clear_doc(self, docname):
             """
@@ -194,13 +205,12 @@ def domain_factory(domainname, domainlabel, todolist):
 
             Remove traces of a document in the domain-specific inventories.
             """
-            # use name->doc mapping from Sphinx metadata
-            for name, _, _, cur_docname, _, _ in self.data["statements"]:
-                if cur_docname == docname:
-                    if name in self.data["statements_extra"]:
-                        del self.data["statements_extra"][name]
-            self.data["statements"] = list(
-                obj for obj in self.data["statements"] if obj[3] != docname
+            self.data["statements"] = dict(
+                {
+                    key: obj
+                    for key, obj in self.data["statements"].items()
+                    if obj["docname"] != docname
+                }
             )
 
         def merge_domaindata(self, docnames, otherdata):
@@ -214,10 +224,7 @@ def domain_factory(domainname, domainlabel, todolist):
             that all existing domains in Sphinx distribution have todo like
             "deal with duplicates" but do nothing about them, so we just follow
             the suite."""
-            self.data["statements"] = list(
-                set(self.data["statements"] + otherdata["statements"])
-            )
-            self.data["statements_extra"].update(otherdata["statements_extra"])
+            self.data["statements"].update(otherdata["statements"])
 
         @classmethod
         def process_statementlist_nodes(cls, app, doctree, fromdocname):
@@ -232,7 +239,7 @@ def domain_factory(domainname, domainlabel, todolist):
             table_header = [
                 TableColumn("ref", "Statement name"),
                 TableColumn("short", "Short desc"),
-                TableColumn("tags", "Tags"),
+                TableColumn("tags_txt", "Tags"),
             ]
             table_b = DictToDocutilsTableBuilder(table_header)
             table_b.append_iterable(iscconf.list_all(fromdocname))
@@ -241,11 +248,8 @@ def domain_factory(domainname, domainlabel, todolist):
                 node.replace_self(table)
 
         def list_all(self, fromdocname):
-            for statement in self.data["statements"]:
-                name, sig, _const, _doc, _anchor, _prio = statement
-                extra = self.data["statements_extra"][name]
-                short = extra["short"]
-                tags = ", ".join(extra["tags"])
+            for statement in self.data["statements"].values():
+                tags_txt = ", ".join(statement["tags"])
 
                 refpara = nodes.inline()
                 refpara += self.resolve_xref(
@@ -253,17 +257,15 @@ def domain_factory(domainname, domainlabel, todolist):
                     fromdocname,
                     self.env.app.builder,
                     None,
-                    sig,
+                    statement["signature"],
                     None,
-                    nodes.Text(sig),
+                    nodes.Text(statement["signature"]),
                 )
 
-                yield {
-                    "fullname": name,
-                    "ref": refpara,
-                    "short": short,
-                    "tags": tags,
-                }
+                copy = statement.copy()
+                copy["ref"] = refpara
+                copy["tags_txt"] = tags_txt
+                yield copy
 
     return ISCConfDomain
 
