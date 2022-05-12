@@ -216,12 +216,15 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 location=(new["docname"], new["lineno"]),
             )
 
+        def get_statement_name(self, signature):
+            return "{}.{}.{}".format(domainname, "statement", signature)
+
         def add_statement(self, signature, tags, short, lineno):
             """
             Add a new statement to the domain data structures.
             No visible effect.
             """
-            name = "{}.{}.{}".format(domainname, "statement", signature)
+            name = self.get_statement_name(signature)
             anchor = "{}-statement-{}".format(domainname, signature)
 
             new = {
@@ -289,6 +292,18 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     " using .. statement:: directive",
                     missing,
                     domainlabel,
+                )
+
+            extra_statement_sigs = defined_statements.difference(statements_in_grammar)
+            for extra in extra_statement_sigs:
+                fullname = self.get_statement_name(extra)
+                desc = self.data["statements"][fullname]
+                logger.warning(
+                    ".. statement:: %s found but matching definition in %s grammar is"
+                    " missing",
+                    extra,
+                    domainlabel,
+                    location=(desc["docname"], desc["lineno"]),
                 )
 
         @classmethod
