@@ -30,8 +30,12 @@ from sphinx import addnodes
 from sphinx.directives import ObjectDescription
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
-from sphinx.util.nodes import make_refnode
+from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
+from sphinx.util.nodes import make_refnode
+
+
+logger = logging.getLogger(__name__)
 
 
 def split_csv(argument, required):
@@ -96,7 +100,7 @@ def domain_factory(domainname, domainlabel, todolist):
                 signode["ids"].append(domainname + "-statement-" + sig)
 
                 iscconf = self.env.get_domain(domainname)
-                iscconf.add_statement(sig, self.isc_tags, self.isc_short)
+                iscconf.add_statement(sig, self.isc_tags, self.isc_short, self.lineno)
 
             @property
             def isc_tags(self):
@@ -179,7 +183,18 @@ def domain_factory(domainname, domainlabel, todolist):
             """
             raise NotImplementedError
 
-        def add_statement(self, signature, tags, short):
+        @staticmethod
+        def log_statement_overlap(new, old):
+            assert new["fullname"] == old["fullname"]
+            logger.warning(
+                "duplicite detected! %s previously defined at %s:%d",
+                new["fullname"],
+                old["filename"],
+                old["lineno"],
+                location=(new["docname"], new["lineno"]),
+            )
+
+        def add_statement(self, signature, tags, short, lineno):
             """
             Add a new statement to the domain data structures.
             No visible effect.
@@ -187,9 +202,11 @@ def domain_factory(domainname, domainlabel, todolist):
             name = "{}.{}.{}".format(domainname, "statement", signature)
             anchor = "{}-statement-{}".format(domainname, signature)
 
-            self.data["statements"][name] = {
+            new = {
                 "tags": tags,
                 "short": short,
+                "filename": self.env.doc2path(self.env.docname),
+                "lineno": lineno,
                 # Sphinx API
                 "fullname": name,  # internal name
                 "signature": signature,  # display name
@@ -198,6 +215,10 @@ def domain_factory(domainname, domainlabel, todolist):
                 "anchor": anchor,
                 "priority": 1,  # search priority
             }
+
+            if name in self.data["statements"]:
+                self.log_statement_overlap(new, self.data["statements"][name])
+            self.data["statements"][name] = new
 
         def clear_doc(self, docname):
             """
@@ -218,13 +239,12 @@ def domain_factory(domainname, domainlabel, todolist):
             domaindata inventory (coming from a subprocess in parallel builds).
 
             @param otherdata is self.data equivalent from another process
-
-            Beware: As of Sphinx 4.5.0, this is called multiple times in a row
-            with the same data and has to guard against duplicites.  It seems
-            that all existing domains in Sphinx distribution have todo like
-            "deal with duplicates" but do nothing about them, so we just follow
-            the suite."""
-            self.data["statements"].update(otherdata["statements"])
+            """
+            old = self.data["statements"]
+            new = otherdata["statements"]
+            for name in set(old).intersection(set(new)):
+                self.log_statement_overlap(new[name], old[name])
+            old.update(new)
 
         @classmethod
         def process_statementlist_nodes(cls, app, doctree, fromdocname):
