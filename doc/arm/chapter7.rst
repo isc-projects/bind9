@@ -9,6 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. include:: dnssec.inc.rst
-.. include:: managed-keys.inc.rst
-.. include:: pkcs11.inc.rst
+.. include:: security.inc.rst
+.. include:: tsig.inc.rst
+.. include:: tkey.inc.rst
+.. include:: sig0.inc.rst
