@@ -103,6 +103,7 @@ struct dns_adb {
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
 	dns_view_t *view;
+	dns_resolver_t *res;
 
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
@@ -487,8 +488,8 @@ DP(int level, const char *format, ...) {
  */
 static void
 inc_resstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view != NULL && adb->view->resolver != NULL) {
-		dns_resolver_incstats(adb->view->resolver, counter);
+	if (adb->res != NULL) {
+		dns_resolver_incstats(adb->res, counter);
 	}
 }
 
@@ -2080,6 +2081,7 @@ destroy(dns_adb_t *adb) {
 
 	isc_task_detach(&adb->task);
 	isc_stats_detach(&adb->stats);
+	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
@@ -2110,6 +2112,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	 */
 	isc_refcount_init(&adb->references, 1);
 	dns_view_weakattach(view, &adb->view);
+	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
 	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
@@ -2158,6 +2161,7 @@ free_lock:
 	isc_rwlock_destroy(&adb->names_lock);
 	isc_ht_destroy(&adb->namebuckets);
 
+	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 
@@ -3343,9 +3347,9 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 * domain and nameservers.
 	 */
 	result = dns_resolver_createfetch(
-		adb->view->resolver, &adbname->name, type, name, nameservers,
-		NULL, NULL, 0, options, depth, qc, adb->task, fetch_callback,
-		adbname, &fetch->rdataset, NULL, &fetch->fetch);
+		adb->res, &adbname->name, type, name, nameservers, NULL, NULL,
+		0, options, depth, qc, adb->task, fetch_callback, adbname,
+		&fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));
