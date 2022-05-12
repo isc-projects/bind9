@@ -1,3 +1,8 @@
+5889.	[cleanup]	Refactored and simplified the shutdown processes in
+			dns_view, dns_resolver, dns_requestmgr, and dns_adb
+			by reducing interdependencies between the objects.
+			[GL !6278]
+
 5888.	[bug]		Only write key files if the dnssec-policy keymgr has
 			changed the metadata. [GL #3302]
 
