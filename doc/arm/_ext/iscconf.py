@@ -268,6 +268,29 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 self.log_statement_overlap(new[name], old[name])
             old.update(new)
 
+        def check_consistency(self):
+            """Sphinx API"""
+            defined_statements = set(
+                obj["signature"] for obj in self.data["statements"].values()
+            )
+            statements_in_grammar = set(self.statement_blocks)
+            missing_statement_sigs = statements_in_grammar.difference(
+                defined_statements
+            )
+            for missing in missing_statement_sigs:
+                grammars = self.statement_grammar_groups[missing]
+                if len(grammars) == 1:
+                    flags = grammars[0][0].subgrammar.get("_flags", [])
+                    if ("obsolete" in flags) or ("test only" in flags):
+                        continue
+
+                logger.warning(
+                    "statement %s is defined in %s grammar but is not described"
+                    " using .. statement:: directive",
+                    missing,
+                    domainlabel,
+                )
+
         @classmethod
         def process_statementlist_nodes(cls, app, doctree, fromdocname):
             """
