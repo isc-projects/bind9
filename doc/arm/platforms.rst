@@ -47,7 +47,7 @@ following systems:
 
 -  Debian 10, 11
 -  Ubuntu LTS 18.04, 20.04, 22.04
--  Fedora 35
+-  Fedora 36
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8
 -  FreeBSD 12.3, 13.1
 -  OpenBSD 7.1
