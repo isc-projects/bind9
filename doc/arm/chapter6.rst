@@ -9,7 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. include:: security.inc.rst
-.. include:: tsig.inc.rst
-.. include:: tkey.inc.rst
-.. include:: sig0.inc.rst
+.. include:: advanced.inc.rst
+.. include:: dlz.inc.rst
+.. include:: dyndb.inc.rst
+.. include:: catz.inc.rst
+.. include:: rpz.inc.rst
