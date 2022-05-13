@@ -1,3 +1,7 @@
+5887.	[cleanup]	Remove the on-shutdown mechanics from isc_task API.
+			Replace it by isc_task_send() when we are shutting
+			down. [GL !6275]
+
 5886.	[placeholder]
 
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub

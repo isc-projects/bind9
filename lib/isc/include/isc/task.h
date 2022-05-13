@@ -266,89 +266,6 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *					or was marked unpurgeable.
  */
 
-isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
-/*%<
- * Send a shutdown event with action 'action' and argument 'arg' when
- * 'task' is shutdown.
- *
- * Notes:
- *
- *\li	Shutdown events are posted in LIFO order.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- *\li	'action' is a valid task action.
- *
- * Ensures:
- *
- *\li	When the task is shutdown, shutdown events requested with
- *	isc_task_onshutdown() will be appended to the task's event queue.
- *
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SHUTTINGDOWN			Task is shutting down.
- */
-
-void
-isc_task_shutdown(isc_task_t *task);
-/*%<
- * Shutdown 'task'.
- *
- * Notes:
- *
- *\li	Shutting down a task causes any shutdown events requested with
- *	isc_task_onshutdown() to be posted (in LIFO order).  The task
- *	moves into a "shutting down" mode which prevents further calls
- *	to isc_task_onshutdown().
- *
- *\li	Trying to shutdown a task that has already been shutdown has no
- *	effect.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- * Ensures:
- *
- *\li	Any shutdown events requested with isc_task_onshutdown() have been
- *	posted (in LIFO order).
- */
-
-void
-isc_task_destroy(isc_task_t **taskp);
-/*%<
- * Destroy '*taskp'.
- *
- * Notes:
- *
- *\li	This call is equivalent to:
- *
- *\code
- *		isc_task_shutdown(*taskp);
- *		isc_task_detach(taskp);
- *\endcode
- *
- * Requires:
- *
- *	'*taskp' is a valid task.
- *
- * Ensures:
- *
- *\li	Any shutdown events requested with isc_task_onshutdown() have been
- *	posted (in LIFO order).
- *
- *\li	*taskp == NULL
- *
- *\li	If '*taskp' is the last reference to the task,
- *		all resources used by the task will be freed.
- */
-
 void
 isc_task_setname(isc_task_t *task, const char *name, void *tag);
 /*%<
@@ -438,16 +355,6 @@ isc_task_endexclusive(isc_task_t *task);
  * Requires:
  *\li	'task' is the calling task, and has obtained
  *		exclusive access by calling isc_task_spl().
- */
-
-bool
-isc_task_exiting(isc_task_t *t);
-/*%<
- * Returns true if the task is in the process of shutting down,
- * false otherwise.
- *
- * Requires:
- *\li	'task' is a valid task.
  */
 
 /*****

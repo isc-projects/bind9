@@ -134,7 +134,7 @@ create_task(void **state) {
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_task_destroy(&task);
+	isc_task_detach(&task);
 	assert_null(task);
 }
 
@@ -178,7 +178,7 @@ all_events(void **state) {
 	assert_int_not_equal(atomic_load(&a), 0);
 	assert_int_not_equal(atomic_load(&b), 0);
 
-	isc_task_destroy(&task);
+	isc_task_detach(&task);
 	assert_null(task);
 }
 
@@ -200,17 +200,6 @@ basic_cb(isc_task_t *task, isc_event_t *event) {
 
 	if (verbose) {
 		print_message("# task %s\n", (char *)event->ev_arg);
-	}
-
-	isc_event_free(&event);
-}
-
-static void
-basic_shutdown(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	if (verbose) {
-		print_message("# shutdown %s\n", (char *)event->ev_arg);
 	}
 
 	isc_event_free(&event);
@@ -258,15 +247,6 @@ basic(void **state) {
 	result = isc_task_create(taskmgr, 0, &task3);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task4);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_onshutdown(task1, basic_shutdown, one);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_onshutdown(task2, basic_shutdown, two);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_onshutdown(task3, basic_shutdown, three);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_onshutdown(task4, basic_shutdown, four);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 1, 0);
@@ -421,53 +401,39 @@ task_exclusive(void **state) {
  * Max tasks test:
  * The task system can create and execute many tasks. Tests with 10000.
  */
-static void
-maxtask_shutdown(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
 
-	if (event->ev_arg != NULL) {
-		isc_task_destroy((isc_task_t **)&event->ev_arg);
+static void
+maxtask_cb(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	uintptr_t ntasks = (uintptr_t)event->ev_arg;
+
+	if (ntasks-- > 0) {
+		task = NULL;
+
+		event->ev_arg = (void *)ntasks;
+
+		/*
+		 * Create a new task and forward the message.
+		 */
+		result = isc_task_create(taskmgr, 0, &task);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		isc_task_send(task, &event);
+		isc_task_detach(&task);
 	} else {
+		isc_event_free(&event);
+
 		LOCK(&lock);
 		atomic_store(&done, true);
 		SIGNAL(&cv);
 		UNLOCK(&lock);
 	}
-
-	isc_event_free(&event);
-}
-
-static void
-maxtask_cb(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-
-	if (event->ev_arg != NULL) {
-		isc_task_t *newtask = NULL;
-
-		event->ev_arg = (void *)(((uintptr_t)event->ev_arg) - 1);
-
-		/*
-		 * Create a new task and forward the message.
-		 */
-		result = isc_task_create(taskmgr, 0, &newtask);
-		assert_int_equal(result, ISC_R_SUCCESS);
-
-		result = isc_task_onshutdown(newtask, maxtask_shutdown,
-					     (void *)task);
-		assert_int_equal(result, ISC_R_SUCCESS);
-
-		isc_task_send(newtask, &event);
-	} else if (task != NULL) {
-		isc_task_destroy(&task);
-		isc_event_free(&event);
-	}
 }
 
 static void
 manytasks(void **state) {
-	isc_mem_t *mctx = NULL;
 	isc_event_t *event = NULL;
-	uintptr_t ntasks = 10000;
+	uintptr_t ntasks = 2; /* 0000; */
 
 	UNUSED(state);
 
@@ -476,17 +442,9 @@ manytasks(void **state) {
 			      (unsigned long)ntasks);
 	}
 
-	isc_mutex_init(&lock);
-	isc_condition_init(&cv);
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-	isc_mem_create(&mctx);
-
-	isc_managers_create(mctx, 4, 0, &netmgr, &taskmgr, NULL);
-
 	atomic_init(&done, false);
 
-	event = isc_event_allocate(mctx, (void *)1, 1, maxtask_cb,
+	event = isc_event_allocate(test_mctx, NULL, 1, maxtask_cb,
 				   (void *)ntasks, sizeof(*event));
 	assert_non_null(event);
 
@@ -496,220 +454,6 @@ manytasks(void **state) {
 		WAIT(&cv, &lock);
 	}
 	UNLOCK(&lock);
-
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-
-	isc_mem_destroy(&mctx);
-	isc_condition_destroy(&cv);
-	isc_mutex_destroy(&lock);
-}
-
-/*
- * Shutdown test:
- * When isc_task_shutdown() is called, shutdown events are posted
- * in LIFO order.
- */
-
-static int nevents = 0;
-static int nsdevents = 0;
-static int senders[4];
-atomic_bool ready, all_done;
-
-static void
-sd_sde1(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	assert_int_equal(nevents, 256);
-	assert_int_equal(nsdevents, 1);
-	++nsdevents;
-
-	if (verbose) {
-		print_message("# shutdown 1\n");
-	}
-
-	isc_event_free(&event);
-
-	atomic_store(&all_done, true);
-}
-
-static void
-sd_sde2(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	assert_int_equal(nevents, 256);
-	assert_int_equal(nsdevents, 0);
-	++nsdevents;
-
-	if (verbose) {
-		print_message("# shutdown 2\n");
-	}
-
-	isc_event_free(&event);
-}
-
-static void
-sd_event1(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	LOCK(&lock);
-	while (!atomic_load(&ready)) {
-		WAIT(&cv, &lock);
-	}
-	UNLOCK(&lock);
-
-	if (verbose) {
-		print_message("# event 1\n");
-	}
-
-	isc_event_free(&event);
-}
-
-static void
-sd_event2(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	++nevents;
-
-	if (verbose) {
-		print_message("# event 2\n");
-	}
-
-	isc_event_free(&event);
-}
-
-static void
-task_shutdown(void **state) {
-	isc_result_t result;
-	isc_eventtype_t event_type;
-	isc_event_t *event = NULL;
-	isc_task_t *task = NULL;
-	int i;
-
-	UNUSED(state);
-
-	nevents = nsdevents = 0;
-	event_type = 3;
-	atomic_init(&ready, false);
-	atomic_init(&all_done, false);
-
-	LOCK(&lock);
-
-	result = isc_task_create(taskmgr, 0, &task);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/*
-	 * This event causes the task to wait on cv.
-	 */
-	event = isc_event_allocate(test_mctx, &senders[1], event_type,
-				   sd_event1, NULL, sizeof(*event));
-	assert_non_null(event);
-	isc_task_send(task, &event);
-
-	/*
-	 * Now we fill up the task's event queue with some events.
-	 */
-	for (i = 0; i < 256; ++i) {
-		event = isc_event_allocate(test_mctx, &senders[1], event_type,
-					   sd_event2, NULL, sizeof(*event));
-		assert_non_null(event);
-		isc_task_send(task, &event);
-	}
-
-	/*
-	 * Now we register two shutdown events.
-	 */
-	result = isc_task_onshutdown(task, sd_sde1, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_onshutdown(task, sd_sde2, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	isc_task_shutdown(task);
-	isc_task_detach(&task);
-
-	/*
-	 * Now we free the task by signaling cv.
-	 */
-	atomic_store(&ready, true);
-	SIGNAL(&cv);
-	UNLOCK(&lock);
-
-	while (!atomic_load(&all_done)) {
-		isc_test_nap(1000);
-	}
-
-	assert_int_equal(nsdevents, 2);
-}
-
-/*
- * Post-shutdown test:
- * After isc_task_shutdown() has been called, any call to
- * isc_task_onshutdown() will return ISC_R_SHUTTINGDOWN.
- */
-static void
-psd_event1(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	LOCK(&lock);
-
-	while (!atomic_load(&done)) {
-		WAIT(&cv, &lock);
-	}
-
-	UNLOCK(&lock);
-
-	isc_event_free(&event);
-}
-
-static void
-psd_sde(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	isc_event_free(&event);
-}
-
-static void
-post_shutdown(void **state) {
-	isc_result_t result;
-	isc_eventtype_t event_type;
-	isc_event_t *event;
-	isc_task_t *task;
-
-	UNUSED(state);
-
-	atomic_init(&done, false);
-	event_type = 4;
-
-	isc_condition_init(&cv);
-
-	LOCK(&lock);
-
-	task = NULL;
-	result = isc_task_create(taskmgr, 0, &task);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/*
-	 * This event causes the task to wait on cv.
-	 */
-	event = isc_event_allocate(test_mctx, &senders[1], event_type,
-				   psd_event1, NULL, sizeof(*event));
-	assert_non_null(event);
-	isc_task_send(task, &event);
-
-	isc_task_shutdown(task);
-
-	result = isc_task_onshutdown(task, psd_sde, NULL);
-	assert_int_equal(result, ISC_R_SHUTTINGDOWN);
-
-	/*
-	 * Release the task.
-	 */
-	atomic_store(&done, true);
-
-	SIGNAL(&cv);
-	UNLOCK(&lock);
-
-	isc_task_detach(&task);
 }
 
 /*
@@ -738,6 +482,11 @@ pge_event1(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&lock);
 
+	LOCK(&lock);
+	atomic_store(&done, true);
+	SIGNAL(&cv);
+	UNLOCK(&lock);
+
 	isc_event_free(&event);
 }
 
@@ -746,18 +495,6 @@ pge_event2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	++eventcnt;
-	isc_event_free(&event);
-}
-
-static void
-pge_sde(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-
-	LOCK(&lock);
-	atomic_store(&done, true);
-	SIGNAL(&cv);
-	UNLOCK(&lock);
-
 	isc_event_free(&event);
 }
 
@@ -776,12 +513,7 @@ try_purgeevent(void) {
 	atomic_init(&done, false);
 	eventcnt = 0;
 
-	isc_condition_init(&cv);
-
 	result = isc_task_create(taskmgr, 0, &task);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_onshutdown(task, pge_sde, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -810,8 +542,6 @@ try_purgeevent(void) {
 	LOCK(&lock);
 	atomic_store(&started, true);
 	SIGNAL(&cv);
-
-	isc_task_shutdown(task);
 
 	isc_interval_set(&interval, 5, 0);
 
@@ -847,15 +577,11 @@ purgeevent(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(manytasks),
+		cmocka_unit_test_setup_teardown(manytasks, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(all_events, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(basic, _setup2, _teardown),
 		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(post_shutdown, _setup2,
-						_teardown),
 		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
-		cmocka_unit_test_setup_teardown(task_shutdown, _setup4,
-						_teardown),
 		cmocka_unit_test_setup_teardown(task_exclusive, _setup4,
 						_teardown),
 	};

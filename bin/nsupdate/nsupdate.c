@@ -752,12 +752,8 @@ maybeshutdown(void) {
 }
 
 static void
-shutdown_program(isc_task_t *task, isc_event_t *event) {
-	REQUIRE(task == global_task);
-	UNUSED(task);
-
+shutdown_program(void) {
 	ddebug("shutdown_program()");
-	isc_event_free(&event);
 
 	shuttingdown = true;
 	maybeshutdown();
@@ -917,9 +913,6 @@ setup_system(void) {
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
-
-	result = isc_task_onshutdown(global_task, shutdown_program, NULL);
-	check_result(result, "isc_task_onshutdown");
 
 	result = dst_lib_init(gmctx, NULL);
 	check_result(result, "dst_lib_init");
@@ -3411,6 +3404,8 @@ main(int argc, char **argv) {
 	check_result(result, "isc_app_onrun");
 
 	(void)isc_app_run();
+
+	shutdown_program();
 
 	cleanup();
 

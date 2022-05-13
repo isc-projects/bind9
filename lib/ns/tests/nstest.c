@@ -159,6 +159,8 @@ static void
 shutdown_managers(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
+	isc_event_free(&event);
+
 	if (interfacemgr != NULL) {
 		ns_interfacemgr_shutdown(interfacemgr);
 		ns_interfacemgr_detach(&interfacemgr);
@@ -170,8 +172,6 @@ shutdown_managers(isc_task_t *task, isc_event_t *event) {
 
 	atomic_store(&shutdown_done, true);
 	atomic_store(&run_managers, false);
-
-	isc_event_free(&event);
 }
 
 static void
@@ -179,8 +179,11 @@ cleanup_managers(void) {
 	atomic_store(&shutdown_done, false);
 
 	if (maintask != NULL) {
-		isc_task_shutdown(maintask);
-		isc_task_destroy(&maintask);
+		isc_event_t *event = isc_event_allocate(
+			mctx, NULL, ISC_TASKEVENT_TEST, shutdown_managers, NULL,
+			sizeof(*event));
+		isc_task_send(maintask, &event);
+		isc_task_detach(&maintask);
 	}
 
 	while (atomic_load(&run_managers) && !atomic_load(&shutdown_done)) {
@@ -227,7 +230,6 @@ create_managers(void) {
 	isc_managers_create(mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
 	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
-	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));
 
