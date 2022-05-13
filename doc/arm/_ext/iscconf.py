@@ -65,8 +65,12 @@ def domain_factory(domainname, domainlabel, todolist):
         process_statementlist_nodes() callback.
         """
 
+        option_spec = {"filter_tags": lambda arg: split_csv(arg, required=True)}
+
         def run(self):
-            return [todolist("")]
+            placeholder = todolist("")
+            placeholder["isc_filter_tags"] = set(self.options.get("filter_tags", []))
+            return [placeholder]
 
     class ISCConfDomain(Domain):
         """
@@ -104,7 +108,7 @@ def domain_factory(domainname, domainlabel, todolist):
 
             @property
             def isc_tags(self):
-                return self.options.get("tags", [])
+                return set(self.options.get("tags", []))
 
             @property
             def isc_short(self):
@@ -253,19 +257,47 @@ def domain_factory(domainname, domainlabel, todolist):
             .. statementlist::) with automatically generated table
             of statements.
             """
+
+            def gen_replacement_table(acceptable_tags):
+                table_header = [
+                    TableColumn("ref", "Statement"),
+                    TableColumn("short", "Description"),
+                ]
+                table_b = DictToDocutilsTableBuilder(table_header)
+                table_b.append_iterable(
+                    sorted(
+                        iscconf.list_all(fromdocname),
+                        key=lambda x: x["fullname"],
+                    )
+                )
+                tag_header = []
+
+                if len(acceptable_tags) != 1:
+                    # tags column only if tag filter is not applied
+                    tag_header = [
+                        TableColumn("tags_txt", "Tags"),
+                    ]
+                table_b = DictToDocutilsTableBuilder(table_header + tag_header)
+                table_b.append_iterable(
+                    sorted(
+                        filter(
+                            lambda item: (
+                                not acceptable_tags
+                                or item["tags"].intersection(acceptable_tags)
+                            ),
+                            iscconf.list_all(fromdocname),
+                        ),
+                        key=lambda x: x["fullname"],
+                    )
+                )
+                return table_b.get_docutils()
+
             env = app.builder.env
             iscconf = env.get_domain(cls.name)
 
-            table_header = [
-                TableColumn("ref", "Statement name"),
-                TableColumn("short", "Short desc"),
-                TableColumn("tags_txt", "Tags"),
-            ]
-            table_b = DictToDocutilsTableBuilder(table_header)
-            table_b.append_iterable(iscconf.list_all(fromdocname))
-            table = table_b.get_docutils()
             for node in doctree.traverse(todolist):
-                node.replace_self(table)
+                acceptable_tags = node["isc_filter_tags"]
+                node.replace_self(gen_replacement_table(acceptable_tags))
 
         def list_all(self, fromdocname):
             for statement in self.data["statements"].values():
