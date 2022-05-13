@@ -65,8 +65,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  *
  *\li	'mctx' is a valid memory context.
  *
- *\li	'socketmgr' is a valid socket manager.
- *
  *\li	'taskmgr' is a valid task manager.
  *
  *\li	'dispatchv4' is a valid dispatcher with an IPv4 UDP socket, or is NULL.
@@ -84,30 +82,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  *\li	ISC_R_SUCCESS
  *
  *\li	Any other result indicates failure.
- */
-
-void
-dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
-			    isc_event_t **eventp);
-/*%<
- * Send '*eventp' to 'task' when 'requestmgr' has completed shutdown.
- *
- * Notes:
- *
- *\li	It is not safe to detach the last reference to 'requestmgr' until
- *	shutdown is complete.
- *
- * Requires:
- *
- *\li	'requestmgr' is a valid request manager.
- *
- *\li	'task' is a valid task.
- *
- *\li	*eventp is a valid event.
- *
- * Ensures:
- *
- *\li	*eventp == NULL.
  */
 
 void

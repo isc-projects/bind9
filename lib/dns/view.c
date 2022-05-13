@@ -61,6 +61,7 @@
 #include <dns/time.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
+#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -71,50 +72,58 @@
 			goto cleanup;        \
 	} while (0)
 
-#define RESSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_RESSHUTDOWN) != 0)
-#define ADBSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
-#define REQSHUTDOWN(v) \
-	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_REQSHUTDOWN) != 0)
-
 #define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
-
-static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event);
-static void
-adb_shutdown(isc_task_t *task, isc_event_t *event);
-static void
-req_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 	isc_result_t result;
 	char buffer[1024];
-
-	/*
-	 * Create a view.
-	 */
 
 	REQUIRE(name != NULL);
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
-	view = isc_mem_get(mctx, sizeof(*view));
-
-	view->nta_file = NULL;
-	view->mctx = NULL;
-	isc_mem_attach(mctx, &view->mctx);
-	view->name = isc_mem_strdup(mctx, name);
-
-	result = isc_file_sanitize(NULL, view->name, "nta", buffer,
-				   sizeof(buffer));
+	result = isc_file_sanitize(NULL, name, "nta", buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_name;
+		return (result);
 	}
-	view->nta_file = isc_mem_strdup(mctx, buffer);
+
+	view = isc_mem_get(mctx, sizeof(*view));
+	*view = (dns_view_t){
+		.rdclass = rdclass,
+		.name = isc_mem_strdup(mctx, name),
+		.nta_file = isc_mem_strdup(mctx, buffer),
+		.recursion = true,
+		.enablevalidation = true,
+		.minimalresponses = dns_minimal_no,
+		.transfer_format = dns_one_answer,
+		.msgcompression = true,
+		.provideixfr = true,
+		.maxcachettl = 7 * 24 * 3600,
+		.maxncachettl = 3 * 3600,
+		.dstport = 53,
+		.staleanswerttl = 1,
+		.staleanswersok = dns_stale_answer_conf,
+		.sendcookie = true,
+		.synthfromdnssec = true,
+		.trust_anchor_telemetry = true,
+		.root_key_sentinel = true,
+	};
+
+	isc_refcount_init(&view->references, 1);
+	isc_refcount_init(&view->weakrefs, 1);
+
+	dns_fixedname_init(&view->redirectfixed);
+
+	ISC_LIST_INIT(view->dlz_searched);
+	ISC_LIST_INIT(view->dlz_unsearched);
+	ISC_LIST_INIT(view->dns64);
+
+	ISC_LINK_INIT(view, link);
+
+	isc_mem_attach(mctx, &view->mctx);
 
 	isc_mutex_init(&view->lock);
 
@@ -128,9 +137,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_mutex;
 	}
 
-	view->secroots_priv = NULL;
-	view->ntatable_priv = NULL;
-	view->fwdtable = NULL;
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -140,130 +146,16 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_zt;
 	}
 
-	view->cache = NULL;
-	view->cachedb = NULL;
-	ISC_LIST_INIT(view->dlz_searched);
-	ISC_LIST_INIT(view->dlz_unsearched);
-	view->hints = NULL;
-	view->resolver = NULL;
-	view->adb = NULL;
-	view->requestmgr = NULL;
-	view->rdclass = rdclass;
-	view->frozen = false;
-	view->task = NULL;
-	isc_refcount_init(&view->references, 1);
-	isc_refcount_init(&view->weakrefs, 1);
-	atomic_init(&view->attributes,
-		    (DNS_VIEWATTR_RESSHUTDOWN | DNS_VIEWATTR_ADBSHUTDOWN |
-		     DNS_VIEWATTR_REQSHUTDOWN));
-	view->transports = NULL;
-	view->statickeys = NULL;
-	view->dynamickeys = NULL;
-	view->matchclients = NULL;
-	view->matchdestinations = NULL;
-	view->matchrecursiveonly = false;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_weakrefs;
 	}
-	view->peers = NULL;
-	view->order = NULL;
-	view->delonly = NULL;
-	view->rootdelonly = false;
-	view->rootexclude = NULL;
-	view->adbstats = NULL;
-	view->resstats = NULL;
-	view->resquerystats = NULL;
-	view->cacheshared = false;
-	ISC_LIST_INIT(view->dns64);
-	view->dns64cnt = 0;
 
-	/*
-	 * Initialize configuration data with default values.
-	 */
-	view->recursion = true;
-	view->qminimization = false;
-	view->qmin_strict = false;
-	view->auth_nxdomain = false; /* Was true in BIND 8 */
-	view->enablevalidation = true;
-	view->acceptexpired = false;
-	view->use_glue_cache = false;
-	view->minimal_any = false;
-	view->minimalresponses = dns_minimal_no;
-	view->transfer_format = dns_one_answer;
-	view->cacheacl = NULL;
-	view->cacheonacl = NULL;
-	view->checknames = false;
-	view->queryacl = NULL;
-	view->queryonacl = NULL;
-	view->recursionacl = NULL;
-	view->recursiononacl = NULL;
-	view->sortlist = NULL;
-	view->transferacl = NULL;
-	view->notifyacl = NULL;
-	view->updateacl = NULL;
-	view->upfwdacl = NULL;
-	view->denyansweracl = NULL;
-	view->nocasecompress = NULL;
-	view->msgcompression = true;
-	view->answeracl_exclude = NULL;
-	view->denyanswernames = NULL;
-	view->answernames_exclude = NULL;
-	view->rrl = NULL;
-	view->provideixfr = true;
-	view->maxcachettl = 7 * 24 * 3600;
-	view->maxncachettl = 3 * 3600;
-	view->mincachettl = 0;
-	view->minncachettl = 0;
-	view->nta_lifetime = 0;
-	view->nta_recheck = 0;
-	view->prefetch_eligible = 0;
-	view->prefetch_trigger = 0;
-	view->dstport = 53;
-	view->preferred_glue = 0;
-	view->flush = false;
-	view->maxudp = 0;
-	view->staleanswerttl = 1;
-	view->staleanswersok = dns_stale_answer_conf;
-	view->staleanswersenable = false;
-	view->nocookieudp = 0;
-	view->padding = 0;
-	view->pad_acl = NULL;
-	view->maxbits = 0;
-	view->rpzs = NULL;
-	view->catzs = NULL;
-	view->managed_keys = NULL;
-	view->redirect = NULL;
-	view->redirectzone = NULL;
-	dns_fixedname_init(&view->redirectfixed);
-	view->requestnsid = false;
-	view->sendcookie = true;
-	view->requireservercookie = false;
-	view->synthfromdnssec = true;
-	view->trust_anchor_telemetry = true;
-	view->root_key_sentinel = true;
-	view->new_zone_dir = NULL;
-	view->new_zone_file = NULL;
-	view->new_zone_db = NULL;
-	view->new_zone_dbenv = NULL;
-	view->new_zone_mapsize = 0ULL;
-	view->new_zone_config = NULL;
-	view->cfg_destroy = NULL;
-	view->fail_ttl = 0;
-	view->failcache = NULL;
 	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
 				   &view->failcache);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_dynkeys;
 	}
-	view->v6bias = 0;
-	view->dtenv = NULL;
-	view->dttypes = 0;
-
-	view->plugins = NULL;
-	view->plugins_free = NULL;
-	view->hooktable = NULL;
-	view->hooktable_free = NULL;
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -282,19 +174,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_peerlist;
 	}
 
-	ISC_LINK_INIT(view, link);
-	ISC_EVENT_INIT(&view->resevent, sizeof(view->resevent), 0, NULL,
-		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown, view, NULL,
-		       NULL, NULL);
-	ISC_EVENT_INIT(&view->adbevent, sizeof(view->adbevent), 0, NULL,
-		       DNS_EVENT_VIEWADBSHUTDOWN, adb_shutdown, view, NULL,
-		       NULL, NULL);
-	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
-		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown, view, NULL,
-		       NULL, NULL);
-	view->viewlist = NULL;
 	view->magic = DNS_VIEW_MAGIC;
-
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
@@ -311,7 +191,6 @@ cleanup_order:
 
 cleanup_new_zone_lock:
 	isc_mutex_destroy(&view->new_zone_lock);
-
 	dns_badcache_destroy(&view->failcache);
 
 cleanup_dynkeys:
@@ -342,7 +221,6 @@ cleanup_mutex:
 		isc_mem_free(mctx, view->nta_file);
 	}
 
-cleanup_name:
 	isc_mem_free(mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 
@@ -355,9 +233,6 @@ destroy(dns_view_t *view) {
 	dns_dlzdb_t *dlzdb;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
-	REQUIRE(RESSHUTDOWN(view));
-	REQUIRE(ADBSHUTDOWN(view));
-	REQUIRE(REQSHUTDOWN(view));
 
 	isc_refcount_destroy(&view->references);
 	isc_refcount_destroy(&view->weakrefs);
@@ -541,15 +416,6 @@ destroy(dns_view_t *view) {
 			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		view->rootexclude = NULL;
 	}
-	if (view->adbstats != NULL) {
-		isc_stats_detach(&view->adbstats);
-	}
-	if (view->resstats != NULL) {
-		isc_stats_detach(&view->resstats);
-	}
-	if (view->resquerystats != NULL) {
-		dns_stats_detach(&view->resquerystats);
-	}
 	if (view->secroots_priv != NULL) {
 		dns_keytable_detach(&view->secroots_priv);
 	}
@@ -622,15 +488,14 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	*targetp = source;
 }
 
-static void
-view_flushanddetach(dns_view_t **viewp, bool flush) {
-	REQUIRE(viewp != NULL && DNS_VIEW_VALID(*viewp));
-	dns_view_t *view = *viewp;
-	*viewp = NULL;
+void
+dns_view_detach(dns_view_t **viewp) {
+	dns_view_t *view = NULL;
 
-	if (flush) {
-		view->flush = flush;
-	}
+	REQUIRE(viewp != NULL && DNS_VIEW_VALID(*viewp));
+
+	view = *viewp;
+	*viewp = NULL;
 
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
@@ -638,14 +503,17 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 
 		isc_refcount_destroy(&view->references);
 
-		if (!RESSHUTDOWN(view)) {
+		if (view->resolver != NULL) {
 			dns_resolver_shutdown(view->resolver);
+			dns_resolver_detach(&view->resolver);
 		}
-		if (!ADBSHUTDOWN(view)) {
+		if (view->adb != NULL) {
 			dns_adb_shutdown(view->adb);
+			dns_adb_detach(&view->adb);
 		}
-		if (!REQSHUTDOWN(view)) {
+		if (view->requestmgr != NULL) {
 			dns_requestmgr_shutdown(view->requestmgr);
+			dns_requestmgr_detach(&view->requestmgr);
 		}
 
 		LOCK(&view->lock);
@@ -697,16 +565,6 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 	}
 }
 
-void
-dns_view_flushanddetach(dns_view_t **viewp) {
-	view_flushanddetach(viewp, true);
-}
-
-void
-dns_view_detach(dns_view_t **viewp) {
-	view_flushanddetach(viewp, false);
-}
-
 static isc_result_t
 dialup(dns_zone_t *zone, void *dummy) {
 	UNUSED(dummy);
@@ -734,66 +592,18 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 
 void
 dns_view_weakdetach(dns_view_t **viewp) {
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 
 	REQUIRE(viewp != NULL);
+
 	view = *viewp;
 	*viewp = NULL;
+
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (isc_refcount_decrement(&view->weakrefs) == 1) {
 		destroy(view);
 	}
-}
-
-static void
-resolver_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->task == task);
-
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_RESSHUTDOWN);
-	dns_view_weakdetach(&view);
-}
-
-static void
-adb_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_VIEWADBSHUTDOWN);
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->task == task);
-
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_ADBSHUTDOWN);
-
-	dns_view_weakdetach(&view);
-}
-
-static void
-req_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->task == task);
-
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_REQSHUTDOWN);
-
-	dns_view_weakdetach(&view);
 }
 
 isc_result_t
@@ -813,7 +623,6 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
-	isc_event_t *event;
 	isc_mem_t *mctx = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -833,40 +642,34 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		isc_task_detach(&view->task);
 		return (result);
 	}
-	event = &view->resevent;
-	dns_resolver_whenshutdown(view->resolver, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_RESSHUTDOWN);
-	isc_refcount_increment(&view->weakrefs);
 
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "ADB");
-
 	result = dns_adb_create(mctx, view, taskmgr, &view->adb);
 	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
-		dns_resolver_shutdown(view->resolver);
-		return (result);
+		goto cleanup_resolver;
 	}
-	event = &view->adbevent;
-	dns_adb_whenshutdown(view->adb, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_ADBSHUTDOWN);
-	isc_refcount_increment(&view->weakrefs);
 
 	result = dns_requestmgr_create(
 		view->mctx, dns_resolver_taskmgr(view->resolver),
 		dns_resolver_dispatchmgr(view->resolver), dispatchv4,
 		dispatchv6, &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
-		dns_adb_shutdown(view->adb);
-		dns_resolver_shutdown(view->resolver);
-		return (result);
+		goto cleanup_adb;
 	}
-	event = &view->reqevent;
-	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
-	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_REQSHUTDOWN);
-	isc_refcount_increment(&view->weakrefs);
 
 	return (ISC_R_SUCCESS);
+
+cleanup_adb:
+	dns_adb_shutdown(view->adb);
+	dns_adb_detach(&view->adb);
+
+cleanup_resolver:
+	dns_resolver_shutdown(view->resolver);
+	dns_resolver_detach(&view->resolver);
+
+	return (result);
 }
 
 void
@@ -1866,63 +1669,6 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 	return (dns_zt_freezezones(view->zonetable, view, value));
 }
 
-void
-dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-	REQUIRE(view->adbstats == NULL);
-
-	isc_stats_attach(stats, &view->adbstats);
-}
-
-void
-dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(statsp != NULL && *statsp == NULL);
-
-	if (view->adbstats != NULL) {
-		isc_stats_attach(view->adbstats, statsp);
-	}
-}
-
-void
-dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-	REQUIRE(view->resstats == NULL);
-
-	isc_stats_attach(stats, &view->resstats);
-}
-
-void
-dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(statsp != NULL && *statsp == NULL);
-
-	if (view->resstats != NULL) {
-		isc_stats_attach(view->resstats, statsp);
-	}
-}
-
-void
-dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-	REQUIRE(view->resquerystats == NULL);
-
-	dns_stats_attach(stats, &view->resquerystats);
-}
-
-void
-dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(statsp != NULL && *statsp == NULL);
-
-	if (view->resquerystats != NULL) {
-		dns_stats_attach(view->resquerystats, statsp);
-	}
-}
-
 isc_result_t
 dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		      isc_timermgr_t *timermgr) {
@@ -2580,4 +2326,11 @@ dns_view_staleanswerenabled(dns_view_t *view) {
 	}
 
 	return (result);
+}
+
+void
+dns_view_flushonshutdown(dns_view_t *view, bool flush) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	view->flush = flush;
 }

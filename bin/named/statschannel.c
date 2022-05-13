@@ -25,6 +25,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/opcode.h>
@@ -2239,6 +2240,9 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "views"));
 	while (view != NULL &&
 	       ((flags & (STATS_XML_SERVER | STATS_XML_ZONES)) != 0)) {
+		isc_stats_t *istats = NULL;
+		dns_stats_t *dstats = NULL;
+
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "view"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 						 ISC_XMLCHAR view->name));
@@ -2261,25 +2265,29 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "resqtype"));
 
-		if (view->resquerystats != NULL) {
+		dns_resolver_getquerystats(view->resolver, &dstats);
+		if (dstats != NULL) {
 			dumparg.result = ISC_R_SUCCESS;
-			dns_rdatatypestats_dump(view->resquerystats,
-						rdtypestat_dump, &dumparg, 0);
+			dns_rdatatypestats_dump(dstats, rdtypestat_dump,
+						&dumparg, 0);
 			CHECK(dumparg.result);
 		}
+		dns_stats_detach(&dstats);
 		TRY0(xmlTextWriterEndElement(writer));
 
 		/* <resstats> */
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "resstats"));
-		if (view->resstats != NULL) {
-			CHECK(dump_counters(view->resstats, isc_statsformat_xml,
-					    writer, NULL, resstats_xmldesc,
+		dns_resolver_getstats(view->resolver, &istats);
+		if (istats != NULL) {
+			CHECK(dump_counters(istats, isc_statsformat_xml, writer,
+					    NULL, resstats_xmldesc,
 					    dns_resstatscounter_max,
 					    resstats_index, resstat_values,
 					    ISC_STATSDUMP_VERBOSE));
 		}
+		isc_stats_detach(&istats);
 		TRY0(xmlTextWriterEndElement(writer)); /* </resstats> */
 
 		cacherrstats = dns_db_getrrsetstats(view->cachedb);
@@ -2300,13 +2308,10 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "adbstat"));
-		if (view->adbstats != NULL) {
-			CHECK(dump_counters(view->adbstats, isc_statsformat_xml,
-					    writer, NULL, adbstats_xmldesc,
-					    dns_adbstats_max, adbstats_index,
-					    adbstat_values,
-					    ISC_STATSDUMP_VERBOSE));
-		}
+		CHECK(dump_counters(
+			dns_adb_getstats(view->adb), isc_statsformat_xml,
+			writer, NULL, adbstats_xmldesc, dns_adbstats_max,
+			adbstats_index, adbstat_values, ISC_STATSDUMP_VERBOSE));
 		TRY0(xmlTextWriterEndElement(writer)); /* </adbstats> */
 
 		/* <cachestats> */
@@ -2993,15 +2998,15 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 			}
 
 			if ((flags & STATS_JSON_SERVER) != 0) {
-				json_object *res;
-				dns_stats_t *dstats;
-				isc_stats_t *istats;
+				json_object *res = NULL;
+				dns_stats_t *dstats = NULL;
+				isc_stats_t *istats = NULL;
 
 				res = json_object_new_object();
 				CHECKMEM(res);
 				json_object_object_add(v, "resolver", res);
 
-				istats = view->resstats;
+				dns_resolver_getstats(view->resolver, &istats);
 				if (istats != NULL) {
 					counters = json_object_new_object();
 					CHECKMEM(counters);
@@ -3021,9 +3026,11 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 					json_object_object_add(res, "stats",
 							       counters);
+					isc_stats_detach(&istats);
 				}
 
-				dstats = view->resquerystats;
+				dns_resolver_getquerystats(view->resolver,
+							   &dstats);
 				if (dstats != NULL) {
 					counters = json_object_new_object();
 					CHECKMEM(counters);
@@ -3041,6 +3048,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 					json_object_object_add(res, "qtypes",
 							       counters);
+					dns_stats_detach(&dstats);
 				}
 
 				dstats = dns_db_getrrsetstats(view->cachedb);
@@ -3076,7 +3084,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 				json_object_object_add(res, "cachestats",
 						       counters);
 
-				istats = view->adbstats;
+				istats = dns_adb_getstats(view->adb);
 				if (istats != NULL) {
 					counters = json_object_new_object();
 					CHECKMEM(counters);
@@ -3926,7 +3934,9 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (view->resquerystats == NULL) {
+		dns_stats_t *dstats = NULL;
+		dns_resolver_getquerystats(view->resolver, &dstats);
+		if (dstats == NULL) {
 			continue;
 		}
 		if (strcmp(view->name, "_default") == 0) {
@@ -3934,8 +3944,8 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 		} else {
 			fprintf(fp, "[View: %s]\n", view->name);
 		}
-		dns_rdatatypestats_dump(view->resquerystats, rdtypestat_dump,
-					&dumparg, 0);
+		dns_rdatatypestats_dump(dstats, rdtypestat_dump, &dumparg, 0);
+		dns_stats_detach(&dstats);
 	}
 
 	fprintf(fp, "++ Name Server Statistics ++\n");
@@ -3957,7 +3967,9 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (view->resstats == NULL) {
+		isc_stats_t *istats = NULL;
+		dns_resolver_getstats(view->resolver, &istats);
+		if (istats == NULL) {
 			continue;
 		}
 		if (strcmp(view->name, "_default") == 0) {
@@ -3965,10 +3977,10 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 		} else {
 			fprintf(fp, "[View: %s]\n", view->name);
 		}
-		(void)dump_counters(view->resstats, isc_statsformat_file, fp,
-				    NULL, resstats_desc,
-				    dns_resstatscounter_max, resstats_index,
-				    resstat_values, 0);
+		(void)dump_counters(istats, isc_statsformat_file, fp, NULL,
+				    resstats_desc, dns_resstatscounter_max,
+				    resstats_index, resstat_values, 0);
+		isc_stats_detach(&istats);
 	}
 
 	fprintf(fp, "++ Cache Statistics ++\n");
@@ -4021,7 +4033,9 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (view->adbstats == NULL) {
+		isc_stats_t *adbstats = dns_adb_getstats(view->adb);
+
+		if (adbstats == NULL) {
 			continue;
 		}
 		if (strcmp(view->name, "_default") == 0) {
@@ -4029,8 +4043,8 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 		} else {
 			fprintf(fp, "[View: %s]\n", view->name);
 		}
-		(void)dump_counters(view->adbstats, isc_statsformat_file, fp,
-				    NULL, adbstats_desc, dns_adbstats_max,
+		(void)dump_counters(adbstats, isc_statsformat_file, fp, NULL,
+				    adbstats_desc, dns_adbstats_max,
 				    adbstats_index, adbstat_values, 0);
 	}
 

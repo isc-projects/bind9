@@ -4661,9 +4661,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 						      "reusing existing cache");
 					dns_cache_attach(pview->cache, &cache);
 				}
-				dns_view_getresstats(pview, &resstats);
-				dns_view_getresquerystats(pview,
-							  &resquerystats);
+				dns_resolver_getstats(pview->resolver,
+						      &resstats);
+				dns_resolver_getquerystats(pview->resolver,
+							   &resquerystats);
 				dns_view_detach(&pview);
 			}
 		}
@@ -4731,21 +4732,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		goto cleanup;
 	}
 
-	if (resstats == NULL) {
-		CHECK(isc_stats_create(mctx, &resstats,
-				       dns_resstatscounter_max));
-	}
-	dns_view_setresstats(view, resstats);
-	if (resquerystats == NULL) {
-		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
-	}
-	dns_view_setresquerystats(view, resquerystats);
-
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
 		view, named_g_taskmgr, RESOLVER_NTASKS_PERCPU * named_g_cpus,
 		ndisp, named_g_netmgr, named_g_timermgr, resopts,
 		named_g_dispatchmgr, dispatch4, dispatch6));
+
+	if (resstats == NULL) {
+		CHECK(isc_stats_create(mctx, &resstats,
+				       dns_resstatscounter_max));
+	}
+	dns_resolver_setstats(view->resolver, resstats);
+	if (resquerystats == NULL) {
+		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	}
+	dns_resolver_setquerystats(view->resolver, resquerystats);
 
 	if (dscp4 == -1) {
 		dscp4 = named_g_dscp;
@@ -9917,11 +9918,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(server->viewlist, view, link);
-		if (flush) {
-			dns_view_flushanddetach(&view);
-		} else {
-			dns_view_detach(&view);
-		}
+		dns_view_flushonshutdown(view, flush);
+		dns_view_detach(&view);
 	}
 
 	/*

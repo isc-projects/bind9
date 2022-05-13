@@ -101,16 +101,10 @@ struct dns_view {
 	dns_keytable_t *secroots_priv;
 	dns_ntatable_t *ntatable_priv;
 
-	isc_mutex_t  lock;
-	bool	     frozen;
-	isc_task_t  *task;
-	isc_event_t  resevent;
-	isc_event_t  adbevent;
-	isc_event_t  reqevent;
-	isc_stats_t *adbstats;
-	isc_stats_t *resstats;
-	dns_stats_t *resquerystats;
-	bool	     cacheshared;
+	isc_mutex_t lock;
+	bool	    frozen;
+	isc_task_t *task;
+	bool	    cacheshared;
 
 	/* Configurable data. */
 	dns_transport_list_t *transports;
@@ -199,9 +193,8 @@ struct dns_view {
 	bool	   matchrecursiveonly;
 
 	/* Locked by themselves. */
-	isc_refcount_t	     references;
-	isc_refcount_t	     weakrefs;
-	atomic_uint_fast32_t attributes;
+	isc_refcount_t references;
+	isc_refcount_t weakrefs;
 
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view) link;
@@ -298,7 +291,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 void
 dns_view_attach(dns_view_t *source, dns_view_t **targetp);
 /*%<
- * Attach '*targetp' to 'source'.
+ * Attach '*targetp' to 'source', incrementing the view's reference
+ * counter.
  *
  * Requires:
  *
@@ -316,22 +310,12 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp);
 void
 dns_view_detach(dns_view_t **viewp);
 /*%<
- * Detach '*viewp' from its view.
- *
- * Requires:
- *
- *\li	'viewp' points to a valid dns_view_t *
- *
- * Ensures:
- *
- *\li	*viewp is NULL.
- */
-
-void
-dns_view_flushanddetach(dns_view_t **viewp);
-/*%<
- * Detach '*viewp' from its view.  If this was the last reference
- * uncommitted changed in zones will be flushed to disk.
+ * Detach '*viewp' and decrement the view's reference counter.  If this was
+ * the last reference, then the associated resolver, requestmgr, ADB and
+ * zones will be shut down; if dns_view_flushonshutdown() has been called
+ * with 'true', uncommitted changed in zones will also be flushed to disk.
+ * The view will not be fully destroyed, however, until the weak references
+ * (see below) reach zero as well.
  *
  * Requires:
  *
@@ -345,7 +329,13 @@ dns_view_flushanddetach(dns_view_t **viewp);
 void
 dns_view_weakattach(dns_view_t *source, dns_view_t **targetp);
 /*%<
- * Weakly attach '*targetp' to 'source'.
+ * Attach '*targetp' to 'source', incrementing the view's weak reference
+ * counter.
+ *
+ * Weak references are used by objects such as the resolver, requestmgr,
+ * ADB, and zones, which are subsidiary to the view; they need the view
+ * object to remain in existence as long as they persist, but they do
+ * not need to prevent it from being shut down.
  *
  * Requires:
  *
@@ -363,7 +353,8 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp);
 void
 dns_view_weakdetach(dns_view_t **targetp);
 /*%<
- * Detach '*viewp' from its view.
+ * Detach '*viewp' from its view. If this is the last weak reference,
+ * the view will be destroyed.
  *
  * Requires:
  *
@@ -1021,82 +1012,6 @@ dns_view_freezezones(dns_view_t *view, bool freeze);
  * \li	'view' is valid.
  */
 
-void
-dns_view_setadbstats(dns_view_t *view, isc_stats_t *stats);
-/*%<
- * Set a adb statistics set 'stats' for 'view'.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics supporting adb statistics
- *	(see dns/stats.h).
- */
-
-void
-dns_view_getadbstats(dns_view_t *view, isc_stats_t **statsp);
-/*%<
- * Get the adb statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
- */
-
-void
-dns_view_setresstats(dns_view_t *view, isc_stats_t *stats);
-/*%<
- * Set a general resolver statistics counter set 'stats' for 'view'.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics supporting resolver statistics counters
- *	(see dns/stats.h).
- */
-
-void
-dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp);
-/*%<
- * Get the general statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
- */
-
-void
-dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats);
-/*%<
- * Set a statistics counter set of rdata type, 'stats', for 'view'.  Once the
- * statistic set is installed, view's resolver will count outgoing queries
- * per rdata type.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	stats is a valid statistics created by dns_rdatatypestats_create().
- */
-
-void
-dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
-/*%<
- * Get the rdatatype statistics counter set for 'view'.  If a statistics set is
- * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
- * untouched.
- *
- * Requires:
- * \li	'view' is valid and is not frozen.
- *
- *\li	'statsp' != NULL && '*statsp' != NULL
- */
-
 bool
 dns_view_iscacheshared(dns_view_t *view);
 /*%<
@@ -1359,4 +1274,13 @@ dns_view_staleanswerenabled(dns_view_t *view);
  *\li	'view' to be valid.
  */
 
+void
+dns_view_flushonshutdown(dns_view_t *view, bool flush);
+/*%<
+ * Inform the view that the zones should (or should not) be flushed to
+ * disk on shutdown.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
 ISC_LANG_ENDDECLS

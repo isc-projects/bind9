@@ -103,6 +103,7 @@ struct dns_adb {
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
 	dns_view_t *view;
+	dns_resolver_t *res;
 
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
@@ -115,10 +116,9 @@ struct dns_adb {
 	isc_ht_t *entrybuckets;
 	isc_rwlock_t entries_lock;
 
-	isc_event_t cevent;
-	bool cevent_out;
+	isc_stats_t *stats;
+
 	atomic_bool exiting;
-	isc_eventlist_t whenshutdown;
 
 	uint32_t quota;
 	uint32_t atr_freq;
@@ -487,9 +487,9 @@ DP(int level, const char *format, ...) {
  * Increment resolver-related statistics counters.
  */
 static void
-inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->resstats != NULL) {
-		isc_stats_increment(adb->view->resstats, counter);
+inc_resstats(dns_adb_t *adb, isc_statscounter_t counter) {
+	if (adb->res != NULL) {
+		dns_resolver_incstats(adb->res, counter);
 	}
 }
 
@@ -498,22 +498,22 @@ inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
  */
 static void
 set_adbstat(dns_adb_t *adb, uint64_t val, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_set(adb->view->adbstats, val, counter);
+	if (adb->stats != NULL) {
+		isc_stats_set(adb->stats, val, counter);
 	}
 }
 
 static void
 dec_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_decrement(adb->view->adbstats, counter);
+	if (adb->stats != NULL) {
+		isc_stats_decrement(adb->stats, counter);
 	}
 }
 
 static void
 inc_adbstats(dns_adb_t *adb, isc_statscounter_t counter) {
-	if (adb->view->adbstats != NULL) {
-		isc_stats_increment(adb->view->adbstats, counter);
+	if (adb->stats != NULL) {
+		isc_stats_increment(adb->stats, counter);
 	}
 }
 
@@ -1237,7 +1237,9 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev->ev_destroy = event_freefind;
 			ev->ev_destroy_arg = find;
 
-			DP(DEF_LEVEL, "sending event %p to task %p for find %p",
+			DP(DEF_LEVEL,
+			   "cfan: sending event %p "
+			   "to task %p for find %p",
 			   ev, task, find);
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -2045,8 +2047,7 @@ destroy(dns_adb_t *adb) {
 
 	adb->magic = 0;
 
-	isc_task_detach(&adb->task);
-
+	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(adb->namebuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -2058,7 +2059,10 @@ destroy(dns_adb_t *adb) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&adb->namebuckets);
+	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
+	isc_rwlock_destroy(&adb->names_lock);
 
+	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(adb->entrybuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -2070,11 +2074,15 @@ destroy(dns_adb_t *adb) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&adb->entrybuckets);
-
-	isc_rwlock_destroy(&adb->names_lock);
+	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&adb->entries_lock);
+
 	isc_mutex_destroy(&adb->lock);
 
+	isc_task_detach(&adb->task);
+	isc_stats_detach(&adb->stats);
+	dns_resolver_detach(&adb->res);
+	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
 
@@ -2095,7 +2103,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
-		.view = view,
 		.taskmgr = taskmgr,
 	};
 
@@ -2104,11 +2111,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	 * that must be NULL for the error return to work properly.
 	 */
 	isc_refcount_init(&adb->references, 1);
-	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL, 0, NULL,
-		       NULL, NULL, NULL, NULL);
-	ISC_LIST_INIT(adb->whenshutdown);
-	atomic_init(&adb->exiting, false);
-
+	dns_view_weakattach(view, &adb->view);
+	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
 	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
@@ -2129,7 +2133,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	isc_task_setname(adb->task, "ADB", adb);
 
-	result = isc_stats_create(adb->mctx, &view->adbstats, dns_adbstats_max);
+	result = isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS) {
 		goto free_task;
 	}
@@ -2157,6 +2161,8 @@ free_lock:
 	isc_rwlock_destroy(&adb->names_lock);
 	isc_ht_destroy(&adb->namebuckets);
 
+	dns_resolver_detach(&adb->res);
+	dns_view_weakdetach(&adb->view);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 
 	return (result);
@@ -2211,38 +2217,7 @@ dns__adb_detach(dns_adb_t **adbp, const char *func, const char *file,
 }
 
 void
-dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
-	isc_event_t *event = NULL;
-
-	/*
-	 * Send '*eventp' to 'task' when 'adb' has shutdown.
-	 */
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(eventp != NULL);
-
-	event = *eventp;
-	*eventp = NULL;
-
-	if (atomic_load(&adb->exiting)) {
-		/*
-		 * We're already shutdown.  Send the event.
-		 */
-		event->ev_sender = adb;
-		isc_task_send(task, &event);
-	} else {
-		LOCK(&adb->lock);
-		isc_task_attach(task, &(isc_task_t *){ NULL });
-		event->ev_sender = task;
-		ISC_LIST_APPEND(adb->whenshutdown, event, ev_link);
-		UNLOCK(&adb->lock);
-	}
-}
-
-void
 dns_adb_shutdown(dns_adb_t *adb) {
-	isc_event_t *event = NULL;
-
 	if (!atomic_compare_exchange_strong(&adb->exiting, &(bool){ false },
 					    true)) {
 		return;
@@ -2254,17 +2229,6 @@ dns_adb_shutdown(dns_adb_t *adb) {
 
 	shutdown_names(adb);
 	shutdown_entries(adb);
-
-	LOCK(&adb->lock);
-	for (event = ISC_LIST_HEAD(adb->whenshutdown); event != NULL;
-	     event = ISC_LIST_HEAD(adb->whenshutdown))
-	{
-		isc_task_t *task = event->ev_sender;
-		event->ev_sender = adb;
-		ISC_LIST_UNLINK(adb->whenshutdown, event, ev_link);
-		isc_task_sendanddetach(&task, &event);
-	}
-	UNLOCK(&adb->lock);
 }
 
 /*
@@ -3174,7 +3138,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	name = ev->ev_arg;
 
 	REQUIRE(DNS_ADBNAME_VALID(name));
-	adb = name->adb;
+	dns_adb_attach(name->adb, &adb);
 
 	REQUIRE(DNS_ADB_VALID(adb));
 
@@ -3198,9 +3162,6 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 	INSIST(address_type != 0 && fetch != NULL);
 
-	dns_resolver_destroyfetch(&fetch->fetch);
-	dev->fetch = NULL;
-
 	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
 
 	/*
@@ -3218,11 +3179,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * potentially good data.
 	 */
 	if (NAME_DEAD(name)) {
-		free_adbfetch(adb, &fetch);
-		isc_event_free(&ev);
-		expire_name(&name, DNS_EVENT_ADBCANCELED);
-		UNLOCK(&nbucket->lock);
-		return;
+		ev_status = DNS_EVENT_ADBCANCELED;
+		goto out;
 	}
 
 	isc_stdtime_get(&now);
@@ -3244,7 +3202,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			} else {
 				name->fetch_err = FIND_ERR_NXRRSET;
 			}
-			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
@@ -3257,7 +3215,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			} else {
 				name->fetch6_err = FIND_ERR_NXRRSET;
 			}
-			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3301,11 +3259,11 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 10);
 			name->fetch_err = FIND_ERR_FAILURE;
-			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			name->expire_v6 = ISC_MIN(name->expire_v6, now + 10);
 			name->fetch6_err = FIND_ERR_FAILURE;
-			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
+			inc_resstats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3326,12 +3284,16 @@ check_result:
 	}
 
 out:
+	dns_resolver_destroyfetch(&fetch->fetch);
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
-
-	clean_finds_at_name(name, ev_status, address_type);
-
+	if (ev_status == DNS_EVENT_ADBCANCELED) {
+		expire_name(&name, ev_status);
+	} else {
+		clean_finds_at_name(name, ev_status, address_type);
+	}
 	UNLOCK(&nbucket->lock);
+	dns_adb_detach(&adb);
 }
 
 static isc_result_t
@@ -3385,9 +3347,9 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 * domain and nameservers.
 	 */
 	result = dns_resolver_createfetch(
-		adb->view->resolver, &adbname->name, type, name, nameservers,
-		NULL, NULL, 0, options, depth, qc, adb->task, fetch_callback,
-		adbname, &fetch->rdataset, NULL, &fetch->fetch);
+		adb->res, &adbname->name, type, name, nameservers, NULL, NULL,
+		0, options, depth, qc, adb->task, fetch_callback, adbname,
+		&fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));
@@ -3396,10 +3358,10 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 
 	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
-		inc_stats(adb, dns_resstatscounter_gluefetchv4);
+		inc_resstats(adb, dns_resstatscounter_gluefetchv4);
 	} else {
 		adbname->fetch_aaaa = fetch;
-		inc_stats(adb, dns_resstatscounter_gluefetchv6);
+		inc_resstats(adb, dns_resstatscounter_gluefetchv6);
 	}
 	fetch = NULL; /* Keep us from cleaning this up below. */
 
@@ -4021,4 +3983,11 @@ dns_adb_endudpfetch(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
 	REQUIRE(atomic_fetch_sub_release(&addr->entry->active, 1) != 0);
+}
+
+isc_stats_t *
+dns_adb_getstats(dns_adb_t *adb) {
+	REQUIRE(DNS_ADB_VALID(adb));
+
+	return (adb->stats);
 }
