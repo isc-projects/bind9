@@ -1,3 +1,6 @@
+5888.	[bug]		Only write key files if the dnssec-policy keymgr has
+			changed the metadata. [GL #3302]
+
 5887.	[cleanup]	Remove the on-shutdown mechanics from isc_task API.
 			Replace it by isc_task_send() when we are shutting
 			down. [GL !6275]

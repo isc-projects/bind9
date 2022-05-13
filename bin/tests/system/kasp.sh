@@ -64,6 +64,9 @@ VIEW3="C1Azf+gGPMmxrUg/WQINP6eV9Y0="
 # EXPECT_KRRSIG
 # LEGACY
 # PRIVATE
+# PRIVKEY_STAT
+# PUBKEY_STAT
+# STATE_STAT
 
 key_key() {
 	echo "${1}__${2}"
@@ -86,6 +89,10 @@ key_save()
 	key_set "$1" BASEFILE "$BASE_FILE"
 	# Save creation date.
 	key_set "$1" CREATED "${KEY_CREATED}"
+	# Save key change time.
+	key_set "$1" PRIVKEY_STAT $(stat -c '%Z' "${BASE_FILE}.private")
+	key_set "$1" PUBKEY_STAT $(stat -c '%Z' "${BASE_FILE}.key")
+	key_set "$1" STATE_STAT $(stat -c '%Z' "${BASE_FILE}.state")
 }
 
 # Clear key state.
@@ -98,6 +105,7 @@ key_clear() {
 	key_set "$1" "ROLE" 'none'
 	key_set "$1" "KSK" 'no'
 	key_set "$1" "ZSK" 'no'
+	key_set "$1" "FLAGS" '0'
 	key_set "$1" "LIFETIME" 'none'
 	key_set "$1" "ALG_NUM" '0'
 	key_set "$1" "ALG_STR" 'none'
@@ -118,7 +126,9 @@ key_clear() {
 	key_set "$1" "EXPECT_KRRSIG" 'no'
 	key_set "$1" "LEGACY" 'no'
 	key_set "$1" "PRIVATE" 'yes'
-	key_set "$1" "FLAGS" '0'
+	key_set "$1" "PRIVKEY_STAT" '0'
+	key_set "$1" "PUBKEY_STAT" '0'
+	key_set "$1" "STATE_STAT" '0'
 }
 
 # Start clear.
