@@ -1200,7 +1200,9 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		}
 	}
 
-	CHECK(add_keydata_zone(view, directory, named_g_mctx));
+	if (auto_root) {
+		CHECK(add_keydata_zone(view, directory, named_g_mctx));
+	}
 
 cleanup:
 	return (result);
