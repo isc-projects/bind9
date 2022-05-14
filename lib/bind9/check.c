@@ -3011,8 +3011,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (dns_name_isula(zname)) {
 			ula = true;
 		}
-		tmp += strlen(tmp);
 		len -= strlen(tmp);
+		tmp += strlen(tmp);
 		(void)snprintf(tmp, len, "%u/%s", zclass,
 			       (ztype == CFG_ZONE_INVIEW) ? target
 			       : (viewname != NULL)	  ? viewname
@@ -3721,8 +3721,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		char *tmp = keydirbuf;
 		size_t len = sizeof(keydirbuf);
 		dns_name_format(zname, keydirbuf, sizeof(keydirbuf));
-		tmp += strlen(tmp);
 		len -= strlen(tmp);
+		tmp += strlen(tmp);
 		(void)snprintf(tmp, len, "/%s", (dir == NULL) ? "(null)" : dir);
 		tresult = keydirexist(zconfig, (const char *)keydirbuf,
 				      kaspname, keydirs, logctx, mctx);
