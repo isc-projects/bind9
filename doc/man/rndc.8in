@@ -194,14 +194,16 @@ zone.
 \fBrndc dnssec \-rollover\fP allows you to schedule key rollover for a
 specific key (overriding the original key lifetime).
 .sp
-\fBrndc dnssec \-checkds\fP will let \fI\%named\fP know that the DS for the given
-key has been seen published into or withdrawn from the parent.  This is
-required in order to complete a KSK rollover.  If the \fB\-key id\fP argument
-is specified, look for the key with the given identifier, otherwise if there
-is only one key acting as a KSK in the zone, assume the DS of that key (if
-there are multiple keys with the same tag, use \fB\-alg algorithm\fP to
-select the correct algorithm).  The time that the DS has been published or
-withdrawn is set to now, unless otherwise specified with the argument \fB\-when time\fP\&.
+\fBrndc dnssec \-checkds\fP informs \fI\%named\fP that the DS for
+a specified zone\(aqs key\-signing key has been confirmed to be published
+in, or withdrawn from, the parent zone. This is required in order to
+complete a KSK rollover.  The \fB\-key id\fP and \fB\-alg algorithm\fP arguments
+can be used to specify a particular KSK, if necessary; if there is only
+one key acting as a KSK for the zone, these arguments can be omitted.
+The time of publication or withdrawal for the DS is set to the current
+time by default, but can be overridden to a specific time with the
+argument \fB\-when time\fP, where \fBtime\fP is expressed in YYYYMMDDHHMMSS
+notation.
 .UNINDENT
 .INDENT 0.0
 .TP

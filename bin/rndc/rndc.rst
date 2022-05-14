@@ -176,14 +176,16 @@ Currently supported commands are:
    ``rndc dnssec -rollover`` allows you to schedule key rollover for a
    specific key (overriding the original key lifetime).
 
-   ``rndc dnssec -checkds`` will let :iscman:`named` know that the DS for the given
-   key has been seen published into or withdrawn from the parent.  This is
-   required in order to complete a KSK rollover.  If the ``-key id`` argument
-   is specified, look for the key with the given identifier, otherwise if there
-   is only one key acting as a KSK in the zone, assume the DS of that key (if
-   there are multiple keys with the same tag, use ``-alg algorithm`` to
-   select the correct algorithm).  The time that the DS has been published or
-   withdrawn is set to now, unless otherwise specified with the argument ``-when time``.
+   ``rndc dnssec -checkds`` informs :iscman:`named` that the DS for
+   a specified zone's key-signing key has been confirmed to be published
+   in, or withdrawn from, the parent zone. This is required in order to
+   complete a KSK rollover.  The ``-key id`` and ``-alg algorithm`` arguments
+   can be used to specify a particular KSK, if necessary; if there is only
+   one key acting as a KSK for the zone, these arguments can be omitted.
+   The time of publication or withdrawal for the DS is set to the current
+   time by default, but can be overridden to a specific time with the
+   argument ``-when time``, where ``time`` is expressed in YYYYMMDDHHMMSS
+   notation.
 
 .. option:: dnstap (-reopen | -roll [number])
 
