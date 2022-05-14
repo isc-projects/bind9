@@ -2530,9 +2530,10 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
-		ns_stats_decrement(client->manager->sctx->nsstats,
-				   ns_statscounter_recursclients);
 	}
+
+	ns_stats_decrement(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	free_devent(client, &event, &devent);
 	isc_nmhandle_detach(&client->prefetchhandle);
@@ -2562,8 +2563,6 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 					 &client->recursionquota);
 		switch (result) {
 		case ISC_R_SUCCESS:
-			ns_stats_increment(client->manager->sctx->nsstats,
-					   ns_statscounter_recursclients);
 			break;
 		case ISC_R_SOFTQUOTA:
 			isc_quota_detach(&client->recursionquota);
@@ -2572,6 +2571,9 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 			return;
 		}
 	}
+
+	ns_stats_increment(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
 	if (tmprdataset == NULL) {
@@ -2781,8 +2783,6 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 					 &client->recursionquota);
 		switch (result) {
 		case ISC_R_SUCCESS:
-			ns_stats_increment(client->manager->sctx->nsstats,
-					   ns_statscounter_recursclients);
 			break;
 		case ISC_R_SOFTQUOTA:
 			isc_quota_detach(&client->recursionquota);
@@ -2791,6 +2791,9 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 			return;
 		}
 	}
+
+	ns_stats_increment(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
 	if (tmprdataset == NULL) {
@@ -6253,9 +6256,10 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
-		ns_stats_decrement(client->manager->sctx->nsstats,
-				   ns_statscounter_recursclients);
 	}
+
+	ns_stats_decrement(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
@@ -6390,11 +6394,6 @@ check_recursionquota(ns_client_t *client) {
 		result =
 			isc_quota_attach(&client->manager->sctx->recursionquota,
 					 &client->recursionquota);
-		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
-			ns_stats_increment(client->manager->sctx->nsstats,
-					   ns_statscounter_recursclients);
-		}
-
 		if (result == ISC_R_SOFTQUOTA) {
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
@@ -6476,6 +6475,9 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
+	ns_stats_increment(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	/*
 	 * Invoke the resolver.
@@ -6767,9 +6769,10 @@ query_hookresume(isc_task_t *task, isc_event_t *event) {
 
 	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
-		ns_stats_decrement(client->manager->sctx->nsstats,
-				   ns_statscounter_recursclients);
 	}
+
+	ns_stats_decrement(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
@@ -6905,6 +6908,9 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
+
+	ns_stats_increment(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
 
 	saved_qctx = isc_mem_get(client->manager->mctx, sizeof(*saved_qctx));
 	qctx_save(qctx, saved_qctx);
