@@ -1,3 +1,9 @@
+5890.	[bug]		When the fetches-per-server quota was adjusted
+			because of an authoritative server timing out more
+			or less frequently, it was incorrectly set to 1
+			rather than the intended value.  This has been
+			fixed. [GL #3327]
+
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
 			and static-stub zones at or above the query name.  This
 			has now been addressed. [GL #3232]
