@@ -66,6 +66,9 @@ __declspec(thread) size_t isc_tid_v = SIZE_MAX;
 static size_t isc__trampoline_min = 1;
 static size_t isc__trampoline_max = 65;
 
+static isc_once_t start_once = ISC_ONCE_INIT;
+static isc_once_t stop_once = ISC_ONCE_INIT;
+
 static isc__trampoline_t *
 isc__trampoline_new(int tid, isc_threadfunc_t start, isc_threadarg_t arg) {
 	isc__trampoline_t *trampoline = calloc(1, sizeof(*trampoline));
@@ -81,8 +84,8 @@ isc__trampoline_new(int tid, isc_threadfunc_t start, isc_threadarg_t arg) {
 	return (trampoline);
 }
 
-void
-isc__trampoline_initialize(void) {
+static void
+do_init(void) {
 	uv_mutex_init(&isc__trampoline_lock);
 
 	trampolines = calloc(isc__trampoline_max, sizeof(trampolines[0]));
@@ -101,7 +104,12 @@ isc__trampoline_initialize(void) {
 }
 
 void
-isc__trampoline_shutdown(void) {
+isc__trampoline_initialize(void) {
+	isc_once_do(&start_once, do_init);
+}
+
+static void
+do_shutdown(void) {
 	/*
 	 * When the program using the library exits abruptly and the library
 	 * gets unloaded, there might be some existing trampolines from unjoined
@@ -110,6 +118,11 @@ isc__trampoline_shutdown(void) {
 	 * of resources here, including the lock.
 	 */
 	free(trampolines[0]);
+}
+
+void
+isc__trampoline_shutdown(void) {
+	isc_once_do(&stop_once, do_shutdown);
 }
 
 isc__trampoline_t *
