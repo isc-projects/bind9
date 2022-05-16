@@ -1118,7 +1118,7 @@ dst_key_setmodified(dst_key_t *key, bool value);
  */
 
 bool
-dst_key_ismodified(dst_key_t *key);
+dst_key_ismodified(const dst_key_t *key);
 /*%<
  * Check if the key file has been modified.
  *
