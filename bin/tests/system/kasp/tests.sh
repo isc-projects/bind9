@@ -294,6 +294,44 @@ check_apex
 check_subdomain
 dnssec_verify
 
+# Trigger a keymgr run. Make sure the key files are not touched if there are
+# no modifications to the key metadata.
+n=$((n+1))
+echo_i "make sure key files are untouched if metadata does not change ($n)"
+ret=0
+basefile=$(key_get KEY1 BASEFILE)
+privkey_stat=$(key_get KEY1 PRIVKEY_STAT)
+pubkey_stat=$(key_get KEY1 PUBKEY_STAT)
+state_stat=$(key_get KEY1 STATE_STAT)
+
+nextpart $DIR/named.run > /dev/null
+rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+privkey_stat2=$(stat -c '%Z' "${basefile}.private")
+pubkey_stat2=$(stat -c '%Z' "${basefile}.key")
+state_stat2=$(stat -c '%Z' "${basefile}.state")
+test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
+test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
+test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "again ($n)"
+ret=0
+
+nextpart $DIR/named.run > /dev/null
+rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "keymgr: done" $DIR/named.run
+privkey_stat2=$(stat -c '%Z' "${basefile}.private")
+pubkey_stat2=$(stat -c '%Z' "${basefile}.key")
+state_stat2=$(stat -c '%Z' "${basefile}.state")
+test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
+test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
+test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 # Update zone.
 n=$((n+1))
 echo_i "modify unsigned zone file and check that new record is signed for zone ${ZONE} ($n)"
