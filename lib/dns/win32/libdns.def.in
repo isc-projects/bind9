@@ -1491,6 +1491,7 @@ dst_key_is_signing
 dst_key_is_unused
 dst_key_inactive
 dst_key_isexternal
+dst_key_ismodified
 dst_key_isnullkey
 dst_key_isprivate
 dst_key_iszonekey
@@ -1510,6 +1511,7 @@ dst_key_setbool
 dst_key_setexternal
 dst_key_setflags
 dst_key_setinactive
+dst_key_setmodified
 dst_key_setnum
 dst_key_setprivateformat
 dst_key_setstate
