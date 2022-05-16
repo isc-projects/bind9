@@ -80,6 +80,10 @@ key_set() {
 	eval "$(key_key "$1" "$2")='$3'"
 }
 
+key_stat() {
+	$PERL -e 'print((stat @ARGV[0])[9] . "\n");' "$1"
+}
+
 # Save certain values in the KEY array.
 key_save()
 {
@@ -90,9 +94,9 @@ key_save()
 	# Save creation date.
 	key_set "$1" CREATED "${KEY_CREATED}"
 	# Save key change time.
-	key_set "$1" PRIVKEY_STAT $(stat -c '%Z' "${BASE_FILE}.private")
-	key_set "$1" PUBKEY_STAT $(stat -c '%Z' "${BASE_FILE}.key")
-	key_set "$1" STATE_STAT $(stat -c '%Z' "${BASE_FILE}.state")
+	key_set "$1" PRIVKEY_STAT $(key_stat "${BASE_FILE}.private")
+	key_set "$1" PUBKEY_STAT $(key_stat "${BASE_FILE}.key")
+	key_set "$1" STATE_STAT $(key_stat "${BASE_FILE}.state")
 }
 
 # Clear key state.
