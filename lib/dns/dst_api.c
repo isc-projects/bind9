@@ -492,12 +492,20 @@ dst_key_isexternal(dst_key_t *key) {
 
 void
 dst_key_setmodified(dst_key_t *key, bool value) {
+	isc_mutex_lock(&key->mdlock);
 	key->modified = value;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 bool
-dst_key_ismodified(dst_key_t *key) {
-	return (key->modified);
+dst_key_ismodified(const dst_key_t *key) {
+	bool modified;
+
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
+	modified = key->modified;
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
+
+	return (modified);
 }
 
 isc_result_t
