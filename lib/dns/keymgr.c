@@ -1511,6 +1511,7 @@ transition:
 			/* It is safe to make the transition. */
 			dst_key_setstate(dkey->key, i, next_state);
 			dst_key_settime(dkey->key, keystatetimes[i], now);
+			INSIST(dst_key_ismodified(dkey->key));
 			changed = true;
 		}
 	}
@@ -2182,9 +2183,10 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
-		if (!dkey->purge) {
+		if (dst_key_ismodified(dkey->key) && !dkey->purge) {
 			dns_dnssec_get_hints(dkey, now);
 			RETERR(dst_key_tofile(dkey->key, options, directory));
+			dst_key_setmodified(dkey->key, false);
 		}
 	}
 
@@ -2204,6 +2206,13 @@ failure:
 		}
 	}
 
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(origin, namebuf, sizeof(namebuf));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(3),
+			      "keymgr: %s done", namebuf);
+	}
 	return (result);
 }
 
@@ -2281,6 +2290,9 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 	dns_dnssec_get_hints(ksk_key, now);
 	result = dst_key_tofile(ksk_key->key, options, directory);
+	if (result == ISC_R_SUCCESS) {
+		dst_key_setmodified(ksk_key->key, false);
+	}
 	isc_dir_close(&dir);
 
 	return (result);
@@ -2581,6 +2593,9 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 	dns_dnssec_get_hints(key, now);
 	result = dst_key_tofile(key->key, options, directory);
+	if (result == ISC_R_SUCCESS) {
+		dst_key_setmodified(key->key, false);
+	}
 	isc_dir_close(&dir);
 
 	return (result);

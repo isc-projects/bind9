@@ -40,4 +40,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Key files were updated every time the ``dnssec-policy`` key manager ran,
+  whether the metadata has changed or not. BIND now checks if changes were
+  applied before writing out the key files. :gl:`#3302`.
