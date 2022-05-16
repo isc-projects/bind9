@@ -306,9 +306,9 @@ state_stat=$(key_get KEY1 STATE_STAT)
 nextpart $DIR/named.run > /dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
 wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
-privkey_stat2=$(stat -c '%Z' "${basefile}.private")
-pubkey_stat2=$(stat -c '%Z' "${basefile}.key")
-state_stat2=$(stat -c '%Z' "${basefile}.state")
+privkey_stat2=$(key_stat "${basefile}.private")
+pubkey_stat2=$(key_stat "${basefile}.key")
+state_stat2=$(key_stat "${basefile}.state")
 test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
 test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
 test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
@@ -322,9 +322,9 @@ ret=0
 nextpart $DIR/named.run > /dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
 wait_for_log 3 "keymgr: done" $DIR/named.run
-privkey_stat2=$(stat -c '%Z' "${basefile}.private")
-pubkey_stat2=$(stat -c '%Z' "${basefile}.key")
-state_stat2=$(stat -c '%Z' "${basefile}.state")
+privkey_stat2=$(key_stat "${basefile}.private")
+pubkey_stat2=$(key_stat "${basefile}.key")
+state_stat2=$(key_stat "${basefile}.state")
 test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
 test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
 test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
