@@ -614,14 +614,8 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Allocate structures required to construct the query.
 	 */
-	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto destroy_message;
-	}
-	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS) {
-		goto put_rdataset;
-	}
+	dns_message_gettemprdataset(message, &qrdataset);
+	dns_message_gettempname(message, &qname);
 
 	/*
 	 * Convert "qnamestr" to a DNS name, create a question rdataset of
@@ -669,7 +663,6 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 
 put_name:
 	dns_message_puttempname(message, &qname);
-put_rdataset:
 	dns_message_puttemprdataset(message, &qrdataset);
 destroy_message:
 	dns_message_detach(&message);

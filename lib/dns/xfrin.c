@@ -1237,21 +1237,21 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	CHECK(dns_message_gettemprdata(msg, &rdata));
+	dns_message_gettemprdata(msg, &rdata);
 	dns_rdata_init(rdata);
 	dns_rdata_clone(&tuple->rdata, rdata);
 
-	CHECK(dns_message_gettemprdatalist(msg, &rdl));
+	dns_message_gettemprdatalist(msg, &rdl);
 	dns_rdatalist_init(rdl);
 	rdl->type = tuple->rdata.type;
 	rdl->rdclass = tuple->rdata.rdclass;
 	rdl->ttl = tuple->ttl;
 	ISC_LIST_APPEND(rdl->rdata, rdata, link);
 
-	CHECK(dns_message_gettemprdataset(msg, &rds));
+	dns_message_gettemprdataset(msg, &rds);
 	CHECK(dns_rdatalist_tordataset(rdl, rds));
 
-	CHECK(dns_message_gettempname(msg, &name));
+	dns_message_gettempname(msg, &name);
 	dns_name_clone(&tuple->name, name);
 	ISC_LIST_APPEND(name->list, rds, link);
 
@@ -1295,11 +1295,11 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 
 	/* Create a name for the question section. */
-	CHECK(dns_message_gettempname(msg, &qname));
+	dns_message_gettempname(msg, &qname);
 	dns_name_clone(&xfr->name, qname);
 
 	/* Formulate the question and attach it to the question name. */
-	CHECK(dns_message_gettemprdataset(msg, &qrdataset));
+	dns_message_gettemprdataset(msg, &qrdataset);
 	dns_rdataset_makequestion(qrdataset, xfr->rdclass, xfr->reqtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	qrdataset = NULL;

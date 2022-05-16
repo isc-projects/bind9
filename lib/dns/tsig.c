@@ -996,10 +996,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		tsig.signature = NULL;
 	}
 
-	ret = dns_message_gettemprdata(msg, &rdata);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup_signature;
-	}
+	dns_message_gettemprdata(msg, &rdata);
 	isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, &tsig, dynbuf);
@@ -1014,21 +1011,12 @@ dns_tsig_sign(dns_message_t *msg) {
 		tsig.signature = NULL;
 	}
 
-	ret = dns_message_gettempname(msg, &owner);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup_rdata;
-	}
+	dns_message_gettempname(msg, &owner);
 	dns_name_copy(&key->name, owner);
 
-	ret = dns_message_gettemprdatalist(msg, &datalist);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup_owner;
-	}
+	dns_message_gettemprdatalist(msg, &datalist);
 
-	ret = dns_message_gettemprdataset(msg, &dataset);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup_rdatalist;
-	}
+	dns_message_gettemprdataset(msg, &dataset);
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
 	ISC_LIST_APPEND(datalist->rdata, rdata, link);
@@ -1042,14 +1030,8 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	return (ISC_R_SUCCESS);
 
-cleanup_rdatalist:
-	dns_message_puttemprdatalist(msg, &datalist);
-cleanup_owner:
-	dns_message_puttempname(msg, &owner);
-	goto cleanup_rdata;
 cleanup_dynbuf:
 	isc_buffer_free(&dynbuf);
-cleanup_rdata:
 	dns_message_puttemprdata(msg, &rdata);
 cleanup_signature:
 	if (tsig.signature != NULL) {

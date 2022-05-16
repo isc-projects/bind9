@@ -2778,15 +2778,11 @@ ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
 dns_rdataset_t *
 ns_client_newrdataset(ns_client_t *client) {
 	dns_rdataset_t *rdataset;
-	isc_result_t result;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	rdataset = NULL;
-	result = dns_message_gettemprdataset(client->message, &rdataset);
-	if (result != ISC_R_SUCCESS) {
-		return (NULL);
-	}
+	dns_message_gettemprdataset(client->message, &rdataset);
 
 	return (rdataset);
 }
@@ -2825,18 +2821,12 @@ dns_name_t *
 ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 	dns_name_t *name = NULL;
 	isc_region_t r;
-	isc_result_t result;
 
 	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) == 0);
 
 	CTRACE("ns_client_newname");
 
-	result = dns_message_gettempname(client->message, &name);
-	if (result != ISC_R_SUCCESS) {
-		CTRACE("ns_client_newname: "
-		       "dns_message_gettempname failed: done");
-		return (NULL);
-	}
+	dns_message_gettempname(client->message, &name);
 	isc_buffer_availableregion(dbuf, &r);
 	isc_buffer_init(nbuf, r.base, r.length);
 	dns_name_setbuffer(name, NULL);

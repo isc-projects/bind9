@@ -936,7 +936,7 @@ static void
 checkds_cancel(dns_zone_t *zone);
 static void
 checkds_send(dns_zone_t *zone);
-static isc_result_t
+static void
 checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep);
 static void
 checkds_done(isc_task_t *task, isc_event_t *event);
@@ -13031,28 +13031,21 @@ cleanup1:
 /***
  *** Private
  ***/
-static isc_result_t
+static void
 create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	     dns_message_t **messagep) {
 	dns_message_t *message = NULL;
 	dns_name_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
-	isc_result_t result;
 
 	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
 
-	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettempname(message, &qname);
 
-	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdataset(message, &qrdataset);
 
 	/*
 	 * Make question.
@@ -13063,17 +13056,6 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
 	*messagep = message;
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (qname != NULL) {
-		dns_message_puttempname(message, &qname);
-	}
-	if (qrdataset != NULL) {
-		dns_message_puttemprdataset(message, &qrdataset);
-	}
-	dns_message_detach(&message);
-	return (result);
 }
 
 static isc_result_t
@@ -13387,9 +13369,8 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	request->ipv4 = ipv4;
 	dns_name_dup(name, zone->mctx, &request->name);
 
-	result = create_query(zone, ipv4 ? dns_rdatatype_a : dns_rdatatype_aaaa,
-			      &request->name, &message);
-	INSIST(result == ISC_R_SUCCESS);
+	create_query(zone, ipv4 ? dns_rdatatype_a : dns_rdatatype_aaaa,
+		     &request->name, &message);
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, args->udpsize, args->reqnsid, false);
@@ -14629,10 +14610,7 @@ again:
 		goto cleanup;
 	}
 
-	result = create_query(zone, dns_rdatatype_soa, &zone->origin, &message);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	create_query(zone, dns_rdatatype_soa, &zone->origin, &message);
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid, reqexpire);
@@ -14814,8 +14792,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	/*
 	 * XXX Optimisation: Create message when zone is setup and reuse.
 	 */
-	result = create_query(zone, dns_rdatatype_ns, &zone->origin, &message);
-	INSIST(result == ISC_R_SUCCESS);
+	create_query(zone, dns_rdatatype_ns, &zone->origin, &message);
 
 	INSIST(zone->primariescnt > 0);
 	INSIST(zone->curprimary < zone->primariescnt);
@@ -15341,15 +15318,9 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	message->flags |= DNS_MESSAGEFLAG_AA;
 	message->rdclass = zone->rdclass;
 
-	result = dns_message_gettempname(message, &tempname);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettempname(message, &tempname);
 
-	result = dns_message_gettemprdataset(message, &temprdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdataset(message, &temprdataset);
 
 	/*
 	 * Make question.
@@ -15366,22 +15337,10 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		goto done;
 	}
 
-	result = dns_message_gettempname(message, &tempname);
-	if (result != ISC_R_SUCCESS) {
-		goto soa_cleanup;
-	}
-	result = dns_message_gettemprdata(message, &temprdata);
-	if (result != ISC_R_SUCCESS) {
-		goto soa_cleanup;
-	}
-	result = dns_message_gettemprdataset(message, &temprdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto soa_cleanup;
-	}
-	result = dns_message_gettemprdatalist(message, &temprdatalist);
-	if (result != ISC_R_SUCCESS) {
-		goto soa_cleanup;
-	}
+	dns_message_gettempname(message, &tempname);
+	dns_message_gettemprdata(message, &temprdata);
+	dns_message_gettemprdataset(message, &temprdataset);
+	dns_message_gettemprdatalist(message, &temprdatalist);
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	INSIST(zone->db != NULL); /* XXXJT: is this assumption correct? */
@@ -15461,16 +15420,6 @@ soa_cleanup:
 done:
 	*messagep = message;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (tempname != NULL) {
-		dns_message_puttempname(message, &tempname);
-	}
-	if (temprdataset != NULL) {
-		dns_message_puttemprdataset(message, &temprdataset);
-	}
-	dns_message_detach(&message);
-	return (result);
 }
 
 isc_result_t
@@ -21085,14 +21034,12 @@ checkds_create(isc_mem_t *mctx, unsigned int flags, dns_checkds_t **checkdsp) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	dns_message_t *message = NULL;
 
 	dns_name_t *tempname = NULL;
 	dns_rdataset_t *temprdataset = NULL;
-
-	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
@@ -21102,15 +21049,9 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
 
-	result = dns_message_gettempname(message, &tempname);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettempname(message, &tempname);
 
-	result = dns_message_gettemprdataset(message, &temprdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdataset(message, &temprdataset);
 
 	/*
 	 * Make question.
@@ -21125,17 +21066,6 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	temprdataset = NULL;
 
 	*messagep = message;
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (tempname != NULL) {
-		dns_message_puttempname(message, &tempname);
-	}
-	if (temprdataset != NULL) {
-		dns_message_puttemprdataset(message, &temprdataset);
-	}
-	dns_message_detach(&message);
-	return (result);
 }
 
 static void
@@ -21190,10 +21120,7 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-	result = checkds_createmessage(checkds->zone, &message);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	checkds_createmessage(checkds->zone, &message);
 
 	isc_sockaddr_format(&checkds->dst, addrbuf, sizeof(addrbuf));
 	if (checkds->key != NULL) {

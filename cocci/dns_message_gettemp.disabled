@@ -1,0 +1,155 @@
+@@
+statement S;
+expression V;
+@@
+
+- V =
+  dns_message_gettempname(...);
+- if (V != ISC_R_SUCCESS) S
+
+@@
+statement S;
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdata(...);
+- if (V != ISC_R_SUCCESS) S
+
+@@
+statement S;
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdataset(...);
+- if (V != ISC_R_SUCCESS) S
+
+@@
+statement S;
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdatalist(...);
+- if (V != ISC_R_SUCCESS) S
+
+@@
+@@
+
+- CHECK(
+  dns_message_gettempname(...)
+- )
+
+@@
+@@
+
+- CHECK(
+  dns_message_gettemprdata(...)
+- )
+
+@@
+@@
+
+- CHECK(
+  dns_message_gettemprdataset(...)
+- )
+
+@@
+@@
+
+- CHECK(
+  dns_message_gettemprdatalist(...)
+- )
+
+@@
+@@
+
+- RETERR(
+  dns_message_gettempname(...)
+- )
+
+@@
+@@
+
+- RETERR(
+  dns_message_gettemprdata(...)
+- )
+
+@@
+@@
+
+- RETERR(
+  dns_message_gettemprdataset(...)
+- )
+
+@@
+@@
+
+- RETERR(
+  dns_message_gettemprdatalist(...)
+- )
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettempname(...);
+- check_result(V, ...);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdata(...);
+- check_result(V, ...);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdataset(...);
+- check_result(V, ...);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdatalist(...);
+- check_result(V, ...);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettempname(...);
+- CHECK(..., V);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdata(...);
+- CHECK(..., V);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdataset(...);
+- CHECK(..., V);
+
+@@
+expression V;
+@@
+
+- V =
+  dns_message_gettemprdatalist(...);
+- CHECK(..., V);

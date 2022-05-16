@@ -619,11 +619,9 @@ sendquery(struct query *query, isc_task_t *task) {
 	message->rdclass = query->rdclass;
 	message->id = (unsigned short)(random() & 0xFFFF);
 
-	result = dns_message_gettempname(message, &qname);
-	CHECK("dns_message_gettempname", result);
+	dns_message_gettempname(message, &qname);
 
-	result = dns_message_gettemprdataset(message, &qrdataset);
-	CHECK("dns_message_gettemprdataset", result);
+	dns_message_gettemprdataset(message, &qrdataset);
 
 	dns_name_clone(dns_fixedname_name(&queryname), qname);
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);

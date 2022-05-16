@@ -978,10 +978,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 	for (count = 0; count < msg->counts[DNS_SECTION_QUESTION]; count++) {
 		name = NULL;
-		result = dns_message_gettempname(msg, &name);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_message_gettempname(msg, &name);
 		name->offsets = (unsigned char *)newoffsets(msg);
 		free_name = true;
 
@@ -1209,10 +1206,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		istsig = false;
 
 		name = NULL;
-		result = dns_message_gettempname(msg, &name);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_message_gettempname(msg, &name);
 		name->offsets = (unsigned char *)newoffsets(msg);
 		free_name = true;
 
@@ -2529,7 +2523,7 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
 	ISC_LIST_UNLINK(msg->sections[section], name, link);
 }
 
-isc_result_t
+void
 dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 	dns_fixedname_t *fn = NULL;
 
@@ -2538,36 +2532,31 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 
 	fn = isc_mempool_get(msg->namepool);
 	*item = dns_fixedname_initname(fn);
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = newrdata(msg);
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = isc_mempool_get(msg->rdspool);
 	dns_rdataset_init(*item);
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = newrdatalist(msg);
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -2867,19 +2856,10 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = dns_message_gettemprdata(msg, &rdata);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdata(msg, &rdata);
 
-	result = dns_message_gettemprdatalist(msg, &list);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	result = dns_message_gettemprdataset(msg, &set);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdatalist(msg, &list);
+	dns_message_gettemprdataset(msg, &set);
 
 	isc_buffer_usedregion(querytsig, &r);
 	isc_buffer_allocate(msg->mctx, &buf, r.length);
@@ -4589,18 +4569,9 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	REQUIRE(DNS_MESSAGE_VALID(message));
 	REQUIRE(rdatasetp != NULL && *rdatasetp == NULL);
 
-	result = dns_message_gettemprdatalist(message, &rdatalist);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	result = dns_message_gettemprdata(message, &rdata);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	result = dns_message_gettemprdataset(message, &rdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdatalist(message, &rdatalist);
+	dns_message_gettemprdata(message, &rdata);
+	dns_message_gettemprdataset(message, &rdataset);
 
 	rdatalist->type = dns_rdatatype_opt;
 

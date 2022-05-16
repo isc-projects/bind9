@@ -167,7 +167,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_rdataset_t *newset = NULL;
 	isc_buffer_t *tmprdatabuf = NULL;
 
-	RETERR(dns_message_gettemprdata(msg, &newrdata));
+	dns_message_gettemprdata(msg, &newrdata);
 
 	dns_rdata_toregion(rdata, &r);
 	isc_buffer_allocate(msg->mctx, &tmprdatabuf, r.length);
@@ -176,16 +176,16 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_rdata_fromregion(newrdata, rdata->rdclass, rdata->type, &newr);
 	dns_message_takebuffer(msg, &tmprdatabuf);
 
-	RETERR(dns_message_gettempname(msg, &newname));
+	dns_message_gettempname(msg, &newname);
 	dns_name_copy(name, newname);
 
-	RETERR(dns_message_gettemprdatalist(msg, &newlist));
+	dns_message_gettemprdatalist(msg, &newlist);
 	newlist->rdclass = newrdata->rdclass;
 	newlist->type = newrdata->type;
 	newlist->ttl = ttl;
 	ISC_LIST_APPEND(newlist->rdata, newrdata, link);
 
-	RETERR(dns_message_gettemprdataset(msg, &newset));
+	dns_message_gettemprdataset(msg, &newset);
 	RETERR(dns_rdatalist_tordataset(newlist, newset));
 
 	ISC_LIST_INIT(newname->list);
@@ -960,27 +960,27 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 	REQUIRE(name != NULL);
 	REQUIRE(tkey != NULL);
 
-	RETERR(dns_message_gettempname(msg, &qname));
-	RETERR(dns_message_gettempname(msg, &aname));
+	dns_message_gettempname(msg, &qname);
+	dns_message_gettempname(msg, &aname);
 
-	RETERR(dns_message_gettemprdataset(msg, &question));
+	dns_message_gettemprdataset(msg, &question);
 	dns_rdataset_makequestion(question, dns_rdataclass_any,
 				  dns_rdatatype_tkey);
 
 	len = 16 + tkey->algorithm.length + tkey->keylen + tkey->otherlen;
 	isc_buffer_allocate(msg->mctx, &dynbuf, len);
-	RETERR(dns_message_gettemprdata(msg, &rdata));
+	dns_message_gettemprdata(msg, &rdata);
 
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_tkey, tkey, dynbuf));
 	dns_message_takebuffer(msg, &dynbuf);
 
-	RETERR(dns_message_gettemprdatalist(msg, &tkeylist));
+	dns_message_gettemprdatalist(msg, &tkeylist);
 	tkeylist->rdclass = dns_rdataclass_any;
 	tkeylist->type = dns_rdatatype_tkey;
 	ISC_LIST_APPEND(tkeylist->rdata, rdata, link);
 
-	RETERR(dns_message_gettemprdataset(msg, &tkeyset));
+	dns_message_gettemprdataset(msg, &tkeyset);
 	RETERR(dns_rdatalist_tordataset(tkeylist, tkeyset));
 
 	dns_name_copy(name, qname);
@@ -1065,7 +1065,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 
 	RETERR(buildquery(msg, name, &tkey, false));
 
-	RETERR(dns_message_gettemprdata(msg, &rdata));
+	dns_message_gettemprdata(msg, &rdata);
 	isc_buffer_allocate(msg->mctx, &dynbuf, 1024);
 	RETERR(dst_key_todns(key, dynbuf));
 	isc_buffer_usedregion(dynbuf, &r);

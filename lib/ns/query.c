@@ -8352,15 +8352,8 @@ query_dns64(query_ctx_t *qctx) {
 	isc_buffer_allocate(client->manager->mctx, &buffer,
 			    view->dns64cnt * 16 *
 				    dns_rdataset_count(qctx->rdataset));
-	result = dns_message_gettemprdataset(client->message, &dns64_rdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	result = dns_message_gettemprdatalist(client->message,
-					      &dns64_rdatalist);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdataset(client->message, &dns64_rdataset);
+	dns_message_gettemprdatalist(client->message, &dns64_rdatalist);
 
 	dns_rdatalist_init(dns64_rdatalist);
 	dns64_rdatalist->rdclass = dns_rdataclass_in;
@@ -8406,11 +8399,7 @@ query_dns64(query_ctx_t *qctx) {
 			isc_buffer_add(buffer, 16);
 			isc_buffer_remainingregion(buffer, &r);
 			isc_buffer_forward(buffer, 16);
-			result = dns_message_gettemprdata(client->message,
-							  &dns64_rdata);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
+			dns_message_gettemprdata(client->message, &dns64_rdata);
 			dns_rdata_init(dns64_rdata);
 			dns_rdata_fromregion(dns64_rdata, dns_rdataclass_in,
 					     dns_rdatatype_aaaa, &r);
@@ -8531,14 +8520,8 @@ query_filter64(query_ctx_t *qctx) {
 
 	isc_buffer_allocate(client->manager->mctx, &buffer,
 			    16 * dns_rdataset_count(qctx->rdataset));
-	result = dns_message_gettemprdataset(client->message, &myrdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	result = dns_message_gettemprdatalist(client->message, &myrdatalist);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_message_gettemprdataset(client->message, &myrdataset);
+	dns_message_gettemprdatalist(client->message, &myrdatalist);
 
 	dns_rdatalist_init(myrdatalist);
 	myrdatalist->rdclass = dns_rdataclass_in;
@@ -8558,10 +8541,7 @@ query_filter64(query_ctx_t *qctx) {
 		isc_buffer_putmem(buffer, rdata.data, rdata.length);
 		isc_buffer_remainingregion(buffer, &r);
 		isc_buffer_forward(buffer, rdata.length);
-		result = dns_message_gettemprdata(client->message, &myrdata);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_message_gettemprdata(client->message, &myrdata);
 		dns_rdata_init(myrdata);
 		dns_rdata_fromregion(myrdata, dns_rdataclass_in,
 				     dns_rdatatype_aaaa, &r);
@@ -9885,10 +9865,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	 * Reset qname to be the target name of the CNAME and restart
 	 * the query.
 	 */
-	result = dns_message_gettempname(qctx->client->message, &tname);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_gettempname(qctx->client->message, &tname);
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS) {
@@ -10510,10 +10487,7 @@ query_cname(query_ctx_t *qctx) {
 	 * Reset qname to be the target name of the CNAME and restart
 	 * the query.
 	 */
-	result = dns_message_gettempname(qctx->client->message, &tname);
-	if (result != ISC_R_SUCCESS) {
-		return (ns_query_done(qctx));
-	}
+	dns_message_gettempname(qctx->client->message, &tname);
 
 	result = dns_rdataset_first(trdataset);
 	if (result != ISC_R_SUCCESS) {
@@ -10612,10 +10586,7 @@ query_dname(query_ctx_t *qctx) {
 	 * Get the target name of the DNAME.
 	 */
 	tname = NULL;
-	result = dns_message_gettempname(qctx->client->message, &tname);
-	if (result != ISC_R_SUCCESS) {
-		return (ns_query_done(qctx));
-	}
+	dns_message_gettempname(qctx->client->message, &tname);
 
 	result = dns_rdataset_first(trdataset);
 	if (result != ISC_R_SUCCESS) {
@@ -10720,35 +10691,16 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	dns_rdata_t *rdata = NULL;
 	isc_region_t r;
 	dns_name_t *aname = NULL;
-	isc_result_t result;
 
-	result = dns_message_gettempname(client->message, &aname);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_gettempname(client->message, &aname);
 
 	dns_name_copy(client->query.qname, aname);
 
-	result = dns_message_gettemprdatalist(client->message, &rdatalist);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(client->message, &aname);
-		return (result);
-	}
+	dns_message_gettemprdatalist(client->message, &rdatalist);
 
-	result = dns_message_gettemprdata(client->message, &rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(client->message, &aname);
-		dns_message_puttemprdatalist(client->message, &rdatalist);
-		return (result);
-	}
+	dns_message_gettemprdata(client->message, &rdata);
 
-	result = dns_message_gettemprdataset(client->message, &rdataset);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(client->message, &aname);
-		dns_message_puttemprdatalist(client->message, &rdatalist);
-		dns_message_puttemprdata(client->message, &rdata);
-		return (result);
-	}
+	dns_message_gettemprdataset(client->message, &rdataset);
 
 	rdatalist->type = dns_rdatatype_cname;
 	rdatalist->rdclass = client->message->rdclass;
@@ -10858,10 +10810,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	/*
 	 * Get resources and make 'name' be the database origin.
 	 */
-	result = dns_message_gettempname(client->message, &name);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_gettempname(client->message, &name);
 
 	/*
 	 * We'll be releasing 'name' before returning, so it's safe to
@@ -10998,12 +10947,7 @@ query_addns(query_ctx_t *qctx) {
 	/*
 	 * Get resources and make 'name' be the database origin.
 	 */
-	result = dns_message_gettempname(client->message, &name);
-	if (result != ISC_R_SUCCESS) {
-		CTRACE(ISC_LOG_DEBUG(3), "query_addns: dns_message_gettempname "
-					 "failed: done");
-		return (result);
-	}
+	dns_message_gettempname(client->message, &name);
 	dns_name_clone(dns_db_origin(qctx->db), name);
 	rdataset = ns_client_newrdataset(client);
 	if (rdataset == NULL) {
