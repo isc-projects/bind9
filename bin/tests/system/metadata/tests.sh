@@ -212,14 +212,22 @@ key=`$KEYGEN -q -a RSASHA1 $czone`
 
 echo_i "checking -p output time is accepted ($n)"
 t=`$SETTIME -pA $key | sed 's/.*: //'`
-$SETTIME -Psync "$t" $key > /dev/null 2>&1 || ret=1
+$SETTIME -Psync "$t" $key > settime2.test$n 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "checking -up output time is accepted ($n)"
 t=`$SETTIME -upA $key | sed 's/.*: //'`
-$SETTIME -Dsync "$t" $key > /dev/null 2>&1 || ret=1
+$SETTIME -Dsync "$t" $key > settime2.test$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking -p unset time is accepted ($n)"
+# The Delete timing metadata is unset.
+t=`$SETTIME -pD $key | sed 's/.*: //'`
+$SETTIME -Psync "$t" $key > settime2.test$n 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
