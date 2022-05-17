@@ -80,14 +80,24 @@ Options
 Timing Options
 ~~~~~~~~~~~~~~
 
-Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the
-argument begins with a ``+`` or ``-``, it is interpreted as an offset from
-the present time. For convenience, if such an offset is followed by one
-of the suffixes ``y``, ``mo``, ``w``, ``d``, ``h``, or ``mi``, then the offset is
-computed in years (defined as 365 24-hour days, ignoring leap years),
-months (defined as 30 24-hour days), weeks, days, hours, or minutes,
-respectively. Without a suffix, the offset is computed in seconds. To
-explicitly prevent a date from being set, use ``none`` or ``never``.
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
+(which is the format used inside key files),
+or 'Day Mon DD HH:MM:SS YYYY' (as printed by ``dnssec-settime -p``),
+or UNIX epoch time (as printed by ``dnssec-settime -up``),
+or the literal ``now``.
+
+The argument can be followed by ``+`` or ``-`` and an offset from the
+given time. The literal ``now`` can be omitted before an offset. The
+offset can be followed by one of the suffixes ``y``, ``mo``, ``w``,
+``d``, ``h``, or ``mi``, so that it is computed in years (defined as
+365 24-hour days, ignoring leap years), months (defined as 30 24-hour
+days), weeks, days, hours, or minutes, respectively. Without a suffix,
+the offset is computed in seconds.
+
+To explicitly prevent a date from being set, use ``none``, ``never``,
+or ``unset``.
+
+All these formats are case-insensitive.
 
 .. option:: -P date/offset
 
