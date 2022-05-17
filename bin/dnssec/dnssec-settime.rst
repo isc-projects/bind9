@@ -114,15 +114,17 @@ or 'Day Mon DD HH:MM:SS YYYY' (as printed by ``dnssec-settime -p``),
 or UNIX epoch time (as printed by ``dnssec-settime -up``),
 or the literal ``now``.
 
-The argument can be followed by '+' or '-' and an offset from the
+The argument can be followed by ``+`` or ``-`` and an offset from the
 given time. The literal ``now`` can be omitted before an offset. The
-offset can be followed by one of the suffixes 'y', 'mo', 'w', 'd',
-'h', or 'mi', so that it is computed in years (defined as 365 24-hour
-days, ignoring leap years), months (defined as 30 24-hour days),
-weeks, days, hours, or minutes, respectively. Without a suffix, the
-offset is computed in seconds.
+offset can be followed by one of the suffixes ``y``, ``mo``, ``w``,
+``d``, ``h``, or ``mi``, so that it is computed in years (defined as
+365 24-hour days, ignoring leap years), months (defined as 30 24-hour
+days), weeks, days, hours, or minutes, respectively. Without a suffix,
+the offset is computed in seconds.
 
-To unset a date, use ``none`` or ``never``.
+To unset a date, use ``none``, ``never``, or ``unset``.
+
+All these formats are case-insensitive.
 
 .. option:: -P date/offset
 

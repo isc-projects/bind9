@@ -243,7 +243,8 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 static bool
 isnone(const char *str) {
 	return ((strcasecmp(str, "none") == 0) ||
-		(strcasecmp(str, "never") == 0));
+		(strcasecmp(str, "never") == 0) ||
+		(strcasecmp(str, "unset") == 0));
 }
 
 dns_ttl_t
