@@ -640,7 +640,7 @@ AS_IF([test "$enable_geoip" = "yes"],
 				   GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_MMDB_open"
 				   AC_MSG_NOTICE([GeoIP2 default database path set to $with_maxminddb/share/GeoIP])
-				   AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_maxminddb])
+				   AS_VAR_COPY([MAXMINDDB_PREFIX], [with_maxminddb])
 				  ],
 				  [AC_MSG_ERROR([GeoIP2 requested, but libmaxminddb not found])])
 		   AX_RESTORE_FLAGS([maxminddb])
