@@ -1239,8 +1239,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 		return (STATUS_SYNTAX);
 	}
 
-	result = dns_message_gettempname(msg, namep);
-	check_result(result, "dns_message_gettempname");
+	dns_message_gettempname(msg, namep);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
 	result = dns_name_fromtext(*namep, &source, dns_rootname, 0, NULL);
@@ -1374,8 +1373,7 @@ make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 		rdatatype = dns_rdatatype_any;
 	}
 
-	result = dns_message_gettemprdata(updatemsg, &rdata);
-	check_result(result, "dns_message_gettemprdata");
+	dns_message_gettemprdata(updatemsg, &rdata);
 
 	dns_rdata_init(rdata);
 
@@ -1389,10 +1387,8 @@ make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 		rdata->flags = DNS_RDATA_UPDATE;
 	}
 
-	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
-	check_result(result, "dns_message_gettemprdatalist");
-	result = dns_message_gettemprdataset(updatemsg, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
+	dns_message_gettemprdatalist(updatemsg, &rdatalist);
+	dns_message_gettemprdataset(updatemsg, &rdataset);
 	rdatalist->type = rdatatype;
 	if (ispositive) {
 		if (isrrset && rdata->data != NULL) {
@@ -1776,8 +1772,7 @@ update_addordelete(char *cmdline, bool isdelete) {
 		return (retval);
 	}
 
-	result = dns_message_gettemprdata(updatemsg, &rdata);
-	check_result(result, "dns_message_gettemprdata");
+	dns_message_gettemprdata(updatemsg, &rdata);
 
 	dns_rdata_init(rdata);
 
@@ -1939,10 +1934,8 @@ parseclass:
 
 doneparsing:
 
-	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
-	check_result(result, "dns_message_gettemprdatalist");
-	result = dns_message_gettemprdataset(updatemsg, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
+	dns_message_gettemprdatalist(updatemsg, &rdatalist);
+	dns_message_gettemprdataset(updatemsg, &rdataset);
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
@@ -2033,11 +2026,9 @@ setzone(dns_name_t *zonename) {
 	}
 
 	if (zonename != NULL) {
-		result = dns_message_gettempname(updatemsg, &name);
-		check_result(result, "dns_message_gettempname");
+		dns_message_gettempname(updatemsg, &name);
 		dns_name_clone(zonename, name);
-		result = dns_message_gettemprdataset(updatemsg, &rdataset);
-		check_result(result, "dns_message_gettemprdataset");
+		dns_message_gettemprdataset(updatemsg, &rdataset);
 		dns_rdataset_makequestion(rdataset, getzoneclass(),
 					  dns_rdatatype_soa);
 		ISC_LIST_INIT(name->list);
@@ -3225,11 +3216,9 @@ start_update(void) {
 		soaquery->flags |= DNS_MESSAGEFLAG_RD;
 	}
 
-	result = dns_message_gettempname(soaquery, &name);
-	check_result(result, "dns_message_gettempname");
+	dns_message_gettempname(soaquery, &name);
 
-	result = dns_message_gettemprdataset(soaquery, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
+	dns_message_gettemprdataset(soaquery, &rdataset);
 
 	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 

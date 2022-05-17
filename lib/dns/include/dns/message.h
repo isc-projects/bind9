@@ -931,7 +931,7 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
  * reset, and must NOT be used after these operations.
  */
 
-isc_result_t
+void
 dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
 /*%<
  * Return a name that can be used for any temporary purpose, including
@@ -946,12 +946,9 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  *\li	msg be a valid message
  *
  *\li	item != NULL && *item == NULL
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- All is well.
  */
 
-isc_result_t
+void
 dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
 /*%<
  * Return a rdata that can be used for any temporary purpose, including
@@ -962,12 +959,9 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  *\li	msg be a valid message
  *
  *\li	item != NULL && *item == NULL
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- All is well.
  */
 
-isc_result_t
+void
 dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
 /*%<
  * Return a rdataset that can be used for any temporary purpose, including
@@ -979,12 +973,9 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  *\li	msg be a valid message
  *
  *\li	item != NULL && *item == NULL
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- All is well.
  */
 
-isc_result_t
+void
 dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
 /*%<
  * Return a rdatalist that can be used for any temporary purpose, including
@@ -995,9 +986,6 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *\li	msg be a valid message
  *
  *\li	item != NULL && *item == NULL
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- All is well.
  */
 
 void

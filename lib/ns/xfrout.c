@@ -1386,18 +1386,12 @@ sendstream(xfrout_ctx_t *xfr) {
 			isc_buffer_add(&xfr->buf, 12 + 4);
 
 			qrdataset = NULL;
-			result = dns_message_gettemprdataset(msg, &qrdataset);
-			if (result != ISC_R_SUCCESS) {
-				goto failure;
-			}
+			dns_message_gettemprdataset(msg, &qrdataset);
 			dns_rdataset_makequestion(qrdataset,
 						  xfr->client->message->rdclass,
 						  xfr->qtype);
 
-			result = dns_message_gettempname(msg, &qname);
-			if (result != ISC_R_SUCCESS) {
-				goto failure;
-			}
+			dns_message_gettempname(msg, &qname);
 			isc_buffer_availableregion(&xfr->buf, &r);
 			INSIST(r.length >= xfr->qname->length);
 			r.length = xfr->qname->length;
@@ -1467,10 +1461,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			log_rr(name, rdata, ttl); /* XXX */
 		}
 
-		result = dns_message_gettempname(msg, &msgname);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+		dns_message_gettempname(msg, &msgname);
 		isc_buffer_availableregion(&xfr->buf, &r);
 		INSIST(r.length >= name->length);
 		r.length = name->length;
@@ -1480,20 +1471,14 @@ sendstream(xfrout_ctx_t *xfr) {
 		/* Reserve space for RR header. */
 		isc_buffer_add(&xfr->buf, 10);
 
-		result = dns_message_gettemprdata(msg, &msgrdata);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+		dns_message_gettemprdata(msg, &msgrdata);
 		isc_buffer_availableregion(&xfr->buf, &r);
 		r.length = rdata->length;
 		isc_buffer_putmem(&xfr->buf, rdata->data, rdata->length);
 		dns_rdata_init(msgrdata);
 		dns_rdata_fromregion(msgrdata, rdata->rdclass, rdata->type, &r);
 
-		result = dns_message_gettemprdatalist(msg, &msgrdl);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+		dns_message_gettemprdatalist(msg, &msgrdl);
 		msgrdl->type = rdata->type;
 		msgrdl->rdclass = rdata->rdclass;
 		msgrdl->ttl = ttl;
@@ -1505,10 +1490,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		}
 		ISC_LIST_APPEND(msgrdl->rdata, msgrdata, link);
 
-		result = dns_message_gettemprdataset(msg, &msgrds);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+		dns_message_gettemprdataset(msg, &msgrds);
 		result = dns_rdatalist_tordataset(msgrdl, msgrds);
 		INSIST(result == ISC_R_SUCCESS);
 

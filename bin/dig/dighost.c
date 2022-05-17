@@ -1512,12 +1512,10 @@ static void
 add_question(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t rdtype) {
 	dns_rdataset_t *rdataset;
-	isc_result_t result;
 
 	debug("add_question()");
 	rdataset = NULL;
-	result = dns_message_gettemprdataset(message, &rdataset);
-	check_result(result, "dns_message_gettemprdataset()");
+	dns_message_gettemprdataset(message, &rdataset);
 	dns_rdataset_makequestion(rdataset, rdclass, rdtype);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
@@ -2106,18 +2104,15 @@ insert_soa(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->rdatabuf, lookup->rdatastore,
 			sizeof(lookup->rdatastore));
 
-	result = dns_message_gettemprdata(lookup->sendmsg, &rdata);
-	check_result(result, "dns_message_gettemprdata");
+	dns_message_gettemprdata(lookup->sendmsg, &rdata);
 
 	result = dns_rdata_fromstruct(rdata, lookup->rdclass, dns_rdatatype_soa,
 				      &soa, &lookup->rdatabuf);
 	check_result(result, "isc_rdata_fromstruct");
 
-	result = dns_message_gettemprdatalist(lookup->sendmsg, &rdatalist);
-	check_result(result, "dns_message_gettemprdatalist");
+	dns_message_gettemprdatalist(lookup->sendmsg, &rdatalist);
 
-	result = dns_message_gettemprdataset(lookup->sendmsg, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
+	dns_message_gettemprdataset(lookup->sendmsg, &rdataset);
 
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = dns_rdatatype_soa;
@@ -2126,8 +2121,7 @@ insert_soa(dig_lookup_t *lookup) {
 
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
-	result = dns_message_gettempname(lookup->sendmsg, &soaname);
-	check_result(result, "dns_message_gettempname");
+	dns_message_gettempname(lookup->sendmsg, &soaname);
 	dns_name_clone(lookup->name, soaname);
 	ISC_LIST_INIT(soaname->list);
 	ISC_LIST_APPEND(soaname->list, rdataset, link);
@@ -2222,8 +2216,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		debug("cloning server list");
 		clone_server_list(server_list, &lookup->my_server_list);
 	}
-	result = dns_message_gettempname(lookup->sendmsg, &lookup->name);
-	check_result(result, "dns_message_gettempname");
+	dns_message_gettempname(lookup->sendmsg, &lookup->name);
 
 	isc_buffer_init(&lookup->namebuf, lookup->name_space,
 			sizeof(lookup->name_space));
@@ -2264,9 +2257,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
-		result = dns_message_gettempname(lookup->sendmsg,
-						 &lookup->oname);
-		check_result(result, "dns_message_gettempname");
+		dns_message_gettempname(lookup->sendmsg, &lookup->oname);
 		/* XXX Helper funct to conv char* to name? */
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2
@@ -2334,18 +2325,19 @@ setup_lookup(dig_lookup_t *lookup) {
 			result = dns_name_fromtext(lookup->name, &b,
 						   dns_rootname, 0,
 						   &lookup->namebuf);
-		}
-		if (result != ISC_R_SUCCESS) {
-			dns_message_puttempname(lookup->sendmsg, &lookup->name);
-			warn("'%s' is not a legal name "
-			     "(%s)",
-			     lookup->textname, isc_result_totext(result));
+			if (result != ISC_R_SUCCESS) {
+				dns_message_puttempname(lookup->sendmsg,
+							&lookup->name);
+				warn("'%s' is not a legal name (%s)",
+				     lookup->textname,
+				     isc_result_totext(result));
 #if TARGET_OS_IPHONE
-			clear_current_lookup();
-			return (false);
+				clear_current_lookup();
+				return (false);
 #else  /* if TARGET_OS_IPHONE */
-			digexit();
+				digexit();
 #endif /* if TARGET_OS_IPHONE */
+			}
 		}
 	}
 	dns_name_format(lookup->name, store, sizeof(store));

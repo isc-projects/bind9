@@ -1026,7 +1026,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dst_context_destroy(&ctx);
 
 	rdata = NULL;
-	RETERR(dns_message_gettemprdata(msg, &rdata));
+	dns_message_gettemprdata(msg, &rdata);
 	isc_buffer_allocate(msg->mctx, &dynbuf, 1024);
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig /* SIG(0) */, &sig,
@@ -1037,12 +1037,12 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dns_message_takebuffer(msg, &dynbuf);
 
 	datalist = NULL;
-	RETERR(dns_message_gettemprdatalist(msg, &datalist));
+	dns_message_gettemprdatalist(msg, &datalist);
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_sig; /* SIG(0) */
 	ISC_LIST_APPEND(datalist->rdata, rdata, link);
 	dataset = NULL;
-	RETERR(dns_message_gettemprdataset(msg, &dataset));
+	dns_message_gettemprdataset(msg, &dataset);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(datalist, dataset) ==
 		      ISC_R_SUCCESS);
 	msg->sig0 = dataset;

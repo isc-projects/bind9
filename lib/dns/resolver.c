@@ -2456,14 +2456,8 @@ resquery_send(resquery_t *query) {
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
-	result = dns_message_gettempname(fctx->qmessage, &qname);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_temps;
-	}
-	result = dns_message_gettemprdataset(fctx->qmessage, &qrdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_temps;
-	}
+	dns_message_gettempname(fctx->qmessage, &qname);
+	dns_message_gettemprdataset(fctx->qmessage, &qrdataset);
 
 	fctx->qmessage->opcode = dns_opcode_query;
 
@@ -2474,8 +2468,6 @@ resquery_send(resquery_t *query) {
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
-	qname = NULL;
-	qrdataset = NULL;
 
 	/*
 	 * Set RD if the client has requested that we do a recursive
@@ -2861,14 +2853,6 @@ cleanup_message:
 	 * Stop the dispatcher from listening.
 	 */
 	dns_dispatch_done(&query->dispentry);
-
-cleanup_temps:
-	if (qname != NULL) {
-		dns_message_puttempname(fctx->qmessage, &qname);
-	}
-	if (qrdataset != NULL) {
-		dns_message_puttemprdataset(fctx->qmessage, &qrdataset);
-	}
 
 	return (result);
 }

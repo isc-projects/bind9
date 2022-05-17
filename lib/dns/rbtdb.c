@@ -9699,7 +9699,6 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	bool restarted = false;
 	rbtdb_glue_t *ge;
 	rbtdb_glue_additionaldata_ctx_t ctx;
-	isc_result_t result;
 	uint64_t hash;
 
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
@@ -9772,70 +9771,24 @@ restart:
 		dns_rdataset_t *sigrdataset_aaaa = NULL;
 		dns_name_t *gluename = dns_fixedname_name(&ge->fixedname);
 
-		result = dns_message_gettempname(msg, &name);
-		if (result != ISC_R_SUCCESS) {
-			goto no_glue;
-		}
+		dns_message_gettempname(msg, &name);
 
 		dns_name_copy(gluename, name);
 
 		if (dns_rdataset_isassociated(&ge->rdataset_a)) {
-			result = dns_message_gettemprdataset(msg, &rdataset_a);
-			if (result != ISC_R_SUCCESS) {
-				dns_message_puttempname(msg, &name);
-				goto no_glue;
-			}
+			dns_message_gettemprdataset(msg, &rdataset_a);
 		}
 
 		if (dns_rdataset_isassociated(&ge->sigrdataset_a)) {
-			result = dns_message_gettemprdataset(msg,
-							     &sigrdataset_a);
-			if (result != ISC_R_SUCCESS) {
-				if (rdataset_a != NULL) {
-					dns_message_puttemprdataset(
-						msg, &rdataset_a);
-				}
-				dns_message_puttempname(msg, &name);
-				goto no_glue;
-			}
+			dns_message_gettemprdataset(msg, &sigrdataset_a);
 		}
 
 		if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
-			result = dns_message_gettemprdataset(msg,
-							     &rdataset_aaaa);
-			if (result != ISC_R_SUCCESS) {
-				dns_message_puttempname(msg, &name);
-				if (rdataset_a != NULL) {
-					dns_message_puttemprdataset(
-						msg, &rdataset_a);
-				}
-				if (sigrdataset_a != NULL) {
-					dns_message_puttemprdataset(
-						msg, &sigrdataset_a);
-				}
-				goto no_glue;
-			}
+			dns_message_gettemprdataset(msg, &rdataset_aaaa);
 		}
 
 		if (dns_rdataset_isassociated(&ge->sigrdataset_aaaa)) {
-			result = dns_message_gettemprdataset(msg,
-							     &sigrdataset_aaaa);
-			if (result != ISC_R_SUCCESS) {
-				dns_message_puttempname(msg, &name);
-				if (rdataset_a != NULL) {
-					dns_message_puttemprdataset(
-						msg, &rdataset_a);
-				}
-				if (sigrdataset_a != NULL) {
-					dns_message_puttemprdataset(
-						msg, &sigrdataset_a);
-				}
-				if (rdataset_aaaa != NULL) {
-					dns_message_puttemprdataset(
-						msg, &rdataset_aaaa);
-				}
-				goto no_glue;
-			}
+			dns_message_gettemprdataset(msg, &sigrdataset_aaaa);
 		}
 
 		if (rdataset_a != NULL) {
