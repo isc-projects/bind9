@@ -16214,6 +16214,79 @@ $as_echo "yes" >&6; }
 
 fi
 
+
+
+  CCASFLAGS_libuv_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_libuv_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_libuv_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_libuv_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_libuv_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_libuv_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_libuv_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_libuv_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_libuv_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_libuv_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_libuv_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_libuv_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_libuv_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_libuv_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_libuv_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_libuv_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_libuv_ax_save_flags=$VALAFLAGS
+
+
+
+CFLAGS="$CFLAGS $LIBUV_CFLAGS"
+LIBS="$LIBS $LIBUV_LIBS"
+
 # libuv recvmmsg support
 ac_fn_c_check_decl "$LINENO" "UV_UDP_MMSG_FREE" "ac_cv_have_decl_UV_UDP_MMSG_FREE" "#include <uv.h>
 "
@@ -16274,6 +16347,60 @@ _ACEOF
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+  CCASFLAGS=$CCASFLAGS_libuv_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_libuv_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_libuv_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_libuv_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_libuv_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_libuv_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_libuv_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_libuv_ax_save_flags
+
+
+  FLIBS=$FLIBS_libuv_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_libuv_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_libuv_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_libuv_ax_save_flags
+
+
+  LIBS=$LIBS_libuv_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_libuv_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_libuv_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_libuv_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_libuv_ax_save_flags
+
+
+
 
 #
 # flockfile is usually provided by pthreads
