@@ -62,12 +62,6 @@
 
 #define MAX_RESTARTS 16
 
-#ifdef TUNE_LARGE
-#define RESOLVER_NTASKS 523
-#else /* ifdef TUNE_LARGE */
-#define RESOLVER_NTASKS 31
-#endif /* TUNE_LARGE */
-
 #define CHECK(r)                             \
 	do {                                 \
 		result = (r);                \
@@ -225,7 +219,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 static isc_result_t
 createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
-	   unsigned int ntasks, isc_nm_t *nm, isc_timermgr_t *timermgr,
+	   isc_nm_t *nm, isc_timermgr_t *timermgr,
 	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
 	isc_result_t result;
@@ -243,9 +237,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 		return (result);
 	}
 
-	result = dns_view_createresolver(view, taskmgr, ntasks, 1, nm, timermgr,
-					 0, dispatchmgr, dispatchv4,
-					 dispatchv6);
+	result = dns_view_createresolver(view, taskmgr, 1, nm, timermgr, 0,
+					 dispatchmgr, dispatchv4, dispatchv6);
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&view);
 		return (result);
@@ -335,9 +328,8 @@ dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
 	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, taskmgr, RESOLVER_NTASKS,
-			    nm, timermgr, client->dispatchmgr, dispatchv4,
-			    dispatchv6, &view);
+	result = createview(mctx, dns_rdataclass_in, taskmgr, nm, timermgr,
+			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
 	}
