@@ -1,3 +1,6 @@
+5892.	[cleanup]	Refactored the the hash tables in resolver.c to
+			use the isc_ht API. [GL !6271]
+
 5891.	[func]		Key timing options for `dnssec-settime` and related
 			utilities now accept "UNSET" times as printed by
 			`dnssec-settime -p`. [GL #3361]
