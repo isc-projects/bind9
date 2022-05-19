@@ -1392,7 +1392,7 @@ setup_libs(void) {
 
 	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
 
-	result = isc_task_create(taskmgr, 0, &global_task);
+	result = isc_task_create(taskmgr, 0, &global_task, 0);
 	check_result(result, "isc_task_create");
 	isc_task_setname(global_task, "dig", NULL);
 

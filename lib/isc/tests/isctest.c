@@ -79,7 +79,7 @@ create_managers(unsigned int workers) {
 	isc_managers_create(test_mctx, workers, 0, &netmgr, &taskmgr,
 			    &timermgr);
 
-	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
+	CHECK(isc_task_create(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
 	return (ISC_R_SUCCESS);

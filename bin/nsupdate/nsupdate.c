@@ -911,7 +911,7 @@ setup_system(void) {
 	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
-	result = isc_task_create(taskmgr, 0, &global_task);
+	result = isc_task_create(taskmgr, 0, &global_task, 0);
 	check_result(result, "isc_task_create");
 
 	result = dst_lib_init(gmctx, NULL);

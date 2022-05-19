@@ -1028,7 +1028,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&rndc_mctx);
 	isc_managers_create(rndc_mctx, 1, 0, &netmgr, &taskmgr, NULL);
-	DO("create task", isc_task_create(taskmgr, 0, &rndc_task));
+	DO("create task", isc_task_create(taskmgr, 0, &rndc_task, 0));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
 	isc_log_settag(logconfig, progname);

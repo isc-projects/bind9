@@ -228,7 +228,7 @@ create_managers(void) {
 	int ncpus = isc_os_ncpus();
 
 	isc_managers_create(mctx, ncpus, 0, &netmgr, &taskmgr, &timermgr);
-	CHECK(isc_task_create_bound(taskmgr, 0, &maintask, 0));
+	CHECK(isc_task_create(taskmgr, 0, &maintask, 0));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));

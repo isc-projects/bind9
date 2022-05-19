@@ -258,7 +258,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	}
 	if (taskmgr != NULL) {
 		dbtask = NULL;
-		result = isc_task_create(taskmgr, 1, &dbtask);
+		result = isc_task_create(taskmgr, 1, &dbtask, 0);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_db;
 		}
@@ -470,7 +470,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	}
 
 	if (taskmgr != NULL && timermgr != NULL) {
-		result = isc_task_create(taskmgr, 1, &cleaner->task);
+		result = isc_task_create(taskmgr, 1, &cleaner->task, 0);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_task_create() failed: %s",

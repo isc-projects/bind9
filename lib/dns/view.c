@@ -629,7 +629,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 
-	result = isc_task_create(taskmgr, 0, &view->task);
+	result = isc_task_create(taskmgr, 0, &view->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

@@ -263,7 +263,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
 	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
-	RUNCHECK(isc_task_create(taskmgr, 0, &task));
+	RUNCHECK(isc_task_create(taskmgr, 0, &task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
