@@ -3879,6 +3879,51 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		goto next_lookup;
 	}
 
+	/*
+	 * NSSEARCH mode is special, because the queries in the followup lookup
+	 * are independent and they are being started in parallel, so if one of
+	 * them fails there is no need to start the next query in the lookup,
+	 * and this failure can be treated as a soft error (with a warning
+	 * message), because there are usually more than one NS servers in the
+	 * lookup's queries list. However, if there was not a single successful
+	 * query in the followup lookup, then print an error message and exit
+	 * with a non-zero exit code.
+	 */
+	if (l->ns_search_only && !l->trace_root) {
+		if (eresult == ISC_R_SUCCESS) {
+			l->ns_search_success = true;
+		} else {
+			char sockstr[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->sockaddr, sockstr,
+					    sizeof(sockstr));
+
+			dighost_warning("communications error to %s: %s",
+					sockstr, isc_result_totext(eresult));
+
+			/*
+			 * If this is not the last query, then we detach the
+			 * query, but keep the lookup running.
+			 */
+			if (!check_if_queries_done(l, query)) {
+				goto detach_query;
+			}
+
+			/*
+			 * This is the last query, and if there was not a
+			 * single successful query in the whole lookup, then
+			 * treat the situation as an error.
+			 */
+			if (!l->ns_search_success) {
+				dighost_error("no NS servers could be reached");
+				if (exitcode < 9) {
+					exitcode = 9;
+				}
+			}
+
+			goto cancel_lookup;
+		}
+	}
+
 	if (eresult == ISC_R_TIMEDOUT) {
 		if (l->retries > 1 && !l->tcp_mode) {
 			dig_query_t *newq = NULL;
