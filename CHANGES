@@ -7,6 +7,12 @@
 5888.	[bug]		Only write key files if the dnssec-policy keymgr has
 			changed the metadata. [GL #3302]
 
+	--- 9.18.3 released ---
+
+5886.	[security]	Fix a crash in DNS-over-HTTPS (DoH) code caused by
+			premature TLS stream socket object deletion.
+			(CVE-2022-1183) [GL #3216]
+
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
 			and static-stub zones at or above the query name.  This
 			has now been addressed. [GL #3232]
