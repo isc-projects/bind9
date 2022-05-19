@@ -1672,13 +1672,6 @@ isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
 
-	if (sock->write_timeout == 0) {
-		sock->write_timeout =
-			(atomic_load(&sock->keepalive)
-				 ? atomic_load(&sock->mgr->keepalive)
-				 : atomic_load(&sock->mgr->idle));
-	}
-
 	ievent = isc__nm_get_netievent_tlsdnssend(sock->mgr, sock, uvreq);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *)ievent);
@@ -1700,6 +1693,13 @@ isc__nm_async_tlsdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 	REQUIRE(sock->tid == isc_nm_tid());
+
+	if (sock->write_timeout == 0) {
+		sock->write_timeout =
+			(atomic_load(&sock->keepalive)
+				 ? atomic_load(&sock->mgr->keepalive)
+				 : atomic_load(&sock->mgr->idle));
+	}
 
 	result = tlsdns_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
