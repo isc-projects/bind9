@@ -1,3 +1,6 @@
+5907.	[bug]		Fix a crash in dig NS search mode when one of the NS
+			server queries fail. [GL #3207]
+
 5906.	[cleanup]	Various features (e.g. prefetch, RPZ) no longer share
 			common pointers when initiating recursion. This
 			rationalizes recursion quota handling and makes the
