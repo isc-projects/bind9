@@ -23,7 +23,11 @@
 			Replace it by isc_task_send() when we are shutting
 			down. [GL !6275]
 
-5886.	[placeholder]
+	--- 9.19.1 released ---
+
+5886.	[security]	Fix a crash in DNS-over-HTTPS (DoH) code caused by
+			premature TLS stream socket object deletion.
+			(CVE-2022-1183) [GL #3216]
 
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
 			and static-stub zones at or above the query name.  This
