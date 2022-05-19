@@ -108,7 +108,6 @@ typedef uint64_t		   dns_masterstyle_flags_t;
 typedef struct dns_message	   dns_message_t;
 typedef uint16_t		   dns_messageid_t;
 typedef isc_region_t		   dns_label_t;
-typedef struct dns_lookup	   dns_lookup_t;
 typedef struct dns_name		   dns_name_t;
 typedef ISC_LIST(dns_name_t) dns_namelist_t;
 typedef struct dns_nta		  dns_nta_t;
