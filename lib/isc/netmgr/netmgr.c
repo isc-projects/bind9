@@ -2033,6 +2033,10 @@ void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	if (uv_is_closing((uv_handle_t *)&sock->read_timer)) {
+		return;
+	}
+
 	if (atomic_load(&sock->connecting)) {
 		int r;
 
@@ -3359,6 +3363,27 @@ isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 		UNREACHABLE();
 		break;
 	};
+}
+
+void
+isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
+	const int log_level = ISC_LOG_DEBUG(1);
+	char client_sabuf[ISC_SOCKADDR_FORMATSIZE];
+	char local_sabuf[ISC_SOCKADDR_FORMATSIZE];
+
+	REQUIRE(tls != NULL);
+
+	if (!isc_log_wouldlog(isc_lctx, log_level)) {
+		return;
+	};
+
+	isc_sockaddr_format(&sock->peer, client_sabuf, sizeof(client_sabuf));
+	isc_sockaddr_format(&sock->iface, local_sabuf, sizeof(local_sabuf));
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      log_level, "TLS %s session %s for %s on %s",
+		      SSL_is_server(tls) ? "server" : "client",
+		      SSL_session_reused(tls) ? "resumed" : "created",
+		      client_sabuf, local_sabuf);
 }
 
 #ifdef NETMGR_TRACE

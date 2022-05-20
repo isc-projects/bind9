@@ -58,6 +58,7 @@ static isc_sockaddr_t tcp_listen_addr;
 static isc_sockaddr_t tcp_connect_addr;
 static isc_tlsctx_t *tcp_listen_tlsctx = NULL;
 static isc_tlsctx_t *tcp_connect_tlsctx = NULL;
+static isc_tlsctx_client_session_cache_t *tcp_tlsctx_client_sess_cache = NULL;
 
 static uint64_t send_magic = 0;
 static uint64_t stop_magic = 0;
@@ -226,6 +227,10 @@ _setup(void **state __attribute__((unused))) {
 
 	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
 
+	tcp_tlsctx_client_sess_cache = isc_tlsctx_client_session_cache_new(
+		test_mctx, tcp_connect_tlsctx,
+		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+
 	return (0);
 }
 
@@ -233,6 +238,8 @@ static int
 _teardown(void **state __attribute__((unused))) {
 	isc_tlsctx_free(&tcp_connect_tlsctx);
 	isc_tlsctx_free(&tcp_listen_tlsctx);
+
+	isc_tlsctx_client_session_cache_detach(&tcp_tlsctx_client_sess_cache);
 
 	isc_test_end();
 
@@ -1201,7 +1208,8 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	if (stream_use_TLS) {
 		isc_nm_tlsconnect(connect_nm, &tcp_connect_addr,
 				  &tcp_listen_addr, cb, cbarg,
-				  tcp_connect_tlsctx, timeout);
+				  tcp_connect_tlsctx,
+				  tcp_tlsctx_client_sess_cache, timeout);
 		return;
 	}
 #endif
@@ -2139,7 +2147,7 @@ static void
 tls_connect(isc_nm_t *nm) {
 	isc_nm_tlsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 			  connect_connect_cb, NULL, tcp_connect_tlsctx,
-			  T_CONNECT);
+			  tcp_tlsctx_client_sess_cache, T_CONNECT);
 }
 
 static void
@@ -2323,7 +2331,7 @@ static void
 tlsdns_connect(isc_nm_t *nm) {
 	isc_nm_tlsdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
 static void
@@ -2345,7 +2353,7 @@ tlsdns_noop(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	isc__netmgr_shutdown(connect_nm);
 
@@ -2374,7 +2382,7 @@ tlsdns_noresponse(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_EQ(csends, 1);
@@ -2429,7 +2437,7 @@ tlsdns_timeout_recovery(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_SOFT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_GE(csends, 1);
@@ -2461,7 +2469,7 @@ tlsdns_recv_one(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 	WAIT_FOR_LE(nsends, 0);
@@ -2504,14 +2512,14 @@ tlsdns_recv_two(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
 
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 2);
 
@@ -2780,7 +2788,7 @@ tlsdns_connect_noalpn(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     tlsdns_connect_connect_noalpn, NULL, T_CONNECT,
-			     connect_tlsctx_noalpn);
+			     connect_tlsctx_noalpn, NULL);
 
 	WAIT_FOR_EQ(active_cconnects, 0);
 
@@ -2847,7 +2855,7 @@ tlsdns_listen_noalpn(void **state __attribute__((unused))) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &connect_addr, &tcp_listen_addr,
 			     connect_connect_cb, NULL, T_CONNECT,
-			     tcp_connect_tlsctx);
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(saccepts, 1);
 	WAIT_FOR_EQ(cconnects, 1);

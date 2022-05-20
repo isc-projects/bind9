@@ -1,3 +1,6 @@
+5893.	[func]		Add TLS session resumption support to the client-side
+			TLS code. [GL !6274]
+
 5892.	[cleanup]	Refactored the the hash tables in resolver.c to
 			use the isc_ht API. [GL !6271]
 
