@@ -1484,6 +1484,33 @@ isc_tlsctx_client_session_cache_detach(
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
 }
 
+static bool
+ssl_session_seems_resumable(const SSL_SESSION *sess) {
+#ifdef HAVE_SSL_SESSION_IS_RESUMABLE
+	/*
+	 * If SSL_SESSION_is_resumable() is available, let's use that. It
+	 * is expected to be available on OpenSSL >= 1.1.1 and its modern
+	 * siblings.
+	 */
+	return (SSL_SESSION_is_resumable(sess) != 0);
+#elif (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+	/*
+	 * Taking into consideration that OpenSSL 1.1.0 uses opaque
+	 * pointers for SSL_SESSION, we cannot implement a replacement for
+	 * SSL_SESSION_is_resumable() manually. Let's use a sensible
+	 * approximation for that, then: if there is an associated session
+	 * ticket or session ID, then, most likely, the session is
+	 * resumable.
+	 */
+	unsigned int session_id_len = 0;
+	(void)SSL_SESSION_get_id(sess, &session_id_len);
+	return (SSL_SESSION_has_ticket(sess) || session_id_len > 0);
+#else
+	return (!sess->not_resumable &&
+		(sess->session_id_length > 0 || sess->tlsext_ticklen > 0));
+#endif
+}
+
 void
 isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 				     char *remote_peer_name, isc_tls_t *tls) {
@@ -1500,7 +1527,7 @@ isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 	sess = SSL_get1_session(tls);
 	if (sess == NULL) {
 		return;
-	} else if (SSL_SESSION_is_resumable(sess) == 0) {
+	} else if (!ssl_session_seems_resumable(sess)) {
 		SSL_SESSION_free(sess);
 		return;
 	}

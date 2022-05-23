@@ -196,11 +196,3 @@ SSL_CTX_up_ref(SSL_CTX *ctx) {
 	return (CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX) > 0);
 }
 #endif /* !HAVE_SSL_CTX_UP_REF */
-
-#if !HAVE_SSL_SESSION_IS_RESUMABLE
-int
-SSL_SESSION_is_resumable(const SSL_SESSION *sess) {
-	return (!sess->not_resumable &&
-		(sess->session_id_length > 0 || sess->tlsext_ticklen > 0));
-}
-#endif /* HAVE_SSL_SESSION_IS_RESUMABLE */
