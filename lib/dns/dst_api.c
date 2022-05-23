@@ -482,22 +482,41 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 
 void
 dst_key_setexternal(dst_key_t *key, bool value) {
+	REQUIRE(VALID_KEY(key));
+
 	key->external = value;
 }
 
 bool
 dst_key_isexternal(dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
+
 	return (key->external);
 }
 
 void
 dst_key_setmodified(dst_key_t *key, bool value) {
+	REQUIRE(VALID_KEY(key));
+
+	isc_mutex_lock(&key->mdlock);
 	key->modified = value;
+	isc_mutex_unlock(&key->mdlock);
 }
 
 bool
-dst_key_ismodified(dst_key_t *key) {
-	return (key->modified);
+dst_key_ismodified(const dst_key_t *key) {
+	bool modified;
+	dst_key_t *k;
+
+	REQUIRE(VALID_KEY(key));
+
+	DE_CONST(key, k);
+
+	isc_mutex_lock(&k->mdlock);
+	modified = key->modified;
+	isc_mutex_unlock(&k->mdlock);
+
+	return (modified);
 }
 
 isc_result_t
