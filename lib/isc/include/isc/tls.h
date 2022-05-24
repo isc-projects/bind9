@@ -558,5 +558,7 @@ isc_tlsctx_cache_find(
  *
  * Returns:
  *\li	#ISC_R_SUCCESS - the context has been found;
- *\li	#ISC_R_NOTFOUND	- the context has not been found.
+ *\li	#ISC_R_NOTFOUND	- the context has not been found. In such a case,
+ *		'pstore' still might get initialised as there is one to many
+ *		relation between stores and contexts.
  */
