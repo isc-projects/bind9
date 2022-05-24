@@ -62,11 +62,11 @@ static isc_sockaddr_t tcp_connect_addr;
 static uint64_t send_magic = 0;
 static uint64_t stop_magic = 0;
 
-static uv_buf_t send_msg = { .base = (char *)&send_magic,
-			     .len = sizeof(send_magic) };
+static isc_region_t send_msg = { .base = (unsigned char *)&send_magic,
+				 .length = sizeof(send_magic) };
 
-static uv_buf_t stop_msg = { .base = (char *)&stop_magic,
-			     .len = sizeof(stop_magic) };
+static isc_region_t stop_msg = { .base = (unsigned char *)&stop_magic,
+				 .length = sizeof(stop_magic) };
 
 static atomic_bool do_send = false;
 static unsigned int workers = 0;
@@ -420,11 +420,9 @@ connect_send(isc_nmhandle_t *handle) {
 	isc_nmhandle_attach(handle, &sendhandle);
 	isc_nmhandle_setwritetimeout(handle, T_IDLE);
 	if (atomic_fetch_sub(&nsends, 1) > 1) {
-		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-			    connect_send_cb, NULL);
+		isc_nm_send(sendhandle, &send_msg, connect_send_cb, NULL);
 	} else {
-		isc_nm_send(sendhandle, (isc_region_t *)&stop_msg,
-			    connect_send_cb, NULL);
+		isc_nm_send(sendhandle, &stop_msg, connect_send_cb, NULL);
 	}
 }
 
@@ -531,8 +529,8 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_nmhandle_attach(handle, &sendhandle);
 			isc_refcount_increment0(&active_ssends);
 			isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
-			isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-				    listen_send_cb, cbarg);
+			isc_nm_send(sendhandle, &send_msg, listen_send_cb,
+				    cbarg);
 		}
 		return;
 	}
