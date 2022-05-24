@@ -1379,3 +1379,17 @@ ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr) {
 
 	return (mgr->clientmgrs[tid]);
 }
+
+bool
+ns_interfacemgr_dynamic_updates_are_reliable(void) {
+#if defined(LINUX_NETLINK_AVAILABLE)
+	/*
+	 * Let's disable periodic interface rescans on Linux, as there a
+	 * reliable kernel-based mechanism for tracking interface state
+	 * changes is available.
+	 */
+	return (true);
+#else
+	return (false);
+#endif /* LINUX_NETLINK_AVAILABLE */
+}
