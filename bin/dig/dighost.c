@@ -2871,14 +2871,18 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 	INSIST(!query->lookup->tls_ca_set || found_store != NULL);
 	return (found_ctx);
 failure:
-	if (ctx != NULL && found_ctx != ctx) {
+	if (ctx != NULL) {
 		isc_tlsctx_free(&ctx);
 	}
+	/*
+	 * The 'found_store' is being managed by the TLS context
+	 * cache. Thus, we should keep it as it is, as it will get
+	 * destroyed alongside the cache. As there is one store per
+	 * multiple TLS contexts, we need to handle store deletion in a
+	 * special way.
+	 */
 	if (store != NULL && store != found_store) {
 		isc_tls_cert_store_free(&store);
-	}
-	if (sess_cache != NULL && sess_cache != found_sess_cache) {
-		isc_tlsctx_client_session_cache_detach(&sess_cache);
 	}
 	return (NULL);
 }
