@@ -11,7 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#include <isc/hp.h>
 #include <isc/managers.h>
 #include <isc/util.h>
 
@@ -24,12 +23,6 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 	isc_result_t result;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_nm_t *netmgr = NULL;
-
-	/*
-	 * We have ncpus network threads, ncpus old network threads - make
-	 * it 4x just to be on the safe side.
-	 */
-	isc_hp_init(4 * workers);
 
 	REQUIRE(netmgrp != NULL && *netmgrp == NULL);
 	isc__netmgr_create(mctx, workers, &netmgr);

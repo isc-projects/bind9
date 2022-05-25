@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LIST_H
-#define ISC_LIST_H 1
+#pragma once
 
 #include <isc/assertions.h>
 
@@ -200,4 +199,16 @@
 #define __ISC_LIST_DEQUEUEUNSAFE_TYPE(list, elt, link, type) \
 	__ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, type)
 
-#endif /* ISC_LIST_H */
+#define ISC_LIST_MOVEUNSAFE(dest, src)    \
+	{                                 \
+		(dest).head = (src).head; \
+		(dest).tail = (src).tail; \
+		(src).head = NULL;        \
+		(src).tail = NULL;        \
+	}
+
+#define ISC_LIST_MOVE(dest, src)                \
+	{                                       \
+		INSIST(ISC_LIST_EMPTY(dest));   \
+		ISC_LIST_MOVEUNSAFE(dest, src); \
+	}

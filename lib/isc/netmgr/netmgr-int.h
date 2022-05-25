@@ -27,7 +27,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/queue.h>
 #include <isc/quota.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
@@ -187,6 +186,17 @@ typedef enum {
 	NETIEVENT_MAX = 4,
 } netievent_type_t;
 
+typedef struct isc__nm_uvreq isc__nm_uvreq_t;
+typedef struct isc__netievent isc__netievent_t;
+
+typedef ISC_LIST(isc__netievent_t) isc__netievent_list_t;
+
+typedef struct ievent {
+	isc_mutex_t lock;
+	isc_condition_t cond;
+	isc__netievent_list_t list;
+} ievent_t;
+
 /*
  * Single network event loop worker.
  */
@@ -196,13 +206,10 @@ typedef struct isc__networker {
 	uv_loop_t loop;	  /* libuv loop structure */
 	uv_async_t async; /* async channel to send
 			   * data to this networker */
-	isc_mutex_t lock;
 	bool paused;
 	bool finished;
 	isc_thread_t thread;
-	isc_queue_t *ievents[NETIEVENT_MAX];
-	atomic_uint_fast32_t nievents[NETIEVENT_MAX];
-	isc_condition_t cond_prio;
+	ievent_t ievents[NETIEVENT_MAX];
 
 	isc_refcount_t references;
 	atomic_int_fast64_t pktcount;
@@ -388,11 +395,12 @@ isc__nm_put_netievent(isc_nm_t *mgr, void *ievent);
  *   either in netmgr.c or matching protocol file (e.g. udp.c, tcp.c, etc.)
  */
 
-#define NETIEVENT__SOCKET         \
-	isc__netievent_type type; \
-	isc_nmsocket_t *sock;     \
-	const char *file;         \
-	unsigned int line;        \
+#define NETIEVENT__SOCKET                \
+	isc__netievent_type type;        \
+	ISC_LINK(isc__netievent_t) link; \
+	isc_nmsocket_t *sock;            \
+	const char *file;                \
+	unsigned int line;               \
 	const char *func
 
 typedef struct isc__netievent__socket {
@@ -456,8 +464,7 @@ typedef struct isc__netievent__socket_req {
 	}
 
 typedef struct isc__netievent__socket_req_result {
-	isc__netievent_type type;
-	isc_nmsocket_t *sock;
+	NETIEVENT__SOCKET;
 	isc__nm_uvreq_t *req;
 	isc_result_t result;
 } isc__netievent__socket_req_result_t;
@@ -556,6 +563,7 @@ typedef struct isc__netievent__socket_quota {
 
 typedef struct isc__netievent__task {
 	isc__netievent_type type;
+	ISC_LINK(isc__netievent_t) link;
 	isc_task_t *task;
 } isc__netievent__task_t;
 
@@ -592,6 +600,7 @@ typedef struct isc__netievent_udpsend {
 
 typedef struct isc__netievent {
 	isc__netievent_type type;
+	ISC_LINK(isc__netievent_t) link;
 } isc__netievent_t;
 
 #define NETIEVENT_TYPE(type) typedef isc__netievent_t isc__netievent_##type##_t;

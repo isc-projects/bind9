@@ -7,6 +7,10 @@
 5888.	[bug]		Only write key files if the dnssec-policy keymgr has
 			changed the metadata. [GL #3302]
 
+5823.	[func]		Replace hazard pointers based lock-free list with
+			locked-list based queue that's simpler and has no or
+			little performance impact. [GL #3180]
+
 	--- 9.16.29 released ---
 
 5885.	[bug]		RPZ NSIP and NSDNAME rule processing didn't handle stub
