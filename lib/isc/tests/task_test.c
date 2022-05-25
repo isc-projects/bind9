@@ -131,7 +131,7 @@ create_task(void **state) {
 
 	UNUSED(state);
 
-	result = isc_task_create(taskmgr, 0, &task);
+	result = isc_task_create(taskmgr, 0, &task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_task_detach(&task);
@@ -153,7 +153,7 @@ all_events(void **state) {
 	atomic_init(&a, 0);
 	atomic_init(&b, 0);
 
-	result = isc_task_create(taskmgr, 0, &task);
+	result = isc_task_create(taskmgr, 0, &task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First event */
@@ -240,13 +240,13 @@ basic(void **state) {
 
 	UNUSED(state);
 
-	result = isc_task_create(taskmgr, 0, &task1);
+	result = isc_task_create(taskmgr, 0, &task1, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_create(taskmgr, 0, &task2);
+	result = isc_task_create(taskmgr, 0, &task2, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_create(taskmgr, 0, &task3);
+	result = isc_task_create(taskmgr, 0, &task3, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_create(taskmgr, 0, &task4);
+	result = isc_task_create(taskmgr, 0, &task4, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, 1, 0);
@@ -365,13 +365,12 @@ task_exclusive(void **state) {
 
 		if (i == 6) {
 			/* task chosen from the middle of the range */
-			result = isc_task_create_bound(taskmgr, 0, &tasks[i],
-						       0);
+			result = isc_task_create(taskmgr, 0, &tasks[i], 0);
 			assert_int_equal(result, ISC_R_SUCCESS);
 
 			isc_taskmgr_setexcltask(taskmgr, tasks[6]);
 		} else {
-			result = isc_task_create(taskmgr, 0, &tasks[i]);
+			result = isc_task_create(taskmgr, 0, &tasks[i], 0);
 			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 
@@ -415,7 +414,7 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Create a new task and forward the message.
 		 */
-		result = isc_task_create(taskmgr, 0, &task);
+		result = isc_task_create(taskmgr, 0, &task, 0);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_task_send(task, &event);
@@ -513,7 +512,7 @@ try_purgeevent(void) {
 	atomic_init(&done, false);
 	eventcnt = 0;
 
-	result = isc_task_create(taskmgr, 0, &task);
+	result = isc_task_create(taskmgr, 0, &task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

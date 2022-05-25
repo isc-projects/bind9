@@ -58,7 +58,7 @@
  * locality on CPU.
  *
  * To make load even some tasks (from task pools) are bound to specific
- * queues using isc_task_create_bound. This way load balancing between
+ * queues using isc_task_create. This way load balancing between
  * CPUs/queues happens on the higher layer.
  */
 
@@ -118,7 +118,6 @@ struct isc_task {
 	isc_time_t tnow;
 	char name[16];
 	void *tag;
-	bool bound;
 	/* Protected by atomics */
 	atomic_bool shuttingdown;
 	/* Locked by task manager lock. */
@@ -198,18 +197,22 @@ task_destroy(isc_task_t *task) {
 }
 
 isc_result_t
-isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		       isc_task_t **taskp, int tid ISC__TASKFLARG) {
+isc__task_create(isc_taskmgr_t *manager, unsigned int quantum,
+		 isc_task_t **taskp, int tid ISC__TASKFLARG) {
 	isc_task_t *task = NULL;
 	bool exiting;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
+	REQUIRE(tid >= 0 && tid < (int)manager->nworkers);
 
 	XTRACE("isc_task_create");
 
 	task = isc_mem_get(manager->mctx, sizeof(*task));
-	*task = (isc_task_t){ 0 };
+	*task = (isc_task_t){
+		.state = task_state_idle,
+		.tid = tid,
+	};
 
 #if TASKMGR_TRACE
 	strlcpy(task->func, func, sizeof(task->func));
@@ -221,34 +224,14 @@ isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
 
 	isc_taskmgr_attach(manager, &task->manager);
 
-	if (tid == -1) {
-		/*
-		 * Task is not pinned to a queue, it's tid will be
-		 * randomly chosen when first task will be sent to it.
-		 */
-		task->bound = false;
-		task->tid = -1;
-	} else {
-		/*
-		 * Task is pinned to a queue, it'll always be run
-		 * by a specific thread.
-		 */
-		task->bound = true;
-		task->tid = tid % task->manager->nworkers;
-	}
-
 	isc_mutex_init(&task->lock);
-	task->state = task_state_idle;
 
 	isc_refcount_init(&task->references, 1);
 	INIT_LIST(task->events);
-	task->nevents = 0;
 	task->quantum = (quantum > 0) ? quantum : manager->default_quantum;
 	atomic_init(&task->shuttingdown, false);
-	task->now = 0;
 	isc_time_settoepoch(&task->tnow);
 	memset(task->name, 0, sizeof(task->name));
-	task->tag = NULL;
 	INIT_LINK(task, link);
 	task->magic = TASK_MAGIC;
 
@@ -304,9 +287,6 @@ task_ready(isc_task_t *task) {
 
 	isc_task_attach(task, &(isc_task_t *){ NULL });
 	LOCK(&task->lock);
-	if (task->tid < 0) {
-		task->tid = (int)isc_random_uniform(manager->nworkers);
-	}
 	isc_nm_task_enqueue(manager->netmgr, task, task->tid);
 	UNLOCK(&task->lock);
 }
@@ -358,10 +338,6 @@ task_send(isc_task_t *task, isc_event_t **eventp) {
 
 	if (task->state == task_state_idle) {
 		was_idle = true;
-		if (!task->bound) {
-			task->tid = (int)isc_random_uniform(
-				task->manager->nworkers);
-		}
 		INSIST(EMPTY(task->events));
 		task->state = task_state_ready;
 	}
@@ -438,11 +414,10 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(VALID_TASK(task));
 
 	/*
-	 * If 'event' is on the task's event queue, it will be purged,
-	 * unless it is marked as unpurgeable.  'event' does not have to be
-	 * on the task's event queue; in fact, it can even be an invalid
-	 * pointer.  Purging only occurs if the event is actually on the task's
-	 * event queue.
+	 * If 'event' is on the task's event queue, it will be purged, 'event'
+	 * does not have to be on the task's event queue; in fact, it can even
+	 * be an invalid pointer.  Purging only occurs if the event is actually
+	 * on the task's event queue.
 	 *
 	 * Purging never changes the state of the task.
 	 */

@@ -302,7 +302,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 
 	isc_mutex_init(&mgr->lock);
 
-	result = isc_task_create_bound(taskmgr, 0, &mgr->task, 0);
+	result = isc_task_create(taskmgr, 0, &mgr->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
 	}

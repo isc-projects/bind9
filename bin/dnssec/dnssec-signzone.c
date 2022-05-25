@@ -4001,7 +4001,7 @@ main(int argc, char *argv[]) {
 	isc_managers_create(mctx, ntasks, 0, &netmgr, &taskmgr, NULL);
 
 	main_task = NULL;
-	result = isc_task_create(taskmgr, 0, &main_task);
+	result = isc_task_create(taskmgr, 0, &main_task, 0);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to create task: %s", isc_result_totext(result));
 	}
@@ -4009,7 +4009,7 @@ main(int argc, char *argv[]) {
 	tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
 	for (i = 0; i < (int)ntasks; i++) {
 		tasks[i] = NULL;
-		result = isc_task_create(taskmgr, 0, &tasks[i]);
+		result = isc_task_create(taskmgr, 0, &tasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to create task: %s",
 			      isc_result_totext(result));

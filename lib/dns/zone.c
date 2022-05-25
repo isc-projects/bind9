@@ -18742,7 +18742,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_rwlock_init(&zmgr->urlock, 0, 0);
 
 	/* Create a single task for queueing of SOA queries. */
-	result = isc_task_create(taskmgr, 1, &zmgr->task);
+	result = isc_task_create(taskmgr, 1, &zmgr->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto free_urlock;
 	}
@@ -18782,8 +18782,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	memset(zmgr->zonetasks, 0, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create_bound(zmgr->taskmgr, 2,
-					       &zmgr->zonetasks[i], i);
+		result = isc_task_create(zmgr->taskmgr, 2, &zmgr->zonetasks[i],
+					 i);
 		if (result != ISC_R_SUCCESS) {
 			goto free_zonetasks;
 		}
@@ -18794,8 +18794,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	memset(zmgr->loadtasks, 0, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create_bound(zmgr->taskmgr, UINT_MAX,
-					       &zmgr->loadtasks[i], i);
+		result = isc_task_create(zmgr->taskmgr, UINT_MAX,
+					 &zmgr->loadtasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			goto free_loadtasks;
 		}

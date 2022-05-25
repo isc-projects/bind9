@@ -10230,7 +10230,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		 * Since we have a pool of tasks we bind them to task
 		 * queues to spread the load evenly
 		 */
-		result = isc_task_create_bound(taskmgr, 0, &res->tasks[i], i);
+		result = isc_task_create(taskmgr, 0, &res->tasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_tasks;
 		}
@@ -10260,7 +10260,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
 
-	result = isc_task_create(taskmgr, 0, &task);
+	result = isc_task_create(taskmgr, 0, &task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_primelock;
 	}

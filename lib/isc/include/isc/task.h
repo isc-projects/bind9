@@ -47,10 +47,7 @@
  * \section purge Purging and Unsending
  *
  * Events which have been queued for a task but not delivered may be removed
- * from the task's event queue by purging or unsending.
- *
- * With both types, the caller specifies a matching pattern that selects
- * events based upon their sender, type, and tag.
+ * from the task's event queue by purging the event.
  *
  * Purging calls isc_event_free() on the matching events.
  *
@@ -92,16 +89,14 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-#define isc_task_create(m, q, t) \
-	isc__task_create_bound(m, q, t, -1 ISC__TASKFILELINE)
-#define isc_task_create_bound(m, q, t, i) \
-	isc__task_create_bound(m, q, t, i ISC__TASKFILELINE)
+#define isc_task_create(m, q, t, i) \
+	isc__task_create(m, q, t, i ISC__TASKFILELINE)
 
 isc_result_t
-isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
-		       isc_task_t **taskp, int tid ISC__TASKFLARG);
+isc__task_create(isc_taskmgr_t *manager, unsigned int quantum,
+		 isc_task_t **taskp, int tid ISC__TASKFLARG);
 /*%<
- * Create a task, optionally bound to a particular tid.
+ * Create a task, bound to a particular thread id.
  *
  * Notes:
  *
@@ -127,7 +122,6 @@ isc__task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
  * Returns:
  *
  *\li   #ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_UNEXPECTED
  *\li	#ISC_R_SHUTTINGDOWN
  */
@@ -196,7 +190,7 @@ isc_task_detach(isc_task_t **taskp);
 void
 isc_task_send(isc_task_t *task, isc_event_t **eventp);
 /*%<
- * Send '*event' to 'task', if task is idle try starting it on cpu 'c'
+ * Send '*event' to 'task'.
  *
  * Requires:
  *
@@ -212,7 +206,7 @@ void
 isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
 /*%<
  * Send '*event' to '*taskp' and then detach '*taskp' from its
- * task. If task is idle try starting it on cpu 'c'
+ * task.
  *
  * Requires:
  *
@@ -239,15 +233,12 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*%<
  * Purge 'event' from a task's event queue.
  *
- * XXXRTH:  WARNING:  This method may be removed before beta.
- *
  * Notes:
  *
- *\li	If 'event' is on the task's event queue, it will be purged,
- * 	unless it is marked as unpurgeable.  'event' does not have to be
- *	on the task's event queue; in fact, it can even be an invalid
- *	pointer.  Purging only occurs if the event is actually on the task's
- *	event queue.
+ *\li   If 'event' is on the task's event queue, it will be purged.  'event'
+ *      does not have to be on the task's event queue; in fact, it can even be
+ *	an invalid pointer.  Purging only occurs if the event is actually on the
+ *	task's event queue.
  *
  * \li	Purging never changes the state of the task.
  *
@@ -262,8 +253,7 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  * Returns:
  *
  *\li	#true			The event was purged.
- *\li	#false			The event was not in the event queue,
- *					or was marked unpurgeable.
+ *\li	#false			The event was not in the event queue.
  */
 
 void
@@ -295,8 +285,8 @@ isc_task_getname(isc_task_t *task);
  *
  * Returns:
  *\li	A non-NULL pointer to a null-terminated string.
- * 	If the task has not been named, the string is
- * 	empty.
+ *	If the task has not been named, the string is
+ *	empty.
  *
  */
 
