@@ -1473,25 +1473,6 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 }
 
 isc_result_t
-dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
-	isc_result_t result;
-
-	REQUIRE(DNS_VIEW_VALID(view));
-
-	(void)fprintf(fp, ";\n; Cache dump of view '%s'\n;\n", view->name);
-	result = dns_master_dumptostream(view->mctx, view->cachedb, NULL,
-					 &dns_master_style_cache,
-					 dns_masterformat_text, NULL, fp);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	dns_adb_dump(view->adb, fp);
-	dns_resolver_printbadcache(view->resolver, fp);
-	dns_badcache_print(view->failcache, "SERVFAIL cache", fp);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
 dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 	isc_result_t result;
 

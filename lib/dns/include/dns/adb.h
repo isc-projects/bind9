@@ -454,27 +454,13 @@ dns_adb_destroyfind(dns_adbfind_t **find);
 void
 dns_adb_dump(dns_adb_t *adb, FILE *f);
 /*%<
- * This function is only used for debugging.  It will dump as much of the
- * state of the running system as possible.
+ * Used by "rndc dumpdb": Dump the state of the running ADB.
  *
  * Requires:
  *
- *\li	adb be valid.
+ *\li	adb is valid.
  *
  *\li	f != NULL, and is a file open for writing.
- */
-
-void
-dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
-/*%<
- * This function is only used for debugging.  Dump the data associated
- * with a find.
- *
- * Requires:
- *
- *\li	find is valid.
- *
- * \li	f != NULL, and is a file open for writing.
  */
 
 isc_result_t

@@ -2880,8 +2880,8 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	}
 }
 
-void
-dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
+static void
+dumpfind(dns_adbfind_t *find, FILE *f) {
 	char tmp[512];
 	const char *tmpp = NULL;
 	dns_adbaddrinfo_t *ai = NULL;
@@ -2971,7 +2971,7 @@ print_find_list(FILE *f, dns_adbname_t *name) {
 
 	find = ISC_LIST_HEAD(name->finds);
 	while (find != NULL) {
-		dns_adb_dumpfind(find, f);
+		dumpfind(find, f);
 		find = ISC_LIST_NEXT(find, plink);
 	}
 }
