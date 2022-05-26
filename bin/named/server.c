@@ -16622,7 +16622,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		char tbuf[BUFSIZ];
+		char tbuf[100];
 		unsigned int used;
 		uint32_t val;
 		int s;
@@ -16655,6 +16655,21 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		putstr(text, tbuf);
 		used = isc_buffer_usedlength(*text);
 		CHECK(dns_adb_dumpquota(view->adb, text));
+		if (used == isc_buffer_usedlength(*text)) {
+			putstr(text, "\n  None.");
+		}
+
+		putstr(text, "\nRate limited servers, view ");
+		putstr(text, view->name);
+		val = dns_resolver_getfetchesperzone(view->resolver);
+		s = snprintf(tbuf, sizeof(tbuf),
+			     " (fetches-per-zone %u):", val);
+		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
+			return (ISC_R_NOSPACE);
+		}
+		putstr(text, tbuf);
+		used = isc_buffer_usedlength(*text);
+		CHECK(dns_resolver_dumpquota(view->resolver, text));
 		if (used == isc_buffer_usedlength(*text)) {
 			putstr(text, "\n  None.");
 		}

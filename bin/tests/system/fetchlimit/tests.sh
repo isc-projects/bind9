@@ -128,9 +128,10 @@ for try in 1 2 3 4 5; do
             success=$((success+1))
     grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
             fail=$(($fail+1))
-    stat 30 50 || ret=1
+    stat 40 40 || ret=1
+    allowed=$($RNDCCMD fetchlimit | awk '/lamesub/ { print $6 }')
+    [ "${allowed:-0}" -eq 40 ] || ret=1
     [ $ret -eq 1 ] && break
-    $RNDCCMD recursing 2>&1 | sed 's/^/ns3 /' | cat_i
     sleep 1
 done
 echo_i "$success successful valid queries, $fail SERVFAIL"

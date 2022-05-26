@@ -206,8 +206,10 @@ Currently supported commands are:
 
 .. option:: fetchlimit [view]
 
-   This command dumps a list of servers which are currently being
-   rate-limited as a result of ``fetches-per-server`` settings.
+   This command dumps a list of servers that are currently being
+   rate-limited as a result of ``fetches-per-server`` settings, and
+   a list of domain names that are currently being rate-limited as
+   a result of ``fetches-per-zone`` settings.
 
 .. option:: flush
 

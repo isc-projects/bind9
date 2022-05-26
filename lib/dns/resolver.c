@@ -10075,6 +10075,7 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_mem_put(res->mctx, res->tasks, res->ntasks * sizeof(res->tasks[0]));
 
+	RWLOCK(&res->hash_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(res->buckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -10088,8 +10089,10 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&res->buckets);
+	RWUNLOCK(&res->hash_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&res->hash_lock);
 
+	RWLOCK(&res->zonehash_lock, isc_rwlocktype_write);
 	isc_ht_iter_create(res->zonebuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_delcurrent_next(it))
@@ -10109,6 +10112,7 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&res->zonebuckets);
+	RWUNLOCK(&res->zonehash_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&res->zonehash_lock);
 
 	if (res->dispatches4 != NULL) {
@@ -11352,6 +11356,13 @@ dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients) {
 	atomic_store_release(&resolver->zspill, clients);
 }
 
+uint32_t
+dns_resolver_getfetchesperzone(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	return (atomic_load_relaxed(&resolver->zspill));
+}
+
 bool
 dns_resolver_getzeronosoattl(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
@@ -11484,6 +11495,61 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 	}
 	RWUNLOCK(&res->zonehash_lock, isc_rwlocktype_read);
 	isc_ht_iter_destroy(&it);
+}
+
+isc_result_t
+dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
+	isc_result_t result;
+	isc_ht_iter_t *it = NULL;
+	uint_fast32_t spill;
+
+	REQUIRE(VALID_RESOLVER(res));
+
+	spill = atomic_load_acquire(&res->zspill);
+	if (spill == 0) {
+		return (ISC_R_SUCCESS);
+	}
+
+	RWLOCK(&res->zonehash_lock, isc_rwlocktype_read);
+	isc_ht_iter_create(res->zonebuckets, &it);
+	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(it))
+	{
+		zonebucket_t *bucket = NULL;
+
+		isc_ht_iter_current(it, (void **)&bucket);
+		LOCK(&bucket->lock);
+		for (fctxcount_t *fc = ISC_LIST_HEAD(bucket->list); fc != NULL;
+		     fc = ISC_LIST_NEXT(fc, link))
+		{
+			char nb[DNS_NAME_FORMATSIZE], text[BUFSIZ];
+
+			if (fc->count < spill) {
+				continue;
+			}
+
+			dns_name_format(fc->domain, nb, sizeof(nb));
+			snprintf(text, sizeof(text),
+				 "\n- %s: %u active (allowed %u spilled %u)",
+				 nb, fc->count, fc->allowed, fc->dropped);
+
+			result = isc_buffer_reserve(buf, strlen(text));
+			if (result != ISC_R_SUCCESS) {
+				UNLOCK(&bucket->lock);
+				goto cleanup;
+			}
+			isc_buffer_putstr(*buf, text);
+		}
+		UNLOCK(&bucket->lock);
+	}
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_SUCCESS;
+	}
+
+cleanup:
+	RWUNLOCK(&res->zonehash_lock, isc_rwlocktype_read);
+	isc_ht_iter_destroy(&it);
+	return (result);
 }
 
 void

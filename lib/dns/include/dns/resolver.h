@@ -534,6 +534,9 @@ dns_resolver_setclientsperquery(dns_resolver_t *resolver, uint32_t min,
 void
 dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients);
 
+uint32_t
+dns_resolver_getfetchesperzone(dns_resolver_t *resolver);
+
 void
 dns_resolver_getclientsperquery(dns_resolver_t *resolver, uint32_t *cur,
 				uint32_t *min, uint32_t *max);
@@ -703,6 +706,8 @@ dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which);
 void
 dns_resolver_dumpfetches(dns_resolver_t *resolver, isc_statsformat_t format,
 			 FILE *fp);
+isc_result_t
+dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf);
 
 #ifdef ENABLE_AFL
 /*%

@@ -227,8 +227,10 @@ Manual.)
 .INDENT 0.0
 .TP
 .B fetchlimit [view]
-This command dumps a list of servers which are currently being
-rate\-limited as a result of \fBfetches\-per\-server\fP settings.
+This command dumps a list of servers that are currently being
+rate\-limited as a result of \fBfetches\-per\-server\fP settings, and
+a list of domain names that are currently being rate\-limited as
+a result of \fBfetches\-per\-zone\fP settings.
 .UNINDENT
 .INDENT 0.0
 .TP
