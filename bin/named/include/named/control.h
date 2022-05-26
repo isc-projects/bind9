@@ -70,6 +70,7 @@
 #define NAMED_COMMAND_DNSTAP	   "dnstap"
 #define NAMED_COMMAND_TCPTIMEOUTS  "tcp-timeouts"
 #define NAMED_COMMAND_SERVESTALE   "serve-stale"
+#define NAMED_COMMAND_FETCHLIMIT   "fetchlimit"
 
 isc_result_t
 named_controls_create(named_server_t *server, named_controls_t **ctrlsp);

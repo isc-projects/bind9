@@ -204,6 +204,11 @@ Currently supported commands are:
    (See the ``dump-file`` option in the BIND 9 Administrator Reference
    Manual.)
 
+.. option:: fetchlimit [view]
+
+   This command dumps a list of servers which are currently being
+   rate-limited as a result of ``fetches-per-server`` settings.
+
 .. option:: flush
 
    This command flushes the server's cache.

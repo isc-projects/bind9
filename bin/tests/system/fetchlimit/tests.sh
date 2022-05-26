@@ -58,12 +58,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "dumping ADB data"
-$RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
-quota=$5
-[ ${5:-200} -lt 200 ] || ret=1
+quota=$2
+[ ${quota:-200} -lt 200 ] || ret=1
 
 echo_i "checking servfail statistics"
 ret=0
@@ -92,12 +91,11 @@ for try in 1 2 3 4 5; do
 done
 
 echo_i "dumping ADB data"
-$RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
-[ ${5:-${quota}} -lt $quota ] || ret=1
-quota=$5
+[ ${2:-${quota}} -lt $quota ] || ret=1
+quota=$2
 
 for try in 1 2 3 4 5 6 7 8 9 10; do
     burst c $try
@@ -107,12 +105,11 @@ for try in 1 2 3 4 5 6 7 8 9 10; do
 done
 
 echo_i "dumping ADB data"
-$RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
-[ ${5:-${quota}} -gt $quota ] || ret=1
-quota=$5
+[ ${2:-${quota}} -gt $quota ] || ret=1
+quota=$2
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

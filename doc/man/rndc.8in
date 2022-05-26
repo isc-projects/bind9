@@ -226,6 +226,12 @@ Manual.)
 .UNINDENT
 .INDENT 0.0
 .TP
+.B fetchlimit [view]
+This command dumps a list of servers which are currently being
+rate\-limited as a result of \fBfetches\-per\-server\fP settings.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B flush
 This command flushes the server\(aqs cache.
 .UNINDENT

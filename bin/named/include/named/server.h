@@ -401,3 +401,10 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text);
 isc_result_t
 named_server_servestale(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text);
+
+/*%
+ * Report fetch-limited ADB server addresses.
+ */
+isc_result_t
+named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
+			isc_buffer_t **text);

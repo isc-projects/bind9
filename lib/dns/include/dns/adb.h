@@ -748,6 +748,20 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq, double low,
  *\li	'adb' is valid.
  */
 
+void
+dns_adb_getquota(dns_adb_t *adb, uint32_t *quotap, uint32_t *freqp,
+		 double *lowp, double *highp, double *discountp);
+/*%<
+ * Get the quota values set by dns_adb_setquota().
+ * If any of the 'quotap', 'freqp', 'lowp', 'highp', and
+ * 'discountp' parameters are non-NULL, then the memory they
+ * point to will be updated to hold the corresponding quota
+ * or parameter value.
+ *
+ * Requires:
+ *\li	'adb' is valid.
+ */
+
 bool
 dns_adbentry_overquota(dns_adbentry_t *entry);
 /*%<
@@ -778,6 +792,18 @@ isc_stats_t *
 dns_adb_getstats(dns_adb_t *adb);
 /*%<
  * Get the adb statistics counter set for 'adb'.
+ *
+ * Requires:
+ * \li 'adb' is valid.
+ */
+
+isc_result_t
+dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf);
+/*%
+ * Dump the addresses, current quota values, and current ATR values
+ * for all servers that are currently being fetchlimited. Servers
+ * for which the quota is still equal to the default and the ATR
+ * is zero are not printed.
  *
  * Requires:
  * \li 'adb' is valid.
