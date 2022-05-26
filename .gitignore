@@ -54,6 +54,7 @@ __pycache__/
 /test-driver
 Makefile
 Makefile.in
+Makefile.user
 ans.run
 gen.dSYM/
 named.memstats
@@ -88,6 +89,7 @@ doc/man/pkcs11-list.8in
 doc/man/pkcs11-tokens.8in
 # clangd index directory
 /\.cache/
+/\.*_clangd/
 # GNU Global index files
 /GPATH
 /GRTAGS
