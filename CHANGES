@@ -1,3 +1,8 @@
+5919.	[func]		The "rndc fetchlimit" command lists name servers
+			and domain names that are being rate-limited by
+			"fetches-per-server" or "fetches-per-zone" limits.
+			[GL #665]
+
 5918.	[test]		Convert system tests to use a default HMAC algorithm
 			where the test is not HMAC specific. [GL #3433]
 
