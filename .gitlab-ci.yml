@@ -1085,12 +1085,14 @@ unit:clang:tsan:
       artifacts: true
 
 # Jobs for Clang builds on Debian 11 "bullseye" (amd64)
+# The -Wno-compound-token-split-by-macro option prevents warning when compiling
+# Perl DLZ module with Clang against Perl older than version 5.35.2.
 
 clang:bullseye:amd64:
   variables:
     BUILD_CONTRIB: 1
     CC: ${CLANG}
-    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion -Wno-compound-token-split-by-macro"
     EXTRA_CONFIGURE: "--with-python=python3"
     RUN_MAKE_INSTALL: 1
   <<: *debian_bullseye_amd64_image
