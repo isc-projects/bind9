@@ -270,7 +270,9 @@ stages:
     - *configure
     - *check_readline_setup
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - test -z "${BUILD_CONTRIB}" || for DIR in contrib/dlz/modules/*; do test -f "${DIR}/Makefile" && CFLAGS="${CFLAGS} -Werror" make -C "${DIR}"; done
     - test -z "${RUN_MAKE_INSTALL}" || make DESTDIR="${INSTALL_PATH}" install
+    - test -z "${RUN_MAKE_INSTALL}" -o -z "${BUILD_CONTRIB}" || for DIR in contrib/dlz/modules/*; do test -f "${DIR}/Makefile" && make -C "${DIR}" DESTDIR="${INSTALL_PATH}" install; done
     - test -z "${RUN_MAKE_INSTALL}" || DESTDIR="${INSTALL_PATH}" sh util/check-make-install
     - if [[ "${CFLAGS}" == *"-fsanitize=address"* ]]; then ( ! grep -F AddressSanitizer config.log ); fi
     - test -z "${CROSS_COMPILATION}" || grep -F -A 1 "checking whether we are cross compiling" config.log | grep -q "result.*yes"
@@ -659,9 +661,11 @@ unit:gcc:oraclelinux9:amd64:
 
 gcc:bullseye:amd64:
   variables:
+    BUILD_CONTRIB: 1
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
     EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT}"
+    RUN_MAKE_INSTALL: 1
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
@@ -1039,10 +1043,12 @@ unit:clang:tsan:
 
 clang:bullseye:amd64:
   variables:
+    BUILD_CONTRIB: 1
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
     # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
     EXTRA_CONFIGURE: "--without-jemalloc --disable-leak-detection"
+    RUN_MAKE_INSTALL: 1
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
