@@ -56,4 +56,18 @@
 #define DLZ_LIST_PREV(elt, link) ((elt)->link.prev)
 #define DLZ_LIST_NEXT(elt, link) ((elt)->link.next)
 
+#define DLZ_LIST_UNLINK(list, elt, link)                                \
+	do {                                                            \
+		if ((elt)->link.next != NULL)                           \
+			(elt)->link.next->link.prev = (elt)->link.prev; \
+		else                                                    \
+			(list).tail = (elt)->link.prev;                 \
+		if ((elt)->link.prev != NULL)                           \
+			(elt)->link.prev->link.next = (elt)->link.next; \
+		else                                                    \
+			(list).head = (elt)->link.next;                 \
+		(elt)->link.prev = (void *)(-1);                        \
+		(elt)->link.next = (void *)(-1);                        \
+	} while (0)
+
 #endif /* DLZ_LIST_H */

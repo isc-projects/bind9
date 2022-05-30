@@ -461,9 +461,8 @@ build_query(mysql_data_t *state, mysql_instance_t *dbi, const char *command,
 fail:
 	va_end(ap1);
 
-	for (item = DLZ_LIST_HEAD(arglist); item != NULL;
-	     item = DLZ_LIST_NEXT(item, link))
-	{
+	while ((item = DLZ_LIST_HEAD(arglist)) != NULL) {
+		DLZ_LIST_UNLINK(arglist, item, link);
 		if (item->arg != NULL) {
 			free(item->arg);
 		}
@@ -1078,6 +1077,8 @@ dlz_destroy(void *dbdata) {
 isc_result_t
 dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo) {
+	UNUSED(methods);
+	UNUSED(clientinfo);
 	isc_result_t result = ISC_R_SUCCESS;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	MYSQL_RES *res;
@@ -1110,6 +1111,8 @@ isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
 	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
 	   dns_clientinfo_t *clientinfo) {
+	UNUSED(methods);
+	UNUSED(clientinfo);
 	isc_result_t result;
 	mysql_data_t *state = (mysql_data_t *)dbdata;
 	bool found = false;
