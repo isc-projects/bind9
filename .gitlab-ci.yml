@@ -1567,6 +1567,8 @@ gcov:
     # These drivers are built into bin/named/named in a way which trips up
     # gcovr.  Copy them to where gcovr expects them.
     - cp contrib/dlz/drivers/{dlz_drivers,dlz_filesystem_driver,sdlz_helper}.c bin/named/
+    # Help gcovr find dlz_dbi.c file
+    - for DST in ldap mysql mysqldyn sqlite3 wildcard; do cp contrib/dlz/modules/common/dlz_dbi.c "contrib/dlz/modules/${DST}"; done
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
     # for the purpose of displaying code coverage information in the diff view
     # of a given merge request.
