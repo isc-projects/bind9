@@ -26,6 +26,7 @@ CINCLUDES =	-I${srcdir}/unix/include \
 		${OPENSSL_CFLAGS} \
 		${JSON_C_CFLAGS} \
 		${LIBXML2_CFLAGS} \
+		${LIBUV_CFLAGS} \
 		${ZLIB_CFLAGS}
 CDEFINES =
 CWARNINGS =
