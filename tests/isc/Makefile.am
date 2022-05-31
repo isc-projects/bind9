@@ -72,6 +72,14 @@ md_test_LDADD =		\
 	$(LDADD)	\
 	$(OPENSSL_LIBS)
 
+netmgr_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+netmgr_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
 random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
