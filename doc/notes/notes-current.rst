@@ -35,7 +35,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Some more ``dnssec-policy`` configuration checks have been added to
+  detect weird policies such as missing KSK and/or ZSK, and too short
+  key lifetimes and re-sign periods. :gl:`#1611`.
 
 Bug Fixes
 ~~~~~~~~~

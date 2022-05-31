@@ -529,10 +529,44 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp signatures refresh errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-signatures-refresh.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh' signatures-refresh must be at most 90% of the signatures-validity" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh-dnskey' signatures-refresh must be at most 90% of the signatures-validity-dnskey" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp key lifetime errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-lifetime.conf > checkconf.out$n 2>&1 && ret=1
+lines=$(grep "dnssec-policy: key lifetime is shorter than the time it takes to do a rollover" < checkconf.out$n | wc -l) || ret=1
+if [ $lines != 3 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking named-checkconf kasp predefined key length ($n)"
 ret=0
 $CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
 grep "dnssec-policy: key algorithm ecdsa256 has predefined length; ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp warns about weird policies ($n)"
+ret=0
+$CHECKCONF kasp-warning.conf > checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with KSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: key lifetime is shorter than 30 days" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines != 5 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

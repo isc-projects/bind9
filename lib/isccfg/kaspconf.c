@@ -72,7 +72,8 @@ get_duration(const cfg_obj_t **maps, const char *option, uint32_t dfl) {
  */
 static isc_result_t
 cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-		       isc_log_t *logctx) {
+		       isc_log_t *logctx, uint32_t ksk_min_lifetime,
+		       uint32_t zsk_min_lifetime) {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
 
@@ -92,6 +93,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		const char *rolestr = NULL;
 		const cfg_obj_t *obj = NULL;
 		isc_consttextregion_t alg;
+		bool error = false;
 
 		rolestr = cfg_obj_asstring(cfg_tuple_get(config, "role"));
 		if (strcmp(rolestr, "ksk") == 0) {
@@ -107,6 +109,31 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		obj = cfg_tuple_get(config, "lifetime");
 		if (cfg_obj_isduration(obj)) {
 			key->lifetime = cfg_obj_asduration(obj);
+		}
+		if (key->lifetime > 0) {
+			if (key->lifetime < 30 * (24 * 3600)) {
+				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: key lifetime is "
+					    "shorter than 30 days");
+			}
+			if ((key->role & DNS_KASP_KEY_ROLE_KSK) != 0 &&
+			    key->lifetime <= ksk_min_lifetime)
+			{
+				error = true;
+			}
+			if ((key->role & DNS_KASP_KEY_ROLE_ZSK) != 0 &&
+			    key->lifetime <= zsk_min_lifetime)
+			{
+				error = true;
+			}
+			if (error) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "dnssec-policy: key lifetime is "
+					    "shorter than the time it takes to "
+					    "do a rollover");
+				result = ISC_R_FAILURE;
+				goto cleanup;
+			}
 		}
 
 		obj = cfg_tuple_get(config, "algorithm");
@@ -263,6 +290,9 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
+	uint32_t sigrefresh = 0, sigvalidity = 0;
+	uint32_t ipub = 0, iret = 0;
+	uint32_t ksk_min_lifetime = 0, zsk_min_lifetime = 0;
 
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
@@ -303,13 +333,36 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	maps[i] = NULL;
 
 	/* Configuration: Signatures */
-	dns_kasp_setsigrefresh(kasp, get_duration(maps, "signatures-refresh",
-						  DNS_KASP_SIG_REFRESH));
-	dns_kasp_setsigvalidity(kasp, get_duration(maps, "signatures-validity",
-						   DNS_KASP_SIG_VALIDITY));
-	dns_kasp_setsigvalidity_dnskey(
-		kasp, get_duration(maps, "signatures-validity-dnskey",
-				   DNS_KASP_SIG_VALIDITY_DNSKEY));
+	sigrefresh = get_duration(maps, "signatures-refresh",
+				  DNS_KASP_SIG_REFRESH);
+	dns_kasp_setsigrefresh(kasp, sigrefresh);
+
+	sigvalidity = get_duration(maps, "signatures-validity-dnskey",
+				   DNS_KASP_SIG_VALIDITY_DNSKEY);
+	if (sigrefresh >= (sigvalidity * 0.9)) {
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: policy '%s' signatures-refresh must be "
+			"at most 90%% of the signatures-validity-dnskey",
+			kaspname);
+		result = ISC_R_FAILURE;
+	}
+	dns_kasp_setsigvalidity_dnskey(kasp, sigvalidity);
+
+	sigvalidity = get_duration(maps, "signatures-validity",
+				   DNS_KASP_SIG_VALIDITY);
+	if (sigrefresh >= (sigvalidity * 0.9)) {
+		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+			    "dnssec-policy: policy '%s' signatures-refresh "
+			    "must be at most 90%% of the signatures-validity",
+			    kaspname);
+		result = ISC_R_FAILURE;
+	}
+	dns_kasp_setsigvalidity(kasp, sigvalidity);
+
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	/* Configuration: Keys */
 	dns_kasp_setdnskeyttl(
@@ -321,16 +374,39 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	dns_kasp_setpurgekeys(
 		kasp, get_duration(maps, "purge-keys", DNS_KASP_PURGE_KEYS));
 
+	ipub = get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL) +
+	       get_duration(maps, "publish-safety", DNS_KASP_PUBLISH_SAFETY) +
+	       get_duration(maps, "zone-propagation-delay",
+			    DNS_KASP_ZONE_PROPDELAY);
+
+	iret = get_duration(maps, "parent-ds-ttl", DNS_KASP_DS_TTL) +
+	       get_duration(maps, "retire-safety", DNS_KASP_RETIRE_SAFETY) +
+	       get_duration(maps, "parent-propagation-delay",
+			    DNS_KASP_PARENT_PROPDELAY);
+
+	ksk_min_lifetime = ISC_MAX(ipub, iret);
+
+	iret = (sigvalidity - sigrefresh) +
+	       get_duration(maps, "max-zone-ttl", DNS_KASP_ZONE_MAXTTL) +
+	       get_duration(maps, "retire-safety", DNS_KASP_RETIRE_SAFETY) +
+	       get_duration(maps, "zone-propagation-delay",
+			    DNS_KASP_ZONE_PROPDELAY);
+
+	zsk_min_lifetime = ISC_MAX(ipub, iret);
+
 	(void)confget(maps, "keys", &keys);
 	if (keys != NULL) {
 		char role[256] = { 0 };
+		bool warn[256][2] = { { false } };
 		dns_kasp_key_t *kkey = NULL;
 
 		for (element = cfg_list_first(keys); element != NULL;
 		     element = cfg_list_next(element))
 		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
-			result = cfg_kaspkey_fromconfig(kobj, kasp, logctx);
+			result = cfg_kaspkey_fromconfig(kobj, kasp, logctx,
+							ksk_min_lifetime,
+							zsk_min_lifetime);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -344,23 +420,45 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 			INSIST(keyalg < ARRAY_SIZE(role));
 
 			if (dns_kasp_key_zsk(kkey)) {
+				if ((role[keyalg] & DNS_KASP_KEY_ROLE_ZSK) != 0)
+				{
+					warn[keyalg][0] = true;
+				}
 				role[keyalg] |= DNS_KASP_KEY_ROLE_ZSK;
 			}
 
 			if (dns_kasp_key_ksk(kkey)) {
+				if ((role[keyalg] & DNS_KASP_KEY_ROLE_KSK) != 0)
+				{
+					warn[keyalg][1] = true;
+				}
 				role[keyalg] |= DNS_KASP_KEY_ROLE_KSK;
 			}
 		}
 		dns_kasp_thaw(kasp);
 		for (i = 0; i < ARRAY_SIZE(role); i++) {
-			if (role[i] != 0 && role[i] != (DNS_KASP_KEY_ROLE_ZSK |
-							DNS_KASP_KEY_ROLE_KSK))
-			{
+			if (role[i] == 0) {
+				continue;
+			}
+			if (role[i] !=
+			    (DNS_KASP_KEY_ROLE_ZSK | DNS_KASP_KEY_ROLE_KSK)) {
 				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 					    "dnssec-policy: algorithm %zu "
 					    "requires both KSK and ZSK roles",
 					    i);
 				result = ISC_R_FAILURE;
+			}
+			if (warn[i][0]) {
+				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: algorithm %zu has "
+					    "multiple keys with ZSK role",
+					    i);
+			}
+			if (warn[i][1]) {
+				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+					    "dnssec-policy: algorithm %zu has "
+					    "multiple keys with KSK role",
+					    i);
 			}
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -372,7 +470,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 		INSIST(dns_kasp_keylist_empty(kasp));
 	} else {
 		/* No keys clause configured, use the "default". */
-		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx);
+		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx, 0, 0);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
