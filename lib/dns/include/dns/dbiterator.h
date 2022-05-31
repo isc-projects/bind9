@@ -97,7 +97,7 @@ struct dns_dbiterator {
 	/* Unlocked. */
 	unsigned int		 magic;
 	dns_dbiteratormethods_t *methods;
-	dns_db_t		 *db;
+	dns_db_t		*db;
 	bool			 relative_names;
 	bool			 cleaning;
 };

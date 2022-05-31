@@ -85,14 +85,14 @@ struct dns_aclelement {
 
 struct dns_acl {
 	unsigned int	  magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t	 *mctx;
 	isc_refcount_t	  refcount;
-	dns_iptable_t    *iptable;
+	dns_iptable_t	 *iptable;
 	dns_aclelement_t *elements;
 	bool		  has_negatives;
 	unsigned int	  alloc;	 /*%< Elements allocated */
 	unsigned int	  length;	 /*%< Elements initialized */
-	char	     *name;		 /*%< Temporary use only */
+	char		 *name;		 /*%< Temporary use only */
 	ISC_LINK(dns_acl_t) nextincache; /*%< Ditto */
 	ISC_LIST(dns_acl_port_transports_t) ports_and_transports;
 	size_t port_proto_entries;
@@ -100,12 +100,12 @@ struct dns_acl {
 
 struct dns_aclenv {
 	unsigned int   magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t     *mctx;
 	isc_refcount_t references;
 
 	isc_rwlock_t rwlock; /*%< Locks localhost and localnets */
-	dns_acl_t	  *localhost;
-	dns_acl_t	  *localnets;
+	dns_acl_t   *localhost;
+	dns_acl_t   *localnets;
 
 	bool match_mapped;
 #if defined(HAVE_GEOIP2)
@@ -293,7 +293,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
  */
 
 isc_result_t
-dns_acl_match_port_transport(const isc_netaddr_t	 *reqaddr,
+dns_acl_match_port_transport(const isc_netaddr_t      *reqaddr,
 			     const in_port_t	       local_port,
 			     const isc_nmsocket_type_t transport,
 			     const bool encrypted, const dns_name_t *reqsigner,

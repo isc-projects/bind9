@@ -46,11 +46,11 @@ ISC_LANG_BEGINDECLS
 struct dns_ntatable {
 	/* Unlocked. */
 	unsigned int	magic;
-	dns_view_t	   *view;
+	dns_view_t     *view;
 	isc_rwlock_t	rwlock;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_task_t	   *task;
+	isc_task_t     *task;
 	/* Protected by atomics */
 	isc_refcount_t references;
 	/* Locked by rwlock. */

@@ -46,10 +46,10 @@ typedef struct isccc_ccmsg {
 	bool		length_received;
 	isc_buffer_t   *buffer;
 	unsigned int	maxsize;
-	isc_mem_t	  *mctx;
+	isc_mem_t      *mctx;
 	isc_nmhandle_t *handle;
 	isc_nm_cb_t	cb;
-	void	     *cbarg;
+	void	       *cbarg;
 	bool		reading;
 	/* public (read-only) */
 	isc_result_t result;

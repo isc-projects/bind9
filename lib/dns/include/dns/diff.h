@@ -74,7 +74,7 @@ typedef ISC_LIST(dns_difftuple_t) dns_difftuplelist_t;
 
 struct dns_difftuple {
 	unsigned int magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t   *mctx;
 	dns_diffop_t op;
 	dns_name_t   name;
 	dns_ttl_t    ttl;
@@ -95,7 +95,7 @@ typedef struct dns_diff dns_diff_t;
 
 struct dns_diff {
 	unsigned int	    magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t	   *mctx;
 	dns_difftuplelist_t tuples;
 };
 

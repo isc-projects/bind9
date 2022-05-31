@@ -83,14 +83,14 @@ ISC_LANG_BEGINDECLS
 struct dns_view {
 	/* Unlocked. */
 	unsigned int	  magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t	 *mctx;
 	dns_rdataclass_t  rdclass;
-	char	     *name;
+	char		 *name;
 	dns_zt_t	 *zonetable;
-	dns_resolver_t   *resolver;
-	dns_adb_t	  *adb;
+	dns_resolver_t	 *resolver;
+	dns_adb_t	 *adb;
 	dns_requestmgr_t *requestmgr;
-	dns_cache_t	    *cache;
+	dns_cache_t	 *cache;
 	dns_db_t	 *cachedb;
 	dns_db_t	 *hints;
 
@@ -116,9 +116,9 @@ struct dns_view {
 	dns_transport_list_t *transports;
 	dns_tsig_keyring_t   *statickeys;
 	dns_tsig_keyring_t   *dynamickeys;
-	dns_peerlist_t       *peers;
-	dns_order_t	    *order;
-	dns_fwdtable_t       *fwdtable;
+	dns_peerlist_t	     *peers;
+	dns_order_t	     *order;
+	dns_fwdtable_t	     *fwdtable;
 	bool		      recursion;
 	bool		      qminimization;
 	bool		      qmin_strict;
@@ -133,24 +133,24 @@ struct dns_view {
 	bool		      trust_anchor_telemetry;
 	bool		      root_key_sentinel;
 	dns_transfer_format_t transfer_format;
-	dns_acl_t		  *cacheacl;
-	dns_acl_t		  *cacheonacl;
-	dns_acl_t		  *queryacl;
-	dns_acl_t		  *queryonacl;
-	dns_acl_t		  *recursionacl;
-	dns_acl_t		  *recursiononacl;
-	dns_acl_t		  *sortlist;
-	dns_acl_t		  *notifyacl;
-	dns_acl_t		  *transferacl;
-	dns_acl_t		  *updateacl;
-	dns_acl_t		  *upfwdacl;
-	dns_acl_t		  *denyansweracl;
-	dns_acl_t		  *nocasecompress;
+	dns_acl_t	     *cacheacl;
+	dns_acl_t	     *cacheonacl;
+	dns_acl_t	     *queryacl;
+	dns_acl_t	     *queryonacl;
+	dns_acl_t	     *recursionacl;
+	dns_acl_t	     *recursiononacl;
+	dns_acl_t	     *sortlist;
+	dns_acl_t	     *notifyacl;
+	dns_acl_t	     *transferacl;
+	dns_acl_t	     *updateacl;
+	dns_acl_t	     *upfwdacl;
+	dns_acl_t	     *denyansweracl;
+	dns_acl_t	     *nocasecompress;
 	bool		      msgcompression;
-	dns_rbt_t		  *answeracl_exclude;
-	dns_rbt_t		  *denyanswernames;
-	dns_rbt_t		  *answernames_exclude;
-	dns_rrl_t		  *rrl;
+	dns_rbt_t	     *answeracl_exclude;
+	dns_rbt_t	     *denyanswernames;
+	dns_rbt_t	     *answernames_exclude;
+	dns_rrl_t	     *rrl;
 	bool		      provideixfr;
 	bool		      requestnsid;
 	bool		      sendcookie;
@@ -167,9 +167,9 @@ struct dns_view {
 	dns_aclenv_t	     *aclenv;
 	dns_rdatatype_t	      preferred_glue;
 	bool		      flush;
-	dns_namelist_t       *delonly;
+	dns_namelist_t	     *delonly;
 	bool		      rootdelonly;
-	dns_namelist_t       *rootexclude;
+	dns_namelist_t	     *rootexclude;
 	bool		      checknames;
 	uint16_t	      maxudp;
 	dns_ttl_t	      staleanswerttl;
@@ -179,16 +179,16 @@ struct dns_view {
 	uint32_t	  staleanswerclienttimeout;
 	uint16_t	  nocookieudp;
 	uint16_t	  padding;
-	dns_acl_t	  *pad_acl;
+	dns_acl_t	 *pad_acl;
 	unsigned int	  maxbits;
 	dns_dns64list_t	  dns64;
 	unsigned int	  dns64cnt;
-	dns_rpz_zones_t	*rpzs;
+	dns_rpz_zones_t	 *rpzs;
 	dns_catz_zones_t *catzs;
 	dns_dlzdblist_t	  dlz_searched;
 	dns_dlzdblist_t	  dlz_unsearched;
 	uint32_t	  fail_ttl;
-	dns_badcache_t   *failcache;
+	dns_badcache_t	 *failcache;
 
 	/*
 	 * Configurable data for server use only,
@@ -221,12 +221,12 @@ struct dns_view {
 	 * XXX: This should be a pointer to an opaque type that
 	 * named implements.
 	 */
-	char    *new_zone_dir;
-	char    *new_zone_file;
-	char    *new_zone_db;
-	void    *new_zone_dbenv;
+	char	*new_zone_dir;
+	char	*new_zone_file;
+	char	*new_zone_db;
+	void	*new_zone_dbenv;
 	uint64_t new_zone_mapsize;
-	void    *new_zone_config;
+	void	*new_zone_config;
 	void (*cfg_destroy)(void **);
 	isc_mutex_t new_zone_lock;
 

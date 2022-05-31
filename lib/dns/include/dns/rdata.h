@@ -109,7 +109,7 @@ ISC_LANG_BEGINDECLS
  * purpose the client desires.
  */
 struct dns_rdata {
-	unsigned char   *data;
+	unsigned char	*data;
 	unsigned int	 length;
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t	 type;

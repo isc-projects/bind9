@@ -146,16 +146,16 @@ struct dns_rpz_zone {
 
 	uint32_t min_update_interval;	 /* minimal interval between
 					  * updates */
-	isc_ht_t	 *nodes;		 /* entries in zone */
+	isc_ht_t	*nodes;		 /* entries in zone */
 	dns_rpz_zones_t *rpzs;		 /* owner */
 	isc_time_t	 lastupdated;	 /* last time the zone was processed
 					  * */
 	bool updatepending;		 /* there is an update
 					  * pending/waiting */
 	bool		 updaterunning;	 /* there is an update running */
-	dns_db_t	 *db;		 /* zones database */
+	dns_db_t	*db;		 /* zones database */
 	dns_dbversion_t *dbversion;	 /* version we will be updating to */
-	dns_db_t	 *updb;		 /* zones database we're working on */
+	dns_db_t	*updb;		 /* zones database we're working on */
 	dns_dbversion_t *updbversion;	 /* version we're currently working
 					  * on */
 	dns_dbiterator_t *updbit;	 /* iterator to use when updating */
@@ -215,7 +215,7 @@ struct dns_rpz_popt {
  */
 struct dns_rpz_zones {
 	dns_rpz_popt_t	   p;
-	dns_rpz_zone_t    *zones[DNS_RPZ_MAX_ZONES];
+	dns_rpz_zone_t	  *zones[DNS_RPZ_MAX_ZONES];
 	dns_rpz_triggers_t triggers[DNS_RPZ_MAX_ZONES];
 
 	/*
@@ -251,10 +251,10 @@ struct dns_rpz_zones {
 	 */
 	dns_rpz_triggers_t total_triggers;
 
-	isc_mem_t	  *mctx;
+	isc_mem_t      *mctx;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_task_t	   *updater;
+	isc_task_t     *updater;
 	isc_refcount_t	refs;
 	isc_refcount_t	irefs;
 	/*
@@ -267,7 +267,7 @@ struct dns_rpz_zones {
 	isc_mutex_t  maint_lock;
 
 	dns_rpz_cidr_node_t *cidr;
-	dns_rbt_t		  *rbt;
+	dns_rbt_t	    *rbt;
 
 	/*
 	 * DNSRPZ librpz configuration string and handle on librpz connection
@@ -295,23 +295,23 @@ typedef struct {
 	 */
 	struct {
 		dns_rpz_type_t	 type;
-		dns_rpz_zone_t  *rpz;
+		dns_rpz_zone_t	*rpz;
 		dns_rpz_prefix_t prefix;
 		dns_rpz_policy_t policy;
 		dns_ttl_t	 ttl;
 		isc_result_t	 result;
-		dns_zone_t	   *zone;
-		dns_db_t	 *db;
+		dns_zone_t	*zone;
+		dns_db_t	*db;
 		dns_dbversion_t *version;
-		dns_dbnode_t    *node;
-		dns_rdataset_t  *rdataset;
+		dns_dbnode_t	*node;
+		dns_rdataset_t	*rdataset;
 	} m;
 	/*
 	 * State for chasing IP addresses and NS names including recursion.
 	 */
 	struct {
 		unsigned int	label;
-		dns_db_t	 *db;
+		dns_db_t       *db;
 		dns_rdataset_t *ns_rdataset;
 		dns_rdatatype_t r_type;
 		isc_result_t	r_result;
@@ -325,8 +325,8 @@ typedef struct {
 		isc_result_t	result;
 		bool		is_zone;
 		bool		authoritative;
-		dns_zone_t	   *zone;
-		dns_db_t	 *db;
+		dns_zone_t     *zone;
+		dns_db_t       *db;
 		dns_dbnode_t   *node;
 		dns_rdataset_t *rdataset;
 		dns_rdataset_t *sigrdataset;
@@ -353,9 +353,9 @@ typedef struct {
 	 * r_name: recursing for this name to possible policy triggers
 	 * f_name: saved found name from before recursion
 	 */
-	dns_name_t	   *p_name;
-	dns_name_t	   *r_name;
-	dns_name_t	   *fname;
+	dns_name_t     *p_name;
+	dns_name_t     *r_name;
+	dns_name_t     *fname;
 	dns_fixedname_t _p_namef;
 	dns_fixedname_t _r_namef;
 	dns_fixedname_t _fnamef;

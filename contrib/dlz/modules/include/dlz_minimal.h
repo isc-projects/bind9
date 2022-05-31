@@ -80,7 +80,7 @@ typedef uint32_t     dns_ttl_t;
 	do {                           \
 		union {                \
 			const void *k; \
-			void	     *v; \
+			void	   *v; \
 		} _u;                  \
 		_u.k = konst;          \
 		var = _u.v;            \
@@ -123,7 +123,7 @@ typedef struct isc_sockaddr {
 		struct sockaddr_un  sunix;
 	} type;
 	unsigned int length;
-	void	     *link;
+	void	    *link;
 } isc_sockaddr_t;
 
 typedef struct isc_netaddr {
@@ -145,16 +145,16 @@ typedef struct dns_ecs {
 #define DNS_CLIENTINFO_VERSION 3
 typedef struct dns_clientinfo {
 	uint16_t  version;
-	void     *data;
-	void     *dbversion;
+	void	 *data;
+	void	 *dbversion;
 	dns_ecs_t ecs;
 } dns_clientinfo_t;
 
 typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
-						  isc_sockaddr_t	 **addrp);
+						  isc_sockaddr_t  **addrp);
 
 typedef isc_result_t (*dns_clientinfo_version_t)(dns_clientinfo_t *client,
-						 void	      **addrp);
+						 void		 **addrp);
 
 #define DNS_CLIENTINFOMETHODS_VERSION 2
 #define DNS_CLIENTINFOMETHODS_AGE     1

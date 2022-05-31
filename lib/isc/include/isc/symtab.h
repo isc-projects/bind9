@@ -88,7 +88,7 @@
  ***/
 /*% Symbol table value. */
 typedef union isc_symvalue {
-	void	     *as_pointer;
+	void	    *as_pointer;
 	const void  *as_cpointer;
 	int	     as_integer;
 	unsigned int as_uinteger;

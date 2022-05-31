@@ -42,12 +42,12 @@
 			goto cleanup;        \
 	} while (0)
 
-extern isc_mem_t	 *mctx;
-extern isc_nm_t	*netmgr;
+extern isc_mem_t      *mctx;
+extern isc_nm_t	      *netmgr;
 extern isc_taskmgr_t  *taskmgr;
 extern isc_timermgr_t *timermgr;
 extern unsigned int    workers;
-extern isc_task_t	  *maintask;
+extern isc_task_t     *maintask;
 
 #define isc_test_nap(ms) uv_sleep(ms)
 
