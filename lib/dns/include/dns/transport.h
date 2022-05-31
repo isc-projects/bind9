@@ -62,7 +62,7 @@ uint32_t
 dns_transport_get_tls_versions(const dns_transport_t *transport);
 bool
 dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
-					bool		     *preferp);
+					bool		      *preferp);
 /*%<
  * Getter functions: return the type, cert file, key file, CA file,
  * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
@@ -80,7 +80,7 @@ void
 dns_transport_set_cafile(dns_transport_t *transport, const char *cafile);
 void
 dns_transport_set_remote_hostname(dns_transport_t *transport,
-				  const char	     *hostname);
+				  const char	  *hostname);
 void
 dns_transport_set_endpoint(dns_transport_t *transport, const char *endpoint);
 void
@@ -146,7 +146,7 @@ dns_transport_list_new(isc_mem_t *mctx);
  */
 
 void
-dns_transport_list_attach(dns_transport_list_t  *source,
+dns_transport_list_attach(dns_transport_list_t	*source,
 			  dns_transport_list_t **targetp);
 /*%<
  * Attach to a transport list.

@@ -150,8 +150,8 @@ struct dns_rbtnode {
 };
 
 typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
-					      dns_name_t	 *name,
-					      void	   *callback_arg);
+					      dns_name_t    *name,
+					      void	    *callback_arg);
 
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file, unsigned char *data,
 					    void *arg, uint64_t *crc);
@@ -696,7 +696,7 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
 
 void
 dns_rbt_printtext(dns_rbt_t *rbt, void (*data_printer)(FILE *, void *),
-		  FILE      *f);
+		  FILE	    *f);
 /*%<
  * Print an ASCII representation of the internal structure of the red-black
  * tree of trees to the passed stream.

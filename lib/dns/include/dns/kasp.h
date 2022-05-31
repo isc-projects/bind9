@@ -61,8 +61,8 @@ struct dns_kasp_nsec3param {
 /* Stores a DNSSEC policy */
 struct dns_kasp {
 	unsigned int magic;
-	isc_mem_t	  *mctx;
-	char	     *name;
+	isc_mem_t   *mctx;
+	char	    *name;
 
 	/* Internals. */
 	isc_mutex_t lock;

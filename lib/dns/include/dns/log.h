@@ -19,7 +19,7 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-extern isc_log_t	 *dns_lctx;
+extern isc_log_t	*dns_lctx;
 extern isc_logcategory_t dns_categories[];
 extern isc_logmodule_t	 dns_modules[];
 

@@ -16,16 +16,16 @@ variables:
   TEST_PARALLEL_JOBS: 6
 
   CONFIGURE: ./configure
-  CLANG: clang-13
-  SCAN_BUILD: scan-build-13
-  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-13/bin/llvm-symbolizer
-  CLANG_FORMAT: clang-format-13
+  CLANG: clang-14
+  SCAN_BUILD: scan-build-14
+  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-14/bin/llvm-symbolizer
+  CLANG_FORMAT: clang-format-14
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
-  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-12/bin/llvm-symbolizer"
+  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-14/bin/llvm-symbolizer"
 
   TARBALL_EXTENSION: xz
 

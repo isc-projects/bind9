@@ -143,7 +143,7 @@ struct ns_clientmgr {
 	/* Unlocked. */
 	unsigned int magic;
 
-	isc_mem_t	  *mctx;
+	isc_mem_t      *mctx;
 	ns_server_t    *sctx;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
@@ -163,16 +163,16 @@ struct ns_clientmgr {
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int	 magic;
-	ns_clientmgr_t  *manager;
+	ns_clientmgr_t	*manager;
 	ns_clientstate_t state;
 	int		 nupdates;
 	bool		 nodetach;
 	unsigned int	 attributes;
-	dns_view_t	   *view;
-	dns_dispatch_t  *dispatch;
-	isc_nmhandle_t  *handle;      /* Permanent pointer to handle */
-	isc_nmhandle_t  *sendhandle;  /* Waiting for send callback */
-	isc_nmhandle_t  *reqhandle;   /* Waiting for request callback
+	dns_view_t	*view;
+	dns_dispatch_t	*dispatch;
+	isc_nmhandle_t	*handle;      /* Permanent pointer to handle */
+	isc_nmhandle_t	*sendhandle;  /* Waiting for send callback */
+	isc_nmhandle_t	*reqhandle;   /* Waiting for request callback
 					 (query, update, notify) */
 	isc_nmhandle_t *updatehandle; /* Waiting for update callback */
 	unsigned char  *tcpbuf;
