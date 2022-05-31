@@ -58,6 +58,8 @@ IncludeCategories:
     Priority:        55
   - Regex:           '^".*"'
     Priority:        99
+  - Regex:           '^<tests/'
+    Priority:        100
   - Regex:           '<openssl/'
     Priority:        1
   - Regex:           '<(mysql|protobuf-c)/'

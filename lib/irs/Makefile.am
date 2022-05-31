@@ -25,7 +25,3 @@ libirs_la_LIBADD =		\
 libirs_la_LDFLAGS =		\
 	$(AM_LDFLAGS)		\
 	-release "$(PACKAGE_VERSION)"
-
-if HAVE_CMOCKA
-SUBDIRS = tests
-endif

@@ -2,6 +2,10 @@ include $(top_srcdir)/Makefile.top
 
 SUBDIRS = . lib doc bin fuzz
 
+if HAVE_CMOCKA
+SUBDIRS += tests
+endif HAVE_CMOCKA
+
 BUILT_SOURCES = bind.keys.h
 CLEANFILES = bind.keys.h
 
@@ -12,7 +16,7 @@ dist_sysconf_DATA = bind.keys
 
 .PHONY: doc
 
-EXTRA_DIST = 			\
+EXTRA_DIST =			\
 	util/bindkeys.pl	\
 	contrib			\
 	CHANGES			\
