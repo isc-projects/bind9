@@ -1,3 +1,7 @@
+5897.	[bug]		Views that weren't configured to use RFC 5011 key
+			management would still set up an empty managed-keys
+			zone. This has been fixed. [GL #3349]
+
 5896.	[func]		Add some more dnssec-policy checks to detect weird
 			policies. [GL #1611]
 
