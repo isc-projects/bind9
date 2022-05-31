@@ -87,14 +87,10 @@ make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 	buf[2] = (testcase->keyid & 0xff);
 	buf[3] = testcase->remove;
 	buf[4] = testcase->complete;
-      private
-	->data = buf;
-      private
-	->length = len;
-      private
-	->type = privatetype;
-      private
-	->rdclass = dns_rdataclass_in;
+	private->data = buf;
+	private->length = len;
+	private->type = privatetype;
+	private->rdclass = dns_rdataclass_in;
 }
 
 static void

@@ -51,7 +51,7 @@ struct isccc_dottedpair {
 struct isccc_sexpr {
 	unsigned int type;
 	union {
-		char		     *as_string;
+		char		  *as_string;
 		isccc_dottedpair_t as_dottedpair;
 		isccc_region_t	   as_region;
 	} value;

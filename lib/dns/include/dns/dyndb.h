@@ -35,12 +35,12 @@ ISC_LANG_BEGINDECLS
  */
 struct dns_dyndbctx {
 	unsigned int	magic;
-	const void	   *hashinit;
-	isc_mem_t	  *mctx;
-	isc_log_t	  *lctx;
-	dns_view_t	   *view;
+	const void     *hashinit;
+	isc_mem_t      *mctx;
+	isc_log_t      *lctx;
+	dns_view_t     *view;
 	dns_zonemgr_t  *zmgr;
-	isc_task_t	   *task;
+	isc_task_t     *task;
 	isc_timermgr_t *timermgr;
 	unsigned int   *memdebug;
 };

@@ -19,7 +19,7 @@
 #include <isc/log.h>
 #include <isc/types.h>
 
-LIBNS_EXTERNAL_DATA extern isc_log_t	     *ns_lctx;
+LIBNS_EXTERNAL_DATA extern isc_log_t	    *ns_lctx;
 LIBNS_EXTERNAL_DATA extern isc_logcategory_t ns_categories[];
 LIBNS_EXTERNAL_DATA extern isc_logmodule_t   ns_modules[];
 

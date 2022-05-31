@@ -196,8 +196,8 @@ typedef int dns_messagetextflag_t;
 typedef struct dns_msgblock dns_msgblock_t;
 
 struct dns_sortlist_arg {
-	dns_aclenv_t	     *env;
-	const dns_acl_t	*acl;
+	dns_aclenv_t	       *env;
+	const dns_acl_t	       *acl;
 	const dns_aclelement_t *element;
 };
 
@@ -217,7 +217,7 @@ struct dns_message {
 
 	/* private from here down */
 	dns_namelist_t	sections[DNS_SECTION_MAX];
-	dns_name_t	   *cursors[DNS_SECTION_MAX];
+	dns_name_t     *cursors[DNS_SECTION_MAX];
 	dns_rdataset_t *opt;
 	dns_rdataset_t *sig0;
 	dns_rdataset_t *tsig;
@@ -246,7 +246,7 @@ struct dns_message {
 	isc_buffer_t   *buffer;
 	dns_compress_t *cctx;
 
-	isc_mem_t	  *mctx;
+	isc_mem_t     *mctx;
 	isc_mempool_t *namepool;
 	isc_mempool_t *rdspool;
 
@@ -272,7 +272,7 @@ struct dns_message {
 
 	dns_name_t *sig0name; /* Owner name of SIG0, if any
 			       * */
-	dst_key_t	  *sig0key;
+	dst_key_t   *sig0key;
 	dns_rcode_t  sig0status;
 	isc_region_t query;
 	isc_region_t saved;
@@ -370,7 +370,7 @@ isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				const dns_master_style_t *style,
 				dns_messagetextflag_t	  flags,
-				isc_buffer_t	     *target);
+				isc_buffer_t		 *target);
 /*%<
  * Convert section 'section' or 'pseudosection' of message 'msg' to
  * a cleartext representation

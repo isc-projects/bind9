@@ -72,7 +72,7 @@ typedef struct cfg_listelt cfg_listelt_t;
  * that needs to be interpreted at parsing time, like
  * "directory".
  */
-typedef isc_result_t (*cfg_parsecallback_t)(const char      *clausename,
+typedef isc_result_t (*cfg_parsecallback_t)(const char	    *clausename,
 					    const cfg_obj_t *obj, void *arg);
 
 /***
@@ -581,9 +581,9 @@ cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 
 typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t *config,
 				      const cfg_obj_t *obj,
-				      const char	 *plugin_path,
-				      const char	 *parameters,
-				      void		   *callback_data);
+				      const char      *plugin_path,
+				      const char      *parameters,
+				      void	      *callback_data);
 /*%<
  * Function prototype for the callback used with cfg_pluginlist_foreach().
  * Called once for each element of the list passed to cfg_pluginlist_foreach().

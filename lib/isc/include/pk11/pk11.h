@@ -46,11 +46,11 @@ struct pk11_object {
 	CK_BBOOL	 ontoken;
 	CK_BBOOL	 reqlogon;
 	CK_BYTE		 attrcnt;
-	CK_ATTRIBUTE    *repr;
+	CK_ATTRIBUTE	*repr;
 };
 
 struct pk11_context {
-	void	     *handle;
+	void		 *handle;
 	CK_SESSION_HANDLE session;
 	CK_BBOOL	  ontoken;
 	CK_OBJECT_HANDLE  object;

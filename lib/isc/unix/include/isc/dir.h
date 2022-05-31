@@ -35,7 +35,7 @@ typedef struct isc_dir {
 	unsigned int   magic;
 	char	       dirname[PATH_MAX];
 	isc_direntry_t entry;
-	DIR	    *handle;
+	DIR	      *handle;
 } isc_dir_t;
 
 ISC_LANG_BEGINDECLS

@@ -33,9 +33,9 @@
  * the data cleanup function.
  */
 struct isc_httpdurl {
-	char		     *url;
+	char		  *url;
 	isc_httpdaction_t *action;
-	void		     *action_arg;
+	void		  *action_arg;
 	bool		   isstatic;
 	isc_time_t	   loadtime;
 	ISC_LINK(isc_httpdurl_t) link;
@@ -52,7 +52,7 @@ struct isc_httpdurl {
  */
 isc_result_t
 isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
-		    isc_httpdclientok_t	*client_ok,
+		    isc_httpdclientok_t	 *client_ok,
 		    isc_httpdondestroy_t *ondestory, void *cb_arg,
 		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp);
 

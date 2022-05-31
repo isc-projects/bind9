@@ -45,7 +45,7 @@
  *** Types
  ***/
 struct isc_backtrace_symmap {
-	void	     *addr;
+	void	   *addr;
 	const char *symbol;
 };
 

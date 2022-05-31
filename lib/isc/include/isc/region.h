@@ -25,7 +25,7 @@ struct isc_region {
 };
 
 struct isc_textregion {
-	char	     *base;
+	char	    *base;
 	unsigned int length;
 };
 

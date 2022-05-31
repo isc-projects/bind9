@@ -906,7 +906,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, void *stats0);
 /*%<
  * See isc_socketmgr_create() above.
  */
-typedef isc_result_t (*isc_socketmgrcreatefunc_t)(isc_mem_t	    *mctx,
+typedef isc_result_t (*isc_socketmgrcreatefunc_t)(isc_mem_t	   *mctx,
 						  isc_socketmgr_t **managerp);
 
 ISC_LANG_ENDDECLS

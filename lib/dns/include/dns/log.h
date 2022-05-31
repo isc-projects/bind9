@@ -20,7 +20,7 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-LIBDNS_EXTERNAL_DATA extern isc_log_t	      *dns_lctx;
+LIBDNS_EXTERNAL_DATA extern isc_log_t	     *dns_lctx;
 LIBDNS_EXTERNAL_DATA extern isc_logcategory_t dns_categories[];
 LIBDNS_EXTERNAL_DATA extern isc_logmodule_t   dns_modules[];
 

@@ -220,7 +220,7 @@
 	do {                           \
 		union {                \
 			const void *k; \
-			void	     *v; \
+			void	   *v; \
 		} _u;                  \
 		_u.k = konst;          \
 		var = _u.v;            \

@@ -324,14 +324,14 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 /* xxxwpk TODO config! */
 typedef isc_result_t (*dns_catz_zoneop_fn_t)(dns_catz_entry_t *entry,
 					     dns_catz_zone_t  *origin,
-					     dns_view_t	*view,
-					     isc_taskmgr_t	   *taskmgr,
-					     void		  *udata);
+					     dns_view_t	      *view,
+					     isc_taskmgr_t    *taskmgr,
+					     void	      *udata);
 struct dns_catz_zonemodmethods {
 	dns_catz_zoneop_fn_t addzone;
 	dns_catz_zoneop_fn_t modzone;
 	dns_catz_zoneop_fn_t delzone;
-	void		     *udata;
+	void		    *udata;
 };
 
 isc_result_t
