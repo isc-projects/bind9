@@ -1669,7 +1669,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		 */
 		prepub = keymgr_prepublication_time(active_key, kasp, lifetime,
 						    now);
-		if (prepub == 0 || prepub > now) {
+		if (prepub > now) {
 			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 				dst_key_format(active_key->key, keystr,
 					       sizeof(keystr));
@@ -1682,7 +1682,8 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 					keystr, keymgr_keyrole(active_key->key),
 					dns_kasp_getname(kasp), (prepub - now));
 			}
-
+		}
+		if (prepub == 0 || prepub > now) {
 			/* No need to start rollover now. */
 			if (*nexttime == 0 || prepub < *nexttime) {
 				*nexttime = prepub;
