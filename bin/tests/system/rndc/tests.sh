@@ -429,7 +429,7 @@ n=$((n+1))
 echo_i "testing automatic zones are reported ($n)"
 ret=0
 $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf status > rndc.out.1.test$n || ret=1
-grep "number of zones: 201 (198 automatic)" rndc.out.1.test$n > /dev/null || ret=1
+grep "number of zones: 199 (198 automatic)" rndc.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
