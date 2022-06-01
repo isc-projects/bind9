@@ -91,7 +91,8 @@ ISC_RUN_TEST_IMPL(ns_notify_start) {
 	result = dns_test_makeview("view", false, &client->view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = ns_test_serve_zone("example.com", "testdata/notify/zone1.db",
+	result = ns_test_serve_zone("example.com",
+				    TESTS_DIR "/testdata/notify/zone1.db",
 				    client->view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -100,8 +101,8 @@ ISC_RUN_TEST_IMPL(ns_notify_start) {
 	 * (XXX: use better message mocking method when available.)
 	 */
 
-	result = ns_test_getdata("testdata/notify/notify1.msg", ndata,
-				 sizeof(ndata), &nsize);
+	result = ns_test_getdata(TESTS_DIR "/testdata/notify/notify1.msg",
+				 ndata, sizeof(ndata), &nsize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&nbuf, ndata, nsize);
 	isc_buffer_add(&nbuf, nsize);

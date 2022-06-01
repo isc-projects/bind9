@@ -74,8 +74,8 @@ ISC_RUN_TEST_IMPL(dh_computesecret) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_key_fromfile(name, 18602, DST_ALG_DH,
-				  DST_TYPE_PUBLIC | DST_TYPE_KEY, "./", mctx,
-				  &key);
+				  DST_TYPE_PUBLIC | DST_TYPE_KEY, TESTS_DIR,
+				  mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&buf, array, sizeof(array));

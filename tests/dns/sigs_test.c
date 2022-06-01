@@ -310,7 +310,7 @@ ISC_RUN_TEST_IMPL(updatesigs_next) {
 				 "testdata/master/master18.data");
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 
-	result = dns_zone_setkeydirectory(zone, "testkeys");
+	result = dns_zone_setkeydirectory(zone, TESTS_DIR "/testkeys");
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);
