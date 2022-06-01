@@ -45,13 +45,15 @@ check_PROGRAMS =		\
 	zonemgr_test		\
 	zt_test
 
+CLEANFILES =
+
 if HAVE_PERL
 
 check_PROGRAMS +=		\
 	master_test
 
 EXTRA_master_test_DEPENDENCIES = testdata/master/master12.data testdata/master/master13.data testdata/master/master14.data
-CLEANFILES = $(EXTRA_master_test_DEPENDENCIES)
+CLEANFILES += $(EXTRA_master_test_DEPENDENCIES)
 
 testdata/master/master12.data: testdata/master/master12.data.in
 	mkdir -p testdata/master
@@ -104,6 +106,13 @@ dst_test_CPPFLAGS =		\
 rsa_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(OPENSSL_CFLAGS)
+
+EXTRA_sigs_test_DEPENDENCIES = testdata/master/master18.data
+CLEANFILES += $(EXTRA_sigs_test_DEPENDENCIES)
+
+testdata/master/master18.data: testdata/master/master18.data.in
+	mkdir -p testdata/master
+	sed -e 's,@TOP_SRCDIR@,$(abs_srcdir),' < $(srcdir)/testdata/master/master18.data.in > $@
 
 EXTRA_DIST =			\
 	Kdh.+002+18602.key	\

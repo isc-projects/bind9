@@ -151,7 +151,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29235, DST_ALG_RSASHA1, DST_TYPE_PUBLIC,
-			       "./", mctx, &key);
+			       TESTS_DIR, mctx, &key);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	/* RSASHA1 */

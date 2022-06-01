@@ -188,25 +188,26 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 	isc_time_set(&p, now - 3600, 0); /* past */
 	isc_time_set(&f, now + 3600, 0); /* future */
 
-	result = dns_test_getdata("testdata/dnstap/query.auth", qambuffer,
-				  sizeof(qambuffer), &qasize);
+	result = dns_test_getdata(TESTS_DIR "/testdata/dnstap/query.auth",
+				  qambuffer, sizeof(qambuffer), &qasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&qamsg, qambuffer, qasize);
 	isc_buffer_add(&qamsg, qasize);
 
-	result = dns_test_getdata("testdata/dnstap/response.auth", rambuffer,
-				  sizeof(rambuffer), &rasize);
+	result = dns_test_getdata(TESTS_DIR "/testdata/dnstap/response.auth",
+				  rambuffer, sizeof(rambuffer), &rasize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&ramsg, rambuffer, rasize);
 	isc_buffer_add(&ramsg, rasize);
 
-	result = dns_test_getdata("testdata/dnstap/query.recursive", qrmbuffer,
-				  sizeof(qrmbuffer), &qrsize);
+	result = dns_test_getdata(TESTS_DIR "/testdata/dnstap/query.recursive",
+				  qrmbuffer, sizeof(qrmbuffer), &qrsize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&qrmsg, qrmbuffer, qrsize);
 	isc_buffer_add(&qrmsg, qrsize);
 
-	result = dns_test_getdata("testdata/dnstap/response.recursive",
+	result = dns_test_getdata(TESTS_DIR
+				  "/testdata/dnstap/response.recursive",
 				  rrmbuffer, sizeof(rrmbuffer), &rrsize);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_init(&rrmsg, rrmbuffer, rrsize);

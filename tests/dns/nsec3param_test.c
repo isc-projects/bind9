@@ -116,9 +116,9 @@ nsec3param_change_test(const nsec3param_change_test_params_t *test) {
 	result = dns_test_makezone("nsec3", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_zone_setfile(zone, "testdata/nsec3param/nsec3.db.signed",
-				  dns_masterformat_text,
-				  &dns_master_style_default);
+	result = dns_zone_setfile(
+		zone, TESTS_DIR "/testdata/nsec3param/nsec3.db.signed",
+		dns_masterformat_text, &dns_master_style_default);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_zone_load(zone, false);
