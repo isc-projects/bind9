@@ -473,7 +473,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = DNS_MESSAGEFLAG_RD,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
 		},
 		/*
@@ -487,7 +487,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = DNS_MESSAGEFLAG_RD,
 			.recursive_service = false,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_REFUSE,
 		},
 		/*
@@ -502,7 +502,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = DNS_MESSAGEFLAG_RD,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_CACHE,
 		},
 		/*
@@ -517,7 +517,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = DNS_MESSAGEFLAG_RD,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
 		},
 		/*
@@ -532,7 +532,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = 0,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
 		},
 		/*
@@ -547,7 +547,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = DNS_MESSAGEFLAG_RD,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_CACHE,
 		},
 		/*
@@ -562,7 +562,7 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 			.qflags = 0,
 			.recursive_service = true,
 			.auth_zone_origin = "foo",
-			.auth_zone_path = "testdata/query/foo.db",
+			.auth_zone_path = TESTS_DIR "/testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
 		},
 		/*
@@ -1402,7 +1402,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	qctx->client->sendcb = send_noop;
 
 	/* Load a zone.  it should have ns.foo/A */
-	result = ns_test_serve_zone("foo", "testdata/query/foo.db",
+	result = ns_test_serve_zone("foo", TESTS_DIR "/testdata/query/foo.db",
 				    qctx->client->view);
 	INSIST(result == ISC_R_SUCCESS);
 

@@ -171,7 +171,7 @@ ISC_RUN_TEST_IMPL(load) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master1.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master1.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -185,7 +185,7 @@ ISC_RUN_TEST_IMPL(unexpected) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master2.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master2.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_UNEXPECTEDEND);
 }
@@ -200,7 +200,7 @@ ISC_RUN_TEST_IMPL(noowner) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master3.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master3.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_NOOWNER);
 }
@@ -215,7 +215,7 @@ ISC_RUN_TEST_IMPL(nottl) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master4.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master4.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -230,7 +230,7 @@ ISC_RUN_TEST_IMPL(badclass) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master5.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master5.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_BADCLASS);
 }
@@ -244,7 +244,7 @@ ISC_RUN_TEST_IMPL(toobig) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master15.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master15.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_NOSPACE);
 }
@@ -258,7 +258,7 @@ ISC_RUN_TEST_IMPL(maxrdata) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master16.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master16.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -272,7 +272,7 @@ ISC_RUN_TEST_IMPL(dnskey) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master6.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master6.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -289,7 +289,7 @@ ISC_RUN_TEST_IMPL(dnsnokey) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master7.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master7.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_UNEXPECTEDEND);
 }
@@ -303,7 +303,7 @@ ISC_RUN_TEST_IMPL(include) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master8.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master8.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 }
@@ -325,9 +325,9 @@ ISC_RUN_TEST_IMPL(master_includelist) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_master_loadfile(
-		"testdata/master/master8.data", &dns_origin, &dns_origin,
-		dns_rdataclass_in, 0, true, &callbacks, include_callback,
-		&filename, mctx, dns_masterformat_text, 0);
+		TESTS_DIR "/testdata/master/master8.data", &dns_origin,
+		&dns_origin, dns_rdataclass_in, 0, true, &callbacks,
+		include_callback, &filename, mctx, dns_masterformat_text, 0);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 	assert_non_null(filename);
 	if (filename != NULL) {
@@ -345,7 +345,7 @@ ISC_RUN_TEST_IMPL(includefail) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master9.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master9.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, DNS_R_BADCLASS);
 }
@@ -359,7 +359,7 @@ ISC_RUN_TEST_IMPL(blanklines) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master10.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master10.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -374,7 +374,7 @@ ISC_RUN_TEST_IMPL(leadingzero) {
 
 	UNUSED(state);
 
-	result = test_master(SRCDIR, "testdata/master/master11.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master11.data",
 			     dns_masterformat_text, nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -479,7 +479,7 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 	result = isc_dir_chdir(SRCDIR);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_load(db, "testdata/master/master1.data",
+	result = dns_db_load(db, TESTS_DIR "/testdata/master/master1.data",
 			     dns_masterformat_text, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -551,7 +551,7 @@ ISC_RUN_TEST_IMPL(neworigin) {
 	UNUSED(state);
 
 	warn_expect_value = "record with inherited owner";
-	result = test_master(SRCDIR, "testdata/master/master17.data",
+	result = test_master(SRCDIR, TESTS_DIR "/testdata/master/master17.data",
 			     dns_masterformat_text, warn_expect, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(warn_expect_result);

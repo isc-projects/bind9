@@ -253,8 +253,8 @@ ISC_RUN_TEST_IMPL(class) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_load(db, "testdata/db/data.db", dns_masterformat_text,
-			     0);
+	result = dns_db_load(db, TESTS_DIR "/testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_int_equal(dns_db_class(db), dns_rdataclass_in);
@@ -273,8 +273,8 @@ ISC_RUN_TEST_IMPL(dbtype) {
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_db_load(db, "testdata/db/data.db", dns_masterformat_text,
-			     0);
+	result = dns_db_load(db, TESTS_DIR "/testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(dns_db_iszone(db));
 	assert_false(dns_db_iscache(db));
@@ -284,8 +284,8 @@ ISC_RUN_TEST_IMPL(dbtype) {
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_db_load(db, "testdata/db/data.db", dns_masterformat_text,
-			     0);
+	result = dns_db_load(db, TESTS_DIR "/testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(dns_db_iscache(db));
 	assert_false(dns_db_iszone(db));
@@ -305,7 +305,7 @@ ISC_RUN_TEST_IMPL(version) {
 	UNUSED(state);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
-				 "testdata/db/data.db");
+				 TESTS_DIR "/testdata/db/data.db");
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Open current version for reading */
