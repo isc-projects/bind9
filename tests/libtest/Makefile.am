@@ -14,13 +14,10 @@ LDADD +=			\
 
 check_LTLIBRARIES = libtest.la
 
-noinst_libtest_ladir = ..
-noinst_libtest_la_HEADERS =		\
+libtest_la_SOURCES =			\
 	../include/tests/dns.h		\
 	../include/tests/isc.h		\
-	../include/tests/ns.h
-libtest_la_SOURCES =			\
-	$(noinst_libtest_la_HEADERS)	\
+	../include/tests/ns.h		\
 	dns.c				\
 	isc.c				\
 	ns.c
