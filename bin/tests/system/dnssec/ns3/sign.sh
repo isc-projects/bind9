@@ -121,12 +121,12 @@ cat "$infile" "$keyname.key" > "$zonefile"
 
 "$SIGNER" -z -o "$zone" "$zonefile" > /dev/null
 
-# Change the signer field of the a.b.keyless.example SIG A
-# to point to a provably nonexistent KEY record.
+# Change the signer field of the a.b.keyless.example RRSIG A
+# to point to a provably nonexistent DNSKEY record.
 zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
 mv "$zonefile.signed" "$zonefiletmp"
 <"$zonefiletmp" "$PERL" -p -e 's/ keyless.example/ b.keyless.example/
-    if /^a.b.keyless.example/../NXT/;' > "$zonefile.signed"
+    if /^a.b.keyless.example/../A RRSIG NSEC/;' > "$zonefile.signed"
 rm -f "$zonefiletmp"
 
 #
