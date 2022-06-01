@@ -338,8 +338,8 @@ stages:
   <<: *system_test_common
   after_script:
     - cat bin/tests/system/test-suite.log
-    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
     - *find_python
+    - find bin -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
     - >
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
@@ -383,8 +383,8 @@ stages:
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_common
   after_script:
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
     - *find_python
+    - find lib -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
     - >
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
