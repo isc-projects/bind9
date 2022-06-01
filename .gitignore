@@ -52,6 +52,7 @@ __pycache__/
 /stamp-h1
 /test-driver
 Makefile
+Makefile.user
 ans.run
 gen.dSYM/
 kyua.log
@@ -61,3 +62,6 @@ timestamp
 /compile_commands.json
 /tsan
 /util/check-make-install
+# clangd index directory
+/\.cache/
+/\.*_clangd/
