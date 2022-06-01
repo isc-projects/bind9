@@ -114,11 +114,11 @@ nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params) {
 ISC_RUN_TEST_IMPL(max_iterations) {
 	UNUSED(state);
 
-	iteration_test("testdata/nsec3/1024.db", 150);
-	iteration_test("testdata/nsec3/2048.db", 150);
-	iteration_test("testdata/nsec3/4096.db", 150);
-	iteration_test("testdata/nsec3/min-1024.db", 150);
-	iteration_test("testdata/nsec3/min-2048.db", 150);
+	iteration_test(TESTS_DIR "/testdata/nsec3/1024.db", 150);
+	iteration_test(TESTS_DIR "/testdata/nsec3/2048.db", 150);
+	iteration_test(TESTS_DIR "/testdata/nsec3/4096.db", 150);
+	iteration_test(TESTS_DIR "/testdata/nsec3/min-1024.db", 150);
+	iteration_test(TESTS_DIR "/testdata/nsec3/min-2048.db", 150);
 }
 
 /* check dns_nsec3param_salttotext() */

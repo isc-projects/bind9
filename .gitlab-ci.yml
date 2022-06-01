@@ -381,7 +381,7 @@ stages:
   artifacts:
     expire_in: "1 day"
     paths:
-      - lib/*/tests/tsan.*
+      - tests/*/tsan.*
       - tsan/
       - junit.xml
     when: always

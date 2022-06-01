@@ -52,6 +52,11 @@ doh_test_CPPFLAGS =	\
 doh_test_LDADD =	\
 	$(LDADD)	\
 	$(LIBNGHTTP2_LIBS)
+
+doh_test_SOURCES =	\
+	doh_test.c	\
+	uv_wrap.h
+
 endif HAVE_LIBNGHTTP2
 
 hmac_test_CPPFLAGS =	\
@@ -69,6 +74,18 @@ md_test_CPPFLAGS =	\
 md_test_LDADD =		\
 	$(LDADD)	\
 	$(OPENSSL_LIBS)
+
+netmgr_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+netmgr_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+netmgr_test_SOURCES =	\
+	netmgr_test.c	\
+	uv_wrap.h
 
 random_test_LDADD =	\
 	$(LDADD)	\

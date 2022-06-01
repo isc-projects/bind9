@@ -55,8 +55,8 @@ ISC_RUN_TEST_IMPL(diffx_same) {
 
 	UNUSED(state);
 
-	test_create("testdata/diff/zone1.data", &olddb,
-		    "testdata/diff/zone1.data", &newdb);
+	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
+		    TESTS_DIR "/testdata/diff/zone1.data", &newdb);
 
 	dns_diff_init(mctx, &diff);
 
@@ -80,8 +80,8 @@ ISC_RUN_TEST_IMPL(diffx_add) {
 
 	UNUSED(state);
 
-	test_create("testdata/diff/zone1.data", &olddb,
-		    "testdata/diff/zone2.data", &newdb);
+	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
+		    TESTS_DIR "/testdata/diff/zone2.data", &newdb);
 
 	dns_diff_init(mctx, &diff);
 
@@ -112,8 +112,8 @@ ISC_RUN_TEST_IMPL(diffx_remove) {
 
 	UNUSED(state);
 
-	test_create("testdata/diff/zone1.data", &olddb,
-		    "testdata/diff/zone3.data", &newdb);
+	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
+		    TESTS_DIR "/testdata/diff/zone3.data", &newdb);
 
 	dns_diff_init(mctx, &diff);
 

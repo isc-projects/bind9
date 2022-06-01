@@ -171,8 +171,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	isc_buffer_add(&b, strlen(keyname));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dst_key_fromfile(name, id, alg, type, "testdata/dst", mctx,
-				  &key);
+	result = dst_key_fromfile(name, id, alg, type,
+				  TESTS_DIR "/testdata/dst", mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&databuf, data, (unsigned int)size);
@@ -256,16 +256,20 @@ ISC_RUN_TEST_IMPL(sig_test) {
 		dns_secalg_t alg;
 		bool expect;
 	} testcases[] = {
-		{ "testdata/dst/test1.data", "testdata/dst/test1.ecdsa256sig",
-		  "test.", 49130, DST_ALG_ECDSA256, true },
-		{ "testdata/dst/test1.data", "testdata/dst/test1.rsasha256sig",
-		  "test.", 11349, DST_ALG_RSASHA256, true },
+		{ TESTS_DIR "/testdata/dst/test1.data",
+		  TESTS_DIR "/testdata/dst/test1.ecdsa256sig", "test.", 49130,
+		  DST_ALG_ECDSA256, true },
+		{ TESTS_DIR "/testdata/dst/test1.data",
+		  TESTS_DIR "/testdata/dst/test1.rsasha256sig", "test.", 11349,
+		  DST_ALG_RSASHA256, true },
 		{ /* wrong sig */
-		  "testdata/dst/test1.data", "testdata/dst/test1.ecdsa256sig",
-		  "test.", 11349, DST_ALG_RSASHA256, false },
+		  TESTS_DIR "/testdata/dst/test1.data",
+		  TESTS_DIR "/testdata/dst/test1.ecdsa256sig", "test.", 11349,
+		  DST_ALG_RSASHA256, false },
 		{ /* wrong data */
-		  "testdata/dst/test2.data", "testdata/dst/test1.ecdsa256sig",
-		  "test.", 49130, DST_ALG_ECDSA256, false },
+		  TESTS_DIR "/testdata/dst/test2.data",
+		  TESTS_DIR "/testdata/dst/test1.ecdsa256sig", "test.", 49130,
+		  DST_ALG_ECDSA256, false },
 	};
 	unsigned int i;
 
@@ -302,8 +306,8 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	isc_buffer_add(&b1, strlen(key1_name));
 	result = dns_name_fromtext(name1, &b1, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dst_key_fromfile(name1, key1_id, alg, type, "comparekeys",
-				  mctx, &key1);
+	result = dst_key_fromfile(name1, key1_id, alg, type,
+				  TESTS_DIR "/comparekeys", mctx, &key1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -314,8 +318,8 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	isc_buffer_add(&b2, strlen(key2_name));
 	result = dns_name_fromtext(name2, &b2, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dst_key_fromfile(name2, key2_id, alg, type, "comparekeys",
-				  mctx, &key2);
+	result = dst_key_fromfile(name2, key2_id, alg, type,
+				  TESTS_DIR "/comparekeys", mctx, &key2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
