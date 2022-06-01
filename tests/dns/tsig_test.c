@@ -105,7 +105,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 
 	memset(&tsig, 0, sizeof(tsig));
 
-	CHECK(dns_compress_init(&cctx, -1, mctx));
+	CHECK(dns_compress_init(&cctx, mctx));
 	invalidate_ctx = true;
 
 	tsig.common.rdclass = dns_rdataclass_any;
@@ -232,7 +232,7 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
-	result = dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_message_renderbegin(msg, &cctx, buf);

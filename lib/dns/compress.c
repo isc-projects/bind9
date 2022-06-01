@@ -30,9 +30,6 @@
 #define CCTX_MAGIC    ISC_MAGIC('C', 'C', 'T', 'X')
 #define VALID_CCTX(x) ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
-#define DCTX_MAGIC    ISC_MAGIC('D', 'C', 'T', 'X')
-#define VALID_DCTX(x) ISC_MAGIC_VALID(x, DCTX_MAGIC)
-
 static unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
 	0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -123,14 +120,18 @@ static unsigned char tableindex[256] = {
  ***/
 
 isc_result_t
-dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
+dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL); /* See: rdataset.c:towiresorted(). */
 
-	cctx->edns = edns;
+	/*
+	 * not using a structure literal here to avoid large memset()s
+	 */
 	cctx->mctx = mctx;
 	cctx->count = 0;
-	cctx->allowed = DNS_COMPRESS_ENABLED;
+	cctx->permitted = true;
+	cctx->disabled = false;
+	cctx->sensitive = false;
 	cctx->arena_off = 0;
 
 	memset(&cctx->table[0], 0, sizeof(cctx->table));
@@ -163,52 +164,39 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 	}
 
 	cctx->magic = 0;
-	cctx->allowed = 0;
-	cctx->edns = -1;
+	cctx->permitted = false;
+	cctx->disabled = false;
+	cctx->sensitive = false;
 }
 
 void
-dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
+dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	cctx->allowed &= ~DNS_COMPRESS_ALL;
-	cctx->allowed |= (allowed & DNS_COMPRESS_ALL);
+	cctx->permitted = permitted;
 }
 
-unsigned int
-dns_compress_getmethods(dns_compress_t *cctx) {
+bool
+dns_compress_getpermitted(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->allowed & DNS_COMPRESS_ALL);
+	return (cctx->permitted);
 }
 
 void
 dns_compress_disable(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	cctx->allowed &= ~DNS_COMPRESS_ENABLED;
+	cctx->disabled = true;
 }
 
 void
 dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	if (sensitive) {
-		cctx->allowed |= DNS_COMPRESS_CASESENSITIVE;
-	} else {
-		cctx->allowed &= ~DNS_COMPRESS_CASESENSITIVE;
-	}
+	cctx->sensitive = sensitive;
 }
 
 bool
 dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-
-	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
-}
-
-int
-dns_compress_getedns(dns_compress_t *cctx) {
-	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->edns);
+	return (cctx->sensitive);
 }
 
 /*
@@ -217,8 +205,8 @@ dns_compress_getedns(dns_compress_t *cctx) {
  * If no match is found return false.
  */
 bool
-dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, uint16_t *offset) {
+dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
+		  dns_name_t *prefix, uint16_t *offset) {
 	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
 	unsigned int labels, i, n;
@@ -229,7 +217,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(offset != NULL);
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return (false);
 	}
 
@@ -258,7 +246,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		 */
 		ch = p[1];
 		i = tableindex[ch];
-		if ((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0) {
+		if (cctx->sensitive) {
 			for (node = cctx->table[i]; node != NULL;
 			     node = node->next) {
 				if (node->name.length != length) {
@@ -388,7 +376,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return;
 	}
 
@@ -489,7 +477,7 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 
 	REQUIRE(VALID_CCTX(cctx));
 
-	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
+	if (cctx->disabled) {
 		return;
 	}
 
@@ -514,65 +502,4 @@ dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 			node = cctx->table[i];
 		}
 	}
-}
-
-/***
- ***	Decompression
- ***/
-
-void
-dns_decompress_init(dns_decompress_t *dctx, int edns,
-		    dns_decompresstype_t type) {
-	REQUIRE(dctx != NULL);
-	REQUIRE(edns >= -1 && edns <= 255);
-
-	dctx->allowed = DNS_COMPRESS_NONE;
-	dctx->edns = edns;
-	dctx->type = type;
-	dctx->magic = DCTX_MAGIC;
-}
-
-void
-dns_decompress_invalidate(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	dctx->magic = 0;
-}
-
-void
-dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	switch (dctx->type) {
-	case DNS_DECOMPRESS_ANY:
-		dctx->allowed = DNS_COMPRESS_ALL;
-		break;
-	case DNS_DECOMPRESS_NONE:
-		dctx->allowed = DNS_COMPRESS_NONE;
-		break;
-	case DNS_DECOMPRESS_STRICT:
-		dctx->allowed = allowed;
-		break;
-	}
-}
-
-unsigned int
-dns_decompress_getmethods(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->allowed);
-}
-
-int
-dns_decompress_edns(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->edns);
-}
-
-dns_decompresstype_t
-dns_decompress_type(dns_decompress_t *dctx) {
-	REQUIRE(VALID_DCTX(dctx));
-
-	return (dctx->type);
 }

@@ -1,3 +1,10 @@
+5898.	[cleanup]	Simplify BIND's internal DNS name compression API. As
+			RFC 6891 explains, it isn't practical to deploy new
+			label types or compression methods, so it isn't
+			necessary to have an API designed to support them.
+			Remove compression terminology that refers to Internet
+			Drafts that expired in the 1990s. [GL !6270]
+
 5897.	[bug]		Views that weren't configured to use RFC 5011 key
 			management would still set up an empty managed-keys
 			zone. This has been fixed. [GL #3349]

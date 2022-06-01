@@ -2442,7 +2442,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
 
-	result = dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, mctx);
 	check_result(result, "dns_compress_init");
 
 	debug("starting to render the message");
@@ -3053,7 +3053,9 @@ failure_tls:
 	} else {
 		next = NULL;
 	}
-	query_detach(&connectquery);
+	if (connectquery != NULL) {
+		query_detach(&connectquery);
+	}
 	query_detach(&query);
 	if (next == NULL) {
 		clear_current_lookup();

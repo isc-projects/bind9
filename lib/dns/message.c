@@ -862,7 +862,7 @@ dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
  */
 static isc_result_t
 getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
-	dns_decompress_t *dctx) {
+	dns_decompress_t dctx) {
 	isc_buffer_t *scratch;
 	isc_result_t result;
 	unsigned int tries;
@@ -896,7 +896,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 }
 
 static isc_result_t
-getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
 	 unsigned int rdatalen, dns_rdata_t *rdata) {
 	isc_buffer_t *scratch;
@@ -960,7 +960,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	} while (0)
 
 static isc_result_t
-getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	     unsigned int options) {
 	isc_region_t r;
 	unsigned int count;
@@ -1175,7 +1175,7 @@ auth_signed(dns_namelist_t *section) {
 }
 
 static isc_result_t
-getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	   dns_section_t sectionid, unsigned int options) {
 	isc_region_t r;
 	unsigned int count, rdatalen;
@@ -1681,14 +1681,9 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->header_ok = 1;
 	msg->state = DNS_SECTION_QUESTION;
 
-	/*
-	 * -1 means no EDNS.
-	 */
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dctx = DNS_DECOMPRESS_ALWAYS;
 
-	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
-
-	ret = getquestions(source, msg, &dctx, options);
+	ret = getquestions(source, msg, dctx, options);
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -1701,7 +1696,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	}
 	msg->question_ok = 1;
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER, options);
+	ret = getsection(source, msg, dctx, DNS_SECTION_ANSWER, options);
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -1713,7 +1708,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 	}
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY, options);
+	ret = getsection(source, msg, dctx, DNS_SECTION_AUTHORITY, options);
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -1725,7 +1720,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 	}
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL, options);
+	ret = getsection(source, msg, dctx, DNS_SECTION_ADDITIONAL, options);
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}

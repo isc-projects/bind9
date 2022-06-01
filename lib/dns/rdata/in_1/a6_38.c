@@ -158,7 +158,7 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dctx = dns_decompress_setpermitted(dctx, false);
 
 	isc_buffer_activeregion(source, &sr);
 	/*
@@ -211,7 +211,7 @@ towire_in_a6(ARGS_TOWIRE) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	dns_rdata_toregion(rdata, &sr);
 	prefixlen = sr.base[0];
 	INSIST(prefixlen <= 128);

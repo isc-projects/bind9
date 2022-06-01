@@ -1192,7 +1192,7 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	bool cleanup_cctx = false;
 	isc_result_t result;
 
-	CHECK(dns_compress_init(&cctx, -1, mctx));
+	CHECK(dns_compress_init(&cctx, mctx));
 	cleanup_cctx = true;
 	CHECK(dns_message_renderbegin(msg, &cctx, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));

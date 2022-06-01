@@ -691,9 +691,8 @@ dns_name_toregion(const dns_name_t *name, isc_region_t *r);
  */
 
 isc_result_t
-dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-		  dns_decompress_t *dctx, unsigned int options,
-		  isc_buffer_t *target);
+dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
+		  unsigned int options, isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed name at source (active region) into target,
  * decompressing it.
@@ -758,8 +757,7 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
  * compression context 'cctx', and storing the result in 'target'.
  *
  * Notes:
- * \li	If the compression context allows global compression, then the
- *	global compression table may be updated.
+ * \li	If compression is permitted, then the cctx table may be updated.
  *
  * Requires:
  * \li	'name' is a valid name
@@ -770,8 +768,7 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
  *
  * \li	target is a valid buffer.
  *
- * \li	Any offsets specified in a global compression table are valid
- *	for buffer.
+ * \li	Any offsets in the compression table are valid for buffer.
  *
  * Ensures:
  *

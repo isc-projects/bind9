@@ -99,7 +99,7 @@ fromwire_rp(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dctx = dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -119,7 +119,7 @@ towire_rp(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	dns_name_init(&rmail, roffsets);
 	dns_name_init(&email, eoffsets);
 

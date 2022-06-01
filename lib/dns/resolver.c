@@ -2530,7 +2530,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Convert the question to wire format.
 	 */
-	result = dns_compress_init(&cctx, -1, fctx->res->mctx);
+	result = dns_compress_init(&cctx, fctx->res->mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_message;
 	}
@@ -2798,7 +2798,7 @@ resquery_send(resquery_t *query) {
 #ifdef HAVE_DNSTAP
 	memset(&zr, 0, sizeof(zr));
 	isc_buffer_init(&zb, zone, sizeof(zone));
-	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(&cctx, false);
 	result = dns_name_towire(fctx->domain, &cctx, &zb);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_usedregion(&zb, &zr);
@@ -9822,10 +9822,10 @@ rctx_logpacket(respctx_t *rctx) {
 	 * Log the response via dnstap.
 	 */
 	memset(&zr, 0, sizeof(zr));
-	result = dns_compress_init(&cctx, -1, fctx->res->mctx);
+	result = dns_compress_init(&cctx, fctx->res->mctx);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_init(&zb, zone, sizeof(zone));
-		dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+		dns_compress_setpermitted(&cctx, false);
 		result = dns_name_towire(fctx->domain, &cctx, &zb);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(&zb, &zr);

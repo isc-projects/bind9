@@ -165,7 +165,7 @@ fromwire_soa(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
+	dctx = dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&mname, NULL);
 	dns_name_init(&rname, NULL);
@@ -202,7 +202,7 @@ towire_soa(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+	dns_compress_setpermitted(cctx, true);
 
 	dns_name_init(&mname, moffsets);
 	dns_name_init(&rname, roffsets);

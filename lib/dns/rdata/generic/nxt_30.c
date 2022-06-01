@@ -144,7 +144,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dctx = dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
@@ -169,7 +169,7 @@ towire_nxt(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 	REQUIRE(rdata->length != 0);
 
-	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
+	dns_compress_setpermitted(cctx, false);
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);

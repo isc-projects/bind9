@@ -97,7 +97,7 @@
 
 #define ARGS_FROMWIRE                                            \
 	int rdclass, dns_rdatatype_t type, isc_buffer_t *source, \
-		dns_decompress_t *dctx, unsigned int options,    \
+		dns_decompress_t dctx, unsigned int options,     \
 		isc_buffer_t *target
 
 #define CALL_FROMWIRE rdclass, type, source, dctx, options, target
@@ -611,11 +611,9 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 	isc_region_t sr;
 	if (alg == DNS_KEYALG_PRIVATEDNS) {
 		dns_fixedname_t fixed;
-		dns_decompress_t dctx;
 
-		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
-					 &dctx, 0, NULL));
+					 DNS_DECOMPRESS_DEFAULT, 0, NULL));
 		/*
 		 * There should be a public key or signature after the key name.
 		 */
@@ -806,7 +804,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t *dctx, unsigned int options,
+		   dns_decompress_t dctx, unsigned int options,
 		   isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
@@ -816,7 +814,6 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	uint32_t activelength;
 	unsigned int length;
 
-	REQUIRE(dctx != NULL);
 	if (rdata != NULL) {
 		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -924,13 +921,11 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 static isc_result_t
 rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 	       dns_rdatatype_t type) {
-	dns_decompress_t dctx;
 	isc_result_t result;
 
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
-	result = dns_rdata_fromwire(NULL, rdclass, type, src, &dctx, 0, dest);
-	dns_decompress_invalidate(&dctx);
+	result = dns_rdata_fromwire(NULL, rdclass, type, src,
+				    DNS_DECOMPRESS_NEVER, 0, dest);
 
 	return (result);
 }

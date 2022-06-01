@@ -276,7 +276,8 @@ fromstruct_in_apl(ARGS_FROMSTRUCT) {
 	isc_buffer_init(&b, apl->apl, apl->apl_len);
 	isc_buffer_add(&b, apl->apl_len);
 	isc_buffer_setactive(&b, apl->apl_len);
-	return (fromwire_in_apl(rdclass, type, &b, NULL, false, target));
+	return (fromwire_in_apl(rdclass, type, &b, DNS_DECOMPRESS_DEFAULT,
+				false, target));
 }
 
 static isc_result_t

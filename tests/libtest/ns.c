@@ -336,7 +336,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Render the query.
 	 */
-	dns_compress_init(&cctx, -1, mctx);
+	dns_compress_init(&cctx, mctx);
 	isc_buffer_init(&querybuf, query, sizeof(query));
 	result = dns_message_renderbegin(message, &cctx, &querybuf);
 	if (result != ISC_R_SUCCESS) {

@@ -281,7 +281,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r);
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t *dctx, unsigned int options,
+		   dns_decompress_t dctx, unsigned int options,
 		   isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed rdata at source into the target region.
@@ -328,16 +328,14 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
  * compression context 'cctx', and storing the result in 'target'.
  *
  * Notes:
- *\li	If the compression context allows global compression, then the
- *	global compression table may be updated.
+ *\li	If compression is permitted, then the cctx table may be updated.
  *
  * Requires:
  *\li	'rdata' is a valid, non-empty rdata
  *
  *\li	target is a valid buffer
  *
- *\li	Any offsets specified in a global compression table are valid
- *	for target.
+ *\li	Any offsets in the compression table are valid for target.
  *
  * Ensures,
  *	if the result is success:
