@@ -1,3 +1,6 @@
+5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
+			in catz. [GL #3380]
+
 5898.	[cleanup]	Simplify BIND's internal DNS name compression API. As
 			RFC 6891 explains, it isn't practical to deploy new
 			label types or compression methods, so it isn't
