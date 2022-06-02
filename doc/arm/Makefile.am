@@ -61,6 +61,7 @@ EXTRA_DIST =					\
 	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
 	zones.inc.rst				\
+	_static/custom.css			\
 	../dnssec-guide				\
 	../misc/acl.grammar.rst			\
 	../misc/controls.grammar.rst		\
