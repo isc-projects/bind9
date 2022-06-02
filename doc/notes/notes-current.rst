@@ -43,3 +43,6 @@ Bug Fixes
 - Key files were updated every time the ``dnssec-policy`` key manager ran,
   whether the metadata has changed or not. BIND now checks if changes were
   applied before writing out the key files. :gl:`#3302`.
+
+- DNSSEC-signed catalog zones were not being processed correctly. This
+  has been fixed. :gl:`#3380`.

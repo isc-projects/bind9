@@ -1799,6 +1799,12 @@ cleanup:
 	return (result);
 }
 
+static bool
+catz_rdatatype_is_processable(const dns_rdatatype_t type) {
+	return (!dns_rdatatype_isdnssec(type) && type != dns_rdatatype_cds &&
+		type != dns_rdatatype_cdnskey && type != dns_rdatatype_zonemd);
+}
+
 void
 dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	dns_catz_zone_t *oldzone = NULL, *newzone = NULL;
@@ -1908,6 +1914,17 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, &rdataset);
+
+			/*
+			 * Skip processing DNSSEC-related and ZONEMD types,
+			 * because we are not interested in them in the context
+			 * of a catalog zone, and processing them will fail
+			 * and produce an unnecessary warning message.
+			 */
+			if (!catz_rdatatype_is_processable(rdataset.type)) {
+				goto next;
+			}
+
 			result = dns_catz_update_process(catzs, newzone, name,
 							 &rdataset);
 			if (result != ISC_R_SUCCESS) {
@@ -1930,6 +1947,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 					      cname, classbuf, typebuf,
 					      isc_result_totext(result));
 			}
+		next:
 			dns_rdataset_disassociate(&rdataset);
 			if (result != ISC_R_SUCCESS) {
 				break;
