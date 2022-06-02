@@ -167,6 +167,10 @@ master_doc = 'index'
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+html_static_path = ['_static']
+html_css_files = [
+    'custom.css'
+]
 
 # -- Options for LaTeX output ------------------------------------------------
 latex_engine = 'xelatex'
