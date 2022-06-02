@@ -22,10 +22,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- DNSSEC-signed catalog zones were not being processed correctly. This
+  has been fixed. :gl:`#3380`
+
 - Key files were updated every time the ``dnssec-policy`` key manager
   ran, whether the metadata had changed or not. :iscman:`named` now
   checks whether changes were applied before writing out the key files.
   :gl:`#3302`
-
-- DNSSEC-signed catalog zones were not being processed correctly. This
-  has been fixed. :gl:`#3380`
