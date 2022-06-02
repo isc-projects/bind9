@@ -15,6 +15,12 @@ Notes for BIND 9.16.30
 Bug Fixes
 ~~~~~~~~~
 
+- The ``fetches-per-server`` quota is designed to adjust itself downward
+  automatically when an authoritative server times out too frequently.
+  Due to a coding error, that adjustment was applied incorrectly, so
+  that the quota for a congested server was always set to 1. This has
+  been fixed. :gl:`#3327`
+
 - DNSSEC-signed catalog zones were not being processed correctly. This
   has been fixed. :gl:`#3380`
 
