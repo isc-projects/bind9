@@ -15231,7 +15231,7 @@ $as_echo "#define HAVE_GEOIP2 1" >>confdefs.h
 				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_MMDB_open"
 				   { $as_echo "$as_me:${as_lineno-$LINENO}: GeoIP2 default database path set to $with_maxminddb/share/GeoIP" >&5
 $as_echo "$as_me: GeoIP2 default database path set to $with_maxminddb/share/GeoIP" >&6;}
-				   eval MAXMINDDB_PREFIX=$with_maxminddb
+				   MAXMINDDB_PREFIX=$with_maxminddb
 
 else
   as_fn_error $? "GeoIP2 requested, but libmaxminddb not found" "$LINENO" 5

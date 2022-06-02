@@ -1,3 +1,5 @@
+	--- 9.16.30 released ---
+
 5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
 			in catz. [GL #3380]
 
