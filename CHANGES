@@ -1,3 +1,6 @@
+5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
+			in catz. [GL #3380]
+
 5890.	[bug]		When the fetches-per-server quota was adjusted
 			because of an authoritative server timing out more
 			or less frequently, it was incorrectly set to 1
