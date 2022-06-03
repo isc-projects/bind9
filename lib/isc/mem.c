@@ -331,8 +331,6 @@ unlock:
 		s = ZERO_ALLOCATION_SIZE; \
 	}
 
-#define MEM_ALIGN(a) ((a) ? MALLOCX_ALIGN(a) : 0)
-
 /*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
@@ -345,7 +343,8 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 	ret = mallocx(size, flags);
 	INSIST(ret != NULL);
 
-	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
+	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	{
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
 
@@ -376,7 +375,8 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	new_ptr = rallocx(old_ptr, new_size, flags);
 	INSIST(new_ptr != NULL);
 
-	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
+	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	{
 		ssize_t diff_size = new_size - old_size;
 		void *diff_ptr = (uint8_t *)new_ptr + old_size;
 		if (diff_size > 0) {
@@ -434,6 +434,16 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 
 static void
 mem_initialize(void) {
+/*
+ * Check if the values copied from jemalloc still match
+ */
+#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
+	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
+	RUNTIME_CHECK(ISC_MEM_ALIGN(0) == MALLOCX_ALIGN(0));
+	RUNTIME_CHECK(ISC_MEM_ALIGN(sizeof(void *)) ==
+		      MALLOCX_ALIGN(sizeof(void *)));
+#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
+
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
@@ -462,7 +472,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = mallocx(sizeof(*ctx), MALLOCX_ALIGN(isc_os_cacheline()));
+	ctx = mallocx(sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
@@ -582,7 +592,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(malloced == 0);
 	}
-	sdallocx(ctx, sizeof(*ctx), MALLOCX_ALIGN(isc_os_cacheline()));
+	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
 }
 
 void
@@ -628,7 +638,7 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
 
 void
 isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
-		      size_t alignment FLARG) {
+		      int flags FLARG) {
 	isc_mem_t *ctx = NULL;
 
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
@@ -641,7 +651,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size, MEM_ALIGN(alignment));
+	mem_put(ctx, ptr, size, flags);
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
@@ -756,12 +766,12 @@ lo_water(isc_mem_t *ctx) {
 }
 
 void *
-isc__mem_get(isc_mem_t *ctx, size_t size, size_t alignment FLARG) {
+isc__mem_get(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	void *ptr = NULL;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size, MEM_ALIGN(alignment));
+	ptr = mem_get(ctx, size, flags);
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -772,13 +782,13 @@ isc__mem_get(isc_mem_t *ctx, size_t size, size_t alignment FLARG) {
 }
 
 void
-isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, size_t alignment FLARG) {
+isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, int flags FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size, MEM_ALIGN(alignment));
+	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
 }
@@ -890,15 +900,15 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 }
 
 void *
-isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
+isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	void *ptr = NULL;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	ptr = mem_get(ctx, size, 0);
+	ptr = mem_get(ctx, size, flags);
 
 	/* Recalculate the real allocated size */
-	size = sallocx(ptr, 0);
+	size = sallocx(ptr, flags);
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -910,20 +920,19 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 void *
 isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
-	       size_t alignment FLARG) {
+	       int flags FLARG) {
 	void *new_ptr = NULL;
 
 	if (old_ptr == NULL) {
 		REQUIRE(old_size == 0);
-		new_ptr = isc__mem_get(ctx, new_size, alignment FLARG_PASS);
+		new_ptr = isc__mem_get(ctx, new_size, flags FLARG_PASS);
 	} else if (new_size == 0) {
-		isc__mem_put(ctx, old_ptr, old_size, alignment FLARG_PASS);
+		isc__mem_put(ctx, old_ptr, old_size, flags FLARG_PASS);
 	} else {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_ptr, old_size);
 
-		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size,
-				      MEM_ALIGN(alignment));
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
 		mem_getstats(ctx, new_size);
 		ADD_TRACE(ctx, new_ptr, new_size, file, line);
@@ -941,25 +950,26 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 }
 
 void *
-isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
+isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
+		    int flags FLARG) {
 	void *new_ptr = NULL;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	if (old_ptr == NULL) {
-		new_ptr = isc__mem_allocate(ctx, new_size FLARG_PASS);
+		new_ptr = isc__mem_allocate(ctx, new_size, flags FLARG_PASS);
 	} else if (new_size == 0) {
-		isc__mem_free(ctx, old_ptr FLARG_PASS);
+		isc__mem_free(ctx, old_ptr, flags FLARG_PASS);
 	} else {
-		size_t old_size = sallocx(old_ptr, 0);
+		size_t old_size = sallocx(old_ptr, flags);
 
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_ptr, old_size);
 
-		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, 0);
+		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
 		/* Recalculate the real allocated size */
-		new_size = sallocx(new_ptr, 0);
+		new_size = sallocx(new_ptr, flags);
 
 		mem_getstats(ctx, new_size);
 		ADD_TRACE(ctx, new_ptr, new_size, file, line);
@@ -977,18 +987,18 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 }
 
 void
-isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
+isc__mem_free(isc_mem_t *ctx, void *ptr, int flags FLARG) {
 	size_t size = 0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
-	size = sallocx(ptr, 0);
+	size = sallocx(ptr, flags);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	mem_putstats(ctx, ptr, size);
-	mem_put(ctx, ptr, size, 0);
+	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
 }
@@ -1007,7 +1017,7 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 
 	len = strlen(s) + 1;
 
-	ns = isc__mem_allocate(mctx, len FLARG_PASS);
+	ns = isc__mem_allocate(mctx, len, 0 FLARG_PASS);
 
 	strlcpy(ns, s, len);
 
@@ -1028,7 +1038,7 @@ isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
 		len = size;
 	}
 
-	ns = isc__mem_allocate(mctx, len FLARG_PASS);
+	ns = isc__mem_allocate(mctx, len, 0 FLARG_PASS);
 
 	strlcpy(ns, s, len);
 
