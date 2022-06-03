@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.30
+Notes for BIND 9.16.31
 ----------------------
 
 Security Fixes
@@ -40,9 +40,4 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Key files were updated every time the ``dnssec-policy`` key manager ran,
-  whether the metadata has changed or not. BIND now checks if changes were
-  applied before writing out the key files. :gl:`#3302`.
-
-- DNSSEC-signed catalog zones were not being processed correctly. This
-  has been fixed. :gl:`#3380`.
+- None.
