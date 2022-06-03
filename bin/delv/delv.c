@@ -946,8 +946,7 @@ addserver(dns_client_t *client) {
 			    cur->ai_family != AF_INET6) {
 				continue;
 			}
-			sa = isc_mem_get(mctx, sizeof(*sa));
-			memset(sa, 0, sizeof(*sa));
+			sa = isc_mem_getx(mctx, sizeof(*sa), ISC_MEM_ZERO);
 			ISC_LINK_INIT(sa, link);
 			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
 			sa->length = (unsigned int)cur->ai_addrlen;

@@ -594,8 +594,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	dns_secalg_t *algo;
 	int i;
 
-	algo = isc_mem_get(mctx, nkey);
-	memset(algo, 0, nkey);
+	algo = isc_mem_getx(mctx, nkey, ISC_MEM_ZERO);
 
 	for (result = dns_rdataset_first(sigset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(sigset))

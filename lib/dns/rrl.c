@@ -260,8 +260,7 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 
 	bsize = sizeof(dns_rrl_block_t) +
 		(newsize - 1) * sizeof(dns_rrl_entry_t);
-	b = isc_mem_get(rrl->mctx, bsize);
-	memset(b, 0, bsize);
+	b = isc_mem_getx(rrl->mctx, bsize, ISC_MEM_ZERO);
 	b->size = bsize;
 
 	e = b->entries;
@@ -325,8 +324,7 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	new_bins = hash_divisor(new_bins);
 
 	hsize = sizeof(dns_rrl_hash_t) + (new_bins - 1) * sizeof(hash->bins[0]);
-	hash = isc_mem_get(rrl->mctx, hsize);
-	memset(hash, 0, hsize);
+	hash = isc_mem_getx(rrl->mctx, hsize, ISC_MEM_ZERO);
 	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
 	hash->gen = rrl->hash_gen;
@@ -935,9 +933,9 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 			if (qbuf != NULL) {
 				ISC_LIST_UNLINK(rrl->qname_free, qbuf, link);
 			} else if (rrl->num_qnames < DNS_RRL_QNAMES) {
-				qbuf = isc_mem_get(rrl->mctx, sizeof(*qbuf));
+				qbuf = isc_mem_getx(rrl->mctx, sizeof(*qbuf),
+						    ISC_MEM_ZERO);
 				{
-					memset(qbuf, 0, sizeof(*qbuf));
 					ISC_LINK_INIT(qbuf, link);
 					qbuf->index = rrl->num_qnames;
 					rrl->qnames[rrl->num_qnames++] = qbuf;
@@ -1337,8 +1335,7 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 
 	*rrlp = NULL;
 
-	rrl = isc_mem_get(view->mctx, sizeof(*rrl));
-	memset(rrl, 0, sizeof(*rrl));
+	rrl = isc_mem_getx(view->mctx, sizeof(*rrl), ISC_MEM_ZERO);
 	isc_mem_attach(view->mctx, &rrl->mctx);
 	isc_mutex_init(&rrl->lock);
 	isc_stdtime_get(&rrl->ts_bases[0]);

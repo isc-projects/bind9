@@ -1319,8 +1319,7 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	sdb = isc_mem_get(mctx, sizeof(dns_sdb_t));
-	memset(sdb, 0, sizeof(dns_sdb_t));
+	sdb = isc_mem_getx(mctx, sizeof(dns_sdb_t), ISC_MEM_ZERO);
 
 	dns_name_init(&sdb->common.origin, NULL);
 	sdb->common.attributes = 0;

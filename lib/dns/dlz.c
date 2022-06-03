@@ -199,10 +199,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	}
 
 	/* Allocate memory to hold the DLZ database driver */
-	db = isc_mem_get(mctx, sizeof(dns_dlzdb_t));
-
-	/* Make sure memory region is set to all 0's */
-	memset(db, 0, sizeof(dns_dlzdb_t));
+	db = isc_mem_getx(mctx, sizeof(dns_dlzdb_t), ISC_MEM_ZERO);
 
 	ISC_LINK_INIT(db, link);
 	db->implementation = impinfo;
@@ -320,10 +317,8 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	 * Allocate memory for a dlz_implementation object.  Error if
 	 * we cannot.
 	 */
-	dlz_imp = isc_mem_get(mctx, sizeof(dns_dlzimplementation_t));
-
-	/* Make sure memory region is set to all 0's */
-	memset(dlz_imp, 0, sizeof(dns_dlzimplementation_t));
+	dlz_imp = isc_mem_getx(mctx, sizeof(dns_dlzimplementation_t),
+			       ISC_MEM_ZERO);
 
 	/* Store the data passed into this method */
 	dlz_imp->name = drivername;

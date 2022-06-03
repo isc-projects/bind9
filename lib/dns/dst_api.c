@@ -283,8 +283,7 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t *category,
 		return (DST_R_NULLKEY);
 	}
 
-	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
-	memset(dctx, 0, sizeof(*dctx));
+	dctx = isc_mem_getx(mctx, sizeof(*dctx), ISC_MEM_ZERO);
 	dst_key_attach(key, &dctx->key);
 	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->category = category;
@@ -1524,9 +1523,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	dst_key_t *key;
 	int i;
 
-	key = isc_mem_get(mctx, sizeof(dst_key_t));
-
-	memset(key, 0, sizeof(dst_key_t));
+	key = isc_mem_getx(mctx, sizeof(dst_key_t), ISC_MEM_ZERO);
 
 	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
 

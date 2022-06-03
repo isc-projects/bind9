@@ -736,8 +736,7 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	REQUIRE(catzsp != NULL && *catzsp == NULL);
 	REQUIRE(zmm != NULL);
 
-	new_zones = isc_mem_get(mctx, sizeof(*new_zones));
-	memset(new_zones, 0, sizeof(*new_zones));
+	new_zones = isc_mem_getx(mctx, sizeof(*new_zones), ISC_MEM_ZERO);
 
 	isc_mutex_init(&new_zones->lock);
 
@@ -787,9 +786,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	new_zone = isc_mem_get(catzs->mctx, sizeof(*new_zone));
-
-	memset(new_zone, 0, sizeof(*new_zone));
+	new_zone = isc_mem_getx(catzs->mctx, sizeof(*new_zone), ISC_MEM_ZERO);
 
 	dns_name_init(&new_zone->name, NULL);
 	dns_name_dup(name, catzs->mctx, &new_zone->name);

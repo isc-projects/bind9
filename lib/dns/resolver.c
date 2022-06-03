@@ -10302,9 +10302,8 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		goto cleanup_res;
 	}
 
-	res->tasks = isc_mem_get(view->mctx,
-				 res->ntasks * sizeof(res->tasks[0]));
-	memset(res->tasks, 0, res->ntasks * sizeof(res->tasks[0]));
+	res->tasks = isc_mem_getx(
+		view->mctx, res->ntasks * sizeof(res->tasks[0]), ISC_MEM_ZERO);
 	for (uint32_t i = 0; i < res->ntasks; i++) {
 		/*
 		 * Since we have a pool of tasks we bind them to task
@@ -11153,8 +11152,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			 * bitfield and copy the old (smaller) bitfield
 			 * into it if one exists.
 			 */
-			tmp = isc_mem_get(resolver->mctx, len);
-			memset(tmp, 0, len);
+			tmp = isc_mem_getx(resolver->mctx, len, ISC_MEM_ZERO);
 			if (algorithms != NULL) {
 				memmove(tmp, algorithms, *algorithms);
 			}
@@ -11273,8 +11271,7 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 			 * bitfield and copy the old (smaller) bitfield
 			 * into it if one exists.
 			 */
-			tmp = isc_mem_get(resolver->mctx, len);
-			memset(tmp, 0, len);
+			tmp = isc_mem_getx(resolver->mctx, len, ISC_MEM_ZERO);
 			if (digests != NULL) {
 				memmove(tmp, digests, *digests);
 			}

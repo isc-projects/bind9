@@ -224,8 +224,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	isc_mem_create(&mctx);
-	cd = isc_mem_get(mctx, sizeof(*cd));
-	memset(cd, 0, sizeof(*cd));
+	cd = isc_mem_getx(mctx, sizeof(*cd), ISC_MEM_ZERO);
 
 	cd->mctx = mctx;
 

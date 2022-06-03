@@ -210,8 +210,7 @@ hashtable_new(isc_ht_t *ht, const uint8_t idx, const uint8_t bits) {
 
 	size = ht->size[idx] * sizeof(isc_ht_node_t *);
 
-	ht->table[idx] = isc_mem_get(ht->mctx, size);
-	memset(ht->table[idx], 0, size);
+	ht->table[idx] = isc_mem_getx(ht->mctx, size, ISC_MEM_ZERO);
 }
 
 static void

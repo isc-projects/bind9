@@ -61,10 +61,7 @@ isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
 
 	REQUIRE(portsetp != NULL && *portsetp == NULL);
 
-	portset = isc_mem_get(mctx, sizeof(*portset));
-
-	/* Make the set 'empty' by default */
-	memset(portset, 0, sizeof(*portset));
+	portset = isc_mem_getx(mctx, sizeof(*portset), ISC_MEM_ZERO);
 	*portsetp = portset;
 
 	return (ISC_R_SUCCESS);

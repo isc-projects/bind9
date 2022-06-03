@@ -1454,8 +1454,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	imp = (dns_sdlzimplementation_t *)driverarg;
 
 	/* allocate and zero memory for driver structure */
-	sdlzdb = isc_mem_get(mctx, sizeof(dns_sdlz_db_t));
-	memset(sdlzdb, 0, sizeof(dns_sdlz_db_t));
+	sdlzdb = isc_mem_getx(mctx, sizeof(dns_sdlz_db_t), ISC_MEM_ZERO);
 
 	/* initialize and set origin */
 	dns_name_init(&sdlzdb->common.origin, NULL);
@@ -1973,10 +1972,8 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * Allocate memory for a sdlz_implementation object.  Error if
 	 * we cannot.
 	 */
-	imp = isc_mem_get(mctx, sizeof(dns_sdlzimplementation_t));
-
-	/* Make sure memory region is set to all 0's */
-	memset(imp, 0, sizeof(dns_sdlzimplementation_t));
+	imp = isc_mem_getx(mctx, sizeof(dns_sdlzimplementation_t),
+			   ISC_MEM_ZERO);
 
 	/* Store the data passed into this method */
 	imp->methods = methods;

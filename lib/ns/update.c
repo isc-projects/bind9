@@ -2810,8 +2810,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (ssutable != NULL) {
 		ruleslen = request->counts[DNS_SECTION_UPDATE];
-		rules = isc_mem_get(mctx, sizeof(*rules) * ruleslen);
-		memset(rules, 0, sizeof(*rules) * ruleslen);
+		rules = isc_mem_getx(mctx, sizeof(*rules) * ruleslen,
+				     ISC_MEM_ZERO);
 	}
 
 	for (rule = 0,

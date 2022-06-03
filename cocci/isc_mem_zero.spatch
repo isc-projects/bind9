@@ -1,0 +1,17 @@
+@@
+expression ptr, ctx, size;
+@@
+
+- ptr = isc_mem_get(ctx, size);
++ ptr = isc_mem_getx(ctx, size, ISC_MEM_ZERO);
+...
+- memset(ptr, 0, size);
+
+@@
+expression ptr, ctx, size;
+@@
+
+- ptr = isc_mem_allocate(ctx, size);
++ ptr = isc_mem_allocatex(ctx, size, ISC_MEM_ZERO);
+...
+- memset(ptr, 0, size);

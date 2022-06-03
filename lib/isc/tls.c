@@ -185,8 +185,8 @@ isc__tls_initialize(void) {
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_get(isc__tls_mctx, nlocks * sizeof(locks[0]));
-	memset(locks, 0, nlocks * sizeof(locks[0]));
+	locks = isc_mem_getx(isc__tls_mctx, nlocks * sizeof(locks[0]),
+			     ISC_MEM_ZERO);
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
@@ -1337,9 +1337,7 @@ isc_tlsctx_cache_add(
 		 * The hash table entry does not exist, let's create one.
 		 */
 		INSIST(result != ISC_R_SUCCESS);
-		entry = isc_mem_get(cache->mctx, sizeof(*entry));
-		/* Oracle/Red Hat Linux, GCC bug #53119 */
-		memset(entry, 0, sizeof(*entry));
+		entry = isc_mem_getx(cache->mctx, sizeof(*entry), ISC_MEM_ZERO);
 		entry->ctx[tr_offset][ipv6] = ctx;
 		entry->client_sess_cache[tr_offset][ipv6] = client_sess_cache;
 		entry->ca_store = store;

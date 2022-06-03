@@ -18701,8 +18701,8 @@ zonemgr_keymgmt_resize(dns_zonemgr_t *zmgr) {
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
-	newtable = isc_mem_get(mgmt->mctx, sizeof(dns_keyfileio_t *) * newsize);
-	memset(newtable, 0, sizeof(dns_keyfileio_t *) * newsize);
+	newtable = isc_mem_getx(mgmt->mctx, sizeof(dns_keyfileio_t *) * newsize,
+				ISC_MEM_ZERO);
 
 	for (unsigned int i = 0; i < size; i++) {
 		dns_keyfileio_t *kfio, *next;
@@ -18905,9 +18905,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	isc_ratelimiter_create(loop, &zmgr->startupnotifyrl);
 	isc_ratelimiter_create(loop, &zmgr->startuprefreshrl);
 
-	zmgr->zonetasks = isc_mem_get(
-		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
-	memset(zmgr->zonetasks, 0, zmgr->workers * sizeof(zmgr->zonetasks[0]));
+	zmgr->zonetasks = isc_mem_getx(
+		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]),
+		ISC_MEM_ZERO);
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		result = isc_task_create(zmgr->taskmgr, &zmgr->zonetasks[i], i);
 		INSIST(result == ISC_R_SUCCESS);
@@ -18918,9 +18918,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		isc_task_setname(zmgr->zonetasks[i], "zonemgr-zonetasks", NULL);
 	}
 
-	zmgr->loadtasks = isc_mem_get(
-		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]));
-	memset(zmgr->loadtasks, 0, zmgr->workers * sizeof(zmgr->loadtasks[0]));
+	zmgr->loadtasks = isc_mem_getx(
+		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]),
+		ISC_MEM_ZERO);
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		result = isc_task_create(zmgr->taskmgr, &zmgr->loadtasks[i], i);
 		INSIST(result == ISC_R_SUCCESS);
@@ -18930,9 +18930,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		isc_task_setname(zmgr->loadtasks[i], "zonemgr-loadtasks", NULL);
 	}
 
-	zmgr->mctxpool = isc_mem_get(zmgr->mctx,
-				     zmgr->workers * sizeof(zmgr->mctxpool[0]));
-	memset(zmgr->mctxpool, 0, zmgr->workers * sizeof(zmgr->mctxpool[0]));
+	zmgr->mctxpool = isc_mem_getx(zmgr->mctx,
+				      zmgr->workers * sizeof(zmgr->mctxpool[0]),
+				      ISC_MEM_ZERO);
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		isc_mem_create(&zmgr->mctxpool[i]);
 		isc_mem_setname(zmgr->mctxpool[i], "zonemgr-mctxpool");

@@ -1594,9 +1594,8 @@ evaluate_server(char *cmdline) {
 
 	ns_alloc = MAX_SERVERADDRS;
 	ns_inuse = 0;
-	servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
-
-	memset(servers, 0, ns_alloc * sizeof(isc_sockaddr_t));
+	servers = isc_mem_getx(gmctx, ns_alloc * sizeof(isc_sockaddr_t),
+			       ISC_MEM_ZERO);
 	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
 	if (ns_total == 0) {
 		return (STATUS_SYNTAX);
@@ -2854,9 +2853,7 @@ lookforsoa:
 		}
 		primary_alloc = MAX_SERVERADDRS;
 		size = primary_alloc * sizeof(isc_sockaddr_t);
-		primary_servers = isc_mem_get(gmctx, size);
-
-		memset(primary_servers, 0, size);
+		primary_servers = isc_mem_getx(gmctx, size, ISC_MEM_ZERO);
 		primary_total = get_addresses(serverstr, dnsport,
 					      primary_servers, primary_alloc);
 		if (primary_total == 0) {

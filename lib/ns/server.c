@@ -43,9 +43,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	REQUIRE(sctxp != NULL && *sctxp == NULL);
 
-	sctx = isc_mem_get(mctx, sizeof(*sctx));
-
-	memset(sctx, 0, sizeof(*sctx));
+	sctx = isc_mem_getx(mctx, sizeof(*sctx), ISC_MEM_ZERO);
 
 	isc_mem_attach(mctx, &sctx->mctx);
 

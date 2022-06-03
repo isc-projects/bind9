@@ -4036,8 +4036,8 @@ main(int argc, char *argv[]) {
 		 * There is more work to do.  Spread it out over multiple
 		 * processors if possible.
 		 */
-		tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-		memset(tasks, 0, ntasks * sizeof(isc_task_t *));
+		tasks = isc_mem_getx(mctx, ntasks * sizeof(isc_task_t *),
+				     ISC_MEM_ZERO);
 
 		isc_loopmgr_setup(loopmgr, startworker, tasks);
 		isc_loopmgr_teardown(loopmgr, workerdone, tasks);

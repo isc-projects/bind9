@@ -963,8 +963,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		fatal("invalid prefix '%s'\n", value);
 	}
 
-	sa = isc_mem_allocate(mctx, sizeof(*sa));
-	memset(sa, 0, sizeof(*sa));
+	sa = isc_mem_allocatex(mctx, sizeof(*sa), ISC_MEM_ZERO);
 
 	if (strcmp(buf, "0") == 0) {
 		sa->type.sa.sa_family = AF_UNSPEC;

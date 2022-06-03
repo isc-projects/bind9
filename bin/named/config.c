@@ -695,21 +695,20 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 		oldlen = newlen + 16;                              \
 	}
 
-#define shrink_array(mctx, array, newlen, oldlen)           \
-	if (newlen < oldlen) {                              \
-		void *tmp = NULL;                           \
-		size_t newsize = newlen * sizeof(array[0]); \
-		size_t oldsize = oldlen * sizeof(array[0]); \
-		if (newlen != 0) {                          \
-			tmp = isc_mem_get(mctx, newsize);   \
-			memset(tmp, 0, newsize);            \
-			memmove(tmp, array, newsize);       \
-		} else {                                    \
-			tmp = NULL;                         \
-		}                                           \
-		isc_mem_put(mctx, array, oldsize);          \
-		array = tmp;                                \
-		oldlen = newlen;                            \
+#define shrink_array(mctx, array, newlen, oldlen)                        \
+	if (newlen < oldlen) {                                           \
+		void *tmp = NULL;                                        \
+		size_t newsize = newlen * sizeof(array[0]);              \
+		size_t oldsize = oldlen * sizeof(array[0]);              \
+		if (newlen != 0) {                                       \
+			tmp = isc_mem_getx(mctx, newsize, ISC_MEM_ZERO); \
+			memmove(tmp, array, newsize);                    \
+		} else {                                                 \
+			tmp = NULL;                                      \
+		}                                                        \
+		isc_mem_put(mctx, array, oldsize);                       \
+		array = tmp;                                             \
+		oldlen = newlen;                                         \
 	}
 
 isc_result_t

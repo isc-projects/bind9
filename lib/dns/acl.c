@@ -70,9 +70,9 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	 */
 	acl->magic = DNS_ACL_MAGIC;
 
-	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
+	acl->elements = isc_mem_getx(mctx, n * sizeof(dns_aclelement_t),
+				     ISC_MEM_ZERO);
 	acl->alloc = n;
-	memset(acl->elements, 0, n * sizeof(dns_aclelement_t));
 	ISC_LIST_INIT(acl->ports_and_transports);
 	acl->port_proto_entries = 0;
 
@@ -318,11 +318,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 			newalloc = 4;
 		}
 
-		newmem = isc_mem_get(dest->mctx,
-				     newalloc * sizeof(dns_aclelement_t));
-
-		/* Zero. */
-		memset(newmem, 0, newalloc * sizeof(dns_aclelement_t));
+		newmem = isc_mem_getx(dest->mctx,
+				      newalloc * sizeof(dns_aclelement_t),
+				      ISC_MEM_ZERO);
 
 		/* Copy in the original elements */
 		memmove(newmem, dest->elements,

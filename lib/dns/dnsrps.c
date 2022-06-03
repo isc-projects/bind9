@@ -257,8 +257,7 @@ dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 			isc_mem_t *mctx, bool have_rd) {
 	rpsdb_t *rpsdb;
 
-	rpsdb = isc_mem_get(mctx, sizeof(*rpsdb));
-	memset(rpsdb, 0, sizeof(*rpsdb));
+	rpsdb = isc_mem_getx(mctx, sizeof(*rpsdb), ISC_MEM_ZERO);
 
 	if (!librpz->rsp_create(emsg, &rpsdb->rsp, NULL, rpzs->rps_client,
 				have_rd, false))
@@ -631,9 +630,8 @@ rpsdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RPSDB(rpsdb));
 	REQUIRE(node == &rpsdb->origin_node || node == &rpsdb->data_node);
 
-	rpsdb_iter = isc_mem_get(rpsdb->common.mctx, sizeof(*rpsdb_iter));
-
-	memset(rpsdb_iter, 0, sizeof(*rpsdb_iter));
+	rpsdb_iter = isc_mem_getx(rpsdb->common.mctx, sizeof(*rpsdb_iter),
+				  ISC_MEM_ZERO);
 	rpsdb_iter->common.magic = DNS_RDATASETITER_MAGIC;
 	rpsdb_iter->common.methods = &rpsdb_rdatasetiter_methods;
 	rpsdb_iter->common.db = db;

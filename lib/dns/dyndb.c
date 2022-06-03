@@ -126,8 +126,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		      ISC_LOG_INFO, "loading DynDB instance '%s' driver '%s'",
 		      instname, filename);
 
-	imp = isc_mem_get(mctx, sizeof(*imp));
-	memset(imp, 0, sizeof(*imp));
+	imp = isc_mem_getx(mctx, sizeof(*imp), ISC_MEM_ZERO);
 	isc_mem_attach(mctx, &imp->mctx);
 
 	imp->name = isc_mem_strdup(imp->mctx, instname);
@@ -273,9 +272,7 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
-	dctx = isc_mem_get(mctx, sizeof(*dctx));
-
-	memset(dctx, 0, sizeof(*dctx));
+	dctx = isc_mem_getx(mctx, sizeof(*dctx), ISC_MEM_ZERO);
 	if (view != NULL) {
 		dns_view_attach(view, &dctx->view);
 	}
