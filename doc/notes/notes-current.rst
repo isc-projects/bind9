@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.4
+Notes for BIND 9.18.5
 ---------------------
 
 Security Fixes
@@ -35,16 +35,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Some more ``dnssec-policy`` configuration checks have been added to
-  detect weird policies such as missing KSK and/or ZSK, and too short
-  key lifetimes and re-sign periods. :gl:`#1611`.
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- Key files were updated every time the ``dnssec-policy`` key manager ran,
-  whether the metadata has changed or not. BIND now checks if changes were
-  applied before writing out the key files. :gl:`#3302`.
-
-- DNSSEC-signed catalog zones were not being processed correctly. This
-  has been fixed. :gl:`#3380`.
+- None.
