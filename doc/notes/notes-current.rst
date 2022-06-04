@@ -35,7 +35,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- In order to reduce unnecessary memory consumption in the cache,
+  NXDOMAIN records are no longer retained past the normal negative
+  cache TTL, even if ``stale-cache-enable`` is set to ``yes``.
+  :gl:`#3386`.
 
 Bug Fixes
 ~~~~~~~~~
