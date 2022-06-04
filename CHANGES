@@ -52,6 +52,10 @@
 			headers.  Bump the number of allowed HTTP headers
 			to 100. [GL #3670]
 
+5902.	[func]		NXDOMAIN cache records are no longer retained in
+			the cache after expiry, even when serve-stale is
+			in use. [GL #3386]
+
 	--- 9.18.9 released ---
 
 6013.	[bug]		Fix a crash that could happen when you change
