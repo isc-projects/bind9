@@ -3053,9 +3053,7 @@ failure_tls:
 	} else {
 		next = NULL;
 	}
-	if (connectquery != NULL) {
-		query_detach(&connectquery);
-	}
+	query_detach(&connectquery);
 	query_detach(&query);
 	if (next == NULL) {
 		clear_current_lookup();
