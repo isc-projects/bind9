@@ -428,6 +428,19 @@ misc:
     expire_in: "1 day"
     when: on_failure
 
+black:
+  <<: *precheck_job
+  needs: []
+  script:
+    - black $(git ls-files '*.py' '*.py.in')
+    - git diff > black.patch
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+  artifacts:
+    paths:
+      - black.patch
+    expire_in: "1 week"
+    when: on_failure
+
 clang-format:
   <<: *precheck_job
   needs: []
