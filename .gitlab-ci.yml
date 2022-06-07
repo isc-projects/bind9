@@ -481,19 +481,6 @@ danger:
     variables:
       - $DANGER_GITLAB_API_TOKEN
 
-flake8:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
-  script:
-    - *configure
-    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
-      # Ignore Flake8 E402 error (module level import not at top of file) in system test to enable use of pytest.importorskip
-    - flake8 --max-line-length=80 --extend-ignore=E402 $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
-
 pylint:
   <<: *default_triggering_rules
   <<: *base_image
