@@ -75,20 +75,22 @@ view "inherit" {
 	zone "inherit.inherit.signed" {
 		type primary;
 		file "inherit.inherit.signed.db";
+		inline-signing yes;
 	};
 
 	/* Override dnssec-policy */
 	zone "override.inherit.signed" {
 		type primary;
-		dnssec-policy "default";
 		file "override.inherit.signed.db";
+		inline-signing yes;
+		dnssec-policy "default";
 	};
 
 	/* Unset dnssec-policy */
 	zone "none.inherit.signed" {
 		type primary;
-		dnssec-policy "none";
 		file "none.inherit.signed.db";
+		dnssec-policy "none";
 	};
 };
 
@@ -100,20 +102,22 @@ view "override" {
 	zone "inherit.override.signed" {
 		type primary;
 		file "inherit.override.signed.db";
+		inline-signing yes;
 	};
 
 	/* Override dnssec-policy */
 	zone "override.override.signed" {
 		type primary;
-		dnssec-policy "test";
 		file "override.override.signed.db";
+		inline-signing yes;
+		dnssec-policy "test";
 	};
 
 	/* Unset dnssec-policy */
 	zone "none.override.signed" {
 		type primary;
-		dnssec-policy "none";
 		file "none.override.signed.db";
+		dnssec-policy "none";
 	};
 };
 
@@ -130,15 +134,16 @@ view "none" {
 	/* Override dnssec-policy */
 	zone "override.none.signed" {
 		type primary;
-		dnssec-policy "test";
 		file "override.none.signed.db";
+		inline-signing yes;
+		dnssec-policy "test";
 	};
 
 	/* Unset dnssec-policy */
 	zone "none.none.signed" {
 		type primary;
-		dnssec-policy "none";
 		file "none.none.signed.db";
+		dnssec-policy "none";
 	};
 };
 
@@ -150,7 +155,6 @@ view "example1" {
 	zone "example.net" {
 		type primary;
 		file "example1.db";
-		// Dynamic zone, inline-signing disabled, policy inerhited.
 	};
 };
 
@@ -160,7 +164,7 @@ view "example2" {
 	zone "example.net" {
 		type primary;
 		file "example2.db";
-		// Static zone, inline-signing, policy inherited.
+		inline-signing yes;
 	};
 };
 
