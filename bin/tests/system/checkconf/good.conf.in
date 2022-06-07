@@ -103,6 +103,7 @@ view "first" {
 	zone "clone" {
 		type primary;
 		file "yyy";
+		inline-signing yes;
 		max-ixfr-ratio unlimited;
 	};
 	dnssec-validation auto;
@@ -166,9 +167,12 @@ view "third" {
 	zone "p" {
 		type primary;
 		file "pfile";
+		inline-signing yes;
 	};
 	zone "s" {
 		type secondary;
+		file "sfile";
+		inline-signing yes;
 		primaries {
 			1.2.3.4;
 		};
@@ -179,6 +183,7 @@ view "fourth" {
 	zone "dnssec-test" {
 		type primary;
 		file "dnssec-test.db";
+		inline-signing yes;
 		parental-agents {
 			1.2.3.4;
 			1.2.3.5;
@@ -189,6 +194,7 @@ view "fourth" {
 	zone "dnssec-default" {
 		type primary;
 		file "dnssec-default.db";
+		inline-signing yes;
 		parental-agents {
 			"parents";
 		};
@@ -197,6 +203,7 @@ view "fourth" {
 	zone "dnssec-inherit" {
 		type primary;
 		file "dnssec-inherit.db";
+		inline-signing yes;
 	};
 	zone "dnssec-none" {
 		type primary;
@@ -206,11 +213,13 @@ view "fourth" {
 	zone "dnssec-view1" {
 		type primary;
 		file "dnssec-view41.db";
+		inline-signing yes;
 		dnssec-policy "test";
 	};
 	zone "dnssec-view2" {
 		type primary;
 		file "dnssec-view42.db";
+		inline-signing yes;
 	};
 	zone "dnssec-view3" {
 		type primary;
@@ -230,17 +239,20 @@ view "fifth" {
 	zone "dnssec-view1" {
 		type primary;
 		file "dnssec-view51.db";
+		inline-signing yes;
 		dnssec-policy "test";
 	};
 	zone "dnssec-view2" {
 		type primary;
 		file "dnssec-view52.db";
+		inline-signing yes;
 		dnssec-policy "test";
 		key-directory "keys";
 	};
 	zone "dnssec-view3" {
 		type primary;
 		file "dnssec-view53.db";
+		inline-signing yes;
 		dnssec-policy "default";
 		key-directory "keys";
 	};
@@ -255,6 +267,7 @@ view "chaos" chaos {
 	zone "hostname.bind" chaos {
 		type primary;
 		database "_builtin hostname";
+		inline-signing yes;
 	};
 };
 dyndb "name" "library.so" {

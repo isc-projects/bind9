@@ -55,6 +55,7 @@ controls {
 zone "nsec-to-nsec3.kasp" {
 	type primary;
 	file "nsec-to-nsec3.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec";
 };
 
@@ -62,6 +63,7 @@ zone "nsec-to-nsec3.kasp" {
 zone "nsec3.kasp" {
 	type primary;
 	file "nsec3.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec3";
 };
 
@@ -76,6 +78,7 @@ zone "nsec3-dynamic.kasp" {
 zone "nsec3-other.kasp" {
 	type primary;
 	file "nsec3-other.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec3-other";
 };
 
@@ -83,6 +86,7 @@ zone "nsec3-other.kasp" {
 zone "nsec3-change.kasp" {
 	type primary;
 	file "nsec3-change.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec3";
 };
 
@@ -97,6 +101,7 @@ zone "nsec3-dynamic-change.kasp" {
 zone "nsec3-to-optout.kasp" {
 	type primary;
 	file "nsec3-to-optout.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec3";
 };
 
@@ -104,6 +109,7 @@ zone "nsec3-to-optout.kasp" {
 zone "nsec3-from-optout.kasp" {
 	type primary;
 	file "nsec3-from-optout.kasp.db";
+	inline-signing yes;
 	dnssec-policy "optout";
 };
 
@@ -111,6 +117,7 @@ zone "nsec3-from-optout.kasp" {
 zone "nsec3-to-nsec.kasp" {
 	type primary;
 	file "nsec3-to-nsec.kasp.db";
+	inline-signing yes;
 	dnssec-policy "nsec3";
 };
 

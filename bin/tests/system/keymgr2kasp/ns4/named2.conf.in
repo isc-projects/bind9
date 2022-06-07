@@ -72,6 +72,7 @@ view "ext" {
 	zone "view-rsasha256.kasp" {
 		type primary;
 		file "view-rsasha256.kasp.ext.db";
+		inline-signing yes;
 		dnssec-policy "rsasha256";
 	};
 };
@@ -82,6 +83,7 @@ view "int" {
 	zone "view-rsasha256.kasp" {
 		type primary;
 		file "view-rsasha256.kasp.int.db";
+		inline-signing yes;
 		dnssec-policy "rsasha256";
 	};
 };
