@@ -2341,7 +2341,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	const char *target = NULL;
 	unsigned int ztype;
 	const cfg_obj_t *zoptions, *goptions = NULL;
-	const cfg_obj_t *obj = NULL;
+	const cfg_obj_t *obj = NULL, *kasp = NULL;
 	const cfg_obj_t *inviewobj = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -2630,6 +2630,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					result = ISC_R_FAILURE;
 				}
 			}
+		}
+		if (has_dnssecpolicy) {
+			kasp = obj;
 		}
 	}
 
@@ -2928,12 +2931,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if (res1 == ISC_R_SUCCESS) {
 			signing = cfg_obj_asboolean(obj);
-			if (has_dnssecpolicy && !ddns && !signing) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'inline-signing;' cannot be set "
-					    "to 'no' "
-					    "if dnssec-policy is also set on a "
-					    "non-dynamic DNS zone");
+		}
+
+		if (has_dnssecpolicy) {
+			if (!ddns && !signing) {
+				cfg_obj_log(kasp, logctx, ISC_LOG_ERROR,
+					    "'dnssec-policy;' requires%s "
+					    "inline-signing to be configured "
+					    "for the zone",
+					    (ztype == CFG_ZONE_PRIMARY)
+						    ? " dynamic DNS or"
+						    : "");
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -2945,7 +2953,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			arg = cfg_obj_asstring(obj);
 		}
 		if (strcasecmp(arg, "off") != 0) {
-			if (!ddns && !signing && strcasecmp(arg, "off") != 0) {
+			if (!ddns && !signing && !has_dnssecpolicy) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' requires%s "
 					    "inline-signing to be configured "
@@ -2957,7 +2965,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				result = ISC_R_FAILURE;
 			}
 
-			if (strcasecmp(arg, "off") != 0 && has_dnssecpolicy) {
+			if (has_dnssecpolicy) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "'auto-dnssec %s;' cannot be "
 					    "configured if dnssec-policy is "
