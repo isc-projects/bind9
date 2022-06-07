@@ -160,14 +160,14 @@ To enable ``NSEC3``, add an ``nsec3param`` option to your DNSSEC Policy:
 ::
 
     dnssec-policy "nsec3" {
-        nsec3param iterations 5 optout yes salt-length 8;
+        nsec3param iterations 0 optout no salt-length 0;
     };
 
 ..
 
 The ``nsec3`` policy above creates ``NSEC3`` records using the SHA-1 hash
-algorithm, using 5 iterations and a salt that is 8 characters long. It also
-skips insecure delegations.
+algorithm, using zero extra iterations and no salt. ``optout`` is disabled,
+meaning insecure delegations will also get an ``NSEC3`` record.
 
 The ``NSEC3`` chain is generated and the ``NSEC3PARAM`` record is added before
 the existing ``NSEC`` chain (if any) is destroyed.
