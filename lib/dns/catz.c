@@ -1949,9 +1949,6 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			}
 		next:
 			dns_rdataset_disassociate(&rdataset);
-			if (result != ISC_R_SUCCESS) {
-				break;
-			}
 			result = dns_rdatasetiter_next(rdsiter);
 		}
 
