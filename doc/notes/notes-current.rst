@@ -35,7 +35,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Zones using ``dnssec-policy`` now require dynamic DNS or
+  ``inline-signing`` to be configured explicitly :gl:`#3381`.
 
 Bug Fixes
 ~~~~~~~~~
