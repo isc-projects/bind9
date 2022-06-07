@@ -855,9 +855,9 @@ name server. However, BIND 9 may use it for its system test
 environment, and in some cases for generating source or documentation
 files which are then committed to to the git repository.
 
-For Python coding, we abide by the Python style guidelines described
-in [PEP8](http://www.python.org/dev/peps/pep-0008/), with a few
-modifications:
+For Python coding, we enforce a common codestyle using the tool
+[black](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)
+There are also a few other requirements:
 
 * The `__init__()` method should always be the first one declared in a
   class definition, like so:
