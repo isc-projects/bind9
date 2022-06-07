@@ -31,8 +31,10 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+
 def endswith(domain, labels):
     return domain.endswith("." + labels) or domain == labels
+
 
 ############################################################################
 # Respond to a DNS query.
@@ -55,7 +57,7 @@ def create_response(msg):
     m = dns.message.from_wire(msg)
     qname = m.question[0].name.to_text()
     lqname = qname.lower()
-    labels = lqname.split('.')
+    labels = lqname.split(".")
 
     # get qtype
     rrtype = m.question[0].rdtype
@@ -102,30 +104,54 @@ def create_response(msg):
             elif rrtype == NS:
                 # NS a.b.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
-                r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3"))
+                r.additional.append(
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
+                )
                 r.flags |= dns.flags.AA
             elif rrtype == SOA:
                 # SOA a.b.
-                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.answer.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                    )
+                )
                 r.flags |= dns.flags.AA
             else:
                 # NODATA.
-                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.authority.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                    )
+                )
         elif lqname == "b.stale.":
             if rrtype == NS:
                 # NS b.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.b.stale."))
-                r.additional.append(dns.rrset.from_text("ns.b.stale.", 1, IN, A, "10.53.0.4"))
+                r.additional.append(
+                    dns.rrset.from_text("ns.b.stale.", 1, IN, A, "10.53.0.4")
+                )
                 r.flags |= dns.flags.AA
             elif rrtype == SOA:
                 # SOA b.
-                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+                r.answer.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"
+                    )
+                )
                 r.flags |= dns.flags.AA
             else:
                 # NODATA.
-                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+                r.authority.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"
+                    )
+                )
         else:
-            r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"))
+            r.authority.append(
+                dns.rrset.from_text(
+                    lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"
+                )
+            )
             r.set_rcode(NXDOMAIN)
             # NXDOMAIN.
         return r
@@ -141,24 +167,67 @@ def create_response(msg):
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, A, "192.0.2.2"))
         r.flags |= dns.flags.AA
     elif lqname == "icky.ptang.zoop.boing." and rrtype == NS:
-        r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "a.bit.longer.ns.name."+suffix))
+        r.answer.append(
+            dns.rrset.from_text(
+                lqname + suffix, 1, IN, NS, "a.bit.longer.ns.name." + suffix
+            )
+        )
         r.flags |= dns.flags.AA
     elif endswith(lqname, "icky.ptang.zoop.boing."):
-        r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
+        r.authority.append(
+            dns.rrset.from_text(
+                "icky.ptang.zoop.boing." + suffix,
+                1,
+                IN,
+                SOA,
+                "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+            )
+        )
         if bad or not endswith("more.icky.icky.icky.ptang.zoop.boing.", lqname):
             r.set_rcode(NXDOMAIN)
         if ugly:
             r.set_rcode(FORMERR)
     elif ip6req:
         r.flags |= dns.flags.AA
-        if lqname == "test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa." and rrtype == TXT:
-            r.answer.append(dns.rrset.from_text("test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 1, IN, TXT, "long_ip6_name"))
-        elif endswith("0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", lqname):
-            #NODATA answer
-            r.authority.append(dns.rrset.from_text("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, SOA, "ns4.good. hostmaster.arpa. 2018050100 120 30 320 16"))
+        if (
+            lqname
+            == "test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa."
+            and rrtype == TXT
+        ):
+            r.answer.append(
+                dns.rrset.from_text(
+                    "test1.test2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.",
+                    1,
+                    IN,
+                    TXT,
+                    "long_ip6_name",
+                )
+            )
+        elif endswith(
+            "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.9.4.1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.",
+            lqname,
+        ):
+            # NODATA answer
+            r.authority.append(
+                dns.rrset.from_text(
+                    "1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.",
+                    60,
+                    IN,
+                    SOA,
+                    "ns4.good. hostmaster.arpa. 2018050100 120 30 320 16",
+                )
+            )
         else:
             # NXDOMAIN
-            r.authority.append(dns.rrset.from_text("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, SOA, "ns4.good. hostmaster.arpa. 2018050100 120 30 320 16"))
+            r.authority.append(
+                dns.rrset.from_text(
+                    "1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.",
+                    60,
+                    IN,
+                    SOA,
+                    "ns4.good. hostmaster.arpa. 2018050100 120 30 320 16",
+                )
+            )
             r.set_rcode(NXDOMAIN)
     else:
         r.set_rcode(REFUSED)
@@ -169,10 +238,11 @@ def create_response(msg):
 
 
 def sigterm(signum, frame):
-    print ("Shutting down now...")
-    os.remove('ans.pid')
+    print("Shutting down now...")
+    os.remove("ans.pid")
     running = False
     sys.exit(0)
+
 
 ############################################################################
 # Main
@@ -184,8 +254,10 @@ def sigterm(signum, frame):
 ip4 = "10.53.0.4"
 ip6 = "fd92:7065:b8e:ffff::4"
 
-try: port=int(os.environ['PORT'])
-except: port=5300
+try:
+    port = int(os.environ["PORT"])
+except:
+    port = 5300
 
 query4_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 query4_socket.bind((ip4, port))
@@ -203,17 +275,17 @@ except:
 
 signal.signal(signal.SIGTERM, sigterm)
 
-f = open('ans.pid', 'w')
+f = open("ans.pid", "w")
 pid = os.getpid()
-print (pid, file=f)
+print(pid, file=f)
 f.close()
 
 running = True
 
-print ("Listening on %s port %d" % (ip4, port))
+print("Listening on %s port %d" % (ip4, port))
 if havev6:
-    print ("Listening on %s port %d" % (ip6, port))
-print ("Ctrl-c to quit")
+    print("Listening on %s port %d" % (ip6, port))
+print("Ctrl-c to quit")
 
 if havev6:
     input = [query4_socket, query6_socket]
@@ -232,8 +304,9 @@ while running:
 
     for s in inputready:
         if s == query4_socket or s == query6_socket:
-            print ("Query received on %s" %
-                    (ip4 if s == query4_socket else ip6), end=" ")
+            print(
+                "Query received on %s" % (ip4 if s == query4_socket else ip6), end=" "
+            )
             # Handle incoming queries
             msg = s.recvfrom(65535)
             rsp = create_response(msg[0])

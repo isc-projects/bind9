@@ -28,17 +28,18 @@ try:
 except ImportError:
     # pylint: disable=too-few-public-methods
     class ReferenceRole(roles.GenericRole):
-        '''
+        """
         The ReferenceRole class (used as a base class by GitLabRefRole
         below) is only defined in Sphinx >= 2.0.0.  For older Sphinx
         versions, this stub version of the ReferenceRole class is used
         instead.
-        '''
+        """
+
         def __init__(self):
-            super().__init__('', nodes.strong)
+            super().__init__("", nodes.strong)
 
 
-GITLAB_BASE_URL = 'https://gitlab.isc.org/isc-projects/bind9/-/'
+GITLAB_BASE_URL = "https://gitlab.isc.org/isc-projects/bind9/-/"
 
 
 # Custom Sphinx role enabling automatic hyperlinking to GitLab issues/MRs.
@@ -48,25 +49,26 @@ class GitLabRefRole(ReferenceRole):
         super().__init__()
 
     def run(self) -> Tuple[List[Node], List[system_message]]:
-        gl_identifier = '[GL %s]' % self.target
+        gl_identifier = "[GL %s]" % self.target
 
-        target_id = 'index-%s' % self.env.new_serialno('index')
-        entries = [('single', 'GitLab; ' + gl_identifier, target_id, '', None)]
+        target_id = "index-%s" % self.env.new_serialno("index")
+        entries = [("single", "GitLab; " + gl_identifier, target_id, "", None)]
 
         index = addnodes.index(entries=entries)
-        target = nodes.target('', '', ids=[target_id])
+        target = nodes.target("", "", ids=[target_id])
         self.inliner.document.note_explicit_target(target)
 
         try:
             refuri = self.build_uri()
-            reference = nodes.reference('', '', internal=False, refuri=refuri,
-                                        classes=['gl'])
+            reference = nodes.reference(
+                "", "", internal=False, refuri=refuri, classes=["gl"]
+            )
             if self.has_explicit_title:
                 reference += nodes.strong(self.title, self.title)
             else:
                 reference += nodes.strong(gl_identifier, gl_identifier)
         except ValueError:
-            error_text = 'invalid GitLab identifier %s' % self.target
+            error_text = "invalid GitLab identifier %s" % self.target
             msg = self.inliner.reporter.error(error_text, line=self.lineno)
             prb = self.inliner.problematic(self.rawtext, self.rawtext, msg)
             return [prb], [msg]
@@ -74,16 +76,17 @@ class GitLabRefRole(ReferenceRole):
         return [index, target, reference], []
 
     def build_uri(self):
-        if self.target[0] == '#':
-            return self.base_url + 'issues/%d' % int(self.target[1:])
-        if self.target[0] == '!':
-            return self.base_url + 'merge_requests/%d' % int(self.target[1:])
+        if self.target[0] == "#":
+            return self.base_url + "issues/%d" % int(self.target[1:])
+        if self.target[0] == "!":
+            return self.base_url + "merge_requests/%d" % int(self.target[1:])
         raise ValueError
 
 
 def setup(app):
-    roles.register_local_role('gl', GitLabRefRole(GITLAB_BASE_URL))
-    app.add_crossref_type('iscman', 'iscman', 'pair: %s; manual page')
+    roles.register_local_role("gl", GitLabRefRole(GITLAB_BASE_URL))
+    app.add_crossref_type("iscman", "iscman", "pair: %s; manual page")
+
 
 #
 # Configuration file for the Sphinx documentation builder.
@@ -105,23 +108,25 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 
-project = 'BIND 9'
+project = "BIND 9"
 # pylint: disable=redefined-builtin
-copyright = '2022, Internet Systems Consortium'
-author = 'Internet Systems Consortium'
+copyright = "2022, Internet Systems Consortium"
+author = "Internet Systems Consortium"
 
 m4_vars = {}
-with open('../../configure.ac', encoding='utf-8') as configure_ac:
+with open("../../configure.ac", encoding="utf-8") as configure_ac:
     for line in configure_ac:
-        match = re.match(r'm4_define\(\[(?P<key>bind_VERSION_[A-Z]+)\], (?P<val>[^)]*)\)dnl', line)
+        match = re.match(
+            r"m4_define\(\[(?P<key>bind_VERSION_[A-Z]+)\], (?P<val>[^)]*)\)dnl", line
+        )
         if match:
-            m4_vars[match.group('key')] = match.group('val')
+            m4_vars[match.group("key")] = match.group("val")
 
-version = '%s.%s.%s%s' % (
-    m4_vars['bind_VERSION_MAJOR'],
-    m4_vars['bind_VERSION_MINOR'],
-    m4_vars['bind_VERSION_PATCH'],
-    m4_vars['bind_VERSION_EXTRA'],
+version = "%s.%s.%s%s" % (
+    m4_vars["bind_VERSION_MAJOR"],
+    m4_vars["bind_VERSION_MINOR"],
+    m4_vars["bind_VERSION_PATCH"],
+    m4_vars["bind_VERSION_EXTRA"],
 )
 release = version
 
@@ -133,43 +138,42 @@ release = version
 extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [
-    '_build',
-    'Thumbs.db',
-    '.DS_Store',
-    '*.inc.rst'
-    ]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "*.inc.rst"]
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
-html_css_files = [
-    'custom.css'
-]
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # -- Options for EPUB output -------------------------------------------------
 
-epub_basename = 'Bv9ARM'
+epub_basename = "Bv9ARM"
 
 # -- Options for LaTeX output ------------------------------------------------
-latex_engine = 'xelatex'
+latex_engine = "xelatex"
 
 # pylint disable=line-too-long
 latex_documents = [
-    (master_doc, 'Bv9ARM.tex', 'BIND 9 Administrator Reference Manual', author, 'manual'),
-    ]
+    (
+        master_doc,
+        "Bv9ARM.tex",
+        "BIND 9 Administrator Reference Manual",
+        author,
+        "manual",
+    ),
+]
 
 latex_logo = "isc-logo.pdf"
 

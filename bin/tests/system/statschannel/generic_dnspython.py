@@ -20,8 +20,9 @@ TIMEOUT = 10
 
 
 def create_msg(qname, qtype):
-    msg = dns.message.make_query(qname, qtype, want_dnssec=True,
-                                 use_edns=0, payload=4096)
+    msg = dns.message.make_query(
+        qname, qtype, want_dnssec=True, use_edns=0, payload=4096
+    )
 
     return msg
 
@@ -43,15 +44,16 @@ def tcp_query(ip, port, msg):
 
 
 def create_expected(data):
-    expected = {"dns-tcp-requests-sizes-received-ipv4": defaultdict(int),
-                "dns-tcp-responses-sizes-sent-ipv4": defaultdict(int),
-                "dns-tcp-requests-sizes-received-ipv6": defaultdict(int),
-                "dns-tcp-responses-sizes-sent-ipv6": defaultdict(int),
-                "dns-udp-requests-sizes-received-ipv4": defaultdict(int),
-                "dns-udp-requests-sizes-received-ipv6": defaultdict(int),
-                "dns-udp-responses-sizes-sent-ipv4": defaultdict(int),
-                "dns-udp-responses-sizes-sent-ipv6": defaultdict(int),
-                }
+    expected = {
+        "dns-tcp-requests-sizes-received-ipv4": defaultdict(int),
+        "dns-tcp-responses-sizes-sent-ipv4": defaultdict(int),
+        "dns-tcp-requests-sizes-received-ipv6": defaultdict(int),
+        "dns-tcp-responses-sizes-sent-ipv6": defaultdict(int),
+        "dns-udp-requests-sizes-received-ipv4": defaultdict(int),
+        "dns-udp-requests-sizes-received-ipv6": defaultdict(int),
+        "dns-udp-responses-sizes-sent-ipv4": defaultdict(int),
+        "dns-udp-responses-sizes-sent-ipv6": defaultdict(int),
+    }
 
     for k, v in data.items():
         for kk, vv in v.items():
@@ -89,9 +91,9 @@ def check_traffic(data, expected):
 
 def test_traffic(fetch_traffic, **kwargs):
 
-    statsip = kwargs['statsip']
-    statsport = kwargs['statsport']
-    port = kwargs['port']
+    statsip = kwargs["statsip"]
+    statsport = kwargs["statsport"]
+    port = kwargs["port"]
 
     data = fetch_traffic(statsip, statsport)
     exp = create_expected(data)

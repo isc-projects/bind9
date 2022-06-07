@@ -12,5 +12,6 @@
 # information regarding copyright ownership.
 
 import ssl
+
 version = ssl.OPENSSL_VERSION_INFO
 print(version[0], version[1], version[2])

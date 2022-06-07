@@ -76,9 +76,7 @@ def walk_trss(source_dir):
 
             # try to find dir/file path for a clickable link
             try:
-                t["rel_file_path"] = find_test_relative_path(
-                    source_dir, test_name
-                )
+                t["rel_file_path"] = find_test_relative_path(source_dir, test_name)
             except KeyError:
                 pass  # no existing path found
 

@@ -31,8 +31,10 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+
 def endswith(domain, labels):
     return domain.endswith("." + labels) or domain == labels
+
 
 ############################################################################
 # Respond to a DNS query.
@@ -54,7 +56,7 @@ def create_response(msg):
     m = dns.message.from_wire(msg)
     qname = m.question[0].name.to_text()
     lqname = qname.lower()
-    labels = lqname.split('.')
+    labels = lqname.split(".")
 
     # get qtype
     rrtype = m.question[0].rdtype
@@ -101,17 +103,31 @@ def create_response(msg):
             elif rrtype == NS:
                 # NS a.b.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
-                r.additional.append(dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3"))
+                r.additional.append(
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
+                )
                 r.flags |= dns.flags.AA
             elif rrtype == SOA:
                 # SOA a.b.
-                r.answer.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.answer.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                    )
+                )
                 r.flags |= dns.flags.AA
             else:
                 # NODATA.
-                r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+                r.authority.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                    )
+                )
         else:
-            r.authority.append(dns.rrset.from_text(lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"))
+            r.authority.append(
+                dns.rrset.from_text(
+                    lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                )
+            )
             r.set_rcode(NXDOMAIN)
             # NXDOMAIN.
         return r
@@ -121,21 +137,51 @@ def create_response(msg):
 
     # Good/bad differs only in how we treat non-empty terminals
     if lqname == "zoop.boing." and rrtype == NS:
-        r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "ns3."+suffix))
+        r.answer.append(
+            dns.rrset.from_text(lqname + suffix, 1, IN, NS, "ns3." + suffix)
+        )
         r.flags |= dns.flags.AA
     elif endswith(lqname, "icky.ptang.zoop.boing."):
-        r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, NS, "a.bit.longer.ns.name." + suffix))
+        r.authority.append(
+            dns.rrset.from_text(
+                "icky.ptang.zoop.boing." + suffix,
+                1,
+                IN,
+                NS,
+                "a.bit.longer.ns.name." + suffix,
+            )
+        )
     elif endswith("icky.ptang.zoop.boing.", lqname):
-        r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
+        r.authority.append(
+            dns.rrset.from_text(
+                "zoop.boing." + suffix,
+                1,
+                IN,
+                SOA,
+                "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+            )
+        )
         if bad:
             r.set_rcode(NXDOMAIN)
         if ugly:
             r.set_rcode(FORMERR)
     elif endswith(lqname, "zoop.boing."):
-        r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
+        r.authority.append(
+            dns.rrset.from_text(
+                "zoop.boing." + suffix,
+                1,
+                IN,
+                SOA,
+                "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+            )
+        )
         r.set_rcode(NXDOMAIN)
     elif ip6req:
-        r.authority.append(dns.rrset.from_text("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, NS, "ns4.good."))
+        r.authority.append(
+            dns.rrset.from_text(
+                "1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", 60, IN, NS, "ns4.good."
+            )
+        )
         r.additional.append(dns.rrset.from_text("ns4.good.", 60, IN, A, "10.53.0.4"))
     else:
         r.set_rcode(REFUSED)
@@ -146,10 +192,11 @@ def create_response(msg):
 
 
 def sigterm(signum, frame):
-    print ("Shutting down now...")
-    os.remove('ans.pid')
+    print("Shutting down now...")
+    os.remove("ans.pid")
     running = False
     sys.exit(0)
+
 
 ############################################################################
 # Main
@@ -161,8 +208,10 @@ def sigterm(signum, frame):
 ip4 = "10.53.0.3"
 ip6 = "fd92:7065:b8e:ffff::3"
 
-try: port=int(os.environ['PORT'])
-except: port=5300
+try:
+    port = int(os.environ["PORT"])
+except:
+    port = 5300
 
 query4_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 query4_socket.bind((ip4, port))
@@ -180,17 +229,17 @@ except:
 
 signal.signal(signal.SIGTERM, sigterm)
 
-f = open('ans.pid', 'w')
+f = open("ans.pid", "w")
 pid = os.getpid()
-print (pid, file=f)
+print(pid, file=f)
 f.close()
 
 running = True
 
-print ("Listening on %s port %d" % (ip4, port))
+print("Listening on %s port %d" % (ip4, port))
 if havev6:
-    print ("Listening on %s port %d" % (ip6, port))
-print ("Ctrl-c to quit")
+    print("Listening on %s port %d" % (ip6, port))
+print("Ctrl-c to quit")
 
 if havev6:
     input = [query4_socket, query6_socket]
@@ -209,8 +258,9 @@ while running:
 
     for s in inputready:
         if s == query4_socket or s == query6_socket:
-            print ("Query received on %s" %
-                    (ip4 if s == query4_socket else ip6), end=" ")
+            print(
+                "Query received on %s" % (ip4 if s == query4_socket else ip6), end=" "
+            )
             # Handle incoming queries
             msg = s.recvfrom(65535)
             rsp = create_response(msg[0])
