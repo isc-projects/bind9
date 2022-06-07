@@ -45,19 +45,21 @@ from hypothesis.strategies import binary, integers
 
 
 # labels of a zone with * A 192.0.2.1 wildcard
-WILDCARD_ZONE = ('allwild', 'test', '')
+WILDCARD_ZONE = ("allwild", "test", "")
 WILDCARD_RDTYPE = dns.rdatatype.A
-WILDCARD_RDATA = '192.0.2.1'
-IPADDR = '10.53.0.1'
+WILDCARD_RDATA = "192.0.2.1"
+IPADDR = "10.53.0.1"
 TIMEOUT = 5  # seconds, just a sanity check
 
 
 # Helpers
 def is_nonexpanding_rdtype(rdtype):
     """skip meta types to avoid weird rcodes caused by AXFR etc.; RFC 6895"""
-    return not(rdtype == WILDCARD_RDTYPE
-               or dns.rdatatype.is_metatype(rdtype)  # known metatypes: OPT ...
-               or 128 <= rdtype <= 255)  # unknown meta types
+    return not (
+        rdtype == WILDCARD_RDTYPE
+        or dns.rdatatype.is_metatype(rdtype)  # known metatypes: OPT ...
+        or 128 <= rdtype <= 255
+    )  # unknown meta types
 
 
 def tcp_query(where, port, qname, qtype):
@@ -67,15 +69,16 @@ def tcp_query(where, port, qname, qtype):
 
 
 def query(where, port, label, rdtype):
-    labels = (label, ) + WILDCARD_ZONE
+    labels = (label,) + WILDCARD_ZONE
     qname = dns.name.Name(labels)
     return tcp_query(where, port, qname, rdtype)
 
 
 # Tests
-@given(label=binary(min_size=1, max_size=63),
-       rdtype=integers(min_value=0, max_value=65535).filter(
-           is_nonexpanding_rdtype))
+@given(
+    label=binary(min_size=1, max_size=63),
+    rdtype=integers(min_value=0, max_value=65535).filter(is_nonexpanding_rdtype),
+)
 def test_wildcard_rdtype_mismatch(label, rdtype, named_port):
     """any label non-matching rdtype must result in to NODATA"""
     check_answer_nodata(*query(IPADDR, named_port, label, rdtype))
@@ -97,10 +100,13 @@ def check_answer_noerror(querymsg, answer):
     assert querymsg.is_response(answer), str(answer)
     assert answer.rcode() == dns.rcode.NOERROR, str(answer)
     assert len(querymsg.question) == 1, str(answer)
-    expected_answer = [dns.rrset.from_text(
-                            querymsg.question[0].name,
-                            300,  # TTL, ignored by dnspython comparison
-                            dns.rdataclass.IN,
-                            WILDCARD_RDTYPE,
-                            WILDCARD_RDATA)]
+    expected_answer = [
+        dns.rrset.from_text(
+            querymsg.question[0].name,
+            300,  # TTL, ignored by dnspython comparison
+            dns.rdataclass.IN,
+            WILDCARD_RDTYPE,
+            WILDCARD_RDATA,
+        )
+    ]
     assert answer.answer == expected_answer, str(answer)

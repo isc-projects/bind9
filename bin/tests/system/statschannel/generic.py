@@ -14,7 +14,7 @@ import os
 
 
 # ISO datetime format without msec
-fmt = '%Y-%m-%dT%H:%M:%SZ'
+fmt = "%Y-%m-%dT%H:%M:%SZ"
 
 # The constants were taken from BIND 9 source code (lib/dns/zone.c)
 max_refresh = timedelta(seconds=2419200)  # 4 weeks
@@ -71,9 +71,9 @@ def zone_mtime(zonedir, name):
 
 def test_zone_timers_primary(fetch_zones, load_timers, **kwargs):
 
-    statsip = kwargs['statsip']
-    statsport = kwargs['statsport']
-    zonedir = kwargs['zonedir']
+    statsip = kwargs["statsip"]
+    statsport = kwargs["statsport"]
+    zonedir = kwargs["zonedir"]
 
     zones = fetch_zones(statsip, statsport)
 
@@ -85,9 +85,9 @@ def test_zone_timers_primary(fetch_zones, load_timers, **kwargs):
 
 def test_zone_timers_secondary(fetch_zones, load_timers, **kwargs):
 
-    statsip = kwargs['statsip']
-    statsport = kwargs['statsport']
-    zonedir = kwargs['zonedir']
+    statsip = kwargs["statsip"]
+    statsport = kwargs["statsport"]
+    zonedir = kwargs["zonedir"]
 
     zones = fetch_zones(statsip, statsport)
 
@@ -99,12 +99,12 @@ def test_zone_timers_secondary(fetch_zones, load_timers, **kwargs):
 
 def test_zone_with_many_keys(fetch_zones, load_zone, **kwargs):
 
-    statsip = kwargs['statsip']
-    statsport = kwargs['statsport']
+    statsip = kwargs["statsip"]
+    statsport = kwargs["statsport"]
 
     zones = fetch_zones(statsip, statsport)
 
     for zone in zones:
         name = load_zone(zone)
-        if name == 'manykeys':
+        if name == "manykeys":
             check_manykeys(name)
