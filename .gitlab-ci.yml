@@ -460,6 +460,14 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+pylint:
+  <<: *precheck_job
+  needs: []
+  script:
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
+      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
+
 reuse:
   <<: *precheck_job
   needs: []
@@ -479,19 +487,6 @@ danger:
       - merge_requests
     variables:
       - $DANGER_GITLAB_API_TOKEN
-
-pylint:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
-  script:
-    - *configure
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
-      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
 
 tarball-create:
   stage: precheck
