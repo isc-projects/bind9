@@ -35,7 +35,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Zones using ``dnssec-policy`` now require dynamic DNS or
+  ``inline-signing`` to be configured explicitly :gl:`#3381`.
 
 - When reconfiguring ``dnssec-policy`` from using NSEC with an NSEC-only DNSKEY
   algorithm (e.g. RSASHA1) to a policy that uses NSEC3, BIND will no longer fail
