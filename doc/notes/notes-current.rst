@@ -35,7 +35,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Zones using ``dnssec-policy`` now require dynamic DNS or
+  ``inline-signing`` to be configured explicitly :gl:`#3381`.
 
 - Implement a backwards compatible approach for encoding the internationalized
   domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
