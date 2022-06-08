@@ -32,7 +32,7 @@ def port():
 
 def udp_listen(port):
     udp = socket.socket(type=socket.SOCK_DGRAM)
-    udp.bind(('10.53.0.3', port))
+    udp.bind(("10.53.0.3", port))
 
     return udp
 
@@ -40,7 +40,7 @@ def udp_listen(port):
 def tcp_listen(port):
     tcp = socket.socket(type=socket.SOCK_STREAM)
     tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    tcp.bind(('10.53.0.3', port))
+    tcp.bind(("10.53.0.3", port))
     tcp.listen(100)
 
     return tcp
@@ -62,12 +62,12 @@ def tcp_once(tcp):
 
 
 def sigterm(signum, frame):
-    os.remove('ans.pid')
+    os.remove("ans.pid")
     sys.exit(0)
 
 
 def write_pid():
-    with open('ans.pid', 'w') as f:
+    with open("ans.pid", "w") as f:
         pid = os.getpid()
         f.write("{}".format(pid))
 

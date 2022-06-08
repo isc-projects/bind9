@@ -36,7 +36,7 @@ if rlimit_nofile[0] < 1024:
 
 # Introduce some random delay
 def jitter():
-    time.sleep((500 + random.randint(0, 250))/1000000.0)
+    time.sleep((500 + random.randint(0, 250)) / 1000000.0)
 
 
 # A set of simple procedures to get the test's configuration options
@@ -77,8 +77,9 @@ class TCPConnector:
         tries = CONNECT_TRIES
         while tries > 0:
             try:
-                sock = socket.create_connection(address=(self.host, self.port),
-                                                timeout=None)
+                sock = socket.create_connection(
+                    address=(self.host, self.port), timeout=None
+                )
                 self.connections.append(sock)
                 break
             except ConnectionResetError:
@@ -137,9 +138,10 @@ class SubDIG:
 
     def run(self):
         # pylint: disable=consider-using-with
-        with open(os.devnull, 'w', encoding='utf-8') as devnull:
-            self.sub_process = subprocess.Popen(self.get_command(), shell=True,
-                                                stdout=devnull)
+        with open(os.devnull, "w", encoding="utf-8") as devnull:
+            self.sub_process = subprocess.Popen(
+                self.get_command(), shell=True, stdout=devnull
+            )
 
     def wait(self, timeout=None):
         res = None
@@ -158,13 +160,11 @@ class SubDIG:
 # A simple wrapper class which allows running multiple dig instances
 # and examining their statuses in one logical operation.
 class MultiDIG:
-    def __init__(self, numdigs, http_secure=None,
-                 extra_args=None):
+    def __init__(self, numdigs, http_secure=None, extra_args=None):
         assert int(numdigs) > 0
         digs = []
         for _ in range(1, int(numdigs) + 1):
-            digs.append(SubDIG(http_secure=http_secure,
-                               extra_args=extra_args))
+            digs.append(SubDIG(http_secure=http_secure, extra_args=extra_args))
         self.digs = digs
         assert len(self.digs) == int(numdigs)
 
@@ -179,12 +179,11 @@ class MultiDIG:
     # status. Returns true or false.
     def wait_for_result(self, result):
         return reduce(
-            lambda a, b: ((a == result or a is True) and b == result),
-                      self.wait())
+            lambda a, b: ((a == result or a is True) and b == result), self.wait()
+        )
 
     def alive(self):
-        return reduce(lambda a, b: (a and b), map(lambda p: (p.alive()),
-                                                  self.digs))
+        return reduce(lambda a, b: (a and b), map(lambda p: (p.alive()), self.digs))
 
     def completed(self):
         total = 0
@@ -203,8 +202,7 @@ def run_test(http_secure=True):
     assert subdig.wait() == 0, "DIG was expected to succeed"
     # Let's create a lot of TCP connections to the server stress the
     # HTTP quota
-    connector = TCPConnector(get_http_host(),
-                             get_http_port(http_secure=http_secure))
+    connector = TCPConnector(get_http_host(), get_http_port(http_secure=http_secure))
     # Let's make queries until the quota kicks in
     subdig = SubDIG(http_secure=http_secure, extra_args=query_args)
     subdig.run()
@@ -218,25 +216,28 @@ def run_test(http_secure=True):
     # At this point quota has kicked in.  Additionally, let's create a
     # bunch of dig processes all trying to make a query against the
     # server with exceeded quota
-    multidig = MultiDIG(MULTIDIG_INSTANCES, http_secure=http_secure,
-                        extra_args=query_args)
+    multidig = MultiDIG(
+        MULTIDIG_INSTANCES, http_secure=http_secure, extra_args=query_args
+    )
     multidig.run()
     # Wait for the dig instance to complete. Not a single instance has
     # a chance to complete successfully because of the exceeded quota
-    assert subdig.wait(timeout=5) is None,\
-        "The single DIG instance has stopped prematurely"
+    assert (
+        subdig.wait(timeout=5) is None
+    ), "The single DIG instance has stopped prematurely"
     assert subdig.alive(), "The single DIG instance is expected to be alive"
-    assert multidig.alive(), \
-        ("The DIG instances from the set are all expected to "
-         "be alive, but {} of them have completed")\
-        .format(multidig.completed())
+    assert multidig.alive(), (
+        "The DIG instances from the set are all expected to "
+        "be alive, but {} of them have completed"
+    ).format(multidig.completed())
     # Let's close opened connections (in random order) to let all dig
     # processes to complete
     connector.disconnect_all()
     # Wait for all processes to complete successfully
     assert subdig.wait() == 0, "Single DIG instance failed"
-    assert multidig.wait_for_result(0) is True,\
-        "One or more of DIG instances returned unexpected results"
+    assert (
+        multidig.wait_for_result(0) is True
+    ), "One or more of DIG instances returned unexpected results"
 
 
 def main():

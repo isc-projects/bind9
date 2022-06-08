@@ -19,16 +19,18 @@ import pytest
 
 import generic
 
-pytestmark = pytest.mark.skipif(not os.environ.get('HAVEJSONSTATS'),
-                                reason='json-c support disabled in the build')
-requests = pytest.importorskip('requests')
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("HAVEJSONSTATS"), reason="json-c support disabled in the build"
+)
+requests = pytest.importorskip("requests")
 
 
 # JSON helper functions
 def fetch_zones_json(statsip, statsport):
 
-    r = requests.get("http://{}:{}/json/v1/zones".format(statsip, statsport),
-                     timeout=600)
+    r = requests.get(
+        "http://{}:{}/json/v1/zones".format(statsip, statsport), timeout=600
+    )
     assert r.status_code == 200
 
     data = r.json()
@@ -37,8 +39,9 @@ def fetch_zones_json(statsip, statsport):
 
 def fetch_traffic_json(statsip, statsport):
 
-    r = requests.get("http://{}:{}/json/v1/traffic".format(statsip, statsport),
-                     timeout=600)
+    r = requests.get(
+        "http://{}:{}/json/v1/traffic".format(statsip, statsport), timeout=600
+    )
     assert r.status_code == 200
 
     data = r.json()
@@ -48,52 +51,61 @@ def fetch_traffic_json(statsip, statsport):
 
 def load_timers_json(zone, primary=True):
 
-    name = zone['name']
+    name = zone["name"]
 
     # Check if the primary zone timer exists
-    assert 'loaded' in zone
-    loaded = datetime.strptime(zone['loaded'], generic.fmt)
+    assert "loaded" in zone
+    loaded = datetime.strptime(zone["loaded"], generic.fmt)
 
     if primary:
         # Check if the secondary zone timers does not exist
-        assert 'expires' not in zone
-        assert 'refresh' not in zone
+        assert "expires" not in zone
+        assert "refresh" not in zone
         expires = None
         refresh = None
     else:
-        assert 'expires' in zone
-        assert 'refresh' in zone
-        expires = datetime.strptime(zone['expires'], generic.fmt)
-        refresh = datetime.strptime(zone['refresh'], generic.fmt)
+        assert "expires" in zone
+        assert "refresh" in zone
+        expires = datetime.strptime(zone["expires"], generic.fmt)
+        refresh = datetime.strptime(zone["refresh"], generic.fmt)
 
     return (name, loaded, expires, refresh)
 
 
 def load_zone_json(zone):
-    name = zone['name']
+    name = zone["name"]
 
     return name
 
 
 def test_zone_timers_primary_json(statsport):
-    generic.test_zone_timers_primary(fetch_zones_json, load_timers_json,
-                                     statsip="10.53.0.1", statsport=statsport,
-                                     zonedir="ns1")
+    generic.test_zone_timers_primary(
+        fetch_zones_json,
+        load_timers_json,
+        statsip="10.53.0.1",
+        statsport=statsport,
+        zonedir="ns1",
+    )
 
 
 def test_zone_timers_secondary_json(statsport):
-    generic.test_zone_timers_secondary(fetch_zones_json, load_timers_json,
-                                       statsip="10.53.0.3", statsport=statsport,
-                                       zonedir="ns3")
+    generic.test_zone_timers_secondary(
+        fetch_zones_json,
+        load_timers_json,
+        statsip="10.53.0.3",
+        statsport=statsport,
+        zonedir="ns3",
+    )
 
 
 def test_zone_with_many_keys_json(statsport):
-    generic.test_zone_with_many_keys(fetch_zones_json, load_zone_json,
-                                     statsip="10.53.0.2", statsport=statsport)
+    generic.test_zone_with_many_keys(
+        fetch_zones_json, load_zone_json, statsip="10.53.0.2", statsport=statsport
+    )
 
 
 def test_traffic_json(named_port, statsport):
-    generic_dnspython = pytest.importorskip('generic_dnspython')
-    generic_dnspython.test_traffic(fetch_traffic_json,
-                                   statsip="10.53.0.2", statsport=statsport,
-                                   port=named_port)
+    generic_dnspython = pytest.importorskip("generic_dnspython")
+    generic_dnspython.test_traffic(
+        fetch_traffic_json, statsip="10.53.0.2", statsport=statsport, port=named_port
+    )

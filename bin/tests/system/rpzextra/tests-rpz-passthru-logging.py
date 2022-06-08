@@ -15,24 +15,24 @@ import os
 
 import pytest
 
-pytest.importorskip('dns')
+pytest.importorskip("dns")
 import dns.resolver
 
 
 def test_rpz_passthru_logging(named_port):
     resolver = dns.resolver.Resolver()
-    resolver.nameservers = ['10.53.0.1']
+    resolver.nameservers = ["10.53.0.1"]
     resolver.port = named_port
 
     # Should generate a log entry into rpz_passthru.txt
-    ans = resolver.query('allowed.', 'A')
+    ans = resolver.query("allowed.", "A")
     for rd in ans:
         assert rd.address == "10.53.0.2"
 
     # baddomain.com isn't allowed (CNAME .), should return NXDOMAIN
     # Should generate a log entry into rpz.txt
     with pytest.raises(dns.resolver.NXDOMAIN):
-        resolver.query('baddomain.', 'A')
+        resolver.query("baddomain.", "A")
 
     rpz_passthru_logfile = os.path.join("ns1", "rpz_passthru.txt")
     rpz_logfile = os.path.join("ns1", "rpz.txt")
@@ -40,11 +40,11 @@ def test_rpz_passthru_logging(named_port):
     assert os.path.isfile(rpz_passthru_logfile)
     assert os.path.isfile(rpz_logfile)
 
-    with open(rpz_passthru_logfile, encoding='utf-8') as log_file:
+    with open(rpz_passthru_logfile, encoding="utf-8") as log_file:
         line = log_file.read()
         assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" in line
 
-    with open(rpz_logfile, encoding='utf-8') as log_file:
+    with open(rpz_logfile, encoding="utf-8") as log_file:
         line = log_file.read()
         assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" not in line
         assert "rpz QNAME NXDOMAIN rewrite baddomain/A/IN" in line

@@ -18,7 +18,7 @@ import time
 
 import pytest
 
-pytest.importorskip('dns')
+pytest.importorskip("dns")
 import dns.exception
 import dns.message
 import dns.name
@@ -28,18 +28,28 @@ import dns.rdatatype
 
 def test_gnutls_cli_query(gnutls_cli_executable, named_tlsport):
     # Prepare the example/SOA query which will be sent over TLS.
-    query = dns.message.make_query('example.', dns.rdatatype.SOA)
+    query = dns.message.make_query("example.", dns.rdatatype.SOA)
     query_wire = query.to_wire()
-    query_with_length = struct.pack('>H', len(query_wire)) + query_wire
+    query_with_length = struct.pack(">H", len(query_wire)) + query_wire
 
     # Run gnutls-cli.
-    gnutls_cli_args = [gnutls_cli_executable, '--no-ca-verification', '-V',
-                       '--no-ocsp', '--alpn=dot', '--logfile=gnutls-cli.log',
-                       '--port=%d' % named_tlsport, '10.53.0.1']
-    with open('gnutls-cli.err', 'wb') as gnutls_cli_stderr, \
-         subprocess.Popen(gnutls_cli_args, stdin=subprocess.PIPE,
-                          stdout=subprocess.PIPE, stderr=gnutls_cli_stderr,
-                          bufsize=0) as gnutls_cli:
+    gnutls_cli_args = [
+        gnutls_cli_executable,
+        "--no-ca-verification",
+        "-V",
+        "--no-ocsp",
+        "--alpn=dot",
+        "--logfile=gnutls-cli.log",
+        "--port=%d" % named_tlsport,
+        "10.53.0.1",
+    ]
+    with open("gnutls-cli.err", "wb") as gnutls_cli_stderr, subprocess.Popen(
+        gnutls_cli_args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=gnutls_cli_stderr,
+        bufsize=0,
+    ) as gnutls_cli:
         # Send the example/SOA query to the standard input of gnutls-cli.  Do
         # not close standard input yet because that causes gnutls-cli to close
         # the TLS connection immediately, preventing the response from being
@@ -56,8 +66,8 @@ def test_gnutls_cli_query(gnutls_cli_executable, named_tlsport):
         selector = selectors.DefaultSelector()
         selector.register(gnutls_cli.stdout, selectors.EVENT_READ)
         deadline = time.time() + 10
-        gnutls_cli_output = b''
-        response = b''
+        gnutls_cli_output = b""
+        response = b""
         while not response and not gnutls_cli.poll():
             if not selector.select(timeout=deadline - time.time()):
                 break
@@ -80,16 +90,19 @@ def test_gnutls_cli_query(gnutls_cli_executable, named_tlsport):
             gnutls_cli.kill()
 
     # Store the response received for diagnostic purposes.
-    with open('gnutls-cli.out.bin', 'wb') as response_bin:
+    with open("gnutls-cli.out.bin", "wb") as response_bin:
         response_bin.write(gnutls_cli_output)
     if response:
-        with open('gnutls-cli.out.txt', 'w', encoding='utf-8') as response_txt:
+        with open("gnutls-cli.out.txt", "w", encoding="utf-8") as response_txt:
             response_txt.write(response.to_text())
 
     # Check whether a response was received and whether it is sane.
     assert response
     assert query.id == response.id
     assert len(response.answer) == 1
-    assert response.answer[0].match(dns.name.from_text('example.'),
-                                    dns.rdataclass.IN, dns.rdatatype.SOA,
-                                    dns.rdatatype.NONE)
+    assert response.answer[0].match(
+        dns.name.from_text("example."),
+        dns.rdataclass.IN,
+        dns.rdatatype.SOA,
+        dns.rdatatype.NONE,
+    )
