@@ -13,66 +13,69 @@
 
 DNSSEC
 ------
+DNS Security Extensions (DNSSEC) provide reliable protection from
+`cache poisoning`_ attacks. At the same time these extensions also provide other benefits: 
+they limit the impact of `random subdomain attacks`_ on resolver caches and authoritative
+servers, and provide the foundation for modern applications like `authenticated
+and private e-mail transfer`_.
 
-Cryptographic authentication of DNS information is possible through the
-DNS Security Extensions (DNSSEC), defined in :rfc:`4033`, :rfc:`4034`,
-and :rfc:`4035`. This section describes the creation and use of DNSSEC
-signed zones.
+To achieve this goal, DNSSEC adds `digital signatures`_ to DNS records in
+authoritative DNS zones, and DNS resolvers verify the validity of the signatures on the
+received records. If the signatures match the received data, the resolver can
+be sure that the data was not modified in transit.
 
-In order to set up a DNSSEC secure zone, there are a series of steps
-which must be followed. BIND 9 ships with several tools that are used in
-this process, which are explained in more detail below. In all cases,
-the ``-h`` option prints a full list of parameters. Note that the DNSSEC
-tools require the keyset files to be in the working directory or the
-directory specified by the ``-d`` option.
+.. note::
+   DNSSEC and transport-level encryption are complementary!
+   Unlike typical transport-level encryption like DNS-over-TLS, DNS-over-HTTPS,
+   or VPN, DNSSEC makes DNS records verifiable at all points of the DNS
+   resolution chain.
 
-There must also be communication with the administrators of the parent
-and/or child zone to transmit keys. A zone's security status must be
-indicated by the parent zone for a DNSSEC-capable resolver to trust its
-data. This is done through the presence or absence of a ``DS`` record at
-the delegation point.
+This section focuses on ways to deploy DNSSEC using BIND. For a more in-depth
+discussion of DNSSEC principles (e.g. :ref:`how_does_dnssec_change_dns_lookup`)
+please see :doc:`dnssec-guide`.
 
-For resolvers to trust data in this zone, they must be configured with a trust
-anchor. Typically this is the public key of the DNS root zone, although you
-can also configure a trust anchor that is the public key of this zone or
-another zone above this on in the DNS tree.
+.. _`cache poisoning`: https://en.wikipedia.org/wiki/DNS_cache_poisoning
+.. _`random subdomain attacks`: https://www.isc.org/blogs/nsec-caching-should-limit-excessive-queries-to-dns-root/
+.. _`digital signatures`: https://en.wikipedia.org/wiki/Digital_signature
+.. _`authenticated and private e-mail transfer`: https://github.com/internetstandards/toolbox-wiki/blob/main/DANE-for-SMTP-how-to.md
 
-.. _dnssec_keys:
-
-DNSSEC Keys
-~~~~~~~~~~~
-
-A secure zone must contain one or more zone keys. The zone keys
-sign all other records in the zone, as well as the zone keys of any
-secure delegated zones. It is recommended that zone keys use one of the
-cryptographic algorithms designated as "mandatory to implement" by the
-IETF, that is either RSASHA256 or ECDSAP256SHA256.
-
-Zone keys must have the same name as the zone, have a
-name type of ``ZONE``, and be usable for authentication. It is
-recommended that zone keys use a cryptographic algorithm designated as
-"mandatory to implement" by the IETF. Currently there are two algorithms,
-RSASHA256 and ECDSAP256SHA256; ECDSAP256SHA256 is recommended for
-current and future deployments.
-
-Keys are stored in files, ``Kdnssec.example.+013+12345.key`` and
-``Kdnssec.example.+013+12345.private`` (where 12345 is an example of a
-key tag). The key filenames contain the key name (``dnssec.example.``),
-the algorithm (5 is RSASHA1, 8 is RSASHA256, 13 is ECDSAP256SHA256, 15 is
-ED25519, etc.), and the key tag (12345 in this case). The private key (in
-the ``.private`` file) is used to generate signatures, and the public
-key (in the ``.key`` file) is used for signature verification.
 
 .. _dnssec_zone_signing:
 
 Zone Signing
 ~~~~~~~~~~~~
 
-To sign a zone, configure a key and signing policy for the zone. The
-configuration below will sign the zone ``dnssec.example`` according to the
-built-in default policy:
+BIND offers several ways to generate signatures and maintain their validity
+during the lifetime of a DNS zone:
 
-::
+  - :ref:`dnssec_kasp` - **strongly recommended**
+  - :ref:`dnssec_dynamic_zones` - only for special needs
+  - :ref:`dnssec_tools` - discouraged, use only for debugging
+
+Zone keys
+^^^^^^^^^
+Regardless of the :ref:`zone-signing <dnssec_zone_signing>` method in use, cryptographic keys are
+stored in files named like :file:`Kdnssec.example.+013+12345.key` and
+:file:`Kdnssec.example.+013+12345.private`.
+The private key (in the ``.private`` file) is used to generate signatures, and
+the public key (in the ``.key`` file) is used for signature verification.
+Additionally, the :ref:`dnssec_kasp` method creates a third file,
+:file:`Kdnssec.example+013+12345.state`, which is used to track DNSSEC key timings
+and to perform key rollovers safely.
+
+These filenames contain:
+
+   - the key name, which always matches the zone name (``dnssec.example.``),
+   - the `algorithm number`_ (013 is ECDSAP256SHA256, 008 is RSASHA256, etc.),
+   - and the key tag, i.e. a non-unique key identifier (12345 in this case).
+
+.. _`algorithm number`: https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1
+
+
+.. warning::
+   Private keys are required for full disaster recovery. Back up key files in a
+   safe location and protect them from unauthorized access. Anyone with
+   access to the private key can create fake but seemingly valid DNS data.
 
     zone "dnssec.example" {
         type primary;
@@ -278,9 +281,9 @@ Enabling DNSSEC Manually
 As an alternative to fully automated zone signing using :ref:`dnssec-policy
 <dnssec_kasp>`, a zone can be changed from insecure to secure using a dynamic
 DNS update. :iscman:`named` must be configured so that it can see the ``K*``
-files which contain the public and private parts of the keys that are used to
-sign the zone. Key files should be placed in the key-directory, as specified in
-:iscman:`named.conf`:
+files which contain the public and private parts of the `zone keys`_ that are
+used to sign the zone. Key files should be placed in the ``key-directory``, as
+specified in :iscman:`named.conf`:
 
 ::
 
