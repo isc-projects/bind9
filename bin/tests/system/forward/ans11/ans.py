@@ -31,11 +31,13 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+
 # Create a UDP listener
-def udp_listen(ip, port, is_ipv6 = False):
+def udp_listen(ip, port, is_ipv6=False):
     try:
-        udp = socket.socket(socket.AF_INET6 if is_ipv6 else socket.AF_INET,
-                            socket.SOCK_DGRAM)
+        udp = socket.socket(
+            socket.AF_INET6 if is_ipv6 else socket.AF_INET, socket.SOCK_DGRAM
+        )
         try:
             udp.bind((ip, port))
         except:
@@ -49,11 +51,13 @@ def udp_listen(ip, port, is_ipv6 = False):
 
     return udp
 
+
 # Create a TCP listener
-def tcp_listen(ip, port, is_ipv6 = False):
+def tcp_listen(ip, port, is_ipv6=False):
     try:
-        tcp = socket.socket(socket.AF_INET6 if is_ipv6 else socket.AF_INET,
-                            socket.SOCK_STREAM)
+        tcp = socket.socket(
+            socket.AF_INET6 if is_ipv6 else socket.AF_INET, socket.SOCK_STREAM
+        )
         try:
             tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             tcp.bind((ip, port))
@@ -69,10 +73,13 @@ def tcp_listen(ip, port, is_ipv6 = False):
 
     return tcp
 
+
 ############################################################################
 # Control channel - send "1" or "0" to enable or disable the "silent" mode.
 ############################################################################
 silent = False
+
+
 def ctrl_channel(msg):
     global silent
 
@@ -83,13 +90,14 @@ def ctrl_channel(msg):
         return
 
     if silent:
-        if msg == b'0':
+        if msg == b"0":
             silent = False
             print("Silent mode was disabled")
     else:
-        if msg == b'1':
+        if msg == b"1":
             silent = True
             print("Silent mode was enabled")
+
 
 ############################################################################
 # Respond to a DNS query.
@@ -107,8 +115,8 @@ def create_response(msg):
     r = dns.message.make_response(m)
     r.set_rcode(NOERROR)
     if rrtype == A:
-        tld=qname.split('.')[-2] + '.'
-        ns="local." + tld
+        tld = qname.split(".")[-2] + "."
+        ns = "local." + tld
         r.answer.append(dns.rrset.from_text(qname, 300, IN, A, "10.53.0.11"))
         r.answer.append(dns.rrset.from_text(tld, 300, IN, NS, "local." + tld))
         r.additional.append(dns.rrset.from_text(ns, 300, IN, A, "10.53.0.11"))
@@ -121,11 +129,13 @@ def create_response(msg):
     r.flags |= dns.flags.AA
     return r
 
+
 def sigterm(signum, frame):
-    print ("Shutting down now...")
-    os.remove('ans.pid')
+    print("Shutting down now...")
+    os.remove("ans.pid")
     running = False
     sys.exit(0)
+
 
 ############################################################################
 # Main
@@ -137,11 +147,15 @@ def sigterm(signum, frame):
 ip4 = "10.53.0.11"
 ip6 = "fd92:7065:b8e:ffff::11"
 
-try: port=int(os.environ['PORT'])
-except: port=5300
+try:
+    port = int(os.environ["PORT"])
+except:
+    port = 5300
 
-try: ctrlport=int(os.environ['EXTRAPORT1'])
-except: ctrlport=5300
+try:
+    ctrlport = int(os.environ["EXTRAPORT1"])
+except:
+    ctrlport = 5300
 
 ctrl4_tcp = tcp_listen(ip4, ctrlport)
 query4_udp = udp_listen(ip4, port)
@@ -153,19 +167,19 @@ havev6 = query6_udp is not None and query6_tcp is not None
 
 signal.signal(signal.SIGTERM, sigterm)
 
-f = open('ans.pid', 'w')
+f = open("ans.pid", "w")
 pid = os.getpid()
-print (pid, file=f)
+print(pid, file=f)
 f.close()
 
 running = True
 
-print ("Listening on %s port %d" % (ip4, ctrlport))
-print ("Listening on %s port %d" % (ip4, port))
+print("Listening on %s port %d" % (ip4, ctrlport))
+print("Listening on %s port %d" % (ip4, port))
 if havev6:
-    print ("Listening on %s port %d" % (ip6, port))
+    print("Listening on %s port %d" % (ip6, port))
 
-print ("Ctrl-c to quit")
+print("Ctrl-c to quit")
 
 if havev6:
     input = [ctrl4_tcp, query4_udp, query6_udp, query4_tcp, query6_tcp]
@@ -200,8 +214,9 @@ while running:
             if conn:
                 conn.close()
         elif s == query4_tcp or s == query6_tcp:
-            print("TCP query received on %s" %
-                  (ip4 if s == query4_tcp else ip6), end=" ")
+            print(
+                "TCP query received on %s" % (ip4 if s == query4_tcp else ip6), end=" "
+            )
             conn = None
             try:
                 # Handle incoming queries
@@ -213,7 +228,7 @@ while running:
                         print("NO RESPONSE (can not read the message length)")
                         conn.close()
                         continue
-                    length = struct.unpack('>H', msg[:2])[0]
+                    length = struct.unpack(">H", msg[:2])[0]
                     msg = conn.recv(length)
                     if len(msg) != length:
                         print("NO RESPONSE (can not read the message)")
@@ -223,7 +238,7 @@ while running:
                     if rsp:
                         print(dns.rcode.to_text(rsp.rcode()))
                         wire = rsp.to_wire()
-                        conn.send(struct.pack('>H', len(wire)))
+                        conn.send(struct.pack(">H", len(wire)))
                         conn.send(wire)
                     else:
                         print("NO RESPONSE (can not create a response)")
@@ -237,8 +252,9 @@ while running:
             if conn:
                 conn.close()
         elif s == query4_udp or s == query6_udp:
-            print("UDP query received on %s" %
-                  (ip4 if s == query4_udp else ip6), end=" ")
+            print(
+                "UDP query received on %s" % (ip4 if s == query4_udp else ip6), end=" "
+            )
             # Handle incoming queries
             msg = s.recvfrom(65535)
             if not silent:

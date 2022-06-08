@@ -19,7 +19,7 @@ import time
 
 import pytest
 
-pytest.importorskip('dns', minversion='2.0.0')
+pytest.importorskip("dns", minversion="2.0.0")
 import dns.message
 import dns.query
 
@@ -54,8 +54,8 @@ def test_tcp_garbage(named_port):
 
         # Send DNS message shorter than DNS message header (12),
         # this should cause the connection to be terminated
-        sock.send(struct.pack('!H', 11))
-        sock.send(struct.pack('!s', b'0123456789a'))
+        sock.send(struct.pack("!H", 11))
+        sock.send(struct.pack("!s", b"0123456789a"))
 
         with pytest.raises(EOFError):
             try:
@@ -96,8 +96,7 @@ def test_close_wait(named_port):
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
         (response, rtime) = dns.query.receive_tcp(sock, timeout())
 
-        msg = dns.message.make_query("a.example.", "A", use_edns=0,
-                                     payload=1232)
+        msg = dns.message.make_query("a.example.", "A", use_edns=0, payload=1232)
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
 
         # Shutdown the socket, but ignore the other side closing the socket

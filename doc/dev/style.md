@@ -78,7 +78,7 @@ conform well to BIND 9 C style:
     	set showmode
     	set autoindent
     	set expandtab
-    
+
     	filetype plugin on
     	let c_syntax_for_h = 1
     	autocmd FileType c,cc,cpp set cindent
@@ -86,7 +86,7 @@ conform well to BIND 9 C style:
     	autocmd FileType c,cc,cpp set fo=rotcq
     	autocmd FileType c,cc,cpp set noexpandtab ts=8
     	autocmd FileType python set ts=4 sw=4
-    
+
     	filetype indent on
 
 #### Vertical Whitespace
@@ -136,7 +136,7 @@ Good:
     	/*
     	 * Private variables.
     	 */
-    
+
     	static int	a	       /* Description of 'a'. */
     	static int	b	       /* Description of 'b'. */
     	static char *	c	       /* Description of 'c'. */
@@ -186,13 +186,13 @@ or for public files that do not declare any functions.
     	 * License, v. 2.0. If a copy of the MPL was not distributed with this
     	 * file, you can obtain one at https://mozilla.org/MPL/2.0/.
     	 */
-    
+
     	#pragma once
-    
+
     	/*****
     	 ***** Module Info
     	 *****/
-    
+
     	/*
     	 * (Module name here.)
     	 *
@@ -216,20 +216,20 @@ or for public files that do not declare any functions.
     	 * Standards:
     	 *	(Any standards relevant to the module are listed here.)
     	 */
-    
+
     	/***
     	 *** Imports
     	 ***/
-    
+
     	/* #includes here. */
     	#include <isc/lang.h>
-    
+
     	/***
     	 *** Types
     	 ***/
-    
+
     	/* (Type definitions here.) */
-    
+
     	/***
     	 *** Functions
     	 ***/
@@ -273,7 +273,7 @@ list is more than one line long:
     	func1(int i) {
     		/* whatever */
     	}
-    
+
     	int
     	func2(int first_argument, int next_argument,
     	      int last_argument)
@@ -371,7 +371,7 @@ Good:
 
     	os_result_t result;
     	os_descriptor_t	s;
-    
+
     	result = os_socket_create(AF_INET, SOCK_STREAM, 0, &s);
     	if (result != OS_R_SUCCESS) {
     		/* Do something about the error. */
@@ -381,7 +381,7 @@ Good:
 Not so good:
 
     	int s;
-    
+
     	/*
     	 * Obviously using interfaces like socket() (below) is allowed
     	 * since otherwise you couldn't call operating system routines; the
@@ -432,26 +432,26 @@ Good:
 
     	/* Test if flag set. */
     	if ((flags & FOO) != 0) {
-    
+
     	}
     	/* Test if flag clear. */
     	if ((flags & BAR) == 0) {
-    
+
     	}
     	/* Test if both flags set. */
     	if ((flags & (FOO|BAR)) == (FOO|BAR)) {
-    
+
     	}
 
 Bad:
 
     	/* Test if flag set. */
     	if (flags & FOO) {
-    
+
     	}
     	/* Test if flag clear. */
     	if (! (flags & BAR)) {
-    
+
     	}
 
 #### Testing for Zero or Non-zero
@@ -462,9 +462,9 @@ variables.
 Good:
 
     	int i = 10;
-    
+
     	/* ... */
-    
+
     	if (i != 0) {
     		/* Do something. */
     	}
@@ -472,9 +472,9 @@ Good:
 Bad:
 
     	int i = 10;
-    
+
     	/* ... */
-    
+
     	if (i) {
     		/* Do something. */
     	}
@@ -489,9 +489,9 @@ comparison; do not treat a pointer variable as if it were a boolean.
 Good:
 
     	char *c = NULL;
-    
+
     	/* ... */
-    
+
     	if (c != NULL) {
     		/* Do something. */
     	}
@@ -499,9 +499,9 @@ Good:
 Bad:
 
     	char *c = NULL;
-    
+
     	/* ... */
-    
+
     	if (c) {
     		/* Do something. */
     	}
@@ -562,9 +562,9 @@ structure which is itself going to be freed immediately.
 Good:
 
     	char *text;
-    
+
     	/* text is initialized here. */
-    
+
     	isc_mem_free(mctx, text);
     	text = NULL;
 
@@ -635,7 +635,7 @@ Good:
     		int bar;
     		int baz;
     	};
-    
+
     	struct example x = { .foo = -1 };
 
 Bad:
@@ -644,9 +644,9 @@ Bad:
     		int bar;
     		int baz;
     	};
-    
+
     	struct example x;
-    
+
     	x.foo = -1;
     	x.bar = 0;
     	x.baz = 0;
@@ -657,9 +657,9 @@ Good:
     		int bar;
     		int baz;
     	};
-    
+
     	struct example *x = isc_mem_get(mctx, sizeof(*x));
-    
+
     	*x = (struct example){ .foo = -1 };
 
 Bad:
@@ -668,9 +668,9 @@ Bad:
     		int bar;
     		int baz;
     	};
-    
+
     	struct example *x = isc_mem_get(mctx, sizeof(*x));
-    
+
     	x->foo = -1;
     	x->bar = 0;
     	x->baz = 0;
@@ -748,7 +748,7 @@ value of the format parameter:
     	dns_zone_setfile(dns_zone_t *zone, const char *file) {
     		return (dns_zone_setfile2(zone, file, dns_masterformat_text);
     	}
-    
+
     	isc_result_t
     	dns_zone_setfile2(dns_zone_t *zone, const char *file,
     			  dns_masterformat_t format)
@@ -855,9 +855,9 @@ name server. However, BIND 9 may use it for its system test
 environment, and in some cases for generating source or documentation
 files which are then committed to to the git repository.
 
-For Python coding, we abide by the Python style guidelines described
-in [PEP8](http://www.python.org/dev/peps/pep-0008/), with a few
-modifications:
+For Python coding, we enforce a common codestyle using the tool
+[black](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)
+There are also a few other requirements:
 
 * The `__init__()` method should always be the first one declared in a
   class definition, like so:
