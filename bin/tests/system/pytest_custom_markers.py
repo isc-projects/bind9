@@ -16,5 +16,6 @@ import os
 import pytest
 
 
-long_test = pytest.mark.skipif(not os.environ.get('CI_ENABLE_ALL_TESTS'),
-                               reason='CI_ENABLE_ALL_TESTS not set')
+long_test = pytest.mark.skipif(
+    not os.environ.get("CI_ENABLE_ALL_TESTS"), reason="CI_ENABLE_ALL_TESTS not set"
+)

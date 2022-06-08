@@ -30,6 +30,7 @@ def logquery(type, qname):
     with open("qlog", "a") as f:
         f.write("%s %s\n", type, qname)
 
+
 ############################################################################
 # Respond to a DNS query.
 ############################################################################
@@ -46,8 +47,8 @@ def create_response(msg):
     r = dns.message.make_response(m)
     r.set_rcode(NOERROR)
     if rrtype == A:
-        tld=qname.split('.')[-2] + '.'
-        ns="local." + tld
+        tld = qname.split(".")[-2] + "."
+        ns = "local." + tld
         r.answer.append(dns.rrset.from_text(qname, 300, IN, A, "10.53.0.11"))
         r.answer.append(dns.rrset.from_text(tld, 300, IN, NS, "local." + tld))
         r.additional.append(dns.rrset.from_text(ns, 300, IN, A, "10.53.0.11"))
@@ -60,11 +61,13 @@ def create_response(msg):
     r.flags |= dns.flags.AA
     return r
 
+
 def sigterm(signum, frame):
-    print ("Shutting down now...")
-    os.remove('ans.pid')
+    print("Shutting down now...")
+    os.remove("ans.pid")
     running = False
     sys.exit(0)
+
 
 ############################################################################
 # Main
@@ -76,8 +79,10 @@ def sigterm(signum, frame):
 ip4 = "10.53.0.11"
 ip6 = "fd92:7065:b8e:ffff::11"
 
-try: port=int(os.environ['PORT'])
-except: port=5300
+try:
+    port = int(os.environ["PORT"])
+except:
+    port = 5300
 
 query4_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 query4_socket.bind((ip4, port))
@@ -93,17 +98,17 @@ except:
     havev6 = False
 signal.signal(signal.SIGTERM, sigterm)
 
-f = open('ans.pid', 'w')
+f = open("ans.pid", "w")
 pid = os.getpid()
-print (pid, file=f)
+print(pid, file=f)
 f.close()
 
 running = True
 
-print ("Listening on %s port %d" % (ip4, port))
+print("Listening on %s port %d" % (ip4, port))
 if havev6:
-    print ("Listening on %s port %d" % (ip6, port))
-print ("Ctrl-c to quit")
+    print("Listening on %s port %d" % (ip6, port))
+print("Ctrl-c to quit")
 
 if havev6:
     input = [query4_socket, query6_socket]
@@ -122,8 +127,9 @@ while running:
 
     for s in inputready:
         if s == query4_socket or s == query6_socket:
-            print ("Query received on %s" %
-                    (ip4 if s == query4_socket else ip6), end=" ")
+            print(
+                "Query received on %s" % (ip4 if s == query4_socket else ip6), end=" "
+            )
             # Handle incoming queries
             msg = s.recvfrom(65535)
             rsp = create_response(msg[0])

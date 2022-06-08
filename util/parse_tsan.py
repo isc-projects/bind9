@@ -75,20 +75,20 @@ PATH = re.compile(TOP + "/")
 
 S = State()
 
-with open(sys.argv[1], "r", encoding='utf-8') as f:
+with open(sys.argv[1], "r", encoding="utf-8") as f:
     for line in f.readlines():
         if line == "==================\n":
             if not S.inside:
                 S.inside = True
             else:
-                DNAME = sha256(S.last_line.encode('utf-8')).hexdigest()
+                DNAME = sha256(S.last_line.encode("utf-8")).hexdigest()
                 DNAME = os.path.join(OUT, DNAME)
                 if not os.path.isdir(DNAME):
                     os.mkdir(DNAME)
-                FNAME = sha256(S.block.encode('utf-8')).hexdigest() + ".txt"
+                FNAME = sha256(S.block.encode("utf-8")).hexdigest() + ".txt"
                 FNAME = os.path.join(DNAME, FNAME)
                 if not os.path.isfile(FNAME):
-                    with open(FNAME, "w", encoding='utf-8') as w:
+                    with open(FNAME, "w", encoding="utf-8") as w:
                         w.write(S.block)
                 S.reset()
         else:

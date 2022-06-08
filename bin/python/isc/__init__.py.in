@@ -11,9 +11,21 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-__all__ = ['checkds', 'coverage', 'keymgr', 'dnskey', 'eventlist',
-           'keydict', 'keyevent', 'keyseries', 'keyzone', 'policy',
-           'parsetab', 'rndc', 'utils']
+__all__ = [
+    "checkds",
+    "coverage",
+    "keymgr",
+    "dnskey",
+    "eventlist",
+    "keydict",
+    "keyevent",
+    "keyseries",
+    "keyzone",
+    "policy",
+    "parsetab",
+    "rndc",
+    "utils",
+]
 
 from isc.dnskey import *
 from isc.eventlist import *

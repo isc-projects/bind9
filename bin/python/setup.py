@@ -15,12 +15,14 @@ except ImportError:
     # pylint: disable=deprecated-module
     from distutils.core import setup
 
-setup(name='isc',
-      version='2.0',
-      description='Python functions to support BIND utilities',
-      url='https://www.isc.org/bind',
-      author='Internet Systems Consortium, Inc',
-      author_email='info@isc.org',
-      license='MPL',
-      requires=['ply'],
-      packages=['isc'])
+setup(
+    name="isc",
+    version="2.0",
+    description="Python functions to support BIND utilities",
+    url="https://www.isc.org/bind",
+    author="Internet Systems Consortium, Inc",
+    author_email="info@isc.org",
+    license="MPL",
+    requires=["ply"],
+    packages=["isc"],
+)

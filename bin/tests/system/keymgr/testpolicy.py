@@ -14,26 +14,26 @@ from isc import policy
 
 PP = policy.dnssec_policy()
 # print the unmodified default and a generated zone policy
-print(PP.named_policy['default'])
-print(PP.named_policy['global'])
-print(PP.policy('example.com'))
+print(PP.named_policy["default"])
+print(PP.named_policy["global"])
+print(PP.policy("example.com"))
 
 if len(sys.argv) > 0:
     for policy_file in sys.argv[1:]:
         PP.load(policy_file)
 
         # now print the modified default and generated zone policies
-        print(PP.named_policy['default'])
-        print(PP.policy('example.com'))
-        print(PP.policy('example.org'))
-        print(PP.policy('example.net'))
+        print(PP.named_policy["default"])
+        print(PP.policy("example.com"))
+        print(PP.policy("example.org"))
+        print(PP.policy("example.net"))
 
         # print algorithm policies
-        print(PP.alg_policy['RSASHA1'])
-        print(PP.alg_policy['RSASHA256'])
-        print(PP.alg_policy['ECDSAP256SHA256'])
+        print(PP.alg_policy["RSASHA1"])
+        print(PP.alg_policy["RSASHA256"])
+        print(PP.alg_policy["ECDSAP256SHA256"])
 
         # print another named policy
-        print(PP.named_policy['extra'])
+        print(PP.named_policy["extra"])
 else:
     print("ERROR: Please provide an input file")
