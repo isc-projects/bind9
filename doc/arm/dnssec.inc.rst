@@ -77,107 +77,76 @@ These filenames contain:
    safe location and protect them from unauthorized access. Anyone with
    access to the private key can create fake but seemingly valid DNS data.
 
+.. _dnssec_kasp:
+
+Fully Automated (Key and Signing Policy)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Key and Signing Policy (KASP) is a method of configuration that describes
+how to maintain DNSSEC signing keys and how to sign the zone.
+
+This is the recommended, fully automated way to sign and maintain DNS zones. For
+most use cases users can simply use the built-in default policy, which applies
+up-to-date DNSSEC practices:
+
+.. code-block:: none
+  :emphasize-lines: 4
+
     zone "dnssec.example" {
         type primary;
-        dnssec-policy default;
         file "dnssec.example.db";
+        dnssec-policy default;
     };
 
-..
+This single line is sufficient to create the necessary signing keys, and generate
+``DNSKEY``, ``RRSIG``, and ``NSEC`` records for the zone. BIND also takes
+care of any DNSSEC maintenance for this zone, including replacing signatures
+that are about to expire and managing :ref:`key_rollovers`.
 
-This will create the necessary keys and generates ``DNSKEY``, ``RRSIG`` and
-``NSEC`` records for the zone. BIND will now also take care of any DNSSEC
-maintenance for this zone, including replacing signatures that are about to
-expire and managing key rollovers.
-
-The file ``dnssec.example.db`` remains untouched and the signed zone is stored
-on disk in ``dnssec.example.db.signed``. In addition to the
-``Kdnssec.example.+013+12345.key`` and ``Kdnssec.example.+013+12345.private``
-key files, this method stores another file on disk,
-``Kdnssec.example+013+12345.state``, that tracks DNSSEC key timings and are
-used to perform key rollovers safely.
+**TODO:**
+The original zone file :file:`dnssec.example.db` remains untouched and the
+signed version of the zone is stored on disk in :file:`dnssec.example.db.signed`.
 
 The default policy creates one key that is used to sign the complete zone,
 and uses ``NSEC`` to enable authenticated denial of existence (a secure way
-to tell which records do not exist in your zone). How to create your own
-policy is decribed in the section below.
+to tell which records do not exist in a zone). This policy is recommended
+and typically does not need to be changed.
 
-.. _dnssec_kasp:
+If needed, a custom policy can be defined by adding a ``dnssec-policy`` statement
+into the configuration:
 
-Key and Signing Policy
-^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: none
 
-A key and signing policy (KASP) is a piece of configuration that describes
-how to make a zone DNSSEC secure. The built-in ``default`` policy uses the most
-common DNSSEC practices, but you can define a custom policy by adding a
-``dnssec-policy`` clause in your configuration:
-
-::
 
     dnssec-policy "custom" {
         dnskey-ttl 600;
         keys {
-            ksk lifetime PT1Y algorithm rsasha256 2048;
-            zsk lifetime 60d  algorithm rsasha256 2048;
+            ksk lifetime P1Y algorithm ecdsap384sha384;
+            zsk lifetime 60d algorithm ecdsap384sha384;
         };
-    };
-
-..
-
-This ``custom`` policy for example, uses a short ``DNSKEY`` TTL (600 seconds)
-and it uses two keys to sign the zone (a KSK to sign the key related RRsets,
-``DNSKEY``, ``CDS``, and ``CDNSKEY``, and a ZSK to sign the rest of the zone).
-The configured keys also have a lifetime set and use a different algorithm.
-
-``dnssec-policy`` is described in more detail later in this document.
-
-The :ref:`dnssec_advanced_discussions` in the DNSSEC Guide discusses the
-various policy settings and may help you determining which values you should
-use.
-
-.. _dnssec_denial_of_existence:
-
-Denial of Existence
-^^^^^^^^^^^^^^^^^^^
-
-To prove that some data does not exist in the zone, ``NSEC`` records are added
-to the zone for each domain name. This record contains a list that tells
-which record types are present at that name, so that if a query comes in for
-a type that is not in the list, the requestor can proof its non-existence.
-The ``NSEC`` record also contains a next owner name, proving that all names
-between the owner name and next owner name do not exist.
-
-The ``NSEC`` method allows for trivial zone walking, where one would query
-for the apex ``NSEC`` record and then queries the ``NSEC`` of each next owner
-name to learn about all names that exist in a certain zone. While this may not
-be a problem for most, you can mitigate against this by using ``NSEC3``, hashed
-denial of existence (defined in :rfc:`5155`). This uses one-way hashes to
-obfuscate the next owner names.
-
-With ``NSEC3`` you can also opt-out insecure delegations from denial of
-existence, which may be useful for parent zones with a lot of insecure child
-zones.
-
-To enable ``NSEC3``, add an ``nsec3param`` option to your DNSSEC Policy:
-
-::
-
-    dnssec-policy "nsec3" {
         nsec3param iterations 0 optout no salt-length 0;
     };
 
-..
+This ``custom`` policy, for example:
 
-The ``nsec3`` policy above creates ``NSEC3`` records using the SHA-1 hash
-algorithm, using zero extra iterations and no salt. ``optout`` is disabled,
-meaning insecure delegations will also get an ``NSEC3`` record.
+  - uses a very short ``DNSKEY`` TTL (600 seconds),
+  - uses two keys to sign the zone: a Key Signing Key (KSK) to sign the key
+    related RRsets (``DNSKEY``, ``CDS``, and ``CDNSKEY``), and a Zone Signing
+    Key (ZSK) to sign the rest of the zone. The KSK is automatically
+    rotated after one year and the ZSK after 60 days.
 
-The ``NSEC3`` chain is generated and the ``NSEC3PARAM`` record is added before
-the existing ``NSEC`` chain (if any) is destroyed.
+Also:
+  - The configured keys also have a lifetime set and use the ECDSAP384SHA384
+    algorithm.
+  - The last line instructs BIND to generate NSEC3 records for
+    :ref:`Proof of Non-Existence <advanced_discussions_proof_of_nonexistence>`,
+    using zero extra iterations and no salt. NSEC3 opt-out is disabled, meaning
+    insecure delegations also get an NSEC3 record.
 
-You can also switch back to ``NSEC`` by removing the ``nsec3param`` option.
-In this case, the ``NSEC`` chain is generated before the ``NSEC3`` chain
-is removed.
+For more information about KASP configuration see :ref:`dnssec_policy_grammar`.
+
+The :ref:`dnssec_advanced_discussions` in the DNSSEC Guide discusses the
+various policy settings and may help you determining values for your special needs.
 
 .. _dnssec_tools:
 
