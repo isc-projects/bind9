@@ -180,14 +180,14 @@ create_tables(void) {
 			 ISC_R_SUCCESS);
 
 	/* Add a normal key */
-	dns_test_namefromstring("example.com", &fn);
+	dns_test_namefromstring("example.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
 
 	/* Add an initializing managed key */
-	dns_test_namefromstring("managed.com", &fn);
+	dns_test_namefromstring("managed.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
@@ -243,7 +243,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * Try to add the same key.  This should have no effect but
 	 * report success.
 	 */
-	dns_test_namefromstring("example.com", &fn);
+	dns_test_namefromstring("example.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
@@ -282,7 +282,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * initializing key. Since there is already a trusted key at the
 	 * node, the node should *not* be marked as initializing.
 	 */
-	dns_test_namefromstring("managed.com", &fn);
+	dns_test_namefromstring("managed.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
@@ -312,7 +312,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * Add a managed key at a new node, two.com, marking it as an
 	 * initializing key.
 	 */
-	dns_test_namefromstring("two.com", &fn);
+	dns_test_namefromstring("two.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
@@ -346,7 +346,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &null_keynode),
 			 ISC_R_SUCCESS);
-	dns_test_namefromstring("null.example", &fn);
+	dns_test_namefromstring("null.example.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
@@ -422,21 +422,21 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 	create_tables();
 
 	/* key name doesn't match */
-	dns_test_namefromstring("example.org", &fn);
+	dns_test_namefromstring("example.org.", &fn);
 	create_keystruct(257, 3, 5, keystr1, &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
 	dns_rdata_freestruct(&dnskey);
 
 	/* subdomain match is the same as no match */
-	dns_test_namefromstring("sub.example.org", &fn);
+	dns_test_namefromstring("sub.example.org.", &fn);
 	create_keystruct(257, 3, 5, keystr1, &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
 	dns_rdata_freestruct(&dnskey);
 
 	/* name matches but key doesn't match (resulting in PARTIALMATCH) */
-	dns_test_namefromstring("example.com", &fn);
+	dns_test_namefromstring("example.com.", &fn);
 	create_keystruct(257, 3, 5, keystr2, &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 DNS_R_PARTIALMATCH);
@@ -467,7 +467,7 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 	 * A null key node for a name is not deleted when searched by key;
 	 * it must be deleted by dns_keytable_delete()
 	 */
-	dns_test_namefromstring("null.example", &fn);
+	dns_test_namefromstring("null.example.", &fn);
 	create_keystruct(257, 3, 5, keystr1, &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 DNS_R_PARTIALMATCH);
@@ -619,7 +619,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	dns_test_namefromstring("example", &fn);
+	dns_test_namefromstring("example.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
 	result = dns_keytable_add(keytable, false, false, keyname, &ds, NULL,
 				  NULL),
