@@ -2114,7 +2114,9 @@ Boolean Options
    This option enables DNSSEC validation in :iscman:`named`.
 
    If set to ``auto``, DNSSEC validation is enabled and a default trust
-   anchor for the DNS root zone is used.
+   anchor for the DNS root zone is used. This trust anchor is provided
+   as part of BIND and is kept up-to-date using :ref:`rfc5011.support` key
+   management.
 
    If set to ``yes``, DNSSEC validation is enabled, but a trust anchor must be
    manually configured using a ``trust-anchors`` statement (or the
