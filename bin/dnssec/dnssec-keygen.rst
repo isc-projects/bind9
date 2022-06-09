@@ -46,7 +46,7 @@ Options
    This option uses an NSEC3-capable algorithm to generate a DNSSEC key. If this
    option is used with an algorithm that has both NSEC and NSEC3
    versions, then the NSEC3 version is selected; for example,
-   ``dnssec-keygen -3a RSASHA1`` specifies the NSEC3RSASHA1 algorithm.
+   ``dnssec-keygen -3 -a RSASHA1`` specifies the NSEC3RSASHA1 algorithm.
 
 ``-a algorithm``
    This option selects the cryptographic algorithm. For DNSSEC keys, the value of

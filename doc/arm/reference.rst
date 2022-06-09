@@ -5050,11 +5050,17 @@ The following options can be specified in a ``dnssec-policy`` statement:
 
         nsec3param iterations 5 optout no salt-length 8;
 
-    The default is to use NSEC.  The ``iterations``, ``optout`` and
+    The default is to use NSEC. The ``iterations``, ``optout``, and
     ``salt-length`` parts are optional, but if not set, the values in
-    the example above are the default NSEC3 parameters. Note that you don't
-    specify a specific salt string, ``named`` will create a salt for you
-    of the provided salt length.
+    the example above are the default NSEC3 parameters. Note that the
+    specific salt string is not specified by the user; :iscman:`named` creates a salt
+    of the indicated length.
+
+    .. warning::
+       Do not use extra :term:`iterations`, :term:`salt`, and
+       :term:`opt-out` unless their implications are fully understood.
+       A higher number of iterations causes interoperability problems and opens
+       servers to CPU-exhausting DoS attacks.
 
   ``zone-propagation-delay``
     This is the expected propagation delay from the time when a zone is
