@@ -80,6 +80,18 @@ view "default" {
 	    file "dom-existing.example.db";
 	};
 
+	zone "dom-existing-forward.example" {
+	    type forward;
+	    forward only;
+	    forwarders { 10.53.0.1; };
+	};
+
+	zone "dom-existing-forward-off.example" {
+	    type forward;
+	    forward only;
+	    forwarders { };
+	};
+
 	zone "catalog1.example" {
 		type secondary;
 		file "catalog1.example.db";

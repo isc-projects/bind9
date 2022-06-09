@@ -3593,7 +3593,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		domain = dns_fixedname_initname(&fixed);
 		result = dns_fwdtable_find(res->view->fwdtable, name, domain,
 					   &forwarders);
-		if (result == ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 			dns_name_copy(domain, fctx->fwdname);
@@ -4783,7 +4783,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		/* Find the forwarder for this name. */
 		result = dns_fwdtable_find(fctx->res->view->fwdtable, fwdname,
 					   fname, &forwarders);
-		if (result == ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 			dns_name_copy(fname, fctx->fwdname);
 		}
@@ -6840,7 +6840,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		/*
 		 * See if the forwarder declaration is better.
 		 */
-		if (result == ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			return (!dns_name_equal(fname, fctx->fwdname));
 		}
 
@@ -6849,7 +6849,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		 * changed: play it safe and don't cache.
 		 */
 		return (true);
-	} else if (result == ISC_R_SUCCESS &&
+	} else if ((result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) &&
 		   forwarders->fwdpolicy == dns_fwdpolicy_only &&
 		   !ISC_LIST_EMPTY(forwarders->fwdrs))
 	{
