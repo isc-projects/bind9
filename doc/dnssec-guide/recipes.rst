@@ -795,13 +795,12 @@ according to the steps described in
 
 To enable NSEC3, update your ``dnssec-policy`` and add the desired NSEC3
 parameters. The example below enables NSEC3 for zones with the ``standard``
-DNSSEC policy, using 10 iterations, no opt-out, and a random string that is
-16 characters long:
+DNSSEC policy, using 0 additional iterations, no opt-out, and a zero-length salt:
 
 ::
 
     dnssec-policy "standard" {
-        nsec3param iterations 10 optout no salt-length 16;
+        nsec3param iterations 0 optout no salt-length 0;
     };
 
 Then reconfigure the server with :iscman:`rndc`. You can tell that it worked if you
@@ -810,7 +809,7 @@ see the following debug log messages:
 ::
 
    Oct 21 13:47:21 received control channel command 'reconfig'
-   Oct 21 13:47:21 zone example.com/IN (signed): zone_addnsec3chain(1,CREATE,10,1234567890ABCDEF)
+   Oct 21 13:47:21 zone example.com/IN (signed): zone_addnsec3chain(1,CREATE,0,-)
 
 You can also verify that it worked by querying for a name that you know
 does not exist, and checking for the presence of the NSEC3 record.
@@ -821,15 +820,15 @@ For example:
    $ dig @192.168.1.13 thereisnowaythisexists.example.com. A +dnssec +multiline
 
    ...
-   TOM10UQBL336NFAQB3P6MOO53LSVG8UI.example.com. 300 IN NSEC3 1 0 10 1234567890ABCDEF (
+   5A03TL362CS8VSIH69CVA4MJIKRHFQH3.example.com. 300 IN NSEC3 1 0 0 - (
                    TQ9QBEGA6CROHEOC8KIH1A2C06IVQ5ER
                    NS SOA RRSIG DNSKEY NSEC3PARAM )
    ...
 
-Our example used four parameters: 1, 0, 10, and 1234567890ABCDEF, in
+Our example used four parameters: 1, 0, 0, and -, in
 order. 1 represents the algorithm, 0 represents the
-opt-out flag, 10 represents the number of iterations, and
-1234567890ABCDEF is the salt. To learn more about each of these
+opt-out flag, 0 represents the number of additional iterations, and
+- denotes no salt is used. To learn more about each of these
 parameters, please see :ref:`advanced_discussions_nsec3param`.
 
 .. _recipes_nsec3_to_nsec:
@@ -844,7 +843,7 @@ server. You can tell that it worked if you see these messages in the log:
 ::
 
    named[14093]: received control channel command 'reconfig'
-   named[14093]: zone example.com/IN: zone_addnsec3chain(1,REMOVE,10,1234567890ABCDEF)
+   named[14093]: zone example.com/IN: zone_addnsec3chain(1,REMOVE,0,-)
 
 You can also query for a name that you know does not exist,
 and you should no longer see any traces of NSEC3 records.
@@ -859,45 +858,6 @@ and you should no longer see any traces of NSEC3 records.
    ns1.example.com.    300 IN NSEC web.example.com. A RRSIG NSEC
    ...
 
-.. _recipes_nsec3_salt:
-
-Changing the NSEC3 Salt
-^^^^^^^^^^^^^^^^^^^^^^^
-
-In :ref:`advanced_discussions_nsec3_salt`, we discuss the
-reasons why you may want to change your salt periodically for better
-privacy. In this recipe, we look at what command to execute to
-actually change the salt, and how to verify that it has been changed.
-
-The ``dnssec-policy`` currently has no easy way to re-salt using the
-same salt length, so to change your NSEC3 salt you need to change the
-``salt-length`` value and reconfigure your server. You should see
-the following messages in the log, assuming your old salt was
-"1234567890ABCDEF" and :iscman:`named` created "FEDCBA09" (salt length 8)
-as the new salt:
-
-::
-
-   named[15848]: zone example.com/IN: zone_addnsec3chain(1,REMOVE,10,1234567890ABCDEF)
-   named[15848]: zone example.com/IN: zone_addnsec3chain(1,CREATE|OPTOUT,10,FEDCBA0987654321)
-
-To verify that it worked, you can query the name server (192.168.1.13 in our
-example) for a name that you know does not exist, and check the NSEC3 record
-returned:
-
-::
-
-   $ dig @192.168.1.13 thereisnowaythisexists.example.com. A +dnssec +multiline
-
-   ...
-   TOM10UQBL336NFAQB3P6MOO53LSVG8UI.example.com. 300 IN NSEC3 1 0 10 FEDCBA09 (
-                   TQ9QBEGA6CROHEOC8KIH1A2C06IVQ5ER
-                   NS SOA RRSIG DNSKEY NSEC3PARAM )
-   ...
-
-If you want to use the same salt length, you can repeat the above steps and
-go back to your original length value.
-
 .. _recipes_nsec3_optout:
 
 NSEC3 Opt-Out
@@ -908,6 +868,15 @@ the results of each action. As discussed in
 :ref:`advanced_discussions_nsec3_optout`, NSEC3 opt-out is a feature
 that can help conserve resources on parent zones with many
 delegations that have not yet been signed.
+
+.. warning::
+   NSEC3 Opt-Out feature brings benefit only to _extremely_ large zones with lots
+   of insecure delegations. It's use is counterproductive in all other cases as
+   it decreases tamper-resistance of the zone and also decreases efficiency of
+   resolver cache (see :rfc:`8198`).
+
+   In other words, don't enable Opt-Out unless you are serving an equivalent of
+   ``com.`` zone.
 
 Because the NSEC3PARAM record does not keep track of whether opt-out is used,
 it is hard to check whether changes need to be made to the NSEC3 chain if the flag
@@ -944,25 +913,25 @@ Before enabling NSEC3 opt-out, the zone ``example.com`` contains ten
 NSEC3 records; below is the list with the plain text name before the actual
 NSEC3 record:
 
--  *aaa.example.com*: 9NE0VJGTRTMJOS171EC3EDL6I6GT4P1Q.example.com.
+-  *aaa.example.com*: IFA1I3IE7EKCTPHM6R58URO3Q846I52M.example.com
 
--  *bbb.example.com*: AESO0NT3N44OOSDQS3PSL0HACHUE1O0U.example.com.
+-  *bbb.example.com*: ROJUF3VJSJO6LQ2LC1DNSJ5GBAUJPVHE.example.com
 
--  *ccc.example.com*: SF3J3VR29LDDO3ONT1PM6HAPHV372F37.example.com.
+-  *ccc.example.com*: 0VPUT696LUVDPDS5NIHSHBH9KLV20V5K.example.com
 
--  *ddd.example.com*: TQ9QBEGA6CROHEOC8KIH1A2C06IVQ5ER.example.com.
+-  *ddd.example.com*: UHPBD5U4HRGB84MLC2NQOVEFNAKJU0CA.example.com
 
--  *eee.example.com*: L16L08NEH48IFQIEIPS1HNRMQ523MJ8G.example.com.
+-  *eee.example.com*: NF7I61FA4C2UEKPMEDSOC25FE0UJIMKT.example.com
 
--  *ftp.example.com*: JKMAVHL8V7EMCL8JHIEN8KBOAB0MGUK2.example.com.
+-  *ftp.example.com*: 8P15KCUAT1RHCSDN46HBQVPI5T532IN1.example.com
 
--  *ns1.example.com*: FSK5TK9964BNE7BPHN0QMMD68IUDKT8I.example.com.
+-  *ns1.example.com*: GUFVRA2SFIO8RSFP7UO41E8AD1KR41FH.example.com
 
--  *web.example.com*: D65CIIG0GTRKQ26Q774DVMRCNHQO6F81.example.com.
+-  *web.example.com*: CVQ4LA4ALPQIAO2H3N2RB6IR8UHM91E7.example.com
 
--  *www.example.com*: NTQ0CQEJHM0S17POMCUSLG5IOQQEDTBJ.example.com.
+-  *www.example.com*: MIFDNDT3NFF3OD53O7TLA1HRFF95JKUK.example.com
 
--  *example.com*: TOM10UQBL336NFAQB3P6MOO53LSVG8UI.example.com.
+-  *example.com*: ONIB9MGUB9H0RML3CDF5BGRJ59DKJHVK.example.com
 
 We can enable NSEC3 opt-out with the following configuration, changing
 the ``optout`` configuration value from ``no`` to ``yes``:
@@ -970,31 +939,31 @@ the ``optout`` configuration value from ``no`` to ``yes``:
 ::
 
    dnssec-policy "standard" {
-       nsec3param iterations 10 optout yes salt-length 16;
+       nsec3param iterations 0 optout yes salt-length 0;
    };
 
 After NSEC3 opt-out is enabled, the number of NSEC3 records is reduced.
 Notice that the unsigned delegations ``aaa``, ``ccc``, ``ddd``, and
 ``eee`` no longer have corresponding NSEC3 records.
 
--  *bbb.example.com*: AESO0NT3N44OOSDQS3PSL0HACHUE1O0U.example.com.
+-  *bbb.example.com*: ROJUF3VJSJO6LQ2LC1DNSJ5GBAUJPVHE.example.com
 
--  *ftp.example.com*: JKMAVHL8V7EMCL8JHIEN8KBOAB0MGUK2.example.com.
+-  *ftp.example.com*: 8P15KCUAT1RHCSDN46HBQVPI5T532IN1.example.com
 
--  *ns1.example.com*: FSK5TK9964BNE7BPHN0QMMD68IUDKT8I.example.com.
+-  *ns1.example.com*: GUFVRA2SFIO8RSFP7UO41E8AD1KR41FH.example.com
 
--  *web.example.com*: D65CIIG0GTRKQ26Q774DVMRCNHQO6F81.example.com.
+-  *web.example.com*: CVQ4LA4ALPQIAO2H3N2RB6IR8UHM91E7.example.com
 
--  *www.example.com*: NTQ0CQEJHM0S17POMCUSLG5IOQQEDTBJ.example.com.
+-  *www.example.com*: MIFDNDT3NFF3OD53O7TLA1HRFF95JKUK.example.com
 
--  *example.com*: TOM10UQBL336NFAQB3P6MOO53LSVG8UI.example.com.
+-  *example.com*: ONIB9MGUB9H0RML3CDF5BGRJ59DKJHVK.example.com
 
 To undo NSEC3 opt-out, change the configuration again:
 
 ::
 
    dnssec-policy "standard" {
-       nsec3param iterations 10 optout no salt-length 16;
+       nsec3param iterations 0 optout no salt-length 0;
    };
 
 .. note::
@@ -1006,8 +975,8 @@ To undo NSEC3 opt-out, change the configuration again:
 
    ::
 
-      # nsec3hash 1234567890ABCDEF 1 10 www.example.com.
-      NTQ0CQEJHM0S17POMCUSLG5IOQQEDTBJ (salt=1234567890ABCDEF, hash=1, iterations=10)
+      # nsec3hash - 1 0 www.example.com.
+      MIFDNDT3NFF3OD53O7TLA1HRFF95JKUK (salt=-, hash=1, iterations=0)
 
 .. _revert_to_unsigned:
 
