@@ -38,33 +38,22 @@ Recursive Server Hardware
 Enabling DNSSEC validation on a recursive server makes it a *validating
 resolver*. The job of a validating resolver is to fetch additional
 information that can be used to computationally verify the answer set.
-Below are the areas that should be considered for possible hardware
-enhancement for a validating resolver:
+Contrary to popular belief, the increase in resource consumption is very modest:
 
-1. *CPU*: a validating resolver executes cryptographic functions on many
-   of the answers returned, which usually leads to increased CPU usage,
-   unless your recursive server has built-in hardware to perform
-   cryptographic computations.
+1. *CPU*: a validating resolver executes cryptographic functions on cache-miss
+   answers, which leads to increased CPU usage. Thanks to standard DNS caching
+   and contemporary CPUs, the increase in CPU-time consumption in a steady
+   state is negligible - typically on the order of 5%. For a brief period (a few
+   minutes) after the resolver starts, the increase might be as much as 20%, but it
+   quickly decreases as the DNS cache fills in.
 
 2. *System memory*: DNSSEC leads to larger answer sets and occupies
-   more memory space.
+   more memory space. With typical ISP traffic and the state of the Internet as
+   of mid-2022, memory consumption for the cache increases by roughly 20%.
 
 3. *Network interfaces*: although DNSSEC does increase the amount of DNS
-   traffic overall, it is unlikely that you need to upgrade your network
-   interface card (NIC) on the name server unless you have some truly
-   outdated hardware.
-
-One factor to consider is the destinations of your current DNS
-traffic. If your current users spend a lot of time visiting ``.gov`` 
-websites, you should expect a jump in all of the above
-categories when validation is enabled, because ``.gov`` is more than 90%
-signed. This means that more than 90% of the time, your validating resolver
-will be doing what is described in
-:ref:`how_does_dnssec_change_dns_lookup`. However, if your users
-only care about resources in the ``.com`` domain, which, as of mid-2020,
-is under 1.5% signed [#]_, your recursive name server is unlikely
-to experience a significant load increase after enabling DNSSEC
-validation.
+   traffic overall, in practice this increase is often within measurement
+   error.
 
 .. _authoritative_server_hardware:
 
