@@ -79,7 +79,7 @@ as required by the user.
           };
         };
 
-The :ref:`logging<logging_grammar>` and :ref:`options<options_grammar>` clauses
+The :ref:`logging<logging_grammar>` and :ref:`options<options_grammar>` blocks
 and :ref:`category<the_category_phrase>`, :ref:`channel<channel>`,
 :ref:`directory<directory>`, :ref:`file<file>`, and :ref:`severity<severity>`
 statements are all described further in the appropriate sections of this ARM.

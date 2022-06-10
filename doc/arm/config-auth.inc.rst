@@ -167,9 +167,9 @@ the :iscman:`named.conf` file has been modified as shown:
           };
         };
 
-The added statements and clauses are commented in the above file.
+The added statements and blocks are commented in the above file.
 
-The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
+The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
 :any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
@@ -250,9 +250,9 @@ The :iscman:`named.conf` file has been modified as shown:
           primaries { 192.168.254.2; };
         };
 
-The statements and clauses added are all commented in the above file.
+The statements and blocks added are all commented in the above file.
 
-The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
+The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
 :any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`primaries<primaries>`,
@@ -268,5 +268,5 @@ message.
    can get more complicated.  A secondary zone can also be a primary to other
    secondaries: :iscman:`named`, by default, sends NOTIFY messages for every
    zone it loads.  Specifying :ref:`notify primary-only;<notify>` in the
-   :ref:`zone<zone_clause>` clause for the secondary causes :iscman:`named` to
+   :ref:`zone<zone_clause>` block for the secondary causes :iscman:`named` to
    only send NOTIFY messages for primary zones that it loads.
