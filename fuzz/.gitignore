@@ -5,6 +5,8 @@
 /dns_message_parse
 /dns_name_fromtext_target
 /dns_name_fromwire
+/dns_qp
+/dns_qpkey_name
 /dns_rdata_fromtext
 /dns_rdata_fromwire_text
 /isc_lex_getmastertoken
