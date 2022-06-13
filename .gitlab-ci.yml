@@ -1522,6 +1522,7 @@ gcov:
     - find bin lib -maxdepth 1 -mindepth 1 -type d -exec cp -f lib/isc/include/isc/buffer.h "{}" \;
     - cp -f lib/isc/include/isc/buffer.h lib/isc/netmgr/buffer.h
     - cp -f lib/isc/include/isc/dnsbuffer.h lib/isc/netmgr/dnsbuffer.h
+    - cp -f lib/isc/include/isc/dnsstream.h lib/isc/netmgr/dnsstream.h
     # Help gcovr find dlz_dbi.c file
     - for DST in ldap mysql mysqldyn sqlite3 wildcard; do cp contrib/dlz/modules/common/dlz_dbi.c "contrib/dlz/modules/${DST}"; done
     # Generate XML file in the Cobertura XML format suitable for use by GitLab

@@ -26,6 +26,7 @@ libisc_la_HEADERS =			\
 	include/isc/deprecated.h	\
 	include/isc/dir.h		\
 	include/isc/dnsbuffer.h		\
+	include/isc/dnsstream.h		\
 	include/isc/endian.h		\
 	include/isc/entropy.h		\
 	include/isc/errno.h		\
