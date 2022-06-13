@@ -1711,19 +1711,10 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	 * Get some resources.
 	 */
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
 	fname = ns_client_newname(client, dbuf, &b);
 	rdataset = ns_client_newrdataset(client);
-	if (fname == NULL || rdataset == NULL) {
-		goto cleanup;
-	}
 	if (WANTDNSSEC(client)) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			goto cleanup;
-		}
 	}
 
 	/*
@@ -1765,9 +1756,6 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	 */
 	if (sigrdataset == NULL) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			goto cleanup;
-		}
 	}
 
 	version = NULL;
@@ -1898,9 +1886,6 @@ found:
 			}
 		} else {
 			rdataset = ns_client_newrdataset(client);
-			if (rdataset == NULL) {
-				goto addname;
-			}
 		}
 		if (sigrdataset != NULL) {
 			if (dns_rdataset_isassociated(sigrdataset)) {
@@ -1908,9 +1893,6 @@ found:
 			}
 		} else if (WANTDNSSEC(client)) {
 			sigrdataset = ns_client_newrdataset(client);
-			if (sigrdataset == NULL) {
-				goto addname;
-			}
 		}
 		if (query_isduplicate(client, fname, dns_rdatatype_a, NULL)) {
 			goto aaaa_lookup;
@@ -1966,12 +1948,6 @@ found:
 						ns_client_newrdataset(client);
 				}
 				rdataset = ns_client_newrdataset(client);
-				if (rdataset == NULL) {
-					goto addname;
-				}
-				if (WANTDNSSEC(client) && sigrdataset == NULL) {
-					goto addname;
-				}
 			} else {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
@@ -2462,9 +2438,6 @@ fixfname(ns_client_t *client, dns_name_t **fname, isc_buffer_t **dbuf,
 	 isc_buffer_t *nbuf) {
 	if (*fname == NULL) {
 		*dbuf = ns_client_getnamebuf(client);
-		if (*dbuf == NULL) {
-			return;
-		}
 		*fname = ns_client_newname(client, *dbuf, nbuf);
 	}
 }
@@ -2576,9 +2549,6 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
-	if (tmprdataset == NULL) {
-		return;
-	}
 
 	if (!TCP(client)) {
 		peeraddr = &client->peeraddr;
@@ -2637,11 +2607,6 @@ rpz_ready(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 
 	if (*rdatasetp == NULL) {
 		*rdatasetp = ns_client_newrdataset(client);
-		if (*rdatasetp == NULL) {
-			CTRACE(ISC_LOG_ERROR, "rpz_ready: "
-					      "ns_client_newrdataset failed");
-			return (DNS_R_SERVFAIL);
-		}
 	} else if (dns_rdataset_isassociated(*rdatasetp)) {
 		dns_rdataset_disassociate(*rdatasetp);
 	}
@@ -2796,9 +2761,6 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
-	if (tmprdataset == NULL) {
-		return;
-	}
 
 	if (!TCP(client)) {
 		peeraddr = &client->peeraddr;
@@ -5720,51 +5682,16 @@ qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
 	REQUIRE(buffer != NULL);
 
 	qctx->dbuf = ns_client_getnamebuf(qctx->client);
-	if (qctx->dbuf == NULL) {
-		CCTRACE(ISC_LOG_ERROR,
-			"qctx_prepare_buffers: ns_client_getnamebuf "
-			"failed");
-		return (ISC_R_NOMEMORY);
-	}
-
 	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, buffer);
-	if (qctx->fname == NULL) {
-		CCTRACE(ISC_LOG_ERROR,
-			"qctx_prepare_buffers: ns_client_newname failed");
-
-		return (ISC_R_NOMEMORY);
-	}
-
 	qctx->rdataset = ns_client_newrdataset(qctx->client);
-	if (qctx->rdataset == NULL) {
-		CCTRACE(ISC_LOG_ERROR,
-			"qctx_prepare_buffers: ns_client_newrdataset failed");
-		goto error;
-	}
 
 	if ((WANTDNSSEC(qctx->client) || qctx->findcoveringnsec) &&
 	    (!qctx->is_zone || dns_db_issecure(qctx->db)))
 	{
 		qctx->sigrdataset = ns_client_newrdataset(qctx->client);
-		if (qctx->sigrdataset == NULL) {
-			CCTRACE(ISC_LOG_ERROR,
-				"qctx_prepare_buffers: "
-				"ns_client_newrdataset failed (2)");
-			goto error;
-		}
 	}
 
 	return (ISC_R_SUCCESS);
-
-error:
-	if (qctx->fname != NULL) {
-		ns_client_releasename(qctx->client, &qctx->fname);
-	}
-	if (qctx->rdataset != NULL) {
-		ns_client_putrdataset(qctx->client, &qctx->rdataset);
-	}
-
-	return (ISC_R_NOMEMORY);
 }
 
 /*
@@ -6486,16 +6413,9 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	REQUIRE(client->query.fetch == NULL);
 
 	rdataset = ns_client_newrdataset(client);
-	if (rdataset == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	if (WANTDNSSEC(client)) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			ns_client_putrdataset(client, &rdataset);
-			return (ISC_R_NOMEMORY);
-		}
 	} else {
 		sigrdataset = NULL;
 	}
@@ -6695,20 +6615,7 @@ query_resume(query_ctx_t *qctx) {
 	 * We'll need some resources...
 	 */
 	qctx->dbuf = ns_client_getnamebuf(qctx->client);
-	if (qctx->dbuf == NULL) {
-		CCTRACE(ISC_LOG_ERROR, "query_resume: ns_client_getnamebuf "
-				       "failed (1)");
-		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-		return (ns_query_done(qctx));
-	}
-
 	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-	if (qctx->fname == NULL) {
-		CCTRACE(ISC_LOG_ERROR, "query_resume: ns_client_newname failed "
-				       "(1)");
-		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-		return (ns_query_done(qctx));
-	}
 
 	if (qctx->rpz_st != NULL &&
 	    (qctx->rpz_st->state & DNS_RPZ_RECURSING) != 0) {
@@ -7747,16 +7654,9 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	}
 
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
-
 	fname = ns_client_newname(client, dbuf, &b);
 	neg = ns_client_newrdataset(client);
 	negsig = ns_client_newrdataset(client);
-	if (fname == NULL || neg == NULL || negsig == NULL) {
-		goto cleanup;
-	}
 
 	result = dns_rdataset_getnoqname(qctx->noqname, fname, neg, negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -7770,9 +7670,6 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 
 	if (fname == NULL) {
 		dbuf = ns_client_getnamebuf(client);
-		if (dbuf == NULL) {
-			goto cleanup;
-		}
 		fname = ns_client_newname(client, dbuf, &b);
 	}
 
@@ -7788,9 +7685,6 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 		dns_rdataset_disassociate(negsig);
 	}
 
-	if (fname == NULL || neg == NULL || negsig == NULL) {
-		goto cleanup;
-	}
 	result = dns_rdataset_getclosest(qctx->noqname, fname, neg, negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -7951,9 +7845,6 @@ query_respond_any(query_ctx_t *qctx) {
 			}
 
 			qctx->rdataset = ns_client_newrdataset(qctx->client);
-			if (qctx->rdataset == NULL) {
-				break;
-			}
 		} else {
 			/*
 			 * We're not interested in this rdataset.
@@ -9029,9 +8920,6 @@ query_addds(query_ctx_t *qctx) {
 	 */
 	rdataset = ns_client_newrdataset(client);
 	sigrdataset = ns_client_newrdataset(client);
-	if (rdataset == NULL || sigrdataset == NULL) {
-		goto cleanup;
-	}
 
 	/*
 	 * Look for the DS record, which may or may not be present.
@@ -9101,9 +8989,6 @@ addnsec3:
 	 * Add the NSEC3 which proves the DS does not exist.
 	 */
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
 	fname = ns_client_newname(client, dbuf, &b);
 	dns_fixedname_init(&fixed);
 	if (dns_rdataset_isassociated(rdataset)) {
@@ -9189,22 +9074,8 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 		RESTORE(qctx->sigrdataset, qctx->client->query.dns64_sigaaaa);
 		if (qctx->fname == NULL) {
 			qctx->dbuf = ns_client_getnamebuf(qctx->client);
-			if (qctx->dbuf == NULL) {
-				CCTRACE(ISC_LOG_ERROR, "query_nodata: "
-						       "ns_client_getnamebuf "
-						       "failed (3)");
-				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-				return (ns_query_done(qctx));
-			}
 			qctx->fname = ns_client_newname(qctx->client,
 							qctx->dbuf, &b);
-			if (qctx->fname == NULL) {
-				CCTRACE(ISC_LOG_ERROR, "query_nodata: "
-						       "ns_client_newname "
-						       "failed (3)");
-				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-				return (ns_query_done(qctx));
-			}
 		}
 		dns_name_copy(qctx->client->query.qname, qctx->fname);
 		qctx->dns64 = false;
@@ -9454,14 +9325,7 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 	 * We'll need some resources...
 	 */
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		return;
-	}
-
 	fname = ns_client_newname(client, dbuf, &b);
-	if (fname == NULL) {
-		return;
-	}
 
 	dns_name_split(qctx->fname, sig.labels + 1, NULL, fname);
 	/* This will succeed, since we've stripped labels. */
@@ -9527,7 +9391,8 @@ query_nxdomain(query_ctx_t *qctx, isc_result_t res) {
 	{
 		ttl = 0;
 	}
-	if (!qctx->nxrewrite || qctx->rpz_st->m.rpz->addsoa) {
+	if (!qctx->nxrewrite ||
+	    (qctx->rpz_st != NULL && qctx->rpz_st->m.rpz->addsoa)) {
 		result = query_addsoa(qctx, ttl, section);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(qctx, result);
@@ -9694,7 +9559,6 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	dns_name_t *name = NULL;
 	dns_ttl_t ttl;
 	isc_buffer_t *dbuf, b;
-	isc_result_t result;
 
 	/*
 	 * Determine the correct TTL to use for the SOA and RRSIG
@@ -9714,17 +9578,7 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	}
 
 	dbuf = ns_client_getnamebuf(qctx->client);
-	if (dbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-
 	name = ns_client_newname(qctx->client, dbuf, &b);
-	if (name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-
 	dns_name_copy(signer, name);
 
 	/*
@@ -9744,14 +9598,12 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 			       &qctx->sigrdataset, NULL, DNS_SECTION_AUTHORITY);
 	}
 
-	result = ISC_R_SUCCESS;
 	inc_stats(qctx->client, ns_statscounter_nodatasynth);
 
-cleanup:
 	if (name != NULL) {
 		ns_client_releasename(qctx->client, &name);
 	}
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -9763,7 +9615,6 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 		    dns_rdataset_t *sigrdataset) {
 	dns_name_t *name = NULL;
 	isc_buffer_t *dbuf, b;
-	isc_result_t result;
 	dns_rdataset_t *cloneset = NULL, *clonesigset = NULL;
 	dns_rdataset_t **sigrdatasetp;
 
@@ -9780,23 +9631,10 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	}
 
 	dbuf = ns_client_getnamebuf(qctx->client);
-	if (dbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-
 	name = ns_client_newname(qctx->client, dbuf, &b);
-	if (name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	dns_name_copy(qctx->client->query.qname, name);
 
 	cloneset = ns_client_newrdataset(qctx->client);
-	if (cloneset == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	dns_rdataset_clone(rdataset, cloneset);
 
 	/*
@@ -9804,10 +9642,6 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	 */
 	if (WANTDNSSEC(qctx->client)) {
 		clonesigset = ns_client_newrdataset(qctx->client);
-		if (clonesigset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		dns_rdataset_clone(sigrdataset, clonesigset);
 		sigrdatasetp = &clonesigset;
 	} else {
@@ -9825,10 +9659,8 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 			       &qctx->sigrdataset, NULL, DNS_SECTION_AUTHORITY);
 	}
 
-	result = ISC_R_SUCCESS;
 	inc_stats(qctx->client, ns_statscounter_wildcardsynth);
 
-cleanup:
 	if (name != NULL) {
 		ns_client_releasename(qctx->client, &name);
 	}
@@ -9838,7 +9670,7 @@ cleanup:
 	if (clonesigset != NULL) {
 		ns_client_putrdataset(qctx->client, &clonesigset);
 	}
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -9906,7 +9738,6 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
 	dns_name_t *name = NULL;
 	dns_ttl_t ttl;
 	isc_buffer_t *dbuf, b;
-	isc_result_t result;
 	dns_rdataset_t *cloneset = NULL, *clonesigset = NULL;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_synthnxdomain");
@@ -9930,17 +9761,7 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
 	}
 
 	dbuf = ns_client_getnamebuf(qctx->client);
-	if (dbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-
 	name = ns_client_newname(qctx->client, dbuf, &b);
-	if (name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-
 	dns_name_copy(signer, name);
 
 	/*
@@ -9960,25 +9781,11 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
 			       &qctx->sigrdataset, NULL, DNS_SECTION_AUTHORITY);
 
 		dbuf = ns_client_getnamebuf(qctx->client);
-		if (dbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
-
 		name = ns_client_newname(qctx->client, dbuf, &b);
-		if (name == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
-
 		dns_name_copy(nowild, name);
 
 		cloneset = ns_client_newrdataset(qctx->client);
 		clonesigset = ns_client_newrdataset(qctx->client);
-		if (cloneset == NULL || clonesigset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 
 		dns_rdataset_clone(nowildrdataset, cloneset);
 		dns_rdataset_clone(signowildrdataset, clonesigset);
@@ -9996,9 +9803,7 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
 		qctx->client->message->rcode = dns_rcode_nxdomain;
 		inc_stats(qctx->client, ns_statscounter_nxdomainsynth);
 	}
-	result = ISC_R_SUCCESS;
 
-cleanup:
 	if (name != NULL) {
 		ns_client_releasename(qctx->client, &name);
 	}
@@ -10008,7 +9813,7 @@ cleanup:
 	if (clonesigset != NULL) {
 		ns_client_putrdataset(qctx->client, &clonesigset);
 	}
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -10146,9 +9951,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 
 		soardataset = ns_client_newrdataset(qctx->client);
 		sigsoardataset = ns_client_newrdataset(qctx->client);
-		if (soardataset == NULL || sigsoardataset == NULL) {
-			goto cleanup;
-		}
 
 		/*
 		 * Look for SOA record to construct NODATA response.
@@ -10266,9 +10068,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 
 	soardataset = ns_client_newrdataset(qctx->client);
 	sigsoardataset = ns_client_newrdataset(qctx->client);
-	if (soardataset == NULL || sigsoardataset == NULL) {
-		goto cleanup;
-	}
 
 	/*
 	 * Look for SOA record to construct NXDOMAIN response.
@@ -10610,15 +10409,7 @@ query_dname(query_ctx_t *qctx) {
 	dns_name_split(qctx->client->query.qname, nlabels, prefix, NULL);
 	INSIST(qctx->fname == NULL);
 	qctx->dbuf = ns_client_getnamebuf(qctx->client);
-	if (qctx->dbuf == NULL) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (ns_query_done(qctx));
-	}
 	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-	if (qctx->fname == NULL) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (ns_query_done(qctx));
-	}
 	result = dns_name_concatenate(prefix, tname, qctx->fname, NULL);
 	dns_message_puttempname(qctx->client->message, &tname);
 
@@ -10819,18 +10610,8 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	dns_name_clone(dns_db_origin(qctx->db), name);
 
 	rdataset = ns_client_newrdataset(client);
-	if (rdataset == NULL) {
-		CTRACE(ISC_LOG_ERROR, "unable to allocate rdataset");
-		eresult = DNS_R_SERVFAIL;
-		goto cleanup;
-	}
 	if (WANTDNSSEC(client) && dns_db_issecure(qctx->db)) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			CTRACE(ISC_LOG_ERROR, "unable to allocate sigrdataset");
-			eresult = DNS_R_SERVFAIL;
-			goto cleanup;
-		}
 	}
 
 	/*
@@ -10903,7 +10684,6 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 			       section);
 	}
 
-cleanup:
 	ns_client_putrdataset(client, &rdataset);
 	if (sigrdataset != NULL) {
 		ns_client_putrdataset(client, &sigrdataset);
@@ -10950,21 +10730,9 @@ query_addns(query_ctx_t *qctx) {
 	dns_message_gettempname(client->message, &name);
 	dns_name_clone(dns_db_origin(qctx->db), name);
 	rdataset = ns_client_newrdataset(client);
-	if (rdataset == NULL) {
-		CTRACE(ISC_LOG_ERROR, "query_addns: ns_client_newrdataset "
-				      "failed");
-		eresult = DNS_R_SERVFAIL;
-		goto cleanup;
-	}
 
 	if (WANTDNSSEC(client) && dns_db_issecure(qctx->db)) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			CTRACE(ISC_LOG_ERROR, "query_addns: "
-					      "ns_client_newrdataset failed");
-			eresult = DNS_R_SERVFAIL;
-			goto cleanup;
-		}
 	}
 
 	/*
@@ -10999,7 +10767,6 @@ query_addns(query_ctx_t *qctx) {
 			       DNS_SECTION_AUTHORITY);
 	}
 
-cleanup:
 	CTRACE(ISC_LOG_DEBUG(3), "query_addns: cleanup");
 	ns_client_putrdataset(client, &rdataset);
 	if (sigrdataset != NULL) {
@@ -11055,14 +10822,8 @@ db_find:
 	 * We'll need some resources...
 	 */
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
 	fname = ns_client_newname(client, dbuf, &b);
 	rdataset = ns_client_newrdataset(client);
-	if (fname == NULL || rdataset == NULL) {
-		goto cleanup;
-	}
 
 	/*
 	 * Get the RRSIGs if the client requested them or if we may
@@ -11070,9 +10831,6 @@ db_find:
 	 */
 	if (WANTDNSSEC(client) || !is_zone) {
 		sigrdataset = ns_client_newrdataset(client);
-		if (sigrdataset == NULL) {
-			goto cleanup;
-		}
 	}
 
 	/*
@@ -11308,15 +11066,9 @@ again:
 	 * We'll need some resources...
 	 */
 	dbuf = ns_client_getnamebuf(client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
 	fname = ns_client_newname(client, dbuf, &b);
 	rdataset = ns_client_newrdataset(client);
 	sigrdataset = ns_client_newrdataset(client);
-	if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
-		goto cleanup;
-	}
 
 	result = dns_db_findext(qctx->db, name, qctx->version,
 				dns_rdatatype_nsec, options, 0, &node, fname,
@@ -11367,9 +11119,6 @@ again:
 		 */
 		if (fname == NULL) {
 			dbuf = ns_client_getnamebuf(client);
-			if (dbuf == NULL) {
-				goto cleanup;
-			}
 			fname = ns_client_newname(client, dbuf, &b);
 		}
 
@@ -11385,9 +11134,6 @@ again:
 			dns_rdataset_disassociate(sigrdataset);
 		}
 
-		if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
-			goto cleanup;
-		}
 		/*
 		 * Add no qname proof.
 		 */
@@ -11416,9 +11162,6 @@ again:
 		 */
 		if (fname == NULL) {
 			dbuf = ns_client_getnamebuf(client);
-			if (dbuf == NULL) {
-				goto cleanup;
-			}
 			fname = ns_client_newname(client, dbuf, &b);
 		}
 
@@ -11434,9 +11177,6 @@ again:
 			dns_rdataset_disassociate(sigrdataset);
 		}
 
-		if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
-			goto cleanup;
-		}
 		/*
 		 * Add the no wildcard proof.
 		 */
