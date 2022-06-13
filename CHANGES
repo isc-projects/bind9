@@ -1,3 +1,7 @@
+5902.	[func]		NXDOMAIN cache records are no longer retained in
+			the cache after expiry, even when serve-stale is
+			in use. [GL #3386]
+
 5901.	[bug]		When processing a catalog zone member zone make sure
 			that there is no configured pre-existing forward-only
 			forward zone with that name. [GL #2506]
