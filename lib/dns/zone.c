@@ -13665,7 +13665,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, opcode, sizeof(opcode));
-		(void)dns_opcode_totext(msg->rcode, &rb);
+		(void)dns_opcode_totext(msg->opcode, &rb);
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: "
@@ -14076,7 +14076,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, opcode, sizeof(opcode));
-		(void)dns_opcode_totext(msg->rcode, &rb);
+		(void)dns_opcode_totext(msg->opcode, &rb);
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: "
@@ -18336,7 +18336,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, opcode, sizeof(opcode));
-		(void)dns_opcode_totext(msg->rcode, &rb);
+		(void)dns_opcode_totext(msg->opcode, &rb);
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "forwarding dynamic update: "
