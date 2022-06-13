@@ -62,8 +62,8 @@ Authoritative Server Hardware
 
 On the authoritative server side, DNSSEC is enabled on a zone-by-zone
 basis. When a zone is DNSSEC-enabled, it is also known as "signed."
-Below are the areas to consider for possible hardware
-enhancements for an authoritative server with signed zones:
+Below are the expected changes to resource consumption caused by serving
+DNSSEC-signed zones:
 
 1. *CPU*: a DNSSEC-signed zone requires periodic re-signing, which is a
    cryptographic function that is CPU-intensive. If your DNS zone is
@@ -72,12 +72,17 @@ enhancements for an authoritative server with signed zones:
 2. *System storage*: A signed zone is definitely larger than an unsigned
    zone. How much larger? See
    :ref:`your_zone_before_and_after_dnssec` for a comparison
-   example. Roughly speaking, you should expect your zone file to grow by at
-   least three times, and frequently more.
+   example. The final size depends on the structure of the zone, the signing algorithm,
+   the number of keys, the choice of NSEC or NSEC3, the ratio of signed delegations, the zone file
+   format, etc. Usually, the size of a signed zone ranges from a negligible
+   increase to as much as three times the size of the unsigned zone.
 
 3. *System memory*: Larger DNS zone files take up not only more storage
    space on the file system, but also more space when they are loaded
-   into system memory.
+   into system memory. The final memory consumption also depends on all the
+   variables listed above: in the typical case the increase is around half of
+   the unsigned zone memory consumption, but it can be as high as three times
+   for some corner cases.
 
 4. *Network interfaces*: While your authoritative name servers will
    begin sending back larger responses, it is unlikely that you need to
