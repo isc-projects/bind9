@@ -9248,7 +9248,9 @@ query_nxdomain(query_ctx_t *qctx, bool empty_wild) {
 	{
 		ttl = 0;
 	}
-	if (!qctx->nxrewrite || qctx->rpz_st->m.rpz->addsoa) {
+	if (!qctx->nxrewrite ||
+	    (qctx->rpz_st != NULL && qctx->rpz_st->m.rpz->addsoa))
+	{
 		result = query_addsoa(qctx, ttl, section);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(qctx, result);
