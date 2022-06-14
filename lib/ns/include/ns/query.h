@@ -104,7 +104,6 @@ struct ns_query {
 	bool		 authdbset;
 	bool		 isreferral;
 	isc_mutex_t	 fetchlock;
-	dns_fetch_t	    *fetch;
 	ns_hookasync_t  *hookactx;
 	dns_rpz_st_t    *rpz_st;
 	isc_bufferlist_t namebufs;

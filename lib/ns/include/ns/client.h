@@ -174,7 +174,6 @@ struct ns_client {
 	isc_nmhandle_t  *sendhandle;  /* Waiting for send callback */
 	isc_nmhandle_t  *reqhandle;   /* Waiting for request callback
 					 (query, update, notify) */
-	isc_nmhandle_t *fetchhandle;  /* Waiting for recursive fetch */
 	isc_nmhandle_t *updatehandle; /* Waiting for update callback */
 	unsigned char  *tcpbuf;
 	dns_message_t  *message;
