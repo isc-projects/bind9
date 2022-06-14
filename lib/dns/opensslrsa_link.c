@@ -384,14 +384,14 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if !HAVE_BN_GENCB_NEW
 	BN_GENCB _cb;
 #endif /* !HAVE_BN_GENCB_NEW */
-	BN_GENCB *cb = BN_GENCB_new();
+	BN_GENCB *cb = NULL;
 #else
 	EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", NULL);
 	EVP_PKEY *pkey = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
-	if (e == NULL || rsa == NULL || pkey == NULL || cb == NULL) {
+	if (e == NULL || rsa == NULL || pkey == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 #else
@@ -442,9 +442,14 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 
-	if (callback == NULL) {
-		BN_GENCB_set_old(cb, NULL, NULL);
-	} else {
+	if (callback != NULL) {
+		cb = BN_GENCB_new();
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
+		if (cb == NULL) {
+			DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
+		}
+#endif /* if OPENSSL_VERSION_NUMBER >= 0x10100000L && \
+	* !defined(LIBRESSL_VERSION_NUMBER) */
 		u.fptr = callback;
 		BN_GENCB_set(cb, progress_cb, u.dptr);
 	}

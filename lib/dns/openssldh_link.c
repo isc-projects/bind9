@@ -444,16 +444,14 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 
 	if (generator != 0) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
-		cb = BN_GENCB_new();
+		if (callback != NULL) {
+			cb = BN_GENCB_new();
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
-		if (cb == NULL) {
-			DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
-		}
+			if (cb == NULL) {
+				DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
+			}
 #endif /* if OPENSSL_VERSION_NUMBER >= 0x10100000L && \
 	* !defined(LIBRESSL_VERSION_NUMBER) */
-		if (callback == NULL) {
-			BN_GENCB_set_old(cb, NULL, NULL);
-		} else {
 			u.fptr = callback;
 			BN_GENCB_set(cb, progress_cb, u.dptr);
 		}
