@@ -46,6 +46,7 @@ typedef enum {
 	RECTYPE_NORMAL,
 	RECTYPE_PREFETCH,
 	RECTYPE_RPZ,
+	RECTYPE_HOOK,
 	RECTYPE_COUNT,
 } ns_query_rectype_t;
 
@@ -59,6 +60,8 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_PREFETCH].handle)
 #define HANDLE_RECTYPE_RPZ(client) \
 	((client)->query.recursions[RECTYPE_RPZ].handle)
+#define HANDLE_RECTYPE_HOOK(client) \
+	((client)->query.recursions[RECTYPE_HOOK].handle)
 
 /*%
  * Helper macros for accessing dns_fetch_t pointers for a specific recursion a
@@ -70,6 +73,8 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_PREFETCH].fetch)
 #define FETCH_RECTYPE_RPZ(client) \
 	((client)->query.recursions[RECTYPE_RPZ].fetch)
+#define FETCH_RECTYPE_HOOK(client) \
+	((client)->query.recursions[RECTYPE_HOOK].fetch)
 
 /*%
  * nameserver recursion parameters, to uniquely identify a recursion

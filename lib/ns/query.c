@@ -6693,12 +6693,11 @@ query_hookresume(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&client->manager->reclock);
 
 	/*
-	 * This event is running under a client task, so it's safe to detach
-	 * the fetch handle.  And it should be done before resuming query
-	 * processing below, since that may trigger another recursion or
-	 * asynchronous hook event.
+	 * The fetch handle should be detached before resuming query processing
+	 * below, since that may trigger another recursion or asynchronous hook
+	 * event.
 	 */
-	isc_nmhandle_detach(&client->fetchhandle);
+	isc_nmhandle_detach(&HANDLE_RECTYPE_HOOK(client));
 
 	client->state = NS_CLIENTSTATE_WORKING;
 
@@ -6814,7 +6813,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->query.hookactx == NULL);
-	REQUIRE(client->query.fetch == NULL);
+	REQUIRE(FETCH_RECTYPE_NORMAL(client) == NULL);
 
 	result = check_recursionquota(client);
 	if (result != ISC_R_SUCCESS) {
@@ -6837,12 +6836,11 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	 * attribute won't be checked anywhere.
 	 *
 	 * Hook-based asynchronous processing cannot coincide with normal
-	 * recursion, so we can safely use fetchhandle here.  Unlike in
-	 * ns_query_recurse(), we attach to the handle only if 'runasync'
-	 * succeeds. It should be safe since we're either in the client
-	 * task or pausing it.
+	 * recursion.  Unlike in ns_query_recurse(), we attach to the handle
+	 * only if 'runasync' succeeds. It should be safe since we're either in
+	 * the client task or pausing it.
 	 */
-	isc_nmhandle_attach(client->handle, &client->fetchhandle);
+	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_HOOK(client));
 	return (ISC_R_SUCCESS);
 
 cleanup:
