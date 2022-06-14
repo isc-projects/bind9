@@ -40,4 +40,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Fix the assertion failure caused by TCP connection closing between the
+  connect (or accept) and the read from the socket. :gl:`#3400`
