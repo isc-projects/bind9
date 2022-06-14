@@ -2525,9 +2525,9 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	CTRACE(ISC_LOG_DEBUG(3), "prefetch_done");
 
 	LOCK(&client->query.fetchlock);
-	if (client->query.prefetch != NULL) {
-		INSIST(devent->fetch == client->query.prefetch);
-		client->query.prefetch = NULL;
+	if (FETCH_RECTYPE_PREFETCH(client) != NULL) {
+		INSIST(devent->fetch == FETCH_RECTYPE_PREFETCH(client));
+		FETCH_RECTYPE_PREFETCH(client) = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
 
@@ -2537,7 +2537,7 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	recursionquota_detach(client);
 
 	free_devent(client, &event, &devent);
-	isc_nmhandle_detach(&client->prefetchhandle);
+	isc_nmhandle_detach(&HANDLE_RECTYPE_PREFETCH(client));
 }
 
 /*
@@ -2569,16 +2569,16 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 		peeraddr = NULL;
 	}
 
-	isc_nmhandle_attach(client->handle, &client->prefetchhandle);
+	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_PREFETCH(client));
 	options = client->query.fetchoptions | extra_fetch_options;
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, NULL, NULL, NULL,
 		peeraddr, client->message->id, options, 0, NULL,
 		client->manager->task, prefetch_done, client, tmprdataset, NULL,
-		&client->query.prefetch);
+		&FETCH_RECTYPE_PREFETCH(client));
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
-		isc_nmhandle_detach(&client->prefetchhandle);
+		isc_nmhandle_detach(&HANDLE_RECTYPE_PREFETCH(client));
 	}
 }
 
@@ -2587,7 +2587,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	       dns_rdataset_t *rdataset) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_prefetch");
 
-	if (client->query.prefetch != NULL ||
+	if (FETCH_RECTYPE_PREFETCH(client) != NULL ||
 	    client->view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->view->prefetch_trigger ||
 	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
@@ -2762,7 +2762,7 @@ static void
 query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_rpzfetch");
 
-	if (client->query.prefetch != NULL) {
+	if (FETCH_RECTYPE_PREFETCH(client) != NULL) {
 		return;
 	}
 

@@ -62,6 +62,7 @@
 #include <ns/interfacemgr.h>
 #include <ns/log.h>
 #include <ns/notify.h>
+#include <ns/query.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 #include <ns/update.h>
@@ -269,7 +270,7 @@ ns_client_endrequest(ns_client_t *client) {
 	 */
 	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
-		if (client->query.prefetch == NULL) {
+		if (FETCH_RECTYPE_PREFETCH(client) == NULL) {
 			ns_stats_decrement(client->manager->sctx->nsstats,
 					   ns_statscounter_recursclients);
 		}
