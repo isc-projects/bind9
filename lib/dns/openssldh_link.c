@@ -492,7 +492,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		DST_RET(dst__openssl_toresult2("DH_generate_key",
 					       DST_R_OPENSSLFAILURE));
 	}
-	DH_clear_flags(dh, DH_FLAG_CACHE_MONT_P);
 	key->keydata.dh = dh;
 	dh = NULL;
 #else
@@ -785,7 +784,6 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (dh == NULL) {
 		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
-	DH_clear_flags(dh, DH_FLAG_CACHE_MONT_P);
 #else
 	bld = OSSL_PARAM_BLD_new();
 	if (bld == NULL) {
@@ -1116,7 +1114,6 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (dh == NULL) {
 		DST_RET(ISC_R_NOMEMORY);
 	}
-	DH_clear_flags(dh, DH_FLAG_CACHE_MONT_P);
 #else
 	bld = OSSL_PARAM_BLD_new();
 	if (bld == NULL) {

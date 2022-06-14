@@ -72,8 +72,6 @@ DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
 
 int
 DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g);
-
-#define DH_clear_flags(d, f) ((d)->flags &= ~(f))
 #endif /* !HAVE_DH_GET0_KEY */
 
 #if !HAVE_ERR_GET_ERROR_ALL
