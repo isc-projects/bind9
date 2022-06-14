@@ -1,3 +1,9 @@
+5903.	[bug]		When named checks that the OPCODE in a response matches
+			that of the request, if there is a mismatch named logs
+			an error.  Some of those error messages incorrectly
+			used RCODE instead of OPCODE to lookup the nemonic.
+			This has been corrected. [GL !6420]
+
 5902.	[func]		NXDOMAIN cache records are no longer retained in
 			the cache after expiry, even when serve-stale is
 			in use. [GL #3386]
