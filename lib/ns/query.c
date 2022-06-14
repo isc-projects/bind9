@@ -6357,9 +6357,9 @@ check_recursionquota(ns_client_t *client, ns_query_rectype_t recursion_type) {
 				   "no more recursive clients (%u/%u/%u)",
 				   &client->manager->sctx->recursionquota);
 		ns_client_killoldestquery(client);
-		FALLTHROUGH;
-	default:
 		return (result);
+	default:
+		UNREACHABLE();
 	}
 
 	dns_message_clonebuffer(client->message);
