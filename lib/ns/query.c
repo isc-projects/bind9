@@ -2562,23 +2562,21 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	isc_nmhandle_detach(&client->prefetchhandle);
 }
 
+/*
+ * Try initiating a fetch for the given 'qname' and 'qtype' (with any requested
+ * 'extra_fetch_options') that will be associated with 'client'.  If the
+ * recursive clients quota (or even soft quota) is reached or some other error
+ * occurs, just return without starting the fetch.  If a fetch is successfully
+ * created, its results will be cached upon successful completion, but no
+ * further actions will be taken afterwards.
+ */
 static void
-query_prefetch(ns_client_t *client, dns_name_t *qname,
-	       dns_rdataset_t *rdataset) {
+fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
+		 unsigned int extra_fetch_options) {
 	isc_result_t result;
 	isc_sockaddr_t *peeraddr;
 	dns_rdataset_t *tmprdataset;
 	unsigned int options;
-
-	CTRACE(ISC_LOG_DEBUG(3), "query_prefetch");
-
-	if (client->query.prefetch != NULL ||
-	    client->view->prefetch_trigger == 0U ||
-	    rdataset->ttl > client->view->prefetch_trigger ||
-	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
-	{
-		return;
-	}
 
 	result = recursionquota_attach_hard(client);
 	if (result != ISC_R_SUCCESS) {
@@ -2594,9 +2592,9 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	}
 
 	isc_nmhandle_attach(client->handle, &client->prefetchhandle);
-	options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
+	options = client->query.fetchoptions | extra_fetch_options;
 	result = dns_resolver_createfetch(
-		client->view->resolver, qname, rdataset->type, NULL, NULL, NULL,
+		client->view->resolver, qname, qtype, NULL, NULL, NULL,
 		peeraddr, client->message->id, options, 0, NULL,
 		client->manager->task, prefetch_done, client, tmprdataset, NULL,
 		&client->query.prefetch);
@@ -2604,6 +2602,22 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(&client->prefetchhandle);
 	}
+}
+
+static void
+query_prefetch(ns_client_t *client, dns_name_t *qname,
+	       dns_rdataset_t *rdataset) {
+	CTRACE(ISC_LOG_DEBUG(3), "query_prefetch");
+
+	if (client->query.prefetch != NULL ||
+	    client->view->prefetch_trigger == 0U ||
+	    rdataset->ttl > client->view->prefetch_trigger ||
+	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
+	{
+		return;
+	}
+
+	fetch_and_forget(client, qname, rdataset->type, DNS_FETCHOPT_PREFETCH);
 
 	dns_rdataset_clearprefetch(rdataset);
 	ns_stats_increment(client->manager->sctx->nsstats,
@@ -2768,41 +2782,13 @@ rpz_get_zbits(ns_client_t *client, dns_rdatatype_t ip_type,
 
 static void
 query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
-	isc_result_t result;
-	isc_sockaddr_t *peeraddr;
-	dns_rdataset_t *tmprdataset;
-	unsigned int options;
-
 	CTRACE(ISC_LOG_DEBUG(3), "query_rpzfetch");
 
 	if (client->query.prefetch != NULL) {
 		return;
 	}
 
-	result = recursionquota_attach_hard(client);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
-
-	tmprdataset = ns_client_newrdataset(client);
-
-	if (!TCP(client)) {
-		peeraddr = &client->peeraddr;
-	} else {
-		peeraddr = NULL;
-	}
-
-	options = client->query.fetchoptions;
-	isc_nmhandle_attach(client->handle, &client->prefetchhandle);
-	result = dns_resolver_createfetch(
-		client->view->resolver, qname, type, NULL, NULL, NULL, peeraddr,
-		client->message->id, options, 0, NULL, client->manager->task,
-		prefetch_done, client, tmprdataset, NULL,
-		&client->query.prefetch);
-	if (result != ISC_R_SUCCESS) {
-		ns_client_putrdataset(client, &tmprdataset);
-		isc_nmhandle_detach(&client->prefetchhandle);
-	}
+	fetch_and_forget(client, qname, type, 0);
 }
 
 /*
