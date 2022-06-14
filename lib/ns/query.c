@@ -2458,15 +2458,17 @@ free_devent(ns_client_t *client, isc_event_t **eventp,
 }
 
 static isc_result_t
-recursionquota_attach(ns_client_t *client, bool soft_limit) {
+recursionquotatype_attach(ns_client_t *client,
+			  ns_query_rectype_t recursion_type, bool soft_limit) {
+	isc_quota_t **quotap = &client->query.recursions[recursion_type].quota;
 	isc_result_t result;
 
-	if (client->recursionquota != NULL) {
+	if (*quotap != NULL) {
 		return (ISC_R_SUCCESS);
 	}
 
 	result = isc_quota_attach(&client->manager->sctx->recursionquota,
-				  &client->recursionquota);
+				  quotap);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		break;
@@ -2480,7 +2482,7 @@ recursionquota_attach(ns_client_t *client, bool soft_limit) {
 			break;
 		}
 
-		isc_quota_detach(&client->recursionquota);
+		isc_quota_detach(quotap);
 		FALLTHROUGH;
 	default:
 		return (result);
@@ -2493,19 +2495,23 @@ recursionquota_attach(ns_client_t *client, bool soft_limit) {
 }
 
 static isc_result_t
-recursionquota_attach_hard(ns_client_t *client) {
-	return (recursionquota_attach(client, false));
+recursionquotatype_attach_hard(ns_client_t *client,
+			       ns_query_rectype_t recursion_type) {
+	return (recursionquotatype_attach(client, recursion_type, false));
 }
 
 static isc_result_t
-recursionquota_attach_soft(ns_client_t *client) {
-	return (recursionquota_attach(client, true));
+recursionquotatype_attach_soft(ns_client_t *client,
+			       ns_query_rectype_t recursion_type) {
+	return (recursionquotatype_attach(client, recursion_type, true));
 }
 
 static void
-recursionquota_detach(ns_client_t *client) {
-	if (client->recursionquota != NULL) {
-		isc_quota_detach(&client->recursionquota);
+recursionquotatype_detach(ns_client_t *client,
+			  ns_query_rectype_t recursion_type) {
+	if (client->query.recursions[recursion_type].quota != NULL) {
+		isc_quota_detach(
+			&client->query.recursions[recursion_type].quota);
 	}
 
 	ns_stats_decrement(client->manager->sctx->nsstats,
@@ -2539,7 +2545,7 @@ cleanup_after_fetch(isc_task_t *task, isc_event_t *event,
 	}
 	UNLOCK(&client->query.fetchlock);
 
-	recursionquota_detach(client);
+	recursionquotatype_detach(client, recursion_type);
 
 	free_devent(client, &event, &devent);
 	isc_nmhandle_detach(handlep);
@@ -2574,7 +2580,7 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	dns_fetch_t **fetchp;
 	isc_result_t result;
 
-	result = recursionquota_attach_hard(client);
+	result = recursionquotatype_attach_hard(client, recursion_type);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
@@ -6204,7 +6210,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	 * the manager's recursing-clients list.
 	 */
 
-	recursionquota_detach(client);
+	recursionquotatype_detach(client, RECTYPE_NORMAL);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
@@ -6322,7 +6328,8 @@ static atomic_uint_fast32_t last_soft, last_hard;
  * Check recursion quota before making the current client "recursing".
  */
 static isc_result_t
-check_recursionquota(ns_client_t *client) {
+check_recursionquota(ns_client_t *client, ns_query_rectype_t recursion_type) {
+	isc_quota_t **quotap = &client->query.recursions[recursion_type].quota;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	/*
@@ -6335,8 +6342,8 @@ check_recursionquota(ns_client_t *client) {
 	 * because those have already been replaced when the
 	 * connection was accepted (if allowed by the TCP quota).
 	 */
-	if (client->recursionquota == NULL) {
-		result = recursionquota_attach_soft(client);
+	if (*quotap == NULL) {
+		result = recursionquotatype_attach_soft(client, recursion_type);
 		if (result == ISC_R_SOFTQUOTA) {
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
@@ -6348,12 +6355,9 @@ check_recursionquota(ns_client_t *client) {
 					      "recursive-clients soft limit "
 					      "exceeded (%u/%u/%u), "
 					      "aborting oldest query",
-					      isc_quota_getused(
-						      client->recursionquota),
-					      isc_quota_getsoft(
-						      client->recursionquota),
-					      isc_quota_getmax(
-						      client->recursionquota));
+					      isc_quota_getused(*quotap),
+					      isc_quota_getsoft(*quotap),
+					      isc_quota_getmax(*quotap));
 			}
 			ns_client_killoldestquery(client);
 			result = ISC_R_SUCCESS;
@@ -6414,7 +6418,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		inc_stats(client, ns_statscounter_recursion);
 	}
 
-	result = check_recursionquota(client);
+	result = check_recursionquota(client, RECTYPE_NORMAL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -6687,7 +6691,7 @@ query_hookresume(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&client->query.fetchlock);
 	SAVE(hctx, rev->ctx);
 
-	recursionquota_detach(client);
+	recursionquotatype_detach(client, RECTYPE_HOOK);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
@@ -6818,7 +6822,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	REQUIRE(client->query.hookactx == NULL);
 	REQUIRE(FETCH_RECTYPE_NORMAL(client) == NULL);
 
-	result = check_recursionquota(client);
+	result = check_recursionquota(client, RECTYPE_HOOK);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

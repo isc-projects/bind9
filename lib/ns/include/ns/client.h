@@ -191,7 +191,6 @@ struct ns_client {
 	isc_time_t    tnow;
 	dns_name_t    signername; /*%< [T]SIG key name */
 	dns_name_t   *signer;	  /*%< NULL if not valid sig */
-	isc_quota_t  *recursionquota;
 
 	isc_sockaddr_t peeraddr;
 	bool	       peeraddr_valid;

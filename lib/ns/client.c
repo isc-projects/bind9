@@ -62,7 +62,6 @@
 #include <ns/interfacemgr.h>
 #include <ns/log.h>
 #include <ns/notify.h>
-#include <ns/query.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 #include <ns/update.h>
@@ -268,9 +267,9 @@ ns_client_endrequest(ns_client_t *client) {
 	 * fetch_callback(), but if we're shutting down and canceling then
 	 * it might not have happened.
 	 */
-	if (client->recursionquota != NULL) {
-		isc_quota_detach(&client->recursionquota);
-		if (FETCH_RECTYPE_PREFETCH(client) == NULL) {
+	for (int i = 0; i < RECTYPE_COUNT; i++) {
+		if (client->query.recursions[i].quota != NULL) {
+			isc_quota_detach(&client->query.recursions[i].quota);
 			ns_stats_decrement(client->manager->sctx->nsstats,
 					   ns_statscounter_recursclients);
 		}
@@ -1647,7 +1646,9 @@ ns__client_reset_cb(void *client0) {
 	}
 
 	client->state = NS_CLIENTSTATE_READY;
-	INSIST(client->recursionquota == NULL);
+	for (int i = 0; i < RECTYPE_COUNT; i++) {
+		INSIST(client->query.recursions[i].quota == NULL);
+	}
 
 #ifdef WANT_SINGLETRACE
 	isc_log_setforcelog(false);
@@ -1763,7 +1764,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		client->attributes |= NS_CLIENTATTR_TCP;
 	}
 
-	INSIST(client->recursionquota == NULL);
+	for (int i = 0; i < RECTYPE_COUNT; i++) {
+		INSIST(client->query.recursions[i].quota == NULL);
+	}
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);
 

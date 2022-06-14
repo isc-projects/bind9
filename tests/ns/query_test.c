@@ -968,7 +968,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 		/* Confirm necessary cleanup has been performed. */
 		INSIST(qctx->client->query.hookactx == NULL);
 		INSIST(qctx->client->state == NS_CLIENTSTATE_WORKING);
-		INSIST(qctx->client->recursionquota == NULL);
+		INSIST(QUOTA_RECTYPE_HOOK(qctx->client) == NULL);
 		INSIST(ns_stats_get_counter(
 			       qctx->client->manager->sctx->nsstats,
 			       ns_statscounter_recursclients) == 0);
