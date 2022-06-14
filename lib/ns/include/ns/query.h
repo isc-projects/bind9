@@ -43,6 +43,7 @@ typedef struct ns_dbversion {
  * allows common code paths to differentiate between them
  */
 typedef enum {
+	RECTYPE_NORMAL,
 	RECTYPE_PREFETCH,
 	RECTYPE_RPZ,
 	RECTYPE_COUNT,
@@ -52,6 +53,8 @@ typedef enum {
  * Helper macros for accessing isc_nmhandle_t pointers for a specific recursion
  * a given client is associated with.
  */
+#define HANDLE_RECTYPE_NORMAL(client) \
+	((client)->query.recursions[RECTYPE_NORMAL].handle)
 #define HANDLE_RECTYPE_PREFETCH(client) \
 	((client)->query.recursions[RECTYPE_PREFETCH].handle)
 #define HANDLE_RECTYPE_RPZ(client) \
@@ -61,6 +64,8 @@ typedef enum {
  * Helper macros for accessing dns_fetch_t pointers for a specific recursion a
  * given client is associated with.
  */
+#define FETCH_RECTYPE_NORMAL(client) \
+	((client)->query.recursions[RECTYPE_NORMAL].fetch)
 #define FETCH_RECTYPE_PREFETCH(client) \
 	((client)->query.recursions[RECTYPE_PREFETCH].fetch)
 #define FETCH_RECTYPE_RPZ(client) \

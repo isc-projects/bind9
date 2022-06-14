@@ -660,10 +660,9 @@ ns_query_cancel(ns_client_t *client) {
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	LOCK(&client->query.fetchlock);
-	if (client->query.fetch != NULL) {
-		dns_resolver_cancelfetch(client->query.fetch);
-
-		client->query.fetch = NULL;
+	if (FETCH_RECTYPE_NORMAL(client) != NULL) {
+		dns_resolver_cancelfetch(FETCH_RECTYPE_NORMAL(client));
+		FETCH_RECTYPE_NORMAL(client) = NULL;
 	}
 	if (client->query.hookactx != NULL) {
 		client->query.hookactx->cancel(client->query.hookactx);
@@ -5961,9 +5960,11 @@ query_lookup(query_ctx_t *qctx) {
 				qctx->client->query.dboptions &=
 					~DNS_DBFIND_STALETIMEOUT;
 				qctx->options &= ~DNS_GETDB_STALEFIRST;
-				if (qctx->client->query.fetch != NULL) {
+				if (FETCH_RECTYPE_NORMAL(qctx->client) != NULL)
+				{
 					dns_resolver_destroyfetch(
-						&qctx->client->query.fetch);
+						&FETCH_RECTYPE_NORMAL(
+							qctx->client));
 				}
 				return (query_lookup(qctx));
 			} else {
@@ -6163,22 +6164,22 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
-	INSIST(client->query.fetch == devent->fetch ||
-	       client->query.fetch == NULL);
+	INSIST(FETCH_RECTYPE_NORMAL(client) == devent->fetch ||
+	       FETCH_RECTYPE_NORMAL(client) == NULL);
 	if (QUERY_STALEPENDING(&client->query)) {
 		/*
 		 * We've gotten an authoritative answer to a query that
 		 * was left pending after a stale timeout. We don't need
 		 * to do anything with it; free all the data and go home.
 		 */
-		client->query.fetch = NULL;
+		FETCH_RECTYPE_NORMAL(client) = NULL;
 		fetch_answered = true;
-	} else if (client->query.fetch != NULL) {
+	} else if (FETCH_RECTYPE_NORMAL(client) != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
-		INSIST(devent->fetch == client->query.fetch);
-		client->query.fetch = NULL;
+		INSIST(FETCH_RECTYPE_NORMAL(client) == devent->fetch);
+		FETCH_RECTYPE_NORMAL(client) = NULL;
 
 		/*
 		 * Update client->now.
@@ -6208,7 +6209,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&client->manager->reclock);
 
-	isc_nmhandle_detach(&client->fetchhandle);
+	isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 	client->state = NS_CLIENTSTATE_WORKING;
@@ -6419,7 +6420,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	 * Invoke the resolver.
 	 */
 	REQUIRE(nameservers == NULL || nameservers->type == dns_rdatatype_ns);
-	REQUIRE(client->query.fetch == NULL);
+	REQUIRE(FETCH_RECTYPE_NORMAL(client) == NULL);
 
 	rdataset = ns_client_newrdataset(client);
 
@@ -6444,14 +6445,14 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		client->query.fetchoptions |= DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	}
 
-	isc_nmhandle_attach(client->handle, &client->fetchhandle);
+	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_NORMAL(client));
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, qdomain, nameservers,
 		NULL, peeraddr, client->message->id, client->query.fetchoptions,
 		0, NULL, client->manager->task, fetch_callback, client,
-		rdataset, sigrdataset, &client->query.fetch);
+		rdataset, sigrdataset, &FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&client->fetchhandle);
+		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
 		ns_client_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
@@ -7495,8 +7496,9 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
 		qctx->version = NULL;
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
-		if (qctx->client->query.fetch != NULL) {
-			dns_resolver_destroyfetch(&qctx->client->query.fetch);
+		if (FETCH_RECTYPE_NORMAL(qctx->client) != NULL) {
+			dns_resolver_destroyfetch(
+				&FETCH_RECTYPE_NORMAL(qctx->client));
 		}
 
 		/*
