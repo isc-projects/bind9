@@ -718,6 +718,7 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpdnsread_t *ievent =
 		(isc__netievent_tcpdnsread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
+	isc_result_t result;
 
 	UNUSED(worker);
 
@@ -725,12 +726,15 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (isc__nmsocket_closing(sock)) {
-		atomic_store(&sock->reading, true);
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
-		return;
+		result = ISC_R_CANCELED;
+	} else {
+		result = isc__nm_process_sock_buffer(sock);
 	}
 
-	isc__nm_process_sock_buffer(sock);
+	if (result != ISC_R_SUCCESS) {
+		atomic_store(&sock->reading, true);
+		isc__nm_failed_read_cb(sock, result, false);
+	}
 }
 
 /*
@@ -840,6 +844,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)stream);
 	uint8_t *base = NULL;
 	size_t len;
+	isc_result_t result;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
@@ -882,7 +887,10 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 		sock->read_timeout = atomic_load(&sock->mgr->idle);
 	}
 
-	isc__nm_process_sock_buffer(sock);
+	result = isc__nm_process_sock_buffer(sock);
+	if (result != ISC_R_SUCCESS) {
+		isc__nm_failed_read_cb(sock, result, true);
+	}
 free:
 	if (nread < 0) {
 		/*
@@ -1034,7 +1042,12 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	 * prep_destroy()->tcpdns_close_direct().
 	 */
 	isc_nmhandle_attach(handle, &csock->recv_handle);
-	isc__nm_process_sock_buffer(csock);
+	result = isc__nm_process_sock_buffer(csock);
+	if (result != ISC_R_SUCCESS) {
+		isc_nmhandle_detach(&csock->recv_handle);
+		isc_nmhandle_detach(&handle);
+		goto failure;
+	}
 
 	/*
 	 * The initial timer has been set, update the read timeout for the next
