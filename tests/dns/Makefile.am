@@ -30,6 +30,7 @@ check_PROGRAMS =		\
 	nsec3_test		\
 	nsec3param_test		\
 	private_test		\
+	qp_test			\
 	rbt_test		\
 	rbtdb_test		\
 	rdata_test		\
