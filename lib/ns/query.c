@@ -2511,8 +2511,11 @@ recursionquota_detach(ns_client_t *client) {
 }
 
 static void
-prefetch_done(isc_task_t *task, isc_event_t *event) {
+cleanup_after_fetch(isc_task_t *task, isc_event_t *event,
+		    ns_query_rectype_t recursion_type) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
+	isc_nmhandle_t **handlep;
+	dns_fetch_t **fetchp;
 	ns_client_t *client;
 
 	UNUSED(task);
@@ -2524,37 +2527,50 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE(ISC_LOG_DEBUG(3), "prefetch_done");
 
+	handlep = &client->query.recursions[recursion_type].handle;
+	fetchp = &client->query.recursions[recursion_type].fetch;
+
 	LOCK(&client->query.fetchlock);
-	if (FETCH_RECTYPE_PREFETCH(client) != NULL) {
-		INSIST(devent->fetch == FETCH_RECTYPE_PREFETCH(client));
-		FETCH_RECTYPE_PREFETCH(client) = NULL;
+	if (*fetchp != NULL) {
+		INSIST(devent->fetch == *fetchp);
+		*fetchp = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
 
-	/*
-	 * We're done prefetching, detach from quota.
-	 */
 	recursionquota_detach(client);
 
 	free_devent(client, &event, &devent);
-	isc_nmhandle_detach(&HANDLE_RECTYPE_PREFETCH(client));
+	isc_nmhandle_detach(handlep);
+}
+
+static void
+prefetch_done(isc_task_t *task, isc_event_t *event) {
+	cleanup_after_fetch(task, event, RECTYPE_PREFETCH);
+}
+
+static void
+rpzfetch_done(isc_task_t *task, isc_event_t *event) {
+	cleanup_after_fetch(task, event, RECTYPE_RPZ);
 }
 
 /*
- * Try initiating a fetch for the given 'qname' and 'qtype' (with any requested
- * 'extra_fetch_options') that will be associated with 'client'.  If the
- * recursive clients quota (or even soft quota) is reached or some other error
- * occurs, just return without starting the fetch.  If a fetch is successfully
- * created, its results will be cached upon successful completion, but no
- * further actions will be taken afterwards.
+ * Try initiating a fetch for the given 'qname' and 'qtype' (using the slot in
+ * the 'recursions' array indicated by 'recursion_type') that will be
+ * associated with 'client'.  If the recursive clients quota (or even soft
+ * quota) is reached or some other error occurs, just return without starting
+ * the fetch.  If a fetch is successfully created, its results will be cached
+ * upon successful completion, but no further actions will be taken afterwards.
  */
 static void
 fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
-		 unsigned int extra_fetch_options) {
-	isc_result_t result;
-	isc_sockaddr_t *peeraddr;
+		 ns_query_rectype_t recursion_type) {
 	dns_rdataset_t *tmprdataset;
+	isc_sockaddr_t *peeraddr;
 	unsigned int options;
+	isc_taskaction_t action;
+	isc_nmhandle_t **handlep;
+	dns_fetch_t **fetchp;
+	isc_result_t result;
 
 	result = recursionquota_attach_hard(client);
 	if (result != ISC_R_SUCCESS) {
@@ -2569,16 +2585,31 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 		peeraddr = NULL;
 	}
 
-	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_PREFETCH(client));
-	options = client->query.fetchoptions | extra_fetch_options;
-	result = dns_resolver_createfetch(
-		client->view->resolver, qname, qtype, NULL, NULL, NULL,
-		peeraddr, client->message->id, options, 0, NULL,
-		client->manager->task, prefetch_done, client, tmprdataset, NULL,
-		&FETCH_RECTYPE_PREFETCH(client));
+	switch (recursion_type) {
+	case RECTYPE_PREFETCH:
+		options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
+		action = prefetch_done;
+		break;
+	case RECTYPE_RPZ:
+		options = client->query.fetchoptions;
+		action = rpzfetch_done;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	handlep = &client->query.recursions[recursion_type].handle;
+	fetchp = &client->query.recursions[recursion_type].fetch;
+
+	isc_nmhandle_attach(client->handle, handlep);
+	result = dns_resolver_createfetch(client->view->resolver, qname, qtype,
+					  NULL, NULL, NULL, peeraddr,
+					  client->message->id, options, 0, NULL,
+					  client->manager->task, action, client,
+					  tmprdataset, NULL, fetchp);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
-		isc_nmhandle_detach(&HANDLE_RECTYPE_PREFETCH(client));
+		isc_nmhandle_detach(handlep);
 	}
 }
 
@@ -2595,7 +2626,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		return;
 	}
 
-	fetch_and_forget(client, qname, rdataset->type, DNS_FETCHOPT_PREFETCH);
+	fetch_and_forget(client, qname, rdataset->type, RECTYPE_PREFETCH);
 
 	dns_rdataset_clearprefetch(rdataset);
 	ns_stats_increment(client->manager->sctx->nsstats,
@@ -2762,11 +2793,11 @@ static void
 query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_rpzfetch");
 
-	if (FETCH_RECTYPE_PREFETCH(client) != NULL) {
+	if (FETCH_RECTYPE_RPZ(client) != NULL) {
 		return;
 	}
 
-	fetch_and_forget(client, qname, type, 0);
+	fetch_and_forget(client, qname, type, RECTYPE_RPZ);
 }
 
 /*
