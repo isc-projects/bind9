@@ -799,38 +799,16 @@ ns_query_init(ns_client_t *client) {
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
+	client->query = (ns_query_t){ 0 };
+
 	ISC_LIST_INIT(client->query.namebufs);
 	ISC_LIST_INIT(client->query.activeversions);
 	ISC_LIST_INIT(client->query.freeversions);
-	client->query.restarts = 0;
-	client->query.timerset = false;
-	client->query.rpz_st = NULL;
-	client->query.qname = NULL;
 	/*
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().
 	 */
 	isc_mutex_init(&client->query.fetchlock);
-
-	client->query.fetch = NULL;
-	client->query.prefetch = NULL;
-	client->query.authdb = NULL;
-	client->query.authzone = NULL;
-	client->query.authdbset = false;
-	client->query.isreferral = false;
-	client->query.dns64_aaaa = NULL;
-	client->query.dns64_sigaaaa = NULL;
-	client->query.dns64_aaaaok = NULL;
-	client->query.dns64_aaaaoklen = 0;
-	client->query.redirect.db = NULL;
-	client->query.redirect.node = NULL;
-	client->query.redirect.zone = NULL;
-	client->query.redirect.qtype = dns_rdatatype_none;
-	client->query.redirect.result = ISC_R_SUCCESS;
-	client->query.redirect.rdataset = NULL;
-	client->query.redirect.sigrdataset = NULL;
-	client->query.redirect.authoritative = false;
-	client->query.redirect.is_zone = false;
 	client->query.redirect.fname =
 		dns_fixedname_initname(&client->query.redirect.fixed);
 	query_reset(client, false);
