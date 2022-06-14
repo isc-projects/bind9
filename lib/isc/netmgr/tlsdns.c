@@ -303,7 +303,11 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	/* Setting pending req */
 	sock->tls.pending_req = req;
 
-	isc__nm_process_sock_buffer(sock);
+	result = isc__nm_process_sock_buffer(sock);
+	if (result != ISC_R_SUCCESS) {
+		sock->tls.pending_req = NULL;
+		goto error;
+	}
 
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
@@ -1043,8 +1047,10 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 				/*
 				 * Process what's in the buffer so far
 				 */
-				isc__nm_process_sock_buffer(sock);
-
+				result = isc__nm_process_sock_buffer(sock);
+				if (result != ISC_R_SUCCESS) {
+					goto failure;
+				}
 				/*
 				 * FIXME: Should we call
 				 * isc__nm_failed_read_cb()?
@@ -1056,7 +1062,10 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 
 			sock->buf_len += len;
 
-			isc__nm_process_sock_buffer(sock);
+			result = isc__nm_process_sock_buffer(sock);
+			if (result != ISC_R_SUCCESS) {
+				goto failure;
+			}
 		}
 	} else if (!SSL_is_init_finished(sock->tls.tls)) {
 		if (SSL_is_server(sock->tls.tls)) {
@@ -1078,7 +1087,10 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 		if (sock->tls.state == TLS_STATE_NONE &&
 		    !SSL_is_init_finished(sock->tls.tls)) {
 			sock->tls.state = TLS_STATE_HANDSHAKE;
-			isc__nm_process_sock_buffer(sock);
+			result = isc__nm_process_sock_buffer(sock);
+			if (result != ISC_R_SUCCESS) {
+				goto failure;
+			}
 		}
 		/* else continue reading */
 		break;
@@ -1630,7 +1642,10 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	isc_nmhandle_detach(&handle);
 
-	isc__nm_process_sock_buffer(csock);
+	result = isc__nm_process_sock_buffer(csock);
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
+	}
 
 	/*
 	 * sock is now attached to the handle.
