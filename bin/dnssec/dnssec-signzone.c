@@ -152,7 +152,7 @@ static dns_dbiterator_t *gdbiter; /* The database iterator */
 static dns_rdataclass_t gclass;	  /* The class */
 static dns_name_t *gorigin;	  /* The database origin */
 static int nsec3flags = 0;
-static dns_iterations_t nsec3iter = 10U;
+static dns_iterations_t nsec3iter = 0U;
 static unsigned char saltbuf[255];
 static unsigned char *gsalt = saltbuf;
 static size_t salt_length = 0;
