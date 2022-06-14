@@ -1,3 +1,8 @@
+5905.	[bug]		When the TCP connection would be closed/reset between
+			the connect/accept and the read, the uv_read_start()
+			return value would be unexpected and cause an assertion
+			failure. [GL #3400]
+
 5903.	[bug]		When named checks that the OPCODE in a response matches
 			that of the request, if there is a mismatch named logs
 			an error.  Some of those error messages incorrectly
