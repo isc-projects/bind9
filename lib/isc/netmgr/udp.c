@@ -930,6 +930,7 @@ void
 isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_udpread_t *ievent = (isc__netievent_udpread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
+	isc_result_t result;
 
 	UNUSED(worker);
 
@@ -937,12 +938,17 @@ isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (isc__nmsocket_closing(sock)) {
+		result = ISC_R_CANCELED;
+	} else {
+		result = isc__nm_start_reading(sock);
+	}
+
+	if (result != ISC_R_SUCCESS) {
 		sock->reading = true;
-		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+		isc__nm_failed_read_cb(sock, result, false);
 		return;
 	}
 
-	isc__nm_start_reading(sock);
 	isc__nmsocket_timer_start(sock);
 }
 

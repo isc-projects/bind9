@@ -2100,34 +2100,39 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	worker->recvbuf_inuse = true;
 }
 
-void
+isc_result_t
 isc__nm_start_reading(isc_nmsocket_t *sock) {
+	isc_result_t result = ISC_R_SUCCESS;
 	int r;
 
 	if (sock->reading) {
-		return;
+		return (ISC_R_SUCCESS);
 	}
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 		r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 				      isc__nm_udp_read_cb);
-		UV_RUNTIME_CHECK(uv_udp_recv_start, r);
 		break;
 	case isc_nm_tcpsocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcp_read_cb);
-		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	case isc_nm_tcpdnssocket:
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcpdns_read_cb);
-		UV_RUNTIME_CHECK(uv_read_start, r);
 		break;
 	default:
 		UNREACHABLE();
 	}
-	sock->reading = true;
+
+	if (r != 0) {
+		result = isc__nm_uverr2result(r);
+	} else {
+		sock->reading = true;
+	}
+
+	return (result);
 }
 
 void
@@ -2188,7 +2193,7 @@ processbuffer(isc_nmsocket_t *sock) {
  * limit. In this case we'll be called again by resume_processing()
  * later.
  */
-void
+isc_result_t
 isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 	for (;;) {
 		int_fast32_t ah = atomic_load(&sock->ah);
@@ -2199,7 +2204,10 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			 * Don't reset the timer until we have a
 			 * full DNS message.
 			 */
-			isc__nm_start_reading(sock);
+			result = isc__nm_start_reading(sock);
+			if (result != ISC_R_SUCCESS) {
+				return (result);
+			}
 			/*
 			 * Start the timer only if there are no externally used
 			 * active handles, there's always one active handle
@@ -2209,11 +2217,11 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			if (ah == 1) {
 				isc__nmsocket_timer_start(sock);
 			}
-			return;
+			goto done;
 		case ISC_R_CANCELED:
 			isc__nmsocket_timer_stop(sock);
 			isc__nm_stop_reading(sock);
-			return;
+			goto done;
 		case ISC_R_SUCCESS:
 			/*
 			 * Stop the timer on the successful message read, this
@@ -2227,13 +2235,15 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			    ah >= STREAM_CLIENTS_PER_CONN)
 			{
 				isc__nm_stop_reading(sock);
-				return;
+				goto done;
 			}
 			break;
 		default:
 			UNREACHABLE();
 		}
 	}
+done:
+	return (ISC_R_SUCCESS);
 }
 
 void
