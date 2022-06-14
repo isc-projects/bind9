@@ -39,6 +39,34 @@ typedef struct ns_dbversion {
 } ns_dbversion_t;
 
 /*%
+ * recursion type; various features can initiate recursion and this enum value
+ * allows common code paths to differentiate between them
+ */
+typedef enum {
+	RECTYPE_PREFETCH,
+	RECTYPE_RPZ,
+	RECTYPE_COUNT,
+} ns_query_rectype_t;
+
+/*%
+ * Helper macros for accessing isc_nmhandle_t pointers for a specific recursion
+ * a given client is associated with.
+ */
+#define HANDLE_RECTYPE_PREFETCH(client) \
+	((client)->query.recursions[RECTYPE_PREFETCH].handle)
+#define HANDLE_RECTYPE_RPZ(client) \
+	((client)->query.recursions[RECTYPE_RPZ].handle)
+
+/*%
+ * Helper macros for accessing dns_fetch_t pointers for a specific recursion a
+ * given client is associated with.
+ */
+#define FETCH_RECTYPE_PREFETCH(client) \
+	((client)->query.recursions[RECTYPE_PREFETCH].fetch)
+#define FETCH_RECTYPE_RPZ(client) \
+	((client)->query.recursions[RECTYPE_RPZ].fetch)
+
+/*%
  * nameserver recursion parameters, to uniquely identify a recursion
  * query; this is used to detect a recursion loop
  */
@@ -67,7 +95,6 @@ struct ns_query {
 	bool		 isreferral;
 	isc_mutex_t	 fetchlock;
 	dns_fetch_t	    *fetch;
-	dns_fetch_t	    *prefetch;
 	ns_hookasync_t  *hookactx;
 	dns_rpz_st_t    *rpz_st;
 	isc_bufferlist_t namebufs;
@@ -93,6 +120,11 @@ struct ns_query {
 		bool		authoritative;
 		bool		is_zone;
 	} redirect;
+
+	struct {
+		isc_nmhandle_t *handle;
+		dns_fetch_t    *fetch;
+	} recursions[RECTYPE_COUNT];
 
 	ns_query_recparam_t recparam;
 
