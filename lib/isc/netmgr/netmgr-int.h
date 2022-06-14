@@ -2098,11 +2098,11 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 void
 isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
-void
+isc_result_t
 isc__nm_start_reading(isc_nmsocket_t *sock);
 void
 isc__nm_stop_reading(isc_nmsocket_t *sock);
-void
+isc_result_t
 isc__nm_process_sock_buffer(isc_nmsocket_t *sock);
 void
 isc__nm_resume_processing(void *arg);

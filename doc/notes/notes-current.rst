@@ -46,3 +46,6 @@ Bug Fixes
 - It was possible for a catalog zone consumer to process a catalog zone member
   zone when there was a configured pre-existing forward-only forward zone with
   the same name. This has been fixed. :gl:`#2506`.
+
+- Fix the assertion failure caused by TCP connection closing between the
+  connect (or accept) and the read from the socket. :gl:`#3400`
