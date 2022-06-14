@@ -1017,11 +1017,11 @@ Semi-Automatic
 Fully Automatic with ``dnssec-keymgr``
    The next step in the automation of DNSSEC operations came with BIND
    9.11, which introduced the ``dnssec-keymgr`` utility. This is a
-   separate program and is expected to be run on a regular basis
-   (probably via ``cron``). It reads a DNSSEC policy from its
-   configuration file and reads timing information from the DNSSEC key
-   files. With this information it creates new key files with timing
-   information in them consistent with the policy. :iscman:`named` is run as
+   separate program and was expected to be run on a regular basis
+   (probably via ``cron``). It read a DNSSEC policy from its
+   configuration file and read timing information from the DNSSEC key
+   files. With this information it created new key files with timing
+   information in them consistent with the policy. :iscman:`named` was run as
    usual, picking up the timing information in the key files to
    determine when to add and remove keys, and when to sign with them.
 
@@ -1039,8 +1039,7 @@ Fully Automatic with ``dnssec-policy``
 
 We now look at some of these methods in more detail. We cover
 semi-automatic signing first, as that contains a lot of useful
-information about keys and key timings. We then describe what
-``dnssec-keymgr`` adds to semi-automatic signing. After that, we
+information about keys and key timings. After that, we
 touch on fully automatic signing with ``dnssec-policy``. Since this has
 already been described in
 :ref:`easy_start_guide_for_authoritative_servers`, we will just
@@ -1060,7 +1059,7 @@ DNSSEC key files. The files, however, must be created manually.
 By appropriately setting the key parameters and the timing information
 in the key files, you can implement any DNSSEC policy you want for your
 zones. But why manipulate the key information yourself rather than rely
-on ``dnssec-keymgr`` or ``dnssec-policy`` to do it for you? The answer
+on ``dnssec-policy`` to do it for you? The answer
 is that semi-automatic signing allows you to do things that, at the time of this writing
 (mid-2020), are currently not possible with one of the key managers: for
 example, the ability to use an HSM to store keys, or the ability to use
@@ -1356,194 +1355,22 @@ increased risk in having the private key files for future keys available
 on disk offsets the overhead of having to remember to create a new key
 before a rollover depends on your organization's security policy.
 
-.. _advanced_discussions_automatic_dnssec-keymgr:
-
-Fully Automatic Signing With ``dnssec-keymgr``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``dnssec-keymgr`` is a program supplied with BIND (versions 9.11 to
-9.16) to help with key rollovers. When run, it compares the timing
-information for existing keys with the defined policy, and adjusts it if
-necessary. It also creates additional keys as required.
-
-``dnssec-keymgr`` is completely separate from :iscman:`named`. As we will see,
-the policy states a coverage period; ``dnssec-keymgr`` generates
-enough key files to handle all rollovers in that period. However, it is
-a good idea to schedule it to run on a regular basis; that way there is
-no chance of forgetting to run it when the coverage period ends.
-
-BIND should be set up exactly the same way as described in
-:ref:`semi_automatic_signing`, i.e.,
-with ``auto-dnssec`` set to ``maintain`` and ``inline-signing`` set to
-``true``. Then a policy file must be created. The following is an
-example of such a file:
-
-::
-
-   # cat policy.conf
-   policy standard {
-       coverage 1y;
-       algorithm RSASHA256;
-       directory "/etc/bind";
-       keyttl 2h;
-
-       key-size ksk 4096;
-       roll-period ksk 1y;
-       pre-publish ksk 30d;
-       post-publish ksk 30d;
-
-       key-size zsk 2048;
-       roll-period zsk 90d;
-       pre-publish zsk 30d;
-       post-publish zsk 30d;
-   };
-
-   zone example.com {
-       policy standard;
-   };
-
-   zone example.net {
-       policy standard;
-       keyttl 300;
-   };
-
-As can be seen, the syntax is similar to that of the :iscman:`named`
-configuration file.
-
-In the example above, we define a DNSSEC policy called "standard". Keys
-are created using the RSASHA256 algorithm, assigned a TTL of two hours,
-and placed in the directory ``/etc/bind``. KSKs have a key size of
-4096 bits and are expected to roll once a year; the new key is added to the
-zone 30 days before it becomes active, and is retained in the zone for
-30 days after it is rolled. ZSKs have a key size of 2048 bits and roll
-every 90 days; like the KSKs, the are added to the zone 30 days before
-they are used for signing, and retained for 30 days after :iscman:`named`
-ceases signing with them.
-
-The policy is applied to two zones, ``example.com`` and ``example.net``.
-The policy is applied unaltered to the former, but for the latter the
-setting for the DNSKEY TTL has been overridden and set to 300 seconds.
-
-To apply the policy, we need to run ``dnssec-keymgr``. Since this does
-not read the :iscman:`named` configuration file, it relies on the presence of
-at least one key file for a zone to tell it that the zone is
-DNSSEC-enabled. If a key file does not already exist, we first need to create
-one for each zone. We can do that either by running
-:iscman:`dnssec-keygen` to create a key file for each zone [#]_, or by
-specifying the zones in question on the command line. Here, we do the
-latter:
-
-::
-
-   # dnssec-keymgr -c policy.conf example.com example.net
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -L 7200 -a RSASHA256 -b 2048 example.net
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -L 7200 -fk -a RSASHA256 -b 4096 example.net
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20200915110318 -D 20201015110318 Kexample.net.+008+31339
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.net.+008+31339 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20201214110318 -D 20210113110318 Kexample.net.+008+14526
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.net.+008+14526 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20210314110318 -D 20210413110318 Kexample.net.+008+46069
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.net.+008+46069 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20210612110318 -D 20210712110318 Kexample.net.+008+13018
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.net.+008+13018 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20210617110318 -D 20210717110318 Kexample.net.+008+55237
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.net.+008+55237 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -L 7200 -a RSASHA256 -b 2048 example.com
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -L 7200 -fk -a RSASHA256 -b 4096 example.com
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -P 20200617110318 -A 20200617110318 -I 20200915110318 -D 20201015110318 Kexample.com.+008+31168
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.com.+008+31168 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20201214110318 -D 20210113110318 Kexample.com.+008+24199
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.com.+008+24199 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20210314110318 -D 20210413110318 Kexample.com.+008+08728
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.com.+008+08728 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -I 20210612110318 -D 20210712110318 Kexample.com.+008+12874
-   # /usr/local/sbin/dnssec-keygen -q -K /etc/bind -S Kexample.com.+008+12874 -L 7200 -i 2592000
-   # /usr/local/sbin/dnssec-settime -K /etc/bind -P 20200617110318 -A 20200617110318 Kexample.com.+008+26186
-
-This creates enough key files to last for the coverage period, set in
-the policy file to be one year. The script should be run on a regular
-basis (probably via ``cron``) to keep the reserve of key files topped
-up. With the shortest roll period set to 90 days, every 30 days is
-more than adequate.
-
-At any time, you can check what key changes are coming up and whether
-the keys and timings are correct by using ``dnssec-coverage``. For
-example, to check coverage for the next 60 days:
-
-::
-
-    # dnssec-coverage -d 2h -m 1d -l 60d -K /etc/bind/keys
-   PHASE 1--Loading keys to check for internal timing problems
-   PHASE 2--Scanning future key events for coverage failures
-   Checking scheduled KSK events for zone example.net, algorithm RSASHA256...
-     Wed Jun 17 11:03:18 UTC 2020:
-       Publish: example.net/RSASHA256/55237 (KSK)
-       Activate: example.net/RSASHA256/55237 (KSK)
-
-   Ignoring events after Sun Aug 16 11:47:24 UTC 2020
-
-   No errors found
-
-   Checking scheduled ZSK events for zone example.net, algorithm RSASHA256...
-     Wed Jun 17 11:03:18 UTC 2020:
-       Publish: example.net/RSASHA256/31339 (ZSK)
-       Activate: example.net/RSASHA256/31339 (ZSK)
-     Sun Aug 16 11:03:18 UTC 2020:
-       Publish: example.net/RSASHA256/14526 (ZSK)
-
-   Ignoring events after Sun Aug 16 11:47:24 UTC 2020
-
-   No errors found
-
-   Checking scheduled KSK events for zone example.com, algorithm RSASHA256...
-     Wed Jun 17 11:03:18 UTC 2020:
-       Publish: example.com/RSASHA256/26186 (KSK)
-       Activate: example.com/RSASHA256/26186 (KSK)
-
-   No errors found
-
-   Checking scheduled ZSK events for zone example.com, algorithm RSASHA256...
-     Wed Jun 17 11:03:18 UTC 2020:
-       Publish: example.com/RSASHA256/31168 (ZSK)
-       Activate: example.com/RSASHA256/31168 (ZSK)
-     Sun Aug 16 11:03:18 UTC 2020:
-       Publish: example.com/RSASHA256/24199 (ZSK)
-
-   Ignoring events after Sun Aug 16 11:47:24 UTC 2020
-
-   No errors found
-
-The ``-d 2h`` and ``-m 1d`` on the command line specify the maximum TTL
-for the DNSKEYs and other resource records in the zone: in this example
-two hours and one day, respectively. ``dnssec-coverage`` needs this
-information when it checks that the zones will remain secure through key
-rolls.
-
 .. _advanced_discussions_automatic_dnssec-policy:
 
 Fully Automatic Signing With ``dnssec-policy``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The latest development in DNSSEC key management appeared with BIND 9.16,
-and is the full integration of key management into :iscman:`named`. Managing
-the signing process and rolling of these keys has been described in
+Since BIND 9.16, key management is fully integrated ingo :iscman:`named`.
+Managing the signing process and rolling of these keys has been described in
 :ref:`easy_start_guide_for_authoritative_servers` and is not
 repeated here. A few points are worth noting, though:
 
 -  The ``dnssec-policy`` statement in the :iscman:`named` configuration file
    describes all aspects of the DNSSEC policy, including the signing.
-   With ``dnssec-keymgr``, this is split between two configuration files
-   and two programs.
 
 -  When using ``dnssec-policy``, there is no need to set the
    ``auto-dnssec`` and ``inline-signing`` options for a zone. The zone's
    ``policy`` statement implicitly does this.
-
--  It is possible to manage some zones served by an instance of BIND
-   through ``dnssec-policy`` and others through ``dnssec-keymgr``, but
-   this is not recommended. Although it should work, if you
-   modify the configuration files and inadvertently specify a zone to be
-   managed by both systems, BIND will not operate properly.
 
 .. _advanced_discussions_manual_key_management_and_signing:
 
