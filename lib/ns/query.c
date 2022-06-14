@@ -6342,27 +6342,30 @@ check_recursionquota(ns_client_t *client, ns_query_rectype_t recursion_type) {
 	isc_result_t result;
 
 	result = recursionquotatype_attach_soft(client, recursion_type);
-	if (result == ISC_R_SOFTQUOTA) {
+	switch (result) {
+	case ISC_R_SOFTQUOTA:
 		recursionquota_log(client, &last_soft,
 				   "recursive-clients soft limit exceeded "
 				   "(%u/%u/%u), aborting oldest query",
 				   *quotap);
 		ns_client_killoldestquery(client);
-		result = ISC_R_SUCCESS;
-	} else if (result == ISC_R_QUOTA) {
+		FALLTHROUGH;
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_QUOTA:
 		recursionquota_log(client, &last_hard,
 				   "no more recursive clients (%u/%u/%u)",
 				   &client->manager->sctx->recursionquota);
 		ns_client_killoldestquery(client);
-	}
-	if (result != ISC_R_SUCCESS) {
+		FALLTHROUGH;
+	default:
 		return (result);
 	}
 
 	dns_message_clonebuffer(client->message);
 	ns_client_recursing(client);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
