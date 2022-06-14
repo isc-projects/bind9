@@ -2477,6 +2477,51 @@ free_devent(ns_client_t *client, isc_event_t **eventp,
 	isc_event_free(eventp);
 }
 
+static isc_result_t
+recursionquota_attach(ns_client_t *client, bool soft_limit) {
+	isc_result_t result;
+
+	if (client->recursionquota != NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = isc_quota_attach(&client->manager->sctx->recursionquota,
+				  &client->recursionquota);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_SOFTQUOTA:
+		if (soft_limit) {
+			/*
+			 * Exceeding soft quota was allowed, so continue as if
+			 * 'result' was ISC_R_SUCCESS while retaining the
+			 * original result code.
+			 */
+			break;
+		}
+
+		isc_quota_detach(&client->recursionquota);
+		FALLTHROUGH;
+	default:
+		return (result);
+	}
+
+	ns_stats_increment(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
+
+	return (result);
+}
+
+static isc_result_t
+recursionquota_attach_hard(ns_client_t *client) {
+	return (recursionquota_attach(client, false));
+}
+
+static isc_result_t
+recursionquota_attach_soft(ns_client_t *client) {
+	return (recursionquota_attach(client, true));
+}
+
 static void
 recursionquota_detach(ns_client_t *client) {
 	if (client->recursionquota != NULL) {
@@ -2535,23 +2580,10 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		return;
 	}
 
-	if (client->recursionquota == NULL) {
-		result =
-			isc_quota_attach(&client->manager->sctx->recursionquota,
-					 &client->recursionquota);
-		switch (result) {
-		case ISC_R_SUCCESS:
-			break;
-		case ISC_R_SOFTQUOTA:
-			isc_quota_detach(&client->recursionquota);
-			FALLTHROUGH;
-		default:
-			return;
-		}
+	result = recursionquota_attach_hard(client);
+	if (result != ISC_R_SUCCESS) {
+		return;
 	}
-
-	ns_stats_increment(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
 
@@ -2747,23 +2779,10 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 		return;
 	}
 
-	if (client->recursionquota == NULL) {
-		result =
-			isc_quota_attach(&client->manager->sctx->recursionquota,
-					 &client->recursionquota);
-		switch (result) {
-		case ISC_R_SUCCESS:
-			break;
-		case ISC_R_SOFTQUOTA:
-			isc_quota_detach(&client->recursionquota);
-			FALLTHROUGH;
-		default:
-			return;
-		}
+	result = recursionquota_attach_hard(client);
+	if (result != ISC_R_SUCCESS) {
+		return;
 	}
-
-	ns_stats_increment(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
 
 	tmprdataset = ns_client_newrdataset(client);
 
@@ -6318,9 +6337,7 @@ check_recursionquota(ns_client_t *client) {
 	 * connection was accepted (if allowed by the TCP quota).
 	 */
 	if (client->recursionquota == NULL) {
-		result =
-			isc_quota_attach(&client->manager->sctx->recursionquota,
-					 &client->recursionquota);
+		result = recursionquota_attach_soft(client);
 		if (result == ISC_R_SOFTQUOTA) {
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
@@ -6402,9 +6419,6 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-
-	ns_stats_increment(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
 
 	/*
 	 * Invoke the resolver.
@@ -6810,9 +6824,6 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-
-	ns_stats_increment(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
 
 	saved_qctx = isc_mem_get(client->manager->mctx, sizeof(*saved_qctx));
 	qctx_save(qctx, saved_qctx);
