@@ -2478,6 +2478,16 @@ free_devent(ns_client_t *client, isc_event_t **eventp,
 }
 
 static void
+recursionquota_detach(ns_client_t *client) {
+	if (client->recursionquota != NULL) {
+		isc_quota_detach(&client->recursionquota);
+	}
+
+	ns_stats_decrement(client->manager->sctx->nsstats,
+			   ns_statscounter_recursclients);
+}
+
+static void
 prefetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
@@ -2501,12 +2511,7 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * We're done prefetching, detach from quota.
 	 */
-	if (client->recursionquota != NULL) {
-		isc_quota_detach(&client->recursionquota);
-	}
-
-	ns_stats_decrement(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
+	recursionquota_detach(client);
 
 	free_devent(client, &event, &devent);
 	isc_nmhandle_detach(&client->prefetchhandle);
@@ -6181,12 +6186,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	 * the manager's recursing-clients list.
 	 */
 
-	if (client->recursionquota != NULL) {
-		isc_quota_detach(&client->recursionquota);
-	}
-
-	ns_stats_decrement(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
+	recursionquota_detach(client);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
@@ -6674,12 +6674,7 @@ query_hookresume(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&client->query.fetchlock);
 	SAVE(hctx, rev->ctx);
 
-	if (client->recursionquota != NULL) {
-		isc_quota_detach(&client->recursionquota);
-	}
-
-	ns_stats_decrement(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
+	recursionquota_detach(client);
 
 	LOCK(&client->manager->reclock);
 	if (ISC_LINK_LINKED(client, rlink)) {
