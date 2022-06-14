@@ -1,3 +1,9 @@
+5906.	[cleanup]	Various features (e.g. prefetch, RPZ) no longer share
+			common pointers when initiating recursion. This
+			rationalizes recursion quota handling and makes the
+			value of the RecursClients statistics counter more
+			accurate. [GL #3168]
+
 5905.	[bug]		When the TCP connection would be closed/reset between
 			the connect/accept and the read, the uv_read_start()
 			return value would be unexpected and cause an assertion
