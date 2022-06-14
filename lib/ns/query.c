@@ -660,9 +660,12 @@ ns_query_cancel(ns_client_t *client) {
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	LOCK(&client->query.fetchlock);
-	if (FETCH_RECTYPE_NORMAL(client) != NULL) {
-		dns_resolver_cancelfetch(FETCH_RECTYPE_NORMAL(client));
-		FETCH_RECTYPE_NORMAL(client) = NULL;
+	for (int i = 0; i < RECTYPE_COUNT; i++) {
+		dns_fetch_t **fetchp = &client->query.recursions[i].fetch;
+		if (*fetchp != NULL) {
+			dns_resolver_cancelfetch(*fetchp);
+			*fetchp = NULL;
+		}
 	}
 	if (client->query.hookactx != NULL) {
 		client->query.hookactx->cancel(client->query.hookactx);
