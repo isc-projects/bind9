@@ -2463,10 +2463,6 @@ recursionquotatype_attach(ns_client_t *client,
 	isc_quota_t **quotap = &client->query.recursions[recursion_type].quota;
 	isc_result_t result;
 
-	if (*quotap != NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
 	result = isc_quota_attach(&client->manager->sctx->recursionquota,
 				  quotap);
 	switch (result) {
@@ -2509,11 +2505,7 @@ recursionquotatype_attach_soft(ns_client_t *client,
 static void
 recursionquotatype_detach(ns_client_t *client,
 			  ns_query_rectype_t recursion_type) {
-	if (client->query.recursions[recursion_type].quota != NULL) {
-		isc_quota_detach(
-			&client->query.recursions[recursion_type].quota);
-	}
-
+	isc_quota_detach(&client->query.recursions[recursion_type].quota);
 	ns_stats_decrement(client->manager->sctx->nsstats,
 			   ns_statscounter_recursclients);
 }
@@ -6331,64 +6323,48 @@ static atomic_uint_fast32_t last_soft, last_hard;
 static isc_result_t
 check_recursionquota(ns_client_t *client, ns_query_rectype_t recursion_type) {
 	isc_quota_t **quotap = &client->query.recursions[recursion_type].quota;
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 
-	/*
-	 * We are about to recurse, which means that this client will
-	 * be unavailable for serving new requests for an indeterminate
-	 * amount of time.  If this client is currently responsible
-	 * for handling incoming queries, set up a new client
-	 * object to handle them while we are waiting for a
-	 * response.  There is no need to replace TCP clients
-	 * because those have already been replaced when the
-	 * connection was accepted (if allowed by the TCP quota).
-	 */
-	if (*quotap == NULL) {
-		result = recursionquotatype_attach_soft(client, recursion_type);
-		if (result == ISC_R_SOFTQUOTA) {
-			isc_stdtime_t now;
-			isc_stdtime_get(&now);
-			if (now != atomic_load_relaxed(&last_soft)) {
-				atomic_store_relaxed(&last_soft, now);
-				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_WARNING,
-					      "recursive-clients soft limit "
-					      "exceeded (%u/%u/%u), "
-					      "aborting oldest query",
-					      isc_quota_getused(*quotap),
-					      isc_quota_getsoft(*quotap),
-					      isc_quota_getmax(*quotap));
-			}
-			ns_client_killoldestquery(client);
-			result = ISC_R_SUCCESS;
-		} else if (result == ISC_R_QUOTA) {
-			isc_stdtime_t now;
-			isc_stdtime_get(&now);
-			if (now != atomic_load_relaxed(&last_hard)) {
-				ns_server_t *sctx = client->manager->sctx;
-				atomic_store_relaxed(&last_hard, now);
-				ns_client_log(
-					client, NS_LOGCATEGORY_CLIENT,
-					NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-					"no more recursive clients "
-					"(%u/%u/%u): %s",
-					isc_quota_getused(
-						&sctx->recursionquota),
-					isc_quota_getsoft(
-						&sctx->recursionquota),
-					isc_quota_getmax(&sctx->recursionquota),
-					isc_result_totext(result));
-			}
-			ns_client_killoldestquery(client);
+	result = recursionquotatype_attach_soft(client, recursion_type);
+	if (result == ISC_R_SOFTQUOTA) {
+		isc_stdtime_t now;
+		isc_stdtime_get(&now);
+		if (now != atomic_load_relaxed(&last_soft)) {
+			atomic_store_relaxed(&last_soft, now);
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "recursive-clients soft limit "
+				      "exceeded (%u/%u/%u), "
+				      "aborting oldest query",
+				      isc_quota_getused(*quotap),
+				      isc_quota_getsoft(*quotap),
+				      isc_quota_getmax(*quotap));
 		}
-		if (result != ISC_R_SUCCESS) {
-			return (result);
+		ns_client_killoldestquery(client);
+		result = ISC_R_SUCCESS;
+	} else if (result == ISC_R_QUOTA) {
+		isc_stdtime_t now;
+		isc_stdtime_get(&now);
+		if (now != atomic_load_relaxed(&last_hard)) {
+			ns_server_t *sctx = client->manager->sctx;
+			atomic_store_relaxed(&last_hard, now);
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "no more recursive clients "
+				      "(%u/%u/%u): %s",
+				      isc_quota_getused(&sctx->recursionquota),
+				      isc_quota_getsoft(&sctx->recursionquota),
+				      isc_quota_getmax(&sctx->recursionquota),
+				      isc_result_totext(result));
 		}
-
-		dns_message_clonebuffer(client->message);
-		ns_client_recursing(client);
+		ns_client_killoldestquery(client);
 	}
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	dns_message_clonebuffer(client->message);
+	ns_client_recursing(client);
 
 	return (result);
 }
