@@ -2618,6 +2618,7 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(handlep);
+		recursionquotatype_detach(client, recursion_type);
 	}
 }
 
@@ -6464,6 +6465,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
 		}
+		recursionquotatype_detach(client, RECTYPE_NORMAL);
 	}
 
 	/*
@@ -6833,7 +6835,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 			  client->manager->task, query_hookresume, client,
 			  &client->query.hookactx);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto cleanup_and_detach_from_quota;
 	}
 
 	/*
@@ -6850,6 +6852,8 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_HOOK(client));
 	return (ISC_R_SUCCESS);
 
+cleanup_and_detach_from_quota:
+	recursionquotatype_detach(client, RECTYPE_HOOK);
 cleanup:
 	/*
 	 * If we fail, send SERVFAIL now.  It may be better to let the caller
