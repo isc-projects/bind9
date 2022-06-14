@@ -1,3 +1,6 @@
+5904.	[func]		Changed dnssec-signzone -H default to 0 additional
+			NSEC3 iterations. [GL #3395]
+
 5903.	[bug]		When named checks that the OPCODE in a response matches
 			that of the request, if there is a mismatch named logs
 			an error.  Some of those error messages incorrectly

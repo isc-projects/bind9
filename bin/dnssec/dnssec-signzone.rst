@@ -365,7 +365,7 @@ Options
 .. option:: -H iterations
 
    This option indicates that, when generating an NSEC3 chain, BIND 9 should use this many iterations. The default
-   is 10.
+   is 0.
 
 .. option:: -A
 
