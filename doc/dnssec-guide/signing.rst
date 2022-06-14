@@ -1162,10 +1162,6 @@ essentially a hash of the key itself.
 Make sure these files are readable by :iscman:`named` and make sure that the
 ``.private`` files are not readable by anyone else.
 
-Refer to :ref:`system_entropy` for information on how to
-speed up the key generation process if your random number generator has
-insufficient entropy.
-
 Setting Key Timing Information
 ++++++++++++++++++++++++++++++
 
