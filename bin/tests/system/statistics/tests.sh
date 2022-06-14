@@ -170,7 +170,7 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking bind9.xsl vs xml ($n)"
-if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; then
+if $FEATURETEST --have-libxml2 && "${CURL}" --http1.1 http://10.53.0.3:${EXTRAPORT1} > /dev/null 2>&1 && [ -x "${XSLTPROC}" ]  ; then
     $DIGCMD +notcp +recurse @10.53.0.3 soa . > dig.out.test$n.1 2>&1
     $DIGCMD +notcp +recurse @10.53.0.3 soa example > dig.out.test$n.2 2>&1
     # check multiple requests over the same socket
@@ -220,7 +220,7 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     grep "<h2>Memory Usage Summary</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Memory Contexts</h2>" xsltproc.out.${n} >/dev/null || ret=1
 else
-    echo_i "skipping test as libxml2 and/or curl and/or xsltproc was not found"
+    echo_i "skipping test as libxml2 and/or curl with HTTP/1.1 support and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -228,7 +228,7 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking bind9.xml socket statistics ($n)"
-if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; then
+if $FEATURETEST --have-libxml2 && [ -e stats.xml.out ] && [ -x "${XSLTPROC}" ]  ; then
     # Socket statistics (expect no errors)
     grep "<counter name=\"TCP4AcceptFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4BindFail\">0</counter>" stats.xml.out >/dev/null || ret=1
@@ -244,7 +244,7 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     grep "<counter name=\"TCP6RecvErr\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP6SendErr\">0</counter>" stats.xml.out >/dev/null || ret=1
 else
-    echo_i "skipping test as libxml2 and/or curl and/or xsltproc was not found"
+    echo_i "skipping test as libxml2 and/or stats.xml.out file and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
