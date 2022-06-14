@@ -6315,6 +6315,22 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		dns_name_copy(qdomain, param->qdomain);
 	}
 }
+static void
+recursionquota_log(ns_client_t *client, atomic_uint_fast32_t *last_log_time,
+		   const char *format, isc_quota_t *quota) {
+	isc_stdtime_t now;
+
+	isc_stdtime_get(&now);
+	if (now == atomic_load_relaxed(last_log_time)) {
+		return;
+	}
+
+	atomic_store_relaxed(last_log_time, now);
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_WARNING, format, isc_quota_getused(quota),
+		      isc_quota_getsoft(quota), isc_quota_getmax(quota));
+}
+
 static atomic_uint_fast32_t last_soft, last_hard;
 
 /*%
@@ -6326,47 +6342,30 @@ check_recursionquota(ns_client_t *client, ns_query_rectype_t recursion_type) {
 	isc_result_t result;
 
 	result = recursionquotatype_attach_soft(client, recursion_type);
-	if (result == ISC_R_SOFTQUOTA) {
-		isc_stdtime_t now;
-		isc_stdtime_get(&now);
-		if (now != atomic_load_relaxed(&last_soft)) {
-			atomic_store_relaxed(&last_soft, now);
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "recursive-clients soft limit "
-				      "exceeded (%u/%u/%u), "
-				      "aborting oldest query",
-				      isc_quota_getused(*quotap),
-				      isc_quota_getsoft(*quotap),
-				      isc_quota_getmax(*quotap));
-		}
+	switch (result) {
+	case ISC_R_SOFTQUOTA:
+		recursionquota_log(client, &last_soft,
+				   "recursive-clients soft limit exceeded "
+				   "(%u/%u/%u), aborting oldest query",
+				   *quotap);
 		ns_client_killoldestquery(client);
-		result = ISC_R_SUCCESS;
-	} else if (result == ISC_R_QUOTA) {
-		isc_stdtime_t now;
-		isc_stdtime_get(&now);
-		if (now != atomic_load_relaxed(&last_hard)) {
-			ns_server_t *sctx = client->manager->sctx;
-			atomic_store_relaxed(&last_hard, now);
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "no more recursive clients "
-				      "(%u/%u/%u): %s",
-				      isc_quota_getused(&sctx->recursionquota),
-				      isc_quota_getsoft(&sctx->recursionquota),
-				      isc_quota_getmax(&sctx->recursionquota),
-				      isc_result_totext(result));
-		}
+		FALLTHROUGH;
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_QUOTA:
+		recursionquota_log(client, &last_hard,
+				   "no more recursive clients (%u/%u/%u)",
+				   &client->manager->sctx->recursionquota);
 		ns_client_killoldestquery(client);
-	}
-	if (result != ISC_R_SUCCESS) {
 		return (result);
+	default:
+		UNREACHABLE();
 	}
 
 	dns_message_clonebuffer(client->message);
 	ns_client_recursing(client);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
