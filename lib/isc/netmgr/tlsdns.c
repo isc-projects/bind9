@@ -1530,7 +1530,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	struct sockaddr_storage peer_ss;
 	struct sockaddr_storage local_ss;
 	isc_sockaddr_t local;
-	isc_nmhandle_t *handle = NULL;
 
 	REQUIRE(VALID_NMSOCK(ssock));
 	REQUIRE(ssock->tid == isc_nm_tid());
@@ -1600,18 +1599,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 		goto failure;
 	}
 
-	/*
-	 * The handle will be either detached on acceptcb failure or in
-	 * the readcb.
-	 */
-	handle = isc__nmhandle_get(csock, NULL, &local);
-
-	result = ssock->accept_cb(handle, ISC_R_SUCCESS, ssock->accept_cbarg);
-	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&handle);
-		goto failure;
-	}
-
 	csock->tls.state = TLS_STATE_NONE;
 
 	csock->tls.tls = isc_tls_create(ssock->tls.ctx);
@@ -1655,8 +1642,11 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	 * We need to keep the handle alive until we fail to read or
 	 * connection is closed by the other side, it will be detached
 	 * via prep_destroy()->tlsdns_close_direct().
+	 *
+	 * The handle will be either detached on acceptcb failure or in
+	 * the readcb.
 	 */
-	isc_nmhandle_attach(handle, &csock->recv_handle);
+	csock->recv_handle = isc__nmhandle_get(csock, NULL, &local);
 
 	/*
 	 * The initial timer has been set, update the read timeout for
@@ -1665,8 +1655,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	csock->read_timeout = (atomic_load(&csock->keepalive)
 				       ? atomic_load(&csock->mgr->keepalive)
 				       : atomic_load(&csock->mgr->idle));
-
-	isc_nmhandle_detach(&handle);
 
 	result = isc__nm_process_sock_buffer(csock);
 	if (result != ISC_R_SUCCESS) {
