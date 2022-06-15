@@ -35,9 +35,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- :option:The `dnssec-signzone -H` default value has been changed to 0 additional
+- The :option:`dnssec-signzone -H` default value has been changed to 0 additional
   NSEC3 iterations. This change aligns the :iscman:`dnssec-signzone` default with
   the default used by the :ref:`dnssec-policy <dnssec_policy_grammar>` feature.
+  At the same time, documentation about NSEC3 has been aligned with
+  `Best Current Practice
+  <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-nsec3-guidance-10>`__.
   :gl:`#3395`
 
 Bug Fixes

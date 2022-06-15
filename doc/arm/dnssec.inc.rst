@@ -284,8 +284,9 @@ not completely signed until :iscman:`named` has had time to "walk" the zone
 and generate the NSEC and RRSIG records. The NSEC record at the apex
 is added last, to signal that there is a complete NSEC chain.
 
-To sign using NSEC3 instead of NSEC, add an
-NSEC3PARAM record to the initial update request. The OPTOUT bit in the NSEC3
+To sign using :ref:`NSEC3 <advanced_discussions_nsec3>` instead of :ref:`NSEC
+<advanced_discussions_nsec>`, add an NSEC3PARAM record to the initial update
+request. The :term:`OPTOUT <opt-out>` bit in the NSEC3
 chain can be set in the flags field of the
 NSEC3PARAM record.
 

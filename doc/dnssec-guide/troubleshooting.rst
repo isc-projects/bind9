@@ -583,5 +583,7 @@ would execute a command like this:
    $ nsec3hash 1234567890ABCEDF 1 10 www.example.com
    RN7I9ME6E1I6BDKIP91B9TCE4FHJ7LKF (salt=1234567890ABCEDF, hash=1, iterations=10)
 
+Zero-length salt can be specified as ``-``.
+
 While it is unlikely you would construct a rainbow table of your own
 zone data, this tool may be useful when troubleshooting NSEC3 problems.
