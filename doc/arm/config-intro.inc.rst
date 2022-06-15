@@ -19,8 +19,8 @@ Configurations and Zone Files
 Introduction
 ------------
 
-BIND 9 uses a single configuration file called :iscman:`named.conf`.
-:iscman:`named.conf` is typically located in either /etc/namedb or
+BIND 9 uses a single configuration file called :ref:`named.conf <named_conf>`.
+which is typically located in either /etc/namedb or
 /usr/local/etc/namedb.
 
    .. Note:: If :ref:`rndc<ops_rndc>` is being used locally (on the same host
