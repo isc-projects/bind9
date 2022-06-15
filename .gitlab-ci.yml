@@ -16,10 +16,11 @@ variables:
   TEST_PARALLEL_JOBS: 6
 
   CONFIGURE: ./configure
-  CLANG: clang-14
-  SCAN_BUILD: scan-build-14
-  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-14/bin/llvm-symbolizer
-  CLANG_FORMAT: clang-format-14
+  CLANG_VERSION: 14
+  CLANG: "clang-${CLANG_VERSION}"
+  SCAN_BUILD: "scan-build-${CLANG_VERSION}"
+  ASAN_SYMBOLIZER_PATH: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
+  CLANG_FORMAT: "clang-format-${CLANG_VERSION}"
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra
 
@@ -1013,7 +1014,7 @@ clang:tsan:
 
 system:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-14/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
   <<: *base_image
   <<: *system_test_tsan_job
   needs:
@@ -1022,7 +1023,7 @@ system:clang:tsan:
 
 unit:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-14/bin/llvm-symbolizer suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt"
   <<: *base_image
   <<: *unit_test_tsan_job
   needs:
