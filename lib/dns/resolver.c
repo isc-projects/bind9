@@ -641,8 +641,6 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdataset_t *ardataset, isc_result_t *eresultp);
 static void
 validated(isc_task_t *task, isc_event_t *event);
-static bool
-maybe_destroy(fetchctx_t *fctx, bool locked);
 static void
 add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	isc_result_t reason, badnstype_t badtype);
@@ -902,14 +900,16 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	  dns_rdataset_t *sigrdataset, unsigned int valoptions,
 	  isc_task_t *task) {
 	dns_validator_t *validator = NULL;
-	dns_valarg_t *valarg;
+	dns_valarg_t *valarg = NULL;
 	isc_result_t result;
 
-	valarg = isc_mem_get(fctx->mctx, sizeof(*valarg));
+	if (SHUTTINGDOWN(fctx)) {
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
-	valarg->fctx = fctx;
-	valarg->addrinfo = addrinfo;
-	valarg->message = NULL;
+	valarg = isc_mem_get(fctx->mctx, sizeof(*valarg));
+	*valarg = (dns_valarg_t){ .fctx = fctx, .addrinfo = addrinfo };
+
 	dns_message_attach(message, &valarg->message);
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
@@ -4434,7 +4434,6 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 	if (SHUTTINGDOWN(fctx)) {
-		maybe_destroy(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		goto cleanup;
 	}
@@ -5680,58 +5679,6 @@ clone_results(fetchctx_t *fctx) {
 #define CHECKNAMES(r) (((r)->attributes & DNS_RDATASETATTR_CHECKNAMES) != 0)
 
 /*
- * Destroy '*fctx' if it is ready to be destroyed (i.e., if it has
- * no references and is no longer waiting for any events).
- *
- * Requires:
- *      '*fctx' is shutting down.
- *
- * Returns:
- *	true if the resolver is exiting and this is the last fctx in the bucket.
- */
-static bool
-maybe_destroy(fetchctx_t *fctx, bool locked) {
-	unsigned int bucketnum;
-	bool bucket_empty = false;
-	dns_resolver_t *res = fctx->res;
-	dns_validator_t *validator, *next_validator;
-	bool dodestroy = false;
-
-	bucketnum = fctx->bucketnum;
-	if (!locked) {
-		LOCK(&res->buckets[bucketnum].lock);
-	}
-
-	REQUIRE(SHUTTINGDOWN(fctx));
-
-	if (fctx->pending != 0 || fctx->nqueries != 0) {
-		goto unlock;
-	}
-
-	for (validator = ISC_LIST_HEAD(fctx->validators); validator != NULL;
-	     validator = next_validator)
-	{
-		next_validator = ISC_LIST_NEXT(validator, link);
-		dns_validator_cancel(validator);
-	}
-
-	if (isc_refcount_current(&fctx->references) == 0 &&
-	    ISC_LIST_EMPTY(fctx->validators))
-	{
-		bucket_empty = fctx_unlink(fctx);
-		dodestroy = true;
-	}
-unlock:
-	if (!locked) {
-		UNLOCK(&res->buckets[bucketnum].lock);
-	}
-	if (dodestroy) {
-		fctx_destroy(fctx);
-	}
-	return (bucket_empty);
-}
-
-/*
  * The validator has finished.
  */
 static void
@@ -5807,12 +5754,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
 	/*
-	 * If shutting down, ignore the results.  Check to see if we're
-	 * done waiting for validator completions and ADB pending events; if
-	 * so, destroy the fctx.
+	 * If shutting down, ignore the results.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
-		maybe_destroy(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		goto cleanup_event;
 	}
@@ -6052,9 +5996,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * the data, destroy now.
 		 */
 		dns_db_detachnode(fctx->cache, &node);
-		if (SHUTTINGDOWN(fctx)) {
-			maybe_destroy(fctx, true);
-		}
 		UNLOCK(&res->buckets[bucketnum].lock);
 		goto cleanup_event;
 	}
