@@ -876,13 +876,15 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-dnstap --disable-geoip --with-gssapi"
+    EXTRA_CONFIGURE: "--disable-dnstap --with-gssapi"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:bionic:amd64
       artifacts: true
@@ -890,6 +892,7 @@ system:gcc:bionic:amd64:
 unit:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:bionic:amd64
       artifacts: true
@@ -900,7 +903,7 @@ gcc:focal:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr --disable-geoip"
   <<: *ubuntu_focal_amd64_image
   <<: *build_job
 
