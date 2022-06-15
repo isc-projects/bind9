@@ -2695,7 +2695,6 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
 		debug("send failed: %s", isc_result_totext(eresult));
-		cancel_lookup(l);
 		query_detach(&query);
 		lookup_detach(&l);
 		UNLOCK_LOOKUP;
