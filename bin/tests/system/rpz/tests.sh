@@ -423,7 +423,7 @@ here () {
 }
 
 # check dropped response
-DROPPED='^;; connection timed out; no servers could be reached'
+DROPPED='^;; no servers could be reached'
 drop () {
     make_dignm
     digcmd $* >$DIGNM

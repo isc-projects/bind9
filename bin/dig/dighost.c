@@ -811,7 +811,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->done_as_is = lookold->done_as_is;
 	looknew->dscp = lookold->dscp;
 	looknew->rrcomments = lookold->rrcomments;
-	looknew->eoferr = lookold->eoferr;
 
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
@@ -3367,8 +3366,7 @@ force_next(dig_query_t *query) {
 		dighost_error("no response from %s\n", buf);
 	} else {
 		printf("%s", l->cmdline);
-		dighost_error("connection timed out; "
-			      "no servers could be reached\n");
+		dighost_error("no servers could be reached\n");
 	}
 
 	if (exitcode < 9) {
@@ -3380,28 +3378,6 @@ force_next(dig_query_t *query) {
 	lookup_detach(&l);
 	clear_current_lookup();
 	UNLOCK_LOOKUP;
-}
-
-/*%
- * Called when a peer closes a TCP socket prematurely.
- */
-static void
-requeue_or_update_exitcode(dig_lookup_t *lookup) {
-	if (lookup->eoferr == 0U && lookup->retries > 1) {
-		--lookup->retries;
-		/*
-		 * Peer closed the connection prematurely for the first time
-		 * for this lookup.  Try again, keeping track of this failure.
-		 */
-		dig_lookup_t *requeued_lookup = requeue_lookup(lookup, true);
-		requeued_lookup->eoferr++;
-	} else {
-		/*
-		 * Peer closed the connection prematurely and it happened
-		 * previously for this lookup.  Indicate an error.
-		 */
-		exitcode = 9;
-	}
 }
 
 /*%
@@ -3968,7 +3944,13 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 	}
 
-	if (eresult == ISC_R_TIMEDOUT) {
+	if (eresult != ISC_R_SUCCESS) {
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
+		dighost_warning("communications error to %s: %s", sockstr,
+				isc_result_totext(eresult));
+
 		if (l->retries > 1 && !l->tcp_mode) {
 			dig_query_t *newq = NULL;
 
@@ -4039,8 +4021,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			 * and cancel the lookup.
 			 */
 			printf("%s", l->cmdline);
-			dighost_error("connection timed out; "
-				      "no servers could be reached\n");
+			dighost_error("no servers could be reached\n");
+
 			if (exitcode < 9) {
 				exitcode = 9;
 			}
@@ -4051,52 +4033,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 			goto cancel_lookup;
 		}
-	} else if (eresult != ISC_R_SUCCESS) {
-		dig_query_t *next = ISC_LIST_NEXT(query, link);
-		char sockstr[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
-
-		/*
-		 * There was a communication error with the current query,
-		 * go to the next query, if there is one.
-		 */
-		if (next != NULL) {
-			if (l->current_query == query) {
-				query_detach(&l->current_query);
-			}
-			if (l->current_query == NULL) {
-				debug("starting next query %p", next);
-				if (l->tcp_mode) {
-					start_tcp(next);
-				} else {
-					start_udp(next);
-				}
-			}
-			if (check_if_queries_done(l, query)) {
-				goto cancel_lookup;
-			}
-
-			goto detach_query;
-		}
-
-		/*
-		 * Otherwise, print an error message and cancel the
-		 * lookup.
-		 */
-		dighost_error("communications error to %s: %s\n", sockstr,
-			      isc_result_totext(eresult));
-
-		if (keep != NULL) {
-			isc_nmhandle_detach(&keep);
-		}
-
-		if (eresult == ISC_R_EOF) {
-			requeue_or_update_exitcode(l);
-		} else if (exitcode < 9) {
-			exitcode = 9;
-		}
-
-		goto cancel_lookup;
 	}
 
 	isc_buffer_init(&b, region->base, region->length);
