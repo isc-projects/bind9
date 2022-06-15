@@ -21,6 +21,8 @@
 			that there is no configured pre-existing forward-only
 			forward zone with that name. [GL #2506]
 
+	--- 9.18.4 released ---
+
 5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
 			in catz. [GL #3380]
 
