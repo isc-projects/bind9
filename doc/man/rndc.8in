@@ -493,15 +493,21 @@ representing SHA\-1. The \fBflags\fP may be set to \fB0\fP or \fB1\fP,
 depending on whether the opt\-out bit in the NSEC3
 chain should be set. \fBiterations\fP defines the number of additional times to apply
 the algorithm when generating an NSEC3 hash. The \fBsalt\fP is a string
-of data expressed in hexadecimal, a hyphen (\fI\-\(aq) if no salt is to be
-used, or the keyword \(ga\(gaauto\(ga\fP, which causes \fBnamed\fP to generate a
+of data expressed in hexadecimal, a hyphen (\fB\-\fP) if no salt is to be
+used, or the keyword \fBauto\fP, which causes \fBnamed\fP to generate a
 random 64\-bit salt.
 .sp
-So, for example, to create an NSEC3 chain using the SHA\-1 hash
-algorithm, no opt\-out flag, 10 iterations, and a salt value of
-"FFFF", use: \fBrndc signing \-nsec3param 1 0 10 FFFF zone\fP\&. To set
-the opt\-out flag, 15 iterations, and no salt, use:
-\fBrndc signing \-nsec3param 1 1 15 \- zone\fP\&.
+The only recommended configuration is \fBrndc signing \-nsec3param 1 0 0 \- zone\fP,
+i.e. no salt, no additional iterations, no opt\-out.
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Do not use extra iterations, salt, or opt\-out unless all their implications
+are fully understood. A higher number of iterations causes interoperability
+problems and opens servers to CPU\-exhausting DoS attacks.
+.UNINDENT
+.UNINDENT
 .sp
 \fBrndc signing \-nsec3param none\fP removes an existing NSEC3 chain and
 replaces it with NSEC.

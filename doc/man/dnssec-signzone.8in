@@ -342,14 +342,35 @@ KSK\-flagged keys to sign all records, not just the DNSKEY RRset.
 This option generates an NSEC3 chain with the given hex\-encoded salt. A dash
 (\-) can be used to indicate that no salt is to be used when
 generating the NSEC3 chain.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+\fB\-3 \-\fP is the recommended configuration. Adding salt provides no practical benefits.
+.UNINDENT
+.UNINDENT
 .TP
 .B \fB\-H iterations\fP
 This option indicates that, when generating an NSEC3 chain, BIND 9 should use this many iterations. The default
 is 10.
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Values greater than 0 cause interoperability issues and also increase the risk of CPU\-exhausting DoS attacks. The default value has not been changed because the best practices has changed only after BIND 9.16 reached Extended Support Version status.
+.UNINDENT
+.UNINDENT
 .TP
 .B \fB\-A\fP
 This option indicates that, when generating an NSEC3 chain, BIND 9 should set the OPTOUT flag on all NSEC3
 records and should not generate NSEC3 records for insecure delegations.
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Do not use this option unless all its implications are fully understood. This option is intended only for extremely large zones (comparable to \fBcom.\fP) with sparse secure delegations.
+.UNINDENT
+.UNINDENT
 .sp
 Using this option twice (i.e., \fB\-AA\fP) turns the OPTOUT flag off for
 all records. This is useful when using the \fB\-u\fP option to modify an
