@@ -237,7 +237,7 @@ if [ $status -eq 0 ]; then
             if start_servers; then
                 run=$((run+1))
                 test_status=0
-                (cd "$systest" && "$PYTEST" -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+                (cd "$systest" && "$PYTEST" -rsxX -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
                 if [ -f "$systest/$test.status" ]; then
                     if [ "$(cat "$systest/$test.status")" != "5" ]; then
                         test_status=$(cat "$systest/$test.status")
