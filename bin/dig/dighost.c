@@ -3103,6 +3103,9 @@ send_udp(dig_query_t *query) {
 static void
 udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *query = (dig_query_t *)arg;
+	dig_query_t *next = NULL;
+	char sockstr[ISC_SOCKADDR_FORMATSIZE];
+	dig_lookup_t *l = NULL;
 	dig_query_t *readquery = NULL;
 	int local_timeout = timeout * 1000;
 
@@ -3123,29 +3126,62 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("udp_ready(%p, %s, %p)", handle, isc_result_totext(eresult),
 	      query);
 
-	if (eresult == ISC_R_CANCELED || query->canceled) {
-		dig_lookup_t *l = query->lookup;
+	LOCK_LOOKUP;
+	lookup_attach(query->lookup, &l);
 
+	if (eresult == ISC_R_CANCELED || query->canceled) {
 		debug("in cancel handler");
 		if (!query->canceled) {
 			cancel_lookup(l);
 		}
 		query_detach(&query);
 		lookup_detach(&l);
+		clear_current_lookup();
+		UNLOCK_LOOKUP;
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
-		dig_lookup_t *l = query->lookup;
-
 		debug("udp setup failed: %s", isc_result_totext(eresult));
+		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
+		dighost_warning("UDP setup with %s(%s) for %s failed: %s.",
+				sockstr, query->servname, l->textname,
+				isc_result_totext(eresult));
 
 		if (exitcode < 9) {
 			exitcode = 9;
 		}
+
+		if (l->retries > 1) {
+			l->retries--;
+			debug("making new UDP request, %d tries left",
+			      l->retries);
+			requeue_lookup(l, true);
+			next = NULL;
+		} else if ((l->current_query != NULL) &&
+			   (ISC_LINK_LINKED(l->current_query, link)))
+		{
+			next = ISC_LIST_NEXT(l->current_query, link);
+		} else {
+			next = NULL;
+		}
+
 		query_detach(&query);
-		cancel_lookup(l);
+		if (next == NULL) {
+			cancel_lookup(l);
+		}
 		lookup_detach(&l);
+
+		if (next != NULL) {
+			start_udp(next);
+		} else {
+			clear_current_lookup();
+		}
+
+		check_if_done();
+		UNLOCK_LOOKUP;
 		return;
 	}
+
+	exitcode = 0;
 
 	query_attach(query, &readquery);
 
@@ -3168,6 +3204,8 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	send_udp(readquery);
 
 	query_detach(&query);
+	lookup_detach(&l);
+	UNLOCK_LOOKUP;
 }
 
 /*%
