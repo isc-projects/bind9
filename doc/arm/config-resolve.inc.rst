@@ -158,7 +158,6 @@ file is named ``192.168.254.rev`` and has a zone name of
 **254.168.192.in-addr.arpa**.
 
 .. code-block::
-	:linenos:
 
 	; reverse map zone file for 192.168.254.4 only
 	$TTL 2d  ; 172800 seconds
@@ -186,7 +185,6 @@ The resolver provides :ref:`recursive query support<recursive_query>` to a defin
 It is therefore a **closed** resolver and cannot be used in wider network attacks.
 
 .. code-block:: c
-        :linenos:
 
         // resolver named.conf file
         // Two corporate subnets we wish to allow queries from
@@ -303,7 +301,6 @@ A second configuration in which selective forwarding occurs :ref:`is also
 provided<selective_forward_sample>`.
 
 .. code-block:: c
-        :linenos:
 
         // forwarding named.conf file
         // Two corporate subnets we wish to allow queries from
@@ -418,7 +415,6 @@ from the forwarded resolvers.  The configuration is closed, in that it defines
 those IPs from which it will accept recursive queries.
 
 .. code-block:: c
-        :linenos:
 
         // selective forwarding named.conf file
         // Two corporate subnets we wish to allow queries from

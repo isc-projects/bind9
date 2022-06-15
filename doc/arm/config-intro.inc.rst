@@ -47,7 +47,6 @@ This file illustrates the typical format and layout style used for
 as required by the user.
 
 .. code-block:: c
-        :linenos:
 
         // base named.conf file
         // Recommended that you always maintain a change log in this file as shown here
@@ -175,7 +174,6 @@ completeness and provides for both IPv4 and IPv6 localhost resolution. The zone
 (domain) name is **localhost.**
 
 .. code-block::
-        :linenos:
 
         $TTL 3h
         localhost.  SOA      localhost.  nobody.localhost. 42  1d  12h  1w  3h
@@ -195,7 +193,6 @@ from reaching the public DNS hierarchy. The BIND 9 distribution file
 ``localhost.rev`` is shown for completeness:
 
 .. code-block::
-        :linenos:
 
         $TTL 1D
         @        IN        SOA  localhost. root.localhost. (

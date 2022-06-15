@@ -101,7 +101,6 @@ The zone files are unmodified :ref:`from the base samples<base_zone_file>` but
 the :iscman:`named.conf` file has been modified as shown:
 
 .. code-block:: c
-        :linenos:
 
         // authoritative primary named.conf file
         // options clause defining the server-wide properties
@@ -186,7 +185,6 @@ not required (the zone file is obtained from the primary via zone transfer).
 The :iscman:`named.conf` file has been modified as shown:
 
 .. code-block:: c
-        :linenos:
 
         // authoritative secondary named.conf file
         // options clause defining the server-wide properties
