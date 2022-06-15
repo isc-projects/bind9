@@ -182,7 +182,7 @@ Secondary Authoritative Name Server
 The zone files ``local-host-forward.db`` and ``localhost.rev`` are unmodified
 :ref:`from the base samples<base_zone_file>`. The **example.com** zone file is
 not required (the zone file is obtained from the primary via zone transfer).
-The :iscman:`named.conf` file has been modified as shown:
+The :ref:`named.conf<named_conf>` file has been modified as shown:
 
 .. code-block:: c
 
@@ -258,7 +258,7 @@ The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
 detail in the appropriate sections.
 
 If NOTIFY is not being used, no changes are required in this
-:iscman:`named.conf` file, since it is the primary that initiates the NOTIFY
+:ref:`named.conf<named_conf>` file, since it is the primary that initiates the NOTIFY
 message.
 
 .. note::
