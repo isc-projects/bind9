@@ -79,6 +79,7 @@ static atomic_bool slowdown = false;
 static atomic_bool use_TLS = false;
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
+static isc_tlsctx_client_session_cache_t *client_sess_cache = NULL;
 
 static isc_quota_t listener_quota;
 static atomic_bool check_listener_quota = false;
@@ -176,7 +177,8 @@ connect_send_request(isc_nm_t *mgr, const char *uri, bool post,
 	}
 
 	isc_nm_httpconnect(mgr, NULL, &tcp_listen_addr, uri, post,
-			   connect_send_cb, data, ctx, timeout, 0);
+			   connect_send_cb, data, ctx, client_sess_cache,
+			   timeout, 0);
 }
 
 static int
@@ -321,6 +323,9 @@ setup_test(void **state) {
 	client_tlsctx = NULL;
 	isc_tlsctx_createclient(&client_tlsctx);
 	isc_tlsctx_enable_http2client_alpn(client_tlsctx);
+	client_sess_cache = isc_tlsctx_client_session_cache_new(
+		mctx, client_tlsctx,
+		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
 
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);
@@ -349,6 +354,8 @@ teardown_test(void **state) {
 	if (client_tlsctx != NULL) {
 		isc_tlsctx_free(&client_tlsctx);
 	}
+
+	isc_tlsctx_client_session_cache_detach(&client_sess_cache);
 
 	isc_quota_destroy(&listener_quota);
 
@@ -644,7 +651,7 @@ doh_timeout_recovery(void **state) {
 			ISC_NM_HTTP_DEFAULT_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
-			   T_SOFT, 0);
+			   client_sess_cache, T_SOFT, 0);
 
 	/*
 	 * Sleep until sends reaches 5.
@@ -932,7 +939,7 @@ doh_recv_two(void **state) {
 
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), doh_connect_send_two_requests_cb,
-			   NULL, ctx, 5000, 0);
+			   NULL, ctx, client_sess_cache, 5000, 0);
 
 	while (atomic_load(&nsends) > 0) {
 		if (atomic_load(&was_error)) {

@@ -407,7 +407,8 @@ run(void) {
 		isc_tlsctx_createclient(&tls_ctx);
 
 		isc_nm_tlsdnsconnect(netmgr, &sockaddr_local, &sockaddr_remote,
-				     connect_cb, NULL, timeout, 0, tls_ctx);
+				     connect_cb, NULL, timeout, 0, tls_ctx,
+				     NULL);
 		break;
 	}
 #if HAVE_LIBNGHTTP2
@@ -428,7 +429,7 @@ run(void) {
 		}
 		isc_nm_httpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
 				   req_url, is_post, connect_cb, NULL, tls_ctx,
-				   timeout, 0);
+				   NULL, timeout, 0);
 	} break;
 #endif
 	default:

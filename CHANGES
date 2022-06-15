@@ -32,6 +32,9 @@
 5895.	[test]		Add new set of unit test macros and move the unit
 			tests under single namespace in /tests/. [GL !6243]
 
+5893.	[func]		Add TLS session resumption support to the client-side
+			TLS code. [GL !6274]
+
 5891.	[func]		Key timing options for `dnssec-settime` and related
 			utilities now accept "UNSET" times as printed by
 			`dnssec-settime -p`. [GL #3361]

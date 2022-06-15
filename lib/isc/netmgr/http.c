@@ -1424,8 +1424,9 @@ error:
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *tlsctx, unsigned int timeout,
-		   size_t extrahandlesize) {
+		   isc_tlsctx_t *tlsctx,
+		   isc_tlsctx_client_session_cache_t *client_sess_cache,
+		   unsigned int timeout, size_t extrahandlesize) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 
@@ -1487,7 +1488,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	if (tlsctx != NULL) {
 		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
-				  tlsctx, timeout, 0);
+				  tlsctx, client_sess_cache, timeout, 0);
 	} else {
 		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
 				  timeout, 0);
@@ -1507,7 +1508,12 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	REQUIRE(region != NULL);
 	REQUIRE(region->base != NULL);
 	REQUIRE(region->length <= MAX_DNS_MESSAGE_SIZE);
-	REQUIRE(cstream != NULL);
+
+	if (session->closed) {
+		return (ISC_R_CANCELED);
+	}
+
+	INSIST(cstream != NULL);
 
 	if (cstream->post) {
 		/* POST */
