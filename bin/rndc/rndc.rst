@@ -523,15 +523,17 @@ Currently supported commands are:
    depending on whether the opt-out bit in the NSEC3
    chain should be set. ``iterations`` defines the number of additional times to apply
    the algorithm when generating an NSEC3 hash. The ``salt`` is a string
-   of data expressed in hexadecimal, a hyphen (`-') if no salt is to be
+   of data expressed in hexadecimal, a hyphen (``-``) if no salt is to be
    used, or the keyword ``auto``, which causes :iscman:`named` to generate a
    random 64-bit salt.
 
-   So, for example, to create an NSEC3 chain using the SHA-1 hash
-   algorithm, no opt-out flag, 10 iterations, and a salt value of
-   "FFFF", use: ``rndc signing -nsec3param 1 0 10 FFFF zone``. To set
-   the opt-out flag, 15 iterations, and no salt, use:
-   ``rndc signing -nsec3param 1 1 15 - zone``.
+   The only recommended configuration is ``rndc signing -nsec3param 1 0 0 - zone``,
+   i.e. no salt, no additional iterations, no opt-out.
+
+   .. warning::
+      Do not use extra iterations, salt, or opt-out unless all their implications
+      are fully understood. A higher number of iterations causes interoperability
+      problems and opens servers to CPU-exhausting DoS attacks.
 
    ``rndc signing -nsec3param none`` removes an existing NSEC3 chain and
    replaces it with NSEC.
