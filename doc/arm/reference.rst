@@ -1784,13 +1784,18 @@ default is used.
    of ``text`` or ``raw``, any record encountered with a TTL higher than
    ``max-zone-ttl`` causes the zone to be rejected.
 
-   This is useful in DNSSEC-signed zones because when rolling to a new
+   This is needed in DNSSEC-maintained zones because when rolling to a new
    DNSKEY, the old key needs to remain available until RRSIG records
    have expired from caches. The ``max-zone-ttl`` option guarantees that
    the largest TTL in the zone is no higher than the set value.
 
-   The default value is ``unlimited``. A ``max-zone-ttl`` of zero is
+   In the :namedconf:ref:`options` and :namedconf:ref:`zone` blocks,
+   the default value is ``unlimited``. A ``max-zone-ttl`` of zero is
    treated as ``unlimited``.
+
+   In the :namedconf:ref:`dnssec-policy` block,
+   the default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
+   zero is treated as if the default value were in use.
 
 .. namedconf:statement:: stale-answer-ttl
 
@@ -5926,19 +5931,10 @@ The following options can be specified in a ``dnssec-policy`` statement:
     This is similar to ``signatures-validity``, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
-.. namedconf:statement:: max-zone-ttl
+``max-zone-ttl``
 
-    Like the ``max-zone-ttl`` zone option, this specifies the maximum
-    permissible TTL value, in seconds, for the zone.
-
-    This is needed in DNSSEC-maintained zones because when rolling to a
-    new DNSKEY, the old key needs to remain available until RRSIG
-    records have expired from caches.  The ``max-zone-ttl`` option
-    guarantees that the largest TTL in the zone is no higher than the
-    set value.
-
-    The default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
-    zero is treated as if the default value were in use.
+   Like the :namedconf:ref:`max-zone-ttl` zone option, this specifies the maximum
+   permissible TTL value, in seconds, for the zone.
 
 .. namedconf:statement:: nsec3param
 
