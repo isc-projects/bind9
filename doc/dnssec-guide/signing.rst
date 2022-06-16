@@ -1099,25 +1099,25 @@ Generate Keys
 Everything in DNSSEC centers around keys, so we begin by
 generating our own keys.
 
-::
+.. code-block:: console
 
-   # cd /etc/bind
-   # dnssec-keygen -a RSASHA256 -b 1024 example.com
-   Generating key pair...........................+++++ ......................+++++ 
-   Kexample.com.+008+34371
-   # dnssec-keygen -a RSASHA256 -b 2048 -f KSK example.com
-   Generating key pair........................+++ ..................................+++ 
-   Kexample.com.+008+00472
+   # cd /etc/bind/keys
+   # dnssec-keygen -a ECDSAP256SHA256 example.com
+   Generating key pair...........................+++++ ......................+++++
+   Kexample.com.+013+34371
+   # dnssec-keygen -a ECDSAP256SHA256 -f KSK example.com
+   Generating key pair........................+++ ..................................+++
+   Kexample.com.+013+00472
 
 This command generates four key files in ``/etc/bind/keys``:
 
--  Kexample.com.+008+34371.key
+-  Kexample.com.+013+34371.key
 
--  Kexample.com.+008+34371.private
+-  Kexample.com.+013+34371.private
 
--  Kexample.com.+008+00472.key
+-  Kexample.com.+013+00472.key
 
--  Kexample.com.+008+00472.private
+-  Kexample.com.+013+00472.private
 
 The two files ending in ``.key`` are the public keys. These contain the
 DNSKEY resource records that appear in the zone. The two files
@@ -1128,20 +1128,20 @@ Of the two pairs, one is the zone-signing key (ZSK), and one is the
 key-signing key (KSK). We can tell which is which by looking at the file
 contents (the actual keys are shortened here for ease of display):
 
-::
+.. code-block:: console
 
-   # cat Kexample.com.+008+34371.key
+   # cat Kexample.com.+013+34371.key
    ; This is a zone-signing key, keyid 34371, for example.com.
    ; Created: 20200616104249 (Tue Jun 16 11:42:49 2020)
    ; Publish: 20200616104249 (Tue Jun 16 11:42:49 2020)
    ; Activate: 20200616104249 (Tue Jun 16 11:42:49 2020)
-   example.com. IN DNSKEY 256 3 8 AwEAAfel66...LqkA7cvn8=
-   # cat Kexample.com.+008+00472.key
+   example.com. IN DNSKEY 256 3 13 AwEAAfel66...LqkA7cvn8=
+   # cat Kexample.com.+013+00472.key
    ; This is a key-signing key, keyid 472, for example.com.
    ; Created: 20200616104254 (Tue Jun 16 11:42:54 2020)
    ; Publish: 20200616104254 (Tue Jun 16 11:42:54 2020)
    ; Activate: 20200616104254 (Tue Jun 16 11:42:54 2020)
-   example.com. IN DNSKEY 257 3 8 AwEAAbCR6U...l8xPjokVU=
+   example.com. IN DNSKEY 257 3 13 AwEAAbCR6U...l8xPjokVU=
 
 The first line of each file tells us what type of key it is. Also, by
 looking at the actual DNSKEY record, we can tell them apart: 256 is
@@ -1180,15 +1180,15 @@ the zone on 1 July 2020, use it to sign records for a year starting on
 15 July 2020, and remove it from the zone at the end of July 2021, we
 can use the following command:
 
-::
+.. code-block:: console
 
-   # dnssec-settime -P 20200701 -A 20200715 -I 20210715 -D 20210731 Kexample.com.+008+34371.key
-   ./Kexample.com.+008+34371.key
-   ./Kexample.com.+008+34371.private
+   # dnssec-settime -P 20200701 -A 20200715 -I 20210715 -D 20210731 Kexample.com.+013+34371.key
+   ./Kexample.com.+013+34371.key
+   ./Kexample.com.+013+34371.private
 
 which would set the contents of the key file to:
 
-::
+.. code-block:: none
 
    ; This is a zone-signing key, keyid 34371, for example.com.
    ; Created: 20200616104249 (Tue Jun 16 11:42:49 2020)
@@ -1196,7 +1196,7 @@ which would set the contents of the key file to:
    ; Activate: 20200715000000 (Wed Jul 15 01:00:00 2020)
    ; Inactive: 20210715000000 (Thu Jul 15 01:00:00 2021)
    ; Delete: 20210731000000 (Sat Jul 31 01:00:00 2021)
-   example.com. IN DNSKEY 256 3 8 AwEAAfel66...LqkA7cvn8=
+   example.com. IN DNSKEY 256 3 13 AwEAAfel66...LqkA7cvn8=
 
 (The actual key is truncated here to improve readability.)
 
@@ -1563,11 +1563,11 @@ command ``dnssec-signzone``:
 
    # cd /etc/bind/keys/example.com/
    # dnssec-signzone -A -t -N INCREMENT -o example.com -f /etc/bind/db/example.com.signed.db \
-   > /etc/bind/db/example.com.db Kexample.com.+008+17694.key Kexample.com.+008+06817.key
-   Verifying the zone using the following algorithms: RSASHA256.
+   > /etc/bind/db/example.com.db Kexample.com.+013+17694.key Kexample.com.+013+06817.key
+   Verifying the zone using the following algorithms: ECDSAP256SHA256.
    Zone fully signed:
-   Algorithm: RSASHA256: KSKs: 1 active, 0 stand-by, 0 revoked
-                         ZSKs: 1 active, 0 stand-by, 0 revoked
+   Algorithm: ECDSAP256SHA256: KSKs: 1 active, 0 stand-by, 0 revoked
+                               ZSKs: 1 active, 0 stand-by, 0 revoked
    /etc/bind/db/example.com.signed.db
    Signatures generated:                       17
    Signatures retained:                         0
