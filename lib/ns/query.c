@@ -47,6 +47,7 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/order.h>
+#include <dns/rbt.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -10082,13 +10083,16 @@ query_coveringnsec(query_ctx_t *qctx) {
 	dns_clientinfomethods_t cm;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
+	dns_fixedname_t fnamespace;
 	dns_fixedname_t fnowild;
 	dns_fixedname_t fsigner;
 	dns_fixedname_t fwild;
 	dns_name_t *fname = NULL;
+	dns_name_t *namespace = NULL;
 	dns_name_t *nowild = NULL;
 	dns_name_t *signer = NULL;
 	dns_name_t *wild = NULL;
+	dns_name_t qname;
 	dns_rdataset_t *soardataset = NULL, *sigsoardataset = NULL;
 	dns_rdataset_t rdataset, sigrdataset;
 	bool done = false;
@@ -10096,11 +10100,29 @@ query_coveringnsec(query_ctx_t *qctx) {
 	bool redirected = false;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int dboptions = qctx->client->query.dboptions;
+	unsigned int labels;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_coveringnsec");
 
+	dns_name_init(&qname, NULL);
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
+	namespace = dns_fixedname_initname(&fnamespace);
+
+	/*
+	 * Check that the NSEC record is from the correct namespace.
+	 * For records that belong to the parent zone (i.e. DS),
+	 * remove a label to find the correct namespace.
+	 */
+	dns_name_clone(qctx->client->query.qname, &qname);
+	labels = dns_name_countlabels(&qname);
+	if (dns_rdatatype_atparent(qctx->qtype) && labels > 1) {
+		dns_name_getlabelsequence(&qname, 1, labels - 1, &qname);
+	}
+	dns_view_sfd_find(qctx->view, &qname, namespace);
+	if (!dns_name_issubdomain(qctx->fname, namespace)) {
+		goto cleanup;
+	}
 
 	/*
 	 * If we have no signer name, stop immediately.
@@ -10230,6 +10252,13 @@ query_coveringnsec(query_ctx_t *qctx) {
 
 	switch (result) {
 	case DNS_R_COVERINGNSEC:
+		/*
+		 * Check that the covering NSEC record is from the right
+		 * namespace.
+		 */
+		if (!dns_name_issubdomain(nowild, namespace)) {
+			goto cleanup;
+		}
 		result = dns_nsec_noexistnodata(qctx->qtype, wild, nowild,
 						&rdataset, &exists, &data, NULL,
 						log_noexistnodata, qctx);
