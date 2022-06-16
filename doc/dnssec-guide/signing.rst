@@ -1147,17 +1147,7 @@ looking at the actual DNSKEY record, we can tell them apart: 256 is
 ZSK, and 257 is KSK.
 
 The name of the file also tells us something
-about the contents. The file names are of the form:
-
-::
-
-   K<zone-name>+<algorithm-id>+<keyid>
-
-The "zone name" is self-explanatory. The "algorithm ID" is a number assigned
-to the algorithm used to construct the key: the number appears in the
-DNSKEY resource record. In
-our example, 8 means the algorithm RSASHA256. Finally, the "keyid" is
-essentially a hash of the key itself.
+about the contents. See chapter :ref:`zone_keys` for more details.
 
 Make sure these files are readable by :iscman:`named` and make sure that the
 ``.private`` files are not readable by anyone else.

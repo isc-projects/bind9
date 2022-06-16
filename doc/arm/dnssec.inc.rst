@@ -52,6 +52,8 @@ during the lifetime of a DNS zone:
   - :ref:`dnssec_dynamic_zones` - only for special needs
   - :ref:`dnssec_tools` - discouraged, use only for debugging
 
+.. _zone_keys:
+
 Zone keys
 ^^^^^^^^^
 Regardless of the :ref:`zone-signing <dnssec_zone_signing>` method in use, cryptographic keys are
