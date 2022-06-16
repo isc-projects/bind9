@@ -347,7 +347,9 @@ The :iscman:`dnssec-keygen` program is used to generate keys.
 The following command generates an ECDSAP256SHA256 key for the
 ``child.example`` zone:
 
-``dnssec-keygen -a ECDSAP256SHA256 -n ZONE child.example.``
+.. code-block:: shell
+
+   dnssec-keygen -a ECDSAP256SHA256 -n ZONE child.example.
 
 Two output files are produced: ``Kchild.example.+013+12345.key`` and
 ``Kchild.example.+013+12345.private``. Structure of the file names is described
@@ -376,7 +378,9 @@ By default, all zone keys which have an available private key are used
 to generate signatures. The following command signs the zone, assuming
 it is in a file called ``zone.child.example``:
 
-``dnssec-signzone -o child.example zone.child.example``
+.. code-block:: shell
+
+   dnssec-signzone -o child.example zone.child.example
 
 One output file is produced: ``zone.child.example.signed``. This file
 should be referenced by :iscman:`named.conf` as the input file for the zone.
