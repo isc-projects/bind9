@@ -4027,7 +4027,8 @@ Tuning
    payload size on **reliable** networks would be 1432.
 
    Any server-specific ``edns-udp-size`` setting has precedence over all
-   the above rules.
+   the above rules, i.e. configures a static value for a given
+   :namedconf:ref:`server` block.
 
 .. namedconf:statement:: max-udp-size
 
@@ -5146,21 +5147,6 @@ any top-level ``server`` statements are used as defaults.
    use EDNS when communicating with the remote server. The default is
    ``yes``.
 
-.. namedconf:statement:: edns-udp-size
-
-   The ``edns-udp-size`` option sets the EDNS UDP size that is advertised
-   by :iscman:`named` when querying the remote server. Valid values are 512 to
-   4096 bytes; values outside this range are silently adjusted to the
-   nearest value within it. This option is useful when
-   advertising a different value to this server than the value advertised
-   globally: for example, when there is a firewall at the remote site that
-   is blocking large replies. Note: currently, this sets a single UDP size
-   for all packets sent to the server; :iscman:`named` does not deviate from this
-   value. This differs from the behavior of ``edns-udp-size`` in
-   ``options`` or ``view`` statements, where it specifies a maximum value.
-   The ``server`` statement behavior may be brought into conformance with
-   the ``options``/``view`` behavior in future releases.
-
 .. namedconf:statement:: edns-version
 
    The ``edns-version`` option sets the maximum EDNS VERSION that is
@@ -5273,6 +5259,12 @@ any top-level ``server`` statements are used as defaults.
    ``send-cookie`` set at the view or option level. The :iscman:`named` server
    may determine that COOKIE is not supported by the remote server and not
    add a COOKIE EDNS option to requests.
+
+It is possible to override the following values defined in :namedconf:ref:`view`
+and :namedconf:ref:`options` blocks:
+
+   - :namedconf:ref:`edns-udp-size`
+
 
 .. _statschannels:
 
