@@ -1152,6 +1152,10 @@ about the contents. See chapter :ref:`zone_keys` for more details.
 Make sure these files are readable by :iscman:`named` and make sure that the
 ``.private`` files are not readable by anyone else.
 
+Alternativelly, the :iscman:`dnssec-keyfromlabel` program is used to get a key
+pair from a crypto hardware device and build the key files. Its usage is
+similar to :iscman:`dnssec-keygen`.
+
 Setting Key Timing Information
 ++++++++++++++++++++++++++++++
 
@@ -1371,12 +1375,31 @@ including interaction with the parent. A user certainly can do all this,
 but why not use one of the automated methods? Nevertheless, it may
 be useful for test purposes, so we cover it briefly here.
 
-The first step is to create the keys as described in :ref:`generate_keys`.
-Then, edit the zone file to make sure
-the proper DNSKEY entries are included in your zone file. Finally, use the
-command :iscman:`dnssec-signzone`:
+BIND 9 ships with several tools that are used in
+this process, which are explained in more detail below. In all cases,
+the ``-h`` option prints a full list of parameters. Note that the DNSSEC
+tools require the keyset files to be in the working directory or the
+directory specified by the ``-d`` option.
 
-::
+The first step is to create the keys as described in :ref:`generate_keys`.
+
+Then, edit the zone file to make sure the proper DNSKEY entries are included.
+The public keys should be inserted into the zone file by
+including the ``.key`` files using ``$INCLUDE`` statements.
+
+Finally, use the command :iscman:`dnssec-signzone`.
+Any ``keyset`` files corresponding to secure sub-zones should be
+present. The zone signer generates ``NSEC``, ``NSEC3``, and ``RRSIG``
+records for the zone, as well as ``DS`` for the child zones if
+:option:`-g <dnssec-signzone -g>` is specified. If
+:option:`-g <dnssec-signzone -g>` is not specified, then DS RRsets for the
+secure child zones need to be added manually.
+
+By default, all zone keys which have an available private key are used
+to generate signatures. The following command signs the zone, assuming
+it is in a file called ``zone.child.example``, using manually specified keys:
+
+.. code-block:: console
 
    # cd /etc/bind/keys/example.com/
    # dnssec-signzone -A -t -N INCREMENT -o example.com -f /etc/bind/db/example.com.signed.db \
@@ -1395,17 +1418,21 @@ command :iscman:`dnssec-signzone`:
    Signatures per second:                 364.634
    Runtime in seconds:                      0.055
 
-The -o switch explicitly defines the domain name (``example.com`` in
-this case), while the -f switch specifies the output file name. The second line
-has three parameters: the unsigned zone name
-(``/etc/bind/db/example.com.db``), the ZSK file name, and the KSK file name. This
-also generates a plain text file ``/etc/bind/db/example.com.signed.db``,
-which you can verify for correctness.
+The :option:`-o <dnssec-signzone -o>` switch explicitly defines the domain name
+(``example.com`` in this case), while the :option:`-f <dnssec-signzone -f>`
+switch specifies the output file name. The second line has three parameters:
+the unsigned zone name (``/etc/bind/db/example.com.db``), the ZSK file name,
+and the KSK file name. This also generates a plain-text file
+``/etc/bind/db/example.com.signed.db``, which can be manually verified for correctness.
+
+:iscman:`dnssec-signzone` also produces keyset and dsset files. These are used
+to provide the parent zone administrators with the ``DNSKEY`` records (or their
+corresponding ``DS`` records) that are the secure entry point to the zone.
 
 Finally, you'll need to update :iscman:`named.conf` to load the signed version
 of the zone, which looks something like this:
 
-::
+.. code-block:: none
 
    zone "example.com" IN {
        type primary;
