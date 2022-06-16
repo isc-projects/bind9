@@ -6344,6 +6344,10 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		goto cleanup;
 	}
 
+	if (fwdpolicy == dns_fwdpolicy_only) {
+		dns_view_sfd_add(view, origin);
+	}
+
 	result = ISC_R_SUCCESS;
 
 cleanup:
