@@ -338,58 +338,9 @@ There are several tools available to manually sign a zone.
    compatibility and should be used only by expert users with specific needs.
 
 To set up a DNSSEC secure zone manually, a series of steps
-must be followed. BIND 9 ships with several tools that are used in
-this process, which are explained in more detail below. In all cases,
-the ``-h`` option prints a full list of parameters. Note that the DNSSEC
-tools require the keyset files to be in the working directory or the
-directory specified by the ``-d`` option.
-
-The :iscman:`dnssec-keygen` program is used to generate keys.
-
-The following command generates an ECDSAP256SHA256 key for the
-``child.example`` zone:
-
-.. code-block:: shell
-
-   dnssec-keygen -a ECDSAP256SHA256 -n ZONE child.example.
-
-Two output files are produced: ``Kchild.example.+013+12345.key`` and
-``Kchild.example.+013+12345.private``. Structure of the file names is described
-in section `Zone Keys`_.
-
-To generate another key with the same properties but with a different
-key tag, repeat the above command.
-
-The :iscman:`dnssec-keyfromlabel` program is used to get a key pair from a
-crypto hardware device and build the key files. Its usage is similar to
-:iscman:`dnssec-keygen`.
-
-The public keys should be inserted into the zone file by including the
-``.key`` files using ``$INCLUDE`` statements.
-
-The :iscman:`dnssec-signzone` program is used to sign a zone.
-
-Any ``keyset`` files corresponding to secure sub-zones should be
-present. The zone signer generates ``NSEC``, ``NSEC3``, and ``RRSIG``
-records for the zone, as well as ``DS`` for the child zones if
-:option:`-g <dnssec-signzone -g>` is specified. If
-:option:`-g <dnssec-signzone -g>` is not specified, then DS RRsets for the
-secure child zones need to be added manually.
-
-By default, all zone keys which have an available private key are used
-to generate signatures. The following command signs the zone, assuming
-it is in a file called ``zone.child.example``:
-
-.. code-block:: shell
-
-   dnssec-signzone -o child.example zone.child.example
-
-One output file is produced: ``zone.child.example.signed``. This file
-should be referenced by :iscman:`named.conf` as the input file for the zone.
-
-:iscman:`dnssec-signzone` also produces keyset and dsset files. These are used
-to provide the parent zone administrators with the ``DNSKEYs`` (or their
-corresponding ``DS`` records) that are the secure entry point to the zone.
+must be followed. Please see chapter
+:ref:`advanced_discussions_manual_key_management_and_signing` in the
+:doc:`dnssec-guide` for more information.
 
 Monitoring with Private Type Records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
