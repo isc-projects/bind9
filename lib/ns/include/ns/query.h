@@ -31,7 +31,7 @@
 
 /*% nameserver database version structure */
 typedef struct ns_dbversion {
-	dns_db_t	 *db;
+	dns_db_t	*db;
 	dns_dbversion_t *version;
 	bool		 acl_checked;
 	bool		 queryok;
@@ -95,9 +95,9 @@ typedef enum {
  */
 typedef struct ns_query_recparam {
 	dns_rdatatype_t qtype;
-	dns_name_t	   *qname;
+	dns_name_t     *qname;
 	dns_fixedname_t fqname;
-	dns_name_t	   *qdomain;
+	dns_name_t     *qdomain;
 	dns_fixedname_t fqdomain;
 } ns_query_recparam_t;
 
@@ -106,35 +106,35 @@ struct ns_query {
 	unsigned int	 attributes;
 	unsigned int	 restarts;
 	bool		 timerset;
-	dns_name_t	   *qname;
-	dns_name_t	   *origqname;
+	dns_name_t	*qname;
+	dns_name_t	*origqname;
 	dns_rdatatype_t	 qtype;
 	unsigned int	 dboptions;
 	unsigned int	 fetchoptions;
-	dns_db_t	 *gluedb;
-	dns_db_t	 *authdb;
-	dns_zone_t	   *authzone;
+	dns_db_t	*gluedb;
+	dns_db_t	*authdb;
+	dns_zone_t	*authzone;
 	bool		 authdbset;
 	bool		 isreferral;
 	isc_mutex_t	 fetchlock;
-	ns_hookasync_t  *hookactx;
-	dns_rpz_st_t    *rpz_st;
+	ns_hookasync_t	*hookactx;
+	dns_rpz_st_t	*rpz_st;
 	isc_bufferlist_t namebufs;
 	ISC_LIST(ns_dbversion_t) activeversions;
 	ISC_LIST(ns_dbversion_t) freeversions;
 	dns_rdataset_t *dns64_aaaa;
 	dns_rdataset_t *dns64_sigaaaa;
-	bool	     *dns64_aaaaok;
+	bool	       *dns64_aaaaok;
 	unsigned int	dns64_aaaaoklen;
 	unsigned int	dns64_options;
 	unsigned int	dns64_ttl;
 
 	struct {
-		dns_db_t	 *db;
-		dns_zone_t	   *zone;
+		dns_db_t       *db;
+		dns_zone_t     *zone;
 		dns_dbnode_t   *node;
 		dns_rdatatype_t qtype;
-		dns_name_t	   *fname;
+		dns_name_t     *fname;
 		dns_fixedname_t fixed;
 		isc_result_t	result;
 		dns_rdataset_t *rdataset;
@@ -215,16 +215,16 @@ struct query_ctx {
 
 	dns_fetchevent_t *event; /* recursion event */
 
-	dns_db_t	 *db;	  /* zone or cache database */
+	dns_db_t	*db;	  /* zone or cache database */
 	dns_dbversion_t *version; /* DB version */
-	dns_dbnode_t    *node;	  /* DB node */
+	dns_dbnode_t	*node;	  /* DB node */
 
-	dns_db_t	 *zdb;	 /* zone DB values, saved */
-	dns_dbnode_t    *znode;	 /* while searching cache */
-	dns_name_t	   *zfname; /* for a better answer */
+	dns_db_t	*zdb;	 /* zone DB values, saved */
+	dns_dbnode_t	*znode;	 /* while searching cache */
+	dns_name_t	*zfname; /* for a better answer */
 	dns_dbversion_t *zversion;
-	dns_rdataset_t  *zrdataset;
-	dns_rdataset_t  *zsigrdataset;
+	dns_rdataset_t	*zrdataset;
+	dns_rdataset_t	*zsigrdataset;
 
 	dns_rpz_st_t *rpz_st; /* RPZ state */
 	dns_zone_t   *zone;   /* zone to search */

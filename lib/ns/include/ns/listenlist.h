@@ -41,16 +41,16 @@ typedef struct ns_listenelt  ns_listenelt_t;
 typedef struct ns_listenlist ns_listenlist_t;
 
 struct ns_listenelt {
-	isc_mem_t	  *mctx;
+	isc_mem_t	   *mctx;
 	in_port_t	    port;
 	bool		    is_http;
 	isc_dscp_t	    dscp; /* -1 = not set, 0..63 */
-	dns_acl_t	  *acl;
-	isc_tlsctx_t	     *sslctx;
+	dns_acl_t	   *acl;
+	isc_tlsctx_t	   *sslctx;
 	isc_tlsctx_cache_t *sslctx_cache;
-	char		     **http_endpoints;
+	char		  **http_endpoints;
 	size_t		    http_endpoints_number;
-	isc_quota_t	    *http_quota;
+	isc_quota_t	   *http_quota;
 	uint32_t	    max_concurrent_streams;
 	ISC_LINK(ns_listenelt_t) link;
 };

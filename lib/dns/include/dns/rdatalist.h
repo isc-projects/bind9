@@ -97,7 +97,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset);
  */
 
 isc_result_t
-dns_rdatalist_fromrdataset(dns_rdataset_t	  *rdataset,
+dns_rdatalist_fromrdataset(dns_rdataset_t   *rdataset,
 			   dns_rdatalist_t **rdatalist);
 /*%<
  * Point 'rdatalist' to the rdatalist in 'rdataset'.

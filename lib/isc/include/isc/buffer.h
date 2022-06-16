@@ -172,7 +172,7 @@ ISC_LANG_BEGINDECLS
 
 struct isc_buffer {
 	unsigned int magic;
-	void	     *base;
+	void	    *base;
 	/*@{*/
 	/*! The following integers are byte offsets from 'base'. */
 	unsigned int length;
@@ -1050,7 +1050,7 @@ ISC_LANG_ENDDECLS
 #define isc_buffer_constinit(_b, _d, _l)                    \
 	do {                                                \
 		union {                                     \
-			void	     *_var;                   \
+			void	   *_var;                   \
 			const void *_const;                 \
 		} _deconst;                                 \
 		_deconst._const = (_d);                     \
