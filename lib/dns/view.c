@@ -127,6 +127,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	isc_mutex_init(&view->lock);
 
+	isc_rwlock_init(&view->sfd_lock, 0, 0);
+
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
@@ -215,6 +217,7 @@ cleanup_zt:
 	}
 
 cleanup_mutex:
+	isc_rwlock_destroy(&view->sfd_lock);
 	isc_mutex_destroy(&view->lock);
 
 	if (view->nta_file != NULL) {
@@ -381,6 +384,9 @@ destroy(dns_view_t *view) {
 	if (view->answernames_exclude != NULL) {
 		dns_rbt_destroy(&view->answernames_exclude);
 	}
+	if (view->sfd != NULL) {
+		dns_rbt_destroy(&view->sfd);
+	}
 	if (view->delonly != NULL) {
 		dns_name_t *name;
 		int i;
@@ -464,6 +470,7 @@ destroy(dns_view_t *view) {
 		dns_badcache_destroy(&view->failcache);
 	}
 	isc_mutex_destroy(&view->new_zone_lock);
+	isc_rwlock_destroy(&view->sfd_lock);
 	isc_mutex_destroy(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_refcount_destroy(&view->weakrefs);
@@ -2333,4 +2340,78 @@ dns_view_flushonshutdown(dns_view_t *view, bool flush) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	view->flush = flush;
+}
+
+static void
+free_sfd(void *data, void *arg) {
+	isc_mem_put(arg, data, sizeof(unsigned int));
+}
+
+void
+dns_view_sfd_add(dns_view_t *view, const dns_name_t *name) {
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	RWLOCK(&view->sfd_lock, isc_rwlocktype_write);
+	if (view->sfd == NULL) {
+		result = dns_rbt_create(view->mctx, free_sfd, view->mctx,
+					&view->sfd);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+
+	result = dns_rbt_addnode(view->sfd, name, &node);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS || result == ISC_R_EXISTS);
+	if (node->data != NULL) {
+		unsigned int *count = node->data;
+		(*count)++;
+	} else {
+		unsigned int *count = isc_mem_get(view->mctx,
+						  sizeof(unsigned int));
+		*count = 1;
+		node->data = count;
+	}
+	RWUNLOCK(&view->sfd_lock, isc_rwlocktype_write);
+}
+
+void
+dns_view_sfd_del(dns_view_t *view, const dns_name_t *name) {
+	isc_result_t result;
+	void *data = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	RWLOCK(&view->sfd_lock, isc_rwlocktype_write);
+	INSIST(view->sfd != NULL);
+	result = dns_rbt_findname(view->sfd, name, 0, NULL, &data);
+	if (result == ISC_R_SUCCESS) {
+		unsigned int *count = data;
+		INSIST(count != NULL);
+		if (--(*count) == 0U) {
+			result = dns_rbt_deletename(view->sfd, name, false);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
+	}
+	RWUNLOCK(&view->sfd_lock, isc_rwlocktype_write);
+}
+
+void
+dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
+		  dns_name_t *foundname) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->sfd != NULL) {
+		isc_result_t result;
+		void *data = NULL;
+
+		RWLOCK(&view->sfd_lock, isc_rwlocktype_read);
+		result = dns_rbt_findname(view->sfd, name, 0, foundname, &data);
+		RWUNLOCK(&view->sfd_lock, isc_rwlocktype_read);
+		if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
+			dns_name_copy(dns_rootname, foundname);
+		}
+	} else {
+		dns_name_copy(dns_rootname, foundname);
+	}
 }
