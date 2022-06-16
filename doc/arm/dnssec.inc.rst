@@ -284,45 +284,6 @@ individual ``NSEC3`` needs to be changed, the entire chain must be changed.
 To switch back to ``NSEC``, use :iscman:`nsupdate` to remove any ``NSEC3PARAM``
 records. The ``NSEC`` chain is generated before the ``NSEC3`` chain is removed.
 
-.. _dnssec_dynamic_zones_private_type_records:
-
-Private Type Records
-====================
-
-The state of the signing process is signaled by private type records (with a
-default type value of 65534). When signing is complete, those records with a
-non-zero initial octet have a non-zero value for the final octet.
-
-If the first octet of a private type record is non-zero, the record indicates
-either that the zone needs to be signed with the key matching the record, or
-that all signatures that match the record should be removed. Here are the
-meanings of the different values of the first octet:
-
-   - algorithm (octet 1)
-
-   - key id in network order (octet 2 and 3)
-
-   - removal flag (octet 4)
-   
-   - complete flag (octet 5)
-
-Only records flagged as "complete" can be removed via dynamic update; attempts
-to remove other private type records are silently ignored.
-
-If the first octet is zero (this is a reserved algorithm number that should
-never appear in a ``DNSKEY`` record), the record indicates that changes to the
-``NSEC3`` chains are in progress. The rest of the record contains an
-``NSEC3PARAM`` record, while the flag field tells what operation to perform
-based on the flag bits:
-
-   0x01 OPTOUT
-
-   0x80 CREATE
-
-   0x40 REMOVE
-
-   0x20 NONSEC
-
 .. _dnssec_dynamic_zones_dnskey_rollovers:
 
 DNSKEY Rollovers
@@ -428,6 +389,42 @@ should be referenced by :iscman:`named.conf` as the input file for the zone.
 to provide the parent zone administrators with the ``DNSKEYs`` (or their
 corresponding ``DS`` records) that are the secure entry point to the zone.
 
+Monitoring with Private Type Records
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The state of the signing process is signaled by private type records (with a
+default type value of 65534). When signing is complete, those records with a
+non-zero initial octet have a non-zero value for the final octet.
+
+If the first octet of a private type record is non-zero, the record indicates
+either that the zone needs to be signed with the key matching the record, or
+that all signatures that match the record should be removed. Here are the
+meanings of the different values of the first octet:
+
+   - algorithm (octet 1)
+
+   - key ID in network order (octet 2 and 3)
+
+   - removal flag (octet 4)
+
+   - complete flag (octet 5)
+
+Only records flagged as "complete" can be removed via dynamic update; attempts
+to remove other private type records are silently ignored.
+
+If the first octet is zero (this is a reserved algorithm number that should
+never appear in a ``DNSKEY`` record), the record indicates that changes to the
+``NSEC3`` chains are in progress. The rest of the record contains an
+``NSEC3PARAM`` record, while the flag field tells what operation to perform
+based on the flag bits:
+
+   0x01 OPTOUT
+
+   0x80 CREATE
+
+   0x40 REMOVE
+
+   0x20 NONSEC
 
 .. _secure_delegation:
 
