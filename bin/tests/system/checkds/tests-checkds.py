@@ -262,7 +262,7 @@ def test_checkds_dspublished(named_port):
     zone_check(server, "dspublished.checkds.")
     wait_for_log(
         "ns9/named.run",
-        "zone dspublished.checkds/IN (signed): checkds: " "DS response from 10.53.0.2",
+        "zone dspublished.checkds/IN (signed): checkds: DS response from 10.53.0.2",
     )
     keystate_check(parent, "dspublished.checkds.", "DSPublish")
 
@@ -270,7 +270,7 @@ def test_checkds_dspublished(named_port):
     zone_check(server, "reference.checkds.")
     wait_for_log(
         "ns9/named.run",
-        "zone reference.checkds/IN (signed): checkds: " "DS response from 10.53.0.2",
+        "zone reference.checkds/IN (signed): checkds: DS response from 10.53.0.2",
     )
     keystate_check(parent, "reference.checkds.", "DSPublish")
 
