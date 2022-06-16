@@ -350,12 +350,8 @@ The following command generates an ECDSAP256SHA256 key for the
 ``dnssec-keygen -a ECDSAP256SHA256 -n ZONE child.example.``
 
 Two output files are produced: ``Kchild.example.+013+12345.key`` and
-``Kchild.example.+013+12345.private`` (where 12345 is an example of a
-key tag). The key filenames contain the key name (``child.example.``),
-the algorithm (5 is RSASHA1, 8 is RSASHA256, 13 is ECDSAP256SHA256, 15 is
-ED25519, etc.), and the key tag (12345 in this case). The private key (in
-the ``.private`` file) is used to generate signatures, and the public
-key (in the ``.key`` file) is used for signature verification.
+``Kchild.example.+013+12345.private``. Structure of the file names is described
+in section `Zone Keys`_.
 
 To generate another key with the same properties but with a different
 key tag, repeat the above command.
