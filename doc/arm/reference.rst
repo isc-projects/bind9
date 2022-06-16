@@ -2743,6 +2743,7 @@ for details on how to specify IP address lists.
 
 .. namedconf:statement:: allow-update
 
+   A simple access control list.
    When set in the ``zone`` statement for a primary zone, this specifies which
    hosts are allowed to submit Dynamic DNS updates to that zone. The
    default is to deny updates from all hosts.
@@ -6733,15 +6734,13 @@ Dynamic Update Policies
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 BIND 9 supports two methods of granting clients the right to
-perform dynamic updates to a zone, configured by the ``allow-update``
-or ``update-policy`` options. In both cases, BIND 9 writes the updates
+perform dynamic updates to a zone:
+
+- :namedconf:ref:`allow-update` - a simple access control list
+- :namedconf:ref:`update-policy` - fine-grained access control
+
+In both cases, BIND 9 writes the updates
 to the zone's filename set in ``file``.
-
-.. namedconf:statement:: allow-update
-
-   The ``allow-update`` clause is a simple access control list. Any client
-   that matches the ACL is granted permission to update any record in the
-   zone.
 
 .. namedconf:statement:: update-policy
 
