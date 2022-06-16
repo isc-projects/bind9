@@ -151,6 +151,8 @@ struct dns_view {
 	dns_rbt_t	     *denyanswernames;
 	dns_rbt_t	     *answernames_exclude;
 	dns_rrl_t	     *rrl;
+	dns_rbt_t	     *sfd;
+	isc_rwlock_t	      sfd_lock;
 	bool		      provideixfr;
 	bool		      requestnsid;
 	bool		      sendcookie;
@@ -1360,6 +1362,42 @@ dns_view_staleanswerenabled(dns_view_t *view);
  *
  * Requires:
  *\li	'view' to be valid.
+ */
+
+void
+dns_view_sfd_add(dns_view_t *view, const dns_name_t *name);
+/*%<
+ * Add 'name' to the synth-from-dnssec namespace tree for the
+ * view.  If the tree does not already exist create it.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ *\li	'name' to be valid.
+ */
+
+void
+dns_view_sfd_del(dns_view_t *view, const dns_name_t *name);
+/*%<
+ * Delete 'name' to the synth-from-dnssec namespace tree for
+ * the view when the count of previous adds and deletes becomes
+ * zero.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ *\li	'name' to be valid.
+ */
+
+void
+dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
+		  dns_name_t *foundname);
+/*%<
+ * Find the enclosing name to the synth-from-dnssec namespace tree for 'name'
+ * in the specified view.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ *\li	'name' to be valid.
+ *\li	'foundname' to be valid with a buffer sufficient to hold the name.
  */
 
 ISC_LANG_ENDDECLS
