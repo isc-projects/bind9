@@ -1635,9 +1635,11 @@ dns_zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
 
 	INSIST(zone != zone->raw);
 	if (zone->view != NULL) {
+		dns_view_sfd_del(zone->view, &zone->origin);
 		dns_view_weakdetach(&zone->view);
 	}
 	dns_view_weakattach(view, &zone->view);
+	dns_view_sfd_add(view, &zone->origin);
 
 	if (zone->strviewname != NULL) {
 		isc_mem_free(zone->mctx, zone->strviewname);
