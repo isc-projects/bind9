@@ -156,8 +156,51 @@ Also:
 
 For more information about KASP configuration see :ref:`dnssec_policy_grammar`.
 
-The :ref:`dnssec_advanced_discussions` in the DNSSEC Guide discusses the
-various policy settings and may help you determining values for your special needs.
+The :ref:`dnssec_advanced_discussions` section in the DNSSEC Guide discusses the
+various policy settings and may be useful for determining values for specific
+needs.
+
+Key Rollover
+============
+
+When using a ``dnssec-policy``, a key lifetime can be set to trigger
+key rollovers. ZSK rollovers are fully automatic, but for KSK and CSK rollovers
+a DS record needs to be submitted to the parent. See
+:ref:`secure_delegation` for possible ways to do so.
+
+Once the DS is in the parent (and the DS of the predecessor key is withdrawn),
+BIND needs to be told that this event has happened. This can be done automatically
+by configuring parental agents:
+
+.. code-block:: none
+  :emphasize-lines: 5
+
+    zone "dnssec.example" {
+        type primary;
+        file "dnssec.example.db";
+        dnssec-policy default;
+        parental-agents { 192.0.2.1; };
+    };
+
+Here one server, ``192.0.2.1``, is configured for BIND to send DS queries to,
+to check the DS RRset for ``dnssec-example`` during key rollovers. This needs
+to be a trusted server, because BIND does not validate the response.
+
+If setting up a parental agent is undesirable, it is also possible to tell BIND that the
+DS is published in the parent with:
+:option:`rndc dnssec -checkds -key 12345 published dnssec.example. <rndc dnssec>`.
+and the DS for the predecessor key has been removed with:
+:option:`rndc dnssec -checkds -key 54321 withdrawn dnssec.example. <rndc dnssec>`.
+where 12345 and 54321 are the key tags of the successor and predecessor key,
+respectively.
+
+To roll a key sooner than scheduled, or to roll a key that
+has an unlimited lifetime, use:
+:option:`rndc dnssec -rollover -key 12345 dnssec.example. <rndc dnssec>`.
+
+To revert a signed zone back to an insecure zone, change
+the zone configuration to use the built-in "insecure" policy. Detailed
+instructions are described in :ref:`revert_to_unsigned`.
 
 .. _dnssec_dynamic_zones:
 
