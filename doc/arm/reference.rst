@@ -14,89 +14,174 @@
 Configuration Reference
 =======================
 
-.. _configuration_file_elements:
+The operational functionality of BIND 9 is defined using the file
+**named.conf**, which is typically located in /etc or /usr/local/etc/namedb,
+depending on the operating system or distribution. A further file **rndc.conf**
+will be present if **rndc** is being run from a remote host, but is not required
+if rndc is being run from **localhost** (the same system as BIND 9 is running
+on).
 
-Configuration File Elements
----------------------------
+.. _named_conf:
 
-Following is a list of elements used throughout the BIND configuration
-file documentation:
+Configuration File (named.conf)
+-------------------------------
+
+The file named.conf may contain three types of entities:
 
 .. glossary::
 
-    ``acl_name``
-        The name of an ``address_match_list`` as defined by the ``acl`` statement.
+   Comment
+      :ref:`Multiple comment formats are supported <comment_syntax>`.
 
-    ``address_match_list``
-        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
+   Block
+      :ref:`Blocks <configuration_blocks>` are containers for :term:`statements
+      <statement>` which either have common functionality - for example,
+      the definition of a cryptographic key in a :namedconf:ref:`key` block - or which
+      define the scope of the statement - for example, a statement which appears
+      in a :namedconf:ref:`zone` block has scope only for that zone.
 
-    ``remoteserver_list``
-        A named list of one or more ``ip_addr`` with optional ``tls_id``, ``key_id`` and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list``.
+   Statement
+      - Statements define and control specific BIND behaviors.
+      - Statements may have a single parameter (a **Value**) or multiple parameters
+        (**Argument/Value** pairs).
+      - Statements can appear in a single :term:`block` - for
+        example, an :namedconf:ref:`algorithm` statement can appear only in a
+        :namedconf:ref:`key` block - or in multiple blocks - for example, an
+        :any:`also-notify` statement can appear in an :namedconf:ref:`options`
+        block where it has global (server-wide) scope, in a :any:`zone`
+        block where it has scope only for the specific zone (and overrides
+        any global statement), or even in a :any:`view` block where it has
+        scope for only that view (and overrides any global statement).
 
-    ``domain_name``
-        A quoted string which is used as a DNS name; for example. ``my.test.domain``.
+.. Note::
+   Over a period of many years the BIND ARM acquired a bewildering array of
+   terminology. Many of the terms used described similar concepts and served
+   only to add a layer of complexity, possibly confusion, and perhaps mystique
+   to BIND 9 configuration. The ARM now uses only the terms **Block**,
+   **Statement**, **Argument**, and **Value** to describe all entities used in
+   BIND 9 configuration.
 
-    ``namelist``
-        A list of one or more ``domain_name`` elements.
+.. _comment_syntax:
 
-    ``dotted_decimal``
-        One to four integers valued 0 through 255 separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
+Comment Syntax
+~~~~~~~~~~~~~~
 
-    ``ip4_addr``
-        An IPv4 address with exactly four elements in ``dotted_decimal`` notation.
+The BIND 9 comment syntax allows comments to appear anywhere that
+whitespace may appear in a BIND configuration file. To appeal to
+programmers of all kinds, they can be written in the C, C++, or
+shell/Perl style.
 
-    ``ip6_addr``
-        An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
+Syntax
+^^^^^^
 
-    ``ip_addr``
-        An ``ip4_addr`` or ``ip6_addr``.
+.. code-block:: none
 
-    ``ip_dscp``
-        A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+   /* This is a BIND comment as in C */
 
-    ``ip_port``
-        An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
+.. code-block:: none
 
-    ``ip_prefix``
-        An IP network specified as an ``ip_addr``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_addr`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0``with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
-        When specifying a prefix involving a IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
+   // This is a BIND comment as in C++
 
-    ``key_id``
-        A ``domain_name`` representing the name of a shared key, to be used for transaction security.
+.. code-block:: none
 
-    ``key_list``
-        A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
+   # This is a BIND comment as in common Unix shells
+   # and Perl
 
-    ``tls_id``
-        A string representing a TLS configuration object, including a key and certificate.
+Definition and Usage
+^^^^^^^^^^^^^^^^^^^^
 
-    ``number``
-        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
+Comments can be inserted anywhere that whitespace may appear in a BIND
+configuration file.
 
-    ``fixedpoint``
-        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
+C-style comments start with the two characters /\* (slash, star) and end
+with \*/ (star, slash). Because they are completely delimited with these
+characters, they can be used to comment only a portion of a line or to
+span multiple lines.
 
-    ``path_name``
-        A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
+C-style comments cannot be nested. For example, the following is not
+valid because the entire comment ends with the first \*/:
 
-    ``port_list``
-        A list of an ``ip_port`` or a port range. A port range is specified in the form of ``range`` followed by two ``ip_port``s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. In either case an asterisk (``*``) character is not allowed as a valid ``ip_port``.
+.. code-block:: none
 
-    ``size_spec``
-        A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as ``max-journal-size``) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
-        ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
-        ``default`` uses the limit that was in force when the server was started.
+   /* This is the start of a comment.
+      This is still part of the comment.
+   /* This is an incorrect attempt at nesting a comment. */
+      This is no longer in any comment. */
 
-    ``size_or_percent``
-         A ``size_spec`` or integer value followed by ``%`` to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the ``%`` sign to represent percent.
+C++-style comments start with the two characters // (slash, slash) and
+continue to the end of the physical line. They cannot be continued
+across multiple physical lines; to have one logical comment span
+multiple lines, each line must use the // pair. For example:
 
-    ``yes_or_no``
-        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
+.. code-block:: none
 
-    ``dialup_option``
-        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
+   // This is the start of a comment.  The next line
+   // is a new comment, even though it is logically
+   // part of the previous comment.
+
+Shell-style (or Perl-style) comments start with the
+character ``#`` (number/pound sign) and continue to the end of the physical
+line, as in C++ comments. For example:
+
+.. code-block:: none
+
+   # This is the start of a comment.  The next line
+   # is a new comment, even though it is logically
+   # part of the previous comment.
+
+.. warning::
+
+   The semicolon (``;``) character cannot start a comment, unlike
+   in a zone file. The semicolon indicates the end of a
+   configuration statement.
+
+Configuration Layout Styles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BIND is very picky about opening and closing brackets/braces, semicolons, and
+all the other separators defined in the formal syntaxes in later sections.
+There are many layout styles that can assist in minimizing errors, as shown in
+the following examples:
+
+.. code-block:: none
+
+	// dense single-line style
+	zone "example.com" in{type secondary; file "secondary.example.com"; primaries {10.0.0.1;};};
+	//  single-statement-per-line style
+	zone "example.com" in{
+		type secondary;
+		file "secondary.example.com";
+		primaries {10.0.0.1;};
+	};
+	// spot the difference
+	zone "example.com" in{
+		type secondary;
+	file "sec.secondary.com";
+	primaries {10.0.0.1;}; };
+
+.. _include_grammar:
+
+``include`` Directive
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+
+   include filename;
+
+.. _include_statement:
+
+``include`` Directive Definition and Usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The include directive inserts the specified file (or files if a valid glob
+expression is detected) at the point where the include directive is
+encountered. The include directive facilitates the administration of
+configuration files by permitting the reading or writing of some things but not
+others. For example, the statement could include private keys that are readable
+only by the name server.
 
 .. _address_match_lists:
+.. _address_match_list:
 
 Address Match Lists
 ~~~~~~~~~~~~~~~~~~~
@@ -169,93 +254,98 @@ matches any lookup for 1.2.3.13 to the 1.2.3/24 element. Using
 ``! 1.2.3.13; 1.2.3/24`` fixes that problem by blocking 1.2.3.13
 via the negation, but all other 1.2.3.\* hosts pass through.
 
-.. _comment_syntax:
 
-Comment Syntax
-~~~~~~~~~~~~~~
+Glossary of Terms Used
+~~~~~~~~~~~~~~~~~~~~~~
 
-The BIND 9 comment syntax allows comments to appear anywhere that
-whitespace may appear in a BIND configuration file. To appeal to
-programmers of all kinds, they can be written in the C, C++, or
-shell/perl style.
+Following is a list of terms used throughout the BIND configuration
+file documentation:
 
-Syntax
-^^^^^^
+.. glossary::
 
-::
+    ``acl_name``
+        The name of an ``address_match_list`` as defined by the ``acl`` statement.
 
-   /* This is a BIND comment as in C */
+    ``address_match_list``
+        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
 
-::
+    ``remoteserver_list``
+        A named list of one or more ``ip_addr`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list`` s.
 
-   // This is a BIND comment as in C++
+    ``domain_name``
+        A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-::
+    ``namelist``
+        A list of one or more ``domain_name`` elements.
 
-   # This is a BIND comment as in common Unix shells
-   # and perl
+    ``dotted_decimal``
+        One to four integers valued 0 through 255 and separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
 
-Definition and Usage
-^^^^^^^^^^^^^^^^^^^^
+    ``ip4_addr``
+        An IPv4 address with exactly four elements in ``dotted_decimal`` notation, such as ``192.168.1.1``.
 
-Comments may appear anywhere that whitespace may appear in a BIND
-configuration file.
+    ``ip6_addr``
+        An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
-C-style comments start with the two characters /\* (slash, star) and end
-with \*/ (star, slash). Because they are completely delimited with these
-characters, they can be used to comment only a portion of a line or to
-span multiple lines.
+    ``ip_addr``
+        An ``ip4_addr`` or ``ip6_addr``.
 
-C-style comments cannot be nested. For example, the following is not
-valid because the entire comment ends with the first \*/:
+    ``ip_dscp``
+        A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
 
-::
+    ``ip_port``
+        An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
-   /* This is the start of a comment.
-      This is still part of the comment.
-   /* This is an incorrect attempt at nesting a comment. */
-      This is no longer in any comment. */
+    ``ip_prefix``
+        An IP network specified as an ``ip_addr``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_addr`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
+        When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
-C++-style comments start with the two characters // (slash, slash) and
-continue to the end of the physical line. They cannot be continued
-across multiple physical lines; to have one logical comment span
-multiple lines, each line must use the // pair. For example:
+    ``key_id``
+        A ``domain_name`` representing the name of a shared key, to be used for transaction security.
 
-::
+    ``key_list``
+        A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
 
-   // This is the start of a comment.  The next line
-   // is a new comment, even though it is logically
-   // part of the previous comment.
+    ``tls_id``
+        A string representing a TLS configuration object, including a key and certificate.
 
-Shell-style (or perl-style) comments start with the
-character ``#`` (number sign) and continue to the end of the physical
-line, as in C++ comments. For example:
+    ``number``
+        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
 
-::
+    ``fixedpoint``
+        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
-   # This is the start of a comment.  The next line
-   # is a new comment, even though it is logically
-   # part of the previous comment.
+    ``path_name``
+        A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
 
-..
+    ``port_list``
+        A list of an ``ip_port`` or a port range. A port range is specified in the form of ``range`` followed by two ``ip_port`` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid ``ip_port`` or as a port range boundary.
 
-.. warning::
+    ``size_spec``
+        A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as ``max-journal-size``) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
+        ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
+        ``default`` uses the limit that was in force when the server was started.
 
-   The semicolon (``;``) character cannot start a comment, unlike
-   in a zone file. The semicolon indicates the end of a
-   configuration statement.
+    ``size_or_percent``
+         A ``size_spec`` or integer value followed by ``%`` to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the ``%`` sign to indicate a percentage.
+
+    ``yes_or_no``
+        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
+
+    ``dialup_option``
+        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
+
 
 .. _configuration_file_grammar:
 
-Configuration File Grammar
---------------------------
+.. _configuration_blocks:
 
-A BIND 9 configuration consists of statements and comments. Statements
-end with a semicolon; statements and comments are the only elements that
-can appear without enclosing braces. Many statements contain a block of
-sub-statements, which are also terminated with a semicolon.
+Blocks
+------
 
-The following statements are supported:
+A BIND 9 configuration consists of blocks, statements, and comments.
+
+The following blocks are supported:
 
     ``acl``
         Defines a named IP address matching list, for access control and other uses.
@@ -265,9 +355,6 @@ The following statements are supported:
 
     ``dnssec-policy``
         Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
-
-    ``include``
-        Includes a file.
 
     ``key``
         Specifies key information for use in authentication and authorization using TSIG.
@@ -430,26 +517,6 @@ To create an ``rndc.key`` file, run :option:`rndc-confgen -a`.
 To disable the command channel, use an empty ``controls`` statement:
 ``controls { };``.
 
-.. _include_grammar:
-
-``include`` Statement Grammar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-   include filename;
-
-.. _include_statement:
-
-``include`` Statement Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``include`` statement inserts the specified file (or files if a valid glob
-expression is detected) at the point where the ``include`` statement is
-encountered. The ``include`` statement facilitates the administration of
-configuration files by permitting the reading or writing of some things but not
-others. For example, the statement could include private keys that are readable
-only by the name server.
 
 .. _key_grammar:
 
