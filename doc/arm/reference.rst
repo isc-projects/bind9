@@ -5168,14 +5168,6 @@ any top-level ``server`` statements are used as defaults.
    values are silently adjusted. This option is not needed until
    higher EDNS versions than 0 are in use.
 
-.. namedconf:statement:: max-udp-size
-
-   The option sets the maximum EDNS UDP message size
-   :iscman:`named` sends. Valid values are 512 to 4096 bytes; values outside
-   this range are silently adjusted. This option is useful when
-   there is a firewall that is blocking large replies from
-   :iscman:`named`.
-
 .. namedconf:statement:: padding
 
    The option adds EDNS Padding options to outgoing messages,
@@ -5272,6 +5264,7 @@ It is possible to override the following values defined in :namedconf:ref:`view`
 and :namedconf:ref:`options` blocks:
 
    - :namedconf:ref:`edns-udp-size`
+   - :namedconf:ref:`max-udp-size`
 
 
 .. _statschannels:
