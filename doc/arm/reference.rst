@@ -1703,14 +1703,11 @@ default is used.
    the maximum is ``1440`` (24 hours); any higher value is silently
    reduced.
 
-.. namedconf:statement:: dnssec-policy
+:namedconf:ref:`dnssec-policy`
 
    This specifies which key and signing policy (KASP) should be used for this
-   zone. This is a string referring to a ``dnssec-policy`` statement.  There
-   are three built-in policies: ``default``, which uses the default policy,
-   ``insecure``, to be used when you want to gracefully unsign your zone, and
-   ``none``, which means no DNSSEC policy.  The default is ``none``.
-   See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for more details.
+   zone. This is a string referring to a :namedconf:ref:`dnssec-policy` block.
+   The default is ``none``.
 
 .. namedconf:statement:: dnssec-update-mode
 
@@ -5685,15 +5682,22 @@ for zones.
 A KASP determines how one or more zones are signed with DNSSEC.  For
 example, it specifies how often keys should roll, which cryptographic
 algorithms to use, and how often RRSIG records need to be refreshed.
+Multiple key and signing policies can be configured with unique policy names.
+
+A policy for a zone is selected using a ``dnssec-policy`` statement in the
+:namedconf:ref:`zone` block, specifying the name of the policy that should be
+used.
+
+There are three built-in policies:
+  - ``default``, which uses the :ref:`default policy <dnssec_policy_default>`,
+  - ``insecure``, to be used when you want to gracefully unsign your zone,
+  - ``none``, which means no DNSSEC policy (the same as not selecting
+    ``dnssec-policy`` at all; the zone is not signed.)
 
 Keys are not shared among zones, which means that one set of keys per
 zone is generated even if they have the same policy.  If multiple views
 are configured with different versions of the same zone, each separate
 version uses the same set of signing keys.
-
-Multiple key and signing policies can be configured.  To attach a policy
-to a zone, add a ``dnssec-policy`` option to the ``zone`` statement,
-specifying the name of the policy that should be used.
 
 By default, ``dnssec-policy`` assumes ``inline-signing``. This means that
 a signed version of the zone is maintained separately and is written out to
@@ -5715,10 +5719,9 @@ taken to submit a DS record to the parent.  Rollover timing for KSKs and
 CSKs is adjusted to take into account delays in processing and
 propagating DS updates.
 
-There are two predefined ``dnssec-policy`` names: ``none`` and
-``default``.  Setting a zone's policy to ``none`` is the same as not
-setting ``dnssec-policy`` at all; the zone is not signed.  Policy
-``default`` causes the zone to be signed with a single combined-signing
+.. _dnssec_policy_default:
+
+Policy ``default`` causes the zone to be signed with a single combined-signing
 key (CSK) using algorithm ECDSAP256SHA256; this key has an unlimited
 lifetime.  (A verbose copy of this policy may be found in the source
 tree, in the file ``doc/misc/dnssec-policy.default.conf``.)
