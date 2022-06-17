@@ -47,7 +47,7 @@ typedef struct driverinstance driverinstance_t;
  * special tokens are %zone%, %record%, %client%
  */
 struct query_segment {
-	void	     *cmd;
+	void	    *cmd;
 	unsigned int strlen;
 	bool	     direct;
 	DLZ_LINK(query_segment_t) link;

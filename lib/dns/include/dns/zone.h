@@ -2072,7 +2072,7 @@ dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
  */
 
 void
-dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t	   *zmgr,
+dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t	*zmgr,
 			     isc_tlsctx_cache_t *tlsctx_cache);
 /*%<
  *	Set the TLS client context cache used for zone transfers via

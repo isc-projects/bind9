@@ -57,13 +57,13 @@ ISC_LANG_BEGINDECLS
  */
 typedef struct dns_clientinfo {
 	uint16_t  version;
-	void     *data;
-	void     *dbversion;
+	void	 *data;
+	void	 *dbversion;
 	dns_ecs_t ecs;
 } dns_clientinfo_t;
 
 typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
-						  isc_sockaddr_t	 **addrp);
+						  isc_sockaddr_t  **addrp);
 
 #define DNS_CLIENTINFOMETHODS_VERSION 2
 #define DNS_CLIENTINFOMETHODS_AGE     1

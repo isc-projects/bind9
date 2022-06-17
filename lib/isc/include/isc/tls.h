@@ -222,7 +222,7 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
 isc_result_t
 isc_tlsctx_enable_peer_verification(isc_tlsctx_t *ctx, const bool is_server,
 				    isc_tls_cert_store_t *store,
-				    const char	       *hostname,
+				    const char		 *hostname,
 				    bool hostname_ignore_subject);
 /*%<
  * Enable peer certificate and, optionally, hostname (for client contexts)
@@ -247,7 +247,7 @@ isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file);
  */
 
 isc_result_t
-isc_tls_cert_store_create(const char	     *ca_bundle_filename,
+isc_tls_cert_store_create(const char		*ca_bundle_filename,
 			  isc_tls_cert_store_t **pstore);
 /*%<
  * Create X509 certificate store. The 'ca_bundle_filename' might be

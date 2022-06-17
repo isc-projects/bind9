@@ -46,7 +46,7 @@ struct dns_rdatacallbacks {
 	 * to pass back information obtained from the file header
 	 */
 	dns_rawdatafunc_t rawdata;
-	dns_zone_t	   *zone;
+	dns_zone_t	 *zone;
 
 	/*%
 	 * dns_load_master / dns_rdata_fromtext call this to issue a error.

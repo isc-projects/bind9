@@ -25,9 +25,9 @@
 
 typedef struct {
 	size_t	   gl_pathc;
-	char     **gl_pathv;
+	char	 **gl_pathv;
 	isc_mem_t *mctx;
-	void	     *reserved;
+	void	  *reserved;
 } glob_t;
 
 #endif

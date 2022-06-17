@@ -18,7 +18,7 @@
 #include <isc/log.h>
 #include <isc/types.h>
 
-extern isc_log_t	 *ns_lctx;
+extern isc_log_t	*ns_lctx;
 extern isc_logcategory_t ns_categories[];
 extern isc_logmodule_t	 ns_modules[];
 

@@ -164,7 +164,7 @@ isc_result_t
 dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
 
 isc_result_t
-dns_peer_settransfersource(dns_peer_t	      *peer,
+dns_peer_settransfersource(dns_peer_t		*peer,
 			   const isc_sockaddr_t *transfer_source);
 
 isc_result_t

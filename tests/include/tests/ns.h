@@ -54,13 +54,13 @@ typedef struct ns_test_id {
 	} while (0)
 
 extern dns_dispatchmgr_t *dispatchmgr;
-extern ns_clientmgr_t    *clientmgr;
+extern ns_clientmgr_t	 *clientmgr;
 extern ns_interfacemgr_t *interfacemgr;
-extern ns_server_t	   *sctx;
+extern ns_server_t	 *sctx;
 
 #ifdef NETMGR_TRACE
 #define FLARG                                              \
-	, const char	     *file __attribute__((unused)), \
+	, const char	    *file __attribute__((unused)), \
 		unsigned int line __attribute__((unused)), \
 		const char  *func __attribute__((unused))
 #else
@@ -102,7 +102,7 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp);
  * Structure containing parameters for ns_test_qctx_create().
  */
 typedef struct ns_test_qctx_create_params {
-	const char	   *qname;
+	const char     *qname;
 	dns_rdatatype_t qtype;
 	unsigned int	qflags;
 	bool		with_cache;
@@ -117,7 +117,7 @@ typedef struct ns_test_qctx_create_params {
  */
 isc_result_t
 ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
-		    query_ctx_t			**qctxp);
+		    query_ctx_t			      **qctxp);
 
 /*%
  * Destroy a query context created by ns_test_qctx_create().
