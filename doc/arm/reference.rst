@@ -5211,15 +5211,6 @@ any top-level ``server`` statements are used as defaults.
    can be specified. Similarly, for an IPv6 remote server, only
    ``notify-source-v6`` can be specified.
 
-.. namedconf:statement:: query-source
-.. namedconf:statement:: query-source-v6
-
-   The ``query-source`` and ``query-source-v6`` clauses specify the IPv4
-   and IPv6 source address, respectively, to be used for queries sent to remote servers.
-   For an IPv4 remote server, only ``query-source`` can be
-   specified. Similarly, for an IPv6 remote server, only
-   ``query-source-v6`` can be specified.
-
 .. namedconf:statement:: request-nsid
 
    The ``request-nsid`` clause determines whether the local server adds
@@ -5231,6 +5222,8 @@ and :namedconf:ref:`options` blocks:
 
    - :namedconf:ref:`edns-udp-size`
    - :namedconf:ref:`max-udp-size`
+   - :namedconf:ref:`query-source-v6`
+   - :namedconf:ref:`query-source`
    - :namedconf:ref:`send-cookie`
    - :namedconf:ref:`transfer-format`
    - :namedconf:ref:`transfer-source-v6`
