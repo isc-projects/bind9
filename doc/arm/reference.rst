@@ -868,9 +868,7 @@ following:
    };
 
 
-.. namedconf:statement:: null
-
-To discard all messages in a category, specify the ``null`` channel:
+To discard all messages in a category, specify the :namedconf:ref:`null` channel:
 
 ::
 
