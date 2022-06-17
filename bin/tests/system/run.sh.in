@@ -90,6 +90,8 @@ if ! $do_run; then
         LOG_FLAGS="$log_flags" \
         TEST_LARGE_MAP="${TEST_LARGE_MAP}" \
         CI_ENABLE_ALL_TESTS="${CI_ENABLE_ALL_TESTS}" \
+	${VIRTUAL_ENV:+"VIRTUAL_ENV=${VIRTUAL_ENV}"} \
+	${PERL5LIB:+"PERL5LIB=${PERL5LIB}"} \
         make -e check
     exit $?
 fi
