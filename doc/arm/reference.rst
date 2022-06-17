@@ -2276,8 +2276,11 @@ Boolean Options
 
 .. namedconf:statement:: provide-ixfr
 
-   See the description of ``provide-ixfr`` in :ref:`server_statement_definition_and_usage`.
-
+   The ``provide-ixfr`` clause determines whether the local server, acting
+   as primary, responds with an incremental zone transfer when the given
+   remote server, a secondary, requests it. If set to ``yes``, incremental
+   transfer is provided whenever possible. If set to ``no``, all
+   transfers to the remote server are non-incremental.
 .. namedconf:statement:: request-ixfr
 
    The ``request-ixfr`` statement determines whether the local server, acting
@@ -5129,16 +5132,6 @@ any top-level ``server`` statements are used as defaults.
    as bogus prevents further queries to it. The default value of
    ``bogus`` is ``no``.
 
-.. namedconf:statement:: provide-ixfr
-
-   The ``provide-ixfr`` clause determines whether the local server, acting
-   as primary, responds with an incremental zone transfer when the given
-   remote server, a secondary, requests it. If set to ``yes``, incremental
-   transfer is provided whenever possible. If set to ``no``, all
-   transfers to the remote server are non-incremental. If not set, the
-   value of the ``provide-ixfr`` option in the view or global options block
-   is used as a default.
-
 .. namedconf:statement:: request-expire
 
    The ``request-expire`` clause determines whether the local server, when
@@ -5214,6 +5207,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`max-udp-size`
    - :namedconf:ref:`notify-source-v6`
    - :namedconf:ref:`notify-source`
+   - :namedconf:ref:`provide-ixfr`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
    - :namedconf:ref:`request-ixfr`
