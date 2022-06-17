@@ -5168,8 +5168,7 @@ any top-level ``server`` statements are used as defaults.
    specified, the limit is set according to the ``transfers-per-ns``
    option.
 
-.. namedconf:statement:: keys
-
+``keys``
    The option identifies a ``key_id`` defined by the ``key``
    statement, to be used for transaction security (see :ref:`tsig`)
    when talking to the remote server. When a request is sent to the remote
@@ -5748,8 +5747,7 @@ The following options can be specified in a ``dnssec-policy`` statement:
     This indicates the TTL to use when generating DNSKEY resource
     records.  The default is 1 hour (3600 seconds).
 
-.. namedconf:statement:: keys
-
+``keys``
     This is a list specifying the algorithms and roles to use when
     generating keys and signing the zone.  Entries in this list do not
     represent specific DNSSEC keys, which may be changed on a regular
