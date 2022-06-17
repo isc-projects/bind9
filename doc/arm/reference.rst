@@ -5210,17 +5210,6 @@ any top-level ``server`` statements are used as defaults.
 
    Only a single key per server is currently supported.
 
-.. namedconf:statement:: transfer-source
-.. namedconf:statement:: transfer-source-v6
-
-   The ``transfer-source`` and ``transfer-source-v6`` clauses specify the
-   IPv4 and IPv6 source address, respectively, to be used for zone transfer with the
-   remote server. For an IPv4 remote server, only
-   ``transfer-source`` can be specified. Similarly, for an IPv6 remote
-   server, only ``transfer-source-v6`` can be specified. For more details,
-   see the description of ``transfer-source`` and ``transfer-source-v6`` in
-   :ref:`zone_transfers`.
-
 .. namedconf:statement:: notify-source
 .. namedconf:statement:: notify-source-v6
 
@@ -5252,6 +5241,8 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`max-udp-size`
    - :namedconf:ref:`send-cookie`
    - :namedconf:ref:`transfer-format`
+   - :namedconf:ref:`transfer-source-v6`
+   - :namedconf:ref:`transfer-source`
 
 
 .. _statschannels:
