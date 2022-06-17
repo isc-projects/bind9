@@ -3141,7 +3141,7 @@ options apply to zone transfers.
    ``many-answers`` packs as many resource records as possible into one
    message. ``many-answers`` is more efficient; the default is ``many-answers``.
    ``transfer-format`` may be overridden on a per-server basis by using
-   the ``server`` statement.
+   the :namedconf:ref:`server` block.
 
 .. namedconf:statement:: transfer-message-size
 
@@ -5184,16 +5184,6 @@ any top-level ``server`` statements are used as defaults.
    The option adds EDNS TCP keepalive to messages sent
    over TCP. Note that currently idle timeouts in responses are ignored.
 
-.. namedconf:statement:: transfer-format
-
-   The server supports two zone transfer methods. The first,
-   ``one-answer``, uses one DNS message per resource record transferred.
-   ``many-answers`` packs as many resource records as possible into a single
-   message, which is more efficient.
-   It is possible to specify which method to use for a server via the
-   ``transfer-format`` option; if not set there, the
-   ``transfer-format`` specified by the ``options`` statement is used.
-
 .. namedconf:statement:: transfers
 
    ``transfers`` is used to limit the number of concurrent inbound zone
@@ -5253,6 +5243,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`edns-udp-size`
    - :namedconf:ref:`max-udp-size`
    - :namedconf:ref:`send-cookie`
+   - :namedconf:ref:`transfer-format`
 
 
 .. _statschannels:
