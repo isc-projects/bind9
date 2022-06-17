@@ -2150,6 +2150,9 @@ Boolean Options
    option may be limited to receiving smaller responses via the
    ``nocookie-udp-size`` option.
 
+   The :iscman:`named` server may determine that COOKIE is not supported by the
+   remote server and not add a COOKIE EDNS option to requests.
+
    The default is ``yes``.
 
 .. namedconf:statement:: stale-answer-enable
@@ -5252,19 +5255,12 @@ any top-level ``server`` statements are used as defaults.
    an NSID EDNS option to requests sent to the server. This overrides
    ``request-nsid`` set at the view or option level.
 
-.. namedconf:statement:: send-cookie
-
-   The ``send-cookie`` clause determines whether the local server adds
-   a COOKIE EDNS option to requests sent to the server. This overrides
-   ``send-cookie`` set at the view or option level. The :iscman:`named` server
-   may determine that COOKIE is not supported by the remote server and not
-   add a COOKIE EDNS option to requests.
-
 It is possible to override the following values defined in :namedconf:ref:`view`
 and :namedconf:ref:`options` blocks:
 
    - :namedconf:ref:`edns-udp-size`
    - :namedconf:ref:`max-udp-size`
+   - :namedconf:ref:`send-cookie`
 
 
 .. _statschannels:
