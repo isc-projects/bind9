@@ -5202,20 +5202,13 @@ any top-level ``server`` statements are used as defaults.
 
    Only a single key per server is currently supported.
 
-.. namedconf:statement:: notify-source
-.. namedconf:statement:: notify-source-v6
-
-   The ``notify-source`` and ``notify-source-v6`` clauses specify the IPv4
-   and IPv6 source address, respectively, to be used for notify messages sent to remote
-   servers. For an IPv4 remote server, only ``notify-source``
-   can be specified. Similarly, for an IPv6 remote server, only
-   ``notify-source-v6`` can be specified.
-
 It is possible to override the following values defined in :namedconf:ref:`view`
 and :namedconf:ref:`options` blocks:
 
    - :namedconf:ref:`edns-udp-size`
    - :namedconf:ref:`max-udp-size`
+   - :namedconf:ref:`notify-source-v6`
+   - :namedconf:ref:`notify-source`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
    - :namedconf:ref:`request-nsid`
