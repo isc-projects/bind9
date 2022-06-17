@@ -2302,7 +2302,13 @@ Boolean Options
 
 .. namedconf:statement:: request-expire
 
-   See the description of ``request-expire`` in :ref:`server_statement_definition_and_usage`.
+   The ``request-expire`` statement determines whether the local server, when
+   acting as a secondary, requests the EDNS EXPIRE value. The EDNS EXPIRE
+   value indicates the remaining time before the zone data expires and
+   needs to be refreshed. This is used when a secondary server transfers
+   a zone from another secondary server; when transferring from the
+   primary, the expiration timer is set from the EXPIRE field of the SOA
+   record instead. The default is ``yes``.
 
 .. namedconf:statement:: match-mapped-addresses
 
@@ -5132,16 +5138,6 @@ any top-level ``server`` statements are used as defaults.
    as bogus prevents further queries to it. The default value of
    ``bogus`` is ``no``.
 
-.. namedconf:statement:: request-expire
-
-   The ``request-expire`` clause determines whether the local server, when
-   acting as a secondary, requests the EDNS EXPIRE value. The EDNS EXPIRE
-   value indicates the remaining time before the zone data expires and
-   needs to be refreshed. This is used when a secondary server transfers
-   a zone from another secondary server; when transferring from the
-   primary, the expiration timer is set from the EXPIRE field of the SOA
-   record instead. The default is ``yes``.
-
 .. namedconf:statement:: edns
 
    The ``edns`` clause determines whether the local server attempts to
@@ -5210,6 +5206,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`provide-ixfr`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
+   - :namedconf:ref:`request-expire`
    - :namedconf:ref:`request-ixfr`
    - :namedconf:ref:`request-nsid`
    - :namedconf:ref:`send-cookie`
