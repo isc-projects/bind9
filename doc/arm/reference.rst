@@ -628,8 +628,7 @@ by the channel (the default is ``info``), and whether to include a
    to be discarded; in that case, other options for the channel are
    meaningless.
 
-.. namedconf:statement:: file
-
+``file``
    The ``file`` destination clause directs the channel to a disk file. It
    can include additional arguments to specify how large the file is
    allowed to become before it is rolled to a backup file (``size``), how
