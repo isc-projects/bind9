@@ -2280,7 +2280,22 @@ Boolean Options
 
 .. namedconf:statement:: request-ixfr
 
-   See the description of ``request-ixfr`` in :ref:`server_statement_definition_and_usage`.
+   The ``request-ixfr`` statement determines whether the local server, acting
+   as a secondary, requests incremental zone transfers from the given
+   remote server, a primary.
+
+   IXFR requests to servers that do not support IXFR automatically
+   fall back to AXFR. Therefore, there is no need to manually list which
+   servers support IXFR and which ones do not; the global default of
+   ``yes`` should always work. The purpose of the ``provide-ixfr`` and
+   ``request-ixfr`` statements is to make it possible to disable the use of
+   IXFR even when both primary and secondary claim to support it: for example, if
+   one of the servers is buggy and crashes or corrupts data when IXFR is
+   used.
+
+   It may also be set in the zone block; if set there, it overrides the global
+   or view setting for that zone. It may also be set in the
+   :namedconf:ref:`server` block.
 
 .. namedconf:statement:: request-expire
 
@@ -5116,24 +5131,6 @@ any top-level ``server`` statements are used as defaults.
    value of the ``provide-ixfr`` option in the view or global options block
    is used as a default.
 
-.. namedconf:statement:: request-ixfr
-
-   The ``request-ixfr`` clause determines whether the local server, acting
-   as a secondary, requests incremental zone transfers from the given
-   remote server, a primary. If not set, the value of the ``request-ixfr``
-   option in the view or global options block is used as a default. It may
-   also be set in the zone block; if set there, it overrides the
-   global or view setting for that zone.
-
-   IXFR requests to servers that do not support IXFR automatically
-   fall back to AXFR. Therefore, there is no need to manually list which
-   servers support IXFR and which ones do not; the global default of
-   ``yes`` should always work. The purpose of the ``provide-ixfr`` and
-   ``request-ixfr`` clauses is to make it possible to disable the use of
-   IXFR even when both primary and secondary claim to support it: for example, if
-   one of the servers is buggy and crashes or corrupts data when IXFR is
-   used.
-
 .. namedconf:statement:: request-expire
 
    The ``request-expire`` clause determines whether the local server, when
@@ -5211,6 +5208,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`notify-source`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
+   - :namedconf:ref:`request-ixfr`
    - :namedconf:ref:`request-nsid`
    - :namedconf:ref:`send-cookie`
    - :namedconf:ref:`transfer-format`
