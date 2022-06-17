@@ -3011,21 +3011,6 @@ Query Address
    ``query-source-v6`` option. If ``address`` is ``*`` (asterisk) or is
    omitted, a wildcard IP address (``INADDR_ANY``) is used.
 
-.. namedconf:statement:: use-v4-udp-ports
-.. namedconf:statement:: use-v6-udp-ports
-
-   If ``port`` is ``*`` or is omitted, a random port number from a
-   pre-configured range is picked up and used for each query. The
-   port range(s) is specified in the ``use-v4-udp-ports`` (for IPv4)
-   and ``use-v6-udp-ports`` (for IPv6) options.
-
-.. namedconf:statement:: avoid-v4-udp-ports
-.. namedconf:statement:: avoid-v6-udp-ports
-
-   The ranges excluded from those
-   specified in the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
-   options, respectively.
-
    The defaults of the ``query-source`` and ``query-source-v6`` options
    are:
 
@@ -3034,6 +3019,20 @@ Query Address
       query-source address * port *;
       query-source-v6 address * port *;
 
+   .. note:: The address specified in the ``query-source`` option is used for both
+      UDP and TCP queries, but the port applies only to UDP queries. TCP
+      queries always use a random unprivileged port.
+
+.. namedconf:statement:: use-v4-udp-ports
+.. namedconf:statement:: use-v6-udp-ports
+
+   These statements specify a list of IPv4 and IPv6 UDP ports that
+   are used as source ports for UDP messages.
+
+   If ``port`` is ``*`` or is omitted, a random port number from a
+   pre-configured range is selected and used for each query. The
+   port range(s) are specified in the ``use-v4-udp-ports`` (for IPv4)
+   and ``use-v6-udp-ports`` (for IPv6) options.
 
    If ``use-v4-udp-ports`` or ``use-v6-udp-ports`` is unspecified,
    :iscman:`named` checks whether the operating system provides a programming
@@ -3046,6 +3045,13 @@ Query Address
       use-v4-udp-ports { range 1024 65535; };
       use-v6-udp-ports { range 1024 65535; };
 
+.. namedconf:statement:: avoid-v4-udp-ports
+.. namedconf:statement:: avoid-v6-udp-ports
+
+   These ranges are excluded from those
+   specified in the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
+   options, respectively.
+
    The defaults of the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
    options are:
 
@@ -3053,6 +3059,26 @@ Query Address
 
       avoid-v4-udp-ports {};
       avoid-v6-udp-ports {};
+
+   For example, with the following configuration:
+
+   ::
+
+      use-v6-udp-ports { range 32768 65535; };
+      avoid-v6-udp-ports { 40000; range 50000 60000; };
+
+   UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
+   following ranges: 32768 to 39999, 40001 to 49999, or 60001 to 65535.
+
+   ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports`` can be used to prevent
+   :iscman:`named` from choosing as its random source port a port that is blocked
+   by a firewall or that is used by other applications; if a
+   query went out with a source port blocked by a firewall, the answer
+   would not pass through the firewall and the name server would have to query
+   again. Note: the desired range can also be represented only with
+   ``use-v4-udp-ports`` and ``use-v6-udp-ports``, and the ``avoid-``
+   options are redundant in that sense; they are provided for backward
+   compatibility and to possibly simplify the port specification.
 
    .. note:: Make sure the ranges are sufficiently large for security. A
       desirable size depends on several parameters, but we generally recommend
@@ -3072,10 +3098,6 @@ Query Address
       resolution failures or delay. It is therefore important to configure the
       set of ports that can be safely used in the expected operational
       environment.
-
-   .. note:: The address specified in the ``query-source`` option is used for both
-      UDP and TCP queries, but the port applies only to UDP queries. TCP
-      queries always use a random unprivileged port.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
@@ -3282,38 +3304,6 @@ options apply to zone transfers.
 
    This option acts like ``notify-source``, but applies to notify messages sent to IPv6
    addresses.
-
-.. _port_lists:
-
-UDP Port Lists
-^^^^^^^^^^^^^^
-.. namedconf:statement:: use-v4-udp-ports
-.. namedconf:statement:: avoid-v4-udp-ports
-.. namedconf:statement:: use-v6-udp-ports
-.. namedconf:statement:: avoid-v6-udp-ports
-
-   These statements specify a list of IPv4 and IPv6 UDP ports that
-   are or are not used as source ports for UDP messages. See
-   :ref:`query_address` about how the available ports are
-   determined. For example, with the following configuration:
-
-   ::
-
-      use-v6-udp-ports { range 32768 65535; };
-      avoid-v6-udp-ports { 40000; range 50000 60000; };
-
-   UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
-   following ranges: 32768 to 39999, 40001 to 49999, and 60001 to 65535.
-
-   ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports`` can be used to prevent
-   :iscman:`named` from choosing as its random source port a port that is blocked
-   by a firewall or a port that is used by other applications; if a
-   query went out with a source port blocked by a firewall, the answer
-   would not pass through the firewall and the name server would have to query
-   again. Note: the desired range can also be represented only with
-   ``use-v4-udp-ports`` and ``use-v6-udp-ports``, and the ``avoid-``
-   options are redundant in that sense; they are provided for backward
-   compatibility and to possibly simplify the port specification.
 
 .. _resource_limits:
 
