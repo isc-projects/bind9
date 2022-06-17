@@ -2105,6 +2105,9 @@ Boolean Options
    This option may only be activated at the zone level; if configured
    at the view or options level, it must be set to ``off``.
 
+   The DNSSEC records are written to the zone's filename set in ``file``,
+   unless ``inline-signing`` is enabled.
+
 .. _dnssec-validation-option:
 
 ``dnssec-validation``
@@ -2455,6 +2458,8 @@ for details on how to specify IP address lists.
    While a default value can be set at the ``options`` or ``view`` level
    and inherited by zones, this could lead to some zones unintentionally
    allowing updates.
+
+   Updates are written to the zone's filename that is set in ``file``.
 
 ``allow-update-forwarding``
    When set in the ``zone`` statement for a secondary zone, this specifies which
@@ -5227,6 +5232,13 @@ Multiple key and signing policies can be configured.  To attach a policy
 to a zone, add a ``dnssec-policy`` option to the ``zone`` statement,
 specifying the name of the policy that should be used.
 
+By default, ``dnssec-policy`` assumes ``inline-signing``. This means that
+a signed version of the zone is maintained separately and is written out to
+a different file on disk (the zone's filename plus a ``.signed`` extension).
+
+If the zone is dynamic because it is configured with an ``update-policy`` or
+``allow-update``, the DNSSEC records are written to the filename set in the original zone's ``file``, unless ``inline-signing`` is explicitly set.
+
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
 and propagation delays, to prevent validation failures.  When a key
@@ -6110,10 +6122,12 @@ Zone Options
    See the description of ``serial-update-method`` in :ref:`options`.
 
 ``inline-signing``
-   If ``yes``, this enables "bump in the wire" signing of a zone, where
-   an unsigned zone is transferred in or loaded from disk and a signed
+   If ``yes``, BIND 9 maintains a separate signed version of the zone.
+   An unsigned zone is transferred in or loaded from disk and the signed
    version of the zone is served with, possibly, a different serial
-   number. This behavior is disabled by default.
+   number. The signed version of the zone is stored in a file that is
+   the zone's filename (set in ``file``) with a ``.signed`` extension.
+   This behavior is disabled by default.
 
 ``multi-master``
    See the description of ``multi-master`` in :ref:`boolean_options`.
@@ -6134,7 +6148,8 @@ Dynamic Update Policies
 
 BIND 9 supports two methods of granting clients the right to
 perform dynamic updates to a zone, configured by the ``allow-update``
-or ``update-policy`` options.
+or ``update-policy`` options. In both cases, BIND 9 writes the updates
+to the zone's filename set in ``file``.
 
 The ``allow-update`` clause is a simple access control list. Any client
 that matches the ACL is granted permission to update any record in the
