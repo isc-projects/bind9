@@ -5219,12 +5219,6 @@ any top-level ``server`` statements are used as defaults.
    can be specified. Similarly, for an IPv6 remote server, only
    ``notify-source-v6`` can be specified.
 
-.. namedconf:statement:: request-nsid
-
-   The ``request-nsid`` clause determines whether the local server adds
-   an NSID EDNS option to requests sent to the server. This overrides
-   ``request-nsid`` set at the view or option level.
-
 It is possible to override the following values defined in :namedconf:ref:`view`
 and :namedconf:ref:`options` blocks:
 
@@ -5232,6 +5226,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`max-udp-size`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
+   - :namedconf:ref:`request-nsid`
    - :namedconf:ref:`send-cookie`
    - :namedconf:ref:`transfer-format`
    - :namedconf:ref:`transfer-source-v6`
