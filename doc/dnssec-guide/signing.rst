@@ -1149,7 +1149,7 @@ ZSK, and 257 is KSK.
 The name of the file also tells us something
 about the contents. See chapter :ref:`zone_keys` for more details.
 
-Make sure these files are readable by :iscman:`named` and make sure that the
+Make sure that these files are readable by :iscman:`named` and that the
 ``.private`` files are not readable by anyone else.
 
 Alternativelly, the :iscman:`dnssec-keyfromlabel` program is used to get a key
@@ -1429,7 +1429,7 @@ and the KSK file name. This also generates a plain-text file
 to provide the parent zone administrators with the ``DNSKEY`` records (or their
 corresponding ``DS`` records) that are the secure entry point to the zone.
 
-Finally, you'll need to update :iscman:`named.conf` to load the signed version
+Finally, :iscman:`named.conf` needs to be updated to load the signed version
 of the zone, which looks something like this:
 
 .. code-block:: none

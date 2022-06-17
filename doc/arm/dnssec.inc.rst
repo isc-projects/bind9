@@ -147,7 +147,7 @@ This ``custom`` policy, for example:
     rotated after one year and the ZSK after 60 days.
 
 Also:
-  - The configured keys also have a lifetime set and use the ECDSAP384SHA384
+  - The configured keys have a lifetime set and use the ECDSAP384SHA384
     algorithm.
   - The last line instructs BIND to generate NSEC3 records for
     :ref:`Proof of Non-Existence <advanced_discussions_proof_of_nonexistence>`,
