@@ -1150,7 +1150,7 @@ ZSK, and 257 is KSK.
 The name of the file also tells us something
 about the contents. See chapter :ref:`zone_keys` for more details.
 
-Make sure these files are readable by ``named`` and make sure that the
+Make sure that these files are readable by ``named`` and that the
 ``.private`` files are not readable by anyone else.
 
 Setting Key Timing Information
@@ -1575,7 +1575,7 @@ has three parameters: the unsigned zone name
 also generates a plain text file ``/etc/bind/db/example.com.signed.db``,
 which you can verify for correctness.
 
-Finally, you'll need to update ``named.conf`` to load the signed version
+Finally, ``named.conf`` needs to be updated to load the signed version
 of the zone, which looks something like this:
 
 ::
