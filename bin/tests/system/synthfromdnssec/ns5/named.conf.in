@@ -25,6 +25,7 @@ options {
 	notify no;
 	dnssec-validation yes;
 	synth-from-dnssec yes;
+	validate-except { example.internal; };
 };
 
 key rndc_key {
@@ -43,6 +44,12 @@ statistics-channels {
 zone "." {
 	type hint;
 	file "root.hints";
+};
+
+zone "example.internal" {
+	type forward;
+	forward only;
+	forwarders { 10.53.0.2; };
 };
 
 include "../ns1/trusted.conf";
