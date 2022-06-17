@@ -4283,6 +4283,23 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 }
 
 /*
+ * Synth-from-dnssec callbacks to add/delete names from namespace tree.
+ */
+static void
+sfd_add(const dns_name_t *name, void *arg) {
+	if (arg != NULL) {
+		dns_view_sfd_add(arg, name);
+	}
+}
+
+static void
+sfd_del(const dns_name_t *name, void *arg) {
+	if (arg != NULL) {
+		dns_view_sfd_del(arg, name);
+	}
+}
+
+/*
  * Add key to the security roots.
  */
 static void
@@ -4306,7 +4323,8 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname, dns_rdata_dnskey_t *dnskey,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
 	CHECK(dns_ds_fromkeyrdata(keyname, &rdata, DNS_DSDIGEST_SHA256, digest,
 				  &ds));
-	CHECK(dns_keytable_add(sr, true, initial, keyname, &ds));
+	CHECK(dns_keytable_add(sr, true, initial, keyname, &ds, sfd_add,
+			       zone->view));
 
 	dns_keytable_detach(&sr);
 
@@ -4351,7 +4369,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 	result = dns_view_getsecroots(zone->view, &sr);
 	if (result == ISC_R_SUCCESS) {
-		dns_keytable_delete(sr, name);
+		dns_keytable_delete(sr, name, sfd_del, zone->view);
 		dns_keytable_detach(&sr);
 	}
 
