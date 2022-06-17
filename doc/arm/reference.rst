@@ -484,24 +484,22 @@ and retrieve non-DNS results from a name server.
    The ability to issue commands over the control channel is restricted by
    the ``allow`` and ``keys`` clauses.
 
-   .. namedconf:statement:: allow
-
+   ``allow``
       Connections to the control channel
       are permitted based on the ``address_match_list``. This is for simple IP
       address-based filtering only; any ``key_id`` elements of the
       ``address_match_list`` are ignored.
 
-.. namedconf:statement:: keys
+   ``keys``
+      The primary authorization mechanism of the command channel is the
+      ``key_list``, which contains a list of ``key_id``s. Each ``key_id`` in
+      the ``key_list`` is authorized to execute commands over the control
+      channel. See :ref:`admin_tools` for information about
+      configuring keys in :iscman:`rndc`.
 
-   The primary authorization mechanism of the command channel is the
-   ``key_list``, which contains a list of ``key_id`` s. Each ``key_id`` in
-   the ``key_list`` is authorized to execute commands over the control
-   channel. See :ref:`admin_tools` for information about
-   configuring keys in :iscman:`rndc`.
 
-.. namedconf:statement:: read-only
-
-   If the ``read-only`` clause is enabled, the control channel is limited
+``read-only``
+   If the ``read-only`` argument is ``on``, the control channel is limited
    to the following set of read-only commands: ``nta -dump``, ``null``,
    ``status``, ``showzone``, ``testgen``, and ``zonestatus``. By default,
    ``read-only`` is not enabled and the control channel allows read-write
