@@ -162,7 +162,7 @@ typedef union isc_logdestination {
  * the order of the names.
  */
 LIBISC_EXTERNAL_DATA extern isc_logcategory_t isc_categories[];
-LIBISC_EXTERNAL_DATA extern isc_log_t	      *isc_lctx;
+LIBISC_EXTERNAL_DATA extern isc_log_t	     *isc_lctx;
 LIBISC_EXTERNAL_DATA extern isc_logmodule_t   isc_modules[];
 /*@}*/
 
@@ -444,7 +444,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   const isc_logcategory_t *category,
-		   const isc_logmodule_t	 *module);
+		   const isc_logmodule_t   *module);
 /*%<
  * Associate a named logging channel with a category and module that
  * will use it.

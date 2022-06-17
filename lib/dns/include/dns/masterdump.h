@@ -246,7 +246,7 @@ dns_dumpctx_db(dns_dumpctx_t *dctx);
 /*@{*/
 isc_result_t
 dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
-			     dns_dbversion_t	     *version,
+			     dns_dbversion_t	      *version,
 			     const dns_master_style_t *style, FILE *f,
 			     isc_task_t *task, dns_dumpdonefunc_t done,
 			     void *done_arg, dns_dumpctx_t **dctxp);
@@ -313,7 +313,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_master_rdatasettotext(const dns_name_t	   *owner_name,
-			  dns_rdataset_t		 *rdataset,
+			  dns_rdataset_t	   *rdataset,
 			  const dns_master_style_t *style, dns_indent_t *indent,
 			  isc_buffer_t *target);
 /*%<
@@ -330,9 +330,9 @@ dns_master_rdatasettotext(const dns_name_t	   *owner_name,
 
 isc_result_t
 dns_master_questiontotext(const dns_name_t	   *owner_name,
-			  dns_rdataset_t		 *rdataset,
+			  dns_rdataset_t	   *rdataset,
 			  const dns_master_style_t *style,
-			  isc_buffer_t	       *target);
+			  isc_buffer_t		   *target);
 
 isc_result_t
 dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
@@ -349,7 +349,7 @@ dns_masterstyle_flags_t
 dns_master_styleflags(const dns_master_style_t *style);
 
 isc_result_t
-dns_master_stylecreate(dns_master_style_t	  **style,
+dns_master_stylecreate(dns_master_style_t    **style,
 		       dns_masterstyle_flags_t flags, unsigned int ttl_column,
 		       unsigned int class_column, unsigned int type_column,
 		       unsigned int rdata_column, unsigned int line_length,

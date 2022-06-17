@@ -77,14 +77,14 @@ struct dns_aclelement {
 
 struct dns_acl {
 	unsigned int	  magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t	 *mctx;
 	isc_refcount_t	  refcount;
-	dns_iptable_t    *iptable;
+	dns_iptable_t	 *iptable;
 	dns_aclelement_t *elements;
 	bool		  has_negatives;
 	unsigned int	  alloc;	 /*%< Elements allocated */
 	unsigned int	  length;	 /*%< Elements initialized */
-	char	     *name;		 /*%< Temporary use only */
+	char		 *name;		 /*%< Temporary use only */
 	ISC_LINK(dns_acl_t) nextincache; /*%< Ditto */
 };
 

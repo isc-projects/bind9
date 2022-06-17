@@ -44,7 +44,7 @@ struct isc_lfsr {
 	uint32_t	 tap;	 /*%< bit taps */
 	unsigned int	 count;	 /*%< reseed count (in BITS!) */
 	isc_lfsrreseed_t reseed; /*%< reseed function */
-	void	     *arg;	 /*%< reseed function argument */
+	void		*arg;	 /*%< reseed function argument */
 };
 
 ISC_LANG_BEGINDECLS

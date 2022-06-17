@@ -131,7 +131,7 @@ typedef union {
 	unsigned long	 as_ulong;
 	isc_region_t	 as_region;
 	isc_textregion_t as_textregion;
-	void	     *as_pointer;
+	void		*as_pointer;
 } isc_tokenvalue_t;
 
 typedef struct isc_token {

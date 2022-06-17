@@ -120,7 +120,7 @@ struct dns_adbfind {
 	int	       name_bucket;
 	unsigned int   flags;
 	dns_adbname_t *adbname;
-	dns_adb_t	  *adb;
+	dns_adb_t     *adb;
 	isc_event_t    event;
 	ISC_LINK(dns_adbfind_t) plink;
 };

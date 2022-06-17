@@ -146,11 +146,11 @@ struct ns_clientmgr {
 	/* Unlocked. */
 	unsigned int magic;
 
-	isc_mem_t	  *mctx;
+	isc_mem_t      *mctx;
 	ns_server_t    *sctx;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
-	isc_task_t	   *excl;
+	isc_task_t     *excl;
 	isc_refcount_t	references;
 	int		ncpus;
 
@@ -174,21 +174,21 @@ struct ns_clientmgr {
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int	 magic;
-	isc_mem_t	  *mctx;
+	isc_mem_t	*mctx;
 	bool		 allocated; /* Do we need to free it? */
-	ns_server_t	    *sctx;
-	ns_clientmgr_t  *manager;
+	ns_server_t	*sctx;
+	ns_clientmgr_t	*manager;
 	ns_clientstate_t state;
 	int		 nupdates;
 	bool		 nodetach;
 	bool		 shuttingdown;
 	unsigned int	 attributes;
-	isc_task_t	   *task;
-	dns_view_t	   *view;
-	dns_dispatch_t  *dispatch;
-	isc_nmhandle_t  *handle;	/* Permanent pointer to handle */
-	isc_nmhandle_t  *sendhandle;	/* Waiting for send callback */
-	isc_nmhandle_t  *reqhandle;	/* Waiting for request callback
+	isc_task_t	*task;
+	dns_view_t	*view;
+	dns_dispatch_t	*dispatch;
+	isc_nmhandle_t	*handle;	/* Permanent pointer to handle */
+	isc_nmhandle_t	*sendhandle;	/* Waiting for send callback */
+	isc_nmhandle_t	*reqhandle;	/* Waiting for request callback
 					   (query, update, notify) */
 	isc_nmhandle_t *fetchhandle;	/* Waiting for recursive fetch */
 	isc_nmhandle_t *prefetchhandle; /* Waiting for prefetch / rpzfetch */

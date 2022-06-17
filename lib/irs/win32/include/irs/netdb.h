@@ -31,7 +31,7 @@ struct addrinfo {
 	int ai_protocol;	       /* 0 or IPPROTO_xxx for IPv4 and
 					* IPv6 */
 	size_t		 ai_addrlen;   /* Length of ai_addr */
-	char	     *ai_canonname; /* Canonical name for hostname */
+	char		*ai_canonname; /* Canonical name for hostname */
 	struct sockaddr *ai_addr;      /* Binary address */
 	struct addrinfo *ai_next;      /* Next structure in linked list */
 };

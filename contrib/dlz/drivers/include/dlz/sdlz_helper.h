@@ -36,7 +36,7 @@ typedef struct driverinstance driverinstance_t;
  * special tokens are %zone%, %record%, %client%
  */
 struct query_segment {
-	void	     *sql;
+	void	    *sql;
 	unsigned int strlen;
 	bool	     direct;
 	ISC_LINK(query_segment_t) link;
@@ -61,7 +61,7 @@ struct dbinstance {
 	char	     *zone;
 	char	     *record;
 	char	     *client;
-	isc_mem_t	  *mctx;
+	isc_mem_t    *mctx;
 	isc_mutex_t   instance_lock;
 	ISC_LINK(dbinstance_t) link;
 };

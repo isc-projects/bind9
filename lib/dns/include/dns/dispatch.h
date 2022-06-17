@@ -91,7 +91,7 @@ struct dns_dispatchevent {
  * round-robin fashion.
  */
 struct dns_dispatchset {
-	isc_mem_t	  *mctx;
+	isc_mem_t	*mctx;
 	dns_dispatch_t **dispatches;
 	int		 ndisp;
 	int		 cur;
@@ -200,7 +200,7 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
 
 void
 dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
-				 dns_portlist_t	*portlist);
+				 dns_portlist_t	   *portlist);
 /*%<
  * This function is deprecated.  Use dns_dispatchmgr_setavailports() instead.
  *
@@ -414,7 +414,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
  */
 
 void
-dns_dispatch_removeresponse(dns_dispentry_t	    **resp,
+dns_dispatch_removeresponse(dns_dispentry_t	**resp,
 			    dns_dispatchevent_t **sockevent);
 /*%<
  * Stops the flow of responses for the provided id and destination.

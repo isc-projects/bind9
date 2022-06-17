@@ -36,11 +36,11 @@ ISC_LANG_BEGINDECLS
 #define DNS_TKEYMODE_DELETE	      5
 
 struct dns_tkeyctx {
-	dst_key_t	  *dhkey;
-	dns_name_t	   *domain;
+	dst_key_t	 *dhkey;
+	dns_name_t	 *domain;
 	dns_gss_cred_id_t gsscred;
-	isc_mem_t	  *mctx;
-	char	     *gssapi_keytab;
+	isc_mem_t	 *mctx;
+	char		 *gssapi_keytab;
 };
 
 isc_result_t

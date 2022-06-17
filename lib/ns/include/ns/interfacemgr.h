@@ -77,7 +77,7 @@ struct ns_interface {
 	isc_sockaddr_t	   addr;       /*%< Address and port. */
 	unsigned int	   flags;      /*%< Interface flags */
 	char		   name[32];   /*%< Null terminated. */
-	dns_dispatch_t    *udpdispatch[MAX_UDP_DISPATCH];
+	dns_dispatch_t	  *udpdispatch[MAX_UDP_DISPATCH];
 	/*%< UDP dispatchers. */
 	isc_socket_t   *tcpsocket; /*%< TCP socket. */
 	isc_nmsocket_t *udplistensocket;

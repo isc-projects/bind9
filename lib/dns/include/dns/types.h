@@ -164,7 +164,7 @@ typedef struct dns_ipkeylist dns_ipkeylist_t;
  */
 #ifndef GSSAPI
 typedef struct not_defined_gss_cred_id *gss_cred_id_t;
-typedef struct not_defined_gss_ctx	   *gss_ctx_id_t;
+typedef struct not_defined_gss_ctx     *gss_ctx_id_t;
 #endif /* ifndef GSSAPI */
 typedef struct dst_gssapi_signverifyctx dst_gssapi_signverifyctx_t;
 
