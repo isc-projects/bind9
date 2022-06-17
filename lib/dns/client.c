@@ -1296,7 +1296,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 					  digest, &ds));
 	}
 
-	CHECK(dns_keytable_add(secroots, false, false, name, &ds));
+	CHECK(dns_keytable_add(secroots, false, false, name, &ds, NULL, NULL));
 
 cleanup:
 	if (view != NULL) {

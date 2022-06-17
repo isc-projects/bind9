@@ -49,6 +49,8 @@
 
 ISC_LANG_BEGINDECLS
 
+typedef void (*dns_keytable_callback_t)(const dns_name_t *name, void *fn_arg);
+
 isc_result_t
 dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep);
 /*%<
@@ -106,7 +108,8 @@ dns_keytable_detach(dns_keytable_t **keytablep);
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
-		 dns_name_t *name, dns_rdata_ds_t *ds);
+		 dns_name_t *name, dns_rdata_ds_t *ds,
+		 dns_keytable_callback_t callback, void *callback_arg);
 /*%<
  * Add a key to 'keytable'. The keynode associated with 'name'
  * is updated with the DS specified in 'ds'.
@@ -167,7 +170,8 @@ dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name);
  */
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
+		    dns_keytable_callback_t callback, void *callback_arg);
 /*%<
  * Delete all trust anchors from 'keytable' matching name 'keyname'
  *

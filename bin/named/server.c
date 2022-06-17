@@ -862,6 +862,13 @@ cleanup:
 	return (result);
 }
 
+static void
+sfd_add(const dns_name_t *name, void *arg) {
+	if (arg != NULL) {
+		dns_view_sfd_add(arg, name);
+	}
+}
+
 /*%
  * Parse 'key' in the context of view configuration 'vconfig'.  If successful,
  * add the key to 'secroots' if both of the following conditions are true:
@@ -875,8 +882,7 @@ cleanup:
  */
 static isc_result_t
 process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
-	    const dns_name_t *keyname_match, dns_resolver_t *resolver,
-	    bool managed) {
+	    const dns_name_t *keyname_match, dns_view_t *view, bool managed) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname = NULL;
 	const char *namestr = NULL;
@@ -949,8 +955,8 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * its owner name.  If it does not, do not load the key and log a
 	 * warning, but do not prevent further keys from being processed.
 	 */
-	if (!dns_resolver_algorithm_supported(resolver, keyname, ds.algorithm))
-	{
+	if (!dns_resolver_algorithm_supported(view->resolver, keyname,
+					      ds.algorithm)) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': algorithm is disabled",
 			    initializing ? "initial-key" : "static-key",
@@ -966,7 +972,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * 'managed' and 'initializing' arguments to dns_keytable_add().
 	 */
 	result = dns_keytable_add(secroots, initializing, initializing, keyname,
-				  &ds);
+				  &ds, sfd_add, view);
 
 done:
 	return (result);
@@ -994,7 +1000,7 @@ load_view_keys(const cfg_obj_t *keys, dns_view_t *view, bool managed,
 		for (elt2 = cfg_list_first(keylist); elt2 != NULL;
 		     elt2 = cfg_list_next(elt2)) {
 			CHECK(process_key(cfg_listelt_value(elt2), secroots,
-					  keyname, view->resolver, managed));
+					  keyname, view, managed));
 		}
 	}
 
