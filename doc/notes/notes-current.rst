@@ -52,3 +52,7 @@ Bug Fixes
 
 - Fix the assertion failure caused by TCP connection closing between the
   connect (or accept) and the read from the socket. :gl:`#3400`
+
+- When grafting on non-delegated namespace, synth-from-dnssec could incorrectly
+  synthesise non-existance of records within the grafted in namespace using
+  NSEC records from higher zones. :gl:`#3402`
