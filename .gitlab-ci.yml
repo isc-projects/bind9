@@ -194,6 +194,13 @@ stages:
 
 ### Job Templates
 
+.api-schedules-triggers-web-triggering-rules: &api_schedules_triggers_web_triggering_rules
+  only:
+    - api
+    - schedules
+    - triggers
+    - web
+
 .default-triggering-rules: &default_triggering_rules
   only:
     - api
@@ -692,16 +699,12 @@ system:gcc:bullseye:amd64:
 system:gcc:bullseye:unstable:amd64:
   <<: *debian_bullseye_amd64_image
   <<: *system_test_job
+  <<: *api_schedules_triggers_web_triggering_rules
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
     - job: gcc:bullseye:amd64
       artifacts: true
-  only:
-    - api
-    - schedules
-    - triggers
-    - web
 
 unit:gcc:bullseye:amd64:
   <<: *debian_bullseye_amd64_image
@@ -713,16 +716,12 @@ unit:gcc:bullseye:amd64:
 unit:gcc:bullseye:unstable:amd64:
   <<: *debian_bullseye_amd64_image
   <<: *unit_test_job
+  <<: *api_schedules_triggers_web_triggering_rules
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
     - job: gcc:bullseye:amd64
       artifacts: true
-  only:
-    - api
-    - schedules
-    - triggers
-    - web
 
 # Jobs for cross-compiled GCC builds on Debian 11 "bullseye" (amd64) with
 # 32-bit libraries
@@ -1178,16 +1177,12 @@ clang:openbsd:amd64:
 system:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *system_test_job
+  <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
   needs:
     - job: clang:openbsd:amd64
       artifacts: true
-  only:
-    - api
-    - schedules
-    - triggers
-    - web
 
 # Jobs with libtool disabled
 
