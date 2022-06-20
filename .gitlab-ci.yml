@@ -122,6 +122,14 @@ stages:
 
 ### Job Templates
 
+.api-schedules-tags-triggers-web-triggering-rules: &api_schedules_tags_triggers_web_triggering_rules
+  only:
+    - api
+    - schedules
+    - tags
+    - triggers
+    - web
+
 .default-triggering-rules: &default_triggering_rules
   only:
     - api
@@ -131,15 +139,6 @@ stages:
     - triggers
     - web
     - schedules
-
-.schedules-tags-web-triggering-rules: &schedules_tags_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -462,12 +461,12 @@ gcc:stretch:amd64:
     EXTRA_CONFIGURE: "--without-gssapi --enable-dnstap"
   <<: *debian_stretch_amd64_image
   <<: *build_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *system_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:stretch:amd64
       artifacts: true
@@ -476,7 +475,7 @@ system:gcc:stretch:amd64:
 unit:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:stretch:amd64
       artifacts: true
@@ -490,12 +489,12 @@ gcc:buster:amd64:
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *system_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -503,7 +502,7 @@ system:gcc:buster:amd64:
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *unit_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -531,7 +530,7 @@ system:gcc:tarball:
     RUN_PYTEST_RUNNER: 1
   <<: *base_image
   <<: *system_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
@@ -543,7 +542,7 @@ system:gcc:tarball:
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
-  <<: *schedules_tags_web_triggering_rules
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
