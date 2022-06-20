@@ -5324,9 +5324,15 @@ The following options can be specified in a ``dnssec-policy`` statement:
     ``unlimited``.
 
     Note that the lifetime of a key may be extended if retiring it too
-    soon would cause validation failures.  For example, if the key were
-    configured to roll more frequently than its own TTL, its lifetime
-    would automatically be extended to account for this.
+    soon would cause validation failures. The key lifetime must be
+    longer than the time it takes to do a rollover; that is, the lifetime
+    must be more than the publication interval (which is the sum of
+    ``dnskey-ttl``, ``publish-safety``, and ``zone-propagation-delay``).
+    It must also be more than the retire interval (which is the sum of
+    ``max-zone-ttl``, ``retire-safety`` and ``zone-propagation-delay``
+    for ZSKs, and the sum of ``parent-ds-ttl``, ``retire-safety``, and
+    ``parent-propagation-delay`` for KSKs and CSKs). BIND 9 treats a key
+    lifetime that is too short as an error.
 
     The ``algorithm`` parameter specifies the key's algorithm, expressed
     either as a string ("rsasha256", "ecdsa384", etc.) or as a decimal
