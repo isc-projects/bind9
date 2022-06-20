@@ -1554,6 +1554,10 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		RETERR(configure_zone_ssutable(zoptions, mayberaw, zname));
 	}
 
+	/*
+	 * Configure DNSSEC signing. These apply to primary zones or zones that
+	 * use inline-signing (raw != NULL).
+	 */
 	if (ztype == dns_zone_primary || raw != NULL) {
 		const cfg_obj_t *validity, *resign;
 		bool allow = false, maint = false;
