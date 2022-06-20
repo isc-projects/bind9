@@ -410,6 +410,13 @@ isc_nm_listentlsdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
  */
 
+isc_result_t
+isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
+		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		       int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
+		       isc_nmsocket_t **sockp);
+
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised);
@@ -496,6 +503,11 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     isc_tlsctx_t		       *sslctx,
 		     isc_tlsctx_client_session_cache_t *client_sess_cache);
+void
+isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
+			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
+			unsigned int timeout, isc_tlsctx_t *sslctx,
+			isc_tlsctx_client_session_cache_t *client_sess_cache);
 /*%<
  * Establish a DNS client connection via a TCP or TLS connection, bound to
  * the address 'local' and connected to the address 'peer'.

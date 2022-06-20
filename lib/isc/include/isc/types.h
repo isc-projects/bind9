@@ -110,6 +110,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tlssocket = 1 << 4,
 	isc_nm_tlsdnssocket = 1 << 5,
 	isc_nm_httpsocket = 1 << 6,
+	isc_nm_streamdnssocket = 1 << 7,
 	isc_nm_maxsocket,
 
 	isc_nm_udplistener, /* Aggregate of nm_udpsocks */
@@ -117,7 +118,8 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tlslistener,
 	isc_nm_tcpdnslistener,
 	isc_nm_tlsdnslistener,
-	isc_nm_httplistener
+	isc_nm_httplistener,
+	isc_nm_streamdnslistener
 } isc_nmsocket_type;
 
 typedef isc_nmsocket_type isc_nmsocket_type_t;

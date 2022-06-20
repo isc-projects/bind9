@@ -115,6 +115,7 @@ libisc_la_SOURCES =		\
 	netmgr/netmgr-int.h	\
 	netmgr/netmgr.c		\
 	netmgr/socket.c		\
+	netmgr/streamdns.c	\
 	netmgr/tcp.c		\
 	netmgr/tcpdns.c		\
 	netmgr/timer.c		\

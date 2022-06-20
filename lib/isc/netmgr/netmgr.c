@@ -354,6 +354,9 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 		isc__nmhandle_tls_setwritetimeout(handle, write_timeout);
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		isc__nmhandle_streamdns_setwritetimeout(handle, write_timeout);
+		break;
 	default:
 		UNREACHABLE();
 		break;
@@ -480,6 +483,11 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
 #endif
+		NETIEVENT_CASE(streamdnsread);
+		NETIEVENT_CASE(streamdnssend);
+		NETIEVENT_CASE(streamdnsclose);
+		NETIEVENT_CASE(streamdnscancel);
+
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
 
@@ -555,6 +563,11 @@ NETIEVENT_SOCKET_REQ_RESULT_DEF(sendcb);
 NETIEVENT_SOCKET_DEF(detach);
 
 NETIEVENT_SOCKET_QUOTA_DEF(tcpaccept);
+
+NETIEVENT_SOCKET_DEF(streamdnsclose);
+NETIEVENT_SOCKET_REQ_DEF(streamdnssend);
+NETIEVENT_SOCKET_DEF(streamdnsread);
+NETIEVENT_SOCKET_HANDLE_DEF(streamdnscancel);
 
 NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
 NETIEVENT_SOCKET_DEF(sockstop);
@@ -715,6 +728,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
 #endif
+	isc__nm_streamdns_cleanup_data(sock);
 
 	if (sock->barrier_initialised) {
 		isc_barrier_destroy(&sock->barrier);
@@ -844,6 +858,9 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tlsdnssocket:
 			isc__nm_tlsdns_close(sock);
 			return;
+		case isc_nm_streamdnssocket:
+			isc__nm_streamdns_close(sock);
+			return;
 #if HAVE_LIBNGHTTP2
 		case isc_nm_tlssocket:
 			isc__nm_tls_close(sock);
@@ -896,6 +913,7 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 		(*sockp)->type == isc_nm_tcplistener ||
 		(*sockp)->type == isc_nm_tcpdnslistener ||
 		(*sockp)->type == isc_nm_tlsdnslistener ||
+		(*sockp)->type == isc_nm_streamdnslistener ||
 		(*sockp)->type == isc_nm_tlslistener ||
 		(*sockp)->type == isc_nm_httplistener);
 
@@ -1159,7 +1177,8 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 		handle->sock->type == isc_nm_tcpdnssocket ||
 		handle->sock->type == isc_nm_tlssocket ||
 		handle->sock->type == isc_nm_tlsdnssocket ||
-		handle->sock->type == isc_nm_httpsocket);
+		handle->sock->type == isc_nm_httpsocket ||
+		handle->sock->type == isc_nm_streamdnssocket);
 }
 
 static void
@@ -1406,6 +1425,9 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 		isc__nm_tls_failed_read_cb(sock, result, async);
 		return;
 #endif
+	case isc_nm_streamdnssocket:
+		isc__nm_streamdns_failed_read_cb(sock, result, async);
+		return;
 	default:
 		UNREACHABLE();
 	}
@@ -1517,6 +1539,9 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 		isc__nmsocket_tls_timer_restart(sock);
 		return;
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		isc__nmsocket_streamdns_timer_restart(sock);
+		return;
 	default:
 		break;
 	}
@@ -1560,6 +1585,8 @@ isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 	case isc_nm_tlssocket:
 		return (isc__nmsocket_tls_timer_running(sock));
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		return (isc__nmsocket_streamdns_timer_running(sock));
 	default:
 		break;
 	}
@@ -1590,6 +1617,9 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 		isc__nmsocket_tls_timer_stop(sock);
 		return;
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		isc__nmsocket_streamdns_timer_stop(sock);
+		return;
 	default:
 		break;
 	}
@@ -1612,6 +1642,9 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	case isc_nm_tcpsocket:
 	case isc_nm_tlssocket:
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
+		break;
+	case isc_nm_streamdnssocket:
+		isc_nmhandle_attach(sock->recv_handle, &req->handle);
 		break;
 	default:
 		if (atomic_load(&sock->client) && sock->statichandle != NULL) {
@@ -1842,6 +1875,9 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
 		isc__nm_tls_cleartimeout(handle);
 		return;
 #endif
+	case isc_nm_streamdnssocket:
+		isc__nmhandle_streamdns_cleartimeout(handle);
+		return;
 	default:
 		handle->sock->read_timeout = 0;
 
@@ -1865,6 +1901,9 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 		isc__nm_tls_settimeout(handle, timeout);
 		return;
 #endif
+	case isc_nm_streamdnssocket:
+		isc__nmhandle_streamdns_settimeout(handle, timeout);
+		return;
 	default:
 		handle->sock->read_timeout = timeout;
 		isc__nmsocket_timer_restart(handle->sock);
@@ -1891,6 +1930,9 @@ isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 					   : atomic_load(&netmgr->idle);
 		sock->write_timeout = value ? atomic_load(&netmgr->keepalive)
 					    : atomic_load(&netmgr->idle);
+		break;
+	case isc_nm_streamdnssocket:
+		isc__nmhandle_streamdns_keepalive(handle, value);
 		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
@@ -2025,6 +2067,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_send(handle, region, cb, cbarg);
 		break;
+	case isc_nm_streamdnssocket:
+		isc__nm_streamdns_send(handle, region, cb, cbarg);
+		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 		isc__nm_tls_send(handle, region, cb, cbarg);
@@ -2055,6 +2100,9 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_read(handle, cb, cbarg);
 		break;
+	case isc_nm_streamdnssocket:
+		isc__nm_streamdns_read(handle, cb, cbarg);
+		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 		isc__nm_tls_read(handle, cb, cbarg);
@@ -2081,6 +2129,9 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 		break;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_cancelread(handle);
+		break;
+	case isc_nm_streamdnssocket:
+		isc__nm_streamdns_cancelread(handle);
 		break;
 	default:
 		UNREACHABLE();
@@ -2123,6 +2174,9 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tlsdnslistener:
 		isc__nm_tlsdns_stoplistening(sock);
+		break;
+	case isc_nm_streamdnslistener:
+		isc__nm_streamdns_stoplistening(sock);
 		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlslistener:
@@ -2364,6 +2418,9 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		isc__nmsocket_tls_reset(sock);
 		return;
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		isc__nmsocket_streamdns_reset(sock);
+		return;
 	default:
 		UNREACHABLE();
 		break;
@@ -2583,6 +2640,7 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
 	case isc_nm_tcpsocket:
+	case isc_nm_streamdnssocket:
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
 #endif /* HAVE_LIBNGHTTP2 */
@@ -2614,6 +2672,8 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 		return (true);
 	case isc_nm_tlsdnssocket:
 		return (isc__nm_tlsdns_xfr_allowed(sock));
+	case isc_nm_streamdnssocket:
+		return (isc__nm_streamdns_xfr_allowed(sock));
 	default:
 		return (false);
 	}
@@ -2653,6 +2713,7 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 	case isc_nm_udpsocket:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
+	case isc_nm_streamdnssocket:
 		return;
 		break;
 
@@ -2689,6 +2750,8 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 	case isc_nm_httpsocket:
 		return (isc__nm_http_has_encryption(handle));
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		return (isc__nm_streamdns_has_encryption(handle));
 	default:
 		return (false);
 	};
@@ -2716,6 +2779,10 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 		return (isc__nm_http_verify_tls_peer_result_string(handle));
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
+	case isc_nm_streamdnssocket:
+		return (isc__nm_streamdns_verify_tls_peer_result_string(
+			handle));
+		break;
 	default:
 		break;
 	}
@@ -2784,6 +2851,9 @@ isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_tlsdnslistener:
 		set_tlsctx_workers(listener, tlsctx);
+		break;
+	case isc_nm_streamdnslistener:
+		isc__nm_streamdns_set_tlsctx(listener, tlsctx);
 		break;
 	default:
 		UNREACHABLE();
@@ -2976,6 +3046,10 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_httplistener");
 	case isc_nm_httpsocket:
 		return ("isc_nm_httpsocket");
+	case isc_nm_streamdnslistener:
+		return ("isc_nm_streamdnslistener");
+	case isc_nm_streamdnssocket:
+		return ("isc_nm_streamdnssocket");
 	default:
 		UNREACHABLE();
 	}

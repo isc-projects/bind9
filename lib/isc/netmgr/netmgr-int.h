@@ -23,6 +23,7 @@
 #include <isc/barrier.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/dnsstream.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -280,6 +281,11 @@ typedef enum isc__netievent_type {
 	netievent_httpclose,
 	netievent_httpsend,
 	netievent_httpendpoints,
+
+	netievent_streamdnsclose,
+	netievent_streamdnssend,
+	netievent_streamdnsread,
+	netievent_streamdnscancel,
 
 	netievent_connectcb,
 	netievent_readcb,
@@ -922,6 +928,17 @@ struct isc_nmsocket {
 
 	isc_nmsocket_h2_t h2;
 #endif /* HAVE_LIBNGHTTP2 */
+
+	struct {
+		isc_dnsstream_assembler_t *input;
+		bool reading;
+		isc_nmsocket_t *listener;
+		isc_nmsocket_t *sock;
+		size_t nsending;
+		void *send_req;
+		bool dot_alpn_negotiated;
+		const char *tls_verify_error;
+	} streamdns;
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the
@@ -1703,6 +1720,79 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 #endif
 
 void
+isc__nm_async_streamdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
+		       void *cbarg);
+
+void
+isc__nm_async_streamdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		       isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_async_streamdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nm_async_streamdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_cancelread(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_streamdns_cleartimeout(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_streamdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+
+void
+isc__nmhandle_streamdns_keepalive(isc_nmhandle_t *handle, bool value);
+
+void
+isc__nmhandle_streamdns_setwritetimeout(isc_nmhandle_t *handle,
+					uint32_t timeout);
+
+bool
+isc__nm_streamdns_has_encryption(const isc_nmhandle_t *handle);
+
+const char *
+isc__nm_streamdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+
+void
+isc__nm_streamdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx);
+
+bool
+isc__nm_streamdns_xfr_allowed(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_reset(isc_nmsocket_t *sock);
+
+bool
+isc__nmsocket_streamdns_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_timer_stop(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+				 bool async);
+
+void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1865,6 +1955,11 @@ NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
+NETIEVENT_SOCKET_TYPE(streamdnsclose);
+NETIEVENT_SOCKET_REQ_TYPE(streamdnssend);
+NETIEVENT_SOCKET_TYPE(streamdnsread);
+NETIEVENT_SOCKET_HANDLE_TYPE(streamdnscancel);
+
 NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 NETIEVENT_SOCKET_TYPE(sockstop);
 
@@ -1914,6 +2009,11 @@ NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
 NETIEVENT_SOCKET_DECL(detach);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
+
+NETIEVENT_SOCKET_DECL(streamdnsclose);
+NETIEVENT_SOCKET_REQ_DECL(streamdnssend);
+NETIEVENT_SOCKET_DECL(streamdnsread);
+NETIEVENT_SOCKET_HANDLE_DECL(streamdnscancel);
 
 NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 NETIEVENT_SOCKET_DECL(sockstop);
