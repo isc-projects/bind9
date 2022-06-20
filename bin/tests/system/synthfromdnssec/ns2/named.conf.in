@@ -49,4 +49,9 @@ zone "example.internal" {
 	file "example.internal.db";
 };
 
+zone "example.internal2" {
+	type primary;
+	file "example.internal.db";
+};
+
 include "../ns1/trusted.conf";
