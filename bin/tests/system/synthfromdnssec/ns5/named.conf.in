@@ -52,4 +52,9 @@ zone "example.internal" {
 	forwarders { 10.53.0.2; };
 };
 
+zone "internal2" {
+	type primary;
+	file "internal2.db";
+};
+
 include "../ns1/trusted.conf";
