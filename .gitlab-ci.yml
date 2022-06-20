@@ -689,6 +689,20 @@ system:gcc:bullseye:amd64:
     - job: unit:gcc:bullseye:amd64
       artifacts: true
 
+system:gcc:bullseye:unstable:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *system_test_job
+  variables:
+    CI_ENABLE_ALL_TESTS: 1
+  needs:
+    - job: gcc:bullseye:amd64
+      artifacts: true
+  only:
+    - api
+    - schedules
+    - triggers
+    - web
+
 unit:gcc:bullseye:amd64:
   <<: *debian_bullseye_amd64_image
   <<: *unit_test_gcov_job
