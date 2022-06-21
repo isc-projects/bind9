@@ -1,3 +1,6 @@
+5910.	[cleanup]	Move built-in dnssec-policies into the defaultconf.
+			These are now printed with 'named -C'. [GL !6467]
+
 5909.	[bug]		The server-side destination port was missing from dnstap
 			captures of client traffic. [GL #3309]
 
