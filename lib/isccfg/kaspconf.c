@@ -20,6 +20,7 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/kasp.h>
@@ -27,8 +28,10 @@
 #include <dns/log.h>
 #include <dns/nsec3.h>
 #include <dns/secalg.h>
+#include <dns/ttl.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/duration.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
@@ -51,17 +54,47 @@ confget(cfg_obj_t const *const *maps, const char *name, const cfg_obj_t **obj) {
 }
 
 /*
+ * Utility function for parsing durations from string.
+ */
+static uint32_t
+parse_duration(const char *str) {
+	uint32_t time = 0;
+	isccfg_duration_t duration;
+	isc_result_t result;
+	isc_textregion_t tr;
+
+	DE_CONST(str, tr.base);
+	tr.length = strlen(tr.base);
+	result = isccfg_duration_fromtext(&tr, &duration);
+	if (result == ISC_R_BADNUMBER) {
+		/* Fallback to dns_ttl_fromtext. */
+		(void)dns_ttl_fromtext(&tr, &time);
+		return (time);
+	}
+	if (result == ISC_R_SUCCESS) {
+		time += duration.parts[6];		 /* Seconds */
+		time += duration.parts[5] * 60;		 /* Minutes */
+		time += duration.parts[4] * 3600;	 /* Hours */
+		time += duration.parts[3] * 86400;	 /* Days */
+		time += duration.parts[2] * 86400 * 7;	 /* Weaks */
+		time += duration.parts[1] * 86400 * 31;	 /* Months */
+		time += duration.parts[0] * 86400 * 365; /* Years */
+	}
+	return (time);
+}
+
+/*
  * Utility function for configuring durations.
  */
 static uint32_t
-get_duration(const cfg_obj_t **maps, const char *option, uint32_t dfl) {
+get_duration(const cfg_obj_t **maps, const char *option, const char *dfl) {
 	const cfg_obj_t *obj;
 	isc_result_t result;
 	obj = NULL;
 
 	result = confget(maps, option, &obj);
 	if (result == ISC_R_NOTFOUND) {
-		return (dfl);
+		return (parse_duration(dfl));
 	}
 	INSIST(result == ISC_R_SUCCESS);
 	return (cfg_obj_asduration(obj));
@@ -291,14 +324,16 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
 	uint32_t sigrefresh = 0, sigvalidity = 0;
+	uint32_t dnskeyttl = 0, dsttl = 0, maxttl = 0;
+	uint32_t publishsafety = 0, retiresafety = 0;
+	uint32_t zonepropdelay = 0, parentpropdelay = 0;
 	uint32_t ipub = 0, iret = 0;
 	uint32_t ksk_min_lifetime = 0, zsk_min_lifetime = 0;
 
+	REQUIRE(config != NULL);
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
-	kaspname = (name == NULL)
-			   ? cfg_obj_asstring(cfg_tuple_get(config, "name"))
-			   : name;
+	kaspname = cfg_obj_asstring(cfg_tuple_get(config, "name"));
 	INSIST(kaspname != NULL);
 
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
@@ -352,10 +387,11 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 	sigvalidity = get_duration(maps, "signatures-validity",
 				   DNS_KASP_SIG_VALIDITY);
 	if (sigrefresh >= (sigvalidity * 0.9)) {
-		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
-			    "dnssec-policy: policy '%s' signatures-refresh "
-			    "must be at most 90%% of the signatures-validity",
-			    kaspname);
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: policy '%s' signatures-refresh must be "
+			"at most 90%% of the signatures-validity",
+			kaspname);
 		result = ISC_R_FAILURE;
 	}
 	dns_kasp_setsigvalidity(kasp, sigvalidity);
@@ -364,34 +400,43 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 		goto cleanup;
 	}
 
+	/* Configuration: Zone settings */
+	maxttl = get_duration(maps, "max-zone-ttl", DNS_KASP_ZONE_MAXTTL);
+	dns_kasp_setzonemaxttl(kasp, maxttl);
+
+	zonepropdelay = get_duration(maps, "zone-propagation-delay",
+				     DNS_KASP_ZONE_PROPDELAY);
+	dns_kasp_setzonepropagationdelay(kasp, zonepropdelay);
+
+	/* Configuration: Parent settings */
+	dsttl = get_duration(maps, "parent-ds-ttl", DNS_KASP_DS_TTL);
+	dns_kasp_setdsttl(kasp, dsttl);
+
+	parentpropdelay = get_duration(maps, "parent-propagation-delay",
+				       DNS_KASP_PARENT_PROPDELAY);
+	dns_kasp_setparentpropagationdelay(kasp, parentpropdelay);
+
 	/* Configuration: Keys */
-	dns_kasp_setdnskeyttl(
-		kasp, get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL));
-	dns_kasp_setpublishsafety(kasp, get_duration(maps, "publish-safety",
-						     DNS_KASP_PUBLISH_SAFETY));
-	dns_kasp_setretiresafety(kasp, get_duration(maps, "retire-safety",
-						    DNS_KASP_RETIRE_SAFETY));
+	dnskeyttl = get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL);
+	dns_kasp_setdnskeyttl(kasp, dnskeyttl);
+
+	publishsafety = get_duration(maps, "publish-safety",
+				     DNS_KASP_PUBLISH_SAFETY);
+	dns_kasp_setpublishsafety(kasp, publishsafety);
+
+	retiresafety = get_duration(maps, "retire-safety",
+				    DNS_KASP_RETIRE_SAFETY);
+	dns_kasp_setretiresafety(kasp, retiresafety);
+
 	dns_kasp_setpurgekeys(
 		kasp, get_duration(maps, "purge-keys", DNS_KASP_PURGE_KEYS));
 
-	ipub = get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL) +
-	       get_duration(maps, "publish-safety", DNS_KASP_PUBLISH_SAFETY) +
-	       get_duration(maps, "zone-propagation-delay",
-			    DNS_KASP_ZONE_PROPDELAY);
-
-	iret = get_duration(maps, "parent-ds-ttl", DNS_KASP_DS_TTL) +
-	       get_duration(maps, "retire-safety", DNS_KASP_RETIRE_SAFETY) +
-	       get_duration(maps, "parent-propagation-delay",
-			    DNS_KASP_PARENT_PROPDELAY);
-
+	ipub = dnskeyttl + publishsafety + zonepropdelay;
+	iret = dsttl + retiresafety + parentpropdelay;
 	ksk_min_lifetime = ISC_MAX(ipub, iret);
 
-	iret = (sigvalidity - sigrefresh) +
-	       get_duration(maps, "max-zone-ttl", DNS_KASP_ZONE_MAXTTL) +
-	       get_duration(maps, "retire-safety", DNS_KASP_RETIRE_SAFETY) +
-	       get_duration(maps, "zone-propagation-delay",
-			    DNS_KASP_ZONE_PROPDELAY);
-
+	iret = (sigvalidity - sigrefresh) + maxttl + retiresafety +
+	       zonepropdelay;
 	zsk_min_lifetime = ISC_MAX(ipub, iret);
 
 	(void)confget(maps, "keys", &keys);
@@ -488,20 +533,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 			goto cleanup;
 		}
 	}
-
-	/* Configuration: Zone settings */
-	dns_kasp_setzonemaxttl(
-		kasp, get_duration(maps, "max-zone-ttl", DNS_KASP_ZONE_MAXTTL));
-	dns_kasp_setzonepropagationdelay(
-		kasp, get_duration(maps, "zone-propagation-delay",
-				   DNS_KASP_ZONE_PROPDELAY));
-
-	/* Configuration: Parent settings */
-	dns_kasp_setdsttl(kasp,
-			  get_duration(maps, "parent-ds-ttl", DNS_KASP_DS_TTL));
-	dns_kasp_setparentpropagationdelay(
-		kasp, get_duration(maps, "parent-propagation-delay",
-				   DNS_KASP_PARENT_PROPDELAY));
 
 	/* Append it to the list for future lookups. */
 	ISC_LIST_APPEND(*kasplist, kasp, link);

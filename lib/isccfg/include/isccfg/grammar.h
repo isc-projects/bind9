@@ -123,17 +123,17 @@ struct cfg_tuplefielddef {
 
 /*% A configuration object type definition. */
 struct cfg_type {
-	const char	   *name; /*%< For debugging purposes only */
+	const char     *name; /*%< For debugging purposes only */
 	cfg_parsefunc_t parse;
 	cfg_printfunc_t print;
 	cfg_docfunc_t	doc; /*%< Print grammar description */
-	cfg_rep_t	  *rep; /*%< Data representation */
-	const void	   *of;  /*%< Additional data for meta-types */
+	cfg_rep_t      *rep; /*%< Data representation */
+	const void     *of;  /*%< Additional data for meta-types */
 };
 
 /*% A keyword-type definition, for things like "port <integer>". */
 typedef struct {
-	const char	   *name;
+	const char	 *name;
 	const cfg_type_t *type;
 } keyword_type_t;
 
@@ -157,7 +157,7 @@ struct cfg_netprefix {
  * A configuration data representation.
  */
 struct cfg_rep {
-	const char	   *name; /*%< For debugging only */
+	const char    *name; /*%< For debugging only */
 	cfg_freefunc_t free; /*%< How to free this kind of data. */
 };
 
@@ -175,7 +175,7 @@ struct cfg_obj {
 		bool		 boolean;
 		cfg_map_t	 map;
 		cfg_list_t	 list;
-		cfg_obj_t	  **tuple;
+		cfg_obj_t      **tuple;
 		isc_sockaddr_t	 sockaddr;
 		struct {
 			isc_sockaddr_t sockaddr;
@@ -185,7 +185,7 @@ struct cfg_obj {
 		isccfg_duration_t duration;
 	} value;
 	isc_refcount_t references; /*%< reference counter */
-	const char	   *file;
+	const char    *file;
 	unsigned int   line;
 	cfg_parser_t  *pctx;
 };
@@ -198,9 +198,9 @@ struct cfg_listelt {
 
 /*% The parser object. */
 struct cfg_parser {
-	isc_mem_t	  *mctx;
-	isc_log_t	  *lctx;
-	isc_lex_t	  *lexer;
+	isc_mem_t   *mctx;
+	isc_log_t   *lctx;
+	isc_lex_t   *lexer;
 	unsigned int errors;
 	unsigned int warnings;
 	isc_token_t  token;
@@ -254,7 +254,7 @@ struct cfg_parser {
 	isc_refcount_t references;
 
 	cfg_parsecallback_t callback;
-	void	       *callbackarg;
+	void		   *callbackarg;
 };
 
 /* Parser context flags */
