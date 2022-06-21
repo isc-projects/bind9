@@ -106,17 +106,9 @@ This single line is sufficient to create the necessary signing keys, and generat
 care of any DNSSEC maintenance for this zone, including replacing signatures
 that are about to expire and managing :ref:`key_rollovers`.
 
-**TODO:**
-The original zone file :file:`dnssec.example.db` remains untouched and the
-signed version of the zone is stored on disk in :file:`dnssec.example.db.signed`.
-When setting a ``dnssec-policy`` for a zone, it typically creates a new file
-with a ``.signed`` extension on disk, while the original zone file stays
-untouched. This is called inline signing.
-
-DNSSEC configuration works slightly differently for dynamic zones. DNSSEC-related
-records are applied directly to zones with an update ACL or update
-policy, similarly to non-DNSSEC records, instead of storing them in a file with a
-``.signed`` extension.
+.. note::
+   ``dnssec-policy`` needs write access to the zone. Please see
+   :ref:`dnssec_policy` for more details about implications for zone storage.
 
 The default policy creates one key that is used to sign the complete zone,
 and uses ``NSEC`` to enable authenticated denial of existence (a secure way
