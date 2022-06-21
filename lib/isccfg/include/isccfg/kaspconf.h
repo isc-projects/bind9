@@ -15,8 +15,6 @@
 
 #include <isc/lang.h>
 
-#include <dns/types.h>
-
 #include <isccfg/cfg.h>
 
 /***
