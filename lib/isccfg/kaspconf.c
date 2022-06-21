@@ -311,9 +311,9 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 }
 
 isc_result_t
-cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
-		    isc_log_t *logctx, dns_kasplist_t *kasplist,
-		    dns_kasp_t **kaspp) {
+cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
+		    isc_mem_t *mctx, isc_log_t *logctx,
+		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp) {
 	isc_result_t result;
 	const cfg_obj_t *maps[2];
 	const cfg_obj_t *koptions = NULL;
@@ -335,6 +335,9 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 
 	kaspname = cfg_obj_asstring(cfg_tuple_get(config, "name"));
 	INSIST(kaspname != NULL);
+
+	cfg_obj_log(config, logctx, ISC_LOG_DEBUG(1),
+		    "dnssec-policy: load policy '%s'", kaspname);
 
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
@@ -456,7 +459,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 				goto cleanup;
 			}
 		}
-		INSIST(!(dns_kasp_keylist_empty(kasp)));
 		dns_kasp_freeze(kasp);
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
@@ -509,23 +511,56 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, const char *name, isc_mem_t *mctx,
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-	} else if (strcmp(kaspname, "insecure") == 0) {
-		/* "dnssec-policy insecure": key list must be empty */
-		INSIST(strcmp(kaspname, "insecure") == 0);
-		INSIST(dns_kasp_keylist_empty(kasp));
-	} else {
-		/* No keys clause configured, use the "default". */
-		result = cfg_kaspkey_fromconfig(NULL, kasp, logctx, 0, 0);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
+	} else if (default_kasp && strcmp(kaspname, "insecure") != 0) {
+		dns_kasp_key_t *key, *new_key;
+
+		/*
+		 * If there are no specific keys configured in the policy,
+		 * inherit from the default policy (except for the built-in
+		 * "insecure" policy).
+		 */
+		for (key = ISC_LIST_HEAD(dns_kasp_keys(default_kasp));
+		     key != NULL; key = ISC_LIST_NEXT(key, link))
+		{
+			/* Create a new key reference. */
+			new_key = NULL;
+			result = dns_kasp_key_create(kasp, &new_key);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup;
+			}
+
+			if (dns_kasp_key_ksk(key)) {
+				new_key->role |= DNS_KASP_KEY_ROLE_KSK;
+			}
+			if (dns_kasp_key_zsk(key)) {
+				new_key->role |= DNS_KASP_KEY_ROLE_ZSK;
+			}
+			new_key->lifetime = dns_kasp_key_lifetime(key);
+			new_key->algorithm = dns_kasp_key_algorithm(key);
+			new_key->length = dns_kasp_key_size(key);
+			dns_kasp_addkey(kasp, new_key);
 		}
+	}
+
+	if (strcmp(kaspname, "insecure") == 0) {
+		/* "dnssec-policy insecure": key list must be empty */
+		INSIST(dns_kasp_keylist_empty(kasp));
+	} else if (default_kasp != NULL) {
+		/* There must be keys configured. */
 		INSIST(!(dns_kasp_keylist_empty(kasp)));
 	}
 
 	/* Configuration: NSEC3 */
 	(void)confget(maps, "nsec3param", &nsec3);
 	if (nsec3 == NULL) {
-		dns_kasp_setnsec3(kasp, false);
+		if (default_kasp != NULL && dns_kasp_nsec3(default_kasp)) {
+			dns_kasp_setnsec3param(
+				kasp, dns_kasp_nsec3iter(default_kasp),
+				(dns_kasp_nsec3flags(default_kasp) == 0x01),
+				dns_kasp_nsec3saltlen(default_kasp));
+		} else {
+			dns_kasp_setnsec3(kasp, false);
+		}
 	} else {
 		dns_kasp_setnsec3(kasp, true);
 		result = cfg_nsec3param_fromconfig(nsec3, kasp, logctx);
