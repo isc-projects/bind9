@@ -25,6 +25,7 @@
 #include <isc/types.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/duration.h>
 
 /*
  * Definitions shared between the configuration parser
@@ -77,11 +78,8 @@ typedef struct cfg_clausedef	 cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
 typedef struct cfg_printer	 cfg_printer_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
-typedef struct cfg_map	    cfg_map_t;
-typedef struct cfg_rep	    cfg_rep_t;
-typedef struct cfg_duration cfg_duration_t;
-
-#define CFG_DURATION_MAXLEN 64
+typedef struct cfg_map cfg_map_t;
+typedef struct cfg_rep cfg_rep_t;
 
 /*
  * Function types for configuration object methods
@@ -125,17 +123,17 @@ struct cfg_tuplefielddef {
 
 /*% A configuration object type definition. */
 struct cfg_type {
-	const char     *name; /*%< For debugging purposes only */
+	const char	   *name; /*%< For debugging purposes only */
 	cfg_parsefunc_t parse;
 	cfg_printfunc_t print;
 	cfg_docfunc_t	doc; /*%< Print grammar description */
-	cfg_rep_t      *rep; /*%< Data representation */
-	const void     *of;  /*%< Additional data for meta-types */
+	cfg_rep_t	  *rep; /*%< Data representation */
+	const void	   *of;  /*%< Additional data for meta-types */
 };
 
 /*% A keyword-type definition, for things like "port <integer>". */
 typedef struct {
-	const char	 *name;
+	const char	   *name;
 	const cfg_type_t *type;
 } keyword_type_t;
 
@@ -156,29 +154,10 @@ struct cfg_netprefix {
 };
 
 /*%
- * A configuration object to store ISO 8601 durations.
- */
-struct cfg_duration {
-	/*
-	 * The duration is stored in multiple parts:
-	 * [0] Years
-	 * [1] Months
-	 * [2] Weeks
-	 * [3] Days
-	 * [4] Hours
-	 * [5] Minutes
-	 * [6] Seconds
-	 */
-	uint32_t parts[7];
-	bool	 iso8601;
-	bool	 unlimited;
-};
-
-/*%
  * A configuration data representation.
  */
 struct cfg_rep {
-	const char    *name; /*%< For debugging only */
+	const char	   *name; /*%< For debugging only */
 	cfg_freefunc_t free; /*%< How to free this kind of data. */
 };
 
@@ -196,17 +175,17 @@ struct cfg_obj {
 		bool		 boolean;
 		cfg_map_t	 map;
 		cfg_list_t	 list;
-		cfg_obj_t      **tuple;
+		cfg_obj_t	  **tuple;
 		isc_sockaddr_t	 sockaddr;
 		struct {
 			isc_sockaddr_t sockaddr;
 			isc_dscp_t     dscp;
 		} sockaddrdscp;
-		cfg_netprefix_t netprefix;
-		cfg_duration_t	duration;
+		cfg_netprefix_t	  netprefix;
+		isccfg_duration_t duration;
 	} value;
 	isc_refcount_t references; /*%< reference counter */
-	const char    *file;
+	const char	   *file;
 	unsigned int   line;
 	cfg_parser_t  *pctx;
 };
@@ -219,9 +198,9 @@ struct cfg_listelt {
 
 /*% The parser object. */
 struct cfg_parser {
-	isc_mem_t   *mctx;
-	isc_log_t   *lctx;
-	isc_lex_t   *lexer;
+	isc_mem_t	  *mctx;
+	isc_log_t	  *lctx;
+	isc_lex_t	  *lexer;
 	unsigned int errors;
 	unsigned int warnings;
 	isc_token_t  token;
@@ -275,7 +254,7 @@ struct cfg_parser {
 	isc_refcount_t references;
 
 	cfg_parsecallback_t callback;
-	void		   *callbackarg;
+	void	       *callbackarg;
 };
 
 /* Parser context flags */
