@@ -2663,7 +2663,6 @@ setup_lookup(dig_lookup_t *lookup) {
 static void
 send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dig_query_t *query = (dig_query_t *)arg;
-	dig_query_t *next = NULL;
 	dig_lookup_t *l = NULL;
 
 	REQUIRE(DIG_VALID_QUERY(query));
@@ -2694,17 +2693,11 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
 		debug("send failed: %s", isc_result_totext(eresult));
-		query_detach(&query);
-		lookup_detach(&l);
-		UNLOCK_LOOKUP;
-		return;
 	}
 
 	if (l->ns_search_only && !l->trace_root) {
+		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		bool tcp_mode = l->tcp_mode;
-
-		debug("sending next, since searching");
-		next = ISC_LIST_NEXT(query, link);
 
 		query_detach(&query);
 		lookup_detach(&l);
@@ -2712,20 +2705,18 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		if (next == NULL) {
 			clear_current_lookup();
 		} else {
+			debug("sending next, since searching");
+
 			if (tcp_mode) {
 				start_tcp(next);
 			} else {
 				start_udp(next);
 			}
 		}
-
-		check_if_done();
-		UNLOCK_LOOKUP;
-		return;
+	} else {
+		query_detach(&query);
+		lookup_detach(&l);
 	}
-
-	query_detach(&query);
-	lookup_detach(&l);
 
 	check_if_done();
 	UNLOCK_LOOKUP;
