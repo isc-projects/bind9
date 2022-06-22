@@ -943,13 +943,26 @@ replace_listener_tlsctx(ns_interface_t *ifp, isc_tlsctx_t *newctx) {
 	}
 }
 
+#ifdef HAVE_LIBNGHTTP2
 static void
 update_http_settings(ns_interface_t *ifp, ns_listenelt_t *le) {
+	isc_nmsocket_t *listener;
+
 	REQUIRE(le->is_http);
 
 	INSIST(ifp->http_quota != NULL);
 	isc_quota_max(ifp->http_quota, le->http_max_clients);
+
+	if (ifp->http_secure_listensocket != NULL) {
+		listener = ifp->http_secure_listensocket;
+	} else {
+		INSIST(ifp->http_listensocket != NULL);
+		listener = ifp->http_listensocket;
+	}
+
+	isc_nmsocket_set_max_streams(listener, le->max_concurrent_streams);
 }
+#endif /* HAVE_LIBNGHTTP2 */
 
 static void
 update_listener_configuration(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
@@ -969,6 +982,7 @@ update_listener_configuration(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
 		replace_listener_tlsctx(ifp, le->sslctx);
 	}
 
+#ifdef HAVE_LIBNGHTTP2
 	/*
 	 * Let's update HTTP listener settings
 	 * on reconfiguration.
@@ -976,6 +990,8 @@ update_listener_configuration(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
 	if (le->is_http) {
 		update_http_settings(ifp, le);
 	}
+#endif /* HAVE_LIBNGHTTP2 */
+
 	UNLOCK(&mgr->lock);
 }
 
