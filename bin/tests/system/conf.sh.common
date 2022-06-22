@@ -733,6 +733,7 @@ export CDS
 export CHECKZONE
 export DESCRIPTION
 export DIG
+export DNSTAPREAD
 export FEATURETEST
 export FSTRM_CAPTURE
 export GENCHECK
