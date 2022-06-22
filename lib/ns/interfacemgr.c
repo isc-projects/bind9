@@ -927,12 +927,9 @@ clearlistenon(ns_interfacemgr_t *mgr) {
 }
 
 static void
-replace_listener_tlsctx(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
-			isc_tlsctx_t *newctx) {
+replace_listener_tlsctx(ns_interface_t *ifp, isc_tlsctx_t *newctx) {
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
-	REQUIRE(NS_INTERFACE_VALID(ifp));
 
-	LOCK(&mgr->lock);
 	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
 	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 		      "updating TLS context on %s", sabuf);
@@ -941,6 +938,41 @@ replace_listener_tlsctx(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
 		isc_nmsocket_set_tlsctx(ifp->tcplistensocket, newctx);
 	} else if (ifp->http_secure_listensocket != NULL) {
 		isc_nmsocket_set_tlsctx(ifp->http_secure_listensocket, newctx);
+	}
+}
+
+static void
+update_http_settings(ns_interface_t *ifp, ns_listenelt_t *le) {
+	REQUIRE(le->is_http);
+
+	INSIST(ifp->http_quota != NULL);
+	isc_quota_max(ifp->http_quota, le->http_max_clients);
+}
+
+static void
+update_listener_configuration(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
+			      ns_listenelt_t *le) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	REQUIRE(NS_INTERFACE_VALID(ifp));
+	REQUIRE(le != NULL);
+
+	LOCK(&mgr->lock);
+	/*
+	 * We need to update the TLS contexts
+	 * inside the TLS/HTTPS listeners during
+	 * a reconfiguration because the
+	 * certificates could have been changed.
+	 */
+	if (le->sslctx != NULL) {
+		replace_listener_tlsctx(ifp, le->sslctx);
+	}
+
+	/*
+	 * Let's update HTTP listener settings
+	 * on reconfiguration.
+	 */
+	if (le->is_http) {
+		update_http_settings(ifp, le);
 	}
 	UNLOCK(&mgr->lock);
 }
@@ -1025,15 +1057,9 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 						      sabuf, ifp->dscp);
 				}
 				if (LISTENING(ifp)) {
-					/*
-					 * We need to update the TLS contexts
-					 * inside the TLS/HTTPS listeners during
-					 * a reconfiguration because the
-					 * certificates could have been changed.
-					 */
-					if (config && le->sslctx != NULL) {
-						replace_listener_tlsctx(
-							mgr, ifp, le->sslctx);
+					if (config) {
+						update_listener_configuration(
+							mgr, ifp, le);
 					}
 					continue;
 				}
@@ -1190,17 +1216,10 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 						      sabuf, ifp->dscp);
 				}
 				if (LISTENING(ifp)) {
-					/*
-					 * We need to update the TLS contexts
-					 * inside the TLS/HTTPS listeners during
-					 * a reconfiguration because the
-					 * certificates could have been changed.
-					 */
-					if (config && le->sslctx != NULL) {
-						replace_listener_tlsctx(
-							mgr, ifp, le->sslctx);
+					if (config) {
+						update_listener_configuration(
+							mgr, ifp, le);
 					}
-
 					continue;
 				}
 			}
