@@ -213,10 +213,10 @@ stages:
   only:
     - api
     - merge_requests
+    - schedules
     - tags
     - triggers
     - web
-    - schedules
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
