@@ -572,12 +572,13 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 
 static isc_result_t
 ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
-			size_t neps, isc_quota_t *quota,
+			size_t neps, uint32_t max_clients,
 			uint32_t max_concurrent_streams) {
 #if HAVE_LIBNGHTTP2
 	isc_result_t result = ISC_R_FAILURE;
 	isc_nmsocket_t *sock = NULL;
 	isc_nm_http_endpoints_t *epset = NULL;
+	isc_quota_t *quota = NULL;
 
 	epset = isc_nm_http_endpoints_new(ifp->mgr->mctx);
 
@@ -590,6 +591,8 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	}
 
 	if (result == ISC_R_SUCCESS) {
+		quota = isc_mem_get(ifp->mgr->mctx, sizeof(*quota));
+		isc_quota_init(quota, max_clients);
 		result = isc_nm_listenhttp(ifp->mgr->nm, ISC_NM_LISTEN_ALL,
 					   &ifp->addr, ifp->mgr->backlog, quota,
 					   sslctx, epset,
@@ -597,6 +600,16 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	}
 
 	isc_nm_http_endpoints_detach(&epset);
+
+	if (quota != NULL) {
+		if (result != ISC_R_SUCCESS) {
+			isc_quota_destroy(quota);
+			isc_mem_put(ifp->mgr->mctx, quota, sizeof(*quota));
+		} else {
+			ifp->http_quota = quota;
+			ns_server_append_http_quota(ifp->mgr->sctx, quota);
+		}
+	}
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -630,7 +643,7 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	UNUSED(sslctx);
 	UNUSED(eps);
 	UNUSED(neps);
-	UNUSED(quota);
+	UNUSED(max_clients);
 	UNUSED(max_concurrent_streams);
 	return (ISC_R_NOTIMPLEMENTED);
 #endif
@@ -660,7 +673,7 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	if (elt->is_http) {
 		result = ns_interface_listenhttp(
 			ifp, elt->sslctx, elt->http_endpoints,
-			elt->http_endpoints_number, elt->http_quota,
+			elt->http_endpoints_number, elt->http_max_clients,
 			elt->max_concurrent_streams);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_interface;
@@ -731,6 +744,7 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 		isc_nm_stoplistening(ifp->http_secure_listensocket);
 		isc_nmsocket_close(&ifp->http_secure_listensocket);
 	}
+	ifp->http_quota = NULL;
 }
 
 static void
