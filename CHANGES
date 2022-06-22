@@ -1,3 +1,6 @@
+5909.	[bug]		The server-side destination port was missing from dnstap
+			captures of client traffic. [GL #3309]
+
 5908.	[bug]		Fix race conditions in route_connected(). [GL #3401]
 
 5907.	[bug]		Fix a crash in dig NS search mode when one of the NS
