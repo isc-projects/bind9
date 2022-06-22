@@ -1960,28 +1960,13 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		return;
 	}
 
-	/*
-	 * Determine the destination address.  If the receiving interface is
-	 * bound to a specific address, we simply use it regardless of the
-	 * address family.  All IPv4 queries should fall into this case.
-	 * Otherwise, if this is a TCP query, get the address from the
-	 * receiving socket (this needs a system call and can be heavy).
-	 * For IPv6 UDP queries, we get this from the pktinfo structure (if
-	 * supported).
-	 *
-	 * If all the attempts fail (this can happen due to memory shortage,
-	 * etc), we regard this as an error for safety.
-	 */
 	if ((client->manager->interface->flags & NS_INTERFACEFLAG_ANYADDR) == 0)
 	{
-		isc_netaddr_fromsockaddr(&client->destaddr,
-					 &client->manager->interface->addr);
+		client->destsockaddr = client->manager->interface->addr;
 	} else {
-		isc_sockaddr_t sockaddr = isc_nmhandle_localaddr(handle);
-		isc_netaddr_fromsockaddr(&client->destaddr, &sockaddr);
+		client->destsockaddr = isc_nmhandle_localaddr(handle);
 	}
-
-	isc_sockaddr_fromnetaddr(&client->destsockaddr, &client->destaddr, 0);
+	isc_netaddr_fromsockaddr(&client->destaddr, &client->destsockaddr);
 
 	result = client->sctx->matchingview(&netaddr, &client->destaddr,
 					    client->message, env, &sigresult,
