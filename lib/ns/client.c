@@ -1712,7 +1712,6 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	bool notimp;
 	size_t reqsize;
 	dns_aclenv_t *env = NULL;
-	isc_sockaddr_t sockaddr;
 #ifdef HAVE_DNSTAP
 	dns_dtmsgtype_t dtmsgtype;
 #endif /* ifdef HAVE_DNSTAP */
@@ -2016,10 +2015,8 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		return;
 	}
 
-	sockaddr = isc_nmhandle_localaddr(handle);
-	isc_netaddr_fromsockaddr(&client->destaddr, &sockaddr);
-
-	isc_sockaddr_fromnetaddr(&client->destsockaddr, &client->destaddr, 0);
+	client->destsockaddr = isc_nmhandle_localaddr(handle);
+	isc_netaddr_fromsockaddr(&client->destaddr, &client->destsockaddr);
 
 	result = client->sctx->matchingview(&netaddr, &client->destaddr,
 					    client->message, env, &sigresult,
