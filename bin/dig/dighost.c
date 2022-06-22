@@ -2667,6 +2667,54 @@ setup_lookup(dig_lookup_t *lookup) {
 }
 
 /*%
+ * NSSEARCH mode special mode handling function to start the next query in the
+ * list. The lookup lock must be held by the caller. The function will detach
+ * both the lookup and the query, and may cancel the lookup and clear the
+ * current lookup.
+ */
+static void
+nssearch_next(dig_lookup_t *l, dig_query_t *q) {
+	dig_query_t *next = ISC_LIST_NEXT(q, link);
+	bool tcp_mode = l->tcp_mode;
+
+	INSIST(l->ns_search_only && !l->trace_root);
+	INSIST(l == current_lookup);
+
+	if (next == NULL) {
+		/*
+		 * If this is the last query, and if there was
+		 * not a single successful query in the whole
+		 * lookup, then treat the situation as an error,
+		 * cancel and clear the lookup.
+		 */
+		if (check_if_queries_done(l, q) && !l->ns_search_success) {
+			dighost_error("NS servers could not be reached");
+			if (exitcode < 9) {
+				exitcode = 9;
+			}
+
+			cancel_lookup(l);
+			query_detach(&q);
+			lookup_detach(&l);
+			clear_current_lookup();
+		} else {
+			query_detach(&q);
+			lookup_detach(&l);
+		}
+	} else {
+		query_detach(&q);
+		lookup_detach(&l);
+
+		debug("sending next, since searching");
+		if (tcp_mode) {
+			start_tcp(next);
+		} else {
+			start_udp(next);
+		}
+	}
+}
+
+/*%
  * Event handler for send completion.  Track send counter, and clear out
  * the query if the send was canceled.
  */
@@ -2706,23 +2754,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	if (l->ns_search_only && !l->trace_root) {
-		dig_query_t *next = ISC_LIST_NEXT(query, link);
-		bool tcp_mode = l->tcp_mode;
-
-		query_detach(&query);
-		lookup_detach(&l);
-
-		if (next == NULL) {
-			clear_current_lookup();
-		} else {
-			debug("sending next, since searching");
-
-			if (tcp_mode) {
-				start_tcp(next);
-			} else {
-				start_udp(next);
-			}
-		}
+		nssearch_next(l, query);
 	} else {
 		query_detach(&query);
 		lookup_detach(&l);
@@ -3137,12 +3169,28 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
-	} else if (eresult != ISC_R_SUCCESS) {
+	}
+
+	if (eresult != ISC_R_SUCCESS) {
 		debug("udp setup failed: %s", isc_result_totext(eresult));
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 		dighost_warning("UDP setup with %s(%s) for %s failed: %s.",
 				sockstr, query->servname, l->textname,
 				isc_result_totext(eresult));
+
+		/*
+		 * NSSEARCH mode: if the current query failed to start properly,
+		 * then send_done() will not be called, and we want to make sure
+		 * that the next query gets a chance to start in order to not
+		 * break the chain.
+		 */
+		if (l->ns_search_only && !l->trace_root) {
+			nssearch_next(l, query);
+
+			check_if_done();
+			UNLOCK_LOOKUP;
+			return;
+		}
 
 		if (exitcode < 9) {
 			exitcode = 9;
@@ -3525,13 +3573,29 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		clear_current_lookup();
 		UNLOCK_LOOKUP;
 		return;
-	} else if (eresult != ISC_R_SUCCESS) {
+	}
+
+	if (eresult != ISC_R_SUCCESS) {
 		debug("unsuccessful connection: %s",
 		      isc_result_totext(eresult));
 		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
 		dighost_warning("Connection to %s(%s) for %s failed: %s.",
 				sockstr, query->servname, l->textname,
 				isc_result_totext(eresult));
+
+		/*
+		 * NSSEARCH mode: if the current query failed to start properly,
+		 * then send_done() will not be called, and we want to make sure
+		 * that the next query gets a chance to start in order to not
+		 * break the chain.
+		 */
+		if (l->ns_search_only && !l->trace_root) {
+			nssearch_next(l, query);
+
+			check_if_done();
+			UNLOCK_LOOKUP;
+			return;
+		}
 
 		/* XXX Clean up exitcodes */
 		if (exitcode < 9) {
@@ -3925,7 +3989,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			 * treat the situation as an error.
 			 */
 			if (!l->ns_search_success) {
-				dighost_error("no NS servers could be reached");
+				dighost_error(
+					"NS servers could not be reached");
 				if (exitcode < 9) {
 					exitcode = 9;
 				}
