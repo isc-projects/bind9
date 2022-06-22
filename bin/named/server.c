@@ -11383,8 +11383,6 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 	size_t len = 1, i = 0;
 	uint32_t max_clients = named_g_http_listener_clients;
 	uint32_t max_streams = named_g_http_streams_per_conn;
-	ns_server_t *server = NULL;
-	isc_quota_t *quota = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -11439,23 +11437,12 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 
 	INSIST(i == len);
 
-	INSIST(named_g_server != NULL);
-	ns_server_attach(named_g_server->sctx, &server);
-	if (max_clients > 0) {
-		quota = isc_mem_get(mctx, sizeof(isc_quota_t));
-		isc_quota_init(quota, max_clients);
-	}
 	result = ns_listenelt_create_http(
 		mctx, port, named_g_dscp, NULL, family, tls, tls_params,
-		tlsctx_cache, endpoints, len, quota, max_streams, &delt);
+		tlsctx_cache, endpoints, len, max_clients, max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
-
-	if (quota != NULL) {
-		ISC_LIST_APPEND(server->http_quotas, quota, link);
-	}
-	ns_server_detach(&server);
 
 	*target = delt;
 
@@ -11463,14 +11450,6 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 error:
 	if (delt != NULL) {
 		ns_listenelt_destroy(delt);
-	}
-	if (quota != NULL) {
-		isc_quota_destroy(quota);
-		isc_mem_put(mctx, quota, sizeof(*quota));
-	}
-
-	if (server != NULL) {
-		ns_server_detach(&server);
 	}
 	return (result);
 }
