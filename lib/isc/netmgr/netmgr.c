@@ -3734,6 +3734,23 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 }
 
 void
+isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
+			     const uint32_t max_streams) {
+	REQUIRE(VALID_NMSOCK(listener));
+	switch (listener->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httplistener:
+		isc__nm_http_set_max_streams(listener, max_streams);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		UNUSED(max_streams);
+		break;
+	};
+	return;
+}
+
+void
 isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 	const int log_level = ISC_LOG_DEBUG(1);
 	char client_sabuf[ISC_SOCKADDR_FORMATSIZE];

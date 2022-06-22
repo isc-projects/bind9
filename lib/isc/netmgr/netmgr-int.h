@@ -880,7 +880,7 @@ typedef struct isc_nmsocket_h2 {
 	isc_nmsocket_t *httpserver;
 
 	/* maximum concurrent streams (server-side) */
-	uint32_t max_concurrent_streams;
+	atomic_uint_fast32_t max_concurrent_streams;
 
 	uint32_t min_ttl; /* used to set "max-age" in responses */
 
@@ -1832,6 +1832,10 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp);
 
 void
 isc__nm_http_set_tlsctx(isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx);
+
+void
+isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
+			     const uint32_t max_concurrent_streams);
 
 #endif
 

@@ -2454,7 +2454,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	new_session(httplistensock->mgr->mctx, NULL, &session);
 	session->max_concurrent_streams =
-		httplistensock->h2.max_concurrent_streams;
+		atomic_load(&httplistensock->h2.max_concurrent_streams);
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
@@ -2481,14 +2481,10 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_httplistener, iface);
-	sock->h2.max_concurrent_streams =
-		NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS;
+	atomic_init(&sock->h2.max_concurrent_streams,
+		    NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS);
 
-	if (max_concurrent_streams > 0 &&
-	    max_concurrent_streams < NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
-	{
-		sock->h2.max_concurrent_streams = max_concurrent_streams;
-	}
+	isc_nmsocket_set_max_streams(sock, max_concurrent_streams);
 
 	atomic_store(&eps->in_use, true);
 	isc_nm_http_endpoints_attach(eps, &sock->h2.listener_endpoints);
@@ -2953,6 +2949,23 @@ isc__nm_http_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	REQUIRE(listener->type == isc_nm_httplistener);
 
 	isc_nmsocket_set_tlsctx(listener->outer, tlsctx);
+}
+
+void
+isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
+			     const uint32_t max_concurrent_streams) {
+	uint32_t max_streams = NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS;
+
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->type == isc_nm_httplistener);
+
+	if (max_concurrent_streams > 0 &&
+	    max_concurrent_streams < NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+	{
+		max_streams = max_concurrent_streams;
+	}
+
+	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
 }
 
 static const bool base64url_validation_table[256] = {
