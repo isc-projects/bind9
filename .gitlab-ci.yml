@@ -168,6 +168,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
 
+.ubuntu-jammy-amd64: &ubuntu_jammy_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-jammy-amd64"
+  <<: *linux_amd64
+
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
 
@@ -878,13 +882,15 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-dnstap --disable-geoip"
+    EXTRA_CONFIGURE: "--disable-dnstap"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
+  <<: *schedules_tags_web_triggering_rules
 
 system:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *system_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:bionic:amd64
       artifacts: true
@@ -892,6 +898,7 @@ system:gcc:bionic:amd64:
 unit:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *unit_test_job
+  <<: *schedules_tags_web_triggering_rules
   needs:
     - job: gcc:bionic:amd64
       artifacts: true
@@ -902,7 +909,7 @@ gcc:focal:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--disable-geoip --with-libidn2"
   <<: *ubuntu_focal_amd64_image
   <<: *build_job
 
@@ -918,6 +925,30 @@ unit:gcc:focal:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:focal:amd64
+      artifacts: true
+
+# Jobs for regular GCC builds on Ubuntu 22.04 Jammy Jellyfish (amd64)
+
+gcc:jammy:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *ubuntu_jammy_amd64_image
+  <<: *build_job
+
+system:gcc:jammy:amd64:
+  <<: *ubuntu_jammy_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:jammy:amd64
+      artifacts: true
+
+unit:gcc:jammy:amd64:
+  <<: *ubuntu_jammy_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:jammy:amd64
       artifacts: true
 
 # Jobs for ASAN builds on Fedora 35 (amd64)
