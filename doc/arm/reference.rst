@@ -1041,6 +1041,14 @@ default is used.
         resolver query;
       };
 
+   .. note:: In the default configuration, the dnstap output for
+      recursive resolver traffic does not include the IP addresses used
+      by server-side sockets. This is caused by the fact that unless the
+      :ref:`query source address <query_address>` is explicitly set,
+      these sockets are bound to wildcard IP addresses and determining
+      the specific IP address used by each of them requires issuing a
+      system call (i.e. incurring a performance penalty).
+
    Logged ``dnstap`` messages can be parsed using the :iscman:`dnstap-read`
    utility (see :ref:`man_dnstap-read` for details).
 
