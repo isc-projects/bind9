@@ -9,8 +9,6 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-.. include:: advanced.inc.rst
-.. include:: dlz.inc.rst
-.. include:: dyndb.inc.rst
-.. include:: catz.inc.rst
-.. include:: rpz.inc.rst
+.. include:: dnssec.inc.rst
+.. include:: managed-keys.inc.rst
+.. include:: pkcs11.inc.rst
