@@ -1,3 +1,6 @@
+5909.	[bug]		The server-side destination port was missing from dnstap
+			captures of client traffic. [GL #3309]
+
 5905.	[bug]		When the TCP connection would be closed/reset between
 			the connect/accept and the read, the uv_read_start()
 			return value would be unexpected and cause an assertion
