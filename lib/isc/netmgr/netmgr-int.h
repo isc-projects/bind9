@@ -319,6 +319,7 @@ typedef enum isc__netievent_type {
 
 	netievent_httpclose,
 	netievent_httpsend,
+	netievent_httpendpoints,
 
 	netievent_shutdown,
 	netievent_stop,
@@ -702,6 +703,42 @@ typedef struct isc__netievent__tlsctx {
 		isc__nm_put_netievent(nm, ievent);                             \
 	}
 
+#ifdef HAVE_LIBNGHTTP2
+typedef struct isc__netievent__http_eps {
+	NETIEVENT__SOCKET;
+	isc_nm_http_endpoints_t *endpoints;
+} isc__netievent__http_eps_t;
+
+#define NETIEVENT_SOCKET_HTTP_EPS_TYPE(type) \
+	typedef isc__netievent__http_eps_t isc__netievent_##type##_t;
+
+#define NETIEVENT_SOCKET_HTTP_EPS_DECL(type)                     \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type( \
+		isc_nm_t *nm, isc_nmsocket_t *sock,              \
+		isc_nm_http_endpoints_t *endpoints);             \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,          \
+					  isc__netievent_##type##_t *ievent);
+
+#define NETIEVENT_SOCKET_HTTP_EPS_DEF(type)                                    \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
+		isc_nm_t *nm, isc_nmsocket_t *sock,                            \
+		isc_nm_http_endpoints_t *endpoints) {                          \
+		isc__netievent_##type##_t *ievent =                            \
+			isc__nm_get_netievent(nm, netievent_##type);           \
+		isc__nmsocket_attach(sock, &ievent->sock);                     \
+		isc_nm_http_endpoints_attach(endpoints, &ievent->endpoints);   \
+                                                                               \
+		return (ievent);                                               \
+	}                                                                      \
+                                                                               \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+					  isc__netievent_##type##_t *ievent) { \
+		isc_nm_http_endpoints_detach(&ievent->endpoints);              \
+		isc__nmsocket_detach(&ievent->sock);                           \
+		isc__nm_put_netievent(nm, ievent);                             \
+	}
+#endif /* HAVE_LIBNGHTTP2 */
+
 typedef union {
 	isc__netievent_t ni;
 	isc__netievent__socket_t nis;
@@ -710,6 +747,9 @@ typedef union {
 	isc__netievent__socket_quota_t nisq;
 	isc__netievent_tlsconnect_t nitc;
 	isc__netievent__tlsctx_t nitls;
+#ifdef HAVE_LIBNGHTTP2
+	isc__netievent__http_eps_t nihttpeps;
+#endif /* HAVE_LIBNGHTTP2 */
 } isc__netievent_storage_t;
 
 /*
@@ -854,6 +894,7 @@ typedef struct isc_nm_httphandler {
 } isc_nm_httphandler_t;
 
 struct isc_nm_http_endpoints {
+	uint32_t magic;
 	isc_mem_t *mctx;
 
 	ISC_LIST(isc_nm_httphandler_t) handlers;
@@ -899,7 +940,8 @@ typedef struct isc_nmsocket_h2 {
 	void *cbarg;
 	LINK(struct isc_nmsocket_h2) link;
 
-	isc_nm_http_endpoints_t *listener_endpoints;
+	isc_nm_http_endpoints_t **listener_endpoints;
+	size_t n_listener_endpoints;
 
 	bool response_submitted;
 	struct {
@@ -1812,6 +1854,9 @@ isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
+void
+isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0);
+
 bool
 isc__nm_parse_httpquery(const char *query_string, const char **start,
 			size_t *len);
@@ -2005,9 +2050,12 @@ NETIEVENT_SOCKET_HANDLE_TYPE(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
 NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 
+#ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_TYPE(httpstop);
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
 NETIEVENT_SOCKET_TYPE(httpclose);
+NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
+#endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
 NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
@@ -2076,9 +2124,12 @@ NETIEVENT_SOCKET_HANDLE_DECL(tlsdnscancel);
 NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
 NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
+#ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_DECL(httpstop);
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
 NETIEVENT_SOCKET_DECL(httpclose);
+NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
+#endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);
