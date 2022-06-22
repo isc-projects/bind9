@@ -518,6 +518,12 @@ ret=0
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking whether destination UDP port is logged for client queries"
+ret=0
+$DNSTAPREAD ns3/dnstap.out.save | grep -Eq "CQ [0-9:.]+ -> 10.53.0.3:${PORT} UDP" || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 HAS_PYYAML=0
 if [ -x "$PYTHON" ] ; then
 	$PYTHON -c "import yaml" 2> /dev/null && HAS_PYYAML=1
