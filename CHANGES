@@ -1,3 +1,6 @@
+5911.	[bug]		Update HTTP listener settings on reconfiguration.
+			[GL #3415]
+
 5910.	[cleanup]	Move built-in dnssec-policies into the defaultconf.
 			These are now printed with 'named -C'. [GL !6467]
 
