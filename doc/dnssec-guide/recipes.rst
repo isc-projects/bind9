@@ -986,12 +986,40 @@ Reverting to Unsigned
 This recipe describes how to revert from a signed zone (DNSSEC) back to
 an unsigned (DNS) zone.
 
-Whether the world thinks your zone is signed is determined by the
-presence of DS records hosted by your parent zone; if there are no DS records,
-the world sees your zone as unsigned. So reverting to unsigned is as
-easy as removing all DS records from the parent zone.
+Here is what :iscman:`named.conf` looks like when it is signed:
 
-Below is an example showing how to remove DS records using the
+.. code-block:: none
+  :emphasize-lines: 4
+
+   zone "example.com" IN {
+       type primary;
+       file "db/example.com.db";
+       dnssec-policy "default";
+   };
+
+To indicate the reversion to unsigned, change the ``dnssec-policy`` line:
+
+.. code-block:: none
+  :emphasize-lines: 4
+
+   zone "example.com" IN {
+       type primary;
+       file "db/example.com.db";
+       dnssec-policy "insecure";
+   };
+
+Then use :option:`rndc reload` to reload the zone.
+
+The "insecure" policy is a built-in policy (like "default"). It makes sure
+the zone is still DNSSEC-maintained, to allow for a graceful transition to
+unsigned. It also publishes the CDS and CDNSKEY DELETE records automatically
+at the appropriate time.
+
+If the parent zone allows management of DS records via CDS/CDNSKEY, as described in
+:rfc:`8078`, the DS record should be removed from the parent automatically.
+
+Otherwise, DS records can be removed via the registrar. Below is an example
+showing how to remove DS records using the
 `GoDaddy <https://www.godaddy.com>`__ web-based interface:
 
 1. After logging in, click the green "Launch" button next to the domain
@@ -1036,58 +1064,17 @@ Below is an example showing how to remove DS records using the
 
       Revert to Unsigned Step #4
 
-If your parent allows managing DS record via CDS/CDNSKEY, as described in
-:rfc:`5155`, you could add CDS/CDNSKEY DELETE records in your zone to signal
-that the corresponding DS records from the parent zone needs to be removed.
-If it is unclear which format the parent zone is expecting, you should publish
-both CDS and CDNSKEY DELETE records.
-
-To be on the safe side, wait a while before actually deleting
-all signed data from your zone, just in case some validating resolvers
-have cached information. After you are certain that all cached
-information has expired (usually this means one TTL interval has passed),
-you may reconfigure your zone.
-
-Here is what :iscman:`named.conf` looks like when it is signed:
-
-::
-
-   zone "example.com" IN {
-       type primary;
-       file "db/example.com.db";
-       allow-transfer { any; };
-       dnssec-policy "default";
-   };
-
-Change your ``dnssec-policy`` line to indicate you want to revert to unsigned:
-
-::
-
-   zone "example.com" IN {
-       type primary;
-       file "db/example.com.db";
-       allow-transfer { any; };
-       dnssec-policy "insecure";
-   };
-
-Then use :option:`rndc reload` to reload the zone.
-
-The "insecure" policy is a built-in policy (like "default"). It will make sure
-the zone is still DNSSEC maintained, to allow for a graceful transition to
-unsigned. It also publishes the CDS and CDNSKEY DELETE records for you when
-the time is right.
-
 When the DS records have been removed from the parent zone, use
 :option:`rndc dnssec -checkds -key id withdrawn example.com <rndc dnssec>` to tell :iscman:`named` that
 the DS is removed, and the remaining DNSSEC records will be removed in a timely
-manner. Or if you have parental agents configured, the DNSSEC records will be
+manner. Or, if parental agents are configured, the DNSSEC records will be
 automatically removed after BIND has seen that the parental agents no longer
-serves the DS RRset for this zone.
+serve the DS RRset for this zone.
 
-After a while, your zone is reverted back to the traditional, insecure DNS
-format. You can verify by checking that all DNSKEY and RRSIG records have been
+After a while, the zone is reverted back to the traditional, insecure DNS
+format. This can be verified by checking that all DNSKEY and RRSIG records have been
 removed from the zone.
 
-You can then remove the ``dnssec-policy`` line from your :iscman:`named.conf` and
-reload the zone. The zone will now no longer be subject to any DNSSEC
+The ``dnssec-policy`` line can then be removed from :iscman:`named.conf` and
+the zone reloaded. The zone will no longer be subject to any DNSSEC
 maintenance.
