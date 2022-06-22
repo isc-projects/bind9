@@ -570,6 +570,24 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	return (result);
 }
 
+#ifdef HAVE_LIBNGHTTP2
+static isc_result_t
+load_http_endpoints(isc_nm_http_endpoints_t *epset, ns_interface_t *ifp,
+		    char **eps, size_t neps) {
+	isc_result_t result = ISC_R_FAILURE;
+
+	for (size_t i = 0; i < neps; i++) {
+		result = isc_nm_http_endpoints_add(epset, eps[i],
+						   ns__client_request, ifp);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+	}
+
+	return (result);
+}
+#endif /* HAVE_LIBNGHTTP2 */
+
 static isc_result_t
 ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 			size_t neps, uint32_t max_clients,
@@ -582,13 +600,7 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 
 	epset = isc_nm_http_endpoints_new(ifp->mgr->mctx);
 
-	for (size_t i = 0; i < neps; i++) {
-		result = isc_nm_http_endpoints_add(epset, eps[i],
-						   ns__client_request, ifp);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
-	}
+	result = load_http_endpoints(epset, ifp, eps, neps);
 
 	if (result == ISC_R_SUCCESS) {
 		quota = isc_mem_get(ifp->mgr->mctx, sizeof(*quota));
@@ -946,7 +958,9 @@ replace_listener_tlsctx(ns_interface_t *ifp, isc_tlsctx_t *newctx) {
 #ifdef HAVE_LIBNGHTTP2
 static void
 update_http_settings(ns_interface_t *ifp, ns_listenelt_t *le) {
+	isc_result_t result;
 	isc_nmsocket_t *listener;
+	isc_nm_http_endpoints_t *epset;
 
 	REQUIRE(le->is_http);
 
@@ -961,6 +975,17 @@ update_http_settings(ns_interface_t *ifp, ns_listenelt_t *le) {
 	}
 
 	isc_nmsocket_set_max_streams(listener, le->max_concurrent_streams);
+
+	epset = isc_nm_http_endpoints_new(ifp->mgr->mctx);
+
+	result = load_http_endpoints(epset, ifp, le->http_endpoints,
+				     le->http_endpoints_number);
+
+	if (result == ISC_R_SUCCESS) {
+		isc_nm_http_set_endpoints(listener, epset);
+	}
+
+	isc_nm_http_endpoints_detach(&epset);
 }
 #endif /* HAVE_LIBNGHTTP2 */
 

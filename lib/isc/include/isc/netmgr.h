@@ -638,8 +638,7 @@ isc_nm_http_set_endpoints(isc_nmsocket_t	  *listener,
  * during reconfiguration.
  *
  * Requires:
- * \li	'listener' is a pointer to a valid network manager listener socket
- object with TLS support;
+ * \li	'listener' is a pointer to a valid network manager HTTP listener socket;
  * \li	'eps' is a valid pointer to an HTTP endpoints set.
  */
 
