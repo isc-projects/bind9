@@ -173,12 +173,14 @@ the following examples:
 ``include`` Directive Definition and Usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The include directive inserts the specified file (or files if a valid glob
-expression is detected) at the point where the include directive is
+The include directive inserts the specified file (or files if a valid `glob
+expression`_ is detected) at the point where the include directive is
 encountered. The include directive facilitates the administration of
 configuration files by permitting the reading or writing of some things but not
 others. For example, the statement could include private keys that are readable
 only by the name server.
+
+.. _`glob expression`: https://man7.org/linux/man-pages/man7/glob.7.html
 
 .. _address_match_lists:
 .. _address_match_list:
