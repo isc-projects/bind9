@@ -122,10 +122,6 @@ stages:
 
 # Debian
 
-.debian-stretch-amd64: &debian_stretch_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
-  <<: *linux_amd64
-
 .debian-buster-amd64: &debian_buster_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
@@ -599,33 +595,6 @@ unit:gcc:oraclelinux8:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:oraclelinux8:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Debian 9 "stretch" (amd64)
-
-gcc:stretch:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-cmocka --without-gssapi"
-  <<: *debian_stretch_amd64_image
-  <<: *build_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-
-system:gcc:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:stretch:amd64
-      artifacts: true
-
-unit:gcc:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:stretch:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 10 "buster" (amd64)
