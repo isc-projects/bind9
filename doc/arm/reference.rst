@@ -354,7 +354,7 @@ The following blocks are supported:
         Declares control channels to be used by the :iscman:`rndc` utility.
 
     ``dnssec-policy``
-        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
+        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec_policy_grammar` for details.
 
     ``key``
         Specifies key information for use in authentication and authorization using TSIG.
