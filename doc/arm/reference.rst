@@ -26,7 +26,7 @@ on).
 Configuration File (named.conf)
 -------------------------------
 
-The file named.conf may contain three types of entities:
+The file :file:`named.conf` may contain three types of entities:
 
 .. glossary::
 
@@ -43,7 +43,13 @@ The file named.conf may contain three types of entities:
    Statement
       - Statements define and control specific BIND behaviors.
       - Statements may have a single parameter (a **Value**) or multiple parameters
-        (**Argument/Value** pairs).
+        (**Argument/Value** pairs). For example, the :any:`recursion` statement takes a
+        single value parameter which, in this case, is the string ``yes`` or ``no``
+        (``recursion yes;``) whereas the :any:`port` statement takes a  numeric value
+        defining the DNS port number (``port 53;``). More complex statements take one or
+        more argument/value pairs. The :any:`also-notify` statement may take a number
+        of such argument/value pairs, such as ``also-notify port 5353;``,
+        where ``port`` is the argument and ``5353`` is the corresponding value.
       - Statements can appear in a single :term:`block` - for
         example, an :namedconf:ref:`algorithm` statement can appear only in a
         :namedconf:ref:`key` block - or in multiple blocks - for example, an
@@ -53,13 +59,18 @@ The file named.conf may contain three types of entities:
         any global statement), or even in a :any:`view` block where it has
         scope for only that view (and overrides any global statement).
 
+The file :file:`named.conf` may further contain one or more instances of the
+:ref:`include <include_grammar>` **Directive**. This directive is provided for
+administrative convenience in assembling a complete :file:`named.conf` file and plays
+no subsequent role in BIND 9 operational characteristics or functionality.
+
 .. Note::
    Over a period of many years the BIND ARM acquired a bewildering array of
    terminology. Many of the terms used described similar concepts and served
    only to add a layer of complexity, possibly confusion, and perhaps mystique
    to BIND 9 configuration. The ARM now uses only the terms **Block**,
-   **Statement**, **Argument**, and **Value** to describe all entities used in
-   BIND 9 configuration.
+   **Statement**, **Argument**, **Value**, and **Directive** to describe all
+   entities used in BIND 9 configuration.
 
 .. _comment_syntax:
 
