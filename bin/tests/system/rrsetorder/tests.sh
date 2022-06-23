@@ -489,6 +489,7 @@ done
 echo_i "Random selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
 if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "Checking order none (cache)"
 ret=0
