@@ -1309,17 +1309,22 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking revoked key with duplicate key ID (failure expected) ($n)"
-lret=0
+echo_i "checking revoked key with duplicate key ID ($n)"
+ret=0
 id=30676
-$DIG $DIGOPTS +multi dnskey bar @10.53.0.2 > dig.out.ns2.test$n || lret=1
-grep '; key id = '"$id"'$' dig.out.ns2.test$n > /dev/null || lret=1
-$DIG $DIGOPTS dnskey bar @10.53.0.4 > dig.out.ns4.test$n || lret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || lret=1
-n=`expr $n + 1`
-if [ $lret != 0 ]; then echo_i "not yet implemented"; fi
+rid=30804
+$DIG $DIGOPTS +multi dnskey bar @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep '; key id = '"$id"'$' dig.out.ns2.test$n > /dev/null && ret=1
+keys=$(grep '; key id = '"$rid"'$' dig.out.ns2.test$n | wc -l)
+test $keys -eq 2 || ret=1
+$DIG $DIGOPTS dnskey bar @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "checking key event timers are always set ($n)"
+ret=0
 # this is a regression test for a bug in which the next key event could
 # be scheduled for the present moment, and then never fire.  check for
 # visible evidence of this error in the logs:
