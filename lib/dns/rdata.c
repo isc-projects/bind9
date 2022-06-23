@@ -897,8 +897,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	}
 	if (result != ISC_R_SUCCESS) {
 		*target = st;
-		INSIST(target->used < 65536);
-		dns_compress_rollback(cctx, (uint16_t)target->used);
+		dns_compress_rollback(cctx, target->used);
 	}
 	return (result);
 }

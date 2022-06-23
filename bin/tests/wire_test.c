@@ -303,8 +303,7 @@ process_message(isc_buffer_t *source) {
 			message->counts[i] = 0; /* Another hack XXX */
 		}
 
-		result = dns_compress_init(&cctx, mctx);
-		CHECKRESULT(result, "dns_compress_init() failed");
+		dns_compress_init(&cctx, mctx, 0);
 
 		result = dns_message_renderbegin(message, &cctx, &buffer);
 		CHECKRESULT(result, "dns_message_renderbegin() failed");

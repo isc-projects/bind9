@@ -408,8 +408,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 	return (ISC_R_SUCCESS);
 
 rollback:
-	INSIST(savedbuffer.used < 65536);
-	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
+	dns_compress_rollback(cctx, savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 

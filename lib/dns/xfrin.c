@@ -981,11 +981,9 @@ failure:
 static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	dns_compress_t cctx;
-	bool cleanup_cctx = false;
 	isc_result_t result;
 
-	CHECK(dns_compress_init(&cctx, mctx));
-	cleanup_cctx = true;
+	dns_compress_init(&cctx, mctx, 0);
 	CHECK(dns_message_renderbegin(msg, &cctx, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
@@ -994,9 +992,7 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	CHECK(dns_message_renderend(msg));
 	result = ISC_R_SUCCESS;
 failure:
-	if (cleanup_cctx) {
-		dns_compress_invalidate(&cctx);
-	}
+	dns_compress_invalidate(&cctx);
 	return (result);
 }
 

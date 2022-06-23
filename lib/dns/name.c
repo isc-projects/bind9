@@ -1703,14 +1703,13 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 isc_result_t
 dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
-		 isc_buffer_t *target, uint16_t *comp_offsetp) {
+		 isc_buffer_t *target, uint16_t *name_coff) {
 	bool compress;
-	bool found;
-	uint16_t here;	/* start of the name we are adding to the message */
-	uint16_t there; /* target of the compression pointer */
-	dns_name_t prefix;
 	dns_offsets_t clo;
 	dns_name_t clname;
+	unsigned int here;
+	unsigned int prefix_length;
+	unsigned int suffix_coff;
 
 	/*
 	 * Convert 'name' into wire format, compressing it as specified by the
@@ -1725,103 +1724,60 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 		   dns_compress_getpermitted(cctx);
 
 	/*
-	 * If this exact name was already rendered before, and the
-	 * offset of the previously rendered name is passed to us, write
-	 * a compression pointer directly.
+	 * Write a compression pointer directly if the caller passed us
+	 * a pointer to this name's offset that we saved previously.
 	 */
-	if (comp_offsetp != NULL && *comp_offsetp < 0x4000 && compress) {
-		if (target->length - target->used < 2) {
+	if (compress && name_coff != NULL && *name_coff < 0x4000) {
+		if (isc_buffer_availablelength(target) < 2) {
 			return (ISC_R_NOSPACE);
 		}
-		here = *comp_offsetp;
-		isc_buffer_putuint16(target, here | 0xc000);
+		isc_buffer_putuint16(target, *name_coff | 0xc000);
 		return (ISC_R_SUCCESS);
 	}
 
-	/*
-	 * If 'name' doesn't have an offsets table, make a clone which
-	 * has one.
-	 */
 	if (name->offsets == NULL) {
 		DNS_NAME_INIT(&clname, clo);
 		dns_name_clone(name, &clname);
 		name = &clname;
 	}
-	DNS_NAME_INIT(&prefix, NULL);
-
-	here = target->used; /*XXX*/
 
 	/*
-	 * Never compress the root name.
+	 * Always add the name to the compression context; if compression
+	 * is off, reset the return values before writing the name.
 	 */
-	if (name->length == 1) {
-		found = false;
-		compress = false;
-	} else {
-		found = dns_compress_find(cctx, name, &prefix, &there);
+	prefix_length = name->length;
+	suffix_coff = 0;
+	dns_compress_name(cctx, target, name, &prefix_length, &suffix_coff);
+	if (!compress) {
+		prefix_length = name->length;
+		suffix_coff = 0;
 	}
 
 	/*
-	 * If the offset does not fit in a 14 bit compression pointer,
-	 * we're out of luck.
+	 * Return this name's compression offset for use next time, provided
+	 * it isn't too short for compression to help (i.e. it's the root)
 	 */
-	if (found && there >= 0x4000) {
-		compress = false;
+	here = isc_buffer_usedlength(target);
+	if (name_coff != NULL && here < 0x4000 && prefix_length > 1) {
+		*name_coff = (uint16_t)here;
 	}
 
-	/*
-	 * Will the compression pointer reduce the message size?
-	 */
-	if (found && (prefix.length + 2) >= name->length) {
-		compress = false;
-	}
-
-	if (found && compress) {
-		if (target->length - target->used < prefix.length) {
+	if (prefix_length > 0) {
+		if (isc_buffer_availablelength(target) < prefix_length) {
 			return (ISC_R_NOSPACE);
 		}
-		if (prefix.length != 0) {
-			unsigned char *base = target->base;
-			(void)memmove(base + target->used, prefix.ndata,
-				      (size_t)prefix.length);
+		memmove(isc_buffer_used(target), name->ndata, prefix_length);
+		isc_buffer_add(target, prefix_length);
+	}
+
+	if (suffix_coff > 0) {
+		if (name_coff != NULL && prefix_length == 0) {
+			*name_coff = suffix_coff;
 		}
-		isc_buffer_add(target, prefix.length);
-		if (target->length - target->used < 2) {
+		if (isc_buffer_availablelength(target) < 2) {
 			return (ISC_R_NOSPACE);
 		}
-		isc_buffer_putuint16(target, there | 0xc000);
-	} else {
-		if (target->length - target->used < name->length) {
-			return (ISC_R_NOSPACE);
-		}
-		if (name->length != 0) {
-			unsigned char *base = target->base;
-			(void)memmove(base + target->used, name->ndata,
-				      (size_t)name->length);
-		}
-		isc_buffer_add(target, name->length);
-	}
-
-	if (found && prefix.length == 0) {
-		here = there;
-	}
-
-	if (here >= 0x4000) {
-		return (ISC_R_SUCCESS);
-	}
-
-	if (found) {
-		dns_compress_add(cctx, name, &prefix, here);
-	} else {
-		dns_compress_add(cctx, name, name, here);
-	}
-
-	/*
-	 * Don't set the offset of the previously rendered name if the
-	 * compression has been disabled.
-	 */
-	if (compress && comp_offsetp != NULL) {
-		*comp_offsetp = here;
+		isc_buffer_putuint16(target, suffix_coff | 0xc000);
 	}
 
 	return (ISC_R_SUCCESS);

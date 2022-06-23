@@ -2548,7 +2548,7 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 	isc_result_t result;
 	dns_request_t *request = NULL;
 	isc_sockaddr_t *srcaddr;
-	unsigned int options = DNS_REQUESTOPT_CASE;
+	unsigned int options = DNS_REQUESTOPT_CASE | DNS_REQUESTOPT_LARGE;
 	dns_transport_t *req_transport = NULL;
 	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
 

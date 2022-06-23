@@ -34,44 +34,73 @@ ISC_LANG_BEGINDECLS
  *
  * The nameserver can be configured not to use compression at all using
  * \c dns_compress_disable().
+ *
+ * DNS name compression only needs exact matches on (suffixes of) names. We
+ * could use a data structure that supports longest-match lookups, but that
+ * would introduce a lot of heavyweight machinery, and all we need is
+ * something that exists very briefly to store a few names before it is
+ * thrown away.
+ *
+ * In the abstract we need a map from DNS names to compression offsets. But
+ * a compression offset refers to a point in the message where the name has
+ * been written. So in fact all we need is a hash set of compression offsets.
+ *
+ * Typical messages do not contain more than a few dozen names, so by
+ * default our hash set is small (64 entries, 256 bytes). It can be
+ * enlarged when a message is likely to contain a lot of names, such as for
+ * outgoing zone transfers (which are handled in lib/ns/xfrout.c) and
+ * update requests (for which nsupdate uses DNS_REQUESTOPT_LARGE - see
+ * request.h).
  */
 
 /*
- * DNS_COMPRESS_TABLESIZE must be a power of 2. The compress code
- * utilizes this assumption.
+ * Logarithms of hash set sizes. In the usual (small) case, allow for for a
+ * few dozen names in the hash set. (We can't actually use every slot because
+ * space is reserved for performance reasons.) For large messages, the number
+ * of names is limited by the minimum size of an RR (owner, type, class, ttl,
+ * length) which is 16 bytes when the owner has a new 3-character label
+ * before the compressed zone name. Divide the maximum compression offset
+ * 0x3FFF by 16 and you get roughly 1024.
  */
-#define DNS_COMPRESS_TABLEBITS	  6
-#define DNS_COMPRESS_TABLESIZE	  (1U << DNS_COMPRESS_TABLEBITS)
-#define DNS_COMPRESS_TABLEMASK	  (DNS_COMPRESS_TABLESIZE - 1)
-#define DNS_COMPRESS_INITIALNODES 24
-#define DNS_COMPRESS_ARENA_SIZE	  640
+enum {
+	DNS_COMPRESS_SMALLBITS = 6,
+	DNS_COMPRESS_LARGEBITS = 10,
+};
 
-typedef struct dns_compressnode dns_compressnode_t;
+/*
+ * Compression context flags
+ */
+enum dns_compress_flags {
+	/* affecting the whole message */
+	DNS_COMPRESS_DISABLED = 0x00000001U,
+	DNS_COMPRESS_CASE = 0x00000002U,
+	DNS_COMPRESS_LARGE = 0x00000004U,
+	/* can toggle while rendering a message */
+	DNS_COMPRESS_PERMITTED = 0x00000008U,
+};
 
-struct dns_compressnode {
-	dns_compressnode_t *next;
-	uint16_t	    offset;
-	uint16_t	    count;
-	isc_region_t	    r;
-	dns_name_t	    name;
+/*
+ * The hash may be any 16 bit value. Unused slots have coff == 0. (Valid
+ * compression offsets cannot be zero because of the DNS message header.)
+ */
+struct dns_compress_slot {
+	uint16_t hash;
+	uint16_t coff;
 };
 
 struct dns_compress {
-	unsigned int magic; /*%< Magic number. */
-	bool	     permitted;
-	bool	     disabled;
-	bool	     sensitive;
-	/*% Compression pointer table. */
-	dns_compressnode_t *table[DNS_COMPRESS_TABLESIZE];
-	/*% Preallocated arena for names. */
-	unsigned char arena[DNS_COMPRESS_ARENA_SIZE];
-	off_t	      arena_off;
-	/*% Preallocated nodes for the table. */
-	dns_compressnode_t initialnodes[DNS_COMPRESS_INITIALNODES];
-	uint16_t	   count; /*%< Number of nodes. */
-	isc_mem_t	  *mctx;  /*%< Memory context. */
+	unsigned int	     magic;
+	dns_compress_flags_t flags;
+	uint16_t	     mask;
+	uint16_t	     count;
+	isc_mem_t	    *mctx;
+	dns_compress_slot_t *set;
+	dns_compress_slot_t  smallset[1 << DNS_COMPRESS_SMALLBITS];
 };
 
+/*
+ * Deompression context
+ */
 enum dns_decompress {
 	DNS_DECOMPRESS_DEFAULT,
 	DNS_DECOMPRESS_PERMITTED,
@@ -79,40 +108,45 @@ enum dns_decompress {
 	DNS_DECOMPRESS_ALWAYS,
 };
 
-isc_result_t
-dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx);
+void
+dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx,
+		  dns_compress_flags_t flags);
 /*%<
  *	Initialise the compression context structure pointed to by
- *	'cctx'. A freshly initialized context has name compression
- *	enabled, but no methods are set. Please use \c
- *	dns_compress_setmethods() to set a compression method.
+ *	'cctx'.
+ *
+ *	The `flags` argument is usually zero; or some combination of:
+ *\li		DNS_COMPRESS_DISABLED, so the whole message is uncompressed
+ *\li		DNS_COMPRESS_CASE, for case-sensitive compression
+ *\li		DNS_COMPRESS_LARGE, for messages with many names
+ *
+ *	(See also dns_request_create()'s options argument)
  *
  *	Requires:
- *	\li	'cctx' is a valid dns_compress_t structure.
- *	\li	'mctx' is an initialized memory context.
+ *\li		'cctx' is a dns_compress_t structure on the stack.
+ *\li		'mctx' is an initialized memory context.
  *	Ensures:
- *	\li	'cctx' is initialized.
- *	\li	'cctx->permitted' is true.
- *
- *	Returns:
- *	\li	#ISC_R_SUCCESS
+ *\li		'cctx' is initialized.
+ *\li		'dns_compress_getpermitted(cctx)' is true
  */
 
 void
 dns_compress_invalidate(dns_compress_t *cctx);
 
 /*%<
- *	Invalidate the compression structure pointed to by cctx.
+ *	Invalidate the compression structure pointed to by
+ *	'cctx', freeing any memory that has been allocated.
  *
  *	Requires:
- *\li		'cctx' to be initialized.
+ *\li		'cctx' is an initialized dns_compress_t
  */
 
 void
 dns_compress_setpermitted(dns_compress_t *cctx, bool permitted);
 
 /*%<
- *	Sets whether compression is allowed, according to RFC 3597
+ *	Sets whether compression is allowed, according to RFC 3597.
+ *	This can vary depending on the rdata type.
  *
  *	Requires:
  *\li		'cctx' to be initialized.
@@ -122,7 +156,7 @@ bool
 dns_compress_getpermitted(dns_compress_t *cctx);
 
 /*%<
- *	Gets allowed compression methods.
+ *	Find out whether compression is allowed, according to RFC 3597.
  *
  *	Requires:
  *\li		'cctx' to be initialized.
@@ -132,74 +166,38 @@ dns_compress_getpermitted(dns_compress_t *cctx);
  */
 
 void
-dns_compress_disable(dns_compress_t *cctx);
+dns_compress_name(dns_compress_t *cctx, isc_buffer_t *buffer,
+		  const dns_name_t *name, unsigned int *return_prefix,
+		  unsigned int *return_coff);
 /*%<
- *	Disables all name compression in the context. Once disabled,
- *	name compression cannot currently be re-enabled.
+ *	Finds longest suffix matching 'name' in the compression table,
+ *	and adds any remaining prefix of 'name' to the table.
+ *
+ *	This is used by dns_name_towire() for both compressed and uncompressed
+ *	names; for uncompressed names, dns_name_towire() does not need to know
+ *	about the matching suffix, but it still needs to add the name for use
+ *	by later compression pointers. For example, an owner name of a record
+ *	in the additional section will often need to refer back to an RFC 3597
+ *	uncompressed name in the rdata of a record in the answer section.
  *
  *	Requires:
  *\li		'cctx' to be initialized.
- *
- */
-
-void
-dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive);
-
-/*
- *	Preserve the case of compressed domain names.
- *
- *	Requires:
- *		'cctx' to be initialized.
- */
-
-bool
-dns_compress_getsensitive(dns_compress_t *cctx);
-/*
- *	Return whether case is to be preserved when compressing
- *	domain names.
- *
- *	Requires:
- *		'cctx' to be initialized.
- */
-
-bool
-dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
-		  dns_name_t *prefix, uint16_t *offset);
-/*%<
- *	Finds longest possible match of 'name' in the compression table.
- *
- *	Requires:
- *\li		'cctx' to be initialized.
+ *\li		'buffer' contains the rendered message.
  *\li		'name' to be a absolute name.
- *\li		'prefix' to be initialized.
- *\li		'offset' to point to an uint16_t.
+ *\li		'return_prefix' points to an unsigned int.
+ *\li		'return_coff' points to an unsigned int, which must be zero.
  *
  *	Ensures:
- *\li		'prefix' and 'offset' are valid if true is returned.
+ *\li		When no suffix is found, the return variables
+ *              'return_prefix' and 'return_coff' are unchanged
  *
- *	Returns:
- *\li		#true / #false
+ *\li		Otherwise, '*return_prefix' is set to the length of the
+ *		prefix of the name that did not match, and '*suffix_coff'
+ *		is set to a nonzero compression offset of the match.
  */
 
 void
-dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, uint16_t offset);
-/*%<
- *	Add compression pointers for 'name' to the compression table,
- *	not replacing existing pointers.
- *
- *	Requires:
- *\li		'cctx' initialized
- *
- *\li		'name' must be initialized and absolute, and must remain
- *		valid until the message compression is complete.
- *
- *\li		'prefix' must be a prefix returned by
- *		dns_compress_find(), or the same as 'name'.
- */
-
-void
-dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
+dns_compress_rollback(dns_compress_t *cctx, unsigned int offset);
 /*%<
  *	Remove any compression pointers from the table that are >= offset.
  *

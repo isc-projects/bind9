@@ -2493,7 +2493,6 @@ resquery_send(resquery_t *query) {
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_peer_t *peer = NULL;
 	dns_compress_t cctx;
-	bool cleanup_cctx = false;
 	bool useedns;
 	bool secure_domain;
 	bool tcp = ((query->options & DNS_FETCHOPT_TCP) != 0);
@@ -2572,11 +2571,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Convert the question to wire format.
 	 */
-	result = dns_compress_init(&cctx, fctx->res->mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_message;
-	}
-	cleanup_cctx = true;
+	dns_compress_init(&cctx, fctx->res->mctx, 0);
 
 	isc_buffer_init(&buffer, query->data, sizeof(query->data));
 	result = dns_message_renderbegin(fctx->qmessage, &cctx, &buffer);
@@ -2847,9 +2842,6 @@ resquery_send(resquery_t *query) {
 	}
 #endif /* HAVE_DNSTAP */
 
-	dns_compress_invalidate(&cctx);
-	cleanup_cctx = false;
-
 	if (dns_message_gettsigkey(fctx->qmessage) != NULL) {
 		dns_tsigkey_attach(dns_message_gettsigkey(fctx->qmessage),
 				   &query->tsigkey);
@@ -2871,6 +2863,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * We're now done with the query message.
 	 */
+	dns_compress_invalidate(&cctx);
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
 	isc_buffer_usedregion(&buffer, &r);
@@ -2902,9 +2895,7 @@ resquery_send(resquery_t *query) {
 	return (ISC_R_SUCCESS);
 
 cleanup_message:
-	if (cleanup_cctx) {
-		dns_compress_invalidate(&cctx);
-	}
+	dns_compress_invalidate(&cctx);
 
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
@@ -9903,16 +9894,14 @@ rctx_logpacket(respctx_t *rctx) {
 	 * Log the response via dnstap.
 	 */
 	memset(&zr, 0, sizeof(zr));
-	result = dns_compress_init(&cctx, fctx->res->mctx);
+	dns_compress_init(&cctx, fctx->res->mctx, 0);
+	dns_compress_setpermitted(&cctx, false);
+	isc_buffer_init(&zb, zone, sizeof(zone));
+	result = dns_name_towire(fctx->domain, &cctx, &zb);
 	if (result == ISC_R_SUCCESS) {
-		isc_buffer_init(&zb, zone, sizeof(zone));
-		dns_compress_setpermitted(&cctx, false);
-		result = dns_name_towire(fctx->domain, &cctx, &zb);
-		if (result == ISC_R_SUCCESS) {
-			isc_buffer_usedregion(&zb, &zr);
-		}
-		dns_compress_invalidate(&cctx);
+		isc_buffer_usedregion(&zb, &zr);
 	}
+	dns_compress_invalidate(&cctx);
 
 	if ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0) {
 		dtmsgtype = DNS_DTTYPE_FR;

@@ -112,10 +112,8 @@ render_message(dns_message_t **messagep) {
 		message->counts[i] = 0;
 	}
 
-	result = dns_compress_init(&cctx, mctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_compress_init(&cctx, mctx, 0);
+
 	CHECKRESULT(result, dns_message_renderbegin(message, &cctx, &buffer));
 
 	CHECKRESULT(result, dns_message_rendersection(message,

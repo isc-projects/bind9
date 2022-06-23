@@ -109,12 +109,10 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	unsigned char tsigbuf[1024];
 	unsigned int count;
 	unsigned int sigsize = 0;
-	bool invalidate_ctx = false;
 
 	memset(&tsig, 0, sizeof(tsig));
 
-	CHECK(dns_compress_init(&cctx, mctx));
-	invalidate_ctx = true;
+	dns_compress_init(&cctx, mctx, 0);
 
 	tsig.common.rdclass = dns_rdataclass_any;
 	tsig.common.rdtype = dns_rdatatype_tsig;
@@ -169,9 +167,7 @@ cleanup:
 	if (dynbuf != NULL) {
 		isc_buffer_free(&dynbuf);
 	}
-	if (invalidate_ctx) {
-		dns_compress_invalidate(&cctx);
-	}
+	dns_compress_invalidate(&cctx);
 
 	return (result);
 }
@@ -239,8 +235,7 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 		dns_message_setquerytsig(msg, *tsigin);
 	}
 
-	result = dns_compress_init(&cctx, mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 
 	result = dns_message_renderbegin(msg, &cctx, buf);
 	assert_int_equal(result, ISC_R_SUCCESS);

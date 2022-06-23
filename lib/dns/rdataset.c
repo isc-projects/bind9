@@ -525,14 +525,12 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 rollback:
 	if (partial && result == ISC_R_NOSPACE) {
-		INSIST(rrbuffer.used < 65536);
-		dns_compress_rollback(cctx, (uint16_t)rrbuffer.used);
+		dns_compress_rollback(cctx, rrbuffer.used);
 		*countp += added;
 		*target = rrbuffer;
 		goto cleanup;
 	}
-	INSIST(savedbuffer.used < 65536);
-	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
+	dns_compress_rollback(cctx, savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 

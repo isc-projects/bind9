@@ -173,7 +173,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	dns_compress_init(&cctx, mctx);
+	dns_compress_init(&cctx, mctx, 0);
 	result = dns_rdata_towire(rdata, &cctx, &target);
 	dns_compress_invalidate(&cctx);
 
