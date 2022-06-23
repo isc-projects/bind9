@@ -1,3 +1,9 @@
+5931.	[bug]		Fix DiG query error handling robustness in NSSEARCH
+			mode by making sure that udp_ready(), tcp_connected(),
+			and send_done() callbacks start the next query in chain
+			even if there is some kind of error with the previous
+			query. [GL #3419]
+
 5930.	[bug]		Fix DiG query retry and fail-over bug in UDP mode.
 			Also simplify the overall retry and fail-over logic to
 			make it behave predictably, and always respect the
