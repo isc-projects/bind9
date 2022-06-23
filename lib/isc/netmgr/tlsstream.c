@@ -1125,6 +1125,23 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value) {
 	}
 }
 
+void
+isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
+				  uint64_t write_timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlssocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+
+		isc_nmhandle_setwritetimeout(sock->outerhandle, write_timeout);
+	}
+}
+
 const char *
 isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
