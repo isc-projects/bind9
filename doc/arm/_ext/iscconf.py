@@ -173,8 +173,9 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 else:
                     separator = ""
                     paths = ""
+                subgrammar = grammar_grp[0].subgrammar
                 grammar_txt = (
-                    self.isc_name
+                    subgrammar.get("_pprint_name", self.isc_name)
                     + " "
                     + checkgrammar.pformat_grammar(grammar_grp[0].subgrammar, level=1)
                 )
