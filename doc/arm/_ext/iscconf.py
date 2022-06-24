@@ -133,14 +133,14 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 return ".".join(path[1:])
 
             def format_paths(self, paths):
-                zone_types = []
+                zone_types = set()
                 nozone_paths = []
                 for path in paths:
                     try:
                         zone_idx = path.index("zone")
                         zone_type_txt = path[zone_idx + 1]
                         assert zone_type_txt.startswith("type "), zone_type_txt
-                        zone_types.append(zone_type_txt[len("type ") :])
+                        zone_types.add(zone_type_txt[len("type ") :])
                     except (ValueError, IndexError):
                         nozone_paths.append(path)
                 condensed_paths = nozone_paths[:]
