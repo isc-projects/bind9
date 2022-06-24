@@ -6,6 +6,7 @@ libisc_ladir = $(includedir)/isc
 libisc_la_HEADERS =			\
 	include/isc/aes.h		\
 	include/isc/align.h		\
+	include/isc/ascii.h		\
 	include/isc/assertions.h	\
 	include/isc/astack.h		\
 	include/isc/async.h		\
@@ -116,6 +117,7 @@ libisc_la_SOURCES =		\
 	netmgr/tlsdns.c		\
 	netmgr/udp.c		\
 	aes.c			\
+	ascii.c			\
 	assertions.c		\
 	astack.c		\
 	async.c			\

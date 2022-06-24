@@ -13,9 +13,9 @@
 
 /*! \file */
 
-#include <ctype.h>
 #include <stdbool.h>
 
+#include <isc/ascii.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -111,7 +111,6 @@ static unsigned int
 hash(const char *key, bool case_sensitive) {
 	const char *s;
 	unsigned int h = 0;
-	int c;
 
 	/*
 	 * This hash function is similar to the one Ousterhout
@@ -124,9 +123,7 @@ hash(const char *key, bool case_sensitive) {
 		}
 	} else {
 		for (s = key; *s != '\0'; s++) {
-			c = *s;
-			c = tolower((unsigned char)c);
-			h += (h << 3) + c;
+			h += (h << 3) + isc_ascii_tolower(*s);
 		}
 	}
 

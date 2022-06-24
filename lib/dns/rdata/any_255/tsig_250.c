@@ -169,7 +169,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	*bufp-- = 0;
 	*bufp-- = ' ';
 	do {
-		*bufp-- = decdigits[sigtime % 10];
+		*bufp-- = '0' + sigtime % 10;
 		sigtime /= 10;
 	} while (sigtime != 0);
 	bufp++;

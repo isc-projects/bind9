@@ -96,11 +96,10 @@ conv_num(const char **buf, int *dest, int llim, int ulim) {
 	}
 
 	do {
-		result *= 10;
-		result += *(*buf)++ - '0';
+		result = 10 * result + *(*buf)++ - '0';
 		rulim /= 10;
-	} while ((result * 10 <= ulim) && rulim && **buf >= '0' &&
-		 **buf <= '9');
+	} while ((result * 10 <= ulim) && rulim &&
+		 isdigit((unsigned char)**buf));
 
 	if (result < llim || result > ulim) {
 		return (0);

@@ -19,6 +19,7 @@
 
 #include <openssl/objects.h>
 
+#include <isc/ascii.h>
 #include <isc/base64.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
@@ -355,28 +356,20 @@ static dns_name_t const gc_msdcs = DNS_NAME_INITNONABSOLUTE(gc_msdcs_data,
  */
 static int
 locator_pton(const char *src, unsigned char *dst) {
-	static const char xdigits_l[] = "0123456789abcdef",
-			  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_LOCATORSZ];
 	unsigned char *tp = tmp, *endp;
-	const char *xdigits;
 	int ch, seen_xdigits;
-	unsigned int val;
+	unsigned int val, hexval;
 
 	memset(tp, '\0', NS_LOCATORSZ);
 	endp = tp + NS_LOCATORSZ;
 	seen_xdigits = 0;
 	val = 0;
 	while ((ch = *src++) != '\0') {
-		const char *pch;
-
-		pch = strchr((xdigits = xdigits_l), ch);
-		if (pch == NULL) {
-			pch = strchr((xdigits = xdigits_u), ch);
-		}
-		if (pch != NULL) {
+		hexval = isc_hex_char(ch);
+		if (hexval != 0) {
 			val <<= 4;
-			val |= (pch - xdigits);
+			val |= (ch - hexval);
 			if (++seen_xdigits > 4) {
 				return (0);
 			}
@@ -602,9 +595,6 @@ typemap_test(isc_region_t *sr, bool allow_empty) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-static const char hexdigits[] = "0123456789abcdef";
-static const char decdigits[] = "0123456789";
 
 static isc_result_t
 check_private(isc_buffer_t *source, dns_secalg_t alg) {
@@ -1396,8 +1386,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		return (DNS_R_UNKNOWN);
 	}
 
-	a = tolower((unsigned char)source->base[0]);
-	b = tolower((unsigned char)source->base[n - 1]);
+	a = isc_ascii_tolower(source->base[0]);
+	b = isc_ascii_tolower(source->base[n - 1]);
 
 	hash = ((a + n) * b) % 256;
 
@@ -2070,38 +2060,21 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 
 static int
 hexvalue(char value) {
-	const char *s;
-	unsigned char c;
-
-	c = (unsigned char)value;
-
-	if (!isascii(c)) {
+	int hexval = isc_hex_char(value);
+	if (hexval == 0) {
 		return (-1);
+	} else {
+		return (value - hexval);
 	}
-	if (isupper(c)) {
-		c = tolower(c);
-	}
-	if ((s = strchr(hexdigits, c)) == NULL) {
-		return (-1);
-	}
-	return ((int)(s - hexdigits));
 }
 
 static int
 decvalue(char value) {
-	const char *s;
-
-	/*
-	 * isascii() is valid for full range of int values, no need to
-	 * mask or cast.
-	 */
-	if (!isascii(value)) {
+	if (isdigit((unsigned char)value)) {
+		return (value - '0');
+	} else {
 		return (-1);
 	}
-	if ((s = strchr(decdigits, value)) == NULL) {
-		return (-1);
-	}
-	return ((int)(s - decdigits));
 }
 
 static void
