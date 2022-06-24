@@ -9214,14 +9214,19 @@ load_configuration(const char *filename, named_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
+
 		kasp = NULL;
-		CHECK(cfg_kasp_fromconfig(kconfig, NULL, named_g_mctx,
+		CHECK(cfg_kasp_fromconfig(kconfig, default_kasp, named_g_mctx,
 					  named_g_lctx, &kasplist, &kasp));
 		INSIST(kasp != NULL);
 		dns_kasp_freeze(kasp);
-		if (strcmp(dns_kasp_getname(kasp), "default") == 0) {
+
+		/* Insist that the first built-in policy is the default one. */
+		if (default_kasp == NULL) {
+			INSIST(strcmp(dns_kasp_getname(kasp), "default") == 0);
 			dns_kasp_attach(kasp, &default_kasp);
 		}
+
 		dns_kasp_detach(&kasp);
 	}
 	INSIST(default_kasp != NULL);
