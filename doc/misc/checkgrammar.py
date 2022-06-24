@@ -102,6 +102,14 @@ def diff_statements(whole_grammar, places):
 
 def pformat_grammar(node, level=1):
     """Pretty print a given grammar node in the same way as cfg_test would"""
+
+    def sortkey(item):
+        """Treat 'type' specially and always put it first, for zone types"""
+        key, _ = item
+        if key == "type":
+            return ""
+        return key
+
     if "_grammar" in node:  # no nesting
         assert "_id" not in node
         assert "_mapbody" not in node
@@ -118,7 +126,7 @@ def pformat_grammar(node, level=1):
             out += node["_id"] + " "
         out += "{\n"
 
-    for key, subnode in node["_mapbody"].items():
+    for key, subnode in sorted(node["_mapbody"].items(), key=sortkey):
         if not subnode.get("_ignore_this_level"):
             out += f"{indent}{subnode.get('_pprint_name', key)}"
             inner_grammar = pformat_grammar(node["_mapbody"][key], level=level + 1)
