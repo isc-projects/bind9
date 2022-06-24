@@ -134,6 +134,12 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     tags += nodes.Text(", ".join(self.isc_tags))
                     contentnode.insert(0, tags)
 
+                names = self.get_signatures()
+                if len(names) != 1:
+                    raise NotImplementedError(
+                        "statements with more than one name are not supported", names
+                    )
+
         name = domainname
         label = domainlabel
 
