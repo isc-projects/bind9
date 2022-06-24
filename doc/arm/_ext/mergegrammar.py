@@ -46,6 +46,10 @@ def combine():
     assert rest
     rest.update(zones)
 
+    # this is a terrible hack
+    # but cfg_test cannot print zone grammars inside view
+    rest["view"]["_mapbody"].update(zones)
+
     return rest
 
 
