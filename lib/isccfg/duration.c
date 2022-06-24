@@ -61,10 +61,10 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	duration->unlimited = false;
 
 	/* Every duration starts with 'P' */
-	P = strpbrk(str, "Pp");
-	if (P == NULL) {
+	if (toupper(str[0]) != 'P') {
 		return (ISC_R_BADNUMBER);
 	}
+	P = str;
 
 	/* Record the time indicator. */
 	T = strpbrk(str, "Tt");
