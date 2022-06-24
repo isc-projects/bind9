@@ -55,6 +55,7 @@ MANPAGES_RST =				\
 	../../bin/dnssec/dnssec-settime.rst \
 	../../bin/dnssec/dnssec-signzone.rst \
 	../../bin/dnssec/dnssec-verify.rst \
+	../../bin/named/named.conf.rst \
 	../../bin/named/named.rst \
 	../../bin/nsupdate/nsupdate.rst \
 	../../bin/plugins/filter-aaaa.rst \
