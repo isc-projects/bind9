@@ -318,18 +318,6 @@ dnssec-policy \"default\" {\n\
 \n\
 dnssec-policy \"insecure\" {\n\
 	keys { };\n\
-\n\
-	dnskey-ttl " DNS_KASP_KEY_TTL "; \n\
-	publish-safety " DNS_KASP_PUBLISH_SAFETY "; \n\
-	retire-safety " DNS_KASP_RETIRE_SAFETY "; \n\
-	purge-keys " DNS_KASP_PURGE_KEYS "; \n\
-	signatures-refresh " DNS_KASP_SIG_REFRESH "; \n\
-	signatures-validity " DNS_KASP_SIG_VALIDITY "; \n\
-	signatures-validity-dnskey " DNS_KASP_SIG_VALIDITY_DNSKEY "; \n\
-	max-zone-ttl " DNS_KASP_ZONE_MAXTTL "; \n\
-	zone-propagation-delay " DNS_KASP_ZONE_PROPDELAY "; \n\
-	parent-ds-ttl " DNS_KASP_DS_TTL "; \n\
-	parent-propagation-delay " DNS_KASP_PARENT_PROPDELAY "; \n\
 };\n\
 \n\
 "

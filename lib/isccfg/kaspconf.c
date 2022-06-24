@@ -511,9 +511,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-	} else if (default_kasp && strcmp(kaspname, "insecure") != 0) {
+	} else if (default_kasp) {
 		dns_kasp_key_t *key, *new_key;
-
 		/*
 		 * If there are no specific keys configured in the policy,
 		 * inherit from the default policy (except for the built-in
