@@ -65,7 +65,7 @@ running BIND 9 in a "jail," and securing file transfers and dynamic updates.
 :ref:`dnssec` describes the theory and practice of cryptographic authentication of DNS
 information. The :ref:`dnssec_guide` is a practical guide to implementing DNSSEC.
 
-:ref:`Reference` gives exhaustive descriptions of all supported clauses, statements, 
+:ref:`Reference` gives exhaustive descriptions of all supported blocks, statements, 
 and grammars used in BIND 9's ``named.conf`` configuration file.
 
 :ref:`troubleshooting` provides information on identifying and solving BIND 9 and DNS

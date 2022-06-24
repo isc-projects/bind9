@@ -33,6 +33,7 @@ with the BIND source code, in the directory
 
 Configuring DynDB
 ~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: dyndb
 
 A DynDB database is configured with a ``dyndb`` statement in
 :iscman:`named.conf`:

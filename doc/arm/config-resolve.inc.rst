@@ -93,7 +93,7 @@ Resolver and Forwarding Resolver
    can be used by rogue actors to cause all kinds of problems including
    **Denial of Service (DoS)** attacks. Resolvers should always be configured
    to limit the IP addresses that can use their services. BIND 9 provides a
-   number of statements and clauses to simplify defining these IP limits and
+   number of statements and blocks to simplify defining these IP limits and
    configuring a **closed resolver**. The resolver samples given here all
    configure closed resolvers using a variety of techniques.
 
@@ -158,7 +158,6 @@ file is named ``192.168.254.rev`` and has a zone name of
 **254.168.192.in-addr.arpa**.
 
 .. code-block::
-	:linenos:
 
 	; reverse map zone file for 192.168.254.4 only
 	$TTL 2d  ; 172800 seconds
@@ -186,7 +185,6 @@ The resolver provides :ref:`recursive query support<recursive_query>` to a defin
 It is therefore a **closed** resolver and cannot be used in wider network attacks.
 
 .. code-block:: c
-        :linenos:
 
         // resolver named.conf file
         // Two corporate subnets we wish to allow queries from
@@ -264,7 +262,7 @@ It is therefore a **closed** resolver and cannot be used in wider network attack
           notify no;
         };
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` clauses, and the
+The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and
 :ref:`type<type>` statements are described in detail in the appropriate
@@ -303,7 +301,6 @@ A second configuration in which selective forwarding occurs :ref:`is also
 provided<selective_forward_sample>`.
 
 .. code-block:: c
-        :linenos:
 
         // forwarding named.conf file
         // Two corporate subnets we wish to allow queries from
@@ -383,7 +380,7 @@ provided<selective_forward_sample>`.
           notify no;
         };
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` clauses, and the
+The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
 :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
@@ -418,7 +415,6 @@ from the forwarded resolvers.  The configuration is closed, in that it defines
 those IPs from which it will accept recursive queries.
 
 .. code-block:: c
-        :linenos:
 
         // selective forwarding named.conf file
         // Two corporate subnets we wish to allow queries from
@@ -511,7 +507,7 @@ those IPs from which it will accept recursive queries.
         };
 
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` clauses, and the
+The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
 :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
@@ -567,4 +563,4 @@ and discard the rest.
 
 For more detail on ordering responses, refer to the
 :ref:`rrset-order<rrset_ordering>` statement in the
-:ref:`options<options_grammar>` clause.
+:ref:`options<options_grammar>` block.

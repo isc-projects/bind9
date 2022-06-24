@@ -34,6 +34,7 @@ functionality.
 
 Configuring Plugins
 ~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: plugin
 
 A plugin is configured with the ``plugin`` statement in :iscman:`named.conf`:
 
