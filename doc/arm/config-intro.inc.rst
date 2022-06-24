@@ -19,8 +19,8 @@ Configurations and Zone Files
 Introduction
 ------------
 
-BIND 9 uses a single configuration file called :iscman:`named.conf`.
-:iscman:`named.conf` is typically located in either /etc/namedb or
+BIND 9 uses a single configuration file called :ref:`named.conf <named_conf>`.
+which is typically located in either /etc/namedb or
 /usr/local/etc/namedb.
 
    .. Note:: If :ref:`rndc<ops_rndc>` is being used locally (on the same host
@@ -47,7 +47,6 @@ This file illustrates the typical format and layout style used for
 as required by the user.
 
 .. code-block:: c
-        :linenos:
 
         // base named.conf file
         // Recommended that you always maintain a change log in this file as shown here
@@ -79,7 +78,7 @@ as required by the user.
           };
         };
 
-The :ref:`logging<logging_grammar>` and :ref:`options<options_grammar>` clauses
+The :ref:`logging<logging_grammar>` and :ref:`options<options_grammar>` blocks
 and :ref:`category<the_category_phrase>`, :ref:`channel<channel>`,
 :ref:`directory<directory>`, :ref:`file<file>`, and :ref:`severity<severity>`
 statements are all described further in the appropriate sections of this ARM.
@@ -175,7 +174,6 @@ completeness and provides for both IPv4 and IPv6 localhost resolution. The zone
 (domain) name is **localhost.**
 
 .. code-block::
-        :linenos:
 
         $TTL 3h
         localhost.  SOA      localhost.  nobody.localhost. 42  1d  12h  1w  3h
@@ -195,7 +193,6 @@ from reaching the public DNS hierarchy. The BIND 9 distribution file
 ``localhost.rev`` is shown for completeness:
 
 .. code-block::
-        :linenos:
 
         $TTL 1D
         @        IN        SOA  localhost. root.localhost. (

@@ -101,7 +101,6 @@ The zone files are unmodified :ref:`from the base samples<base_zone_file>` but
 the :iscman:`named.conf` file has been modified as shown:
 
 .. code-block:: c
-        :linenos:
 
         // authoritative primary named.conf file
         // options clause defining the server-wide properties
@@ -167,10 +166,10 @@ the :iscman:`named.conf` file has been modified as shown:
           };
         };
 
-The added statements and clauses are commented in the above file.
+The added statements and blocks are commented in the above file.
 
-The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
-:ref:`allow-query-cache<allow-query-cache>`,
+The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
+:any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
 statements are described in detail in the appropriate sections.
@@ -183,10 +182,9 @@ Secondary Authoritative Name Server
 The zone files ``local-host-forward.db`` and ``localhost.rev`` are unmodified
 :ref:`from the base samples<base_zone_file>`. The **example.com** zone file is
 not required (the zone file is obtained from the primary via zone transfer).
-The :iscman:`named.conf` file has been modified as shown:
+The :ref:`named.conf<named_conf>` file has been modified as shown:
 
 .. code-block:: c
-        :linenos:
 
         // authoritative secondary named.conf file
         // options clause defining the server-wide properties
@@ -250,17 +248,17 @@ The :iscman:`named.conf` file has been modified as shown:
           primaries { 192.168.254.2; };
         };
 
-The statements and clauses added are all commented in the above file.
+The statements and blocks added are all commented in the above file.
 
-The :ref:`zone<zone_clause>` clause, and :ref:`allow-query<allow-query>`,
-:ref:`allow-query-cache<allow-query-cache>`,
+The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
+:any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`primaries<primaries>`,
 :ref:`recursion<recursion>`, and :ref:`type<type>` statements are described in
 detail in the appropriate sections.
 
 If NOTIFY is not being used, no changes are required in this
-:iscman:`named.conf` file, since it is the primary that initiates the NOTIFY
+:ref:`named.conf<named_conf>` file, since it is the primary that initiates the NOTIFY
 message.
 
 .. note::
@@ -268,5 +266,5 @@ message.
    can get more complicated.  A secondary zone can also be a primary to other
    secondaries: :iscman:`named`, by default, sends NOTIFY messages for every
    zone it loads.  Specifying :ref:`notify primary-only;<notify>` in the
-   :ref:`zone<zone_clause>` clause for the secondary causes :iscman:`named` to
+   :ref:`zone<zone_clause>` block for the secondary causes :iscman:`named` to
    only send NOTIFY messages for primary zones that it loads.

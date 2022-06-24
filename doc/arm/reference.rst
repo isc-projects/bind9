@@ -14,89 +14,187 @@
 Configuration Reference
 =======================
 
-.. _configuration_file_elements:
+The operational functionality of BIND 9 is defined using the file
+**named.conf**, which is typically located in /etc or /usr/local/etc/namedb,
+depending on the operating system or distribution. A further file **rndc.conf**
+will be present if **rndc** is being run from a remote host, but is not required
+if rndc is being run from **localhost** (the same system as BIND 9 is running
+on).
 
-Configuration File Elements
----------------------------
+.. _named_conf:
 
-Following is a list of elements used throughout the BIND configuration
-file documentation:
+Configuration File (named.conf)
+-------------------------------
+
+The file :file:`named.conf` may contain three types of entities:
 
 .. glossary::
 
-    ``acl_name``
-        The name of an ``address_match_list`` as defined by the ``acl`` statement.
+   Comment
+      :ref:`Multiple comment formats are supported <comment_syntax>`.
 
-    ``address_match_list``
-        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
+   Block
+      :ref:`Blocks <configuration_blocks>` are containers for :term:`statements
+      <statement>` which either have common functionality - for example,
+      the definition of a cryptographic key in a :namedconf:ref:`key` block - or which
+      define the scope of the statement - for example, a statement which appears
+      in a :namedconf:ref:`zone` block has scope only for that zone.
 
-    ``remoteserver_list``
-        A named list of one or more ``ip_addr`` with optional ``tls_id``, ``key_id`` and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list``.
+   Statement
+      - Statements define and control specific BIND behaviors.
+      - Statements may have a single parameter (a **Value**) or multiple parameters
+        (**Argument/Value** pairs). For example, the :any:`recursion` statement takes a
+        single value parameter which, in this case, is the string ``yes`` or ``no``
+        (``recursion yes;``) whereas the :any:`port` statement takes a  numeric value
+        defining the DNS port number (``port 53;``). More complex statements take one or
+        more argument/value pairs. The :any:`also-notify` statement may take a number
+        of such argument/value pairs, such as ``also-notify port 5353;``,
+        where ``port`` is the argument and ``5353`` is the corresponding value.
+      - Statements can appear in a single :term:`block` - for
+        example, an :namedconf:ref:`algorithm` statement can appear only in a
+        :namedconf:ref:`key` block - or in multiple blocks - for example, an
+        :any:`also-notify` statement can appear in an :namedconf:ref:`options`
+        block where it has global (server-wide) scope, in a :any:`zone`
+        block where it has scope only for the specific zone (and overrides
+        any global statement), or even in a :any:`view` block where it has
+        scope for only that view (and overrides any global statement).
 
-    ``domain_name``
-        A quoted string which is used as a DNS name; for example. ``my.test.domain``.
+The file :file:`named.conf` may further contain one or more instances of the
+:ref:`include <include_grammar>` **Directive**. This directive is provided for
+administrative convenience in assembling a complete :file:`named.conf` file and plays
+no subsequent role in BIND 9 operational characteristics or functionality.
 
-    ``namelist``
-        A list of one or more ``domain_name`` elements.
+.. Note::
+   Over a period of many years the BIND ARM acquired a bewildering array of
+   terminology. Many of the terms used described similar concepts and served
+   only to add a layer of complexity, possibly confusion, and perhaps mystique
+   to BIND 9 configuration. The ARM now uses only the terms **Block**,
+   **Statement**, **Argument**, **Value**, and **Directive** to describe all
+   entities used in BIND 9 configuration.
 
-    ``dotted_decimal``
-        One to four integers valued 0 through 255 separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
+.. _comment_syntax:
 
-    ``ip4_addr``
-        An IPv4 address with exactly four elements in ``dotted_decimal`` notation.
+Comment Syntax
+~~~~~~~~~~~~~~
 
-    ``ip6_addr``
-        An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
+The BIND 9 comment syntax allows comments to appear anywhere that
+whitespace may appear in a BIND configuration file. To appeal to
+programmers of all kinds, they can be written in the C, C++, or
+shell/Perl style.
 
-    ``ip_addr``
-        An ``ip4_addr`` or ``ip6_addr``.
+Syntax
+^^^^^^
 
-    ``ip_dscp``
-        A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+.. code-block:: none
 
-    ``ip_port``
-        An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
+   /* This is a BIND comment as in C */
 
-    ``ip_prefix``
-        An IP network specified as an ``ip_addr``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_addr`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0``with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
-        When specifying a prefix involving a IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
+.. code-block:: none
 
-    ``key_id``
-        A ``domain_name`` representing the name of a shared key, to be used for transaction security.
+   // This is a BIND comment as in C++
 
-    ``key_list``
-        A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
+.. code-block:: none
 
-    ``tls_id``
-        A string representing a TLS configuration object, including a key and certificate.
+   # This is a BIND comment as in common Unix shells
+   # and Perl
 
-    ``number``
-        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
+Definition and Usage
+^^^^^^^^^^^^^^^^^^^^
 
-    ``fixedpoint``
-        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
+Comments can be inserted anywhere that whitespace may appear in a BIND
+configuration file.
 
-    ``path_name``
-        A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
+C-style comments start with the two characters /\* (slash, star) and end
+with \*/ (star, slash). Because they are completely delimited with these
+characters, they can be used to comment only a portion of a line or to
+span multiple lines.
 
-    ``port_list``
-        A list of an ``ip_port`` or a port range. A port range is specified in the form of ``range`` followed by two ``ip_port``s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. In either case an asterisk (``*``) character is not allowed as a valid ``ip_port``.
+C-style comments cannot be nested. For example, the following is not
+valid because the entire comment ends with the first \*/:
 
-    ``size_spec``
-        A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as ``max-journal-size``) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
-        ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
-        ``default`` uses the limit that was in force when the server was started.
+.. code-block:: none
 
-    ``size_or_percent``
-         A ``size_spec`` or integer value followed by ``%`` to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the ``%`` sign to represent percent.
+   /* This is the start of a comment.
+      This is still part of the comment.
+   /* This is an incorrect attempt at nesting a comment. */
+      This is no longer in any comment. */
 
-    ``yes_or_no``
-        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
+C++-style comments start with the two characters // (slash, slash) and
+continue to the end of the physical line. They cannot be continued
+across multiple physical lines; to have one logical comment span
+multiple lines, each line must use the // pair. For example:
 
-    ``dialup_option``
-        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
+.. code-block:: none
+
+   // This is the start of a comment.  The next line
+   // is a new comment, even though it is logically
+   // part of the previous comment.
+
+Shell-style (or Perl-style) comments start with the
+character ``#`` (number/pound sign) and continue to the end of the physical
+line, as in C++ comments. For example:
+
+.. code-block:: none
+
+   # This is the start of a comment.  The next line
+   # is a new comment, even though it is logically
+   # part of the previous comment.
+
+.. warning::
+
+   The semicolon (``;``) character cannot start a comment, unlike
+   in a zone file. The semicolon indicates the end of a
+   configuration statement.
+
+Configuration Layout Styles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BIND is very picky about opening and closing brackets/braces, semicolons, and
+all the other separators defined in the formal syntaxes in later sections.
+There are many layout styles that can assist in minimizing errors, as shown in
+the following examples:
+
+.. code-block:: none
+
+	// dense single-line style
+	zone "example.com" in{type secondary; file "secondary.example.com"; primaries {10.0.0.1;};};
+	//  single-statement-per-line style
+	zone "example.com" in{
+		type secondary;
+		file "secondary.example.com";
+		primaries {10.0.0.1;};
+	};
+	// spot the difference
+	zone "example.com" in{
+		type secondary;
+	file "sec.secondary.com";
+	primaries {10.0.0.1;}; };
+
+.. _include_grammar:
+
+``include`` Directive
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+
+   include filename;
+
+.. _include_statement:
+
+``include`` Directive Definition and Usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The include directive inserts the specified file (or files if a valid `glob
+expression`_ is detected) at the point where the include directive is
+encountered. The include directive facilitates the administration of
+configuration files by permitting the reading or writing of some things but not
+others. For example, the statement could include private keys that are readable
+only by the name server.
+
+.. _`glob expression`: https://man7.org/linux/man-pages/man7/glob.7.html
 
 .. _address_match_lists:
+.. _address_match_list:
 
 Address Match Lists
 ~~~~~~~~~~~~~~~~~~~
@@ -169,93 +267,98 @@ matches any lookup for 1.2.3.13 to the 1.2.3/24 element. Using
 ``! 1.2.3.13; 1.2.3/24`` fixes that problem by blocking 1.2.3.13
 via the negation, but all other 1.2.3.\* hosts pass through.
 
-.. _comment_syntax:
 
-Comment Syntax
-~~~~~~~~~~~~~~
+Glossary of Terms Used
+~~~~~~~~~~~~~~~~~~~~~~
 
-The BIND 9 comment syntax allows comments to appear anywhere that
-whitespace may appear in a BIND configuration file. To appeal to
-programmers of all kinds, they can be written in the C, C++, or
-shell/perl style.
+Following is a list of terms used throughout the BIND configuration
+file documentation:
 
-Syntax
-^^^^^^
+.. glossary::
 
-::
+    ``acl_name``
+        The name of an ``address_match_list`` as defined by the ``acl`` statement.
 
-   /* This is a BIND comment as in C */
+    ``address_match_list``
+        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
 
-::
+    ``remoteserver_list``
+        A named list of one or more ``ip_addr`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list`` s.
 
-   // This is a BIND comment as in C++
+    ``domain_name``
+        A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-::
+    ``namelist``
+        A list of one or more ``domain_name`` elements.
 
-   # This is a BIND comment as in common Unix shells
-   # and perl
+    ``dotted_decimal``
+        One to four integers valued 0 through 255 and separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
 
-Definition and Usage
-^^^^^^^^^^^^^^^^^^^^
+    ``ip4_addr``
+        An IPv4 address with exactly four elements in ``dotted_decimal`` notation, such as ``192.168.1.1``.
 
-Comments may appear anywhere that whitespace may appear in a BIND
-configuration file.
+    ``ip6_addr``
+        An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
-C-style comments start with the two characters /\* (slash, star) and end
-with \*/ (star, slash). Because they are completely delimited with these
-characters, they can be used to comment only a portion of a line or to
-span multiple lines.
+    ``ip_addr``
+        An ``ip4_addr`` or ``ip6_addr``.
 
-C-style comments cannot be nested. For example, the following is not
-valid because the entire comment ends with the first \*/:
+    ``ip_dscp``
+        A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
 
-::
+    ``ip_port``
+        An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
-   /* This is the start of a comment.
-      This is still part of the comment.
-   /* This is an incorrect attempt at nesting a comment. */
-      This is no longer in any comment. */
+    ``ip_prefix``
+        An IP network specified as an ``ip_addr``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_addr`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
+        When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
-C++-style comments start with the two characters // (slash, slash) and
-continue to the end of the physical line. They cannot be continued
-across multiple physical lines; to have one logical comment span
-multiple lines, each line must use the // pair. For example:
+    ``key_id``
+        A ``domain_name`` representing the name of a shared key, to be used for transaction security.
 
-::
+    ``key_list``
+        A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
 
-   // This is the start of a comment.  The next line
-   // is a new comment, even though it is logically
-   // part of the previous comment.
+    ``tls_id``
+        A string representing a TLS configuration object, including a key and certificate.
 
-Shell-style (or perl-style) comments start with the
-character ``#`` (number sign) and continue to the end of the physical
-line, as in C++ comments. For example:
+    ``number``
+        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
 
-::
+    ``fixedpoint``
+        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
-   # This is the start of a comment.  The next line
-   # is a new comment, even though it is logically
-   # part of the previous comment.
+    ``path_name``
+        A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
 
-..
+    ``port_list``
+        A list of an ``ip_port`` or a port range. A port range is specified in the form of ``range`` followed by two ``ip_port`` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid ``ip_port`` or as a port range boundary.
 
-.. warning::
+    ``size_spec``
+        A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as ``max-journal-size``) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
+        ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
+        ``default`` uses the limit that was in force when the server was started.
 
-   The semicolon (``;``) character cannot start a comment, unlike
-   in a zone file. The semicolon indicates the end of a
-   configuration statement.
+    ``size_or_percent``
+         A ``size_spec`` or integer value followed by ``%`` to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the ``%`` sign to indicate a percentage.
+
+    ``yes_or_no``
+        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
+
+    ``dialup_option``
+        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
+
 
 .. _configuration_file_grammar:
 
-Configuration File Grammar
---------------------------
+.. _configuration_blocks:
 
-A BIND 9 configuration consists of statements and comments. Statements
-end with a semicolon; statements and comments are the only elements that
-can appear without enclosing braces. Many statements contain a block of
-sub-statements, which are also terminated with a semicolon.
+Blocks
+------
 
-The following statements are supported:
+A BIND 9 configuration consists of blocks, statements, and comments.
+
+The following blocks are supported:
 
     ``acl``
         Defines a named IP address matching list, for access control and other uses.
@@ -264,10 +367,7 @@ The following statements are supported:
         Declares control channels to be used by the :iscman:`rndc` utility.
 
     ``dnssec-policy``
-        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for details.
-
-    ``include``
-        Includes a file.
+        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec_policy_grammar` for details.
 
     ``key``
         Specifies key information for use in authentication and authorization using TSIG.
@@ -326,6 +426,8 @@ configuration.
 ``acl`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. namedconf:statement:: acl
+
 .. include:: ../misc/acl.grammar.rst
 
 .. _acl:
@@ -355,6 +457,7 @@ The following ACLs are built-in:
 
 ``controls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: controls
 
 .. include:: ../misc/controls.grammar.rst
 
@@ -368,41 +471,52 @@ system administrators to manage the operation of the name server. These
 control channels are used by the :iscman:`rndc` utility to send commands to
 and retrieve non-DNS results from a name server.
 
-An ``inet`` control channel is a TCP socket listening at the specified
-``ip_port`` on the specified ``ip_addr``, which can be an IPv4 or IPv6
-address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
-wildcard address; connections are accepted on any of the system's
-IPv4 addresses. To listen on the IPv6 wildcard address, use an
-``ip_addr`` of ``::``. If :iscman:`rndc` is only used on the local host,
-using the loopback address (``127.0.0.1`` or ``::1``) is recommended for
-maximum security.
+.. namedconf:statement:: unix
 
-If no port is specified, port 953 is used. The asterisk ``*`` cannot
-be used for ``ip_port``.
+   A ``unix`` control channel is a Unix domain socket listening at the
+   specified path in the file system. Access to the socket is specified by
+   the ``perm``, ``owner``, and ``group`` clauses. Note that on some platforms
+   (SunOS and Solaris), the permissions (``perm``) are applied to the parent
+   directory as the permissions on the socket itself are ignored.
 
-The ability to issue commands over the control channel is restricted by
-the ``allow`` and ``keys`` clauses. Connections to the control channel
-are permitted based on the ``address_match_list``. This is for simple IP
-address-based filtering only; any ``key_id`` elements of the
-``address_match_list`` are ignored.
 
-A ``unix`` control channel is a Unix domain socket listening at the
-specified path in the file system. Access to the socket is specified by
-the ``perm``, ``owner``, and ``group`` clauses. Note that on some platforms
-(SunOS and Solaris), the permissions (``perm``) are applied to the parent
-directory as the permissions on the socket itself are ignored.
+.. namedconf:statement:: inet
 
-The primary authorization mechanism of the command channel is the
-``key_list``, which contains a list of ``key_id``s. Each ``key_id`` in
-the ``key_list`` is authorized to execute commands over the control
-channel. See :ref:`admin_tools` for information about
-configuring keys in :iscman:`rndc`.
+   An ``inet`` control channel is a TCP socket listening at the specified
+   ``ip_port`` on the specified ``ip_addr``, which can be an IPv4 or IPv6
+   address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
+   wildcard address; connections are accepted on any of the system's
+   IPv4 addresses. To listen on the IPv6 wildcard address, use an
+   ``ip_addr`` of ``::``. If :iscman:`rndc` is only used on the local host,
+   using the loopback address (``127.0.0.1`` or ``::1``) is recommended for
+   maximum security.
 
-If the ``read-only`` clause is enabled, the control channel is limited
-to the following set of read-only commands: ``nta -dump``, ``null``,
-``status``, ``showzone``, ``testgen``, and ``zonestatus``. By default,
-``read-only`` is not enabled and the control channel allows read-write
-access.
+   If no port is specified, port 953 is used. The asterisk ``*`` cannot
+   be used for ``ip_port``.
+
+   The ability to issue commands over the control channel is restricted by
+   the ``allow`` and ``keys`` clauses.
+
+   ``allow``
+      Connections to the control channel
+      are permitted based on the ``address_match_list``. This is for simple IP
+      address-based filtering only; any ``key_id`` elements of the
+      ``address_match_list`` are ignored.
+
+   ``keys``
+      The primary authorization mechanism of the command channel is the
+      ``key_list``, which contains a list of ``key_id``s. Each ``key_id`` in
+      the ``key_list`` is authorized to execute commands over the control
+      channel. See :ref:`admin_tools` for information about
+      configuring keys in :iscman:`rndc`.
+
+
+``read-only``
+   If the ``read-only`` argument is ``on``, the control channel is limited
+   to the following set of read-only commands: ``nta -dump``, ``null``,
+   ``status``, ``showzone``, ``testgen``, and ``zonestatus``. By default,
+   ``read-only`` is not enabled and the control channel allows read-write
+   access.
 
 If no ``controls`` statement is present, :iscman:`named` sets up a default
 control channel listening on the loopback address 127.0.0.1 and its IPv6
@@ -414,31 +528,12 @@ To create an ``rndc.key`` file, run :option:`rndc-confgen -a`.
 To disable the command channel, use an empty ``controls`` statement:
 ``controls { };``.
 
-.. _include_grammar:
-
-``include`` Statement Grammar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-   include filename;
-
-.. _include_statement:
-
-``include`` Statement Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``include`` statement inserts the specified file (or files if a valid glob
-expression is detected) at the point where the ``include`` statement is
-encountered. The ``include`` statement facilitates the administration of
-configuration files by permitting the reading or writing of some things but not
-others. For example, the statement could include private keys that are readable
-only by the name server.
 
 .. _key_grammar:
 
 ``key`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: key
 
 .. include:: ../misc/key.grammar.rst
 
@@ -462,18 +557,25 @@ requests sent to that server to be signed with this key, or in address
 match lists to verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.
 
-The ``algorithm_id`` is a string that specifies a security/authentication
-algorithm. The :iscman:`named` server supports ``hmac-md5``, ``hmac-sha1``,
-``hmac-sha224``, ``hmac-sha256``, ``hmac-sha384``, and ``hmac-sha512``
-TSIG authentication. Truncated hashes are supported by appending the
-minimum number of required bits preceded by a dash, e.g.,
-``hmac-sha1-80``. The ``secret_string`` is the secret to be used by the
-algorithm, and is treated as a Base64-encoded string.
+.. namedconf:statement:: algorithm
+
+   The ``algorithm_id`` is a string that specifies a security/authentication
+   algorithm. The :iscman:`named` server supports ``hmac-md5``, ``hmac-sha1``,
+   ``hmac-sha224``, ``hmac-sha256``, ``hmac-sha384``, and ``hmac-sha512``
+   TSIG authentication. Truncated hashes are supported by appending the
+   minimum number of required bits preceded by a dash, e.g.,
+   ``hmac-sha1-80``.
+
+.. namedconf:statement:: secret
+
+   The ``secret_string`` is the secret to be used by the
+   algorithm, and is treated as a Base64-encoded string.
 
 .. _logging_grammar:
 
 ``logging`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: logging
 
 .. include:: ../misc/logging.grammar.rst
 
@@ -520,6 +622,7 @@ specified.
 
 The ``channel`` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^
+.. namedconf:statement:: channel
 
 All log output goes to one or more ``channels``; there is no limit to
 the number of channels that can be created.
@@ -532,84 +635,93 @@ by the channel (the default is ``info``), and whether to include a
 :iscman:`named`-generated time stamp, the category name, and/or the severity level
 (the default is not to include any).
 
-The ``null`` destination clause causes all messages sent to the channel
-to be discarded; in that case, other options for the channel are
-meaningless.
+.. namedconf:statement:: null
 
-The ``file`` destination clause directs the channel to a disk file. It
-can include additional arguments to specify how large the file is
-allowed to become before it is rolled to a backup file (``size``), how
-many backup versions of the file are saved each time this happens
-(``versions``), and the format to use for naming backup versions
-(``suffix``).
+   The ``null`` destination clause causes all messages sent to the channel
+   to be discarded; in that case, other options for the channel are
+   meaningless.
 
-The ``size`` option is used to limit log file growth. If the file ever
-exceeds the specified size, then :iscman:`named` stops writing to the file
-unless it has a ``versions`` option associated with it. If backup
-versions are kept, the files are rolled as described below. If there is
-no ``versions`` option, no more data is written to the log until
-some out-of-band mechanism removes or truncates the log to less than the
-maximum size. The default behavior is not to limit the size of the file.
+``file``
+   The ``file`` destination clause directs the channel to a disk file. It
+   can include additional arguments to specify how large the file is
+   allowed to become before it is rolled to a backup file (``size``), how
+   many backup versions of the file are saved each time this happens
+   (``versions``), and the format to use for naming backup versions
+   (``suffix``).
 
-File rolling only occurs when the file exceeds the size specified with
-the ``size`` option. No backup versions are kept by default; any
-existing log file is simply appended. The ``versions`` option specifies
-how many backup versions of the file should be kept. If set to
-``unlimited``, there is no limit.
+   The ``size`` option is used to limit log file growth. If the file ever
+   exceeds the specified size, then :iscman:`named` stops writing to the file
+   unless it has a ``versions`` option associated with it. If backup
+   versions are kept, the files are rolled as described below. If there is
+   no ``versions`` option, no more data is written to the log until
+   some out-of-band mechanism removes or truncates the log to less than the
+   maximum size. The default behavior is not to limit the size of the file.
 
-The ``suffix`` option can be set to either ``increment`` or
-``timestamp``. If set to ``timestamp``, then when a log file is rolled,
-it is saved with the current timestamp as a file suffix. If set to
-``increment``, then backup files are saved with incrementing numbers as
-suffixes; older files are renamed when rolling. For example, if
-``versions`` is set to 3 and ``suffix`` to ``increment``, then when
-``filename.log`` reaches the size specified by ``size``,
-``filename.log.1`` is renamed to ``filename.log.2``, ``filename.log.0``
-is renamed to ``filename.log.1``, and ``filename.log`` is renamed to
-``filename.log.0``, whereupon a new ``filename.log`` is opened.
+   File rolling only occurs when the file exceeds the size specified with
+   the ``size`` option. No backup versions are kept by default; any
+   existing log file is simply appended. The ``versions`` option specifies
+   how many backup versions of the file should be kept. If set to
+   ``unlimited``, there is no limit.
 
-Here is an example using the ``size``, ``versions``, and ``suffix`` options:
+   The ``suffix`` option can be set to either ``increment`` or
+   ``timestamp``. If set to ``timestamp``, then when a log file is rolled,
+   it is saved with the current timestamp as a file suffix. If set to
+   ``increment``, then backup files are saved with incrementing numbers as
+   suffixes; older files are renamed when rolling. For example, if
+   ``versions`` is set to 3 and ``suffix`` to ``increment``, then when
+   ``filename.log`` reaches the size specified by ``size``,
+   ``filename.log.1`` is renamed to ``filename.log.2``, ``filename.log.0``
+   is renamed to ``filename.log.1``, and ``filename.log`` is renamed to
+   ``filename.log.0``, whereupon a new ``filename.log`` is opened.
 
-::
+   Here is an example using the ``size``, ``versions``, and ``suffix`` options:
 
-   channel an_example_channel {
-       file "example.log" versions 3 size 20m suffix increment;
-       print-time yes;
-       print-category yes;
-   };
+   ::
 
-The ``syslog`` destination clause directs the channel to the system log.
-Its argument is a syslog facility as described in the ``syslog`` man
-page. Known facilities are ``kern``, ``user``, ``mail``, ``daemon``,
-``auth``, ``syslog``, ``lpr``, ``news``, ``uucp``, ``cron``,
-``authpriv``, ``ftp``, ``local0``, ``local1``, ``local2``, ``local3``,
-``local4``, ``local5``, ``local6``, and ``local7``; however, not all
-facilities are supported on all operating systems. How ``syslog`` 
-handles messages sent to this facility is described in the
-``syslog.conf`` man page. On a system which uses a very old
-version of ``syslog``, which only uses two arguments to the ``openlog()``
-function, this clause is silently ignored.
+      channel an_example_channel {
+          file "example.log" versions 3 size 20m suffix increment;
+          print-time yes;
+          print-category yes;
+      };
+
+.. namedconf:statement:: syslog
+
+   The ``syslog`` destination clause directs the channel to the system log.
+   Its argument is a syslog facility as described in the ``syslog`` man
+   page. Known facilities are ``kern``, ``user``, ``mail``, ``daemon``,
+   ``auth``, ``syslog``, ``lpr``, ``news``, ``uucp``, ``cron``,
+   ``authpriv``, ``ftp``, ``local0``, ``local1``, ``local2``, ``local3``,
+   ``local4``, ``local5``, ``local6``, and ``local7``; however, not all
+   facilities are supported on all operating systems. How ``syslog``
+   handles messages sent to this facility is described in the
+   ``syslog.conf`` man page. On a system which uses a very old
+   version of ``syslog``, which only uses two arguments to the ``openlog()``
+   function, this clause is silently ignored.
 
 .. _severity:
 
-The ``severity`` clause works like ``syslog``'s "priorities," except
-that they can also be used when writing straight to a file rather
-than using ``syslog``. Messages which are not at least of the severity
-level given are not selected for the channel; messages of higher
-severity levels are accepted.
+.. namedconf:statement:: severity
 
-When using ``syslog``, the ``syslog.conf`` priorities
-also determine what eventually passes through. For example, defining a
-channel facility and severity as ``daemon`` and ``debug``, but only
-logging ``daemon.warning`` via ``syslog.conf``, causes messages of
-severity ``info`` and ``notice`` to be dropped. If the situation were
-reversed, with :iscman:`named` writing messages of only ``warning`` or higher,
-then ``syslogd`` would print all messages it received from the channel.
+   The ``severity`` clause works like ``syslog``'s "priorities," except
+   that they can also be used when writing straight to a file rather
+   than using ``syslog``. Messages which are not at least of the severity
+   level given are not selected for the channel; messages of higher
+   severity levels are accepted.
 
-The ``stderr`` destination clause directs the channel to the server's
-standard error stream. This is intended for use when the server is
-running as a foreground process, as when debugging a
-configuration, for example.
+   When using ``syslog``, the ``syslog.conf`` priorities
+   also determine what eventually passes through. For example, defining a
+   channel facility and severity as ``daemon`` and ``debug``, but only
+   logging ``daemon.warning`` via ``syslog.conf``, causes messages of
+   severity ``info`` and ``notice`` to be dropped. If the situation were
+   reversed, with :iscman:`named` writing messages of only ``warning`` or higher,
+   then ``syslogd`` would print all messages it received from the channel.
+
+.. namedconf:statement:: stderr
+
+   The ``stderr`` destination clause directs the channel to the server's
+   standard error stream. This is intended for use when the server is
+   running as a foreground process, as when debugging a
+   configuration, for example.
 
 The server can supply extensive debugging information when it is in
 debugging mode. If the server's global debug level is greater than zero,
@@ -633,29 +745,40 @@ debugging mode, regardless of the global debugging level. Channels with
 ``dynamic`` severity use the server's global debug level to determine
 what messages to print.
 
-``print-time`` can be set to ``yes``, ``no``, or a time format
-specifier, which may be one of ``local``, ``iso8601``, or
-``iso8601-utc``. If set to ``no``, the date and time are not
-logged. If set to ``yes`` or ``local``, the date and time are logged in
-a human-readable format, using the local time zone. If set to
-``iso8601``, the local time is logged in ISO 8601 format. If set to
-``iso8601-utc``, the date and time are logged in ISO 8601 format,
-with time zone set to UTC. The default is ``no``.
+.. namedconf:statement:: print-time
 
-``print-time`` may be specified for a ``syslog`` channel, but it is
-usually pointless since ``syslog`` also logs the date and time.
+   ``print-time`` can be set to ``yes``, ``no``, or a time format
+   Specifier, which may be one of ``local``, ``iso8601``, or
+   ``iso8601-utc``. If set to ``no``, the date and time are not
+   Logged. If set to ``yes`` or ``local``, the date and time are logged in
+   A human-readable format, using the local time zone. If set to
+   ``iso8601``, the local time is logged in ISO 8601 format. If set to
+   ``iso8601-utc``, the date and time are logged in ISO 8601 format,
+   With time zone set to UTC. The default is ``no``.
 
-If ``print-category`` is requested, then the category of the message
-is logged as well. Finally, if ``print-severity`` is on, then the
-severity level of the message is logged. The ``print-`` options may
-be used in any combination, and are always printed in the following
-order: time, category, severity. Here is an example where all three
-``print-`` options are on:
+   ``print-time`` may be specified for a ``syslog`` channel, but it is
+   Usually pointless since ``syslog`` also logs the date and time.
+
+.. namedconf:statement:: print-category
+
+   If ``print-category`` is requested, then the category of the message
+   is logged as well.
+
+.. namedconf:statement:: print-severity
+
+   If ``print-severity`` is on, then the
+   severity level of the message is logged. The ``print-`` options may
+   be used in any combination, and are always printed in the following
+   order: time, category, severity.
+
+Here is an example where all three ``print-`` options are on:
 
 ``28-Feb-2000 15:05:32.863 general: notice: running``
 
-If ``buffered`` has been turned on, the output to files is not
-flushed after each log entry. By default all log messages are flushed.
+.. namedconf:statement:: buffered
+
+   If ``buffered`` has been turned on, the output to files is not
+   flushed after each log entry. By default all log messages are flushed.
 
 There are four predefined channels that are used for :iscman:`named`'s default
 logging, as follows. If :iscman:`named` is started with the :option:`-L <named -L>` option, then a fifth
@@ -721,7 +844,6 @@ can be modified by pointing categories at defined channels.
 
 The ``category`` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^^
-
 There are many categories, so desired logs can be sent anywhere
 while unwanted logs are ignored. If
 a list of channels is not specified for a category, log messages in that
@@ -755,12 +877,15 @@ following:
        default_debug;
    };
 
-To discard all messages in a category, specify the ``null`` channel:
+
+To discard all messages in a category, specify the :namedconf:ref:`null` channel:
 
 ::
 
    category xfer-out { null; };
    category notify { null; };
+
+.. namedconf:statement:: category
 
 The following are the available categories and brief descriptions of the
 types of log information they contain. More categories may be added in
@@ -860,6 +985,7 @@ responses such as NXDOMAIN.
 
 ``parental-agents`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: parental-agents
 
 .. include:: ../misc/parental-agents.grammar.rst
 
@@ -877,6 +1003,7 @@ change its delegation information (defined in :rfc:`7344`).
 
 ``primaries`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: primaries
 
 .. include:: ../misc/primaries.grammar.rst
 
@@ -912,6 +1039,7 @@ where ``tls-configuration-name`` refers to a previously defined
 
 ``options`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: options
 
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
@@ -930,7 +1058,8 @@ default is used.
 
 .. _attach-cache:
 
-``attach-cache``
+.. namedconf:statement:: attach-cache
+
    This option allows multiple views to share a single cache database. Each view has
    its own cache database by default, but if multiple views have the
    same operational policy for name resolution and caching, those views
@@ -990,7 +1119,8 @@ default is used.
 
 .. _directory:
 
-``directory``
+.. namedconf:statement:: directory
+
    This sets the working directory of the server. Any non-absolute pathnames in
    the configuration file are taken as relative to this directory.
    The default location for most server output files (e.g.,
@@ -1006,7 +1136,8 @@ default is used.
    before any other directive (like ``include``) that can work with relative
    files. The safest way to include files is to use absolute file names.
 
-``dnstap``
+.. namedconf:statement:: dnstap
+
    ``dnstap`` is a fast, flexible method for capturing and logging DNS
    traffic. Developed by Robert Edmonds at Farsight Security, Inc., and
    supported by multiple DNS implementations, ``dnstap`` uses
@@ -1058,33 +1189,47 @@ default is used.
    :iscman:`named.conf`, and can be modified if necessary to improve
    performance or prevent loss of data. These are:
 
-   -  ``fstrm-set-buffer-hint``: The threshold number of bytes to
+   .. namedconf:statement:: fstrm-set-buffer-hint
+
+      The threshold number of bytes to
       accumulate in the output buffer before forcing a buffer flush. The
       minimum is 1024, the maximum is 65536, and the default is 8192.
 
-   -  ``fstrm-set-flush-timeout``: The number of seconds to allow
+   .. namedconf:statement:: fstrm-set-flush-timeout
+
+      The number of seconds to allow
       unflushed data to remain in the output buffer. The minimum is 1
       second, the maximum is 600 seconds (10 minutes), and the default
       is 1 second.
 
-   -  ``fstrm-set-output-notify-threshold``: The number of outstanding
+   .. namedconf:statement:: fstrm-set-output-notify-threshold
+
+      The number of outstanding
       queue entries to allow on an input queue before waking the I/O
       thread. The minimum is 1 and the default is 32.
 
-   -  ``fstrm-set-output-queue-model``: The queuing semantics
+   .. namedconf:statement:: fstrm-set-output-queue-model
+
+      The queuing semantics
       to use for queue objects. The default is ``mpsc`` (multiple
       producer, single consumer); the other option is ``spsc`` (single
       producer, single consumer).
 
-   -  ``fstrm-set-input-queue-size``: The number of queue entries to
+   .. namedconf:statement:: fstrm-set-input-queue-size
+
+      The number of queue entries to
       allocate for each input queue. This value must be a power of 2.
       The minimum is 2, the maximum is 16384, and the default is 512.
 
-   -  ``fstrm-set-output-queue-size``: The number of queue entries to
+   .. namedconf:statement:: fstrm-set-output-queue-size
+
+      The number of queue entries to
       allocate for each output queue. The minimum is 2, the maximum is
       system-dependent and based on ``IOV_MAX``, and the default is 64.
 
-   -  ``fstrm-set-reopen-interval``: The number of seconds to wait
+   .. namedconf:statement:: fstrm-set-reopen-interval
+
+      The number of seconds to wait
       between attempts to reopen a closed output stream. The minimum is
       1 second, the maximum is 600 seconds (10 minutes), and the default
       is 5 seconds. For convenience, TTL-style time-unit suffixes may be
@@ -1095,7 +1240,8 @@ default is used.
    future versions of the library. See the ``libfstrm`` documentation
    for more information.
 
-``dnstap-output``
+.. namedconf:statement:: dnstap-output
+
    This configures the path to which the ``dnstap`` frame stream is sent
    if ``dnstap`` is enabled at compile time and active.
 
@@ -1121,17 +1267,20 @@ default is used.
    it can only be set once while :iscman:`named` is running; once set, it
    cannot be changed by :option:`rndc reload` or :option:`rndc reconfig`.
 
-``dnstap-identity``
+.. namedconf:statement:: dnstap-identity
+
    This specifies an ``identity`` string to send in ``dnstap`` messages. If
    set to ``hostname``, which is the default, the server's hostname
    is sent. If set to ``none``, no identity string is sent.
 
-``dnstap-version``
+.. namedconf:statement:: dnstap-version
+
    This specifies a ``version`` string to send in ``dnstap`` messages. The
    default is the version number of the BIND release. If set to
    ``none``, no version string is sent.
 
-``geoip-directory``
+.. namedconf:statement:: geoip-directory
+
    When :iscman:`named` is compiled using the MaxMind GeoIP2 geolocation API, this
    specifies the directory containing GeoIP database files.  By default, the
    option is set based on the prefix used to build the ``libmaxminddb`` module;
@@ -1139,14 +1288,16 @@ default is used.
    default ``geoip-directory`` is ``/usr/local/share/GeoIP``. See :ref:`acl`
    for details about ``geoip`` ACLs.
 
-``key-directory``
+.. namedconf:statement:: key-directory
+
    This is the directory where the public and private DNSSEC key files should be
    found when performing a dynamic update of secure zones, if different
    than the current working directory. (Note that this option has no
    effect on the paths for files containing non-DNSSEC keys such as
    ``bind.keys``, ``rndc.key``, or ``session.key``.)
 
-``lmdb-mapsize``
+.. namedconf:statement:: lmdb-mapsize
+
    When :iscman:`named` is built with liblmdb, this option sets a maximum size
    for the memory map of the new-zone database (NZD) in LMDB database
    format. This database is used to store configuration information for
@@ -1161,7 +1312,8 @@ default is used.
    without elaborate ACLs, a 32 MB NZD file ought to be able to hold
    configurations of about 100,000 zones.
 
-``managed-keys-directory``
+.. namedconf:statement:: managed-keys-directory
+
    This specifies the directory in which to store the files that track managed DNSSEC
    keys (i.e., those configured using the ``initial-key`` or ``initial-ds``
    keywords in a ``trust-anchors`` statement). By default, this is the working
@@ -1181,7 +1333,8 @@ default is used.
    if a file using the old name format is found to exist, it is
    used instead of the new format.)
 
-``max-ixfr-ratio``
+.. namedconf:statement:: max-ixfr-ratio
+
    This sets the size threshold (expressed as a percentage of the size
    of the full zone) beyond which :iscman:`named` chooses to use an AXFR
    response rather than IXFR when answering zone transfer requests. See
@@ -1190,14 +1343,16 @@ default is used.
    The minimum value is ``1%``. The keyword ``unlimited`` disables ratio
    checking and allows IXFRs of any size. The default is ``100%``.
 
-``new-zones-directory``
+.. namedconf:statement:: new-zones-directory
+
    This specifies the directory in which to store the configuration
    parameters for zones added via :option:`rndc addzone`. By default, this is
    the working directory. If set to a relative path, it is relative
    to the working directory. The directory *must* be writable by the
    effective user ID of the :iscman:`named` process.
 
-``qname-minimization``
+.. namedconf:statement:: qname-minimization
+
    This option controls QNAME minimization behavior in the BIND
    resolver. When set to ``strict``, BIND follows the QNAME
    minimization algorithm to the letter, as specified in :rfc:`7816`.
@@ -1208,12 +1363,14 @@ default is used.
    minimization completely. The current default is ``relaxed``, but it
    may be changed to ``strict`` in a future release.
 
-``tkey-gssapi-keytab``
+.. namedconf:statement:: tkey-gssapi-keytab
+
    This is the KRB5 keytab file to use for GSS-TSIG updates. If this option is
    set and tkey-gssapi-credential is not set, updates are
    allowed with any key matching a principal in the specified keytab.
 
-``tkey-gssapi-credential``
+.. namedconf:statement:: tkey-gssapi-credential
+
    This is the security credential with which the server should authenticate
    keys requested by the GSS-TSIG protocol. Currently only Kerberos 5
    authentication is available; the credential is a Kerberos
@@ -1224,7 +1381,8 @@ default is used.
    GSS-TSIG, ``tkey-domain`` must also be set if a specific keytab is
    not set with ``tkey-gssapi-keytab``.
 
-``tkey-domain``
+.. namedconf:statement:: tkey-domain
+
    This domain is appended to the names of all shared keys generated with
    ``TKEY``. When a client requests a ``TKEY`` exchange, it may or may
    not specify the desired name for the key. If present, the name of the
@@ -1236,23 +1394,27 @@ default is used.
    this variable must be defined, unless a specific keytab
    is specified using ``tkey-gssapi-keytab``.
 
-``tkey-dhkey``
+.. namedconf:statement:: tkey-dhkey
+
    This is the Diffie-Hellman key used by the server to generate shared keys
    with clients using the Diffie-Hellman mode of ``TKEY``. The server
    must be able to load the public and private keys from files in the
    working directory. In most cases, the ``key_name`` should be the
    server's host name.
 
-``dump-file``
+.. namedconf:statement:: dump-file
+
    This is the pathname of the file the server dumps the database to, when
    instructed to do so with :option:`rndc dumpdb`. If not specified, the
    default is ``named_dump.db``.
 
-``memstatistics-file``
+.. namedconf:statement:: memstatistics-file
+
    This is the pathname of the file the server writes memory usage statistics to
    on exit. If not specified, the default is ``named.memstats``.
 
-``lock-file``
+.. namedconf:statement:: lock-file
+
    This is the pathname of a file on which :iscman:`named` attempts to acquire a
    file lock when starting for the first time; if unsuccessful, the
    server terminates, under the assumption that another server
@@ -1265,7 +1427,8 @@ default is used.
    :iscman:`named` is being reloaded or reconfigured; it is only effective
    when the server is first started.
 
-``pid-file``
+.. namedconf:statement:: pid-file
+
    This is the pathname of the file the server writes its process ID in. If not
    specified, the default is |named_pid|. The PID file
    is used by programs that send signals to the running name
@@ -1274,80 +1437,95 @@ default is used.
    that ``none`` is a keyword, not a filename, and therefore is not
    enclosed in double quotes.
 
-``recursing-file``
+.. namedconf:statement:: recursing-file
+
    This is the pathname of the file where the server dumps the queries that are
    currently recursing, when instructed to do so with :option:`rndc recursing`.
    If not specified, the default is ``named.recursing``.
 
-``statistics-file``
+.. namedconf:statement:: statistics-file
+
    This is the pathname of the file the server appends statistics to, when
    instructed to do so using :option:`rndc stats`. If not specified, the
    default is ``named.stats`` in the server's current directory. The
    format of the file is described in :ref:`statsfile`.
 
-``bindkeys-file``
+.. namedconf:statement:: bindkeys-file
+
    This is the pathname of a file to override the built-in trusted keys provided
    by :iscman:`named`. See the discussion of ``dnssec-validation`` for
    details. If not specified, the default is |bind_keys|.
 
-``secroots-file``
+.. namedconf:statement:: secroots-file
+
    This is the pathname of the file the server dumps security roots to, when
    instructed to do so with :option:`rndc secroots`. If not specified, the
    default is ``named.secroots``.
 
-``session-keyfile``
+.. namedconf:statement:: session-keyfile
+
    This is the pathname of the file into which to write a TSIG session key
    generated by :iscman:`named` for use by ``nsupdate -l``. If not specified,
    the default is |session_key|. (See :ref:`dynamic_update_policies`,
    and in particular the discussion of the ``update-policy`` statement's
    ``local`` option, for more information about this feature.)
 
-``session-keyname``
+.. namedconf:statement:: session-keyname
+
    This is the key name to use for the TSIG session key. If not specified, the
    default is ``local-ddns``.
 
-``session-keyalg``
+.. namedconf:statement:: session-keyalg
+
    This is the algorithm to use for the TSIG session key. Valid values are
    hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512, and
    hmac-md5. If not specified, the default is hmac-sha256.
 
-``port``
+.. namedconf:statement:: port
+
    This is the UDP/TCP port number the server uses to receive and send DNS
    protocol traffic. The default is 53. This option is mainly intended
    for server testing; a server using a port other than 53 is not
    able to communicate with the global DNS.
 
-``tls-port``
+.. namedconf:statement:: tls-port
+
    This is the TCP port number the server uses to receive and send
    DNS-over-TLS protocol traffic. The default is 853.
 
-``https-port``
+.. namedconf:statement:: https-port
+
    This is the TCP port number the server uses to receive and send
    DNS-over-HTTPS protocol traffic. The default is 443.
 
-``http-port``
+.. namedconf:statement:: http-port
+
    This is the TCP port number the server uses to receive and send
    unencrypted DNS traffic via HTTP (a configuration that may be useful
    when encryption is handled by third-party software or by a reverse
    proxy).
 
-``http-listener-clients``
+.. namedconf:statement:: http-listener-clients
+
    This sets the hard quota on the number of active concurrent connections
    on a per-listener basis. The default value is 300; setting it to 0
    removes the quota.
 
-``http-streams-per-connection``
+.. namedconf:statement:: http-streams-per-connection
+
    This sets the hard limit on the number of active concurrent HTTP/2
    streams on a per-connection basis. The default value is 100;
    setting it to 0 removes the limit. Once the limit is exceeded, the
    server finishes the HTTP session.
 
-``dscp``
+.. namedconf:statement:: dscp
+
    This is the global Differentiated Services Code Point (DSCP) value to
    classify outgoing DNS traffic, on operating systems that support DSCP.
    Valid values are 0 through 63. It is not configured by default.
 
-``random-device``
+.. namedconf:statement:: random-device
+
    This specifies a source of entropy to be used by the server; it is a
    device or file from which to read entropy. If it is a file,
    operations requiring entropy will fail when the file has been
@@ -1369,7 +1547,8 @@ default is used.
    configuration load at server startup time and is ignored on
    subsequent reloads.
 
-``preferred-glue``
+.. namedconf:statement:: preferred-glue
+
    If specified, the listed type (A or AAAA) is emitted before
    other glue in the additional section of a query response. The default
    is to prefer A records when responding to queries that arrived via
@@ -1377,7 +1556,8 @@ default is used.
 
 .. _root-delegation-only:
 
-``root-delegation-only``
+.. namedconf:statement:: root-delegation-only
+
    This turns on enforcement of delegation-only in TLDs (top-level domains)
    and root zones with an optional exclude list.
 
@@ -1410,7 +1590,8 @@ default is used.
           root-delegation-only exclude { "de"; "lv"; "us"; "museum"; };
       };
 
-``disable-algorithms``
+.. namedconf:statement:: disable-algorithms
+
    This disables the specified DNSSEC algorithms at and below the specified
    name. Multiple ``disable-algorithms`` statements are allowed. Only
    the best-match ``disable-algorithms`` clause is used to
@@ -1423,7 +1604,8 @@ default is used.
    ``trusted-keys``) that match a disabled algorithm are ignored and treated
    as if they were not configured.
 
-``disable-ds-digests``
+.. namedconf:statement:: disable-ds-digests
+
    This disables the specified DS digest types at and below the specified
    name. Multiple ``disable-ds-digests`` statements are allowed. Only
    the best-match ``disable-ds-digests`` clause is used to
@@ -1432,7 +1614,8 @@ default is used.
    If all supported digest types are disabled, the zones covered by
    ``disable-ds-digests`` are treated as insecure.
 
-``dnssec-must-be-secure``
+.. namedconf:statement:: dnssec-must-be-secure
+
    This specifies hierarchies which must be or may not be secure (signed and
    validated). If ``yes``, then :iscman:`named` only accepts answers if
    they are secure. If ``no``, then normal DNSSEC validation applies,
@@ -1440,7 +1623,8 @@ default is used.
    must be defined as a trust anchor, for instance in a ``trust-anchors``
    statement, or ``dnssec-validation auto`` must be active.
 
-``dns64``
+.. namedconf:statement:: dns64
+
    This directive instructs :iscman:`named` to return mapped IPv4 addresses to
    AAAA queries when there are no AAAA records. It is intended to be
    used in conjunction with a NAT64. Each ``dns64`` defines one DNS64
@@ -1452,42 +1636,59 @@ default is used.
 
    In addition, a reverse IP6.ARPA zone is created for the prefix
    to provide a mapping from the IP6.ARPA names to the corresponding
-   IN-ADDR.ARPA names using synthesized CNAMEs. ``dns64-server`` and
-   ``dns64-contact`` can be used to specify the name of the server and
-   contact for the zones. These can be set at the view/options
-   level but not on a per-prefix basis.
+   IN-ADDR.ARPA names using synthesized CNAMEs.
 
-   ``dns64`` will also cause IPV4ONLY.ARPA to be created if not
-   explicitly disabled using ``ipv4only-enable``.
+   .. namedconf:statement:: dns64-server
+   .. namedconf:statement:: dns64-contact
 
-   Each ``dns64`` supports an optional ``clients`` ACL that determines
-   which clients are affected by this directive. If not defined, it
-   defaults to ``any;``.
+      ``dns64-server`` and
+      ``dns64-contact`` can be used to specify the name of the server and
+      contact for the zones. These can be set at the view/options
+      level but not on a per-prefix basis.
 
-   Each ``dns64`` supports an optional ``mapped`` ACL that selects which
-   IPv4 addresses are to be mapped in the corresponding A RRset. If not
-   defined, it defaults to ``any;``.
+      ``dns64`` will also cause IPV4ONLY.ARPA to be created if not
+      explicitly disabled using ``ipv4only-enable``.
 
-   Normally, DNS64 does not apply to a domain name that owns one or more
-   AAAA records; these records are simply returned. The optional
-   ``exclude`` ACL allows specification of a list of IPv6 addresses that
-   are ignored if they appear in a domain name's AAAA records;
-   DNS64 is applied to any A records the domain name owns. If not
-   defined, ``exclude`` defaults to ::ffff:0.0.0.0/96.
+   .. namedconf:statement:: clients
 
-   An optional ``suffix`` can also be defined to set the bits trailing
-   the mapped IPv4 address bits. By default these bits are set to
-   ``::``. The bits matching the prefix and mapped IPv4 address must be
-   zero.
+      Each ``dns64`` supports an optional ``clients`` ACL that determines
+      which clients are affected by this directive. If not defined, it
+      defaults to ``any;``.
 
-   If ``recursive-only`` is set to ``yes``, the DNS64 synthesis only
-   happens for recursive queries. The default is ``no``.
+   .. namedconf:statement:: mapped
 
-   If ``break-dnssec`` is set to ``yes``, the DNS64 synthesis happens
-   even if the result, if validated, would cause a DNSSEC validation
-   failure. If this option is set to ``no`` (the default), the DO is set
-   on the incoming query, and there are RRSIGs on the applicable
-   records, then synthesis does not happen.
+      Each ``dns64`` supports an optional ``mapped`` ACL that selects which
+      IPv4 addresses are to be mapped in the corresponding A RRset. If not
+      defined, it defaults to ``any;``.
+
+   .. namedconf:statement:: exclude
+
+      Normally, DNS64 does not apply to a domain name that owns one or more
+      AAAA records; these records are simply returned. The optional
+      ``exclude`` ACL allows specification of a list of IPv6 addresses that
+      are ignored if they appear in a domain name's AAAA records;
+      DNS64 is applied to any A records the domain name owns. If not
+      defined, ``exclude`` defaults to ::ffff:0.0.0.0/96.
+
+   .. namedconf:statement:: suffix
+
+      An optional ``suffix`` can also be defined to set the bits trailing
+      the mapped IPv4 address bits. By default these bits are set to
+      ``::``. The bits matching the prefix and mapped IPv4 address must be
+      zero.
+
+   .. namedconf:statement:: recursive-only
+
+      If ``recursive-only`` is set to ``yes``, the DNS64 synthesis only
+      happens for recursive queries. The default is ``no``.
+
+   .. namedconf:statement:: break-dnssec
+
+      If ``break-dnssec`` is set to ``yes``, the DNS64 synthesis happens
+      even if the result, if validated, would cause a DNSSEC validation
+      failure. If this option is set to ``no`` (the default), the DO is set
+      on the incoming query, and there are RRSIGs on the applicable
+      records, then synthesis does not happen.
 
    ::
 
@@ -1500,7 +1701,8 @@ default is used.
               suffix ::;
           };
 
-``dnssec-loadkeys-interval``
+.. namedconf:statement:: dnssec-loadkeys-interval
+
    When a zone is configured with ``auto-dnssec maintain;``, its key
    repository must be checked periodically to see if any new keys have
    been added or any existing keys' timing metadata has been updated
@@ -1511,15 +1713,14 @@ default is used.
    the maximum is ``1440`` (24 hours); any higher value is silently
    reduced.
 
-``dnssec-policy``
-   This specifies which key and signing policy (KASP) should be used for this
-   zone. This is a string referring to a ``dnssec-policy`` statement.  There
-   are three built-in policies: ``default``, which uses the default policy,
-   ``insecure``, to be used when you want to gracefully unsign your zone, and
-   ``none``, which means no DNSSEC policy.  The default is ``none``.
-   See :ref:`dnssec-policy Grammar <dnssec_policy_grammar>` for more details.
+:namedconf:ref:`dnssec-policy`
 
-``dnssec-update-mode``
+   This specifies which key and signing policy (KASP) should be used for this
+   zone. This is a string referring to a :namedconf:ref:`dnssec-policy` block.
+   The default is ``none``.
+
+.. namedconf:statement:: dnssec-update-mode
+
    If this option is set to its default value of ``maintain`` in a zone
    of type ``primary`` which is DNSSEC-signed and configured to allow
    dynamic updates (see :ref:`dynamic_update_policies`), and if :iscman:`named` has access
@@ -1538,7 +1739,8 @@ default is used.
    automatic signing and allow DNSSEC data to be submitted into a zone
    via dynamic update; this is not yet implemented.)
 
-``nta-lifetime``
+.. namedconf:statement:: nta-lifetime
+
    This specifies the default lifetime, in seconds, for
    negative trust anchors added via :option:`rndc nta`.
 
@@ -1556,7 +1758,8 @@ default is used.
 
    ``nta-lifetime`` defaults to one hour; it cannot exceed one week.
 
-``nta-recheck``
+.. namedconf:statement:: nta-recheck
+
    This specifies how often to check whether negative trust anchors added via
    :option:`rndc nta` are still necessary.
 
@@ -1578,22 +1781,29 @@ default is used.
    The default is five minutes. It cannot be longer than ``nta-lifetime``, which
    cannot be longer than a week.
 
-``max-zone-ttl``
+.. namedconf:statement:: max-zone-ttl
+
    This specifies a maximum permissible TTL value in seconds. For
    convenience, TTL-style time-unit suffixes may be used to specify the
    maximum value. When loading a zone file using a ``masterfile-format``
    of ``text`` or ``raw``, any record encountered with a TTL higher than
    ``max-zone-ttl`` causes the zone to be rejected.
 
-   This is useful in DNSSEC-signed zones because when rolling to a new
+   This is needed in DNSSEC-maintained zones because when rolling to a new
    DNSKEY, the old key needs to remain available until RRSIG records
    have expired from caches. The ``max-zone-ttl`` option guarantees that
    the largest TTL in the zone is no higher than the set value.
 
-   The default value is ``unlimited``. A ``max-zone-ttl`` of zero is
+   In the :namedconf:ref:`options` and :namedconf:ref:`zone` blocks,
+   the default value is ``unlimited``. A ``max-zone-ttl`` of zero is
    treated as ``unlimited``.
 
-``stale-answer-ttl``
+   In the :namedconf:ref:`dnssec-policy` block,
+   the default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
+   zero is treated as if the default value were in use.
+
+.. namedconf:statement:: stale-answer-ttl
+
    This specifies the TTL to be returned on stale answers. The default is 30
    seconds. The minimum allowed is 1 second; a value of 0 is updated silently
    to 1 second.
@@ -1602,7 +1812,8 @@ default is used.
    configuration file using ``stale-answer-enable`` or via
    :option:`rndc serve-stale on <rndc serve-stale>`.
 
-``serial-update-method``
+.. namedconf:statement:: serial-update-method
+
    Zones configured for dynamic DNS may use this option to set the
    update method to be used for the zone serial number in the SOA
    record.
@@ -1621,7 +1832,8 @@ default is used.
    zeroes, unless the existing serial number is already greater than or
    equal to that value, in which case it is incremented by one.
 
-``zone-statistics``
+.. namedconf:statement:: zone-statistics
+
    If ``full``, the server collects statistical data on all zones,
    unless specifically turned off on a per-zone basis by specifying
    ``zone-statistics terse`` or ``zone-statistics none`` in the ``zone``
@@ -1645,7 +1857,8 @@ default is used.
 Boolean Options
 ^^^^^^^^^^^^^^^
 
-``automatic-interface-scan``
+.. namedconf:statement:: automatic-interface-scan
+
    If ``yes`` and supported by the operating system, this automatically rescans
    network interfaces when the interface addresses are added or removed.  The
    default is ``yes``.  This configuration option does not affect the time-based
@@ -1657,7 +1870,8 @@ Boolean Options
    network interface discovery; therefore, the operating system must
    support the routing sockets for this feature to work.
 
-``allow-new-zones``
+.. namedconf:statement:: allow-new-zones
+
    If ``yes``, then zones can be added at runtime via :option:`rndc addzone`.
    The default is ``no``.
 
@@ -1675,17 +1889,20 @@ Boolean Options
    whether :iscman:`named` was linked with liblmdb at compile time. See
    :ref:`man_rndc` for further details about :option:`rndc addzone`.
 
-``auth-nxdomain``
+.. namedconf:statement:: auth-nxdomain
+
    If ``yes``, then the ``AA`` bit is always set on NXDOMAIN responses,
    even if the server is not actually authoritative. The default is
    ``no``.
 
-``memstatistics``
+.. namedconf:statement:: memstatistics
+
    This writes memory statistics to the file specified by
    ``memstatistics-file`` at exit. The default is ``no`` unless :option:`-m
    record <named -m>` is specified on the command line, in which case it is ``yes``.
 
-``dialup``
+.. namedconf:statement:: dialup
+
    If ``yes``, then the server treats all zones as if they are doing
    zone transfers across a dial-on-demand dialup link, which can be
    brought up by traffic originating from this server. Although this setting has
@@ -1738,16 +1955,19 @@ Boolean Options
 
    Note that normal NOTIFY processing is not affected by ``dialup``.
 
-``flush-zones-on-shutdown``
+.. namedconf:statement:: flush-zones-on-shutdown
+
    When the name server exits upon receiving SIGTERM, flush or do not
    flush any pending zone writes. The default is
    ``flush-zones-on-shutdown no``.
 
-``root-key-sentinel``
+.. namedconf:statement:: root-key-sentinel
+
    If ``yes``, respond to root key sentinel probes as described in
    draft-ietf-dnsop-kskroll-sentinel-08. The default is ``yes``.
 
-``reuseport``
+.. namedconf:statement:: reuseport
+
    This option enables kernel load-balancing of sockets on systems which support
    it, including Linux (SO_REUSEPORT) and FreeBSD (SO_REUSEPORT_LB). This
    instructs the kernel to distribute incoming socket connections among the
@@ -1769,7 +1989,8 @@ Boolean Options
    Changes will not take effect during reconfiguration; the server
    must be restarted.
 
-``message-compression``
+.. namedconf:statement:: message-compression
+
    If ``yes``, DNS name compression is used in responses to regular
    queries (not including AXFR or IXFR, which always use compression).
    Setting this option to ``no`` reduces CPU usage on servers and may
@@ -1778,7 +1999,8 @@ Boolean Options
    compression disabled is out of compliance with :rfc:`1123` Section
    6.1.3.2. The default is ``yes``.
 
-``minimal-responses``
+.. namedconf:statement:: minimal-responses
+
    This option controls the addition of records to the authority and
    additional sections of responses. Such records may be included in
    responses to be helpful to clients; for example, NS or MX records may
@@ -1808,7 +2030,8 @@ Boolean Options
 
    The default is ``no-auth-recursive``.
 
-``glue-cache``
+.. namedconf:statement:: glue-cache
+
    When set to ``yes``, a cache is used to improve query performance
    when adding address-type (A and AAAA) glue records to the additional
    section of DNS response messages that delegate to a child zone.
@@ -1821,7 +2044,8 @@ Boolean Options
    .. note:: This option is deprecated and its use is discouraged. The
       glue cache will be permanently *enabled* in a future release.
 
-``minimal-any``
+.. namedconf:statement:: minimal-any
+
    If set to ``yes``, the server replies with only one of
    the RRsets for the query name, and its covering RRSIGs if any,
    when generating a positive response to a query of type ANY over UDP,
@@ -1837,7 +2061,8 @@ Boolean Options
 
 .. _notify_st:
 
-``notify``
+.. namedconf:statement:: notify
+
    If set to ``yes`` (the default), DNS NOTIFY messages are sent when a
    zone the server is authoritative for changes; see :ref:`using notify<notify>`.
    The messages are sent to the servers listed in the zone's NS records
@@ -1854,7 +2079,8 @@ Boolean Options
    statement. It would only be necessary to turn off this option if it
    caused secondary zones to crash.
 
-``notify-to-soa``
+.. namedconf:statement:: notify-to-soa
+
    If ``yes``, do not check the name servers in the NS RRset against the
    SOA MNAME. Normally a NOTIFY message is not sent to the SOA MNAME
    (SOA ORIGIN), as it is supposed to contain the name of the ultimate
@@ -1865,7 +2091,8 @@ Boolean Options
 
 .. _recursion:
 
-``recursion``
+.. namedconf:statement:: recursion
+
    If ``yes``, and a DNS query requests recursion, then the server
    attempts to do all the work required to answer the query. If recursion
    is off and the server does not already know the answer, it
@@ -1875,14 +2102,16 @@ Boolean Options
    effect of client queries. Caching may still occur as an effect of the
    server's internal operation, such as NOTIFY address lookups.
 
-``request-nsid``
+.. namedconf:statement:: request-nsid
+
    If ``yes``, then an empty EDNS(0) NSID (Name Server Identifier)
    option is sent with all queries to authoritative name servers during
    iterative resolution. If the authoritative server returns an NSID
    option in its response, then its contents are logged in the ``nsid``
    category at level ``info``. The default is ``no``.
 
-``require-server-cookie``
+.. namedconf:statement:: require-server-cookie
+
    If ``yes``, require a valid server cookie before sending a full response to a UDP
    request from a cookie-aware client. BADCOOKIE is sent if there is a
    bad or nonexistent server cookie.
@@ -1896,7 +2125,8 @@ Boolean Options
    response, while also requiring a legitimate client to follow up with a second
    query with the new, valid, cookie.
 
-``answer-cookie``
+.. namedconf:statement:: answer-cookie
+
    When set to the default value of ``yes``, COOKIE EDNS options are
    sent when applicable in replies to client queries. If set to ``no``,
    COOKIE EDNS options are not sent in replies. This can only be set
@@ -1911,7 +2141,8 @@ Boolean Options
    security mechanism, and should not be disabled unless absolutely
    necessary.
 
-``send-cookie``
+.. namedconf:statement:: send-cookie
+
    If ``yes``, then a COOKIE EDNS option is sent along with the query.
    If the resolver has previously communicated with the server, the COOKIE
    returned in the previous transaction is sent. This is used by the
@@ -1924,9 +2155,13 @@ Boolean Options
    option may be limited to receiving smaller responses via the
    ``nocookie-udp-size`` option.
 
+   The :iscman:`named` server may determine that COOKIE is not supported by the
+   remote server and not add a COOKIE EDNS option to requests.
+
    The default is ``yes``.
 
-``stale-answer-enable``
+.. namedconf:statement:: stale-answer-enable
+
    If ``yes``, enable the returning of "stale" cached answers when the name
    servers for a zone are not answering and the ``stale-cache-enable`` option is
    also enabled. The default is not to return stale answers.
@@ -1943,7 +2178,8 @@ Boolean Options
    Information about stale answers is logged under the ``serve-stale``
    log category.
 
-``stale-answer-client-timeout``
+.. namedconf:statement:: stale-answer-client-timeout
+
    This option defines the amount of time (in milliseconds) that :iscman:`named`
    waits before attempting to answer the query with a stale RRset from cache.
    If a stale answer is found, :iscman:`named` continues the ongoing fetches,
@@ -1960,10 +2196,12 @@ Boolean Options
    refresh the data in cache. :rfc:`8767` recommends a value of ``1800``
    (milliseconds).
 
-``stale-cache-enable``
+.. namedconf:statement:: stale-cache-enable
+
    If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
 
-``stale-refresh-time``
+.. namedconf:statement:: stale-refresh-time
+
    If the name servers for a given zone are not answering, this sets the time
    window for which :iscman:`named` will promptly return "stale" cached answers for
    that RRSet being requested before a new attempt in contacting the servers
@@ -1976,19 +2214,22 @@ Boolean Options
    resolution will take place first, if that fails only then :iscman:`named` will
    return "stale" cached answers.
 
-``nocookie-udp-size``
+.. namedconf:statement:: nocookie-udp-size
+
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently
    raised to 128. The default value is 4096, but the ``max-udp-size``
    option may further limit the response size as the default for
    ``max-udp-size`` is 1232.
 
-``cookie-algorithm``
+.. namedconf:statement:: cookie-algorithm
+
    This sets the algorithm to be used when generating the server cookie; the options are
    "aes" or "siphash24". The default is "siphash24". The "aes" option remains for legacy
    purposes.
 
-``cookie-secret``
+.. namedconf:statement:: cookie-secret
+
    If set, this is a shared secret used for generating and verifying
    EDNS COOKIE options within an anycast cluster. If not set, the system
    generates a random secret at startup. The shared secret is
@@ -1999,7 +2240,8 @@ Boolean Options
    :iscman:`named.conf` is used to generate new server cookies. The others
    are only used to verify returned cookies.
 
-``response-padding``
+.. namedconf:statement:: response-padding
+
    The EDNS Padding option is intended to improve confidentiality when
    DNS queries are sent over an encrypted channel, by reducing the
    variability in packet sizes. If a query:
@@ -2019,7 +2261,8 @@ Boolean Options
    is truncated to 512. Block sizes are ordinarily expected to be powers
    of two (for instance, 128), but this is not mandatory.
 
-``trust-anchor-telemetry``
+.. namedconf:statement:: trust-anchor-telemetry
+
    This causes :iscman:`named` to send specially formed queries once per day to
    domains for which trust anchors have been configured via, e.g.,
    ``trust-anchors`` or ``dnssec-validation auto``.
@@ -2036,16 +2279,44 @@ Boolean Options
 
    The default is ``yes``.
 
-``provide-ixfr``
-   See the description of ``provide-ixfr`` in :ref:`server_statement_definition_and_usage`.
+.. namedconf:statement:: provide-ixfr
 
-``request-ixfr``
-   See the description of ``request-ixfr`` in :ref:`server_statement_definition_and_usage`.
+   The ``provide-ixfr`` clause determines whether the local server, acting
+   as primary, responds with an incremental zone transfer when the given
+   remote server, a secondary, requests it. If set to ``yes``, incremental
+   transfer is provided whenever possible. If set to ``no``, all
+   transfers to the remote server are non-incremental.
+.. namedconf:statement:: request-ixfr
 
-``request-expire``
-   See the description of ``request-expire`` in :ref:`server_statement_definition_and_usage`.
+   The ``request-ixfr`` statement determines whether the local server, acting
+   as a secondary, requests incremental zone transfers from the given
+   remote server, a primary.
 
-``match-mapped-addresses``
+   IXFR requests to servers that do not support IXFR automatically
+   fall back to AXFR. Therefore, there is no need to manually list which
+   servers support IXFR and which ones do not; the global default of
+   ``yes`` should always work. The purpose of the ``provide-ixfr`` and
+   ``request-ixfr`` statements is to make it possible to disable the use of
+   IXFR even when both primary and secondary claim to support it: for example, if
+   one of the servers is buggy and crashes or corrupts data when IXFR is
+   used.
+
+   It may also be set in the zone block; if set there, it overrides the global
+   or view setting for that zone. It may also be set in the
+   :namedconf:ref:`server` block.
+
+.. namedconf:statement:: request-expire
+
+   The ``request-expire`` statement determines whether the local server, when
+   acting as a secondary, requests the EDNS EXPIRE value. The EDNS EXPIRE
+   value indicates the remaining time before the zone data expires and
+   needs to be refreshed. This is used when a secondary server transfers
+   a zone from another secondary server; when transferring from the
+   primary, the expiration timer is set from the EXPIRE field of the SOA
+   record instead. The default is ``yes``.
+
+.. namedconf:statement:: match-mapped-addresses
+
    If ``yes``, then an IPv4-mapped IPv6 address matches any
    address-match list entries that match the corresponding IPv4 address.
 
@@ -2056,7 +2327,8 @@ Boolean Options
    However, :iscman:`named` now solves this problem internally. The use of
    this option is discouraged.
 
-``ixfr-from-differences``
+.. namedconf:statement:: ixfr-from-differences
+
    When ``yes`` and the server loads a new version of a primary zone from
    its zone file or receives a new version of a secondary file via zone
    transfer, it compares the new version to the previous one and
@@ -2080,13 +2352,15 @@ Boolean Options
    Note: if inline signing is enabled for a zone, the user-provided
    ``ixfr-from-differences`` setting is ignored for that zone.
 
-``multi-master``
+.. namedconf:statement:: multi-master
+
    This should be set when there are multiple primary servers for a zone and the
    addresses refer to different machines. If ``yes``, :iscman:`named` does not
    log when the serial number on the primary is less than what :iscman:`named`
    currently has. The default is ``no``.
 
-``auto-dnssec``
+.. namedconf:statement:: auto-dnssec
+
    Zones configured for dynamic DNS may use this option to allow varying
    levels of automatic DNSSEC key management. There are three possible
    settings:
@@ -2118,7 +2392,8 @@ Boolean Options
 
 .. _dnssec-validation-option:
 
-``dnssec-validation``
+.. namedconf:statement:: dnssec-validation
+
    This option enables DNSSEC validation in :iscman:`named`.
 
    If set to ``auto``, DNSSEC validation is enabled and a default trust
@@ -2158,7 +2433,8 @@ Boolean Options
          server, it always sets the DO bit indicating it can support DNSSEC
          responses, even if ``dnssec-validation`` is off.
 
-``validate-except``
+.. namedconf:statement:: validate-except
+
    This specifies a list of domain names at and beneath which DNSSEC
    validation should *not* be performed, regardless of the presence of a
    trust anchor at or above those names. This may be used, for example,
@@ -2169,12 +2445,14 @@ Boolean Options
    whereas negative trust anchors expire and are removed after a set
    period of time.)
 
-``dnssec-accept-expired``
+.. namedconf:statement:: dnssec-accept-expired
+
    This accepts expired signatures when verifying DNSSEC signatures. The
    default is ``no``. Setting this option to ``yes`` leaves :iscman:`named`
    vulnerable to replay attacks.
 
-``querylog``
+.. namedconf:statement:: querylog
+
    Query logging provides a complete log of all incoming queries and all query
    errors. This provides more insight into the server's activity, but with a
    cost to performance which may be significant on heavily loaded servers.
@@ -2185,7 +2463,8 @@ Boolean Options
    logging can also be activated at runtime using the command ``rndc querylog
    on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
-``check-names``
+.. namedconf:statement:: check-names
+
    This option is used to restrict the character set and syntax of
    certain domain names in primary files and/or DNS responses received
    from the network. The default varies according to usage area. For
@@ -2202,24 +2481,28 @@ Boolean Options
    owner name indicates that it is a reverse lookup of a hostname (the
    owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 
-``check-dup-records``
+.. namedconf:statement:: check-dup-records
+
    This checks primary zones for records that are treated as different by
    DNSSEC but are semantically equal in plain DNS. The default is to
    ``warn``. Other possible values are ``fail`` and ``ignore``.
 
-``check-mx``
+.. namedconf:statement:: check-mx
+
    This checks whether the MX record appears to refer to an IP address. The
    default is to ``warn``. Other possible values are ``fail`` and
    ``ignore``.
 
-``check-wildcard``
+.. namedconf:statement:: check-wildcard
+
    This option is used to check for non-terminal wildcards. The use of
    non-terminal wildcards is almost always as a result of a lack of
    understanding of the wildcard matching algorithm (:rfc:`1034`). This option
    affects primary zones. The default (``yes``) is to check for
    non-terminal wildcards and issue a warning.
 
-``check-integrity``
+.. namedconf:statement:: check-integrity
+
    This performs post-load zone integrity checks on primary zones. It checks
    that MX and SRV records refer to address (A or AAAA) records and that
    glue address records exist for delegated zones. For MX and SRV
@@ -2235,33 +2518,40 @@ Boolean Options
    record. Warnings are emitted if the TXT record does not exist; they can
    be suppressed with ``check-spf``.
 
-``check-mx-cname``
+.. namedconf:statement:: check-mx-cname
+
    If ``check-integrity`` is set, then fail, warn, or ignore MX records
    that refer to CNAMES. The default is to ``warn``.
 
-``check-srv-cname``
+.. namedconf:statement:: check-srv-cname
+
    If ``check-integrity`` is set, then fail, warn, or ignore SRV records
    that refer to CNAMES. The default is to ``warn``.
 
-``check-sibling``
+.. namedconf:statement:: check-sibling
+
    When performing integrity checks, also check that sibling glue
    exists. The default is ``yes``.
 
-``check-spf``
+.. namedconf:statement:: check-spf
+
    If ``check-integrity`` is set, check that there is a TXT Sender
    Policy Framework record present (starts with "v=spf1") if there is an
    SPF record present. The default is ``warn``.
 
-``zero-no-soa-ttl``
+.. namedconf:statement:: zero-no-soa-ttl
+
    If ``yes``, when returning authoritative negative responses to SOA queries, set
    the TTL of the SOA record returned in the authority section to zero.
    The default is ``yes``.
 
-``zero-no-soa-ttl-cache``
+.. namedconf:statement:: zero-no-soa-ttl-cache
+
    If ``yes``, when caching a negative response to an SOA query set the TTL to zero.
    The default is ``no``.
 
-``update-check-ksk``
+.. namedconf:statement:: update-check-ksk
+
    When set to the default value of ``yes``, check the KSK bit in each
    key to determine how the key should be used when generating RRSIGs
    for a secure zone.
@@ -2280,7 +2570,8 @@ Boolean Options
    which this requirement is not met, this option is ignored for
    that algorithm.
 
-``dnssec-dnskey-kskonly``
+.. namedconf:statement:: dnssec-dnskey-kskonly
+
    When this option and ``update-check-ksk`` are both set to ``yes``,
    only key-signing keys (that is, keys with the KSK bit set) are
    used to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
@@ -2291,11 +2582,13 @@ Boolean Options
    The default is ``yes``. If ``update-check-ksk`` is set to ``no``, this
    option is ignored.
 
-``try-tcp-refresh``
+.. namedconf:statement:: try-tcp-refresh
+
    If ``yes``, try to refresh the zone using TCP if UDP queries fail. The default is
    ``yes``.
 
-``dnssec-secure-to-insecure``
+.. namedconf:statement:: dnssec-secure-to-insecure
+
    This allows a dynamic zone to transition from secure to insecure (i.e.,
    signed to unsigned) by deleting all of the DNSKEY records. The
    default is ``no``. If set to ``yes``, and if the DNSKEY RRset at the
@@ -2312,7 +2605,8 @@ Boolean Options
    the zone will be automatically signed again the next time :iscman:`named`
    is started.
 
-``synth-from-dnssec``
+.. namedconf:statement:: synth-from-dnssec
+
    This option enables support for :rfc:`8198`, Aggressive Use of
    DNSSEC-Validated Cache.  It allows the resolver to send a smaller number
    of queries when resolving queries for DNSSEC-signed domains
@@ -2337,7 +2631,8 @@ authoritative and does not have the answer in its cache.
 
 .. _forward:
 
-``forward``
+.. namedconf:statement:: forward
+
    This option is only meaningful if the forwarders list is not empty. A
    value of ``first`` is the default and causes the server to query the
    forwarders first; if that does not answer the question, the
@@ -2346,7 +2641,8 @@ authoritative and does not have the answer in its cache.
 
 .. _forwarders:
 
-``forwarders``
+.. namedconf:statement:: forwarders
+
    This specifies a list of IP addresses to which queries are forwarded. The
    default is the empty list (no forwarding). Each address in the list can be
    associated with an optional port number and/or DSCP value, and a default port
@@ -2367,7 +2663,8 @@ Dual-stack servers are used as servers of last resort, to work around
 problems in reachability due to the lack of support for either IPv4 or IPv6
 on the host machine.
 
-``dual-stack-servers``
+.. namedconf:statement:: dual-stack-servers
+
    This specifies host names or addresses of machines with access to both
    IPv4 and IPv6 transports. If a hostname is used, the server must be
    able to resolve the name using only the transport it has. If the
@@ -2384,7 +2681,8 @@ Access to the server can be restricted based on the IP address of the
 requesting system. See :ref:`address_match_lists`
 for details on how to specify IP address lists.
 
-``allow-notify``
+.. namedconf:statement:: allow-notify
+
    This ACL specifies which hosts may send NOTIFY messages to inform
    this server of changes to zones for which it is acting as a secondary
    server. This is only applicable for secondary zones (i.e., type
@@ -2398,16 +2696,20 @@ for details on how to specify IP address lists.
    the configured ``primaries`` for the zone. ``allow-notify`` can be used
    to expand the list of permitted hosts, not to reduce it.
 
-``allow-query``
-   This specifies which hosts are allowed to ask ordinary DNS questions.
+.. namedconf:statement:: allow-query
+   :tags: query
+   :short: Specifies which hosts (an IP address list) are allowed to send queries to this resolver.
+
    ``allow-query`` may also be specified in the ``zone`` statement, in
    which case it overrides the ``options allow-query`` statement. If not
    specified, the default is to allow queries from all hosts.
 
    .. note:: ``allow-query-cache`` is used to specify access to the cache.
 
-``allow-query-on``
-   This specifies which local addresses can accept ordinary DNS questions.
+.. namedconf:statement:: allow-query-on
+   :tags: query
+   :short: Specifies which local addresses (an IP address list) are allowed to send queries to this resolver. Used in multi-homed configurations.
+
    This makes it possible, for instance, to allow queries on
    internal-facing interfaces but disallow them on external-facing ones,
    without necessarily knowing the internal network's addresses.
@@ -2423,15 +2725,33 @@ for details on how to specify IP address lists.
 
    .. note:: ``allow-query-cache`` is used to specify access to the cache.
 
-.. _allow-query-cache:
+.. namedconf:statement:: allow-query-cache
+   :tags: query
+   :short: Specifies which hosts (an IP address list) can access this servers cache and thus effectively controls recursion.
 
-``allow-query-cache``
-   This specifies which hosts are allowed to get answers from the cache. If
-   ``allow-recursion`` is not set, BIND checks to see if the following parameters
-   are set, in order: ``allow-query-cache`` and ``allow-query`` (unless ``recursion no;`` is set).
-   If neither of those parameters is set, the default (localnets; localhost;) is used.
+   Defines an :term:`address_match_list` of IP address(es) which are allowed to
+   issue queries that access the local cache - without access to the local
+   cache recursive queries are effectively useless so, in effect, this
+   statement (or its default) controls recursive behavior. This statements's
+   default setting depends on:
 
-``allow-query-cache-on``
+   1. If :namedconf:ref:`recursion no; <recursion>` present, defaults to
+      ``allow-query-cache {none;};``. No local cache access permitted.
+
+   2. If :namedconf:ref:`recursion yes; <recursion>` (default) then, if
+      :any:`allow-recursion` present, defaults to the value of
+      :any:`allow-recursion`. Local cache access permitted to the same
+      :term:`address_match_list` as :any:`allow-recursion`.
+
+   3. If :namedconf:ref:`recursion yes; <recursion>` (default) then, if
+      :any:`allow-recursion` is **not** present, defaults to
+      ``allow-query-cache {localnets; localhost;};``. Local cache access permitted
+      to :term:`address_match_list` localnets and localhost IP addresses only.
+
+.. namedconf:statement:: allow-query-cache-on
+   :tags: query
+   :short: Specifies which hosts (an IP address list) can access this servers cache. Used in multi-homed configurations.
+
    This specifies which local addresses can send answers from the cache. If
    ``allow-query-cache-on`` is not set, then ``allow-recursion-on`` is
    used if set. Otherwise, the default is to allow cache responses to be
@@ -2440,13 +2760,15 @@ for details on how to specify IP address lists.
    can be sent; a client that is blocked by one cannot be allowed by the
    other.
 
-``allow-recursion``
+.. namedconf:statement:: allow-recursion
+
    This specifies which hosts are allowed to make recursive queries through
    this server. BIND checks to see if the following parameters are set, in
    order: ``allow-query-cache`` and ``allow-query``. If neither of those parameters
    is set, the default (localnets; localhost;) is used.
 
-``allow-recursion-on``
+.. namedconf:statement:: allow-recursion-on
+
    This specifies which local addresses can accept recursive queries. If
    ``allow-recursion-on`` is not set, then ``allow-query-cache-on`` is
    used if set; otherwise, the default is to allow recursive queries on
@@ -2456,7 +2778,9 @@ for details on how to specify IP address lists.
    before recursion is allowed; a client that is blocked by one cannot
    be allowed by the other.
 
-``allow-update``
+.. namedconf:statement:: allow-update
+
+   A simple access control list.
    When set in the ``zone`` statement for a primary zone, this specifies which
    hosts are allowed to submit Dynamic DNS updates to that zone. The
    default is to deny updates from all hosts.
@@ -2471,7 +2795,8 @@ for details on how to specify IP address lists.
 
    Updates are written to the zone's filename that is set in ``file``.
 
-``allow-update-forwarding``
+.. namedconf:statement:: allow-update-forwarding
+
    When set in the ``zone`` statement for a secondary zone, this specifies which
    hosts are allowed to submit Dynamic DNS updates and have them be
    forwarded to the primary. The default is ``{ none; }``, which means
@@ -2496,7 +2821,8 @@ for details on how to specify IP address lists.
 
 .. _allow-transfer:
 
-``allow-transfer``
+.. namedconf:statement:: allow-transfer
+
    This specifies which hosts are allowed to receive zone transfers from the
    server. ``allow-transfer`` may also be specified in the ``zone``
    statement, in which case it overrides the ``allow-transfer``
@@ -2522,10 +2848,13 @@ for details on how to specify IP address lists.
    or consider implementing :ref:`Mutual TLS <mutual-tls>`
    authentication.
 
-``blackhole``
+.. namedconf:statement:: blackhole
+
    This specifies a list of addresses which the server does not accept queries
    from or use to resolve a query. Queries from these addresses are not
    responded to. The default is ``none``.
+
+.. namedconf:statement:: keep-response-order
 
 ``keep-response-order``
    This specifies a list of addresses to which the server sends responses
@@ -2533,7 +2862,8 @@ for details on how to specify IP address lists.
    disables the processing of TCP queries in parallel. The default is
    ``none``.
 
-``no-case-compress``
+.. namedconf:statement:: no-case-compress
+
    This specifies a list of addresses which require responses to use
    case-insensitive compression. This ACL can be used when :iscman:`named`
    needs to work with clients that do not comply with the requirement in
@@ -2568,7 +2898,8 @@ for details on how to specify IP address lists.
    type NS, MX, CNAME, etc.) always have their case preserved unless
    the client matches this ACL.
 
-``resolver-query-timeout``
+.. namedconf:statement:: resolver-query-timeout
+
    This is the amount of time in milliseconds that the resolver spends
    attempting to resolve a recursive query before failing. The default
    and minimum is ``10000`` and the maximum is ``30000``. Setting it to
@@ -2586,162 +2917,199 @@ Interfaces
 The interfaces, ports, and protocols that the server can use to answer
 queries may be specified using the ``listen-on`` and ``listen-on-v6`` options.
 
-``listen-on`` and ``listen-on-v6`` statements can each take an optional
-port, TLS configuration identifier, and/or HTTP configuration identifier,
-in addition to an ``address_match_list``.
+.. namedconf:statement:: listen-on
+.. namedconf:statement:: listen-on-v6
 
-The ``address_match_list`` in ``listen-on`` specifies the IPv4 addresses
-on which the server will listen. (IPv6 addresses are ignored, with a
-logged warning.) The server listens on all interfaces allowed by the
-address match list.  If no ``listen-on`` is specified, the default is
-to listen for standard DNS queries on port 53 of all IPv4 interfaces.
+   ``listen-on`` and ``listen-on-v6`` statements can each take an optional
+   port, TLS configuration identifier, and/or HTTP configuration identifier,
+   in addition to an ``address_match_list``.
 
-``listen-on-v6`` takes an ``address_match_list`` of IPv6 addresses.
-The server listens on all interfaces allowed by the address match list.
-If no ``listen-on-v6`` is specified, the default is to listen for standard
-DNS queries on port 53 of all IPv6 interfaces.
+   The ``address_match_list`` in ``listen-on`` specifies the IPv4 addresses
+   on which the server will listen. (IPv6 addresses are ignored, with a
+   logged warning.) The server listens on all interfaces allowed by the
+   address match list.  If no ``listen-on`` is specified, the default is
+   to listen for standard DNS queries on port 53 of all IPv4 interfaces.
 
-If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
-(DoT) connections, using the key and certificate specified in the
-referenced ``tls`` statement. If the name ``ephemeral`` is used,
-an ephemeral key and certificate created for the currently running
-:iscman:`named` process will be used.
+   ``listen-on-v6`` takes an ``address_match_list`` of IPv6 addresses.
+   The server listens on all interfaces allowed by the address match list.
+   If no ``listen-on-v6`` is specified, the default is to listen for standard
+   DNS queries on port 53 of all IPv6 interfaces.
 
-If an HTTP configuration is specified, :iscman:`named` will listen for
-DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
-referenced ``http`` statement.  If the name ``default`` is used, then
-:iscman:`named` will listen for connections at the default endpoint,
-``/dns-query``.
+   If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
+   (DoT) connections, using the key and certificate specified in the
+   referenced ``tls`` statement. If the name ``ephemeral`` is used,
+   an ephemeral key and certificate created for the currently running
+   :iscman:`named` process will be used.
 
-Use of an ``http`` specification requires ``tls`` to be specified
-as well.  If an unencrypted connection is desired (for example,
-on load-sharing servers behind a reverse proxy), ``tls none`` may be used.
+   If an HTTP configuration is specified, :iscman:`named` will listen for
+   DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
+   referenced ``http`` statement.  If the name ``default`` is used, then
+   :iscman:`named` will listen for connections at the default endpoint,
+   ``/dns-query``.
 
-If a port number is not specified, the default is 53 for standard DNS,
-853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
-DNS over HTTP (unencrypted).  These defaults may be overridden using the
-``port``, ``tls-port``, ``https-port`` and ``http-port`` options.
+   Use of an ``http`` specification requires ``tls`` to be specified
+   as well.  If an unencrypted connection is desired (for example,
+   on load-sharing servers behind a reverse proxy), ``tls none`` may be used.
 
-Multiple ``listen-on`` statements are allowed. For example:
+   If a port number is not specified, the default is 53 for standard DNS,
+   853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
+   DNS over HTTP (unencrypted).  These defaults may be overridden using the
+   ``port``, ``tls-port``, ``https-port`` and ``http-port`` options.
 
-::
+   Multiple ``listen-on`` statements are allowed. For example:
 
-   listen-on { 5.6.7.8; };
-   listen-on port 1234 { !1.2.3.4; 1.2/16; };
-   listen-on port 8853 tls ephemeral { 4.3.2.1; };
-   listen-on port 8453 tls ephemeral http myserver { 8.7.6.5; };
+   ::
 
-The first two lines instruct the name server to listen for standard DNS
-queries on port 53 of the IP address 5.6.7.8 and on port 1234 of an address
-on the machine in net 1.2 that is not 1.2.3.4. The third line instructs the
-server to listen for DNS-over-TLS connections on port 8853 of the IP
-address 4.3.2.1 using the ephemeral key and certifcate.  The fourth line
-enables DNS-over-HTTPS connections on port 8453 of address 8.7.6.5, using
-the ephemeral key and certificate, and the HTTP endpoint or endpoints
-configured in an ``http`` statement with the name ``myserver``.
+      listen-on { 5.6.7.8; };
+      listen-on port 1234 { !1.2.3.4; 1.2/16; };
+      listen-on port 8853 tls ephemeral { 4.3.2.1; };
+      listen-on port 8453 tls ephemeral http myserver { 8.7.6.5; };
 
-Multiple ``listen-on-v6`` options can be used. For example:
+   The first two lines instruct the name server to listen for standard DNS
+   queries on port 53 of the IP address 5.6.7.8 and on port 1234 of an address
+   on the machine in net 1.2 that is not 1.2.3.4. The third line instructs the
+   server to listen for DNS-over-TLS connections on port 8853 of the IP
+   address 4.3.2.1 using the ephemeral key and certifcate.  The fourth line
+   enables DNS-over-HTTPS connections on port 8453 of address 8.7.6.5, using
+   the ephemeral key and certificate, and the HTTP endpoint or endpoints
+   configured in an ``http`` statement with the name ``myserver``.
 
-::
+   Multiple ``listen-on-v6`` options can be used. For example:
 
-   listen-on-v6 { any; };
-   listen-on-v6 port 1234 { !2001:db8::/32; any; };
-   listen-on port 8853 tls example-tls { 2001:db8::100; };
-   listen-on port 8453 tls example-tls http default { 2001:db8::100; };
-   listen-on port 8000 tls none http myserver { 2001:db8::100; };
+   ::
 
-The first two lines instruct the name server to listen for standard DNS
-queries on port 53 of any IPv6 addresses, and on port 1234 of IPv6
-addresses that are not in the prefix 2001:db8::/32. The third line
-instructs the server to listen for for DNS-over-TLS connections on port
-8853 of the address 2001:db8::100, using a TLS key and certificate specified
-in the a ``tls`` statement with the name ``example-tls``. The fourth
-instructs the server to listen for DNS-over-HTTPS connections, again using
-``example-tls``, on the default HTTP endpoint. The fifth line, in which
-the ``tls`` parameter is set to ``none``, instructs the server to listen
-for *unencrypted* DNS queries over HTTP at the endpoint specified in
-``myserver``..
+      listen-on-v6 { any; };
+      listen-on-v6 port 1234 { !2001:db8::/32; any; };
+      listen-on port 8853 tls example-tls { 2001:db8::100; };
+      listen-on port 8453 tls example-tls http default { 2001:db8::100; };
+      listen-on port 8000 tls none http myserver { 2001:db8::100; };
 
-To instruct the server not to listen on any IPv6 addresses, use:
+   The first two lines instruct the name server to listen for standard DNS
+   queries on port 53 of any IPv6 addresses, and on port 1234 of IPv6
+   addresses that are not in the prefix 2001:db8::/32. The third line
+   instructs the server to listen for for DNS-over-TLS connections on port
+   8853 of the address 2001:db8::100, using a TLS key and certificate specified
+   in the a ``tls`` statement with the name ``example-tls``. The fourth
+   instructs the server to listen for DNS-over-HTTPS connections, again using
+   ``example-tls``, on the default HTTP endpoint. The fifth line, in which
+   the ``tls`` parameter is set to ``none``, instructs the server to listen
+   for *unencrypted* DNS queries over HTTP at the endpoint specified in
+   ``myserver``..
 
-::
+   To instruct the server not to listen on any IPv6 addresses, use:
 
-   listen-on-v6 { none; };
+   ::
+
+      listen-on-v6 { none; };
 
 .. _query_address:
 
 Query Address
 ^^^^^^^^^^^^^
 
-If the server does not know the answer to a question, it queries other
-name servers. ``query-source`` specifies the address and port used for
-such queries. For queries sent over IPv6, there is a separate
-``query-source-v6`` option. If ``address`` is ``*`` (asterisk) or is
-omitted, a wildcard IP address (``INADDR_ANY``) is used.
+.. namedconf:statement:: query-source
+.. namedconf:statement:: query-source-v6
 
-If ``port`` is ``*`` or is omitted, a random port number from a
-pre-configured range is picked up and used for each query. The
-port range(s) is specified in the ``use-v4-udp-ports`` (for IPv4)
-and ``use-v6-udp-ports`` (for IPv6) options, excluding the ranges
-specified in the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
-options, respectively.
+   If the server does not know the answer to a question, it queries other
+   name servers. ``query-source`` specifies the address and port used for
+   such queries. For queries sent over IPv6, there is a separate
+   ``query-source-v6`` option. If ``address`` is ``*`` (asterisk) or is
+   omitted, a wildcard IP address (``INADDR_ANY``) is used.
 
-The defaults of the ``query-source`` and ``query-source-v6`` options
-are:
+   The defaults of the ``query-source`` and ``query-source-v6`` options
+   are:
 
-::
+   ::
 
-   query-source address * port *;
-   query-source-v6 address * port *;
+      query-source address * port *;
+      query-source-v6 address * port *;
 
-If ``use-v4-udp-ports`` or ``use-v6-udp-ports`` is unspecified,
-:iscman:`named` checks whether the operating system provides a programming
-interface to retrieve the system's default range for ephemeral ports. If
-such an interface is available, :iscman:`named` uses the corresponding
-system default range; otherwise, it uses its own defaults:
+   .. note:: The address specified in the ``query-source`` option is used for both
+      UDP and TCP queries, but the port applies only to UDP queries. TCP
+      queries always use a random unprivileged port.
 
-::
+.. namedconf:statement:: use-v4-udp-ports
+.. namedconf:statement:: use-v6-udp-ports
 
-   use-v4-udp-ports { range 1024 65535; };
-   use-v6-udp-ports { range 1024 65535; };
+   These statements specify a list of IPv4 and IPv6 UDP ports that
+   are used as source ports for UDP messages.
 
-The defaults of the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
-options are:
+   If ``port`` is ``*`` or is omitted, a random port number from a
+   pre-configured range is selected and used for each query. The
+   port range(s) are specified in the ``use-v4-udp-ports`` (for IPv4)
+   and ``use-v6-udp-ports`` (for IPv6) options.
 
-::
+   If ``use-v4-udp-ports`` or ``use-v6-udp-ports`` is unspecified,
+   :iscman:`named` checks whether the operating system provides a programming
+   interface to retrieve the system's default range for ephemeral ports. If
+   such an interface is available, :iscman:`named` uses the corresponding
+   system default range; otherwise, it uses its own defaults:
 
-   avoid-v4-udp-ports {};
-   avoid-v6-udp-ports {};
+   ::
 
-.. note:: Make sure the ranges are sufficiently large for security. A
-   desirable size depends on several parameters, but we generally recommend
-   it contain at least 16384 ports (14 bits of entropy). Note also that the
-   system's default range when used may be too small for this purpose, and
-   that the range may even be changed while :iscman:`named` is running; the new
-   range is automatically applied when :iscman:`named` is reloaded. Explicit
-   configuration of ``use-v4-udp-ports`` and ``use-v6-udp-ports`` is encouraged,
-   so that the ranges are sufficiently large and are reasonably
-   independent from the ranges used by other applications.
+      use-v4-udp-ports { range 1024 65535; };
+      use-v6-udp-ports { range 1024 65535; };
 
-.. note:: The operational configuration where :iscman:`named` runs may prohibit
-   the use of some ports. For example, Unix systems do not allow
-   :iscman:`named`, if run without root privilege, to use ports less than 1024.
-   If such ports are included in the specified (or detected) set of query
-   ports, the corresponding query attempts will fail, resulting in
-   resolution failures or delay. It is therefore important to configure the
-   set of ports that can be safely used in the expected operational
-   environment.
+.. namedconf:statement:: avoid-v4-udp-ports
+.. namedconf:statement:: avoid-v6-udp-ports
 
-.. note:: The address specified in the ``query-source`` option is used for both
-   UDP and TCP queries, but the port applies only to UDP queries. TCP
-   queries always use a random unprivileged port.
+   These ranges are excluded from those
+   specified in the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
+   options, respectively.
 
-.. warning:: Specifying a single port is discouraged, as it removes a layer of
-   protection against spoofing errors.
+   The defaults of the ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports``
+   options are:
 
-.. warning:: The configured ``port`` must not be same as the listening port.
+   ::
 
-.. note:: See also ``transfer-source``, ``notify-source`` and ``parental-source``.
+      avoid-v4-udp-ports {};
+      avoid-v6-udp-ports {};
+
+   For example, with the following configuration:
+
+   ::
+
+      use-v6-udp-ports { range 32768 65535; };
+      avoid-v6-udp-ports { 40000; range 50000 60000; };
+
+   UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
+   following ranges: 32768 to 39999, 40001 to 49999, or 60001 to 65535.
+
+   ``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports`` can be used to prevent
+   :iscman:`named` from choosing as its random source port a port that is blocked
+   by a firewall or that is used by other applications; if a
+   query went out with a source port blocked by a firewall, the answer
+   would not pass through the firewall and the name server would have to query
+   again. Note: the desired range can also be represented only with
+   ``use-v4-udp-ports`` and ``use-v6-udp-ports``, and the ``avoid-``
+   options are redundant in that sense; they are provided for backward
+   compatibility and to possibly simplify the port specification.
+
+   .. note:: Make sure the ranges are sufficiently large for security. A
+      desirable size depends on several parameters, but we generally recommend
+      it contain at least 16384 ports (14 bits of entropy). Note also that the
+      system's default range when used may be too small for this purpose, and
+      that the range may even be changed while :iscman:`named` is running; the new
+      range is automatically applied when :iscman:`named` is reloaded. Explicit
+      configuration of ``use-v4-udp-ports`` and ``use-v6-udp-ports`` is encouraged,
+      so that the ranges are sufficiently large and are reasonably
+      independent from the ranges used by other applications.
+
+   .. note:: The operational configuration where :iscman:`named` runs may prohibit
+      the use of some ports. For example, Unix systems do not allow
+      :iscman:`named`, if run without root privilege, to use ports less than 1024.
+      If such ports are included in the specified (or detected) set of query
+      ports, the corresponding query attempts will fail, resulting in
+      resolution failures or delay. It is therefore important to configure the
+      set of ports that can be safely used in the expected operational
+      environment.
+
+   .. warning:: Specifying a single port is discouraged, as it removes a layer of
+      protection against spoofing errors.
+
+   .. warning:: The configured ``port`` must not be same as the listening port.
+
+   .. note:: See also ``transfer-source``, ``notify-source`` and ``parental-source``.
 
 .. _zone_transfers:
 
@@ -2754,7 +3122,8 @@ options apply to zone transfers.
 
 .. _also-notify:
 
-``also-notify``
+.. namedconf:statement:: also-notify
+
    This option defines a global list of IP addresses of name servers that are also
    sent NOTIFY messages whenever a fresh copy of the zone is loaded, in
    addition to the servers listed in the zone's NS records. This helps
@@ -2772,40 +3141,47 @@ options apply to zone transfers.
    global ``also-notify`` list are not sent NOTIFY messages for that
    zone. The default is the empty list (no global notification list).
 
-``max-transfer-time-in``
+.. namedconf:statement:: max-transfer-time-in
+
    Inbound zone transfers running longer than this many minutes are
    terminated. The default is 120 minutes (2 hours). The maximum value
    is 28 days (40320 minutes).
 
-``max-transfer-idle-in``
+.. namedconf:statement:: max-transfer-idle-in
+
    Inbound zone transfers making no progress in this many minutes are
    terminated. The default is 60 minutes (1 hour). The maximum value
    is 28 days (40320 minutes).
 
-``max-transfer-time-out``
+.. namedconf:statement:: max-transfer-time-out
+
    Outbound zone transfers running longer than this many minutes are
    terminated. The default is 120 minutes (2 hours). The maximum value
    is 28 days (40320 minutes).
 
-``max-transfer-idle-out``
+.. namedconf:statement:: max-transfer-idle-out
+
    Outbound zone transfers making no progress in this many minutes are
    terminated. The default is 60 minutes (1 hour). The maximum value
    is 28 days (40320 minutes).
 
-``notify-rate``
+.. namedconf:statement:: notify-rate
+
    This specifies the rate at which NOTIFY requests are sent during normal zone
    maintenance operations. (NOTIFY requests due to initial zone loading
    are subject to a separate rate limit; see below.) The default is 20
    per second. The lowest possible rate is one per second; when set to
    zero, it is silently raised to one.
 
-``startup-notify-rate``
+.. namedconf:statement:: startup-notify-rate
+
    This is the rate at which NOTIFY requests are sent when the name server
    is first starting up, or when zones have been newly added to the
    name server. The default is 20 per second. The lowest possible rate is
    one per second; when set to zero, it is silently raised to one.
 
-``serial-query-rate``
+.. namedconf:statement:: serial-query-rate
+
    Secondary servers periodically query primary servers to find out if
    zone serial numbers have changed. Each such query uses a minute
    amount of the secondary server's network bandwidth. To limit the amount
@@ -2815,7 +3191,8 @@ options apply to zone transfers.
    second. The lowest possible rate is one per second; when set to zero,
    it is silently raised to one.
 
-``transfer-format``
+.. namedconf:statement:: transfer-format
+
    Zone transfers can be sent using two different formats,
    ``one-answer`` and ``many-answers``. The ``transfer-format`` option
    is used on the primary server to determine which format it sends.
@@ -2823,9 +3200,10 @@ options apply to zone transfers.
    ``many-answers`` packs as many resource records as possible into one
    message. ``many-answers`` is more efficient; the default is ``many-answers``.
    ``transfer-format`` may be overridden on a per-server basis by using
-   the ``server`` statement.
+   the :namedconf:ref:`server` block.
 
-``transfer-message-size``
+.. namedconf:statement:: transfer-message-size
+
    This is an upper bound on the uncompressed size of DNS messages used
    in zone transfers over TCP. If a message grows larger than this size,
    additional messages are used to complete the zone transfer.
@@ -2845,18 +3223,21 @@ options apply to zone transfers.
    This option is mainly intended for server testing; there is rarely
    any benefit in setting a value other than the default.
 
-``transfers-in``
+.. namedconf:statement:: transfers-in
+
    This is the maximum number of inbound zone transfers that can run
    concurrently. The default value is ``10``. Increasing
    ``transfers-in`` may speed up the convergence of secondary zones, but it
    also may increase the load on the local system.
 
-``transfers-out``
+.. namedconf:statement:: transfers-out
+
    This is the maximum number of outbound zone transfers that can run
    concurrently. Zone transfer requests in excess of the limit are
    refused. The default value is ``10``.
 
-``transfers-per-ns``
+.. namedconf:statement:: transfers-per-ns
+
    This is the maximum number of inbound zone transfers that can concurrently
    transfer from a given remote name server. The default value is
    ``2``. Increasing ``transfers-per-ns`` may speed up the convergence
@@ -2864,7 +3245,8 @@ options apply to zone transfers.
    server. ``transfers-per-ns`` may be overridden on a per-server basis
    by using the ``transfers`` phrase of the ``server`` statement.
 
-``transfer-source``
+.. namedconf:statement:: transfer-source
+
    ``transfer-source`` determines which local address is bound to
    IPv4 TCP connections used to fetch zones transferred inbound by the
    server. It also determines the source IPv4 address, and optionally
@@ -2883,11 +3265,13 @@ options apply to zone transfers.
 
    .. warning:: The configured ``port`` must not be same as the listening port.
 
-``transfer-source-v6``
+.. namedconf:statement:: transfer-source-v6
+
    This option is the same as ``transfer-source``, except zone transfers are performed
    using IPv6.
 
-``alt-transfer-source``
+.. namedconf:statement:: alt-transfer-source
+
    This indicates an alternate transfer source if the one listed in ``transfer-source``
    fails and ``use-alt-transfer-source`` is set.
 
@@ -2896,15 +3280,18 @@ options apply to zone transfers.
       do not depend upon getting an answer back to the first refresh
       query.
 
-``alt-transfer-source-v6``
+.. namedconf:statement:: alt-transfer-source-v6
+
    This indicates an alternate transfer source if the one listed in
    ``transfer-source-v6`` fails and ``use-alt-transfer-source`` is set.
 
-``use-alt-transfer-source``
+.. namedconf:statement:: use-alt-transfer-source
+
    This indicates whether the alternate transfer sources should be used. If views are specified,
    this defaults to ``no``; otherwise, it defaults to ``yes``.
 
-``notify-source``
+.. namedconf:statement:: notify-source
+
    ``notify-source`` determines which local source address, and
    optionally UDP port, is used to send NOTIFY messages. This
    address must appear in the secondary server's ``primaries`` zone clause or
@@ -2918,38 +3305,10 @@ options apply to zone transfers.
 
    .. warning:: The configured ``port`` must not be same as the listening port.
 
-``notify-source-v6``
+.. namedconf:statement:: notify-source-v6
+
    This option acts like ``notify-source``, but applies to notify messages sent to IPv6
    addresses.
-
-.. _port_lists:
-
-UDP Port Lists
-^^^^^^^^^^^^^^
-
-``use-v4-udp-ports``, ``avoid-v4-udp-ports``, ``use-v6-udp-ports``, and
-``avoid-v6-udp-ports`` specify a list of IPv4 and IPv6 UDP ports that
-are or are not used as source ports for UDP messages. See
-:ref:`query_address` about how the available ports are
-determined. For example, with the following configuration:
-
-::
-
-   use-v6-udp-ports { range 32768 65535; };
-   avoid-v6-udp-ports { 40000; range 50000 60000; };
-
-UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
-following ranges: 32768 to 39999, 40001 to 49999, and 60001 to 65535.
-
-``avoid-v4-udp-ports`` and ``avoid-v6-udp-ports`` can be used to prevent
-:iscman:`named` from choosing as its random source port a port that is blocked
-by a firewall or a port that is used by other applications; if a
-query went out with a source port blocked by a firewall, the answer
-would not pass through the firewall and the name server would have to query
-again. Note: the desired range can also be represented only with
-``use-v4-udp-ports`` and ``use-v6-udp-ports``, and the ``avoid-``
-options are redundant in that sense; they are provided for backward
-compatibility and to possibly simplify the port specification.
 
 .. _resource_limits:
 
@@ -2961,17 +3320,19 @@ values are allowed when specifying resource limits. For example, ``1G``
 can be used instead of ``1073741824`` to specify a limit of one
 gigabyte. ``unlimited`` requests unlimited use, or the maximum available
 amount. ``default`` uses the limit that was in force when the server was
-started. See the description of ``size_spec`` in :ref:`configuration_file_elements`.
+started. See the description of :term:`size_spec`.
 
 The following options set operating system resource limits for the name
 server process. Some operating systems do not support some or any of the
 limits; on such systems, a warning is issued if an unsupported
 limit is used.
 
-``coresize``
+.. namedconf:statement:: coresize
+
    This sets the maximum size of a core dump. The default is ``default``.
 
-``datasize``
+.. namedconf:statement:: datasize
+
    This sets the maximum amount of data memory the server may use. The default is
    ``default``. This is a hard limit on server memory usage; if the
    server attempts to allocate memory in excess of this limit, the
@@ -2983,11 +3344,13 @@ limit is used.
    server, use the ``max-cache-size`` and ``recursive-clients`` options
    instead.
 
-``files``
+.. namedconf:statement:: files
+
    This sets the maximum number of files the server may have open concurrently.
    The default is ``unlimited``.
 
-``stacksize``
+.. namedconf:statement:: stacksize
+
    This sets the maximum amount of stack memory the server may use. The default is
    ``default``.
 
@@ -3000,7 +3363,8 @@ The following options set limits on the server's resource consumption
 that are enforced internally by the server rather than by the operating
 system.
 
-``max-journal-size``
+.. namedconf:statement:: max-journal-size
+
    This sets a maximum size for each journal file (see :ref:`journal`),
    expressed in bytes or, if followed by an
    optional unit suffix ('k', 'm', or 'g'), in kilobytes, megabytes, or
@@ -3014,11 +3378,13 @@ system.
 
    This option may also be set on a per-zone basis.
 
-``max-records``
+.. namedconf:statement:: max-records
+
    This sets the maximum number of records permitted in a zone. The default is
    zero, which means the maximum is unlimited.
 
-``recursive-clients``
+.. namedconf:statement:: recursive-clients
+
    This sets the maximum number (a "hard quota") of simultaneous recursive lookups
    the server performs on behalf of clients. The default is
    ``1000``. Because each recursing client uses a fair bit of memory (on
@@ -3036,14 +3402,16 @@ system.
    soft quota is set to ``recursive-clients`` minus 100; otherwise it is
    set to 90% of ``recursive-clients``.
 
-``tcp-clients``
+.. namedconf:statement:: tcp-clients
+
    This is the maximum number of simultaneous client TCP connections that the
    server accepts. The default is ``150``.
 
 .. _clients-per-query:
 
-``clients-per-query``; ``max-clients-per-query``
-   These set the initial value (minimum) and maximum number of recursive
+.. namedconf:statement:: clients-per-query
+
+   Sets the initial value (minimum) number of recursive
    simultaneous clients for any given query (<qname,qtype,qclass>) that
    the server accepts before dropping additional clients. :iscman:`named`
    attempts to self-tune this value and changes are logged. The
@@ -3060,10 +3428,17 @@ system.
    If ``clients-per-query`` is set to zero, there is no limit on
    the number of clients per query and no queries are dropped.
 
+.. namedconf:statement:: max-clients-per-query
+
+   Sets the maximum number of recursive
+   simultaneous clients for any given query (<qname,qtype,qclass>) that
+   the server accepts before dropping additional clients.
+
    If ``max-clients-per-query`` is set to zero, there is no upper
    bound other than that imposed by ``recursive-clients``.
 
-``fetches-per-zone``
+.. namedconf:statement:: fetches-per-zone
+
    This sets the maximum number of simultaneous iterative queries to any one
    domain that the server permits before blocking new queries for
    data in or beneath that zone. This value should reflect how many
@@ -3097,7 +3472,8 @@ system.
    is sent to that domain, it is recreated with the counters set
    to zero.)
 
-``fetches-per-server``
+.. namedconf:statement:: fetches-per-server
+
    This sets the maximum number of simultaneous iterative queries that the server
    allows to be sent to a single upstream name server before
    blocking additional queries. This value should reflect how many
@@ -3125,7 +3501,8 @@ system.
    increased. The ``fetch-quota-params`` options can be used to adjust
    the parameters for this calculation.
 
-``fetch-quota-params``
+.. namedconf:statement:: fetch-quota-params
+
    This sets the parameters to use for dynamic resizing of the
    ``fetches-per-server`` quota in response to detected congestion.
 
@@ -3145,12 +3522,14 @@ system.
    arguments are all fixed-point numbers with precision of 1/100; at
    most two places after the decimal point are significant.
 
-``reserved-sockets``
+.. namedconf:statement:: reserved-sockets
+
    This option is deprecated and no longer has any effect.
 
 .. _max-cache-size:
 
-``max-cache-size``
+.. namedconf:statement:: max-cache-size
+
    This sets the maximum amount of memory to use for an individual cache
    database and its associated metadata, in bytes or percentage of total
    physical memory. By default, each view has its own separate cache,
@@ -3194,7 +3573,8 @@ system.
    startup, so :iscman:`named` does not adjust the cache size limits if the
    amount of physical memory is changed at runtime.
 
-``tcp-listen-queue``
+.. namedconf:statement:: tcp-listen-queue
+
    This sets the listen-queue depth. The default and minimum is 10. If the kernel
    supports the accept filter "dataready", this also controls how many
    TCP connections are queued in kernel space waiting for some
@@ -3202,7 +3582,8 @@ system.
    silently raised. A value of 0 may also be used; on most platforms
    this sets the listen-queue length to a system-defined default value.
 
-``tcp-initial-timeout``
+.. namedconf:statement:: tcp-initial-timeout
+
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    a new TCP connection for the first message from the client. The
    default is 300 (30 seconds), the minimum is 25 (2.5 seconds), and the
@@ -3212,7 +3593,8 @@ system.
    client will ever have enough time to submit a message.) This value
    can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
-``tcp-idle-timeout``
+.. namedconf:statement:: tcp-idle-timeout
+
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    an idle TCP connection before closing it, when the client is not using
    the EDNS TCP keepalive option. The default is 300 (30 seconds), the
@@ -3222,7 +3604,8 @@ system.
    clients using the EDNS TCP keepalive option. This value can be
    updated at runtime by using :option:`rndc tcp-timeouts`.
 
-``tcp-keepalive-timeout``
+.. namedconf:statement:: tcp-keepalive-timeout
+
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    an idle TCP connection before closing it, when the client is using the
    EDNS TCP keepalive option. The default is 300 (30 seconds), the
@@ -3233,7 +3616,8 @@ system.
    option are expected to use TCP connections for more than one message.
    This value can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
-``tcp-advertised-timeout``
+.. namedconf:statement:: tcp-advertised-timeout
+
    This sets the timeout value (in units of 100 milliseconds) that the server sends
    in responses containing the EDNS TCP keepalive option, which informs a
    client of the amount of time it may keep the session open. The
@@ -3248,14 +3632,16 @@ system.
 Periodic Task Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-``heartbeat-interval``
+.. namedconf:statement:: heartbeat-interval
+
    The server performs zone maintenance tasks for all zones marked
    as ``dialup`` whenever this interval expires. The default is 60
    minutes. Reasonable values are up to 1 day (1440 minutes). The
    maximum value is 28 days (40320 minutes). If set to 0, no zone
    maintenance for these zones occurs.
 
-``interface-interval``
+.. namedconf:statement:: interface-interval
+
    The server scans the network interface list every ``interface-interval``
    minutes. The default is 60 minutes; the maximum value is 28 days (40320
    minutes). If set to 0, interface scanning only occurs when the configuration
@@ -3282,33 +3668,35 @@ server, the sorting can be performed in the server, based on the
 client's address. This only requires configuring the name servers, not
 all the clients.
 
-The ``sortlist`` statement (see below) takes an ``address_match_list`` and
-interprets it in a special way. Each top-level statement in the ``sortlist``
-must itself be an explicit ``address_match_list`` with one or two elements. The
-first element (which may be an IP address, an IP prefix, an ACL name, or a nested
-``address_match_list``) of each top-level list is checked against the source
-address of the query until a match is found. When the addresses in the first
-element overlap, the first rule to match is selected.
+.. namedconf:statement:: sortlist
 
-Once the source address of the query has been matched, if the top-level
-statement contains only one element, the actual primitive element that
-matched the source address is used to select the address in the response
-to move to the beginning of the response. If the statement is a list of
-two elements, then the second element is interpreted as a topology
-preference list. Each top-level element is assigned a distance, and the
-address in the response with the minimum distance is moved to the
-beginning of the response.
+   The ``sortlist`` statement (see below) takes an ``address_match_list`` and
+   interprets it in a special way. Each top-level statement in the ``sortlist``
+   must itself be an explicit ``address_match_list`` with one or two elements. The
+   first element (which may be an IP address, an IP prefix, an ACL name, or a nested
+   ``address_match_list``) of each top-level list is checked against the source
+   address of the query until a match is found. When the addresses in the first
+   element overlap, the first rule to match is selected.
 
-In the following example, any queries received from any of the addresses
-of the host itself get responses preferring addresses on any of the
-locally connected networks. Next most preferred are addresses on the
-192.168.1/24 network, and after that either the 192.168.2/24 or
-192.168.3/24 network, with no preference shown between these two
-networks. Queries received from a host on the 192.168.1/24 network
-prefer other addresses on that network to the 192.168.2/24 and
-192.168.3/24 networks. Queries received from a host on the 192.168.4/24
-or the 192.168.5/24 network only prefer other addresses on their
-directly connected networks.
+   Once the source address of the query has been matched, if the top-level
+   statement contains only one element, the actual primitive element that
+   matched the source address is used to select the address in the response
+   to move to the beginning of the response. If the statement is a list of
+   two elements, then the second element is interpreted as a topology
+   preference list. Each top-level element is assigned a distance, and the
+   address in the response with the minimum distance is moved to the
+   beginning of the response.
+
+   In the following example, any queries received from any of the addresses
+   of the host itself get responses preferring addresses on any of the
+   locally connected networks. Next most preferred are addresses on the
+   192.168.1/24 network, and after that either the 192.168.2/24 or
+   192.168.3/24 network, with no preference shown between these two
+   networks. Queries received from a host on the 192.168.1/24 network
+   prefer other addresses on that network to the 192.168.2/24 and
+   192.168.3/24 networks. Queries received from a host on the 192.168.4/24
+   or the 192.168.5/24 network only prefer other addresses on their
+   directly connected networks.
 
 ::
 
@@ -3362,109 +3750,113 @@ RRset Ordering
     caveats apply (mostly stemming from caching) which usually make it a
     suboptimal choice for load balancing purposes when used on its own.
 
-The ``rrset-order`` statement permits configuration of the ordering of
-the records in a multiple-record response. See also:
-:ref:`the_sortlist_statement`.
+.. namedconf:statement:: rrset-order
 
-Each rule in an ``rrset-order`` statement is defined as follows:
+   The ``rrset-order`` statement permits configuration of the ordering of
+   the records in a multiple-record response. See also:
+   :ref:`the_sortlist_statement`.
 
-::
+   Each rule in an ``rrset-order`` statement is defined as follows:
 
-    [class <class_name>] [type <type_name>] [name "<domain_name>"] order <ordering>
+   ::
 
-The default qualifiers for each rule are:
+       [class <class_name>] [type <type_name>] [name "<domain_name>"] order <ordering>
 
-  - If no ``class`` is specified, the default is ``ANY``.
-  - If no ``type`` is specified, the default is ``ANY``.
-  - If no ``name`` is specified, the default is ``*`` (asterisk).
+   The default qualifiers for each rule are:
 
-``<domain_name>`` only matches the name itself, not any of its
-subdomains.  To make a rule match all subdomains of a given name, a
-wildcard name (``*.<domain_name>``) must be used.  Note that
-``*.<domain_name>`` does *not* match ``<domain_name>`` itself; to
-specify RRset ordering for a name and all of its subdomains, two
-separate rules must be defined: one for ``<domain_name>`` and one for
-``*.<domain_name>``.
+     - If no ``class`` is specified, the default is ``ANY``.
+     - If no ``type`` is specified, the default is ``ANY``.
+     - If no ``name`` is specified, the default is ``*`` (asterisk).
 
-The legal values for ``<ordering>`` are:
+   ``<domain_name>`` only matches the name itself, not any of its
+   subdomains.  To make a rule match all subdomains of a given name, a
+   wildcard name (``*.<domain_name>``) must be used.  Note that
+   ``*.<domain_name>`` does *not* match ``<domain_name>`` itself; to
+   specify RRset ordering for a name and all of its subdomains, two
+   separate rules must be defined: one for ``<domain_name>`` and one for
+   ``*.<domain_name>``.
 
-``fixed``
-    Records are returned in the order they are defined in the zone file.
+   The legal values for ``<ordering>`` are:
 
-.. note::
+   ``fixed``
+       Records are returned in the order they are defined in the zone file.
 
-    The ``fixed`` option is only available if BIND is configured with
-    ``--enable-fixed-rrset`` at compile time.
+   .. note::
 
-``random``
-    Records are returned in a random order.
+       The ``fixed`` option is only available if BIND is configured with
+       ``--enable-fixed-rrset`` at compile time.
 
-``cyclic``
-    Records are returned in a cyclic round-robin order, rotating by one
-    record per query.
+   ``random``
+       Records are returned in a random order.
 
-``none``
-    Records are returned in the order they were retrieved from the
-    database. This order is indeterminate, but remains consistent as
-    long as the database is not modified.
+   ``cyclic``
+       Records are returned in a cyclic round-robin order, rotating by one
+       record per query.
 
-The default RRset order used depends on whether any ``rrset-order``
-statements are present in the configuration file used by :iscman:`named`:
+   ``none``
+       Records are returned in the order they were retrieved from the
+       database. This order is indeterminate, but remains consistent as
+       long as the database is not modified.
 
-  - If no ``rrset-order`` statement is present in the configuration
-    file, the implicit default is to return all records in ``random``
-    order.
+   The default RRset order used depends on whether any ``rrset-order``
+   statements are present in the configuration file used by :iscman:`named`:
 
-  - If any ``rrset-order`` statements are present in the configuration
-    file, but no ordering rule specified in these statements matches a
-    given RRset, the default order for that RRset is ``none``.
+     - If no ``rrset-order`` statement is present in the configuration
+       file, the implicit default is to return all records in ``random``
+       order.
 
-Note that if multiple ``rrset-order`` statements are present in the
-configuration file (at both the ``options`` and ``view`` levels), they
-are *not* combined; instead, the more-specific one (``view``) replaces
-the less-specific one (``options``).
+     - If any ``rrset-order`` statements are present in the configuration
+       file, but no ordering rule specified in these statements matches a
+       given RRset, the default order for that RRset is ``none``.
 
-If multiple rules within a single ``rrset-order`` statement match a
-given RRset, the first matching rule is applied.
+   Note that if multiple ``rrset-order`` statements are present in the
+   configuration file (at both the ``options`` and ``view`` levels), they
+   are *not* combined; instead, the more-specific one (``view``) replaces
+   the less-specific one (``options``).
 
-Example:
+   If multiple rules within a single ``rrset-order`` statement match a
+   given RRset, the first matching rule is applied.
 
-::
+   Example:
 
-    rrset-order {
-        type A name "foo.isc.org" order random;
-        type AAAA name "foo.isc.org" order cyclic;
-        name "bar.isc.org" order fixed;
-        name "*.bar.isc.org" order random;
-        name "*.baz.isc.org" order cyclic;
-    };
+   ::
 
-With the above configuration, the following RRset ordering is used:
+       rrset-order {
+           type A name "foo.isc.org" order random;
+           type AAAA name "foo.isc.org" order cyclic;
+           name "bar.isc.org" order fixed;
+           name "*.bar.isc.org" order random;
+           name "*.baz.isc.org" order cyclic;
+       };
 
-===================    ========    ===========
-QNAME                  QTYPE       RRset Order
-===================    ========    ===========
-``foo.isc.org``        ``A``       ``random``
-``foo.isc.org``        ``AAAA``    ``cyclic``
-``foo.isc.org``        ``TXT``     ``none``
-``sub.foo.isc.org``    all         ``none``
-``bar.isc.org``        all         ``fixed``
-``sub.bar.isc.org``    all         ``random``
-``baz.isc.org``        all         ``none``
-``sub.baz.isc.org``    all         ``cyclic``
-===================    ========    ===========
+   With the above configuration, the following RRset ordering is used:
+
+   ===================    ========    ===========
+   QNAME                  QTYPE       RRset Order
+   ===================    ========    ===========
+   ``foo.isc.org``        ``A``       ``random``
+   ``foo.isc.org``        ``AAAA``    ``cyclic``
+   ``foo.isc.org``        ``TXT``     ``none``
+   ``sub.foo.isc.org``    all         ``none``
+   ``bar.isc.org``        all         ``fixed``
+   ``sub.bar.isc.org``    all         ``random``
+   ``baz.isc.org``        all         ``none``
+   ``sub.baz.isc.org``    all         ``cyclic``
+   ===================    ========    ===========
 
 .. _tuning:
 
 Tuning
 ^^^^^^
 
-``lame-ttl``
+.. namedconf:statement:: lame-ttl
+
    This is always set to 0. More information is available in the
    `security advisory for CVE-2021-25219
    <https://kb.isc.org/docs/cve-2021-25219>`_.
 
-``servfail-ttl``
+.. namedconf:statement:: servfail-ttl
+
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
    validation failure or other general server failure. If set to ``0``,
    SERVFAIL caching is disabled. The SERVFAIL cache is not consulted if
@@ -3475,7 +3867,8 @@ Tuning
    The maximum value is ``30`` seconds; any higher value is
    silently reduced. The default is ``1`` second.
 
-``min-ncache-ttl``
+.. namedconf:statement:: min-ncache-ttl
+
    To reduce network traffic and increase performance, the server stores
    negative answers. ``min-ncache-ttl`` is used to set a minimum
    retention time for these answers in the server, in seconds. For
@@ -3486,7 +3879,8 @@ Tuning
    exceed 90 seconds and is truncated to 90 seconds if set to a greater
    value.
 
-``min-cache-ttl``
+.. namedconf:statement:: min-cache-ttl
+
    This sets the minimum time for which the server caches ordinary (positive)
    answers, in seconds. For convenience, TTL-style time-unit suffixes may be used
    to specify the value. It also accepts ISO 8601 duration formats.
@@ -3495,7 +3889,8 @@ Tuning
    exceed 90 seconds and is truncated to 90 seconds if set to a greater
    value.
 
-``max-ncache-ttl``
+.. namedconf:statement:: max-ncache-ttl
+
    To reduce network traffic and increase performance, the server stores
    negative answers. ``max-ncache-ttl`` is used to set a maximum retention time
    for these answers in the server, in seconds. For convenience, TTL-style
@@ -3506,7 +3901,8 @@ Tuning
    cannot exceed 7 days and is silently truncated to 7 days if set to a
    greater value.
 
-``max-cache-ttl``
+.. namedconf:statement:: max-cache-ttl
+
    This sets the maximum time for which the server caches ordinary (positive)
    answers, in seconds. For convenience, TTL-style time-unit suffixes may be used
    to specify the value. It also accepts ISO 8601 duration formats.
@@ -3515,7 +3911,8 @@ Tuning
    all queries to return SERVFAIL, because of lost caches of intermediate RRsets
    (such as NS and glue AAAA/A records) in the resolution process.
 
-``max-stale-ttl``
+.. namedconf:statement:: max-stale-ttl
+
    If retaining stale RRsets in cache is enabled, and returning of stale cached
    answers is also enabled, ``max-stale-ttl`` sets the maximum time for which
    the server retains records past their normal expiry to return them as stale
@@ -3531,14 +3928,17 @@ Tuning
    When ``stale-cache-enable`` is set to ``no``, setting the ``max-stale-ttl``
    has no effect, the value of ``max-cache-ttl`` will be ``0`` in such case.
 
-``resolver-nonbackoff-tries``
+.. namedconf:statement:: resolver-nonbackoff-tries
+
    This specifies how many retries occur before exponential backoff kicks in. The
    default is ``3``.
 
-``resolver-retry-interval``
+.. namedconf:statement:: resolver-retry-interval
+
    This sets the base retry interval in milliseconds. The default is ``800``.
 
-``sig-validity-interval``
+.. namedconf:statement:: sig-validity-interval
+
    this specifies the upper bound of the number of days that RRSIGs
    generated by :iscman:`named` are valid; the default is ``30`` days,
    with a maximum of 3660 days (10 years). The optional second value
@@ -3566,7 +3966,8 @@ Tuning
    of the SOA expire interval, to allow for reasonable interaction
    between the various timer and expiry dates.
 
-``dnskey-sig-validity``
+.. namedconf:statement:: dnskey-sig-validity
+
    This specifies the number of days into the future when DNSSEC signatures
    that are automatically generated for DNSKEY RRsets as a result of
    dynamic updates (:ref:`dynamic_update`) will expire.
@@ -3575,16 +3976,19 @@ Tuning
    ``sig-validity-interval`` is used. The maximum value is 3660 days (10
    years), and higher values are rejected.
 
-``sig-signing-nodes``
+.. namedconf:statement:: sig-signing-nodes
+
    This specifies the maximum number of nodes to be examined in each quantum,
    when signing a zone with a new DNSKEY. The default is ``100``.
 
-``sig-signing-signatures``
+.. namedconf:statement:: sig-signing-signatures
+
    This specifies a threshold number of signatures that terminates
    processing a quantum, when signing a zone with a new DNSKEY. The
    default is ``10``.
 
-``sig-signing-type``
+.. namedconf:statement:: sig-signing-type
+
    This specifies a private RDATA type to be used when generating signing-state
    records. The default is ``65534``.
 
@@ -3601,7 +4005,11 @@ Tuning
    the completed signing-state records for a zone, use
    :option:`rndc signing -clear all zone <rndc signing>`.
 
-``min-refresh-time``; ``max-refresh-time``; ``min-retry-time``; ``max-retry-time``
+.. namedconf:statement:: min-refresh-time
+.. namedconf:statement:: max-refresh-time
+.. namedconf:statement:: min-retry-time
+.. namedconf:statement:: max-retry-time
+
    These options control the server's behavior on refreshing a zone
    (querying for SOA changes) or retrying failed transfers. Usually the
    SOA values for the zone are used, up to a hard-coded maximum expiry
@@ -3617,7 +4025,8 @@ Tuning
    ``max-refresh-time`` 2419200 seconds (4 weeks), ``min-retry-time``
    500 seconds, and ``max-retry-time`` 1209600 seconds (2 weeks).
 
-``edns-udp-size``
+.. namedconf:statement:: edns-udp-size
+
    This sets the maximum advertised EDNS UDP buffer size, in bytes, to control
    the size of packets received from authoritative servers in response
    to recursive queries. Valid values are 512 to 4096; values outside
@@ -3648,9 +4057,11 @@ Tuning
    payload size on **reliable** networks would be 1432.
 
    Any server-specific ``edns-udp-size`` setting has precedence over all
-   the above rules.
+   the above rules, i.e. configures a static value for a given
+   :namedconf:ref:`server` block.
 
-``max-udp-size``
+.. namedconf:statement:: max-udp-size
+
    This sets the maximum EDNS UDP message size that :iscman:`named` sends, in bytes.
    Valid values are 512 to 4096; values outside this range are
    silently adjusted to the nearest value within it. The default value
@@ -3668,7 +4079,8 @@ Tuning
    Setting this to a low value encourages additional TCP traffic to
    the name server.
 
-``masterfile-format``
+.. namedconf:statement:: masterfile-format
+
    This specifies the file format of zone files (see :ref:`zonefile_format`
    for details).  The default value is ``text``, which is the standard
    textual representation, except for secondary zones, in which the default
@@ -3689,7 +4101,8 @@ Tuning
    statement within the ``zone`` or ``view`` block in the configuration
    file.
 
-``masterfile-style``
+.. namedconf:statement:: masterfile-style
+
    This specifies the formatting of zone files during dump, when the
    ``masterfile-format`` is ``text``. This option is ignored with any
    other ``masterfile-format``.
@@ -3702,7 +4115,8 @@ Tuning
    format is more human-readable, and is thus suitable when a zone is to
    be edited by hand. The default is ``relative``.
 
-``max-recursion-depth``
+.. namedconf:statement:: max-recursion-depth
+
    This sets the maximum number of levels of recursion that are permitted at
    any one time while servicing a recursive query. Resolving a name may
    require looking up a name server address, which in turn requires
@@ -3710,12 +4124,14 @@ Tuning
    this value, the recursive query is terminated and returns SERVFAIL.
    The default is 7.
 
-``max-recursion-queries``
+.. namedconf:statement:: max-recursion-queries
+
    This sets the maximum number of iterative queries that may be sent while
    servicing a recursive query. If more queries are sent, the recursive
    query is terminated and returns SERVFAIL. The default is 100.
 
-``notify-delay``
+.. namedconf:statement:: notify-delay
+
    This sets the delay, in seconds, between sending sets of NOTIFY messages
    for a zone. Whenever a NOTIFY message is sent for a zone, a timer will
    be set for this duration. If the zone is updated again before the timer
@@ -3725,12 +4141,14 @@ Tuning
    The overall rate at which NOTIFY messages are sent for all zones is
    controlled by ``notify-rate``.
 
-``max-rsa-exponent-size``
+.. namedconf:statement:: max-rsa-exponent-size
+
    This sets the maximum RSA exponent size, in bits, that is accepted when
    validating. Valid values are 35 to 4096 bits. The default, zero, is
    also accepted and is equivalent to 4096.
 
-``prefetch``
+.. namedconf:statement:: prefetch
+
    When a query is received for cached data which is to expire shortly,
    :iscman:`named` can refresh the data from the authoritative server
    immediately, ensuring that the cache always has an answer available.
@@ -3749,12 +4167,15 @@ Tuning
    seconds longer than the trigger TTL; if not, :iscman:`named`
    silently adjusts it upward. The default eligibility TTL is ``9``.
 
-``v6-bias``
+.. namedconf:statement:: v6-bias
+
    When determining the next name server to try, this indicates by how many
    milliseconds to prefer IPv6 name servers. The default is ``50``
    milliseconds.
 
-``tcp-receive-buffer``; ``udp-receive-buffer``
+.. namedconf:statement:: tcp-receive-buffer
+.. namedconf:statement:: udp-receive-buffer
+
    These options control the operating system's receive buffer sizes
    (``SO_RCVBUF``) for TCP and UDP sockets, respectively. Buffering at
    the operating system level can prevent packet drops during brief load
@@ -3766,7 +4187,9 @@ Tuning
    is determined by the kernel, and values exceeding the maximum are
    silently reduced.
 
-``tcp-send-buffer``; ``udp-send-buffer``
+.. namedconf:statement:: tcp-send-buffer
+.. namedconf:statement:: udp-send-buffer
+
    These options control the operating system's send buffer sizes
    (``SO_SNDBUF``) for TCP and UDP sockets, respectively. Buffering at
    the operating system level can prevent packet drops during brief load
@@ -3797,7 +4220,8 @@ To disable these zones, use the options below or hide the
 built-in ``CHAOS`` view by defining an explicit view of class ``CHAOS``
 that matches all clients.
 
-``version``
+.. namedconf:statement:: version
+
    This is the version the server should report via a query of the name
    ``version.bind`` with type ``TXT`` and class ``CHAOS``. The default is
    the real version number of this server. Specifying ``version none``
@@ -3806,7 +4230,8 @@ that matches all clients.
    Setting ``version`` to any value (including ``none``) also disables
    queries for ``authors.bind TXT CH``.
 
-``hostname``
+.. namedconf:statement:: hostname
+
    This is the hostname the server should report via a query of the name
    ``hostname.bind`` with type ``TXT`` and class ``CHAOS``. This defaults
    to the hostname of the machine hosting the name server, as found by
@@ -3815,7 +4240,8 @@ that matches all clients.
    the queries. Specifying ``hostname none;`` disables processing of
    the queries.
 
-``server-id``
+.. namedconf:statement:: server-id
+
    This is the ID the server should report when receiving a Name Server
    Identifier (NSID) query, or a query of the name ``ID.SERVER`` with
    type ``TXT`` and class ``CHAOS``. The primary purpose of such queries is
@@ -3970,22 +4396,26 @@ away from the infrastructure servers.
    all built-in empty zones. This enables them to return referrals
    to deeper in the tree.
 
-``empty-server``
+.. namedconf:statement:: empty-server
+
    This specifies the server name that appears in the returned SOA record for
    empty zones. If none is specified, the zone's name is used.
 
-``empty-contact``
+.. namedconf:statement:: empty-contact
+
    This specifies the contact name that appears in the returned SOA record for
    empty zones. If none is specified, "." is used.
 
 .. _empty-zones-enable:
 
-``empty-zones-enable``
+.. namedconf:statement:: empty-zones-enable
+
    This enables or disables all empty zones. By default, they are enabled.
 
 .. _disable-empty-zone:
 
-``disable-empty-zone``
+.. namedconf:statement:: disable-empty-zone
+
    This disables individual empty zones. By default, none are disabled. This
    option can be specified multiple times.
 
@@ -3994,31 +4424,38 @@ away from the infrastructure servers.
 Content Filtering
 ^^^^^^^^^^^^^^^^^
 
-BIND 9 provides the ability to filter out responses from external
-DNS servers containing certain types of data in the answer section.
-Specifically, it can reject address (A or AAAA) records if the
-corresponding IPv4 or IPv6 addresses match the given
-``address_match_list`` of the ``deny-answer-addresses`` option. It can
-also reject CNAME or DNAME records if the "alias" name (i.e., the CNAME
-alias or the substituted query name due to DNAME) matches the given
-``namelist`` of the ``deny-answer-aliases`` option, where "match" means
-the alias name is a subdomain of one of the ``name_list`` elements. If
-the optional ``namelist`` is specified with ``except-from``, records
-whose query name matches the list are accepted regardless of the
-filter setting. Likewise, if the alias name is a subdomain of the
-corresponding zone, the ``deny-answer-aliases`` filter does not apply;
-for example, even if "example.com" is specified for
-``deny-answer-aliases``,
+.. namedconf:statement:: deny-answer-addresses
 
-::
+   BIND 9 provides the ability to filter out responses from external
+   DNS servers containing certain types of data in the answer section.
+   Specifically, it can reject address (A or AAAA) records if the
+   corresponding IPv4 or IPv6 addresses match the given
+   ``address_match_list`` of the ``deny-answer-addresses`` option.
 
-   www.example.com. CNAME xxx.example.com.
+   In the ``address_match_list`` of the ``deny-answer-addresses`` option,
+   only ``ip_addr`` and ``ip_prefix`` are meaningful; any ``key_id`` is
+   silently ignored.
 
-returned by an "example.com" server is accepted.
 
-In the ``address_match_list`` of the ``deny-answer-addresses`` option,
-only ``ip_addr`` and ``ip_prefix`` are meaningful; any ``key_id`` is
-silently ignored.
+.. namedconf:statement:: deny-answer-aliases
+
+   It can
+   also reject CNAME or DNAME records if the "alias" name (i.e., the CNAME
+   alias or the substituted query name due to DNAME) matches the given
+   ``namelist`` of the ``deny-answer-aliases`` option, where "match" means
+   the alias name is a subdomain of one of the ``name_list`` elements. If
+   the optional ``namelist`` is specified with ``except-from``, records
+   whose query name matches the list are accepted regardless of the
+   filter setting. Likewise, if the alias name is a subdomain of the
+   corresponding zone, the ``deny-answer-aliases`` filter does not apply;
+   for example, even if "example.com" is specified for
+   ``deny-answer-aliases``,
+
+   ::
+
+      www.example.com. CNAME xxx.example.com.
+
+   returned by an "example.com" server is accepted.
 
 If a response message is rejected due to the filtering, the entire
 message is discarded without being cached, and a SERVFAIL error is
@@ -4096,18 +4533,20 @@ analogous to email anti-spam DNS rejection lists. Responses can be changed to
 deny the existence of domains (NXDOMAIN), deny the existence of IP
 addresses for domains (NODATA), or contain other IP addresses or data.
 
-Response policy zones are named in the ``response-policy`` option for
-the view, or among the global options if there is no ``response-policy``
-option for the view. Response policy zones are ordinary DNS zones
-containing RRsets that can be queried normally if allowed. It is usually
-best to restrict those queries with something like
-``allow-query { localhost; };``.
+.. namedconf:statement:: response-policy
 
-A ``response-policy`` option can support multiple policy zones. To
-maximize performance, a radix tree is used to quickly identify response
-policy zones containing triggers that match the current query. This
-imposes an upper limit of 64 on the number of policy zones in a single
-``response-policy`` option; more than that is a configuration error.
+   Response policy zones are named in the ``response-policy`` option for
+   the view, or among the global options if there is no ``response-policy``
+   option for the view. Response policy zones are ordinary DNS zones
+   containing RRsets that can be queried normally if allowed. It is usually
+   best to restrict those queries with something like
+   ``allow-query { localhost; };``.
+
+   A ``response-policy`` option can support multiple policy zones. To
+   maximize performance, a radix tree is used to quickly identify response
+   policy zones containing triggers that match the current query. This
+   imposes an upper limit of 64 on the number of policy zones in a single
+   ``response-policy`` option; more than that is a configuration error.
 
 Rules encoded in response policy zones are processed after those defined in
 :ref:`access_control`. All queries from clients which are not permitted access
@@ -4317,26 +4756,30 @@ found during resolution. Using this option can cause error responses
 such as SERVFAIL to appear to be rewritten, since no recursion is being
 done to discover problems at the authoritative server.
 
-The ``dnsrps-enable yes`` option turns on the DNS Response Policy Service
-(DNSRPS) interface, if it has been compiled in :iscman:`named` using
-``configure --enable-dnsrps``.
+.. namedconf:statement:: dnsrps-enable
 
-The ``dnsrps-options`` block provides additional RPZ configuration
-settings, which are passed through to the DNSRPS provider library.
-Multiple DNSRPS settings in an ``dnsrps-options`` string should be
-separated with semi-colons (;). The DNSRPS provider, librpz, is passed a
-configuration string consisting of the ``dnsrps-options`` text,
-concatenated with settings derived from the ``response-policy``
-statement.
+   The ``dnsrps-enable yes`` option turns on the DNS Response Policy Service
+   (DNSRPS) interface, if it has been compiled in :iscman:`named` using
+   ``configure --enable-dnsrps``.
 
-Note: the ``dnsrps-options`` text should only include configuration
-settings that are specific to the DNSRPS provider. For example, the
-DNSRPS provider from Farsight Security takes options such as
-``dnsrpzd-conf``, ``dnsrpzd-sock``, and ``dnzrpzd-args`` (for details of
-these options, see the ``librpz`` documentation). Other RPZ
-configuration settings could be included in ``dnsrps-options`` as well,
-but if :iscman:`named` were switched back to traditional RPZ by setting
-``dnsrps-enable`` to "no", those options would be ignored.
+.. namedconf:statement:: dnsrps-options
+
+   The block provides additional RPZ configuration
+   settings, which are passed through to the DNSRPS provider library.
+   Multiple DNSRPS settings in an ``dnsrps-options`` string should be
+   separated with semi-colons (;). The DNSRPS provider, librpz, is passed a
+   configuration string consisting of the ``dnsrps-options`` text,
+   concatenated with settings derived from the ``response-policy``
+   statement.
+
+   Note: the ``dnsrps-options`` text should only include configuration
+   settings that are specific to the DNSRPS provider. For example, the
+   DNSRPS provider from Farsight Security takes options such as
+   ``dnsrpzd-conf``, ``dnsrpzd-sock``, and ``dnzrpzd-args`` (for details of
+   these options, see the ``librpz`` documentation). Other RPZ
+   configuration settings could be included in ``dnsrps-options`` as well,
+   but if :iscman:`named` were switched back to traditional RPZ by setting
+   ``dnsrps-enable`` to "no", those options would be ignored.
 
 The TTL of a record modified by RPZ policies is set from the TTL of the
 relevant record in the policy zone. It is then limited to a maximum value.
@@ -4433,157 +4876,201 @@ specify the value. It also accepts ISO 8601 duration formats.
 Response Rate Limiting
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Excessive, almost-identical UDP *responses* can be controlled by
-configuring a ``rate-limit`` clause in an ``options`` or ``view``
-statement. This mechanism keeps authoritative BIND 9 from being used to
-amplify reflection denial-of-service (DoS) attacks. Short BADCOOKIE errors or
-truncated (TC=1) responses can be sent to provide rate-limited responses to
-legitimate clients within a range of forged, attacked IP addresses.
-Legitimate clients react to dropped responses by retrying,
-to BADCOOKIE errors by including a server cookie when retrying,
-and to truncated responses by switching to TCP.
+.. namedconf:statement:: rate-limit
 
-This mechanism is intended for authoritative DNS servers. It can be used
-on recursive servers, but can slow applications such as SMTP servers
-(mail receivers) and HTTP clients (web browsers) that repeatedly request
-the same domains. When possible, closing "open" recursive servers is
-better.
+   Excessive, almost-identical UDP *responses* can be controlled by
+   configuring a ``rate-limit`` clause in an ``options`` or ``view``
+   statement. This mechanism keeps authoritative BIND 9 from being used to
+   amplify reflection denial-of-service (DoS) attacks. Short BADCOOKIE errors or
+   truncated (TC=1) responses can be sent to provide rate-limited responses to
+   legitimate clients within a range of forged, attacked IP addresses.
+   Legitimate clients react to dropped responses by retrying,
+   to BADCOOKIE errors by including a server cookie when retrying,
+   and to truncated responses by switching to TCP.
 
-Response rate limiting uses a "credit" or "token bucket" scheme. Each
-combination of identical response and client has a conceptual "account"
-that earns a specified number of credits every second. A prospective
-response debits its account by one. Responses are dropped or truncated
-while the account is negative. Responses are tracked within a rolling
-window of time which defaults to 15 seconds, but which can be configured with
-the ``window`` option to any value from 1 to 3600 seconds (1 hour). The
-account cannot become more positive than the per-second limit or more
-negative than ``window`` times the per-second limit. When the specified
-number of credits for a class of responses is set to 0, those responses
-are not rate-limited.
+   This mechanism is intended for authoritative DNS servers. It can be used
+   on recursive servers, but can slow applications such as SMTP servers
+   (mail receivers) and HTTP clients (web browsers) that repeatedly request
+   the same domains. When possible, closing "open" recursive servers is
+   better.
 
-The notions of "identical response" and "DNS client" for rate limiting
-are not simplistic. All responses to an address block are counted as if
-to a single client. The prefix lengths of address blocks are specified
-with ``ipv4-prefix-length`` (default 24) and ``ipv6-prefix-length``
-(default 56).
+   Response rate limiting uses a "credit" or "token bucket" scheme. Each
+   combination of identical response and client has a conceptual "account"
+   that earns a specified number of credits every second. A prospective
+   response debits its account by one. Responses are dropped or truncated
+   while the account is negative.
 
-All non-empty responses for a valid domain name (qname) and record type
-(qtype) are identical and have a limit specified with
-``responses-per-second`` (default 0 or no limit). All empty (NODATA)
-responses for a valid domain, regardless of query type, are identical.
-Responses in the NODATA class are limited by ``nodata-per-second``
-(default ``responses-per-second``). Requests for any and all undefined
-subdomains of a given valid domain result in NXDOMAIN errors, and are
-identical regardless of query type. They are limited by
-``nxdomains-per-second`` (default ``responses-per-second``). This
-controls some attacks using random names, but can be relaxed or turned
-off (set to 0) on servers that expect many legitimate NXDOMAIN
-responses, such as from anti-spam rejection lists. Referrals or delegations
-to the server of a given domain are identical and are limited by
-``referrals-per-second`` (default ``responses-per-second``).
+   .. namedconf:statement:: window
 
-Responses generated from local wildcards are counted and limited as if
-they were for the parent domain name. This controls flooding using
-random.wild.example.com.
+      Responses are tracked within a rolling
+      window of time which defaults to 15 seconds, but which can be configured with
+      the ``window`` option to any value from 1 to 3600 seconds (1 hour). The
+      account cannot become more positive than the per-second limit or more
+      negative than ``window`` times the per-second limit. When the specified
+      number of credits for a class of responses is set to 0, those responses
+      are not rate-limited.
 
-All requests that result in DNS errors other than NXDOMAIN, such as
-SERVFAIL and FORMERR, are identical regardless of requested name (qname)
-or record type (qtype). This controls attacks using invalid requests or
-distant, broken authoritative servers. By default the limit on errors is
-the same as the ``responses-per-second`` value, but it can be set
-separately with ``errors-per-second``.
+   .. namedconf:statement:: ipv4-prefix-length
+   .. namedconf:statement:: ipv6-prefix-length
 
-Many attacks using DNS involve UDP requests with forged source
-addresses. Rate limiting prevents the use of BIND 9 to flood a network
-with responses to requests with forged source addresses, but could let a
-third party block responses to legitimate requests. There is a mechanism
-that can answer some legitimate requests from a client whose address is
-being forged in a flood. Setting ``slip`` to 2 (its default) causes
-every other UDP request without a valid server cookie to be answered with
-a small response. The small size and reduced frequency, and resulting lack of
-amplification, of "slipped" responses make them unattractive for
-reflection DoS attacks. ``slip`` must be between 0 and 10. A value of 0
-does not "slip"; no small responses are sent due to rate limiting. Rather,
-all responses are dropped. A value of 1 causes every response to slip;
-values between 2 and 10 cause every nth response to slip.
+      The notions of "identical response" and "DNS client" for rate limiting
+      are not simplistic. All responses to an address block are counted as if
+      to a single client. The prefix lengths of address blocks are specified
+      with ``ipv4-prefix-length`` (default 24) and ``ipv6-prefix-length``
+      (default 56).
 
-If the request included a client cookie, then a "slipped" response is
-a BADCOOKIE error with a server cookie, which allows a legitimate client
-to include the server cookie to be exempted from the rate limiting
-when it retries the request.
-If the request did not include a cookie, then a "slipped" response is
-a truncated (TC=1) response, which prompts a legitimate client to
-switch to TCP and thus be exempted from the rate limiting. Some error
-responses, including REFUSED and SERVFAIL, cannot be replaced with
-truncated responses and are instead leaked at the ``slip`` rate.
+   .. namedconf:statement:: responses-per-second
 
-(Note: dropped responses from an authoritative server may reduce the
-difficulty of a third party successfully forging a response to a
-recursive resolver. The best security against forged responses is for
-authoritative operators to sign their zones using DNSSEC and for
-resolver operators to validate the responses. When this is not an
-option, operators who are more concerned with response integrity than
-with flood mitigation may consider setting ``slip`` to 1, causing all
-rate-limited responses to be truncated rather than dropped. This reduces
-the effectiveness of rate-limiting against reflection attacks.)
+      All non-empty responses for a valid domain name (qname) and record type
+      (qtype) are identical and have a limit specified with
+      ``responses-per-second`` (default 0 or no limit).
 
-When the approximate query-per-second rate exceeds the ``qps-scale``
-value, the ``responses-per-second``, ``errors-per-second``,
-``nxdomains-per-second``, and ``all-per-second`` values are reduced by
-the ratio of the current rate to the ``qps-scale`` value. This feature
-can tighten defenses during attacks. For example, with
-``qps-scale 250; responses-per-second 20;`` and a total query rate of
-1000 queries/second for all queries from all DNS clients including via
-TCP, then the effective responses/second limit changes to (250/1000)*20,
-or 5. Responses to requests that included a valid server cookie,
-and responses sent via TCP, are not limited but are counted to compute
-the query-per-second rate.
+   .. namedconf:statement:: nodata-per-second
 
-Communities of DNS clients can be given their own parameters or no
-rate limiting by putting ``rate-limit`` statements in ``view`` statements
-instead of in the global ``option`` statement. A ``rate-limit`` statement
-in a view replaces, rather than supplements, a ``rate-limit``
-statement among the main options. DNS clients within a view can be
-exempted from rate limits with the ``exempt-clients`` clause.
+      All empty (NODATA)
+      responses for a valid domain, regardless of query type, are identical.
+      Responses in the NODATA class are limited by ``nodata-per-second``
+      (default ``responses-per-second``).
 
-UDP responses of all kinds can be limited with the ``all-per-second``
-phrase. This rate limiting is unlike the rate limiting provided by
-``responses-per-second``, ``errors-per-second``, and
-``nxdomains-per-second`` on a DNS server, which are often invisible to
-the victim of a DNS reflection attack. Unless the forged requests of the
-attack are the same as the legitimate requests of the victim, the
-victim's requests are not affected. Responses affected by an
-``all-per-second`` limit are always dropped; the ``slip`` value has no
-effect. An ``all-per-second`` limit should be at least 4 times as large
-as the other limits, because single DNS clients often send bursts of
-legitimate requests. For example, the receipt of a single mail message
-can prompt requests from an SMTP server for NS, PTR, A, and AAAA records
-as the incoming SMTP/TCP/IP connection is considered. The SMTP server
-can need additional NS, A, AAAA, MX, TXT, and SPF records as it
-considers the SMTP ``Mail From`` command. Web browsers often repeatedly
-resolve the same names that are duplicated in HTML <IMG> tags in a page.
-``all-per-second`` is similar to the rate limiting offered by firewalls
-but is often inferior. Attacks that justify ignoring the contents of DNS
-responses are likely to be attacks on the DNS server itself. They
-usually should be discarded before the DNS server spends resources making
-TCP connections or parsing DNS requests, but that rate limiting must be
-done before the DNS server sees the requests.
+   .. namedconf:statement:: nxdomains-per-second
 
-The maximum size of the table used to track requests and rate-limit
-responses is set with ``max-table-size``. Each entry in the table is
-between 40 and 80 bytes. The table needs approximately as many entries
-as the number of requests received per second. The default is 20,000. To
-reduce the cold start of growing the table, ``min-table-size`` (default 500)
-can set the minimum table size. Enable ``rate-limit`` category
-logging to monitor expansions of the table and inform choices for the
-initial and maximum table size.
+      Requests for any and all undefined
+      subdomains of a given valid domain result in NXDOMAIN errors, and are
+      identical regardless of query type. They are limited by
+      ``nxdomains-per-second`` (default ``responses-per-second``). This
+      controls some attacks using random names, but can be relaxed or turned
+      off (set to 0) on servers that expect many legitimate NXDOMAIN
+      responses, such as from anti-spam rejection lists.
 
-Use ``log-only yes`` to test rate-limiting parameters without actually
-dropping any requests.
+   .. namedconf:statement:: referrals-per-second
 
-Responses dropped by rate limits are included in the ``RateDropped`` and
-``QryDropped`` statistics. Responses that are truncated by rate limits are
-included in ``RateSlipped`` and ``RespTruncated``.
+      Referrals or delegations
+      to the server of a given domain are identical and are limited by
+      ``referrals-per-second`` (default ``responses-per-second``).
+
+   Responses generated from local wildcards are counted and limited as if
+   they were for the parent domain name. This controls flooding using
+   random.wild.example.com.
+
+   All requests that result in DNS errors other than NXDOMAIN, such as
+   SERVFAIL and FORMERR, are identical regardless of requested name (qname)
+   or record type (qtype). This controls attacks using invalid requests or
+   distant, broken authoritative servers.
+
+
+   .. namedconf:statement:: errors-per-second
+
+      By default the limit on errors is
+      the same as the ``responses-per-second`` value, but it can be set
+      separately with ``errors-per-second``.
+
+   .. namedconf:statement:: slip
+
+      Many attacks using DNS involve UDP requests with forged source
+      addresses. Rate limiting prevents the use of BIND 9 to flood a network
+      with responses to requests with forged source addresses, but could let a
+      third party block responses to legitimate requests. There is a mechanism
+      that can answer some legitimate requests from a client whose address is
+      being forged in a flood. Setting ``slip`` to 2 (its default) causes
+      every other UDP request without a valid server cookie to be answered with
+      a small response. The small size and reduced frequency, and resulting lack of
+      amplification, of "slipped" responses make them unattractive for
+      reflection DoS attacks. ``slip`` must be between 0 and 10. A value of 0
+      does not "slip"; no small responses are sent due to rate limiting. Rather,
+      all responses are dropped. A value of 1 causes every response to slip;
+      values between 2 and 10 cause every nth response to slip.
+
+      If the request included a client cookie, then a "slipped" response is
+      a BADCOOKIE error with a server cookie, which allows a legitimate client
+      to include the server cookie to be exempted from the rate limiting
+      when it retries the request.
+      If the request did not include a cookie, then a "slipped" response is
+      a truncated (TC=1) response, which prompts a legitimate client to
+      switch to TCP and thus be exempted from the rate limiting. Some error
+      responses, including REFUSED and SERVFAIL, cannot be replaced with
+      truncated responses and are instead leaked at the ``slip`` rate.
+
+      (Note: dropped responses from an authoritative server may reduce the
+      difficulty of a third party successfully forging a response to a
+      recursive resolver. The best security against forged responses is for
+      authoritative operators to sign their zones using DNSSEC and for
+      resolver operators to validate the responses. When this is not an
+      option, operators who are more concerned with response integrity than
+      with flood mitigation may consider setting ``slip`` to 1, causing all
+      rate-limited responses to be truncated rather than dropped. This reduces
+      the effectiveness of rate-limiting against reflection attacks.)
+
+   .. namedconf:statement:: qps-scale
+
+      When the approximate query-per-second rate exceeds the ``qps-scale``
+      value, the ``responses-per-second``, ``errors-per-second``,
+      ``nxdomains-per-second``, and ``all-per-second`` values are reduced by
+      the ratio of the current rate to the ``qps-scale`` value. This feature
+      can tighten defenses during attacks. For example, with
+      ``qps-scale 250; responses-per-second 20;`` and a total query rate of
+      1000 queries/second for all queries from all DNS clients including via
+      TCP, then the effective responses/second limit changes to (250/1000)*20,
+      or 5. Responses to requests that included a valid server cookie,
+      and responses sent via TCP, are not limited but are counted to compute
+      the query-per-second rate.
+
+   .. namedconf:statement:: exempt-clients
+
+      Communities of DNS clients can be given their own parameters or no
+      rate limiting by putting ``rate-limit`` statements in ``view`` statements
+      instead of in the global ``option`` statement. A ``rate-limit`` statement
+      in a view replaces, rather than supplements, a ``rate-limit``
+      statement among the main options.
+
+      DNS clients within a view can be
+      exempted from rate limits with the ``exempt-clients`` clause.
+
+   .. namedconf:statement:: all-per-second
+
+      UDP responses of all kinds can be limited with the ``all-per-second``
+      phrase. This rate limiting is unlike the rate limiting provided by
+      ``responses-per-second``, ``errors-per-second``, and
+      ``nxdomains-per-second`` on a DNS server, which are often invisible to
+      the victim of a DNS reflection attack. Unless the forged requests of the
+      attack are the same as the legitimate requests of the victim, the
+      victim's requests are not affected. Responses affected by an
+      ``all-per-second`` limit are always dropped; the ``slip`` value has no
+      effect. An ``all-per-second`` limit should be at least 4 times as large
+      as the other limits, because single DNS clients often send bursts of
+      legitimate requests. For example, the receipt of a single mail message
+      can prompt requests from an SMTP server for NS, PTR, A, and AAAA records
+      as the incoming SMTP/TCP/IP connection is considered. The SMTP server
+      can need additional NS, A, AAAA, MX, TXT, and SPF records as it
+      considers the SMTP ``Mail From`` command. Web browsers often repeatedly
+      resolve the same names that are duplicated in HTML <IMG> tags in a page.
+      ``all-per-second`` is similar to the rate limiting offered by firewalls
+      but is often inferior. Attacks that justify ignoring the contents of DNS
+      responses are likely to be attacks on the DNS server itself. They
+      usually should be discarded before the DNS server spends resources making
+      TCP connections or parsing DNS requests, but that rate limiting must be
+      done before the DNS server sees the requests.
+
+
+   .. namedconf:statement:: max-table-size
+   .. namedconf:statement:: min-table-size
+
+      The maximum size of the table used to track requests and rate-limit
+      responses is set with ``max-table-size``. Each entry in the table is
+      between 40 and 80 bytes. The table needs approximately as many entries
+      as the number of requests received per second. The default is 20,000. To
+      reduce the cold start of growing the table, ``min-table-size`` (default 500)
+      can set the minimum table size. Enable ``rate-limit`` category
+      logging to monitor expansions of the table and inform choices for the
+      initial and maximum table size.
+
+   .. namedconf:statement:: log-only
+
+      Use ``log-only yes`` to test rate-limiting parameters without actually
+      dropping any requests.
+
+   Responses dropped by rate limits are included in the ``RateDropped`` and
+   ``QryDropped`` statistics. Responses that are truncated by rate limits are
+   included in ``RateSlipped`` and ``RespTruncated``.
 
 NXDOMAIN Redirection
 ^^^^^^^^^^^^^^^^^^^^
@@ -4602,13 +5089,15 @@ to replace the NXDOMAIN is held in a single zone which is not part of
 the normal namespace. All the redirect information is contained in the
 zone; there are no delegations.
 
-With a redirect namespace (``option { nxdomain-redirect <suffix> };``),
-the data used to replace the NXDOMAIN is part of the normal namespace
-and is looked up by appending the specified suffix to the original
-query name. This roughly doubles the cache required to process
-NXDOMAIN responses, as both the original NXDOMAIN response and the
-replacement data (or an NXDOMAIN indicating that there is no
-replacement) must be stored.
+.. namedconf:statement:: nxdomain-redirect
+
+   With a redirect namespace (``option { nxdomain-redirect <suffix> };``),
+   the data used to replace the NXDOMAIN is part of the normal namespace
+   and is looked up by appending the specified suffix to the original
+   query name. This roughly doubles the cache required to process
+   NXDOMAIN responses, as both the original NXDOMAIN response and the
+   replacement data (or an NXDOMAIN indicating that there is no
+   replacement) must be stored.
 
 If both a redirect zone and a redirect namespace are configured, the
 redirect zone is tried first.
@@ -4617,6 +5106,7 @@ redirect zone is tried first.
 
 ``server`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: server
 
 .. include:: ../misc/server.grammar.rst
 
@@ -4636,147 +5126,94 @@ one or more ``server`` statements, only those apply to the view and any
 top-level ones are ignored. If a view contains no ``server`` statements,
 any top-level ``server`` statements are used as defaults.
 
-If a remote server is giving out bad data, marking it
-as bogus prevents further queries to it. The default value of
-``bogus`` is ``no``.
 
-The ``provide-ixfr`` clause determines whether the local server, acting
-as primary, responds with an incremental zone transfer when the given
-remote server, a secondary, requests it. If set to ``yes``, incremental
-transfer is provided whenever possible. If set to ``no``, all
-transfers to the remote server are non-incremental. If not set, the
-value of the ``provide-ixfr`` option in the view or global options block
-is used as a default.
+.. namedconf:statement:: bogus
 
-The ``request-ixfr`` clause determines whether the local server, acting
-as a secondary, requests incremental zone transfers from the given
-remote server, a primary. If not set, the value of the ``request-ixfr``
-option in the view or global options block is used as a default. It may
-also be set in the zone block; if set there, it overrides the
-global or view setting for that zone.
+   If a remote server is giving out bad data, marking it
+   as bogus prevents further queries to it. The default value of
+   ``bogus`` is ``no``.
 
-IXFR requests to servers that do not support IXFR automatically
-fall back to AXFR. Therefore, there is no need to manually list which
-servers support IXFR and which ones do not; the global default of
-``yes`` should always work. The purpose of the ``provide-ixfr`` and
-``request-ixfr`` clauses is to make it possible to disable the use of
-IXFR even when both primary and secondary claim to support it: for example, if
-one of the servers is buggy and crashes or corrupts data when IXFR is
-used.
+.. namedconf:statement:: edns
 
-The ``request-expire`` clause determines whether the local server, when
-acting as a secondary, requests the EDNS EXPIRE value. The EDNS EXPIRE
-value indicates the remaining time before the zone data expires and
-needs to be refreshed. This is used when a secondary server transfers
-a zone from another secondary server; when transferring from the
-primary, the expiration timer is set from the EXPIRE field of the SOA
-record instead. The default is ``yes``.
+   The ``edns`` clause determines whether the local server attempts to
+   use EDNS when communicating with the remote server. The default is
+   ``yes``.
 
-The ``edns`` clause determines whether the local server attempts to
-use EDNS when communicating with the remote server. The default is
-``yes``.
+.. namedconf:statement:: edns-version
 
-The ``edns-udp-size`` option sets the EDNS UDP size that is advertised
-by :iscman:`named` when querying the remote server. Valid values are 512 to
-4096 bytes; values outside this range are silently adjusted to the
-nearest value within it. This option is useful when
-advertising a different value to this server than the value advertised
-globally: for example, when there is a firewall at the remote site that
-is blocking large replies. Note: currently, this sets a single UDP size
-for all packets sent to the server; :iscman:`named` does not deviate from this
-value. This differs from the behavior of ``edns-udp-size`` in
-``options`` or ``view`` statements, where it specifies a maximum value.
-The ``server`` statement behavior may be brought into conformance with
-the ``options``/``view`` behavior in future releases.
+   The ``edns-version`` option sets the maximum EDNS VERSION that is
+   sent to the server(s) by the resolver. The actual EDNS version sent is
+   still subject to normal EDNS version-negotiation rules (see :rfc:`6891`),
+   the maximum EDNS version supported by the server, and any other
+   heuristics that indicate that a lower version should be sent. This
+   option is intended to be used when a remote server reacts badly to a
+   given EDNS version or higher; it should be set to the highest version
+   the remote server is known to support. Valid values are 0 to 255; higher
+   values are silently adjusted. This option is not needed until
+   higher EDNS versions than 0 are in use.
 
-The ``edns-version`` option sets the maximum EDNS VERSION that is
-sent to the server(s) by the resolver. The actual EDNS version sent is
-still subject to normal EDNS version-negotiation rules (see :rfc:`6891`),
-the maximum EDNS version supported by the server, and any other
-heuristics that indicate that a lower version should be sent. This
-option is intended to be used when a remote server reacts badly to a
-given EDNS version or higher; it should be set to the highest version
-the remote server is known to support. Valid values are 0 to 255; higher
-values are silently adjusted. This option is not needed until
-higher EDNS versions than 0 are in use.
+.. namedconf:statement:: padding
 
-The ``max-udp-size`` option sets the maximum EDNS UDP message size
-:iscman:`named` sends. Valid values are 512 to 4096 bytes; values outside
-this range are silently adjusted. This option is useful when
-there is a firewall that is blocking large replies from
-:iscman:`named`.
+   The option adds EDNS Padding options to outgoing messages,
+   increasing the packet size to a multiple of the specified block size.
+   Valid block sizes range from 0 (the default, which disables the use of
+   EDNS Padding) to 512 bytes. Larger values are reduced to 512, with a
+   logged warning. Note: this option is not currently compatible with no
+   TSIG or SIG(0), as the EDNS OPT record containing the padding would have
+   to be added to the packet after it had already been signed.
 
-The ``padding`` option adds EDNS Padding options to outgoing messages,
-increasing the packet size to a multiple of the specified block size.
-Valid block sizes range from 0 (the default, which disables the use of
-EDNS Padding) to 512 bytes. Larger values are reduced to 512, with a
-logged warning. Note: this option is not currently compatible with no
-TSIG or SIG(0), as the EDNS OPT record containing the padding would have
-to be added to the packet after it had already been signed.
+.. namedconf:statement:: tcp-only
 
-The ``tcp-only`` option sets the transport protocol to TCP. The default
-is to use the UDP transport and to fallback on TCP only when a truncated
-response is received.
+   The option sets the transport protocol to TCP. The default
+   is to use the UDP transport and to fallback on TCP only when a truncated
+   response is received.
 
-The ``tcp-keepalive`` option adds EDNS TCP keepalive to messages sent
-over TCP. Note that currently idle timeouts in responses are ignored.
+.. namedconf:statement:: tcp-keepalive
 
-The server supports two zone transfer methods. The first,
-``one-answer``, uses one DNS message per resource record transferred.
-``many-answers`` packs as many resource records as possible into a single
-message, which is more efficient.
-It is possible to specify which method to use for a server via the
-``transfer-format`` option; if not set there, the
-``transfer-format`` specified by the ``options`` statement is used.
+   The option adds EDNS TCP keepalive to messages sent
+   over TCP. Note that currently idle timeouts in responses are ignored.
 
-``transfers`` is used to limit the number of concurrent inbound zone
-transfers from the specified server. If no ``transfers`` clause is
-specified, the limit is set according to the ``transfers-per-ns``
-option.
+.. namedconf:statement:: transfers
 
-The ``keys`` clause identifies a ``key_id`` defined by the ``key``
-statement, to be used for transaction security (see :ref:`tsig`)
-when talking to the remote server. When a request is sent to the remote
-server, a request signature is generated using the key specified
-here and appended to the message. A request originating from the remote
-server is not required to be signed by this key.
+   ``transfers`` is used to limit the number of concurrent inbound zone
+   transfers from the specified server. If no ``transfers`` clause is
+   specified, the limit is set according to the ``transfers-per-ns``
+   option.
 
-Only a single key per server is currently supported.
+``keys``
+   The option identifies a ``key_id`` defined by the ``key``
+   statement, to be used for transaction security (see :ref:`tsig`)
+   when talking to the remote server. When a request is sent to the remote
+   server, a request signature is generated using the key specified
+   here and appended to the message. A request originating from the remote
+   server is not required to be signed by this key.
 
-The ``transfer-source`` and ``transfer-source-v6`` clauses specify the
-IPv4 and IPv6 source address, respectively, to be used for zone transfer with the
-remote server. For an IPv4 remote server, only
-``transfer-source`` can be specified. Similarly, for an IPv6 remote
-server, only ``transfer-source-v6`` can be specified. For more details,
-see the description of ``transfer-source`` and ``transfer-source-v6`` in
-:ref:`zone_transfers`.
+   Only a single key per server is currently supported.
 
-The ``notify-source`` and ``notify-source-v6`` clauses specify the IPv4
-and IPv6 source address, respectively, to be used for notify messages sent to remote
-servers. For an IPv4 remote server, only ``notify-source``
-can be specified. Similarly, for an IPv6 remote server, only
-``notify-source-v6`` can be specified.
+It is possible to override the following values defined in :namedconf:ref:`view`
+and :namedconf:ref:`options` blocks:
 
-The ``query-source`` and ``query-source-v6`` clauses specify the IPv4
-and IPv6 source address, respectively, to be used for queries sent to remote servers.
-For an IPv4 remote server, only ``query-source`` can be
-specified. Similarly, for an IPv6 remote server, only
-``query-source-v6`` can be specified.
+   - :namedconf:ref:`edns-udp-size`
+   - :namedconf:ref:`max-udp-size`
+   - :namedconf:ref:`notify-source-v6`
+   - :namedconf:ref:`notify-source`
+   - :namedconf:ref:`provide-ixfr`
+   - :namedconf:ref:`query-source-v6`
+   - :namedconf:ref:`query-source`
+   - :namedconf:ref:`request-expire`
+   - :namedconf:ref:`request-ixfr`
+   - :namedconf:ref:`request-nsid`
+   - :namedconf:ref:`send-cookie`
+   - :namedconf:ref:`transfer-format`
+   - :namedconf:ref:`transfer-source-v6`
+   - :namedconf:ref:`transfer-source`
 
-The ``request-nsid`` clause determines whether the local server adds
-an NSID EDNS option to requests sent to the server. This overrides
-``request-nsid`` set at the view or option level.
-
-The ``send-cookie`` clause determines whether the local server adds
-a COOKIE EDNS option to requests sent to the server. This overrides
-``send-cookie`` set at the view or option level. The :iscman:`named` server
-may determine that COOKIE is not supported by the remote server and not
-add a COOKIE EDNS option to requests.
 
 .. _statschannels:
 
 ``statistics-channels`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: statistics-channels
 
 .. include:: ../misc/statistics-channels.grammar.rst
 
@@ -4848,6 +5285,7 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 
 ``tls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: tls
 
 .. include:: ../misc/tls.grammar.rst
 
@@ -4864,15 +5302,18 @@ cause zone transfer requests to be sent via TLS.
 
 The following options can be specified in a ``tls`` statement:
 
-  ``key-file``
+.. namedconf:statement:: key-file
+
     Path to a file containing the private TLS key to be used for
     the connection.
 
-  ``cert-file``
+.. namedconf:statement:: cert-file
+
     Path to a file containing the TLS certificate to be used for
     the connection.
 
-  ``ca-file``
+.. namedconf:statement:: ca-file
+
     Path to a file containing trusted CA-authorities TLS
     certificates used to verify remote peer certificates. Specifying
     this option enables remote peer certificates verification. For
@@ -4881,14 +5322,16 @@ The following options can be specified in a ``tls`` statement:
     connections, if ``remote-hostname`` is not specified, then the remote
     server IP address is used instead.
 
-  ``dhparam-file``
+.. namedconf:statement:: dhparam-file
+
     Path to a file containing Diffie-Hellman parameters,
     which is needed to enable the cipher suites depending on the
     Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
     specified is essential for enabling perfect forward secrecy capable
     ciphers in TLSv1.2.
 
-  ``remote-hostname``
+.. namedconf:statement:: remote-hostname
+
     The expected hostname in the TLS certificate of the
     remote server. This option enables a remote server certificate
     verification. If ``ca-file`` is not specified, then the
@@ -4897,23 +5340,27 @@ The following options can be specified in a ``tls`` statement:
     only and, thus, is ignored when ``tls`` statements are referenced
     by ``listen-on`` or ``listen-on-v6`` statements.
 
-  ``protocols``
+.. namedconf:statement:: protocols
+
     Allowed versions of the TLS protocol. TLS version 1.2 and higher are
     supported, depending on the cryptographic library in use. Multiple
     versions might be specified (e.g.
     ``protocols { TLSv1.2; TLSv1.3; };``).
 
-  ``ciphers``
+.. namedconf:statement:: ciphers
+
     Cipher list which defines allowed ciphers, such as
     ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
     formed according to the rules specified in the OpenSSL documentation
     (see https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
     for details).
 
-  ``prefer-server-ciphers``
+.. namedconf:statement:: prefer-server-ciphers
+
     Specifies that server ciphers should be preferred over client ones.
 
-  ``session-tickets``
+.. namedconf:statement:: session-tickets
+
     Enables or disables session resumption through TLS session tickets,
     as defined in RFC5077. Disabling the stateless session tickets
     might be required in the cases when forward secrecy is needed,
@@ -5025,6 +5472,7 @@ issues related to shared cryptographic secrets.
 
 ``http`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: http
 
 .. include:: ../misc/http.grammar.rst
 
@@ -5040,16 +5488,19 @@ cause :iscman:`named` to listen for incoming requests over HTTPS.
 
 The following options can be specified in an ``http`` statement:
 
-  ``endpoints``
+.. namedconf:statement:: endpoints
+
     A list of HTTP query paths on which to listen. This is the portion
     of an :rfc:`3986`-compliant URI following the hostname; it must be
     an absolute path, beginning with "/". The default value
     is ``"/dns-query"``, if omitted.
 
-    ``listener-clients``
+.. namedconf:statement:: listener-clients
+
     The option specifies a per-listener quota for active connections.
 
-  ``streams-per-connection``
+.. namedconf:statement:: streams-per-connection
+
     The option specifies the hard limit on the number of concurrent
     HTTP/2 streams over an HTTP/2 connection.
 
@@ -5077,6 +5528,7 @@ all local addresses:
 
 ``trust-anchors`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: trust-anchors
 
 .. include:: ../misc/trust-anchors.grammar.rst
 
@@ -5224,6 +5676,7 @@ can be found, the initializing key is also compiled directly into
 
 ``dnssec-policy`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: dnssec-policy
 
 .. include:: ../misc/dnssec-policy.grammar.rst
 
@@ -5238,15 +5691,22 @@ for zones.
 A KASP determines how one or more zones are signed with DNSSEC.  For
 example, it specifies how often keys should roll, which cryptographic
 algorithms to use, and how often RRSIG records need to be refreshed.
+Multiple key and signing policies can be configured with unique policy names.
+
+A policy for a zone is selected using a ``dnssec-policy`` statement in the
+:namedconf:ref:`zone` block, specifying the name of the policy that should be
+used.
+
+There are three built-in policies:
+  - ``default``, which uses the :ref:`default policy <dnssec_policy_default>`,
+  - ``insecure``, to be used when you want to gracefully unsign your zone,
+  - ``none``, which means no DNSSEC policy (the same as not selecting
+    ``dnssec-policy`` at all; the zone is not signed.)
 
 Keys are not shared among zones, which means that one set of keys per
 zone is generated even if they have the same policy.  If multiple views
 are configured with different versions of the same zone, each separate
 version uses the same set of signing keys.
-
-Multiple key and signing policies can be configured.  To attach a policy
-to a zone, add a ``dnssec-policy`` option to the ``zone`` statement,
-specifying the name of the policy that should be used.
 
 By default, ``dnssec-policy`` assumes ``inline-signing``. This means that
 a signed version of the zone is maintained separately and is written out to
@@ -5268,10 +5728,9 @@ taken to submit a DS record to the parent.  Rollover timing for KSKs and
 CSKs is adjusted to take into account delays in processing and
 propagating DS updates.
 
-There are two predefined ``dnssec-policy`` names: ``none`` and
-``default``.  Setting a zone's policy to ``none`` is the same as not
-setting ``dnssec-policy`` at all; the zone is not signed.  Policy
-``default`` causes the zone to be signed with a single combined-signing
+.. _dnssec_policy_default:
+
+Policy ``default`` causes the zone to be signed with a single combined-signing
 key (CSK) using algorithm ECDSAP256SHA256; this key has an unlimited
 lifetime.  (A verbose copy of this policy may be found in the source
 tree, in the file ``doc/misc/dnssec-policy.default.conf``.)
@@ -5295,11 +5754,12 @@ retired when the existing key's lifetime ends.
 
 The following options can be specified in a ``dnssec-policy`` statement:
 
-  ``dnskey-ttl``
+.. namedconf:statement:: dnskey-ttl
+
     This indicates the TTL to use when generating DNSKEY resource
     records.  The default is 1 hour (3600 seconds).
 
-  ``keys``
+``keys``
     This is a list specifying the algorithms and roles to use when
     generating keys and signing the zone.  Entries in this list do not
     represent specific DNSSEC keys, which may be changed on a regular
@@ -5358,7 +5818,8 @@ The following options can be specified in a ``dnssec-policy`` statement:
     Each KSK/ZSK pair must have the same algorithm. A CSK combines the
     functionality of a ZSK and a KSK.
 
-  ``purge-keys``
+.. namedconf:statement:: purge-keys
+
     This is the time after when DNSSEC keys that have been deleted from
     the zone can be removed from disk. If a key still determined to have
     presence (for example in some resolver cache), :iscman:`named` will not
@@ -5367,20 +5828,23 @@ The following options can be specified in a ``dnssec-policy`` statement:
     The default is ``P90D`` (90 days). Set this option to ``0`` to never
     purge deleted keys.
 
-  ``publish-safety``
+.. namedconf:statement:: publish-safety
+
     This is a margin that is added to the pre-publication interval in
     rollover timing calculations, to give some extra time to cover
     unforeseen events.  This increases the time between when keys are
     published and when they become active.  The default is ``PT1H`` (1
     hour).
 
-  ``retire-safety``
+.. namedconf:statement:: retire-safety
+
     This is a margin that is added to the post-publication interval in
     rollover timing calculations, to give some extra time to cover
     unforeseen events.  This increases the time a key remains published
     after it is no longer active.  The default is ``PT1H`` (1 hour).
 
-  ``signatures-refresh``
+.. namedconf:statement:: signatures-refresh
+
     This determines how frequently an RRSIG record needs to be
     refreshed.  The signature is renewed when the time until the
     expiration time is less than the specified interval.  The default is
@@ -5389,28 +5853,23 @@ The following options can be specified in a ``dnssec-policy`` statement:
     90% of the minimum value of ``signatures-validity`` and
     ``signatures-validity-dnskey``.
 
-  ``signatures-validity``
+.. namedconf:statement:: signatures-validity
+
     This indicates the validity period of an RRSIG record (subject to
     inception offset and jitter).  The default is ``P2W`` (2 weeks).
 
-  ``signatures-validity-dnskey``
+.. namedconf:statement:: signatures-validity-dnskey
+
     This is similar to ``signatures-validity``, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
-  ``max-zone-ttl``
-    Like the ``max-zone-ttl`` zone option, this specifies the maximum
-    permissible TTL value, in seconds, for the zone.
+``max-zone-ttl``
 
-    This is needed in DNSSEC-maintained zones because when rolling to a
-    new DNSKEY, the old key needs to remain available until RRSIG
-    records have expired from caches.  The ``max-zone-ttl`` option
-    guarantees that the largest TTL in the zone is no higher than the
-    set value.
+   Like the :namedconf:ref:`max-zone-ttl` zone option, this specifies the maximum
+   permissible TTL value, in seconds, for the zone.
 
-    The default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
-    zero is treated as if the default value were in use.
+.. namedconf:statement:: nsec3param
 
-  ``nsec3param``
     Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
 
     Here is an example of an ``nsec3`` configuration:
@@ -5431,16 +5890,19 @@ The following options can be specified in a ``dnssec-policy`` statement:
        A higher number of iterations causes interoperability problems and opens
        servers to CPU-exhausting DoS attacks.
 
-  ``zone-propagation-delay``
+.. namedconf:statement:: zone-propagation-delay
+
     This is the expected propagation delay from the time when a zone is
     first updated to the time when the new version of the zone is served
     by all secondary servers.  The default is ``PT5M`` (5 minutes).
 
-  ``parent-ds-ttl``
+.. namedconf:statement:: parent-ds-ttl
+
     This is the TTL of the DS RRset that the parent zone uses.  The
     default is ``P1D`` (1 day).
 
-  ``parent-propagation-delay``
+.. namedconf:statement:: parent-propagation-delay
+
     This is the expected propagation delay from the time when the parent
     zone is updated to the time when the new version is served by all of
     the parent zone's name servers.  The default is ``PT1H`` (1 hour).
@@ -5461,7 +5923,8 @@ old DNSSEC key.
 
 The following options apply to DS queries sent to ``parental-agents``:
 
-``parental-source``
+.. namedconf:statement:: parental-source
+
    ``parental-source`` determines which local source address, and optionally
    UDP port, is used to send parental DS queries. This statement sets the
    ``parental-source`` for all zones, but can be overridden on a per-zone or
@@ -5473,7 +5936,8 @@ The following options apply to DS queries sent to ``parental-agents``:
 
    .. warning:: The configured ``port`` must not be same as the listening port.
 
-``parental-source-v6``
+.. namedconf:statement:: parental-source-v6
+
    This option acts like ``parental-source``, but applies to parental DS
    queries sent to IPv6 addresses.
 
@@ -5481,6 +5945,7 @@ The following options apply to DS queries sent to ``parental-agents``:
 
 ``managed-keys`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: managed-keys
 
 .. include:: ../misc/managed-keys.grammar.rst
 
@@ -5497,6 +5962,7 @@ with the ``initial-key`` keyword.
 
 ``trusted-keys`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: trusted-keys
 
 .. include:: ../misc/trusted-keys.grammar.rst
 
@@ -5512,6 +5978,7 @@ The ``trusted-keys`` statement has been deprecated in favor of
 
 ``view`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: view
 
 ::
 
@@ -5533,19 +6000,26 @@ server answer a DNS query differently depending on who is asking. It is
 particularly useful for implementing split DNS setups without having to
 run multiple servers.
 
-Each ``view`` statement defines a view of the DNS namespace that is
-seen by a subset of clients. A client matches a view if its source IP
-address matches the ``address_match_list`` of the view's
-``match-clients`` clause, and its destination IP address matches the
-``address_match_list`` of the view's ``match-destinations`` clause. If
-not specified, both ``match-clients`` and ``match-destinations`` default
-to matching all addresses. In addition to checking IP addresses,
-``match-clients`` and ``match-destinations`` can also take ``keys``
-which provide an mechanism for the client to select the view. A view can
-also be specified as ``match-recursive-only``, which means that only
-recursive requests from matching clients match that view. The order
-of the ``view`` statements is significant; a client request is
-resolved in the context of the first ``view`` that it matches.
+.. namedconf:statement:: match-clients
+.. namedconf:statement:: match-destinations
+
+   Each ``view`` statement defines a view of the DNS namespace that is
+   seen by a subset of clients. A client matches a view if its source IP
+   address matches the ``address_match_list`` of the view's
+   ``match-clients`` clause, and its destination IP address matches the
+   ``address_match_list`` of the view's ``match-destinations`` clause. If
+   not specified, both ``match-clients`` and ``match-destinations`` default
+   to matching all addresses. In addition to checking IP addresses,
+   ``match-clients`` and ``match-destinations`` can also take ``keys``
+   which provide an mechanism for the client to select the view.
+
+.. namedconf:statement:: match-recursive-only
+
+   A view can
+   also be specified as ``match-recursive-only``, which means that only
+   recursive requests from matching clients match that view. The order
+   of the ``view`` statements is significant; a client request is
+   resolved in the context of the first ``view`` that it matches.
 
 Zones defined within a ``view`` statement are only accessible to
 clients that match the ``view``. By defining a zone of the same name in
@@ -5612,6 +6086,7 @@ Here is an example of a typical split DNS setup implemented using
 
 ``zone`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: zone
 
 .. include:: ../misc/primary.zoneopt.rst
 .. include:: ../misc/secondary.zoneopt.rst
@@ -5635,19 +6110,22 @@ Here is an example of a typical split DNS setup implemented using
 
 Zone Types
 ^^^^^^^^^^
+.. namedconf:statement:: type
 
-The ``type`` keyword is required for the ``zone`` configuration unless
-it is an ``in-view`` configuration. Its acceptable values are:
-``primary`` (or ``master``), ``secondary`` (or ``slave``), ``mirror``,
-``hint``, ``stub``, ``static-stub``, ``forward``, ``redirect``,
-or ``delegation-only``.
+   The ``type`` keyword is required for the ``zone`` configuration unless
+   it is an ``in-view`` configuration. Its acceptable values are:
+   ``primary`` (or ``master``), ``secondary`` (or ``slave``), ``mirror``,
+   ``hint``, ``stub``, ``static-stub``, ``forward``, ``redirect``,
+   or ``delegation-only``.
 
-``primary``
+.. namedconf:statement:: type primary
+
    A primary zone has a master copy of the data for the zone and is able
    to provide authoritative answers for it. Type ``master`` is a synonym
    for ``primary``.
 
-``secondary``
+.. namedconf:statement:: type secondary
+
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
     synonym for ``secondary``. The ``primaries`` list specifies one or more IP
     addresses of primary servers that the secondary contacts to update
@@ -5676,7 +6154,8 @@ or ``delegation-only``.
     letters of the zone name. (Most operating systems
     behave very slowly if there are 100000 files in a single directory.)
 
-``mirror``
+.. namedconf:statement:: type mirror
+
    A mirror zone is similar to a zone of type ``secondary``, except its
    data is subject to DNSSEC validation before being used in answers.
    Validation is applied to the entire zone during the zone transfer
@@ -5742,14 +6221,16 @@ or ``delegation-only``.
       considered *experimental* and may cause performance issues,
       especially for zones that are large and/or frequently updated.
 
-``hint``
+.. namedconf:statement:: type hint
+
    The initial set of root name servers is specified using a hint zone.
    When the server starts, it uses the root hints to find a root name
    server and get the most recent list of root name servers. If no hint zone
    is specified for class IN, the server uses a compiled-in default set of
    root servers hints. Classes other than IN have no built-in default hints.
 
-``stub``
+.. namedconf:statement:: type stub
+
    A stub zone is similar to a secondary zone, except that it replicates only
    the NS records of a primary zone instead of the entire zone. Stub zones
    are not a standard part of the DNS; they are a feature specific to the
@@ -5769,7 +6250,8 @@ or ``delegation-only``.
    configured with stub zones for ``10.in-addr.arpa`` to use a set of
    internal name servers as the authoritative servers for that domain.
 
-``static-stub``
+.. namedconf:statement:: type static-stub
+
    A static-stub zone is similar to a stub zone, with the following
    exceptions: the zone data is statically configured, rather than
    transferred from a primary server; and when recursion is necessary for a query
@@ -5795,7 +6277,8 @@ or ``delegation-only``.
    Each static-stub zone is configured with internally generated NS and (if
    necessary) glue A or AAAA RRs.
 
-``forward``
+.. namedconf:statement:: type forward
+
    A forward zone is a way to configure forwarding on a per-domain basis.
    A ``zone`` statement of type ``forward`` can contain a ``forward`` and/or
    ``forwarders`` statement, which applies to queries within the domain
@@ -5807,7 +6290,8 @@ or ``delegation-only``.
    then "forward only", or vice versa), but use the same servers as set
    globally, re-specify the global forwarders.
 
-``redirect``
+.. namedconf:statement:: type redirect
+
    Redirect zones are used to provide answers to queries when normal
    resolution would result in NXDOMAIN being returned. Only one redirect zone
    is supported per view. ``allow-query`` can be used to restrict which
@@ -5841,7 +6325,8 @@ or ``delegation-only``.
    When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
 
-``delegation-only``
+.. namedconf:statement:: type delegation-only
+
    This zone type is used to enforce the delegation-only status of infrastructure
    zones (e.g., COM, NET, ORG). Any answer that is received without an
    explicit or implicit delegation in the authority section is treated
@@ -5852,7 +6337,8 @@ or ``delegation-only``.
 
    See caveats in :ref:`root-delegation-only <root-delegation-only>`.
 
-``in-view``
+.. namedconf:statement:: in-view
+
    When using multiple views, a ``primary`` or ``secondary`` zone configured
    in one view can be referenced in a subsequent view. This allows both views
    to use the same zone without the overhead of loading it more than once. This
@@ -5957,7 +6443,8 @@ Zone Options
 ``try-tcp-refresh``
    See the description of ``try-tcp-refresh`` in :ref:`boolean_options`.
 
-``database``
+.. namedconf:statement:: database
+
    This specifies the type of database to be used to store the zone data.
    The string following the ``database`` keyword is interpreted as a
    list of whitespace-delimited words. The first word identifies the
@@ -5975,7 +6462,8 @@ Zone Options
 ``dialup``
    See the description of ``dialup`` in :ref:`boolean_options`.
 
-``delegation-only``
+.. namedconf:statement:: delegation-only
+
    This flag only applies to forward, hint, and stub zones. If set to
    ``yes``, then the zone is treated as if it is also a
    delegation-only type zone.
@@ -5986,7 +6474,8 @@ Zone Options
 
 .. _file:
 
-``file``
+.. namedconf:statement:: file
+
    This sets the zone's filename. In ``primary``, ``hint``, and ``redirect``
    zones which do not have ``primaries`` defined, zone data is loaded from
    this file. In ``secondary``, ``mirror``, ``stub``, and ``redirect`` zones
@@ -6004,7 +6493,8 @@ Zone Options
    specified in a zone of type ``forward``, no forwarding is done for
    the zone and the global options are not used.
 
-``journal``
+.. namedconf:statement:: journal
+
    This allows the default journal's filename to be overridden. The default is
    the zone's filename with "``.jnl``" appended. This is applicable to
    ``primary`` and ``secondary`` zones.
@@ -6042,7 +6532,8 @@ Zone Options
 ``zone-statistics``
    See the description of ``zone-statistics`` in :ref:`options`.
 
-``server-addresses``
+.. namedconf:statement:: server-addresses
+
    This option is only meaningful for static-stub zones. This is a list of IP addresses
    to which queries should be sent in recursive resolution for the zone.
    A non-empty list for this option internally configures the apex
@@ -6064,7 +6555,8 @@ Zone Options
    recursive resolution and sends queries to 192.0.2.1 and/or
    2001:db8::1234.
 
-``server-names``
+.. namedconf:statement:: server-names
+
    This option is only meaningful for static-stub zones. This is a list of domain names
    of name servers that act as authoritative servers of the static-stub
    zone. These names are resolved to IP addresses when :iscman:`named`
@@ -6143,7 +6635,8 @@ Zone Options
 ``serial-update-method``
    See the description of ``serial-update-method`` in :ref:`options`.
 
-``inline-signing``
+.. namedconf:statement:: inline-signing
+
    If ``yes``, BIND 9 maintains a separate signed version of the zone.
    An unsigned zone is transferred in or loaded from disk and the signed
    version of the zone is served with, possibly, a different serial
@@ -6169,231 +6662,233 @@ Dynamic Update Policies
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 BIND 9 supports two methods of granting clients the right to
-perform dynamic updates to a zone, configured by the ``allow-update``
-or ``update-policy`` options. In both cases, BIND 9 writes the updates
+perform dynamic updates to a zone:
+
+- :namedconf:ref:`allow-update` - a simple access control list
+- :namedconf:ref:`update-policy` - fine-grained access control
+
+In both cases, BIND 9 writes the updates
 to the zone's filename set in ``file``.
 
-The ``allow-update`` clause is a simple access control list. Any client
-that matches the ACL is granted permission to update any record in the
-zone.
+.. namedconf:statement:: update-policy
 
-The ``update-policy`` clause allows more fine-grained control over which
-updates are allowed. It specifies a set of rules, in which each rule
-either grants or denies permission for one or more names in the zone to
-be updated by one or more identities. Identity is determined by the key
-that signed the update request, using either TSIG or SIG(0). In most
-cases, ``update-policy`` rules only apply to key-based identities. There
-is no way to specify update permissions based on the client source address.
+   The ``update-policy`` clause allows more fine-grained control over which
+   updates are allowed. It specifies a set of rules, in which each rule
+   either grants or denies permission for one or more names in the zone to
+   be updated by one or more identities. Identity is determined by the key
+   that signed the update request, using either TSIG or SIG(0). In most
+   cases, ``update-policy`` rules only apply to key-based identities. There
+   is no way to specify update permissions based on the client source address.
 
-``update-policy`` rules are only meaningful for zones of type
-``primary``, and are not allowed in any other zone type. It is a
-configuration error to specify both ``allow-update`` and
-``update-policy`` at the same time.
+   ``update-policy`` rules are only meaningful for zones of type
+   ``primary``, and are not allowed in any other zone type. It is a
+   configuration error to specify both ``allow-update`` and
+   ``update-policy`` at the same time.
 
-A pre-defined ``update-policy`` rule can be switched on with the command
-``update-policy local;``. :iscman:`named` automatically
-generates a TSIG session key when starting and stores it in a file;
-this key can then be used by local clients to update the zone while
-:iscman:`named` is running. By default, the session key is stored in the file
-|session_key|, the key name is "local-ddns", and the
-key algorithm is HMAC-SHA256. These values are configurable with the
-``session-keyfile``, ``session-keyname``, and ``session-keyalg`` options,
-respectively. A client running on the local system, if run with
-appropriate permissions, may read the session key from the key file and
-use it to sign update requests. The zone's update policy is set to
-allow that key to change any record within the zone. Assuming the key
-name is "local-ddns", this policy is equivalent to:
+   A pre-defined ``update-policy`` rule can be switched on with the command
+   ``update-policy local;``. :iscman:`named` automatically
+   generates a TSIG session key when starting and stores it in a file;
+   this key can then be used by local clients to update the zone while
+   :iscman:`named` is running. By default, the session key is stored in the file
+   |session_key|, the key name is "local-ddns", and the
+   key algorithm is HMAC-SHA256. These values are configurable with the
+   ``session-keyfile``, ``session-keyname``, and ``session-keyalg`` options,
+   respectively. A client running on the local system, if run with
+   appropriate permissions, may read the session key from the key file and
+   use it to sign update requests. The zone's update policy is set to
+   allow that key to change any record within the zone. Assuming the key
+   name is "local-ddns", this policy is equivalent to:
 
-::
+   ::
 
-   update-policy { grant local-ddns zonesub any; };
+      update-policy { grant local-ddns zonesub any; };
 
-with the additional restriction that only clients connecting from the
-local system are permitted to send updates.
+   with the additional restriction that only clients connecting from the
+   local system are permitted to send updates.
 
-Note that only one session key is generated by :iscman:`named`; all zones
-configured to use ``update-policy local`` accept the same key.
+   Note that only one session key is generated by :iscman:`named`; all zones
+   configured to use ``update-policy local`` accept the same key.
 
-The command ``nsupdate -l`` implements this feature, sending requests to
-localhost and signing them using the key retrieved from the session key
-file.
+   The command ``nsupdate -l`` implements this feature, sending requests to
+   localhost and signing them using the key retrieved from the session key
+   file.
 
-Other rule definitions look like this:
+   Other rule definitions look like this:
 
-::
+   ::
 
-   ( grant | deny ) identity ruletype  name   types
+      ( grant | deny ) identity ruletype  name   types
 
-Each rule grants or denies privileges. Rules are checked in the order in
-which they are specified in the ``update-policy`` statement. Once a
-message has successfully matched a rule, the operation is immediately
-granted or denied, and no further rules are examined. There are 16 types
-of rules; the rule type is specified by the ``ruletype`` field, and the
-interpretation of other fields varies depending on the rule type.
+   Each rule grants or denies privileges. Rules are checked in the order in
+   which they are specified in the ``update-policy`` statement. Once a
+   message has successfully matched a rule, the operation is immediately
+   granted or denied, and no further rules are examined. There are 16 types
+   of rules; the rule type is specified by the ``ruletype`` field, and the
+   interpretation of other fields varies depending on the rule type.
 
-In general, a rule is matched when the key that signed an update request
-matches the ``identity`` field, the name of the record to be updated
-matches the ``name`` field (in the manner specified by the ``ruletype``
-field), and the type of the record to be updated matches the ``types``
-field. Details for each rule type are described below.
+   In general, a rule is matched when the key that signed an update request
+   matches the ``identity`` field, the name of the record to be updated
+   matches the ``name`` field (in the manner specified by the ``ruletype``
+   field), and the type of the record to be updated matches the ``types``
+   field. Details for each rule type are described below.
 
-The ``identity`` field must be set to a fully qualified domain name. In
-most cases, this represents the name of the TSIG or SIG(0) key that
-must be used to sign the update request. If the specified name is a
-wildcard, it is subject to DNS wildcard expansion, and the rule may
-apply to multiple identities. When a TKEY exchange has been used to
-create a shared secret, the identity of the key used to authenticate the
-TKEY exchange is used as the identity of the shared secret. Some
-rule types use identities matching the client's Kerberos principal (e.g,
-``"host/machine@REALM"``) or Windows realm (``machine$@REALM``).
+   The ``identity`` field must be set to a fully qualified domain name. In
+   most cases, this represents the name of the TSIG or SIG(0) key that
+   must be used to sign the update request. If the specified name is a
+   wildcard, it is subject to DNS wildcard expansion, and the rule may
+   apply to multiple identities. When a TKEY exchange has been used to
+   create a shared secret, the identity of the key used to authenticate the
+   TKEY exchange is used as the identity of the shared secret. Some
+   rule types use identities matching the client's Kerberos principal (e.g,
+   ``"host/machine@REALM"``) or Windows realm (``machine$@REALM``).
 
-The ``name`` field also specifies a fully qualified domain name. This often
-represents the name of the record to be updated. Interpretation of this
-field is dependent on rule type.
+   The ``name`` field also specifies a fully qualified domain name. This often
+   represents the name of the record to be updated. Interpretation of this
+   field is dependent on rule type.
 
-If no ``types`` are explicitly specified, then a rule matches all types
-except RRSIG, NS, SOA, NSEC, and NSEC3. Types may be specified by name,
-including ``ANY``; ANY matches all types except NSEC and NSEC3, which can
-never be updated. Note that when an attempt is made to delete all
-records associated with a name, the rules are checked for each existing
-record type.
+   If no ``types`` are explicitly specified, then a rule matches all types
+   except RRSIG, NS, SOA, NSEC, and NSEC3. Types may be specified by name,
+   including ``ANY``; ANY matches all types except NSEC and NSEC3, which can
+   never be updated. Note that when an attempt is made to delete all
+   records associated with a name, the rules are checked for each existing
+   record type.
 
-If the type is immediately followed by a number in parentheses,
-that number is the maximum number of records of that type permitted
-to exist in the RRset after an update has been applied.  For example,
-``PTR(1)`` indicates that only one PTR record is allowed. If an
-attempt is made to add two PTR records in an update, the second one
-is silently discarded. If a PTR record already exists, both
-new records are silently discarded.
+   If the type is immediately followed by a number in parentheses,
+   that number is the maximum number of records of that type permitted
+   to exist in the RRset after an update has been applied.  For example,
+   ``PTR(1)`` indicates that only one PTR record is allowed. If an
+   attempt is made to add two PTR records in an update, the second one
+   is silently discarded. If a PTR record already exists, both
+   new records are silently discarded.
 
-If type ANY is specified with a limit, then that limit applies to
-all types that are not otherwise specified.  For example, ``A PTR(1)
-ANY(2)`` indicates that an unlimited number of A records can exist,
-but only one PTR record, and no more than two of any other type.
+   If type ANY is specified with a limit, then that limit applies to
+   all types that are not otherwise specified.  For example, ``A PTR(1)
+   ANY(2)`` indicates that an unlimited number of A records can exist,
+   but only one PTR record, and no more than two of any other type.
 
-Typical use with a rule ``grant * tcp-self . PTR(1);`` in the zone
-2.0.192.IN-ADDR.ARPA looks like this:
+   Typical use with a rule ``grant * tcp-self . PTR(1);`` in the zone
+   2.0.192.IN-ADDR.ARPA looks like this:
 
-::
+   ::
 
-  nsupdate -v <<EOF
-  local 192.0.2.1
-  del 1.2.0.192.IN-ADDR.ARPA PTR
-  add 1.2.0.192.IN-ADDR.ARPA 0 PTR EXAMPLE.COM
-  send
-  EOF
+     nsupdate -v <<EOF
+     local 192.0.2.1
+     del 1.2.0.192.IN-ADDR.ARPA PTR
+     add 1.2.0.192.IN-ADDR.ARPA 0 PTR EXAMPLE.COM
+     send
+     EOF
 
-The ruletype field has 20 values: ``name``, ``subdomain``, ``zonesub``,
-``wildcard``, ``self``, ``selfsub``, ``selfwild``, ``ms-self``,
-``ms-selfsub``, ``ms-subdomain``, ``ms-subdomain-self-rhs``, ``krb5-self``,
-``krb5-selfsub``, ``krb5-subdomain``,  ``krb5-subdomain-self-rhs``,
-``tcp-self``, ``6to4-self``, and ``external``.
+   The ruletype field has 20 values: ``name``, ``subdomain``, ``zonesub``,
+   ``wildcard``, ``self``, ``selfsub``, ``selfwild``, ``ms-self``,
+   ``ms-selfsub``, ``ms-subdomain``, ``ms-subdomain-self-rhs``, ``krb5-self``,
+   ``krb5-selfsub``, ``krb5-subdomain``,  ``krb5-subdomain-self-rhs``,
+   ``tcp-self``, ``6to4-self``, and ``external``.
 
-``name``
-    With exact-match semantics, this rule matches when the name being updated is identical to the contents of the ``name`` field.
+   ``name``
+       With exact-match semantics, this rule matches when the name being updated is identical to the contents of the ``name`` field.
 
-``subdomain``
-    This rule matches when the name being updated is a subdomain of, or identical to, the contents of the ``name`` field.
+   ``subdomain``
+       This rule matches when the name being updated is a subdomain of, or identical to, the contents of the ``name`` field.
 
-``zonesub``
-    This rule is similar to subdomain, except that it matches when the name being updated is a subdomain of the zone in which the ``update-policy`` statement appears. This obviates the need to type the zone name twice, and enables the use of a standard ``update-policy`` statement in multiple zones without modification.
-    When this rule is used, the ``name`` field is omitted.
+   ``zonesub``
+       This rule is similar to subdomain, except that it matches when the name being updated is a subdomain of the zone in which the ``update-policy`` statement appears. This obviates the need to type the zone name twice, and enables the use of a standard ``update-policy`` statement in multiple zones without modification.
+       When this rule is used, the ``name`` field is omitted.
 
-``wildcard``
-    The ``name`` field is subject to DNS wildcard expansion, and this rule matches when the name being updated is a valid expansion of the wildcard.
+   ``wildcard``
+       The ``name`` field is subject to DNS wildcard expansion, and this rule matches when the name being updated is a valid expansion of the wildcard.
 
-``self``
-    This rule matches when the name of the record being updated matches the contents of the ``identity`` field. The ``name`` field is ignored. To avoid confusion, it is recommended that this field be set to the same value as the ``identity`` field or to "."
-    The ``self`` rule type is most useful when allowing one key per name to update, where the key has the same name as the record to be updated. In this case, the ``identity`` field can be specified as ``*`` (asterisk).
+   ``self``
+       This rule matches when the name of the record being updated matches the contents of the ``identity`` field. The ``name`` field is ignored. To avoid confusion, it is recommended that this field be set to the same value as the ``identity`` field or to "."
+       The ``self`` rule type is most useful when allowing one key per name to update, where the key has the same name as the record to be updated. In this case, the ``identity`` field can be specified as ``*`` (asterisk).
 
-``selfsub``
-    This rule is similar to ``self``, except that subdomains of ``self`` can also be updated.
+   ``selfsub``
+       This rule is similar to ``self``, except that subdomains of ``self`` can also be updated.
 
-``selfwild``
-    This rule is similar to ``self``, except that only subdomains of ``self`` can be updated.
+   ``selfwild``
+       This rule is similar to ``self``, except that only subdomains of ``self`` can be updated.
 
-``ms-self``
-    When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows records with the absolute name of ``machine.REALM`` to be updated.
+   ``ms-self``
+       When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows records with the absolute name of ``machine.REALM`` to be updated.
 
-    The realm to be matched is specified in the ``identity`` field.
+       The realm to be matched is specified in the ``identity`` field.
 
-    The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
+       The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
 
-    For example, ``grant EXAMPLE.COM ms-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
+       For example, ``grant EXAMPLE.COM ms-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
 
-``ms-selfsub``
-    This is similar to ``ms-self``, except it also allows updates to any subdomain of the name specified in the Windows machine principal, not just to the name itself.
+   ``ms-selfsub``
+       This is similar to ``ms-self``, except it also allows updates to any subdomain of the name specified in the Windows machine principal, not just to the name itself.
 
-``ms-subdomain``
-    When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows any machine in the specified realm to update any record in the zone or in a specified subdomain of the zone.
+   ``ms-subdomain``
+       When a client sends an UPDATE using a Windows machine principal (for example, ``machine$@REALM``), this rule allows any machine in the specified realm to update any record in the zone or in a specified subdomain of the zone.
 
-    The realm to be matched is specified in the ``identity`` field.
+       The realm to be matched is specified in the ``identity`` field.
 
-    The ``name`` field specifies the subdomain that may be updated. If set to "." or any other name at or above the zone apex, any name in the zone can be updated.
+       The ``name`` field specifies the subdomain that may be updated. If set to "." or any other name at or above the zone apex, any name in the zone can be updated.
 
-    For example, if ``update-policy`` for the zone "example.com" includes ``grant EXAMPLE.COM ms-subdomain hosts.example.com. AA AAAA``, any machine with a valid principal in the realm ``EXAMPLE.COM`` is able to update address records at or below ``hosts.example.com``.
+       For example, if ``update-policy`` for the zone "example.com" includes ``grant EXAMPLE.COM ms-subdomain hosts.example.com. AA AAAA``, any machine with a valid principal in the realm ``EXAMPLE.COM`` is able to update address records at or below ``hosts.example.com``.
 
-``ms-subdomain-self-rhs``
-    This rule is similar to ``ms-subdomain``, with an additional
-    restriction that PTR and SRV target names must match the name of the
-    machine identified in the principal.
+   ``ms-subdomain-self-rhs``
+       This rule is similar to ``ms-subdomain``, with an additional
+       restriction that PTR and SRV target names must match the name of the
+       machine identified in the principal.
 
-``krb5-self``
-    When a client sends an UPDATE using a Kerberos machine principal (for example, ``host/machine@REALM``), this rule allows records with the absolute name of ``machine`` to be updated, provided it has been authenticated by REALM. This is similar but not identical to ``ms-self``, due to the ``machine`` part of the Kerberos principal being an absolute name instead of an unqualified name.
+   ``krb5-self``
+       When a client sends an UPDATE using a Kerberos machine principal (for example, ``host/machine@REALM``), this rule allows records with the absolute name of ``machine`` to be updated, provided it has been authenticated by REALM. This is similar but not identical to ``ms-self``, due to the ``machine`` part of the Kerberos principal being an absolute name instead of an unqualified name.
 
-    The realm to be matched is specified in the ``identity`` field.
+       The realm to be matched is specified in the ``identity`` field.
 
-    The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
+       The ``name`` field has no effect on this rule; it should be set to "." as a placeholder.
 
-    For example, ``grant EXAMPLE.COM krb5-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
+       For example, ``grant EXAMPLE.COM krb5-self . A AAAA`` allows any machine with a valid principal in the realm ``EXAMPLE.COM`` to update its own address records.
 
-``krb5-selfsub``
-    This is similar to ``krb5-self``, except it also allows updates to any subdomain of the name specified in the ``machine`` part of the Kerberos principal, not just to the name itself.
+   ``krb5-selfsub``
+       This is similar to ``krb5-self``, except it also allows updates to any subdomain of the name specified in the ``machine`` part of the Kerberos principal, not just to the name itself.
 
-``krb5-subdomain``
-    This rule is identical to ``ms-subdomain``, except that it works with Kerberos machine principals (i.e., ``host/machine@REALM``) rather than Windows machine principals.
+   ``krb5-subdomain``
+       This rule is identical to ``ms-subdomain``, except that it works with Kerberos machine principals (i.e., ``host/machine@REALM``) rather than Windows machine principals.
 
-``krb5-subdomain-self-rhs``
-    This rule is similar to ``krb5-subdomain``, with an additional
-    restriction that PTR and SRV target names must match the name of the
-    machine identified in the principal.
+   ``krb5-subdomain-self-rhs``
+       This rule is similar to ``krb5-subdomain``, with an additional
+       restriction that PTR and SRV target names must match the name of the
+       machine identified in the principal.
 
-``tcp-self``
-    This rule allows updates that have been sent via TCP and for which the standard mapping from the client's IP address into the ``in-addr.arpa`` and ``ip6.arpa`` namespaces matches the name to be updated. The ``identity`` field must match that name. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
+   ``tcp-self``
+       This rule allows updates that have been sent via TCP and for which the standard mapping from the client's IP address into the ``in-addr.arpa`` and ``ip6.arpa`` namespaces matches the name to be updated. The ``identity`` field must match that name. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
 
-    .. note::
-        It is theoretically possible to spoof these TCP sessions.
+       .. note::
+           It is theoretically possible to spoof these TCP sessions.
 
-``6to4-self``
-    This allows the name matching a 6to4 IPv6 prefix, as specified in :rfc:`3056`, to be updated by any TCP connection from either the 6to4 network or from the corresponding IPv4 address. This is intended to allow NS or DNAME RRsets to be added to the ``ip6.arpa`` reverse tree.
+   ``6to4-self``
+       This allows the name matching a 6to4 IPv6 prefix, as specified in :rfc:`3056`, to be updated by any TCP connection from either the 6to4 network or from the corresponding IPv4 address. This is intended to allow NS or DNAME RRsets to be added to the ``ip6.arpa`` reverse tree.
 
-    The ``identity`` field must match the 6to4 prefix in ``ip6.arpa``. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
+       The ``identity`` field must match the 6to4 prefix in ``ip6.arpa``. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
 
-    In addition, if specified for an ``ip6.arpa`` name outside of the ``2.0.0.2.ip6.arpa`` namespace, the corresponding /48 reverse name can be updated. For example, TCP/IPv6 connections from 2001:DB8:ED0C::/48 can update records at ``C.0.D.E.8.B.D.0.1.0.0.2.ip6.arpa``.
+       In addition, if specified for an ``ip6.arpa`` name outside of the ``2.0.0.2.ip6.arpa`` namespace, the corresponding /48 reverse name can be updated. For example, TCP/IPv6 connections from 2001:DB8:ED0C::/48 can update records at ``C.0.D.E.8.B.D.0.1.0.0.2.ip6.arpa``.
 
-    .. note::
-        It is theoretically possible to spoof these TCP sessions.
+       .. note::
+           It is theoretically possible to spoof these TCP sessions.
 
-``external``
-    This rule allows :iscman:`named` to defer the decision of whether to allow a given update to an external daemon.
+   ``external``
+       This rule allows :iscman:`named` to defer the decision of whether to allow a given update to an external daemon.
 
-    The method of communicating with the daemon is specified in the ``identity`` field, the format of which is "``local:``\ path", where "path" is the location of a Unix-domain socket. (Currently, "local" is the only supported mechanism.)
+       The method of communicating with the daemon is specified in the ``identity`` field, the format of which is "``local:``\ path", where "path" is the location of a Unix-domain socket. (Currently, "local" is the only supported mechanism.)
 
-    Requests to the external daemon are sent over the Unix-domain socket as datagrams with the following format:
+       Requests to the external daemon are sent over the Unix-domain socket as datagrams with the following format:
 
-    ::
+       ::
 
-        Protocol version number (4 bytes, network byte order, currently 1)
-        Request length (4 bytes, network byte order)
-        Signer (null-terminated string)
-        Name (null-terminated string)
-        TCP source address (null-terminated string)
-        Rdata type (null-terminated string)
-        Key (null-terminated string)
-        TKEY token length (4 bytes, network byte order)
-        TKEY token (remainder of packet)
+           Protocol version number (4 bytes, network byte order, currently 1)
+           Request length (4 bytes, network byte order)
+           Signer (null-terminated string)
+           Name (null-terminated string)
+           TCP source address (null-terminated string)
+           Rdata type (null-terminated string)
+           Key (null-terminated string)
+           TKEY token length (4 bytes, network byte order)
+           TKEY token (remainder of packet)
 
-    The daemon replies with a four-byte value in network byte order, containing either 0 or 1; 0 indicates that the specified update is not permitted, and 1 indicates that it is.
+       The daemon replies with a four-byte value in network byte order, containing either 0 or 1; 0 indicates that the specified update is not permitted, and 1 indicates that it is.
 
 .. _multiple_views:
 
