@@ -185,6 +185,23 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 grammarnode += nodetype(text=grammar_txt)
                 return grammarnode
 
+            def format_warnings(self, flags):
+                """Return node with a warning box about deprecated and
+                experimental options"""
+                warn = nodes.warning()
+                if "deprecated" in flags:
+                    warn += nodes.paragraph(
+                        text=(
+                            "This option is deprecated and will be removed in a future"
+                            " version of BIND."
+                        )
+                    )
+                if "experimental" in flags:
+                    warn += nodes.paragraph(
+                        text="This option is experimental and subject to change."
+                    )
+                return warn
+
             def parse_nested_str(self, instr):
                 """Parse string as nested rst syntax and produce a node"""
                 raw = nodes.paragraph(text=instr)
@@ -214,9 +231,18 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
                 grammars = iscconf.statement_grammar_groups[name]
                 multi_grammar = len(grammars) > 1
+                union_flags = set()
                 for grammar_grp in grammars:
+                    for one_grammar_dict in grammar_grp:
+                        union_flags = union_flags.union(
+                            set(one_grammar_dict.subgrammar.get("_flags", []))
+                        )
                     grammarnode = self.format_grammar(multi_grammar, grammar_grp)
                     contentnode.insert(0, grammarnode)
+
+                warn = self.format_warnings(union_flags)
+                if len(warn):
+                    contentnode.insert(0, warn)
 
         name = domainname
         label = domainlabel
