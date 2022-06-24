@@ -427,8 +427,6 @@ configuration.
 
 .. namedconf:statement:: acl
 
-.. include:: ../misc/acl.grammar.rst
-
 .. _acl:
 
 ``acl`` Statement Definition and Usage
@@ -457,8 +455,6 @@ The following ACLs are built-in:
 ``controls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
-
-.. include:: ../misc/controls.grammar.rst
 
 .. _controls_statement_definition_and_usage:
 
@@ -534,8 +530,6 @@ To disable the command channel, use an empty ``controls`` statement:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
 
-.. include:: ../misc/key.grammar.rst
-
 .. _key_statement:
 
 ``key`` Statement Definition and Usage
@@ -575,8 +569,6 @@ matching this name, algorithm, and secret.
 ``logging`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
-
-.. include:: ../misc/logging.grammar.rst
 
 .. _logging_statement:
 
@@ -986,8 +978,6 @@ responses such as NXDOMAIN.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
 
-.. include:: ../misc/parental-agents.grammar.rst
-
 .. _parental_agents_statement:
 
 ``parental-agents`` Statement Definition and Usage
@@ -1003,8 +993,6 @@ change its delegation information (defined in :rfc:`7344`).
 ``primaries`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
-
-.. include:: ../misc/primaries.grammar.rst
 
 .. _primaries_statement:
 
@@ -1042,8 +1030,6 @@ where ``tls-configuration-name`` refers to a previously defined
 
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
-
-.. include:: ../misc/options.grammar.rst
 
 .. _options:
 
@@ -5207,8 +5193,6 @@ redirect zone is tried first.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
 
-.. include:: ../misc/server.grammar.rst
-
 .. _server_statement_definition_and_usage:
 
 ``server`` Statement Definition and Usage
@@ -5314,8 +5298,6 @@ and :namedconf:ref:`options` blocks:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
 
-.. include:: ../misc/statistics-channels.grammar.rst
-
 .. _statistics_channels:
 
 ``statistics-channels`` Statement Definition and Usage
@@ -5385,8 +5367,6 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 ``tls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
-
-.. include:: ../misc/tls.grammar.rst
 
 ``tls`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5573,8 +5553,6 @@ issues related to shared cryptographic secrets.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
 
-.. include:: ../misc/http.grammar.rst
-
 ``http`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -5628,8 +5606,6 @@ all local addresses:
 ``trust-anchors`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trust-anchors
-
-.. include:: ../misc/trust-anchors.grammar.rst
 
 .. _trust-anchors:
 
@@ -5776,8 +5752,6 @@ can be found, the initializing key is also compiled directly into
 ``dnssec-policy`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
-
-.. include:: ../misc/dnssec-policy.grammar.rst
 
 .. _dnssec_policy:
 
@@ -6046,8 +6020,6 @@ The following options apply to DS queries sent to ``parental-agents``:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
 
-.. include:: ../misc/managed-keys.grammar.rst
-
 .. _managed_keys:
 
 ``managed-keys`` Statement Definition and Usage
@@ -6062,8 +6034,6 @@ with the ``initial-key`` keyword.
 ``trusted-keys`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
-
-.. include:: ../misc/trusted-keys.grammar.rst
 
 .. _trusted_keys:
 
@@ -6186,17 +6156,6 @@ Here is an example of a typical split DNS setup implemented using
 ``zone`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
-
-.. include:: ../misc/primary.zoneopt.rst
-.. include:: ../misc/secondary.zoneopt.rst
-.. include:: ../misc/mirror.zoneopt.rst
-.. include:: ../misc/hint.zoneopt.rst
-.. include:: ../misc/stub.zoneopt.rst
-.. include:: ../misc/static-stub.zoneopt.rst
-.. include:: ../misc/forward.zoneopt.rst
-.. include:: ../misc/redirect.zoneopt.rst
-.. include:: ../misc/delegation-only.zoneopt.rst
-.. include:: ../misc/in-view.zoneopt.rst
 
 .. _zone_statement:
 

@@ -121,6 +121,3 @@ if HAVE_LIBNGHTTP2
 named_LDADD +=					\
 	$(LIBNGHTTP2_LIBS)
 endif HAVE_LIBNGHTTP2
-
-MAINTAINERCLEANFILES =				\
-	named.conf.rst
