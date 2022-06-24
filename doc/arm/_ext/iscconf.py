@@ -116,6 +116,38 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             def isc_short(self):
                 return self.options.get("short", "")
 
+            def format_path(self, path):
+                assert path[0] == "_top"
+                if len(path) == 1:
+                    return "topmost"
+                return ".".join(path[1:])
+
+            def format_paths(self, paths):
+                zone_types = []
+                nozone_paths = []
+                for path in paths:
+                    try:
+                        zone_idx = path.index("zone")
+                        zone_type_txt = path[zone_idx + 1]
+                        assert zone_type_txt.startswith("type "), zone_type_txt
+                        zone_types.append(zone_type_txt[len("type ") :])
+                    except (ValueError, IndexError):
+                        nozone_paths.append(path)
+                condensed_paths = nozone_paths[:]
+                if zone_types:
+                    condensed_paths.append(
+                        ("_top", "zone (" + ", ".join(sorted(zone_types)) + ")")
+                    )
+                condensed_paths = sorted(condensed_paths, key=len)
+                return list(self.format_path(path) for path in condensed_paths)
+
+            def format_blocks(self, grammar_blocks):
+                """Generate node with list of all allowed blocks"""
+                blocks = nodes.paragraph()
+                blocks += nodes.strong(text="Blocks: ")
+                blocks += nodes.Text(", ".join(self.format_paths(grammar_blocks)))
+                return blocks
+
             def parse_nested_str(self, instr):
                 """Parse string as nested rst syntax and produce a node"""
                 raw = nodes.paragraph(text=instr)
@@ -139,6 +171,14 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     raise NotImplementedError(
                         "statements with more than one name are not supported", names
                     )
+                name = names[0]
+                iscconf = self.env.get_domain(domainname)
+
+                if name not in iscconf.statement_blocks:
+                    return  # not defined in grammar, nothing to render
+
+                blocks = self.format_blocks(iscconf.statement_blocks[name])
+                contentnode.insert(0, blocks)
 
         name = domainname
         label = domainlabel
