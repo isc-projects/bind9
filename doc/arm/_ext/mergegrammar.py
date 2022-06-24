@@ -29,8 +29,9 @@ def read_zone():
             assert len(zonegrammar) == 1
             assert "zone" in zonegrammar
             zone_grammars[zone_type] = zonegrammar["zone"]
+            zone_grammars[zone_type]["_pprint_name"] = "zone"
 
-    return {"zone": {"_mapbody": zone_grammars}}
+    return {"zone": {"_mapbody": zone_grammars, "_ignore_this_level": True}}
 
 
 def read_main():

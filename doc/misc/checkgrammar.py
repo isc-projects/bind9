@@ -113,19 +113,25 @@ def pformat_grammar(node, level=1):
     # a nested map
     out = ""
     indent = level * "\t"
-    if "_id" in node:
-        out += node["_id"] + " "
-    out += "{\n"
+    if not node.get("_ignore_this_level"):
+        if "_id" in node:
+            out += node["_id"] + " "
+        out += "{\n"
 
-    for key in node["_mapbody"]:
-        out += f"{indent}{key}"
-        inner_grammar = pformat_grammar(node["_mapbody"][key], level=level + 1)
+    for key, subnode in node["_mapbody"].items():
+        if not subnode.get("_ignore_this_level"):
+            out += f"{indent}{subnode.get('_pprint_name', key)}"
+            inner_grammar = pformat_grammar(node["_mapbody"][key], level=level + 1)
+        else:  # act as if we were not in a map
+            inner_grammar = pformat_grammar(node["_mapbody"][key], level=level)
         if inner_grammar[0] != ";":  # we _did_ find some arguments
             out += " "
         out += inner_grammar
-    out += indent[:-1] + "};"  # unindent the closing bracket
-    if "_flags" in node:
-        out += " // " + ", ".join(node["_flags"])
+
+    if not node.get("_ignore_this_level"):
+        out += indent[:-1] + "};"  # unindent the closing bracket
+        if "_flags" in node:
+            out += " // " + ", ".join(node["_flags"])
     return out + "\n"
 
 
