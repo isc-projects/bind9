@@ -96,6 +96,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 "tags": lambda arg: split_csv(arg, required=False),
                 # one-sentece description for use in summary tables
                 "short": directives.unchanged_required,
+                "suppress_grammar": directives.flag,
             }
 
             @property
@@ -237,6 +238,8 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                         union_flags = union_flags.union(
                             set(one_grammar_dict.subgrammar.get("_flags", []))
                         )
+                    if "suppress_grammar" in self.options:
+                        continue
                     grammarnode = self.format_grammar(multi_grammar, grammar_grp)
                     contentnode.insert(0, grammarnode)
 
