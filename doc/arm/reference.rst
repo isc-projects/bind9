@@ -2055,6 +2055,8 @@ Boolean Options
 .. _notify_st:
 
 .. namedconf:statement:: notify
+   :tags: transfer
+   :short: Controls whether ``NOTIFY`` messages are sent on zone changes.
 
    If set to ``yes`` (the default), DNS NOTIFY messages are sent when a
    zone the server is authoritative for changes; see :ref:`using notify<notify>`.
@@ -2275,13 +2277,18 @@ Boolean Options
    The default is ``yes``.
 
 .. namedconf:statement:: provide-ixfr
+   :tags: transfer
+   :short: Controls whether a primary responds to an incremental zone request (IXFR) or only responds with a full zone transfer (AXFR).
 
    The ``provide-ixfr`` clause determines whether the local server, acting
    as primary, responds with an incremental zone transfer when the given
    remote server, a secondary, requests it. If set to ``yes``, incremental
    transfer is provided whenever possible. If set to ``no``, all
    transfers to the remote server are non-incremental.
+
 .. namedconf:statement:: request-ixfr
+   :tags: transfer
+   :short: Controls whether a secondary requests an incremental zone transfer (IXFR) or a full zone transfer (AXFR).
 
    The ``request-ixfr`` statement determines whether the local server, acting
    as a secondary, requests incremental zone transfers from the given
@@ -2323,6 +2330,8 @@ Boolean Options
    this option is discouraged.
 
 .. namedconf:statement:: ixfr-from-differences
+   :tags: transfer
+   :short: Controls how IXFR transfers are calculated.
 
    When ``yes`` and the server loads a new version of a primary zone from
    its zone file or receives a new version of a secondary file via zone
@@ -2348,6 +2357,8 @@ Boolean Options
    ``ixfr-from-differences`` setting is ignored for that zone.
 
 .. namedconf:statement:: multi-master
+   :tags: transfer
+   :short: Controls whether serial number mismatch errors are logged.
 
    This should be set when there are multiple primary servers for a zone and the
    addresses refer to different machines. If ``yes``, :iscman:`named` does not
@@ -2681,6 +2692,8 @@ requesting system. See :ref:`address_match_lists`
 for details on how to specify IP address lists.
 
 .. namedconf:statement:: allow-notify
+   :tags: transfer
+   :short: Defines an :any:`address_match_list` that is allowed to send ``NOTIFY`` messages for the zone, in addition to addresses defined in the :any:`primaries` option for the zone.
 
    This ACL specifies which hosts may send NOTIFY messages to inform
    this server of changes to zones for which it is acting as a secondary
@@ -2780,10 +2793,12 @@ for details on how to specify IP address lists.
    be allowed by the other.
 
 .. namedconf:statement:: allow-update
+   :tags: transfer
+   :short: Defines an :any:`address_match_list` of hosts that are allowed to submit dynamic updates for primary zones.
 
    A simple access control list.
    When set in the ``zone`` statement for a primary zone, this specifies which
-   hosts are allowed to submit Dynamic DNS updates to that zone. The
+   hosts are allowed to submit dynamic DNS updates to that zone. The
    default is to deny updates from all hosts.
 
    Note that allowing updates based on the requestor's IP address is
@@ -2797,9 +2812,11 @@ for details on how to specify IP address lists.
    Updates are written to the zone's filename that is set in ``file``.
 
 .. namedconf:statement:: allow-update-forwarding
+   :tags: transfer
+   :short: Defines an :any:`address_match_list` of hosts that are allowed to submit dynamic updates to a secondary server for transmission to a primary.
 
    When set in the ``zone`` statement for a secondary zone, this specifies which
-   hosts are allowed to submit Dynamic DNS updates and have them be
+   hosts are allowed to submit dynamic DNS updates and have them be
    forwarded to the primary. The default is ``{ none; }``, which means
    that no update forwarding is performed.
 
@@ -2823,6 +2840,8 @@ for details on how to specify IP address lists.
 .. _allow-transfer:
 
 .. namedconf:statement:: allow-transfer
+   :tags: transfer
+   :short: Defines an :any:`address_match_list` of hosts that are allowed to transfer the zone information from this server.
 
    This specifies which hosts are allowed to receive zone transfers from the
    server. ``allow-transfer`` may also be specified in the ``zone``
@@ -3120,6 +3139,8 @@ options apply to zone transfers.
 .. _also-notify:
 
 .. namedconf:statement:: also-notify
+   :tags: transfer
+   :short: Defines one or more hosts that are sent ``NOTIFY`` messages when zone changes occur.
 
    This option defines a global list of IP addresses of name servers that are also
    sent NOTIFY messages whenever a fresh copy of the zone is loaded, in
@@ -3139,24 +3160,32 @@ options apply to zone transfers.
    zone. The default is the empty list (no global notification list).
 
 .. namedconf:statement:: max-transfer-time-in
+   :tags: transfer
+   :short: Specifies the number of minutes after which inbound zone transfers are terminated.
 
    Inbound zone transfers running longer than this many minutes are
    terminated. The default is 120 minutes (2 hours). The maximum value
    is 28 days (40320 minutes).
 
 .. namedconf:statement:: max-transfer-idle-in
+   :tags: transfer
+   :short: Specifies the number of minutes after which inbound zone transfers making no progress are terminated.
 
    Inbound zone transfers making no progress in this many minutes are
    terminated. The default is 60 minutes (1 hour). The maximum value
    is 28 days (40320 minutes).
 
 .. namedconf:statement:: max-transfer-time-out
+   :tags: transfer
+   :short: Specifies the number of minutes after which outbound zone transfers are terminated.
 
    Outbound zone transfers running longer than this many minutes are
    terminated. The default is 120 minutes (2 hours). The maximum value
    is 28 days (40320 minutes).
 
 .. namedconf:statement:: max-transfer-idle-out
+   :tags: transfer
+   :short: Specifies the number of minutes after which outbound zone transfers making no progress are terminated.
 
    Outbound zone transfers making no progress in this many minutes are
    terminated. The default is 60 minutes (1 hour). The maximum value
@@ -3178,6 +3207,8 @@ options apply to zone transfers.
    one per second; when set to zero, it is silently raised to one.
 
 .. namedconf:statement:: serial-query-rate
+   :tags: transfer
+   :short: Defines an upper limit on the number of queries per second issued by the server, when querying the SOA RRs used for zone transfers.
 
    Secondary servers periodically query primary servers to find out if
    zone serial numbers have changed. Each such query uses a minute
@@ -3189,6 +3220,8 @@ options apply to zone transfers.
    it is silently raised to one.
 
 .. namedconf:statement:: transfer-format
+   :tags: transfer
+   :short: Controls whether multiple records can be packed into a message during zone transfers.
 
    Zone transfers can be sent using two different formats,
    ``one-answer`` and ``many-answers``. The ``transfer-format`` option
@@ -3221,6 +3254,8 @@ options apply to zone transfers.
    any benefit in setting a value other than the default.
 
 .. namedconf:statement:: transfers-in
+   :tags: transfer
+   :short: Limits the number of concurrent inbound zone transfers.
 
    This is the maximum number of inbound zone transfers that can run
    concurrently. The default value is ``10``. Increasing
@@ -3228,6 +3263,8 @@ options apply to zone transfers.
    also may increase the load on the local system.
 
 .. namedconf:statement:: transfers-out
+   :tags: transfer
+   :short: Limits the number of concurrent outbound zone transfers.
 
    This is the maximum number of outbound zone transfers that can run
    concurrently. Zone transfer requests in excess of the limit are
@@ -3243,6 +3280,8 @@ options apply to zone transfers.
    by using the ``transfers`` phrase of the ``server`` statement.
 
 .. namedconf:statement:: transfer-source
+   :tags: transfer
+   :short: Defines which local IPv4 address(es) are bound to TCP connections used to fetch zones transferred inbound by the server.
 
    ``transfer-source`` determines which local address is bound to
    IPv4 TCP connections used to fetch zones transferred inbound by the
@@ -3263,11 +3302,15 @@ options apply to zone transfers.
    .. warning:: The configured ``port`` must not be same as the listening port.
 
 .. namedconf:statement:: transfer-source-v6
+   :tags: transfer
+   :short: Defines which local IPv6 address(es) are bound to TCP connections used to fetch zones transferred inbound by the server.
 
    This option is the same as ``transfer-source``, except zone transfers are performed
    using IPv6.
 
 .. namedconf:statement:: alt-transfer-source
+   :tags: transfer
+   :short: Defines alternate local IPv4 address(es) to be used by the server for inbound zone transfers, if the address(es) defined by :any:`transfer-source` fail and :any:`use-alt-transfer-source` is enabled.
 
    This indicates an alternate transfer source if the one listed in ``transfer-source``
    fails and ``use-alt-transfer-source`` is set.
@@ -3278,16 +3321,22 @@ options apply to zone transfers.
       query.
 
 .. namedconf:statement:: alt-transfer-source-v6
+   :tags: transfer
+   :short: Defines alternate local IPv6 address(es) to be used by the server for inbound zone transfers.
 
    This indicates an alternate transfer source if the one listed in
    ``transfer-source-v6`` fails and ``use-alt-transfer-source`` is set.
 
 .. namedconf:statement:: use-alt-transfer-source
+   :tags: transfer
+   :short: Indicates whether :any:`alt-transfer-source` and :any:`alt-transfer-source-v6` can be used.
 
    This indicates whether the alternate transfer sources should be used. If views are specified,
    this defaults to ``no``; otherwise, it defaults to ``yes``.
 
 .. namedconf:statement:: notify-source
+   :tags: transfer
+   :short: Defines the IPv4 address (and optional port) to be used for outgoing ``NOTIFY`` messages.
 
    ``notify-source`` determines which local source address, and
    optionally UDP port, is used to send NOTIFY messages. This
@@ -3303,8 +3352,10 @@ options apply to zone transfers.
    .. warning:: The configured ``port`` must not be same as the listening port.
 
 .. namedconf:statement:: notify-source-v6
+   :tags: transfer
+   :short: Defines the IPv6 address (and optional port) to be used for outgoing ``NOTIFY`` messages.
 
-   This option acts like ``notify-source``, but applies to notify messages sent to IPv6
+   This option acts like ``notify-source``, but applies to ``NOTIFY`` messages sent to IPv6
    addresses.
 
 .. _resource_limits:
@@ -3361,6 +3412,8 @@ that are enforced internally by the server rather than by the operating
 system.
 
 .. namedconf:statement:: max-journal-size
+   :tags: transfer
+   :short: Controls the size of journal files.
 
    This sets a maximum size for each journal file (see :ref:`journal`),
    expressed in bytes or, if followed by an
@@ -4009,24 +4062,68 @@ Tuning
    :option:`rndc signing -clear all zone <rndc signing>`.
 
 .. namedconf:statement:: min-refresh-time
-.. namedconf:statement:: max-refresh-time
-.. namedconf:statement:: min-retry-time
-.. namedconf:statement:: max-retry-time
+   :tags: transfer
+   :short: Limits the zone refresh interval to no more often than the specified value, in seconds.
 
-   These options control the server's behavior on refreshing a zone
-   (querying for SOA changes) or retrying failed transfers. Usually the
-   SOA values for the zone are used, up to a hard-coded maximum expiry
-   of 24 weeks. However, these values are set by the primary, giving
+   This option controls the server's behavior on refreshing a zone
+   (querying for SOA changes). Usually, the SOA refresh values for
+   the zone are used; however, these values are set by the primary, giving
    secondary server administrators little control over their contents.
 
-   These options allow the administrator to set a minimum and maximum
-   refresh and retry time in seconds per-zone, per-view, or globally.
-   These options are valid for secondary and stub zones, and clamp the SOA
-   refresh and retry times to the specified values.
+   This option allows the administrator to set a minimum
+   refresh time in seconds per-zone, per-view, or globally.
+   This option is valid for secondary and stub zones, and clamps the SOA
+   refresh time to the specified value.
 
-   The following defaults apply: ``min-refresh-time`` 300 seconds,
-   ``max-refresh-time`` 2419200 seconds (4 weeks), ``min-retry-time``
-   500 seconds, and ``max-retry-time`` 1209600 seconds (2 weeks).
+   The default is 300 seconds.
+
+.. namedconf:statement:: max-refresh-time
+   :tags: transfer
+   :short: Limits the zone refresh interval to no less often than the specified value, in seconds.
+
+   This option controls the server's behavior on refreshing a zone
+   (querying for SOA changes). Usually, the SOA refresh values for
+   the zone are used; however, these values are set by the primary, giving
+   secondary server administrators little control over their contents.
+
+   This option allows the administrator to set a maximum
+   refresh time in seconds per-zone, per-view, or globally.
+   This option is valid for secondary and stub zones, and clamps the SOA
+   refresh time to the specified value.
+
+   The default is 2419200 seconds (4 weeks).
+
+.. namedconf:statement:: min-retry-time
+   :tags: transfer
+   :short: Limits the zone refresh retry interval to no more often than the specified value, in seconds.
+
+   This option controls the server's behavior on retrying failed
+   zone transfers. Usually, the SOA retry values for the zone are
+   used; however, these values are set by the primary, giving
+   secondary server administrators little control over their contents.
+
+   This option allows the administrator to set a minimum
+   retry time in seconds per-zone, per-view, or globally.
+   This option is valid for secondary and stub zones, and clamps the SOA
+   retry time to the specified value.
+
+   The default is 500 seconds.
+
+.. namedconf:statement:: max-retry-time
+   :tags: transfer
+   :short: Limits the zone refresh retry interval to no less often than the specified value, in seconds.
+
+   This option controls the server's behavior on retrying failed
+   zone transfers. Usually, the SOA retry values for the zone are
+   used; however, these values are set by the primary, giving
+   secondary server administrators little control over their contents.
+
+   This option allows the administrator to set a maximum
+   retry time in seconds per-zone, per-view, or globally.
+   This option is valid for secondary and stub zones, and clamps the SOA
+   retry time to the specified value.
+
+   The default is 1209600 seconds (2 weeks).
 
 .. namedconf:statement:: edns-udp-size
 
@@ -6684,6 +6781,8 @@ the zone's filename, unless ``inline-signing`` is enabled.
       in the zone file are lost when dynamic updates occur.
 
 .. namedconf:statement:: update-policy
+   :tags: transfer
+   :short: Sets fine-grained rules to allow or deny dynamic updates (DDNS), based on requester identity, updated content, etc.
 
    The ``update-policy`` clause allows more fine-grained control over which
    updates are allowed. It specifies a set of rules, in which each rule
