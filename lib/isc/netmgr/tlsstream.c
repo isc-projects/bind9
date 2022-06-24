@@ -957,12 +957,13 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_t *tlshandle = NULL;
 
 	REQUIRE(VALID_NMSOCK(tlssock));
-	REQUIRE(VALID_NMHANDLE(handle));
 
 	tlssock->tid = isc_nm_tid();
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
+
+	INSIST(VALID_NMHANDLE(handle));
 
 	tlssock->iface = handle->sock->iface;
 	tlssock->peer = handle->sock->peer;
