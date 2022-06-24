@@ -354,6 +354,23 @@ tls_try_handshake(isc_nmsocket_t *sock) {
 	return (rv);
 }
 
+static bool
+tls_try_to_close_unused_socket(isc_nmsocket_t *sock) {
+	if (sock->tlsstream.state > TLS_HANDSHAKE &&
+	    sock->statichandle == NULL && sock->tlsstream.nsending == 0)
+	{
+		/*
+		 * It seems that no action on the socket has been
+		 * scheduled on some point after the handshake, let's
+		 * close the connection.
+		 */
+		isc__nmsocket_prep_destroy(sock);
+		return (true);
+	}
+
+	return (false);
+}
+
 static void
 tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	   isc__nm_uvreq_t *send_data, bool finish) {
@@ -494,6 +511,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	switch (tls_status) {
 	case SSL_ERROR_NONE:
 	case SSL_ERROR_ZERO_RETURN:
+		(void)tls_try_to_close_unused_socket(sock);
 		return;
 	case SSL_ERROR_WANT_WRITE:
 		if (sock->tlsstream.nsending == 0) {
@@ -505,6 +523,10 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		}
 		return;
 	case SSL_ERROR_WANT_READ:
+		if (tls_try_to_close_unused_socket(sock)) {
+			return;
+		}
+
 		if (sock->tlsstream.reading) {
 			INSIST(VALID_NMHANDLE(sock->outerhandle));
 			isc_nm_resumeread(sock->outerhandle);
