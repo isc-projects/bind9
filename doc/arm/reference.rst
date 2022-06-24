@@ -1557,9 +1557,12 @@ default is used.
 .. _root-delegation-only:
 
 .. namedconf:statement:: root-delegation-only
+   :tags: query
+   :short: Turns on enforcement of delegation-only in top-level domains (TLDs) and root zones with an optional exclude list.
 
-   This turns on enforcement of delegation-only in TLDs (top-level domains)
-   and root zones with an optional exclude list.
+   This turns on enforcement of delegation-only in top-level domains (TLDs)
+   and root zones with an
+   optional exclude list.
 
    DS queries are expected to be made to and be answered by delegation-only
    zones. Such queries and responses are treated as an exception to
@@ -1890,6 +1893,8 @@ Boolean Options
    :ref:`man_rndc` for further details about :option:`rndc addzone`.
 
 .. namedconf:statement:: auth-nxdomain
+   :tags: query
+   :short: Controls whether BIND, acting as a resolver, provides authoritative NXDOMAIN (domain does not exist) answers.
 
    If ``yes``, then the ``AA`` bit is always set on NXDOMAIN responses,
    even if the server is not actually authoritative. The default is
@@ -2000,6 +2005,8 @@ Boolean Options
    6.1.3.2. The default is ``yes``.
 
 .. namedconf:statement:: minimal-responses
+   :tags: query
+   :short: Controls whether the server only adds records to the authority and additional data sections when they are required (e.g. delegations, negative responses). This improves server performance.
 
    This option controls the addition of records to the authority and
    additional sections of responses. Such records may be included in
@@ -2092,6 +2099,8 @@ Boolean Options
 .. _recursion:
 
 .. namedconf:statement:: recursion
+   :tags: query
+   :short: Defines whether recursion and caching are allowed.
 
    If ``yes``, and a DNS query requests recursion, then the server
    attempts to do all the work required to answer the query. If recursion
@@ -2632,6 +2641,8 @@ authoritative and does not have the answer in its cache.
 .. _forward:
 
 .. namedconf:statement:: forward
+   :tags: query
+   :short: Allows or disallows fallback to recursion if forwarding has failed; it is always used in conjunction with the :any:`forwarders` statement.
 
    This option is only meaningful if the forwarders list is not empty. A
    value of ``first`` is the default and causes the server to query the
@@ -2642,6 +2653,8 @@ authoritative and does not have the answer in its cache.
 .. _forwarders:
 
 .. namedconf:statement:: forwarders
+   :tags: query
+   :short: Defines one or more hosts to which queries are forwarded.
 
    This specifies a list of IP addresses to which queries are forwarded. The
    default is the empty list (no forwarding). Each address in the list can be
@@ -2727,12 +2740,12 @@ for details on how to specify IP address lists.
 
 .. namedconf:statement:: allow-query-cache
    :tags: query
-   :short: Specifies which hosts (an IP address list) can access this servers cache and thus effectively controls recursion.
+   :short: Specifies which hosts (an IP address list) can access this server's cache and thus effectively controls recursion.
 
    Defines an :term:`address_match_list` of IP address(es) which are allowed to
-   issue queries that access the local cache - without access to the local
+   issue queries that access the local cache. Without access to the local
    cache recursive queries are effectively useless so, in effect, this
-   statement (or its default) controls recursive behavior. This statements's
+   statement (or its default) controls recursive behavior. This statement's
    default setting depends on:
 
    1. If :namedconf:ref:`recursion no; <recursion>` present, defaults to
@@ -2750,7 +2763,7 @@ for details on how to specify IP address lists.
 
 .. namedconf:statement:: allow-query-cache-on
    :tags: query
-   :short: Specifies which hosts (an IP address list) can access this servers cache. Used in multi-homed configurations.
+   :short: Specifies which hosts (an IP address list) can access this server's cache. Used on servers with multiple interfaces.
 
    This specifies which local addresses can send answers from the cache. If
    ``allow-query-cache-on`` is not set, then ``allow-recursion-on`` is
@@ -2761,6 +2774,8 @@ for details on how to specify IP address lists.
    other.
 
 .. namedconf:statement:: allow-recursion
+   :tags: query
+   :short: Defines an :any:`address_match_list` of clients that are allowed to perform recursive queries.
 
    This specifies which hosts are allowed to make recursive queries through
    this server. BIND checks to see if the following parameters are set, in
@@ -2849,6 +2864,8 @@ for details on how to specify IP address lists.
    authentication.
 
 .. namedconf:statement:: blackhole
+   :tags: query
+   :short: Defines an :any:`address_match_list` of hosts that the server neither responds to nor answers queries for.
 
    This specifies a list of addresses which the server does not accept queries
    from or use to resolve a query. Queries from these addresses are not
@@ -3009,6 +3026,8 @@ Query Address
 
 .. namedconf:statement:: query-source
 .. namedconf:statement:: query-source-v6
+   :tags: query
+   :short: Controls the IPv4/IPv6 address and port on which recursive queries are issued.
 
    If the server does not know the answer to a question, it queries other
    name servers. ``query-source`` specifies the address and port used for
@@ -3384,6 +3403,8 @@ system.
    zero, which means the maximum is unlimited.
 
 .. namedconf:statement:: recursive-clients
+   :tags: query
+   :short: Specifies the maximum number of concurrent recursive queries the server can perform.
 
    This sets the maximum number (a "hard quota") of simultaneous recursive lookups
    the server performs on behalf of clients. The default is
@@ -3669,6 +3690,8 @@ client's address. This only requires configuring the name servers, not
 all the clients.
 
 .. namedconf:statement:: sortlist
+   :tags: query
+   :short: Controls the ordering of RRs returned to the client, based on the client's IP address.
 
    The ``sortlist`` statement (see below) takes an ``address_match_list`` and
    interprets it in a special way. Each top-level statement in the ``sortlist``
@@ -3751,6 +3774,8 @@ RRset Ordering
     suboptimal choice for load balancing purposes when used on its own.
 
 .. namedconf:statement:: rrset-order
+   :tags: query
+   :short: Defines the order in which equal RRs (RRsets) are returned.
 
    The ``rrset-order`` statement permits configuration of the ordering of
    the records in a multiple-record response. See also:
@@ -6326,6 +6351,8 @@ Zone Types
    zones are reloaded along with other zones.
 
 .. namedconf:statement:: type delegation-only
+   :tags: query
+   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.). 
 
    This zone type is used to enforce the delegation-only status of infrastructure
    zones (e.g., COM, NET, ORG). Any answer that is received without an
