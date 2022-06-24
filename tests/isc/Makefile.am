@@ -19,6 +19,7 @@ check_PROGRAMS =	\
 	errno_test	\
 	file_test	\
 	hash_test	\
+	hashmap_test	\
 	heap_test	\
 	hmac_test	\
 	ht_test		\

@@ -37,6 +37,7 @@ libisc_la_HEADERS =			\
 	include/isc/fuzz.h		\
 	include/isc/glob.h		\
 	include/isc/hash.h		\
+	include/isc/hashmap.h		\
 	include/isc/heap.h		\
 	include/isc/hex.h		\
 	include/isc/hmac.h		\
@@ -145,6 +146,7 @@ libisc_la_SOURCES =		\
 	fsaccess_common_p.h	\
 	glob.c			\
 	hash.c			\
+	hashmap.c		\
 	heap.c			\
 	hex.c			\
 	hmac.c			\

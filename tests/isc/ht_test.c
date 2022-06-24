@@ -39,7 +39,7 @@
 #undef mctx
 
 static void
-test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
+test_ht_full(uint8_t init_bits, uintptr_t count) {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
 	uintptr_t i;
@@ -174,8 +174,6 @@ test_ht_full(uint8_t init_bits, uint8_t finish_bits, uintptr_t count) {
 		assert_null(f);
 	}
 
-	assert_int_equal(ht->hashbits[ht->hindex], finish_bits);
-
 	isc_ht_destroy(&ht);
 	assert_null(ht);
 }
@@ -186,7 +184,7 @@ test_ht_iterator(void) {
 	isc_result_t result;
 	isc_ht_iter_t *iter = NULL;
 	uintptr_t i;
-	uintptr_t count = 6300;
+	uintptr_t count = 7600;
 	uint32_t walked;
 	unsigned char key[16];
 	size_t tksize;
@@ -296,22 +294,34 @@ test_ht_iterator(void) {
 	assert_null(ht);
 }
 
+/* 1 bit, 120 elements test, full rehashing */
+ISC_RUN_TEST_IMPL(isc_ht_1_120) {
+	test_ht_full(1, 120);
+	return;
+}
+
+/* 6 bit, 1000 elements test, full rehashing */
+ISC_RUN_TEST_IMPL(isc_ht_6_1000) {
+	test_ht_full(6, 1000);
+	return;
+}
+
 /* 24 bit, 200K elements test, no rehashing */
-ISC_RUN_TEST_IMPL(isc_ht_24) {
+ISC_RUN_TEST_IMPL(isc_ht_24_200000) {
 	UNUSED(state);
-	test_ht_full(24, 24, 200000);
+	test_ht_full(24, 200000);
 }
 
 /* 15 bit, 45K elements test, full rehashing */
-ISC_RUN_TEST_IMPL(isc_ht_15) {
+ISC_RUN_TEST_IMPL(isc_ht_1_48000) {
 	UNUSED(state);
-	test_ht_full(1, 15, 48000);
+	test_ht_full(1, 48000);
 }
 
 /* 8 bit, 20k elements test, partial rehashing */
-ISC_RUN_TEST_IMPL(isc_ht_8) {
+ISC_RUN_TEST_IMPL(isc_ht_8_20000) {
 	UNUSED(state);
-	test_ht_full(8, 14, 20000);
+	test_ht_full(8, 20000);
 }
 
 /* test hashtable iterator */
@@ -322,9 +332,11 @@ ISC_RUN_TEST_IMPL(isc_ht_iterator) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY(isc_ht_24)
-ISC_TEST_ENTRY(isc_ht_15)
-ISC_TEST_ENTRY(isc_ht_8)
+ISC_TEST_ENTRY(isc_ht_1_120)
+ISC_TEST_ENTRY(isc_ht_6_1000)
+ISC_TEST_ENTRY(isc_ht_24_200000)
+ISC_TEST_ENTRY(isc_ht_1_48000)
+ISC_TEST_ENTRY(isc_ht_8_20000)
 ISC_TEST_ENTRY(isc_ht_iterator)
 ISC_TEST_LIST_END
 
