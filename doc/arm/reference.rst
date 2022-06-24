@@ -6659,8 +6659,16 @@ perform dynamic updates to a zone:
 - :namedconf:ref:`allow-update` - a simple access control list
 - :namedconf:ref:`update-policy` - fine-grained access control
 
-In both cases, BIND 9 writes the updates
-to the zone's filename set in ``file``.
+In both cases, BIND 9 writes the updates to the zone's filename
+set in ``file``.
+
+In the case of a DNSSEC zone, DNSSEC records are also written to
+the zone's filename, unless ``inline-signing`` is enabled.
+
+   .. note:: The zone file can no longer be manually updated while ``named``
+      is running; it is now necessary to perform :option:`rndc freeze`, edit,
+      and then perform :option:`rndc thaw`. Comments and formatting
+      in the zone file are lost when dynamic updates occur.
 
 .. namedconf:statement:: update-policy
 
