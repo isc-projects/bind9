@@ -6156,6 +6156,7 @@ Here is an example of a typical split DNS setup implemented using
 ``zone`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
+   :suppress_grammar:
 
 .. _zone_statement:
 
@@ -6169,6 +6170,7 @@ Here is an example of a typical split DNS setup implemented using
 Zone Types
 ^^^^^^^^^^
 .. namedconf:statement:: type
+   :suppress_grammar:
 
    The ``type`` keyword is required for the ``zone`` configuration unless
    it is an ``in-view`` configuration. Its acceptable values are:
