@@ -98,6 +98,15 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 "short": directives.unchanged_required,
             }
 
+            @property
+            def isc_name(self):
+                names = self.get_signatures()
+                if len(names) != 1:
+                    raise NotImplementedError(
+                        "statements with more than one name are not supported", names
+                    )
+                return names[0]
+
             def handle_signature(self, sig, signode):
                 signode += addnodes.desc_name(text=sig)
                 return sig
@@ -148,6 +157,34 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 blocks += nodes.Text(", ".join(self.format_paths(grammar_blocks)))
                 return blocks
 
+            def format_grammar(self, list_blocks, grammar_grp):
+                """
+                Generate grammar description node, optionally with list of
+                blocks accepting this particular grammar.
+                Example: Grammar (block1, block2): grammar;
+                """
+                grammarnode = nodes.paragraph()
+                if list_blocks:
+                    separator = " "
+                    paths = ", ".join(
+                        self.format_paths(variant.path for variant in grammar_grp)
+                    )
+                else:
+                    separator = ""
+                    paths = ""
+                grammar_txt = (
+                    self.isc_name
+                    + " "
+                    + checkgrammar.pformat_grammar(grammar_grp[0].subgrammar, level=1)
+                )
+                if "\n" in grammar_txt.strip():
+                    nodetype = nodes.literal_block
+                else:
+                    nodetype = nodes.literal
+                grammarnode += nodes.strong(text=f"Grammar{separator}{paths}: ")
+                grammarnode += nodetype(text=grammar_txt)
+                return grammarnode
+
             def parse_nested_str(self, instr):
                 """Parse string as nested rst syntax and produce a node"""
                 raw = nodes.paragraph(text=instr)
@@ -166,19 +203,20 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     tags += nodes.Text(", ".join(self.isc_tags))
                     contentnode.insert(0, tags)
 
-                names = self.get_signatures()
-                if len(names) != 1:
-                    raise NotImplementedError(
-                        "statements with more than one name are not supported", names
-                    )
-                name = names[0]
                 iscconf = self.env.get_domain(domainname)
 
+                name = self.isc_name
                 if name not in iscconf.statement_blocks:
                     return  # not defined in grammar, nothing to render
 
                 blocks = self.format_blocks(iscconf.statement_blocks[name])
                 contentnode.insert(0, blocks)
+
+                grammars = iscconf.statement_grammar_groups[name]
+                multi_grammar = len(grammars) > 1
+                for grammar_grp in grammars:
+                    grammarnode = self.format_grammar(multi_grammar, grammar_grp)
+                    contentnode.insert(0, grammarnode)
 
         name = domainname
         label = domainlabel
