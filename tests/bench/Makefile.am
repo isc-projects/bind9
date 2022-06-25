@@ -1,11 +1,15 @@
 include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=			\
-	$(LIBISC_CFLAGS)
+	$(LIBISC_CFLAGS)	\
+	$(LIBDNS_CFLAGS)
 
 LDADD +=			\
-	$(LIBISC_LIBS)
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)
 
 noinst_PROGRAMS =		\
 	ascii			\
+	compress		\
+	render			\
 	siphash

@@ -1,2 +1,4 @@
-ascii
-siphash
+/ascii
+/compress
+/render
+/siphash
