@@ -5806,9 +5806,21 @@ Dynamic Update Policies
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 BIND 9 supports two methods of granting clients the right to
-perform dynamic updates to a zone, configured by the ``allow-update``
-or ``update-policy`` options. In both cases, BIND 9 writes the updates
-to the zone's filename set in ``file``.
+perform dynamic updates to a zone:
+
+- ``allow-update`` - a simple access control list
+- ``update-policy`` - fine-grained access control
+
+In both cases, BIND 9 writes the updates to the zone's filename
+set in ``file``.
+
+In the case of a DNSSEC zone, DNSSEC records are also written to
+the zone's filename, unless ``inline-signing`` is enabled.
+
+   .. note:: The zone file can no longer be manually updated while ``named``
+      is running; it is now necessary to perform :option:`rndc freeze`, edit,
+      and then perform :option:`rndc thaw`. Comments and formatting
+      in the zone file are lost when dynamic updates occur.
 
 The ``allow-update`` clause is a simple access control list. Any client
 that matches the ACL is granted permission to update any record in the
