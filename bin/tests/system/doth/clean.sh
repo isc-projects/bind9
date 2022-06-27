@@ -21,5 +21,6 @@ rm -f ./*/named.run
 rm -f ./*/named.run.prev
 rm -f ./dig.out.*
 rm -f ./gnutls-cli.*
+rm -f ./sslyze.log.*
 rm -f ./*/example*.db
 rm -rf ./headers.*
