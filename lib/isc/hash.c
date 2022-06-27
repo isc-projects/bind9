@@ -89,12 +89,9 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive) {
 	if (case_sensitive) {
 		isc_siphash24(isc_hash_key, data, length, (uint8_t *)&hval);
 	} else {
-		const uint8_t *byte = data;
 		uint8_t lower[1024];
-		REQUIRE(length <= 1024);
-		for (unsigned i = 0; i < length; i++) {
-			lower[i] = isc_ascii_tolower(byte[i]);
-		}
+		REQUIRE(length <= sizeof(lower));
+		isc_ascii_lowercopy(lower, data, length);
 		isc_siphash24(isc_hash_key, lower, length, (uint8_t *)&hval);
 	}
 
@@ -113,12 +110,9 @@ isc_hash32(const void *data, const size_t length, const bool case_sensitive) {
 	if (case_sensitive) {
 		isc_halfsiphash24(isc_hash_key, data, length, (uint8_t *)&hval);
 	} else {
-		const uint8_t *byte = data;
 		uint8_t lower[1024];
-		REQUIRE(length <= 1024);
-		for (unsigned i = 0; i < length; i++) {
-			lower[i] = isc_ascii_tolower(byte[i]);
-		}
+		REQUIRE(length <= sizeof(lower));
+		isc_ascii_lowercopy(lower, data, length);
 		isc_halfsiphash24(isc_hash_key, lower, length,
 				  (uint8_t *)&hval);
 	}

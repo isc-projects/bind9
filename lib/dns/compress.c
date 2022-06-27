@@ -237,7 +237,6 @@ dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
 			for (node = cctx->table[i]; node != NULL;
 			     node = node->next) {
 				unsigned int l, count;
-				unsigned char c;
 				unsigned char *p1, *p2;
 
 				if (node->name.length != length) {
@@ -260,39 +259,12 @@ dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
 					/* no bitstring support */
 					INSIST(count <= 63);
 
-					/* Loop unrolled for performance */
-					while (count > 3) {
-						c = isc_ascii_tolower(p1[0]);
-						if (c !=
-						    isc_ascii_tolower(p2[0])) {
-							goto cont1;
-						}
-						c = isc_ascii_tolower(p1[1]);
-						if (c !=
-						    isc_ascii_tolower(p2[1])) {
-							goto cont1;
-						}
-						c = isc_ascii_tolower(p1[2]);
-						if (c !=
-						    isc_ascii_tolower(p2[2])) {
-							goto cont1;
-						}
-						c = isc_ascii_tolower(p1[3]);
-						if (c !=
-						    isc_ascii_tolower(p2[3])) {
-							goto cont1;
-						}
-						count -= 4;
-						p1 += 4;
-						p2 += 4;
+					if (!isc_ascii_lowerequal(p1, p2,
+								  count)) {
+						goto cont1;
 					}
-					while (count-- > 0) {
-						c = isc_ascii_tolower(*p1++);
-						if (c !=
-						    isc_ascii_tolower(*p2++)) {
-							goto cont1;
-						}
-					}
+					p1 += count;
+					p2 += count;
 				}
 				break;
 			cont1:

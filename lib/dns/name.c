@@ -442,7 +442,7 @@ dns_namereln_t
 dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		     int *orderp, unsigned int *nlabelsp) {
 	unsigned int l1, l2, l, count1, count2, count, nlabels;
-	int cdiff, ldiff, chdiff;
+	int cdiff, ldiff, diff;
 	unsigned char *label1, *label2;
 	unsigned char *offsets1, *offsets2;
 	dns_offsets_t odata1, odata2;
@@ -492,20 +492,13 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	offsets1 += l1;
 	offsets2 += l2;
 
-	while (l > 0) {
-		l--;
+	while (l-- > 0) {
 		offsets1--;
 		offsets2--;
 		label1 = &name1->ndata[*offsets1];
 		label2 = &name2->ndata[*offsets2];
 		count1 = *label1++;
 		count2 = *label2++;
-
-		/*
-		 * We dropped bitstring labels, and we don't support any
-		 * other extended label types.
-		 */
-		INSIST(count1 <= 63 && count2 <= 63);
 
 		cdiff = (int)count1 - (int)count2;
 		if (cdiff < 0) {
@@ -514,44 +507,12 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 			count = count2;
 		}
 
-		/* Loop unrolled for performance */
-		while (count > 3) {
-			chdiff = (int)isc_ascii_tolower(label1[0]) -
-				 (int)isc_ascii_tolower(label2[0]);
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)isc_ascii_tolower(label1[1]) -
-				 (int)isc_ascii_tolower(label2[1]);
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)isc_ascii_tolower(label1[2]) -
-				 (int)isc_ascii_tolower(label2[2]);
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)isc_ascii_tolower(label1[3]) -
-				 (int)isc_ascii_tolower(label2[3]);
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			count -= 4;
-			label1 += 4;
-			label2 += 4;
+		diff = isc_ascii_lowercmp(label1, label2, count);
+		if (diff != 0) {
+			*orderp = diff;
+			goto done;
 		}
-		while (count-- > 0) {
-			chdiff = (int)isc_ascii_tolower(*label1++) -
-				 (int)isc_ascii_tolower(*label2++);
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-		}
+
 		if (cdiff != 0) {
 			*orderp = cdiff;
 			goto done;
@@ -601,9 +562,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 
 bool
 dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
-	unsigned int l, count;
-	unsigned char c;
-	unsigned char *label1, *label2;
+	unsigned int length;
 
 	/*
 	 * Are 'name1' and 'name2' equal?
@@ -626,57 +585,13 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 		return (true);
 	}
 
-	if (name1->length != name2->length) {
+	length = name1->length;
+	if (length != name2->length) {
 		return (false);
 	}
 
-	l = name1->labels;
-
-	if (l != name2->labels) {
-		return (false);
-	}
-
-	label1 = name1->ndata;
-	label2 = name2->ndata;
-	while (l-- > 0) {
-		count = *label1++;
-		if (count != *label2++) {
-			return (false);
-		}
-
-		INSIST(count <= 63); /* no bitstring support */
-
-		/* Loop unrolled for performance */
-		while (count > 3) {
-			c = isc_ascii_tolower(label1[0]);
-			if (c != isc_ascii_tolower(label2[0])) {
-				return (false);
-			}
-			c = isc_ascii_tolower(label1[1]);
-			if (c != isc_ascii_tolower(label2[1])) {
-				return (false);
-			}
-			c = isc_ascii_tolower(label1[2]);
-			if (c != isc_ascii_tolower(label2[2])) {
-				return (false);
-			}
-			c = isc_ascii_tolower(label1[3]);
-			if (c != isc_ascii_tolower(label2[3])) {
-				return (false);
-			}
-			count -= 4;
-			label1 += 4;
-			label2 += 4;
-		}
-		while (count-- > 0) {
-			c = isc_ascii_tolower(*label1++);
-			if (c != isc_ascii_tolower(*label2++)) {
-				return (false);
-			}
-		}
-	}
-
-	return (true);
+	/* label lengths are < 64 so tolower() does not affect them */
+	return (isc_ascii_lowerequal(name1->ndata, name2->ndata, length));
 }
 
 bool
@@ -711,10 +626,6 @@ dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2) {
 
 int
 dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2) {
-	unsigned int l1, l2, l, count1, count2, count;
-	unsigned char c1, c2;
-	unsigned char *label1, *label2;
-
 	/*
 	 * Compare two absolute names as rdata.
 	 */
@@ -726,47 +637,9 @@ dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2) {
 	REQUIRE(name2->labels > 0);
 	REQUIRE((name2->attributes & DNS_NAMEATTR_ABSOLUTE) != 0);
 
-	l1 = name1->labels;
-	l2 = name2->labels;
-
-	l = (l1 < l2) ? l1 : l2;
-
-	label1 = name1->ndata;
-	label2 = name2->ndata;
-	while (l > 0) {
-		l--;
-		count1 = *label1++;
-		count2 = *label2++;
-
-		/* no bitstring support */
-		INSIST(count1 <= 63 && count2 <= 63);
-
-		if (count1 != count2) {
-			return ((count1 < count2) ? -1 : 1);
-		}
-		count = count1;
-		while (count > 0) {
-			count--;
-			c1 = isc_ascii_tolower(*label1++);
-			c2 = isc_ascii_tolower(*label2++);
-			if (c1 < c2) {
-				return (-1);
-			} else if (c1 > c2) {
-				return (1);
-			}
-		}
-	}
-
-	/*
-	 * If one name had more labels than the other, their common
-	 * prefix must have been different because the shorter name
-	 * ended with the root label and the longer one can't have
-	 * a root label in the middle of it.  Therefore, if we get
-	 * to this point, the lengths must be equal.
-	 */
-	INSIST(l1 == l2);
-
-	return (0);
+	/* label lengths are < 64 so tolower() does not affect them */
+	return (isc_ascii_lowercmp(name1->ndata, name2->ndata,
+				   ISC_MIN(name1->length, name2->length)));
 }
 
 bool
@@ -1572,8 +1445,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 isc_result_t
 dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 		  isc_buffer_t *target) {
-	unsigned char *sndata, *ndata;
-	unsigned int nlen, count, labels;
+	unsigned char *ndata;
 	isc_buffer_t buffer;
 
 	/*
@@ -1599,33 +1471,13 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 		name->ndata = ndata;
 	}
 
-	sndata = source->ndata;
-	nlen = source->length;
-	labels = source->labels;
-
-	if (nlen > (target->length - target->used)) {
+	if (source->length > (target->length - target->used)) {
 		MAKE_EMPTY(name);
 		return (ISC_R_NOSPACE);
 	}
 
-	while (labels > 0 && nlen > 0) {
-		labels--;
-		count = *sndata++;
-		*ndata++ = count;
-		nlen--;
-		if (count < 64) {
-			INSIST(nlen >= count);
-			while (count > 0) {
-				*ndata++ = isc_ascii_tolower(*sndata++);
-				nlen--;
-				count--;
-			}
-		} else {
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected label type %02x", count);
-			/* Does not return. */
-		}
-	}
+	/* label lengths are < 64 so tolower() does not affect them */
+	isc_ascii_lowercopy(ndata, source->ndata, source->length);
 
 	if (source != name) {
 		name->labels = source->labels;

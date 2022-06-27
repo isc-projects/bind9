@@ -9374,9 +9374,7 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	}
 
 	if (CASEFULLYLOWER(header)) {
-		for (size_t i = 0; i < name->length; i++) {
-			name->ndata[i] = isc_ascii_tolower(name->ndata[i]);
-		}
+		isc_ascii_lowercopy(name->ndata, name->ndata, name->length);
 	} else {
 		uint8_t *nd = name->ndata;
 		for (size_t i = 0; i < name->length; i++) {
