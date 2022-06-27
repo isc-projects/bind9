@@ -67,11 +67,17 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
         process_statementlist_nodes() callback.
         """
 
-        option_spec = {"filter_tags": lambda arg: split_csv(arg, required=True)}
+        option_spec = {
+            "filter_blocks": lambda arg: split_csv(arg, required=True),
+            "filter_tags": lambda arg: split_csv(arg, required=True),
+        }
 
         def run(self):
             placeholder = todolist("")
             placeholder["isc_filter_tags"] = set(self.options.get("filter_tags", []))
+            placeholder["isc_filter_blocks"] = set(
+                self.options.get("filter_blocks", [])
+            )
             return [placeholder]
 
     class ISCConfDomain(Domain):
@@ -428,7 +434,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             of statements.
             """
 
-            def gen_replacement_table(acceptable_tags):
+            def gen_replacement_table(acceptable_blocks, acceptable_tags):
                 table_header = [
                     TableColumn("ref", "Statement"),
                     TableColumn("short", "Description"),
@@ -452,8 +458,16 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     sorted(
                         filter(
                             lambda item: (
-                                not acceptable_tags
-                                or item["tags"].intersection(acceptable_tags)
+                                (
+                                    not acceptable_tags
+                                    or item["tags"].intersection(acceptable_tags)
+                                )
+                                and (
+                                    not acceptable_blocks
+                                    or item["block_names"].intersection(
+                                        acceptable_blocks
+                                    )
+                                )
                             ),
                             iscconf.list_all(fromdocname),
                         ),
@@ -467,10 +481,17 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
             for node in doctree.traverse(todolist):
                 acceptable_tags = node["isc_filter_tags"]
-                node.replace_self(gen_replacement_table(acceptable_tags))
+                acceptable_blocks = node["isc_filter_blocks"]
+                node.replace_self(
+                    gen_replacement_table(acceptable_blocks, acceptable_tags)
+                )
 
         def list_all(self, fromdocname):
             for statement in self.data["statements"].values():
+                block_names = set(
+                    path[-1]
+                    for path in self.statement_blocks.get(statement["signature"], [])
+                )
                 tags_txt = ", ".join(statement["tags"])
 
                 refpara = nodes.inline()
@@ -485,6 +506,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 )
 
                 copy = statement.copy()
+                copy["block_names"] = block_names
                 copy["ref"] = refpara
                 copy["tags_txt"] = tags_txt
                 yield copy
