@@ -35,3 +35,13 @@ def gnutls_cli_executable():
         pytest.skip("gnutls-cli does not support the --logfile option")
 
     return executable
+
+
+@pytest.fixture
+def sslyze_executable():
+    # Check whether sslyze is available.
+    executable = shutil.which("sslyze")
+    if not executable:
+        pytest.skip("sslyze not found in PATH")
+
+    return executable
