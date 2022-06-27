@@ -27,5 +27,10 @@ def named_tlsport():
 
 
 @pytest.fixture(scope="session")
+def named_httpsport():
+    return int(os.environ.get("HTTPSPORT", default=4443))
+
+
+@pytest.fixture(scope="session")
 def control_port():
     return int(os.environ.get("CONTROLPORT", default=9953))
