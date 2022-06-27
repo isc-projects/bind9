@@ -65,20 +65,9 @@ parse_duration(const char *str) {
 
 	DE_CONST(str, tr.base);
 	tr.length = strlen(tr.base);
-	result = isccfg_duration_fromtext(&tr, &duration);
-	if (result == ISC_R_BADNUMBER) {
-		/* Fallback to dns_ttl_fromtext. */
-		(void)dns_ttl_fromtext(&tr, &time);
-		return (time);
-	}
+	result = isccfg_parse_duration(&tr, &duration);
 	if (result == ISC_R_SUCCESS) {
-		time += duration.parts[6];		 /* Seconds */
-		time += duration.parts[5] * 60;		 /* Minutes */
-		time += duration.parts[4] * 3600;	 /* Hours */
-		time += duration.parts[3] * 86400;	 /* Days */
-		time += duration.parts[2] * 86400 * 7;	 /* Weaks */
-		time += duration.parts[1] * 86400 * 31;	 /* Months */
-		time += duration.parts[0] * 86400 * 365; /* Years */
+		time = isccfg_duration_toseconds(&duration);
 	}
 	return (time);
 }

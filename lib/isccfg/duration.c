@@ -28,6 +28,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/ttl.h>
+
 #include <isccfg/duration.h>
 
 /*
@@ -152,4 +154,49 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 
 	duration->iso8601 = true;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isccfg_parse_duration(isc_textregion_t *source, isccfg_duration_t *duration) {
+	isc_result_t result;
+
+	REQUIRE(duration != NULL);
+
+	duration->unlimited = false;
+	result = isccfg_duration_fromtext(source, duration);
+	if (result == ISC_R_BADNUMBER) {
+		/* Fallback to dns_ttl_fromtext. */
+		uint32_t ttl;
+		result = dns_ttl_fromtext(source, &ttl);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * With dns_ttl_fromtext() the information on optional
+			 * units is lost, and is treated as seconds from now on.
+			 */
+			duration->iso8601 = false;
+			duration->parts[6] = ttl;
+		}
+	}
+
+	return (result);
+}
+
+uint32_t
+isccfg_duration_toseconds(const isccfg_duration_t *duration) {
+	uint32_t seconds = 0;
+
+	REQUIRE(duration != NULL);
+
+	seconds += duration->parts[6];		   /* Seconds */
+	seconds += duration->parts[5] * 60;	   /* Minutes */
+	seconds += duration->parts[4] * 3600;	   /* Hours */
+	seconds += duration->parts[3] * 86400;	   /* Days */
+	seconds += duration->parts[2] * 86400 * 7; /* Weeks */
+	/*
+	 * The below additions are not entirely correct
+	 * because days may very per month and per year.
+	 */
+	seconds += duration->parts[1] * 86400 * 31;  /* Months */
+	seconds += duration->parts[0] * 86400 * 365; /* Years */
+	return (seconds);
 }
