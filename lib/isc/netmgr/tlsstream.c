@@ -674,6 +674,9 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	isc_nmsocket_t *tsock = NULL;
 
 	REQUIRE(VALID_NM(mgr));
+	if (atomic_load(&mgr->closing)) {
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
 	tlssock = isc_mem_get(mgr->mctx, sizeof(*tlssock));
 
@@ -834,6 +837,10 @@ isc__nm_tls_resumeread(isc_nmhandle_t *handle) {
 	if (!atomic_compare_exchange_strong(&handle->sock->readpaused,
 					    &(bool){ false }, false))
 	{
+		if (inactive(handle->sock)) {
+			return;
+		}
+
 		async_tls_do_bio(handle->sock);
 	}
 }
@@ -930,6 +937,11 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 #endif /* NETMGR_TRACE */
 
 	REQUIRE(VALID_NM(mgr));
+
+	if (atomic_load(&mgr->closing)) {
+		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
+		return;
+	}
 
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tlssocket, local);
