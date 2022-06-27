@@ -68,7 +68,7 @@ isc_ascii_strtolower(char *str) {
  * memove() below) the balance might be different.
  */
 static inline uint64_t
-isc__ascii_tolower8(uint64_t octets) {
+isc_ascii_tolower8(uint64_t octets) {
 	/*
 	 * Multiply a single-byte constant by `all_bytes` to replicate
 	 * it to all eight bytes in a word.
@@ -104,6 +104,20 @@ isc__ascii_tolower8(uint64_t octets) {
 }
 
 /*
+ * Same, but 4 bytes at a time, used by isc_halfsiphash24()
+ */
+static inline uint32_t
+isc_ascii_tolower4(uint32_t octets) {
+	uint32_t all_bytes = 0x01010101;
+	uint32_t heptets = octets & (0x7F * all_bytes);
+	uint32_t is_ascii = ~octets & (0x80 * all_bytes);
+	uint32_t is_gt_Z = heptets + (0x7F - 'Z') * all_bytes;
+	uint32_t is_ge_A = heptets + (0x80 - 'A') * all_bytes;
+	uint32_t is_upper = (is_ge_A ^ is_gt_Z) & is_ascii;
+	return (octets | (is_upper >> 2));
+}
+
+/*
  * Helper function to do an unaligned load of 8 bytes in host byte order
  */
 static inline uint64_t
@@ -120,8 +134,8 @@ static inline bool
 isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	uint64_t a8 = 0, b8 = 0;
 	while (len >= 8) {
-		a8 = isc__ascii_tolower8(isc__ascii_load8(a));
-		b8 = isc__ascii_tolower8(isc__ascii_load8(b));
+		a8 = isc_ascii_tolower8(isc__ascii_load8(a));
+		b8 = isc_ascii_tolower8(isc__ascii_load8(b));
 		if (a8 != b8) {
 			return (false);
 		}
@@ -147,8 +161,8 @@ static inline int
 isc_ascii_lowercmp(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	uint64_t a8 = 0, b8 = 0;
 	while (len >= 8) {
-		a8 = isc__ascii_tolower8(htobe64(isc__ascii_load8(a)));
-		b8 = isc__ascii_tolower8(htobe64(isc__ascii_load8(b)));
+		a8 = isc_ascii_tolower8(htobe64(isc__ascii_load8(a)));
+		b8 = isc_ascii_tolower8(htobe64(isc__ascii_load8(b)));
 		if (a8 != b8) {
 			goto ret;
 		}

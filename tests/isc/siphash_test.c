@@ -139,7 +139,7 @@ ISC_RUN_TEST_IMPL(isc_siphash24) {
 
 	for (size_t i = 0; i < ARRAY_SIZE(in); i++) {
 		in[i] = i;
-		isc_siphash24(key, in, i, out);
+		isc_siphash24(key, in, i, true, out);
 		assert_memory_equal(out, vectors_sip64[i], 8);
 	}
 }
@@ -154,7 +154,7 @@ ISC_RUN_TEST_IMPL(isc_halfsiphash24) {
 
 	for (size_t i = 0; i < ARRAY_SIZE(in); i++) {
 		in[i] = i;
-		isc_halfsiphash24(key, in, i, out);
+		isc_halfsiphash24(key, in, i, true, out);
 		assert_memory_equal(out, vectors_hsip32[i], 4);
 	}
 }

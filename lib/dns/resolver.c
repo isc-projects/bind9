@@ -2458,7 +2458,8 @@ compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
 	size_t buflen = add_serveraddr(buf, sizeof(buf), query);
 
 	uint8_t digest[ISC_SIPHASH24_TAG_LENGTH] ISC_NONSTRING = { 0 };
-	isc_siphash24(query->fctx->res->view->secret, buf, buflen, digest);
+	isc_siphash24(query->fctx->res->view->secret, buf, buflen, true,
+		      digest);
 	memmove(cookie, digest, CLIENT_COOKIE_SIZE);
 }
 

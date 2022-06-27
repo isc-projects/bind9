@@ -32,24 +32,25 @@ main(void) {
 	isc_random_buf(key, sizeof(key));
 
 	for (size_t len = 256; len > 0; len = len * 4 / 5) {
-		isc_time_t start;
-		isc_time_now_hires(&start);
-
+		isc_time_t start, finish;
 		uint64_t count = 0;
 		uint64_t sum = 0;
+		uint64_t us;
+
+		isc_time_now_hires(&start);
+
 		for (size_t end = len; end < SIZE; end += len) {
 			uint64_t hash;
 			uint8_t lower[1024];
 			isc_ascii_lowercopy(lower, bytes + end - len, len);
-			isc_siphash24(key, lower, len, (void *)&hash);
+			isc_siphash24(key, lower, len, true, (void *)&hash);
 			sum += hash;
 			count++;
 		}
 
-		isc_time_t finish;
 		isc_time_now_hires(&finish);
 
-		uint64_t us = isc_time_microdiff(&finish, &start);
+		us = isc_time_microdiff(&finish, &start);
 		printf("%f us wide-lower len %3zu, %7llu kh/s (%llx)\n",
 		       (double)us / 1000000.0, len,
 		       (unsigned long long)(count * 1000 / us),
@@ -57,23 +58,48 @@ main(void) {
 	}
 
 	for (size_t len = 256; len > 0; len = len * 4 / 5) {
-		isc_time_t start;
-		isc_time_now_hires(&start);
-
+		isc_time_t start, finish;
 		uint64_t count = 0;
 		uint64_t sum = 0;
+		uint64_t us;
+
+		isc_time_now_hires(&start);
+
 		for (size_t end = len; end < SIZE; end += len) {
 			uint64_t hash;
-			isc_siphash24(key, bytes + end - len, len,
+			isc_siphash24(key, bytes + end - len, len, false,
 				      (void *)&hash);
 			sum += hash;
 			count++;
 		}
 
-		isc_time_t finish;
 		isc_time_now_hires(&finish);
 
-		uint64_t us = isc_time_microdiff(&finish, &start);
+		us = isc_time_microdiff(&finish, &start);
+		printf("%f us wide-icase len %3zu, %7llu kh/s (%llx)\n",
+		       (double)us / 1000000.0, len,
+		       (unsigned long long)(count * 1000 / us),
+		       (unsigned long long)sum);
+	}
+	for (size_t len = 256; len > 0; len = len * 4 / 5) {
+		isc_time_t start, finish;
+		uint64_t count = 0;
+		uint64_t sum = 0;
+		uint64_t us;
+
+		isc_time_now_hires(&start);
+
+		for (size_t end = len; end < SIZE; end += len) {
+			uint64_t hash;
+			isc_siphash24(key, bytes + end - len, len, true,
+				      (void *)&hash);
+			sum += hash;
+			count++;
+		}
+
+		isc_time_now_hires(&finish);
+
+		us = isc_time_microdiff(&finish, &start);
 		printf("%f us wide-bytes len %3zu, %7llu kh/s (%llx)\n",
 		       (double)us / 1000000.0, len,
 		       (unsigned long long)(count * 1000 / us),
@@ -81,24 +107,25 @@ main(void) {
 	}
 
 	for (size_t len = 256; len > 0; len = len * 4 / 5) {
-		isc_time_t start;
+		isc_time_t start, finish;
+		uint64_t count = 0;
+		uint64_t sum = 0;
+		uint64_t us;
+
 		isc_time_now_hires(&start);
 
-		uint64_t count = 0;
-		uint32_t sum = 0;
 		for (size_t end = len; end < SIZE; end += len) {
 			uint32_t hash;
 			uint8_t lower[1024];
 			isc_ascii_lowercopy(lower, bytes + end - len, len);
-			isc_halfsiphash24(key, lower, len, (void *)&hash);
+			isc_halfsiphash24(key, lower, len, true, (void *)&hash);
 			sum += hash;
 			count++;
 		}
 
-		isc_time_t finish;
 		isc_time_now_hires(&finish);
 
-		uint64_t us = isc_time_microdiff(&finish, &start);
+		us = isc_time_microdiff(&finish, &start);
 		printf("%f us half-lower len %3zu, %7llu kh/s (%llx)\n",
 		       (double)us / 1000000.0, len,
 		       (unsigned long long)(count * 1000 / us),
@@ -106,23 +133,49 @@ main(void) {
 	}
 
 	for (size_t len = 256; len > 0; len = len * 4 / 5) {
-		isc_time_t start;
+		isc_time_t start, finish;
+		uint64_t count = 0;
+		uint64_t sum = 0;
+		uint64_t us;
+
 		isc_time_now_hires(&start);
 
-		uint64_t count = 0;
-		uint32_t sum = 0;
 		for (size_t end = len; end < SIZE; end += len) {
 			uint32_t hash;
-			isc_halfsiphash24(key, bytes + end - len, len,
+			isc_halfsiphash24(key, bytes + end - len, len, false,
 					  (void *)&hash);
 			sum += hash;
 			count++;
 		}
 
-		isc_time_t finish;
 		isc_time_now_hires(&finish);
 
-		uint64_t us = isc_time_microdiff(&finish, &start);
+		us = isc_time_microdiff(&finish, &start);
+		printf("%f us half-icase len %3zu, %7llu kh/s (%llx)\n",
+		       (double)us / 1000000.0, len,
+		       (unsigned long long)(count * 1000 / us),
+		       (unsigned long long)sum);
+	}
+
+	for (size_t len = 256; len > 0; len = len * 4 / 5) {
+		isc_time_t start, finish;
+		uint64_t count = 0;
+		uint64_t sum = 0;
+		uint64_t us;
+
+		isc_time_now_hires(&start);
+
+		for (size_t end = len; end < SIZE; end += len) {
+			uint32_t hash;
+			isc_halfsiphash24(key, bytes + end - len, len, true,
+					  (void *)&hash);
+			sum += hash;
+			count++;
+		}
+
+		isc_time_now_hires(&finish);
+
+		us = isc_time_microdiff(&finish, &start);
 		printf("%f us half-bytes len %3zu, %7llu kh/s (%llx)\n",
 		       (double)us / 1000000.0, len,
 		       (unsigned long long)(count * 1000 / us),
