@@ -26,7 +26,7 @@ def is_pid_alive(pid):
         return False
 
 
-def test_sslyze_doh(sslyze_executable, named_httpsport):
+def run_sslyze_in_a_loop(executable, port, log_file_prefix):
     # Determine the PID of ns1.
     with open(pathlib.Path("ns1", "named.pid"), encoding="utf-8") as pidfile:
         pid = int(pidfile.read())
@@ -39,9 +39,9 @@ def test_sslyze_doh(sslyze_executable, named_httpsport):
     # Run sslyze on ns1 in a loop with a limit of 30 iterations.  Interrupt the
     # test as soon as ns1 is determined to not be running any more.  Log sslyze
     # output.
-    sslyze_args = [sslyze_executable, f"10.53.0.1:{named_httpsport}"]
+    sslyze_args = [executable, f"10.53.0.1:{port}"]
     for i in range(0, 30):
-        log_file = f"sslyze.log.doh.ns1.{named_httpsport}.{i + 1}"
+        log_file = f"{log_file_prefix}.ns1.{port}.{i + 1}"
         with open(log_file, "wb") as sslyze_log:
             # Run sslyze, logging stdout+stderr.  Ignore the exit code since
             # sslyze is only used for triggering crashes here rather than
@@ -55,3 +55,11 @@ def test_sslyze_doh(sslyze_executable, named_httpsport):
             )
             # Ensure ns1 is still alive after each sslyze run.
             assert is_pid_alive(pid), f"ns1 (PID: {pid}) exited prematurely"
+
+
+def test_sslyze_doh(sslyze_executable, named_httpsport):
+    run_sslyze_in_a_loop(sslyze_executable, named_httpsport, "sslyze.log.doh")
+
+
+def test_sslyze_dot(sslyze_executable, named_tlsport):
+    run_sslyze_in_a_loop(sslyze_executable, named_tlsport, "sslyze.log.dot")
