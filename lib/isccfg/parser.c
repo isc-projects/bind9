@@ -1139,19 +1139,7 @@ cfg_obj_isduration(const cfg_obj_t *obj) {
 uint32_t
 cfg_obj_asduration(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_duration);
-	uint32_t duration = 0;
-	duration += obj->value.duration.parts[6];	      /* Seconds */
-	duration += obj->value.duration.parts[5] * 60;	      /* Minutes */
-	duration += obj->value.duration.parts[4] * 3600;      /* Hours */
-	duration += obj->value.duration.parts[3] * 86400;     /* Days */
-	duration += obj->value.duration.parts[2] * 86400 * 7; /* Weaks */
-	/*
-	 * The below additions are not entirely correct
-	 * because days may very per month and per year.
-	 */
-	duration += obj->value.duration.parts[1] * 86400 * 31;	/* Months */
-	duration += obj->value.duration.parts[0] * 86400 * 365; /* Years */
-	return (duration);
+	return isccfg_duration_toseconds(&(obj->value.duration));
 }
 
 static isc_result_t
@@ -1160,24 +1148,9 @@ parse_duration(cfg_parser_t *pctx, cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 	isccfg_duration_t duration;
 
-	duration.unlimited = false;
-
-	result = isccfg_duration_fromtext(&pctx->token.value.as_textregion,
+	result = isccfg_parse_duration(&pctx->token.value.as_textregion,
 				       &duration);
-	if (result == ISC_R_BADNUMBER) {
-		/* Fallback to dns_ttl_fromtext. */
-		uint32_t ttl;
-		result = dns_ttl_fromtext(&pctx->token.value.as_textregion,
-					  &ttl);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * With dns_ttl_fromtext() the information on optional
-			 * units is lost, and is treated as seconds from now on.
-			 */
-			duration.iso8601 = false;
-			duration.parts[6] = ttl;
-		}
-	}
+
 	if (result == ISC_R_RANGE) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
 				 "duration or TTL out of range");
