@@ -628,6 +628,25 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "doing rndc reconfig to see if HTTP endpoints have gotten reconfigured ($n)"
+ret=0
+# 'sed -i ...' is not portable. Sigh...
+sed 's/\/dns-query/\/dns-query-test/g' "ns4/named.conf" >  "ns4/named.conf.sed"
+mv -f "ns4/named.conf.sed" "ns4/named.conf"
+rndc_reconfig ns4 10.53.0.4 60
+retry_quiet 15 wait_for_tlsctx_update_ns4 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking DoH query (POST) to verify HTTP endpoint reconfiguration ($n)"
+ret=0
+dig_with_https_opts +https='/dns-query-test' @10.53.0.4 example SOA > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DoT query (with TLS verification enabled) ($n)"
 ret=0
 dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt01.example.com" @10.53.0.1 . SOA > dig.out.test$n

@@ -85,6 +85,7 @@ struct ns_server {
 	isc_quota_t tcpquota;
 	isc_quota_t xfroutquota;
 	ISC_LIST(isc_quota_t) http_quotas;
+	isc_mutex_t http_quotas_lock;
 
 	/*% Test options and other configurables */
 	uint32_t options;
@@ -182,4 +183,14 @@ ns_server_getoption(ns_server_t *sctx, unsigned int option);
  *
  * Requires:
  *\li	'sctx' is valid.
+ */
+
+void
+ns_server_append_http_quota(ns_server_t *sctx, isc_quota_t *http_quota);
+/*%<
+ *	Add a quota to the list of HTTP quotas to destroy it safely later.
+ *
+ * Requires:
+ *\li	'sctx' is valid;
+ *\li	'http_quota' is not 'NULL'.
  */
