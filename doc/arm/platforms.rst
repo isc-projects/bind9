@@ -45,7 +45,7 @@ Regularly tested platforms
 As of June 2022, BIND 9.16 is fully supported and regularly tested on the
 following systems:
 
--  Debian 9, 10, 11
+-  Debian 10, 11
 -  Ubuntu LTS 18.04, 20.04, 22.04
 -  Fedora 35
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8
@@ -94,7 +94,7 @@ supported platforms.
 
    -  Ubuntu 14.04, 16.04 (Ubuntu ESM releases are not supported)
    -  CentOS 6
-   -  Debian Jessie
+   -  Debian 8 Jessie, 9 Stretch
    -  FreeBSD 10.x, 11.x
 
 Unsupported Platforms
