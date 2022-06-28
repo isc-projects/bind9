@@ -79,6 +79,7 @@ struct ns_interface {
 	isc_nmsocket_t	  *tcplistensocket;
 	isc_nmsocket_t	  *http_listensocket;
 	isc_nmsocket_t	  *http_secure_listensocket;
+	isc_quota_t	  *http_quota;
 	isc_dscp_t	   dscp;	  /*%< "listen-on" DSCP value */
 	isc_refcount_t	   ntcpaccepting; /*%< Number of clients
 					   *   ready to accept new

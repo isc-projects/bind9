@@ -179,6 +179,9 @@ typedef struct isc_http_send_req {
 	isc__nm_http_pending_callbacks_t pending_write_callbacks;
 } isc_http_send_req_t;
 
+#define HTTP_ENDPOINTS_MAGIC	ISC_MAGIC('H', 'T', 'E', 'P')
+#define VALID_HTTP_ENDPOINTS(t) ISC_MAGIC_VALID(t, HTTP_ENDPOINTS_MAGIC)
+
 static bool
 http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg);
@@ -224,6 +227,16 @@ server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
 static isc_nm_httphandler_t *
 http_endpoints_find(const char *request_path,
 		    const isc_nm_http_endpoints_t *restrict eps);
+
+static void
+http_init_listener_endpoints(isc_nmsocket_t *listener,
+			     isc_nm_http_endpoints_t *epset);
+
+static void
+http_cleanup_listener_endpoints(isc_nmsocket_t *listener);
+
+static isc_nm_http_endpoints_t *
+http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid);
 
 static bool
 http_session_active(isc_nm_http_session_t *session) {
@@ -1654,14 +1667,15 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 
 static isc_nm_httphandler_t *
 find_server_request_handler(const char *request_path,
-			    const isc_nmsocket_t *serversocket) {
+			    isc_nmsocket_t *serversocket, const int tid) {
 	isc_nm_httphandler_t *handler = NULL;
 
 	REQUIRE(VALID_NMSOCK(serversocket));
 
 	if (atomic_load(&serversocket->listening)) {
 		handler = http_endpoints_find(
-			request_path, serversocket->h2.listener_endpoints);
+			request_path,
+			http_get_listener_endpoints(serversocket, tid));
 	}
 	return (handler);
 }
@@ -1691,7 +1705,8 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	}
 
 	handler = find_server_request_handler(socket->h2.request_path,
-					      socket->h2.session->serversocket);
+					      socket->h2.session->serversocket,
+					      socket->tid);
 	if (handler != NULL) {
 		socket->h2.cb = handler->cb;
 		socket->h2.cbarg = handler->cbarg;
@@ -2454,7 +2469,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	new_session(httplistensock->mgr->mctx, NULL, &session);
 	session->max_concurrent_streams =
-		httplistensock->h2.max_concurrent_streams;
+		atomic_load(&httplistensock->h2.max_concurrent_streams);
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
@@ -2481,17 +2496,13 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 
 	sock = isc_mem_get(mgr->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, mgr, isc_nm_httplistener, iface);
-	sock->h2.max_concurrent_streams =
-		NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS;
+	atomic_init(&sock->h2.max_concurrent_streams,
+		    NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS);
 
-	if (max_concurrent_streams > 0 &&
-	    max_concurrent_streams < NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
-	{
-		sock->h2.max_concurrent_streams = max_concurrent_streams;
-	}
+	isc_nmsocket_set_max_streams(sock, max_concurrent_streams);
 
 	atomic_store(&eps->in_use, true);
-	isc_nm_http_endpoints_attach(eps, &sock->h2.listener_endpoints);
+	http_init_listener_endpoints(sock, eps);
 
 	if (ctx != NULL) {
 		result = isc_nm_listentls(mgr, iface, httplisten_acceptcb, sock,
@@ -2534,6 +2545,7 @@ isc_nm_http_endpoints_new(isc_mem_t *mctx) {
 	ISC_LIST_INIT(eps->handlers);
 	isc_refcount_init(&eps->references, 1);
 	atomic_init(&eps->in_use, false);
+	eps->magic = HTTP_ENDPOINTS_MAGIC;
 
 	return eps;
 }
@@ -2547,9 +2559,10 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 
 	REQUIRE(epsp != NULL);
 	eps = *epsp;
-	REQUIRE(eps != NULL);
+	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 
 	if (isc_refcount_decrement(&eps->references) > 1) {
+		*epsp = NULL;
 		return;
 	}
 
@@ -2577,6 +2590,8 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 		httpcbarg = next;
 	}
 
+	eps->magic = 0;
+
 	isc_mem_putanddetach(&mctx, eps, sizeof(*eps));
 	*epsp = NULL;
 }
@@ -2584,6 +2599,7 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 void
 isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t *source,
 			     isc_nm_http_endpoints_t **targetp) {
+	REQUIRE(VALID_HTTP_ENDPOINTS(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	isc_refcount_increment(&source->references);
@@ -2595,6 +2611,8 @@ static isc_nm_httphandler_t *
 http_endpoints_find(const char *request_path,
 		    const isc_nm_http_endpoints_t *restrict eps) {
 	isc_nm_httphandler_t *handler = NULL;
+
+	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 
 	if (request_path == NULL || *request_path == '\0') {
 		return (NULL);
@@ -2641,7 +2659,7 @@ isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
 	isc_nm_httpcbarg_t *restrict httpcbarg = NULL;
 	bool newhandler = false;
 
-	REQUIRE(eps != NULL);
+	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 	REQUIRE(isc_nm_http_path_isvalid(uri));
 	REQUIRE(atomic_load(&eps->in_use) == false);
 
@@ -2955,6 +2973,110 @@ isc__nm_http_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	isc_nmsocket_set_tlsctx(listener->outer, tlsctx);
 }
 
+void
+isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
+			     const uint32_t max_concurrent_streams) {
+	uint32_t max_streams = NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS;
+
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->type == isc_nm_httplistener);
+
+	if (max_concurrent_streams > 0 &&
+	    max_concurrent_streams < NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS)
+	{
+		max_streams = max_concurrent_streams;
+	}
+
+	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
+}
+
+void
+isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
+			  isc_nm_http_endpoints_t *eps) {
+	size_t nworkers;
+
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->type == isc_nm_httplistener);
+	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
+
+	atomic_store(&eps->in_use, true);
+
+	nworkers = (size_t)listener->mgr->nworkers;
+	for (size_t i = 0; i < nworkers; i++) {
+		isc__netievent__http_eps_t *ievent =
+			isc__nm_get_netievent_httpendpoints(listener->mgr,
+							    listener, eps);
+		isc__nm_enqueue_ievent(&listener->mgr->workers[i],
+				       (isc__netievent_t *)ievent);
+	}
+}
+
+void
+isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent__http_eps_t *ievent = (isc__netievent__http_eps_t *)ev0;
+	const int tid = isc_nm_tid();
+	isc_nmsocket_t *listener = ievent->sock;
+	isc_nm_http_endpoints_t *eps = ievent->endpoints;
+	UNUSED(worker);
+
+	isc_nm_http_endpoints_detach(&listener->h2.listener_endpoints[tid]);
+	isc_nm_http_endpoints_attach(eps,
+				     &listener->h2.listener_endpoints[tid]);
+}
+
+static void
+http_init_listener_endpoints(isc_nmsocket_t *listener,
+			     isc_nm_http_endpoints_t *epset) {
+	size_t nworkers;
+
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(VALID_HTTP_ENDPOINTS(epset));
+
+	nworkers = (size_t)listener->mgr->nworkers;
+	INSIST(nworkers > 0);
+
+	listener->h2.listener_endpoints =
+		isc_mem_get(listener->mgr->mctx,
+			    sizeof(isc_nm_http_endpoints_t *) * nworkers);
+	listener->h2.n_listener_endpoints = nworkers;
+	for (size_t i = 0; i < nworkers; i++) {
+		listener->h2.listener_endpoints[i] = NULL;
+		isc_nm_http_endpoints_attach(
+			epset, &listener->h2.listener_endpoints[i]);
+	}
+}
+
+static void
+http_cleanup_listener_endpoints(isc_nmsocket_t *listener) {
+	REQUIRE(VALID_NM(listener->mgr));
+
+	if (listener->h2.listener_endpoints == NULL) {
+		return;
+	}
+
+	for (size_t i = 0; i < listener->h2.n_listener_endpoints; i++) {
+		isc_nm_http_endpoints_detach(
+			&listener->h2.listener_endpoints[i]);
+	}
+	isc_mem_put(listener->mgr->mctx, listener->h2.listener_endpoints,
+		    sizeof(isc_nm_http_endpoints_t *) *
+			    listener->h2.n_listener_endpoints);
+	listener->h2.n_listener_endpoints = 0;
+}
+
+static isc_nm_http_endpoints_t *
+http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid) {
+	isc_nm_http_endpoints_t *eps;
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(tid >= 0);
+	REQUIRE((size_t)tid < listener->h2.n_listener_endpoints);
+
+	eps = listener->h2.listener_endpoints[tid];
+	INSIST(eps != NULL);
+	return (eps);
+}
+
 static const bool base64url_validation_table[256] = {
 	false, false, false, false, false, false, false, false, false, false,
 	false, false, false, false, false, false, false, false, false, false,
@@ -3108,8 +3230,7 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 		if (sock->type == isc_nm_httplistener &&
 		    sock->h2.listener_endpoints != NULL) {
 			/* Delete all handlers */
-			isc_nm_http_endpoints_detach(
-				&sock->h2.listener_endpoints);
+			http_cleanup_listener_endpoints(sock);
 		}
 
 		if (sock->h2.request_path != NULL) {

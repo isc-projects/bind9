@@ -955,6 +955,7 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(httpstop);
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
+		NETIEVENT_CASE(httpendpoints);
 #endif
 		NETIEVENT_CASE(settlsctx);
 
@@ -1068,9 +1069,12 @@ NETIEVENT_SOCKET_QUOTA_DEF(tlsdnsaccept);
 NETIEVENT_SOCKET_DEF(tlsdnscycle);
 NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
+#ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_DEF(httpstop);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
+NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
+#endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
 NETIEVENT_SOCKET_REQ_DEF(tcpsend);
@@ -3731,6 +3735,23 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	}
 
 	return (NULL);
+}
+
+void
+isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
+			     const uint32_t max_streams) {
+	REQUIRE(VALID_NMSOCK(listener));
+	switch (listener->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_httplistener:
+		isc__nm_http_set_max_streams(listener, max_streams);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		UNUSED(max_streams);
+		break;
+	};
+	return;
 }
 
 void
