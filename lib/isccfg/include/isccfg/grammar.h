@@ -25,6 +25,7 @@
 #include <isc/types.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/duration.h>
 
 /*
  * Definitions shared between the configuration parser
@@ -77,11 +78,8 @@ typedef struct cfg_clausedef	 cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
 typedef struct cfg_printer	 cfg_printer_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
-typedef struct cfg_map	    cfg_map_t;
-typedef struct cfg_rep	    cfg_rep_t;
-typedef struct cfg_duration cfg_duration_t;
-
-#define CFG_DURATION_MAXLEN 64
+typedef struct cfg_map cfg_map_t;
+typedef struct cfg_rep cfg_rep_t;
 
 /*
  * Function types for configuration object methods
@@ -156,25 +154,6 @@ struct cfg_netprefix {
 };
 
 /*%
- * A configuration object to store ISO 8601 durations.
- */
-struct cfg_duration {
-	/*
-	 * The duration is stored in multiple parts:
-	 * [0] Years
-	 * [1] Months
-	 * [2] Weeks
-	 * [3] Days
-	 * [4] Hours
-	 * [5] Minutes
-	 * [6] Seconds
-	 */
-	uint32_t parts[7];
-	bool	 iso8601;
-	bool	 unlimited;
-};
-
-/*%
  * A configuration data representation.
  */
 struct cfg_rep {
@@ -202,8 +181,8 @@ struct cfg_obj {
 			isc_sockaddr_t sockaddr;
 			isc_dscp_t     dscp;
 		} sockaddrdscp;
-		cfg_netprefix_t netprefix;
-		cfg_duration_t	duration;
+		cfg_netprefix_t	  netprefix;
+		isccfg_duration_t duration;
 	} value;
 	isc_refcount_t references; /*%< reference counter */
 	const char    *file;

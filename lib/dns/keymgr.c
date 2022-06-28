@@ -131,12 +131,12 @@ keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
 			     dns_kasp_retiresafety(kasp);
 	}
 
-	remove = ksk_remove > zsk_remove ? ksk_remove : zsk_remove;
+	remove = ISC_MAX(ksk_remove, zsk_remove);
 	dst_key_settime(key->key, DST_TIME_DELETE, remove);
 }
 
 /*
- * Set the SyncPublish time (when the DS may be submitted to the parent)
+ * Set the SyncPublish time (when the DS may be submitted to the parent).
  *
  */
 static void
@@ -250,7 +250,7 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 					   dns_kasp_zonepropagationdelay(kasp);
 			}
 
-			syncpub = syncpub1 > syncpub2 ? syncpub1 : syncpub2;
+			syncpub = ISC_MAX(syncpub1, syncpub2);
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
 		}
