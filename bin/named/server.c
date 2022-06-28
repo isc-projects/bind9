@@ -8479,6 +8479,7 @@ load_configuration(const char *filename, named_server_t *server,
 	const cfg_obj_t *kasps;
 	dns_kasp_t *kasp = NULL;
 	dns_kasp_t *kasp_next = NULL;
+	dns_kasp_t *default_kasp = NULL;
 	dns_kasplist_t tmpkasplist, kasplist;
 	const cfg_obj_t *views;
 	dns_view_t *view = NULL;
@@ -9205,6 +9206,32 @@ load_configuration(const char *filename, named_server_t *server,
 	(void)configure_session_key(maps, server, named_g_mctx, first_time);
 
 	/*
+	 * Create the built-in kasp policies ("default", "insecure").
+	 */
+	kasps = NULL;
+	(void)cfg_map_get(named_g_config, "dnssec-policy", &kasps);
+	for (element = cfg_list_first(kasps); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+
+		kasp = NULL;
+		CHECK(cfg_kasp_fromconfig(kconfig, default_kasp, named_g_mctx,
+					  named_g_lctx, &kasplist, &kasp));
+		INSIST(kasp != NULL);
+		dns_kasp_freeze(kasp);
+
+		/* Insist that the first built-in policy is the default one. */
+		if (default_kasp == NULL) {
+			INSIST(strcmp(dns_kasp_getname(kasp), "default") == 0);
+			dns_kasp_attach(kasp, &default_kasp);
+		}
+
+		dns_kasp_detach(&kasp);
+	}
+	INSIST(default_kasp != NULL);
+
+	/*
 	 * Create the DNSSEC key and signing policies (KASP).
 	 */
 	kasps = NULL;
@@ -9214,29 +9241,14 @@ load_configuration(const char *filename, named_server_t *server,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
-		CHECK(cfg_kasp_fromconfig(kconfig, NULL, named_g_mctx,
+		CHECK(cfg_kasp_fromconfig(kconfig, default_kasp, named_g_mctx,
 					  named_g_lctx, &kasplist, &kasp));
 		INSIST(kasp != NULL);
 		dns_kasp_freeze(kasp);
 		dns_kasp_detach(&kasp);
 	}
-	/*
-	 * Create the built-in kasp policies ("default", "insecure").
-	 */
-	kasp = NULL;
-	CHECK(cfg_kasp_fromconfig(NULL, "default", named_g_mctx, named_g_lctx,
-				  &kasplist, &kasp));
-	INSIST(kasp != NULL);
-	dns_kasp_freeze(kasp);
-	dns_kasp_detach(&kasp);
 
-	kasp = NULL;
-	CHECK(cfg_kasp_fromconfig(NULL, "insecure", named_g_mctx, named_g_lctx,
-				  &kasplist, &kasp));
-	INSIST(kasp != NULL);
-	dns_kasp_freeze(kasp);
-	dns_kasp_detach(&kasp);
-
+	dns_kasp_detach(&default_kasp);
 	tmpkasplist = server->kasplist;
 	server->kasplist = kasplist;
 	kasplist = tmpkasplist;
