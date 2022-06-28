@@ -1420,6 +1420,20 @@ stress:recursive:fedora:35:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
+stress:rpz:fedora:35:amd64:
+  <<: *fedora_35_amd64_image
+  <<: *linux_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
+
 stress:authoritative:fedora:35:arm64:
   <<: *fedora_35_arm64_image
   <<: *linux_stress_arm64
@@ -1448,6 +1462,20 @@ stress:recursive:fedora:35:arm64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
+stress:rpz:fedora:35:arm64:
+  <<: *fedora_35_arm64_image
+  <<: *linux_stress_arm64
+  <<: *stress_job
+  variables:
+    CC: gcc
+    FLAME: /usr/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
+
 stress:authoritative:freebsd12:amd64:
   <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
@@ -1475,6 +1503,20 @@ stress:recursive:freebsd12:amd64:
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
+
+stress:rpz:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *freebsd_stress_amd64
+  <<: *stress_job
+  variables:
+    CC: clang
+    FLAME: /usr/local/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 1
+  only:
+    variables:
+      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 gcov:
   <<: *base_image
