@@ -86,6 +86,12 @@ Options
 
    This option runs the server in the foreground (i.e., do not daemonize).
 
+.. option:: -F
+
+   This options turns on FIPS (US Federal Information Processing Standards)
+   mode if the underlying crytographic library supports running in FIPS
+   mode.
+
 .. option:: -g
 
    This option runs the server in the foreground and forces all logging to ``stderr``.
