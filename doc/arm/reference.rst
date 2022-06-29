@@ -194,7 +194,6 @@ only by the name server.
 .. _`glob expression`: https://man7.org/linux/man-pages/man7/glob.7.html
 
 .. _address_match_lists:
-.. _address_match_list:
 
 Address Match Lists
 ~~~~~~~~~~~~~~~~~~~
