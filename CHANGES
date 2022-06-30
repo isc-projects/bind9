@@ -1,3 +1,8 @@
+5965.	[cleanup]	Move the duplicated ASCII case conversion tables to
+			isc_ascii where they can be shared, and replace the
+			various hot-path tolower() loops with calls to new
+			isc_ascii implementations. [GL !6516]
+
 5964.	[func]		When an international domain name is not valid, DiG will
 			now pass it through unchanged, instead of stopping with
 			an error message. [GL #3527]
