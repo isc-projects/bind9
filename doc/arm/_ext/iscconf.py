@@ -145,8 +145,11 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     try:
                         zone_idx = path.index("zone")
                         zone_type_txt = path[zone_idx + 1]
-                        assert zone_type_txt.startswith("type "), zone_type_txt
-                        zone_types.add(zone_type_txt[len("type ") :])
+                        if zone_type_txt.startswith("type "):
+                            zone_types.add(zone_type_txt[len("type ") :])
+                        else:
+                            assert zone_type_txt == "in-view"
+                            zone_types.add(zone_type_txt)
                     except (ValueError, IndexError):
                         nozone_paths.append(path)
                 condensed_paths = nozone_paths[:]

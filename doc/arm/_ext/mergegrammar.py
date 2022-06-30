@@ -22,7 +22,11 @@ import parsegrammar
 def read_zone():
     zone_grammars = {}
     for file in Path("../misc/").glob("*.zoneopt"):
-        zone_type = f"type {file.stem}"
+        # in-view is not really a zone type
+        if file.stem == "in-view":
+            zone_type = "in-view"
+        else:
+            zone_type = f"type {file.stem}"
 
         with file.open(encoding="ascii") as fp:
             zonegrammar = parsegrammar.parse_mapbody(fp)
