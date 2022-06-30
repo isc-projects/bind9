@@ -1689,6 +1689,20 @@ default is used.
               suffix ::;
           };
 
+.. namedconf:statement:: ipv4only-enable
+
+   This enables or disables automatic zones ``ipv4only.arpa``,
+   ``170.0.0.192.in-addr.arpa``, and ``171.0.0.192.in-addr.arpa``.
+
+   By default these zones are loaded if :any:`dns64` is configured.
+
+.. namedconf:statement:: ipv4only-server
+.. namedconf:statement:: ipv4only-contact
+
+   ``ipv4only-server`` and ``ipv4only-contact`` can be used to specify the name
+   of the server and contact for the IPV4ONLY.ARPA zone created by
+   :any:`dns64`.
+
 .. namedconf:statement:: dnssec-loadkeys-interval
 
    When a zone is configured with ``auto-dnssec maintain;``, its key
