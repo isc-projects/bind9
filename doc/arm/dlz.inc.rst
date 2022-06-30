@@ -46,9 +46,13 @@ A DLZ database is configured with a ``dlz`` statement in :iscman:`named.conf`:
 
 This specifies a DLZ module to search when answering queries; the module
 is implemented in ``driver.so`` and is loaded at runtime by the dlopen
-DLZ driver. Multiple ``dlz`` statements can be specified; when answering
-a query, all DLZ modules with ``search`` set to ``yes`` are queried
-to see whether they contain an answer for the query name. The best
+DLZ driver. Multiple ``dlz`` statements can be specified.
+
+
+.. namedconf:statement:: search
+
+When answering a query, all DLZ modules with ``search`` set to ``yes`` are
+queried to see whether they contain an answer for the query name. The best
 available answer is returned to the client.
 
 The ``search`` option in the above example can be omitted, because
