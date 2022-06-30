@@ -30,7 +30,8 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The ``glue-cache`` *option* has been removed. The glue cache *feature*
+  still works and is now permanently *enabled*. :gl:`#2147`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
