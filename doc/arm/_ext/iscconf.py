@@ -442,20 +442,13 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     TableColumn("ref", "Statement"),
                     TableColumn("short", "Description"),
                 ]
-                table_b = DictToDocutilsTableBuilder(table_header)
-                table_b.append_iterable(
-                    sorted(
-                        iscconf.list_all(fromdocname),
-                        key=lambda x: x["fullname"],
-                    )
-                )
                 tag_header = []
-
                 if len(acceptable_tags) != 1:
                     # tags column only if tag filter is not applied
                     tag_header = [
                         TableColumn("tags_txt", "Tags"),
                     ]
+
                 table_b = DictToDocutilsTableBuilder(table_header + tag_header)
                 table_b.append_iterable(
                     sorted(
