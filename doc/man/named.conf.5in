@@ -36,6 +36,11 @@ named.conf \- configuration file for **named**
 .SH DESCRIPTION
 .sp
 \fBnamed.conf\fP is the configuration file for \fI\%named\fP\&.
+.sp
+For complete documentation about the configuration statements, please refer to
+the Configuration Reference section in the BIND 9 Administrator Reference
+Manual.
+.sp
 Statements are enclosed in braces and terminated with a semi\-colon.
 Clauses in the statements are also semi\-colon terminated. The usual
 comment styles are supported:
