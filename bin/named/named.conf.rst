@@ -25,6 +25,11 @@ Description
 ~~~~~~~~~~~
 
 :file:`named.conf` is the configuration file for :iscman:`named`.
+
+For complete documentation about the configuration statements, please refer to
+the Configuration Reference section in the BIND 9 Administrator Reference
+Manual.
+
 Statements are enclosed in braces and terminated with a semi-colon.
 Clauses in the statements are also semi-colon terminated. The usual
 comment styles are supported:
