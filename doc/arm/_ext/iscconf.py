@@ -114,10 +114,18 @@ def domain_factory(domainname, domainlabel, todolist):
             def isc_short(self):
                 return self.options.get("short", "")
 
+            def parse_nested_str(self, instr):
+                """Parse string as nested rst syntax and produce a node"""
+                raw = nodes.paragraph(text=instr)
+                parsed = nodes.paragraph()
+                self.state.nested_parse(raw, self.content_offset, parsed)
+                return parsed
+
             def transform_content(self, contentnode: addnodes.desc_content) -> None:
                 """autogenerate content from structured data"""
                 if self.isc_short:
-                    contentnode.insert(0, nodes.paragraph(text=self.isc_short))
+                    short_parsed = self.parse_nested_str(self.isc_short)
+                    contentnode.insert(0, short_parsed)
                 if self.isc_tags:
                     tags = nodes.paragraph()
                     tags += nodes.strong(text="Tags: ")
