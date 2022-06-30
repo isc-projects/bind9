@@ -88,6 +88,25 @@ journal file without stopping dynamic updates; this may be useful for
 viewing the current zone state. To remove the ``.jnl`` file after
 updating the zone file, use :option:`rndc sync -clean <rndc sync>`.
 
+.. _notify:
+
+NOTIFY
+------
+
+DNS NOTIFY is a mechanism that allows primary servers to notify their
+secondary servers of changes to a zone's data. In response to a NOTIFY message
+from a primary server, the secondary checks to see that its version of
+the zone is the current version and, if not, initiates a zone transfer.
+
+For more information about DNS NOTIFY, see the description of the
+:namedconf:ref:`notify` and :namedconf:ref`also-notify` statements.
+The NOTIFY protocol is specified in :rfc:`1996`.
+
+.. note::
+
+   As a secondary zone can also be a primary to other secondaries, :iscman:`named`, by
+   default, sends NOTIFY messages for every zone it loads.
+
 .. _incremental_zone_transfers:
 
 Incremental Zone Transfers (IXFR)
