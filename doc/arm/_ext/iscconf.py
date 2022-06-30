@@ -180,11 +180,11 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     separator = ""
                     paths = ""
                 subgrammar = grammar_grp[0].subgrammar
-                grammar_txt = (
-                    subgrammar.get("_pprint_name", self.isc_name)
-                    + " "
-                    + checkgrammar.pformat_grammar(grammar_grp[0].subgrammar, level=1)
-                )
+                subgrammar_txt = checkgrammar.pformat_grammar(subgrammar).strip()
+                grammar_txt = subgrammar.get("_pprint_name", self.isc_name)
+                if subgrammar_txt != ";":
+                    grammar_txt += " "
+                grammar_txt += subgrammar_txt
                 if "\n" in grammar_txt.strip():
                     nodetype = nodes.literal_block
                 else:
