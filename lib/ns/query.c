@@ -2099,10 +2099,8 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 	/*
 	 * Try to process glue directly.
 	 */
-	if (qctx->view->use_glue_cache &&
-	    (rdataset->type == dns_rdatatype_ns) &&
-	    (client->query.gluedb != NULL) &&
-	    dns_db_iszone(client->query.gluedb))
+	if (rdataset->type == dns_rdatatype_ns &&
+	    client->query.gluedb != NULL && dns_db_iszone(client->query.gluedb))
 	{
 		ns_dbversion_t *dbversion;
 

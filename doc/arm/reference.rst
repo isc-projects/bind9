@@ -2030,20 +2030,6 @@ Boolean Options
 
    The default is ``no-auth-recursive``.
 
-.. namedconf:statement:: glue-cache
-
-   When set to ``yes``, a cache is used to improve query performance
-   when adding address-type (A and AAAA) glue records to the additional
-   section of DNS response messages that delegate to a child zone.
-
-   The glue cache uses memory proportional to the number of delegations
-   in the zone. The default setting is ``yes``, which improves
-   performance at the cost of increased memory usage for the zone. To avoid
-   this, set it to ``no``.
-
-   .. note:: This option is deprecated and its use is discouraged. The
-      glue cache will be permanently *enabled* in a future release.
-
 .. namedconf:statement:: minimal-any
 
    If set to ``yes``, the server replies with only one of

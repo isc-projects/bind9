@@ -2080,7 +2080,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "filter-aaaa", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },
 	{ "filter-aaaa-on-v4", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
 	{ "filter-aaaa-on-v6", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "glue-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
+	{ "glue-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
 	{ "ipv4only-enable", &cfg_type_boolean, 0 },
 	{ "ipv4only-contact", &cfg_type_astring, 0 },
 	{ "ipv4only-server", &cfg_type_astring, 0 },
