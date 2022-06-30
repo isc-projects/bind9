@@ -165,12 +165,27 @@ server.
 
 .. rndcconf:statement:: server
 
-   The ``server`` statement associates a key defined using the ``key``
-   statement with a server. The keyword ``server`` is followed by a host
-   name or address. The ``server`` statement has two clauses: ``key``
-   and ``port``. The ``key`` clause specifies the name of the key to be
-   used when communicating with this server, and the ``port`` clause can
-   be used to specify the port :iscman:`rndc` should connect to on the server.
+   The ``server`` statement specifies connection parameters for a given server.
+   The server can be specified as a host name or address.
+
+   .. rndcconf:statement:: addresses
+
+      Specifies one or more addresses to use when communicating with this
+      server.
+
+   :rndcconf:ref:`key`
+      Associates a key defined using the :rndcconf:ref:`key` statement with a
+      server.
+
+   .. rndcconf:statement:: port
+
+      Specifes the port :iscman:`rndc` should connect to on the server.
+
+   .. rndcconf:statement:: source-address
+   .. rndcconf:statement:: source-address-v6
+
+      Overrides :rndcconf:ref:`default-source-address` and
+      :rndcconf:ref:`default-source-address-v6` for this specific server.
 
    A sample minimal configuration file is as follows:
 

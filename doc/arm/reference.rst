@@ -44,8 +44,8 @@ The file :file:`named.conf` may contain three types of entities:
       - Statements define and control specific BIND behaviors.
       - Statements may have a single parameter (a **Value**) or multiple parameters
         (**Argument/Value** pairs). For example, the :any:`recursion` statement takes a
-        single value parameter which, in this case, is the string ``yes`` or ``no``
-        (``recursion yes;``) whereas the :any:`port` statement takes a  numeric value
+        single value parameter - in this case, the string ``yes`` or ``no``
+        (``recursion yes;``) - while the :namedconf:ref:`port` statement takes a  numeric value
         defining the DNS port number (``port 53;``). More complex statements take one or
         more argument/value pairs. The :any:`also-notify` statement may take a number
         of such argument/value pairs, such as ``also-notify port 5353;``,
