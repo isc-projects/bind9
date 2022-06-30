@@ -276,7 +276,6 @@ OPTIONS
   	fstrm-set-output-queue-size integer;
   	fstrm-set-reopen-interval duration;
   	geoip-directory ( quoted_string | none );
-  	glue-cache boolean;// deprecated
   	heartbeat-interval integer;
   	hostname ( quoted_string | none );
   	http-listener-clients integer;
@@ -693,7 +692,6 @@ VIEW
   	forward ( first | only );
   	forwarders [ port integer ] [ dscp integer ] { ( ipv4_address
   	    | ipv6_address ) [ port integer ] [ dscp integer ]; ... };
-  	glue-cache boolean;// deprecated
   	ipv4only-contact string;
   	ipv4only-enable boolean;
   	ipv4only-server string;

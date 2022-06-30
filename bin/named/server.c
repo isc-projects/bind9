@@ -5187,12 +5187,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	INSIST(result == ISC_R_SUCCESS);
 	view->auth_nxdomain = cfg_obj_asboolean(obj);
 
-	/* deprecated */
-	obj = NULL;
-	result = named_config_get(maps, "glue-cache", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->use_glue_cache = cfg_obj_asboolean(obj);
-
 	obj = NULL;
 	result = named_config_get(maps, "minimal-any", &obj);
 	INSIST(result == ISC_R_SUCCESS);
