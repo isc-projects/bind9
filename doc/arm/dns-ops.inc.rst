@@ -117,9 +117,6 @@ server.
 
 .. rndcconf:statement:: options
 
-   The ``options`` statement has three clauses: ``default-server``,
-   ``default-key``, and ``default-port``.
-
    .. rndcconf:statement:: default-server
 
       ``default-server`` takes a
@@ -136,6 +133,14 @@ server.
       ``default-port`` specifies the port to which
       :iscman:`rndc` should connect if no port is given on the command line or in
       a ``server`` statement.
+
+   .. rndcconf:statement:: default-source-address
+   .. rndcconf:statement:: default-source-address-v6
+
+      ``default-source-address`` and ``default-source-address-v6`` specify
+      the IPv4 and IPv6 source address used to communicate with the server
+      if no address is given on the command line or in a
+      :rndcconf:ref:`server` block.
 
 .. rndcconf:statement:: key
 
