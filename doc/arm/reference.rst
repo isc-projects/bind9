@@ -424,7 +424,7 @@ configuration.
 
 .. _acl_grammar:
 
-``acl`` Statement Grammar
+``acl`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. namedconf:statement:: acl
@@ -454,7 +454,7 @@ The following ACLs are built-in:
 
 .. _controls_grammar:
 
-``controls`` Statement Grammar
+``controls`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
 
@@ -528,7 +528,7 @@ To disable the command channel, use an empty ``controls`` statement:
 
 .. _key_grammar:
 
-``key`` Statement Grammar
+``key`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
 
@@ -568,7 +568,7 @@ matching this name, algorithm, and secret.
 
 .. _logging_grammar:
 
-``logging`` Statement Grammar
+``logging`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
 
@@ -976,7 +976,7 @@ responses such as NXDOMAIN.
 
 .. _parental_agents_grammar:
 
-``parental-agents`` Statement Grammar
+``parental-agents`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
 
@@ -992,7 +992,7 @@ change its delegation information (defined in :rfc:`7344`).
 
 .. _primaries_grammar:
 
-``primaries`` Statement Grammar
+``primaries`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
 
@@ -1026,7 +1026,7 @@ where ``tls-configuration-name`` refers to a previously defined
 
 .. _options_grammar:
 
-``options`` Statement Grammar
+``options`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: options
 
@@ -5227,7 +5227,7 @@ redirect zone is tried first.
 
 .. _server_statement_grammar:
 
-``server`` Statement Grammar
+``server`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
 
@@ -5340,7 +5340,7 @@ and :namedconf:ref:`options` blocks:
 
 .. _statschannels:
 
-``statistics-channels`` Statement Grammar
+``statistics-channels`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
 
@@ -5410,7 +5410,7 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 
 .. _tls:
 
-``tls`` Statement Grammar
+``tls`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
 
@@ -5595,7 +5595,7 @@ issues related to shared cryptographic secrets.
 
 .. _http:
 
-``http`` Statement Grammar
+``http`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
 
@@ -5649,7 +5649,7 @@ all local addresses:
 
 .. _trust_anchors:
 
-``trust-anchors`` Statement Grammar
+``trust-anchors`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trust-anchors
 
@@ -5795,7 +5795,7 @@ can be found, the initializing key is also compiled directly into
 
 .. _dnssec_policy_grammar:
 
-``dnssec-policy`` Statement Grammar
+``dnssec-policy`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
 
@@ -6062,7 +6062,7 @@ The following options apply to DS queries sent to ``parental-agents``:
 
 .. _managed-keys:
 
-``managed-keys`` Statement Grammar
+``managed-keys`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
 
@@ -6077,7 +6077,7 @@ with the ``initial-key`` keyword.
 
 .. _trusted-keys:
 
-``trusted-keys`` Statement Grammar
+``trusted-keys`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
 
@@ -6091,7 +6091,7 @@ The ``trusted-keys`` statement has been deprecated in favor of
 
 .. _view_statement_grammar:
 
-``view`` Statement Grammar
+``view`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: view
 
@@ -6200,7 +6200,7 @@ Here is an example of a typical split DNS setup implemented using
 
 .. _zone_statement_grammar:
 
-``zone`` Statement Grammar
+``zone`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
    :suppress_grammar:
