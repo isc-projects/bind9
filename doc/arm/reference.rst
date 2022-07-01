@@ -431,7 +431,7 @@ configuration.
 
 .. _acl:
 
-``acl`` Statement Definition and Usage
+``acl`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``acl`` statement assigns a symbolic name to an address match list.
@@ -460,7 +460,7 @@ The following ACLs are built-in:
 
 .. _controls_statement_definition_and_usage:
 
-``controls`` Statement Definition and Usage
+``controls`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``controls`` statement declares control channels to be used by
@@ -534,7 +534,7 @@ To disable the command channel, use an empty ``controls`` statement:
 
 .. _key_statement:
 
-``key`` Statement Definition and Usage
+``key`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``key`` statement defines a shared secret key for use with TSIG (see
@@ -574,7 +574,7 @@ matching this name, algorithm, and secret.
 
 .. _logging_statement:
 
-``logging`` Statement Definition and Usage
+``logging`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``logging`` statement configures a wide variety of logging options
@@ -982,7 +982,7 @@ responses such as NXDOMAIN.
 
 .. _parental_agents_statement:
 
-``parental-agents`` Statement Definition and Usage
+``parental-agents`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``parental-agents`` lists allow for a common set of parental agents to be easily
@@ -998,7 +998,7 @@ change its delegation information (defined in :rfc:`7344`).
 
 .. _primaries_statement:
 
-``primaries`` Statement Definition and Usage
+``primaries`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``primaries`` lists allow for a common set of primary servers  to be easily
@@ -1035,7 +1035,7 @@ file:
 
 .. _options:
 
-``options`` Statement Definition and Usage
+``options`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``options`` statement sets up global options to be used by BIND.
@@ -5211,7 +5211,7 @@ redirect zone is tried first.
 
 .. _server_statement_definition_and_usage:
 
-``server`` Statement Definition and Usage
+``server`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``server`` statement defines characteristics to be associated with a
@@ -5324,7 +5324,7 @@ and :namedconf:ref:`options` blocks:
 
 .. _statistics_channels:
 
-``statistics-channels`` Statement Definition and Usage
+``statistics-channels`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``statistics-channels`` statement declares communication channels to
@@ -5392,7 +5392,7 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
 
-``tls`` Statement Definition and Usage
+``tls`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``tls`` statement is used to configure a TLS connection; this
@@ -5577,7 +5577,7 @@ issues related to shared cryptographic secrets.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
 
-``http`` Statement Definition and Usage
+``http`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``http`` statement is used to configure HTTP endpoints on which
@@ -5633,7 +5633,7 @@ all local addresses:
 
 .. _trust-anchors:
 
-``trust-anchors`` Statement Definition and Usage
+``trust-anchors`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``trust-anchors`` statement defines DNSSEC trust anchors. DNSSEC is
@@ -5779,7 +5779,7 @@ can be found, the initializing key is also compiled directly into
 
 .. _dnssec_policy:
 
-``dnssec-policy`` Statement Definition and Usage
+``dnssec-policy`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``dnssec-policy`` statement defines a key and signing policy (KASP)
@@ -6046,7 +6046,7 @@ The following options apply to DS queries sent to ``parental-agents``:
 
 .. _managed_keys:
 
-``managed-keys`` Statement Definition and Usage
+``managed-keys`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``managed-keys`` statement has been
@@ -6061,7 +6061,7 @@ with the ``initial-key`` keyword.
 
 .. _trusted_keys:
 
-``trusted-keys`` Statement Definition and Usage
+``trusted-keys`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``trusted-keys`` statement has been deprecated in favor of
@@ -6085,7 +6085,7 @@ The ``trusted-keys`` statement has been deprecated in favor of
 
 .. _view_statement:
 
-``view`` Statement Definition and Usage
+``view`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``view`` statement is a powerful feature of BIND 9 that lets a name
@@ -6185,7 +6185,7 @@ Here is an example of a typical split DNS setup implemented using
 
 .. _zone_statement:
 
-``zone`` Statement Definition and Usage
+``zone`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _zone_types:
