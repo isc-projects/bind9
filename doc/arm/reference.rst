@@ -325,13 +325,16 @@ file documentation:
     ``portrange``
         A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
-    ``size_spec``
-        A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as :any:`max-journal-size`) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
+    ``size``
+    ``sizeval``
+        A 64-bit unsigned integer. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as :any:`max-journal-size`) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
+
+        Some statements also accept keywords ``unlimited`` or ``default``:
         ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
         ``default`` uses the limit that was in force when the server was started.
 
-    ``size_or_percent``
-         A ``size_spec`` or integer value followed by ``%`` to represent percent. The behavior is exactly the same as ``size_spec``, but ``size_or_percent`` also allows specifying a positive integer value followed by the ``%`` sign to indicate a percentage.
+    ``percentage``
+         An integer value followed by ``%`` to represent percent.
 
     ``yes_or_no``
         Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
@@ -3349,7 +3352,7 @@ values are allowed when specifying resource limits. For example, ``1G``
 can be used instead of ``1073741824`` to specify a limit of one
 gigabyte. ``unlimited`` requests unlimited use, or the maximum available
 amount. ``default`` uses the limit that was in force when the server was
-started. See the description of :term:`size_spec`.
+started. See the description of :term:`size`.
 
 The following options set operating system resource limits for the name
 server process. Some operating systems do not support some or any of the
