@@ -205,7 +205,7 @@ Syntax
 
    address_match_list = address_match_list_element ; ...
 
-   address_match_list_element = [ ! ] ( ip_address | ip_prefix |
+   address_match_list_element = [ ! ] ( ip_address | netprefix |
         key key_id | acl_name | { address_match_list } )
 
 Definition and Usage
@@ -279,7 +279,7 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more ``ip_address``, ``ip_prefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        A list of one or more ``ip_address``, ``netprefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
         A named list of one or more ``ip_address`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
@@ -304,7 +304,7 @@ file documentation:
     ``ip_port``
         An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
-    ``ip_prefix``
+    ``netprefix``
         An IP network specified as an ``ip_address``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_address`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
@@ -4520,7 +4520,7 @@ Content Filtering
    :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
    In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
-   only ``ip_address`` and ``ip_prefix`` are meaningful; any ``key_id`` is
+   only ``ip_address`` and ``netprefix`` are meaningful; any ``key_id`` is
    silently ignored.
 
 
