@@ -322,9 +322,6 @@ file documentation:
     ``fixedpoint``
         A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
-    ``path_name``
-        A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
-
     ``port_list``
         A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
