@@ -345,7 +345,7 @@ file documentation:
     ``percentage``
          An integer value followed by ``%`` to represent percent.
 
-    ``yes_or_no``
+    ``boolean``
         Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
 .. _configuration_file_grammar:
@@ -6076,7 +6076,7 @@ The :any:`trusted-keys` statement has been deprecated in favor of
    view view_name [ class ] {
        match-clients { address_match_list } ;
        match-destinations { address_match_list } ;
-       match-recursive-only yes_or_no ;
+       match-recursive-only <boolean> ;
      [ view_option ; ... ]
      [ zone_statement ; ... ]
    } ;
