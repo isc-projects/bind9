@@ -313,9 +313,6 @@ file documentation:
         :ref:`transaction security <tsig>`. Keys are defined using
         :namedconf:ref:`key` blocks.
 
-    ``key_list``
-        A list of one or more :term:`key_id` s, separated by semicolons and ending with a semicolon.
-
     ``tls_id``
         A string representing a TLS configuration object, including a key and certificate.
 
@@ -490,7 +487,7 @@ and retrieve non-DNS results from a name server.
 
    :any:`keys`
       The primary authorization mechanism of the command channel is the
-      :term:`key_list`, which contains a list of :term:`key_id` s. Each
+      list of :term:`key_id` s. Each listed
       :namedconf:ref:`key` is authorized to execute commands over the control
       channel. See :ref:`admin_tools` for information about
       configuring keys in :iscman:`rndc`.
