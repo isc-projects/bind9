@@ -346,10 +346,6 @@ file documentation:
     ``yes_or_no``
         Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
-    ``dialup_option``
-        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
-
-
 .. _configuration_file_grammar:
 
 .. _configuration_blocks:
