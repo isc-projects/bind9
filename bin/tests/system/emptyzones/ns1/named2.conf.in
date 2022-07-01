@@ -12,7 +12,7 @@
  */
 
 key rndc_key {
-	algorithm       hmac-sha256;
+	algorithm       @DEFAULT_HMAC@;
 	secret          "1234abcd8765";
 };
 
