@@ -1348,7 +1348,7 @@ before a rollover depends on your organization's security policy.
 .. _advanced_discussions_automatic_dnssec-policy:
 
 Fully Automatic Signing With :any:`dnssec-policy`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since BIND 9.16, key management is fully integrated ingo :iscman:`named`.
 Managing the signing process and rolling of these keys has been described in

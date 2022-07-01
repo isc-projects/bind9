@@ -39,8 +39,6 @@ may support any combination of primary and secondary zones.
    For reasons of backward compatibility BIND 9 treats "primary" and "master" as
    synonyms, as well as "secondary" and "slave."
 
-.. _notify:
-
 The following diagram shows the relationship between the primary and secondary
 name servers. The text below explains the process in detail.
 
@@ -168,10 +166,10 @@ the :iscman:`named.conf` file has been modified as shown:
 
 The added statements and blocks are commented in the above file.
 
-The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
+The :any:`zone` block, and :ref:`allow-query<allow-query>`,
 :any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
+:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 .. _sample_secondary:
@@ -250,11 +248,11 @@ The :ref:`named.conf<named_conf>` file has been modified as shown:
 
 The statements and blocks added are all commented in the above file.
 
-The :ref:`zone<zone_clause>` block, and :ref:`allow-query<allow-query>`,
+The :any:`zone` block, and :ref:`allow-query<allow-query>`,
 :any:`allow-query-cache`,
 :ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
 :ref:`notify<notify_st>`, :ref:`primaries<primaries>`,
-:ref:`recursion<recursion>`, and :ref:`type<type>` statements are described in
+:ref:`recursion<recursion>`, and :any:`type` statements are described in
 detail in the appropriate sections.
 
 If NOTIFY is not being used, no changes are required in this

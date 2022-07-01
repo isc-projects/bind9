@@ -471,7 +471,7 @@ This trust anchor is provided as part of BIND and is kept up-to-date using
 To validate answers, the resolver needs at least one trusted starting point,
 a "trust anchor." Essentially, trust anchors are copies of ``DNSKEY`` RRs for
 zones that are used to form the first link in the cryptographic chain of trust.
-Alternative trust anchors can be specified using :ref:`trust_anchors`, but
+Alternative trust anchors can be specified using :any:`trust-anchors`, but
 this setup is very unusual and is recommended only for expert use.
 For more information, see :ref:`trust_anchors_description` in the
 :doc:`dnssec-guide`.
