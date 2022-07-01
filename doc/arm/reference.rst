@@ -282,7 +282,7 @@ file documentation:
         A list of one or more :term:`ip_address`, :term:`netprefix`, :term:`server_key`, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional ``tls_id``, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more :term:`ip_address` s with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
@@ -314,7 +314,7 @@ file documentation:
         :namedconf:ref:`key` blocks.
 
     ``tls_id``
-        A string representing a TLS configuration object, including a key and certificate.
+        A name of TLS configuration object which defines TLS key and certificate. See :any:`tls` block.
 
     ``number``
         A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
