@@ -44,8 +44,8 @@ The file :file:`named.conf` may contain three types of entities:
       - Statements define and control specific BIND behaviors.
       - Statements may have a single parameter (a **Value**) or multiple parameters
         (**Argument/Value** pairs). For example, the :any:`recursion` statement takes a
-        single value parameter which, in this case, is the string ``yes`` or ``no``
-        (``recursion yes;``) whereas the :any:`port` statement takes a  numeric value
+        single value parameter - in this case, the string ``yes`` or ``no``
+        (``recursion yes;``) - while the :namedconf:ref:`port` statement takes a  numeric value
         defining the DNS port number (``port 53;``). More complex statements take one or
         more argument/value pairs. The :any:`also-notify` statement may take a number
         of such argument/value pairs, such as ``also-notify port 5353;``,
@@ -313,10 +313,12 @@ file documentation:
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
     ``key_id``
-        A ``domain_name`` representing the name of a shared key, to be used for transaction security.
+        A ``domain_name`` representing the name of a shared key, to be used for
+        :ref:`transaction security <tsig>`. Keys are defined using
+        :namedconf:ref:`key` blocks.
 
     ``key_list``
-        A list of one or more ``key_id``, separated by semicolons and ending with a semicolon.
+        A list of one or more :term:`key_id` s, separated by semicolons and ending with a semicolon.
 
     ``tls_id``
         A string representing a TLS configuration object, including a key and certificate.
@@ -427,8 +429,6 @@ configuration.
 
 .. namedconf:statement:: acl
 
-.. include:: ../misc/acl.grammar.rst
-
 .. _acl:
 
 ``acl`` Statement Definition and Usage
@@ -457,8 +457,6 @@ The following ACLs are built-in:
 ``controls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
-
-.. include:: ../misc/controls.grammar.rst
 
 .. _controls_statement_definition_and_usage:
 
@@ -504,8 +502,8 @@ and retrieve non-DNS results from a name server.
 
    ``keys``
       The primary authorization mechanism of the command channel is the
-      ``key_list``, which contains a list of ``key_id``s. Each ``key_id`` in
-      the ``key_list`` is authorized to execute commands over the control
+      :term:`key_list`, which contains a list of :term:`key_id` s. Each
+      :namedconf:ref:`key` is authorized to execute commands over the control
       channel. See :ref:`admin_tools` for information about
       configuring keys in :iscman:`rndc`.
 
@@ -533,8 +531,6 @@ To disable the command channel, use an empty ``controls`` statement:
 ``key`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
-
-.. include:: ../misc/key.grammar.rst
 
 .. _key_statement:
 
@@ -575,8 +571,6 @@ matching this name, algorithm, and secret.
 ``logging`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
-
-.. include:: ../misc/logging.grammar.rst
 
 .. _logging_statement:
 
@@ -986,8 +980,6 @@ responses such as NXDOMAIN.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
 
-.. include:: ../misc/parental-agents.grammar.rst
-
 .. _parental_agents_statement:
 
 ``parental-agents`` Statement Definition and Usage
@@ -1003,8 +995,6 @@ change its delegation information (defined in :rfc:`7344`).
 ``primaries`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
-
-.. include:: ../misc/primaries.grammar.rst
 
 .. _primaries_statement:
 
@@ -1042,8 +1032,6 @@ where ``tls-configuration-name`` refers to a previously defined
 
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
-
-.. include:: ../misc/options.grammar.rst
 
 .. _options:
 
@@ -1702,6 +1690,20 @@ default is used.
               exclude { 64:FF9B::/96; ::ffff:0000:0000/96; };
               suffix ::;
           };
+
+.. namedconf:statement:: ipv4only-enable
+
+   This enables or disables automatic zones ``ipv4only.arpa``,
+   ``170.0.0.192.in-addr.arpa``, and ``171.0.0.192.in-addr.arpa``.
+
+   By default these zones are loaded if :any:`dns64` is configured.
+
+.. namedconf:statement:: ipv4only-server
+.. namedconf:statement:: ipv4only-contact
+
+   ``ipv4only-server`` and ``ipv4only-contact`` can be used to specify the name
+   of the server and contact for the IPV4ONLY.ARPA zone created by
+   :any:`dns64`.
 
 .. namedconf:statement:: dnssec-loadkeys-interval
 
@@ -5229,8 +5231,6 @@ redirect zone is tried first.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
 
-.. include:: ../misc/server.grammar.rst
-
 .. _server_statement_definition_and_usage:
 
 ``server`` Statement Definition and Usage
@@ -5301,9 +5301,17 @@ any top-level ``server`` statements are used as defaults.
    specified, the limit is set according to the ``transfers-per-ns``
    option.
 
-``keys``
-   The option identifies a ``key_id`` defined by the ``key``
-   statement, to be used for transaction security (see :ref:`tsig`)
+.. namedconf:statement:: keys
+   :suppress_grammar:
+
+   .. warning::
+      Not to be confused with ``keys`` in :any:`dnssec-policy` specification.
+      Although statements with the same name exist in both contexts, they refer
+      to fundamentally incompatible concepts.
+
+   In the context of a :namedconf:ref:`server` block, the option identifies a
+   :term:`key_id` defined by the :namedconf:ref:`key` statement, to be used for
+   transaction security (see :ref:`tsig`)
    when talking to the remote server. When a request is sent to the remote
    server, a request signature is generated using the key specified
    here and appended to the message. A request originating from the remote
@@ -5335,8 +5343,6 @@ and :namedconf:ref:`options` blocks:
 ``statistics-channels`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
-
-.. include:: ../misc/statistics-channels.grammar.rst
 
 .. _statistics_channels:
 
@@ -5407,8 +5413,6 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 ``tls`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
-
-.. include:: ../misc/tls.grammar.rst
 
 ``tls`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5595,8 +5599,6 @@ issues related to shared cryptographic secrets.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
 
-.. include:: ../misc/http.grammar.rst
-
 ``http`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -5650,8 +5652,6 @@ all local addresses:
 ``trust-anchors`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trust-anchors
-
-.. include:: ../misc/trust-anchors.grammar.rst
 
 .. _trust-anchors:
 
@@ -5798,8 +5798,6 @@ can be found, the initializing key is also compiled directly into
 ``dnssec-policy`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
-
-.. include:: ../misc/dnssec-policy.grammar.rst
 
 .. _dnssec_policy:
 
@@ -6068,8 +6066,6 @@ The following options apply to DS queries sent to ``parental-agents``:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
 
-.. include:: ../misc/managed-keys.grammar.rst
-
 .. _managed_keys:
 
 ``managed-keys`` Statement Definition and Usage
@@ -6084,8 +6080,6 @@ with the ``initial-key`` keyword.
 ``trusted-keys`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
-
-.. include:: ../misc/trusted-keys.grammar.rst
 
 .. _trusted_keys:
 
@@ -6131,8 +6125,9 @@ run multiple servers.
    ``address_match_list`` of the view's ``match-destinations`` clause. If
    not specified, both ``match-clients`` and ``match-destinations`` default
    to matching all addresses. In addition to checking IP addresses,
-   ``match-clients`` and ``match-destinations`` can also take ``keys``
-   which provide an mechanism for the client to select the view.
+   ``match-clients`` and ``match-destinations`` can also take the name of a
+   TSIG :namedconf:ref:`key`, which provides a mechanism for the client to select
+   the view.
 
 .. namedconf:statement:: match-recursive-only
 
@@ -6208,17 +6203,7 @@ Here is an example of a typical split DNS setup implemented using
 ``zone`` Statement Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
-
-.. include:: ../misc/primary.zoneopt.rst
-.. include:: ../misc/secondary.zoneopt.rst
-.. include:: ../misc/mirror.zoneopt.rst
-.. include:: ../misc/hint.zoneopt.rst
-.. include:: ../misc/stub.zoneopt.rst
-.. include:: ../misc/static-stub.zoneopt.rst
-.. include:: ../misc/forward.zoneopt.rst
-.. include:: ../misc/redirect.zoneopt.rst
-.. include:: ../misc/delegation-only.zoneopt.rst
-.. include:: ../misc/in-view.zoneopt.rst
+   :suppress_grammar:
 
 .. _zone_statement:
 
@@ -6232,6 +6217,7 @@ Here is an example of a typical split DNS setup implemented using
 Zone Types
 ^^^^^^^^^^
 .. namedconf:statement:: type
+   :suppress_grammar:
 
    The ``type`` keyword is required for the ``zone`` configuration unless
    it is an ``in-view`` configuration. Its acceptable values are:

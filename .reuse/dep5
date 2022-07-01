@@ -155,7 +155,7 @@ Files: **/.clang-format
        .uncrustify.cfg
        doc/misc/*.zoneopt
        doc/misc/options
-       doc/misc/options.active
+       doc/misc/rndc.grammar
        tsan-suppressions.txt
 Copyright: Internet Systems Consortium, Inc. ("ISC")
 License: CC0-1.0

@@ -104,6 +104,7 @@ def setup(app):
 # documentation root, make it absolute.
 #
 sys.path.append(str(Path(__file__).resolve().parent / "_ext"))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
 
 # -- Project information -----------------------------------------------------
 
