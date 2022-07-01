@@ -287,11 +287,10 @@ file documentation:
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-    ``dotted_decimal``
-        One to four integers valued 0 through 255 and separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
-
     ``ip4_addr``
-        An IPv4 address with exactly four elements in ``dotted_decimal`` notation, such as ``192.168.1.1``.
+        An IPv4 address with exactly four integer elements valued 0 through 255
+        and separated by dots (``.``), such as ``192.168.1.1``. (A
+        "dotted-decimal" notation with all four elements present.)
 
     ``ip6_addr``
         An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
