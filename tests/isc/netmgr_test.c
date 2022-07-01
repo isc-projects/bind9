@@ -384,8 +384,11 @@ noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 static unsigned int
 noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg) {
 	UNUSED(handle);
-	UNUSED(result);
 	UNUSED(cbarg);
+
+	if (result == ISC_R_SUCCESS) {
+		(void)atomic_fetch_add(&saccepts, 1);
+	}
 
 	return (0);
 }
@@ -1217,7 +1220,7 @@ stream_noresponse(void **state __attribute__((unused))) {
 	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 
 	WAIT_FOR_EQ(cconnects, 1);
-	WAIT_FOR_EQ(csends, 1);
+	WAIT_FOR_EQ(saccepts, 1);
 
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
@@ -1231,7 +1234,7 @@ stream_noresponse(void **state __attribute__((unused))) {
 	X(ssends);
 
 	atomic_assert_int_eq(cconnects, 1);
-	atomic_assert_int_eq(csends, 1);
+	atomic_assert_int_eq(saccepts, 1);
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
@@ -1729,7 +1732,7 @@ ISC_RUN_TEST_IMPL(tcpdns_noresponse) {
 			     connect_connect_cb, NULL, T_CONNECT);
 
 	WAIT_FOR_EQ(cconnects, 1);
-	WAIT_FOR_EQ(csends, 1);
+	WAIT_FOR_EQ(saccepts, 1);
 
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
@@ -1743,7 +1746,7 @@ ISC_RUN_TEST_IMPL(tcpdns_noresponse) {
 	X(ssends);
 
 	atomic_assert_int_eq(cconnects, 1);
-	atomic_assert_int_eq(csends, 1);
+	atomic_assert_int_eq(saccepts, 1);
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
@@ -2282,7 +2285,7 @@ ISC_RUN_TEST_IMPL(tlsdns_noresponse) {
 			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 
 	WAIT_FOR_EQ(cconnects, 1);
-	WAIT_FOR_EQ(csends, 1);
+	WAIT_FOR_EQ(saccepts, 1);
 
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
@@ -2296,7 +2299,7 @@ ISC_RUN_TEST_IMPL(tlsdns_noresponse) {
 	X(ssends);
 
 	atomic_assert_int_eq(cconnects, 1);
-	atomic_assert_int_eq(csends, 1);
+	atomic_assert_int_eq(saccepts, 1);
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
@@ -2747,7 +2750,6 @@ ISC_RUN_TEST_IMPL(tlsdns_listen_noalpn) {
 
 	WAIT_FOR_EQ(saccepts, 1);
 	WAIT_FOR_EQ(cconnects, 1);
-	WAIT_FOR_EQ(csends, 1);
 
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
@@ -2762,7 +2764,6 @@ ISC_RUN_TEST_IMPL(tlsdns_listen_noalpn) {
 
 	atomic_assert_int_eq(saccepts, 1);
 	atomic_assert_int_eq(cconnects, 1);
-	atomic_assert_int_eq(csends, 1);
 	atomic_assert_int_eq(creads, 0);
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
