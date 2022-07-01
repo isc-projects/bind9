@@ -1,3 +1,6 @@
+5915.	[bug]		Detect missing closing brace (}) and computational
+			overflows in $GENERATE directives. [GL #3429]
+
 5913.	[bug]		Fix a race between resolver query timeout and
 			validation in resolver.c:validated(). Remove
 			resolver.c:maybe_destroy() as it is no loger needed.
