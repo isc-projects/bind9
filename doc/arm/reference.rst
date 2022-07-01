@@ -40,23 +40,23 @@ The file :file:`named.conf` may contain three types of entities:
       define the scope of the statement - for example, a statement which appears
       in a :namedconf:ref:`zone` block has scope only for that zone.
 
-      Blocks are organized hierarchically within named.conf and may have a
+      Blocks are organized hierarchically within :file:`named.conf` and may have a
       number of different properties:
 
-      - Certain blocks cannot be nested in other blocks and thus may be
-        regarded as the *topmost* level blocks. For example, the
+      - Certain blocks cannot be nested inside other blocks and thus may be
+        regarded as the *topmost-level* blocks: for example, the
         :namedconf:ref:`options` block and the :namedconf:ref:`logging` block.
 
-      - Certain blocks can appear multiple times in which case they will have
-        an associated name to disambiguate them. For example, the
+      - Certain blocks can appear multiple times, in which case they have
+        an associated name to disambiguate them: for example, the
         :namedconf:ref:`zone` block (``zone example.com { ... };``) or the
         :namedconf:ref:`key` block (``key mykey { ... };``).
 
-      - Certain blocks may be nested within other blocks. For example, the
-        :namedconf:ref:`zone` block may be nested (appear within) a
+      - Certain blocks may be "nested" within other blocks. For example, the
+        :namedconf:ref:`zone` block may appear within a
         :namedconf:ref:`view` block.
 
-      Description of each block in this manual lists its permissible locations.
+      The description of each block in this manual lists its permissible locations.
 
    Statement
       - Statements define and control specific BIND behaviors.
@@ -219,7 +219,7 @@ Address Match Lists
 Syntax
 ^^^^^^
 
-Address Match List is a list of semicolor-separated :term:`address_match_element` s.
+An address match list is a list of semicolon-separated :term:`address_match_element` s.
 
 ::
 
@@ -315,7 +315,7 @@ file documentation:
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
     ``dscp``
-        A :term:`integer` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+        An :term:`integer` between 0 and 63, used to select a Differentiated Services Code Point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
 
     ``fixedpoint``
         A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
@@ -328,14 +328,14 @@ file documentation:
 
     ``ipv4_address``
         An IPv4 address with exactly four integer elements valued 0 through 255
-        and separated by dots (``.``), such as ``192.168.1.1``. (A
-        "dotted-decimal" notation with all four elements present.)
+        and separated by dots (``.``), such as ``192.168.1.1`` (a
+        "dotted-decimal" notation with all four elements present).
 
     ``ipv6_address``
         An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
     ``netprefix``
-        An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an:term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
+        An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an :term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
     ``percentage``
@@ -345,10 +345,10 @@ file documentation:
         An IP port :term:`integer`. It is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
     ``portrange``
-        A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
+        A list of a :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
     ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more :term:`ip_address` es with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``server_key``
         A :term:`domain_name` representing the name of a shared key, to be used for
@@ -359,12 +359,12 @@ file documentation:
     ``sizeval``
         A 64-bit unsigned integer. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as :any:`max-journal-size`) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
 
-        Some statements also accept keywords ``unlimited`` or ``default``:
+        Some statements also accept the keywords ``unlimited`` or ``default``:
         ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
         ``default`` uses the limit that was in force when the server was started.
 
     ``tls_id``
-        A name of TLS configuration object which defines TLS key and certificate. See :any:`tls` block.
+        A named TLS configuration object which defines a TLS key and certificate. See :any:`tls` block.
 
 
 .. _configuration_file_grammar:
@@ -3002,7 +3002,7 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    If a port number is not specified, the default is 53 for standard DNS,
    853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
    DNS over HTTP (unencrypted).  These defaults may be overridden using the
-   :namedconf:ref:`port`, :any:`tls-port`, :any:`https-port` and :any:`http-port` options.
+   :namedconf:ref:`port`, :any:`tls-port`, :any:`https-port`, and :any:`http-port` options.
 
    Multiple :any:`listen-on` statements are allowed. For example:
 
@@ -3157,7 +3157,7 @@ Query Address
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured :term:`port` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
    .. note:: See also :any:`transfer-source`, :any:`notify-source` and :any:`parental-source`.
 
@@ -3333,7 +3333,7 @@ options apply to zone transfers.
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured :term:`port` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: transfer-source-v6
    :tags: transfer
@@ -3383,7 +3383,7 @@ options apply to zone transfers.
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured :term:`port` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: notify-source-v6
    :tags: transfer
@@ -6056,7 +6056,7 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured :term:`port` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: parental-source-v6
 
@@ -7055,12 +7055,12 @@ An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
 Statements by Tag
 -----------------
 
-BIND 9 supports many hundreds of statements. Finding the right statement to
+BIND 9 supports many hundreds of statements; finding the right statement to
 control a specific behavior or solve a particular problem can be a daunting
 task. To simplify the task all statements have been assigned one or more tags.
 Tags are designed to group together statements that have broadly similar
-functionality, thus all statements that control handling of queries or of zone
-transfers are respectively tagged under **query** and **transfer**.
+functionality; thus, for example, all statements that control the handling of
+queries or of zone transfers are respectively tagged under **query** and **transfer**.
 
 Query Tag Statements
 ~~~~~~~~~~~~~~~~~~~~
@@ -7074,8 +7074,8 @@ Transfer Tag Statements
 
 Statements
 ----------
-The following table lists all statements permissible in named.conf. Please note
-that this section is work in progress.
+The following table lists all statements permissible in :file:`named.conf`. Please note
+that this section is a work in progress.
 
 .. namedconf:statementlist::
 
