@@ -683,7 +683,10 @@ genname(char *name, int it, char *buffer, size_t length) {
 	char fmt[sizeof("%04000000000d")];
 	char numbuf[128];
 	char *cp;
-	char mode[2];
+	char mode[2] = { 0 };
+	char brace[2] = { 0 };
+	char comma1[2] = { 0 };
+	char comma2[2] = { 0 };
 	int delta = 0;
 	isc_textregion_t r;
 	unsigned int n;
@@ -708,23 +711,31 @@ genname(char *name, int it, char *buffer, size_t length) {
 			strlcpy(fmt, "%d", sizeof(fmt));
 			/* Get format specifier. */
 			if (*name == '{') {
-				n = sscanf(name, "{%d,%u,%1[doxXnN]}", &delta,
-					   &width, mode);
-				switch (n) {
-				case 1:
-					break;
-				case 2:
+				n = sscanf(name,
+					   "{%d%1[,}]%u%1[,}]%1[doxXnN]%1[}]",
+					   &delta, comma1, &width, comma2, mode,
+					   brace);
+				if (n < 2 || n > 6) {
+					return (DNS_R_SYNTAX);
+				}
+				if (comma1[0] == '}') {
+					/* %{delta} */
+				} else if (comma1[0] == ',' && comma2[0] == '}')
+				{
+					/* %{delta,width} */
 					n = snprintf(fmt, sizeof(fmt), "%%0%ud",
 						     width);
-					break;
-				case 3:
+				} else if (comma1[0] == ',' &&
+					   comma2[0] == ',' && mode[0] != 0 &&
+					   brace[0] == '}')
+				{
+					/* %{delta,width,format} */
 					if (mode[0] == 'n' || mode[0] == 'N') {
 						nibblemode = true;
 					}
 					n = snprintf(fmt, sizeof(fmt),
 						     "%%0%u%c", width, mode[0]);
-					break;
-				default:
+				} else {
 					return (DNS_R_SYNTAX);
 				}
 				if (n >= sizeof(fmt)) {
