@@ -725,6 +725,13 @@ genname(char *name, int it, char *buffer, size_t length) {
 					continue;
 				}
 			}
+			/*
+			 * 'it' is >= 0 so we don't need to check for
+			 * underflow.
+			 */
+			if ((it > 0 && delta > INT_MAX - it)) {
+				return (ISC_R_RANGE);
+			}
 			if (nibblemode) {
 				n = nibbles(numbuf, sizeof(numbuf), width,
 					    mode[0], it + delta);
