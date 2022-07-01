@@ -276,10 +276,10 @@ file documentation:
 .. glossary::
 
     ``acl_name``
-        The name of an ``address_match_list`` as defined by the :any:`acl` statement.
+        The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or ``acl_name`` elements; see :ref:`address_match_lists`.
+        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remoteserver_list``
         A named list of one or more ``ip_addr`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remoteserver_list`` may include other ``remoteserver_list`` s.
@@ -488,9 +488,9 @@ and retrieve non-DNS results from a name server.
 
    ``allow``
       Connections to the control channel
-      are permitted based on the ``address_match_list``. This is for simple IP
+      are permitted based on the :term:`address_match_list`. This is for simple IP
       address-based filtering only; any ``key_id`` elements of the
-      ``address_match_list`` are ignored.
+      :term:`address_match_list` are ignored.
 
    :any:`keys`
       The primary authorization mechanism of the command channel is the
@@ -2949,15 +2949,15 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
 
    :any:`listen-on` and :any:`listen-on-v6` statements can each take an optional
    port, TLS configuration identifier, and/or HTTP configuration identifier,
-   in addition to an ``address_match_list``.
+   in addition to an :term:`address_match_list`.
 
-   The ``address_match_list`` in :any:`listen-on` specifies the IPv4 addresses
+   The :term:`address_match_list` in :any:`listen-on` specifies the IPv4 addresses
    on which the server will listen. (IPv6 addresses are ignored, with a
    logged warning.) The server listens on all interfaces allowed by the
    address match list.  If no :any:`listen-on` is specified, the default is
    to listen for standard DNS queries on port 53 of all IPv4 interfaces.
 
-   :any:`listen-on-v6` takes an ``address_match_list`` of IPv6 addresses.
+   :any:`listen-on-v6` takes an :term:`address_match_list` of IPv6 addresses.
    The server listens on all interfaces allowed by the address match list.
    If no :any:`listen-on-v6` is specified, the default is to listen for standard
    DNS queries on port 53 of all IPv6 interfaces.
@@ -3737,11 +3737,11 @@ all the clients.
    :tags: query
    :short: Controls the ordering of RRs returned to the client, based on the client's IP address.
 
-   The :any:`sortlist` statement (see below) takes an ``address_match_list`` and
+   The :any:`sortlist` statement (see below) takes an :term:`address_match_list` and
    interprets it in a special way. Each top-level statement in the :any:`sortlist`
-   must itself be an explicit ``address_match_list`` with one or two elements. The
+   must itself be an explicit :term:`address_match_list` with one or two elements. The
    first element (which may be an IP address, an IP prefix, an ACL name, or a nested
-   ``address_match_list``) of each top-level list is checked against the source
+   :term:`address_match_list`) of each top-level list is checked against the source
    address of the query until a match is found. When the addresses in the first
    element overlap, the first rule to match is selected.
 
@@ -4543,9 +4543,9 @@ Content Filtering
    DNS servers containing certain types of data in the answer section.
    Specifically, it can reject address (A or AAAA) records if the
    corresponding IPv4 or IPv6 addresses match the given
-   ``address_match_list`` of the :any:`deny-answer-addresses` option.
+   :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
-   In the ``address_match_list`` of the :any:`deny-answer-addresses` option,
+   In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
    only ``ip_addr`` and ``ip_prefix`` are meaningful; any ``key_id`` is
    silently ignored.
 
@@ -5362,7 +5362,7 @@ If no port is specified, port 80 is used for HTTP channels. The asterisk
 
 Attempts to open a statistics channel are restricted by the
 optional ``allow`` clause. Connections to the statistics channel are
-permitted based on the ``address_match_list``. If no ``allow`` clause is
+permitted based on the :term:`address_match_list`. If no ``allow`` clause is
 present, :iscman:`named` accepts connection attempts from any address; since
 the statistics may contain sensitive internal information, it is highly
 recommended to restrict the source of connection requests appropriately.
@@ -6094,9 +6094,9 @@ run multiple servers.
 
    Each :any:`view` statement defines a view of the DNS namespace that is
    seen by a subset of clients. A client matches a view if its source IP
-   address matches the ``address_match_list`` of the view's
+   address matches the :term:`address_match_list` of the view's
    :any:`match-clients` clause, and its destination IP address matches the
-   ``address_match_list`` of the view's :any:`match-destinations` clause. If
+   :term:`address_match_list` of the view's :any:`match-destinations` clause. If
    not specified, both :any:`match-clients` and :any:`match-destinations` default
    to matching all addresses. In addition to checking IP addresses,
    :any:`match-clients` and :any:`match-destinations` can also take the name of a
