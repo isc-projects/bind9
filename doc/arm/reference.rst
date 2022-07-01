@@ -287,9 +287,6 @@ file documentation:
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-    ``namelist``
-        A list of one or more :term:`domain_name` elements.
-
     ``dotted_decimal``
         One to four integers valued 0 through 255 and separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
 
@@ -4533,9 +4530,9 @@ Content Filtering
    It can
    also reject CNAME or DNAME records if the "alias" name (i.e., the CNAME
    alias or the substituted query name due to DNAME) matches the given
-   ``namelist`` of the :any:`deny-answer-aliases` option, where "match" means
-   the alias name is a subdomain of one of the ``name_list`` elements. If
-   the optional ``namelist`` is specified with ``except-from``, records
+   list of :term:`domain_name` elements of the :any:`deny-answer-aliases` option,
+   where "match" means the alias name is a subdomain of one of the listed domain names. If
+   the optional list is specified in the ``except-from`` argument, records
    whose query name matches the list are accepted regardless of the
    filter setting. Likewise, if the alias name is a subdomain of the
    corresponding zone, the :any:`deny-answer-aliases` filter does not apply;
