@@ -117,9 +117,6 @@ server.
 
 .. rndcconf:statement:: options
 
-   The ``options`` statement has three clauses: ``default-server``,
-   ``default-key``, and ``default-port``.
-
    .. rndcconf:statement:: default-server
 
       ``default-server`` takes a
@@ -136,6 +133,14 @@ server.
       ``default-port`` specifies the port to which
       :iscman:`rndc` should connect if no port is given on the command line or in
       a ``server`` statement.
+
+   .. rndcconf:statement:: default-source-address
+   .. rndcconf:statement:: default-source-address-v6
+
+      ``default-source-address`` and ``default-source-address-v6`` specify
+      the IPv4 and IPv6 source address used to communicate with the server
+      if no address is given on the command line or in a
+      :rndcconf:ref:`server` block.
 
 .. rndcconf:statement:: key
 
@@ -160,12 +165,27 @@ server.
 
 .. rndcconf:statement:: server
 
-   The ``server`` statement associates a key defined using the ``key``
-   statement with a server. The keyword ``server`` is followed by a host
-   name or address. The ``server`` statement has two clauses: ``key``
-   and ``port``. The ``key`` clause specifies the name of the key to be
-   used when communicating with this server, and the ``port`` clause can
-   be used to specify the port :iscman:`rndc` should connect to on the server.
+   The ``server`` statement specifies connection parameters for a given server.
+   The server can be specified as a host name or address.
+
+   .. rndcconf:statement:: addresses
+
+      Specifies one or more addresses to use when communicating with this
+      server.
+
+   :rndcconf:ref:`key`
+      Associates a key defined using the :rndcconf:ref:`key` statement with a
+      server.
+
+   .. rndcconf:statement:: port
+
+      Specifes the port :iscman:`rndc` should connect to on the server.
+
+   .. rndcconf:statement:: source-address
+   .. rndcconf:statement:: source-address-v6
+
+      Overrides :rndcconf:ref:`default-source-address` and
+      :rndcconf:ref:`default-source-address-v6` for this specific server.
 
    A sample minimal configuration file is as follows:
 

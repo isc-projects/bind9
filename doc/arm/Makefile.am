@@ -62,31 +62,23 @@ EXTRA_DIST =					\
 	tsig.inc.rst				\
 	zones.inc.rst				\
 	_ext/iscconf.py				\
+	_ext/mergegrammar.py			\
 	_ext/namedconf.py			\
 	_ext/rndcconf.py			\
 	_static/custom.css			\
 	../dnssec-guide				\
-	../misc/acl.grammar.rst			\
-	../misc/controls.grammar.rst		\
-	../misc/delegation-only.zoneopt.rst	\
-	../misc/forward.zoneopt.rst		\
-	../misc/hint.zoneopt.rst		\
-	../misc/in-view.zoneopt.rst		\
-	../misc/key.grammar.rst			\
-	../misc/logging.grammar.rst		\
-	../misc/managed-keys.grammar.rst	\
-	../misc/primary.zoneopt.rst		\
-	../misc/mirror.zoneopt.rst		\
-	../misc/options.grammar.rst		\
-	../misc/parental-agents.grammar.rst	\
-	../misc/primaries.grammar.rst		\
-	../misc/redirect.zoneopt.rst		\
-	../misc/server.grammar.rst		\
-	../misc/secondary.zoneopt.rst		\
-	../misc/static-stub.zoneopt.rst		\
-	../misc/statistics-channels.grammar.rst	\
-	../misc/stub.zoneopt.rst		\
-	../misc/trusted-keys.grammar.rst	\
+	../misc/options				\
+	../misc/rndc.grammar			\
+	../misc/delegation-only.zoneopt		\
+	../misc/forward.zoneopt			\
+	../misc/hint.zoneopt			\
+	../misc/in-view.zoneopt			\
+	../misc/mirror.zoneopt			\
+	../misc/primary.zoneopt			\
+	../misc/redirect.zoneopt		\
+	../misc/secondary.zoneopt		\
+	../misc/static-stub.zoneopt		\
+	../misc/stub.zoneopt			\
 	../notes/*.rst
 
 html-local:
