@@ -206,7 +206,7 @@ Syntax
    address_match_list = address_match_list_element ; ...
 
    address_match_list_element = [ ! ] ( ip_address | netprefix |
-        key key_id | acl_name | { address_match_list } )
+        key server_key | acl_name | { address_match_list } )
 
 Definition and Usage
 ^^^^^^^^^^^^^^^^^^^^
@@ -279,10 +279,10 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more :term:`ip_address`, :term:`netprefix`, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        A list of one or more :term:`ip_address`, :term:`netprefix`, ``server_key``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``key_id``, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``server_key``, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
@@ -308,7 +308,7 @@ file documentation:
         An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an:term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
-    ``key_id``
+    ``server_key``
         A :term:`domain_name` representing the name of a shared key, to be used for
         :ref:`transaction security <tsig>`. Keys are defined using
         :namedconf:ref:`key` blocks.
@@ -482,12 +482,12 @@ and retrieve non-DNS results from a name server.
    ``allow``
       Connections to the control channel
       are permitted based on the :term:`address_match_list`. This is for simple IP
-      address-based filtering only; any ``key_id`` elements of the
+      address-based filtering only; any ``server_key`` elements of the
       :term:`address_match_list` are ignored.
 
    :any:`keys`
       The primary authorization mechanism of the command channel is the
-      list of :term:`key_id` s. Each listed
+      list of :term:`server_key` s. Each listed
       :namedconf:ref:`key` is authorized to execute commands over the control
       channel. See :ref:`admin_tools` for information about
       configuring keys in :iscman:`rndc`.
@@ -531,7 +531,7 @@ statements can be used in all views. Keys intended for use in a
 :any:`controls` statement (see :ref:`controls_statement_definition_and_usage`)
 must be defined at the top level.
 
-The ``key_id``, also known as the key name, is a domain name that uniquely
+The ``server_key``, also known as the key name, is a domain name that uniquely
 identifies the key. It can be used in a ``server`` statement to cause
 requests sent to that server to be signed with this key, or in address
 match lists to verify that incoming requests have been signed with a key
@@ -4517,7 +4517,7 @@ Content Filtering
    :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
    In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
-   only :term:`ip_address` and :term:`netprefix` are meaningful; any ``key_id`` is
+   only :term:`ip_address` and :term:`netprefix` are meaningful; any ``server_key`` is
    silently ignored.
 
 
@@ -5271,7 +5271,7 @@ any top-level ``server`` statements are used as defaults.
       to fundamentally incompatible concepts.
 
    In the context of a :namedconf:ref:`server` block, the option identifies a
-   :term:`key_id` defined by the :namedconf:ref:`key` statement, to be used for
+   :term:`server_key` defined by the :namedconf:ref:`key` statement, to be used for
    transaction security (see :ref:`tsig`)
    when talking to the remote server. When a request is sent to the remote
    server, a request signature is generated using the key specified
