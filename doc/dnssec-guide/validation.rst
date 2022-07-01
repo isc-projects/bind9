@@ -373,7 +373,7 @@ take a closer look at what DNSSEC validation actually does, and some other optio
 .. _dnssec_validation_explained:
 
 :any:`dnssec-validation`
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 

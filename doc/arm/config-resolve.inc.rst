@@ -116,7 +116,7 @@ as the file ``named.root`` (normally found in /etc/namedb or
       Consult the appropriate distribution documentation for the actual file name.
 
 
-The hint zone file is referenced using the :ref:`type hint;<type>` statement and
+The hint zone file is referenced using the :any:`type hint` statement and
 a zone (domain) name of "." (the generally silent dot).
 
    .. Note:: The root server IP addresses have been stable for a number of
@@ -262,10 +262,10 @@ It is therefore a **closed** resolver and cannot be used in wider network attack
           notify no;
         };
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
+The :any:`zone` and :any:`acl` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and
-:ref:`type<type>` statements are described in detail in the appropriate
+:any:`type` statements are described in detail in the appropriate
 sections.
 
 As a reminder, the configuration of this resolver does **not** access the DNS
@@ -380,10 +380,10 @@ provided<selective_forward_sample>`.
           notify no;
         };
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
+The :any:`zone` and :any:`acl` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
+:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 As a reminder, the configuration of this forwarding resolver does **not**
@@ -507,10 +507,10 @@ those IPs from which it will accept recursive queries.
         };
 
 
-The :ref:`zone<zone_clause>` and :ref:`acl<acl_grammar>` blocks, and the
+The :any:`zone` and :any:`acl` blocks, and the
 :ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
 :ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :ref:`type<type>`
+:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 As a reminder, the configuration of this resolver does **not** access the DNS

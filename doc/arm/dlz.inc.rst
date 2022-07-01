@@ -51,14 +51,14 @@ DLZ driver. Multiple :any:`dlz` statements can be specified.
 
 .. namedconf:statement:: search
 
-When answering a query, all DLZ modules with :any:`search` set to ``yes`` are
+When answering a query, all DLZ modules with :namedconf:ref:`search` set to ``yes`` are
 queried to see whether they contain an answer for the query name. The best
 available answer is returned to the client.
 
-The :any:`search` option in the above example can be omitted, because
+The :namedconf:ref:`search` option in the above example can be omitted, because
 ``yes`` is the default value.
 
-If :any:`search` is set to ``no``, this DLZ module is *not* searched
+If :namedconf:ref:`search` is set to ``no``, this DLZ module is *not* searched
 for the best match when a query is received. Instead, zones in this DLZ
 must be separately specified in a zone statement. This allows users to
 configure a zone normally using standard zone-option semantics, but

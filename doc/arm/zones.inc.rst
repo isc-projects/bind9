@@ -38,7 +38,7 @@ The components of a Resource Record are:
    owner name
       The domain name where the RR is found.
 
-   type
+   RR type
       An encoded 16-bit value that specifies the type of the resource record.
       For a list of *types* of valid RRs, including those that have been obsoleted, please refer to
       `https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4`.

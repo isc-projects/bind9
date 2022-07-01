@@ -52,7 +52,7 @@
 ``network``
     Network operations.
 
-:any:`notify`
+``notify``
     The NOTIFY protocol.
 
 ``nsid``

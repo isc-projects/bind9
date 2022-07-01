@@ -347,7 +347,7 @@ file documentation:
         Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
     ``dialup_option``
-        One of ``yes``, ``no``, :any:`notify`, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
+        One of ``yes``, ``no``, ``notify``, ``notify-passive``, ``refresh``, or  ``passive``. When used in a zone, ``notify-passive``, ``refresh``, and ``passive`` are restricted to secondary and stub zones.
 
 
 .. _configuration_file_grammar:
@@ -422,14 +422,10 @@ The following blocks are supported:
 The :any:`logging` and ``options`` statements may only occur once per
 configuration.
 
-.. _acl_grammar:
-
 :any:`acl` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. namedconf:statement:: acl
-
-.. _acl:
 
 :any:`acl` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -611,10 +607,8 @@ logging messages regarding syntax errors in the configuration file go to
 the default channels, or to standard error if the :option:`-g <named -g>` option was
 specified.
 
-.. _channel:
-
 The :any:`channel` Phrase
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 .. namedconf:statement:: channel
 
 All log output goes to one or more ``channels``; there is no limit to
@@ -836,7 +830,7 @@ can be modified by pointing categories at defined channels.
 .. _the_category_phrase:
 
 The :any:`category` Phrase
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 There are many categories, so desired logs can be sent anywhere
 while unwanted logs are ignored. If
 a list of channels is not specified for a category, log messages in that
@@ -1010,13 +1004,13 @@ preferred terminology.)
 To force the zone transfer requests to be sent over TLS, use :any:`tls` keyword,
 e.g. ``primaries { 192.0.2.1 tls tls-configuration-name; };``,
 where ``tls-configuration-name`` refers to a previously defined
-:ref:`tls statement <tls>`.
+:any:`tls statement <tls>`.
 
 .. warning::
 
    Please note that TLS connections to primaries are **not
    authenticated** unless :any:`remote-hostname` or :any:`ca-file` are specified
-   within the :ref:`tls statement <tls>` in use (see information on
+   within the :any:`tls statement <tls>` in use (see information on
    :ref:`Strict TLS <strict-tls>` and :ref:`Mutual TLS <mutual-tls>`
    for more details).  **Not authenticated mode** (:ref:`Opportunistic
    TLS <opportunistic-tls>`) provides protection from passive
@@ -1272,7 +1266,7 @@ default is used.
    specifies the directory containing GeoIP database files.  By default, the
    option is set based on the prefix used to build the ``libmaxminddb`` module;
    for example, if the library is installed in ``/usr/local/lib``, then the
-   default :any:`geoip-directory` is ``/usr/local/share/GeoIP``. See :ref:`acl`
+   default :any:`geoip-directory` is ``/usr/local/share/GeoIP``. See :any:`acl`
    for details about ``geoip`` ACLs.
 
 .. namedconf:statement:: key-directory
@@ -1726,7 +1720,7 @@ default is used.
 .. namedconf:statement:: dnssec-update-mode
 
    If this option is set to its default value of ``maintain`` in a zone
-   of type :any:`primary` which is DNSSEC-signed and configured to allow
+   of :any:`type primary` which is DNSSEC-signed and configured to allow
    dynamic updates (see :ref:`dynamic_update_policies`), and if :iscman:`named` has access
    to the private signing key(s) for the zone, then :iscman:`named`
    automatically signs all new or changed records and maintains signatures
@@ -1927,14 +1921,14 @@ Boolean Options
    serial number check in the secondary (providing it supports NOTIFY),
    allowing the secondary to verify the zone while the connection is active.
    The set of servers to which NOTIFY is sent can be controlled by
-   :any:`notify` and :any:`also-notify`.
+   :namedconf:ref:`notify` and :any:`also-notify`.
 
    If the zone is a secondary or stub zone, the server suppresses
    the regular "zone up to date" (refresh) queries and only performs them
    when the :any:`heartbeat-interval` expires, in addition to sending NOTIFY
    requests.
 
-   Finer control can be achieved by using :any:`notify`, which only sends
+   Finer control can be achieved by using :namedconf:ref:`notify`, which only sends
    NOTIFY messages; ``notify-passive``, which sends NOTIFY messages and
    suppresses the normal refresh queries; ``refresh``, which suppresses
    normal refresh processing and sends refresh queries when the
@@ -1950,7 +1944,7 @@ Boolean Options
    +--------------------+-----------------+-----------------+-----------------+
    | ``yes``            | no              | yes             | yes             |
    +--------------------+-----------------+-----------------+-----------------+
-   | :any:`notify`         | yes             | no              | yes             |
+   | ``notify``         | yes             | no              | yes             |
    +--------------------+-----------------+-----------------+-----------------+
    | ``refresh``        | no              | yes             | no              |
    +--------------------+-----------------+-----------------+-----------------+
@@ -2070,7 +2064,7 @@ Boolean Options
    notifies are sent only to servers explicitly listed using
    :any:`also-notify`. If set to ``no``, no notifies are sent.
 
-   The :any:`notify` option may also be specified in the :any:`zone`
+   The :namedconf:ref:`notify` option may also be specified in the :any:`zone`
    statement, in which case it overrides the ``options notify``
    statement. It would only be necessary to turn off this option if it
    caused secondary zones to crash.
@@ -2349,8 +2343,8 @@ Boolean Options
    of the old and new zone versions, and the server needs to
    temporarily allocate memory to hold this complete difference set.
 
-   :any:`ixfr-from-differences` also accepts :any:`primary`
-   and :any:`secondary` at the view and options levels,
+   :any:`ixfr-from-differences` also accepts ``primary``
+   and ``secondary`` at the view and options levels,
    which causes :any:`ixfr-from-differences` to be enabled for all primary
    or secondary zones, respectively. It is off for all zones by default.
 
@@ -2475,7 +2469,7 @@ Boolean Options
    This option is used to restrict the character set and syntax of
    certain domain names in primary files and/or DNS responses received
    from the network. The default varies according to usage area. For
-   :any:`primary` zones the default is ``fail``. For :any:`secondary` zones the
+   :any:`type primary` zones the default is ``fail``. For :any:`type secondary` zones the
    default is ``warn``. For answers received from the network
    (``response``), the default is ``ignore``.
 
@@ -2698,8 +2692,8 @@ for details on how to specify IP address lists.
 
    This ACL specifies which hosts may send NOTIFY messages to inform
    this server of changes to zones for which it is acting as a secondary
-   server. This is only applicable for secondary zones (i.e., type
-   :any:`secondary` or ``slave``).
+   server. This is only applicable for secondary zones (i.e., :any:`type
+   secondary` or ``slave``).
 
    If this option is set in :any:`view` or ``options``, it is globally
    applied to all secondary zones. If set in the :any:`zone` statement, the
@@ -3708,7 +3702,7 @@ Periodic Task Intervals
 .. _the_sortlist_statement:
 
 The :any:`sortlist` Statement
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The response to a DNS query may consist of multiple resource records
 (RRs) forming a resource record set (RRset). The name server
@@ -4313,7 +4307,7 @@ of built-in zones under the pseudo-top-level-domain ``bind`` in the
 (see :ref:`view_statement_grammar`) of class ``CHAOS``, which is
 separate from the default view of class ``IN``. Most global
 configuration options (:any:`allow-query`, etc.) apply to this view,
-but some are locally overridden: :any:`notify`, :any:`recursion`, and
+but some are locally overridden: :namedconf:ref:`notify`, :any:`recursion`, and
 :any:`allow-new-zones` are always set to ``no``, and :any:`rate-limit` is set
 to allow three responses per second.
 
@@ -5386,8 +5380,6 @@ socket statistics), http://127.0.0.1:8888/json/v1/mem (memory manager
 statistics), http://127.0.0.1:8888/json/v1/tasks (task manager
 statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 
-.. _tls:
-
 :any:`tls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
@@ -5398,7 +5390,7 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 The :any:`tls` statement is used to configure a TLS connection; this
 configuration can then be referenced by a :any:`listen-on` or :any:`listen-on-v6`
 statement to cause :iscman:`named` to listen for incoming requests via TLS,
-or in the :any:`primaries` statement for a zone of type :any:`secondary` to
+or in the :any:`primaries` statement for a zone of :any:`type secondary` to
 cause zone transfer requests to be sent via TLS.
 
 :any:`tls` can only be set at the top level of :iscman:`named.conf`.
@@ -5571,8 +5563,6 @@ might be considered acceptable for most practical purposes. Mutual TLS
 has the advantage of not requiring TSIG and thus, not having security
 issues related to shared cryptographic secrets.
 
-.. _http:
-
 :any:`http` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
@@ -5625,13 +5615,9 @@ all local addresses:
    };
 
 
-.. _trust_anchors:
-
 :any:`trust-anchors` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trust-anchors
-
-.. _trust-anchors:
 
 :any:`trust-anchors` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6038,34 +6024,26 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    This option acts like :any:`parental-source`, but applies to parental DS
    queries sent to IPv6 addresses.
 
-.. _managed-keys:
-
 :any:`managed-keys` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
-
-.. _managed_keys:
 
 :any:`managed-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :any:`managed-keys` statement has been
-deprecated in favor of :ref:`trust_anchors`
+deprecated in favor of :any:`trust-anchors`
 with the ``initial-key`` keyword.
-
-.. _trusted-keys:
 
 :any:`trusted-keys` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
 
-.. _trusted_keys:
-
 :any:`trusted-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :any:`trusted-keys` statement has been deprecated in favor of
-:ref:`trust_anchors` with the ``static-key`` keyword.
+:any:`trust-anchors` with the ``static-key`` keyword.
 
 .. _view_statement_grammar:
 
@@ -6188,10 +6166,6 @@ Here is an example of a typical split DNS setup implemented using
 :any:`zone` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _zone_types:
-
-.. _type:
-
 Zone Types
 ^^^^^^^^^^
 .. namedconf:statement:: type
@@ -6199,20 +6173,22 @@ Zone Types
 
    The :any:`type` keyword is required for the :any:`zone` configuration unless
    it is an :any:`in-view` configuration. Its acceptable values are:
-   :any:`primary` (or ``master``), :any:`secondary` (or ``slave``), :any:`mirror`,
-   :any:`hint`, :any:`stub`, :any:`static-stub`, :any:`forward`, :any:`redirect`,
-   or :any:`delegation-only`.
+   :any:`primary <type primary>` (or ``master``), :any:`secondary <type
+   secondary>` (or ``slave``), :any:`mirror <type mirror>`, :any:`hint <type
+   hint>`, :any:`stub <type stub>`, :any:`static-stub <type static-stub>`,
+   :any:`forward <type forward>`, :any:`redirect <type redirect>`, or
+   :any:`delegation-only <type delegation-only>`.
 
 .. namedconf:statement:: type primary
 
    A primary zone has a master copy of the data for the zone and is able
    to provide authoritative answers for it. Type ``master`` is a synonym
-   for :any:`primary`.
+   for :any:`primary <type primary>`.
 
 .. namedconf:statement:: type secondary
 
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
-    synonym for :any:`secondary`. The :any:`primaries` list specifies one or more IP
+    synonym for :any:`secondary <type secondary>`. The :any:`primaries` list specifies one or more IP
     addresses of primary servers that the secondary contacts to update
     its copy of the zone.  Primaries list elements can
     also be names of other primaries lists.  By default,
@@ -6241,7 +6217,7 @@ Zone Types
 
 .. namedconf:statement:: type mirror
 
-   A mirror zone is similar to a zone of type :any:`secondary`, except its
+   A mirror zone is similar to a zone of :any:`type secondary`, except its
    data is subject to DNSSEC validation before being used in answers.
    Validation is applied to the entire zone during the zone transfer
    process, and again when the zone file is loaded from disk upon
@@ -6255,7 +6231,7 @@ Zone Types
    have recursion enabled.
 
    Answers coming from a mirror zone look almost exactly like answers
-   from a zone of type :any:`secondary`, with the notable exceptions that
+   from a zone of :any:`type secondary`, with the notable exceptions that
    the AA bit ("authoritative answer") is not set, and the AD bit
    ("authenticated data") is.
 
@@ -6287,14 +6263,14 @@ Zone Types
    servers to be provided using the :any:`primaries` option (see
    :ref:`primaries_grammar` for details), and a key-signing key (KSK)
    for the specified zone to be explicitly configured as a trust anchor
-   (see :ref:`trust-anchors`).
+   (see :any:`trust-anchors`).
 
    When configuring NOTIFY for a mirror zone, only ``notify no;`` and
    ``notify explicit;`` can be used at the zone level; any other
-   :any:`notify` setting at the zone level is a configuration error. Using
-   any other :any:`notify` setting at the ``options`` or :any:`view` level
+   :namedconf:ref:`notify` setting at the zone level is a configuration error. Using
+   any other :namedconf:ref:`notify` setting at the ``options`` or :any:`view` level
    causes that setting to be overridden with ``notify explicit;`` for
-   the mirror zone. The global default for the :any:`notify` option is
+   the mirror zone. The global default for the :namedconf:ref:`notify` option is
    ``yes``, so mirror zones are by default configured with ``notify
    explicit;``.
 
@@ -6386,7 +6362,7 @@ Zone Types
    is signed, no substitution occurs.
 
    To redirect all NXDOMAIN responses to 100.100.100.2 and
-   2001:ffff:ffff::100.100.100.2, configure a type :any:`redirect` zone
+   2001:ffff:ffff::100.100.100.2, configure a type :any:`redirect <type redirect>` zone
    named ".", with the zone file containing wildcard records that point to
    the desired addresses: ``*. IN A 100.100.100.2`` and
    ``*. IN AAAA 2001:ffff:ffff::100.100.100.2``.
@@ -6426,7 +6402,7 @@ Zone Types
 
 .. namedconf:statement:: in-view
 
-   When using multiple views, a :any:`primary` or :any:`secondary` zone configured
+   When using multiple views, a :any:`type primary` or :any:`type secondary` zone configured
    in one view can be referenced in a subsequent view. This allows both views
    to use the same zone without the overhead of loading it more than once. This
    is configured using a :any:`zone` statement, with an :any:`in-view` option
@@ -6480,7 +6456,7 @@ Zone Options
    See the description of :any:`allow-update-forwarding` in :ref:`access_control`.
 
 :any:`also-notify`
-   This option is only meaningful if :any:`notify` is active for this zone. The set of
+   This option is only meaningful if :namedconf:ref:`notify` is active for this zone. The set of
    machines that receive a ``DNS NOTIFY`` message for this zone is
    made up of all the listed name servers (other than the primary)
    for the zone, plus any IP addresses specified with
@@ -6494,8 +6470,8 @@ Zone Options
    This option is used to restrict the character set and syntax of
    certain domain names in primary files and/or DNS responses received
    from the network. The default varies according to zone type. For
-   :any:`primary` zones the default is ``fail``; for :any:`secondary` zones the
-   default is ``warn``. It is not implemented for :any:`hint` zones.
+   :any:`primary <type primary>` zones the default is ``fail``; for :any:`secondary <type secondary>` zones the
+   default is ``warn``. It is not implemented for :any:`hint <type hint>` zones.
 
 :any:`check-mx`
    See the description of :any:`check-mx` in :ref:`boolean_options`.
@@ -6563,9 +6539,9 @@ Zone Options
 
 .. namedconf:statement:: file
 
-   This sets the zone's filename. In :any:`primary`, :any:`hint`, and :any:`redirect`
+   This sets the zone's filename. In :any:`primary <type primary>`, :any:`hint <type hint>`, and :any:`redirect <type redirect>`
    zones which do not have :any:`primaries` defined, zone data is loaded from
-   this file. In :any:`secondary`, :any:`mirror`, :any:`stub`, and :any:`redirect` zones
+   this file. In :any:`secondary <type secondary>`, :any:`mirror <type mirror>`, :any:`stub <type stub>`, and :any:`redirect <type redirect>` zones
    which do have :any:`primaries` defined, zone data is retrieved from
    another server and saved in this file. This option is not applicable
    to other zone types.
@@ -6584,7 +6560,7 @@ Zone Options
 
    This allows the default journal's filename to be overridden. The default is
    the zone's filename with "``.jnl``" appended. This is applicable to
-   :any:`primary` and :any:`secondary` zones.
+   :any:`primary <type primary>` and :any:`secondary <type secondary>` zones.
 
 :any:`max-ixfr-ratio`
    See the description of :any:`max-ixfr-ratio` in :ref:`options`.
@@ -6607,8 +6583,8 @@ Zone Options
 :any:`max-transfer-idle-out`
    See the description of :any:`max-transfer-idle-out` in :ref:`zone_transfers`.
 
-:any:`notify`
-   See the description of :any:`notify` in :ref:`boolean_options`.
+:namedconf:ref:`notify`
+   See the description of :namedconf:ref:`notify` in :ref:`boolean_options`.
 
 :any:`notify-delay`
    See the description of :any:`notify-delay` in :ref:`tuning`.
@@ -6710,7 +6686,7 @@ Zone Options
 
 :any:`ixfr-from-differences`
    See the description of :any:`ixfr-from-differences` in :ref:`boolean_options`.
-   (Note that the :any:`ixfr-from-differences` choices of :any:`primary` and :any:`secondary`
+   (Note that the :any:`ixfr-from-differences` choices of :any:`primary <type primary>` and :any:`secondary <type secondary>`
    are not available at the zone level.)
 
 :any:`key-directory`
@@ -6777,8 +6753,8 @@ the zone's filename, unless :any:`inline-signing` is enabled.
    cases, :any:`update-policy` rules only apply to key-based identities. There
    is no way to specify update permissions based on the client source address.
 
-   :any:`update-policy` rules are only meaningful for zones of type
-   :any:`primary`, and are not allowed in any other zone type. It is a
+   :any:`update-policy` rules are only meaningful for zones of
+   :any:`type primary`, and are not allowed in any other zone type. It is a
    configuration error to specify both :any:`allow-update` and
    :any:`update-policy` at the same time.
 
