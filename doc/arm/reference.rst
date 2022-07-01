@@ -7029,6 +7029,35 @@ An :any:`in-view` zone cannot be used as a response policy zone.
 
 An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
 
+
+Statements by Tag
+-----------------
+
+BIND 9 supports many hundreds of statements. Finding the right statement to
+control a specific behavior or solve a particular problem can be a daunting
+task. To simplify the task all statements have been assigned one or more tags.
+Tags are designed to group together statements that have broadly similar
+functionality, thus all statements that control handling of queries or of zone
+transfers are respectively tagged under **query** and **transfer**.
+
+Query Tag Statements
+~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: query
+
+Transfer Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: transfer
+
+Statements
+----------
+The following table lists all statements permissible in named.conf. Please note
+that this section is work in progress.
+
+.. namedconf:statementlist::
+
+
 .. _statistics:
 
 BIND 9 Statistics
