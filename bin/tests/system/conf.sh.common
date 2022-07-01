@@ -291,6 +291,7 @@ DISABLED_ALGORITHM_NUMBER=14
 DISABLED_BITS=384
 
 # Default HMAC algorithm.
+# also update common/rndc.conf and common/rndc.key when updating DEFAULT_HMAC
 DEFAULT_HMAC=hmac-sha256
 
 #
