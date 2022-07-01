@@ -279,7 +279,7 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more :term:`ip_address`, ``netprefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        A list of one or more :term:`ip_address`, :term:`netprefix`, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
         A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
@@ -4542,7 +4542,7 @@ Content Filtering
    :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
    In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
-   only :term:`ip_address` and ``netprefix`` are meaningful; any ``key_id`` is
+   only :term:`ip_address` and :term:`netprefix` are meaningful; any ``key_id`` is
    silently ignored.
 
 
