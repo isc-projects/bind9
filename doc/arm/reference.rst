@@ -282,7 +282,7 @@ file documentation:
         A list of one or more :term:`ip_address`, :term:`netprefix`, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``key_id``, and/or ``port``. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``key_id``, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
@@ -329,7 +329,7 @@ file documentation:
         A quoted string which is used as a pathname, such as ``zones/master/my.test.domain``.
 
     ``port_list``
-        A list of an ``port`` or a port range. A port range is specified in the form of ``range`` followed by two ``port`` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid ``port`` or as a port range boundary.
+        A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
     ``size_spec``
         A 64-bit unsigned integer, or the keywords ``unlimited`` or ``default``. Integers may take values 0 <= value <= 18446744073709551615, though certain parameters (such as :any:`max-journal-size`) may use a more limited range within these extremes. In most cases, setting a value to 0 does not literally mean zero; it means "undefined" or "as big as possible," depending on the context. See the explanations of particular parameters that use ``size_spec`` for details on how they interpret its use. Numeric values can optionally be followed by a scaling factor: ``K`` or ``k`` for kilobytes, ``M`` or ``m`` for megabytes, and ``G`` or ``g`` for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.
@@ -468,7 +468,7 @@ and retrieve non-DNS results from a name server.
 .. namedconf:statement:: inet
 
    An :any:`inet` control channel is a TCP socket listening at the specified
-   ``port`` on the specified :term:`ip_address`, which can be an IPv4 or IPv6
+   :term:`port` on the specified :term:`ip_address`, which can be an IPv4 or IPv6
    address. An :term:`ip_address` of ``*`` (asterisk) is interpreted as the IPv4
    wildcard address; connections are accepted on any of the system's
    IPv4 addresses. To listen on the IPv6 wildcard address, use an
@@ -477,7 +477,7 @@ and retrieve non-DNS results from a name server.
    maximum security.
 
    If no port is specified, port 953 is used. The asterisk ``*`` cannot
-   be used for ``port``.
+   be used for :term:`port`.
 
    The ability to issue commands over the control channel is restricted by
    the ``allow`` and :any:`keys` clauses.
@@ -2852,7 +2852,7 @@ for details on how to specify IP address lists.
 
    The transport level limitations can also be specified. In particular,
    zone transfers can be restricted to a specific port and/or DNS
-   transport protocol by using the options ``port`` and ``transport``.
+   transport protocol by using the options :term:`port` and ``transport``.
    Either option can be specified; if both are used, both constraints
    must be satisfied in order for the transfer to be allowed. Zone
    transfers are currently only possible via the TCP and TLS transports.
@@ -2977,7 +2977,7 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    If a port number is not specified, the default is 53 for standard DNS,
    853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
    DNS over HTTP (unencrypted).  These defaults may be overridden using the
-   ``port``, :any:`tls-port`, :any:`https-port` and :any:`http-port` options.
+   :namedconf:ref:`port`, :any:`tls-port`, :any:`https-port` and :any:`http-port` options.
 
    Multiple :any:`listen-on` statements are allowed. For example:
 
@@ -3059,7 +3059,7 @@ Query Address
    These statements specify a list of IPv4 and IPv6 UDP ports that
    are used as source ports for UDP messages.
 
-   If ``port`` is ``*`` or is omitted, a random port number from a
+   If :term:`port` is ``*`` or is omitted, a random port number from a
    pre-configured range is selected and used for each query. The
    port range(s) are specified in the :any:`use-v4-udp-ports` (for IPv4)
    and :any:`use-v6-udp-ports` (for IPv6) options.
@@ -3132,7 +3132,7 @@ Query Address
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured ``port`` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be same as the listening port.
 
    .. note:: See also :any:`transfer-source`, :any:`notify-source` and :any:`parental-source`.
 
@@ -3308,7 +3308,7 @@ options apply to zone transfers.
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured ``port`` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be same as the listening port.
 
 .. namedconf:statement:: transfer-source-v6
    :tags: transfer
@@ -3358,7 +3358,7 @@ options apply to zone transfers.
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured ``port`` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be same as the listening port.
 
 .. namedconf:statement:: notify-source-v6
    :tags: transfer
@@ -5347,14 +5347,14 @@ even if it is built without the library, but any HTTP access fails
 with an error.
 
 An :any:`inet` control channel is a TCP socket listening at the specified
-``port`` on the specified :term:`ip_address`, which can be an IPv4 or IPv6
+:term:`port` on the specified :term:`ip_address`, which can be an IPv4 or IPv6
 address. An :term:`ip_address` of ``*`` (asterisk) is interpreted as the IPv4
 wildcard address; connections are accepted on any of the system's
 IPv4 addresses. To listen on the IPv6 wildcard address, use an
 :term:`ip_address` of ``::``.
 
 If no port is specified, port 80 is used for HTTP channels. The asterisk
-(``*``) cannot be used for ``port``.
+(``*``) cannot be used for :term:`port`.
 
 Attempts to open a statistics channel are restricted by the
 optional ``allow`` clause. Connections to the statistics channel are
@@ -6031,7 +6031,7 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
-   .. warning:: The configured ``port`` must not be same as the listening port.
+   .. warning:: The configured :term:`port` must not be same as the listening port.
 
 .. namedconf:statement:: parental-source-v6
 
@@ -7339,7 +7339,7 @@ Resolver Statistics Counters
     This indicates the number of EDNS(0) query failures.
 
 ``Mismatch``
-    This indicates the number of mismatched responses received, meaning the DNS ID, response's source address, and/or the response's source port does not match what was expected. (The port must be 53 or as defined by the ``port`` option.) This may be an indication of a cache poisoning attempt.
+    This indicates the number of mismatched responses received, meaning the DNS ID, response's source address, and/or the response's source port does not match what was expected. (The port must be 53 or as defined by the :namedconf:ref:`port` option.) This may be an indication of a cache poisoning attempt.
 
 ``Truncated``
     This indicates the number of truncated responses received.
