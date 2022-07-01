@@ -641,8 +641,6 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdataset_t *ardataset, isc_result_t *eresultp);
 static void
 validated(isc_task_t *task, isc_event_t *event);
-static bool
-maybe_destroy(fetchctx_t *fctx, bool locked);
 static void
 add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	isc_result_t reason, badnstype_t badtype);
@@ -902,14 +900,16 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	  dns_rdataset_t *sigrdataset, unsigned int valoptions,
 	  isc_task_t *task) {
 	dns_validator_t *validator = NULL;
-	dns_valarg_t *valarg;
+	dns_valarg_t *valarg = NULL;
 	isc_result_t result;
 
-	valarg = isc_mem_get(fctx->mctx, sizeof(*valarg));
+	if (SHUTTINGDOWN(fctx)) {
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
-	valarg->fctx = fctx;
-	valarg->addrinfo = addrinfo;
-	valarg->message = NULL;
+	valarg = isc_mem_get(fctx->mctx, sizeof(*valarg));
+	*valarg = (dns_valarg_t){ .fctx = fctx, .addrinfo = addrinfo };
+
 	dns_message_attach(message, &valarg->message);
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
@@ -4434,7 +4434,6 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&res->buckets[bucketnum].lock);
 	if (SHUTTINGDOWN(fctx)) {
-		maybe_destroy(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		goto cleanup;
 	}
@@ -5680,58 +5679,6 @@ clone_results(fetchctx_t *fctx) {
 #define CHECKNAMES(r) (((r)->attributes & DNS_RDATASETATTR_CHECKNAMES) != 0)
 
 /*
- * Destroy '*fctx' if it is ready to be destroyed (i.e., if it has
- * no references and is no longer waiting for any events).
- *
- * Requires:
- *      '*fctx' is shutting down.
- *
- * Returns:
- *	true if the resolver is exiting and this is the last fctx in the bucket.
- */
-static bool
-maybe_destroy(fetchctx_t *fctx, bool locked) {
-	unsigned int bucketnum;
-	bool bucket_empty = false;
-	dns_resolver_t *res = fctx->res;
-	dns_validator_t *validator, *next_validator;
-	bool dodestroy = false;
-
-	bucketnum = fctx->bucketnum;
-	if (!locked) {
-		LOCK(&res->buckets[bucketnum].lock);
-	}
-
-	REQUIRE(SHUTTINGDOWN(fctx));
-
-	if (fctx->pending != 0 || fctx->nqueries != 0) {
-		goto unlock;
-	}
-
-	for (validator = ISC_LIST_HEAD(fctx->validators); validator != NULL;
-	     validator = next_validator)
-	{
-		next_validator = ISC_LIST_NEXT(validator, link);
-		dns_validator_cancel(validator);
-	}
-
-	if (isc_refcount_current(&fctx->references) == 0 &&
-	    ISC_LIST_EMPTY(fctx->validators))
-	{
-		bucket_empty = fctx_unlink(fctx);
-		dodestroy = true;
-	}
-unlock:
-	if (!locked) {
-		UNLOCK(&res->buckets[bucketnum].lock);
-	}
-	if (dodestroy) {
-		fctx_destroy(fctx);
-	}
-	return (bucket_empty);
-}
-
-/*
  * The validator has finished.
  */
 static void
@@ -5746,12 +5693,13 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *rdataset;
 	dns_rdataset_t *sigrdataset;
 	dns_resolver_t *res;
-	dns_valarg_t *valarg;
+	dns_valarg_t *valarg = event->ev_arg;
 	dns_validatorevent_t *vevent;
 	fetchctx_t *fctx;
 	bool chaining;
 	bool negative;
 	bool sentresponse;
+	bool bucket_empty;
 	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now;
@@ -5765,14 +5713,15 @@ validated(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task); /* for now */
 
 	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
-	valarg = event->ev_arg;
+	REQUIRE(VALID_FCTX(valarg->fctx));
+	REQUIRE(!ISC_LIST_EMPTY(valarg->fctx->validators));
+
 	fctx = valarg->fctx;
+	fctx_increference(fctx);
 	dns_message_attach(valarg->message, &message);
 
-	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
 	addrinfo = valarg->addrinfo;
-	REQUIRE(!ISC_LIST_EMPTY(fctx->validators));
 
 	vevent = (dns_validatorevent_t *)event;
 	fctx->vresult = vevent->result;
@@ -5805,17 +5754,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
 	/*
-	 * If shutting down, ignore the results.  Check to see if we're
-	 * done waiting for validator completions and ADB pending events; if
-	 * so, destroy the fctx.
+	 * If shutting down, ignore the results.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
-		bool bucket_empty;
-		bucket_empty = maybe_destroy(fctx, true);
 		UNLOCK(&res->buckets[bucketnum].lock);
-		if (bucket_empty) {
-			empty_bucket(res);
-		}
 		goto cleanup_event;
 	}
 
@@ -5877,18 +5819,15 @@ validated(isc_task_t *task, isc_event_t *event) {
 				(void)dns_db_deleterdataset(fctx->cache, node,
 							    NULL, vevent->type,
 							    0);
-			}
-			if (result == ISC_R_SUCCESS &&
-			    vevent->sigrdataset != NULL) {
-				(void)dns_db_deleterdataset(
-					fctx->cache, node, NULL,
-					dns_rdatatype_rrsig, vevent->type);
-			}
-			if (result == ISC_R_SUCCESS) {
+				if (vevent->sigrdataset != NULL) {
+					(void)dns_db_deleterdataset(
+						fctx->cache, node, NULL,
+						dns_rdatatype_rrsig,
+						vevent->type);
+				}
 				dns_db_detachnode(fctx->cache, &node);
 			}
-		}
-		if (fctx->vresult == DNS_R_BROKENCHAIN && !negative) {
+		} else if (!negative) {
 			/*
 			 * Cache the data as pending for later validation.
 			 */
@@ -5901,20 +5840,16 @@ validated(isc_task_t *task, isc_event_t *event) {
 				(void)dns_db_addrdataset(
 					fctx->cache, node, NULL, now,
 					vevent->rdataset, 0, NULL);
-			}
-			if (result == ISC_R_SUCCESS &&
-			    vevent->sigrdataset != NULL) {
-				(void)dns_db_addrdataset(
-					fctx->cache, node, NULL, now,
-					vevent->sigrdataset, 0, NULL);
-			}
-			if (result == ISC_R_SUCCESS) {
+				if (vevent->sigrdataset != NULL) {
+					(void)dns_db_addrdataset(
+						fctx->cache, node, NULL, now,
+						vevent->sigrdataset, 0, NULL);
+				}
 				dns_db_detachnode(fctx->cache, &node);
 			}
 		}
 		result = fctx->vresult;
 		add_bad(fctx, message, addrinfo, result, badns_validation);
-		isc_event_free(&event);
 		UNLOCK(&res->buckets[bucketnum].lock);
 		INSIST(fctx->validator == NULL);
 		fctx->validator = ISC_LIST_HEAD(fctx->validators);
@@ -5942,8 +5877,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			fctx_try(fctx, true, true); /* Locks bucket. */
 		}
 
-		dns_message_detach(&message);
-		return;
+		goto cleanup_event;
 	}
 
 	if (negative) {
@@ -6057,19 +5991,12 @@ validated(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (sentresponse) {
-		bool bucket_empty = false;
 		/*
 		 * If we only deferred the destroy because we wanted to cache
 		 * the data, destroy now.
 		 */
 		dns_db_detachnode(fctx->cache, &node);
-		if (SHUTTINGDOWN(fctx)) {
-			bucket_empty = maybe_destroy(fctx, true);
-		}
 		UNLOCK(&res->buckets[bucketnum].lock);
-		if (bucket_empty) {
-			empty_bucket(res);
-		}
 		goto cleanup_event;
 	}
 
@@ -6210,6 +6137,13 @@ cleanup_event:
 	INSIST(node == NULL);
 	dns_message_detach(&message);
 	isc_event_free(&event);
+
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+	bucket_empty = fctx_decreference(fctx);
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	if (bucket_empty) {
+		empty_bucket(res);
+	}
 }
 
 static void

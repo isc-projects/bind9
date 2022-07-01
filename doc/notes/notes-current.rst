@@ -42,3 +42,7 @@ Bug Fixes
 
 - Fix the assertion failure caused by TCP connection closing between the
   connect (or accept) and the read from the socket. :gl:`#3400`
+
+- ``named`` could crash during a very rare situation that could arise when
+  validating a query which had timed out at that same exact moment. This has
+  been fixed. :gl:`#3398`
