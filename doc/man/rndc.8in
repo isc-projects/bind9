@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 rndc \- name server control utility
 .SH SYNOPSIS
 .sp
-\fBrndc\fP [\fB\-b\fP source\-address] [\fB\-c\fP config\-file] [\fB\-k\fP key\-file] [\fB\-s\fP server] [\fB\-p\fP port] [\fB\-q\fP] [\fB\-r\fP] [\fB\-V\fP] [\fB\-y\fP key_id] [[\fB\-4\fP] | [\fB\-6\fP]] {command}
+\fBrndc\fP [\fB\-b\fP source\-address] [\fB\-c\fP config\-file] [\fB\-k\fP key\-file] [\fB\-s\fP server] [\fB\-p\fP port] [\fB\-q\fP] [\fB\-r\fP] [\fB\-V\fP] [\fB\-y\fP server_key] [[\fB\-4\fP] | [\fB\-6\fP]] {command}
 .SH DESCRIPTION
 .sp
 \fBrndc\fP controls the operation of a name server. If \fBrndc\fP is
@@ -47,7 +47,7 @@ algorithms are HMAC\-MD5 (for compatibility), HMAC\-SHA1, HMAC\-SHA224,
 HMAC\-SHA256 (default), HMAC\-SHA384, and HMAC\-SHA512. They use a shared
 secret on each end of the connection, which provides TSIG\-style
 authentication for the command request and the name server\(aqs response.
-All commands sent over the channel must be signed by a key_id known to
+All commands sent over the channel must be signed by a server_key known to
 the server.
 .sp
 \fBrndc\fP reads a configuration file to determine how to contact the name
@@ -119,9 +119,9 @@ This option enables verbose logging.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-y key_id
-This option indicates use of the key \fBkey_id\fP from the configuration file. For control message validation to succeed, \fBkey_id\fP must be known
-by \fI\%named\fP with the same algorithm and secret string. If no \fBkey_id\fP is specified,
+.B \-y server_key
+This option indicates use of the key \fBserver_key\fP from the configuration file. For control message validation to succeed, \fBserver_key\fP must be known
+by \fI\%named\fP with the same algorithm and secret string. If no \fBserver_key\fP is specified,
 \fBrndc\fP first looks for a key clause in the server statement of
 the server being used, or if no server statement is present for that
 host, then in the default\-key clause of the options statement. Note that
@@ -706,7 +706,7 @@ zone. To specify a redirect zone, use the special zone name
 would specify a zone called "\-redirect".)
 .SH LIMITATIONS
 .sp
-There is currently no way to provide the shared secret for a \fBkey_id\fP
+There is currently no way to provide the shared secret for a \fBserver_key\fP
 without using the configuration file.
 .sp
 Several error messages could be clearer.
