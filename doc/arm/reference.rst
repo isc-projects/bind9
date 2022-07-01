@@ -279,10 +279,10 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more :term:`ip_address`, :term:`netprefix`, ``server_key``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        A list of one or more :term:`ip_address`, :term:`netprefix`, :term:`server_key`, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional ``tls_id``, ``server_key``, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more :term:`ip_address` s with optional ``tls_id``, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
@@ -482,7 +482,7 @@ and retrieve non-DNS results from a name server.
    ``allow``
       Connections to the control channel
       are permitted based on the :term:`address_match_list`. This is for simple IP
-      address-based filtering only; any ``server_key`` elements of the
+      address-based filtering only; any :term:`server_key` elements of the
       :term:`address_match_list` are ignored.
 
    :any:`keys`
@@ -531,7 +531,7 @@ statements can be used in all views. Keys intended for use in a
 :any:`controls` statement (see :ref:`controls_statement_definition_and_usage`)
 must be defined at the top level.
 
-The ``server_key``, also known as the key name, is a domain name that uniquely
+The :term:`server_key`, also known as the key name, is a domain name that uniquely
 identifies the key. It can be used in a ``server`` statement to cause
 requests sent to that server to be signed with this key, or in address
 match lists to verify that incoming requests have been signed with a key
@@ -4517,7 +4517,7 @@ Content Filtering
    :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
    In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
-   only :term:`ip_address` and :term:`netprefix` are meaningful; any ``server_key`` is
+   only :term:`ip_address` and :term:`netprefix` are meaningful; any :term:`server_key` is
    silently ignored.
 
 
