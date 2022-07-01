@@ -36,7 +36,7 @@ Configuring Plugins
 ~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: plugin
 
-A plugin is configured with the ``plugin`` statement in :iscman:`named.conf`:
+A plugin is configured with the :any:`plugin` statement in :iscman:`named.conf`:
 
 ::
 
@@ -48,7 +48,7 @@ A plugin is configured with the ``plugin`` statement in :iscman:`named.conf`:
 In this example, file ``library.so`` is the plugin library. ``query``
 indicates that this is a query plugin.
 
-Multiple ``plugin`` statements can be specified, to load different
+Multiple :any:`plugin` statements can be specified, to load different
 plugins or multiple instances of the same plugin.
 
 ``parameters`` are passed as an opaque string to the plugin's initialization

@@ -342,7 +342,7 @@ In contrast, for a small zone the difference is operationally negligible
 and the drawbacks outweigh the benefits.
 
 If NSEC3 opt-out is truly essential for a zone, the following
-configuration can be added to ``dnssec-policy``; for example, to create an
+configuration can be added to :any:`dnssec-policy`; for example, to create an
 NSEC3 chain using the SHA-1 hash algorithm, with the opt-out flag,
 no additional iterations, and no extra salt, use:
 
@@ -883,7 +883,7 @@ roll over DNSKEYs to a new algorithm, e.g., from RSASHA1 (algorithm 5 or
 7) to RSASHA256 (algorithm 8). The algorithm rollover steps must be followed with
 care to avoid breaking DNSSEC validation.
 
-If you are managing DNSSEC by using the ``dnssec-policy`` configuration,
+If you are managing DNSSEC by using the :any:`dnssec-policy` configuration,
 :iscman:`named` handles the rollover for you. Simply change the algorithm
 for the relevant keys, and :iscman:`named` uses the new algorithm when the
 key is next rolled. It performs a smooth transition to the new
@@ -900,9 +900,9 @@ In any case, the first step is to put DNSKEYs in place using the new algorithm.
 You must generate the ``K*`` files for the new algorithm and put
 them in the zone's key directory, where :iscman:`named` can access them. Take
 care to set appropriate ownership and permissions on the keys. If the
-``auto-dnssec`` zone option is set to ``maintain``, :iscman:`named`
+:any:`auto-dnssec` zone option is set to ``maintain``, :iscman:`named`
 automatically signs the zone with the new keys, based on their timing
-metadata when the ``dnssec-loadkeys-interval`` elapses or when you issue the
+metadata when the :any:`dnssec-loadkeys-interval` elapses or when you issue the
 :option:`rndc loadkeys` command. Otherwise, for primary zones, you can use
 :iscman:`nsupdate` to add the new DNSKEYs to the zone; this causes :iscman:`named`
 to use them to sign the zone. For secondary zones, e.g., on a
@@ -924,7 +924,7 @@ so that the old DS records disappear from all resolver caches.
 The next step is to remove the DNSKEYs using the old algorithm from your
 zone. Again this can be accomplished using :iscman:`nsupdate` to delete the
 old DNSKEYs (for primary zones only) or by automatic key rollover when
-``auto-dnssec`` is set to ``maintain``. You can cause the automatic key
+:any:`auto-dnssec` is set to ``maintain``. You can cause the automatic key
 rollover to take place immediately by using the :iscman:`dnssec-settime`
 utility to set the *Delete* date on all keys to any time in the past.
 (See the :option:`dnssec-settime -D date/offset <dnssec-settime -D>` option.)

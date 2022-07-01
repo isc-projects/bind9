@@ -119,25 +119,25 @@ server.
 
    .. rndcconf:statement:: default-server
 
-      ``default-server`` takes a
+      :any:`default-server` takes a
       host name or address argument and represents the server that is
       contacted if no :option:`-s <rndc -s>` option is provided on the command line.
 
    .. rndcconf:statement:: default-key
 
-      ``default-key`` takes the name of a key as its argument, as defined
+      :any:`default-key` takes the name of a key as its argument, as defined
       by a ``key`` statement.
 
    .. rndcconf:statement:: default-port
 
-      ``default-port`` specifies the port to which
+      :any:`default-port` specifies the port to which
       :iscman:`rndc` should connect if no port is given on the command line or in
       a ``server`` statement.
 
    .. rndcconf:statement:: default-source-address
    .. rndcconf:statement:: default-source-address-v6
 
-      ``default-source-address`` and ``default-source-address-v6`` specify
+      :any:`default-source-address` and :any:`default-source-address-v6` specify
       the IPv4 and IPv6 source address used to communicate with the server
       if no address is given on the command line or in a
       :rndcconf:ref:`server` block.
@@ -221,7 +221,7 @@ server.
 
    Running the :iscman:`rndc-confgen` program conveniently creates an
    :iscman:`rndc.conf` file, and also displays the corresponding
-   ``controls`` statement needed to add to :iscman:`named.conf`.
+   :any:`controls` statement needed to add to :iscman:`named.conf`.
    Alternatively, it is possible to run :option:`rndc-confgen -a` to set up an
    ``rndc.key`` file and not modify :iscman:`named.conf` at all.
 

@@ -22,9 +22,9 @@ Access Control Lists
 --------------------
 
 Access Control Lists (ACLs) are address match lists that can be set up
-and nicknamed for future use in ``allow-notify``, ``allow-query``,
-``allow-query-on``, ``allow-recursion``, ``blackhole``,
-``allow-transfer``, ``match-clients``, etc.
+and nicknamed for future use in :any:`allow-notify`, :any:`allow-query`,
+:any:`allow-query-on`, :any:`allow-recursion`, :any:`blackhole`,
+:any:`allow-transfer`, :any:`match-clients`, etc.
 
 ACLs give users finer control over who can access the
 name server, without cluttering up configuration files with huge lists of
@@ -97,12 +97,12 @@ it is interpreted as the full name of the country.  Similarly, if
 standard two-letter state or province abbreviation; otherwise, it is treated as the
 full name of the state or province.
 
-The ``database`` field indicates which GeoIP database to search for a match. In
+The :any:`database` field indicates which GeoIP database to search for a match. In
 most cases this is unnecessary, because most search fields can only be found in
 a single database.  However, searches for ``continent`` or ``country`` can be
 answered from either the ``city`` or ``country`` databases, so for these search
-types, specifying a ``database`` forces the query to be answered from that
-database and no other. If a ``database`` is not specified, these queries
+types, specifying a :any:`database` forces the query to be answered from that
+database and no other. If a :any:`database` is not specified, these queries
 are first answered from the ``city`` database if it is installed, and then from the ``country``
 database if it is installed. Valid database names are ``country``,
 ``city``, ``asnum``, ``isp``, and ``domain``.
@@ -176,7 +176,7 @@ For a ``chroot`` environment to work properly in a particular
 directory (for example, ``/var/named``), the
 environment must include everything BIND needs to run. From BIND's
 point of view, ``/var/named`` is the root of the filesystem;
-the values of options like ``directory`` and ``pid-file``
+the values of options like :any:`directory` and :any:`pid-file`
 must be adjusted to account for this.
 
 Unlike with earlier versions of BIND, 
@@ -209,10 +209,10 @@ Dynamic Update Security
 Access to the dynamic update facility should be strictly limited. In
 earlier versions of BIND, the only way to do this was based on the IP
 address of the host requesting the update, by listing an IP address or
-network prefix in the ``allow-update`` zone option. This method is
+network prefix in the :any:`allow-update` zone option. This method is
 insecure, since the source address of the update UDP packet is easily
 forged. Also note that if the IP addresses allowed by the
-``allow-update`` option include the address of a secondary server which
+:any:`allow-update` option include the address of a secondary server which
 performs forwarding of dynamic updates, the primary can be trivially
 attacked by sending the update to the secondary, which forwards it to
 the primary with its own source IP address - causing the primary to approve
@@ -220,9 +220,9 @@ it without question.
 
 For these reasons, we strongly recommend that updates be
 cryptographically authenticated by means of transaction signatures
-(TSIG). That is, the ``allow-update`` option should list only TSIG key
+(TSIG). That is, the :any:`allow-update` option should list only TSIG key
 names, not IP addresses or network prefixes. Alternatively, the
-``update-policy`` option can be used.
+:any:`update-policy` option can be used.
 
 Some sites choose to keep all dynamically updated DNS data in a
 subdomain and delegate that subdomain to a separate zone. This way, the

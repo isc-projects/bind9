@@ -279,7 +279,7 @@ hierarchy (does not use the public network) for any recursive query for which:
 
 4. Is a reverse-map query for 192.168.254/24 (zone 254.168.192.in-addr.arpa).
 
-5. Is a reverse-map query for any local IP (``empty-zones-enable``
+5. Is a reverse-map query for any local IP (:any:`empty-zones-enable`
    statement).
 
 All other recursive queries will result in access to the DNS hierarchy to
@@ -397,7 +397,7 @@ forward any recursive query for which:
 
 4. Is a reverse-map query for 192.168.254/24 (zone 254.168.192.in-addr.arpa).
 
-5. Is a reverse-map query for any local IP (``empty-zones-enable`` statement).
+5. Is a reverse-map query for any local IP (:any:`empty-zones-enable` statement).
 
 All other recursive queries will be forwarded to resolve the query.
 
