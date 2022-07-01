@@ -201,12 +201,21 @@ Address Match Lists
 Syntax
 ^^^^^^
 
+Address Match List is a list of semicolor-separated :term:`address_match_element` s.
+
 ::
 
-   address_match_list = address_match_list_element ; ...
+   { <address_match_element>; ... };
 
-   address_match_list_element = [ ! ] ( ip_address | netprefix |
-        key server_key | acl_name | { address_match_list } )
+Each element is then defined as:
+
+.. glossary::
+
+   ``address_match_element``
+
+    ::
+
+        [ ! ] ( <ip_address> | <netprefix> | key <server_key> | <acl_name> | { address_match_list } )
 
 Definition and Usage
 ^^^^^^^^^^^^^^^^^^^^
@@ -216,13 +225,13 @@ various server operations. They are also used in the :any:`listen-on` and
 :any:`sortlist` statements. The elements which constitute an address match
 list can be any of the following:
 
--  an IP address (IPv4 or IPv6)
+- :term:`ip_address`: an IP address (IPv4 or IPv6)
 
--  an IP prefix (in ``/`` notation)
+- :term:`netprefix`: an IP prefix (in ``/`` notation)
 
--  a key ID, as defined by the ``key`` statement
+- :term:`server_key`: a key ID, as defined by the ``key`` statement
 
--  the name of an address match list defined with the :any:`acl` statement
+- :term:`acl_name`: the name of an address match list defined with the :any:`acl` statement
 
 -  a nested address match list enclosed in braces
 
@@ -279,7 +288,7 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more :term:`ip_address`, :term:`netprefix`, :term:`server_key`, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        See :ref:`address_match_lists`.
 
     ``remote-servers``
         A named list of one or more :term:`ip_address` s with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
