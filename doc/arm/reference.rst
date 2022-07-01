@@ -299,10 +299,10 @@ file documentation:
         An :term:`ipv4_address` or :term:`ipv6_address`.
 
     ``dscp``
-        A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+        A ``integer`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
 
     ``port``
-        An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
+        An IP port ``integer``. It is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
     ``netprefix``
         An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an:term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
@@ -316,7 +316,7 @@ file documentation:
     ``tls_id``
         A name of TLS configuration object which defines TLS key and certificate. See :any:`tls` block.
 
-    ``number``
+    ``integer``
         A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
 
     ``fixedpoint``
