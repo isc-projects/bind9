@@ -288,7 +288,7 @@ file documentation:
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
     ``namelist``
-        A list of one or more ``domain_name`` elements.
+        A list of one or more :term:`domain_name` elements.
 
     ``dotted_decimal``
         One to four integers valued 0 through 255 and separated by dots (``.``), such as ``123.45.67`` or ``89.123.45.67``.
@@ -313,7 +313,7 @@ file documentation:
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
     ``key_id``
-        A ``domain_name`` representing the name of a shared key, to be used for
+        A :term:`domain_name` representing the name of a shared key, to be used for
         :ref:`transaction security <tsig>`. Keys are defined using
         :namedconf:ref:`key` blocks.
 
@@ -3837,7 +3837,7 @@ RRset Ordering
      - If no :any:`type` is specified, the default is ``ANY``.
      - If no ``name`` is specified, the default is ``*`` (asterisk).
 
-   ``<domain_name>`` only matches the name itself, not any of its
+   :term:`<domain_name> <domain_name>` only matches the name itself, not any of its
    subdomains.  To make a rule match all subdomains of a given name, a
    wildcard name (``*.<domain_name>``) must be used.  Note that
    ``*.<domain_name>`` does *not* match ``<domain_name>`` itself; to
