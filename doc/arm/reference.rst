@@ -279,24 +279,24 @@ file documentation:
         The name of an :term:`address_match_list` as defined by the :any:`acl` statement.
 
     ``address_match_list``
-        A list of one or more ``ip_addr``, ``ip_prefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
+        A list of one or more ``ip_address``, ``ip_prefix``, ``key_id``, or :term:`acl_name` elements; see :ref:`address_match_lists`.
 
     ``remote-servers``
-        A named list of one or more ``ip_addr`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+        A named list of one or more ``ip_address`` s with optional ``tls_id``, ``key_id``, and/or ``ip_port``. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-    ``ip4_addr``
+    ``ipv4_address``
         An IPv4 address with exactly four integer elements valued 0 through 255
         and separated by dots (``.``), such as ``192.168.1.1``. (A
         "dotted-decimal" notation with all four elements present.)
 
-    ``ip6_addr``
+    ``ipv6_address``
         An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
-    ``ip_addr``
-        An ``ip4_addr`` or ``ip6_addr``.
+    ``ip_address``
+        An ``ipv4_address`` or ``ipv6_address``.
 
     ``ip_dscp``
         A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
@@ -305,7 +305,7 @@ file documentation:
         An IP port ``number``. The ``number`` is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
     ``ip_prefix``
-        An IP network specified as an ``ip_addr``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_addr`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
+        An IP network specified as an ``ip_address``, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an``ip_address`` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
         When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
     ``key_id``
@@ -468,11 +468,11 @@ and retrieve non-DNS results from a name server.
 .. namedconf:statement:: inet
 
    An :any:`inet` control channel is a TCP socket listening at the specified
-   ``ip_port`` on the specified ``ip_addr``, which can be an IPv4 or IPv6
-   address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
+   ``ip_port`` on the specified ``ip_address``, which can be an IPv4 or IPv6
+   address. An ``ip_address`` of ``*`` (asterisk) is interpreted as the IPv4
    wildcard address; connections are accepted on any of the system's
    IPv4 addresses. To listen on the IPv6 wildcard address, use an
-   ``ip_addr`` of ``::``. If :iscman:`rndc` is only used on the local host,
+   ``ip_address`` of ``::``. If :iscman:`rndc` is only used on the local host,
    using the loopback address (``127.0.0.1`` or ``::1``) is recommended for
    maximum security.
 
@@ -4542,7 +4542,7 @@ Content Filtering
    :term:`address_match_list` of the :any:`deny-answer-addresses` option.
 
    In the :term:`address_match_list` of the :any:`deny-answer-addresses` option,
-   only ``ip_addr`` and ``ip_prefix`` are meaningful; any ``key_id`` is
+   only ``ip_address`` and ``ip_prefix`` are meaningful; any ``key_id`` is
    silently ignored.
 
 
@@ -5347,11 +5347,11 @@ even if it is built without the library, but any HTTP access fails
 with an error.
 
 An :any:`inet` control channel is a TCP socket listening at the specified
-``ip_port`` on the specified ``ip_addr``, which can be an IPv4 or IPv6
-address. An ``ip_addr`` of ``*`` (asterisk) is interpreted as the IPv4
+``ip_port`` on the specified ``ip_address``, which can be an IPv4 or IPv6
+address. An ``ip_address`` of ``*`` (asterisk) is interpreted as the IPv4
 wildcard address; connections are accepted on any of the system's
 IPv4 addresses. To listen on the IPv6 wildcard address, use an
-``ip_addr`` of ``::``.
+``ip_address`` of ``::``.
 
 If no port is specified, port 80 is used for HTTP channels. The asterisk
 (``*``) cannot be used for ``ip_port``.
