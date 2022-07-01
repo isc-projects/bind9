@@ -40,6 +40,24 @@ The file :file:`named.conf` may contain three types of entities:
       define the scope of the statement - for example, a statement which appears
       in a :namedconf:ref:`zone` block has scope only for that zone.
 
+      Blocks are organized hierarchically within named.conf and may have a
+      number of different properties:
+
+      - Certain blocks cannot be nested in other blocks and thus may be
+        regarded as the *topmost* level blocks. For example, the
+        :namedconf:ref:`options` block and the :namedconf:ref:`logging` block.
+
+      - Certain blocks can appear multiple times in which case they will have
+        an associated name to disambiguate them. For example, the
+        :namedconf:ref:`zone` block (``zone example.com { ... };``) or the
+        :namedconf:ref:`key` block (``key mykey { ... };``).
+
+      - Certain blocks may be nested within other blocks. For example, the
+        :namedconf:ref:`zone` block may be nested (appear within) a
+        :namedconf:ref:`view` block.
+
+      Description of each block in this manual lists its permissible locations.
+
    Statement
       - Statements define and control specific BIND behaviors.
       - Statements may have a single parameter (a **Value**) or multiple parameters
@@ -7032,7 +7050,6 @@ enough for all views referencing the zone.
 An :any:`in-view` zone cannot be used as a response policy zone.
 
 An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
-
 
 .. _statistics:
 
