@@ -125,6 +125,9 @@ for (;;) {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname .
 				       " 300 A 10.53.0.3"));
+	} elsif ($qname =~ /\.partial-formerr/) {
+		$packet->push("answer",
+			      new Net::DNS::RR($qname .  " 1 A 10.53.0.3"));
 	} else {
 		$packet->push("answer", new Net::DNS::RR("www.example.com 300 A 1.2.3.4"));
 	}
