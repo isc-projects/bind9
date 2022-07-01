@@ -614,8 +614,8 @@ by the channel (the default is ``info``), and whether to include a
    to be discarded; in that case, other options for the channel are
    meaningless.
 
-:any:`file`
-   The :any:`file` destination clause directs the channel to a disk file. It
+``file``
+   The ``file`` destination clause directs the channel to a disk file. It
    can include additional arguments to specify how large the file is
    allowed to become before it is rolled to a backup file (``size``), how
    many backup versions of the file are saved each time this happens
@@ -1212,14 +1212,14 @@ default is used.
    This configures the path to which the :any:`dnstap` frame stream is sent
    if :any:`dnstap` is enabled at compile time and active.
 
-   The first argument is either :any:`file` or :any:`unix`, indicating whether
+   The first argument is either ``file`` or ``unix``, indicating whether
    the destination is a file or a Unix domain socket. The second
    argument is the path of the file or socket. (Note: when using a
    socket, :any:`dnstap` messages are only sent if another process such
    as ``fstrm_capture`` (provided with ``libfstrm``) is listening on the
    socket.)
 
-   If the first argument is :any:`file`, then up to three additional
+   If the first argument is ``file``, then up to three additional
    options can be added: ``size`` indicates the size to which a
    :any:`dnstap` log file can grow before being rolled to a new file;
    ``versions`` specifies the number of rolled log files to retain; and
