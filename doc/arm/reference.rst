@@ -290,11 +290,23 @@ file documentation:
     ``address_match_list``
         See :ref:`address_match_lists`.
 
-    ``remote-servers``
-        A named list of one or more :term:`ip_address` s with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+    ``boolean``
+        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
+
+    ``dscp``
+        A :term:`integer` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+
+    ``fixedpoint``
+        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
+
+    ``integer``
+        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
+
+    ``ip_address``
+        An :term:`ipv4_address` or :term:`ipv6_address`.
 
     ``ipv4_address``
         An IPv4 address with exactly four integer elements valued 0 through 255
@@ -304,35 +316,26 @@ file documentation:
     ``ipv6_address``
         An IPv6 address, such as ``2001:db8::1234``. IPv6-scoped addresses that have ambiguity on their scope zones must be disambiguated by an appropriate zone ID with the percent character (``%``) as a delimiter. It is strongly recommended to use string zone names rather than numeric identifiers, to be robust against system configuration changes. However, since there is no standard mapping for such names and identifier values, only interface names as link identifiers are supported, assuming one-to-one mapping between interfaces and links. For example, a link-local address ``fe80::1`` on the link attached to the interface ``ne0`` can be specified as ``fe80::1%ne0``. Note that on most systems link-local addresses always have ambiguity and need to be disambiguated.
 
-    ``ip_address``
-        An :term:`ipv4_address` or :term:`ipv6_address`.
+    ``netprefix``
+        An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an:term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
+        When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
 
-    ``dscp``
-        A :term:`integer` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
+    ``percentage``
+         An integer value followed by ``%`` to represent percent.
 
     ``port``
         An IP port :term:`integer`. It is limited to 0 through 65535, with values below 1024 typically restricted to use by processes running as root. In some cases, an asterisk (``*``) character can be used as a placeholder to select a random high-numbered port.
 
-    ``netprefix``
-        An IP network specified as an :term:`ip_address`, followed by a slash (``/``) and then the number of bits in the netmask. Trailing zeros in an:term:`ip_address` may be omitted. For example, ``127/8`` is the network ``127.0.0.0`` with netmask ``255.0.0.0`` and ``1.2.3.0/28`` is network ``1.2.3.0`` with netmask ``255.255.255.240``.
-        When specifying a prefix involving an IPv6-scoped address, the scope may be omitted. In that case, the prefix matches packets from any scope.
+    ``portrange``
+        A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
+
+    ``remote-servers``
+        A named list of one or more :term:`ip_address` s with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
 
     ``server_key``
         A :term:`domain_name` representing the name of a shared key, to be used for
         :ref:`transaction security <tsig>`. Keys are defined using
         :namedconf:ref:`key` blocks.
-
-    ``tls_id``
-        A name of TLS configuration object which defines TLS key and certificate. See :any:`tls` block.
-
-    ``integer``
-        A non-negative 32-bit integer (i.e., a number between 0 and 4294967295, inclusive). Its acceptable value might be further limited by the context in which it is used.
-
-    ``fixedpoint``
-        A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
-
-    ``portrange``
-        A list of an :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
     ``size``
     ``sizeval``
@@ -342,11 +345,9 @@ file documentation:
         ``unlimited`` generally means "as big as possible," and is usually the best way to safely set a very large number.
         ``default`` uses the limit that was in force when the server was started.
 
-    ``percentage``
-         An integer value followed by ``%`` to represent percent.
+    ``tls_id``
+        A name of TLS configuration object which defines TLS key and certificate. See :any:`tls` block.
 
-    ``boolean``
-        Either ``yes`` or ``no``. The words ``true`` and ``false`` are also accepted, as are the numbers ``1`` and ``0``.
 
 .. _configuration_file_grammar:
 
