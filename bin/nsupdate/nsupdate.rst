@@ -256,7 +256,7 @@ The command formats and their meanings are as follows:
    in ``krb5.conf``. If no realm is specified, the saved realm is
    cleared.
 
-``check-names [yes_or_no]``
+``check-names [boolean]``
    This command turns on or off check-names processing on records to be added.
    Check-names has no effect on prerequisites or records to be deleted.
    By default check-names processing is on. If check-names processing
