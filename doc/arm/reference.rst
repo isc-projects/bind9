@@ -298,7 +298,7 @@ file documentation:
     ``ip_address``
         An :term:`ipv4_address` or :term:`ipv6_address`.
 
-    ``ip_dscp``
+    ``dscp``
         A ``number`` between 0 and 63, used to select a differentiated services code point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
 
     ``ip_port``
