@@ -336,12 +336,76 @@ TTLs. Valid TTLs are of the range 0-2147483647 seconds.
 BIND Primary File Extension: the **$GENERATE** Directive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Syntax: **$GENERATE** range lhs [ttl] [class] type rhs [comment]
+Syntax: **$GENERATE** range owner [ttl] [class] type rdata [comment]
 
 **$GENERATE** is used to create a series of resource records that only
-differ from each other by an iterator. **$GENERATE** can be used to
-easily generate the sets of records required to support sub-/24 reverse
-delegations described in :rfc:`2317`.
+differ from each other by an iterator.
+
+**range**
+    This can be one of two forms: start-stop or start-stop/step.
+    If the first form is used, then step is set to 1. "start",
+    "stop", and "step" must be positive integers between 0 and
+    (2^31)-1. "start" must not be larger than "stop".
+
+**owner**
+    This describes the owner name of the resource records to be created.
+
+    The **owner** string may include one or more **$** (dollar sign)
+    symbols, which will be replaced with the iterator value when
+    generating records; see below for details.
+
+**ttl**
+    This specifies the time-to-live of the generated records. If
+    not specified, this is inherited using the normal TTL inheritance
+    rules.
+
+    **class** and **ttl** can be entered in either order.
+
+**class**
+    This specifies the class of the generated records. This must
+    match the zone class if it is specified.
+
+    **class** and **ttl** can be entered in either order.
+
+**type**
+    This can be any valid type.
+
+**rdata**
+    This is a string containing the RDATA of the resource record
+    to be created. As with **owner**, the **rdata** string may
+    include one or more **$** symbols, which are replaced with the
+    iterator value. **rdata** may be quoted if there are spaces in
+    the string; the quotation marks do not appear in the generated
+    record.
+
+    Any single **$** (dollar sign) symbols within the **owner** or
+    **rdata** strings are replaced by the iterator value. To get a **$**
+    in the output, escape the **$** using a backslash **\\**, e.g.,
+    ``\$``. (For compatibility with earlier versions, **$$** is also
+    recognized as indicating a literal **$** in the output.)
+
+    The **$** may optionally be followed by modifiers which change
+    the offset from the iterator, field width, and base.  Modifiers
+    are introduced by a **{** (left brace) immediately following
+    the **$**, as in  **${offset[,width[,base]]}**. For example,
+    **${-20,3,d}** subtracts 20 from the current value and prints
+    the result as a decimal in a zero-padded field of width 3.
+    Available output forms are decimal (**d**), octal (**o**),
+    hexadecimal (**x** or **X** for uppercase), and nibble (**n**
+    or **N** for uppercase). The modfiier cannot contain whitespace
+    or newlines.
+
+    The default modifier is **${0,0,d}**. If the **owner** is not
+    absolute, the current **$ORIGIN** is appended to the name.
+
+    In nibble mode, the value is treated as if it were a reversed
+    hexadecimal string, with each hexadecimal digit as a separate
+    label. The width field includes the label separator.
+
+Examples:
+
+**$GENERATE** can be used to easily generate the sets of records required
+to support sub-/24 reverse delegations described in :rfc:`2317`:
 
 ::
 
@@ -360,9 +424,8 @@ is equivalent to
    ...
    127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
 
-Both generate a set of A and MX records. Note the MX's right-hand side is a
-quoted string. The quotes are stripped when the right-hand side is
-processed.
+This example creates a set of A and MX records. Note the MX's **rdata**
+is a quoted string; the quotes are stripped when **$GENERATE** is processed:
 
 ::
 
@@ -384,35 +447,25 @@ is equivalent to
    HOST-127.EXAMPLE. A  1.2.3.127
    HOST-127.EXAMPLE. MX 0 .
 
-**range**
-    This can be one of two forms: start-stop or start-stop/step. If the first form is used, then step is set to 1. "start", "stop", and "step" must be positive integers between 0 and (2^31)-1. "start" must not be larger than "stop".
 
-**owner**
-    This describes the owner name of the resource records to be created. Any single **$** (dollar sign) symbols within the **owner** string are replaced by the iterator value. To get a **$** in the output, escape the **$** using a backslash **\\**, e.g., ``\$``. The **$** may optionally be followed by modifiers which change the offset from the iterator, field width, and base.
+This example generates A and AAAA records using modifiers; the AAAA
+**owner** names are generated using nibble mode:
 
-    Modifiers are introduced by a **{** (left brace) immediately following the **$**, as in  **${offset[,width[,base]]}**. For example, **${-20,3,d}** subtracts 20 from the current value and prints the result as a decimal in a zero-padded field of width 3. Available output forms are decimal (**d**), octal (**o**), hexadecimal (**x** or **X** for uppercase), and nibble (**n** or **N** for uppercase).
+::
 
-    The default modifier is **${0,0,d}**. If the **owner** is not absolute, the current **$ORIGIN** is appended to the name.
+   $ORIGIN EXAMPLE.
+   $GENERATE 0-2 HOST-${0,4,d} A 1.2.3.${1,0,d}
+   $GENERATE 1024-1026 ${0,3,n} AAAA 2001:db8::${0,4,x}
 
-    In nibble mode, the value is treated as if it were a reversed hexadecimal string, with each hexadecimal digit as a separate label. The width field includes the label separator.
+is equivalent to:
 
-    For compatibility with earlier versions, **$$** is still recognized as indicating a literal **$** in the output.
-
-**ttl**
-    This specifies the time-to-live of the generated records. If not specified, this is inherited using the normal TTL inheritance rules.
-
-    **class** and **ttl** can be entered in either order.
-
-**class**
-    This specifies the class of the generated records. This must match the zone class if it is specified.
-
-    **class** and **ttl** can be entered in either order.
-
-**type**
-    This can be any valid type.
-
-**rdata**
-    This is a string containing the RDATA of the resource record to be created. It may be quoted if there are spaces in the string; the quotation marks do not appear in the generated record.
+::
+   HOST-0000.EXAMPLE.   A      1.2.3.1
+   HOST-0001.EXAMPLE.   A      1.2.3.2
+   HOST-0002.EXAMPLE.   A      1.2.3.3
+   0.0.4.EXAMPLE.       AAAA   2001:db8::400
+   1.0.4.EXAMPLE.       AAAA   2001:db8::401
+   2.0.4.EXAMPLE.       AAAA   2001:db8::402
 
 The **$GENERATE** directive is a BIND extension and not part of the
 standard zone file format.
