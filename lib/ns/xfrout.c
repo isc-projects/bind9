@@ -1046,7 +1046,7 @@ got_soa:
 		}
 		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
 			xfrout_log1(client, question_name, question_class,
-				    ISC_LOG_DEBUG(4),
+				    ISC_LOG_INFO,
 				    "IXFR version not in journal, "
 				    "falling back to AXFR");
 			mnemonic = "AXFR-style IXFR";
@@ -1061,7 +1061,7 @@ got_soa:
 				data_stream->methods->destroy(&data_stream);
 				data_stream = NULL;
 				xfrout_log1(client, question_name,
-					    question_class, ISC_LOG_DEBUG(4),
+					    question_class, ISC_LOG_INFO,
 					    "IXFR delta size (%zu bytes) "
 					    "exceeds the maximum ratio to "
 					    "database size "
