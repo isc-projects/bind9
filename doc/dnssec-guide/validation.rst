@@ -40,7 +40,7 @@ described in :ref:`how_to_test_recursive_server`.
 
 In earlier versions of BIND, including 9.11-ESV, DNSSEC
 validation must be explicitly enabled. To do this, you only need to
-add one line to the ``options`` section of your configuration file:
+add one line to the :namedconf:ref:`options` section of your configuration file:
 
 ::
 
@@ -280,7 +280,7 @@ name fails:
    ;; MSG SIZE  rcvd: 78
 
 On the other hand, if DNSSEC validation is disabled (by adding the
-statement ``dnssec-validation no;`` to the ``options`` clause in the
+statement ``dnssec-validation no;`` to the :namedconf:ref:`options` clause in the
 configuration file), the lookup succeeds:
 
 ::

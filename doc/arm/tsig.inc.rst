@@ -103,7 +103,7 @@ are signed using the specified key. Keys may also be specified in
 the :any:`also-notify` statement of a primary or secondary zone, causing NOTIFY
 messages to be signed using the specified key.
 
-Keys can also be specified in a ``server`` directive. Adding the
+Keys can also be specified in a :namedconf:ref:`server` directive. Adding the
 following on ``host1``, if the IP address of ``host2`` is 10.1.2.3, would
 cause *all* requests from ``host1`` to ``host2``, including normal DNS
 queries, to be signed using the ``host1-host2.`` key:

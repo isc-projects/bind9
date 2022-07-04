@@ -92,7 +92,7 @@ other BIND configuration options, its scope depends on where it is placed. In
 the example above, we placed it in a :any:`zone` clause, so it applied only
 to the zone in question. If we had placed it in a :any:`view` clause, it
 would have applied to all zones in the view; and if we had placed it in
-the ``options`` clause, it would have applied to all zones served by
+the :namedconf:ref:`options` clause, it would have applied to all zones served by
 this instance of BIND.
 
 .. _signing_verification:
@@ -144,7 +144,7 @@ simulate what a validating resolver will check, by telling
 
 First, we need to make a copy of the key created by BIND. This
 is in the directory you set with the :any:`directory` statement in
-your configuration file's ``options`` clause, and is named something
+your configuration file's :namedconf:ref:`options` clause, and is named something
 like ``Kexample.com.+013.10376.key``:
 
 ::
@@ -813,7 +813,7 @@ during the process.
 Having defined a new policy called "standard", we now need to tell
 :iscman:`named` to use it. We do this by adding a ``dnssec-policy standard;``
 statement to the configuration file. Like many other configuration
-statements, it can be placed in the ``options`` statement (thus applying
+statements, it can be placed in the :namedconf:ref:`options` statement (thus applying
 to all zones on the server), a :any:`view` statement (applying to all zones
 in the view), or a :any:`zone` statement (applying only to that zone). In
 this example, we'll add it to the :any:`zone` statement:

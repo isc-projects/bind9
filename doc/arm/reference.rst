@@ -387,7 +387,7 @@ The following blocks are supported:
     :any:`dnssec-policy`
         Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec_policy_grammar` for details.
 
-    ``key``
+    :namedconf:ref:`key`
         Specifies key information for use in authentication and authorization using TSIG.
 
     :any:`logging`
@@ -396,7 +396,7 @@ The following blocks are supported:
     ``masters``
         Synonym for :any:`primaries`.
 
-    ``options``
+    :namedconf:ref:`options`
         Controls global server configuration options and sets defaults for other statements.
 
     :any:`parental-agents`
@@ -407,7 +407,7 @@ The following blocks are supported:
     :any:`primaries`
         Defines a named list of servers for inclusion in stub and secondary zones' :any:`primaries` or :any:`also-notify` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
 
-    ``server``
+    :namedconf:ref:`server`
         Sets certain configuration options on a per-server basis.
 
     :any:`statistics-channels`
@@ -436,7 +436,7 @@ The following blocks are supported:
     :any:`zone`
         Defines a zone.
 
-The :any:`logging` and ``options`` statements may only occur once per
+The :any:`logging` and :namedconf:ref:`options` statements may only occur once per
 configuration.
 
 :any:`acl` Block Grammar
@@ -560,7 +560,7 @@ statements can be used in all views. Keys intended for use in a
 must be defined at the top level.
 
 The :term:`server_key`, also known as the key name, is a domain name that uniquely
-identifies the key. It can be used in a ``server`` statement to cause
+identifies the key. It can be used in a :namedconf:ref:`server` statement to cause
 requests sent to that server to be signed with this key, or in address
 match lists to verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.
@@ -1261,7 +1261,7 @@ default is used.
    default is to allow :any:`dnstap` log files to grow to any size without
    rolling.
 
-   :any:`dnstap-output` can only be set globally in ``options``. Currently,
+   :any:`dnstap-output` can only be set globally in :namedconf:ref:`options`. Currently,
    it can only be set once while :iscman:`named` is running; once set, it
    cannot be changed by :option:`rndc reload` or :option:`rndc reconfig`.
 
@@ -2726,7 +2726,7 @@ for details on how to specify IP address lists.
    server. This is only applicable for secondary zones (i.e., :any:`type
    secondary` or ``slave``).
 
-   If this option is set in :any:`view` or ``options``, it is globally
+   If this option is set in :any:`view` or :namedconf:ref:`options`, it is globally
    applied to all secondary zones. If set in the :any:`zone` statement, the
    global value is overridden.
 
@@ -2831,7 +2831,7 @@ for details on how to specify IP address lists.
    insecure; see :ref:`dynamic_update_security` for details.
 
    In general, this option should only be set at the :any:`zone` level.
-   While a default value can be set at the ``options`` or :any:`view` level
+   While a default value can be set at the :namedconf:ref:`options` or :any:`view` level
    and inherited by zones, this could lead to some zones unintentionally
    allowing updates.
 
@@ -2857,7 +2857,7 @@ for details on how to specify IP address lists.
    IP-address-based access control; see :ref:`dynamic_update_security` for more details.
 
    In general this option should only be set at the :any:`zone` level.
-   While a default value can be set at the ``options`` or :any:`view` level
+   While a default value can be set at the :namedconf:ref:`options` or :any:`view` level
    and inherited by zones, this can lead to some zones unintentionally
    forwarding updates.
 
@@ -2872,7 +2872,7 @@ for details on how to specify IP address lists.
    This specifies which hosts are allowed to receive zone transfers from the
    server. :any:`allow-transfer` may also be specified in the :any:`zone`
    statement, in which case it overrides the :any:`allow-transfer`
-   statement set in ``options`` or :any:`view`. If not specified, the
+   statement set in :namedconf:ref:`options` or :any:`view`. If not specified, the
    default is to allow transfers to all hosts.
 
    The transport level limitations can also be specified. In particular,
@@ -3311,7 +3311,7 @@ options apply to zone transfers.
    ``2``. Increasing :any:`transfers-per-ns` may speed up the convergence
    of secondary zones, but it also may increase the load on the remote name
    server. :any:`transfers-per-ns` may be overridden on a per-server basis
-   by using the :any:`transfers` phrase of the ``server`` statement.
+   by using the :any:`transfers` phrase of the :namedconf:ref:`server` statement.
 
 .. namedconf:statement:: transfer-source
    :tags: transfer
@@ -3900,9 +3900,9 @@ RRset Ordering
        given RRset, the default order for that RRset is ``none``.
 
    Note that if multiple :any:`rrset-order` statements are present in the
-   configuration file (at both the ``options`` and :any:`view` levels), they
+   configuration file (at both the :namedconf:ref:`options` and :any:`view` levels), they
    are *not* combined; instead, the more-specific one (:any:`view`) replaces
-   the less-specific one (``options``).
+   the less-specific one (:namedconf:ref:`options`).
 
    If multiple rules within a single :any:`rrset-order` statement match a
    given RRset, the first matching rule is applied.
@@ -4229,7 +4229,7 @@ Tuning
    and ``raw``.  Zone files in binary formats should be generated with the
    same check level as that specified in the :iscman:`named` configuration file.
 
-   When configured in ``options``, this statement sets the
+   When configured in :namedconf:ref:`options`, this statement sets the
    :any:`masterfile-format` for all zones, but it can be overridden on a
    per-zone or per-view basis by including a :any:`masterfile-format`
    statement within the :any:`zone` or :any:`view` block in the configuration
@@ -5013,7 +5013,7 @@ Response Rate Limiting
 .. namedconf:statement:: rate-limit
 
    Excessive, almost-identical UDP *responses* can be controlled by
-   configuring a :any:`rate-limit` clause in an ``options`` or :any:`view`
+   configuring a :any:`rate-limit` clause in an :namedconf:ref:`options` or :any:`view`
    statement. This mechanism keeps authoritative BIND 9 from being used to
    amplify reflection denial-of-service (DoS) attacks. Short BADCOOKIE errors or
    truncated (TC=1) responses can be sent to provide rate-limited responses to
@@ -5247,16 +5247,16 @@ redirect zone is tried first.
 ``server`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``server`` statement defines characteristics to be associated with a
+The :namedconf:ref:`server` statement defines characteristics to be associated with a
 remote name server. If a prefix length is specified, then a range of
 servers is covered. Only the most specific server clause applies,
 regardless of the order in :iscman:`named.conf`.
 
-The ``server`` statement can occur at the top level of the configuration
+The :rndcconf:ref:`server` statement can occur at the top level of the configuration
 file or inside a :any:`view` statement. If a :any:`view` statement contains
-one or more ``server`` statements, only those apply to the view and any
-top-level ones are ignored. If a view contains no ``server`` statements,
-any top-level ``server`` statements are used as defaults.
+one or more :namedconf:ref:`server` statements, only those apply to the view and any
+top-level ones are ignored. If a view contains no :namedconf:ref:`server` statements,
+any top-level :namedconf:ref:`server` statements are used as defaults.
 
 
 .. namedconf:statement:: bogus
@@ -5635,7 +5635,7 @@ The following options can be specified in an :any:`http` statement:
     HTTP/2 streams over an HTTP/2 connection.
 
 Any of the options above could be omitted. In such a case, a global value
-specified in the ``options`` statement is used
+specified in the :namedconf:ref:`options` statement is used
 (see :any:`http-listener-clients`, :any:`http-streams-per-connection`.
 
 For example, the following configuration enables DNS-over-HTTPS queries on
@@ -6137,12 +6137,12 @@ clients that match the :any:`view`. By defining a zone of the same name in
 multiple views, different zone data can be given to different clients:
 for example, "internal" and "external" clients in a split DNS setup.
 
-Many of the options given in the ``options`` statement can also be used
+Many of the options given in the :namedconf:ref:`options` statement can also be used
 within a :any:`view` statement, and then apply only when resolving queries
 with that view. When no view-specific value is given, the value in the
-``options`` statement is used as a default. Also, zone options can have
+:namedconf:ref:`options` statement is used as a default. Also, zone options can have
 default values specified in the :any:`view` statement; these view-specific
-defaults take precedence over those in the ``options`` statement.
+defaults take precedence over those in the :namedconf:ref:`options` statement.
 
 Views are class-specific. If no class is given, class IN is assumed.
 Note that all non-IN views must contain a hint zone, since only the IN
@@ -6151,7 +6151,7 @@ class has compiled-in default hints.
 If there are no :any:`view` statements in the config file, a default view
 that matches any client is automatically created in class IN. Any
 :any:`zone` statements specified on the top level of the configuration file
-are considered to be part of this default view, and the ``options``
+are considered to be part of this default view, and the :namedconf:ref:`options`
 statement applies to the default view. If any explicit :any:`view`
 statements are present, all :any:`zone` statements must occur inside
 :any:`view` statements.
@@ -6307,7 +6307,7 @@ Zone Types
    When configuring NOTIFY for a mirror zone, only ``notify no;`` and
    ``notify explicit;`` can be used at the zone level; any other
    :namedconf:ref:`notify` setting at the zone level is a configuration error. Using
-   any other :namedconf:ref:`notify` setting at the ``options`` or :any:`view` level
+   any other :namedconf:ref:`notify` setting at the :namedconf:ref:`options` or :any:`view` level
    causes that setting to be overridden with ``notify explicit;`` for
    the mirror zone. The global default for the :namedconf:ref:`notify` option is
    ``yes``, so mirror zones are by default configured with ``notify
@@ -6384,7 +6384,7 @@ Zone Types
    :any:`forwarders` statement, which applies to queries within the domain
    given by the zone name. If no :any:`forwarders` statement is present, or an
    empty list for :any:`forwarders` is given, then no forwarding is done
-   for the domain, canceling the effects of any forwarders in the ``options``
+   for the domain, canceling the effects of any forwarders in the :namedconf:ref:`options`
    statement. Thus, to use this type of zone to change the
    behavior of the global :any:`forward` option (that is, "forward first" to,
    then "forward only", or vice versa), but use the same servers as set

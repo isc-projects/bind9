@@ -47,7 +47,7 @@ removes, or reconfigures member zones based on the data received.
 
 To use a catalog zone, it must first be set up as a normal zone on both the
 primary and secondary servers that are configured to use it. It
-must also be added to a :any:`catalog-zones` list in the ``options`` or
+must also be added to a :any:`catalog-zones` list in the :namedconf:ref:`options` or
 :any:`view` statement in :iscman:`named.conf`. This is comparable to the way a
 policy zone is configured as a normal zone and also listed in a
 :any:`response-policy` statement.
@@ -86,7 +86,7 @@ Configuring Catalog Zones
 .. namedconf:statement:: catalog-zones
 
 Catalog zones are configured with a :any:`catalog-zones` statement in the
-``options`` or :any:`view` section of :iscman:`named.conf`. For example:
+:namedconf:ref:`options` or :any:`view` section of :iscman:`named.conf`. For example:
 
 ::
 
