@@ -35,7 +35,7 @@ New Features
 
   ``named`` can use either a certificate provided by the user or an
   ephemeral certificate generated automatically upon startup. The
-  :ref:`tls statement <tls>` allows fine-grained control over TLS
+  :any:`tls` block allows fine-grained control over TLS
   parameters. :gl:`#1840` :gl:`#2795` :gl:`#2796`
 
   For debugging purposes, ``named`` logs TLS pre-master secrets when the
@@ -45,14 +45,14 @@ New Features
 - Support for DNS over TLS (DoT) has been added to ``named``. Network
   interfaces for DoT are configured using the existing
   :ref:`listen-on <interfaces>` directive, while TLS parameters are
-  configured using the new :ref:`tls statement <tls>`. :gl:`#1840`
+  configured using the new :any:`tls` block. :gl:`#1840`
 
   ``named`` supports :rfc:`zone transfers over TLS <9103>`
   (XFR-over-TLS, XoT) for both incoming and outgoing zone transfers.
 
   Incoming zone transfers over TLS are enabled by adding the :any:`tls`
   keyword, followed by either the name of a previously configured
-  :ref:`tls statement <tls>` or the string ``ephemeral``, to the
+  :any:`tls` block or the string ``ephemeral``, to the
   addresses included in :ref:`primaries <primaries_grammar>` lists.
   :gl:`#2392`
 
@@ -76,8 +76,8 @@ New Features
   may be used to offload encryption to other software). Network
   interfaces for DoH are configured using the existing
   :ref:`listen-on <interfaces>` directive, while TLS parameters are
-  configured using the new :ref:`tls statement <tls>` and HTTP
-  parameters are configured using the new :ref:`http statement <http>`.
+  configured using the new :any:`tls` block and HTTP
+  parameters are configured using the new :any:`http` block.
   :gl:`#1144` :gl:`#2472`
 
   Server-side quotas on both the number of concurrent DoH connections
@@ -85,7 +85,7 @@ New Features
   configured using the global :any:`http-listener-clients` and
   :any:`http-streams-per-connection` options, or the :any:`listener-clients`
   and :any:`streams-per-connection` parameters in an
-  :ref:`http statement <http>`. :gl:`#2809`
+  :any:`http block <http>`. :gl:`#2809`
 
   The ``dig`` tool is now able to send DoH queries (``+https`` option).
   :gl:`#1641`
@@ -299,7 +299,7 @@ Feature Changes
   startup performance. :gl:`#2433`
 
 - When reporting zone types in the statistics channel, the terms
-  :any:`primary` and :any:`secondary` are now used instead of ``master`` and
+  :any:`primary <type primary>` and :any:`secondary <type secondary>` are now used instead of ``master`` and
   ``slave``, respectively. :gl:`#1944`
 
 - The ``rndc nta -dump`` and ``rndc secroots`` commands now both include
