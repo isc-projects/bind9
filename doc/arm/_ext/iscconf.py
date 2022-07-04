@@ -305,19 +305,18 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             Sphinx API:
             Resolve the pending_xref *node* with the given typ and target.
             """
-            match = [
-                (docname, anchor)
-                for name, sig, typ, docname, anchor, _prio in self.get_objects()
-                if sig == target
-            ]
-
-            if len(match) == 0:
+            try:
+                obj = self.data["statements"][self.get_statement_name(target)]
+            except KeyError:
                 return None
-            todocname = match[0][0]
-            targ = match[0][1]
 
             refnode = make_refnode(
-                builder, fromdocname, todocname, targ, contnode, targ
+                builder,
+                fromdocname,
+                obj["docname"],
+                obj["anchor"],
+                contnode,
+                obj["anchor"],
             )
             return refnode
 
