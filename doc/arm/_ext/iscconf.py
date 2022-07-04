@@ -429,7 +429,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 )
 
         @classmethod
-        def process_statementlist_nodes(cls, app, doctree, fromdocname):
+        def process_statementlist_nodes(cls, app, doctree):
             """
             Replace todolist objects (placed into document using
             .. statementlist::) with automatically generated table
@@ -464,7 +464,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                                     )
                                 )
                             ),
-                            iscconf.list_all(fromdocname),
+                            iscconf.list_all(),
                         ),
                         key=lambda x: x["fullname"],
                     )
@@ -481,24 +481,24 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     gen_replacement_table(acceptable_blocks, acceptable_tags)
                 )
 
-        def list_all(self, fromdocname):
+        def list_all(self):
             for statement in self.data["statements"].values():
+                sig = statement["signature"]
                 block_names = set(
-                    path[-1]
-                    for path in self.statement_blocks.get(statement["signature"], [])
+                    path[-1] for path in self.statement_blocks.get(sig, [])
                 )
                 tags_txt = ", ".join(statement["tags"])
 
                 refpara = nodes.inline()
-                refpara += self.resolve_xref(
-                    self.env,
-                    fromdocname,
-                    self.env.app.builder,
-                    None,
-                    statement["signature"],
-                    None,
-                    nodes.Text(statement["signature"]),
+                refnode = addnodes.pending_xref(
+                    sig,
+                    reftype="statement",
+                    refdomain=domainname,
+                    reftarget=sig,
+                    refwarn=True,
                 )
+                refnode += nodes.Text(sig)
+                refpara += refnode
 
                 copy = statement.copy()
                 copy["block_names"] = block_names
@@ -574,7 +574,7 @@ def setup(app, domainname, confname, docutilsplaceholder, grammar):
 
     Conf = domain_factory(domainname, confname, docutilsplaceholder, grammar)
     app.add_domain(Conf)
-    app.connect("doctree-resolved", Conf.process_statementlist_nodes)
+    app.connect("doctree-read", Conf.process_statementlist_nodes)
 
     return {
         "version": "0.1",
