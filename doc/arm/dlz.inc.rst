@@ -34,7 +34,7 @@ Configuring DLZ
 ~~~~~~~~~~~~~~~
 .. namedconf:statement:: dlz
 
-A DLZ database is configured with a ``dlz`` statement in :iscman:`named.conf`:
+A DLZ database is configured with a :any:`dlz` statement in :iscman:`named.conf`:
 
 ::
 
@@ -46,19 +46,19 @@ A DLZ database is configured with a ``dlz`` statement in :iscman:`named.conf`:
 
 This specifies a DLZ module to search when answering queries; the module
 is implemented in ``driver.so`` and is loaded at runtime by the dlopen
-DLZ driver. Multiple ``dlz`` statements can be specified.
+DLZ driver. Multiple :any:`dlz` statements can be specified.
 
 
 .. namedconf:statement:: search
 
-When answering a query, all DLZ modules with ``search`` set to ``yes`` are
+When answering a query, all DLZ modules with :namedconf:ref:`search` set to ``yes`` are
 queried to see whether they contain an answer for the query name. The best
 available answer is returned to the client.
 
-The ``search`` option in the above example can be omitted, because
+The :namedconf:ref:`search` option in the above example can be omitted, because
 ``yes`` is the default value.
 
-If ``search`` is set to ``no``, this DLZ module is *not* searched
+If :namedconf:ref:`search` is set to ``no``, this DLZ module is *not* searched
 for the best match when a query is received. Instead, zones in this DLZ
 must be separately specified in a zone statement. This allows users to
 configure a zone normally using standard zone-option semantics, but
@@ -86,7 +86,7 @@ For guidance in the implementation of DLZ modules, the directory
 ``contrib/dlz/example`` contains a basic dynamically linkable DLZ
 module - i.e., one which can be loaded at runtime by the "dlopen" DLZ
 driver. The example sets up a single zone, whose name is passed to the
-module as an argument in the ``dlz`` statement:
+module as an argument in the :any:`dlz` statement:
 
 ::
 

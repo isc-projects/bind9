@@ -23,9 +23,9 @@ Validating Resolver
 ^^^^^^^^^^^^^^^^^^^
 
 To configure a validating resolver to use :rfc:`5011` to maintain a trust
-anchor, configure the trust anchor using a ``trust-anchors`` statement and
+anchor, configure the trust anchor using a :any:`trust-anchors` statement and
 the ``initial-key`` keyword. Information about this can be found in
-:ref:`trust-anchors`.
+the :any:`trust-anchors` statement description.
 
 Authoritative Server
 ^^^^^^^^^^^^^^^^^^^^

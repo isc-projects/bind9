@@ -14,7 +14,7 @@
 
 ``cname``
     Name servers that are skipped for being a CNAME rather than A/AAAA records.
-     
+
 ``config``
     Configuration file parsing and processing.
 
@@ -25,7 +25,7 @@
     Logging options for those categories where no specific configuration has been defined.
 
 ``delegation-only``
-    Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a ``delegation-only`` in a forward, hint, or stub zone declaration.
+    Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a :any:`delegation-only` in a forward, hint, or stub zone declaration.
 
 ``dispatch``
     Dispatching of incoming packets to the server modules where they are to be processed.
@@ -34,7 +34,7 @@
     DNSSEC and TSIG protocol processing.
 
 ``dnstap``
-    The "dnstap" DNS traffic capture system.
+    The :any:`dnstap` DNS traffic capture system.
 
 ``edns-disabled``
     Log queries that have been forced to use plain DNS due to timeouts. This is often due to the remote servers not being :rfc:`1034`-compliant (not always returning FORMERR or similar to EDNS queries and other extensions to the DNS when they are not understood). In other words, this is targeted at servers that fail to respond to DNS queries that they don't understand.
@@ -61,7 +61,7 @@
 ``queries``
     A location where queries should be logged.
     
-    At startup, specifying the category ``queries`` also enables query logging unless the ``querylog`` option has been specified.
+    At startup, specifying the category ``queries`` also enables query logging unless the :any:`querylog` option has been specified.
     
     The query log entry first reports a client object identifier in @0x<hexadecimal-number> format. Next, it reports the client's IP address and port number, and the query name, class, and type. Next, it reports whether the Recursion Desired flag was set (+ if set, - if not set), whether the query was signed (S), whether EDNS was in use along with the EDNS version number (E(#)), whether TCP was used (T), whether DO (DNSSEC Ok) was set (D), whether CD (Checking Disabled) was set (C), whether a valid DNS Server COOKIE was received (V), and whether a DNS COOKIE option without a valid Server COOKIE was present (K). After this, the destination address the query was sent to is reported. Finally, if any CLIENT-SUBNET option was present in the client query, it is included in square brackets in the format [ECS address/source/scope].
 
@@ -102,10 +102,10 @@
     TLS pre-master secrets (for debugging purposes).
 
 ``trust-anchor-telemetry``
-    Trust-anchor-telemetry requests received by :iscman:`named`.
+    :any:`trust-anchor-telemetry` requests received by :iscman:`named`.
 
 ``unmatched``
-    Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching ``view``. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the ``null`` channel.
+    Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching :any:`view`. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the :any:`null` channel.
 
 ``update``
     Dynamic updates.

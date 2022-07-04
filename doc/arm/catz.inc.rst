@@ -47,10 +47,10 @@ removes, or reconfigures member zones based on the data received.
 
 To use a catalog zone, it must first be set up as a normal zone on both the
 primary and secondary servers that are configured to use it. It
-must also be added to a ``catalog-zones`` list in the ``options`` or
-``view`` statement in :iscman:`named.conf`. This is comparable to the way a
+must also be added to a :any:`catalog-zones` list in the :namedconf:ref:`options` or
+:any:`view` statement in :iscman:`named.conf`. This is comparable to the way a
 policy zone is configured as a normal zone and also listed in a
-``response-policy`` statement.
+:any:`response-policy` statement.
 
 To use the catalog zone feature to serve a new member zone:
 
@@ -66,7 +66,7 @@ The change to the catalog zone is propagated from the primary to all
 secondaries using the normal AXFR/IXFR mechanism. When the secondary receives the
 update to the catalog zone, it detects the entry for the new member
 zone, creates an instance of that zone on the secondary server, and points
-that instance to the ``primaries`` specified in the catalog zone data. The
+that instance to the :any:`primaries` specified in the catalog zone data. The
 newly created member zone is a normal secondary zone, so BIND
 immediately initiates a transfer of zone contents from the primary. Once
 complete, the secondary starts serving the member zone.
@@ -85,8 +85,8 @@ Configuring Catalog Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: catalog-zones
 
-Catalog zones are configured with a ``catalog-zones`` statement in the
-``options`` or ``view`` section of :iscman:`named.conf`. For example:
+Catalog zones are configured with a :any:`catalog-zones` statement in the
+:namedconf:ref:`options` or :any:`view` section of :iscman:`named.conf`. For example:
 
 ::
 
@@ -117,7 +117,7 @@ specified in any order.
 ``in-memory``
    This option, if set to ``yes``, causes member zones to be
    stored only in memory. This is functionally equivalent to configuring a
-   secondary zone without a ``file`` option. The default is ``no``; member
+   secondary zone without a :any:`file` option. The default is ``no``; member
    zones' content is stored locally in a file whose name is
    automatically generated from the view name, catalog zone name, and
    member zone name.
@@ -137,8 +137,8 @@ specified in any order.
    interval has elapsed. The default is 5 seconds.
 
 Catalog zones are defined on a per-view basis. Configuring a non-empty
-``catalog-zones`` statement in a view automatically turns on
-``allow-new-zones`` for that view. This means that :option:`rndc addzone`
+:any:`catalog-zones` statement in a view automatically turns on
+:any:`allow-new-zones` for that view. This means that :option:`rndc addzone`
 and :option:`rndc delzone` also work in any view that supports catalog
 zones.
 
@@ -202,7 +202,7 @@ Global custom properties are set at the apex of the catalog zone, e.g.:
 
 BIND currently supports the following custom properties:
 
--  A simple ``primaries`` definition:
+-  A simple :any:`primaries` definition:
 
    ::
 
@@ -213,9 +213,9 @@ BIND currently supports the following custom properties:
    either an A or AAAA record. If multiple primaries are set, the order in
    which they are used is random.
 
-   Note: ``masters`` can be used as a synonym for ``primaries``.
+   Note: ``masters`` can be used as a synonym for :any:`primaries`.
 
--  A ``primaries`` with a TSIG key defined:
+-  A :any:`primaries` with a TSIG key defined:
 
    ::
 
@@ -227,9 +227,9 @@ BIND currently supports the following custom properties:
    key set. The TSIG key must be configured in the configuration file.
    ``label`` can be any valid DNS label.
 
-   Note: ``masters`` can be used as a synonym for ``primaries``.
+   Note: ``masters`` can be used as a synonym for :any:`primaries`.
 
--  ``allow-query`` and ``allow-transfer`` ACLs:
+-  :any:`allow-query` and :any:`allow-transfer` ACLs:
 
    ::
 
@@ -237,8 +237,8 @@ BIND currently supports the following custom properties:
                allow-transfer.ext.catalog.example.    IN APL !1:10.0.0.1/32 1:10.0.0.0/24
 
 
-   These custom properties are the equivalents of ``allow-query`` and
-   ``allow-transfer`` options in a zone declaration in the :iscman:`named.conf`
+   These custom properties are the equivalents of :any:`allow-query` and
+   :any:`allow-transfer` options in a zone declaration in the :iscman:`named.conf`
    configuration file. The ACL is processed in order; if there is no
    match to any rule, the default policy is to deny access. For the
    syntax of the APL RR, see :rfc:`3123`.
@@ -256,12 +256,12 @@ custom properties, but in the member zone subdomain:
 
 Custom properties defined for a specific zone override the
 global custom properties defined in the catalog zone. These in turn override the
-global options defined in the ``catalog-zones`` statement in the
+global options defined in the :any:`catalog-zones` statement in the
 configuration file.
 
 Note that none of the global records for a custom property are inherited if any
 records are defined for that custom property for the specific zone. For example,
-if the zone had a ``primaries`` record of type A but not AAAA, it
+if the zone had a :any:`primaries` record of type A but not AAAA, it
 would *not* inherit the type AAAA record from the global custom property
 or from the global option in the configuration file.
 

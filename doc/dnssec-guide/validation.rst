@@ -40,7 +40,7 @@ described in :ref:`how_to_test_recursive_server`.
 
 In earlier versions of BIND, including 9.11-ESV, DNSSEC
 validation must be explicitly enabled. To do this, you only need to
-add one line to the ``options`` section of your configuration file:
+add one line to the :namedconf:ref:`options` section of your configuration file:
 
 ::
 
@@ -280,7 +280,7 @@ name fails:
    ;; MSG SIZE  rcvd: 78
 
 On the other hand, if DNSSEC validation is disabled (by adding the
-statement ``dnssec-validation no;`` to the ``options`` clause in the
+statement ``dnssec-validation no;`` to the :namedconf:ref:`options` clause in the
 configuration file), the lookup succeeds:
 
 ::
@@ -372,8 +372,8 @@ take a closer look at what DNSSEC validation actually does, and some other optio
 
 .. _dnssec_validation_explained:
 
-``dnssec-validation``
-^^^^^^^^^^^^^^^^^^^^^
+:any:`dnssec-validation`
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -382,9 +382,9 @@ take a closer look at what DNSSEC validation actually does, and some other optio
    };
 
 This “auto” line enables automatic DNSSEC trust anchor configuration
-using the ``managed-keys`` feature. In this case, no manual key
+using the :any:`managed-keys` feature. In this case, no manual key
 configuration is needed. There are three possible choices for the
-``dnssec-validation`` option:
+:any:`dnssec-validation` option:
 
 -  *yes*: DNSSEC validation is enabled, but a trust anchor must be
    manually configured. No validation actually takes place until
@@ -396,11 +396,11 @@ configuration is needed. There are three possible choices for the
 -  *auto*: DNSSEC validation is enabled, and a default trust anchor
    (included as part of BIND 9) for the DNS root zone is used. This is the
    default; BIND automatically does this if there is no
-   ``dnssec-validation`` line in the configuration file.
+   :any:`dnssec-validation` line in the configuration file.
 
 Let's discuss the difference between *yes* and *auto*. If set to
 *yes*, the trust anchor must be manually defined and maintained
-using the ``trust-anchors`` statement (with either the ``static-key`` or
+using the :any:`trust-anchors` statement (with either the ``static-key`` or
 ``static-ds`` modifier) in the configuration file; if set to
 *auto* (the default, and as shown in the example), then no further
 action should be required as BIND includes a copy [#]_ of the root key.
@@ -565,7 +565,7 @@ the client.
 .. [#]
    BIND technically includes two copies of the root key: one is in
    ``bind.keys.h`` and is built into the executable, and one is in
-   ``bind.keys`` as a ``trust-anchors`` statement. The two copies of the
+   ``bind.keys`` as a :any:`trust-anchors` statement. The two copies of the
    key are identical.
 
 .. _trust_anchors_description:
@@ -649,7 +649,7 @@ anchor) configured. How did it get here, and how do we maintain it?
 
 If you followed the recommendation in
 :ref:`easy_start_guide_for_recursive_servers`, by setting
-``dnssec-validation`` to *auto*, there is nothing left to do.
+:any:`dnssec-validation` to *auto*, there is nothing left to do.
 BIND already includes a copy of the root key (in the file
 ``bind.keys``), and automatically updates it when the root key
 changes. [#]_ It looks something like this:
@@ -668,7 +668,7 @@ changes. [#]_ It looks something like this:
    };
 
 You can, of course, decide to manage this key manually yourself.
-First, you need to make sure that ``dnssec-validation`` is set
+First, you need to make sure that :any:`dnssec-validation` is set
 to *yes* rather than *auto*:
 
 ::
@@ -679,7 +679,7 @@ to *yes* rather than *auto*:
 
 Then, download the root key manually from a trustworthy source, such as
 `<https://www.isc.org/bind-keys>`__. Finally, take the root key you
-manually downloaded and put it into a ``trust-anchors`` statement as
+manually downloaded and put it into a :any:`trust-anchors` statement as
 shown below:
 
 ::
@@ -695,7 +695,7 @@ shown below:
                    R1AkUTV74bU=";
    };
 
-While this ``trust-anchors`` statement and the one in the ``bind.keys``
+While this :any:`trust-anchors` statement and the one in the ``bind.keys``
 file appear similar, the definition of the key in ``bind.keys`` has the
 ``initial-key`` modifier, whereas in the statement in the configuration
 file, that is replaced by ``static-key``. There is an important

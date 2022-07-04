@@ -35,7 +35,7 @@ Configuring DynDB
 ~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dyndb
 
-A DynDB database is configured with a ``dyndb`` statement in
+A DynDB database is configured with a :any:`dyndb` statement in
 :iscman:`named.conf`:
 
 ::
@@ -46,7 +46,7 @@ A DynDB database is configured with a ``dyndb`` statement in
 
 
 The file ``driver.so`` is a DynDB module which implements the full DNS
-database API. Multiple ``dyndb`` statements can be specified, to load
+database API. Multiple :any:`dyndb` statements can be specified, to load
 different drivers or multiple instances of the same driver. Zones
 provided by a DynDB module are added to the view's zone table, and are
 treated as normal authoritative zones when BIND responds to
@@ -62,7 +62,7 @@ Sample DynDB Module
 For guidance in the implementation of DynDB modules, the directory
 ``bin/tests/system/dyndb/driver`` contains a basic DynDB module. The
 example sets up two zones, whose names are passed to the module as
-arguments in the ``dyndb`` statement:
+arguments in the :any:`dyndb` statement:
 
 ::
 
