@@ -10094,6 +10094,7 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&res->buckets);
+	isc_rwlock_destroy(&res->hash_lock);
 
 	isc_ht_iter_create(res->zonebuckets, &it);
 	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
@@ -10109,10 +10110,12 @@ destroy(dns_resolver_t *res) {
 			ISC_LIST_UNLINK(bucket->list, fc, link);
 			isc_mem_put(res->mctx, fc, sizeof(*fc));
 		}
+		isc_mutex_destroy(&bucket->lock);
 		isc_mem_put(res->mctx, bucket, sizeof(*bucket));
 	}
 	isc_ht_iter_destroy(&it);
 	isc_ht_destroy(&res->zonebuckets);
+	isc_rwlock_destroy(&res->zonehash_lock);
 
 	if (res->dispatches4 != NULL) {
 		dns_dispatchset_destroy(&res->dispatches4);
