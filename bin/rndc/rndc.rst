@@ -21,7 +21,7 @@ rndc - name server control utility
 Synopsis
 ~~~~~~~~
 
-:program:`rndc` [**-b** source-address] [**-c** config-file] [**-k** key-file] [**-s** server] [**-p** port] [**-q**] [**-r**] [**-V**] [**-y** key_id] [[**-4**] | [**-6**]] {command}
+:program:`rndc` [**-b** source-address] [**-c** config-file] [**-k** key-file] [**-s** server] [**-p** port] [**-q**] [**-r**] [**-V**] [**-y** server_key] [[**-4**] | [**-6**]] {command}
 
 Description
 ~~~~~~~~~~~
@@ -38,7 +38,7 @@ algorithms are HMAC-MD5 (for compatibility), HMAC-SHA1, HMAC-SHA224,
 HMAC-SHA256 (default), HMAC-SHA384, and HMAC-SHA512. They use a shared
 secret on each end of the connection, which provides TSIG-style
 authentication for the command request and the name server's response.
-All commands sent over the channel must be signed by a key_id known to
+All commands sent over the channel must be signed by a server_key known to
 the server.
 
 :program:`rndc` reads a configuration file to determine how to contact the name
@@ -101,10 +101,10 @@ Options
 
    This option enables verbose logging.
 
-.. option:: -y key_id
+.. option:: -y server_key
 
-   This option indicates use of the key ``key_id`` from the configuration file. For control message validation to succeed, ``key_id`` must be known
-   by :iscman:`named` with the same algorithm and secret string. If no ``key_id`` is specified,
+   This option indicates use of the key ``server_key`` from the configuration file. For control message validation to succeed, ``server_key`` must be known
+   by :iscman:`named` with the same algorithm and secret string. If no ``server_key`` is specified,
    :program:`rndc` first looks for a key clause in the server statement of
    the server being used, or if no server statement is present for that
    host, then in the default-key clause of the options statement. Note that
@@ -650,7 +650,7 @@ would specify a zone called "-redirect".)
 Limitations
 ~~~~~~~~~~~
 
-There is currently no way to provide the shared secret for a ``key_id``
+There is currently no way to provide the shared secret for a ``server_key``
 without using the configuration file.
 
 Several error messages could be clearer.

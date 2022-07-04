@@ -300,7 +300,7 @@ transfers possible.
 
 Administrators who edit or periodically regenerate a DNS RPZ rule set and
 whose primary name server uses BIND can enable the
-``ixfr-from-differences`` option, which tells the primary name server to
+:any:`ixfr-from-differences` option, which tells the primary name server to
 calculate the differences between each new zone and the preceding version,
 and to make these differences available as a stream of deltas for use in
 incremental zone transfers to the subscribing name servers. This will look
@@ -750,7 +750,7 @@ To accomplish this using RPZ:
   };
 
 3. Enable use of the Response Policy Zone for all incoming queries
-   by adding the ``response-policy`` directive into the ``options {}``
+   by adding the :any:`response-policy` directive into the ``options {}``
    section:
 
 .. code-block:: c

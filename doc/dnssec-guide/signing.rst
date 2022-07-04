@@ -53,7 +53,7 @@ Enabling Automated DNSSEC Zone Maintenance and Key Generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To sign a zone, add the following statement to its
-``zone`` clause in the BIND 9 configuration file:
+:any:`zone` clause in the BIND 9 configuration file:
 
 ::
 
@@ -69,7 +69,7 @@ To sign a zone, add the following statement to its
        ...
    };
 
-The ``dnssec-policy`` statement causes the zone to be signed and turns
+The :any:`dnssec-policy` statement causes the zone to be signed and turns
 on automatic maintenance for the zone. This includes re-signing the zone
 as signatures expire and replacing keys on a periodic basis. The value
 ``default`` selects the default policy, which contains values suitable
@@ -86,13 +86,13 @@ reload the configuration file by running :option:`rndc reconfig`:
 
 And that's it - BIND signs your zone.
 
-At this point, before you go away and merrily add ``dnssec-policy``
+At this point, before you go away and merrily add :any:`dnssec-policy`
 statements to all your zones, we should mention that, like a number of
 other BIND configuration options, its scope depends on where it is placed. In
-the example above, we placed it in a ``zone`` clause, so it applied only
-to the zone in question. If we had placed it in a ``view`` clause, it
+the example above, we placed it in a :any:`zone` clause, so it applied only
+to the zone in question. If we had placed it in a :any:`view` clause, it
 would have applied to all zones in the view; and if we had placed it in
-the ``options`` clause, it would have applied to all zones served by
+the :namedconf:ref:`options` clause, it would have applied to all zones served by
 this instance of BIND.
 
 .. _signing_verification:
@@ -143,8 +143,8 @@ simulate what a validating resolver will check, by telling
 :iscman:`delv` to use a specific trust anchor.
 
 First, we need to make a copy of the key created by BIND. This
-is in the directory you set with the ``directory`` statement in
-your configuration file's ``options`` clause, and is named something
+is in the directory you set with the :any:`directory` statement in
+your configuration file's :namedconf:ref:`options` clause, and is named something
 like ``Kexample.com.+013.10376.key``:
 
 ::
@@ -161,7 +161,7 @@ and comments omitted):
    ...
    example.com. 3600 IN DNSKEY 257 3 13 6saiq99qDB...dqp+o0dw==
 
-We want to edit the copy to be in the ``trust-anchors`` format, so that
+We want to edit the copy to be in the :any:`trust-anchors` format, so that
 it looks like this:
 
 ::
@@ -637,7 +637,7 @@ That is quite complex, and it is all handled in BIND 9 with the single
 setting up our own DNSSEC policy with customized parameters. However, in many
 cases the defaults are adequate.
 
-At the time of this writing (mid-2020), ``dnssec-policy`` is still a
+At the time of this writing (mid-2020), :any:`dnssec-policy` is still a
 relatively new feature in BIND. Although it is the preferred
 way to run DNSSEC in a zone, it is not yet able to automatically implement
 all the features that are available
@@ -729,7 +729,7 @@ you are not already familiar with DNSSEC, it may be worth reading that chapter
 first.
 
 Setting up your own DNSSEC policy means that you must include a
-``dnssec-policy`` clause in the zone file. This sets values for the
+:any:`dnssec-policy` clause in the zone file. This sets values for the
 various parameters that affect the signing of zones and the rolling of
 keys. The following is an example of such a clause:
 
@@ -759,7 +759,7 @@ The policy has multiple parts:
    done by giving each policy a name, such as ``standard`` in the above
    example.
 
--  The ``keys`` clause lists all keys that should be in the zone, along
+-  The :any:`keys` clause lists all keys that should be in the zone, along
    with their associated parameters. In this example, we are using the
    conventional KSK/ZSK split, with the KSK changed every year and the
    ZSK changed every two months (the ``default`` DNSSEC policy sets a
@@ -787,15 +787,15 @@ The policy has multiple parts:
 
 -  The parameters ending in ``-safety`` are there to give
    you a bit of leeway in case a key roll doesn't go to plan. When
-   introduced into the zone, the ``publish-safety`` time is the amount
+   introduced into the zone, the :any:`publish-safety` time is the amount
    of additional time, over and above that calculated from the other
    parameters, during which the new key is in the zone but before BIND starts
-   to sign records with it. Similarly, the ``retire-safety`` is the
+   to sign records with it. Similarly, the :any:`retire-safety` is the
    amount of additional time, over and above that calculated from the
    other parameters, during which the old key is retained in the zone before
    being removed.
 
--  Finally, the ``purge-keys`` option allows you to clean up key files
+-  Finally, the :any:`purge-keys` option allows you to clean up key files
    automatically after a period of time. If a key has been removed from the
    zone, this option will determine how long its key files will be retained
    on disk.
@@ -813,10 +813,10 @@ during the process.
 Having defined a new policy called "standard", we now need to tell
 :iscman:`named` to use it. We do this by adding a ``dnssec-policy standard;``
 statement to the configuration file. Like many other configuration
-statements, it can be placed in the ``options`` statement (thus applying
-to all zones on the server), a ``view`` statement (applying to all zones
-in the view), or a ``zone`` statement (applying only to that zone). In
-this example, we'll add it to the ``zone`` statement:
+statements, it can be placed in the :namedconf:ref:`options` statement (thus applying
+to all zones on the server), a :any:`view` statement (applying to all zones
+in the view), or a :any:`zone` statement (applying only to that zone). In
+this example, we'll add it to the :any:`zone` statement:
 
 ::
 
@@ -892,7 +892,7 @@ CDS and a CDNSKEY record for the key in question to the apex of the
 zone. If your parent zone supports polling for CDS/CDNSKEY records, they
 are uploaded and the DS record published in the parent - at least ideally.
 
-If BIND is configured with ``parental-agents``, it will check for the DS
+If BIND is configured with :any:`parental-agents`, it will check for the DS
 presence. Let's look at the following configuration excerpt:
 
 ::
@@ -943,10 +943,10 @@ to tell :iscman:`named` that the DS record has been published.
 Alternate Ways of Signing a Zone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Although use of the automatic ``dnssec-policy`` is the preferred way to sign zones in
+Although use of the automatic :any:`dnssec-policy` is the preferred way to sign zones in
 BIND, there are occasions where a more manual approach may be
 needed, such as when external hardware is used to
-generate and sign the zone. ``dnssec-policy`` does not currently support
+generate and sign the zone. :any:`dnssec-policy` does not currently support
 the use of external hardware, so if your security policy requires it, you
 need to use one of the methods described here.
 
@@ -987,15 +987,15 @@ Manual
 
 Semi-Automatic
    The first step in DNSSEC automation came with BIND 9.7, when the
-   ``auto-dnssec`` option was added. This causes :iscman:`named` to
+   :any:`auto-dnssec` option was added. This causes :iscman:`named` to
    periodically search the directory holding the key files (see
    :ref:`generate_keys` for a description) and to
    use the information in them to both add and remove keys and sign the
    zone.
 
-   Use of ``auto-dnssec`` alone requires that the zone be dynamic,
+   Use of :any:`auto-dnssec` alone requires that the zone be dynamic,
    something not suitable for a number of situations, so BIND 9.9 added the
-   ``inline-signing`` option. With this, :iscman:`named` essentially keeps the
+   :any:`inline-signing` option. With this, :iscman:`named` essentially keeps the
    signed and unsigned copies of the zone separate. The signed zone is
    created from the unsigned one using the key information; when the
    unsigned zone is updated and the zone reloaded, :iscman:`named` detects the
@@ -1026,11 +1026,11 @@ Fully Automatic with ``dnssec-keymgr``
    determine when to add and remove keys, and when to sign with them.
 
    In BIND 9.17.0 and later, this method of handling DNSSEC
-   policies has been replaced by the ``dnssec-policy`` statement in the
+   policies has been replaced by the :any:`dnssec-policy` statement in the
    configuration file.
 
-Fully Automatic with ``dnssec-policy``
-   Introduced a BIND 9.16, ``dnssec-policy`` replaces ``dnssec-keymgr`` from BIND
+Fully Automatic with :any:`dnssec-policy`
+   Introduced a BIND 9.16, :any:`dnssec-policy` replaces ``dnssec-keymgr`` from BIND
    9.17 onwards and avoids the need to run a separate program. It also
    handles the creation of keys if a zone is added (``dnssec-keymgr``
    requires an initial key) and deletes old key files as they are
@@ -1040,7 +1040,7 @@ Fully Automatic with ``dnssec-policy``
 We now look at some of these methods in more detail. We cover
 semi-automatic signing first, as that contains a lot of useful
 information about keys and key timings. After that, we
-touch on fully automatic signing with ``dnssec-policy``. Since this has
+touch on fully automatic signing with :any:`dnssec-policy`. Since this has
 already been described in
 :ref:`easy_start_guide_for_authoritative_servers`, we will just
 mention a few additional points. Finally, we briefly describe manual signing.
@@ -1051,15 +1051,15 @@ Semi-Automatic Signing
 ^^^^^^^^^^^^^^^^^^^^^^
 
 As noted above, the term semi-automatic signing has been used in this
-document to indicate the mode of signing enabled by the ``auto-dnssec``
-and ``inline-signing`` keywords. :iscman:`named` signs the zone without any
+document to indicate the mode of signing enabled by the :any:`auto-dnssec`
+and :any:`inline-signing` keywords. :iscman:`named` signs the zone without any
 manual intervention, based purely on the timing information in the
 DNSSEC key files. The files, however, must be created manually.
 
 By appropriately setting the key parameters and the timing information
 in the key files, you can implement any DNSSEC policy you want for your
 zones. But why manipulate the key information yourself rather than rely
-on ``dnssec-policy`` to do it for you? The answer
+on :any:`dnssec-policy` to do it for you? The answer
 is that semi-automatic signing allows you to do things that, at the time of this writing
 (mid-2020), are currently not possible with one of the key managers: for
 example, the ability to use an HSM to store keys, or the ability to use
@@ -1347,19 +1347,19 @@ before a rollover depends on your organization's security policy.
 
 .. _advanced_discussions_automatic_dnssec-policy:
 
-Fully Automatic Signing With ``dnssec-policy``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fully Automatic Signing With :any:`dnssec-policy`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since BIND 9.16, key management is fully integrated ingo :iscman:`named`.
 Managing the signing process and rolling of these keys has been described in
 :ref:`easy_start_guide_for_authoritative_servers` and is not
 repeated here. A few points are worth noting, though:
 
--  The ``dnssec-policy`` statement in the :iscman:`named` configuration file
+-  The :any:`dnssec-policy` statement in the :iscman:`named` configuration file
    describes all aspects of the DNSSEC policy, including the signing.
 
--  When using ``dnssec-policy``, there is no need to set the
-   ``auto-dnssec`` and ``inline-signing`` options for a zone. The zone's
+-  When using :any:`dnssec-policy`, there is no need to set the
+   :any:`auto-dnssec` and :any:`inline-signing` options for a zone. The zone's
    ``policy`` statement implicitly does this.
 
 .. _advanced_discussions_manual_key_management_and_signing:

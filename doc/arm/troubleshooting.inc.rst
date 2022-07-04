@@ -47,10 +47,10 @@ was implemented in BIND as of release 9.14.0.
 
 As a result, some domains may be non-resolvable without manual
 intervention. In these cases, resolution can be restored by adding
-``server`` clauses for the offending servers, or by specifying ``edns no`` or
+:namedconf:ref:`server` clauses for the offending servers, or by specifying ``edns no`` or
 ``send-cookie no``, depending on the specific noncompliance.
 
-To determine which ``server`` clause to use, run the following commands
+To determine which :namedconf:ref:`server` clause to use, run the following commands
 to send queries to the authoritative servers for the broken domain:
 
 ::
@@ -85,11 +85,11 @@ to make :iscman:`named` prepare such a file, set the ``SSLKEYLOGFILE``
 environment variable to either:
 
 - the string ``config`` (``SSLKEYLOGFILE=config``); this requires
-  defining a ``logging`` :ref:`channel <logging_grammar>` which will
+  defining a :any:`logging` :ref:`channel <logging_grammar>` which will
   handle messages belonging to the ``sslkeylog`` category,
 
 - the path to the key file to write (``SSLKEYLOGFILE=/path/to/file``);
-  this is equivalent to the following ``logging`` :ref:`stanza
+  this is equivalent to the following :any:`logging` :ref:`stanza
   <logging_grammar>`:
 
   ::
@@ -105,7 +105,7 @@ environment variable to either:
 .. note::
 
    When using ``SSLKEYLOGFILE=config``, augmenting the log channel
-   output using options like ``print-time`` or ``print-severity`` is
+   output using options like :any:`print-time` or :any:`print-severity` is
    strongly discouraged as it will likely make the key log file
    unusable.
 

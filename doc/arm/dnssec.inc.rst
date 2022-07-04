@@ -107,7 +107,7 @@ care of any DNSSEC maintenance for this zone, including replacing signatures
 that are about to expire and managing :ref:`key_rollovers`.
 
 .. note::
-   ``dnssec-policy`` needs write access to the zone. Please see
+   :any:`dnssec-policy` needs write access to the zone. Please see
    :ref:`dnssec_policy` for more details about implications for zone storage.
 
 The default policy creates one key that is used to sign the complete zone,
@@ -115,7 +115,7 @@ and uses ``NSEC`` to enable authenticated denial of existence (a secure way
 to tell which records do not exist in a zone). This policy is recommended
 and typically does not need to be changed.
 
-If needed, a custom policy can be defined by adding a ``dnssec-policy`` statement
+If needed, a custom policy can be defined by adding a :any:`dnssec-policy` statement
 into the configuration:
 
 .. code-block:: none
@@ -155,7 +155,7 @@ needs.
 Key Rollover
 ============
 
-When using a ``dnssec-policy``, a key lifetime can be set to trigger
+When using a :any:`dnssec-policy`, a key lifetime can be set to trigger
 key rollovers. ZSK rollovers are fully automatic, but for KSK and CSK rollovers
 a DS record needs to be submitted to the parent. See
 :ref:`secure_delegation` for possible ways to do so.
@@ -222,7 +222,7 @@ adjusts the zone's DNSSEC keys on a schedule according to the key timing
 metadata. However, keys still need to be generated separately, for
 example with :iscman:`dnssec-keygen`.
 
-Of course, dynamic zones can also use ``dnssec-policy`` to fully automate DNSSEC
+Of course, dynamic zones can also use :any:`dnssec-policy` to fully automate DNSSEC
 maintenance. The next sections assume that more key
 management control is needed, and describe how to use dynamic DNS update to perform
 various DNSSEC operations.
@@ -235,7 +235,7 @@ As an alternative to fully automated zone signing using :ref:`dnssec-policy
 <dnssec_kasp>`, a zone can be changed from insecure to secure using a dynamic
 DNS update. :iscman:`named` must be configured so that it can see the ``K*``
 files which contain the public and private parts of the `zone keys`_ that are
-used to sign the zone. Key files should be placed in the ``key-directory``, as
+used to sign the zone. Key files should be placed in the :any:`key-directory`, as
 specified in :iscman:`named.conf`:
 
 ::
@@ -273,7 +273,7 @@ To insert the keys via dynamic update:
        > send
 
 In order to sign with these keys, the corresponding key files should also be
-placed in the ``key-directory``.
+placed in the :any:`key-directory`.
 
 .. _dnssec_dynamic_zones_nsec3:
 
@@ -354,10 +354,10 @@ To convert a signed zone to unsigned using dynamic DNS, delete all the
 ``NSEC`` or ``NSEC3`` chains, and associated ``NSEC3PARAM`` records are removed
 automatically when the zone is supposed to be re-signed.
 
-This requires the ``dnssec-secure-to-insecure`` option to be set to ``yes`` in
+This requires the :any:`dnssec-secure-to-insecure` option to be set to ``yes`` in
 :iscman:`named.conf`.
 
-In addition, if the ``auto-dnssec maintain`` or a ``dnssec-policy`` is used, it
+In addition, if the ``auto-dnssec maintain`` or a :any:`dnssec-policy` is used, it
 should be removed or changed to ``allow`` instead; otherwise it will re-sign.
 
 .. _dnssec_tools:
@@ -471,7 +471,7 @@ This trust anchor is provided as part of BIND and is kept up-to-date using
 To validate answers, the resolver needs at least one trusted starting point,
 a "trust anchor." Essentially, trust anchors are copies of ``DNSKEY`` RRs for
 zones that are used to form the first link in the cryptographic chain of trust.
-Alternative trust anchors can be specified using :ref:`trust_anchors`, but
+Alternative trust anchors can be specified using :any:`trust-anchors`, but
 this setup is very unusual and is recommended only for expert use.
 For more information, see :ref:`trust_anchors_description` in the
 :doc:`dnssec-guide`.
