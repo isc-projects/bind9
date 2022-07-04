@@ -871,6 +871,8 @@ unlink_name(dns_adbname_t *name) {
 	} else {
 		ISC_LIST_UNLINK(nbucket->names, name, plink);
 	}
+
+	isc_refcount_decrement(&nbucket->references);
 }
 
 /*
@@ -944,6 +946,8 @@ unlink_entry(dns_adbentry_t *entry) {
 	} else {
 		ISC_LIST_UNLINK(ebucket->entries, entry, plink);
 	}
+
+	isc_refcount_decrement(&ebucket->references);
 }
 
 static void
@@ -2056,6 +2060,7 @@ destroy(dns_adb_t *adb) {
 		isc_ht_iter_current(it, (void **)&nbucket);
 		cleanup_names(nbucket, INT_MAX);
 		isc_mutex_destroy(&nbucket->lock);
+		isc_refcount_destroy(&nbucket->references);
 		isc_mem_put(adb->mctx, nbucket, sizeof(*nbucket));
 	}
 	isc_ht_iter_destroy(&it);
@@ -2072,6 +2077,7 @@ destroy(dns_adb_t *adb) {
 		isc_ht_iter_current(it, (void **)&ebucket);
 		cleanup_entries(ebucket, INT_MAX);
 		isc_mutex_destroy(&ebucket->lock);
+		isc_refcount_destroy(&ebucket->references);
 		isc_mem_put(adb->mctx, ebucket, sizeof(*ebucket));
 	}
 	isc_ht_iter_destroy(&it);
@@ -2080,6 +2086,7 @@ destroy(dns_adb_t *adb) {
 	isc_rwlock_destroy(&adb->entries_lock);
 
 	isc_mutex_destroy(&adb->lock);
+	isc_refcount_destroy(&adb->references);
 
 	isc_task_detach(&adb->task);
 	isc_stats_detach(&adb->stats);
