@@ -1,5 +1,8 @@
 /_build/
 /*.1
+/*.1in
 /*.5
+/*.5in
 /*.8
+/*.8in
 /manpages.stamp

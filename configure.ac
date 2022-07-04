@@ -1251,12 +1251,17 @@ AM_CONDITIONAL([HAVE_DNSTAP], [test "$enable_dnstap" != "no"])
 # Look for sphinx-build
 #
 AC_ARG_VAR([SPHINX_BUILD], [path to sphinx-build binary used to build the documentation])
-AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [:])
-AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test "$SPHINX_BUILD" != ":"])
+AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [])
+AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test -n "$SPHINX_BUILD"])
 
-AC_PATH_PROG([XELATEX], [xelatex], [:])
-AC_PATH_PROG([LATEXMK], [latexmk], [:])
-AM_CONDITIONAL([HAVE_XELATEX], [test "$XELATEX" != ":" && test "$LATEXMK" != ":"])
+AC_PATH_PROG([XELATEX], [xelatex], [])
+AC_PATH_PROG([LATEXMK], [latexmk], [])
+AM_CONDITIONAL([HAVE_XELATEX], [test -n "$XELATEX" && test -n "$LATEXMK"])
+
+#
+# Build the man pages only if we have prebuilt manpages or we can build them from RST sources
+#
+AM_CONDITIONAL([BUILD_MANPAGES], [test -e doc/man/named.conf.5in || test -n "$SPHINX_BUILD"])
 
 #
 # Pull release date from CHANGES file last modification date
