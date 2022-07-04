@@ -53,7 +53,7 @@ on them.
 
 Using the method described in
 :ref:`easy_start_guide_for_authoritative_servers`, we just need to
-add a ``dnssec-policy`` statement to the relevant zone clause. This is
+add a :any:`dnssec-policy` statement to the relevant zone clause. This is
 what the :iscman:`named.conf` zone statement looks like on the primary server, 192.168.1.1:
 
 ::
@@ -167,7 +167,7 @@ like this:
 Rollovers
 ~~~~~~~~~
 
-If you are signing your zone using a ``dnssec-policy`` statement, this
+If you are signing your zone using a :any:`dnssec-policy` statement, this
 section is not really relevant to you. In the policy statement, you set how long
 you want your keys to be valid for, the time
 taken for information to propagate through your zone, the time it takes
@@ -246,7 +246,7 @@ Make sure the successor keys are readable by :iscman:`named`.
 
 :iscman:`named`'s logging messages indicate when the next
 key checking event is scheduled to occur, the frequency of which can be
-controlled by ``dnssec-loadkeys-interval``. The log message looks like
+controlled by :any:`dnssec-loadkeys-interval`. The log message looks like
 this:
 
 ::
@@ -323,7 +323,7 @@ the new ZSK is in effect:
 
 These are all the manual tasks you need to perform for a ZSK rollover.
 If you have followed the configuration examples in this guide of using
-``inline-signing`` and ``auto-dnssec``, everything else is automated for
+:any:`inline-signing` and :any:`auto-dnssec`, everything else is automated for
 you by BIND.
 
 Day of ZSK Rollover
@@ -503,7 +503,7 @@ one to keep the output small and hopefully clearer.
 
 Make sure the successor keys are readable by :iscman:`named`.
 
-The ``syslog`` message indicates when the next key
+The :any:`syslog` message indicates when the next key
 checking event is. The log message looks like this:
 
 ::
@@ -793,7 +793,7 @@ according to the steps described in
    NSEC3 will fall back to treating the zone as unsecured (rather than
    "bogus"), as described in Section 2 of :rfc:`5155`.
 
-To enable NSEC3, update your ``dnssec-policy`` and add the desired NSEC3
+To enable NSEC3, update your :any:`dnssec-policy` and add the desired NSEC3
 parameters. The example below enables NSEC3 for zones with the ``standard``
 DNSSEC policy, using 0 additional iterations, no opt-out, and a zero-length salt:
 
@@ -836,8 +836,8 @@ parameters, please see :ref:`advanced_discussions_nsec3param`.
 Migrating from NSEC3 to NSEC
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Migrating from NSEC3 back to NSEC is easy; just remove the ``nsec3param``
-configuration option from your ``dnssec-policy`` and reconfigure the name
+Migrating from NSEC3 back to NSEC is easy; just remove the :any:`nsec3param`
+configuration option from your :any:`dnssec-policy` and reconfigure the name
 server. You can tell that it worked if you see these messages in the log:
 
 ::
@@ -997,7 +997,7 @@ Here is what :iscman:`named.conf` looks like when it is signed:
        dnssec-policy "default";
    };
 
-To indicate the reversion to unsigned, change the ``dnssec-policy`` line:
+To indicate the reversion to unsigned, change the :any:`dnssec-policy` line:
 
 .. code-block:: none
   :emphasize-lines: 4
@@ -1075,6 +1075,6 @@ After a while, the zone is reverted back to the traditional, insecure DNS
 format. This can be verified by checking that all DNSKEY and RRSIG records have been
 removed from the zone.
 
-The ``dnssec-policy`` line can then be removed from :iscman:`named.conf` and
+The :any:`dnssec-policy` line can then be removed from :iscman:`named.conf` and
 the zone reloaded. The zone will no longer be subject to any DNSSEC
 maintenance.

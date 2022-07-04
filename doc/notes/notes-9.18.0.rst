@@ -50,7 +50,7 @@ New Features
   ``named`` supports :rfc:`zone transfers over TLS <9103>`
   (XFR-over-TLS, XoT) for both incoming and outgoing zone transfers.
 
-  Incoming zone transfers over TLS are enabled by adding the ``tls``
+  Incoming zone transfers over TLS are enabled by adding the :any:`tls`
   keyword, followed by either the name of a previously configured
   :ref:`tls statement <tls>` or the string ``ephemeral``, to the
   addresses included in :ref:`primaries <primaries_grammar>` lists.
@@ -82,9 +82,9 @@ New Features
 
   Server-side quotas on both the number of concurrent DoH connections
   and the number of active HTTP/2 streams per connection can be
-  configured using the global ``http-listener-clients`` and
-  ``http-streams-per-connection`` options, or the ``listener-clients``
-  and ``streams-per-connection`` parameters in an
+  configured using the global :any:`http-listener-clients` and
+  :any:`http-streams-per-connection` options, or the :any:`listener-clients`
+  and :any:`streams-per-connection` parameters in an
   :ref:`http statement <http>`. :gl:`#2809`
 
   The ``dig`` tool is now able to send DoH queries (``+https`` option).
@@ -100,7 +100,7 @@ New Features
   passthru actions to be logged into a separate channel. :gl:`#54`
 
 - A new option, ``nsdname-wait-recurse``, has been added to the
-  ``response-policy`` clause in the configuration file. When set to
+  :any:`response-policy` clause in the configuration file. When set to
   ``no``, RPZ NSDNAME rules are only applied if the authoritative
   nameservers for the query name have been looked up and are present in
   the cache. If this information is not present, the RPZ NSDNAME rules
@@ -112,8 +112,8 @@ New Features
 - Support for HTTPS and SVCB record types now also includes ADDITIONAL
   section processing for these record types. :gl:`#1132`
 
-- New configuration options, ``tcp-receive-buffer``,
-  ``tcp-send-buffer``, ``udp-receive-buffer``, and ``udp-send-buffer``,
+- New configuration options, :any:`tcp-receive-buffer`,
+  :any:`tcp-send-buffer`, :any:`udp-receive-buffer`, and :any:`udp-send-buffer`,
   have been added. These options allow the operator to fine-tune the
   receiving and sending buffers in the operating system. On busy
   servers, increasing the size of the receive buffers can prevent the
@@ -121,13 +121,13 @@ New Features
   decreasing it can prevent the server from becoming clogged with
   queries that are too old and have already timed out. :gl:`#2313`
 
-- New finer-grained ``update-policy`` rule types,
+- New finer-grained :any:`update-policy` rule types,
   ``krb5-subdomain-self-rhs`` and ``ms-subdomain-self-rhs``, were added.
   These rule types restrict updates to SRV and PTR records so that their
   content can only match the machine name embedded in the Kerberos
   principal making the change. :gl:`#481`
 
-- Per-type record count limits can now be specified in ``update-policy``
+- Per-type record count limits can now be specified in :any:`update-policy`
   statements, to limit the number of records of a particular type that
   can be added to a domain name via dynamic update. :gl:`#1657`
 
@@ -196,7 +196,7 @@ Removed Features
   statistics are no longer reported by the
   :ref:`statistics channel <statschannels>`. :gl:`#2926`
 
-- The ``glue-cache`` *option* has been marked as deprecated. The glue
+- The :any:`glue-cache` *option* has been marked as deprecated. The glue
   cache *feature* still works and will be permanently *enabled* in a
   future release. :gl:`#2146`
 
@@ -235,19 +235,19 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Aggressive Use of DNSSEC-Validated Cache (``synth-from-dnssec``, see
+- Aggressive Use of DNSSEC-Validated Cache (:any:`synth-from-dnssec`, see
   :rfc:`8198`) is now enabled by default again, after having been
   disabled in BIND 9.14.8. The implementation of this feature was
   reworked to achieve better efficiency and tuned to ignore certain
   types of broken NSEC records. Negative answer synthesis is currently
   only supported for zones using NSEC. :gl:`#1265`
 
-- The default NSEC3 parameters for ``dnssec-policy`` were updated to no
+- The default NSEC3 parameters for :any:`dnssec-policy` were updated to no
   extra SHA-1 iterations and no salt (``NSEC3PARAM 1 0 0 -``). This
   change is in line with the `latest NSEC3 recommendations`_.
   :gl:`#2956`
 
-- The default for ``dnssec-dnskey-kskonly`` was changed to ``yes``. This
+- The default for :any:`dnssec-dnskey-kskonly` was changed to ``yes``. This
   means that DNSKEY, CDNSKEY, and CDS RRsets are now only signed with
   the KSK by default. The additional signatures prepared using the ZSK
   when the option is set to ``no`` add to the DNS response payload
@@ -276,9 +276,9 @@ Feature Changes
   resolver adjust the EDNS buffer size used for outgoing queries based
   on the successful query responses and timeouts observed, was removed.
   The resolver now always uses the EDNS buffer size set in
-  ``edns-udp-size`` for all outgoing queries. :gl:`#2183`
+  :any:`edns-udp-size` for all outgoing queries. :gl:`#2183`
 
-- Keeping stale answers in cache (``stale-cache-enable``) has been
+- Keeping stale answers in cache (:any:`stale-cache-enable`) has been
   disabled by default. :gl:`#1712`
 
 - Overall memory use by ``named`` has been optimized and significantly
@@ -299,18 +299,18 @@ Feature Changes
   startup performance. :gl:`#2433`
 
 - When reporting zone types in the statistics channel, the terms
-  ``primary`` and ``secondary`` are now used instead of ``master`` and
+  :any:`primary` and :any:`secondary` are now used instead of ``master`` and
   ``slave``, respectively. :gl:`#1944`
 
 - The ``rndc nta -dump`` and ``rndc secroots`` commands now both include
-  ``validate-except`` entries when listing negative trust anchors. These
+  :any:`validate-except` entries when listing negative trust anchors. These
   are indicated by the keyword ``permanent`` in place of the expiry
   date. :gl:`#1532`
 
 - The output of ``rndc serve-stale status`` has been clarified. It now
   explicitly reports whether retention of stale data in the cache is
-  enabled (``stale-cache-enable``), and whether returning such data in
-  responses is enabled (``stale-answer-enable``). :gl:`#2742`
+  enabled (:any:`stale-cache-enable`), and whether returning such data in
+  responses is enabled (:any:`stale-answer-enable`). :gl:`#2742`
 
 - Previously, using ``dig +bufsize=0`` had the side effect of disabling
   EDNS, and there was no way to test the remote server's behavior when

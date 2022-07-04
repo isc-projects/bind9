@@ -24,12 +24,12 @@ Security Fixes
   Changgen Zou from Qi An Xin Group Corp. for bringing this
   vulnerability to our attention. :gl:`#2950`
 
-- TCP connections with ``keep-response-order`` enabled could leave the
+- TCP connections with :any:`keep-response-order` enabled could leave the
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
   properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
 
 - Lookups involving a DNAME could trigger an assertion failure when
-  ``synth-from-dnssec`` was enabled (which is the default).
+  :any:`synth-from-dnssec` was enabled (which is the default).
   (CVE-2022-0635)
 
   ISC would like to thank Vincent Levigneron from AFNIC for bringing
@@ -67,7 +67,7 @@ Bug Fixes
   hard quota on the number of connections. That message was accidentally
   removed but has now been restored. :gl:`#3125`
 
-- The ``max-transfer-time-out`` and ``max-transfer-idle-out`` options
+- The :any:`max-transfer-time-out` and :any:`max-transfer-idle-out` options
   were not implemented when the BIND 9 networking stack was refactored
   in 9.16. The missing functionality has been re-implemented and
   outgoing zone transfers now time out properly when not progressing.
@@ -76,7 +76,7 @@ Bug Fixes
 - TCP connections could hang indefinitely if the other party did not
   read sent data, causing the TCP write buffers to fill. This has been
   fixed by adding a "write" timer. Connections that are hung while
-  writing now time out after the ``tcp-idle-timeout`` period has
+  writing now time out after the :any:`tcp-idle-timeout` period has
   elapsed. :gl:`#3132`
 
 - Client TCP connections are now closed immediately when data received
@@ -88,11 +88,11 @@ Bug Fixes
   value of the counter to drop below zero. This has been fixed.
   :gl:`#3147`
 
-- An error in the processing of the ``blackhole`` ACL could cause some
+- An error in the processing of the :any:`blackhole` ACL could cause some
   DNS requests sent by :iscman:`named` to fail - for example, zone
   transfer requests and SOA refresh queries - if the destination address
   or prefix was specifically excluded from the ACL using ``!``, or if
-  the ACL was set to ``none``. This has now been fixed. ``blackhole``
+  the ACL was set to ``none``. This has now been fixed. :any:`blackhole`
   worked correctly when it was left unset, or if only positive-match
   elements were included. :gl:`#3157`
 

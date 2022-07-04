@@ -18,14 +18,14 @@
 ``config``
     Configuration file parsing and processing.
 
-``database``
+:any:`database`
     Messages relating to the databases used internally by the name server to store zone and cache data.
 
 ``default``
     Logging options for those categories where no specific configuration has been defined.
 
-``delegation-only``
-    Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a ``delegation-only`` in a forward, hint, or stub zone declaration.
+:any:`delegation-only`
+    Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a :any:`delegation-only` in a forward, hint, or stub zone declaration.
 
 ``dispatch``
     Dispatching of incoming packets to the server modules where they are to be processed.
@@ -33,7 +33,7 @@
 ``dnssec``
     DNSSEC and TSIG protocol processing.
 
-``dnstap``
+:any:`dnstap`
     The "dnstap" DNS traffic capture system.
 
 ``edns-disabled``
@@ -52,7 +52,7 @@
 ``network``
     Network operations.
 
-``notify``
+:any:`notify`
     The NOTIFY protocol.
 
 ``nsid``
@@ -61,7 +61,7 @@
 ``queries``
     A location where queries should be logged.
     
-    At startup, specifying the category ``queries`` also enables query logging unless the ``querylog`` option has been specified.
+    At startup, specifying the category ``queries`` also enables query logging unless the :any:`querylog` option has been specified.
     
     The query log entry first reports a client object identifier in @0x<hexadecimal-number> format. Next, it reports the client's IP address and port number, and the query name, class, and type. Next, it reports whether the Recursion Desired flag was set (+ if set, - if not set), whether the query was signed (S), whether EDNS was in use along with the EDNS version number (E(#)), whether TCP was used (T), whether DO (DNSSEC Ok) was set (D), whether CD (Checking Disabled) was set (C), whether a valid DNS Server COOKIE was received (V), and whether a DNS COOKIE option without a valid Server COOKIE was present (K). After this, the destination address the query was sent to is reported. Finally, if any CLIENT-SUBNET option was present in the client query, it is included in square brackets in the format [ECS address/source/scope].
 
@@ -75,7 +75,7 @@
 ``query-errors``
     Information about queries that resulted in some failure.
 
-``rate-limit``
+:any:`rate-limit`
     Start, periodic, and final notices of the rate limiting of a stream of responses that are logged at ``info`` severity in this category. These messages include a hash value of the domain name of the response and the name itself, except when there is insufficient memory to record the name for the final notice. The final notice is normally delayed until about one minute after rate limiting stops. A lack of memory can hurry the final notice, which is indicated by an initial asterisk (\*). Various internal events are logged at debug level 1 and higher.
     
     Rate limiting of individual requests is logged in the ``query-errors`` category.
@@ -101,11 +101,11 @@
 ``sslkeylog``
     TLS pre-master secrets (for debugging purposes).
 
-``trust-anchor-telemetry``
+:any:`trust-anchor-telemetry`
     Trust-anchor-telemetry requests received by :iscman:`named`.
 
 ``unmatched``
-    Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching ``view``. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the ``null`` channel.
+    Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching :any:`view`. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the :any:`null` channel.
 
 ``update``
     Dynamic updates.

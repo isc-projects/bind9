@@ -15,14 +15,14 @@ Notes for BIND 9.18.4
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- New ``dnssec-policy`` configuration checks have been added to detect
+- New :any:`dnssec-policy` configuration checks have been added to detect
   unusual policies, such as missing KSK and/or ZSK and too-short key
   lifetimes and re-sign periods. :gl:`#1611`
 
 Bug Fixes
 ~~~~~~~~~
 
-- The ``fetches-per-server`` quota is designed to adjust itself downward
+- The :any:`fetches-per-server` quota is designed to adjust itself downward
   automatically when an authoritative server times out too frequently.
   Due to a coding error, that adjustment was applied incorrectly, so
   that the quota for a congested server was always set to 1. This has
@@ -31,7 +31,7 @@ Bug Fixes
 - DNSSEC-signed catalog zones were not being processed correctly. This
   has been fixed. :gl:`#3380`
 
-- Key files were updated every time the ``dnssec-policy`` key manager
+- Key files were updated every time the :any:`dnssec-policy` key manager
   ran, whether the metadata had changed or not. :iscman:`named` now
   checks whether changes were applied before writing out the key files.
   :gl:`#3302`

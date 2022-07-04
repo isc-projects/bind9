@@ -43,11 +43,11 @@ New Features
 - Catalog Zones schema version 2, as described in the
   "DNS Catalog Zones" IETF draft version 5 document, is now supported by
   :iscman:`named`. All of the previously supported BIND-specific catalog
-  zone custom properties (``primaries``, ``allow-query``, and
-  ``allow-transfer``), as well as the new Change of Ownership (``coo``)
+  zone custom properties (:any:`primaries`, :any:`allow-query`, and
+  :any:`allow-transfer`), as well as the new Change of Ownership (``coo``)
   property, are now implemented. Schema version 1 is still supported,
   with some additional validation rules applied from schema version 2:
-  for example, the ``version`` property is mandatory, and a member zone
+  for example, the :any:`version` property is mandatory, and a member zone
   PTR RRset must not contain more than one record. In the event of a
   validation error, a corresponding error message is logged to help with
   diagnosing the problem. :gl:`#3221` :gl:`#3222` :gl:`#3223`

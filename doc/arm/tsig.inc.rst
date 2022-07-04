@@ -96,11 +96,11 @@ Instructing the Server to Use a Key
 A server sending a request to another server must be told whether to use
 a key, and if so, which key to use.
 
-For example, a key may be specified for each server in the ``primaries``
+For example, a key may be specified for each server in the :any:`primaries`
 statement in the definition of a secondary zone; in this case, all SOA QUERY
 messages, NOTIFY messages, and zone transfer requests (AXFR or IXFR)
 are signed using the specified key. Keys may also be specified in
-the ``also-notify`` statement of a primary or secondary zone, causing NOTIFY
+the :any:`also-notify` statement of a primary or secondary zone, causing NOTIFY
 messages to be signed using the specified key.
 
 Keys can also be specified in a ``server`` directive. Adding the
@@ -114,7 +114,7 @@ queries, to be signed using the ``host1-host2.`` key:
        keys { host1-host2. ;};
    };
 
-Multiple keys may be present in the ``keys`` statement, but only the
+Multiple keys may be present in the :any:`keys` statement, but only the
 first one is used. As this directive does not contain secrets, it can be
 used in a world-readable file.
 
@@ -129,10 +129,10 @@ TSIG-Based Access Control
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TSIG keys may be specified in ACL definitions and ACL directives such as
-``allow-query``, ``allow-transfer``, and ``allow-update``. The above key
+:any:`allow-query`, :any:`allow-transfer`, and :any:`allow-update`. The above key
 would be denoted in an ACL element as ``key host1-host2.``
 
-Here is an example of an ``allow-update`` directive using a TSIG key:
+Here is an example of an :any:`allow-update` directive using a TSIG key:
 
 ::
 
@@ -143,7 +143,7 @@ from an address in ``localnets``, *and* if it is signed using the
 ``host1-host2.`` key.
 
 See :ref:`dynamic_update_policies` for a
-discussion of the more flexible ``update-policy`` statement.
+discussion of the more flexible :any:`update-policy` statement.
 
 Errors
 ~~~~~~

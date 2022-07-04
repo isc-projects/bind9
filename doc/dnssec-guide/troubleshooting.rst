@@ -148,7 +148,7 @@ DNSSEC errors.
 Basic Logging
 ~~~~~~~~~~~~~
 
-DNSSEC validation error messages show up in ``syslog`` as a
+DNSSEC validation error messages show up in :any:`syslog` as a
 query error by default. Here is an example of what it may look like:
 
 ::
@@ -173,11 +173,11 @@ logging is thus not recommended for production servers.
 
 With that said, sometimes it may become necessary to temporarily enable
 BIND debug logging to see more details of how and whether DNSSEC is
-validating. DNSSEC-related messages are not recorded in ``syslog`` by default,
-even if query log is enabled; only DNSSEC errors show up in ``syslog``.
+validating. DNSSEC-related messages are not recorded in :any:`syslog` by default,
+even if query log is enabled; only DNSSEC errors show up in :any:`syslog`.
 
 The example below shows how to enable debug level 3 (to see full DNSSEC
-validation messages) in BIND 9 and have it sent to ``syslog``:
+validation messages) in BIND 9 and have it sent to :any:`syslog`:
 
 ::
 
@@ -205,7 +205,7 @@ The example below shows how to log DNSSEC messages to their own file
 
 After turning on debug logging and restarting BIND, a large
 number of log messages appear in
-``syslog``. The example below shows the log messages as a result of
+:any:`syslog`. The example below shows the log messages as a result of
 successfully looking up and validating the domain name ``ftp.isc.org``.
 
 ::
@@ -279,7 +279,7 @@ Below is an example attempting to resolve the A record for a test domain
 name ``www.example.net``. From the user's perspective, as described in
 :ref:`how_do_i_know_validation_problem`, only a SERVFAIL
 message is returned. On the validating resolver, we see the
-following messages in ``syslog``:
+following messages in :any:`syslog`:
 
 ::
 
@@ -404,7 +404,7 @@ Unable to Load Keys
 ^^^^^^^^^^^^^^^^^^^
 
 This is a simple yet common issue. If the key files are present but
-unreadable by :iscman:`named` for some reason, the ``syslog`` returns clear error
+unreadable by :iscman:`named` for some reason, the :any:`syslog` returns clear error
 messages, as shown below:
 
 ::
@@ -415,7 +415,7 @@ messages, as shown below:
    named[32447]: zone example.com/IN (signed): next key event: 27-Nov-2014 20:04:36.521
 
 However, if no keys are found, the error is not as obvious. Below shows
-the ``syslog`` messages after executing ``rndc
+the :any:`syslog` messages after executing ``rndc
 reload`` with the key files missing from the key directory:
 
 ::
@@ -463,7 +463,7 @@ Invalid Trust Anchors
 
 In most cases, you never need to explicitly configure trust
 anchors. :iscman:`named` supplies the current root trust anchor and,
-with the default setting of ``dnssec-validation``, updates it on the
+with the default setting of :any:`dnssec-validation`, updates it on the
 infrequent occasions when it is changed.
 
 However, in some circumstances you may need to explicitly configure

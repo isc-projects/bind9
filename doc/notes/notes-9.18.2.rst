@@ -15,7 +15,7 @@ Notes for BIND 9.18.2
 New Features
 ~~~~~~~~~~~~
 
-- Add a new configuration option ``reuseport`` to disable load balancing
+- Add a new configuration option :any:`reuseport` to disable load balancing
   on sockets in situations where processing of Response Policy Zones
   (RPZ), Catalog Zones, or large zone transfers can cause service
   disruptions. See the BIND 9 ARM for more detail. :gl:`#3249`
@@ -36,9 +36,9 @@ Bug Fixes
   :iscman:`dig` were identified and addressed. :gl:`#3020` :gl:`#3128`
   :gl:`#3145` :gl:`#3184` :gl:`#3205` :gl:`#3244` :gl:`#3248`
 
-- Invalid ``dnssec-policy`` definitions, where the defined keys did not
+- Invalid :any:`dnssec-policy` definitions, where the defined keys did not
   cover both KSK and ZSK roles for a given algorithm, were being
-  accepted. These are now checked, and the ``dnssec-policy`` is rejected
+  accepted. These are now checked, and the :any:`dnssec-policy` is rejected
   if both roles are not present for all algorithms in use. :gl:`#3142`
 
 - Handling of TCP write timeouts has been improved to track the timeout
