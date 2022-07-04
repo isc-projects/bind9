@@ -122,7 +122,9 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 signode["ids"].append(domainname + "-statement-" + sig)
 
                 iscconf = self.env.get_domain(domainname)
-                iscconf.add_statement(sig, self.isc_tags, self.isc_short, self.lineno)
+                iscconf.add_statement(
+                    sig, self.isc_tags, self.isc_short, self.isc_short_node, self.lineno
+                )
 
             @property
             def isc_tags(self):
@@ -131,6 +133,11 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             @property
             def isc_short(self):
                 return self.options.get("short", "")
+
+            @property
+            def isc_short_node(self):
+                """Short description parsed from rst to docutils node"""
+                return self.parse_nested_str(self.isc_short)
 
             def format_path(self, path):
                 assert path[0] == "_top"
@@ -223,8 +230,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             def transform_content(self, contentnode: addnodes.desc_content) -> None:
                 """autogenerate content from structured data"""
                 if self.isc_short:
-                    short_parsed = self.parse_nested_str(self.isc_short)
-                    contentnode.insert(0, short_parsed)
+                    contentnode.insert(0, self.isc_short_node)
                 if self.isc_tags:
                     tags = nodes.paragraph()
                     tags += nodes.strong(text="Tags: ")
@@ -305,19 +311,18 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             Sphinx API:
             Resolve the pending_xref *node* with the given typ and target.
             """
-            match = [
-                (docname, anchor)
-                for name, sig, typ, docname, anchor, _prio in self.get_objects()
-                if sig == target
-            ]
-
-            if len(match) == 0:
+            try:
+                obj = self.data["statements"][self.get_statement_name(target)]
+            except KeyError:
                 return None
-            todocname = match[0][0]
-            targ = match[0][1]
 
             refnode = make_refnode(
-                builder, fromdocname, todocname, targ, contnode, targ
+                builder,
+                fromdocname,
+                obj["docname"],
+                obj["anchor"],
+                contnode,
+                obj["anchor"],
             )
             return refnode
 
@@ -342,7 +347,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
         def get_statement_name(self, signature):
             return "{}.{}.{}".format(domainname, "statement", signature)
 
-        def add_statement(self, signature, tags, short, lineno):
+        def add_statement(self, signature, tags, short, short_node, lineno):
             """
             Add a new statement to the domain data structures.
             No visible effect.
@@ -353,6 +358,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             new = {
                 "tags": tags,
                 "short": short,
+                "short_node": short_node,
                 "filename": self.env.doc2path(self.env.docname),
                 "lineno": lineno,
                 # Sphinx API
@@ -430,7 +436,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 )
 
         @classmethod
-        def process_statementlist_nodes(cls, app, doctree, fromdocname):
+        def process_statementlist_nodes(cls, app, doctree):
             """
             Replace todolist objects (placed into document using
             .. statementlist::) with automatically generated table
@@ -440,7 +446,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             def gen_replacement_table(acceptable_blocks, acceptable_tags):
                 table_header = [
                     TableColumn("ref", "Statement"),
-                    TableColumn("short", "Description"),
+                    TableColumn("short_node", "Description"),
                 ]
                 tag_header = []
                 if len(acceptable_tags) != 1:
@@ -465,7 +471,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                                     )
                                 )
                             ),
-                            iscconf.list_all(fromdocname),
+                            iscconf.list_all(),
                         ),
                         key=lambda x: x["fullname"],
                     )
@@ -482,24 +488,24 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     gen_replacement_table(acceptable_blocks, acceptable_tags)
                 )
 
-        def list_all(self, fromdocname):
+        def list_all(self):
             for statement in self.data["statements"].values():
+                sig = statement["signature"]
                 block_names = set(
-                    path[-1]
-                    for path in self.statement_blocks.get(statement["signature"], [])
+                    path[-1] for path in self.statement_blocks.get(sig, [])
                 )
                 tags_txt = ", ".join(statement["tags"])
 
                 refpara = nodes.inline()
-                refpara += self.resolve_xref(
-                    self.env,
-                    fromdocname,
-                    self.env.app.builder,
-                    None,
-                    statement["signature"],
-                    None,
-                    nodes.Text(statement["signature"]),
+                refnode = addnodes.pending_xref(
+                    sig,
+                    reftype="statement",
+                    refdomain=domainname,
+                    reftarget=sig,
+                    refwarn=True,
                 )
+                refnode += nodes.Text(sig)
+                refpara += refnode
 
                 copy = statement.copy()
                 copy["block_names"] = block_names
@@ -557,6 +563,8 @@ class DictToDocutilsTableBuilder:
                 value = obj[column.dictkey]
                 if isinstance(value, str):
                     value = nodes.Text(value)
+                else:
+                    value = value.deepcopy()
                 entry += value
                 row += entry
             self.tbody.append(row)
@@ -575,7 +583,7 @@ def setup(app, domainname, confname, docutilsplaceholder, grammar):
 
     Conf = domain_factory(domainname, confname, docutilsplaceholder, grammar)
     app.add_domain(Conf)
-    app.connect("doctree-resolved", Conf.process_statementlist_nodes)
+    app.connect("doctree-read", Conf.process_statementlist_nodes)
 
     return {
         "version": "0.1",
