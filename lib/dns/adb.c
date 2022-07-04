@@ -2055,6 +2055,7 @@ destroy(dns_adb_t *adb) {
 		dns_adbnamebucket_t *nbucket = NULL;
 		isc_ht_iter_current(it, (void **)&nbucket);
 		cleanup_names(nbucket, INT_MAX);
+		isc_mutex_destroy(&nbucket->lock);
 		isc_mem_put(adb->mctx, nbucket, sizeof(*nbucket));
 	}
 	isc_ht_iter_destroy(&it);
@@ -2070,6 +2071,7 @@ destroy(dns_adb_t *adb) {
 		dns_adbentrybucket_t *ebucket = NULL;
 		isc_ht_iter_current(it, (void **)&ebucket);
 		cleanup_entries(ebucket, INT_MAX);
+		isc_mutex_destroy(&ebucket->lock);
 		isc_mem_put(adb->mctx, ebucket, sizeof(*ebucket));
 	}
 	isc_ht_iter_destroy(&it);
