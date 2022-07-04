@@ -14,17 +14,17 @@
 
 ``cname``
     Name servers that are skipped for being a CNAME rather than A/AAAA records.
-     
+
 ``config``
     Configuration file parsing and processing.
 
-:any:`database`
+``database``
     Messages relating to the databases used internally by the name server to store zone and cache data.
 
 ``default``
     Logging options for those categories where no specific configuration has been defined.
 
-:any:`delegation-only`
+``delegation-only``
     Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a :any:`delegation-only` in a forward, hint, or stub zone declaration.
 
 ``dispatch``
@@ -33,8 +33,8 @@
 ``dnssec``
     DNSSEC and TSIG protocol processing.
 
-:any:`dnstap`
-    The "dnstap" DNS traffic capture system.
+``dnstap``
+    The :any:`dnstap` DNS traffic capture system.
 
 ``edns-disabled``
     Log queries that have been forced to use plain DNS due to timeouts. This is often due to the remote servers not being :rfc:`1034`-compliant (not always returning FORMERR or similar to EDNS queries and other extensions to the DNS when they are not understood). In other words, this is targeted at servers that fail to respond to DNS queries that they don't understand.
@@ -75,7 +75,7 @@
 ``query-errors``
     Information about queries that resulted in some failure.
 
-:any:`rate-limit`
+``rate-limit``
     Start, periodic, and final notices of the rate limiting of a stream of responses that are logged at ``info`` severity in this category. These messages include a hash value of the domain name of the response and the name itself, except when there is insufficient memory to record the name for the final notice. The final notice is normally delayed until about one minute after rate limiting stops. A lack of memory can hurry the final notice, which is indicated by an initial asterisk (\*). Various internal events are logged at debug level 1 and higher.
     
     Rate limiting of individual requests is logged in the ``query-errors`` category.
@@ -101,8 +101,8 @@
 ``sslkeylog``
     TLS pre-master secrets (for debugging purposes).
 
-:any:`trust-anchor-telemetry`
-    Trust-anchor-telemetry requests received by :iscman:`named`.
+``trust-anchor-telemetry``
+    :any:`trust-anchor-telemetry` requests received by :iscman:`named`.
 
 ``unmatched``
     Messages that :iscman:`named` was unable to determine the class of, or for which there was no matching :any:`view`. A one-line summary is also logged to the ``client`` category. This category is best sent to a file or stderr; by default it is sent to the :any:`null` channel.
