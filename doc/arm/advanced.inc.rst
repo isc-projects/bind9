@@ -126,7 +126,7 @@ supported only if the option :any:`ixfr-from-differences` is set to
 
 When acting as a secondary server, BIND 9 attempts to use IXFR unless it is
 explicitly disabled. For more information about disabling IXFR, see the
-description of the :any:`request-ixfr` clause of the ``server`` statement.
+description of the :any:`request-ixfr` clause of the :namedconf:ref:`server` statement.
 
 When a secondary server receives a zone via AXFR, it creates a new copy of the
 zone database and then swaps it into place; during the loading process, queries

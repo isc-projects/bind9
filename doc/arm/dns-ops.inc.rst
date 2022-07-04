@@ -110,10 +110,10 @@ server.
    described in :ref:`controls_statement_definition_and_usage`.
 
    The format of the configuration file is similar to that of
-   :iscman:`named.conf`, but is limited to only four statements: the ``options``,
-   ``key``, ``server``, and ``include`` statements. These statements are
+   :iscman:`named.conf`, but is limited to only three blocks: the :rndcconf:ref:`options`,
+   :rndcconf:ref:`key`, :rndcconf:ref:`server`, and the :ref:`include_grammar`. These blocks are
    what associate the secret keys to the servers with which they are
-   meant to be shared. The order of statements is not significant.
+   meant to be shared. The order of blocks is not significant.
 
 .. rndcconf:statement:: options
 
@@ -126,13 +126,13 @@ server.
    .. rndcconf:statement:: default-key
 
       :any:`default-key` takes the name of a key as its argument, as defined
-      by a ``key`` statement.
+      by a :rndcconf:ref:`key` block.
 
    .. rndcconf:statement:: default-port
 
       :any:`default-port` specifies the port to which
       :iscman:`rndc` should connect if no port is given on the command line or in
-      a ``server`` statement.
+      a :rndcconf:ref:`server` block.
 
    .. rndcconf:statement:: default-source-address
    .. rndcconf:statement:: default-source-address-v6
@@ -144,17 +144,17 @@ server.
 
 .. rndcconf:statement:: key
 
-   The ``key`` statement defines a key to be used by :iscman:`rndc` when
-   authenticating with :iscman:`named`. Its syntax is identical to the ``key``
-   statement in :iscman:`named.conf`. The keyword ``key`` is followed by a key
+   The :rndcconf:ref:`key` block defines a key to be used by :iscman:`rndc` when
+   authenticating with :iscman:`named`. Its syntax is identical to the :namedconf:ref:`key`
+   statement in :iscman:`named.conf`. The keyword :rndcconf:ref:`key` is followed by a key
    name, which must be a valid domain name, though it need not actually
    be hierarchical; thus, a string like ``rndc_key`` is a valid name.
-   The ``key`` statement has two clauses: ``algorithm`` and ``secret``.
+   The :rndcconf:ref:`key` block has two statements: :rndcconf:ref:`algorithm` and :rndcconf:ref:`secret`.
 
    .. rndcconf:statement:: algorithm
 
       While the configuration parser accepts any string as the argument
-      to ``algorithm``, currently only the strings ``hmac-md5``,
+      to :rndcconf:ref:`algorithm`, currently only the strings ``hmac-md5``,
       ``hmac-sha1``, ``hmac-sha224``, ``hmac-sha256``,
       ``hmac-sha384``, and ``hmac-sha512`` have any meaning.
 
@@ -165,7 +165,7 @@ server.
 
 .. rndcconf:statement:: server
 
-   The ``server`` statement specifies connection parameters for a given server.
+   The :rndcconf:ref:`server` block specifies connection parameters for a given server.
    The server can be specified as a host name or address.
 
    .. rndcconf:statement:: addresses
@@ -217,7 +217,7 @@ server.
               allow { localhost; } keys { rndc_key; };
       };
 
-   and it has an identical key statement for ``rndc_key``.
+   and it has an identical key block for ``rndc_key``.
 
    Running the :iscman:`rndc-confgen` program conveniently creates an
    :iscman:`rndc.conf` file, and also displays the corresponding

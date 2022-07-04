@@ -47,10 +47,10 @@ was implemented in BIND as of release 9.14.0.
 
 As a result, some domains may be non-resolvable without manual
 intervention. In these cases, resolution can be restored by adding
-``server`` clauses for the offending servers, or by specifying ``edns no`` or
+:namedconf:ref:`server` clauses for the offending servers, or by specifying ``edns no`` or
 ``send-cookie no``, depending on the specific noncompliance.
 
-To determine which ``server`` clause to use, run the following commands
+To determine which :namedconf:ref:`server` clause to use, run the following commands
 to send queries to the authoritative servers for the broken domain:
 
 ::
