@@ -4672,16 +4672,22 @@ dns_adbentry_overquota(dns_adbentry_t *entry) {
 
 void
 dns_adb_beginudpfetch(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
+	uint_fast32_t active;
+
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
-	INSIST(atomic_fetch_add_relaxed(&addr->entry->active, 1) != UINT32_MAX);
+	active = atomic_fetch_add_relaxed(&addr->entry->active, 1);
+	INSIST(active != UINT32_MAX);
 }
 
 void
 dns_adb_endudpfetch(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
+	uint_fast32_t active;
+
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
-	INSIST(atomic_fetch_sub_release(&addr->entry->active, 1) != 0);
+	active = atomic_fetch_sub_release(&addr->entry->active, 1);
+	INSIST(active != 0);
 }

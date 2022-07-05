@@ -13414,8 +13414,9 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 		stub_glue_response_cb, request, &request->request);
 
 	if (result != ISC_R_SUCCESS) {
-		INSIST(atomic_fetch_sub_release(&args->stub->pending_requests,
-						1) > 1);
+		uint_fast32_t pr;
+		pr = atomic_fetch_sub_release(&args->stub->pending_requests, 1);
+		INSIST(pr > 1);
 		zone_debuglog(zone, "stub_send_query", 1,
 			      "dns_request_createvia() failed: %s",
 			      isc_result_totext(result));

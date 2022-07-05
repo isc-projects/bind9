@@ -2989,6 +2989,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	bool want_try = false;
 	bool want_done = false;
 	unsigned int bucketnum;
+	uint_fast32_t pending;
 
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
@@ -3000,7 +3001,8 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	bucketnum = fctx->bucketnum;
 	LOCK(&res->buckets[bucketnum].lock);
 
-	INSIST(atomic_fetch_sub_release(&fctx->pending, 1) > 0);
+	pending = atomic_fetch_sub_release(&fctx->pending, 1);
+	INSIST(pending > 0);
 
 	if (ADDRWAIT(fctx)) {
 		/*
@@ -4352,6 +4354,7 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	struct tried *tried = NULL;
 	unsigned int bucketnum;
 	bool bucket_empty = false;
+	uint_fast32_t nfctx;
 
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(ISC_LIST_EMPTY(fctx->events));
@@ -4371,7 +4374,8 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
 
-	INSIST(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
+	nfctx = atomic_fetch_sub_release(&res->nfctx, 1);
+	INSIST(nfctx > 0);
 
 	dec_stats(res, dns_resstatscounter_nfetch);
 
@@ -4693,6 +4697,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
+	uint_fast32_t nfctx;
 	size_t p;
 
 	/*
@@ -4978,7 +4983,8 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
 
-	INSIST(atomic_fetch_add_relaxed(&res->nfctx, 1) < UINT32_MAX);
+	nfctx = atomic_fetch_add_relaxed(&res->nfctx, 1);
+	INSIST(nfctx < UINT32_MAX);
 
 	inc_stats(res, dns_resstatscounter_nfetch);
 
@@ -10405,8 +10411,7 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	res->primefetch = NULL;
 	UNLOCK(&res->primelock);
 
-	INSIST(atomic_compare_exchange_strong_acq_rel(&res->priming,
-						      &(bool){ true }, false));
+	atomic_compare_exchange_enforced(&res->priming, &(bool){ true }, false);
 
 	if (fevent->result == ISC_R_SUCCESS && res->view->cache != NULL &&
 	    res->view->hints != NULL)
@@ -10474,8 +10479,8 @@ dns_resolver_prime(dns_resolver_t *res) {
 
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(res->mctx, rdataset, sizeof(*rdataset));
-			INSIST(atomic_compare_exchange_strong_acq_rel(
-				&res->priming, &(bool){ true }, false));
+			atomic_compare_exchange_enforced(
+				&res->priming, &(bool){ true }, false);
 		}
 		inc_stats(res, dns_resstatscounter_priming);
 	}
