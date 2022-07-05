@@ -781,10 +781,11 @@ isc_task_beginexclusive(isc_task_t *task) {
 
 void
 isc_task_endexclusive(isc_task_t *task) {
-	isc_taskmgr_t *manager;
+	isc_taskmgr_t *manager = NULL;
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(task->state == task_state_running);
+
 	manager = task->manager;
 
 	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
@@ -801,8 +802,8 @@ isc_task_endexclusive(isc_task_t *task) {
 			      "exclusive task mode: %s", "ended");
 	}
 
-	REQUIRE(atomic_compare_exchange_strong(&manager->exclusive_req,
-					       &(bool){ true }, false));
+	atomic_compare_exchange_enforced(&manager->exclusive_req,
+					 &(bool){ true }, false);
 }
 
 #ifdef HAVE_LIBXML2

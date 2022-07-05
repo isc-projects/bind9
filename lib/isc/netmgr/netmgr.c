@@ -427,8 +427,7 @@ isc_nm_pause(isc_nm_t *mgr) {
 	}
 	UNLOCK(&mgr->lock);
 
-	REQUIRE(atomic_compare_exchange_strong(&mgr->paused, &(bool){ false },
-					       true));
+	atomic_compare_exchange_enforced(&mgr->paused, &(bool){ false }, true);
 }
 
 static void
@@ -476,8 +475,7 @@ isc_nm_resume(isc_nm_t *mgr) {
 	}
 	UNLOCK(&mgr->lock);
 
-	REQUIRE(atomic_compare_exchange_strong(&mgr->paused, &(bool){ true },
-					       false));
+	atomic_compare_exchange_enforced(&mgr->paused, &(bool){ true }, false);
 
 	isc__nm_drop_interlocked(mgr);
 }
@@ -1700,6 +1698,7 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 static void
 nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	bool reuse = false;
+	uint_fast32_t ah;
 
 	/*
 	 * We do all of this under lock to avoid races with socket
@@ -1712,7 +1711,8 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 #endif
 
-	INSIST(atomic_fetch_sub(&sock->ah, 1) > 0);
+	ah = atomic_fetch_sub(&sock->ah, 1);
+	INSIST(ah > 0);
 
 #if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (atomic_load(&sock->active)) {
@@ -1906,8 +1906,8 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
-	INSIST(atomic_compare_exchange_strong(&sock->connecting,
-					      &(bool){ true }, false));
+	atomic_compare_exchange_enforced(&sock->connecting, &(bool){ true },
+					 false);
 
 	isc__nmsocket_clearcb(sock);
 	isc__nm_connectcb(sock, req, eresult, async);
@@ -1958,9 +1958,8 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	/*
 	 * Mark the connection as timed out and shutdown the socket.
 	 */
-
-	INSIST(atomic_compare_exchange_strong(&sock->timedout, &(bool){ false },
-					      true));
+	atomic_compare_exchange_enforced(&sock->timedout, &(bool){ false },
+					 true);
 	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_shutdown(sock);
 }
