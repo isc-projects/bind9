@@ -31,7 +31,7 @@ options {
 };
 
 key key1. {
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 	secret "1234abcd8765";
 };
 

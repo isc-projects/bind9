@@ -267,6 +267,6 @@ dyndb "name" "library.so" {
 	system;
 };
 key "mykey" {
-	algorithm "hmac-md5";
+	algorithm "@DEFAULT_HMAC@";
 	secret "qwertyuiopasdfgh";
 };

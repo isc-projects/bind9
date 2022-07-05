@@ -200,7 +200,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: key allowed - query allowed"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -213,7 +213,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: key not allowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:two:1234efgh8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
@@ -227,7 +227,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: key disallowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
@@ -366,7 +366,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: views key allowed - query allowed"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -379,7 +379,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: views key not allowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:two:1234efgh8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
@@ -393,7 +393,7 @@ rndc_reload ns2 10.53.0.2
 
 echo_i "test $n: views key disallowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
@@ -533,7 +533,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "test $n: zone key allowed - query allowed"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.keyallow.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.keyallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.keyallow.example' dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -543,7 +543,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "test $n: zone key not allowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.keyallow.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:two:1234efgh8765" a.keyallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.keyallow.example' dig.out.ns2.$n > /dev/null && ret=1
@@ -554,7 +554,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "test $n: zone key disallowed - query refused"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.keydisallow.example a > dig.out.ns2.$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y "${DEFAULT_HMAC}:one:1234abcd8765" a.keydisallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.keydisallow.example' dig.out.ns2.$n > /dev/null && ret=1

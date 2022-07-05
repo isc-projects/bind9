@@ -26,11 +26,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that named-checkconf prints a known good config ($n)"
 ret=0
-awk 'BEGIN { ok = 0; } /cut here/ { ok = 1; getline } ok == 1 { print }' good.conf > good.conf.in
-[ -s good.conf.in ] || ret=1
-$CHECKCONF -p good.conf.in  > checkconf.out$n || ret=1
-grep -v '^good.conf.in:' < checkconf.out$n > good.conf.out 2>&1 || ret=1
-cmp good.conf.in good.conf.out || ret=1
+awk 'BEGIN { ok = 0; } /cut here/ { ok = 1; getline } ok == 1 { print }' good.conf > good.conf.raw
+[ -s good.conf.raw ] || ret=1
+$CHECKCONF -p good.conf.raw  > checkconf.out$n || ret=1
+grep -v '^good.conf.raw:' < checkconf.out$n > good.conf.out 2>&1 || ret=1
+cmp good.conf.raw good.conf.out || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -38,10 +38,10 @@ n=`expr $n + 1`
 echo_i "checking that named-checkconf -x removes secrets ($n)"
 ret=0
 # ensure there is a secret and that it is not the check string.
-grep 'secret "' good.conf.in > /dev/null || ret=1
-grep 'secret "????????????????"' good.conf.in > /dev/null 2>&1 && ret=1
-$CHECKCONF -p -x good.conf.in > checkconf.out$n || ret=1
-grep -v '^good.conf.in:' < checkconf.out$n > good.conf.out 2>&1 || ret=1
+grep 'secret "' good.conf.raw > /dev/null || ret=1
+grep 'secret "????????????????"' good.conf.raw > /dev/null 2>&1 && ret=1
+$CHECKCONF -p -x good.conf.raw > checkconf.out$n || ret=1
+grep -v '^good.conf.raw:' < checkconf.out$n > good.conf.out 2>&1 || ret=1
 grep 'secret "????????????????"' good.conf.out > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

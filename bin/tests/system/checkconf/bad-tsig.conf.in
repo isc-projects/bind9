@@ -13,7 +13,6 @@
 
 /* Bad secret */
 key "badtsig" {
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 	secret "jEdD+BPKg==";
 };
-

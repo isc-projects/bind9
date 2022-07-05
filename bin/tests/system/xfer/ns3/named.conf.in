@@ -33,7 +33,7 @@ controls {
 };
 
 key tsigzone. {
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 	secret "1234abcd8765";
 };
 

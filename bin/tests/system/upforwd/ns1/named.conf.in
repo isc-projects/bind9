@@ -12,7 +12,7 @@
  */
 
 key "update.example." {
-	algorithm "hmac-md5";
+	algorithm @DEFAULT_HMAC@;
 	secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };
 

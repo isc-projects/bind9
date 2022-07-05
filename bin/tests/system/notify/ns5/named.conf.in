@@ -12,17 +12,17 @@
  */
 
 key "a" {
-	algorithm "hmac-md5";
+	algorithm @DEFAULT_HMAC@;
 	secret "aaaaaaaaaaaaaaaaaaaa";
 };
 
 key "b" {
-	algorithm "hmac-md5";
+	algorithm @DEFAULT_HMAC@;
 	secret "bbbbbbbbbbbbbbbbbbbb";
 };
 
 key "c" {
-	algorithm "hmac-md5";
+	algorithm @DEFAULT_HMAC@;
 	secret "cccccccccccccccccccc";
 };
 
