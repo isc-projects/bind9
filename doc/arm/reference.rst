@@ -3245,6 +3245,8 @@ options apply to zone transfers.
    the :namedconf:ref:`server` block.
 
 .. namedconf:statement:: transfer-message-size
+   :tags: transfer
+   :short: Limits the uncompressed size of DNS messages used in zone transfers over TCP.
 
    This is an upper bound on the uncompressed size of DNS messages used
    in zone transfers over TCP. If a message grows larger than this size,
@@ -3283,6 +3285,8 @@ options apply to zone transfers.
    refused. The default value is ``10``.
 
 .. namedconf:statement:: transfers-per-ns
+   :tags: transfer
+   :short: Limits the number of concurrent inbound zone transfers from a remote server.
 
    This is the maximum number of inbound zone transfers that can concurrently
    transfer from a given remote name server. The default value is
@@ -5238,12 +5242,16 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
 
 
 .. namedconf:statement:: bogus
+   :tags: server
+   :short: Allows a remote server to be ignored.
 
    If a remote server is giving out bad data, marking it
    as bogus prevents further queries to it. The default value of
    :any:`bogus` is ``no``.
 
 .. namedconf:statement:: edns
+   :tags: server
+   :short: Controls the use of the EDNS0 (:rfc:`2671`) feature.
 
    The :any:`edns` clause determines whether the local server attempts to
    use EDNS when communicating with the remote server. The default is
@@ -5284,6 +5292,8 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    over TCP. Note that currently idle timeouts in responses are ignored.
 
 .. namedconf:statement:: transfers
+   :tags: server
+   :short: Limits the number of concurrent inbound zone transfers from a server.
 
    :any:`transfers` is used to limit the number of concurrent inbound zone
    transfers from the specified server. If no :any:`transfers` clause is
@@ -5291,6 +5301,9 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    option.
 
 .. namedconf:statement:: keys
+   :tags: server
+   :short: Specifies one or more :term:`server_key` s to be used with a remote server.
+   
    :suppress_grammar:
 
    .. warning::
