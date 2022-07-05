@@ -739,10 +739,10 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking initial in-view zone file is loaded ($n)"
 ret=0
-TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
 grep 'include 1' dig.out.1.test$n >/dev/null || ret=1
-TSIG="hmac-sha1:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
 grep 'include 1' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -750,7 +750,7 @@ status=$((status+ret))
 
 echo_i "update in-view zone ($n)"
 ret=0
-TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $NSUPDATE -p ${PORT} -y "$TSIG" > /dev/null 2>&1 <<END || ret=1
 server 10.53.0.7
 zone test.
@@ -765,7 +765,7 @@ status=$((status+ret))
 
 echo_i "checking update ($n)"
 ret=0
-TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $DIGCMD @10.53.0.7 -y "$TSIG" text2.test. TXT > dig.out.1.test$n
 grep 'addition 1' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -795,10 +795,10 @@ wait_for_log 3 "all zones loaded" ns7/named.run
 n=$((n+1))
 echo_i "checking zone file edits are loaded ($n)"
 ret=0
-TSIG="hmac-sha1:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
 grep 'include 2' dig.out.1.test$n >/dev/null || ret=1
-TSIG="hmac-sha1:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
+TSIG="$DEFAULT_HMAC:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
 $DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
 grep 'include 2' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
