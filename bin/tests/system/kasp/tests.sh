@@ -1872,7 +1872,7 @@ dnssec_verify
 # Test with views.
 set_zone "example.net"
 set_server "ns4" "10.53.0.4"
-TSIG="hmac-sha1:keyforview1:$VIEW1"
+TSIG="$DEFAULT_HMAC:keyforview1:$VIEW1"
 wait_for_nsec
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example1"
@@ -1891,7 +1891,7 @@ check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-TSIG="hmac-sha1:keyforview2:$VIEW2"
+TSIG="$DEFAULT_HMAC:keyforview2:$VIEW2"
 wait_for_nsec
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example2"
@@ -1908,7 +1908,7 @@ check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-TSIG="hmac-sha1:keyforview3:$VIEW3"
+TSIG="$DEFAULT_HMAC:keyforview3:$VIEW3"
 wait_for_nsec
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example2"
