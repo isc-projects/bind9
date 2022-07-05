@@ -739,7 +739,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "check 'grant' in deny name + grant subdomain ($n)"
 $NSUPDATE << EOF > nsupdate.out-$n 2>&1 || ret=1
-key hmac-sha256:subkey 1234abcd8765
+key $DEFAULT_HMAC:subkey 1234abcd8765
 server 10.53.0.9 ${PORT}
 zone denyname.example
 update add foo.denyname.example 3600 IN TXT added
@@ -753,7 +753,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "check 'deny' in deny name + grant subdomain ($n)"
 $NSUPDATE << EOF > nsupdate.out-$n 2>&1 && ret=1
-key hmac-sha256:subkey 1234abcd8765
+key $DEFAULT_HMAC:subkey 1234abcd8765
 server 10.53.0.9 ${PORT}
 zone denyname.example
 update add denyname.example 3600 IN TXT added

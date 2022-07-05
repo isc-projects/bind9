@@ -45,8 +45,8 @@ def logquery(type, qname):
 try:
     keyring = dns.tsigkeyring.from_text(
         {
-            "foo": {"hmac-sha256", "aaaaaaaaaaaa"},
-            "fake": {"hmac-sha256", "aaaaaaaaaaaa"},
+            "foo": {os.getenv("DEFAULT_HMAC", "hmac-sha256"), "aaaaaaaaaaaa"},
+            "fake": {os.getenv("DEFAULT_HMAC", "hmac-sha256"), "aaaaaaaaaaaa"},
         }
     )
 except:

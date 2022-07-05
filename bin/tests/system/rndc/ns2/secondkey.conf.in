@@ -17,5 +17,5 @@ options {
 
 key secondkey {
 	secret "abcd1234abcd8765";
-	algorithm hmac-sha256;
+	algorithm @DEFAULT_HMAC@;
 };
