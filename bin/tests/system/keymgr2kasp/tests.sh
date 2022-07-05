@@ -957,7 +957,7 @@ set_server "ns4" "10.53.0.4"
 init_view_migration
 set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
 set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
-TSIG="hmac-sha1:external:$VIEW1"
+TSIG="$DEFAULT_HMAC:external:$VIEW1"
 wait_for_nsec
 # Make sure the zone is signed with legacy keys.
 check_keys
@@ -987,7 +987,7 @@ set_server "ns4" "10.53.0.4"
 init_view_migration
 set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
 set_keyalgorithm "KEY2" "8" "RSASHA256" "1024"
-TSIG="hmac-sha1:internal:$VIEW2"
+TSIG="$DEFAULT_HMAC:internal:$VIEW2"
 wait_for_nsec
 # Make sure the zone is signed with legacy keys.
 check_keys
@@ -1052,7 +1052,7 @@ set_keystate     "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate     "KEY3" "STATE_ZRRSIG" "hidden"
 
 # Various signing policy checks (external).
-TSIG="hmac-sha1:external:$VIEW1"
+TSIG="$DEFAULT_HMAC:external:$VIEW1"
 check_keys
 wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "ext"
@@ -1113,7 +1113,7 @@ check_apex
 dnssec_verify
 
 # Various signing policy checks (internal).
-TSIG="hmac-sha1:internal:$VIEW2"
+TSIG="$DEFAULT_HMAC:internal:$VIEW2"
 check_keys
 wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "int"
