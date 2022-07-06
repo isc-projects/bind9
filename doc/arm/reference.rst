@@ -627,6 +627,8 @@ specified.
 The :any:`channel` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. namedconf:statement:: channel
+   :tags: logging
+   :short: Defines a stream of data that can be independently logged.
 
 All log output goes to one or more ``channels``; there is no limit to
 the number of channels that can be created.
@@ -890,6 +892,8 @@ To discard all messages in a category, specify the :namedconf:ref:`null` channel
    category notify { null; };
 
 .. namedconf:statement:: category
+   :tags: logging
+   :short: Specifies the type of data logged to a particular channel.
 
 The following are the available categories and brief descriptions of the
 types of log information they contain. More categories may be added in
