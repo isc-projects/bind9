@@ -6108,7 +6108,12 @@ particularly useful for implementing split DNS setups without having to
 run multiple servers.
 
 .. namedconf:statement:: match-clients
+   :tags: view
+   :short: Specifies a view of DNS namespace for a given subset of client IP addresses.
+
 .. namedconf:statement:: match-destinations
+   :tags: view
+   :short: Specifies a view of DNS namespace for a given subset of destination IP addresses.
 
    Each :any:`view` statement defines a view of the DNS namespace that is
    seen by a subset of clients. A client matches a view if its source IP
@@ -6122,6 +6127,8 @@ run multiple servers.
    the view.
 
 .. namedconf:statement:: match-recursive-only
+   :tags: view
+   :short: Specifies that only recursive requests can match this view of the DNS namespace.
 
    A view can
    also be specified as :any:`match-recursive-only`, which means that only
