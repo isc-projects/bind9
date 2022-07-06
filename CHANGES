@@ -1,6 +1,11 @@
 5915.	[bug]		Detect missing closing brace (}) and computational
 			overflows in $GENERATE directives. [GL #3429]
 
+5914.	[bug]		When synth-from-dnssec generated a response using
+			records from a higher zone, it could unexpectedly prove
+			non-existance of records in a subordinate grafted-on
+			namespace. [GL #3402]
+
 5911.	[bug]		Update HTTP listener settings on reconfiguration.
 			[GL #3415]
 

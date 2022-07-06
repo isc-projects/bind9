@@ -870,6 +870,33 @@ n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+echo_i "check synth-from-dnssec with grafted zone (forward only) ($n)"
+ret=0
+#prime cache with NXDOMAIN NSEC covering 'fun' to 'minimal'
+dig_with_opts internal @10.53.0.5 > dig.out.ns5-1.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns5-1.test$n >/dev/null || ret=1
+grep '^fun\..*NSEC.minimal\. ' dig.out.ns5-1.test$n >/dev/null || ret=1
+#perform lookup in grafted zone
+dig_with_opts example.internal @10.53.0.5 > dig.out.ns5-2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5-2.test$n >/dev/null || ret=1
+grep '^example\.internal\..*A.1.2.3.4$' dig.out.ns5-2.test$n >/dev/null || ret=1
+n=$((n+1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "check synth-from-dnssec with grafted zone (primary zone) ($n)"
+ret=0
+#prime cache with NXDOMAIN NSEC covering 'fun' to 'minimal'
+dig_with_opts internal @10.53.0.5 > dig.out.ns5-1.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns5-1.test$n >/dev/null || ret=1
+grep '^fun\..*NSEC.minimal\. ' dig.out.ns5-1.test$n >/dev/null || ret=1
+#perform lookup in grafted zone
+dig_with_opts example.internal2 @10.53.0.5 > dig.out.ns5-2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5-2.test$n >/dev/null || ret=1
+grep '^example\.internal2\..*A.1.2.3.4$' dig.out.ns5-2.test$n >/dev/null || ret=1
+n=$((n+1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
