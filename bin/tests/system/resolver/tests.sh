@@ -863,6 +863,14 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n+1))
+echo_i "checking SERVFAIL is not returned if only some authoritative servers return FORMERR ($n)"
+ret=0
+dig_with_opts @10.53.0.5 ns.partial-formerr. a > dig.ns5.out.${n} || ret=1
+grep "status: SERVFAIL" dig.ns5.out.${n} > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n+1))
 echo_i "check logged command line ($n)"
 ret=0
 grep "running as: .* -m record " ns1/named.run > /dev/null || ret=1

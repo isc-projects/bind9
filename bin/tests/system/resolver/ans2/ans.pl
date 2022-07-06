@@ -122,6 +122,8 @@ for (;;) {
 		# Delegation to broken TLD.
 		$packet->push("authority", new Net::DNS::RR("broken 300 NS ns.broken"));
 		$packet->push("additional", new Net::DNS::RR("ns.broken 300 A 10.53.0.4"));
+	} elsif ($qname =~ /\.partial-formerr/) {
+		$packet->header->rcode("FORMERR");
 	} else {
 		# Data for the "bogus referrals" test
 		$packet->push("authority", new Net::DNS::RR("below.www.example.com 300 NS ns.below.www.example.com"));

@@ -1,3 +1,7 @@
+5916.	[bug]		When resolving a name, don't give up immediately if an
+			authoritative server returns FORMERR; try the other
+			servers first. [GL #3152]
+
 5915.	[bug]		Detect missing closing brace (}) and computational
 			overflows in $GENERATE directives. [GL #3429]
 

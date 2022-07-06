@@ -9950,25 +9950,13 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		add_bad_edns(fctx, &query->addrinfo->sockaddr);
 		inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 	} else if (rcode == dns_rcode_formerr) {
-		if (ISFORWARDER(query->addrinfo)) {
-			/*
-			 * This forwarder doesn't understand us,
-			 * but other forwarders might.  Keep trying.
-			 */
-			rctx->broken_server = DNS_R_REMOTEFORMERR;
-			rctx->next_server = true;
-		} else {
-			/*
-			 * The server doesn't understand us.  Since
-			 * all servers for a zone need similar
-			 * capabilities, we assume that we will get
-			 * FORMERR from all servers, and thus we
-			 * cannot make any more progress with this
-			 * fetch.
-			 */
-			log_formerr(fctx, "server sent FORMERR");
-			result = DNS_R_FORMERR;
-		}
+		/*
+		 * The server (or forwarder) doesn't understand us,
+		 * but others might.
+		 */
+		rctx->next_server = true;
+		rctx->broken_server = DNS_R_REMOTEFORMERR;
+		log_formerr(fctx, "server sent FORMERR");
 	} else if (rcode == dns_rcode_badvers) {
 		unsigned int version;
 #if DNS_EDNS_VERSION > 0
