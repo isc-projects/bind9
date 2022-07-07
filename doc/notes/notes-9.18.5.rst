@@ -36,6 +36,13 @@ Bug Fixes
   records within the non-delegated namespace using NSEC records from
   higher zones. :gl:`#3402`
 
+- Previously, :iscman:`named` immediately returned a SERVFAIL response
+  to the client when it received a FORMERR response from an
+  authoritative server during recursive resolution. This has been fixed:
+  :iscman:`named` acting as a resolver now attempts to contact other
+  authoritative servers for a given domain when it receives a FORMERR
+  response from one of them. :gl:`#3152`
+
 - It was possible for a catalog zone consumer to process a catalog zone
   member zone when there was a configured pre-existing forward-only
   forward zone with the same name. This has been fixed. :gl:`#2506`
