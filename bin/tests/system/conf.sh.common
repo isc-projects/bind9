@@ -303,6 +303,9 @@ DISABLED_ALGORITHM=ECDSAP384SHA384
 DISABLED_ALGORITHM_NUMBER=14
 DISABLED_BITS=384
 
+# Default HMAC algorithm.
+DEFAULT_HMAC=hmac-sha256
+
 #
 # Useful functions in test scripts
 #
@@ -712,6 +715,7 @@ copy_setports() {
         -e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
         -e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
         -e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
+        -e "s/${atsign}DEFAULT_HMAC${atsign}/${DEFAULT_HMAC}/g" \
         -e "s/${atsign}DISABLED_ALGORITHM${atsign}/${DISABLED_ALGORITHM}/g" \
         -e "s/${atsign}DISABLED_ALGORITHM_NUMBER${atsign}/${DISABLED_ALGORITHM_NUMBER}/g" \
         -e "s/${atsign}DISABLED_BITS${atsign}/${DISABLED_BITS}/g" \
