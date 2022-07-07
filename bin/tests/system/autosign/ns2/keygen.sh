@@ -29,16 +29,16 @@ zonefile="${zone}.db"
 infile="${zonefile}.in"
 cat $infile dsset-*.example. > $zonefile
 
-kskname=`$KEYGEN -a RSASHA1 -3 -q -fk $zone`
-$KEYGEN -a RSASHA1 -3 -q $zone > /dev/null
+kskname=$($KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q -fk $zone)
+$KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q $zone > /dev/null
 $DSFROMKEY $kskname.key > dsset-${zone}.
 
 # Create keys for a private secure zone.
 zone=private.secure.example
 zonefile="${zone}.db"
 infile="${zonefile}.in"
-ksk=`$KEYGEN -a RSASHA1 -3 -q -fk $zone`
-$KEYGEN -a RSASHA1 -3 -q $zone > /dev/null
+ksk=$($KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q -fk $zone)
+$KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q $zone > /dev/null
 keyfile_to_static_ds $ksk > private.conf
 cp private.conf ../ns4/private.conf
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null
@@ -51,7 +51,7 @@ cat $infile > $zonefile
 for i in Xbar.+005+30676.key Xbar.+005+30804.key Xbar.+005+30676.private \
 	 Xbar.+005+30804.private
 do
-	cp $i `echo $i | sed s/X/K/`
+	cp $i $(echo $i | sed s/X/K/)
 done
 $KEYGEN -a RSASHA1 -q $zone > /dev/null
 $DSFROMKEY Kbar.+005+30804.key > dsset-bar.
