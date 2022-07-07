@@ -16600,3 +16600,85 @@ cleanup:
 
 	return (result);
 }
+
+isc_result_t
+named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
+			isc_buffer_t **text) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_view_t *view = NULL;
+	char *ptr = NULL, *viewname = NULL;
+	bool first = true;
+
+	REQUIRE(text != NULL);
+
+	/* Skip the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+
+	/* Look for the view name. */
+	viewname = next_token(lex, text);
+	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		char tbuf[100];
+		unsigned int used;
+		uint32_t val;
+		int s;
+
+		if (view->rdclass != dns_rdataclass_in) {
+			continue;
+		}
+
+		if (viewname != NULL && strcasecmp(view->name, viewname) != 0) {
+			continue;
+		}
+
+		if (view->adb == NULL) {
+			continue;
+		}
+
+		if (!first) {
+			putstr(text, "\n");
+		}
+		putstr(text, "Rate limited servers, view ");
+		putstr(text, view->name);
+
+		dns_adb_getquota(view->adb, &val, NULL, NULL, NULL, NULL);
+		s = snprintf(tbuf, sizeof(tbuf),
+			     " (fetches-per-server %u):", val);
+		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
+			return (ISC_R_NOSPACE);
+		}
+		first = false;
+		putstr(text, tbuf);
+		used = isc_buffer_usedlength(*text);
+		CHECK(dns_adb_dumpquota(view->adb, text));
+		if (used == isc_buffer_usedlength(*text)) {
+			putstr(text, "\n  None.");
+		}
+
+		putstr(text, "\nRate limited servers, view ");
+		putstr(text, view->name);
+		val = dns_resolver_getfetchesperzone(view->resolver);
+		s = snprintf(tbuf, sizeof(tbuf),
+			     " (fetches-per-zone %u):", val);
+		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
+			return (ISC_R_NOSPACE);
+		}
+		putstr(text, tbuf);
+		used = isc_buffer_usedlength(*text);
+		CHECK(dns_resolver_dumpquota(view->resolver, text));
+		if (used == isc_buffer_usedlength(*text)) {
+			putstr(text, "\n  None.");
+		}
+	}
+
+cleanup:
+	if (isc_buffer_usedlength(*text) > 0) {
+		(void)putnull(text);
+	}
+
+	return (result);
+}

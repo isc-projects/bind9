@@ -869,28 +869,6 @@ dns_view_dialup(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
-/*%<
- * Dump the current state of the view 'view' to the stream 'fp'
- * for purposes of analysis or debugging.
- *
- * Currently the dumped state includes the view's cache; in the future
- * it may also include other state such as the address database.
- * It will not not include authoritative data since it is voluminous and
- * easily obtainable by other means.
- *
- * Requires:
- *
- *\li	'view' is valid.
- *
- *\li	'fp' refers to a file open for writing.
- *
- * Returns:
- * \li	ISC_R_SUCCESS	The cache was successfully dumped.
- * \li	others		An error occurred (see dns_master_dump)
- */
-
-isc_result_t
 dns_view_flushcache(dns_view_t *view, bool fixuponly);
 /*%<
  * Flush the view's cache (and ADB).  If 'fixuponly' is true, it only updates

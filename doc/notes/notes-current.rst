@@ -25,7 +25,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The new ``rndc fetchlimit`` command prints a list of name server
+  addresses that are currently rate-limited due to ``fetches-per-server``
+  and domain names that are rate limited due to ``fetches-per-zone``.
+  :gl:`#665`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

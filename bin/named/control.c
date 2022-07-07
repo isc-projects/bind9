@@ -218,6 +218,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_DUMPSTATS)) {
 		result = named_server_dumpstats(named_g_server);
+	} else if (command_compare(command, NAMED_COMMAND_FETCHLIMIT)) {
+		result = named_server_fetchlimit(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_FLUSH)) {
 		result = named_server_flushcache(named_g_server, lex);
 	} else if (command_compare(command, NAMED_COMMAND_FLUSHNAME)) {

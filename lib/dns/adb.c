@@ -2880,8 +2880,8 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	}
 }
 
-void
-dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
+static void
+dumpfind(dns_adbfind_t *find, FILE *f) {
 	char tmp[512];
 	const char *tmpp = NULL;
 	dns_adbaddrinfo_t *ai = NULL;
@@ -2971,9 +2971,70 @@ print_find_list(FILE *f, dns_adbname_t *name) {
 
 	find = ISC_LIST_HEAD(name->finds);
 	while (find != NULL) {
-		dns_adb_dumpfind(find, f);
+		dumpfind(find, f);
 		find = ISC_LIST_NEXT(find, plink);
 	}
+}
+
+static isc_result_t
+putstr(isc_buffer_t **b, const char *str) {
+	isc_result_t result;
+
+	result = isc_buffer_reserve(b, strlen(str));
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	isc_buffer_putstr(*b, str);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf) {
+	isc_result_t result;
+	isc_ht_iter_t *it = NULL;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+
+	RWLOCK(&adb->entries_lock, isc_rwlocktype_read);
+	isc_ht_iter_create(adb->entrybuckets, &it);
+	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_next(it))
+	{
+		dns_adbentrybucket_t *ebucket = NULL;
+		dns_adbentry_t *entry = NULL;
+
+		isc_ht_iter_current(it, (void **)&ebucket);
+		LOCK(&ebucket->lock);
+		for (entry = ISC_LIST_HEAD(ebucket->entries); entry != NULL;
+		     entry = ISC_LIST_NEXT(entry, plink))
+		{
+			char addrbuf[ISC_NETADDR_FORMATSIZE];
+			char text[BUFSIZ];
+			isc_netaddr_t netaddr;
+
+			if (entry->atr == 0.0 && entry->quota == adb->quota) {
+				continue;
+			}
+
+			isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
+			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
+
+			snprintf(text, sizeof(text),
+				 "\n- quota %s (%" PRIuFAST32 "/%d) atr %0.2f",
+				 addrbuf, atomic_load_relaxed(&entry->quota),
+				 adb->quota, entry->atr);
+			putstr(buf, text);
+		}
+		UNLOCK(&ebucket->lock);
+	}
+	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
+	isc_ht_iter_destroy(&it);
+
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_SUCCESS;
+	}
+	return (result);
 }
 
 static isc_result_t
@@ -3963,6 +4024,32 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq, double low,
 	adb->atr_low = low;
 	adb->atr_high = high;
 	adb->atr_discount = discount;
+}
+
+void
+dns_adb_getquota(dns_adb_t *adb, uint32_t *quotap, uint32_t *freqp,
+		 double *lowp, double *highp, double *discountp) {
+	REQUIRE(DNS_ADB_VALID(adb));
+
+	if (quotap != NULL) {
+		*quotap = adb->quota;
+	}
+
+	if (freqp != NULL) {
+		*freqp = adb->atr_freq;
+	}
+
+	if (lowp != NULL) {
+		*lowp = adb->atr_low;
+	}
+
+	if (highp != NULL) {
+		*highp = adb->atr_high;
+	}
+
+	if (discountp != NULL) {
+		*discountp = adb->atr_discount;
+	}
 }
 
 bool
