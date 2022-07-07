@@ -29,6 +29,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- To reduce unnecessary memory consumption in the cache, NXDOMAIN
+  records are no longer retained past the normal negative cache TTL,
+  even if :any:`stale-cache-enable` is set to ``yes``. :gl:`#3386`
+
 - The :option:`dnssec-signzone -H` default value has been changed to 0
   additional NSEC3 iterations. This change aligns the
   :iscman:`dnssec-signzone` default with the default used by the
