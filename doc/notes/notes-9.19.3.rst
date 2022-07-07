@@ -41,10 +41,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- It was possible for a catalog zone consumer to process a catalog zone
-  member zone when there was a configured pre-existing forward-only
-  forward zone with the same name. This has been fixed. :gl:`#2506`
-
 - An assertion failure caused by a TCP connection closing between a
   connect (or accept) and a read from a socket has been fixed.
   :gl:`#3400`
@@ -53,3 +49,7 @@ Bug Fixes
   :any:`synth-from-dnssec` could incorrectly synthesize non-existence of
   records within the non-delegated namespace using NSEC records from
   higher zones. :gl:`#3402`
+
+- It was possible for a catalog zone consumer to process a catalog zone
+  member zone when there was a configured pre-existing forward-only
+  forward zone with the same name. This has been fixed. :gl:`#2506`
