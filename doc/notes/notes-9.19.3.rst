@@ -61,6 +61,10 @@ Bug Fixes
   authoritative servers for a given domain when it receives a FORMERR
   response from one of them. :gl:`#3152`
 
+- Previously, :option:`rndc reconfig` did not pick up changes to
+  :any:`endpoints` statements in :any:`http` blocks. This has been
+  fixed. :gl:`#3415`
+
 - It was possible for a catalog zone consumer to process a catalog zone
   member zone when there was a configured pre-existing forward-only
   forward zone with the same name. This has been fixed. :gl:`#2506`
