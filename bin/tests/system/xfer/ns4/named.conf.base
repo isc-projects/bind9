@@ -26,17 +26,17 @@ options {
 
 key rndc_key {
 	secret "1234abcd8765";
-	algorithm hmac-sha256;
+	algorithm @DEFAULT_HMAC@;
 };
 
 key unused_key. {
 	secret "1234abcd8765";
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 };
 
 key tsig_key. {
 	secret "LSAnCU+Z";
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 };
 
 controls {

@@ -179,7 +179,7 @@ test_start "checking notify to multiple views using tsig"
 $NSUPDATE << EOF
 server 10.53.0.5 ${PORT}
 zone x21
-key a aaaaaaaaaaaaaaaaaaaa
+key $DEFAULT_HMAC:a aaaaaaaaaaaaaaaaaaaa
 update add added.x21 0 in txt "test string"
 send
 EOF
@@ -187,9 +187,9 @@ fnb="dig.out.b.ns5.test$n"
 fnc="dig.out.c.ns5.test$n"
 for i in 1 2 3 4 5 6 7 8 9
 do
-	dig_plus_opts added.x21. -y b:bbbbbbbbbbbbbbbbbbbb @10.53.0.5 \
+	dig_plus_opts added.x21. -y "${DEFAULT_HMAC}:b:bbbbbbbbbbbbbbbbbbbb" @10.53.0.5 \
 		txt > "$fnb" || ret=1
-	dig_plus_opts added.x21. -y c:cccccccccccccccccccc @10.53.0.5 \
+	dig_plus_opts added.x21. -y "${DEFAULT_HMAC}:c:cccccccccccccccccccc" @10.53.0.5 \
 		txt > "$fnc" || ret=1
 	grep "test string" "$fnb" > /dev/null &&
 	grep "test string" "$fnc" > /dev/null &&

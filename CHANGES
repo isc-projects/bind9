@@ -1,3 +1,6 @@
+5918.	[test]		Convert system tests to use a default HMAC algorithm
+			where the test is not HMAC specific. [GL #3433]
+
 5917.	[bug]		Update ifconfig.sh script as is miscomputed interface
 			identifiers when destroying interfaces. [GL #3061]
 

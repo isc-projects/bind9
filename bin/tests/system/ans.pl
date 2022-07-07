@@ -95,6 +95,8 @@ my $mainport = int($ENV{'PORT'});
 if (!$mainport) { $mainport = 5300; }
 my $ctrlport = int($ENV{'EXTRAPORT1'});
 if (!$ctrlport) { $ctrlport = 5301; }
+my $hmac_algorithm = $ENV{'DEFAULT_HMAC'};
+if (!defined($hmac_algorithm)) { $hmac_algorithm = "hmac-sha256"; }
 
 # XXX: we should also be able to set the port numbers to listen on.
 my $ctlsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
@@ -174,6 +176,7 @@ sub handleUDP {
 				} else {
 					$tsig = Net::DNS::RR->new(
 							name => $key_name,
+							algorithm => $hmac_algorithm,
 							type => 'TSIG',
 							key  => $key_data);
 				}
@@ -390,6 +393,7 @@ sub handleTCP {
 				if ($Net::DNS::VERSION < 0.69) {
 					$tsig = Net::DNS::RR->new(
 						   "$key_name TSIG $key_data");
+					$tsig->algorithm = $hmac_algorithm;
 				} elsif ($Net::DNS::VERSION >= 0.81 &&
 					 $continuation) {
 				} elsif ($Net::DNS::VERSION >= 0.75 &&
@@ -398,6 +402,7 @@ sub handleTCP {
 				} else {
 					$tsig = Net::DNS::RR->new(
 							name => $key_name,
+							algorithm => $hmac_algorithm,
 							type => 'TSIG',
 							key  => $key_data);
 				}

@@ -48,14 +48,14 @@ status=$((status+tmp))
 n=$((n+1))
 echo_i "testing TSIG signed zone transfers ($n)"
 tmp=0
-$DIG $DIGOPTS tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 > dig.out.ns2.test$n || tmp=1
+$DIG $DIGOPTS tsigzone. @10.53.0.2 axfr -y "${DEFAULT_HMAC}:tsigzone.:1234abcd8765" > dig.out.ns2.test$n || tmp=1
 grep "^;" dig.out.ns2.test$n | cat_i
 
 #
 # Spin to allow the zone to transfer.
 #
 wait_for_xfer_tsig () {
-	$DIG $DIGOPTS tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 > dig.out.ns3.test$n || return 1
+	$DIG $DIGOPTS tsigzone. @10.53.0.3 axfr -y "${DEFAULT_HMAC}:tsigzone.:1234abcd8765" > dig.out.ns3.test$n || return 1
 	grep "^;" dig.out.ns3.test$n > /dev/null && return 1
 	return 0
 }
@@ -414,7 +414,7 @@ echo_i "bad message id ($n)"
 sendcmd < ans5/badmessageid
 
 # Uncomment to see AXFR stream with mismatching IDs.
-# $DIG $DIGOPTS @10.53.0.5 -y tsig_key:LSAnCU+Z nil. AXFR +all
+# $DIG $DIGOPTS @10.53.0.5 -y "${DEFAULT_HMAC}:tsig_key:LSAnCU+Z" nil. AXFR +all
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -465,7 +465,7 @@ test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
 n=$((n+1))
 echo_i "test smaller transfer TCP message size ($n)"
 $DIG $DIGOPTS example. @10.53.0.8 axfr \
-	-y key1.:1234abcd8765 > dig.out.msgsize.test$n || status=1
+	-y "${DEFAULT_HMAC}:key1.:1234abcd8765" > dig.out.msgsize.test$n || status=1
 
 bytes=`wc -c < dig.out.msgsize.test$n`
 if [ $bytes -ne 459357 ]; then

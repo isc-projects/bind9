@@ -80,7 +80,7 @@ if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "updating zone (signed) ($n)"
 ret=0
-$NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K -- - <<EOF || ret=1
+$NSUPDATE -y "${DEFAULT_HMAC}:update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K" -- - <<EOF || ret=1
 server 10.53.0.3 ${PORT}
 update add updated.example. 600 A 10.10.10.1
 update add updated.example. 600 TXT Foo

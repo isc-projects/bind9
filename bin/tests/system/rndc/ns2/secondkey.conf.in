@@ -11,9 +11,11 @@
  * information regarding copyright ownership.
  */
 
-/* Bad secret */
-key "badtsig" {
-	algorithm hmac-md5;
-	secret "jEdD+BPKg==";
+options {
+	default-key     "secondkey";
 };
 
+key secondkey {
+	secret "abcd1234abcd8765";
+	algorithm @DEFAULT_HMAC@;
+};

@@ -474,7 +474,7 @@ then
   echo_i "check that TSIG test server is correctly configured ($n)"
   ret=0
   pat="; COOKIE: ................................ (good)"
-  key=hmac-sha256:foo:aaaaaaaaaaaa
+  key="${DEFAULT_HMAC}:foo:aaaaaaaaaaaa"
   #UDP
   $DIG $DIGOPTS @10.53.0.10 -y $key +notcp tsig. > dig.out.test$n.1
   grep "status: NOERROR" dig.out.test$n.1 > /dev/null || ret=1

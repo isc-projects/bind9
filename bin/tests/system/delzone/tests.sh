@@ -35,7 +35,7 @@ ret=0
 import sys
 sys.path.insert(0, '../../../../bin/python')
 from isc import rndc
-r = rndc(('10.53.0.2', 9953), 'hmac-sha256', '1234abcd8765')
+r = rndc(('10.53.0.2', 9953), '${DEFAULT_HMAC}', '1234abcd8765')
 for i in range(20000):
     res = r.call('addzone z%d.example { type primary; file "added.db"; };' % i)
     if 'text' in res:
@@ -48,7 +48,7 @@ EOF
 import sys
 sys.path.insert(0, '../../../../bin/python')
 from isc import rndc
-r = rndc(('10.53.0.2', 9953), 'hmac-sha256', '1234abcd8765')
+r = rndc(('10.53.0.2', 9953), '${DEFAULT_HMAC}', '1234abcd8765')
 for i in range(20000):
     res = r.call('delzone z%d.example' % i)
     if 'text' in res:

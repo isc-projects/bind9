@@ -11,11 +11,8 @@
  * information regarding copyright ownership.
  */
 
-options {
-	default-key     "secondkey";
-};
-
-key secondkey {
-	secret "abcd1234abcd8765";
-	algorithm hmac-sha256;
+/* Bad secret */
+key "badtsig" {
+	algorithm @DEFAULT_HMAC@;
+	secret "jEdD+BPKg==";
 };
