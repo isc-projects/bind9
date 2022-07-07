@@ -7097,6 +7097,26 @@ Transfer Tag Statements
 .. namedconf:statementlist::
    :filter_tags: transfer
 
+Server Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: server
+
+Logging Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: logging
+
+Zone Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: zone
+
+View Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: view
+
 Statements
 ----------
 The following table lists all statements permissible in :file:`named.conf`. Please note
