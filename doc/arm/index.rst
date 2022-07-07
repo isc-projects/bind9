@@ -21,6 +21,7 @@ BIND 9 Administrator Reference Manual
    requirements
    configuration
    reference
+   dnssec.inc
    advanced
    security
    troubleshooting
