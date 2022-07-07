@@ -443,6 +443,8 @@ configuration.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. namedconf:statement:: acl
+   :tags:
+   :short: Assigns a symbolic name to an address match list.
 
 :any:`acl` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -470,6 +472,8 @@ The following ACLs are built-in:
 :any:`controls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
+   :tags: 
+   :short: Specifies control channels to be used to manage the name server.
 
 .. _controls_statement_definition_and_usage:
 
@@ -482,6 +486,8 @@ control channels are used by the :iscman:`rndc` utility to send commands to
 and retrieve non-DNS results from a name server.
 
 .. namedconf:statement:: unix
+   :tags:
+   :short: Specifies a Unix domain socket as a control channel.
 
    A :any:`unix` control channel is a Unix domain socket listening at the
    specified path in the file system. Access to the socket is specified by
@@ -491,6 +497,8 @@ and retrieve non-DNS results from a name server.
 
 
 .. namedconf:statement:: inet
+   :tags:
+   :short: Specifies a TCP socket as a control channel.
 
    An :any:`inet` control channel is a TCP socket listening at the specified
    :term:`port` on the specified :term:`ip_address`, which can be an IPv4 or IPv6
@@ -544,6 +552,8 @@ To disable the command channel, use an empty :any:`controls` statement:
 ``key`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
+   :tags: dnssec
+   :short: Defines a shared secret key for use with :ref:`tsig` or the command channel.
 
 .. _key_statement:
 
@@ -566,6 +576,8 @@ match lists to verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.
 
 .. namedconf:statement:: algorithm
+   :tags: dnssec
+   :short: Defines the algorithm to be used in a key clause.
 
    The ``algorithm_id`` is a string that specifies a security/authentication
    algorithm. The :iscman:`named` server supports ``hmac-md5``, ``hmac-sha1``,
@@ -575,6 +587,8 @@ matching this name, algorithm, and secret.
    ``hmac-sha1-80``.
 
 .. namedconf:statement:: secret
+   :tags: dnssec
+   :short: Defines a Base64-encoded string to be used as the secret by the algorithm.
 
    The ``secret_string`` is the secret to be used by the
    algorithm, and is treated as a Base64-encoded string.
@@ -584,6 +598,8 @@ matching this name, algorithm, and secret.
 :any:`logging` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
+   :tags: logging
+   :short: Configures logging options for the name server.
 
 .. _logging_statement:
 
@@ -642,6 +658,8 @@ by the channel (the default is ``info``), and whether to include a
 (the default is not to include any).
 
 .. namedconf:statement:: null
+   :tags: logging
+   :short: Causes all messages sent to the logging channel to be discarded.
 
    The :any:`null` destination clause causes all messages sent to the channel
    to be discarded; in that case, other options for the channel are
@@ -691,6 +709,8 @@ by the channel (the default is ``info``), and whether to include a
       };
 
 .. namedconf:statement:: syslog
+   :tags: logging
+   :short: Directs the logging channel to the system log.
 
    The :any:`syslog` destination clause directs the channel to the system log.
    Its argument is a syslog facility as described in the :any:`syslog` man
@@ -707,6 +727,8 @@ by the channel (the default is ``info``), and whether to include a
 .. _severity:
 
 .. namedconf:statement:: severity
+   :tags: logging
+   :short: Defines the priority level of :any:`syslog` messages.
 
    The :any:`severity` clause works like :any:`syslog`'s "priorities," except
    that they can also be used when writing straight to a file rather
@@ -723,6 +745,8 @@ by the channel (the default is ``info``), and whether to include a
    then ``syslogd`` would print all messages it received from the channel.
 
 .. namedconf:statement:: stderr
+   :tags: logging
+   :short: Directs the logging channel output to the server's standard error stream.
 
    The :any:`stderr` destination clause directs the channel to the server's
    standard error stream. This is intended for use when the server is
@@ -752,25 +776,31 @@ debugging mode, regardless of the global debugging level. Channels with
 what messages to print.
 
 .. namedconf:statement:: print-time
+   :tags: logging
+   :short: Specifies the time format for log messages.
 
    :any:`print-time` can be set to ``yes``, ``no``, or a time format
-   Specifier, which may be one of ``local``, ``iso8601``, or
+   specifier, which may be one of ``local``, ``iso8601``, or
    ``iso8601-utc``. If set to ``no``, the date and time are not
-   Logged. If set to ``yes`` or ``local``, the date and time are logged in
-   A human-readable format, using the local time zone. If set to
+   logged. If set to ``yes`` or ``local``, the date and time are logged in
+   a human-readable format, using the local time zone. If set to
    ``iso8601``, the local time is logged in ISO 8601 format. If set to
    ``iso8601-utc``, the date and time are logged in ISO 8601 format,
-   With time zone set to UTC. The default is ``no``.
+   with time zone set to UTC. The default is ``no``.
 
    :any:`print-time` may be specified for a :any:`syslog` channel, but it is
-   Usually pointless since :any:`syslog` also logs the date and time.
+   usually pointless since :any:`syslog` also logs the date and time.
 
 .. namedconf:statement:: print-category
+   :tags: logging
+   :short: Logs the category of syslog messages.
 
    If :any:`print-category` is requested, then the category of the message
    is logged as well.
 
 .. namedconf:statement:: print-severity
+   :tags: logging
+   :short: Logs the severity of syslog messages.
 
    If :any:`print-severity` is on, then the
    severity level of the message is logged. The ``print-`` options may
@@ -782,6 +812,8 @@ Here is an example where all three ``print-`` options are on:
 ``28-Feb-2000 15:05:32.863 general: notice: running``
 
 .. namedconf:statement:: buffered
+   :tags: logging
+   :short: Toggles flushing of log messages.
 
    If :any:`buffered` has been turned on, the output to files is not
    flushed after each log entry. By default all log messages are flushed.
@@ -994,6 +1026,8 @@ responses such as NXDOMAIN.
 :any:`parental-agents` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
+   :tags:
+   :short: Defines a list of delegation agents to be used by primary and secondary zones.
 
 .. _parental_agents_statement:
 
@@ -1046,6 +1080,8 @@ where ``tls-configuration-name`` refers to a previously defined
 ``options`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: options
+   :tags: server
+   :short: Defines global options to be used by BIND 9.
 
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
@@ -1063,6 +1099,8 @@ default is used.
 .. _attach-cache:
 
 .. namedconf:statement:: attach-cache
+   :tags: view
+   :short: Allows multiple views to share a single cache database.
 
    This option allows multiple views to share a single cache database. Each view has
    its own cache database by default, but if multiple views have the
@@ -1124,6 +1162,8 @@ default is used.
 .. _directory:
 
 .. namedconf:statement:: directory
+   :tags: server
+   :short: Sets the server's working directory.
 
    This sets the working directory of the server. Any non-absolute pathnames in
    the configuration file are taken as relative to this directory.
@@ -1141,6 +1181,8 @@ default is used.
    files. The safest way to include files is to use absolute file names.
 
 .. namedconf:statement:: dnstap
+   :tags: logging
+   :short: Enables logging of :any:`dnstap` messages.
 
    :any:`dnstap` is a fast, flexible method for capturing and logging DNS
    traffic. Developed by Robert Edmonds at Farsight Security, Inc., and
@@ -1194,12 +1236,16 @@ default is used.
    performance or prevent loss of data. These are:
 
    .. namedconf:statement:: fstrm-set-buffer-hint
+      :tags: logging
+      :short: Sets the number of accumulated bytes in the output buffer before forcing a buffer flush.
 
       The threshold number of bytes to
       accumulate in the output buffer before forcing a buffer flush. The
       minimum is 1024, the maximum is 65536, and the default is 8192.
 
    .. namedconf:statement:: fstrm-set-flush-timeout
+      :tags: logging
+      :short: Sets the number of seconds that unflushed data remains in the output buffer.
 
       The number of seconds to allow
       unflushed data to remain in the output buffer. The minimum is 1
@@ -1207,12 +1253,16 @@ default is used.
       is 1 second.
 
    .. namedconf:statement:: fstrm-set-output-notify-threshold
+      :tags: logging
+      :short: Sets the number of outstanding queue entries allowed on an input queue before waking the I/O thread.
 
       The number of outstanding
       queue entries to allow on an input queue before waking the I/O
       thread. The minimum is 1 and the default is 32.
 
    .. namedconf:statement:: fstrm-set-output-queue-model
+      :tags: logging
+      :short: Sets the queuing semantics to use for queue objects.
 
       The queuing semantics
       to use for queue objects. The default is ``mpsc`` (multiple
@@ -1220,18 +1270,24 @@ default is used.
       producer, single consumer).
 
    .. namedconf:statement:: fstrm-set-input-queue-size
+      :tags: logging
+      :short: Sets the number of queue entries to allocate for each input queue.
 
       The number of queue entries to
       allocate for each input queue. This value must be a power of 2.
       The minimum is 2, the maximum is 16384, and the default is 512.
 
    .. namedconf:statement:: fstrm-set-output-queue-size
+      :tags: logging
+      :short: Sets the number of queue entries allocated for each output queue.
 
       The number of queue entries to
       allocate for each output queue. The minimum is 2, the maximum is
       system-dependent and based on ``IOV_MAX``, and the default is 64.
 
    .. namedconf:statement:: fstrm-set-reopen-interval
+      :tags: logging
+      :short: Sets the number of seconds to wait between attempts to reopen a closed output stream.
 
       The number of seconds to wait
       between attempts to reopen a closed output stream. The minimum is
@@ -1245,6 +1301,8 @@ default is used.
    for more information.
 
 .. namedconf:statement:: dnstap-output
+   :tags: logging
+   :short: Configures the path to which the :any:`dnstap` frame stream is sent.
 
    This configures the path to which the :any:`dnstap` frame stream is sent
    if :any:`dnstap` is enabled at compile time and active.
@@ -1272,18 +1330,24 @@ default is used.
    cannot be changed by :option:`rndc reload` or :option:`rndc reconfig`.
 
 .. namedconf:statement:: dnstap-identity
+   :tags: logging
+   :short: Specifies an ``identity`` string to send in :any:`dnstap` messages.
 
    This specifies an ``identity`` string to send in :any:`dnstap` messages. If
    set to :any:`hostname`, which is the default, the server's hostname
    is sent. If set to ``none``, no identity string is sent.
 
 .. namedconf:statement:: dnstap-version
+   :tags: logging
+   :short: Specifies a :any:`version` string to send in :any:`dnstap` messages.
 
    This specifies a :any:`version` string to send in :any:`dnstap` messages. The
    default is the version number of the BIND release. If set to
    ``none``, no version string is sent.
 
 .. namedconf:statement:: geoip-directory
+   :tags: server
+   :short: Specifies the directory containing GeoIP database files.
 
    When :iscman:`named` is compiled using the MaxMind GeoIP2 geolocation API, this
    specifies the directory containing GeoIP database files.  By default, the
@@ -1293,6 +1357,8 @@ default is used.
    for details about ``geoip`` ACLs.
 
 .. namedconf:statement:: key-directory
+   :tags: dnssec
+   :short: Indicates the directory where public and private DNSSEC key files are found.
 
    This is the directory where the public and private DNSSEC key files should be
    found when performing a dynamic update of secure zones, if different
@@ -1301,6 +1367,8 @@ default is used.
    ``bind.keys``, ``rndc.key``, or ``session.key``.)
 
 .. namedconf:statement:: lmdb-mapsize
+   :tags: server
+   :short: Sets a maximum size for the memory map of the new-zone database in LMDB database format.
 
    When :iscman:`named` is built with liblmdb, this option sets a maximum size
    for the memory map of the new-zone database (NZD) in LMDB database
@@ -1317,6 +1385,8 @@ default is used.
    configurations of about 100,000 zones.
 
 .. namedconf:statement:: managed-keys-directory
+   :tags: dnssec
+   :short: Specifies the directory in which to store the files that track managed DNSSEC keys.
 
    This specifies the directory in which to store the files that track managed DNSSEC
    keys (i.e., those configured using the ``initial-key`` or ``initial-ds``
@@ -1338,6 +1408,8 @@ default is used.
    used instead of the new format.)
 
 .. namedconf:statement:: max-ixfr-ratio
+   :tags: transfer
+   :short: Sets the maximum size for IXFR responses to zone transfer requests.
 
    This sets the size threshold (expressed as a percentage of the size
    of the full zone) beyond which :iscman:`named` chooses to use an AXFR
@@ -1348,6 +1420,8 @@ default is used.
    checking and allows IXFRs of any size. The default is ``100%``.
 
 .. namedconf:statement:: new-zones-directory
+   :tags: zone
+   :short: Specifies the directory where configuration parameters are stored for zones added by :option:`rndc addzone`.
 
    This specifies the directory in which to store the configuration
    parameters for zones added via :option:`rndc addzone`. By default, this is
@@ -1356,6 +1430,8 @@ default is used.
    effective user ID of the :iscman:`named` process.
 
 .. namedconf:statement:: qname-minimization
+   :tags: query
+   :short: Controls QNAME minimization behavior in the BIND 9 resolver.
 
    This option controls QNAME minimization behavior in the BIND
    resolver. When set to ``strict``, BIND follows the QNAME
@@ -1368,12 +1444,16 @@ default is used.
    may be changed to ``strict`` in a future release.
 
 .. namedconf:statement:: tkey-gssapi-keytab
+   :tags: security
+   :short: Sets the KRB5 keytab file to use for GSS-TSIG updates.
 
    This is the KRB5 keytab file to use for GSS-TSIG updates. If this option is
-   set and tkey-gssapi-credential is not set, updates are
+   set and ``tkey-gssapi-credential`` is not set, updates are
    allowed with any key matching a principal in the specified keytab.
 
 .. namedconf:statement:: tkey-gssapi-credential
+   :tags: security
+   :short: Sets the security credential for authentication keys requested by the GSS-TSIG protocol.
 
    This is the security credential with which the server should authenticate
    keys requested by the GSS-TSIG protocol. Currently only Kerberos 5
@@ -1386,6 +1466,8 @@ default is used.
    not set with :any:`tkey-gssapi-keytab`.
 
 .. namedconf:statement:: tkey-domain
+   :tags: security
+   :short: Sets the domain appended to the names of all shared keys generated with ``TKEY``.
 
    This domain is appended to the names of all shared keys generated with
    ``TKEY``. When a client requests a ``TKEY`` exchange, it may or may
@@ -1399,6 +1481,8 @@ default is used.
    is specified using :any:`tkey-gssapi-keytab`.
 
 .. namedconf:statement:: tkey-dhkey
+   :tags: security
+   :short: Sets the Diffie-Hellman key used by the server to generate shared keys.
 
    This is the Diffie-Hellman key used by the server to generate shared keys
    with clients using the Diffie-Hellman mode of ``TKEY``. The server
@@ -1407,17 +1491,23 @@ default is used.
    server's host name.
 
 .. namedconf:statement:: dump-file
+   :tags: logging
+   :short: Indicates the pathname of the file where the server dumps the database after :option:`rndc dumpdb`.
 
    This is the pathname of the file the server dumps the database to, when
    instructed to do so with :option:`rndc dumpdb`. If not specified, the
    default is ``named_dump.db``.
 
 .. namedconf:statement:: memstatistics-file
+   :tags: logging
+   :short: Sets the pathname of the file where the server writes memory usage statistics on exit.
 
    This is the pathname of the file the server writes memory usage statistics to
    on exit. If not specified, the default is ``named.memstats``.
 
 .. namedconf:statement:: lock-file
+   :tags: server
+   :short: Sets the pathname of the file on which :iscman:`named` attempts to acquire a file lock when starting for the first time.
 
    This is the pathname of a file on which :iscman:`named` attempts to acquire a
    file lock when starting for the first time; if unsuccessful, the
@@ -1432,6 +1522,8 @@ default is used.
    when the server is first started.
 
 .. namedconf:statement:: pid-file
+   :tags: server
+   :short: Specifies the pathname of the file where the server writes its process ID.
 
    This is the pathname of the file the server writes its process ID in. If not
    specified, the default is |named_pid|. The PID file
@@ -1442,12 +1534,16 @@ default is used.
    enclosed in double quotes.
 
 .. namedconf:statement:: recursing-file
+   :tags: server
+   :short: Specifies the pathname of the file where the server dumps queries that are currently recursing via :option:`rndc recursing`.
 
    This is the pathname of the file where the server dumps the queries that are
    currently recursing, when instructed to do so with :option:`rndc recursing`.
    If not specified, the default is ``named.recursing``.
 
 .. namedconf:statement:: statistics-file
+   :tags: logging, server
+   :short: Specifies the pathname of the file where the server appends statistics, when using :option:`rndc stats`.
 
    This is the pathname of the file the server appends statistics to, when
    instructed to do so using :option:`rndc stats`. If not specified, the
@@ -1455,18 +1551,24 @@ default is used.
    format of the file is described in :ref:`statsfile`.
 
 .. namedconf:statement:: bindkeys-file
+   :tags: dnssec
+   :short: Specifies the pathname of a file to override the built-in trusted keys provided by :iscman:`named`.
 
    This is the pathname of a file to override the built-in trusted keys provided
    by :iscman:`named`. See the discussion of :any:`dnssec-validation` for
    details. If not specified, the default is |bind_keys|.
 
 .. namedconf:statement:: secroots-file
+   :tags: dnssec
+   :short: Specifies the pathname of the file where the server dumps security roots, when using :option:`rndc secroots`.
 
    This is the pathname of the file the server dumps security roots to, when
    instructed to do so with :option:`rndc secroots`. If not specified, the
    default is ``named.secroots``.
 
 .. namedconf:statement:: session-keyfile
+   :tags: security
+   :short: Specifies the pathname of the file where a TSIG session key is written, when generated by :iscman:`named` for use by ``nsupdate -l``.
 
    This is the pathname of the file into which to write a TSIG session key
    generated by :iscman:`named` for use by ``nsupdate -l``. If not specified,
@@ -1475,17 +1577,23 @@ default is used.
    ``local`` option, for more information about this feature.)
 
 .. namedconf:statement:: session-keyname
+   :tags: security
+   :short: Specifies the key name for the TSIG session key.
 
    This is the key name to use for the TSIG session key. If not specified, the
    default is ``local-ddns``.
 
 .. namedconf:statement:: session-keyalg
+   :tags: security
+   :short: Specifies the algorithm to use for the TSIG session key.
 
    This is the algorithm to use for the TSIG session key. Valid values are
    hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512, and
    hmac-md5. If not specified, the default is hmac-sha256.
 
 .. namedconf:statement:: port
+   :tags: server, query
+   :short: Specifies the UDP/TCP port number the server uses to receive and send DNS protocol traffic.
 
    This is the UDP/TCP port number the server uses to receive and send DNS
    protocol traffic. The default is 53. This option is mainly intended
@@ -1493,16 +1601,22 @@ default is used.
    able to communicate with the global DNS.
 
 .. namedconf:statement:: tls-port
+   :tags: server, query
+   :short: Specifies the TCP port number the server uses to receive and send DNS-over-TLS protocol traffic.
 
    This is the TCP port number the server uses to receive and send
    DNS-over-TLS protocol traffic. The default is 853.
 
 .. namedconf:statement:: https-port
+   :tags: server, query
+   :short: Specifies the TCP port number the server uses to receive and send DNS-over-HTTPS protocol traffic.
 
    This is the TCP port number the server uses to receive and send
    DNS-over-HTTPS protocol traffic. The default is 443.
 
 .. namedconf:statement:: http-port
+   :tags: server, query
+   :short: Specifies the TCP port number the server uses to receive and send unencrypted DNS traffic via HTTP.
 
    This is the TCP port number the server uses to receive and send
    unencrypted DNS traffic via HTTP (a configuration that may be useful
@@ -1510,25 +1624,33 @@ default is used.
    proxy).
 
 .. namedconf:statement:: http-listener-clients
+   :tags: server
+   :short: Limits the number of active concurrent connections on a per-listener basis.
 
-   This sets the hard quota on the number of active concurrent connections
+   This sets a hard limit on the number of active concurrent connections
    on a per-listener basis. The default value is 300; setting it to 0
    removes the quota.
 
 .. namedconf:statement:: http-streams-per-connection
+   :tags: server
+   :short: Limits the number of active concurrent HTTP/2 streams on a per-connection basis.
 
-   This sets the hard limit on the number of active concurrent HTTP/2
+   This sets a hard limit on the number of active concurrent HTTP/2
    streams on a per-connection basis. The default value is 100;
    setting it to 0 removes the limit. Once the limit is exceeded, the
    server finishes the HTTP session.
 
 .. namedconf:statement:: dscp
+   :tags: server, query
+   :short: Specifies the global Differentiated Services Code Point (DSCP) value to classify outgoing DNS traffic.
 
    This is the global Differentiated Services Code Point (DSCP) value to
    classify outgoing DNS traffic, on operating systems that support DSCP.
    Valid values are 0 through 63. It is not configured by default.
 
 .. namedconf:statement:: random-device
+   :tags: server, security
+   :short: Specifies a source of entropy to be used by the server.
 
    This specifies a source of entropy to be used by the server; it is a
    device or file from which to read entropy. If it is a file,
@@ -1552,6 +1674,8 @@ default is used.
    subsequent reloads.
 
 .. namedconf:statement:: preferred-glue
+   :tags: query
+   :short: Controls the order of glue records in an A or AAAA response.
 
    If specified, the listed type (A or AAAA) is emitted before
    other glue in the additional section of a query response. The default
@@ -1598,6 +1722,8 @@ default is used.
       };
 
 .. namedconf:statement:: disable-algorithms
+   :tags: dnssec
+   :short: Disables DNSSEC algorithms from a specified zone.
 
    This disables the specified DNSSEC algorithms at and below the specified
    name. Multiple :any:`disable-algorithms` statements are allowed. Only
@@ -1612,6 +1738,8 @@ default is used.
    as if they were not configured.
 
 .. namedconf:statement:: disable-ds-digests
+   :tags: dnssec, zone
+   :short: Disables DS digest types from a specified zone.
 
    This disables the specified DS digest types at and below the specified
    name. Multiple :any:`disable-ds-digests` statements are allowed. Only
@@ -1622,6 +1750,8 @@ default is used.
    :any:`disable-ds-digests` are treated as insecure.
 
 .. namedconf:statement:: dnssec-must-be-secure
+   :tags: dnssec
+   :short: Defines hierarchies that must or may not be secure (signed and validated).
 
    This specifies hierarchies which must be or may not be secure (signed and
    validated). If ``yes``, then :iscman:`named` only accepts answers if
@@ -1631,6 +1761,8 @@ default is used.
    statement, or ``dnssec-validation auto`` must be active.
 
 .. namedconf:statement:: dns64
+   :tags: query
+   :short: Instructs :iscman:`named` to return mapped IPv4 addresses to AAAA queries when there are no AAAA records.
 
    This directive instructs :iscman:`named` to return mapped IPv4 addresses to
    AAAA queries when there are no AAAA records. It is intended to be
@@ -1646,7 +1778,12 @@ default is used.
    IN-ADDR.ARPA names using synthesized CNAMEs.
 
    .. namedconf:statement:: dns64-server
+      :tags: server
+      :short: Specifies the name of the server for :any:`dns64` zones.
+
    .. namedconf:statement:: dns64-contact
+      :tags: server
+      :short: Specifies the name of the contact for :any:`dns64` zones.
 
       :any:`dns64-server` and
       :any:`dns64-contact` can be used to specify the name of the server and
@@ -1657,18 +1794,24 @@ default is used.
       explicitly disabled using :any:`ipv4only-enable`.
 
    .. namedconf:statement:: clients
+      :tags: query
+      :short: Specifies an access control list (ACL) of clients that are affected by a given :any:`dns64` directive.
 
       Each :any:`dns64` supports an optional :any:`clients` ACL that determines
       which clients are affected by this directive. If not defined, it
       defaults to ``any;``.
 
    .. namedconf:statement:: mapped
+      :tags: query
+      :short: Specifies an access control list (ACL) of IPv4 addresses that are to be mapped to the corresponding A RRset in :any:`dns64`.
 
-      Each :any:`dns64` supports an optional :any:`mapped` ACL that selects which
+      Each :any:`dns64` block supports an optional :any:`mapped` ACL that selects which
       IPv4 addresses are to be mapped in the corresponding A RRset. If not
       defined, it defaults to ``any;``.
 
    .. namedconf:statement:: exclude
+      :tags: query
+      :short: Allows a list of IPv6 addresses to be ignored if they appear in a domain name's AAAA records in :any:`dns64`.
 
       Normally, DNS64 does not apply to a domain name that owns one or more
       AAAA records; these records are simply returned. The optional
@@ -1678,6 +1821,8 @@ default is used.
       defined, :any:`exclude` defaults to ::ffff:0.0.0.0/96.
 
    .. namedconf:statement:: suffix
+      :tags: query
+      :short: Defines trailing bits for mapped IPv4 address bits in :any:`dns64`.
 
       An optional :any:`suffix` can also be defined to set the bits trailing
       the mapped IPv4 address bits. By default these bits are set to
@@ -1685,11 +1830,15 @@ default is used.
       zero.
 
    .. namedconf:statement:: recursive-only
+      :tags: query
+      :short: Toggles whether :any:`dns64` synthesis occurs only for recursive queries.
 
       If :any:`recursive-only` is set to ``yes``, the DNS64 synthesis only
       happens for recursive queries. The default is ``no``.
 
    .. namedconf:statement:: break-dnssec
+      :tags: query
+      :short: Enables :any:`dns64` synthesis even if the validated result would cause a DNSSEC validation failure.
 
       If :any:`break-dnssec` is set to ``yes``, the DNS64 synthesis happens
       even if the result, if validated, would cause a DNSSEC validation
@@ -1709,6 +1858,8 @@ default is used.
           };
 
 .. namedconf:statement:: ipv4only-enable
+   :tags: query
++   :short: Enables automatic IPv4 zones if a :any:`dns64` block is configured.
 
    This enables or disables automatic zones ``ipv4only.arpa``,
    ``170.0.0.192.in-addr.arpa``, and ``171.0.0.192.in-addr.arpa``.
@@ -1716,13 +1867,20 @@ default is used.
    By default these zones are loaded if :any:`dns64` is configured.
 
 .. namedconf:statement:: ipv4only-server
+   :tags: server, query
+   :short: Specifies the name of the server for the IPV4ONLY.ARPA zone created by :any:`dns64`.
+
 .. namedconf:statement:: ipv4only-contact
+   :tags: server
+   :short: Specifies the contact for the IPV4ONLY.ARPA zone created by :any:`dns64`.
 
    :any:`ipv4only-server` and :any:`ipv4only-contact` can be used to specify the name
    of the server and contact for the IPV4ONLY.ARPA zone created by
    :any:`dns64`.
 
 .. namedconf:statement:: dnssec-loadkeys-interval
+   :tags: dnssec
+   :short: Sets the frequency of automatic checks of the DNSSEC key repository.
 
    When a zone is configured with ``auto-dnssec maintain;``, its key
    repository must be checked periodically to see if any new keys have
@@ -1741,6 +1899,8 @@ default is used.
    The default is ``none``.
 
 .. namedconf:statement:: dnssec-update-mode
+   :tags: dnssec
+   :short: Controls the scheduled maintenance of DNSSEC signatures.
 
    If this option is set to its default value of ``maintain`` in a zone
    of :any:`type primary` which is DNSSEC-signed and configured to allow
@@ -1761,6 +1921,8 @@ default is used.
    via dynamic update; this is not yet implemented.)
 
 .. namedconf:statement:: nta-lifetime
+   :tags: dnssec
+   :short: Specifies the lifetime, in seconds, for negative trust anchors added via :option:`rndc nta`.
 
    This specifies the default lifetime, in seconds, for
    negative trust anchors added via :option:`rndc nta`.
@@ -1780,6 +1942,8 @@ default is used.
    :any:`nta-lifetime` defaults to one hour; it cannot exceed one week.
 
 .. namedconf:statement:: nta-recheck
+   :tags: dnssec
+   :short: Specifies the time interval for checking whether negative trust anchors added via :option:`rndc nta` are still necessary.
 
    This specifies how often to check whether negative trust anchors added via
    :option:`rndc nta` are still necessary.
@@ -1803,6 +1967,8 @@ default is used.
    cannot be longer than a week.
 
 :any:`max-zone-ttl`
+   :tags: zone, query
+   :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
    This should now be configured as part of :namedconf:ref:`dnssec-policy`.
    Use of this option in :namedconf:ref:`options`, :namedconf:ref:`view`
@@ -1826,6 +1992,8 @@ default is used.
    is equivalent to "unlimited".
 
 .. namedconf:statement:: stale-answer-ttl
+   :tags: query
+   :short: Specifies the time to live (TTL) to be returned on stale answers, in seconds.
 
    This specifies the TTL to be returned on stale answers. The default is 30
    seconds. The minimum allowed is 1 second; a value of 0 is updated silently
@@ -1836,6 +2004,8 @@ default is used.
    :option:`rndc serve-stale on <rndc serve-stale>`.
 
 .. namedconf:statement:: serial-update-method
+   :tags: zone
+   :short: Specifies the update method to be used for the zone serial number in the SOA record.
 
    Zones configured for dynamic DNS may use this option to set the
    update method to be used for the zone serial number in the SOA
@@ -1856,6 +2026,8 @@ default is used.
    equal to that value, in which case it is incremented by one.
 
 .. namedconf:statement:: zone-statistics
+   :tags: zone, logging
+   :short: Controls the level of statistics gathered for all zones.
 
    If ``full``, the server collects statistical data on all zones,
    unless specifically turned off on a per-zone basis by specifying
@@ -1881,6 +2053,8 @@ Boolean Options
 ^^^^^^^^^^^^^^^
 
 .. namedconf:statement:: automatic-interface-scan
+   :tags: server
+   :short: Controls the automatic rescanning of network interfaces when addresses are added or removed.
 
    If ``yes`` and supported by the operating system, this automatically rescans
    network interfaces when the interface addresses are added or removed.  The
@@ -1894,6 +2068,8 @@ Boolean Options
    support the routing sockets for this feature to work.
 
 .. namedconf:statement:: allow-new-zones
+   :tags: server, zone
+   :short: Controls the ability to add zones at runtime via :option:`rndc addzone`.
 
    If ``yes``, then zones can be added at runtime via :option:`rndc addzone`.
    The default is ``no``.
@@ -1921,12 +2097,16 @@ Boolean Options
    ``no``.
 
 .. namedconf:statement:: memstatistics
+   :tags: server, logging
+   :short: Controls whether memory statistics are written to the file specified by :any:`memstatistics-file` at exit.
 
    This writes memory statistics to the file specified by
    :any:`memstatistics-file` at exit. The default is ``no`` unless :option:`-m
    record <named -m>` is specified on the command line, in which case it is ``yes``.
 
 .. namedconf:statement:: dialup
+   :tags: transfer
+   :short: Concentrates zone maintenance so that all transfers take place once every :any:`heartbeat-interval`, ideally during a single call.
 
    If ``yes``, then the server treats all zones as if they are doing
    zone transfers across a dial-on-demand dialup link, which can be
@@ -1981,17 +2161,23 @@ Boolean Options
    Note that normal NOTIFY processing is not affected by :any:`dialup`.
 
 .. namedconf:statement:: flush-zones-on-shutdown
+   :tags: zone
+   :short: Controls whether pending zone writes are flushed when the name server exits.
 
    When the name server exits upon receiving SIGTERM, flush or do not
    flush any pending zone writes. The default is
    ``flush-zones-on-shutdown no``.
 
 .. namedconf:statement:: root-key-sentinel
+   :tags: server
+   :short: Controls whether BIND 9 responds to root key sentinel probes.
 
    If ``yes``, respond to root key sentinel probes as described in
-   draft-ietf-dnsop-kskroll-sentinel-08. The default is ``yes``.
+   `draft-ietf-dnsop-kskroll-sentinel-08 <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-kskroll-sentinel-08>`_. The default is ``yes``.
 
 .. namedconf:statement:: reuseport
+   :tags: server
+   :short: Enables kernel load-balancing of sockets.
 
    This option enables kernel load-balancing of sockets on systems which support
    it, including Linux (SO_REUSEPORT) and FreeBSD (SO_REUSEPORT_LB). This
@@ -2015,6 +2201,8 @@ Boolean Options
    must be restarted.
 
 .. namedconf:statement:: message-compression
+   :tags: query
+   :short: Controls whether DNS name compression is used in responses to regular queries.
 
    If ``yes``, DNS name compression is used in responses to regular
    queries (not including AXFR or IXFR, which always use compression).
@@ -2058,6 +2246,8 @@ Boolean Options
    The default is ``no-auth-recursive``.
 
 .. namedconf:statement:: minimal-any
+   :tags: query
+   :short: Controls whether the server replies with only one of the RRsets for a query name, when generating a positive response to a query of type ANY over UDP.
 
    If set to ``yes``, the server replies with only one of
    the RRsets for the query name, and its covering RRSIGs if any,
@@ -2095,6 +2285,8 @@ Boolean Options
    caused secondary zones to crash.
 
 .. namedconf:statement:: notify-to-soa
+   :tags: transfer
+   :short: Controls whether the name servers in the NS RRset are checked against the SOA MNAME.
 
    If ``yes``, do not check the name servers in the NS RRset against the
    SOA MNAME. Normally a NOTIFY message is not sent to the SOA MNAME
@@ -2120,6 +2312,8 @@ Boolean Options
    server's internal operation, such as NOTIFY address lookups.
 
 .. namedconf:statement:: request-nsid
+   :tags: query
+   :short: Controls whether an empty EDNS(0) NSID (Name Server Identifier) option is sent with all queries to authoritative name servers during iterative resolution.
 
    If ``yes``, then an empty EDNS(0) NSID (Name Server Identifier)
    option is sent with all queries to authoritative name servers during
@@ -2128,6 +2322,8 @@ Boolean Options
    category at level ``info``. The default is ``no``.
 
 .. namedconf:statement:: require-server-cookie
+   :tags: query
+   :short: Controls whether a valid server cookie is required before sending a full response to a UDP request.
 
    If ``yes``, require a valid server cookie before sending a full response to a UDP
    request from a cookie-aware client. BADCOOKIE is sent if there is a
@@ -2143,6 +2339,8 @@ Boolean Options
    query with the new, valid, cookie.
 
 .. namedconf:statement:: answer-cookie
+   :tags: query
+   :short: Controls whether COOKIE EDNS replies are sent in response to client queries.
 
    When set to the default value of ``yes``, COOKIE EDNS options are
    sent when applicable in replies to client queries. If set to ``no``,
@@ -2159,6 +2357,8 @@ Boolean Options
    necessary.
 
 .. namedconf:statement:: send-cookie
+   :tags: query
+   :short: Controls whether a COOKIE EDNS option is sent along with a query.
 
    If ``yes``, then a COOKIE EDNS option is sent along with the query.
    If the resolver has previously communicated with the server, the COOKIE
@@ -2178,6 +2378,8 @@ Boolean Options
    The default is ``yes``.
 
 .. namedconf:statement:: stale-answer-enable
+   :tags: server, query
+   :short: Enables the returning of "stale" cached answers when the name servers for a zone are not answering.
 
    If ``yes``, enable the returning of "stale" cached answers when the name
    servers for a zone are not answering and the :any:`stale-cache-enable` option is
@@ -2196,6 +2398,8 @@ Boolean Options
    log category.
 
 .. namedconf:statement:: stale-answer-client-timeout
+   :tags: server, query
+   :short: Defines the amount of time (in milliseconds) that :iscman:`named` waits before attempting to answer a query with a stale RRset from cache.
 
    This option defines the amount of time (in milliseconds) that :iscman:`named`
    waits before attempting to answer the query with a stale RRset from cache.
@@ -2214,10 +2418,14 @@ Boolean Options
    (milliseconds).
 
 .. namedconf:statement:: stale-cache-enable
+   :tags: server, query
+   :short: Enables the retention of "stale" cached answers.
 
    If ``yes``, enable the retaining of "stale" cached answers.  Default ``no``.
 
 .. namedconf:statement:: stale-refresh-time
+   :tags: server, query
+   :short: Sets the time window for the return of "stale" cached answers before the next attempt to contact, if the name servers for a given zone are not responding.
 
    If the name servers for a given zone are not answering, this sets the time
    window for which :iscman:`named` will promptly return "stale" cached answers for
@@ -2232,6 +2440,8 @@ Boolean Options
    return "stale" cached answers.
 
 .. namedconf:statement:: nocookie-udp-size
+   :tags: query
+   :short: Sets the maximum size of UDP responses that are sent to queries without a valid server COOKIE.
 
    This sets the maximum size of UDP responses that are sent to queries
    without a valid server COOKIE. A value below 128 is silently
@@ -2240,12 +2450,16 @@ Boolean Options
    :any:`max-udp-size` is 1232.
 
 .. namedconf:statement:: cookie-algorithm
+   :tags: server
+   :short: Sets the algorithm to be used when generating a server cookie.
 
    This sets the algorithm to be used when generating the server cookie; the options are
    "aes" or "siphash24". The default is "siphash24". The "aes" option remains for legacy
    purposes.
 
 .. namedconf:statement:: cookie-secret
+   :tags: server
+   :short: Specifies a shared secret used for generating and verifying EDNS COOKIE options within an anycast cluster.
 
    If set, this is a shared secret used for generating and verifying
    EDNS COOKIE options within an anycast cluster. If not set, the system
@@ -2258,6 +2472,8 @@ Boolean Options
    are only used to verify returned cookies.
 
 .. namedconf:statement:: response-padding
+   :tags: query
+   :short: Adds an EDNS padding option to encrypted messages, to reduce the chance of guessing the contents based on size.
 
    The EDNS Padding option is intended to improve confidentiality when
    DNS queries are sent over an encrypted channel, by reducing the
@@ -2279,6 +2495,8 @@ Boolean Options
    of two (for instance, 128), but this is not mandatory.
 
 .. namedconf:statement:: trust-anchor-telemetry
+   :tags: dnssec
+   :short: Instructs :iscman:`named` to send specially formed queries once per day to domains for which trust anchors have been configured.
 
    This causes :iscman:`named` to send specially formed queries once per day to
    domains for which trust anchors have been configured via, e.g.,
@@ -2328,6 +2546,8 @@ Boolean Options
    :namedconf:ref:`server` block.
 
 .. namedconf:statement:: request-expire
+   :tags: transfer, query
+   :short: Specifies whether the local server requests the EDNS EXPIRE value, when acting as a secondary.
 
    The :any:`request-expire` statement determines whether the local server, when
    acting as a secondary, requests the EDNS EXPIRE value. The EDNS EXPIRE
@@ -2338,6 +2558,8 @@ Boolean Options
    record instead. The default is ``yes``.
 
 .. namedconf:statement:: match-mapped-addresses
+   :tags: server
+   :short: Allows IPv4-mapped IPv6 addresses to match address-match list entries for corresponding IPv4 addresses.
 
    If ``yes``, then an IPv4-mapped IPv6 address matches any
    address-match list entries that match the corresponding IPv4 address.
@@ -2386,6 +2608,8 @@ Boolean Options
    currently has. The default is ``no``.
 
 .. namedconf:statement:: auto-dnssec
+   :tags: dnssec
+   :short: Permits varying levels of automatic DNSSEC key management.
 
    Zones configured for dynamic DNS may use this option to allow varying
    levels of automatic DNSSEC key management. There are three possible
@@ -2419,6 +2643,8 @@ Boolean Options
 .. _dnssec-validation-option:
 
 .. namedconf:statement:: dnssec-validation
+   :tags: dnssec
+   :short: Enables DNSSEC validation in :iscman:`named`.
 
    This option enables DNSSEC validation in :iscman:`named`.
 
@@ -2460,6 +2686,8 @@ Boolean Options
          responses, even if :any:`dnssec-validation` is off.
 
 .. namedconf:statement:: validate-except
+   :tags: dnssec
+   :short: Specifies a list of domain names at and beneath which DNSSEC validation should not be performed.
 
    This specifies a list of domain names at and beneath which DNSSEC
    validation should *not* be performed, regardless of the presence of a
@@ -2472,24 +2700,30 @@ Boolean Options
    period of time.)
 
 .. namedconf:statement:: dnssec-accept-expired
+   :tags: dnssec
+   :short: Instructs BIND 9 to accept expired DNSSEC signatures when validating.
 
    This accepts expired signatures when verifying DNSSEC signatures. The
    default is ``no``. Setting this option to ``yes`` leaves :iscman:`named`
    vulnerable to replay attacks.
 
 .. namedconf:statement:: querylog
+   :tags: logging, server
+   :short: Specifies whether query logging should be active when :iscman:`named` first starts.
 
    Query logging provides a complete log of all incoming queries and all query
    errors. This provides more insight into the server's activity, but with a
    cost to performance which may be significant on heavily loaded servers.
 
    The :any:`querylog` option specifies whether query logging should be active when
-   :iscman:`named` first starts.  If :any:`querylog` is not specified, then query logging
+   :iscman:`named` first starts. If :any:`querylog` is not specified, then query logging
    is determined by the presence of the logging category ``queries``.  Query
    logging can also be activated at runtime using the command ``rndc querylog
    on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
 .. namedconf:statement:: check-names
+   :tags: query, server
+   :short: Restricts the character set and syntax of certain domain names in primary files and/or DNS responses received from the network.
 
    This option is used to restrict the character set and syntax of
    certain domain names in primary files and/or DNS responses received
@@ -2508,26 +2742,34 @@ Boolean Options
    owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 
 .. namedconf:statement:: check-dup-records
+   :tags: dnssec, query
+   :short: Checks primary zones for records that are treated as different by DNSSEC but are semantically equal in plain DNS.
 
    This checks primary zones for records that are treated as different by
    DNSSEC but are semantically equal in plain DNS. The default is to
    ``warn``. Other possible values are ``fail`` and ``ignore``.
 
 .. namedconf:statement:: check-mx
+   :tags: zone
+   :short: Checks whether an MX record appears to refer to an IP address.
 
    This checks whether the MX record appears to refer to an IP address. The
    default is to ``warn``. Other possible values are ``fail`` and
    ``ignore``.
 
 .. namedconf:statement:: check-wildcard
+   :tags: zone
+   :short: Checks for non-terminal wildcards.
 
    This option is used to check for non-terminal wildcards. The use of
    non-terminal wildcards is almost always as a result of a lack of
-   understanding of the wildcard matching algorithm (:rfc:`1034`). This option
+   understanding of the wildcard-matching algorithm (:rfc:`1034`). This option
    affects primary zones. The default (``yes``) is to check for
    non-terminal wildcards and issue a warning.
 
 .. namedconf:statement:: check-integrity
+   :tags: zone
+   :short: Performs post-load zone integrity checks on primary zones.
 
    This performs post-load zone integrity checks on primary zones. It checks
    that MX and SRV records refer to address (A or AAAA) records and that
@@ -2545,38 +2787,52 @@ Boolean Options
    be suppressed with :any:`check-spf`.
 
 .. namedconf:statement:: check-mx-cname
+   :tags: zone
+   :short: Sets the response to MX records that refer to CNAMEs.
 
    If :any:`check-integrity` is set, then fail, warn, or ignore MX records
-   that refer to CNAMES. The default is to ``warn``.
+   that refer to CNAMEs. The default is to ``warn``.
 
 .. namedconf:statement:: check-srv-cname
+   :tags: zone
+   :short: Sets the response to SRV records that refer to CNAMEs.
 
    If :any:`check-integrity` is set, then fail, warn, or ignore SRV records
-   that refer to CNAMES. The default is to ``warn``.
+   that refer to CNAMEs. The default is to ``warn``.
 
 .. namedconf:statement:: check-sibling
+   :tags: zone
+   :short: Specifies whether to check for sibling glue when performing integrity checks.
 
    When performing integrity checks, also check that sibling glue
    exists. The default is ``yes``.
 
 .. namedconf:statement:: check-spf
+   :tags: zone
+   :short: Specifies whether to check for a TXT Sender Policy Framework record, if an SPF record is present.
 
    If :any:`check-integrity` is set, check that there is a TXT Sender
    Policy Framework record present (starts with "v=spf1") if there is an
    SPF record present. The default is ``warn``.
 
 .. namedconf:statement:: zero-no-soa-ttl
+   :tags: zone, query, server
+   :short: Specifies whether to set the time to live (TTL) of the SOA record to zero, when returning authoritative negative responses to SOA queries.
 
    If ``yes``, when returning authoritative negative responses to SOA queries, set
    the TTL of the SOA record returned in the authority section to zero.
    The default is ``yes``.
 
 .. namedconf:statement:: zero-no-soa-ttl-cache
+   :tags: zone, query, server
+   :short: Sets the time to live (TTL) to zero when caching a negative response to an SOA query.
 
    If ``yes``, when caching a negative response to an SOA query set the TTL to zero.
    The default is ``no``.
 
 .. namedconf:statement:: update-check-ksk
+   :tags: zone, dnssec
+   :short: Specifies whether to check the KSK bit to determine how a key should be used, when generating RRSIGs for a secure zone.
 
    When set to the default value of ``yes``, check the KSK bit in each
    key to determine how the key should be used when generating RRSIGs
@@ -2597,6 +2853,8 @@ Boolean Options
    that algorithm.
 
 .. namedconf:statement:: dnssec-dnskey-kskonly
+   :tags: dnssec
+   :short: Specifies that only key-signing keys are used to sign the DNSKEY, CDNSKEY, and CDS RRsets at a zone's apex.
 
    When this option and :any:`update-check-ksk` are both set to ``yes``,
    only key-signing keys (that is, keys with the KSK bit set) are
@@ -2609,11 +2867,15 @@ Boolean Options
    option is ignored.
 
 .. namedconf:statement:: try-tcp-refresh
+   :tags: transfer
+   :short: Specifies that BIND 9 should attempt to refresh a zone using TCP if UDP queries fail.
 
    If ``yes``, try to refresh the zone using TCP if UDP queries fail. The default is
    ``yes``.
 
 .. namedconf:statement:: dnssec-secure-to-insecure
+   :tags: dnssec
+   :short: Allows a dynamic zone to transition from secure to insecure by deleting all DNSKEY records.
 
    This allows a dynamic zone to transition from secure to insecure (i.e.,
    signed to unsigned) by deleting all of the DNSKEY records. The
@@ -2632,9 +2894,11 @@ Boolean Options
    is started.
 
 .. namedconf:statement:: synth-from-dnssec
+   :tags: dnssec
+   :short: Enables support for :rfc:`8198`, Aggressive Use of DNSSEC-Validated Cache.
 
    This option enables support for :rfc:`8198`, Aggressive Use of
-   DNSSEC-Validated Cache.  It allows the resolver to send a smaller number
+   DNSSEC-Validated Cache. It allows the resolver to send a smaller number
    of queries when resolving queries for DNSSEC-signed domains
    by synthesizing answers from cached NSEC and other RRsets that
    have been proved to be correct using DNSSEC.
@@ -2694,6 +2958,8 @@ problems in reachability due to the lack of support for either IPv4 or IPv6
 on the host machine.
 
 .. namedconf:statement:: dual-stack-servers
+   :tags: server
+   :short: Specifies host names or addresses of machines with access to both IPv4 and IPv6 transports.
 
    This specifies host names or addresses of machines with access to both
    IPv4 and IPv6 transports. If a hostname is used, the server must be
@@ -2802,6 +3068,8 @@ for details on how to specify IP address lists.
    is set, the default (localnets; localhost;) is used.
 
 .. namedconf:statement:: allow-recursion-on
+   :tags: query, server
+   :short: Specifies which local addresses can accept recursive queries.
 
    This specifies which local addresses can accept recursive queries. If
    :any:`allow-recursion-on` is not set, then :any:`allow-query-cache-on` is
@@ -2890,13 +3158,15 @@ for details on how to specify IP address lists.
 
 .. namedconf:statement:: blackhole
    :tags: query
-   :short: Defines an :any:`address_match_list` of hosts that the server neither responds to nor answers queries for.
+   :short: Defines an :any:`address_match_list` of hosts to ignore. The server will neither respond to queries from nor send queries to these addresses.
 
    This specifies a list of addresses which the server does not accept queries
    from or use to resolve a query. Queries from these addresses are not
    responded to. The default is ``none``.
 
 .. namedconf:statement:: no-case-compress
+   :tags: server
+   :short: Specifies a list of addresses that require case-insensitive compression in responses.
 
    This specifies a list of addresses which require responses to use
    case-insensitive compression. This ACL can be used when :iscman:`named`
@@ -2933,6 +3203,8 @@ for details on how to specify IP address lists.
    the client matches this ACL.
 
 .. namedconf:statement:: resolver-query-timeout
+   :tags: query
+   :short: Specifies the length of time, in milliseconds, that a resolver attempts to resolve a recursive query before failing.
 
    This is the amount of time in milliseconds that the resolver spends
    attempting to resolve a recursive query before failing. The default
@@ -2952,9 +3224,14 @@ The interfaces, ports, and protocols that the server can use to answer
 queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` options.
 
 .. namedconf:statement:: listen-on
-.. namedconf:statement:: listen-on-v6
+   :tags: server
+   :short: Specifies the IPv4 addresses on which a server listens for DNS queries.
 
-   :any:`listen-on` and :any:`listen-on-v6` statements can each take an optional
+.. namedconf:statement:: listen-on-v6
+   :tags: server
+   :short: Specifies the IPv6 addresses on which a server listens for DNS queries.
+
+   The :any:`listen-on` and :any:`listen-on-v6` statements can each take an optional
    port, TLS configuration identifier, and/or HTTP configuration identifier,
    in addition to an :term:`address_match_list`.
 
@@ -3042,9 +3319,12 @@ Query Address
 ^^^^^^^^^^^^^
 
 .. namedconf:statement:: query-source
+   :tags: query
+   :short: Controls the IPv4 address and port from which queries are issued.
+
 .. namedconf:statement:: query-source-v6
    :tags: query
-   :short: Controls the IPv4/IPv6 address and port on which recursive queries are issued.
+   :short: Controls the IPv6 address and port from which queries are issued.
 
    If the server does not know the answer to a question, it queries other
    name servers. :any:`query-source` specifies the address and port used for
@@ -3065,7 +3345,12 @@ Query Address
       queries always use a random unprivileged port.
 
 .. namedconf:statement:: use-v4-udp-ports
+   :tags: query
+   :short: Specifies a list of ports that are valid sources for UDP/IPv4 messages.
+
 .. namedconf:statement:: use-v6-udp-ports
+   :tags: query
+   :short: Specifies a list of ports that are valid sources for UDP/IPv6 messages.
 
    These statements specify a list of IPv4 and IPv6 UDP ports that
    are used as source ports for UDP messages.
@@ -3087,7 +3372,12 @@ Query Address
       use-v6-udp-ports { range 1024 65535; };
 
 .. namedconf:statement:: avoid-v4-udp-ports
+   :tags: query
+   :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv4 messages.
+
 .. namedconf:statement:: avoid-v6-udp-ports
+   :tags: query
+   :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv6 messages.
 
    These ranges are excluded from those
    specified in the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
@@ -3212,6 +3502,8 @@ options apply to zone transfers.
    is 28 days (40320 minutes).
 
 .. namedconf:statement:: notify-rate
+   :tags: transfer, zone
+   :short: Specifies the rate at which NOTIFY requests are sent during normal zone maintenance operations.
 
    This specifies the rate at which NOTIFY requests are sent during normal zone
    maintenance operations. (NOTIFY requests due to initial zone loading
@@ -3220,6 +3512,8 @@ options apply to zone transfers.
    zero, it is silently raised to one.
 
 .. namedconf:statement:: startup-notify-rate
+   :tags: transfer, zone
+   :short: Specifies the rate at which NOTIFY requests are sent when the name server is first starting, or when new zones have been added.
 
    This is the rate at which NOTIFY requests are sent when the name server
    is first starting up, or when zones have been newly added to the
@@ -3400,10 +3694,14 @@ limits; on such systems, a warning is issued if an unsupported
 limit is used.
 
 .. namedconf:statement:: coresize
+   :tags: server
+   :short: Sets the maximum size of a core dump.
 
    This sets the maximum size of a core dump. The default is ``default``.
 
 .. namedconf:statement:: datasize
+   :tags: server
+   :short: Sets the maximum amount of data memory that can be used by the server.
 
    This sets the maximum amount of data memory the server may use. The default is
    ``default``. This is a hard limit on server memory usage; if the
@@ -3417,11 +3715,15 @@ limit is used.
    instead.
 
 .. namedconf:statement:: files
+   :tags: server
+   :short: Sets the maximum number of files the server may have open concurrently.
 
    This sets the maximum number of files the server may have open concurrently.
    The default is ``unlimited``.
 
 .. namedconf:statement:: stacksize
+   :tags: server
+   :short: Sets the maximum amount of stack memory that can be used by the server.
 
    This sets the maximum amount of stack memory the server may use. The default is
    ``default``.
@@ -3453,6 +3755,8 @@ system.
    This option may also be set on a per-zone basis.
 
 .. namedconf:statement:: max-records
+   :tags: zone, server
+   :short: Sets the maximum number of records permitted in a zone.
 
    This sets the maximum number of records permitted in a zone. The default is
    zero, which means the maximum is unlimited.
@@ -3479,41 +3783,31 @@ system.
    set to 90% of :any:`recursive-clients`.
 
 .. namedconf:statement:: tcp-clients
+   :tags: server
+   :short: Specifies the maximum number of simultaneous client TCP connections accepted by the server.
 
    This is the maximum number of simultaneous client TCP connections that the
    server accepts. The default is ``150``.
 
-.. _clients-per-query:
-
 .. namedconf:statement:: clients-per-query
-
-   Sets the initial value (minimum) number of recursive
-   simultaneous clients for any given query (<qname,qtype,qclass>) that
-   the server accepts before dropping additional clients. :iscman:`named`
-   attempts to self-tune this value and changes are logged. The
-   default values are 10 and 100.
-
-   This value should reflect how many queries come in for a given name
-   in the time it takes to resolve that name. If the number of queries
-   exceeds this value, :iscman:`named` assumes that it is dealing with a
-   non-responsive zone and drops additional queries. If it gets a
-   response after dropping queries, it raises the estimate. The
-   estimate is then lowered in 20 minutes if it has remained
-   unchanged.
-
-   If :any:`clients-per-query` is set to zero, there is no limit on
-   the number of clients per query and no queries are dropped.
+   :tags: server
+   :short: Sets the initial minimum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
+   Sets the initial value (minimum) number of simultaneous recursive clients for any given query (<qname,qtype,qclass>) that the server accepts before dropping additional clents. :iscman:`named` attempts to self-tune this value and changes are logged. The default values is 10.
+   The chosen value should reflect how many queries come in for a given name in the time it takes to resolve that name. 
 
 .. namedconf:statement:: max-clients-per-query
+   :tags: server
+   :short: Sets the maximum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
+   Sets the maximum number of simultaneous recursive clients for any given query (<qname,qtype,qclass>) that the server accepts before dropping additional clients.
 
-   Sets the maximum number of recursive
-   simultaneous clients for any given query (<qname,qtype,qclass>) that
-   the server accepts before dropping additional clients.
+   If the number of queries exceeds :any:`clients-per-query`, :iscman:`named` assumes that it is dealing with a non-responsive zone and drops additional queries. If it gets a response after dropping queries it raises the estimate, up to a limit of :any:`max-clients-per-query`. The estimate is then lowered in 20 minutes if it has remained unchanged.
 
-   If :any:`max-clients-per-query` is set to zero, there is no upper
-   bound other than that imposed by :any:`recursive-clients`.
+   If :any:`max-clients-per-query` is set to zero, there is no upper bound, other than that imposed by :any:`recursive-clients`.
+   If :any:`clients-per-query` is set to zero, :any:`max-clients-per-query` no longer applies and there is no upper bound, other than that imposed by :any:`recursive-clients`.
 
 .. namedconf:statement:: fetches-per-zone
+   :tags: server, query
+   :short: Sets the maximum number of simultaneous iterative queries allowed to any one domain before the server blocks new queries for data in or beneath that zone.
 
    This sets the maximum number of simultaneous iterative queries to any one
    domain that the server permits before blocking new queries for
@@ -3549,6 +3843,8 @@ system.
    to zero.)
 
 .. namedconf:statement:: fetches-per-server
+   :tags: server, query
+   :short: Sets the maximum number of simultaneous iterative queries allowed to be sent by a server to an upstream name server before the server blocks additional queries.
 
    This sets the maximum number of simultaneous iterative queries that the server
    allows to be sent to a single upstream name server before
@@ -3578,6 +3874,8 @@ system.
    the parameters for this calculation.
 
 .. namedconf:statement:: fetch-quota-params
+   :tags: server, query
+   :short: Sets the parameters for dynamic resizing of the :any:`fetches-per-server` quota in response to detected congestion.
 
    This sets the parameters to use for dynamic resizing of the
    :any:`fetches-per-server` quota in response to detected congestion.
@@ -3599,12 +3897,15 @@ system.
    most two places after the decimal point are significant.
 
 .. namedconf:statement:: reserved-sockets
+   :tags: deprecated
 
    This option is deprecated and no longer has any effect.
 
 .. _max-cache-size:
 
 .. namedconf:statement:: max-cache-size
+   :tags: server
+   :short: Sets the maximum amount of memory to use for an individual cache database and its associated metadata.
 
    This sets the maximum amount of memory to use for an individual cache
    database and its associated metadata, in bytes or percentage of total
@@ -3650,6 +3951,8 @@ system.
    amount of physical memory is changed at runtime.
 
 .. namedconf:statement:: tcp-listen-queue
+   :tags: server
+   :short: Sets the listen-queue depth.
 
    This sets the listen-queue depth. The default and minimum is 10. If the kernel
    supports the accept filter "dataready", this also controls how many
@@ -3659,6 +3962,8 @@ system.
    this sets the listen-queue length to a system-defined default value.
 
 .. namedconf:statement:: tcp-initial-timeout
+   :tags: server, query
+   :short: Sets the amount of time (in milliseconds) that the server waits on a new TCP connection for the first message from the client.
 
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    a new TCP connection for the first message from the client. The
@@ -3670,6 +3975,8 @@ system.
    can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 .. namedconf:statement:: tcp-idle-timeout
+   :tags: query
+   :short: Sets the amount of time (in milliseconds) that the server waits on an idle TCP connection before closing it, if the EDNS TCP keepalive option is not in use.
 
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    an idle TCP connection before closing it, when the client is not using
@@ -3681,6 +3988,8 @@ system.
    updated at runtime by using :option:`rndc tcp-timeouts`.
 
 .. namedconf:statement:: tcp-keepalive-timeout
+   :tags: query
+   :short: Sets the amount of time (in milliseconds) that the server waits on an idle TCP connection before closing it, if the EDNS TCP keepalive option is in use.
 
    This sets the amount of time (in units of 100 milliseconds) that the server waits on
    an idle TCP connection before closing it, when the client is using the
@@ -3693,6 +4002,8 @@ system.
    This value can be updated at runtime by using :option:`rndc tcp-timeouts`.
 
 .. namedconf:statement:: tcp-advertised-timeout
+   :tags: query
+   :short: Sets the timeout value (in milliseconds) that the server sends in responses containing the EDNS TCP keepalive option.
 
    This sets the timeout value (in units of 100 milliseconds) that the server sends
    in responses containing the EDNS TCP keepalive option, which informs a
@@ -3709,6 +4020,8 @@ Periodic Task Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. namedconf:statement:: heartbeat-interval
+   :tags: zone
+   :short: Sets the interval at which the server performs zone maintenance tasks for all zones marked as :any:`dialup`.
 
    The server performs zone maintenance tasks for all zones marked
    as :any:`dialup` whenever this interval expires. The default is 60
@@ -3717,6 +4030,8 @@ Periodic Task Intervals
    maintenance for these zones occurs.
 
 .. namedconf:statement:: interface-interval
+   :tags: server
+   :short: Sets the interval at which the server scans the network interface list.
 
    The server scans the network interface list every :any:`interface-interval`
    minutes. The default is 60 minutes; the maximum value is 28 days (40320
@@ -3930,12 +4245,16 @@ Tuning
 ^^^^^^
 
 .. namedconf:statement:: lame-ttl
+   :tags: server
+   :short: Sets the resolver's lame cache.
 
    This is always set to 0. More information is available in the
    `security advisory for CVE-2021-25219
    <https://kb.isc.org/docs/cve-2021-25219>`_.
 
 .. namedconf:statement:: servfail-ttl
+   :tags: server
+   :short: Sets the length of time (in seconds) that a SERVFAIL response is cached. 
 
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
    validation failure or other general server failure. If set to ``0``,
@@ -3948,6 +4267,8 @@ Tuning
    silently reduced. The default is ``1`` second.
 
 .. namedconf:statement:: min-ncache-ttl
+   :tags: server
+   :short: Specifies the minimum retention time (in seconds) for storage of negative answers in the server's cache.
 
    To reduce network traffic and increase performance, the server stores
    negative answers. :any:`min-ncache-ttl` is used to set a minimum
@@ -3960,6 +4281,8 @@ Tuning
    value.
 
 .. namedconf:statement:: min-cache-ttl
+   :tags: server
+   :short: Specifies the minimum time (in seconds) that the server caches ordinary (positive) answers.
 
    This sets the minimum time for which the server caches ordinary (positive)
    answers, in seconds. For convenience, TTL-style time-unit suffixes may be used
@@ -3970,6 +4293,8 @@ Tuning
    value.
 
 .. namedconf:statement:: max-ncache-ttl
+   :tags: server
+   :short: Specifies the maximum retention time (in seconds) for storage of negative answers in the server's cache.
 
    To reduce network traffic and increase performance, the server stores
    negative answers. :any:`max-ncache-ttl` is used to set a maximum retention time
@@ -3982,6 +4307,8 @@ Tuning
    greater value.
 
 .. namedconf:statement:: max-cache-ttl
+   :tags: server
+   :short: Specifies the maximum time (in seconds) that the server caches ordinary (positive) answers.
 
    This sets the maximum time for which the server caches ordinary (positive)
    answers, in seconds. For convenience, TTL-style time-unit suffixes may be used
@@ -3992,6 +4319,8 @@ Tuning
    (such as NS and glue AAAA/A records) in the resolution process.
 
 .. namedconf:statement:: max-stale-ttl
+   :tags: server
+   :short: Specifies the maximum time that the server retains records past their normal expiry, to return them as stale records.
 
    If retaining stale RRsets in cache is enabled, and returning of stale cached
    answers is also enabled, :any:`max-stale-ttl` sets the maximum time for which
@@ -4009,17 +4338,23 @@ Tuning
    has no effect, the value of :any:`max-cache-ttl` will be ``0`` in such case.
 
 .. namedconf:statement:: resolver-nonbackoff-tries
+   :tags: server
+   :short: Specifies the number of retries before exponential backoff.
 
    This specifies how many retries occur before exponential backoff kicks in. The
    default is ``3``.
 
 .. namedconf:statement:: resolver-retry-interval
+   :tags: server, query
+   :short: Sets the base retry interval (in milliseconds).
 
    This sets the base retry interval in milliseconds. The default is ``800``.
 
 .. namedconf:statement:: sig-validity-interval
+   :tags: dnssec
+   :short: Specifies the maximum number of days that RRSIGs generated by :iscman:`named` are valid.
 
-   this specifies the upper bound of the number of days that RRSIGs
+   This specifies the upper bound of the number of days that RRSIGs
    generated by :iscman:`named` are valid; the default is ``30`` days,
    with a maximum of 3660 days (10 years). The optional second value
    specifies the minimum bound on those RRSIGs and also determines
@@ -4047,6 +4382,8 @@ Tuning
    between the various timer and expiry dates.
 
 .. namedconf:statement:: dnskey-sig-validity
+   :tags: dnssec
+   :short: Specifies the number of days in the future when automatically generated DNSSEC signatures expire.
 
    This specifies the number of days into the future when DNSSEC signatures
    that are automatically generated for DNSKEY RRsets as a result of
@@ -4057,17 +4394,23 @@ Tuning
    years), and higher values are rejected.
 
 .. namedconf:statement:: sig-signing-nodes
+   :tags: dnssec
+   :short: Specifies the maximum number of nodes to be examined in each quantum, when signing a zone with a new DNSKEY.
 
    This specifies the maximum number of nodes to be examined in each quantum,
    when signing a zone with a new DNSKEY. The default is ``100``.
 
 .. namedconf:statement:: sig-signing-signatures
+   :tags: dnssec
+   :short: Specifies the threshold for the number of signatures that terminates processing a quantum, when signing a zone with a new DNSKEY.
 
    This specifies a threshold number of signatures that terminates
    processing a quantum, when signing a zone with a new DNSKEY. The
    default is ``10``.
 
 .. namedconf:statement:: sig-signing-type
+   :tags: dnssec
+   :short: Specifies a private RDATA type to use when generating signing-state records.
 
    This specifies a private RDATA type to be used when generating signing-state
    records. The default is ``65534``.
@@ -4150,6 +4493,8 @@ Tuning
    The default is 1209600 seconds (2 weeks).
 
 .. namedconf:statement:: edns-udp-size
+   :tags: query
+   :short: Sets the maximum advertised EDNS UDP buffer size to control the size of packets received from authoritative servers in response to recursive queries.
 
    This sets the maximum advertised EDNS UDP buffer size, in bytes, to control
    the size of packets received from authoritative servers in response
@@ -4185,6 +4530,8 @@ Tuning
    :namedconf:ref:`server` block.
 
 .. namedconf:statement:: max-udp-size
+   :tags: query
+   :short: Sets the maximum EDNS UDP message size sent by :iscman:`named`.
 
    This sets the maximum EDNS UDP message size that :iscman:`named` sends, in bytes.
    Valid values are 512 to 4096; values outside this range are
@@ -4204,6 +4551,8 @@ Tuning
    the name server.
 
 .. namedconf:statement:: masterfile-format
+   :tags: zone, server
+   :short: Specifies the file format of zone files.
 
    This specifies the file format of zone files (see :ref:`zonefile_format`
    for details).  The default value is ``text``, which is the standard
@@ -4226,6 +4575,8 @@ Tuning
    file.
 
 .. namedconf:statement:: masterfile-style
+   :tags: server
+   :short: Specifies the format of zone files during a dump, when the :any:`masterfile-format` is ``text``.
 
    This specifies the formatting of zone files during dump, when the
    :any:`masterfile-format` is ``text``. This option is ignored with any
@@ -4240,6 +4591,8 @@ Tuning
    be edited by hand. The default is ``relative``.
 
 .. namedconf:statement:: max-recursion-depth
+   :tags: server
+   :short: Sets the maximum number of levels of recursion permitted at any one time while servicing a recursive query.
 
    This sets the maximum number of levels of recursion that are permitted at
    any one time while servicing a recursive query. Resolving a name may
@@ -4249,12 +4602,16 @@ Tuning
    The default is 7.
 
 .. namedconf:statement:: max-recursion-queries
+   :tags: server, query
+   :short: Sets the maximum number of iterative queries while servicing a recursive query.
 
    This sets the maximum number of iterative queries that may be sent while
    servicing a recursive query. If more queries are sent, the recursive
    query is terminated and returns SERVFAIL. The default is 100.
 
 .. namedconf:statement:: notify-delay
+   :tags: transfer, zone
+   :short: Sets the delay (in seconds) between sending sets of NOTIFY messages for a zone.
 
    This sets the delay, in seconds, between sending sets of NOTIFY messages
    for a zone. Whenever a NOTIFY message is sent for a zone, a timer will
@@ -4266,12 +4623,16 @@ Tuning
    controlled by :any:`notify-rate`.
 
 .. namedconf:statement:: max-rsa-exponent-size
+   :tags: dnssec, query
+   :short: Sets the maximum RSA exponent size (in bits) when validating.
 
    This sets the maximum RSA exponent size, in bits, that is accepted when
    validating. Valid values are 35 to 4096 bits. The default, zero, is
    also accepted and is equivalent to 4096.
 
 .. namedconf:statement:: prefetch
+   :tags: query
+   :short: Specifies the "trigger" time-to-live (TTL) value at which prefetch of the current query takes place.
 
    When a query is received for cached data which is to expire shortly,
    :iscman:`named` can refresh the data from the authoritative server
@@ -4292,13 +4653,20 @@ Tuning
    silently adjusts it upward. The default eligibility TTL is ``9``.
 
 .. namedconf:statement:: v6-bias
+   :tags: server, query
+   :short: Indicates the number of milliseconds of preference to give to IPv6 name servers.
 
    When determining the next name server to try, this indicates by how many
    milliseconds to prefer IPv6 name servers. The default is ``50``
    milliseconds.
 
 .. namedconf:statement:: tcp-receive-buffer
+   :tags: server
+   :short: Sets the operating system's receive buffer size for TCP sockets.
+
 .. namedconf:statement:: udp-receive-buffer
+   :tags: server
+   :short: Sets the operating system's receive buffer size for UDP sockets.
 
    These options control the operating system's receive buffer sizes
    (``SO_RCVBUF``) for TCP and UDP sockets, respectively. Buffering at
@@ -4312,7 +4680,12 @@ Tuning
    silently reduced.
 
 .. namedconf:statement:: tcp-send-buffer
+   :tags: server
+   :short: Sets the operating system's send buffer size for TCP sockets.
+
 .. namedconf:statement:: udp-send-buffer
+   :tags: server
+   :short: Sets the operating system's send buffer size for UDP sockets.
 
    These options control the operating system's send buffer sizes
    (``SO_SNDBUF``) for TCP and UDP sockets, respectively. Buffering at
@@ -4345,6 +4718,8 @@ built-in ``CHAOS`` view by defining an explicit view of class ``CHAOS``
 that matches all clients.
 
 .. namedconf:statement:: version
+   :tags: server
+   :short: Specifies the version number of the server to return in response to a ``version.bind`` query.
 
    This is the version the server should report via a query of the name
    ``version.bind`` with type ``TXT`` and class ``CHAOS``. The default is
@@ -4355,6 +4730,8 @@ that matches all clients.
    queries for ``authors.bind TXT CH``.
 
 .. namedconf:statement:: hostname
+   :tags: server
+   :short: Specifies the hostname of the server to return in response to a ``hostname.bind`` query.
 
    This is the hostname the server should report via a query of the name
    ``hostname.bind`` with type ``TXT`` and class ``CHAOS``. This defaults
@@ -4365,6 +4742,8 @@ that matches all clients.
    the queries.
 
 .. namedconf:statement:: server-id
+   :tags: server
+   :short: Specifies the ID of the server to return in response to a ``ID.SERVER`` query.
 
    This is the ID the server should report when receiving a Name Server
    Identifier (NSID) query, or a query of the name ``ID.SERVER`` with
@@ -4521,11 +4900,15 @@ away from the infrastructure servers.
    to deeper in the tree.
 
 .. namedconf:statement:: empty-server
+   :tags: server, zone
+   :short: Specifies the server name in the returned SOA record for empty zones.
 
    This specifies the server name that appears in the returned SOA record for
    empty zones. If none is specified, the zone's name is used.
 
 .. namedconf:statement:: empty-contact
+   :tags: server, zone
+   :short: Specifies the contact name in the returned SOA record for empty zones.
 
    This specifies the contact name that appears in the returned SOA record for
    empty zones. If none is specified, "." is used.
@@ -4533,12 +4916,16 @@ away from the infrastructure servers.
 .. _empty-zones-enable:
 
 .. namedconf:statement:: empty-zones-enable
+   :tags: server, zone
+   :short: Enables or disables all empty zones.
 
    This enables or disables all empty zones. By default, they are enabled.
 
 .. _disable-empty-zone:
 
 .. namedconf:statement:: disable-empty-zone
+   :tags: server, zone
+   :short: Disables individual empty zones.
 
    This disables individual empty zones. By default, none are disabled. This
    option can be specified multiple times.
@@ -4549,6 +4936,8 @@ Content Filtering
 ^^^^^^^^^^^^^^^^^
 
 .. namedconf:statement:: deny-answer-addresses
+   :tags: query
+   :short: Rejects A or AAAA records if the corresponding IPv4 or IPv6 addresses match a given :any:`address_match_list`.
 
    BIND 9 provides the ability to filter out responses from external
    DNS servers containing certain types of data in the answer section.
@@ -4560,8 +4949,9 @@ Content Filtering
    only :term:`ip_address` and :term:`netprefix` are meaningful; any :term:`server_key` is
    silently ignored.
 
-
 .. namedconf:statement:: deny-answer-aliases
+   :tags: query
+   :short: Rejects CNAME or DNAME records if the "alias" name matches a given list of :any:`domain_name` elements.
 
    It can
    also reject CNAME or DNAME records if the "alias" name (i.e., the CNAME
@@ -4658,6 +5048,8 @@ deny the existence of domains (NXDOMAIN), deny the existence of IP
 addresses for domains (NODATA), or contain other IP addresses or data.
 
 .. namedconf:statement:: response-policy
+   :tags: server, query, zone, security
+   :short: Specifies response policy zones for the view or among global options.
 
    Response policy zones are named in the :any:`response-policy` option for
    the view, or among the global options if there is no :any:`response-policy`
@@ -4881,12 +5273,16 @@ such as SERVFAIL to appear to be rewritten, since no recursion is being
 done to discover problems at the authoritative server.
 
 .. namedconf:statement:: dnsrps-enable
+   :tags: server, security
+   :short: Turns on the DNS Response Policy Service (DNSRPS) interface.
 
    The ``dnsrps-enable yes`` option turns on the DNS Response Policy Service
    (DNSRPS) interface, if it has been compiled in :iscman:`named` using
    ``configure --enable-dnsrps``.
 
 .. namedconf:statement:: dnsrps-options
+   :tags: server, security
+   :short: Provides additional RPZ configuration settings, which are passed to the DNS Response Policy Service (DNSRPS) provider library.
 
    The block provides additional RPZ configuration
    settings, which are passed through to the DNSRPS provider library.
@@ -5001,6 +5397,8 @@ Response Rate Limiting
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. namedconf:statement:: rate-limit
+   :tags: query
+   :short: Controls excessive UDP responses, to prevent BIND 9 from being used to amplify reflection denial-of-service (DoS) attacks.
 
    Excessive, almost-identical UDP *responses* can be controlled by
    configuring a :any:`rate-limit` clause in an :namedconf:ref:`options` or :any:`view`
@@ -5025,6 +5423,8 @@ Response Rate Limiting
    while the account is negative.
 
    .. namedconf:statement:: window
+      :tags: query
+      :short: Specifies the length of time during which responses are tracked.
 
       Responses are tracked within a rolling
       window of time which defaults to 15 seconds, but which can be configured with
@@ -5035,7 +5435,12 @@ Response Rate Limiting
       are not rate-limited.
 
    .. namedconf:statement:: ipv4-prefix-length
+      :tags: server
+      :short: Specifies the prefix lengths of IPv4 address blocks.
+
    .. namedconf:statement:: ipv6-prefix-length
+      :tags: server
+      :short: Specifies the prefix lengths of IPv6 address blocks.
 
       The notions of "identical response" and "DNS client" for rate limiting
       are not simplistic. All responses to an address block are counted as if
@@ -5044,12 +5449,16 @@ Response Rate Limiting
       (default 56).
 
    .. namedconf:statement:: responses-per-second
+      :tags: query
+      :short: Limits the number of non-empty responses for a valid domain name and record type.
 
       All non-empty responses for a valid domain name (qname) and record type
       (qtype) are identical and have a limit specified with
       :any:`responses-per-second` (default 0 or no limit).
 
    .. namedconf:statement:: nodata-per-second
+      :tags: query
+      :short: Limits the number of empty (NODATA) responses for a valid domain name.
 
       All empty (NODATA)
       responses for a valid domain, regardless of query type, are identical.
@@ -5057,6 +5466,8 @@ Response Rate Limiting
       (default :any:`responses-per-second`).
 
    .. namedconf:statement:: nxdomains-per-second
+      :tags: query
+      :short: Limits the number of undefined subdomains for a valid domain name.
 
       Requests for any and all undefined
       subdomains of a given valid domain result in NXDOMAIN errors, and are
@@ -5067,6 +5478,8 @@ Response Rate Limiting
       responses, such as from anti-spam rejection lists.
 
    .. namedconf:statement:: referrals-per-second
+      :tags: query
+      :short: Limits the number of referrals or delegations to a server for a given domain.
 
       Referrals or delegations
       to the server of a given domain are identical and are limited by
@@ -5083,12 +5496,16 @@ Response Rate Limiting
 
 
    .. namedconf:statement:: errors-per-second
+      :tags: server
+      :short: Limits the number of errors for a valid domain name and record type.
 
       By default the limit on errors is
       the same as the :any:`responses-per-second` value, but it can be set
       separately with :any:`errors-per-second`.
 
    .. namedconf:statement:: slip
+      :tags: query
+      :short: Sets the number of "slipped" responses to minimize the use of forged source addresses for an attack.
 
       Many attacks using DNS involve UDP requests with forged source
       addresses. Rate limiting prevents the use of BIND 9 to flood a network
@@ -5125,6 +5542,8 @@ Response Rate Limiting
       the effectiveness of rate-limiting against reflection attacks.)
 
    .. namedconf:statement:: qps-scale
+      :tags: query
+      :short: Tightens defenses during DNS attacks by scaling back the ratio of the current query-per-second rate.
 
       When the approximate query-per-second rate exceeds the :any:`qps-scale`
       value, the :any:`responses-per-second`, :any:`errors-per-second`,
@@ -5139,6 +5558,8 @@ Response Rate Limiting
       the query-per-second rate.
 
    .. namedconf:statement:: exempt-clients
+      :tags: query
+      :short: Exempts specific clients or client groups from rate limiting.
 
       Communities of DNS clients can be given their own parameters or no
       rate limiting by putting :any:`rate-limit` statements in :any:`view` statements
@@ -5150,6 +5571,8 @@ Response Rate Limiting
       exempted from rate limits with the :any:`exempt-clients` clause.
 
    .. namedconf:statement:: all-per-second
+      :tags: query
+      :short: Limits UDP responses of all kinds.
 
       UDP responses of all kinds can be limited with the :any:`all-per-second`
       phrase. This rate limiting is unlike the rate limiting provided by
@@ -5176,7 +5599,12 @@ Response Rate Limiting
 
 
    .. namedconf:statement:: max-table-size
+      :tags: server
+      :short: Sets the maximum size of the table used to track requests and rate-limit responses.
+
    .. namedconf:statement:: min-table-size
+      :tags: query
+      :short: Sets the minimum size of the table used to track requests and rate-limit responses.
 
       The maximum size of the table used to track requests and rate-limit
       responses is set with :any:`max-table-size`. Each entry in the table is
@@ -5188,6 +5616,8 @@ Response Rate Limiting
       initial and maximum table size.
 
    .. namedconf:statement:: log-only
+      :tags: logging, query
+      :short: Tests rate-limiting parameters without actually dropping any requests.
 
       Use ``log-only yes`` to test rate-limiting parameters without actually
       dropping any requests.
@@ -5214,6 +5644,8 @@ the normal namespace. All the redirect information is contained in the
 zone; there are no delegations.
 
 .. namedconf:statement:: nxdomain-redirect
+   :tags: query
+   :short: Appends the specified suffix to the original query name, when replacing an NXDOMAIN with a redirect namespace.
 
    With a redirect namespace (``option { nxdomain-redirect <suffix> };``),
    the data used to replace the NXDOMAIN is part of the normal namespace
@@ -5231,6 +5663,8 @@ redirect zone is tried first.
 ``server`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
+   :tags: server
+   :short: Defines characteristics to be associated with a remote name server.
 
 .. _server_statement_definition_and_usage:
 
@@ -5266,6 +5700,8 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    ``yes``.
 
 .. namedconf:statement:: edns-version
+   :tags: server
+   :short: Sets the maximum EDNS VERSION that is sent to the server(s) by the resolver.
 
    The :any:`edns-version` option sets the maximum EDNS VERSION that is
    sent to the server(s) by the resolver. The actual EDNS version sent is
@@ -5279,6 +5715,8 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    higher EDNS versions than 0 are in use.
 
 .. namedconf:statement:: padding
+   :tags: server
+   :short: Adds EDNS Padding options to outgoing messages to increase the packet size.
 
    The option adds EDNS Padding options to outgoing messages,
    increasing the packet size to a multiple of the specified block size.
@@ -5289,12 +5727,16 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    to be added to the packet after it had already been signed.
 
 .. namedconf:statement:: tcp-only
+   :tags: server
+   :short: Sets the transport protocol to TCP.
 
    The option sets the transport protocol to TCP. The default
    is to use the UDP transport and to fallback on TCP only when a truncated
    response is received.
 
 .. namedconf:statement:: tcp-keepalive
+   :tags: server
+   :short: Adds EDNS TCP keepalive to messages sent over TCP.
 
    The option adds EDNS TCP keepalive to messages sent
    over TCP. Note that currently idle timeouts in responses are ignored.
@@ -5309,8 +5751,8 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    option.
 
 .. namedconf:statement:: keys
-   :tags: server
-   :short: Specifies one or more :term:`server_key` s to be used with a remote server.
+   :tags: server, security
+   :short: Specifies one or more :any:`server_key` s to be used with a remote server.
    
    :suppress_grammar:
 
@@ -5353,6 +5795,8 @@ and :namedconf:ref:`options` blocks:
 :any:`statistics-channels` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
+   :tags: logging
+   :short: Specifies the communication channels to be used by system administrators to access statistics information on the name server.
 
 .. _statistics_channels:
 
@@ -5421,6 +5865,8 @@ statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 :any:`tls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: tls
+   :tags: security
+   :short: Configures a TLS connection.
 
 :any:`tls` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5436,26 +5882,34 @@ cause zone transfer requests to be sent via TLS.
 The following options can be specified in a :any:`tls` statement:
 
 .. namedconf:statement:: key-file
+   :tags: server, security
+   :short: Specifies the path to a file containing the private TLS key for a connection.
 
     Path to a file containing the private TLS key to be used for
     the connection.
 
 .. namedconf:statement:: cert-file
+   :tags: server, security
+   :short: Specifies the path to a file containing the TLS certificate for a connection.
 
     Path to a file containing the TLS certificate to be used for
     the connection.
 
 .. namedconf:statement:: ca-file
+   :tags: server, security
+   :short: Specifies the path to a file containing TLS certificates for trusted CA authorities, used to verify remote peer certificates.
 
-    Path to a file containing trusted CA-authorities TLS
+    Path to a file containing trusted CA authorities' TLS
     certificates used to verify remote peer certificates. Specifying
-    this option enables remote peer certificates verification. For
-    incoming connections specifying this option will make BIND require
+    this option enables remote peer certificates' verification. For
+    incoming connections, specifying this option makes BIND require
     a valid TLS certificate from a client. In the case of outgoing
     connections, if :any:`remote-hostname` is not specified, then the remote
     server IP address is used instead.
 
 .. namedconf:statement:: dhparam-file
+   :tags: server, security
+   :short: Specifies the path to a file containing Diffie-Hellman parameters, for enabling cipher suites.
 
     Path to a file containing Diffie-Hellman parameters,
     which is needed to enable the cipher suites depending on the
@@ -5464,6 +5918,8 @@ The following options can be specified in a :any:`tls` statement:
     ciphers in TLSv1.2.
 
 .. namedconf:statement:: remote-hostname
+   :tags: security
+   :short: Specifies the expected hostname in the TLS certificate of the remote server.
 
     The expected hostname in the TLS certificate of the
     remote server. This option enables a remote server certificate
@@ -5474,6 +5930,8 @@ The following options can be specified in a :any:`tls` statement:
     by :any:`listen-on` or :any:`listen-on-v6` statements.
 
 .. namedconf:statement:: protocols
+   :tags: security
+   :short: Specifies the allowed versions of the TLS protocol.
 
     Allowed versions of the TLS protocol. TLS version 1.2 and higher are
     supported, depending on the cryptographic library in use. Multiple
@@ -5481,6 +5939,8 @@ The following options can be specified in a :any:`tls` statement:
     ``protocols { TLSv1.2; TLSv1.3; };``).
 
 .. namedconf:statement:: ciphers
+   :tags: security
+   :short: Specifies a list of allowed ciphers.
 
     Cipher list which defines allowed ciphers, such as
     ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
@@ -5489,10 +5949,14 @@ The following options can be specified in a :any:`tls` statement:
     for details).
 
 .. namedconf:statement:: prefer-server-ciphers
+   :tags: server, security
+   :short: Specifies that server ciphers should be preferred over client ones.
 
     Specifies that server ciphers should be preferred over client ones.
 
 .. namedconf:statement:: session-tickets
+   :tags: security
+   :short: Enables or disables session resumption through TLS session tickets.
 
     Enables or disables session resumption through TLS session tickets,
     as defined in RFC5077. Disabling the stateless session tickets
@@ -5604,6 +6068,8 @@ issues related to shared cryptographic secrets.
 :any:`http` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: http
+   :tags: server, query
+   :short: Configures HTTP endpoints on which to listen for DNS-over-HTTPS (DoH) queries.
 
 :any:`http` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5618,6 +6084,8 @@ cause :iscman:`named` to listen for incoming requests over HTTPS.
 The following options can be specified in an :any:`http` statement:
 
 .. namedconf:statement:: endpoints
+   :tags: server, query
+   :short: Specifies a list of HTTP query paths on which to listen.
 
     A list of HTTP query paths on which to listen. This is the portion
     of an :rfc:`3986`-compliant URI following the hostname; it must be
@@ -5625,10 +6093,14 @@ The following options can be specified in an :any:`http` statement:
     is ``"/dns-query"``, if omitted.
 
 .. namedconf:statement:: listener-clients
+   :tags: server, query
+   :short: Specifies a per-listener quota for active connections.
 
     The option specifies a per-listener quota for active connections.
 
 .. namedconf:statement:: streams-per-connection
+   :tags: server, query
+   :short: Specifies the maximum number of concurrent HTTP/2 streams over an HTTP/2 connection.
 
     The option specifies the hard limit on the number of concurrent
     HTTP/2 streams over an HTTP/2 connection.
@@ -5656,6 +6128,8 @@ all local addresses:
 :any:`trust-anchors` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trust-anchors
+   :tags: dnssec
+   :short: Defines :ref:`DNSSEC` trust anchors.
 
 :any:`trust-anchors` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5800,6 +6274,8 @@ can be found, the initializing key is also compiled directly into
 :any:`dnssec-policy` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
+   :tags: dnssec
+   :short: Defines a key and signing policy (KASP) for zones.
 
 .. _dnssec_policy:
 
@@ -5876,9 +6352,11 @@ retired when the existing key's lifetime ends.
 The following options can be specified in a :any:`dnssec-policy` statement:
 
 .. namedconf:statement:: dnskey-ttl
+   :tags: dnssec
+   :short: Specifies the time to live (TTL) for DNSKEY resource records.
 
     This indicates the TTL to use when generating DNSKEY resource
-    records.  The default is 1 hour (3600 seconds).
+    records. The default is 1 hour (3600 seconds).
 
 :any:`keys`
     This is a list specifying the algorithms and roles to use when
@@ -5940,8 +6418,10 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     functionality of a ZSK and a KSK.
 
 .. namedconf:statement:: purge-keys
+   :tags: dnssec
+   :short: Specifies the amount of time after which DNSSEC keys that have been deleted from the zone can be removed from disk.
 
-    This is the time after when DNSSEC keys that have been deleted from
+    This is the amount of time after which DNSSEC keys that have been deleted from
     the zone can be removed from disk. If a key still determined to have
     presence (for example in some resolver cache), :iscman:`named` will not
     remove the key files.
@@ -5950,6 +6430,8 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     purge deleted keys.
 
 .. namedconf:statement:: publish-safety
+   :tags: dnssec
+   :short: Increases the amount of time between when keys are published and when they become active, to allow for unforeseen events.
 
     This is a margin that is added to the pre-publication interval in
     rollover timing calculations, to give some extra time to cover
@@ -5958,6 +6440,8 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     hour).
 
 .. namedconf:statement:: retire-safety
+   :tags: dnssec
+   :short: Increases the amount of time a key remains published after it is no longer active, to allow for unforeseen events.
 
     This is a margin that is added to the post-publication interval in
     rollover timing calculations, to give some extra time to cover
@@ -5965,6 +6449,8 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     after it is no longer active.  The default is ``PT1H`` (1 hour).
 
 .. namedconf:statement:: signatures-refresh
+   :tags: dnssec
+   :short: Specifies how frequently an RRSIG record is refreshed.
 
     This determines how frequently an RRSIG record needs to be
     refreshed.  The signature is renewed when the time until the
@@ -5975,16 +6461,22 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     :any:`signatures-validity-dnskey`.
 
 .. namedconf:statement:: signatures-validity
+   :tags: dnssec
+   :short: Indicates the validity period of an RRSIG record.
 
     This indicates the validity period of an RRSIG record (subject to
-    inception offset and jitter).  The default is ``P2W`` (2 weeks).
+    inception offset and jitter). The default is ``P2W`` (2 weeks).
 
 .. namedconf:statement:: signatures-validity-dnskey
+   :tags: dnssec
+   :short: Indicates the validity period of DNSKEY records.
 
     This is similar to :any:`signatures-validity`, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
 .. namedconf:statement:: max-zone-ttl
+   :tags: zone, query
+   :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
    This specifies the maximum permissible TTL value for the zone.  When
    a zone file is loaded, any record encountered with a TTL higher than
@@ -6000,6 +6492,8 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
 
 .. namedconf:statement:: nsec3param
+   :tags: dnssec
+   :short: Specifies the use of NSEC3 instead of NSEC, and sets NSEC3 parameters.
 
     Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.
 
@@ -6022,21 +6516,27 @@ The following options can be specified in a :any:`dnssec-policy` statement:
        servers to CPU-exhausting DoS attacks.
 
 .. namedconf:statement:: zone-propagation-delay
+   :tags: dnssec, zone
+   :short: Sets the propagation delay from the time a zone is first updated to when the new version of the zone is served by all secondary servers.
 
     This is the expected propagation delay from the time when a zone is
     first updated to the time when the new version of the zone is served
-    by all secondary servers.  The default is ``PT5M`` (5 minutes).
+    by all secondary servers. The default is ``PT5M`` (5 minutes).
 
 .. namedconf:statement:: parent-ds-ttl
+   :tags: dnssec
+   :short: Sets the time to live (TTL) of the DS RRset used by the parent zone.
 
     This is the TTL of the DS RRset that the parent zone uses.  The
     default is ``P1D`` (1 day).
 
 .. namedconf:statement:: parent-propagation-delay
+   :tags: dnssec, zone
+   :short: Sets the propagation delay from the time the parent zone is updated to when the new version is served by all of the parent zone's name servers.
 
     This is the expected propagation delay from the time when the parent
     zone is updated to the time when the new version is served by all of
-    the parent zone's name servers.  The default is ``PT1H`` (1 hour).
+    the parent zone's name servers. The default is ``PT1H`` (1 hour).
 
 Automated KSK Rollovers
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -6055,6 +6555,8 @@ old DNSSEC key.
 The following options apply to DS queries sent to :any:`parental-agents`:
 
 .. namedconf:statement:: parental-source
+   :tags: dnssec
+   :short: Specifies which local IPv4 source address is used to send parental DS queries.
 
    :any:`parental-source` determines which local source address, and optionally
    UDP port, is used to send parental DS queries. This statement sets the
@@ -6068,6 +6570,8 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: parental-source-v6
+   :tags: dnssec
+   :short: Specifies which local IPv6 source address is used to send parental DS queries.
 
    This option acts like :any:`parental-source`, but applies to parental DS
    queries sent to IPv6 addresses.
@@ -6075,6 +6579,7 @@ The following options apply to DS queries sent to :any:`parental-agents`:
 :any:`managed-keys` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
+   :tags: deprecated
 
 :any:`managed-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6086,6 +6591,7 @@ with the ``initial-key`` keyword.
 :any:`trusted-keys` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
+   :tags: deprecated
 
 :any:`trusted-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6098,6 +6604,8 @@ The :any:`trusted-keys` statement has been deprecated in favor of
 :any:`view` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: view
+   :tags: view
+   :short: Allows a name server to answer a DNS query differently depending on who is asking.
 
 ::
 
@@ -6214,6 +6722,9 @@ Here is an example of a typical split DNS setup implemented using
 :any:`zone` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
+   :tags: zone
+   :short: Specifies the zone in a BIND 9 configuration.
+
    :suppress_grammar:
 
 .. _zone_statement:
@@ -6475,6 +6986,8 @@ Zone Types
    See caveats in :ref:`root-delegation-only <root-delegation-only>`.
 
 .. namedconf:statement:: in-view
+   :tags: view, zone
+   :short: Specifies the view in which a given zone is defined.
 
    When using multiple views, a :any:`type primary` or :any:`type secondary` zone configured
    in one view can be referenced in a subsequent view. This allows both views
@@ -6581,6 +7094,8 @@ Zone Options
    See the description of :any:`try-tcp-refresh` in :ref:`boolean_options`.
 
 .. namedconf:statement:: database
+   :tags: zone
+   :short: Specifies the type of database to be used to store zone data.
 
    This specifies the type of database to be used to store the zone data.
    The string following the :any:`database` keyword is interpreted as a
@@ -6600,6 +7115,8 @@ Zone Options
    See the description of :any:`dialup` in :ref:`boolean_options`.
 
 .. namedconf:statement:: delegation-only
+   :tags: zone
+   :short: Indicates that a forward, hint, or stub zone is to be treated as a delegation-only type zone.
 
    This flag only applies to forward, hint, and stub zones. If set to
    ``yes``, then the zone is treated as if it is also a
@@ -6633,6 +7150,8 @@ Zone Options
    the zone and the global options are not used.
 
 .. namedconf:statement:: journal
+   :tags: zone
+   :short: Allows the default journal's filename to be overridden.
 
    This allows the default journal's filename to be overridden. The default is
    the zone's filename with "``.jnl``" appended. This is applicable to
@@ -6672,6 +7191,8 @@ Zone Options
    See the description of :any:`zone-statistics` in :ref:`options`.
 
 .. namedconf:statement:: server-addresses
+   :tags: query, zone
+   :short: Specifies a list of IP addresses to which queries should be sent in recursive resolution for a static-stub zone.
 
    This option is only meaningful for static-stub zones. This is a list of IP addresses
    to which queries should be sent in recursive resolution for the zone.
@@ -6695,6 +7216,8 @@ Zone Options
    2001:db8::1234.
 
 .. namedconf:statement:: server-names
+   :tags: zone
+   :short: Specifies a list of domain names of name servers that act as authoritative servers of a static-stub zone.
 
    This option is only meaningful for static-stub zones. This is a list of domain names
    of name servers that act as authoritative servers of the static-stub
@@ -6775,6 +7298,8 @@ Zone Options
    See the description of :any:`serial-update-method` in :ref:`options`.
 
 .. namedconf:statement:: inline-signing
+   :tags: dnssec, zone
+   :short: Specifies whether BIND 9 maintains a separate signed version of a zone.
 
    If ``yes``, BIND 9 maintains a separate signed version of the zone.
    An unsigned zone is transferred in or loaded from disk and the signed
@@ -7090,7 +7615,6 @@ An :any:`in-view` zone cannot be used as a response policy zone.
 
 An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
 
-
 Statements by Tag
 -----------------
 
@@ -7112,24 +7636,34 @@ Transfer Tag Statements
    :filter_tags: transfer
 
 Server Tag Statements
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: server
 
 Logging Tag Statements
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: logging
 
 Zone Tag Statements
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: zone
 
 View Tag Statements
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: view
+
+DNSSEC Tag Statements
+~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: dnssec
+
+Deprecated Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: deprecated
 
 Statements
 ----------
@@ -7333,7 +7867,7 @@ Name Server Statistics Counters
     This indicates the number of queries which the server attempted to recurse but for which it discovered an existing query with the same IP address, port, query ID, name, type, and class already being processed. This corresponds to the ``duplicate`` counter of previous versions of BIND 9.
 
 ``QryDropped``
-    This indicates the number of recursive queries for which the server discovered an excessive number of existing recursive queries for the same name, type, and class, and which were subsequently dropped. This is the number of dropped queries due to the reason explained with the :any:`clients-per-query` and :any:`max-clients-per-query` options (see :ref:`clients-per-query <clients-per-query>`). This corresponds to the ``dropped`` counter of previous versions of BIND 9.
+    This indicates the number of recursive queries for which the server discovered an excessive number of existing recursive queries for the same name, type, and class, and which were subsequently dropped. This is the number of dropped queries due to the reason explained with the :any:`clients-per-query` and :any:`max-clients-per-query` options. This corresponds to the ``dropped`` counter of previous versions of BIND 9.
 
 ``QryFailure``
     This indicates the number of query failures. This corresponds to the ``failure`` counter of previous versions of BIND 9. Note: this counter is provided mainly for backward compatibility with previous versions; normally, more fine-grained counters such as ``AuthQryRej`` and ``RecQryRej`` that would also fall into this counter are provided, so this counter is not of much interest in practice.
