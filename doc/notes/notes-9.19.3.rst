@@ -15,10 +15,10 @@ Notes for BIND 9.19.3
 New Features
 ~~~~~~~~~~~~
 
-- The new ``rndc fetchlimit`` command prints a list of name server
-  addresses that are currently rate-limited due to ``fetches-per-server``
-  and domain names that are rate limited due to ``fetches-per-zone``.
-  :gl:`#665`
+- A new command, :option:`rndc fetchlimit`, prints a list of name server
+  addresses that are currently rate-limited due to
+  :any:`fetches-per-server` and domain names that are rate-limited due
+  to :any:`fetches-per-zone`. :gl:`#665`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -29,24 +29,27 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The :option:`dnssec-signzone -H` default value has been changed to 0 additional
-  NSEC3 iterations. This change aligns the :iscman:`dnssec-signzone` default with
-  the default used by the :ref:`dnssec-policy <dnssec_policy_grammar>` feature.
-  At the same time, documentation about NSEC3 has been aligned with
-  `Best Current Practice
-  <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-nsec3-guidance-10>`__.
-  :gl:`#3395`
+- The :option:`dnssec-signzone -H` default value has been changed to 0
+  additional NSEC3 iterations. This change aligns the
+  :iscman:`dnssec-signzone` default with the default used by the
+  :any:`dnssec-policy` feature. At the same
+  time, documentation about NSEC3 has been aligned with the `Best
+  Current Practice`_. :gl:`#3395`
+
+.. _Best Current Practice: https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-nsec3-guidance-10
 
 Bug Fixes
 ~~~~~~~~~
 
-- It was possible for a catalog zone consumer to process a catalog zone member
-  zone when there was a configured pre-existing forward-only forward zone with
-  the same name. This has been fixed. :gl:`#2506`.
+- It was possible for a catalog zone consumer to process a catalog zone
+  member zone when there was a configured pre-existing forward-only
+  forward zone with the same name. This has been fixed. :gl:`#2506`
 
-- Fix the assertion failure caused by TCP connection closing between the
-  connect (or accept) and the read from the socket. :gl:`#3400`
+- An assertion failure caused by a TCP connection closing between a
+  connect (or accept) and a read from a socket has been fixed.
+  :gl:`#3400`
 
-- When grafting on non-delegated namespace, synth-from-dnssec could incorrectly
-  synthesise non-existance of records within the grafted in namespace using
-  NSEC records from higher zones. :gl:`#3402`
+- When grafting non-delegated namespace onto delegated namespace,
+  :any:`synth-from-dnssec` could incorrectly synthesize non-existence of
+  records within the non-delegated namespace using NSEC records from
+  higher zones. :gl:`#3402`
