@@ -417,7 +417,7 @@ The following blocks are supported:
         Specifies configuration information for a TLS connection, including a :any:`key-file`, :any:`cert-file`, :any:`ca-file`, :any:`dhparam-file`, :any:`remote-hostname`, :any:`ciphers`, :any:`protocols`, :any:`prefer-server-ciphers`, and :any:`session-tickets`.
 
     :any:`http`
-        Specifies configuration information for an HTTP connection, including ``endponts``, :any:`listener-clients` and :any:`streams-per-connection`.
+        Specifies configuration information for an HTTP connection, including :any:`endpoints`, :any:`listener-clients`, and :any:`streams-per-connection`.
 
     :any:`trust-anchors`
         Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
