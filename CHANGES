@@ -68,6 +68,10 @@
 5922.	[bug]		Forwarding of UPDATE message could fail with the
 			introduction of netmgr. This has been fixed. [GL #3389]
 
+5921.	[test]		Convert system tests to use a default DNSKEY algorithm
+			where the test is not DNSKEY algorithm specific.
+			[GL #3440]
+
 	--- 9.18.5 released ---
 
 5917.	[bug]		Update ifconfig.sh script as is miscomputed interface
