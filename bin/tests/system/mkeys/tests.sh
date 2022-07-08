@@ -142,7 +142,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check new trust anchor can be added ($n)"
 ret=0
-standby1=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby1=`$KEYGEN -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -qfk -r $RANDFILE -K ns1 .`
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
@@ -334,7 +334,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke original key, add new standby ($n)"
 ret=0
-standby2=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby2=`$KEYGEN -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -qfk -r $RANDFILE -K ns1 .`
 $SETTIME -R now -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
@@ -366,7 +366,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke standby before it is trusted ($n)"
 ret=0
-standby3=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby3=`$KEYGEN -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -qfk -r $RANDFILE -K ns1 .`
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
@@ -665,7 +665,7 @@ ret=0
 # compare against the known key.
 tathex=`grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/'`
 tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' "$tathex"`
-realkey=`rndccmd 10.53.0.2 secroots - | sed -n 's#.*SHA1/\([0-9][0-9]*\) ; .*managed.*#\1#p'`
+realkey=`rndccmd 10.53.0.2 secroots - | sed -n "s#.*${DEFAULT_ALGORITHM}/\([0-9][0-9]*\) ; .*managed.*#\1#p"`
 [ "$tatkey" -eq "$realkey" ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -740,7 +740,7 @@ n=`expr $n + 1`
 echo_i "skipping unsupported algorithm in managed-keys ($n)"
 ret=0
 mkeys_status_on 6 > rndc.out.$n 2>&1 || ret=1
-# there should still be only two keys listed (for . and rsasha256.)
+# there should still be only two keys listed (for . and island.)
 count=`grep -c "keyid: " rndc.out.$n`
 [ "$count" -eq 2 ] || ret=1
 # two lines indicating trust status
@@ -767,7 +767,7 @@ ret=0
 mkeys_reload_on 1 || ret=1
 mkeys_refresh_on 6 || ret=1
 mkeys_status_on 6 > rndc.out.$n 2>&1 || ret=1
-# there should still be only two keys listed (for . and rsasha256.)
+# there should still be only two keys listed (for . and island.)
 count=`grep -c "keyid: " rndc.out.$n`
 [ "$count" -eq 2 ] || ret=1
 # two lines indicating trust status
