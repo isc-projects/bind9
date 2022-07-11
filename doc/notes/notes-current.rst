@@ -40,4 +40,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Non-dynamic zones that inherit dnssec-policy from the view or
+  options level were not marked as inline-signed, and thus were never
+  scheduled to be re-signed. This is now fixed. :gl:`#3438`
