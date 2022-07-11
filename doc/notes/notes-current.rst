@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.5
+Notes for BIND 9.18.6
 ---------------------
 
 Security Fixes
@@ -35,24 +35,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The :option:`dnssec-signzone -H` default value has been changed to 0 additional
-  NSEC3 iterations. This change aligns the :iscman:`dnssec-signzone` default with
-  the default used by the :ref:`dnssec-policy <dnssec_policy_grammar>` feature.
-  At the same time, documentation about NSEC3 has been aligned with
-  `Best Current Practice
-  <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-nsec3-guidance-10>`__.
-  :gl:`#3395`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- It was possible for a catalog zone consumer to process a catalog zone member
-  zone when there was a configured pre-existing forward-only forward zone with
-  the same name. This has been fixed. :gl:`#2506`.
-
-- Fix the assertion failure caused by TCP connection closing between the
-  connect (or accept) and the read from the socket. :gl:`#3400`
-
-- When grafting on non-delegated namespace, synth-from-dnssec could incorrectly
-  synthesise non-existance of records within the grafted in namespace using
-  NSEC records from higher zones. :gl:`#3402`
+- None.
