@@ -15,9 +15,10 @@ Notes for BIND 9.16.31
 Bug Fixes
 ~~~~~~~~~
 
-- Fix the assertion failure caused by TCP connection closing between the
-  connect (or accept) and the read from the socket. :gl:`#3400`
+- An assertion failure caused by a TCP connection closing between a
+  connect (or accept) and a read from a socket has been fixed.
+  :gl:`#3400`
 
-- ``named`` could crash during a very rare situation that could arise when
-  validating a query which had timed out at that same exact moment. This has
-  been fixed. :gl:`#3398`
+- :iscman:`named` could crash during a very rare situation that could
+  arise when validating a query which had timed out at that exact
+  moment. This has been fixed. :gl:`#3398`
