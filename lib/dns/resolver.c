@@ -4357,9 +4357,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			options, 0, fctx->qc, task, resume_qmin, fctx,
 			&fctx->qminrrset, NULL, &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
-			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			LOCK(&res->buckets[bucketnum].lock);
 			RUNTIME_CHECK(!fctx_decreference(fctx));
-			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			UNLOCK(&res->buckets[bucketnum].lock);
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		}
 		return;
@@ -6138,9 +6138,9 @@ cleanup_event:
 	dns_message_detach(&message);
 	isc_event_free(&event);
 
-	LOCK(&res->buckets[fctx->bucketnum].lock);
+	LOCK(&res->buckets[bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (bucket_empty) {
 		empty_bucket(res);
 	}
@@ -7528,6 +7528,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
 	fetchctx_t *fctx;
 	isc_result_t result;
+	uint32_t bucketnum;
 	bool bucket_empty;
 	dns_rdataset_t nameservers;
 	dns_fixedname_t fixed;
@@ -7538,6 +7539,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	fctx = event->ev_arg;
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
+	bucketnum = fctx->bucketnum;
 
 	UNUSED(task);
 	FCTXTRACE("resume_dslookup");
@@ -7665,9 +7667,9 @@ cleanup:
 	if (dns_rdataset_isassociated(&nameservers)) {
 		dns_rdataset_disassociate(&nameservers);
 	}
-	LOCK(&res->buckets[fctx->bucketnum].lock);
+	LOCK(&res->buckets[bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (bucket_empty) {
 		empty_bucket(res);
 	}
