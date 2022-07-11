@@ -1,3 +1,5 @@
+	--- 9.16.31 released ---
+
 5917.	[bug]		Update ifconfig.sh script as is miscomputed interface
 			identifiers when destroying interfaces. [GL #3061]
 
