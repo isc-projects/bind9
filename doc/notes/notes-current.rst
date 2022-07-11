@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.3
+Notes for BIND 9.19.4
 ---------------------
 
 Security Fixes
@@ -25,38 +25,19 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- The new ``rndc fetchlimit`` command prints a list of name server
-  addresses that are currently rate-limited due to ``fetches-per-server``
-  and domain names that are rate limited due to ``fetches-per-zone``.
-  :gl:`#665`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The ``glue-cache`` *option* has been removed. The glue cache *feature*
-  still works and is now permanently *enabled*. :gl:`#2147`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The :option:`dnssec-signzone -H` default value has been changed to 0 additional
-  NSEC3 iterations. This change aligns the :iscman:`dnssec-signzone` default with
-  the default used by the :ref:`dnssec-policy <dnssec_policy_grammar>` feature.
-  At the same time, documentation about NSEC3 has been aligned with
-  `Best Current Practice
-  <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-nsec3-guidance-10>`__.
-  :gl:`#3395`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- It was possible for a catalog zone consumer to process a catalog zone member
-  zone when there was a configured pre-existing forward-only forward zone with
-  the same name. This has been fixed. :gl:`#2506`.
-
-- Fix the assertion failure caused by TCP connection closing between the
-  connect (or accept) and the read from the socket. :gl:`#3400`
-
-- When grafting on non-delegated namespace, synth-from-dnssec could incorrectly
-  synthesise non-existance of records within the grafted in namespace using
-  NSEC records from higher zones. :gl:`#3402`
+- None.
