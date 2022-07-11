@@ -823,9 +823,9 @@ check_keys() {
 	status=$((status+ret))
 }
 
-# Call rndc dnssec -status on server $1 for zone $2 and check output.
-# This is a loose verification, it just tests if the right policy
-# name is returned, and if all expected keys are listed.  The rndc
+# Call rndc dnssec -status on server $1 for zone $3 in view $4 with policy $2
+# and check output. This is a loose verification, it just tests if the right
+# policy name is returned, and if all expected keys are listed.  The rndc
 # dnssec -status output also lists whether a key is published,
 # used for signing, is retired, or is removed, and if not when
 # it is scheduled to do so, and it shows the states for the various
