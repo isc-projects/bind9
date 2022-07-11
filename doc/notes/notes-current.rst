@@ -42,3 +42,7 @@ Bug Fixes
 
 - A DNS compression would be applied on the root zone name if it is repeatedly
   used in the same RRSet. :gl:`#3423`
+
+- Non-dynamic zones that inherit dnssec-policy from the view or
+  options level were not marked as inline-signed, and thus were never
+  scheduled to be re-signed. This is now fixed. :gl:`#3438`
