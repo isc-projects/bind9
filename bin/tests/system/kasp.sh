@@ -864,6 +864,28 @@ check_dnssecstatus() {
 	status=$((status+ret))
 }
 
+# Call rndc zonestatus on server $1 for zone $2 in view $3 and check output if
+# inline-signing is enabled.
+check_inlinesigning() {
+	_server=$1
+	_zone=$2
+	_view=$3
+
+	_rndccmd $_server zonestatus $_zone in $_view > rndc.zonestatus.out.$_zone.$n || return 1
+	grep "inline signing: yes" rndc.zonestatus.out.$_zone.$n > /dev/null || return 1
+}
+
+# Call rndc zonestatus on server $1 for zone $2 in view $3 and check output if
+# the zone is dynamic.
+check_isdynamic() {
+	_server=$1
+	_zone=$2
+	_view=$3
+
+	_rndccmd $_server zonestatus $_zone in $_view > rndc.zonestatus.out.$_zone.$n || return 1
+	grep "dynamic: yes" rndc.zonestatus.out.$_zone.$n > /dev/null || return 1
+}
+
 # Check if RRset of type $1 in file $2 is signed with the right keys.
 # The right keys are the ones that expect a signature and matches the role $3.
 _check_signatures() {
