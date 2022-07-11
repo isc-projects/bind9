@@ -40,4 +40,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- A DNS compression would be applied on the root zone name if it is repeatedly
+  used in the same RRSet. :gl:`#3423`

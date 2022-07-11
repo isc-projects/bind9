@@ -1965,10 +1965,14 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 
 	here = target->used; /*XXX*/
 
-	if (compress) {
-		found = dns_compress_find(cctx, name, &prefix, &there);
-	} else {
+	/*
+	 * Never compress the root name.
+	 */
+	if (name->length == 1) {
 		found = false;
+		compress = false;
+	} else {
+		found = dns_compress_find(cctx, name, &prefix, &there);
 	}
 
 	/*
@@ -1976,17 +1980,17 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 	 * we're out of luck.
 	 */
 	if (found && there >= 0x4000) {
-		found = false;
+		compress = false;
 	}
 
 	/*
 	 * Will the compression pointer reduce the message size?
 	 */
 	if (found && (prefix.length + 2) >= name->length) {
-		found = false;
+		compress = false;
 	}
 
-	if (found) {
+	if (found && compress) {
 		if (target->length - target->used < prefix.length) {
 			return (ISC_R_NOSPACE);
 		}
@@ -2000,14 +2004,6 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 			return (ISC_R_NOSPACE);
 		}
 		isc_buffer_putuint16(target, there | 0xc000);
-		if (prefix.length != 0) {
-			dns_compress_add(cctx, name, &prefix, here);
-			if (comp_offsetp != NULL) {
-				*comp_offsetp = here;
-			}
-		} else if (comp_offsetp != NULL) {
-			*comp_offsetp = there;
-		}
 	} else {
 		if (target->length - target->used < name->length) {
 			return (ISC_R_NOSPACE);
@@ -2018,10 +2014,28 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 				      (size_t)name->length);
 		}
 		isc_buffer_add(target, name->length);
+	}
+
+	if (found && prefix.length == 0) {
+		here = there;
+	}
+
+	if (here >= 0x4000) {
+		return (ISC_R_SUCCESS);
+	}
+
+	if (found) {
+		dns_compress_add(cctx, name, &prefix, here);
+	} else {
 		dns_compress_add(cctx, name, name, here);
-		if (comp_offsetp != NULL) {
-			*comp_offsetp = here;
-		}
+	}
+
+	/*
+	 * Don't set the offset of the previously rendered name if the
+	 * compression has been disabled.
+	 */
+	if (compress && comp_offsetp != NULL) {
+		*comp_offsetp = here;
 	}
 
 	return (ISC_R_SUCCESS);
