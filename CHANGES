@@ -1,3 +1,13 @@
+5929.	[func]		The use of the "max-zone-ttl" option in "zone" and
+			"options" blocks is now deprecated; this should
+			now be configured as part of "dnssec-policy"
+			instead. The old option still works in zones
+			with no "dnssec-policy" configured, but a warning
+			will be logged when loading configuration. Its
+			functionality will be removed in a future release.
+			Using "max-zone-ttl" and "dnssec-policy" in the
+			same zone is now a fatal error. [GL #2918]
+
 5928.	[placeholder]
 
 5927.	[bug]		A race was possible in dns_dispatch_connect()
