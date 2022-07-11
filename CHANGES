@@ -11,6 +11,15 @@
 			option (or use the default values of 2 or 3
 			respectively). [GL #3407]
 
+5929.	[bug]		The "max-zone-ttl" option in "dnssec-policy" was
+			not fully effective; it was used for timing key
+			rollovers but did not actually place an upper limit
+			on TTLs when loading a zone. This has been
+			corrected, and the documentation has been clarified
+			to indicate that the old "max-zone-ttl" zone option
+			is now ignored when "dnssec-policy" is in use.
+			[GL #2918]
+
 5927.	[bug]		A race was possible in dns_dispatch_connect()
 			that could trigger an assertion failure if two
 			threads called it near-simultaneously. [GL #3456]
