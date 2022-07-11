@@ -1796,26 +1796,26 @@ default is used.
    The default is five minutes. It cannot be longer than :any:`nta-lifetime`, which
    cannot be longer than a week.
 
-.. namedconf:statement:: max-zone-ttl
+:any:`max-zone-ttl`
 
-   This specifies a maximum permissible TTL value in seconds. For
-   convenience, TTL-style time-unit suffixes may be used to specify the
-   maximum value. When loading a zone file using a :any:`masterfile-format`
-   of ``text`` or ``raw``, any record encountered with a TTL higher than
-   :any:`max-zone-ttl` causes the zone to be rejected.
+   This should now be configured as part of :namedconf:ref:`dnssec-policy`.
+   Use of this option in :namedconf:ref:`options`, :namedconf:ref:`view`
+   and :namedconf:ref:`zone` blocks has no effect on any zone for which
+   a :namedconf:ref:`dnssec-policy` has also been configured.
+
+   :any:`max-zone-ttl` specifies a maximum permissible TTL value in seconds.
+   For convenience, TTL-style time-unit suffixes may be used to specify the
+   maximum value. When a zone file is loaded, any record encountered with a
+   TTL higher than :any:`max-zone-ttl` causes the zone to be rejected.
 
    This is needed in DNSSEC-maintained zones because when rolling to a new
    DNSKEY, the old key needs to remain available until RRSIG records
    have expired from caches. The :any:`max-zone-ttl` option guarantees that
    the largest TTL in the zone is no higher than the set value.
 
-   In the :namedconf:ref:`options` and :namedconf:ref:`zone` blocks,
-   the default value is ``unlimited``. A :any:`max-zone-ttl` of zero is
-   treated as ``unlimited``.
-
-   In the :namedconf:ref:`dnssec-policy` block,
-   the default value is ``PT24H`` (24 hours).  A :any:`max-zone-ttl` of
-   zero is treated as if the default value were in use.
+   When used in :namedconf:ref:`options`, :namedconf:ref:`view` and
+   :namedconf:ref:`zone` blocks, setting :any:`max-zone-ttl` to zero
+   is equivalent to "unlimited".
 
 .. namedconf:statement:: stale-answer-ttl
 
@@ -4225,9 +4225,9 @@ Tuning
    Note that when a zone file in a format other than ``text`` is loaded,
    :iscman:`named` may omit some of the checks which are performed for a file in
    ``text`` format. For example, :any:`check-names` only applies when loading
-   zones in ``text`` format, and :any:`max-zone-ttl` only applies to ``text``
-   and ``raw``.  Zone files in binary formats should be generated with the
-   same check level as that specified in the :iscman:`named` configuration file.
+   zones in ``text`` format. Zone files in ``raw`` format should be generated
+   with the same check level as that specified in the :iscman:`named`
+   configuration file.
 
    When configured in :namedconf:ref:`options`, this statement sets the
    :any:`masterfile-format` for all zones, but it can be overridden on a
@@ -5985,10 +5985,20 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     This is similar to :any:`signatures-validity`, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
-:any:`max-zone-ttl`
+.. namedconf:statement:: max-zone-ttl
 
-   Like the :namedconf:ref:`max-zone-ttl` zone option, this specifies the maximum
-   permissible TTL value, in seconds, for the zone.
+   This specifies the maximum permissible TTL value for the zone.  When
+   a zone file is loaded, any record encountered with a TTL higher than
+   :any:`max-zone-ttl` causes the zone to be rejected.
+
+   This ensures that when rolling to a new DNSKEY, the old key will remain
+   available until RRSIG records have expired from caches. The
+   :any:`max-zone-ttl` option guarantees that the largest TTL in the
+   zone is no higher than a known and predictable value.
+
+   The default value ``PT24H`` (24 hours).  A value of zero is treated
+   as if the default value were in use.
+
 
 .. namedconf:statement:: nsec3param
 
