@@ -1059,37 +1059,45 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 				pending = (int)ISC_NETMGR_TCP_RECVBUF_SIZE;
 			}
 
-			if ((sock->buf_len + pending) > sock->buf_size) {
-				isc__nm_alloc_dnsbuf(sock,
-						     sock->buf_len + pending);
-			}
-
-			len = 0;
-			rv = SSL_read_ex(sock->tls.tls,
-					 sock->buf + sock->buf_len,
-					 sock->buf_size - sock->buf_len, &len);
-			if (rv != 1) {
-				/*
-				 * Process what's in the buffer so far
-				 */
-				result = isc__nm_process_sock_buffer(sock);
-				if (result != ISC_R_SUCCESS) {
-					goto failure;
+			if (pending != 0) {
+				if ((sock->buf_len + pending) > sock->buf_size)
+				{
+					isc__nm_alloc_dnsbuf(
+						sock, sock->buf_len + pending);
 				}
-				/*
-				 * FIXME: Should we call
-				 * isc__nm_failed_read_cb()?
-				 */
-				break;
+
+				len = 0;
+				rv = SSL_read_ex(sock->tls.tls,
+						 sock->buf + sock->buf_len,
+						 sock->buf_size - sock->buf_len,
+						 &len);
+				if (rv != 1) {
+					/*
+					 * Process what's in the buffer so far
+					 */
+					result = isc__nm_process_sock_buffer(
+						sock);
+					if (result != ISC_R_SUCCESS) {
+						goto failure;
+					}
+					/*
+					 * FIXME: Should we call
+					 * isc__nm_failed_read_cb()?
+					 */
+					break;
+				}
+
+				INSIST((size_t)pending == len);
+
+				sock->buf_len += len;
 			}
-
-			INSIST((size_t)pending == len);
-
-			sock->buf_len += len;
-
 			result = isc__nm_process_sock_buffer(sock);
 			if (result != ISC_R_SUCCESS) {
 				goto failure;
+			}
+
+			if (pending == 0) {
+				break;
 			}
 		}
 	} else if (!SSL_is_init_finished(sock->tls.tls)) {
