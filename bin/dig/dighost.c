@@ -3037,9 +3037,9 @@ start_tcp(dig_query_t *query) {
 		if (tlsctx == NULL) {
 			goto failure_tls;
 		}
-		isc_nm_tlsdnsconnect(netmgr, &localaddr, &query->sockaddr,
-				     tcp_connected, connectquery, local_timeout,
-				     tlsctx, sess_cache);
+		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
+					tcp_connected, connectquery,
+					local_timeout, tlsctx, sess_cache);
 #if HAVE_LIBNGHTTP2
 	} else if (query->lookup->https_mode) {
 		char uri[4096] = { 0 };
@@ -3454,8 +3454,9 @@ launch_next_query(dig_query_t *query) {
 
 	xfr = query->lookup->rdtype == dns_rdatatype_ixfr ||
 	      query->lookup->rdtype == dns_rdatatype_axfr;
-	if (xfr && isc_nm_socket_type(query->handle) == isc_nm_tlsdnssocket &&
-	    !isc_nm_xfr_allowed(query->handle))
+	if (xfr &&
+	    isc_nm_socket_type(query->handle) == isc_nm_streamdnssocket &&
+	    query->lookup->tls_mode && !isc_nm_xfr_allowed(query->handle))
 	{
 		dighost_error("zone transfers over the "
 			      "established TLS connection are not allowed");
