@@ -42,7 +42,7 @@ able to offer support on a “best effort” basis for some.
 Regularly tested platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As of June 2022, BIND 9.16 is fully supported and regularly tested on the
+As of July 2022, BIND 9.16 is fully supported and regularly tested on the
 following systems:
 
 -  Debian 10, 11
@@ -51,7 +51,7 @@ following systems:
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8
 -  FreeBSD 12.3, 13.0
 -  OpenBSD 7.0
--  Alpine Linux 3.15
+-  Alpine Linux 3.16
 
 The amd64, i386, armhf and arm64 CPU architectures are all fully
 supported.
