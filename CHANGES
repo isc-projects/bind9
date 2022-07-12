@@ -1,3 +1,7 @@
+5921.	[test]		Convert system tests to use a default DNSKEY algorithm
+			where the test is not DNSKEY algorithm specific.
+			[GL #3440]
+
 5920.	[bug]		Don't pass back the current name offset when the
 			compression is disabled in the non-improving case.
 			[GL #3423]

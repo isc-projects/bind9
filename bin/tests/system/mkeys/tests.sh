@@ -133,7 +133,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check new trust anchor can be added ($n)"
 ret=0
-standby1=$($KEYGEN -a rsasha256 -qfk -K ns1 .)
+standby1=$($KEYGEN -a ${DEFAULT_ALGORITHM} -qfk -K ns1 .)
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.$n 2>&1 || ret=1
@@ -342,7 +342,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "revoke original key, add new standby ($n)"
 ret=0
-standby2=$($KEYGEN -a rsasha256 -qfk -K ns1 .)
+standby2=$($KEYGEN -a ${DEFAULT_ALGORITHM} -qfk -K ns1 .)
 $SETTIME -R now -K ns1 "$original" > /dev/null
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
@@ -374,7 +374,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "revoke standby before it is trusted ($n)"
 ret=0
-standby3=$($KEYGEN -a rsasha256 -qfk -K ns1 .)
+standby3=$($KEYGEN -a ${DEFAULT_ALGORITHM} -qfk -K ns1 .)
 mkeys_loadkeys_on 1 || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
@@ -777,7 +777,7 @@ n=$((n+1))
 echo_i "ignoring unsupported algorithm in managed-keys ($n)"
 ret=0
 mkeys_status_on 6 > rndc.out.$n 2>&1 || ret=1
-# there should still be only two keys listed (for . and rsasha256.)
+# there should still be only two keys listed (for . and island.)
 count=$(grep -c "keyid: " rndc.out.$n) || true
 [ "$count" -eq 2 ] || ret=1
 # two lines indicating trust status
@@ -804,7 +804,7 @@ ret=0
 mkeys_reload_on 1 || ret=1
 mkeys_refresh_on 6 || ret=1
 mkeys_status_on 6 > rndc.out.$n 2>&1 || ret=1
-# there should still be only two keys listed (for . and rsasha256.)
+# there should still be only two keys listed (for . and island.)
 count=$(grep -c "keyid: " rndc.out.$n) || true
 [ "$count" -eq 2 ] || ret=1
 # two lines indicating trust status
