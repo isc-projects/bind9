@@ -1364,7 +1364,7 @@ default is used.
    normal (non-minimized) query mode when it receives either NXDOMAIN or
    other unexpected responses (e.g., SERVFAIL, improper zone cut,
    REFUSED) to a minimized query. ``disabled`` disables QNAME
-   minimization completely. The current default is ``relaxed``, but it
+   minimization completely. ``off`` is a synonym for ``disabled``. The current default is ``relaxed``, but it
    may be changed to ``strict`` in a future release.
 
 .. namedconf:statement:: tkey-gssapi-keytab
