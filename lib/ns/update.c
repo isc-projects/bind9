@@ -1671,6 +1671,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
 				     "update forwarding", zonename, true,
 				     false));
+		dns_message_clonebuffer(client->message);
 		CHECK(send_forward_event(client, zone));
 		break;
 	default:
