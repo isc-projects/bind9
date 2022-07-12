@@ -1788,6 +1788,10 @@ isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
 			     const int tid);
 
 void
+isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
+				  uint64_t write_timeout);
+
+void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
 
 void

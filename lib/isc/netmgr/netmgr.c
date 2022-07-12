@@ -572,8 +572,24 @@ void
 isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->tid == isc_nm_tid());
 
-	handle->sock->write_timeout = write_timeout;
+	switch (handle->sock->type) {
+	case isc_nm_tcpsocket:
+	case isc_nm_udpsocket:
+	case isc_nm_tcpdnssocket:
+	case isc_nm_tlsdnssocket:
+		handle->sock->write_timeout = write_timeout;
+		break;
+#ifdef HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmhandle_tls_setwritetimeout(handle, write_timeout);
+		break;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		UNREACHABLE();
+		break;
+	}
 }
 
 void

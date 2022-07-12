@@ -324,7 +324,7 @@ tls_process_outgoing(isc_nmsocket_t *sock, bool finish,
 }
 
 static int
-tls_try_handshake(isc_nmsocket_t *sock) {
+tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 	int rv = 0;
 	isc_nmhandle_t *tlshandle = NULL;
 
@@ -342,16 +342,38 @@ tls_try_handshake(isc_nmsocket_t *sock) {
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
-			sock->listener->accept_cb(tlshandle, result,
-						  sock->listener->accept_cbarg);
+			result = sock->listener->accept_cb(
+				tlshandle, result,
+				sock->listener->accept_cbarg);
 		} else {
 			tls_call_connect_cb(sock, tlshandle, result);
 		}
 		isc_nmhandle_detach(&tlshandle);
 		sock->tlsstream.state = TLS_IO;
+
+		if (presult != NULL) {
+			*presult = result;
+		}
 	}
 
 	return (rv);
+}
+
+static bool
+tls_try_to_close_unused_socket(isc_nmsocket_t *sock) {
+	if (sock->tlsstream.state > TLS_HANDSHAKE &&
+	    sock->statichandle == NULL && sock->tlsstream.nsending == 0)
+	{
+		/*
+		 * It seems that no action on the socket has been
+		 * scheduled on some point after the handshake, let's
+		 * close the connection.
+		 */
+		isc__nmsocket_prep_destroy(sock);
+		return (true);
+	}
+
+	return (false);
 }
 
 static void
@@ -380,7 +402,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			SSL_set_connect_state(sock->tlsstream.tls);
 		}
 		sock->tlsstream.state = TLS_HANDSHAKE;
-		rv = tls_try_handshake(sock);
+		rv = tls_try_handshake(sock, NULL);
 		INSIST(SSL_is_init_finished(sock->tlsstream.tls) == 0);
 	} else if (sock->tlsstream.state == TLS_CLOSED) {
 		return;
@@ -403,7 +425,21 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			 * handshake is done.
 			 */
 			if (sock->tlsstream.state == TLS_HANDSHAKE) {
-				rv = tls_try_handshake(sock);
+				isc_result_t hs_result = ISC_R_UNSET;
+				rv = tls_try_handshake(sock, &hs_result);
+				if (sock->tlsstream.state == TLS_IO &&
+				    hs_result != ISC_R_SUCCESS) {
+					/*
+					 * The accept callback has been called
+					 * unsuccessfully. Let's try to shut
+					 * down the TLS connection gracefully.
+					 */
+					INSIST(SSL_is_init_finished(
+						       sock->tlsstream.tls) ==
+					       1);
+					INSIST(!atomic_load(&sock->client));
+					finish = true;
+				}
 			}
 		} else if (send_data != NULL) {
 			INSIST(received_data == NULL);
@@ -431,7 +467,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		/* Decrypt and pass data from network to client */
 		if (sock->tlsstream.state >= TLS_IO && sock->recv_cb != NULL &&
 		    !atomic_load(&sock->readpaused) &&
-		    sock->statichandle != NULL)
+		    sock->statichandle != NULL && !finish)
 		{
 			uint8_t recv_buf[TLS_BUF_SIZE];
 			INSIST(sock->tlsstream.state > TLS_HANDSHAKE);
@@ -450,9 +486,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				 * nullified (it happens in netmgr.c). If it is
 				 * the case, then it means that we are not
 				 * interested in keeping the connection alive
-				 * anymore. Let's shutdown the SSL session, send
-				 * what we have in the SSL buffers, and close
-				 * the connection.
+				 * anymore. Let's shut down the SSL session,
+				 * send what we have in the SSL buffers,
+				 * and close the connection.
 				 */
 				if (sock->statichandle == NULL) {
 					finish = true;
@@ -494,6 +530,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	switch (tls_status) {
 	case SSL_ERROR_NONE:
 	case SSL_ERROR_ZERO_RETURN:
+		(void)tls_try_to_close_unused_socket(sock);
 		return;
 	case SSL_ERROR_WANT_WRITE:
 		if (sock->tlsstream.nsending == 0) {
@@ -505,8 +542,17 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		}
 		return;
 	case SSL_ERROR_WANT_READ:
+		if (tls_try_to_close_unused_socket(sock)) {
+			return;
+		}
+
+		if (sock->outerhandle == NULL) {
+			return;
+		}
+
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+
 		if (sock->tlsstream.reading) {
-			INSIST(VALID_NMHANDLE(sock->outerhandle));
 			isc_nm_resumeread(sock->outerhandle);
 		} else if (sock->tlsstream.state == TLS_HANDSHAKE) {
 			sock->tlsstream.reading = true;
@@ -652,6 +698,9 @@ isc_nm_listentls(isc_nm_t *mgr, isc_sockaddr_t *iface,
 	isc_nmsocket_t *tsock = NULL;
 
 	REQUIRE(VALID_NM(mgr));
+	if (atomic_load(&mgr->closing)) {
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
 	tlssock = isc_mem_get(mgr->mctx, sizeof(*tlssock));
 
@@ -812,6 +861,10 @@ isc__nm_tls_resumeread(isc_nmhandle_t *handle) {
 	if (!atomic_compare_exchange_strong(&handle->sock->readpaused,
 					    &(bool){ false }, false))
 	{
+		if (inactive(handle->sock)) {
+			return;
+		}
+
 		async_tls_do_bio(handle->sock);
 	}
 }
@@ -909,6 +962,11 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	REQUIRE(VALID_NM(mgr));
 
+	if (atomic_load(&mgr->closing)) {
+		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
+		return;
+	}
+
 	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
 	isc__nmsocket_init(nsock, mgr, isc_nm_tlssocket, local);
 	nsock->extrahandlesize = extrahandlesize;
@@ -935,12 +993,13 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_t *tlshandle = NULL;
 
 	REQUIRE(VALID_NMSOCK(tlssock));
-	REQUIRE(VALID_NMHANDLE(handle));
 
 	tlssock->tid = isc_nm_tid();
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
+
+	INSIST(VALID_NMHANDLE(handle));
 
 	tlssock->iface = handle->sock->iface;
 	tlssock->peer = handle->sock->peer;
@@ -1051,8 +1110,8 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 	} else if (sock->type == isc_nm_tlssocket) {
 		if (sock->tlsstream.tls != NULL) {
 			/*
-			 * Let's shutdown the TLS session properly so that the
-			 * session will remain resumable, if required.
+			 * Let's shut down the TLS session properly so that
+			 * the session will remain resumable, if required.
 			 */
 			tls_try_shutdown(sock->tlsstream.tls, true);
 			tls_keep_client_tls_session(sock);
@@ -1122,6 +1181,23 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value) {
 		INSIST(VALID_NMHANDLE(sock->outerhandle));
 
 		isc_nmhandle_keepalive(sock->outerhandle, value);
+	}
+}
+
+void
+isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
+				  uint64_t write_timeout) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlssocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+
+		isc_nmhandle_setwritetimeout(sock->outerhandle, write_timeout);
 	}
 }
 
