@@ -145,9 +145,12 @@ view "none" {
 view "example1" {
 	match-clients { key "keyforview1"; };
 
+	allow-update { any; };
+
 	zone "example.net" {
 		type primary;
 		file "example1.db";
+		// Dynamic zone, inline-signing disabled, policy inerhited.
 	};
 };
 
@@ -157,6 +160,7 @@ view "example2" {
 	zone "example.net" {
 		type primary;
 		file "example2.db";
+		// Static zone, inline-signing, policy inherited.
 	};
 };
 

@@ -1880,8 +1880,16 @@ set_keytimes_csk_policy
 check_keytimes
 check_apex
 dnssec_verify
+# check zonestatus
 n=$((n+1))
+echo_i "check $ZONE (view example1) zonestatus ($n)"
+ret=0
+check_isdynamic "$SERVER" "$ZONE" "example1" || log_error "zone not dynamic"
+check_inlinesigning "$SERVER" "$ZONE" "example1" && log_error "inline-signing enabled, expected disabled"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # check subdomain
+n=$((n+1))
 echo_i "check TXT example.net (view example1) rrset is signed correctly ($n)"
 ret=0
 dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
@@ -1897,8 +1905,16 @@ check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example2"
 check_apex
 dnssec_verify
+# check zonestatus
 n=$((n+1))
+echo_i "check $ZONE (view example2) zonestatus ($n)"
+ret=0
+check_isdynamic "$SERVER" "$ZONE" "example2" && log_error "zone dynamic, but not expected"
+check_inlinesigning "$SERVER" "$ZONE" "example2" || log_error "inline-signing disabled, expected enabled"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # check subdomain
+n=$((n+1))
 echo_i "check TXT example.net (view example2) rrset is signed correctly ($n)"
 ret=0
 dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
@@ -1911,12 +1927,20 @@ status=$((status+ret))
 TSIG="hmac-sha1:keyforview3:$VIEW3"
 wait_for_nsec
 check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example2"
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE" "example3"
 check_apex
 dnssec_verify
+# check zonestatus
 n=$((n+1))
+echo_i "check $ZONE (view example3) zonestatus ($n)"
+ret=0
+check_isdynamic "$SERVER" "$ZONE" "example3" && log_error "zone dynamic, but not expected"
+check_inlinesigning "$SERVER" "$ZONE" "example3" || log_error "inline-signing disabled, expected enabled"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # check subdomain
-echo_i "check TXT example.net (in-view example2) rrset is signed correctly ($n)"
+n=$((n+1))
+echo_i "check TXT example.net (view example3) rrset is signed correctly ($n)"
 ret=0
 dig_with_opts "view.${ZONE}" "@${SERVER}" TXT > "dig.out.$DIR.test$n.txt" || log_error "dig view.${ZONE} TXT failed"
 grep "status: NOERROR" "dig.out.$DIR.test$n.txt" > /dev/null || log_error "mismatch status in DNS response"
@@ -4671,6 +4695,7 @@ _check_soa_ttl() {
 	test ${ttl2:-0} -eq $2 || return 1
 }
 
+n=$((n+1))
 echo_i "Check that 'rndc reload' of just the serial updates the signed instance ($n)"
 TSIG=
 ret=0
@@ -4684,8 +4709,8 @@ wait_for_log 3 "all zones loaded" ns6/named.run
 retry_quiet 10 _check_soa_ttl 300 300 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
-n=$((n+1))
 
+n=$((n+1))
 echo_i "Check that restart with zone changes and deleted journal works ($n)"
 TSIG=
 ret=0
@@ -4702,7 +4727,6 @@ wait_for_log 3 "all zones loaded" ns6/named.run
 retry_quiet 10 _check_soa_ttl 300 400 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
-n=$((n+1))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -1,3 +1,6 @@
+5923.	[bug]		Fix inheritance for dnssec-policy when checking for
+			inline-signing. [GL #3438]
+
 5922.	[bug]		Forwarding of UPDATE message could fail with the
 			introduction of netmgr. This has been fixed. [GL #3389]
 
