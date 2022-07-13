@@ -40,6 +40,12 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- When running as a validating resolver forwarding all queries to
+  another resolver, :iscman:`named` could crash with an assertion
+  failure. These crashes occurred when the configured forwarder sent a
+  broken DS response and :iscman:`named` failed its attempts to find a
+  proper one instead. This has been fixed. :gl:`#3439`
+
 - A DNS compression would be applied on the root zone name if it is repeatedly
   used in the same RRSet. :gl:`#3423`
 

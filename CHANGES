@@ -1,3 +1,10 @@
+5925.	[bug]		With a forwarder configured for all queries, resolution
+			failures encountered during DS chasing could trigger
+			assertion failures due to a logic bug in
+			resume_dslookup() that caused it to call
+			dns_resolver_createfetch() with an invalid name.
+			[GL #3439]
+
 5924.	[func]		When it's necessary to use AXFR to respond to an
 			IXFR request, a message explaining the reason
 			is now logged at level info. [GL #2683]
