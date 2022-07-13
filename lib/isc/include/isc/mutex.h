@@ -17,26 +17,59 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isc/lang.h>
 #include <isc/result.h> /* for ISC_R_ codes */
+#include <isc/util.h>
 
 ISC_LANG_BEGINDECLS
 
+#ifdef ISC_TRACK_PTHREADS_OBJECTS
+
+typedef pthread_mutex_t *isc_mutex_t;
+
+#define isc_mutex_init(mp)                  \
+	{                                   \
+		*mp = malloc(sizeof(**mp)); \
+		isc__mutex_init((*mp));     \
+	}
+#define isc_mutex_lock(mp)    isc__mutex_lock(*mp)
+#define isc_mutex_unlock(mp)  isc__mutex_unlock(*mp)
+#define isc_mutex_trylock(mp) isc__mutex_trylock(*mp)
+#define isc_mutex_destroy(mp)            \
+	{                                \
+		isc__mutex_destroy(*mp); \
+		free(*mp);               \
+	}
+
+#else /* ISC_TRACK_PTHREADS_OBJECTS */
+
 typedef pthread_mutex_t isc_mutex_t;
 
-void
-isc__mutex_init(isc_mutex_t *mp);
+#define isc_mutex_init(mp)    isc__mutex_init((mp))
+#define isc_mutex_lock(mp)    isc__mutex_lock(mp)
+#define isc_mutex_unlock(mp)  isc__mutex_unlock(mp)
+#define isc_mutex_trylock(mp) isc__mutex_trylock(mp)
+#define isc_mutex_destroy(mp) isc__mutex_destroy(mp)
 
-#define isc_mutex_init(mp) isc__mutex_init((mp))
+#endif /* ISC_TRACK_PTHREADS_OBJECTS */
 
-#define isc_mutex_lock(mp) RUNTIME_CHECK(pthread_mutex_lock((mp)) == 0)
+extern pthread_mutexattr_t isc__mutex_init_attr;
 
-#define isc_mutex_unlock(mp) RUNTIME_CHECK(pthread_mutex_unlock((mp)) == 0)
+#define isc__mutex_init(mp)                                               \
+	{                                                                 \
+		int _ret = pthread_mutex_init(mp, &isc__mutex_init_attr); \
+		ERRNO_CHECK(pthread_mutex_init, _ret);                    \
+	}
 
-#define isc_mutex_trylock(mp) \
+#define isc__mutex_lock(mp) RUNTIME_CHECK(pthread_mutex_lock((mp)) == 0)
+
+#define isc__mutex_unlock(mp) RUNTIME_CHECK(pthread_mutex_unlock((mp)) == 0)
+
+#define isc__mutex_trylock(mp) \
 	((pthread_mutex_trylock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 
-#define isc_mutex_destroy(mp) RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0)
+#define isc__mutex_destroy(mp) RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0)
 
 ISC_LANG_ENDDECLS

@@ -52,7 +52,15 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	ts.tv_nsec = (long)isc_time_nanoseconds(t);
 
 	do {
-		presult = pthread_cond_timedwait(c, m, &ts);
+		pthread_mutex_t *mutex;
+
+#ifdef ISC_TRACK_PTHREADS_OBJECTS
+		mutex = *m;
+#else  /* ISC_TRACK_PTHREADS_OBJECTS */
+		mutex = m;
+#endif /* ISC_TRACK_PTHREADS_OBJECTS */
+
+		presult = pthread_cond_timedwait(c, mutex, &ts);
 		if (presult == 0) {
 			return (ISC_R_SUCCESS);
 		}

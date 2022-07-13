@@ -33,7 +33,13 @@ typedef pthread_cond_t isc_condition_t;
 		ERRNO_CHECK(pthread_cond_init, _ret);     \
 	}
 
-#define isc_condition_wait(cp, mp) \
+#ifdef ISC_TRACK_PTHREADS_OBJECTS
+#define isc_condition_wait(cp, mp) isc__condition_wait(cp, *mp)
+#else /* ISC_TRACK_PTHREADS_OBJECTS */
+#define isc_condition_wait(cp, mp) isc__condition_wait(cp, mp)
+#endif /* ISC_TRACK_PTHREADS_OBJECTS */
+
+#define isc__condition_wait(cp, mp) \
 	RUNTIME_CHECK(pthread_cond_wait((cp), (mp)) == 0)
 
 #define isc_condition_signal(cp) RUNTIME_CHECK(pthread_cond_signal((cp)) == 0)
