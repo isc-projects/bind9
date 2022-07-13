@@ -35,9 +35,13 @@
 void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota) {
+	int ret;
 	UNUSED(read_quota);
 	UNUSED(write_quota);
-	REQUIRE(pthread_rwlock_init(&rwl->rwlock, NULL) == 0);
+
+	ret = pthread_rwlock_init(&rwl->rwlock, NULL);
+	ERRNO_CHECK(pthread_rwlock_init, ret);
+
 	atomic_init(&rwl->downgrade, false);
 }
 
