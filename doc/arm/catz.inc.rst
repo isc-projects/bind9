@@ -84,6 +84,8 @@ by editing the configuration file or running
 Configuring Catalog Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: catalog-zones
+   :tags: zone
+   :short: Configures catalog zones in :iscman:`named.conf`.
 
 Catalog zones are configured with a :any:`catalog-zones` statement in the
 :namedconf:ref:`options` or :any:`view` section of :iscman:`named.conf`. For example:
