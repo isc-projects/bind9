@@ -48,14 +48,6 @@ isc__mutex_initialize(void) {
 }
 
 void
-isc__mutex_init(isc_mutex_t *mp) {
-	int err;
-
-	err = pthread_mutex_init(mp, &isc__mutex_init_attr);
-	ERRNO_CHECK(pthread_mutex_init, err);
-}
-
-void
 isc__mutex_shutdown(void) {
 	/* noop */;
 }

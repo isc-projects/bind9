@@ -1229,7 +1229,7 @@ respdiff:
   stage: system
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
+    CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
     BIND_BASELINE_VERSION: v9_11_24
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
@@ -1243,7 +1243,7 @@ respdiff:
     - ./configure --with-randomdev=/dev/urandom
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ../bind-qa/bind9/respdiff
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/refserver"
+    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/refserver"
   needs: []
   artifacts:
     paths:

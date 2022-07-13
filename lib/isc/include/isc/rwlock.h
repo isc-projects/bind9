@@ -14,6 +14,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdlib.h>
 
 /*! \file isc/rwlock.h */
 
@@ -21,6 +22,7 @@
 #include <isc/condition.h>
 #include <isc/lang.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -37,6 +39,42 @@ struct isc_rwlock {
 	pthread_rwlock_t rwlock;
 	atomic_bool	 downgrade;
 };
+
+#if ISC_TRACK_PTHREADS_OBJECTS
+
+typedef struct isc_rwlock *isc_rwlock_t;
+typedef struct isc_rwlock  isc__rwlock_t;
+
+#define isc_rwlock_init(rwl, rq, wq)            \
+	{                                       \
+		*rwl = malloc(sizeof(**rwl));   \
+		isc__rwlock_init(*rwl, rq, wq); \
+	}
+#define isc_rwlock_lock(rwl, type)    isc___rwlock_lock(*rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(*rwl, type)
+#define isc_rwlock_unlock(rwl, type)  isc___rwlock_unlock(*rwl, type)
+#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(*rwl)
+#define isc_rwlock_downgrade(rwl)     isc___rwlock_downgrade(*rwl)
+#define isc_rwlock_destroy(rwl)             \
+	{                                   \
+		isc___rwlock_destroy(*rwl); \
+		free(*rwl);                 \
+	}
+
+#else /* ISC_TRACK_PTHREADS_OBJECTS */
+
+typedef struct isc_rwlock isc_rwlock_t;
+typedef struct isc_rwlock isc__rwlock_t;
+
+#define isc_rwlock_init(rwl, rq, wq)  isc__rwlock_init(rwl, rq, wq)
+#define isc_rwlock_lock(rwl, type)    isc___rwlock_lock(rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(rwl, type)
+#define isc_rwlock_unlock(rwl, type)  isc___rwlock_unlock(rwl, type)
+#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(rwl)
+#define isc_rwlock_downgrade(rwl)     isc___rwlock_downgrade(rwl)
+#define isc_rwlock_destroy(rwl)	      isc___rwlock_destroy(rwl)
+
+#endif /* ISC_TRACK_PTHREADS_OBJECTS */
 
 #else /* USE_PTHREAD_RWLOCK */
 
@@ -76,28 +114,45 @@ struct isc_rwlock {
 	unsigned int write_quota;
 };
 
+typedef struct isc_rwlock isc_rwlock_t;
+typedef struct isc_rwlock isc__rwlock_t;
+
+#define isc_rwlock_init(rwl, rq, wq)  isc__rwlock_init(rwl, rq, wq)
+#define isc_rwlock_lock(rwl, type)    isc___rwlock_lock(rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(rwl, type)
+#define isc_rwlock_unlock(rwl, type)  isc___rwlock_unlock(rwl, type)
+#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(rwl)
+#define isc_rwlock_downgrade(rwl)     isc___rwlock_downgrade(rwl)
+#define isc_rwlock_destroy(rwl)	      isc___rwlock_destroy(rwl)
+
 #endif /* USE_PTHREAD_RWLOCK */
 
-void
-isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
-		unsigned int write_quota);
+#define isc__rwlock_init(rwl, rq, wq)                      \
+	{                                                  \
+		int _ret = isc___rwlock_init(rwl, rq, wq); \
+		ERRNO_CHECK(isc___rwlock_init, _ret);      \
+	}
+
+int
+isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
+		  unsigned int write_quota);
 
 void
-isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
-isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
 void
-isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
-isc_rwlock_tryupgrade(isc_rwlock_t *rwl);
+isc___rwlock_tryupgrade(isc__rwlock_t *rwl);
 
 void
-isc_rwlock_downgrade(isc_rwlock_t *rwl);
+isc___rwlock_downgrade(isc__rwlock_t *rwl);
 
 void
-isc_rwlock_destroy(isc_rwlock_t *rwl);
+isc___rwlock_destroy(isc__rwlock_t *rwl);
 
 ISC_LANG_ENDDECLS
