@@ -49,6 +49,10 @@
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/bind9/include"))
 
+	       ;; libtest
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "tests/include"))
+	       
 	       ;; bin
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "bin/check"))
