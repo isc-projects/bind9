@@ -300,7 +300,7 @@ endif
 if HAVE_GEOIP2
 libdns_la_CPPFLAGS +=		\
 	$(MAXMINDDB_CFLAGS)
-libdns_la_LDFLAGS +=		\
+libdns_la_LIBADD +=		\
 	$(MAXMINDDB_LIBS)
 endif
 
