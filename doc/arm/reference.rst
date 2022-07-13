@@ -1035,9 +1035,9 @@ responses such as NXDOMAIN.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :any:`parental-agents` lists allow for a common set of parental agents to be easily
-used by multiple primary and secondary zones in their :any:`parental-agents` lists.
-A parental agent is the entity that the zone has a relationship with to
-change its delegation information (defined in :rfc:`7344`).
+used by multiple primary and secondary zones.
+A parental agent is the entity that is allowed to
+change a zone's delegation information (defined in :rfc:`7344`).
 
 .. _primaries_grammar:
 
@@ -1073,7 +1073,6 @@ where ``tls-configuration-name`` refers to a previously defined
    TLS <opportunistic-tls>`) provides protection from passive
    observers but does not protect from man-in-the-middle attacks on
    zone transfers.
-
 
 .. _options_grammar:
 
