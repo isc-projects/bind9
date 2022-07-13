@@ -35,25 +35,29 @@
 void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota) {
+	int ret;
 	UNUSED(read_quota);
 	UNUSED(write_quota);
-	REQUIRE(pthread_rwlock_init(&rwl->rwlock, NULL) == 0);
+
+	ret = pthread_rwlock_init(&rwl->rwlock, NULL);
+	ERRNO_CHECK(pthread_rwlock_init, ret);
+
 	atomic_init(&rwl->downgrade, false);
 }
 
-isc_result_t
+void
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	switch (type) {
 	case isc_rwlocktype_read:
-		REQUIRE(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
+		RUNTIME_CHECK(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
 		break;
 	case isc_rwlocktype_write:
 		while (true) {
-			REQUIRE(pthread_rwlock_wrlock(&rwl->rwlock) == 0);
+			RUNTIME_CHECK(pthread_rwlock_wrlock(&rwl->rwlock) == 0);
 			/* Unlock if in middle of downgrade operation */
 			if (atomic_load_acquire(&rwl->downgrade)) {
-				REQUIRE(pthread_rwlock_unlock(&rwl->rwlock) ==
-					0);
+				RUNTIME_CHECK(pthread_rwlock_unlock(
+						      &rwl->rwlock) == 0);
 				while (atomic_load_acquire(&rwl->downgrade)) {
 				}
 				continue;
@@ -64,7 +68,6 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	default:
 		UNREACHABLE();
 	}
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -77,7 +80,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	case isc_rwlocktype_write:
 		ret = pthread_rwlock_trywrlock(&rwl->rwlock);
 		if ((ret == 0) && atomic_load_acquire(&rwl->downgrade)) {
-			isc_rwlock_unlock(rwl, type);
+			RUNTIME_CHECK(pthread_rwlock_unlock(&rwl->rwlock) == 0);
 			return (ISC_R_LOCKBUSY);
 		}
 		break;
@@ -97,11 +100,10 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 }
 
-isc_result_t
+void
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	UNUSED(type);
-	REQUIRE(pthread_rwlock_unlock(&rwl->rwlock) == 0);
-	return (ISC_R_SUCCESS);
+	RUNTIME_CHECK(pthread_rwlock_unlock(&rwl->rwlock) == 0);
 }
 
 isc_result_t
@@ -112,12 +114,9 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 void
 isc_rwlock_downgrade(isc_rwlock_t *rwl) {
-	isc_result_t result;
 	atomic_store_release(&rwl->downgrade, true);
-	result = isc_rwlock_unlock(rwl, isc_rwlocktype_write);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	result = isc_rwlock_lock(rwl, isc_rwlocktype_read);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pthread_rwlock_unlock(&rwl->rwlock) == 0);
+	RUNTIME_CHECK(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
 	atomic_store_release(&rwl->downgrade, false);
 }
 
@@ -166,7 +165,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 #define isc_rwlock_pause()
 #endif /* if defined(_MSC_VER) */
 
-static isc_result_t
+static void
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 #ifdef ISC_RWLOCK_TRACE
@@ -234,8 +233,8 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 		rwl->readers_waiting == 0);
 
 	rwl->magic = 0;
-	(void)isc_condition_destroy(&rwl->readable);
-	(void)isc_condition_destroy(&rwl->writeable);
+	isc_condition_destroy(&rwl->readable);
+	isc_condition_destroy(&rwl->writeable);
 	isc_mutex_destroy(&rwl->lock);
 }
 
@@ -304,7 +303,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 #define WRITER_ACTIVE 0x1
 #define READER_INCR   0x2
 
-static isc_result_t
+static void
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cntflag;
 
@@ -419,28 +418,23 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postlock", rwl, type);
 #endif /* ifdef ISC_RWLOCK_TRACE */
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cnt = 0;
 	int32_t spins = atomic_load_acquire(&rwl->spins) * 2 + 10;
 	int32_t max_cnt = ISC_MAX(spins, RWLOCK_MAX_ADAPTIVE_COUNT);
-	isc_result_t result = ISC_R_SUCCESS;
 
 	do {
 		if (cnt++ >= max_cnt) {
-			result = isc__rwlock_lock(rwl, type);
+			isc__rwlock_lock(rwl, type);
 			break;
 		}
 		isc_rwlock_pause();
 	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
 
 	atomic_fetch_add_release(&rwl->spins, (cnt - spins) / 8);
-
-	return (result);
 }
 
 isc_result_t
@@ -563,7 +557,7 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 	UNLOCK(&rwl->lock);
 }
 
-isc_result_t
+void
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t prev_cnt;
 
@@ -634,8 +628,6 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postunlock", rwl, type);
 #endif /* ifdef ISC_RWLOCK_TRACE */
-
-	return (ISC_R_SUCCESS);
 }
 
 #endif /* USE_PTHREAD_RWLOCK */

@@ -570,7 +570,7 @@ isc__timermgr_destroy(isc_timermgr_t **managerp) {
 	/*
 	 * Clean up.
 	 */
-	(void)isc_condition_destroy(&manager->wakeup);
+	isc_condition_destroy(&manager->wakeup);
 	isc_mutex_destroy(&manager->lock);
 	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;

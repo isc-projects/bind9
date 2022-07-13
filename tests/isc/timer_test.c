@@ -74,19 +74,12 @@ _teardown(void **state) {
 
 static void
 test_shutdown(void) {
-	isc_result_t result;
-
 	/*
 	 * Signal shutdown processing complete.
 	 */
-	result = isc_mutex_lock(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_condition_signal(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_mutex_unlock(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	LOCK(&mx);
+	SIGNAL(&cv);
+	UNLOCK(&mx);
 }
 
 static void
@@ -109,9 +102,9 @@ setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 	result = isc_task_create(taskmgr, 0, &task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mutex_lock(&lasttime_mx);
+	LOCK(&lasttime_mx);
 	result = isc_time_now(&lasttime);
-	isc_mutex_unlock(&lasttime_mx);
+	UNLOCK(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_timer_create(timermgr, task, action, (void *)timertype, &timer);
@@ -122,7 +115,7 @@ setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 	 * Wait for shutdown processing to complete.
 	 */
 	while (atomic_load(&eventcnt) != nevents) {
-		result = isc_condition_wait(&cv, &mx);
+		WAIT(&cv, &mx);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -132,7 +125,7 @@ setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 
 	isc_task_detach(&task);
 	isc_mutex_destroy(&mx);
-	(void)isc_condition_destroy(&cv);
+	isc_condition_destroy(&cv);
 }
 
 static void

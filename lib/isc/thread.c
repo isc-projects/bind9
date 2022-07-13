@@ -38,13 +38,6 @@
 #define THREAD_MINSTACKSIZE (1024U * 1024)
 #endif /* ifndef THREAD_MINSTACKSIZE */
 
-#define _FATAL(r, f)                                                          \
-	{                                                                     \
-		char strbuf[ISC_STRERRORSIZE];                                \
-		strerror_r(r, strbuf, sizeof(strbuf));                        \
-		isc_error_fatal(__FILE__, __LINE__, f " failed: %s", strbuf); \
-	}
-
 void
 isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		  isc_thread_t *thread) {
@@ -65,24 +58,18 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
-	if (ret != 0) {
-		_FATAL(ret, "pthread_attr_getstacksize()");
-	}
+	ERRNO_CHECK(pthread_attr_getstacksize, ret);
 
 	if (stacksize < THREAD_MINSTACKSIZE) {
 		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
-		if (ret != 0) {
-			_FATAL(ret, "pthread_attr_setstacksize()");
-		}
+		ERRNO_CHECK(pthread_attr_setstacksize, ret);
 	}
 #endif /* if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	* defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE) */
 
 	ret = pthread_create(thread, &attr, isc__trampoline_run,
 			     trampoline_arg);
-	if (ret != 0) {
-		_FATAL(ret, "pthread_create()");
-	}
+	ERRNO_CHECK(pthread_create, ret);
 
 	pthread_attr_destroy(&attr);
 
@@ -92,9 +79,8 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 void
 isc_thread_join(isc_thread_t thread, isc_threadresult_t *result) {
 	int ret = pthread_join(thread, result);
-	if (ret != 0) {
-		_FATAL(ret, "pthread_join()");
-	}
+
+	ERRNO_CHECK(pthread_join, ret);
 }
 
 void

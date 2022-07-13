@@ -82,13 +82,13 @@ void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota);
 
-isc_result_t
+void
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
-isc_result_t
+void
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t

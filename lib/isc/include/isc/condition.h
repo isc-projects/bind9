@@ -21,34 +21,27 @@
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
-#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 typedef pthread_cond_t isc_condition_t;
 
-#define isc_condition_init(cond)                                \
-	if (pthread_cond_init(cond, NULL) != 0) {               \
-		char isc_condition_strbuf[ISC_STRERRORSIZE];    \
-		strerror_r(errno, isc_condition_strbuf,         \
-			   sizeof(isc_condition_strbuf));       \
-		isc_error_fatal(__FILE__, __LINE__,             \
-				"pthread_cond_init failed: %s", \
-				isc_condition_strbuf);          \
+#define isc_condition_init(cond)                          \
+	{                                                 \
+		int _ret = pthread_cond_init(cond, NULL); \
+		ERRNO_CHECK(pthread_cond_init, _ret);     \
 	}
 
-#define isc_condition_wait(cp, mp)                            \
-	((pthread_cond_wait((cp), (mp)) == 0) ? ISC_R_SUCCESS \
-					      : ISC_R_UNEXPECTED)
+#define isc_condition_wait(cp, mp) \
+	RUNTIME_CHECK(pthread_cond_wait((cp), (mp)) == 0)
 
-#define isc_condition_signal(cp) \
-	((pthread_cond_signal((cp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_condition_signal(cp) RUNTIME_CHECK(pthread_cond_signal((cp)) == 0)
 
 #define isc_condition_broadcast(cp) \
-	((pthread_cond_broadcast((cp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+	RUNTIME_CHECK(pthread_cond_broadcast((cp)) == 0)
 
-#define isc_condition_destroy(cp) \
-	((pthread_cond_destroy((cp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_condition_destroy(cp) RUNTIME_CHECK(pthread_cond_destroy((cp)) == 0)
 
 ISC_LANG_BEGINDECLS
 
