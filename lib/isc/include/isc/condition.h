@@ -16,6 +16,7 @@
 /*! \file */
 
 #include <errno.h>
+#include <stdlib.h>
 
 #include <isc/error.h>
 #include <isc/lang.h>
@@ -25,33 +26,58 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+ISC_LANG_BEGINDECLS
+
+#ifdef ISC_TRACK_PTHREADS_OBJECTS
+
+typedef pthread_cond_t *isc_condition_t;
+
+#define isc_condition_init(cp)              \
+	{                                   \
+		*cp = malloc(sizeof(**cp)); \
+		isc__condition_init(*cp);   \
+	}
+#define isc_condition_wait(cp, mp)	   isc__condition_wait(*cp, *mp)
+#define isc_condition_waituntil(cp, mp, t) isc__condition_waituntil(*cp, *mp, t)
+#define isc_condition_signal(cp)	   isc__condition_signal(*cp)
+#define isc_condition_broadcast(cp)	   isc__condition_broadcast(*cp)
+#define isc_condition_destroy(cp)            \
+	{                                    \
+		isc__condition_destroy(*cp); \
+		free(*cp);                   \
+	}
+
+#else /* ISC_TRACK_PTHREADS_OBJECTS */
+
 typedef pthread_cond_t isc_condition_t;
 
-#define isc_condition_init(cond)                          \
+#define isc_condition_init(cond)	   isc__condition_init(cond)
+#define isc_condition_wait(cp, mp)	   isc__condition_wait(cp, mp)
+#define isc_condition_waituntil(cp, mp, t) isc__condition_waituntil(cp, mp, t)
+#define isc_condition_signal(cp)	   isc__condition_signal(cp)
+#define isc_condition_broadcast(cp)	   isc__condition_broadcast(cp)
+#define isc_condition_destroy(cp)	   isc__condition_destroy(cp)
+
+#endif /* ISC_TRACK_PTHREADS_OBJECTS */
+
+#define isc__condition_init(cond)                         \
 	{                                                 \
 		int _ret = pthread_cond_init(cond, NULL); \
 		ERRNO_CHECK(pthread_cond_init, _ret);     \
 	}
 
-#ifdef ISC_TRACK_PTHREADS_OBJECTS
-#define isc_condition_wait(cp, mp) isc__condition_wait(cp, *mp)
-#else /* ISC_TRACK_PTHREADS_OBJECTS */
-#define isc_condition_wait(cp, mp) isc__condition_wait(cp, mp)
-#endif /* ISC_TRACK_PTHREADS_OBJECTS */
-
 #define isc__condition_wait(cp, mp) \
 	RUNTIME_CHECK(pthread_cond_wait((cp), (mp)) == 0)
 
-#define isc_condition_signal(cp) RUNTIME_CHECK(pthread_cond_signal((cp)) == 0)
+#define isc__condition_signal(cp) RUNTIME_CHECK(pthread_cond_signal((cp)) == 0)
 
-#define isc_condition_broadcast(cp) \
+#define isc__condition_broadcast(cp) \
 	RUNTIME_CHECK(pthread_cond_broadcast((cp)) == 0)
 
-#define isc_condition_destroy(cp) RUNTIME_CHECK(pthread_cond_destroy((cp)) == 0)
-
-ISC_LANG_BEGINDECLS
+#define isc__condition_destroy(cp) \
+	RUNTIME_CHECK(pthread_cond_destroy((cp)) == 0)
 
 isc_result_t
-isc_condition_waituntil(isc_condition_t *, isc_mutex_t *, isc_time_t *);
+isc__condition_waituntil(pthread_cond_t *, pthread_mutex_t *, isc_time_t *);
 
 ISC_LANG_ENDDECLS

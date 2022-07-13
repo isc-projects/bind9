@@ -22,7 +22,7 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
+isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 	int presult;
 	isc_result_t result;
 	struct timespec ts;
@@ -52,15 +52,7 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	ts.tv_nsec = (long)isc_time_nanoseconds(t);
 
 	do {
-		pthread_mutex_t *mutex;
-
-#ifdef ISC_TRACK_PTHREADS_OBJECTS
-		mutex = *m;
-#else  /* ISC_TRACK_PTHREADS_OBJECTS */
-		mutex = m;
-#endif /* ISC_TRACK_PTHREADS_OBJECTS */
-
-		presult = pthread_cond_timedwait(c, mutex, &ts);
+		presult = pthread_cond_timedwait(c, m, &ts);
 		if (presult == 0) {
 			return (ISC_R_SUCCESS);
 		}
