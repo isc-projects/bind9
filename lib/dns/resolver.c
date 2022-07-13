@@ -4366,6 +4366,8 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 
 	FCTXTRACE("destroy");
 
+	fctx->magic = 0;
+
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
 
@@ -10935,6 +10937,8 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	res = fetch->res;
 
 	FTRACE("destroyfetch");
+
+	fetch->magic = 0;
 
 	bucketnum = fctx->bucketnum;
 	LOCK(&res->buckets[bucketnum].lock);
