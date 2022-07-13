@@ -2465,7 +2465,10 @@ isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG) {
 		req = isc_mem_get(mgr->mctx, sizeof(*req));
 	}
 
-	*req = (isc__nm_uvreq_t){ .magic = 0 };
+	*req = (isc__nm_uvreq_t){
+		.magic = 0,
+		.connect_tries = 3,
+	};
 	ISC_LINK_INIT(req, link);
 	req->uv_req.req.data = req;
 	isc___nmsocket_attach(sock, &req->sock FLARG_PASS);

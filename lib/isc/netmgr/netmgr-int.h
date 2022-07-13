@@ -377,6 +377,7 @@ struct isc__nm_uvreq {
 	isc__nm_cb_t cb;       /* callback */
 	void *cbarg;	       /* callback argument */
 	isc_nm_timer_t *timer; /* TCP write timer */
+	int connect_tries;     /* connect retries */
 
 	union {
 		uv_handle_t handle;
