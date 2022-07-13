@@ -309,7 +309,10 @@ mock_assert(const int result, const char *const expression,
 /*
  * Errors
  */
-#include <isc/error.h> /* Contractual promise. */
+#include <errno.h> /* for errno */
+
+#include <isc/error.h>	/* Contractual promise. */
+#include <isc/strerr.h> /* for ISC_STRERRORSIZE */
 
 /*% Unexpected Error */
 #define UNEXPECTED_ERROR isc_error_unexpected
@@ -329,6 +332,15 @@ mock_assert(const int result, const char *const expression,
 #define RUNTIME_CHECK(cond) ISC_ERROR_RUNTIMECHECK(cond)
 
 #endif /* UNIT_TESTING */
+
+/*% Runtime check which logs the error string corresponding to errno */
+#define ERRNO_CHECK(func, ret)                                                 \
+	if ((ret) != 0) {                                                      \
+		char _strerrorbuf[ISC_STRERRORSIZE];                           \
+		strerror_r(errno, _strerrorbuf, sizeof(_strerrorbuf));         \
+		isc_error_fatal(__FILE__, __LINE__, "%s() failed in %s(): %s", \
+				#func, __func__, _strerrorbuf);                \
+	}
 
 /*%
  * Time
