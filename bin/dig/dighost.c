@@ -160,18 +160,16 @@ dig_lookup_t *current_lookup = NULL;
  * Apply and clear locks at the event level in global task.
  * Can I get rid of these using shutdown events?  XXX
  */
-#define LOCK_LOOKUP                                                       \
-	{                                                                 \
-		debug("lock_lookup %s:%d", __FILE__, __LINE__);           \
-		check_result(isc_mutex_lock((&lookup_lock)), "isc_mutex_" \
-							     "lock");     \
-		debug("success");                                         \
+#define LOCK_LOOKUP                                             \
+	{                                                       \
+		debug("lock_lookup %s:%d", __FILE__, __LINE__); \
+		isc_mutex_lock((&lookup_lock));                 \
+		debug("success");                               \
 	}
-#define UNLOCK_LOOKUP                                                       \
-	{                                                                   \
-		debug("unlock_lookup %s:%d", __FILE__, __LINE__);           \
-		check_result(isc_mutex_unlock((&lookup_lock)), "isc_mutex_" \
-							       "unlock");   \
+#define UNLOCK_LOOKUP                                             \
+	{                                                         \
+		debug("unlock_lookup %s:%d", __FILE__, __LINE__); \
+		isc_mutex_unlock((&lookup_lock));                 \
 	}
 
 static void

@@ -30,11 +30,9 @@ isc__mutex_init(isc_mutex_t *mp);
 
 #define isc_mutex_init(mp) isc__mutex_init((mp))
 
-#define isc_mutex_lock(mp) \
-	((pthread_mutex_lock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_mutex_lock(mp) RUNTIME_CHECK(pthread_mutex_lock((mp)) == 0)
 
-#define isc_mutex_unlock(mp) \
-	((pthread_mutex_unlock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_mutex_unlock(mp) RUNTIME_CHECK(pthread_mutex_unlock((mp)) == 0)
 
 #define isc_mutex_trylock(mp) \
 	((pthread_mutex_trylock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
