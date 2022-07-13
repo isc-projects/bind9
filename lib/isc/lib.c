@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "mem_p.h"
+#include "mutex_p.h"
 #include "os_p.h"
 #include "tls_p.h"
 #include "trampoline_p.h"
@@ -41,6 +42,7 @@ isc__shutdown(void) ISC_DESTRUCTOR;
 void
 isc__initialize(void) {
 	isc__os_initialize();
+	isc__mutex_initialize();
 	isc__mem_initialize();
 	isc__tls_initialize();
 	isc__trampoline_initialize();
@@ -52,5 +54,6 @@ isc__shutdown(void) {
 	isc__trampoline_shutdown();
 	isc__tls_shutdown();
 	isc__mem_shutdown();
+	isc__mutex_shutdown();
 	isc__os_shutdown();
 }

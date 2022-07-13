@@ -154,6 +154,7 @@ libisc_la_SOURCES =		\
 	mem_p.h			\
 	meminfo.c		\
 	mutex.c			\
+	mutex_p.h		\
 	mutexblock.c		\
 	net.c			\
 	netaddr.c		\

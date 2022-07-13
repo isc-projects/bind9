@@ -26,32 +26,36 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
-static bool attr_initialized = false;
-static pthread_mutexattr_t attr;
-static isc_once_t once_attr = ISC_ONCE_INIT;
+#include "mutex_p.h"
+
+pthread_mutexattr_t isc__mutex_init_attr;
+static isc_once_t init_once = ISC_ONCE_INIT;
 
 static void
-initialize_attr(void) {
-	RUNTIME_CHECK(pthread_mutexattr_init(&attr) == 0);
-	RUNTIME_CHECK(pthread_mutexattr_settype(
-			      &attr, PTHREAD_MUTEX_ADAPTIVE_NP) == 0);
-	attr_initialized = true;
-}
+mutex_initialize(void) {
+	RUNTIME_CHECK(pthread_mutexattr_init(&isc__mutex_init_attr) == 0);
+#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+	RUNTIME_CHECK(pthread_mutexattr_settype(&isc__mutex_init_attr,
+						PTHREAD_MUTEX_ADAPTIVE_NP) ==
+		      0);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
+}
+
+void
+isc__mutex_initialize(void) {
+	RUNTIME_CHECK(isc_once_do(&init_once, mutex_initialize) ==
+		      ISC_R_SUCCESS);
+}
 
 void
 isc__mutex_init(isc_mutex_t *mp) {
 	int err;
 
-#ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
-	isc_result_t result = ISC_R_SUCCESS;
-	result = isc_once_do(&once_attr, initialize_attr);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	err = pthread_mutex_init(mp, &attr);
-#else  /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-	err = pthread_mutex_init(mp, NULL);
-#endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
+	err = pthread_mutex_init(mp, &isc__mutex_init_attr);
 	ERRNO_CHECK(pthread_mutex_init, err);
+}
+
+void
+isc__mutex_shutdown(void) {
+	/* noop */;
 }
