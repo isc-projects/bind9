@@ -1,3 +1,7 @@
+5927.	[bug]		A race was possible in dns_dispatch_connect()
+			that could trigger an assertion failure if two
+			threads called it near-simultaneously. [GL #3456]
+
 5926.	[func]		Handle transient TCP connect() EADDRINUSE failures
 			on FreeBSD (and possibly other BSDs) by trying three
 			times before giving up. [GL #3451]
