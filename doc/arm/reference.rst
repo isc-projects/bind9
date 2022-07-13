@@ -7614,6 +7614,13 @@ An :any:`in-view` zone cannot be used as a response policy zone.
 
 An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
 
+Statements
+----------
+The following table lists all statements permissible in :file:`named.conf`. Please note
+that this section is a work in progress.
+
+.. namedconf:statementlist::
+
 Statements by Tag
 -----------------
 
@@ -7624,53 +7631,45 @@ Tags are designed to group together statements that have broadly similar
 functionality; thus, for example, all statements that control the handling of
 queries or of zone transfers are respectively tagged under **query** and **transfer**.
 
-Query Tag Statements
-~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statementlist::
-   :filter_tags: query
-
-Transfer Tag Statements
-~~~~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statementlist::
-   :filter_tags: transfer
-
-Server Tag Statements
+DNSSEC Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
-   :filter_tags: server
+   :filter_tags: dnssec
 
 Logging Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: logging
 
-Zone Tag Statements
-~~~~~~~~~~~~~~~~~~~
+Query Tag Statements
+~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
-   :filter_tags: zone
+   :filter_tags: query
+
+Server Tag Statements
+~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: server
+
+Transfer Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: transfer
 
 View Tag Statements
 ~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: view
 
-DNSSEC Tag Statements
-~~~~~~~~~~~~~~~~~~~~~
+Zone Tag Statements
+~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
-   :filter_tags: dnssec
+   :filter_tags: zone
 
 Deprecated Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: deprecated
-
-Statements
-----------
-The following table lists all statements permissible in :file:`named.conf`. Please note
-that this section is a work in progress.
-
-.. namedconf:statementlist::
-
 
 .. _statistics:
 
