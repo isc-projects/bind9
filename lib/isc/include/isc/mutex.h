@@ -32,7 +32,7 @@ typedef pthread_mutex_t *isc_mutex_t;
 #define isc_mutex_init(mp)                  \
 	{                                   \
 		*mp = malloc(sizeof(**mp)); \
-		isc__mutex_init((*mp));     \
+		isc__mutex_init(*mp);       \
 	}
 #define isc_mutex_lock(mp)    isc__mutex_lock(*mp)
 #define isc_mutex_unlock(mp)  isc__mutex_unlock(*mp)
@@ -47,7 +47,7 @@ typedef pthread_mutex_t *isc_mutex_t;
 
 typedef pthread_mutex_t isc_mutex_t;
 
-#define isc_mutex_init(mp)    isc__mutex_init((mp))
+#define isc_mutex_init(mp)    isc__mutex_init(mp)
 #define isc_mutex_lock(mp)    isc__mutex_lock(mp)
 #define isc_mutex_unlock(mp)  isc__mutex_unlock(mp)
 #define isc_mutex_trylock(mp) isc__mutex_trylock(mp)
@@ -63,13 +63,25 @@ extern pthread_mutexattr_t isc__mutex_init_attr;
 		ERRNO_CHECK(pthread_mutex_init, _ret);                    \
 	}
 
-#define isc__mutex_lock(mp) RUNTIME_CHECK(pthread_mutex_lock((mp)) == 0)
+#define isc__mutex_lock(mp)                            \
+	{                                              \
+		int _ret = pthread_mutex_lock(mp);     \
+		ERRNO_CHECK(pthread_mutex_lock, _ret); \
+	}
 
-#define isc__mutex_unlock(mp) RUNTIME_CHECK(pthread_mutex_unlock((mp)) == 0)
+#define isc__mutex_unlock(mp)                            \
+	{                                                \
+		int _ret = pthread_mutex_unlock(mp);     \
+		ERRNO_CHECK(pthread_mutex_unlock, _ret); \
+	}
 
 #define isc__mutex_trylock(mp) \
-	((pthread_mutex_trylock((mp)) == 0) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
+	((pthread_mutex_trylock(mp) == 0) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 
-#define isc__mutex_destroy(mp) RUNTIME_CHECK(pthread_mutex_destroy((mp)) == 0)
+#define isc__mutex_destroy(mp)                            \
+	{                                                 \
+		int _ret = pthread_mutex_destroy(mp);     \
+		ERRNO_CHECK(pthread_mutex_destroy, _ret); \
+	}
 
 ISC_LANG_ENDDECLS
