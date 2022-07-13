@@ -7616,20 +7616,22 @@ An :any:`in-view` zone is not intended to reference a :any:`forward` zone.
 
 Statements
 ----------
-The following table lists all statements permissible in :file:`named.conf`. Please note
-that this section is a work in progress.
+BIND 9 supports many hundreds of statements; finding the right statement to
+control a specific behavior or solve a particular problem can be a daunting
+task. To simplify the task for users, all statements have been assigned one or more tags.
+Tags are designed to group together statements that have broadly similar
+functionality; thus, for example, all statements that control the handling of
+queries or of zone transfers are respectively tagged under **query** and **transfer**.
+
+The following table lists all statements permissible in :file:`named.conf`; the next
+section groups the statements by tag. Please note that these sections are a work in progress.
 
 .. namedconf:statementlist::
 
 Statements by Tag
 -----------------
-
-BIND 9 supports many hundreds of statements; finding the right statement to
-control a specific behavior or solve a particular problem can be a daunting
-task. To simplify the task all statements have been assigned one or more tags.
-Tags are designed to group together statements that have broadly similar
-functionality; thus, for example, all statements that control the handling of
-queries or of zone transfers are respectively tagged under **query** and **transfer**.
+These tables group the various statements permissible in :file:`named.conf` by
+their corresponding tag.
 
 DNSSEC Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~
