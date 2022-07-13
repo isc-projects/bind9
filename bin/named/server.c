@@ -16640,10 +16640,10 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		}
 
 		if (!first) {
-			putstr(text, "\n");
+			CHECK(putstr(text, "\n"));
 		}
-		putstr(text, "Rate limited servers, view ");
-		putstr(text, view->name);
+		CHECK(putstr(text, "Rate limited servers, view "));
+		CHECK(putstr(text, view->name));
 
 		dns_adb_getquota(view->adb, &val, NULL, NULL, NULL, NULL);
 		s = snprintf(tbuf, sizeof(tbuf),
@@ -16652,26 +16652,26 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 			return (ISC_R_NOSPACE);
 		}
 		first = false;
-		putstr(text, tbuf);
+		CHECK(putstr(text, tbuf));
 		used = isc_buffer_usedlength(*text);
 		CHECK(dns_adb_dumpquota(view->adb, text));
 		if (used == isc_buffer_usedlength(*text)) {
-			putstr(text, "\n  None.");
+			CHECK(putstr(text, "\n  None."));
 		}
 
-		putstr(text, "\nRate limited servers, view ");
-		putstr(text, view->name);
+		CHECK(putstr(text, "\nRate limited servers, view "));
+		CHECK(putstr(text, view->name));
 		val = dns_resolver_getfetchesperzone(view->resolver);
 		s = snprintf(tbuf, sizeof(tbuf),
 			     " (fetches-per-zone %u):", val);
 		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
 			return (ISC_R_NOSPACE);
 		}
-		putstr(text, tbuf);
+		CHECK(putstr(text, tbuf));
 		used = isc_buffer_usedlength(*text);
 		CHECK(dns_resolver_dumpquota(view->resolver, text));
 		if (used == isc_buffer_usedlength(*text)) {
-			putstr(text, "\n  None.");
+			CHECK(putstr(text, "\n  None."));
 		}
 	}
 
