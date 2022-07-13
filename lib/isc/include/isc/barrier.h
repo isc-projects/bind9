@@ -56,8 +56,14 @@ typedef uv_barrier_t isc_barrier_t;
 
 #endif /* ISC_TRACK_PTHREADS_OBJECTS */
 
-#define isc__barrier_init(bp, count) uv_barrier_init(bp, count)
-#define isc__barrier_wait(bp)	     uv_barrier_wait(bp)
-#define isc__barrier_destroy(bp)     uv_barrier_destroy(bp)
+#define isc__barrier_init(bp, count)                     \
+	{                                                \
+		int _ret = uv_barrier_init(bp, count);   \
+		UV_RUNTIME_CHECK(uv_barrier_init, _ret); \
+	}
+
+#define isc__barrier_wait(bp) uv_barrier_wait(bp)
+
+#define isc__barrier_destroy(bp) uv_barrier_destroy(bp)
 
 #endif /* __SANITIZE_THREAD__ */
