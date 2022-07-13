@@ -7401,22 +7401,34 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Get domain and nameservers from fctx->nsfetch
-		 * before we destroy it.
+		 * Get domain from fctx->nsfetch before we destroy it.
+		 */
+		domain = dns_fixedname_initname(&fixed);
+		dns_name_copy(fctx->nsfetch->private->domain, domain);
+
+		/*
+		 * If the chain of resume_dslookup() invocations managed to
+		 * chop off enough labels from the original DS owner name to
+		 * reach the top of the namespace, no further progress can be
+		 * made.  Interrupt the DS chasing process, returning SERVFAIL.
+		 */
+		if (dns_name_equal(fctx->nsname, domain)) {
+			dns_resolver_destroyfetch(&fctx->nsfetch);
+			fctx_done_detach(&fctx, DNS_R_SERVFAIL);
+			return;
+		}
+
+		/*
+		 * Get nameservers from fctx->nsfetch before we destroy it.
 		 */
 		dns_rdataset_init(&nameservers);
 		if (dns_rdataset_isassociated(
 			    &fctx->nsfetch->private->nameservers)) {
-			domain = dns_fixedname_initname(&fixed);
-			dns_name_copy(fctx->nsfetch->private->domain, domain);
-			if (dns_name_equal(fctx->nsname, domain)) {
-				dns_resolver_destroyfetch(&fctx->nsfetch);
-				fctx_done_detach(&fctx, DNS_R_SERVFAIL);
-				return;
-			}
 			dns_rdataset_clone(&fctx->nsfetch->private->nameservers,
 					   &nameservers);
 			nsrdataset = &nameservers;
+		} else {
+			domain = NULL;
 		}
 
 		dns_resolver_destroyfetch(&fctx->nsfetch);
