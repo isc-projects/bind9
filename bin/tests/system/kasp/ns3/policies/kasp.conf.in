@@ -132,3 +132,7 @@ dnssec-policy "checkds-csk" {
 		csk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 };
+
+dnssec-policy "ttl" {
+	max-zone-ttl 299;
+};
