@@ -72,7 +72,6 @@ typedef struct isc_quota	 isc_quota_t;	 /*%< Quota */
 typedef struct isc_ratelimiter	 isc_ratelimiter_t;   /*%< Rate Limiter */
 typedef struct isc_region	 isc_region_t;	      /*%< Region */
 typedef uint64_t		 isc_resourcevalue_t; /*%< Resource Value */
-typedef struct isc_rwlock	 isc_rwlock_t;	      /*%< Read Write Lock */
 typedef struct isc_sockaddr	 isc_sockaddr_t;      /*%< Socket Address */
 typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;  /*%< Socket Address List
 						       * */
