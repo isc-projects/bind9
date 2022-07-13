@@ -33,6 +33,8 @@ database.
 Configuring DLZ
 ~~~~~~~~~~~~~~~
 .. namedconf:statement:: dlz
+   :tags: zone
+   :short: Configures a Dynamically Loadable Zone (DLZ) database in :iscman:`named.conf`.
 
 A DLZ database is configured with a :any:`dlz` statement in :iscman:`named.conf`:
 
@@ -50,6 +52,8 @@ DLZ driver. Multiple :any:`dlz` statements can be specified.
 
 
 .. namedconf:statement:: search
+   :tags: query
+   :short: Specifies whether a Dynamically Loadable Zone (DLZ) module is queried for an answer to a query name.
 
 When answering a query, all DLZ modules with :namedconf:ref:`search` set to ``yes`` are
 queried to see whether they contain an answer for the query name. The best
