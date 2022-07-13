@@ -850,7 +850,6 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	isc__networker_t *worker = NULL;
 	int uv_bind_flags = UV_UDP_REUSEADDR;
 	isc_result_t result = ISC_R_UNSET;
-	int tries = 3;
 	int r;
 
 	REQUIRE(isc__nm_in_netthread());
@@ -901,7 +900,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	do {
 		r = isc_uv_udp_connect(&sock->uv_handle.udp,
 				       &req->peer.type.sa);
-	} while (r == UV_EADDRINUSE && --tries > 0);
+	} while (r == UV_EADDRINUSE && --req->connect_tries > 0);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);
 		goto done;

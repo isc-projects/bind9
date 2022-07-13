@@ -247,9 +247,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	if (atomic_load(&sock->timedout)) {
 		result = ISC_R_TIMEDOUT;
 		goto error;
-	}
-
-	if (isc__nm_closing(sock)) {
+	} else if (isc__nm_closing(sock)) {
 		/* Network manager shutting down */
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
@@ -260,6 +258,25 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	} else if (status == UV_ETIMEDOUT) {
 		/* Timeout status code here indicates hard error */
 		result = ISC_R_TIMEDOUT;
+		goto error;
+	} else if (status == UV_EADDRINUSE) {
+		/*
+		 * On FreeBSD the TCP connect() call sometimes results in a
+		 * spurious transient EADDRINUSE. Try a few more times before
+		 * giving up.
+		 */
+		if (--req->connect_tries > 0) {
+			r = uv_tcp_connect(
+				&req->uv_req.connect, &sock->uv_handle.tcp,
+				&req->peer.type.sa, tlsdns_connect_cb);
+			if (r != 0) {
+				isc__nm_incstats(sock, STATID_CONNECTFAIL);
+				result = isc__nm_uverr2result(r);
+				goto error;
+			}
+			return;
+		}
+		result = isc__nm_uverr2result(status);
 		goto error;
 	} else if (status != 0) {
 		result = isc__nm_uverr2result(status);
