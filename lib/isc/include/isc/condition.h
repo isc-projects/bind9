@@ -66,16 +66,29 @@ typedef pthread_cond_t isc_condition_t;
 		ERRNO_CHECK(pthread_cond_init, _ret);     \
 	}
 
-#define isc__condition_wait(cp, mp) \
-	RUNTIME_CHECK(pthread_cond_wait((cp), (mp)) == 0)
+#define isc__condition_wait(cp, mp)                   \
+	{                                             \
+		int _ret = pthread_cond_wait(cp, mp); \
+		ERRNO_CHECK(pthread_cond_wait, _ret); \
+	}
 
-#define isc__condition_signal(cp) RUNTIME_CHECK(pthread_cond_signal((cp)) == 0)
+#define isc__condition_signal(cp)                       \
+	{                                               \
+		int _ret = pthread_cond_signal(cp);     \
+		ERRNO_CHECK(pthread_cond_signal, _ret); \
+	}
 
-#define isc__condition_broadcast(cp) \
-	RUNTIME_CHECK(pthread_cond_broadcast((cp)) == 0)
+#define isc__condition_broadcast(cp)                       \
+	{                                                  \
+		int _ret = pthread_cond_broadcast(cp);     \
+		ERRNO_CHECK(pthread_cond_broadcast, _ret); \
+	}
 
-#define isc__condition_destroy(cp) \
-	RUNTIME_CHECK(pthread_cond_destroy((cp)) == 0)
+#define isc__condition_destroy(cp)                       \
+	{                                                \
+		int _ret = pthread_cond_destroy(cp);     \
+		ERRNO_CHECK(pthread_cond_destroy, _ret); \
+	}
 
 isc_result_t
 isc__condition_waituntil(pthread_cond_t *, pthread_mutex_t *, isc_time_t *);

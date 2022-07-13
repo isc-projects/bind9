@@ -46,26 +46,32 @@ isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
 	return (ret);
 }
 
-void
+int
 isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+	int ret;
+
 	switch (type) {
 	case isc_rwlocktype_read:
-		RUNTIME_CHECK(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
-		break;
+		return (pthread_rwlock_rdlock(&rwl->rwlock));
 	case isc_rwlocktype_write:
 		while (true) {
-			RUNTIME_CHECK(pthread_rwlock_wrlock(&rwl->rwlock) == 0);
+			ret = pthread_rwlock_wrlock(&rwl->rwlock);
+			if (ret != 0) {
+				return (ret);
+			}
 			/* Unlock if in middle of downgrade operation */
 			if (atomic_load_acquire(&rwl->downgrade)) {
-				RUNTIME_CHECK(pthread_rwlock_unlock(
-						      &rwl->rwlock) == 0);
+				ret = pthread_rwlock_unlock(&rwl->rwlock);
+				if (ret != 0) {
+					return (ret);
+				}
 				while (atomic_load_acquire(&rwl->downgrade)) {
 				}
 				continue;
 			}
 			break;
 		}
-		break;
+		return (0);
 	default:
 		UNREACHABLE();
 	}
@@ -101,10 +107,10 @@ isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 }
 
-void
+int
 isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	UNUSED(type);
-	RUNTIME_CHECK(pthread_rwlock_unlock(&rwl->rwlock) == 0);
+	return (pthread_rwlock_unlock(&rwl->rwlock));
 }
 
 isc_result_t
@@ -113,17 +119,30 @@ isc___rwlock_tryupgrade(isc__rwlock_t *rwl) {
 	return (ISC_R_LOCKBUSY);
 }
 
-void
+int
 isc___rwlock_downgrade(isc__rwlock_t *rwl) {
+	int ret;
+
 	atomic_store_release(&rwl->downgrade, true);
-	RUNTIME_CHECK(pthread_rwlock_unlock(&rwl->rwlock) == 0);
-	RUNTIME_CHECK(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
+
+	ret = pthread_rwlock_unlock(&rwl->rwlock);
+	if (ret != 0) {
+		return (ret);
+	}
+
+	ret = pthread_rwlock_rdlock(&rwl->rwlock);
+	if (ret != 0) {
+		return (ret);
+	}
+
 	atomic_store_release(&rwl->downgrade, false);
+
+	return (0);
 }
 
-void
+int
 isc___rwlock_destroy(isc__rwlock_t *rwl) {
-	pthread_rwlock_destroy(&rwl->rwlock);
+	return (pthread_rwlock_destroy(&rwl->rwlock));
 }
 
 #else /* if USE_PTHREAD_RWLOCK */
@@ -223,7 +242,7 @@ isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
 	return (0);
 }
 
-void
+int
 isc___rwlock_destroy(isc__rwlock_t *rwl) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -236,6 +255,8 @@ isc___rwlock_destroy(isc__rwlock_t *rwl) {
 	isc_condition_destroy(&rwl->readable);
 	isc_condition_destroy(&rwl->writeable);
 	isc_mutex_destroy(&rwl->lock);
+
+	return (0);
 }
 
 /*
@@ -420,7 +441,7 @@ rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif /* ifdef ISC_RWLOCK_TRACE */
 }
 
-void
+int
 isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cnt = 0;
 	int32_t spins = atomic_load_acquire(&rwl->spins) * 2 + 10;
@@ -435,6 +456,8 @@ isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
 
 	atomic_fetch_add_release(&rwl->spins, (cnt - spins) / 8);
+
+	return (0);
 }
 
 isc_result_t
@@ -533,7 +556,7 @@ isc___rwlock_tryupgrade(isc__rwlock_t *rwl) {
 	return (ISC_R_SUCCESS);
 }
 
-void
+int
 isc___rwlock_downgrade(isc__rwlock_t *rwl) {
 	int32_t prev_readers;
 
@@ -555,9 +578,11 @@ isc___rwlock_downgrade(isc__rwlock_t *rwl) {
 		BROADCAST(&rwl->readable);
 	}
 	UNLOCK(&rwl->lock);
+
+	return (0);
 }
 
-void
+int
 isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t prev_cnt;
 
@@ -628,6 +653,8 @@ isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postunlock", rwl, type);
 #endif /* ifdef ISC_RWLOCK_TRACE */
+
+	return (0);
 }
 
 #endif /* USE_PTHREAD_RWLOCK */
