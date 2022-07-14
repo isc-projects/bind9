@@ -114,6 +114,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
   <<: *linux_amd64
 
+.oraclelinux-9-amd64: &oraclelinux_9_amd64_image
+  image: "$CI_REGISTRY_IMAGE:oraclelinux-9-amd64"
+  <<: *linux_amd64
+
 # Debian
 
 .debian-buster-amd64: &debian_buster_amd64_image
@@ -637,6 +641,30 @@ unit:gcc:oraclelinux8:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:oraclelinux8:amd64
+      artifacts: true
+
+# Jobs for regular GCC builds on Oracle Linux 9 (amd64)
+
+gcc:oraclelinux9:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *oraclelinux_9_amd64_image
+  <<: *build_job
+
+system:gcc:oraclelinux9:amd64:
+  <<: *oraclelinux_9_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:oraclelinux9:amd64
+      artifacts: true
+
+unit:gcc:oraclelinux9:amd64:
+  <<: *oraclelinux_9_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:oraclelinux9:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 10 "buster" (amd64)
