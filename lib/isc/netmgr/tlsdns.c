@@ -174,7 +174,6 @@ tlsdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock, STATID_CONNECT);
 
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer,
 			   &req->uv_req.connect);
@@ -230,7 +229,7 @@ isc__nm_async_tlsdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_UNSET;
 	isc__nm_uvreq_t *req = NULL;
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)uvreq->handle);
 	struct sockaddr_storage ss;
@@ -247,9 +246,7 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	if (atomic_load(&sock->timedout)) {
 		result = ISC_R_TIMEDOUT;
 		goto error;
-	}
-
-	if (isc__nm_closing(sock)) {
+	} else if (isc__nm_closing(sock)) {
 		/* Network manager shutting down */
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
@@ -260,6 +257,24 @@ tlsdns_connect_cb(uv_connect_t *uvreq, int status) {
 	} else if (status == UV_ETIMEDOUT) {
 		/* Timeout status code here indicates hard error */
 		result = ISC_R_TIMEDOUT;
+		goto error;
+	} else if (status == UV_EADDRINUSE) {
+		/*
+		 * On FreeBSD the TCP connect() call sometimes results in a
+		 * spurious transient EADDRINUSE. Try a few more times before
+		 * giving up.
+		 */
+		if (--req->connect_tries > 0) {
+			r = uv_tcp_connect(
+				&req->uv_req.connect, &sock->uv_handle.tcp,
+				&req->peer.type.sa, tlsdns_connect_cb);
+			if (r != 0) {
+				result = isc__nm_uverr2result(r);
+				goto error;
+			}
+			return;
+		}
+		result = isc__nm_uverr2result(status);
 		goto error;
 	} else if (status != 0) {
 		result = isc__nm_uverr2result(status);
