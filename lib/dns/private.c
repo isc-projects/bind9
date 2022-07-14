@@ -383,7 +383,8 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 	} else if (private->length == 5) {
 		unsigned char alg = private->data[0];
 		dns_keytag_t keyid = (private->data[2] | private->data[1] << 8);
-		char keybuf[BUFSIZ], algbuf[DNS_SECALG_FORMATSIZE];
+		char keybuf[DNS_SECALG_FORMATSIZE + BUFSIZ],
+			algbuf[DNS_SECALG_FORMATSIZE];
 		bool del = private->data[3];
 		bool complete = private->data[4];
 
