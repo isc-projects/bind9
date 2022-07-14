@@ -135,7 +135,6 @@ tcpdns_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);
 		goto done;
 	}
-	isc__nm_incstats(sock, STATID_CONNECT);
 
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer,
 			   &req->uv_req.connect);
@@ -189,7 +188,7 @@ isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_UNSET;
 	isc__nm_uvreq_t *req = NULL;
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)uvreq->handle);
 	struct sockaddr_storage ss;
@@ -229,7 +228,6 @@ tcpdns_connect_cb(uv_connect_t *uvreq, int status) {
 				&req->uv_req.connect, &sock->uv_handle.tcp,
 				&req->peer.type.sa, tcpdns_connect_cb);
 			if (r != 0) {
-				isc__nm_incstats(sock, STATID_CONNECTFAIL);
 				result = isc_uverr2result(r);
 				goto error;
 			}
