@@ -11538,7 +11538,8 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 		for (fctxcount_t *fc = ISC_LIST_HEAD(bucket->list); fc != NULL;
 		     fc = ISC_LIST_NEXT(fc, link))
 		{
-			char nb[DNS_NAME_FORMATSIZE], text[BUFSIZ];
+			char nb[DNS_NAME_FORMATSIZE],
+				text[DNS_NAME_FORMATSIZE + BUFSIZ];
 
 			if (fc->count < spill) {
 				continue;
