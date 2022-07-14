@@ -497,6 +497,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			}
 		}
 	}
+	errno = 0;
 	tls_status = SSL_get_error(sock->tlsstream.tls, rv);
 	saved_errno = errno;
 
