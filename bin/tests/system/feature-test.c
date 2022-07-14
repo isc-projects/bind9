@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,13 +27,9 @@
 #include <Winsock2.h>
 #endif /* ifdef WIN32 */
 
-#ifndef MAXHOSTNAMELEN
-#ifdef HOST_NAME_MAX
-#define MAXHOSTNAMELEN HOST_NAME_MAX
-#else /* ifdef HOST_NAME_MAX */
-#define MAXHOSTNAMELEN 256
-#endif /* ifdef HOST_NAME_MAX */
-#endif /* ifndef MAXHOSTNAMELEN */
+#ifndef _POSIX_HOST_NAME_MAX
+#define _POSIX_HOST_NAME_MAX 255
+#endif
 
 static void
 usage() {
@@ -86,7 +83,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
-		char hostname[MAXHOSTNAMELEN];
+		char hostname[_POSIX_HOST_NAME_MAX + 1];
 		int n;
 #ifdef WIN32
 		/* From InitSocket() */
