@@ -144,6 +144,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
+wait_for_log 10 "connection refused" ns3/named.stats
+
 ret=0
 echo_i "checking that zones with slash are properly shown in XML output ($n)"
 if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
@@ -232,7 +234,7 @@ if $FEATURETEST --have-libxml2 && [ -e stats.xml.out ] && [ -x "${XSLTPROC}" ]  
     # Socket statistics (expect no errors)
     grep "<counter name=\"TCP4AcceptFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4BindFail\">0</counter>" stats.xml.out >/dev/null || ret=1
-    grep "<counter name=\"TCP4ConnFail\">0</counter>" stats.xml.out >/dev/null || ret=1
+    grep "<counter name=\"TCP4ConnFail\">1</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4OpenFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4RecvErr\">0</counter>" stats.xml.out >/dev/null || ret=1
     # grep "<counter name=\"TCP4SendErr\">0</counter>" stats.xml.out >/dev/null || ret=1
