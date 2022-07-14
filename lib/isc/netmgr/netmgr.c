@@ -1919,6 +1919,8 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(sock->tid == isc_nm_tid());
 	REQUIRE(req->cb.connect != NULL);
 
+	isc__nm_incstats(sock, STATID_CONNECTFAIL);
+
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
@@ -2465,7 +2467,10 @@ isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG) {
 		req = isc_mem_get(mgr->mctx, sizeof(*req));
 	}
 
-	*req = (isc__nm_uvreq_t){ .magic = 0 };
+	*req = (isc__nm_uvreq_t){
+		.magic = 0,
+		.connect_tries = 3,
+	};
 	ISC_LINK_INIT(req, link);
 	req->uv_req.req.data = req;
 	isc___nmsocket_attach(sock, &req->sock FLARG_PASS);

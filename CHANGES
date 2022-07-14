@@ -1,3 +1,7 @@
+5926.	[func]		Handle transient TCP connect() EADDRINUSE failures
+			on FreeBSD (and possibly other BSDs) by trying three
+			times before giving up. [GL #3451]
+
 5925.	[bug]		With a forwarder configured for all queries, resolution
 			failures encountered during DS chasing could trigger
 			assertion failures due to a logic bug in
