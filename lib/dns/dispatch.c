@@ -1812,7 +1812,6 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 		case DNS_DISPATCHSTATE_NONE:
 			/* First connection, continue with connecting */
 			LOCK(&disp->lock);
-			INSIST(ISC_LIST_EMPTY(disp->pending));
 			ISC_LIST_APPEND(disp->pending, resp, plink);
 			UNLOCK(&disp->lock);
 			dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
