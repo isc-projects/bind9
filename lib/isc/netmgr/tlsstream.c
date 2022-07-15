@@ -860,7 +860,7 @@ isc__nm_tls_resumeread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (!atomic_compare_exchange_strong(&handle->sock->readpaused,
-					    &(bool){ false }, false))
+					    &(bool){ true }, false))
 	{
 		if (inactive(handle->sock)) {
 			return;
