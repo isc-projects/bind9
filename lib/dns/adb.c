@@ -3010,7 +3010,7 @@ dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf) {
 		     entry = ISC_LIST_NEXT(entry, plink))
 		{
 			char addrbuf[ISC_NETADDR_FORMATSIZE];
-			char text[BUFSIZ];
+			char text[ISC_NETADDR_FORMATSIZE + BUFSIZ];
 			isc_netaddr_t netaddr;
 
 			if (entry->atr == 0.0 && entry->quota == adb->quota) {

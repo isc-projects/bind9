@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,14 +22,6 @@
 #include <isc/util.h>
 
 #include <dns/edns.h>
-
-#ifndef MAXHOSTNAMELEN
-#ifdef HOST_NAME_MAX
-#define MAXHOSTNAMELEN HOST_NAME_MAX
-#else /* ifdef HOST_NAME_MAX */
-#define MAXHOSTNAMELEN 256
-#endif /* ifdef HOST_NAME_MAX */
-#endif /* ifndef MAXHOSTNAMELEN */
 
 static void
 usage(void) {
@@ -91,7 +84,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--gethostname") == 0) {
-		char hostname[MAXHOSTNAMELEN];
+		char hostname[_POSIX_HOST_NAME_MAX + 1];
 		int n;
 
 		n = gethostname(hostname, sizeof(hostname));
