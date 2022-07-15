@@ -113,13 +113,19 @@ This option sets the log to the file \fBlogfile\fP by default, instead of the sy
 .INDENT 0.0
 .TP
 .B \-M option
-This option sets the default memory context options. If set to \fBexternal\fP,
-the internal memory manager is bypassed in favor of
-system\-provided memory allocation functions. If set to \fBfill\fP, blocks
-of memory are filled with tag values when allocated or freed, to
-assist debugging of memory problems. \fBnofill\fP disables this behavior,
-and is the default unless \fBnamed\fP has been compiled with developer
-options.
+This option sets the default (comma\-separated) memory context
+options. The possible flags are:
+.INDENT 7.0
+.IP \(bu 2
+\fBfill\fP: fill blocks of memory with tag values when they are
+allocated or freed, to assist debugging of memory problems; this is
+the implicit default if \fBnamed\fP has been compiled with
+\fB\-\-enable\-developer\fP\&.
+.IP \(bu 2
+\fBnofill\fP: disable the behavior enabled by \fBfill\fP; this is the
+implicit default unless \fBnamed\fP has been compiled with
+\fB\-\-enable\-developer\fP\&.
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
