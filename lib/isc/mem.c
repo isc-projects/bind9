@@ -1725,13 +1725,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 		mpctx->freecount--;
 		item = mpctx->items;
 		mpctx->items = item->next;
-
-		if ((mctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-			mem_putunlocked(mctx, item, mpctx->size);
-		} else {
-			mem_putstats(mctx, item, mpctx->size);
-			mem_put(mctx, item, mpctx->size);
-		}
+		mem_putstats(mctx, item, mpctx->size);
+		mem_put(mctx, item, mpctx->size);
 	}
 	MCTXUNLOCK(mctx);
 
