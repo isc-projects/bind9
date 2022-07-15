@@ -350,7 +350,7 @@ usage(void) {
 			"username] [-U listeners]\n"
 			"             [-X lockfile] [-m "
 			"{usage|trace|record|size|mctx}]\n"
-			"             [-M fill|nofill]\n"
+			"             [-M external|internal|fill|nofill]\n"
 			"usage: named [-v|-V|-C]\n");
 }
 
