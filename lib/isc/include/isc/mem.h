@@ -130,10 +130,26 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #define ISC_MEMFLAG_FILL \
 	0x00000004 /* fill with pattern after alloc and frees */
 
+/*%
+ * Define ISC_MEM_DEFAULTFILL=1 to turn filling the memory with pattern
+ * after alloc and free.
+ */
 #if !ISC_MEM_USE_INTERNAL_MALLOC
+
+#if ISC_MEM_DEFAULTFILL
+#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_FILL
+#else /* if ISC_MEM_DEFAULTFILL */
 #define ISC_MEMFLAG_DEFAULT 0
+#endif /* if ISC_MEM_DEFAULTFILL */
+
 #else /* if !ISC_MEM_USE_INTERNAL_MALLOC */
+
+#if ISC_MEM_DEFAULTFILL
 #define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_INTERNAL | ISC_MEMFLAG_FILL
+#else /* if ISC_MEM_DEFAULTFILL */
+#define ISC_MEMFLAG_DEFAULT ISC_MEMFLAG_INTERNAL
+#endif /* if ISC_MEM_DEFAULTFILL */
+
 #endif /* if !ISC_MEM_USE_INTERNAL_MALLOC */
 
 /*%
