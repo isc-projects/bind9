@@ -87,13 +87,23 @@ Options
    This option sets the log to the file ``logfile`` by default, instead of the system log.
 
 ``-M option``
-   This option sets the default memory context options. If set to ``external``,
-   the internal memory manager is bypassed in favor of
-   system-provided memory allocation functions. If set to ``fill``, blocks
-   of memory are filled with tag values when allocated or freed, to
-   assist debugging of memory problems. ``nofill`` disables this behavior,
-   and is the default unless ``named`` has been compiled with developer
-   options.
+
+   This option sets the default (comma-separated) memory context
+   options. The possible flags are:
+
+   - ``external``: use system-provided memory allocation functions; this
+     is the implicit default.
+
+   - ``internal``: use the internal memory manager.
+
+   - ``fill``: fill blocks of memory with tag values when they are
+     allocated or freed, to assist debugging of memory problems; this is
+     the implicit default if ``named`` has been compiled with
+     ``--enable-developer``.
+
+   - ``nofill``: disable the behavior enabled by ``fill``; this is the
+     implicit default unless ``named`` has been compiled with
+     ``--enable-developer``.
 
 ``-m flag``
    This option turns on memory usage debugging flags. Possible flags are ``usage``,
