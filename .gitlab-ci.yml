@@ -1230,7 +1230,6 @@ respdiff:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
-    BIND_BASELINE_VERSION: v9_11_24
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - autoreconf -fi
@@ -1238,16 +1237,11 @@ respdiff:
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refserver
-    - cd refserver/
-    - ./configure --with-randomdev=/dev/urandom
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - cd ../bind-qa/bind9/respdiff
-    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/refserver"
+    - cd bind-qa/bind9/respdiff
+    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   needs: []
   artifacts:
     paths:
-      - refserver
       - bind-qa/bind9/respdiff
     exclude:
       - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
