@@ -264,6 +264,28 @@ stages:
     expire_in: "1 day"
     when: always
 
+.respdiff: &respdiff_job
+  stage: system
+  before_script:
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - *setup_interfaces
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+  after_script:
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
+    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
+  needs: []
+  artifacts:
+    paths:
+      - bind9-qa/respdiff
+    exclude:
+      - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
+    untracked: true
+    expire_in: "1 day"
+    when: always
+
 ### Job Definitions
 
 # Jobs in the precheck stage
@@ -720,63 +742,26 @@ customer-git:tag:
 # Respdiff tests
 
 respdiff:
-  <<: *base_image
+  <<: *respdiff_job
   <<: *default_triggering_rules
-  stage: system
+  <<: *base_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DOPENSSL_SUPPRESS_DEPRECATED"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
   script:
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - *setup_interfaces
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/respdiff
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  after_script:
-    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
-    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
-    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
-  needs: []
-  artifacts:
-    paths:
-      - refserver
-      - bind9-qa/respdiff
-    exclude:
-      - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
-    untracked: true
-    expire_in: "1 day"
-    when: always
 
 respdiff-third-party:
-  <<: *base_image
+  <<: *respdiff_job
   <<: *default_triggering_rules
-  stage: system
+  <<: *base_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DOPENSSL_SUPPRESS_DEPRECATED"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.4"
   script:
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - *setup_interfaces
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/respdiff
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
-  after_script:
-    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
-    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
-    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
-  needs: []
-  artifacts:
-    paths:
-      - bind9-qa/respdiff
-    exclude:
-      - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
-    untracked: true
-    expire_in: "1 day"
-    when: always
 
 # ABI check
 
