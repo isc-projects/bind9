@@ -1563,23 +1563,6 @@ sendstream(xfrout_ctx_t *xfr) {
 	CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
 
 failure:
-	if (msgname != NULL) {
-		if (msgrds != NULL) {
-			if (dns_rdataset_isassociated(msgrds)) {
-				dns_rdataset_disassociate(msgrds);
-			}
-			dns_message_puttemprdataset(msg, &msgrds);
-		}
-		if (msgrdl != NULL) {
-			ISC_LIST_UNLINK(msgrdl->rdata, msgrdata, link);
-			dns_message_puttemprdatalist(msg, &msgrdl);
-		}
-		if (msgrdata != NULL) {
-			dns_message_puttemprdata(msg, &msgrdata);
-		}
-		dns_message_puttempname(msg, &msgname);
-	}
-
 	if (tcpmsg != NULL) {
 		dns_message_detach(&tcpmsg);
 	}
