@@ -4617,15 +4617,9 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (rdata != NULL) {
-		dns_message_puttemprdata(message, &rdata);
-	}
-	if (rdataset != NULL) {
-		dns_message_puttemprdataset(message, &rdataset);
-	}
-	if (rdatalist != NULL) {
-		dns_message_puttemprdatalist(message, &rdatalist);
-	}
+	dns_message_puttemprdata(message, &rdata);
+	dns_message_puttemprdataset(message, &rdataset);
+	dns_message_puttemprdatalist(message, &rdatalist);
 	return (result);
 }
 
