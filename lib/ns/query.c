@@ -8462,10 +8462,6 @@ cleanup:
 		isc_buffer_free(&buffer);
 	}
 
-	if (myrdata != NULL) {
-		dns_message_puttemprdata(client->message, &myrdata);
-	}
-
 	if (myrdataset != NULL) {
 		dns_message_puttemprdataset(client->message, &myrdataset);
 	}
@@ -8480,6 +8476,7 @@ cleanup:
 		}
 		dns_message_puttemprdatalist(client->message, &myrdatalist);
 	}
+
 	if (qctx->dbuf != NULL) {
 		ns_client_releasename(client, &name);
 	}
