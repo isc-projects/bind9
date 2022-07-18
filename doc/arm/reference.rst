@@ -417,7 +417,7 @@ The following blocks are supported:
         Specifies configuration information for a TLS connection, including a :any:`key-file`, :any:`cert-file`, :any:`ca-file`, :any:`dhparam-file`, :any:`remote-hostname`, :any:`ciphers`, :any:`protocols`, :any:`prefer-server-ciphers`, and :any:`session-tickets`.
 
     :any:`http`
-        Specifies configuration information for an HTTP connection, including ``endponts``, :any:`listener-clients` and :any:`streams-per-connection`.
+        Specifies configuration information for an HTTP connection, including :any:`endpoints`, :any:`listener-clients`, and :any:`streams-per-connection`.
 
     :any:`trust-anchors`
         Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
@@ -627,6 +627,8 @@ specified.
 The :any:`channel` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. namedconf:statement:: channel
+   :tags: logging
+   :short: Defines a stream of data that can be independently logged.
 
 All log output goes to one or more ``channels``; there is no limit to
 the number of channels that can be created.
@@ -890,6 +892,8 @@ To discard all messages in a category, specify the :namedconf:ref:`null` channel
    category notify { null; };
 
 .. namedconf:statement:: category
+   :tags: logging
+   :short: Specifies the type of data logged to a particular channel.
 
 The following are the available categories and brief descriptions of the
 types of log information they contain. More categories may be added in
@@ -1006,13 +1010,15 @@ change its delegation information (defined in :rfc:`7344`).
 :any:`primaries` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
+   :tags: zone
+   :short: Defines one or more primary servers for a zone.
 
 .. _primaries_statement:
 
 :any:`primaries` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:any:`primaries` lists allow for a common set of primary servers  to be easily
+:any:`primaries` lists allow for a common set of primary servers to be easily
 used by multiple stub and secondary zones in their :any:`primaries` or
 :any:`also-notify` lists. (Note: :any:`primaries` is a synonym for the original
 keyword ``masters``, which can still be used, but is no longer the
@@ -1358,7 +1364,7 @@ default is used.
    normal (non-minimized) query mode when it receives either NXDOMAIN or
    other unexpected responses (e.g., SERVFAIL, improper zone cut,
    REFUSED) to a minimized query. ``disabled`` disables QNAME
-   minimization completely. The current default is ``relaxed``, but it
+   minimization completely. ``off`` is a synonym for ``disabled``. The current default is ``relaxed``, but it
    may be changed to ``strict`` in a future release.
 
 .. namedconf:statement:: tkey-gssapi-keytab
@@ -3245,6 +3251,8 @@ options apply to zone transfers.
    the :namedconf:ref:`server` block.
 
 .. namedconf:statement:: transfer-message-size
+   :tags: transfer
+   :short: Limits the uncompressed size of DNS messages used in zone transfers over TCP.
 
    This is an upper bound on the uncompressed size of DNS messages used
    in zone transfers over TCP. If a message grows larger than this size,
@@ -3283,6 +3291,8 @@ options apply to zone transfers.
    refused. The default value is ``10``.
 
 .. namedconf:statement:: transfers-per-ns
+   :tags: transfer
+   :short: Limits the number of concurrent inbound zone transfers from a remote server.
 
    This is the maximum number of inbound zone transfers that can concurrently
    transfer from a given remote name server. The default value is
@@ -5238,12 +5248,16 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
 
 
 .. namedconf:statement:: bogus
+   :tags: server
+   :short: Allows a remote server to be ignored.
 
    If a remote server is giving out bad data, marking it
    as bogus prevents further queries to it. The default value of
    :any:`bogus` is ``no``.
 
 .. namedconf:statement:: edns
+   :tags: server
+   :short: Controls the use of the EDNS0 (:rfc:`2671`) feature.
 
    The :any:`edns` clause determines whether the local server attempts to
    use EDNS when communicating with the remote server. The default is
@@ -5284,6 +5298,8 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    over TCP. Note that currently idle timeouts in responses are ignored.
 
 .. namedconf:statement:: transfers
+   :tags: server
+   :short: Limits the number of concurrent inbound zone transfers from a server.
 
    :any:`transfers` is used to limit the number of concurrent inbound zone
    transfers from the specified server. If no :any:`transfers` clause is
@@ -5291,6 +5307,9 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    option.
 
 .. namedconf:statement:: keys
+   :tags: server
+   :short: Specifies one or more :term:`server_key` s to be used with a remote server.
+   
    :suppress_grammar:
 
    .. warning::
@@ -6089,7 +6108,12 @@ particularly useful for implementing split DNS setups without having to
 run multiple servers.
 
 .. namedconf:statement:: match-clients
+   :tags: view
+   :short: Specifies a view of DNS namespace for a given subset of client IP addresses.
+
 .. namedconf:statement:: match-destinations
+   :tags: view
+   :short: Specifies a view of DNS namespace for a given subset of destination IP addresses.
 
    Each :any:`view` statement defines a view of the DNS namespace that is
    seen by a subset of clients. A client matches a view if its source IP
@@ -6103,6 +6127,8 @@ run multiple servers.
    the view.
 
 .. namedconf:statement:: match-recursive-only
+   :tags: view
+   :short: Specifies that only recursive requests can match this view of the DNS namespace.
 
    A view can
    also be specified as :any:`match-recursive-only`, which means that only
@@ -6186,6 +6212,9 @@ Here is an example of a typical split DNS setup implemented using
 Zone Types
 ^^^^^^^^^^
 .. namedconf:statement:: type
+   :tags: zone
+   :short: Specifies the kind of zone in a given configuration.
+
    :suppress_grammar:
 
    The :any:`type` keyword is required for the :any:`zone` configuration unless
@@ -6197,18 +6226,22 @@ Zone Types
    :any:`delegation-only <type delegation-only>`.
 
 .. namedconf:statement:: type primary
+   :tags: zone
+   :short: Contains the main copy of the data for a zone.
 
    A primary zone has a master copy of the data for the zone and is able
    to provide authoritative answers for it. Type ``master`` is a synonym
    for :any:`primary <type primary>`.
 
 .. namedconf:statement:: type secondary
+   :tags: zone
+   :short: Contains a duplicate of the data for a zone that has been transferred from a primary server.
 
     A secondary zone is a replica of a primary zone. Type ``slave`` is a
     synonym for :any:`secondary <type secondary>`. The :any:`primaries` list specifies one or more IP
     addresses of primary servers that the secondary contacts to update
-    its copy of the zone.  Primaries list elements can
-    also be names of other primaries lists.  By default,
+    its copy of the zone. Primaries list elements can
+    also be names of other primaries lists. By default,
     transfers are made from port 53 on the servers;
     this can be changed for all servers by specifying
     a port number before the list of IP addresses,
@@ -6230,9 +6263,11 @@ Zone Types
     ``ex/example.com``, where
     ``ex/`` is just the first two
     letters of the zone name. (Most operating systems
-    behave very slowly if there are 100000 files in a single directory.)
+    behave very slowly if there are 100,000 files in a single directory.)
 
 .. namedconf:statement:: type mirror
+   :tags: zone
+   :short: Contains a DNSSEC-validated duplicate of the main data for a zone.
 
    A mirror zone is similar to a zone of :any:`type secondary`, except its
    data is subject to DNSSEC validation before being used in answers.
@@ -6300,6 +6335,8 @@ Zone Types
       especially for zones that are large and/or frequently updated.
 
 .. namedconf:statement:: type hint
+   :tags: zone
+   :short: Contains the initial set of root name servers to be used at BIND 9 startup.
 
    The initial set of root name servers is specified using a hint zone.
    When the server starts, it uses the root hints to find a root name
@@ -6308,6 +6345,8 @@ Zone Types
    root servers hints. Classes other than IN have no built-in default hints.
 
 .. namedconf:statement:: type stub
+   :tags: zone
+   :short: Contains a duplicate of the NS records of a primary zone.
 
    A stub zone is similar to a secondary zone, except that it replicates only
    the NS records of a primary zone instead of the entire zone. Stub zones
@@ -6329,6 +6368,8 @@ Zone Types
    internal name servers as the authoritative servers for that domain.
 
 .. namedconf:statement:: type static-stub
+   :tags: zone
+   :short: Contains a duplicate of the NS records of a primary zone, but statically configured rather than transferred from a primary server.
 
    A static-stub zone is similar to a stub zone, with the following
    exceptions: the zone data is statically configured, rather than
@@ -6356,6 +6397,8 @@ Zone Types
    necessary) glue A or AAAA RRs.
 
 .. namedconf:statement:: type forward
+   :tags: zone
+   :short: Contains forwarding statements that apply to queries within a given domain.
 
    A forward zone is a way to configure forwarding on a per-domain basis.
    A :any:`zone` statement of type :any:`forward` can contain a :any:`forward` and/or
@@ -6369,6 +6412,8 @@ Zone Types
    globally, re-specify the global forwarders.
 
 .. namedconf:statement:: type redirect
+   :tags: zone
+   :short: Contains information to answer queries when normal resolution would return NXDOMAIN.
 
    Redirect zones are used to provide answers to queries when normal
    resolution would result in NXDOMAIN being returned. Only one redirect zone
@@ -6555,6 +6600,8 @@ Zone Options
 .. _file:
 
 .. namedconf:statement:: file
+   :tags: zone
+   :short: Specifies the zone's filename.
 
    This sets the zone's filename. In :any:`primary <type primary>`, :any:`hint <type hint>`, and :any:`redirect <type redirect>`
    zones which do not have :any:`primaries` defined, zone data is loaded from
@@ -7049,6 +7096,26 @@ Transfer Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: transfer
+
+Server Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: server
+
+Logging Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: logging
+
+Zone Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: zone
+
+View Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: view
 
 Statements
 ----------
