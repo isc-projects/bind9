@@ -390,6 +390,26 @@ stages:
     - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
 
+.respdiff: &respdiff_job
+  <<: *base_image
+  stage: system
+  before_script:
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - *setup_interfaces
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
+    - cd bind-qa/bind9/respdiff
+  needs: []
+  artifacts:
+    paths:
+      - bind-qa/bind9/respdiff
+    exclude:
+      - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
+    untracked: true
+    expire_in: "1 day"
+    when: always
+
 ### Job Definitions
 
 # Jobs in the precheck stage
@@ -1224,56 +1244,24 @@ coverity:
 # Respdiff tests
 
 respdiff:
-  <<: *base_image
+  <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  stage: system
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
-    - autoreconf -fi
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - *setup_interfaces
-    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - cd bind-qa/bind9/respdiff
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  needs: []
-  artifacts:
-    paths:
-      - bind-qa/bind9/respdiff
-    exclude:
-      - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
-    untracked: true
-    expire_in: "1 day"
-    when: always
 
 respdiff-third-party:
-  <<: *base_image
+  <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  stage: system
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
-    - autoreconf -fi
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - *setup_interfaces
-    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - cd bind-qa/bind9/respdiff
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
-  needs: []
-  artifacts:
-    paths:
-      - bind-qa/bind9/respdiff
-    exclude:
-      - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
-    untracked: true
-    expire_in: "1 day"
-    when: always
 
 # "Stress" tests
 
