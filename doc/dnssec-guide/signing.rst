@@ -1575,7 +1575,7 @@ it is in a file called ``zone.child.example``, using manually specified keys:
 .. code-block:: console
 
    # cd /etc/bind/keys/example.com/
-   # dnssec-signzone -A -t -N INCREMENT -o example.com -f /etc/bind/db/example.com.signed.db \
+   # dnssec-signzone -t -N INCREMENT -o example.com -f /etc/bind/db/example.com.signed.db \
        /etc/bind/db/example.com.db Kexample.com.+013+17694.key Kexample.com.+013+06817.key
    Verifying the zone using the following algorithms: ECDSAP256SHA256.
    Zone fully signed:
