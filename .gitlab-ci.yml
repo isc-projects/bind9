@@ -1243,7 +1243,17 @@ coverity:
 
 # Respdiff tests
 
-respdiff:
+respdiff-short:
+  <<: *respdiff_job
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+  script:
+    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+
+respdiff-long:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
   variables:
@@ -1253,7 +1263,7 @@ respdiff:
   script:
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
-respdiff-third-party:
+respdiff-long-third-party:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
   variables:
