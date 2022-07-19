@@ -48,6 +48,10 @@ Feature Changes
   to different DNSSEC algorithms is not possible when RSASHA1 is
   disallowed by the OS. :gl:`#3469`
 
+- Fetch limit log messages have been improved to provide more complete
+  information. Specifically, the final values of allowed and spilled fetches
+  will now be logged before the counter object gets destroyed. :gl:`#3461`
+
 Bug Fixes
 ~~~~~~~~~
 
