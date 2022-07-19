@@ -1566,7 +1566,7 @@ fctx_cancelqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
 }
 
 static void
-fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter) {
+fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 	char dbuf[DNS_NAME_FORMATSIZE];
 	isc_stdtime_t now;
 
@@ -1574,18 +1574,33 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter) {
 		return;
 	}
 
+	/* Do not log a message if there were no dropped fetches. */
+	if (counter->dropped == 0) {
+		return;
+	}
+
+	/* Do not log the cumulative message if the previous log is recent. */
 	isc_stdtime_get(&now);
-	if (counter->logged > now - 60) {
+	if (!final && counter->logged > now - 60) {
 		return;
 	}
 
 	dns_name_format(fctx->domain, dbuf, sizeof(dbuf));
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL, DNS_LOGMODULE_RESOLVER,
-		      ISC_LOG_INFO,
-		      "too many simultaneous fetches for %s "
-		      "(allowed %d spilled %d)",
-		      dbuf, counter->allowed, counter->dropped);
+	if (!final) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "too many simultaneous fetches for %s "
+			      "(allowed %d spilled %d)",
+			      dbuf, counter->allowed, counter->dropped);
+	} else {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "fetch counters for %s now being discarded "
+			      "(allowed %d spilled %d; cumulative since "
+			      "initial trigger event)",
+			      dbuf, counter->allowed, counter->dropped);
+	}
 
 	counter->logged = now;
 }
@@ -1653,7 +1668,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 		uint_fast32_t spill = atomic_load_acquire(&res->zspill);
 		if (!force && spill != 0 && counter->count >= spill) {
 			counter->dropped++;
-			fcount_logspill(fctx, counter);
+			fcount_logspill(fctx, counter, false);
 			result = ISC_R_QUOTA;
 		} else {
 			counter->count++;
@@ -1696,6 +1711,7 @@ fcount_decr(fetchctx_t *fctx) {
 		fctx->zbucket = NULL;
 
 		if (counter->count == 0) {
+			fcount_logspill(fctx, counter, true);
 			ISC_LIST_UNLINK(zbucket->list, counter, link);
 			isc_mem_put(fctx->res->mctx, counter, sizeof(*counter));
 		}
