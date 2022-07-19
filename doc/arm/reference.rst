@@ -1806,10 +1806,10 @@ default is used.
 
    This should now be configured as part of :namedconf:ref:`dnssec-policy`.
    Use of this option in :namedconf:ref:`options`, :namedconf:ref:`view`
-   and :namedconf:ref:`zone` blocks has no effect on any zone for which
-   a :namedconf:ref:`dnssec-policy` has also been configured. In zones
-   without :namedconf:ref:`dnssec-policy`, this option is deprecated,
-   and will be rendered non-operational in a future release.
+   and :namedconf:ref:`zone` blocks is a fatal error if
+   :namedconf:ref:`dnssec-policy` has also been configured for the same
+   zone. In zones without :namedconf:ref:`dnssec-policy`, this option is
+   deprecated, and will be rendered non-operational in a future release.
 
    :any:`max-zone-ttl` specifies a maximum permissible TTL value in seconds.
    For convenience, TTL-style time-unit suffixes may be used to specify the
