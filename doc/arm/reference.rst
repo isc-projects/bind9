@@ -7642,8 +7642,30 @@ Tags are designed to group together statements that have broadly similar
 functionality; thus, for example, all statements that control the handling of
 queries or of zone transfers are respectively tagged under **query** and **transfer**.
 
-The following table lists all statements permissible in :file:`named.conf`; the next
-section groups the statements by tag. Please note that these sections are a work in progress.
+:ref:`dnssec_tag_statements` are those that relate to or control DNSSEC.
+
+:ref:`logging_tag_statements` relate to or control logging, and typically only
+appear in a logging block.
+
+:ref:`query_tag_statements` relate to or control queries.
+
+:ref:`server_tag_statements` relate to or control server behavior, and typically
+only appear in a server block.
+
+:ref:`transfer_tag_statements` relate to or control zone transfers.
+
+:ref:`view_tag_statements` relate to or control view selection criteria, and
+typically only appear in a view block.
+
+:ref:`zone_tag_statements` relate to or control zone behavior, and typically
+only appear in a zone block.
+
+:ref:`deprecated_tag_statements` are those that are now deprecated, but are
+included here for historical reference.
+
+The following table lists all statements permissible in :file:`named.conf`, with their
+associated tags; the next section groups the statements by tag. Please note that these
+sections are a work in progress.
 
 .. namedconf:statementlist::
 
@@ -7652,40 +7674,56 @@ Statements by Tag
 These tables group the various statements permissible in :file:`named.conf` by
 their corresponding tag.
 
+.. _dnssec_tag_statements:
+
 DNSSEC Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: dnssec
+
+.. _logging_tag_statements:
 
 Logging Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: logging
 
+.. _query_tag_statements:
+
 Query Tag Statements
 ~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: query
+
+.. _server_tag_statements:
 
 Server Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: server
 
+.. _transfer_tag_statements:
+
 Transfer Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: transfer
+
+.. _view_tag_statements:
 
 View Tag Statements
 ~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: view
 
+.. _zone_tag_statements:
+
 Zone Tag Statements
 ~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: zone
+
+.. _deprecated_tag_statements:
 
 Deprecated Tag Statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~
