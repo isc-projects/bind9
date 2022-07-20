@@ -8670,15 +8670,10 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
-	rbtdb_serial_t serial;
-	isc_stdtime_t now;
+	rbtdb_serial_t serial = 1;
 
-	if (IS_CACHE(rbtdb)) {
-		serial = 1;
-		now = rbtiterator->common.now;
-	} else {
+	if (!IS_CACHE(rbtdb)) {
 		serial = rbtversion->serial;
-		now = 0;
 	}
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
@@ -8690,19 +8685,9 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 			if (header->serial <= serial && !IGNORE(header)) {
 				/*
 				 * Is this a "this rdataset doesn't exist"
-				 * record?  Or is it too old in the cache?
-				 *
-				 * Note: unlike everywhere else, we
-				 * check for now > header->rdh_ttl instead
-				 * of ">=".  This allows ANY and RRSIG
-				 *  queries for 0 TTL rdatasets to work.
+				 * record?
 				 */
-				if (NONEXISTENT(header) ||
-				    (now != 0 &&
-				     (now - RBTDB_VIRTUAL) >
-					     header->rdh_ttl +
-						     rbtdb->serve_stale_ttl))
-				{
+				if (NONEXISTENT(header)) {
 					header = NULL;
 				}
 				break;
@@ -8734,22 +8719,17 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
-	rbtdb_serial_t serial;
-	isc_stdtime_t now;
 	rbtdb_rdatatype_t type, negtype;
 	dns_rdatatype_t rdtype, covers;
+	rbtdb_serial_t serial = 1;
 
 	header = rbtiterator->current;
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
 	}
 
-	if (IS_CACHE(rbtdb)) {
-		serial = 1;
-		now = rbtiterator->common.now;
-	} else {
+	if (!IS_CACHE(rbtdb)) {
 		serial = rbtversion->serial;
-		now = 0;
 	}
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
@@ -8775,17 +8755,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					/*
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
-					 *
-					 * Note: unlike everywhere else, we
-					 * check for now > header->ttl instead
-					 * of ">=".  This allows ANY and RRSIG
-					 * queries for 0 TTL rdatasets to work.
 					 */
-					if (NONEXISTENT(header) ||
-					    (now != 0 &&
-					     (now - RBTDB_VIRTUAL) >
-						     header->rdh_ttl))
-					{
+					if (NONEXISTENT(header)) {
 						header = NULL;
 					}
 					break;
