@@ -408,8 +408,10 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 static isc_result_t
 process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	char *s = NULL, *p = NULL, *urlend = NULL;
+	const char *content_length = NULL;
 	size_t limit = sizeof(httpd->recvbuf) - httpd->recvlen - 1;
 	size_t len = region->length;
+	size_t clen = 0;
 	int delim;
 	bool truncated = false;
 
@@ -565,6 +567,29 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	s = p;
 
 	httpd->headers = s;
+
+	if (!have_header(httpd, "Content-Length:", NULL, NULL, &content_length))
+	{
+		/* Require a Content-Length header for POST requests. */
+		if (httpd->method == METHOD_POST) {
+			return (ISC_R_BADNUMBER);
+		}
+	} else {
+		INSIST(content_length != NULL);
+
+		clen = (size_t)strtoul(content_length, NULL, 10);
+		if (clen == ULONG_MAX) {
+			/* Invalid number in the header value. */
+			return (ISC_R_BADNUMBER);
+		}
+		if (httpd->recvlen < httpd->consume + clen) {
+			/* The request data isn't complete yet. */
+			return (ISC_R_NOTFOUND);
+		}
+
+		/* Consume the request's data, which we do not use. */
+		httpd->consume += clen;
+	}
 
 	if (have_header(httpd, "Connection:", "close", ", \t\r\n", NULL)) {
 		httpd->flags |= HTTPD_CLOSE;
