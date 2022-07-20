@@ -23,7 +23,7 @@ https://www.sphinx-doc.org/en/master/development/tutorials/recipe.html
 
 from collections import namedtuple
 
-from docutils.parsers.rst import directives
+from docutils.parsers.rst import Directive, directives
 from docutils import nodes
 
 from sphinx import addnodes
@@ -31,7 +31,6 @@ from sphinx.directives import ObjectDescription
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
 from sphinx.util import logging
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import make_refnode
 
 import checkgrammar
@@ -61,7 +60,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     See StatementListDirective.
     """
 
-    class StatementListDirective(SphinxDirective):
+    class StatementListDirective(Directive):
         """A custom directive to generate list of statements.
         It only installs placeholder which is later replaced by
         process_statementlist_nodes() callback.
@@ -229,6 +228,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
             def transform_content(self, contentnode: addnodes.desc_content) -> None:
                 """autogenerate content from structured data"""
+                self.workaround_transform_content = True
                 if self.isc_short:
                     contentnode.insert(0, self.isc_short_node)
                 if self.isc_tags:
@@ -262,6 +262,19 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 warn = self.format_warnings(union_flags)
                 if len(warn):
                     contentnode.insert(0, warn)
+
+            def __init__(self, *args, **kwargs):
+                """Compability with Sphinx < 3.0.0"""
+                self.workaround_transform_content = False
+                super().__init__(*args, **kwargs)
+
+            def run(self):
+                """Compability with Sphinx < 3.0.0"""
+                nodelist = super().run()
+                if not self.workaround_transform_content:
+                    # get access to "contentnode" created inside super.run()
+                    self.transform_content(nodelist[1][-1])
+                return nodelist
 
         name = domainname
         label = domainlabel
