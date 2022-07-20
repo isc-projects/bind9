@@ -32,6 +32,12 @@ Removed Features
 
 - None.
 
+- The use of the ``max-zone-ttl`` option in ``options`` and ``zone``
+  blocks has been deprecated; it should now be configured as part of
+  ``dnssec-policy``. A warning is logged if this option is used in
+  ``options`` or ``zone``. In a future release, it will become
+  nonoperational. :gl:`#2918`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

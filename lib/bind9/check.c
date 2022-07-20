@@ -3143,6 +3143,30 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
+	 * Reject zones with both dnssec-policy and max-zone-ttl
+	 * */
+	if (has_dnssecpolicy) {
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "max-zone-ttl", &obj);
+		if (obj == NULL && voptions != NULL) {
+			(void)cfg_map_get(voptions, "max-zone-ttl", &obj);
+		}
+		if (obj == NULL && goptions != NULL) {
+			(void)cfg_map_get(goptions, "max-zone-ttl", &obj);
+		}
+		if (obj != NULL) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "zone '%s': option 'max-zone-ttl' "
+				    "cannot be used together with "
+				    "'dnssec-policy'",
+				    znamestr);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	/*
 	 * Check validity of the zone options.
 	 */
 	option = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);

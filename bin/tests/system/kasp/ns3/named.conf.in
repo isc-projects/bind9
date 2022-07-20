@@ -224,6 +224,15 @@ zone "ecdsa384.kasp" {
 };
 
 /*
+ * Zone with too high TTL.
+ */
+zone "max-zone-ttl.kasp" {
+	type primary;
+	file "max-zone-ttl.kasp.db";
+	dnssec-policy "ttl";
+};
+
+/*
  * Zones in different signing states.
  */
 

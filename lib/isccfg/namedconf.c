@@ -2300,7 +2300,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "max-transfer-time-out", &cfg_type_uint32,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_MIRROR | CFG_ZONE_SECONDARY },
 	{ "max-zone-ttl", &cfg_type_maxduration,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_REDIRECT },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_REDIRECT | CFG_CLAUSEFLAG_DEPRECATED },
 	{ "min-refresh-time", &cfg_type_uint32,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB },
 	{ "min-retry-time", &cfg_type_uint32,

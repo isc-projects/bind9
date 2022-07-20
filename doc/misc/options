@@ -190,7 +190,7 @@ options {
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
 	max-udp-size <integer>;
-	max-zone-ttl ( unlimited | <duration> );
+	max-zone-ttl ( unlimited | <duration> ); // deprecated
 	memstatistics <boolean>;
 	memstatistics-file <quoted_string>;
 	message-compression <boolean>;
@@ -477,7 +477,7 @@ view <string> [ <class> ] {
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
 	max-udp-size <integer>;
-	max-zone-ttl ( unlimited | <duration> );
+	max-zone-ttl ( unlimited | <duration> ); // deprecated
 	message-compression <boolean>;
 	min-cache-ttl <duration>;
 	min-ncache-ttl <duration>;

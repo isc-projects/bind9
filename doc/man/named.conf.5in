@@ -247,7 +247,7 @@ options {
 	max\-transfer\-time\-in <integer>;
 	max\-transfer\-time\-out <integer>;
 	max\-udp\-size <integer>;
-	max\-zone\-ttl ( unlimited | <duration> );
+	max\-zone\-ttl ( unlimited | <duration> ); // deprecated
 	memstatistics <boolean>;
 	memstatistics\-file <quoted_string>;
 	message\-compression <boolean>;
@@ -534,7 +534,7 @@ view <string> [ <class> ] {
 	max\-transfer\-time\-in <integer>;
 	max\-transfer\-time\-out <integer>;
 	max\-udp\-size <integer>;
-	max\-zone\-ttl ( unlimited | <duration> );
+	max\-zone\-ttl ( unlimited | <duration> ); // deprecated
 	message\-compression <boolean>;
 	min\-cache\-ttl <duration>;
 	min\-ncache\-ttl <duration>;
@@ -703,7 +703,7 @@ zone <string> [ <class> ] {
 	max\-records <integer>;
 	max\-transfer\-idle\-out <integer>;
 	max\-transfer\-time\-out <integer>;
-	max\-zone\-ttl ( unlimited | <duration> );
+	max\-zone\-ttl ( unlimited | <duration> ); // deprecated
 	notify ( explicit | master\-only | primary\-only | <boolean> );
 	notify\-delay <integer>;
 	notify\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
@@ -902,7 +902,7 @@ zone <string> [ <class> ] {
 	masterfile\-format ( raw | text );
 	masterfile\-style ( full | relative );
 	max\-records <integer>;
-	max\-zone\-ttl ( unlimited | <duration> );
+	max\-zone\-ttl ( unlimited | <duration> ); // deprecated
 	primaries [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	zone\-statistics ( full | terse | none | <boolean> );
 };
