@@ -547,7 +547,7 @@ class DictToDocutilsTableBuilder:
         row = nodes.row()
         for column in self.header:
             entry = nodes.entry()
-            entry += nodes.Text(column.description)
+            entry += nodes.paragraph(text=column.description)
             row += entry
 
         thead.append(row)
@@ -562,7 +562,7 @@ class DictToDocutilsTableBuilder:
                 entry = nodes.entry()
                 value = obj[column.dictkey]
                 if isinstance(value, str):
-                    value = nodes.Text(value)
+                    value = nodes.paragraph(text=value)
                 else:
                     value = value.deepcopy()
                 entry += value
