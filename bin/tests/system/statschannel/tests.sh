@@ -377,7 +377,7 @@ status=$((status + ret))
 n=$((n + 1))
 
 if [ -x "${NC}" ] ; then
-    echo_i "Check HTTP/1.1 pipelined requests are handled ($n)"
+    echo_i "Check HTTP/1.1 pipelined requests are handled (GET) ($n)"
     ret=0
     ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
 GET /xml/v3/status HTTP/1.1
@@ -387,6 +387,33 @@ GET /xml/v3/status HTTP/1.1
 Host: 10.53.0.3:${EXTRAPORT1}
 Connection: close
 
+EOF
+    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
+    test $lines = 2 || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+    n=$((n + 1))
+else
+    echo_i "skipping test as nc not found"
+fi
+
+if [ -x "${NC}" ] ; then
+    echo_i "Check HTTP/1.1 pipelined requests are handled (POST) ($n)"
+    ret=0
+    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+
+{}
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+Connection: close
+
+{}
 EOF
     lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
     test $lines = 2 || ret=1
