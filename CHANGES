@@ -1,3 +1,7 @@
+5946.	[bug]		Fix statistics channel's handling of multiple HTTP
+			requests in a single connection which have non-empty
+			request bodies. [GL #3463]
+
 5945.	[bug]		If parsing /etc/bind.key failed, delv could assert
 			when trying to parse the built in trust anchors as
 			the parser hadn't been reset. [GL !6468]
