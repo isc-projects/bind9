@@ -28,6 +28,7 @@ libisc_la_HEADERS =			\
 	include/isc/errno.h		\
 	include/isc/error.h		\
 	include/isc/file.h		\
+	include/isc/fips.h		\
 	include/isc/formatcheck.h	\
 	include/isc/fuzz.h		\
 	include/isc/getaddresses.h	\
@@ -129,6 +130,7 @@ libisc_la_SOURCES =		\
 	errno2result.h		\
 	error.c			\
 	file.c			\
+	fips.c			\
 	getaddresses.c		\
 	hash.c			\
 	hashmap.c		\
