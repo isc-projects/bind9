@@ -8,6 +8,8 @@
 5922.	[bug]		Forwarding of UPDATE message could fail with the
 			introduction of netmgr. This has been fixed. [GL #3389]
 
+	--- 9.16.31 released ---
+
 5917.	[bug]		Update ifconfig.sh script as is miscomputed interface
 			identifiers when destroying interfaces. [GL #3061]
 
