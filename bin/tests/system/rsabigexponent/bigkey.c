@@ -46,7 +46,7 @@
 dst_key_t *key;
 dns_fixedname_t fname;
 dns_name_t *name;
-unsigned int bits = 1024U;
+unsigned int bits = 2048U;
 isc_mem_t *mctx;
 isc_log_t *log_;
 isc_logconfig_t *logconfig;
@@ -134,7 +134,7 @@ main(int argc, char **argv) {
 								    "\"example."
 								    "\")");
 
-	CHECK(dst_key_buildinternal(name, DNS_KEYALG_RSASHA1, bits,
+	CHECK(dst_key_buildinternal(name, DNS_KEYALG_RSASHA256, bits,
 				    DNS_KEYOWNER_ZONE, DNS_KEYPROTO_DNSSEC,
 				    dns_rdataclass_in, pkey, mctx, &key),
 	      "dst_key_buildinternal(...)");
