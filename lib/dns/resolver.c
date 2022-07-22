@@ -1591,8 +1591,11 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 			      "too many simultaneous fetches for %s "
-			      "(allowed %d spilled %d)",
-			      dbuf, counter->allowed, counter->dropped);
+			      "(allowed %d spilled %d; %s)",
+			      dbuf, counter->allowed, counter->dropped,
+			      counter->dropped == 1 ? "initial trigger event"
+						    : "cumulative since "
+						      "initial trigger event");
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
