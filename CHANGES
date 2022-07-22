@@ -1,3 +1,10 @@
+5930.	[bug]		Fix DiG query retry and fail-over bug in UDP mode.
+			Also simplify the overall retry and fail-over logic to
+			make it behave predictably, and always respect the
+			documented +retry/+tries count set by a command-line
+			option (or use the default values of 2 or 3
+			respectively). [GL #3407]
+
 5929.	[func]		The use of the "max-zone-ttl" option in "zone" and
 			"options" blocks is now deprecated; this should
 			now be configured as part of "dnssec-policy"

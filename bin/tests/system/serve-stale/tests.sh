@@ -1135,7 +1135,8 @@ n=$((n+1))
 echo_i "check notincache.example times out (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 notfound.example TXT > dig.out.test$n 2>&1
-grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+grep "timed out" dig.out.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1764,7 +1765,8 @@ n=$((n+1))
 echo_i "check not in cache longttl.example times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
 wait_for_log 4 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
-grep "connection timed out" dig.out.test$n > /dev/null || ret=1
+grep "timed out" dig.out.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

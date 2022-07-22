@@ -169,7 +169,6 @@ struct dig_lookup {
 	unsigned int ednsflags;
 	dns_opcode_t opcode;
 	int rrcomments;
-	unsigned int eoferr;
 	uint16_t qid;
 	struct {
 		bool http_plain;
