@@ -1005,7 +1005,7 @@ if [ -x "$DIG" ] ; then
   echo "unstable" | sendcmd 10.53.0.8
   ret=0
   dig_with_opts +timeout=1 +nofail @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1015,7 +1015,25 @@ if [ -x "$DIG" ] ; then
   echo "unstable" | sendcmd 10.53.0.8
   ret=0
   dig_with_opts +timeout=1 +nofail +tcp @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a UDP socket network unreachable error ($n)"
+  ret=0
+  dig_with_opts @192.0.2.128 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a TCP socket network unreachable error ($n)"
+  ret=0
+  dig_with_opts +tcp @192.0.2.128 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1023,7 +1041,7 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig tries the next server after a UDP socket read error ($n)"
   ret=0
   dig_with_opts @10.53.0.99 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1033,7 +1051,7 @@ if [ -x "$DIG" ] ; then
   echo "close" | sendcmd 10.53.0.8
   ret=0
   dig_with_opts +tcp @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1048,7 +1066,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   dig_with_opts +tcp @10.53.0.99 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
   test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
-  grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1058,7 +1076,7 @@ if [ -x "$DIG" ] ; then
   echo "silent" | sendcmd 10.53.0.8
   ret=0
   dig_with_opts +timeout=1 @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1068,7 +1086,7 @@ if [ -x "$DIG" ] ; then
   echo "silent" | sendcmd 10.53.0.8
   ret=0
   dig_with_opts +timeout=1 +tcp @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
-  grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
