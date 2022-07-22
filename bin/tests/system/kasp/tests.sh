@@ -252,6 +252,15 @@ status=$((status+ret))
 
 next_key_event_threshold=$((next_key_event_threshold+i))
 
+# Test max-zone-ttl rejects zones with too high TTL.
+n=$((n+1))
+echo_i "check that max-zone-ttl rejects zones with too high TTL ($n)"
+ret=0
+set_zone "max-zone-ttl.kasp"
+grep "loading from master file ${ZONE}.db failed: out of range" "ns3/named.run" > /dev/null || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 #
 # Zone: default.kasp.
 #
