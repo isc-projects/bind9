@@ -585,6 +585,14 @@ grep "not recommended" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check that using both max-zone-ttl and dnssec-policy generates a warning ($n)"
+ret=0
+$CHECKCONF warn-kasp-max-zone-ttl.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "option 'max-zone-ttl' is ignored when used together with 'dnssec-policy'" < checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
 n=$((n+1))
 echo_i "check that masterfile-format map generates deprecation warning ($n)"
 ret=0

@@ -1,3 +1,12 @@
+5929.	[bug]		The "max-zone-ttl" option in "dnssec-policy" was
+			not fully effective; it was used for timing key
+			rollovers but did not actually place an upper limit
+			on TTLs when loading a zone. This has been
+			corrected, and the documentation has been clarified
+			to indicate that the old "max-zone-ttl" zone option
+			is now ignored when "dnssec-policy" is in use.
+			[GL #2918]
+
 5924.	[func]		When it's necessary to use AXFR to respond to an
 			IXFR request, a message explaining the reason
 			is now logged at level info. [GL #2683]

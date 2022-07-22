@@ -1516,11 +1516,15 @@ default is used.
    cannot be longer than a week.
 
 ``max-zone-ttl``
-   This specifies a maximum permissible TTL value in seconds. For
-   convenience, TTL-style time-unit suffixes may be used to specify the
-   maximum value. When loading a zone file using a ``masterfile-format``
-   of ``text`` or ``raw``, any record encountered with a TTL higher than
-   ``max-zone-ttl`` causes the zone to be rejected.
+
+   This should now be configured as part of ``dnssec-policy``.
+   Use of this option in ``options``, ``view`` and ``zone`` blocks has no
+   effect on any zone for which a ``dnssec-policy`` has also been configured.
+
+   ``max-zone-ttl`` specifies a maximum permissible TTL value in seconds.
+   For convenience, TTL-style time-unit suffixes may be used to specify the
+   maximum value. When a zone file is loaded, any record encountered with a
+   TTL higher than ``max-zone-ttl`` causes the zone to be rejected.
 
    This is useful in DNSSEC-signed zones because when rolling to a new
    DNSKEY, the old key needs to remain available until RRSIG records
@@ -1530,8 +1534,8 @@ default is used.
    (Note: because ``map``-format files load directly into memory, this
    option cannot be used with them.)
 
-   The default value is ``unlimited``. A ``max-zone-ttl`` of zero is
-   treated as ``unlimited``.
+   The default value is ``unlimited``. Setting ``max-zone-ttl`` to zero is
+   equivalent to ``unlimited``.
 
 ``stale-answer-ttl``
    This specifies the TTL to be returned on stale answers. The default is 30
@@ -5040,20 +5044,22 @@ The following options can be specified in a ``dnssec-policy`` statement:
     The default is ``P2W`` (2 weeks).
 
   ``max-zone-ttl``
-    Like the ``max-zone-ttl`` zone option, this specifies the maximum
-    permissible TTL value, in seconds, for the zone.
 
-    This is needed in DNSSEC-maintained zones because when rolling to a
-    new DNSKEY, the old key needs to remain available until RRSIG
-    records have expired from caches.  The ``max-zone-ttl`` option
-    guarantees that the largest TTL in the zone is no higher than the
-    set value.
+   This specifies the maximum permissible TTL value for the zone.  When
+   a zone file is loaded, any record encountered with a TTL higher than
+   ``max-zone-ttl`` causes the zone to be rejected.
+
+   This ensures that when rolling to a new DNSKEY, the old key will remain
+   available until RRSIG records have expired from caches. The
+   ``max-zone-ttl`` option guarantees that the largest TTL in the
+   zone is no higher than a known and predictable value.
 
     .. note:: Because ``map``-format files load directly into memory,
        this option cannot be used with them.
 
-    The default value is ``PT24H`` (24 hours).  A ``max-zone-ttl`` of
-    zero is treated as if the default value were in use.
+   The default value ``PT24H`` (24 hours).  A value of zero is treated
+   as if the default value were in use.
+
 
   ``nsec3param``
     Use NSEC3 instead of NSEC, and optionally set the NSEC3 parameters.

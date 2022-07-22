@@ -64,20 +64,16 @@ if [ -f ../ed448-supported.file ]; then
 	cat ed448.conf >> named.conf
 fi
 
-# Set up zone that stays unsigned.
-zone="unsigned.kasp"
-echo_i "setting up zone: $zone"
-zonefile="${zone}.db"
-infile="${zone}.db.infile"
-cp template.db.in $infile
-cp template.db.in $zonefile
-
-# Set up zone that stays unsigned.
-zone="insecure.kasp"
-echo_i "setting up zone: $zone"
-zonefile="${zone}.db"
-infile="${zone}.db.infile"
-cp template.db.in $zonefile
+# Set up zones that stay unsigned.
+for zn in unsigned insecure max-zone-ttl
+do
+	zone="${zn}.kasp"
+	echo_i "setting up zone: $zone"
+	zonefile="${zone}.db"
+	infile="${zone}.db.infile"
+	cp template.db.in $infile
+	cp template.db.in $zonefile
+done
 
 # Some of these zones already have keys.
 zone="dnssec-keygen.kasp"
