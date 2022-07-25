@@ -1,3 +1,7 @@
+5933.	[port]		Automatically disable RSASHA1 and NSEC3RSASHA1 in
+			named on Fedorda 33, Oracle Linux 9 and RHEL9 when
+			they are disabled by the security policy. [GL #3469]
+
 5929.	[bug]		The "max-zone-ttl" option in "dnssec-policy" was
 			not fully effective; it was used for timing key
 			rollovers but did not actually place an upper limit
