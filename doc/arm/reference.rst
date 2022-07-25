@@ -5497,7 +5497,9 @@ Response Rate Limiting
 
       All non-empty responses for a valid domain name (qname) and record type
       (qtype) are identical and have a limit specified with
-      :any:`responses-per-second` (default 0 or no limit).
+      :any:`responses-per-second` (default 0 or no limit). All valid wildcard
+      domain names are interpreted as the zone's origin name concatenated to the
+      "*" name.
 
    .. namedconf:statement:: nodata-per-second
       :tags: query
