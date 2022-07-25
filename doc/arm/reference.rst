@@ -4352,18 +4352,20 @@ with ``ipv4-prefix-length`` (default 24) and ``ipv6-prefix-length``
 
 All non-empty responses for a valid domain name (qname) and record type
 (qtype) are identical and have a limit specified with
-``responses-per-second`` (default 0 or no limit). All empty (NODATA)
-responses for a valid domain, regardless of query type, are identical.
-Responses in the NODATA class are limited by ``nodata-per-second``
-(default ``responses-per-second``). Requests for any and all undefined
-subdomains of a given valid domain result in NXDOMAIN errors, and are
-identical regardless of query type. They are limited by
-``nxdomains-per-second`` (default ``responses-per-second``). This
-controls some attacks using random names, but can be relaxed or turned
-off (set to 0) on servers that expect many legitimate NXDOMAIN
-responses, such as from anti-spam rejection lists. Referrals or delegations
-to the server of a given domain are identical and are limited by
-``referrals-per-second`` (default ``responses-per-second``).
+``responses-per-second`` (default 0 or no limit). All valid wildcard
+domain names are interpreted as the zone's origin name concatenated to
+the "*" name. All empty (NODATA) responses for a valid domain,
+regardless of query type, are identical.  Responses in the NODATA class
+are limited by ``nodata-per-second`` (default ``responses-per-second``).
+Requests for any and all undefined subdomains of a given valid domain
+result in NXDOMAIN errors, and are identical regardless of query type.
+They are limited by ``nxdomains-per-second`` (default
+``responses-per-second``). This controls some attacks using random
+names, but can be relaxed or turned off (set to 0) on servers that
+expect many legitimate NXDOMAIN responses, such as from anti-spam
+rejection lists. Referrals or delegations to the server of a given
+domain are identical and are limited by ``referrals-per-second``
+(default ``responses-per-second``).
 
 Responses generated from local wildcards are counted and limited as if
 they were for the parent domain name. This controls flooding using
