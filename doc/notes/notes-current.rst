@@ -41,7 +41,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- DNSSEC ``RSASHA1`` and ``NSEC3RSASHA1`` are automatically disabled
+  on systems (e.g. RHEL9) where they are disallowed by the security
+  policy.  Primary zones using those algorithms need to be moved
+  off of them prior to running on these systems as graceful migration
+  to different DNSSEC algorithms is not possible when RSASHA1 is
+  disallowed by the OS. :gl:`#3469`
 
 Bug Fixes
 ~~~~~~~~~
