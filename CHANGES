@@ -1,3 +1,7 @@
+5932.	[bug]		Fix rndc dumpdb -expired and always include expired
+			RRsets, not just for RBTDB_VIRTUAL time window.
+			[GL #3462]
+
 5931.	[bug]		Fix DiG query error handling robustness in NSSEARCH
 			mode by making sure that udp_ready(), tcp_connected(),
 			and send_done() callbacks start the next query in chain
