@@ -35,6 +35,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Response Rate Limiting (RRL) code now treats all QNAMEs that are
+  subject to wildcard processing within a given zone as the same name,
+  to prevent circumventing the limits enforced by RRL. :gl:`#3459`
+
 - Zones using ``dnssec-policy`` now require dynamic DNS or
   ``inline-signing`` to be configured explicitly :gl:`#3381`.
 
