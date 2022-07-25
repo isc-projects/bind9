@@ -58,3 +58,7 @@ Bug Fixes
 - Non-dynamic zones that inherit dnssec-policy from the view or
   options level were not marked as inline-signed, and thus were never
   scheduled to be re-signed. This is now fixed. :gl:`#3438`
+
+- Fix `rndc dumpdb -expired` to include expired RRsets, even if the cache
+  cleaning time window has passed. This will now show expired RRsets that are
+  stuck in the cache. :gl:`#3462`
