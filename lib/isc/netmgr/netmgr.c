@@ -1545,6 +1545,15 @@ bool
 isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	switch (sock->type) {
+#ifdef HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		return (isc__nmsocket_tls_timer_running(sock));
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
+
 	return (uv_is_active((uv_handle_t *)&sock->read_timer));
 }
 

@@ -1215,6 +1215,20 @@ isc__nmsocket_tls_reset(isc_nmsocket_t *sock) {
 	}
 }
 
+bool
+isc__nmsocket_tls_timer_running(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tlssocket);
+
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+		REQUIRE(VALID_NMSOCK(sock->outerhandle->sock));
+		return (isc__nmsocket_timer_running(sock->outerhandle->sock));
+	}
+
+	return (false);
+}
+
 const char *
 isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;

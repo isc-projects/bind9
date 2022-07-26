@@ -1583,6 +1583,9 @@ void
 isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
 				  uint64_t write_timeout);
 
+bool
+isc__nmsocket_tls_timer_running(isc_nmsocket_t *sock);
+
 void
 isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
