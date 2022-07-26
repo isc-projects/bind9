@@ -44,12 +44,24 @@
 
 extern isc_mem_t      *mctx;
 extern isc_nm_t	      *netmgr;
+extern isc_loopmgr_t  *loopmgr;
+extern isc_loop_t     *mainloop;
 extern isc_taskmgr_t  *taskmgr;
 extern isc_timermgr_t *timermgr;
 extern unsigned int    workers;
 extern isc_task_t     *maintask;
 
 #define isc_test_nap(ms) uv_sleep(ms)
+
+int
+setup_mctx(void **state);
+int
+teardown_mctx(void **state);
+
+int
+setup_loopmgr(void **state);
+int
+teardown_loopmgr(void **state);
 
 int
 setup_managers(void **state);

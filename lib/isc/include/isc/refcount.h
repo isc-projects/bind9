@@ -149,4 +149,34 @@ isc_refcount_decrement(isc_refcount_t *target) {
 		ISC_INSIST(_refs > 0);                                \
 	} while (0)
 
+#define ISC_REFCOUNT_DECL(name)                             \
+	void name##_ref(name##_t *ptr);                     \
+	void name##_unref(name##_t *ptr);                   \
+	void name##_attach(name##_t *ptr, name##_t **ptrp); \
+	void name##_detach(name##_t **ptrp)
+
+#define ISC_REFCOUNT_IMPL(name, destroy)                             \
+	void name##_ref(name##_t *ptr) {                             \
+		REQUIRE(ptr != NULL);                                \
+		isc_refcount_increment(&ptr->references);            \
+	}                                                            \
+                                                                     \
+	void name##_unref(name##_t *ptr) {                           \
+		REQUIRE(ptr != NULL);                                \
+		if (isc_refcount_decrement(&ptr->references) == 1) { \
+			destroy(ptr);                                \
+		}                                                    \
+	}                                                            \
+	void name##_attach(name##_t *ptr, name##_t **ptrp) {         \
+		REQUIRE(ptrp != NULL && *ptrp == NULL);              \
+		name##_ref(ptr);                                     \
+		*ptrp = ptr;                                         \
+	}                                                            \
+                                                                     \
+	void name##_detach(name##_t **ptrp) {                        \
+		name##_t *ptr = *ptrp;                               \
+		*ptrp = NULL;                                        \
+		name##_unref(ptr);                                   \
+	}
+
 ISC_LANG_ENDDECLS

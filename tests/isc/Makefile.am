@@ -11,6 +11,7 @@ LDADD +=			\
 
 check_PROGRAMS =	\
 	aes_test	\
+	async_test	\
 	buffer_test	\
 	counter_test	\
 	crc64_test	\
@@ -20,7 +21,9 @@ check_PROGRAMS =	\
 	heap_test	\
 	hmac_test	\
 	ht_test		\
+	job_test	\
 	lex_test	\
+	loop_test	\
 	md_test		\
 	mem_test	\
 	netaddr_test	\
@@ -38,7 +41,8 @@ check_PROGRAMS =	\
 	symtab_test	\
 	task_test	\
 	time_test	\
-	timer_test
+	timer_test	\
+	work_test
 
 if HAVE_LIBNGHTTP2
 check_PROGRAMS +=	\

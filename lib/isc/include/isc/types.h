@@ -55,16 +55,19 @@ typedef struct isc_httpdurl isc_httpdurl_t;	       /*%< HTTP URL */
 typedef void(isc_httpdondestroy_t)(void *); /*%< Callback on destroying httpd */
 typedef struct isc_interface	 isc_interface_t;     /*%< Interface */
 typedef struct isc_interfaceiter isc_interfaceiter_t; /*%< Interface Iterator */
-typedef struct isc_lex		 isc_lex_t;	      /*%< Lex */
-typedef struct isc_log		 isc_log_t;	      /*%< Log */
-typedef struct isc_logcategory	 isc_logcategory_t;   /*%< Log Category */
-typedef struct isc_logconfig	 isc_logconfig_t;     /*%< Log Configuration */
-typedef struct isc_logmodule	 isc_logmodule_t;     /*%< Log Module */
-typedef struct isc_mem		 isc_mem_t;	      /*%< Memory */
-typedef struct isc_mempool	 isc_mempool_t;	      /*%< Memory Pool */
-typedef struct isc_netaddr	 isc_netaddr_t;	      /*%< Net Address */
-typedef struct isc_netprefix	 isc_netprefix_t;     /*%< Net Prefix */
-typedef struct isc_nm		 isc_nm_t;	      /*%< Network manager */
+typedef struct isc_job		 isc_job_t;
+typedef struct isc_lex		 isc_lex_t;	    /*%< Lex */
+typedef struct isc_log		 isc_log_t;	    /*%< Log */
+typedef struct isc_logcategory	 isc_logcategory_t; /*%< Log Category */
+typedef struct isc_logconfig	 isc_logconfig_t;   /*%< Log Configuration */
+typedef struct isc_logmodule	 isc_logmodule_t;   /*%< Log Module */
+typedef struct isc_loop		 isc_loop_t;	    /*%< Event loop */
+typedef struct isc_loopmgr	 isc_loopmgr_t;	    /*%< Event loop manager */
+typedef struct isc_mem		 isc_mem_t;	    /*%< Memory */
+typedef struct isc_mempool	 isc_mempool_t;	    /*%< Memory Pool */
+typedef struct isc_netaddr	 isc_netaddr_t;	    /*%< Net Address */
+typedef struct isc_netprefix	 isc_netprefix_t;   /*%< Net Prefix */
+typedef struct isc_nm		 isc_nm_t;	    /*%< Network manager */
 typedef struct isc_nmsocket	 isc_nmsocket_t; /*%< Network manager socket */
 typedef struct isc_nmhandle	 isc_nmhandle_t; /*%< Network manager handle */
 typedef struct isc_portset	 isc_portset_t;	 /*%< Port Set */
@@ -72,6 +75,7 @@ typedef struct isc_quota	 isc_quota_t;	 /*%< Quota */
 typedef struct isc_ratelimiter	 isc_ratelimiter_t;   /*%< Rate Limiter */
 typedef struct isc_region	 isc_region_t;	      /*%< Region */
 typedef uint64_t		 isc_resourcevalue_t; /*%< Resource Value */
+typedef struct isc_signal	 isc_signal_t;	      /*%< Signal handler */
 typedef struct isc_sockaddr	 isc_sockaddr_t;      /*%< Socket Address */
 typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;  /*%< Socket Address List
 						       * */
@@ -85,6 +89,8 @@ typedef struct isc_textregion isc_textregion_t; /*%< Text Region */
 typedef struct isc_time	      isc_time_t;	/*%< Time */
 typedef struct isc_timer      isc_timer_t;	/*%< Timer */
 typedef struct isc_timermgr   isc_timermgr_t;	/*%< Timer Manager */
+typedef struct isc_work	      isc_work_t;	/*%< Work offloaded to an
+						 *   external thread */
 
 #if HAVE_LIBNGHTTP2
 typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;

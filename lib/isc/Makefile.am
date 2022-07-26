@@ -9,6 +9,7 @@ libisc_la_HEADERS =			\
 	include/isc/app.h		\
 	include/isc/assertions.h	\
 	include/isc/astack.h		\
+	include/isc/async.h		\
 	include/isc/atomic.h		\
 	include/isc/attributes.h	\
 	include/isc/backtrace.h		\
@@ -42,10 +43,12 @@ libisc_la_HEADERS =			\
 	include/isc/httpd.h		\
 	include/isc/interfaceiter.h	\
 	include/isc/iterated_hash.h	\
+	include/isc/job.h		\
 	include/isc/lang.h		\
 	include/isc/lex.h		\
 	include/isc/list.h		\
 	include/isc/log.h		\
+	include/isc/loop.h		\
 	include/isc/magic.h		\
 	include/isc/managers.h		\
 	include/isc/md.h		\
@@ -77,6 +80,7 @@ libisc_la_HEADERS =			\
 	include/isc/rwlock.h		\
 	include/isc/safe.h		\
 	include/isc/serial.h		\
+	include/isc/signal.h\
 	include/isc/siphash.h		\
 	include/isc/sockaddr.h		\
 	include/isc/stat.h		\
@@ -90,6 +94,7 @@ libisc_la_HEADERS =			\
 	include/isc/syslog.h		\
 	include/isc/task.h		\
 	include/isc/thread.h		\
+	include/isc/tid.h		\
 	include/isc/time.h		\
 	include/isc/timer.h		\
 	include/isc/tls.h		\
@@ -98,7 +103,8 @@ libisc_la_HEADERS =			\
 	include/isc/url.h		\
 	include/isc/utf8.h		\
 	include/isc/util.h		\
-	include/isc/uv.h
+	include/isc/uv.h		\
+	include/isc/work.h
 
 libisc_la_SOURCES =		\
 	$(libisc_la_HEADERS)	\
@@ -114,6 +120,7 @@ libisc_la_SOURCES =		\
 	app.c			\
 	assertions.c		\
 	astack.c		\
+	async.c			\
 	backtrace.c		\
 	base32.c		\
 	base64.c		\
@@ -145,9 +152,13 @@ libisc_la_SOURCES =		\
 	interfaceiter.c		\
 	iterated_hash.c		\
 	jemalloc_shim.h		\
+	job.c			\
+	job_p.h			\
 	lex.c			\
 	lib.c			\
 	log.c			\
+	loop.c			\
+	loop_p.h		\
 	managers.c		\
 	md.c			\
 	mem.c			\
@@ -178,6 +189,7 @@ libisc_la_SOURCES =		\
 	rwlock.c		\
 	safe.c			\
 	serial.c		\
+	signal.c		\
 	siphash.c		\
 	sockaddr.c		\
 	stats.c			\
@@ -189,6 +201,7 @@ libisc_la_SOURCES =		\
 	task.c			\
 	task_p.h		\
 	thread.c		\
+	tid.c			\
 	time.c			\
 	timer.c			\
 	timer_p.h		\
@@ -199,7 +212,8 @@ libisc_la_SOURCES =		\
 	trampoline_p.h		\
 	url.c			\
 	utf8.c			\
-	uv.c
+	uv.c			\
+	work.c
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\

@@ -15,12 +15,12 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
-#include <uv.h>
 
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "trampoline_p.h"
 
