@@ -1563,6 +1563,9 @@ isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
  * around.
  */
 
+void
+isc__nmsocket_tls_reset(isc_nmsocket_t *sock);
+
 const char *
 isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 
