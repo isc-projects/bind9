@@ -56,3 +56,7 @@ Bug Fixes
   ``dnssec-policy``. In zones with both the old ``max-zone-ttl``
   option and ``dnssec-policy`` configured, the old option will be
   ignored, and a warning will be generated. :gl:`#2918`
+
+- Fix `rndc dumpdb -expired` to include expired RRsets, even if the cache
+  cleaning time window has passed. This will now show expired RRsets that are
+  stuck in the cache. :gl:`#3462`
