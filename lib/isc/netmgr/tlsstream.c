@@ -496,6 +496,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			}
 		}
 	}
+	errno = 0;
 	tls_status = SSL_get_error(sock->tlsstream.tls, rv);
 	saved_errno = errno;
 
@@ -854,7 +855,7 @@ isc__nm_tls_resumeread(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (!atomic_compare_exchange_strong(&handle->sock->readpaused,
-					    &(bool){ false }, false))
+					    &(bool){ true }, false))
 	{
 		if (inactive(handle->sock)) {
 			return;
