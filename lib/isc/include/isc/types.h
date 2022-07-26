@@ -34,7 +34,6 @@
 /* Core Types.  Alphabetized by defined type. */
 
 typedef struct isc_astack isc_astack_t;		 /*%< Array-based fast stack */
-typedef struct isc_appctx isc_appctx_t;		 /*%< Application context */
 typedef struct isc_buffer isc_buffer_t;		 /*%< Buffer */
 typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t; /*%< Buffer List */
 typedef struct isc_constregion	   isc_constregion_t;	  /*%< Const region */
