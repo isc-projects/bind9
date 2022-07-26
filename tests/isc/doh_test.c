@@ -82,8 +82,6 @@ static int expected_ctimeouts;
 #define have_expected_ctimeouts(v) \
 	((v) >= expected_ctimeouts && expected_ctimeouts >= 0)
 
-static atomic_bool test_was_error = false;
-
 static bool noanswer = false;
 
 static atomic_bool POST = true;
@@ -161,8 +159,6 @@ error:
 	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
 	if (result == ISC_R_TOOMANYOPENFILES) {
 		atomic_store(&slowdown, true);
-	} else {
-		atomic_store(&test_was_error, true);
 	}
 }
 
@@ -303,8 +299,6 @@ setup_test(void **state) {
 	expected_ssends = -1;
 	expected_ctimeouts = -1;
 
-	atomic_store(&test_was_error, false);
-
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, false);
 
@@ -405,8 +399,6 @@ doh_receive_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_loopmgr_shutdown(loopmgr);
 		}
 	} else {
-		/* We failed to connect; try again */
-		atomic_store(&test_was_error, true);
 		isc_loopmgr_shutdown(loopmgr);
 	}
 }
@@ -432,7 +424,6 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	assert_non_null(handle);
 
 	if (eresult != ISC_R_SUCCESS) {
-		atomic_store(&test_was_error, true);
 		return;
 	}
 
@@ -488,6 +479,15 @@ ISC_LOOP_TEST_IMPL(mock_doh_uv_tcp_bind) {
 }
 
 static void
+listen_sock_close(void *arg) {
+	isc_nmsocket_t *listen_sock = arg;
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+}
+
+static void
 doh_noop(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
@@ -503,10 +503,7 @@ doh_noop(void *arg __attribute__((__unused__))) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -549,6 +546,7 @@ doh_noresponse(void *arg __attribute__((__unused__))) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -557,9 +555,6 @@ doh_noresponse(void *arg __attribute__((__unused__))) {
 					      .length = send_msg.len },
 			     noop_read_cb, NULL, atomic_load(&use_TLS), 30000);
 
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
 	isc_loopmgr_shutdown(loopmgr);
 }
 
@@ -613,7 +608,7 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	isc_nmhandle_attach(handle, &sendhandle);
@@ -624,19 +619,6 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, timeout_retry_cb, NULL);
-	return;
-
-error:
-	atomic_store(&test_was_error, true);
-}
-
-static void
-listen_sock_close(void *arg) {
-	isc_nmsocket_t *listen_sock = arg;
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
 }
 
 static void
@@ -729,9 +711,6 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		if (sends <= 0) {
 			isc_loopmgr_shutdown(loopmgr);
 		}
-	} else {
-		atomic_store(&test_was_error, true);
-		isc_loopmgr_shutdown(loopmgr);
 	}
 	isc_nmhandle_detach(&thandle);
 }
@@ -870,7 +849,7 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	result = isc__nm_http_request(
@@ -879,7 +858,7 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 .length = send_msg.len },
 		doh_receive_reply_cb, arg);
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	result = isc__nm_http_request(
@@ -888,11 +867,8 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 .length = send_msg.len },
 		doh_receive_reply_cb, arg);
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
-	return;
-error:
-	atomic_store(&test_was_error, true);
 }
 
 static void
@@ -1103,7 +1079,6 @@ doh_bad_connect_uri_teardown(void **state) {
 	X(ssends);
 
 	/* As we used an ill-formed URI, there ought to be an error. */
-	assert_true(atomic_load(&test_was_error));
 	assert_int_equal(atomic_load(&csends), 0);
 	assert_int_equal(atomic_load(&creads), 0);
 	assert_int_equal(atomic_load(&sreads), 0);
@@ -1799,7 +1774,12 @@ ISC_RUN_TEST_IMPL(doh_connect_makeuri) {
 }
 
 ISC_TEST_LIST_START
+
+/* Mock tests are unreliable on OpenBSD */
+#if !defined(__OpenBSD__)
 ISC_TEST_ENTRY_CUSTOM(mock_doh_uv_tcp_bind, setup_test, teardown_test)
+#endif /* !defined(__OpenBSD__) */
+
 ISC_TEST_ENTRY(doh_parse_GET_query_string)
 ISC_TEST_ENTRY(doh_base64url_to_base64)
 ISC_TEST_ENTRY(doh_base64_to_base64url)

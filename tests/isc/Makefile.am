@@ -39,8 +39,13 @@ check_PROGRAMS =	\
 	stats_test	\
 	symtab_test	\
 	task_test	\
+	tcp_test	\
+	tcpdns_test	\
 	time_test	\
 	timer_test	\
+	tls_test	\
+	tlsdns_test	\
+	udp_test	\
 	work_test
 
 if HAVE_LIBNGHTTP2
@@ -87,6 +92,76 @@ task_test_CPPFLAGS =	\
 
 task_test_LDADD =	\
 	$(LDADD)
+
+tcp_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+tcp_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+tcp_test_SOURCES =	\
+	tcp_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
+
+tcpdns_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+tcpdns_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+tcpdns_test_SOURCES =	\
+	tcpdns_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
+
+tls_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+tls_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+tls_test_SOURCES =	\
+	tls_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
+
+tlsdns_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+tlsdns_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+tlsdns_test_SOURCES =	\
+	tlsdns_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
+
+udp_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+udp_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+udp_test_SOURCES =	\
+	udp_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
 
 if HAVE_LIBXML2
 task_test_CPPFLAGS += $(LIBXML2_CFLAGS)
